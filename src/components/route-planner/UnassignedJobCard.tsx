@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { format, parseISO, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
 import { da } from "date-fns/locale";
 import { formatDurationMin } from "@/lib/duration-format";
+import { relativeFromNow } from "@/lib/relative-time";
 
 type OrderItem = {
   service_name: string;
@@ -57,11 +58,14 @@ const getSchedule = (d?: string | null) => {
   const date = parseISO(d);
   const diff = differenceInDays(date, new Date());
   let relative: string;
-  if (isPast(date) && !isToday(date)) relative = `${Math.abs(diff)} dage forsinket`;
-  else if (isToday(date)) relative = "i dag";
-  else if (isTomorrow(date)) relative = "i morgen";
-  else if (diff > 0 && diff < 7) relative = `om ${diff} dage`;
-  else relative = `om ${diff} dage`;
+  if (isPast(date) && !isToday(date)) {
+    const minsLate = Math.round((Date.now() - date.getTime()) / 60000);
+    if (minsLate < 60) relative = `${minsLate} min forsinket`;
+    else if (minsLate < 60 * 24) relative = `${Math.round(minsLate / 60)} t forsinket`;
+    else relative = `${Math.abs(diff)} dage forsinket`;
+  } else {
+    relative = relativeFromNow(date) || "i dag";
+  }
 
   const dayLabel = isToday(date) ? "I dag"
     : isTomorrow(date) ? "I morgen"

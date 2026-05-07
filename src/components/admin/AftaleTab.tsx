@@ -42,6 +42,7 @@ import {
   type PricingSnapshot,
   type ServiceStepDetail,
 } from "@/lib/service-pricing";
+import { relativeFromNow } from "@/lib/relative-time";
 import type { Service, CalculatorStep } from "@/hooks/useDatabase";
 
 /* ─── Types ─── */
@@ -594,24 +595,11 @@ const LinkedSubscriptionInfo = ({ orderId, subscriptions }: { orderId: string; s
     <div className="space-y-2">
       {linked.map(sub => {
         const nextDate = sub.next_service_date ? new Date(sub.next_service_date) : null;
-        const msUntil = nextDate ? nextDate.getTime() - Date.now() : null;
-        const minutesUntil = msUntil != null ? Math.round(msUntil / 60000) : null;
-        const daysUntil = msUntil != null ? Math.ceil(msUntil / (1000 * 60 * 60 * 24)) : null;
-        // Vælg passende tidsenhed afhængigt af hvor tæt næste service er.
-        // Korte intervaller (fx test-intervaller "Hver 10. minut") skal vises i
-        // minutter/timer i stedet for at runde op til "om 1 dag".
-        const formatRelative = (): string => {
-          if (minutesUntil == null) return "";
-          if (minutesUntil <= 0) return "I dag!";
-          if (minutesUntil < 60) return `om ${minutesUntil} min`;
-          const hoursUntil = Math.round(minutesUntil / 60);
-          if (hoursUntil < 24) return `om ${hoursUntil} time${hoursUntil !== 1 ? "r" : ""}`;
-          return `om ${daysUntil} dag${daysUntil !== 1 ? "e" : ""}`;
-        };
+        const minsUntil = nextDate ? Math.round((nextDate.getTime() - Date.now()) / 60000) : null;
         const urgencyTone =
-          minutesUntil != null && minutesUntil <= 60 * 24 * 2
+          minsUntil != null && minsUntil <= 60 * 24 * 2
             ? "text-destructive"
-            : daysUntil != null && daysUntil <= 7
+            : minsUntil != null && minsUntil <= 60 * 24 * 7
             ? "text-amber-600"
             : "text-accent";
         const profile = (sub as any).profiles;
@@ -642,9 +630,9 @@ const LinkedSubscriptionInfo = ({ orderId, subscriptions }: { orderId: string; s
                   <span className="text-xs font-semibold text-foreground">
                     {nextDate.toLocaleDateString("da-DK", { weekday: "short", day: "numeric", month: "short" })}
                   </span>
-                  {minutesUntil !== null && (
+                  {minsUntil !== null && (
                     <span className={`text-[11px] font-bold ${urgencyTone}`}>
-                      {formatRelative()}
+                      {relativeFromNow(nextDate)}
                     </span>
                   )}
                 </div>
@@ -1241,14 +1229,16 @@ const AftaleTab = ({
           <div className="space-y-2">
             {upcomingSubs.slice(0, 4).map(sub => {
               const nextDate = new Date(sub.next_service_date!);
-              const daysUntil = Math.ceil((nextDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+              const mins = Math.round((nextDate.getTime() - Date.now()) / 60000);
               const profile = (sub as any).profiles;
+              const isUrgent = mins <= 60 * 24 * 2; // ≤ 2 dage
+              const badgeLabel = relativeFromNow(nextDate, { short: true });
               return (
                 <div key={sub.id} className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5 text-sm">
                   <div className="flex items-center gap-2">
                     <span className={`inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold ${
-                      daysUntil <= 2 ? "bg-destructive/10 text-destructive" : "bg-secondary text-foreground"
-                    }`}>{daysUntil <= 0 ? "!" : `${daysUntil}d`}</span>
+                      isUrgent ? "bg-destructive/10 text-destructive" : "bg-secondary text-foreground"
+                    }`}>{mins <= 0 ? "!" : badgeLabel}</span>
                     <span className="font-medium text-foreground">{sub.service_name}</span>
                     <span className="text-muted-foreground">— {profile?.display_name || "Kunde"}</span>
                   </div>
@@ -1317,6 +1307,7 @@ const AftaleTab = ({
               const b = new Date(nextDate); b.setHours(0,0,0,0);
               return Math.round((b.getTime() - a.getTime()) / 86400000);
             })();
+            const minutesUntilNext = nextDate ? Math.round((nextDate.getTime() - Date.now()) / 60000) : null;
             const routeStop = stopByOrder[order.id];
             const routeInfo = routeStop?.route;
             const routeDate = routeInfo?.route_date ? new Date(routeInfo.route_date) : null;
@@ -1476,7 +1467,7 @@ const AftaleTab = ({
                                 {nextDate.toLocaleDateString("da-DK", { weekday: "short", day: "numeric", month: "short" })}
                               </span>
                               <span className="opacity-80">
-                                · {daysUntilNext <= 0 ? "i dag" : daysUntilNext === 1 ? "i morgen" : `om ${daysUntilNext} dage`}
+                                · {relativeFromNow(nextDate)}
                               </span>
                             </div>
                           )}
