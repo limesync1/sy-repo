@@ -188,19 +188,29 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
       if (email) seenEmails.add(email);
 
       const ptd = get(row, mapping, "payment_terms_days");
+      const ptdNum = ptd
+        ? (() => {
+            const m = String(ptd).match(/\d+/);
+            return m ? Number(m[0]) : undefined;
+          })()
+        : undefined;
+      const phoneRaw = get(row, mapping, "phone");
+      const phoneClean = phoneRaw
+        ? phoneRaw.replace(/\s+/g, "").replace(/^\+45/, "")
+        : undefined;
       return {
         source: row, type, email,
         name: get(row, mapping, "name"),
         company_name: get(row, mapping, "company_name"),
         cvr: get(row, mapping, "cvr")?.replace(/\D/g, "") || undefined,
         contact_name: get(row, mapping, "contact_name"),
-        phone: get(row, mapping, "phone"),
+        phone: phoneClean,
         address: get(row, mapping, "address"),
         zip_code: get(row, mapping, "zip_code"),
         city: get(row, mapping, "city"),
         customer_number: get(row, mapping, "customer_number"),
         ean_number: get(row, mapping, "ean_number"),
-        payment_terms_days: ptd ? Number(ptd) || undefined : undefined,
+        payment_terms_days: ptdNum,
         notes: get(row, mapping, "notes"),
         errors, isDuplicate, duplicateReason,
       };
