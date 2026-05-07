@@ -1177,17 +1177,32 @@ const AftaleTab = ({
         </Card>
       </div>
 
-      {/* Søgefelt — leder efter kunde, service, adresse osv. */}
+      {/* Søgefelt + sortering */}
       <div className={`grid gap-5 ${routePlanningEnabled ? "lg:grid-cols-[7fr_3fr]" : ""}`}>
         <div className="space-y-5 min-w-0">
-        <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Søg efter kunde, e-mail, service eller adresse..."
-          className="h-10 pl-9 rounded-lg"
-        />
+        <div className="flex flex-wrap gap-2">
+          <div className="relative flex-1 min-w-[240px]">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Søg kunde, e-mail, service, adresse…"
+              className="h-10 pl-9 rounded-lg"
+            />
+          </div>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+            aria-label="Sortér aftaler"
+            className="h-10 rounded-lg border border-border bg-card px-3 pr-8 text-sm font-medium text-foreground hover:bg-secondary cursor-pointer outline-none focus:ring-2 focus:ring-ring/30"
+          >
+            <option value="needs_action">Smart: Vigtigst først</option>
+            <option value="newest">Nyeste først</option>
+            <option value="oldest">Ældste først</option>
+            <option value="next_service">Næste udførelse</option>
+            <option value="amount_desc">Højeste beløb</option>
+            <option value="amount_asc">Laveste beløb</option>
+          </select>
         </div>
 
       {/* Filtre — opdelt i tre logiske grupper:
