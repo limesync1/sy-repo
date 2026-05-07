@@ -4,15 +4,17 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
-  DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { MoreHorizontal, Mail, Receipt, Ban, CheckCircle2, Loader2 } from "lucide-react";
+import {
+  Bell, Receipt, Ban, CheckCircle2, Loader2, RefreshCw, ChevronDown,
+} from "lucide-react";
 
 type Order = {
   id: string;
@@ -20,11 +22,9 @@ type Order = {
   invoice_external_id?: string | null;
   reminder_count?: number | null;
   total_amount?: number | null;
-  /** "economic" | "billy" | "dinero" | "zenegy" — bruges til hint-tekst. */
-  accounting_provider?: string | null;
 };
 
-type Action = "send_reminder" | "credit_invoice" | "void_draft" | "mark_paid";
+type Action = "send_reminder" | "credit_invoice" | "void_draft" | "mark_paid" | "sync_now";
 type ReminderType = "reminder1" | "reminder2" | "reminder3" | "collection" | "auto";
 
 /**
@@ -39,9 +39,10 @@ export default function InvoiceActionsMenu({ order }: { order: Order }) {
   const isInvoiced = !!order.invoice_external_id;
   const isPaid = order.payment_status === "paid";
   const isCredited = order.payment_status === "credited";
-  const reminderLabel = (order.reminder_count ?? 0) > 0
-    ? `Send rykker (${(order.reminder_count ?? 0) + 1})`
-    : "Send 1. rykker";
+  const nextReminderNumber = Math.min((order.reminder_count ?? 0) + 1, 3);
+  const reminderLabel = nextReminderNumber === 1
+    ? "Send 1. rykker"
+    : `Send ${nextReminderNumber}. rykker`;
 
   async function run(action: Action, params?: Record<string, unknown>) {
     setBusy(action);
@@ -56,6 +57,7 @@ export default function InvoiceActionsMenu({ order }: { order: Order }) {
         credit_invoice: "Faktura krediteret",
         void_draft: "Kladde annulleret",
         mark_paid: "Faktura markeret som betalt",
+        sync_now: "Synkroniseret med regnskabsprogram",
       };
       const note = (data as any)?.result?.note as string | undefined;
       toast.success(labels[action], note ? { description: note } : undefined);
@@ -72,73 +74,132 @@ export default function InvoiceActionsMenu({ order }: { order: Order }) {
     run("send_reminder", { type });
   }
 
+  const Spinner = (a: Action) => busy === a
+    ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+    : null;
+
   return (
-    <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
+    <div
+      className="flex flex-wrap items-center gap-1"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* Synkronisér nu — altid synlig så brugeren kan tvinge friske data */}
+      <Tooltip>
+        <TooltipTrigger asChild>
           <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 px-2 text-[11px]"
-            onClick={(e) => e.stopPropagation()}
+            variant="ghost" size="sm"
+            className="h-7 w-7 p-0"
             disabled={busy !== null}
+            onClick={() => run("sync_now")}
+            aria-label="Synkronisér med regnskabsprogram"
           >
-            {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <MoreHorizontal className="h-3 w-3" />}
-            <span className="ml-1">Faktura</span>
+            {Spinner("sync_now") ?? <RefreshCw className="h-3.5 w-3.5" />}
           </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56" onClick={(e) => e.stopPropagation()}>
-          <DropdownMenuLabel>Faktura-handlinger</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          {isInvoiced && !isPaid && !isCredited && (
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>
-                <Mail className="mr-2 h-3.5 w-3.5" /> {reminderLabel}
-              </DropdownMenuSubTrigger>
-              <DropdownMenuPortal>
-                <DropdownMenuSubContent>
-                  <DropdownMenuItem onSelect={() => sendReminder("reminder1")}>1. rykker</DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => sendReminder("reminder2")}>2. rykker</DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => sendReminder("reminder3")}>3. rykker</DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onSelect={() => sendReminder("collection")}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    Send til inkasso
-                  </DropdownMenuItem>
-                </DropdownMenuSubContent>
-              </DropdownMenuPortal>
-            </DropdownMenuSub>
-          )}
-          {isInvoiced && !isPaid && !isCredited && (
-            <DropdownMenuItem onSelect={() => setConfirm("mark_paid")}>
-              <CheckCircle2 className="mr-2 h-3.5 w-3.5" /> Markér som betalt
-            </DropdownMenuItem>
-          )}
-          {isInvoiced && !isCredited && (
-            <DropdownMenuItem
-              onSelect={() => setConfirm("credit_invoice")}
-              className="text-destructive focus:text-destructive"
+        </TooltipTrigger>
+        <TooltipContent>Synkronisér betalings- og rykkerstatus nu</TooltipContent>
+      </Tooltip>
+
+      {/* Send rykker — split-knap: hovedhandling = næste rykker, dropdown = vælg */}
+      {isInvoiced && !isPaid && !isCredited && (
+        <div className="inline-flex">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline" size="sm"
+                className="h-7 rounded-r-none border-r-0 px-2 text-[11px]"
+                disabled={busy !== null}
+                onClick={() => sendReminder(`reminder${nextReminderNumber}` as ReminderType)}
+              >
+                {Spinner("send_reminder") ?? <Bell className="h-3.5 w-3.5" />}
+                <span className="ml-1">{reminderLabel}</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Registrér rykker {nextReminderNumber} for denne faktura</TooltipContent>
+          </Tooltip>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline" size="sm"
+                className="h-7 rounded-l-none px-1.5"
+                disabled={busy !== null}
+                aria-label="Flere rykker-typer"
+              >
+                <ChevronDown className="h-3.5 w-3.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuLabel className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                Vælg rykker-type
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => sendReminder("reminder1")}>1. rykker</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => sendReminder("reminder2")}>2. rykker</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => sendReminder("reminder3")}>3. rykker</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onSelect={() => sendReminder("collection")}
+                className="text-destructive focus:text-destructive"
+              >
+                Send til inkasso
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
+
+      {/* Markér som betalt */}
+      {isInvoiced && !isPaid && !isCredited && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline" size="sm"
+              className="h-7 px-2 text-[11px] text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50"
+              disabled={busy !== null}
+              onClick={() => setConfirm("mark_paid")}
             >
-              <Receipt className="mr-2 h-3.5 w-3.5" /> Krediter faktura
-            </DropdownMenuItem>
-          )}
-          {!isInvoiced && (
-            <DropdownMenuItem
-              onSelect={() => setConfirm("void_draft")}
-              className="text-destructive focus:text-destructive"
+              {Spinner("mark_paid") ?? <CheckCircle2 className="h-3.5 w-3.5" />}
+              <span className="ml-1">Betalt</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Markér fakturaen som betalt i regnskabsprogrammet</TooltipContent>
+        </Tooltip>
+      )}
+
+      {/* Krediter faktura */}
+      {isInvoiced && !isCredited && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline" size="sm"
+              className="h-7 px-2 text-[11px] text-destructive hover:bg-destructive/10"
+              disabled={busy !== null}
+              onClick={() => setConfirm("credit_invoice")}
             >
-              <Ban className="mr-2 h-3.5 w-3.5" /> Annullér kladde
-            </DropdownMenuItem>
-          )}
-          {!isInvoiced && isPaid && (
-            <div className="px-2 py-1.5 text-[11px] text-muted-foreground">
-              Ingen handlinger tilgængelige
-            </div>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+              {Spinner("credit_invoice") ?? <Receipt className="h-3.5 w-3.5" />}
+              <span className="ml-1">Krediter</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Opret kreditnota for hele fakturabeløbet</TooltipContent>
+        </Tooltip>
+      )}
+
+      {/* Annullér kladde — kun hvis ikke bogført endnu */}
+      {!isInvoiced && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline" size="sm"
+              className="h-7 px-2 text-[11px] text-destructive hover:bg-destructive/10"
+              disabled={busy !== null}
+              onClick={() => setConfirm("void_draft")}
+            >
+              {Spinner("void_draft") ?? <Ban className="h-3.5 w-3.5" />}
+              <span className="ml-1">Annullér kladde</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Slet faktura-kladden i regnskabsprogrammet</TooltipContent>
+        </Tooltip>
+      )}
 
       <AlertDialog open={!!confirm} onOpenChange={(open) => !open && setConfirm(null)}>
         <AlertDialogContent>
@@ -162,12 +223,12 @@ export default function InvoiceActionsMenu({ order }: { order: Order }) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Fortryd</AlertDialogCancel>
-            <AlertDialogAction onClick={() => confirm && run(confirm)}>
+            <AlertDialogAction onClick={() => confirm && run(confirm as Action)}>
               Fortsæt
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </div>
   );
 }
