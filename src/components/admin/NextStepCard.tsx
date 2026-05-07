@@ -21,6 +21,7 @@ type Step = {
   icon: typeof Bell;
   tone: "info" | "warning" | "danger" | "success" | "neutral";
   action?: string;
+  terminal?: boolean;
 };
 
 const TONE_CLS: Record<Step["tone"], { wrap: string; iconWrap: string; icon: string; title: string }> = {
@@ -78,7 +79,7 @@ function computeStep(order: Order): Step | null {
     return {
       title: "Aftalen er annulleret",
       description: "Der er ingen handlinger tilbage. Du kan slette aftalen eller bruge den til reference.",
-      icon: AlertCircle, tone: "neutral",
+      icon: AlertCircle, tone: "neutral", terminal: true,
     };
   }
   // s === completed → fokus skifter til betaling
@@ -86,14 +87,14 @@ function computeStep(order: Order): Step | null {
     return {
       title: "Færdigt — alt er på plads",
       description: "Kunden har betalt og aftalen er fuldført.",
-      icon: Sparkles, tone: "success",
+      icon: Sparkles, tone: "success", terminal: true,
     };
   }
   if (ps === "credited") {
     return {
       title: "Krediteret",
       description: "Fakturaen er krediteret i regnskabsprogrammet.",
-      icon: FileText, tone: "neutral",
+      icon: FileText, tone: "neutral", terminal: true,
     };
   }
   if (!order.invoice_external_id) {
@@ -158,7 +159,7 @@ export default function NextStepCard({ order }: { order: Order }) {
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">
           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Næste skridt
+            {step.terminal ? "Status" : "Næste skridt"}
           </span>
         </div>
         <p className={`mt-0.5 text-sm font-semibold ${cls.title}`}>{step.title}</p>
