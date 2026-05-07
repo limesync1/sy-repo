@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   UploadCloud, Loader2, FileText, Sparkles, CheckCircle2, AlertTriangle,
@@ -25,7 +26,7 @@ const FIELD_DEFS: Record<EntityType, { key: string; label: string; required?: bo
     { key: "company_name", label: "Virksomhedsnavn" },
     { key: "cvr", label: "CVR-nummer" },
     { key: "contact_name", label: "Kontaktperson" },
-    { key: "email", label: "E-mail", required: true },
+    { key: "email", label: "E-mail" },
     { key: "phone", label: "Telefon" },
     { key: "address", label: "Adresse" },
     { key: "zip_code", label: "Postnummer" },
@@ -48,7 +49,7 @@ const FIELD_DEFS: Record<EntityType, { key: string; label: string; required?: bo
   ],
   orders: [
     { key: "external_order_number", label: "Ordre-/fakturanr." },
-    { key: "customer_email", label: "Kunde e-mail", required: true },
+    { key: "customer_email", label: "Kunde e-mail" },
     { key: "customer_name", label: "Kundenavn" },
     { key: "customer_phone", label: "Kunde telefon" },
     { key: "company_name", label: "Virksomhedsnavn" },
