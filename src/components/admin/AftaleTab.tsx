@@ -942,15 +942,33 @@ const AftaleTab = ({
     qc.invalidateQueries({ queryKey: ["my-orders"] });
   };
 
-  const handleResponse = async (orderId: string) => {
-    void handleResponse;
+  const handleMarkPaid = async (order: any) => {
+    try {
+      const hasInvoice = !!order.invoice_external_id;
+      if (hasInvoice) {
+        const { data, error } = await supabase.functions.invoke("accounting-action", {
+          body: { order_id: order.id, action: "mark_paid", params: { amount: Number(order.total_amount || 0) } },
+        });
+        if (error) throw error;
+        if ((data as any)?.error) throw new Error((data as any).error);
+      } else {
+        const nowIso = new Date().toISOString();
+        const { error } = await supabase.from("orders").update({
+          payment_status: "paid",
+          paid_at: nowIso,
+          paid_amount: Number(order.total_amount || 0),
+        } as any).eq("id", order.id);
+        if (error) throw error;
+      }
+      toast.success("Aftalen er markeret som betalt");
+      qc.invalidateQueries({ queryKey: ["orders"] });
+      qc.invalidateQueries({ queryKey: ["my-orders"] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Kunne ikke markere som betalt");
+    }
   };
-  // placeholder removed by next patch
-  // eslint-disable-next-line
-  const _noop = () => {};
-  const handleMarkPaidStub = async () => {};
-  // restore original
-  async function _origHandleResponse(orderId: string) {
+
+  const handleResponse = async (orderId: string) => {
     try {
       const adjustedData = responseType === "adjusted" ? adjustedItems[orderId] : null;
       const adjustedTotal = adjustedData ? adjustedData.reduce((sum, i) => sum + i.total_price, 0) : null;
