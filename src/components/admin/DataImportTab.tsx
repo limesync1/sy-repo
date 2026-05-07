@@ -86,6 +86,33 @@ const get = (row: Row, mapping: Mapping, key: string): string | undefined => {
 
 const cleanPhone = (s?: string) => s ? s.replace(/\s+/g, "").replace(/^\+45/, "") : undefined;
 const parseDays = (s?: string) => { if (!s) return undefined; const m = String(s).match(/\d+/); return m ? Number(m[0]) : undefined; };
+// Normalisér interval til et af de værdier vi bruger i resten af systemet.
+const parseInterval = (s?: string): string | undefined => {
+  if (!s) return undefined;
+  const v = s.toLowerCase().trim();
+  if (!v) return undefined;
+  if (/(eng|once|engang|enkelt)/.test(v)) return "engangskøb";
+  if (/(uge|week|ugentlig)/.test(v)) return "ugentligt";
+  if (/(14|hver.*anden.*uge|biweek|fortnight)/.test(v)) return "hver 14. dag";
+  if (/(måned|maaned|month|mdr|md\.)/.test(v)) return "månedligt";
+  if (/(kvartal|quarter|3.*måned)/.test(v)) return "kvartalsvis";
+  if (/(halvår|halvaar|6.*måned|semi)/.test(v)) return "halvårligt";
+  if (/(år|aar|year|annual)/.test(v)) return "årligt";
+  return v;
+};
+// Normalisér enheder.
+const parseUnit = (s?: string): string | undefined => {
+  if (!s) return undefined;
+  const v = s.toLowerCase().trim();
+  if (!v) return undefined;
+  if (/(time|hour|t\.|hr)/.test(v)) return "time";
+  if (/(m2|m²|kvm|kvadrat)/.test(v)) return "m²";
+  if (/(m3|m³|kubik)/.test(v)) return "m³";
+  if (/(stk|stk\.|pcs|piece|enhed)/.test(v)) return "stk";
+  if (/(km|kilometer)/.test(v)) return "km";
+  if (/(dag|day)/.test(v)) return "dag";
+  return s.trim();
+};
 const parseNum = (s?: string) => { if (!s) return undefined; const n = Number(String(s).replace(/\./g, "").replace(",", ".").replace(/[^\d.\-]/g, "")); return isFinite(n) ? n : undefined; };
 const parseDate = (s?: string) => {
   if (!s) return undefined;
