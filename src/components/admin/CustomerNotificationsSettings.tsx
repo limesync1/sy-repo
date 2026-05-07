@@ -513,66 +513,24 @@ export function CustomerNotificationsSettings({
     <div className="space-y-6">
       {/* ───── Globale indstillinger ───── */}
       <div className="grid gap-3 sm:grid-cols-2">
-        {/* Standard-tid før besøg — bruger samme presets som per-besked LeadTimePicker
-            men rundes til hele timer fordi parent gemmer i timer (1–168). */}
+        {/* Hvordan-virker-det info-card — erstatter den gamle "Standardtid før besøget"-knapsalat,
+            fordi tidspunktet nu sættes pr. besked længere nede (klokkeslæt + dage før). */}
         <div className="rounded-xl border border-border bg-card p-4">
           <div className="flex items-start gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground/5">
-              <Clock className="h-4 w-4 text-foreground" />
+              <CalendarDays className="h-4 w-4 text-foreground" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-foreground">Standardtid før besøget</p>
+              <p className="text-sm font-semibold text-foreground">Sådan beregnes afsendelsestidspunktet</p>
               <p className="mt-0.5 text-[12px] text-muted-foreground">
-                Bruges som udgangspunkt for alle påmindelser. I kan altid vælge en anden tid for hver enkelt e-mail og SMS længere nede.
+                For hver påmindelse vælger I et <span className="font-medium text-foreground">klokkeslæt</span> og hvor mange <span className="font-medium text-foreground">dage før</span> aftalen
+                den skal sendes (samme dag, dagen før, 2 dage før eller 1 uge før).
               </p>
-              <p className="mt-2 text-[12px] text-foreground">
-                Sender påmindelser <span className="font-semibold">{formatLead(upcomingMinutesBefore)}</span> før det planlagte besøg.
+              <p className="mt-2 text-[12px] text-muted-foreground">
+                Vi finder selv aftalens dato på rutekalenderen og sender beskeden på det rigtige tidspunkt — ingen manuel timing nødvendig.
               </p>
-              {/* Presets */}
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {LEAD_PRESETS.map((p) => {
-                  const active = upcomingMinutesBefore === p.minutes;
-                  return (
-                    <button
-                      key={p.minutes}
-                      type="button"
-                      onClick={() => onUpcomingMinutesChange(p.minutes)}
-                      className={cn(
-                        "rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
-                        active
-                          ? "border-foreground bg-foreground text-background"
-                          : "border-border bg-background text-foreground hover:border-foreground/50",
-                      )}
-                    >
-                      {p.label}
-                    </button>
-                  );
-                })}
-              </div>
-              {/* Brugerdefineret: dage / timer / minutter */}
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                {(() => {
-                  const parts = minutesToParts(upcomingMinutesBefore);
-                  const setPart = (k: "d" | "h" | "m", v: number) => {
-                    const max = k === "m" ? 59 : k === "h" ? 23 : 30;
-                    const next = { ...parts, [k]: Math.max(0, Math.min(max, Number.isFinite(v) ? v : 0)) };
-                    onUpcomingMinutesChange(Math.max(1, partsToMinutes(next)));
-                  };
-                  return ([
-                    { k: "d" as const, label: "Dage", max: 30 },
-                    { k: "h" as const, label: "Timer", max: 23 },
-                    { k: "m" as const, label: "Min", max: 59 },
-                  ]).map((f) => (
-                    <label key={f.k} className="flex flex-col gap-1">
-                      <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{f.label}</span>
-                      <Input
-                        type="number" min={0} max={f.max} className="h-9"
-                        value={parts[f.k]}
-                        onChange={(e) => setPart(f.k, Number(e.target.value))}
-                      />
-                    </label>
-                  ));
-                })()}
+              <div className="mt-3 rounded-lg bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground">
+                <span className="font-semibold text-foreground">Eksempel:</span> Aftale tirsdag d. 14. → "Dagen før kl. 16:00" sender mandag d. 13. kl. 16:00.
               </div>
             </div>
           </div>
@@ -642,7 +600,7 @@ export function CustomerNotificationsSettings({
                     {e.key === "service_upcoming" && (
                       <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground" title="Hvornår beskederne sendes før besøget">
                         <AlarmClock className="h-2.5 w-2.5" />
-                        {formatLead(drafts[e.key].leadMinutes ?? upcomingMinutesBefore)}
+                        {formatSchedule(drafts[e.key].days, drafts[e.key].time)}
                       </span>
                     )}
                   </div>
