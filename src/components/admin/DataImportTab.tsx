@@ -450,6 +450,7 @@ const ImportPanel = ({
         for (const r of valid as any[]) {
           const { data: orderRow, error: orderErr } = await supabase.from("orders").insert({
             business_id: businessId,
+            customer_id: r.matched_customer_id || null,
             customer_name: r.customer_name,
             customer_email: r.customer_email,
             customer_phone: r.customer_phone || null,
@@ -468,6 +469,7 @@ const ImportPanel = ({
           if (orderErr) throw orderErr;
           const { error: itemErr } = await supabase.from("order_items").insert({
             order_id: orderRow.id,
+            service_id: r.matched_service_id || null,
             service_name: r.service_name,
             quantity: r.quantity,
             unit_price: r.unit_price,
