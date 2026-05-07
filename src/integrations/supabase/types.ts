@@ -1075,10 +1075,12 @@ export type Database = {
           business_id: string
           channel: string
           created_at: string
+          days_before: number | null
           enabled: boolean
           event_type: string
           id: string
           lead_time_minutes: number | null
+          send_at_time: string | null
           subject: string | null
           updated_at: string
         }
@@ -1087,10 +1089,12 @@ export type Database = {
           business_id: string
           channel?: string
           created_at?: string
+          days_before?: number | null
           enabled?: boolean
           event_type: string
           id?: string
           lead_time_minutes?: number | null
+          send_at_time?: string | null
           subject?: string | null
           updated_at?: string
         }
@@ -1099,10 +1103,12 @@ export type Database = {
           business_id?: string
           channel?: string
           created_at?: string
+          days_before?: number | null
           enabled?: boolean
           event_type?: string
           id?: string
           lead_time_minutes?: number | null
+          send_at_time?: string | null
           subject?: string | null
           updated_at?: string
         }
