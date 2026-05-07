@@ -535,7 +535,7 @@ const ImportPanel = ({
                 <th className="px-2 py-1.5 font-medium">Pris</th>
                 <th className="px-2 py-1.5 font-medium">Enhed</th>
                 <th className="px-2 py-1.5 font-medium">Varenr.</th>
-                <th className="px-2 py-1.5 font-medium">Kategori</th>
+                <th className="px-2 py-1.5 font-medium">Kategori → Underkategori</th>
               </>}
               {entity === "orders" && <>
                 <th className="px-2 py-1.5 font-medium">Ordrenr.</th>
@@ -572,7 +572,25 @@ const ImportPanel = ({
                   <td className="px-2 py-1.5 text-foreground">{r.base_price != null ? r.base_price.toLocaleString("da-DK") + " kr" : "—"}</td>
                   <td className="px-2 py-1.5 text-muted-foreground">{r.unit || "—"}</td>
                   <td className="px-2 py-1.5 text-muted-foreground">{r.product_number || "—"}</td>
-                  <td className="px-2 py-1.5 text-muted-foreground">{r.service_category || "—"}</td>
+                  <td className="px-2 py-1.5">
+                    {r.service_category ? (
+                      <span className="inline-flex flex-wrap items-center gap-1">
+                        <Badge variant={r.ai_is_new_category ? "outline" : "secondary"} className="text-[10px]">
+                          {r.ai_is_new_category && <Sparkles className="mr-1 h-2.5 w-2.5" />}
+                          {r.service_category}
+                        </Badge>
+                        {r.subcategory && (
+                          <>
+                            <ArrowRight className="h-2.5 w-2.5 text-muted-foreground" />
+                            <Badge variant={r.ai_is_new_subcategory ? "outline" : "secondary"} className="text-[10px]">
+                              {r.ai_is_new_subcategory && <Sparkles className="mr-1 h-2.5 w-2.5" />}
+                              {r.subcategory}
+                            </Badge>
+                          </>
+                        )}
+                      </span>
+                    ) : <span className="text-muted-foreground">—</span>}
+                  </td>
                 </>}
                 {entity === "orders" && <>
                   <td className="px-2 py-1.5 text-foreground">{r.external_order_number || "—"}</td>
