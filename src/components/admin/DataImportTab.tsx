@@ -470,6 +470,22 @@ const ImportPanel = ({
       </div>
       {aiNotes && <p className="text-xs italic text-muted-foreground">"{aiNotes}"</p>}
 
+      {entity === "services" && (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-accent/30 bg-accent/5 px-3 py-2 text-xs">
+          <FolderTree className="h-3.5 w-3.5 text-accent" />
+          <span className="font-medium text-foreground">Smart kategorisering</span>
+          <span className="text-muted-foreground">
+            AI matcher hver række ind i jeres {existingCategories.length} eksisterende kategorier — eller foreslår nye markeret med <Sparkles className="inline h-2.5 w-2.5" />.
+          </span>
+          {classifying && <span className="ml-auto inline-flex items-center gap-1.5 text-muted-foreground"><Loader2 className="h-3 w-3 animate-spin" /> Klassificerer…</span>}
+          {!classifying && Object.keys(classifications).length > 0 && (
+            <span className="ml-auto inline-flex items-center gap-1.5 text-foreground">
+              <Wand2 className="h-3 w-3 text-accent" /> {Object.keys(classifications).length} klassificeret
+            </span>
+          )}
+        </div>
+      )}
+
       {entity === "customers" && (
         <div>
           <p className="mb-2 text-xs font-semibold text-foreground">Standard kundetype (når ikke angivet)</p>
