@@ -153,7 +153,13 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
               onClick={primary.onClick}
             >
               <Spinner
-                a={primary.kind === "reminder" || primary.kind === "collection" ? "send_reminder" : primary.kind === "mark_paid" ? "mark_paid" : primary.kind === "void" ? "void_draft" : "sync_now"}
+                a={
+                  primary.kind === "reminder" || primary.kind === "collection"
+                    ? "send_reminder"
+                    : primary.kind === "void"
+                    ? "void_draft"
+                    : "sync_now"
+                }
                 fallback={primary.icon}
               />
               <span className="ml-1.5 hidden sm:inline">{primary.label}</span>
