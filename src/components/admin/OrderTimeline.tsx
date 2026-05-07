@@ -43,7 +43,7 @@ const REMINDER_TONE: Record<string, string> = {
   reminder1: "border-amber-300 bg-amber-50 text-amber-800",
   reminder2: "border-orange-300 bg-orange-50 text-orange-800",
   reminder3: "border-orange-400 bg-orange-100 text-orange-900",
-  collection: "border-destructive/40 bg-destructive/10 text-destructive",
+  collection: "border-destructive/40 bg-rose-50 text-destructive",
 };
 
 const fmtDate = (iso?: string | null) =>
@@ -83,7 +83,7 @@ export default function OrderTimeline({ order }: { order: Order }) {
     if (order.created_at) {
       out.push({
         at: order.created_at, icon: ShoppingCart, title: "Bestilling modtaget",
-        toneCls: "border-border bg-card", iconCls: "text-muted-foreground",
+        toneCls: "border-border bg-background", iconCls: "text-muted-foreground",
       });
     }
     if (order.business_response === "accepted") {
@@ -106,7 +106,7 @@ export default function OrderTimeline({ order }: { order: Order }) {
     } else if (order.business_response === "rejected") {
       out.push({
         at: order.created_at || new Date().toISOString(), icon: XCircle,
-        title: "Aftale afvist", toneCls: "border-border bg-secondary",
+        title: "Aftale afvist", toneCls: "border-border bg-background",
         iconCls: "text-muted-foreground",
       });
     }
@@ -114,7 +114,7 @@ export default function OrderTimeline({ order }: { order: Order }) {
       out.push({
         at: order.invoiced_at, icon: FileText, title: "Faktura oprettet",
         detail: order.invoice_external_id ? `Bilagsnr. ${order.invoice_external_id}` : undefined,
-        toneCls: "border-border bg-card", iconCls: "text-foreground",
+        toneCls: "border-border bg-background", iconCls: "text-foreground",
       });
     }
     if (order.due_date) {
@@ -122,7 +122,7 @@ export default function OrderTimeline({ order }: { order: Order }) {
       out.push({
         at: order.due_date, icon: Clock,
         title: overdue ? "Forfaldsdato (overskredet)" : "Forfaldsdato",
-        toneCls: overdue ? "border-destructive/30 bg-destructive/5" : "border-border bg-card",
+        toneCls: overdue ? "border-destructive/40 bg-rose-50" : "border-border bg-background",
         iconCls: overdue ? "text-destructive" : "text-muted-foreground",
       });
     }
@@ -148,19 +148,19 @@ export default function OrderTimeline({ order }: { order: Order }) {
     if (order.paid_at) {
       out.push({
         at: order.paid_at, icon: CreditCard, title: "Faktura betalt",
-        toneCls: "border-success/30 bg-success/10", iconCls: "text-success",
+        toneCls: "border-success/40 bg-emerald-50", iconCls: "text-success",
       });
     }
     if (order.credited_at) {
       out.push({
         at: order.credited_at, icon: Receipt, title: "Kreditnota oprettet",
-        toneCls: "border-border bg-secondary", iconCls: "text-muted-foreground",
+        toneCls: "border-border bg-background", iconCls: "text-muted-foreground",
       });
     }
     if (order.voided_at) {
       out.push({
         at: order.voided_at, icon: Ban, title: "Faktura annulleret",
-        toneCls: "border-border bg-secondary", iconCls: "text-muted-foreground",
+        toneCls: "border-border bg-background", iconCls: "text-muted-foreground",
       });
     }
     if (order.status === "in_progress") {
@@ -172,13 +172,13 @@ export default function OrderTimeline({ order }: { order: Order }) {
     if (order.status === "completed") {
       out.push({
         at: new Date().toISOString(), icon: CheckCircle2, title: "Udført",
-        toneCls: "border-success/30 bg-success/10", iconCls: "text-success",
+        toneCls: "border-success/40 bg-emerald-50", iconCls: "text-success",
       });
     }
     if (order.status === "cancelled" && !order.voided_at) {
       out.push({
         at: new Date().toISOString(), icon: XCircle, title: "Aftale annulleret",
-        toneCls: "border-border bg-secondary", iconCls: "text-muted-foreground",
+        toneCls: "border-border bg-background", iconCls: "text-muted-foreground",
       });
     }
     return out.sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());

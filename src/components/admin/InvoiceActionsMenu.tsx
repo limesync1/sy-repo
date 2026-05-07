@@ -13,7 +13,7 @@ import {
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  Bell, Receipt, Ban, CheckCircle2, Loader2, RefreshCw, ChevronDown, Gavel, MoreHorizontal,
+  Bell, Receipt, Ban, CheckCircle2, Loader2, ChevronDown, Gavel, MoreHorizontal,
 } from "lucide-react";
 
 type Order = {
@@ -29,7 +29,7 @@ type Order = {
   status?: string | null;
 };
 
-type Action = "send_reminder" | "credit_invoice" | "void_draft" | "mark_paid" | "sync_now";
+type Action = "send_reminder" | "credit_invoice" | "void_draft" | "mark_paid";
 type ReminderType = "reminder1" | "reminder2" | "reminder3" | "collection" | "auto";
 
 /**
@@ -62,12 +62,6 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
   const lastSent = order.last_reminder_at
     ? new Date(order.last_reminder_at).toLocaleDateString("da-DK", { day: "numeric", month: "short" })
     : null;
-  const syncedLabel = order.accounting_synced_at
-    ? new Date(order.accounting_synced_at).toLocaleString("da-DK", {
-        day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
-      })
-    : "ikke endnu";
-
   // Find den primære (mest relevante) handling baseret på status.
   // Bruges af "compact"-varianten i kort-headers så vi viser ÉN tydelig CTA
   // + en overflow-menu til alt andet, i stedet for 4 knapper i en stribe.
@@ -76,13 +70,11 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
     | { kind: "collection"; label: string; tone: "danger"; icon: React.ReactNode; onClick: () => void }
     | { kind: "mark_paid"; label: string; tone: "success"; icon: React.ReactNode; onClick: () => void }
     | { kind: "void"; label: string; tone: "neutral"; icon: React.ReactNode; onClick: () => void }
-    | { kind: "sync"; label: string; tone: "neutral"; icon: React.ReactNode; onClick: () => void };
+    | null;
 
   const primary: PrimaryAction = (() => {
-    // For annullerede ordrer er ingen handling relevant udover synkronisering.
-    if (isCancelled) {
-      return { kind: "sync", label: "Synkronisér", tone: "neutral", icon: <RefreshCw className="h-3.5 w-3.5" />, onClick: () => run("sync_now") };
-    }
+    // Annullerede / betalte / krediterede ordrer kræver ingen yderligere handling.
+    if (isCancelled || isPaid || isCredited) return null;
     if (isInvoiced && !isPaid && !isCredited) {
       if (allRemindersSent) {
         return { kind: "collection", label: "Send til inkasso", tone: "danger", icon: <Gavel className="h-3.5 w-3.5" />, onClick: () => sendReminder("collection") };
@@ -98,10 +90,10 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
     if (!isInvoiced) {
       return { kind: "void", label: "Annullér kladde", tone: "neutral", icon: <Ban className="h-3.5 w-3.5" />, onClick: () => setConfirm("void_draft") };
     }
-    return { kind: "sync", label: "Synkronisér", tone: "neutral", icon: <RefreshCw className="h-3.5 w-3.5" />, onClick: () => run("sync_now") };
+    return null;
   })();
 
-  const toneCls = (tone: PrimaryAction["tone"]) => {
+  const toneCls = (tone: "warning" | "danger" | "success" | "neutral") => {
     switch (tone) {
       case "danger":  return "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/15 hover:border-destructive/60";
       case "warning": return "border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 hover:border-amber-400 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300 dark:hover:bg-amber-500/15";
@@ -123,7 +115,6 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
         credit_invoice: "Faktura krediteret",
         void_draft: "Kladde annulleret",
         mark_paid: "Faktura markeret som betalt",
-        sync_now: "Synkroniseret med regnskabsprogram",
       };
       const note = (data as any)?.result?.note as string | undefined;
       toast.success(labels[action], note ? { description: note } : undefined);
@@ -147,8 +138,12 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
   // Kompakt variant — ÉT primær-CTA + overflow-menu med alt andet.
   // Bruges i header-rækken på aftale-kort så layoutet ikke cramper.
   if (compact) {
+    // Ingen handlinger tilgængelige — skjul menuen helt for at holde headeren ren.
+    const hasOverflowItems = (isInvoiced && !isPaid && !isCredited) || (isInvoiced && !isCredited) || !isInvoiced;
+    if (!primary && !hasOverflowItems) return null;
     return (
       <div className="inline-flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+        {primary && (
         <Tooltip delayDuration={150}>
           <TooltipTrigger asChild>
             <Button
@@ -164,7 +159,7 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
                     ? "send_reminder"
                     : primary.kind === "void"
                     ? "void_draft"
-                    : "sync_now"
+                    : "mark_paid"
                 }
                 fallback={primary.icon}
               />
@@ -178,9 +173,9 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
                 {sentCount}/3 sendt{lastSent ? ` · sidst ${lastSent}` : ""}
               </div>
             )}
-            <div className="text-[10px] opacity-70">Sidst synket: {syncedLabel}</div>
           </TooltipContent>
         </Tooltip>
+        )}
 
         <DropdownMenu>
           <Tooltip delayDuration={150}>
@@ -204,12 +199,8 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
               Faktura-handlinger
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => run("sync_now")} className="gap-2">
-              <RefreshCw className="h-3.5 w-3.5 text-muted-foreground" /> Synkronisér nu
-            </DropdownMenuItem>
             {isInvoiced && !isPaid && !isCredited && !allRemindersSent && (
               <>
-                <DropdownMenuSeparator />
                 <DropdownMenuLabel className="text-[10px] uppercase tracking-wide text-muted-foreground">Rykkere ({sentCount}/3)</DropdownMenuLabel>
                 {[1, 2, 3].map((n) => {
                   const key = `reminder${n}`;
@@ -299,25 +290,6 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
       className="flex flex-wrap items-center gap-1.5"
       onClick={(e) => e.stopPropagation()}
     >
-      {/* Synkronisér nu */}
-      <Tooltip delayDuration={150}>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost" size="sm"
-            className="h-8 w-8 p-0 border border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
-            disabled={busy !== null}
-            onClick={() => run("sync_now")}
-            aria-label="Synkronisér med regnskabsprogram"
-          >
-            <Spinner a="sync_now" fallback={<RefreshCw className="h-3.5 w-3.5" />} />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="top" className="bg-popover border-border">
-          <div className="text-xs">Hent friske data fra regnskabsprogrammet</div>
-          <div className="text-[10px] opacity-70">Sidst synket: {syncedLabel}</div>
-        </TooltipContent>
-      </Tooltip>
-
       {/* Send rykker — split-knap. Skjules når alle rykkere er sendt */}
       {isInvoiced && !isPaid && !isCredited && !allRemindersSent && (
         <div className="inline-flex rounded-md shadow-sm">
