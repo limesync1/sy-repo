@@ -1438,7 +1438,7 @@ const AftaleTab = ({
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
                             <h3 className="truncate text-sm font-semibold text-foreground">{order.customer_name}</h3>
-                            <span className={`inline-flex items-center gap-1.5 rounded-full border border-border px-2 py-0.5 text-[10px] font-medium ${cfg.bg} ${cfg.color}`}>
+                            <span className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium ${cfg.cls}`}>
                               <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
                               {cfg.label}
                             </span>
