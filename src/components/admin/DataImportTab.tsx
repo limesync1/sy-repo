@@ -138,6 +138,7 @@ const FIELD_GROUPS: Record<EntityType, { title: string; keys: string[] }[]> = {
 // ---------- Per-entity import-panel ----------
 const ImportPanel = ({
   entity, businessId, existingEmails, existingProductNumbers, existingExternalOrderNumbers, existingCategories, existingCustomers, existingServices,
+  existingByEmail, existingByCvr, existingByCustomerNumber, existingByEan, existingByOrderNumber, existingByProductNumber, existingServiceNames,
   sharedFile, onFileChange,
 }: {
   entity: EntityType;
@@ -148,6 +149,13 @@ const ImportPanel = ({
   existingCategories: { category: string; subcategories: string[] }[];
   existingCustomers: { id: string; name: string; email: string; cvr?: string | null; phone?: string | null; zip_code?: string | null }[];
   existingServices: { id: string; name: string; product_number?: string | null; unit?: string | null; base_price?: number | null }[];
+  existingByEmail: Record<string, string>;
+  existingByCvr: Record<string, string>;
+  existingByCustomerNumber: Record<string, string>;
+  existingByEan: Record<string, string>;
+  existingByOrderNumber: Record<string, string>;
+  existingByProductNumber: Record<string, string>;
+  existingServiceNames: Record<string, string>;
   sharedFile: File | null;
   onFileChange: (f: File | null) => void;
 }) => {
@@ -409,8 +417,22 @@ const ImportPanel = ({
         const hasCompany = !!get(row, mapping, "company_name");
         if (type === "private" && !hasName && !hasCompany) errors.push("Mangler navn eller virksomhedsnavn");
         if (type === "business" && !hasCompany && !hasName) errors.push("Mangler virksomhedsnavn eller navn");
-        if (email && existingEmails.has(email)) { isDuplicate = true; duplicateReason = `Kunde med e-mail "${email}" findes allerede i jeres kartotek — den bliver sprunget over.`; }
-        else if (email && seenEmails.has(email)) { isDuplicate = true; duplicateReason = `E-mailen "${email}" optræder flere gange i denne CSV-fil — kun første række importeres.`; }
+        // Smart dublet-detektion: tjek e-mail, CVR, kundenummer og EAN.
+        const cvrKey = (get(row, mapping, "cvr") || "").replace(/\D/g, "");
+        const custNum = (get(row, mapping, "customer_number") || "").toLowerCase();
+        const eanKey = (get(row, mapping, "ean_number") || "").replace(/\D/g, "");
+        const dupHits: string[] = [];
+        if (email && existingByEmail[email]) dupHits.push(`e-mail (${email}) → "${existingByEmail[email]}"`);
+        if (cvrKey && existingByCvr[cvrKey]) dupHits.push(`CVR (${cvrKey}) → "${existingByCvr[cvrKey]}"`);
+        if (custNum && existingByCustomerNumber[custNum]) dupHits.push(`kundenr. (${custNum}) → "${existingByCustomerNumber[custNum]}"`);
+        if (eanKey && existingByEan[eanKey]) dupHits.push(`EAN (${eanKey}) → "${existingByEan[eanKey]}"`);
+        if (dupHits.length) {
+          isDuplicate = true;
+          duplicateReason = `Findes allerede i jeres kartotek — matchet på ${dupHits.join(" og ")}.`;
+        } else if (email && seenEmails.has(email)) {
+          isDuplicate = true;
+          duplicateReason = `E-mailen "${email}" optræder flere gange i denne CSV-fil — kun første række importeres.`;
+        }
         if (email) seenEmails.add(email);
         return {
           source: row, kind: "customer" as const, type, email,
@@ -435,8 +457,17 @@ const ImportPanel = ({
         const product_number = get(row, mapping, "product_number");
         if (!name) errors.push("Mangler navn");
         const dupKey = product_number?.toLowerCase();
-        if (dupKey && existingProductNumbers.has(dupKey)) { isDuplicate = true; duplicateReason = `Et produkt med varenr. "${product_number}" findes allerede i jeres katalog.`; }
-        else if (dupKey && seenProductNumbers.has(dupKey)) { isDuplicate = true; duplicateReason = `Varenummer "${product_number}" optræder flere gange i CSV-filen — kun første række importeres.`; }
+        const nameKey = name?.toLowerCase();
+        const dupHits: string[] = [];
+        if (dupKey && existingByProductNumber[dupKey]) dupHits.push(`varenr. (${product_number}) → "${existingByProductNumber[dupKey]}"`);
+        if (nameKey && existingServiceNames[nameKey]) dupHits.push(`navn ("${existingServiceNames[nameKey]}")`);
+        if (dupHits.length) {
+          isDuplicate = true;
+          duplicateReason = `Findes allerede i jeres katalog — matchet på ${dupHits.join(" og ")}.`;
+        } else if (dupKey && seenProductNumbers.has(dupKey)) {
+          isDuplicate = true;
+          duplicateReason = `Varenummer "${product_number}" optræder flere gange i CSV-filen — kun første række importeres.`;
+        }
         if (dupKey) seenProductNumbers.add(dupKey);
         const idx = rows.indexOf(row);
         const ai = classifications[idx];
@@ -476,8 +507,13 @@ const ImportPanel = ({
         errors.push("Mangler kundeoplysning (navn, e-mail eller CVR)");
       }
       const dupKey = ext?.toLowerCase();
-      if (dupKey && existingExternalOrderNumbers.has(dupKey)) { isDuplicate = true; duplicateReason = `Ordre/aftale med nr. "${ext}" findes allerede i systemet.`; }
-      else if (dupKey && seenOrderNumbers.has(dupKey)) { isDuplicate = true; duplicateReason = `Ordrenr. "${ext}" optræder flere gange i denne CSV-fil — kun første række importeres.`; }
+      if (dupKey && existingByOrderNumber[dupKey]) {
+        isDuplicate = true;
+        duplicateReason = `Findes allerede — matchet på ordre-/fakturanr. (${ext}) tilhørende "${existingByOrderNumber[dupKey]}".`;
+      } else if (dupKey && seenOrderNumbers.has(dupKey)) {
+        isDuplicate = true;
+        duplicateReason = `Ordrenr. "${ext}" optræder flere gange i denne CSV-fil — kun første række importeres.`;
+      }
       if (dupKey) seenOrderNumbers.add(dupKey);
 
       const qty = parseNum(get(row, mapping, "quantity")) ?? 1;
@@ -516,7 +552,7 @@ const ImportPanel = ({
         errors, isDuplicate, duplicateReason,
       };
     });
-  }, [rows, mapping, defaultType, entity, existingEmails, existingProductNumbers, existingExternalOrderNumbers, classifications, orderMatches, existingCustomers, existingServices]);
+  }, [rows, mapping, defaultType, entity, existingEmails, existingProductNumbers, existingExternalOrderNumbers, classifications, orderMatches, existingCustomers, existingServices, existingByEmail, existingByCvr, existingByCustomerNumber, existingByEan, existingByOrderNumber, existingByProductNumber, existingServiceNames]);
 
   // Hvilke rækker er valgt til import? Default = alle uden fejl/dublet (minus
   // dem brugeren manuelt har fravalgt) plus dem brugeren har tvunget med.
@@ -1106,6 +1142,15 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
   const [existingEmails, setExistingEmails] = useState<Set<string>>(new Set());
   const [existingProductNumbers, setExistingProductNumbers] = useState<Set<string>>(new Set());
   const [existingExternalOrderNumbers, setExistingExternalOrderNumbers] = useState<Set<string>>(new Set());
+  // Indeks fra "match-værdi" → læselig identifikation af eksisterende post,
+  // så vi kan forklare præcis hvilket felt en dublet blev genkendt på.
+  const [existingByEmail, setExistingByEmail] = useState<Record<string, string>>({});
+  const [existingByCvr, setExistingByCvr] = useState<Record<string, string>>({});
+  const [existingByCustomerNumber, setExistingByCustomerNumber] = useState<Record<string, string>>({});
+  const [existingByEan, setExistingByEan] = useState<Record<string, string>>({});
+  const [existingByOrderNumber, setExistingByOrderNumber] = useState<Record<string, string>>({});
+  const [existingByProductNumber, setExistingByProductNumber] = useState<Record<string, string>>({});
+  const [existingServiceNames, setExistingServiceNames] = useState<Record<string, string>>({});
   const [existingCategories, setExistingCategories] = useState<{ category: string; subcategories: string[] }[]>([]);
   const [existingCustomers, setExistingCustomers] = useState<{ id: string; name: string; email: string; cvr?: string | null; phone?: string | null; zip_code?: string | null }[]>([]);
   const [existingServices, setExistingServices] = useState<{ id: string; name: string; product_number?: string | null; unit?: string | null; base_price?: number | null }[]>([]);
@@ -1114,24 +1159,49 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
     let cancelled = false;
     (async () => {
       const [biz, priv, svc, ord] = await Promise.all([
-        supabase.from("business_customers").select("id,company_name,contact_name,email,cvr,phone,zip_code").eq("business_id", businessId),
-        supabase.from("private_customers").select("id,name,email,phone,zip_code").eq("business_id", businessId),
+        supabase.from("business_customers").select("id,company_name,contact_name,email,cvr,phone,zip_code,customer_number,ean_number").eq("business_id", businessId),
+        supabase.from("private_customers").select("id,name,email,phone,zip_code,customer_number").eq("business_id", businessId),
         supabase.from("services").select("id,name,product_number,service_category,subcategory,unit,base_price").eq("business_id", businessId),
-        supabase.from("orders").select("external_order_number").eq("business_id", businessId),
+        supabase.from("orders").select("external_order_number,customer_name,customer_email").eq("business_id", businessId),
       ]);
       if (cancelled) return;
       const emails = new Set<string>();
-      (biz.data || []).forEach((r: any) => r.email && emails.add(String(r.email).toLowerCase()));
-      (priv.data || []).forEach((r: any) => r.email && emails.add(String(r.email).toLowerCase()));
+      const byEmail: Record<string, string> = {};
+      const byCvr: Record<string, string> = {};
+      const byCustNum: Record<string, string> = {};
+      const byEan: Record<string, string> = {};
+      (biz.data || []).forEach((r: any) => {
+        const label = r.company_name || r.contact_name || r.email || "Erhvervskunde";
+        if (r.email) { const k = String(r.email).toLowerCase(); emails.add(k); byEmail[k] = label; }
+        if (r.cvr) { const k = String(r.cvr).replace(/\D/g, ""); if (k) byCvr[k] = label; }
+        if (r.customer_number) byCustNum[String(r.customer_number).toLowerCase()] = label;
+        if (r.ean_number) byEan[String(r.ean_number).replace(/\D/g, "")] = label;
+      });
+      (priv.data || []).forEach((r: any) => {
+        const label = r.name || r.email || "Privatkunde";
+        if (r.email) { const k = String(r.email).toLowerCase(); emails.add(k); byEmail[k] = label; }
+        if (r.customer_number) byCustNum[String(r.customer_number).toLowerCase()] = label;
+      });
       setExistingEmails(emails);
+      setExistingByEmail(byEmail);
+      setExistingByCvr(byCvr);
+      setExistingByCustomerNumber(byCustNum);
+      setExistingByEan(byEan);
       const customers = [
         ...((biz.data || []) as any[]).map((c) => ({ id: c.id, name: c.company_name || c.contact_name || c.email, email: c.email, cvr: c.cvr, phone: c.phone, zip_code: c.zip_code })),
         ...((priv.data || []) as any[]).map((c) => ({ id: c.id, name: c.name || c.email, email: c.email, cvr: null, phone: c.phone, zip_code: c.zip_code })),
       ];
       setExistingCustomers(customers);
       const prods = new Set<string>();
-      (svc.data || []).forEach((r: any) => r.product_number && prods.add(String(r.product_number).toLowerCase()));
+      const byProd: Record<string, string> = {};
+      const svcNames: Record<string, string> = {};
+      (svc.data || []).forEach((r: any) => {
+        if (r.product_number) { const k = String(r.product_number).toLowerCase(); prods.add(k); byProd[k] = r.name || r.product_number; }
+        if (r.name) svcNames[String(r.name).toLowerCase()] = r.name;
+      });
       setExistingProductNumbers(prods);
+      setExistingByProductNumber(byProd);
+      setExistingServiceNames(svcNames);
       setExistingServices(((svc.data || []) as any[]).map((s) => ({ id: s.id, name: s.name, product_number: s.product_number, unit: s.unit, base_price: s.base_price })));
       const catMap = new Map<string, Set<string>>();
       (svc.data || []).forEach((r: any) => {
@@ -1143,8 +1213,16 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
       });
       setExistingCategories(Array.from(catMap.entries()).map(([category, subs]) => ({ category, subcategories: Array.from(subs) })));
       const ords = new Set<string>();
-      (ord.data || []).forEach((r: any) => r.external_order_number && ords.add(String(r.external_order_number).toLowerCase()));
+      const byOrd: Record<string, string> = {};
+      (ord.data || []).forEach((r: any) => {
+        if (r.external_order_number) {
+          const k = String(r.external_order_number).toLowerCase();
+          ords.add(k);
+          byOrd[k] = r.customer_name || r.customer_email || r.external_order_number;
+        }
+      });
       setExistingExternalOrderNumbers(ords);
+      setExistingByOrderNumber(byOrd);
     })();
     return () => { cancelled = true; };
   }, [businessId]);
@@ -1180,24 +1258,28 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
       </Card>
 
       <SectionCard
-        title="Upload din fil"
+        title={sharedFile ? "Gennemgå og importér" : "Upload din fil"}
         icon={<UploadCloud />}
-        description="Træk én fil ind — vi finder selv ud af om det er kunder, produkter/services eller aftaler/ordrer (eller alt på én gang). Du kan altid skifte fane bagefter for at importere et andet aspekt af samme fil."
+        description={sharedFile
+          ? "Vi har analyseret filen. Skift mellem kunder, produkter og ordrer for at importere hvert aspekt — det er den samme fil."
+          : "Træk én fil ind — vi finder selv ud af om det er kunder, produkter/services eller aftaler/ordrer (eller alt på én gang)."}
       >
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Vises som:</span>
-          <div className="inline-flex rounded-lg border border-border bg-background p-0.5">
-          {tabs.map((t) => {
-            const m = ENTITY_META[t]; const Icon = m.icon;
-            return (
-              <button key={t} onClick={() => setActive(t)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${active === t ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}>
-                <Icon className="h-3.5 w-3.5" /> {m.label}
-              </button>
-            );
-          })}
+        {sharedFile && (
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Vises som:</span>
+            <div className="inline-flex rounded-lg border border-border bg-background p-0.5">
+              {tabs.map((t) => {
+                const m = ENTITY_META[t]; const Icon = m.icon;
+                return (
+                  <button key={t} onClick={() => setActive(t)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${active === t ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}>
+                    <Icon className="h-3.5 w-3.5" /> {m.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
         <ImportPanel
           key={active}
@@ -1209,6 +1291,13 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
           existingCategories={existingCategories}
           existingCustomers={existingCustomers}
           existingServices={existingServices}
+          existingByEmail={existingByEmail}
+          existingByCvr={existingByCvr}
+          existingByCustomerNumber={existingByCustomerNumber}
+          existingByEan={existingByEan}
+          existingByOrderNumber={existingByOrderNumber}
+          existingByProductNumber={existingByProductNumber}
+          existingServiceNames={existingServiceNames}
           sharedFile={sharedFile}
           onFileChange={setSharedFile}
         />
