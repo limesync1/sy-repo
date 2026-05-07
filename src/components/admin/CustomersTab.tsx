@@ -27,6 +27,13 @@ import { PageHeader, PrimaryButton, SearchInput, EmptyState } from "@/components
 import { ListCardSkeleton, DialogDetailsSkeleton } from "@/components/admin/shared/Skeletons";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import {
+  AccountingStatusRow,
+  CustomerOrderStatusSummary,
+  summarizeCustomerOrders,
+  type CustomerOrderSummary,
+  type OrderForStatus,
+} from "@/components/shared/OrderStatusBadges";
 
 type Customer = {
   email: string;
@@ -51,6 +58,8 @@ type Customer = {
   contact_name?: string | null;
   notes?: string | null;
   avatar_url?: string | null;
+  /** Aggregeret faktura-/betalingsstatus på tværs af alle kundens aftaler */
+  accounting_summary?: CustomerOrderSummary;
 };
 
 type OrderRow = {
@@ -67,6 +76,16 @@ type OrderRow = {
   payment_status?: string | null;
   paid_at?: string | null;
   payment_status_synced_at?: string | null;
+  due_date?: string | null;
+  invoice_external_id?: string | null;
+  invoiced_at?: string | null;
+  invoice_status?: string | null;
+  reminder_count?: number | null;
+  last_reminder_at?: string | null;
+  last_reminder_type?: string | null;
+  reminder_history?: any;
+  credited_at?: string | null;
+  voided_at?: string | null;
   order_items: Array<{ service_name: string; quantity: number; total_price: number; details: any }>;
 };
 
