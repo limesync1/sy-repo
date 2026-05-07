@@ -595,24 +595,11 @@ const LinkedSubscriptionInfo = ({ orderId, subscriptions }: { orderId: string; s
     <div className="space-y-2">
       {linked.map(sub => {
         const nextDate = sub.next_service_date ? new Date(sub.next_service_date) : null;
-        const msUntil = nextDate ? nextDate.getTime() - Date.now() : null;
-        const minutesUntil = msUntil != null ? Math.round(msUntil / 60000) : null;
-        const daysUntil = msUntil != null ? Math.ceil(msUntil / (1000 * 60 * 60 * 24)) : null;
-        // Vælg passende tidsenhed afhængigt af hvor tæt næste service er.
-        // Korte intervaller (fx test-intervaller "Hver 10. minut") skal vises i
-        // minutter/timer i stedet for at runde op til "om 1 dag".
-        const formatRelative = (): string => {
-          if (minutesUntil == null) return "";
-          if (minutesUntil <= 0) return "I dag!";
-          if (minutesUntil < 60) return `om ${minutesUntil} min`;
-          const hoursUntil = Math.round(minutesUntil / 60);
-          if (hoursUntil < 24) return `om ${hoursUntil} time${hoursUntil !== 1 ? "r" : ""}`;
-          return `om ${daysUntil} dag${daysUntil !== 1 ? "e" : ""}`;
-        };
+        const minsUntil = nextDate ? Math.round((nextDate.getTime() - Date.now()) / 60000) : null;
         const urgencyTone =
-          minutesUntil != null && minutesUntil <= 60 * 24 * 2
+          minsUntil != null && minsUntil <= 60 * 24 * 2
             ? "text-destructive"
-            : daysUntil != null && daysUntil <= 7
+            : minsUntil != null && minsUntil <= 60 * 24 * 7
             ? "text-amber-600"
             : "text-accent";
         const profile = (sub as any).profiles;
@@ -643,9 +630,9 @@ const LinkedSubscriptionInfo = ({ orderId, subscriptions }: { orderId: string; s
                   <span className="text-xs font-semibold text-foreground">
                     {nextDate.toLocaleDateString("da-DK", { weekday: "short", day: "numeric", month: "short" })}
                   </span>
-                  {minutesUntil !== null && (
+                  {minsUntil !== null && (
                     <span className={`text-[11px] font-bold ${urgencyTone}`}>
-                      {formatRelative()}
+                      {relativeFromNow(nextDate)}
                     </span>
                   )}
                 </div>
