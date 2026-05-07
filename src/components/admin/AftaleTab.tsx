@@ -1111,7 +1111,7 @@ const AftaleTab = ({
       <div className="space-y-5">
       <PageHeader
         title="Aftaler"
-        description={`${orders?.length || 0} aftaler i alt${upcomingSubs.length > 0 ? ` · ${upcomingSubs.length} kommende services` : ""}`}
+        description={`${orders?.length || 0} aftaler i alt${upcomingSubs.length > 0 ? ` · ${upcomingSubs.length} kommende ${upcomingSubs.length === 1 ? "aftale" : "aftaler"}` : ""}`}
         action={
           <PrimaryButton onClick={() => setCreateOrderOpen(true)} icon={<ShoppingCart />}>
             Opret bestilling
@@ -1135,7 +1135,7 @@ const AftaleTab = ({
         </Card>
         <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
           <CardContent className="p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kommende services</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kommende aftaler</p>
             <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{upcomingSubs.length}</p>
           </CardContent>
         </Card>
