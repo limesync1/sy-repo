@@ -602,4 +602,3 @@ export function makeBillyAdapter(
     },
   };
 }
-}
