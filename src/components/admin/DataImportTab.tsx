@@ -690,8 +690,30 @@ const ImportPanel = ({
                 </>}
                 {entity === "orders" && <>
                   <td className="px-2 py-1.5 text-foreground">{r.external_order_number || "—"}</td>
-                  <td className="px-2 py-1.5 text-muted-foreground">{r.customer_name} <span className="text-[10px]">({r.customer_email})</span></td>
-                  <td className="px-2 py-1.5 text-muted-foreground">{r.service_name} × {r.quantity}</td>
+                  <td className="px-2 py-1.5">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-foreground">{r.customer_name} <span className="text-[10px] text-muted-foreground">({r.customer_email || "—"})</span></span>
+                      {r.matched_customer_id ? (
+                        <Badge className="w-fit bg-accent/15 text-accent hover:bg-accent/20 text-[10px]" title={r.customer_match_reason}>
+                          <CheckCircle2 className="mr-1 h-2.5 w-2.5" /> Eksisterende kunde{typeof r.customer_confidence === "number" ? ` · ${r.customer_confidence}%` : ""}
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="w-fit text-[10px]"><Sparkles className="mr-1 h-2.5 w-2.5" /> Ny kunde</Badge>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-2 py-1.5">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-foreground">{r.service_name} × {r.quantity}</span>
+                      {r.matched_service_id ? (
+                        <Badge className="w-fit bg-accent/15 text-accent hover:bg-accent/20 text-[10px]" title={r.service_match_reason}>
+                          <CheckCircle2 className="mr-1 h-2.5 w-2.5" /> {r.matched_service_name || "Eksisterende"}{typeof r.service_confidence === "number" ? ` · ${r.service_confidence}%` : ""}
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="w-fit text-[10px]"><Sparkles className="mr-1 h-2.5 w-2.5" /> Ny linje</Badge>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-2 py-1.5 text-foreground">{r.total_amount?.toLocaleString("da-DK")} kr</td>
                   <td className="px-2 py-1.5 text-muted-foreground">{r.preferred_date || "—"}</td>
                 </>}
