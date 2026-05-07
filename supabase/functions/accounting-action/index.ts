@@ -51,15 +51,42 @@ Deno.serve(async (req) => {
 
     const { data: integ } = await admin.from("accounting_integrations")
       .select("*").eq("business_id", order.business_id).eq("is_active", true).maybeSingle();
-    if (!integ) return json({ error: "Ingen aktiv regnskabsintegration" }, 400);
 
-    const { data: link } = await admin.from("accounting_order_links")
-      .select("external_id, external_type").eq("business_id", order.business_id)
-      .eq("provider", integ.provider).eq("order_id", order_id).maybeSingle();
+    const { data: link } = integ
+      ? await admin.from("accounting_order_links")
+        .select("external_id, external_type").eq("business_id", order.business_id)
+        .eq("provider", integ.provider).eq("order_id", order_id).maybeSingle()
+      : { data: null } as any;
+
+    const bookedInvoiceId = order.invoice_external_id ?? (link?.external_type === "invoice_booked" ? link.external_id : null);
+    const markPaidLocally = async (amount: number, paidAt: string, note: string) => {
+      await admin.from("orders").update({
+        payment_status: "paid",
+        paid_at: paidAt,
+        paid_amount: amount,
+        payment_status_synced_at: new Date().toISOString(),
+      }).eq("id", order_id);
+      return { ok: true, marked_paid: true, local_only: true, note };
+    };
+
+    if (!integ) {
+      if (action === "mark_paid") {
+        const amount = Number(params?.amount ?? order.total_amount ?? 0);
+        if (!amount || amount <= 0) return json({ error: "Mangler beløb" }, 400);
+        const paidAt = params?.paid_at ?? new Date().toISOString();
+        const result = await markPaidLocally(amount, paidAt, "Betalingen er registreret i Serviceydere. Der er ingen aktiv regnskabsintegration at synkronisere til.");
+        await admin.from("accounting_sync_log").insert({
+          business_id: order.business_id, provider: "local",
+          direction: "push", entity_type: "invoice", entity_id: order_id,
+          external_id: null, status: "success", message: "Manuel handling: mark_paid",
+        });
+        return json(result);
+      }
+      return json({ error: "Ingen aktiv regnskabsintegration" }, 400);
+    }
 
     const adapter = makeAdapter(integ.provider, integ as any, integ.settings ?? {});
     let result: any = { ok: true };
-    const bookedInvoiceId = order.invoice_external_id ?? (link?.external_type === "invoice_booked" ? link.external_id : null);
 
     try {
       if (action === "sync_now") {
