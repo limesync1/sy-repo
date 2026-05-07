@@ -589,11 +589,16 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
     // set manually inside Serviceydere.
     let invoicesPulled = 0;
     if (!CUSTOMERS_ONLY && typeof adapter.getInvoiceStates === "function") {
+      // Vi henter KUN faktura-typer (ikke ordre-kladder) — at spørge
+      // /invoices/booked/{n} for et order-draft ID giver 404 og spammer
+      // logfilen, og kunden ser fejl-banneret "kunne ikke finde det
+      // forespurgte. Tjek at din aftale er aktiv." selvom integrationen er fin.
       const { data: links } = await admin
         .from("accounting_order_links")
-        .select("order_id, external_id")
+        .select("order_id, external_id, external_type")
         .eq("business_id", integ.business_id)
         .eq("provider", integ.provider)
+        .in("external_type", ["invoice", "invoice_draft", "invoice_booked"])
         .order("last_pushed_at", { ascending: false })
         .limit(200);
       const ids = (links ?? []).map((l) => l.external_id).filter(Boolean);
