@@ -1056,9 +1056,9 @@ const ImportPanel = ({
       ) : (
         <div className="flex flex-wrap items-center justify-end gap-2">
           <Button variant="ghost" onClick={reset} disabled={importing}>Annullér</Button>
-          <Button onClick={runImport} disabled={importing || stats.ok === 0}>
+          <Button onClick={runImport} disabled={importing || stats.selected === 0}>
             {importing ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-1.5 h-4 w-4" />}
-            Importér {stats.ok}
+            Importér {stats.selected}
           </Button>
         </div>
       )}
