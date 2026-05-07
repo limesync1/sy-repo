@@ -13,7 +13,7 @@ import {
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  Bell, Receipt, Ban, CheckCircle2, Loader2, RefreshCw, ChevronDown, Gavel, MoreHorizontal,
+  Bell, Receipt, Ban, CheckCircle2, Loader2, ChevronDown, Gavel, MoreHorizontal,
 } from "lucide-react";
 
 type Order = {
@@ -62,12 +62,6 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
   const lastSent = order.last_reminder_at
     ? new Date(order.last_reminder_at).toLocaleDateString("da-DK", { day: "numeric", month: "short" })
     : null;
-  const syncedLabel = order.accounting_synced_at
-    ? new Date(order.accounting_synced_at).toLocaleString("da-DK", {
-        day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
-      })
-    : "ikke endnu";
-
   // Find den primære (mest relevante) handling baseret på status.
   // Bruges af "compact"-varianten i kort-headers så vi viser ÉN tydelig CTA
   // + en overflow-menu til alt andet, i stedet for 4 knapper i en stribe.
