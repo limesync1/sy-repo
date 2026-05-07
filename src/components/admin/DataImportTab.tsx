@@ -498,12 +498,21 @@ const ImportPanel = ({
     });
   }, [rows, mapping, defaultType, entity, existingEmails, existingProductNumbers, existingExternalOrderNumbers, classifications, orderMatches, existingCustomers, existingServices]);
 
+  // Hvilke rækker er valgt til import? Default = alle uden fejl/dublet (minus
+  // dem brugeren manuelt har fravalgt) plus dem brugeren har tvunget med.
+  const isSelected = (idx: number, r: any) => {
+    if (excluded.has(idx)) return false;
+    if (forceInclude.has(idx)) return true;
+    return r.errors.length === 0 && !r.isDuplicate;
+  };
+
   const stats = useMemo(() => ({
     total: prepared.length,
     ok: prepared.filter((r) => r.errors.length === 0 && !r.isDuplicate).length,
     duplicates: prepared.filter((r) => r.isDuplicate).length,
     errors: prepared.filter((r) => r.errors.length > 0).length,
-  }), [prepared]);
+    selected: prepared.filter((r, i) => isSelected(i, r)).length,
+  }), [prepared, excluded, forceInclude]);
 
   // Filtrér rækker til tabellen + nulstil side når filter ændres.
   const filteredRows = useMemo(() => {
@@ -518,8 +527,8 @@ const ImportPanel = ({
   useEffect(() => { setPage(0); }, [rowFilter, prepared.length]);
 
   const runImport = async () => {
-    const valid = prepared.filter((r) => r.errors.length === 0 && !r.isDuplicate);
-    if (valid.length === 0) { toast.error("Ingen gyldige rækker"); return; }
+    const valid = prepared.filter((r, i) => isSelected(i, r));
+    if (valid.length === 0) { toast.error("Ingen rækker valgt til import"); return; }
     setImporting(true);
     try {
       let created = 0;
@@ -566,13 +575,39 @@ const ImportPanel = ({
           if (error) throw error; created += data?.length || 0;
         }
       } else {
-        // orders — opret order + 1 line per række
+        // orders — opret order + 1 line per række. Hvis en ordre refererer til en
+        // service der ikke findes endnu, opretter vi den automatisk så ordren
+        // ikke står med en tom linje.
+        const serviceCache = new Map<string, string>(); // navn (lowercase) → id
+        existingServices.forEach((s) => { if (s.name) serviceCache.set(s.name.toLowerCase(), s.id); });
         for (const r of valid as any[]) {
+          // Find / opret service hvis nødvendigt
+          let serviceId: string | null = r.matched_service_id || null;
+          if (!serviceId && r.service_name) {
+            const key = String(r.service_name).toLowerCase().trim();
+            if (serviceCache.has(key)) serviceId = serviceCache.get(key)!;
+            else {
+              const { data: newSvc, error: svcErr } = await supabase
+                .from("services")
+                .insert({
+                  business_id: businessId,
+                  name: r.service_name,
+                  base_price: r.unit_price ?? null,
+                  unit: "stk",
+                  pricing_type: "fast_pris" as const,
+                  default_vat_rate: 25,
+                  is_active: true,
+                } as any)
+                .select("id")
+                .single();
+              if (!svcErr && newSvc) { serviceId = newSvc.id; serviceCache.set(key, newSvc.id); }
+            }
+          }
           const { data: orderRow, error: orderErr } = await supabase.from("orders").insert({
             business_id: businessId,
             customer_id: r.matched_customer_id || null,
             customer_name: r.customer_name,
-            customer_email: r.customer_email,
+            customer_email: r.customer_email || null,
             customer_phone: r.customer_phone || null,
             company_name: r.company_name || null,
             cvr: r.cvr || null,
@@ -589,7 +624,7 @@ const ImportPanel = ({
           if (orderErr) throw orderErr;
           const { error: itemErr } = await supabase.from("order_items").insert({
             order_id: orderRow.id,
-            service_id: r.matched_service_id || null,
+            service_id: serviceId,
             service_name: r.service_name,
             quantity: r.quantity,
             unit_price: r.unit_price,
