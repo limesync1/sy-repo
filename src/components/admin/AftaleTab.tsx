@@ -1814,6 +1814,22 @@ const AftaleTab = ({
                             <XCircle className="h-3.5 w-3.5" /> Annuller
                           </Button>
                         )}
+
+                        {/* Markér som betalt — tilgængelig så snart aftalen er bekræftet
+                            og endnu ikke registreret som betalt/krediteret/annulleret.
+                            Virker både med og uden regnskabsintegration. */}
+                        {(order.status === "confirmed" || order.status === "in_progress" || order.status === "completed") &&
+                          (order as any).payment_status !== "paid" &&
+                          (order as any).payment_status !== "credited" && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => { e.stopPropagation(); handleMarkPaid(order); }}
+                              className="gap-1.5 rounded-lg border-success/40 bg-success/10 text-success text-xs hover:bg-success/15 hover:text-success hover:border-success/50"
+                            >
+                              <CreditCard className="h-3.5 w-3.5" /> Markér som betalt
+                            </Button>
+                          )}
                       </div>
                     )}
 
