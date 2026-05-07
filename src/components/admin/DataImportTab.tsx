@@ -248,6 +248,9 @@ const ImportPanel = ({
   // Rækker med fejl/dubletter brugeren manuelt vil tvinge med (selvom de ellers
   // ikke ville blive importeret). Pt. bruger vi det ikke, men holder muligheden åben.
   const [forceInclude, setForceInclude] = useState<Set<number>>(new Set());
+  // Hvilke rækker er udfoldet (vis alle CSV-felter + aftaledetaljer)
+  const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const toggleExpand = (i: number) => setExpanded((p) => { const n = new Set(p); n.has(i) ? n.delete(i) : n.add(i); return n; });
 
   const reset = () => {
     setFile(null); setRows([]); setHeaders([]); setMapping({});
