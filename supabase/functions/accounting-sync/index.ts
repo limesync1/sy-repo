@@ -135,7 +135,7 @@ async function seedQueue(admin: SupabaseClient, business_id: string): Promise<nu
     admin.from("business_customers").select("id").eq("business_id", business_id),
     admin.from("private_customers").select("id").eq("business_id", business_id),
     admin.from("services").select("id").eq("business_id", business_id),
-    admin.from("orders").select("id, customer_email, customer_name, customer_phone, address, zip_code, city, cvr, company_name")
+    admin.from("orders").select("id, customer_email, customer_name, customer_phone, address, zip_code, city, cvr, company_name, invoice_external_id")
       .eq("business_id", business_id).neq("status", "cancelled"),
   ]);
 
@@ -195,6 +195,9 @@ async function seedQueue(admin: SupabaseClient, business_id: string): Promise<nu
   // 3) Ordrer
   if (!CUSTOMERS_ONLY) {
     for (const o of ords.data ?? []) {
+      // Allerede bogførte fakturaer må ikke pushes igen som ordrekladder.
+      // Betaling/rykker-status hentes via invoice-pull i stedet.
+      if (o.invoice_external_id) continue;
       rows.push({ business_id, entity_type: "order", entity_id: o.id, operation: "update" });
     }
   }
@@ -1080,6 +1083,29 @@ async function pushOrder(admin: SupabaseClient, integ: Integration, adapter: Acc
   const { data: order } = await admin.from("orders").select("*, order_items(*)").eq("id", orderId).maybeSingle();
   if (!order) return;
 
+  const { data: existing } = await admin.from("accounting_order_links")
+    .select("external_id, external_type").eq("business_id", integ.business_id)
+    .eq("provider", integ.provider).eq("order_id", orderId).maybeSingle();
+
+  // Når Serviceydere allerede har et bogført fakturanummer, må aftalen aldrig
+  // pushes igen som en ordrekladde. Det kunne overskrive linket fra
+  // invoice_booked → order og gav efterfølgende 404 på /orders/drafts/{nr}.
+  if (order.invoice_external_id) {
+    if (!existing || existing.external_type !== "invoice_booked" || existing.external_id !== order.invoice_external_id) {
+      await admin.from("accounting_order_links").upsert({
+        business_id: integ.business_id,
+        provider: integ.provider,
+        order_id: orderId,
+        external_id: String(order.invoice_external_id),
+        external_number: String(order.invoice_external_id),
+        external_type: "invoice_booked",
+        last_pushed_at: new Date().toISOString(),
+        last_status_synced: order.invoice_status ?? "booked",
+      }, { onConflict: "business_id,provider,order_id" });
+    }
+    return;
+  }
+
   // Optionally skip pending orders
   if (integ.settings?.push_pending === false && order.status === "pending") return;
 
@@ -1124,10 +1150,6 @@ async function pushOrder(admin: SupabaseClient, integ: Integration, adapter: Acc
       unit_price: Number(it.unit_price ?? 0),
     };
   }));
-
-  const { data: existing } = await admin.from("accounting_order_links")
-    .select("external_id, external_type").eq("business_id", integ.business_id)
-    .eq("provider", integ.provider).eq("order_id", orderId).maybeSingle();
 
   // Når ordren allerede er bogført som faktura, må vi ikke længere forsøge at
   // opdatere den som ordrekladde i e-conomic — bogførte fakturaer er låste.
