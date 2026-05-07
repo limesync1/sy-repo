@@ -180,5 +180,18 @@ export function makeZenegyAdapter(
     async getInvoiceStates(_externalIds: string[]): Promise<ExternalInvoiceState[]> {
       return [];
     },
+
+    async sendReminder() {
+      throw new Error("Zenegy understøtter ikke rykker via API endnu — håndtér manuelt i Zenegy.");
+    },
+    async creditInvoice() {
+      throw new Error("Zenegy understøtter ikke kreditnotaer via API endnu — håndtér manuelt i Zenegy.");
+    },
+    async voidDraft() {
+      throw new Error("Zenegy understøtter ikke annullering via API endnu — håndtér manuelt i Zenegy.");
+    },
+    async markInvoicePaid() {
+      throw new Error("Zenegy understøtter ikke manuel betaling via API endnu — håndtér manuelt i Zenegy.");
+    },
   };
 }
