@@ -508,52 +508,7 @@ export function CustomerNotificationsSettings({
 
   return (
     <div className="space-y-6">
-      {/* ───── Globale indstillinger ───── */}
-      <div className="grid gap-3 sm:grid-cols-2">
-        {/* Hvordan-virker-det info-card — erstatter den gamle "Standardtid før besøget"-knapsalat,
-            fordi tidspunktet nu sættes pr. besked længere nede (klokkeslæt + dage før). */}
-        <div className="rounded-xl border border-border bg-card p-4">
-          <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground/5">
-              <CalendarDays className="h-4 w-4 text-foreground" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-foreground">Sådan beregnes afsendelsestidspunktet</p>
-              <p className="mt-0.5 text-[12px] text-muted-foreground">
-                For hver påmindelse vælger I et <span className="font-medium text-foreground">klokkeslæt</span> og hvor mange <span className="font-medium text-foreground">dage før</span> aftalen
-                den skal sendes (samme dag, dagen før, 2 dage før eller 1 uge før).
-              </p>
-              <p className="mt-2 text-[12px] text-muted-foreground">
-                Vi finder selv aftalens dato på rutekalenderen og sender beskeden på det rigtige tidspunkt — ingen manuel timing nødvendig.
-              </p>
-              <div className="mt-3 rounded-lg bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground">
-                <span className="font-semibold text-foreground">Eksempel:</span> Aftale tirsdag d. 14. → "Dagen før kl. 16:00" sender mandag d. 13. kl. 16:00.
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* SMS toggle */}
-        <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:bg-muted/30">
-          <div className={cn(
-            "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
-            smsEnabled ? "bg-accent/15" : "bg-foreground/5",
-          )}>
-            <MessageSquare className={cn("h-4 w-4", smsEnabled ? "text-accent" : "text-foreground")} />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-sm font-semibold text-foreground">Send også som SMS til kundens telefon</p>
-              <Switch checked={smsEnabled} onCheckedChange={onSmsEnabledChange} />
-            </div>
-            <p className="mt-0.5 text-[12px] text-muted-foreground">
-              Når slået til, sender vi en kort SMS samtidig med e-mailen. Kunden ser <span className="font-medium text-foreground">Serviceydere</span> som afsender.
-            </p>
-          </div>
-        </label>
-      </div>
-
-      {/* ───── Two column: list + editor ───── */}
+      {/* ───── List + editor ───── */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[260px_1fr]">
         {/* Left list */}
         <nav className="space-y-2">
