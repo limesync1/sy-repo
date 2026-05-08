@@ -734,6 +734,21 @@ const AftaleTab = ({
     enabled: !!businessId && routePlanningEnabled,
   });
 
+  const { data: activeAccountingIntegration } = useQuery({
+    queryKey: ["active-accounting-integration", businessId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("accounting_integrations" as any)
+        .select("id, provider, is_active")
+        .eq("business_id", businessId)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (error) throw error;
+      return data as { id: string; provider: string; is_active: boolean } | null;
+    },
+    enabled: !!businessId,
+  });
+
   // Map: order_id → første tilknyttede stop (en aftale ligger typisk på én rute).
   const stopByOrder = (routeStops || []).reduce<Record<string, any>>((acc, s: any) => {
     if (s.order_id && !acc[s.order_id]) acc[s.order_id] = s;
@@ -741,6 +756,7 @@ const AftaleTab = ({
   }, {});
 
   const dndSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+  const hasActiveAccountingIntegration = !!activeAccountingIntegration?.is_active;
 
   if (isLoading) return <ListCardSkeleton rows={6} />;
 
