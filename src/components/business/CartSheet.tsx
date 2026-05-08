@@ -311,7 +311,10 @@ const CartSheet = () => {
       setLatitude(null); setLongitude(null);
       setCvr(""); setCompanyName(""); setContactName("");
       setCustomerType("private");
-      if (user) {
+      if (user || activeUserId) {
+        if (createdAccount) {
+          toast.success("Konto oprettet – tjek din mail for loginoplysninger.");
+        }
         navigate("/min-konto");
       } else {
         toast.success("Din bestilling er sendt! Virksomheden vil gennemgå og bekræfte den.");
