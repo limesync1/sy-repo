@@ -242,6 +242,18 @@ const Planner = () => {
       arr.push(s);
       stopsByRoute.set(s.route_id, arr);
     }
+    // Per-day numbering ("Kørsel 1", "Kørsel 2", ...)
+    const sortedByDate = [...calendarRoutesRaw].sort((a, b) => {
+      if (a.route_date !== b.route_date) return a.route_date < b.route_date ? -1 : 1;
+      return (a.created_at || "").localeCompare(b.created_at || "");
+    });
+    const indexByRouteId = new Map<string, number>();
+    const counterByDate = new Map<string, number>();
+    for (const r of sortedByDate) {
+      const n = (counterByDate.get(r.route_date) || 0) + 1;
+      counterByDate.set(r.route_date, n);
+      indexByRouteId.set(r.id, n);
+    }
     return calendarRoutesRaw.map((r) => {
       // Saml UNIK liste af medarbejdere på tværs af alle stops på ruten
       const empIds = new Set<string>();
@@ -254,8 +266,10 @@ const Planner = () => {
         .map((id) => activeEmployees.find((e: any) => e.id === id))
         .filter(Boolean)
         .map((e: any) => ({ id: e.id, name: e.name, avatar_url: e.avatar_url, color: e.color }));
+      const dayIndex = indexByRouteId.get(r.id) || 1;
       return {
         ...r,
+        name: r.name || `Kørsel ${dayIndex}`,
         stops: stopsForRoute,
         attachedEmployees: emps,
         attachedEmployeeCount: emps.length,
