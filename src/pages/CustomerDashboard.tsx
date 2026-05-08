@@ -621,6 +621,25 @@ const SubscriptionsView = () => {
   const { data: subscriptions, isLoading } = useMySubscriptions();
   const updateSub = useUpdateSubscription();
   const [reviewingId, setReviewingId] = useState<string | null>(null);
+  const { user } = useAuth();
+  const qc = useQueryClient();
+
+  // Realtime: opdatér abonnementer + ordrer når virksomheden ændrer pris/status
+  // eller når kunden godkender via email-link i en anden fane.
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel(`customer-subs-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "subscriptions", filter: `customer_id=eq.${user.id}` },
+        () => qc.invalidateQueries({ queryKey: ["my-subscriptions"] }))
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders", filter: `customer_id=eq.${user.id}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["my-orders"] });
+          qc.invalidateQueries({ queryKey: ["my-subscriptions"] });
+        })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.id, qc]);
 
   if (isLoading) return (
     <div className="grid gap-4 sm:grid-cols-2">
