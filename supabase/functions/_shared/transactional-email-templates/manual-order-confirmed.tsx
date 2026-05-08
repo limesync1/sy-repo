@@ -37,7 +37,7 @@ const ManualOrderConfirmedEmail = ({
   orderId, address, preferredDate, items = [], totalAmount = 0,
 }: Props) => {
   const shortId = orderId ? `#${orderId.slice(0, 8).toUpperCase()}` : null
-  const businessLabel = businessName || 'Din leverandør'
+  const businessLabel = businessName || 'Din virksomhed'
   return (
     <Html lang="da" dir="ltr">
       <Head />

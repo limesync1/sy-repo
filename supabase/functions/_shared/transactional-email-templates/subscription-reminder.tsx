@@ -65,7 +65,7 @@ const SubscriptionReminderEmail = ({ customerName, businessName, businessPhone, 
 
  <Section style={card}>
  {serviceName && <><Text style={cardLabel}>Service</Text><Text style={cardValue}>{serviceName}</Text></>}
- {businessName && <><Text style={cardLabel}>Leverandør</Text><Text style={cardValue}>{businessName}</Text></>}
+ {businessName && <><Text style={cardLabel}>Virksomhed</Text><Text style={cardValue}>{businessName}</Text></>}
  {intervalLabel && <><Text style={cardLabel}>Interval</Text><Text style={cardValue}>{intervalLabel}</Text></>}
  {typeof totalPrice === 'number' && <><Text style={cardLabel}>Pris pr. gang</Text><Text style={cardValue}>{fmt(totalPrice)}</Text></>}
  {typeof completedCycles === 'number' && completedCycles > 0 && <><Text style={cardLabel}>Tidligere udført</Text><Text style={cardValue}>{completedCycles} {completedCycles === 1 ? 'gang' : 'gange'}</Text></>}
@@ -74,8 +74,8 @@ const SubscriptionReminderEmail = ({ customerName, businessName, businessPhone, 
 
  <Text style={h2}>Før besøget</Text>
  <ol style={stepList}>
- <li style={stepItem}><span style={stepNumber}>1</span>Sørg for adgang til adressen, så leverandøren kan komme i gang med det samme.</li>
- <li style={stepItem}><span style={stepNumber}>2</span>Hvis tidspunktet ikke passer længere, så kontakt leverandøren hurtigst muligt.</li>
+ <li style={stepItem}><span style={stepNumber}>1</span>Sørg for adgang til adressen, så virksomheden kan komme i gang med det samme.</li>
+ <li style={stepItem}><span style={stepNumber}>2</span>Hvis tidspunktet ikke passer længere, så kontakt virksomheden hurtigst muligt.</li>
  <li style={stepItem}><span style={stepNumber}>3</span>Du kan pause eller ændre aftalen direkte i dit kundepanel.</li>
  </ol>
 
@@ -84,7 +84,7 @@ const SubscriptionReminderEmail = ({ customerName, businessName, businessPhone, 
  {(businessPhone || businessEmail) && (
  <Section style={helpBox}>
  <Text style={helpBoxTitle}>Brug for at ændre noget?</Text>
- <Text style={helpBoxText}>Kontakt {businessName || 'leverandøren'} direkte:{' '}{businessPhone && <><Link href={`tel:${businessPhone}`} style={link}>{businessPhone}</Link></>}{businessPhone && businessEmail && ' · '}{businessEmail && <><Link href={`mailto:${businessEmail}`} style={link}>{businessEmail}</Link></>}</Text>
+ <Text style={helpBoxText}>Kontakt {businessName || 'virksomheden'} direkte:{' '}{businessPhone && <><Link href={`tel:${businessPhone}`} style={link}>{businessPhone}</Link></>}{businessPhone && businessEmail && ' · '}{businessEmail && <><Link href={`mailto:${businessEmail}`} style={link}>{businessEmail}</Link></>}</Text>
 </Section>
  )}
  </Container>
