@@ -31,7 +31,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import economicLogo from "@/assets/accounting/economic.png";
 import billyLogo from "@/assets/accounting/billy.png";
 import dineroLogo from "@/assets/accounting/dinero.png";
-import zenegyLogo from "@/assets/accounting/zenegy.svg";
 
 /**
  * AccountingTab — virksomhedens regnskabs-integration.
@@ -45,7 +44,7 @@ import zenegyLogo from "@/assets/accounting/zenegy.svg";
  *    og venlige fejlmeddelelser fra adapter-laget.
  */
 
-type Provider = "economic" | "billy" | "dinero" | "zenegy";
+type Provider = "economic" | "billy" | "dinero";
 
 interface ProviderField {
   key: string;
