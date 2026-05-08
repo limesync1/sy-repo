@@ -1023,6 +1023,44 @@ const AftaleTab = ({
           .in("status", ["pending", "active"]);
       }
 
+      const order = (orders || []).find((o: any) => o.id === orderId) as any;
+      if (order?.customer_email) {
+        const event = responseType === "adjusted" ? "adjusted" : responseType === "accepted" ? "confirmed" : "cancelled";
+        const { data: biz } = await supabase
+          .from("businesses")
+          .select("name, phone, email, address, zip_code, city")
+          .eq("id", businessId)
+          .maybeSingle();
+        const businessAddress = biz
+          ? [biz.address, [biz.zip_code, biz.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")
+          : undefined;
+        const { error: mailErr } = await supabase.functions.invoke("send-transactional-email", {
+          body: {
+            templateName: "order-status-update",
+            recipientEmail: order.customer_email,
+            idempotencyKey: `order-status-${event}-${orderId}-${Date.now()}`,
+            templateData: {
+              customerName: order.customer_name,
+              businessName: biz?.name || businessName,
+              businessPhone: biz?.phone,
+              businessEmail: biz?.email,
+              businessAddress,
+              orderId,
+              event,
+              message: responseMessage || undefined,
+              serviceDate: order.preferred_date || undefined,
+              originalAmount: Number(order.total_amount || 0),
+              proposedAmount: responseType === "adjusted" ? Number(adjustedTotal || 0) : undefined,
+              finalAmount: responseType === "accepted" ? Number(order.total_amount || 0) : undefined,
+              items: (order.order_items || []).map(toMailItem),
+              proposedItems: adjustedData ? adjustedData.map(toMailItem) : undefined,
+              hasRecurring: orderHasRecurring(order),
+            },
+          },
+        });
+        if (mailErr) toast.warning("Aftalen blev opdateret, men mailen kunne ikke sendes.");
+      }
+
       toast.success(
         responseType === "accepted" ? "Aftale godkendt!"
         : responseType === "rejected" ? "Aftale afvist"
