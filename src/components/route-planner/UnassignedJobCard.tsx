@@ -9,6 +9,7 @@ import { format, parseISO, isToday, isTomorrow, isPast, differenceInDays } from 
 import { da } from "date-fns/locale";
 import { formatDurationMin } from "@/lib/duration-format";
 import { relativeFromNow } from "@/lib/relative-time";
+import { INTERVAL_LABELS as SHARED_INTERVAL_LABELS } from "@/types/service";
 
 type OrderItem = {
   service_name: string;
@@ -37,18 +38,17 @@ type Props = {
     preferred_route_name?: string | null;
     next_service_date?: string | null;
     order_items?: OrderItem[] | null;
+    business_response?: string | null;
+    customer_response?: string | null;
+    adjusted_details?: any;
+    adjusted_amount?: number | null;
   };
   onClick?: () => void;
 };
 
 const INTERVAL_LABELS: Record<string, string> = {
-  ugentlig: "Ugentlig",
-  hver_14_dag: "Hver 14. dag",
-  månedlig: "Månedlig",
-  kvartalsvis: "Kvartalsvis",
-  halvårlig: "Halvårlig",
-  årlig: "Årlig",
-  engangskøb: "Engangs",
+  ...SHARED_INTERVAL_LABELS,
+  engangskøb: "Engangskøb",
 };
 
 /** Beregn tydeligt label for hvornår jobbet skal udføres næste gang.
@@ -95,7 +95,15 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
     disabled: isPending,
   });
 
-  const items = job.order_items || [];
+  // Hvis kunden har godkendt et tilpasset forslag, så er adjusted_details
+  // den gældende aftale — brug dén til at vise korrekt interval/serviceliste.
+  const useAdjusted =
+    job.business_response === "adjusted" &&
+    job.customer_response === "accepted" &&
+    Array.isArray((job.adjusted_details as any)?.items);
+  const items = useAdjusted
+    ? ((job.adjusted_details as any).items as OrderItem[])
+    : (job.order_items || []);
   const itemCount = items.length;
   // Vis hele adressen: gade, postnummer og by samlet
   const cityLine = [job.zip_code, job.city].filter(Boolean).join(" ");
