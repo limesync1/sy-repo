@@ -570,6 +570,21 @@ const ProposalStatusBanner = ({ order }: { order: any }) => {
 const AdjustmentDisplay = ({ order }: { order: any }) => {
   if (order.business_response !== "adjusted" || !order.adjusted_details) return null;
   const items = (order.adjusted_details as any)?.items || [];
+  const originalItems = (order.order_items || []) as any[];
+
+  const intervalLabel = (iv?: string | null) =>
+    !iv || iv === "engangskøb" ? "Engangskøb" : (INTERVAL_LABELS[iv] || iv);
+
+  const findOriginal = (item: any) =>
+    originalItems.find((o) => o.service_id && item.service_id && o.service_id === item.service_id) ||
+    originalItems.find((o) => o.service_name === item.service_name);
+
+  const isRecurring = (list: any[]) =>
+    list.some((i: any) => i?.details?.interval && i.details.interval !== "engangskøb");
+
+  const wasRecurring = isRecurring(originalItems);
+  const nowRecurring = isRecurring(items);
+  const typeChanged = wasRecurring !== nowRecurring;
 
   return (
     <div className="rounded-xl border border-border overflow-hidden">
@@ -577,6 +592,22 @@ const AdjustmentDisplay = ({ order }: { order: any }) => {
         <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Dit tilpasningsforslag</span>
       </div>
+      {typeChanged && (
+        <div className="px-4 py-2.5 border-b border-border bg-amber-50 flex items-start gap-2">
+          <RefreshCw className="h-3.5 w-3.5 text-amber-700 mt-0.5 shrink-0" />
+          <div className="text-xs text-amber-900 leading-relaxed">
+            <span className="font-semibold">Aftaletype ændret: </span>
+            {wasRecurring ? "Abonnement" : "Engangskøb"}
+            <ArrowRight className="inline h-3 w-3 mx-1 -mt-0.5" />
+            <span className="font-semibold">{nowRecurring ? "Abonnement" : "Engangskøb"}</span>
+            <span className="ml-1 text-amber-800">
+              {nowRecurring
+                ? "— bliver et tilbagevendende abonnement, hvis kunden godkender."
+                : "— bliver et engangskøb og er ikke længere et abonnement, hvis kunden godkender."}
+            </span>
+          </div>
+        </div>
+      )}
       {items.map((item: any, idx: number) => (
         <div key={idx} className="border-b border-border/50 last:border-b-0 px-4 py-2.5">
           <div className="flex items-start justify-between gap-3">
@@ -585,6 +616,20 @@ const AdjustmentDisplay = ({ order }: { order: any }) => {
               {item.details?.interval && item.details.interval !== "engangskøb" && (
                 <span className="ml-2 text-[11px] text-accent">{INTERVAL_LABELS[item.details.interval] || item.details.interval}</span>
               )}
+              {(() => {
+                const orig = findOriginal(item);
+                const oldIv = orig?.details?.interval || "engangskøb";
+                const newIv = item.details?.interval || "engangskøb";
+                if (!orig || oldIv === newIv) return null;
+                return (
+                  <div className="mt-1 inline-flex items-center gap-1 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-1.5 py-0.5">
+                    <RefreshCw className="h-2.5 w-2.5" />
+                    <span className="line-through opacity-70">{intervalLabel(oldIv)}</span>
+                    <ArrowRight className="h-2.5 w-2.5" />
+                    <span className="font-semibold">{intervalLabel(newIv)}</span>
+                  </div>
+                );
+              })()}
             </div>
             <span className="text-sm font-semibold text-foreground">{item.total_price} kr</span>
           </div>
