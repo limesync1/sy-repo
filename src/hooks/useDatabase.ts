@@ -424,6 +424,8 @@ export const useMyOrders = () => {
       return data;
     },
     enabled: !!user,
+    staleTime: 5_000,
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -444,6 +446,8 @@ export const useMySubscriptions = () => {
       return data;
     },
     enabled: !!user,
+    staleTime: 5_000,
+    refetchOnWindowFocus: true,
   });
 };
 
