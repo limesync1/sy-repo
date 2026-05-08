@@ -401,6 +401,12 @@ const Planner = () => {
     // Træk en aftale fra aftalepool → eksisterende rute (kalender-pille)
     if (activeData?.type === "job" && overData?.type === "route") {
       const job = activeData.job;
+      if (job.status === "pending") {
+        toast.error("Aftalen skal godkendes først", {
+          description: "Aftalen er endnu ikke bekræftet af jer eller kunden — godkend den før den kan lægges på en rute.",
+        });
+        return;
+      }
       const targetRouteId: string = overData.routeId;
       try {
         const { data: existingStops } = await supabase
@@ -431,6 +437,12 @@ const Planner = () => {
     // Træk en aftale fra aftalepool → tom dag (opret ny rute + læg aftale på)
     if (activeData?.type === "job" && overData?.type === "day") {
       const job = activeData.job;
+      if (job.status === "pending") {
+        toast.error("Aftalen skal godkendes først", {
+          description: "Aftalen er endnu ikke bekræftet af jer eller kunden — godkend den før den kan lægges på en rute.",
+        });
+        return;
+      }
       const newDate: string = overData.date;
       try {
         // Find ledig farve baseret på allerede brugte farver samme dag
@@ -504,11 +516,12 @@ const Planner = () => {
   const handleAutoDistribute = async () => {
     if (!businessId) return;
     const jobsWithDate = unassigned
+      .filter((j: any) => j.status !== "pending")
       .map((j: any) => ({ job: j, date: effectiveJobDate(j) }))
       .filter((x) => !!x.date) as { job: any; date: string }[];
 
     if (jobsWithDate.length === 0) {
-      toast.info("Ingen ledige aftaler med ønsket dato at fordele");
+      toast.info("Ingen godkendte aftaler med ønsket dato at fordele");
       return;
     }
 

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import {
   GripVertical, MapPin, CalendarClock, Clock, Phone,
-  StickyNote, Hourglass, ChevronDown, ChevronRight, User, Repeat, Route as RouteIcon,
+  StickyNote, Hourglass, ChevronDown, ChevronRight, User, Repeat, Route as RouteIcon, Lock,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format, parseISO, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
@@ -20,6 +20,7 @@ type OrderItem = {
 type Props = {
   job: {
     id: string;
+    status?: string | null;
     customer_name: string;
     customer_phone?: string | null;
     address?: string | null;
@@ -87,9 +88,11 @@ const getSchedule = (d?: string | null) => {
 
 export const UnassignedJobCard = ({ job, onClick }: Props) => {
   const [expanded, setExpanded] = useState(false);
+  const isPending = job.status === "pending";
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `job-${job.id}`,
     data: { type: "job", job },
+    disabled: isPending,
   });
 
   const items = job.order_items || [];
@@ -119,19 +122,21 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
     <div
       ref={setNodeRef}
       style={{ opacity: isDragging ? 0.4 : 1 }}
-      className="group rounded-lg border bg-card hover:border-primary/60 hover:shadow-md transition-all overflow-hidden"
+      className={`group rounded-lg border bg-card hover:shadow-md transition-all overflow-hidden ${isPending ? "border-amber-300 bg-amber-50/40" : "hover:border-primary/60"}`}
     >
       {/* Top row: drag handle + clickable content */}
       <div className="flex items-start gap-2 p-2.5">
         {/* Kun grip-håndtaget initierer drag — så kortet selv kan klikkes */}
         <button
           type="button"
-          {...listeners}
-          {...attributes}
-          aria-label="Træk for at flytte"
-          className="shrink-0 mt-0.5 text-muted-foreground/50 hover:text-primary/70 cursor-grab active:cursor-grabbing"
+          {...(isPending ? {} : listeners)}
+          {...(isPending ? {} : attributes)}
+          aria-label={isPending ? "Skal godkendes før den kan flyttes" : "Træk for at flytte"}
+          title={isPending ? "Aftalen skal godkendes før den kan lægges på en rute" : "Træk for at flytte"}
+          disabled={isPending}
+          className={`shrink-0 mt-0.5 ${isPending ? "text-amber-500 cursor-not-allowed" : "text-muted-foreground/50 hover:text-primary/70 cursor-grab active:cursor-grabbing"}`}
         >
-          <GripVertical className="h-4 w-4" />
+          {isPending ? <Lock className="h-3.5 w-3.5" /> : <GripVertical className="h-4 w-4" />}
         </button>
         <button
           type="button"
@@ -148,6 +153,14 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
               {Math.round(Number(job.total_amount || 0))} kr
             </span>
           </div>
+
+          {/* Pending-banner — gør tydeligt hvorfor aftalen ikke kan trækkes */}
+          {isPending && (
+            <div className="flex items-center gap-1.5 rounded-md border border-amber-300 bg-amber-100/60 px-2 py-1 text-[11px] font-medium text-amber-800">
+              <Lock className="h-3 w-3 shrink-0" />
+              <span>Afventer godkendelse — kan ikke lægges på rute endnu</span>
+            </div>
+          )}
 
           {/* First service inline */}
           {itemCount > 0 && (
