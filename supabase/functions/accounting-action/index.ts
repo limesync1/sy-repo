@@ -7,6 +7,7 @@
 // reflekterer ændringen uden at vente på næste cron.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { makeAdapter } from "../_shared/accounting/index.ts";
+import { requireAuthenticatedUser } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,18 +28,9 @@ function json(data: unknown, status = 200) {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) return json({ error: "Missing auth" }, 401);
-    const userClient = createClient(SUPABASE_URL, ANON_KEY, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(token);
-    if (claimsErr || !claimsData?.claims?.sub) {
-      console.error("[accounting-action] auth failed", claimsErr);
-      return json({ error: "Unauthorized" }, 401);
-    }
-    const user = { id: claimsData.claims.sub as string };
+    const auth = await requireAuthenticatedUser(req, SUPABASE_URL, ANON_KEY);
+    if ("error" in auth) return json({ error: auth.error }, auth.status);
+    const userClient = auth.userClient;
 
     const { order_id, action, params } = await req.json();
     if (!order_id || !action) return json({ error: "Missing order_id/action" }, 400);
@@ -52,7 +44,7 @@ Deno.serve(async (req) => {
     // Owner check
     const { data: biz } = await userClient.from("businesses")
       .select("id, owner_id").eq("id", order.business_id).maybeSingle();
-    if (!biz || biz.owner_id !== user.id) return json({ error: "Forbidden" }, 403);
+    if (!biz || biz.owner_id !== auth.userId) return json({ error: "Forbidden" }, 403);
 
     const { data: integ } = await admin.from("accounting_integrations")
       .select("*").eq("business_id", order.business_id).eq("is_active", true).maybeSingle();
