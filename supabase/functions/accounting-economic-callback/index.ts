@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { cleanAccountingSettings, prepareAccountingProviderSwitch } from "../_shared/accounting/state.ts";
+import { requireAuthenticatedUser } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,17 +27,9 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) return json({ error: "Missing auth" }, 401);
-
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } },
-    );
-    const { data: userData } = await supabase.auth.getUser();
-    const user = userData?.user;
-    if (!user) return json({ error: "Unauthorized" }, 401);
+    const auth = await requireAuthenticatedUser(req, Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!);
+    if ("error" in auth) return json({ error: auth.error }, auth.status);
+    const supabase = auth.userClient;
 
     const body = await req.json();
     const action = body?.action ?? "exchange";
@@ -51,7 +44,7 @@ Deno.serve(async (req) => {
       if (business_id) {
         const { data: biz } = await supabase
           .from("businesses").select("id, owner_id").eq("id", business_id).maybeSingle();
-        if (!biz || biz.owner_id !== user.id) return json({ error: "Forbidden" }, 403);
+        if (!biz || biz.owner_id !== auth.userId) return json({ error: "Forbidden" }, 403);
         const admin = createClient(
           Deno.env.get("SUPABASE_URL")!,
           Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
@@ -88,7 +81,7 @@ Deno.serve(async (req) => {
     // Verify ownership
     const { data: biz } = await supabase
       .from("businesses").select("id, owner_id").eq("id", business_id).maybeSingle();
-    if (!biz || biz.owner_id !== user.id) return json({ error: "Forbidden" }, 403);
+    if (!biz || biz.owner_id !== auth.userId) return json({ error: "Forbidden" }, 403);
 
     const appSecret = Deno.env.get("ECONOMIC_APP_SECRET_TOKEN");
     if (!appSecret) return json({ error: "ECONOMIC_APP_SECRET_TOKEN er ikke konfigureret på serveren." }, 500);
