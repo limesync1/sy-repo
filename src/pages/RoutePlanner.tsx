@@ -440,7 +440,7 @@ const Planner = () => {
         const created = await createRoute.mutateAsync({
           business_id: businessId,
           route_date: newDate,
-          name: `Rute ${format(parseISO(newDate), "d/M", { locale: da })}`,
+          name: null,
           color: pickAvailableColor(usedColorsThisDay),
         });
         await addStop.mutateAsync({
@@ -540,7 +540,7 @@ const Planner = () => {
           const created = await createRoute.mutateAsync({
             business_id: businessId,
             route_date: d,
-            name: `Auto · ${format(parseISO(d), "EEE d/M", { locale: da })}`,
+            name: null,
           });
           routeId = created.id;
           routesCreated++;
