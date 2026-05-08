@@ -327,9 +327,7 @@ const getActions = (order: any): { canRespond: boolean; canProgress: boolean; ne
     return { canRespond: false, canProgress: true, nextStatus: "in_progress", nextLabel: "Marker som i gang" };
   }
   if (status === "in_progress") {
-    // For recurring: the button says "Udført & plan næste"
-    const isRecurring = (order.order_items || []).some((item: any) => item.details?.interval && item.details.interval !== "engangskøb");
-    return { canRespond: false, canProgress: true, nextStatus: "completed", nextLabel: isRecurring ? "Udført — plan næste" : "Marker som udført" };
+    return { canRespond: false, canProgress: true, nextStatus: "completed", nextLabel: "Udført" };
   }
   return { canRespond: false, canProgress: false, nextStatus: null, nextLabel: null };
 };
@@ -953,17 +951,35 @@ const AftaleTab = ({
     const isRecurring = order ? orderHasRecurring(order) : false;
     const interval = order ? getOrderInterval(order) : "engangskøb";
 
-    // For recurring orders: completing = auto-cycle to confirmed
-    if (newStatus === "completed" && isRecurring && interval !== "engangskøb") {
+    // Når aftalen markeres som udført og ligger på en rute, markerer vi
+    // selve rute-stoppet som udført — DB-triggeren sørger for at:
+    //  • opdatere ordren til 'completed' + bumpe completed_cycles
+    //  • oprette næste tilbagevendende ordre på næste interval-dato
+    //  • lægge en ny rute-stop ind på samme medarbejder/rute (eller ny rute samme dag)
+    const stop = newStatus === "completed" ? stopByOrder?.[orderId] : null;
+    if (newStatus === "completed" && stop?.id) {
+      const { error } = await supabase.from("route_stops").update({
+        status: "completed" as any,
+        completed_at: new Date().toISOString(),
+      }).eq("id", stop.id);
+      if (error) { toast.error(error.message); return; }
+      if (isRecurring && interval !== "engangskøb") {
+        const nextDate = calcNextServiceDate(interval);
+        toast.success(`Aftale udført — næste kørsel planlagt ${nextDate ? new Date(nextDate).toLocaleDateString("da-DK", { day: "numeric", month: "long" }) : ""}`);
+      } else {
+        toast.success("Aftale markeret som udført");
+      }
+    } else if (newStatus === "completed" && isRecurring && interval !== "engangskøb") {
+      // Tilbagevendende uden rute — fald tilbage til at bumpe cyklus så cron senere kan materialisere næste ordre.
       const nextDate = calcNextServiceDate(interval);
       const currentCycles = (order as any)?.completed_cycles || 0;
       const { error } = await supabase.from("orders").update({
-        status: "confirmed" as any,
+        status: "completed" as any,
         completed_cycles: currentCycles + 1,
         ...(nextDate ? { next_service_date: nextDate } : {}),
       }).eq("id", orderId);
       if (error) { toast.error(error.message); return; }
-      toast.success(`Service #${currentCycles + 1} udført — næste planlagt ${nextDate ? new Date(nextDate).toLocaleDateString("da-DK", { day: "numeric", month: "long" }) : ""}`);
+      toast.success(`Aftale udført — næste kørsel planlagt ${nextDate ? new Date(nextDate).toLocaleDateString("da-DK", { day: "numeric", month: "long" }) : ""}`);
     } else {
       const { error } = await supabase.from("orders").update({
         status: newStatus as any,
@@ -973,6 +989,7 @@ const AftaleTab = ({
     }
     qc.invalidateQueries({ queryKey: ["orders"] });
     qc.invalidateQueries({ queryKey: ["my-orders"] });
+    qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
   };
 
   const handleMarkPaid = async (order: any) => {
@@ -1643,6 +1660,11 @@ const AftaleTab = ({
                             title={`Tilbagevendende: ${INTERVAL_LABELS[interval] || interval}${cycles > 0 ? ` · gennemført ${cycles} gange` : ""}`}
                           >
                             <RefreshCw className="h-2.5 w-2.5" /> {INTERVAL_LABELS[interval] || interval}
+                            {cycles > 0 && (
+                              <span className="ml-1 rounded bg-background/70 px-1 py-px text-[9px] font-semibold text-foreground">
+                                {cycles + 1}. kørsel
+                              </span>
+                            )}
                           </span>
                         )}
                         {routePlanningEnabled && routeInfo && (
@@ -1856,18 +1878,19 @@ const AftaleTab = ({
 
                         {/* Progress button for confirmed/in_progress */}
                         {actions.canProgress && actions.nextStatus && (
-                          <Button size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, actions.nextStatus!); }}
-                            className={`gap-1.5 rounded-lg text-xs ${
-                              actions.nextStatus === "completed" && hasRecurring
-                                ? "bg-foreground text-background hover:bg-foreground/90"
-                                : actions.nextStatus === "completed"
-                                ? "bg-foreground text-background hover:bg-foreground/90"
-                                : "bg-foreground text-background hover:bg-foreground/90"
-                            }`}>
-                            {actions.nextStatus === "in_progress" && <><Play className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
-                            {actions.nextStatus === "completed" && hasRecurring && <><RefreshCw className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
-                            {actions.nextStatus === "completed" && !hasRecurring && <><CheckCircle2 className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
-                          </Button>
+                          <div className="flex flex-col gap-1">
+                            <Button size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, actions.nextStatus!); }}
+                              className="gap-1.5 rounded-lg text-xs bg-foreground text-background hover:bg-foreground/90">
+                              {actions.nextStatus === "in_progress" && <><Play className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
+                              {actions.nextStatus === "completed" && hasRecurring && <><RefreshCw className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
+                              {actions.nextStatus === "completed" && !hasRecurring && <><CheckCircle2 className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
+                            </Button>
+                            {actions.nextStatus === "in_progress" && routePlanningEnabled && !routeStop && (
+                              <p className="text-[10px] leading-tight text-muted-foreground max-w-[200px]">
+                                Bruges når aftalen ikke ligger på en rute og blot skal udføres.
+                              </p>
+                            )}
+                          </div>
                         )}
 
                         {/* Cancel is always available for non-terminal states */}
