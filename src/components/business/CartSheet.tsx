@@ -15,23 +15,6 @@ import { cn } from "@/lib/utils";
 import AddressAutocomplete from "@/components/shared/AddressAutocomplete";
 import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupField";
 
-/** Calculate next service date based on interval, anchored to today. */
-const calculateNextServiceDate = (interval: string): string => {
-  const base = new Date();
-  switch (interval) {
-    case "ugentlig": base.setDate(base.getDate() + 7); break;
-    case "hver_14_dag": base.setDate(base.getDate() + 14); break;
-    case "hver_4_uge": base.setDate(base.getDate() + 28); break;
-    case "hver_8_uge": base.setDate(base.getDate() + 56); break;
-    case "månedlig": base.setMonth(base.getMonth() + 1); break;
-    case "kvartalsvis": base.setMonth(base.getMonth() + 3); break;
-    case "halvårlig": base.setMonth(base.getMonth() + 6); break;
-    case "årlig": base.setFullYear(base.getFullYear() + 1); break;
-    default: base.setMonth(base.getMonth() + 1); break;
-  }
-  return base.toISOString();
-};
-
 /**
  * Global bestillings-sheet. Renderes én gang globalt (i App.tsx) og åbnes
  * automatisk når brugeren tilføjer en service via CartContext. Vi viser
