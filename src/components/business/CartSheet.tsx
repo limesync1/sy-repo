@@ -1,6 +1,6 @@
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCreateOrder, useCreateSubscription } from "@/hooks/useDatabase";
+import { useCreateOrder } from "@/hooks/useDatabase";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -42,7 +42,6 @@ const CartSheet = () => {
   const { items, removeItem, clearCart, total, count, groupedByBusiness, sheetOpen, setSheetOpen } = useCart();
   const { user } = useAuth();
   const createOrder = useCreateOrder();
-  const createSubscription = useCreateSubscription();
   const navigate = useNavigate();
   const [checkout, setCheckout] = useState(false);
   const [customerType, setCustomerType] = useState<"private" | "business">("private");
@@ -134,14 +133,15 @@ const CartSheet = () => {
   const handleOrder = async () => {
     const nextErrors: Record<string, string> = {};
     const trimmedEmail = email.trim();
+    const effectiveEmail = (user?.email || trimmedEmail).trim().toLowerCase();
     const trimmedPhone = phone.trim();
     const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail);
 
     if (customerType === "private" && !name.trim()) nextErrors.name = "Indtast dit navn.";
     if (customerType === "business" && !companyName.trim()) nextErrors.companyName = "Indtast firmanavn.";
     if (customerType === "business" && !contactName.trim()) nextErrors.contactName = "Indtast kontaktperson.";
-    if (!trimmedEmail) nextErrors.email = "Indtast din e-mail.";
-    else if (!emailOk) nextErrors.email = "Indtast en gyldig e-mailadresse.";
+    if (!effectiveEmail) nextErrors.email = "Indtast din e-mail.";
+    else if (!user && !emailOk) nextErrors.email = "Indtast en gyldig e-mailadresse.";
     if (!trimmedPhone) nextErrors.phone = "Indtast dit telefonnummer.";
     if (!address.trim() || !zipCode.trim() || !city.trim()) nextErrors.address = "Vælg en gyldig adresse med postnummer og by.";
 
@@ -182,7 +182,7 @@ const CartSheet = () => {
               parent_order_id: parentOrderId,
               business_id: businessId === "unknown" ? undefined : businessId,
               customer_name: customerType === "business" && companyName ? companyName : name,
-              customer_email: email,
+              customer_email: effectiveEmail,
               customer_phone: phone,
               address,
               zip_code: zipCode,
@@ -219,33 +219,6 @@ const CartSheet = () => {
         // Brug forælder-id'et til kvitteringsmail + abonnementer-link
         const orderResult = { id: parentOrderId };
 
-        if (user && businessId !== "unknown") {
-          for (let i = 0; i < group.items.length; i++) {
-            const item = group.items[i];
-            if (item.interval && item.interval !== "engangskøb") {
-              // Næste service-dato beregnes fra i dag — virksomhedsejer planlægger derefter i kalenderen.
-              const nextDate = calculateNextServiceDate(item.interval);
-              await createSubscription.mutateAsync({
-                customer_id: user.id,
-                business_id: businessId,
-                service_id: item.serviceId,
-                service_name: item.serviceName,
-                interval: item.interval,
-                total_price: item.total,
-                order_id: childIds[i],
-                next_service_date: nextDate,
-                // Abonnementet aktiveres først når virksomheden godkender ordren
-                status: "pending",
-                details: {
-                  description: item.details,
-                  stepDetails: item.stepDetails,
-                  pricingSnapshot: item.pricingSnapshot,
-                },
-              });
-            }
-          }
-        }
-
         // Send order confirmation email (fire-and-forget; non-blocking)
         const hasRecurring = group.items.some(
           (i) => i.interval && i.interval !== "engangskøb"
@@ -269,11 +242,11 @@ const CartSheet = () => {
           .invoke("send-transactional-email", {
             body: {
               templateName: "order-confirmation",
-              recipientEmail: email,
+              recipientEmail: effectiveEmail,
               idempotencyKey: `order-confirm-${orderResult.id}`,
               templateData: {
                 customerName: name,
-                customerEmail: email,
+                customerEmail: effectiveEmail,
                 customerPhone: phone,
                 businessName: group.businessName || businessInfo?.name,
                 businessPhone: businessInfo?.phone,
