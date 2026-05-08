@@ -260,8 +260,15 @@ const FavoritesView = () => {
 /* ════════════════════════════════════════════════ */
 /*  Orders View — shows proposals, accepts/rejects  */
 /* ════════════════════════════════════════════════ */
-const OrdersView = () => {
-  const { data: orders, isLoading } = useMyOrders();
+const OrdersView = ({ mode = "all" }: { mode?: "all" | "onetime" }) => {
+  const { data: allOrders, isLoading } = useMyOrders();
+  // Engangskøb-fane viser kun bestillinger uden tilbagevendende interval på nogen item.
+  const orders = mode === "onetime"
+    ? (allOrders || []).filter((o: any) => {
+        const items = (o.order_items || []) as any[];
+        return items.length > 0 && items.every((it) => !it?.details?.interval || it.details.interval === "engangskøb");
+      })
+    : allOrders;
   const qc = useQueryClient();
   const { user } = useAuth();
   const [filter, setFilter] = useState<string>("all");
