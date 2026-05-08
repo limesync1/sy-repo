@@ -1660,6 +1660,11 @@ const AftaleTab = ({
                             title={`Tilbagevendende: ${INTERVAL_LABELS[interval] || interval}${cycles > 0 ? ` · gennemført ${cycles} gange` : ""}`}
                           >
                             <RefreshCw className="h-2.5 w-2.5" /> {INTERVAL_LABELS[interval] || interval}
+                            {cycles > 0 && (
+                              <span className="ml-1 rounded bg-background/70 px-1 py-px text-[9px] font-semibold text-foreground">
+                                {cycles + 1}. kørsel
+                              </span>
+                            )}
                           </span>
                         )}
                         {routePlanningEnabled && routeInfo && (
