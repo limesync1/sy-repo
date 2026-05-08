@@ -242,8 +242,8 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
         .eq("id", businessId)
         .maybeSingle();
 
-      if (customerKnown) {
-        // Kendt kunde: send blot en bekræftelses-mail (ingen godkendelse).
+      // Manuel oprettelse er altid forhåndsgodkendt — send bekræftelses-mail.
+      {
         const { error: mailErr } = await supabase.functions.invoke("send-transactional-email", {
           body: {
             templateName: "manual-order-confirmed",
@@ -286,54 +286,6 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
         onOpenChange(false);
         return;
       }
-
-      // Ukendt kunde: send approval-mail.
-      // Mailen peger på forælder-ordren — edge function godkender hele gruppen.
-      const approvalUrl = `${window.location.origin}/godkend-bestilling/${parentOrderId}?token=${token}`;
-      const { error: mailErr } = await supabase.functions.invoke("send-transactional-email", {
-        body: {
-          templateName: "manual-order-approval",
-          recipientEmail: customerEmailLower,
-          idempotencyKey: `manual-order-${parentOrderId}`,
-          templateData: {
-            customerName: customerName.trim(),
-            businessName: biz?.name || businessName,
-            businessPhone: biz?.phone,
-            businessEmail: biz?.email,
-            businessMessage: businessMessage.trim() || undefined,
-            orderId: parentOrderId,
-            approvalUrl,
-            expiresInDays: 7,
-            address: address.trim()
-              ? `${address.trim()}${zipCode.trim() || city.trim() ? `, ${[zipCode.trim(), city.trim()].filter(Boolean).join(" ")}` : ""}`
-              : undefined,
-            preferredDate: preferredDate || undefined,
-            totalAmount,
-            items: items.map((it) => ({
-              name: it.service.name,
-              quantity: 1,
-              price: roundPrice(calcItemTotal(it)),
-              intervalLabel: it.interval && it.interval !== "engangskøb" ? INTERVAL_LABELS[it.interval] || it.interval : undefined,
-              description: it.service.pricing_type === "timepris" ? `${it.hours} timer` : undefined,
-              stepDetails: it.service.pricing_type === "prisberegner"
-                ? (it.service.calculator_steps || []).map((s) => ({
-                    label: s.label, value: it.stepValues[s.id] || 0, unit: s.unit,
-                    subtotal: roundPrice((it.stepValues[s.id] || 0) * Number(s.price_per_unit)),
-                  }))
-                : undefined,
-            })),
-          },
-        },
-      });
-      if (mailErr) {
-        console.error("Mail send failed:", mailErr);
-        toast.error("Bestilling oprettet, men godkendelsesmailen kunne ikke sendes. Kontakt support.");
-      } else {
-        toast.success("Bestilling oprettet — kunden har modtaget en mail med godkendelseslink");
-      }
-
-      reset();
-      onOpenChange(false);
     } catch (e: any) {
       toast.error("Kunne ikke oprette bestilling: " + (e.message || "Ukendt fejl"));
     } finally {
