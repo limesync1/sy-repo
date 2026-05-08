@@ -1873,18 +1873,19 @@ const AftaleTab = ({
 
                         {/* Progress button for confirmed/in_progress */}
                         {actions.canProgress && actions.nextStatus && (
-                          <Button size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, actions.nextStatus!); }}
-                            className={`gap-1.5 rounded-lg text-xs ${
-                              actions.nextStatus === "completed" && hasRecurring
-                                ? "bg-foreground text-background hover:bg-foreground/90"
-                                : actions.nextStatus === "completed"
-                                ? "bg-foreground text-background hover:bg-foreground/90"
-                                : "bg-foreground text-background hover:bg-foreground/90"
-                            }`}>
-                            {actions.nextStatus === "in_progress" && <><Play className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
-                            {actions.nextStatus === "completed" && hasRecurring && <><RefreshCw className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
-                            {actions.nextStatus === "completed" && !hasRecurring && <><CheckCircle2 className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
-                          </Button>
+                          <div className="flex flex-col gap-1">
+                            <Button size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, actions.nextStatus!); }}
+                              className="gap-1.5 rounded-lg text-xs bg-foreground text-background hover:bg-foreground/90">
+                              {actions.nextStatus === "in_progress" && <><Play className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
+                              {actions.nextStatus === "completed" && hasRecurring && <><RefreshCw className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
+                              {actions.nextStatus === "completed" && !hasRecurring && <><CheckCircle2 className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
+                            </Button>
+                            {actions.nextStatus === "in_progress" && routePlanningEnabled && !routeStop && (
+                              <p className="text-[10px] leading-tight text-muted-foreground max-w-[200px]">
+                                Bruges når aftalen ikke ligger på en rute og blot skal udføres.
+                              </p>
+                            )}
+                          </div>
                         )}
 
                         {/* Cancel is always available for non-terminal states */}
