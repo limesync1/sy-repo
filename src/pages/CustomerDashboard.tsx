@@ -51,6 +51,28 @@ const ORDER_STATUS: Record<string, { label: string; color: string; icon: typeof 
   cancelled:   { label: STATUS_LABELS.cancelled,   color: STATUS_BADGE_CLASS.cancelled,   icon: XCircle },
 };
 
+const getAdjustedItems = (order: any): any[] => {
+  const details = order?.adjusted_details as any;
+  if (Array.isArray(details)) return details;
+  if (Array.isArray(details?.items)) return details.items;
+  return [];
+};
+
+const hasAcceptedAdjustment = (order: any) =>
+  order?.business_response === "adjusted" && order?.customer_response === "accepted";
+
+const getEffectiveOrderItems = (order: any): any[] => {
+  const adjustedItems = hasAcceptedAdjustment(order) ? getAdjustedItems(order) : [];
+  return adjustedItems.length > 0 ? adjustedItems : (order?.order_items || []);
+};
+
+const getItemInterval = (item: any) => item?.details?.interval || item?.interval || "engangskøb";
+const isRecurringInterval = (interval?: string | null) => !!interval && interval !== "engangskøb";
+const isEffectiveOneTimeOrder = (order: any) => {
+  const items = getEffectiveOrderItems(order);
+  return items.length > 0 && items.every((item) => !isRecurringInterval(getItemInterval(item)));
+};
+
 /* ════════════════════════════════════════════════ */
 /*  Empty State — fælles for Bestillinger /         */
 /*  Abonnementer / Favoritter                       */
@@ -262,20 +284,21 @@ const FavoritesView = () => {
 /* ════════════════════════════════════════════════ */
 const OrdersView = ({ mode = "all" }: { mode?: "all" | "onetime" }) => {
   const { data: allOrders, isLoading } = useMyOrders();
-  // Engangskøb-fane viser kun bestillinger uden tilbagevendende interval på nogen item.
+  const { data: subscriptions } = useMySubscriptions();
+  const recurringSubscriptionOrderIds = new Set(
+    (subscriptions || [])
+      .filter((s: any) =>
+        s.order_id &&
+        s.status !== "cancelled" &&
+        (isRecurringInterval(s.interval) || isRecurringInterval((s.details as any)?.interval))
+      )
+      .map((s: any) => s.order_id),
+  );
+
+  // Engangskøb-fanen viser kun aftaler der effektivt er engangskøb efter evt. godkendt justering.
+  // Hvis der findes et aktivt abonnement på ordren, må den aldrig ligge i begge faner.
   const orders = mode === "onetime"
-    ? (allOrders || []).filter((o: any) => {
-        // Brug "effektive" items: hvis kunden har accepteret et tilpasset
-        // forslag, er det de tilpassede items der gælder (her kan en
-        // engangskøb-ordre være ændret til et abonnement og bør derfor
-        // ikke længere vises under "Engangskøb").
-        const accepted = o.business_response === "adjusted" && o.customer_response === "accepted";
-        const adjustedItems = accepted ? (o.adjusted_details?.items as any[] | undefined) : undefined;
-        const items = (adjustedItems && adjustedItems.length > 0
-          ? adjustedItems
-          : (o.order_items || [])) as any[];
-        return items.length > 0 && items.every((it) => !it?.details?.interval || it.details.interval === "engangskøb");
-      })
+    ? (allOrders || []).filter((o: any) => !recurringSubscriptionOrderIds.has(o.id) && isEffectiveOneTimeOrder(o))
     : allOrders;
   const qc = useQueryClient();
   const { user } = useAuth();
@@ -481,6 +504,7 @@ const OrderCard = ({ order, onRespond }: {
   const statusCfg = ORDER_STATUS[order.status] || ORDER_STATUS.pending;
   const biz = order.businesses || {};
   const items = order.order_items || [];
+  const displayItems = getEffectiveOrderItems(order);
   const hasProposal = order.business_response === "adjusted" && !order.customer_response;
   const customerAccepted = order.customer_response === "accepted";
   const customerRejected = order.customer_response === "rejected";
@@ -521,12 +545,12 @@ const OrderCard = ({ order, onRespond }: {
                 <h4 className="text-sm font-semibold text-foreground truncate">{biz.name || "Virksomhed"}</h4>
                 <p className="text-xs text-muted-foreground">
                   {new Date(order.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
-                  {items.length > 0 && ` · ${items.length} ${items.length === 1 ? "service" : "services"}`}
+                  {displayItems.length > 0 && ` · ${displayItems.length} ${displayItems.length === 1 ? "service" : "services"}`}
                 </p>
                 {(() => {
-                  const names = items.map((it: any) => it.service_name).filter(Boolean);
+                  const names = displayItems.map((it: any) => it.service_name).filter(Boolean);
                   const summary = names.slice(0, 2).join(", ") + (names.length > 2 ? ` +${names.length - 2}` : "");
-                  const hasRecurring = items.some((it: any) => it.details?.interval && it.details.interval !== "engangskøb");
+                  const hasRecurring = displayItems.some((it: any) => isRecurringInterval(getItemInterval(it)));
                   const cityLine = [order.address, [order.zip_code, order.city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
                   return (
                     <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
@@ -536,7 +560,7 @@ const OrderCard = ({ order, onRespond }: {
                           <CalendarClock className="h-2.5 w-2.5" /> Abonnement
                         </span>
                       )}
-                      {!hasRecurring && items.length > 0 && (
+                      {!hasRecurring && displayItems.length > 0 && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-secondary text-foreground/70 px-1.5 py-px text-[10px] font-medium">
                           Engangskøb
                         </span>
