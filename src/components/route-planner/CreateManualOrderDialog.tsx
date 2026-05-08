@@ -164,7 +164,6 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
       // — virksomheden har allerede besluttet at tage opgaven, så kunden skal
       // bare modtage en bekræftelses-mail (ligesom et helt almindeligt køb).
       const customerEmailLower = customerEmail.trim().toLowerCase();
-      const customerKnown = true;
 
       // Én ordre pr. service. Første ordre = forælder; alle peger på dens id via parent_order_id.
       const parentOrderId = crypto.randomUUID();
