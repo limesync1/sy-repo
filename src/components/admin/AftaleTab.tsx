@@ -2052,6 +2052,14 @@ const AftaleTab = ({
                           </Button>
                         )}
 
+                        {/* Slet — kun tilgængelig for annullerede aftaler */}
+                        {order.status === "cancelled" && (
+                          <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order); }}
+                            className="ml-auto gap-1.5 rounded-lg border-destructive/40 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
+                            <Trash2 className="h-3.5 w-3.5" /> Slet aftale
+                          </Button>
+                        )}
+
                         {/* Markér som betalt — vises kun når en regnskabsintegration er aktiv. */}
                         {hasActiveAccountingIntegration &&
                           (order.status === "confirmed" || order.status === "in_progress" || order.status === "completed") &&
