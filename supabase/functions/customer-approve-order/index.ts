@@ -151,7 +151,6 @@ Deno.serve(async (req) => {
         // opdaterede faktura/ordre overskriver den tidligere version.
         await supabase.from('accounting_sync_queue').insert({
           business_id: (o as any).business_id,
-          provider: 'auto',
           entity_type: 'order',
           entity_id: (o as any).id,
           operation: 'update',
