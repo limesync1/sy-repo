@@ -21,7 +21,7 @@ import {
   Store, ChevronRight, ShoppingCart, Check, X,
   Clock, AlertTriangle, CheckCircle2, MessageSquare, FileText,
   Bell, Mail, Shield, KeyRound, Heart, Building2, MapPin, Trash2,
-  FileSignature, Receipt, Download,
+  FileSignature, Receipt, Download, History,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import SEO from "@/components/SEO";
@@ -260,7 +260,24 @@ const FavoritesView = () => {
 const OrdersView = () => {
   const { data: orders, isLoading } = useMyOrders();
   const qc = useQueryClient();
+  const { user } = useAuth();
   const [filter, setFilter] = useState<string>("all");
+
+  // Realtime: lyt på ordrer + abonnementer + forslag-historik så UI altid er ajour
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel(`customer-orders-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders", filter: `customer_id=eq.${user.id}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["my-orders"] });
+          qc.invalidateQueries({ queryKey: ["my-subscriptions"] });
+        })
+      .on("postgres_changes", { event: "*", schema: "public", table: "subscriptions", filter: `customer_id=eq.${user.id}` },
+        () => qc.invalidateQueries({ queryKey: ["my-subscriptions"] }))
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.id, qc]);
 
   if (isLoading) return (
     <div className="grid gap-4 sm:grid-cols-2">
@@ -688,6 +705,9 @@ const OrderCard = ({ order, onRespond }: {
               </div>
             )}
 
+            {/* Visuel historik over alle prisjusteringer/intervalændringer */}
+            <ProposalHistory orderId={order.id} />
+
             {/* Link to business */}
             {biz.slug && (
               <Link to={`/b/${biz.slug}`}
@@ -699,6 +719,142 @@ const OrderCard = ({ order, onRespond }: {
         )}
       </CardContent>
     </Card>
+  );
+};
+
+/* ── Proposal History (before/after audit log) ── */
+const ProposalHistory = ({ orderId }: { orderId: string }) => {
+  const [entries, setEntries] = useState<any[] | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      const { data } = await supabase
+        .from("order_proposal_history")
+        .select("*")
+        .eq("order_id", orderId)
+        .order("proposed_at", { ascending: false });
+      if (active) setEntries(data || []);
+    };
+    load();
+    const channel = supabase
+      .channel(`oph-${orderId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "order_proposal_history", filter: `order_id=eq.${orderId}` }, load)
+      .subscribe();
+    return () => { active = false; supabase.removeChannel(channel); };
+  }, [orderId]);
+
+  if (!entries || entries.length === 0) return null;
+
+  const fmt = (iso: string) => new Date(iso).toLocaleString("da-DK", {
+    day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
+  });
+
+  const intervalLabel = (i?: string | null) =>
+    !i || i === "engangskøb" ? "Engangskøb" : (INTERVAL_LABELS[i] || i);
+
+  return (
+    <div className="rounded-xl border border-border overflow-hidden">
+      <div className="flex items-center gap-2 px-4 py-2.5 bg-muted/40 border-b border-border">
+        <History className="h-3.5 w-3.5 text-muted-foreground" />
+        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Historik over prisjusteringer
+        </span>
+        <span className="ml-auto text-[11px] text-muted-foreground tabular-nums">
+          {entries.length} {entries.length === 1 ? "ændring" : "ændringer"}
+        </span>
+      </div>
+      <ol className="divide-y divide-border">
+        {entries.map((e) => {
+          const origItems: any[] = Array.isArray(e.original_items) ? e.original_items : [];
+          const adjItems: any[] = Array.isArray(e.adjusted_items) ? e.adjusted_items : [];
+          const decisionTone = e.customer_decision === "accepted"
+            ? "border-green-200 bg-green-50 text-green-800"
+            : e.customer_decision === "rejected"
+              ? "border-destructive/30 bg-destructive/5 text-destructive"
+              : "border-amber-200 bg-amber-50 text-amber-800";
+          const decisionLabel = e.customer_decision === "accepted" ? "Du godkendte"
+            : e.customer_decision === "rejected" ? "Du afviste"
+              : "Afventer dit svar";
+          return (
+            <li key={e.id} className="px-4 py-3 space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-xs text-muted-foreground">
+                  Forslag sendt {fmt(e.proposed_at)}
+                </span>
+                <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium ${decisionTone}`}>
+                  {decisionLabel}
+                  {e.decided_at && <span className="opacity-75">· {fmt(e.decided_at)}</span>}
+                </span>
+              </div>
+              {e.business_message && (
+                <p className="text-xs text-foreground/80 italic">"{e.business_message}"</p>
+              )}
+              <div className="grid gap-2 sm:grid-cols-2">
+                <div className="rounded-lg border border-border bg-background p-2.5">
+                  <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Før</div>
+                  {origItems.map((it, i) => (
+                    <div key={i} className="flex items-baseline justify-between gap-2 text-xs py-0.5">
+                      <span className="truncate text-foreground/80">
+                        {it.service_name}
+                        <span className="ml-1 text-[10px] text-muted-foreground">({intervalLabel(it.details?.interval)})</span>
+                      </span>
+                      <span className="tabular-nums text-foreground/70">{Number(it.total_price || 0)} kr</span>
+                    </div>
+                  ))}
+                  <div className="mt-1 flex justify-between border-t border-border pt-1 text-xs font-semibold">
+                    <span>I alt</span>
+                    <span className="tabular-nums">{Number(e.original_amount || 0)} kr</span>
+                  </div>
+                </div>
+                <div className="rounded-lg border border-amber-200 bg-amber-50/40 p-2.5">
+                  <div className="text-[10px] font-semibold uppercase tracking-wider text-amber-800 mb-1">Efter</div>
+                  {adjItems.map((it, i) => {
+                    const orig = origItems.find((o) => o.service_id === it.service_id) || (origItems.length === 1 ? origItems[0] : null);
+                    const oldI = orig?.details?.interval || "engangskøb";
+                    const newI = it?.details?.interval || "engangskøb";
+                    const intervalChanged = oldI !== newI;
+                    const priceChanged = orig && Number(orig.total_price) !== Number(it.total_price);
+                    return (
+                      <div key={i} className="py-0.5">
+                        <div className="flex items-baseline justify-between gap-2 text-xs">
+                          <span className="truncate text-foreground">
+                            {it.service_name}
+                            <span className={`ml-1 text-[10px] ${intervalChanged ? "font-semibold text-amber-800" : "text-muted-foreground"}`}>
+                              ({intervalLabel(newI)})
+                            </span>
+                          </span>
+                          <span className="tabular-nums font-semibold text-foreground">
+                            {Number(it.total_price || 0)} kr
+                            {priceChanged && (
+                              <span className="ml-1 text-[10px] font-normal text-muted-foreground line-through">{Number(orig!.total_price)} kr</span>
+                            )}
+                          </span>
+                        </div>
+                        {intervalChanged && (
+                          <div className="text-[10px] text-amber-700">
+                            Ændret fra {intervalLabel(oldI)} → {intervalLabel(newI)}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                  <div className="mt-1 flex justify-between border-t border-amber-200 pt-1 text-xs font-semibold">
+                    <span>I alt</span>
+                    <span className="tabular-nums">
+                      {Number(e.adjusted_amount || 0)} kr
+                      {Number(e.adjusted_amount) !== Number(e.original_amount) && (
+                        <span className="ml-1 text-[10px] font-normal text-muted-foreground line-through">{Number(e.original_amount || 0)} kr</span>
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
   );
 };
 
