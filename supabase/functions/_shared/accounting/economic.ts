@@ -43,6 +43,63 @@ function pickDraftInvoicePayload(template: any): Record<string, unknown> {
   return copy;
 }
 
+function pickEconomicRef(value: any, numberKey: string): Record<string, unknown> | undefined {
+  const num = Number(value?.[numberKey]);
+  if (Number.isFinite(num) && num > 0) return { [numberKey]: num };
+  if (value?.self) return { self: value.self };
+  return undefined;
+}
+
+function buildCreditNoteDraftPayload(invoice: any): Record<string, unknown> {
+  const customer = pickEconomicRef(invoice.customer, "customerNumber");
+  const layout = pickEconomicRef(invoice.layout, "layoutNumber");
+  const paymentTerms = pickEconomicRef(invoice.paymentTerms, "paymentTermsNumber");
+  const vatZone = pickEconomicRef(invoice.recipient?.vatZone, "vatZoneNumber") ?? { vatZoneNumber: 1 };
+  if (!customer || !layout || !paymentTerms) {
+    throw new Error("E-conomic-fakturaen mangler kunde, layout eller betalingsbetingelser og kan ikke krediteres automatisk.");
+  }
+  const recipient = {
+    name: (invoice.recipient?.name ?? "Kunde").toString().trim() || "Kunde",
+    address: invoice.recipient?.address ?? undefined,
+    zip: invoice.recipient?.zip ?? undefined,
+    city: invoice.recipient?.city ?? undefined,
+    country: invoice.recipient?.country ?? undefined,
+    ean: invoice.recipient?.ean ?? undefined,
+    publicEntryNumber: invoice.recipient?.publicEntryNumber ?? undefined,
+    vatZone,
+  };
+  for (const key of Object.keys(recipient)) if ((recipient as any)[key] == null || (recipient as any)[key] === "") delete (recipient as any)[key];
+  const lines = ((invoice.lines ?? []) as any[]).map((line, index) => {
+    const out: Record<string, unknown> = {
+      lineNumber: index + 1,
+      sortKey: line.sortKey ?? index + 1,
+      description: (line.description ?? "Kreditering").toString().trim() || "Kreditering",
+      quantity: -Math.abs(Number(line.quantity ?? 1)),
+      unitNetPrice: Math.abs(Number(line.unitNetPrice ?? line.totalNetAmount ?? 0)),
+      discountPercentage: Number(line.discountPercentage ?? 0),
+    };
+    const product = pickEconomicRef(line.product, "productNumber");
+    const unit = pickEconomicRef(line.unit, "unitNumber");
+    if (product) out.product = product;
+    if (unit) out.unit = unit;
+    return out;
+  }).filter((line) => Number(line.unitNetPrice) > 0);
+  if (lines.length === 0) throw new Error("E-conomic-fakturaen har ingen fakturalinjer der kan krediteres automatisk.");
+  return {
+    date: new Date().toISOString().slice(0, 10),
+    currency: invoice.currency ?? "DKK",
+    customer,
+    recipient,
+    paymentTerms,
+    layout,
+    notes: {
+      heading: "Kreditnota",
+      textLine1: `Kreditering af faktura ${invoice.bookedInvoiceNumber}`,
+    },
+    lines,
+  };
+}
+
 /**
  * Maps Serviceydere vat_zone values to e-conomic vatZoneNumber.
  * E-conomic standard: 1 = indland, 2 = EU, 3 = eksport (3. land), 4 = momsfri.
