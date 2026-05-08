@@ -1908,7 +1908,7 @@ const AftaleTab = ({
                           <div className="flex items-center gap-2 min-w-0">
                             <RouteIcon className="h-4 w-4 shrink-0" style={{ color: routeInfo.color }} />
                             <span className="text-sm font-semibold text-foreground truncate">
-                              {routeInfo.name || "Rute"}
+                              {routeDisplayName(routeInfo)}
                             </span>
                             {routeDate && (
                               <span className="text-xs text-muted-foreground shrink-0">
