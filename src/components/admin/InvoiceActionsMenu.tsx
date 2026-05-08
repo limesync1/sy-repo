@@ -45,7 +45,7 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
   // og knapperne skjules — så brugeren aldrig kan trykke på noget der fejler.
   const { data: capsData } = useQuery({
     queryKey: ["invoice-caps", order.id, order.invoice_external_id, order.payment_status, order.status],
-    enabled: !isCancelled && !isCredited,
+    enabled: !isCancelled && !isCredited && !isPaid,
     staleTime: 60_000,
     retry: false,
     queryFn: async () => {
@@ -63,9 +63,11 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
     is_booked: boolean; is_draft: boolean; exists_in_provider: boolean;
   };
   // Indtil vi har caps: vis intet for at undgå "knap der fejler".
-  const canCredit = !!caps?.can_credit;
-  const canVoid = !!caps?.can_void;
-  const canMarkPaid = !!caps?.can_mark_paid;
+  // Lokal status skal også gate'e — så betalte / krediterede / annullerede
+  // ordrer aldrig viser handlingsknapper, selv hvis probe returnerer noget andet.
+  const canCredit = !!caps?.can_credit && !isPaid && !isCredited && !isCancelled;
+  const canVoid = !!caps?.can_void && !isCancelled && !isInvoiced;
+  const canMarkPaid = !!caps?.can_mark_paid && !isPaid && !isCredited && !isCancelled;
 
   type PrimaryAction =
     | { kind: Action; label: string; tone: "warning" | "danger" | "success" | "neutral"; icon: React.ReactNode; onClick: () => void }
