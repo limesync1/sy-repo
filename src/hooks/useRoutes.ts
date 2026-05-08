@@ -593,6 +593,25 @@ export const useOrderForStop = (orderId: string | null | undefined) => {
         .maybeSingle();
       if (error) throw error;
 
+      const effectiveOrder = (() => {
+        const items = (data as any)?.business_response === "adjusted" &&
+          (data as any)?.customer_response === "accepted" &&
+          Array.isArray((data as any)?.adjusted_details?.items)
+          ? (data as any).adjusted_details.items.map((item: any) => ({
+              ...item,
+              services: (data as any)?.order_items?.find((original: any) =>
+                original.service_id === item.service_id || original.service_name === item.service_name,
+              )?.services,
+            }))
+          : null;
+
+        return items ? {
+          ...(data || {}),
+          total_amount: (data as any)?.adjusted_amount ?? (data as any)?.total_amount,
+          order_items: items,
+        } : (data || {});
+      })();
+
       // Also fetch any active/paused subscription tied to this order so the
       // planner sees if the visit is recurring and on which interval.
       const { data: subs } = await supabase
@@ -600,7 +619,7 @@ export const useOrderForStop = (orderId: string | null | undefined) => {
         .select("id, interval, status, next_service_date, paused_at, total_price, service_name")
         .eq("order_id", orderId!);
 
-      return { ...(data || {}), subscriptions: subs || [] } as any;
+      return { ...effectiveOrder, subscriptions: subs || [] } as any;
     },
   });
 };
