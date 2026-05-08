@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2, Mail, MessageSquare, Clock, Bell, CheckCircle2, RotateCcw, Phone, Plus, AlarmClock, CalendarDays } from "lucide-react";
+import { Loader2, Mail, MessageSquare, Bell, CheckCircle2, RotateCcw, Phone, Plus, AlarmClock, CalendarDays } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -116,11 +116,11 @@ const minutesToSchedule = (mins: number | null | undefined): { days: ScheduleDay
 };
 
 function SchedulePicker({
-  days, time, onChange, label, channel,
+  days, time, onChange, label,
 }: {
   days: ScheduleDays; time: string;
   onChange: (next: { days: ScheduleDays; time: string }) => void;
-  label: string; channel: "email" | "sms";
+  label: string;
 }) {
   return (
     <div className="rounded-lg border border-border bg-muted/20 p-3">
@@ -129,12 +129,9 @@ function SchedulePicker({
           <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
           <p className="text-[12px] font-semibold text-foreground">{label}</p>
         </div>
-        <span className="rounded-md bg-background px-2 py-0.5 text-[10.5px] font-medium text-muted-foreground">
-          {channel === "email" ? "E-mail" : "SMS"}
-        </span>
       </div>
       <p className="mt-1 text-[11px] text-muted-foreground">
-        Sendes <span className="font-medium text-foreground">{formatSchedule(days, time)}</span> ud fra aftalens dato på rutekalenderen.
+        Sendes <span className="font-medium text-foreground">{formatSchedule(days, time)}</span>. Gælder både e-mail og SMS.
       </p>
 
       <div className="mt-2.5">
@@ -511,52 +508,7 @@ export function CustomerNotificationsSettings({
 
   return (
     <div className="space-y-6">
-      {/* ───── Globale indstillinger ───── */}
-      <div className="grid gap-3 sm:grid-cols-2">
-        {/* Hvordan-virker-det info-card — erstatter den gamle "Standardtid før besøget"-knapsalat,
-            fordi tidspunktet nu sættes pr. besked længere nede (klokkeslæt + dage før). */}
-        <div className="rounded-xl border border-border bg-card p-4">
-          <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground/5">
-              <CalendarDays className="h-4 w-4 text-foreground" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-foreground">Sådan beregnes afsendelsestidspunktet</p>
-              <p className="mt-0.5 text-[12px] text-muted-foreground">
-                For hver påmindelse vælger I et <span className="font-medium text-foreground">klokkeslæt</span> og hvor mange <span className="font-medium text-foreground">dage før</span> aftalen
-                den skal sendes (samme dag, dagen før, 2 dage før eller 1 uge før).
-              </p>
-              <p className="mt-2 text-[12px] text-muted-foreground">
-                Vi finder selv aftalens dato på rutekalenderen og sender beskeden på det rigtige tidspunkt — ingen manuel timing nødvendig.
-              </p>
-              <div className="mt-3 rounded-lg bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground">
-                <span className="font-semibold text-foreground">Eksempel:</span> Aftale tirsdag d. 14. → "Dagen før kl. 16:00" sender mandag d. 13. kl. 16:00.
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* SMS toggle */}
-        <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:bg-muted/30">
-          <div className={cn(
-            "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
-            smsEnabled ? "bg-accent/15" : "bg-foreground/5",
-          )}>
-            <MessageSquare className={cn("h-4 w-4", smsEnabled ? "text-accent" : "text-foreground")} />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-sm font-semibold text-foreground">Send også som SMS til kundens telefon</p>
-              <Switch checked={smsEnabled} onCheckedChange={onSmsEnabledChange} />
-            </div>
-            <p className="mt-0.5 text-[12px] text-muted-foreground">
-              Når slået til, sender vi en kort SMS samtidig med e-mailen. Kunden ser <span className="font-medium text-foreground">Serviceydere</span> som afsender.
-            </p>
-          </div>
-        </label>
-      </div>
-
-      {/* ───── Two column: list + editor ───── */}
+      {/* ───── List + editor ───── */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[260px_1fr]">
         {/* Left list */}
         <nav className="space-y-2">
@@ -633,19 +585,34 @@ export function CustomerNotificationsSettings({
             </div>
           </div>
 
+          {/* Unified schedule — gælder for både e-mail og SMS for denne besked */}
+          {activeEvent === "service_upcoming" && (
+            <div className="border-b border-border bg-muted/10 p-4 sm:p-5">
+              <SchedulePicker
+                label="Hvornår skal beskeden sendes?"
+                days={drafts[activeEvent].days}
+                time={drafts[activeEvent].time}
+                onChange={(s) => {
+                  setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], days: s.days, time: s.time } }));
+                  setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], days: s.days, time: s.time } }));
+                }}
+              />
+            </div>
+          )}
+
           {/* Channel tabs */}
-          <div className="flex border-b border-border bg-card px-3">
+          <div className="flex overflow-x-auto border-b border-border bg-card px-2 sm:px-3">
             {(["email", "sms"] as const).map((c) => {
               const active = channelTab === c;
               const Icon = c === "email" ? Mail : MessageSquare;
-              const enabled = c === "email" ? drafts[activeEvent].enabled : smsDrafts[activeEvent].enabled && smsEnabled;
+              const enabled = c === "email" ? drafts[activeEvent].enabled : smsDrafts[activeEvent].enabled;
               const dirty = c === "email" ? emailDirty : smsDirty;
               return (
                 <button
                   key={c}
                   onClick={() => setChannelTab(c)}
                   className={cn(
-                    "relative flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors",
+                    "relative flex shrink-0 items-center gap-2 px-3 py-3 text-sm font-medium transition-colors sm:px-4",
                     active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
                   )}
                 >
@@ -668,7 +635,7 @@ export function CustomerNotificationsSettings({
           {channelTab === "email" ? (
             <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
               {/* Editor */}
-              <div className="space-y-4 p-5">
+              <div className="space-y-4 p-4 sm:p-5">
                 <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3 hover:bg-muted/50 transition-colors">
                   <div>
                     <p className="text-xs font-semibold text-foreground">Send denne e-mail til kunden</p>
@@ -679,16 +646,6 @@ export function CustomerNotificationsSettings({
                     onCheckedChange={(v) => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: v } }))}
                   />
                 </label>
-
-                {activeEvent === "service_upcoming" && (
-                  <SchedulePicker
-                    label="Hvornår skal e-mailen sendes?"
-                    channel="email"
-                    days={drafts[activeEvent].days}
-                    time={drafts[activeEvent].time}
-                    onChange={(s) => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], days: s.days, time: s.time } }))}
-                  />
-                )}
 
                 <div className="space-y-2">
                   <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Emnelinje</Label>
@@ -735,52 +692,27 @@ export function CustomerNotificationsSettings({
               </div>
 
               {/* Preview */}
-              <div className="border-t border-border bg-muted/20 p-5 lg:border-l lg:border-t-0">
+              <div className="border-t border-border bg-muted/20 p-4 sm:p-5 lg:border-l lg:border-t-0">
                 <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Sådan ser kunden den</p>
                 <EmailPreview subject={drafts[activeEvent].subject} body={drafts[activeEvent].body} businessName={exampleBizName} />
               </div>
             </div>
           ) : (
-            !smsEnabled ? (
-              <div className="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-                  <MessageSquare className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="max-w-sm">
-                  <p className="text-sm font-semibold text-foreground">I sender ikke SMS lige nu</p>
-                  <p className="mt-1 text-[12px] text-muted-foreground">
-                    Slå SMS til, hvis I også vil have beskeden landet direkte i kundens lomme — ud over e-mailen.
-                    Afsenderen står som "Serviceydere", og vi tilføjer automatisk jeres firmanavn og telefonnummer, så kunden ved hvem det er fra.
-                  </p>
-                </div>
-                <Button size="sm" onClick={() => onSmsEnabledChange(true)}>
-                  <MessageSquare className="mr-1.5 h-3.5 w-3.5" /> Slå SMS til
-                </Button>
-              </div>
-            ) : (
             <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
-              <div className="space-y-4 p-5">
+              <div className="space-y-4 p-4 sm:p-5">
                 <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3 hover:bg-muted/50 transition-colors">
                   <div>
                     <p className="text-xs font-semibold text-foreground">Send SMS for netop denne besked</p>
-                    <p className="text-[11px] text-muted-foreground">Slå fra, hvis I kun vil sende e-mail for denne specifikke hændelse — uden at slå SMS fra for de andre.</p>
+                    <p className="text-[11px] text-muted-foreground">Slå til, hvis kunden også skal have en kort SMS — ud over e-mailen.</p>
                   </div>
                   <Switch
                     checked={smsDrafts[activeEvent].enabled}
-                    disabled={!smsEnabled}
-                    onCheckedChange={(v) => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: v } }))}
+                    onCheckedChange={(v) => {
+                      setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: v } }));
+                      if (v && !smsEnabled) onSmsEnabledChange(true);
+                    }}
                   />
                 </label>
-
-                {activeEvent === "service_upcoming" && (
-                  <SchedulePicker
-                    label="Hvornår skal SMS'en sendes?"
-                    channel="sms"
-                    days={smsDrafts[activeEvent].days}
-                    time={smsDrafts[activeEvent].time}
-                    onChange={(s) => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], days: s.days, time: s.time } }))}
-                  />
-                )}
 
                 <div className="space-y-2">
                   <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">SMS-tekst</Label>
@@ -788,7 +720,6 @@ export function CustomerNotificationsSettings({
                     ref={smsCursor.ref}
                     rows={6}
                     value={smsDrafts[activeEvent].body}
-                    disabled={!smsEnabled}
                     maxLength={459}
                     onChange={(ev) => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], body: ev.target.value } }))}
                   />
@@ -822,12 +753,11 @@ export function CustomerNotificationsSettings({
                 </div>
               </div>
 
-              <div className="border-t border-border bg-muted/20 p-5 lg:border-l lg:border-t-0">
+              <div className="border-t border-border bg-muted/20 p-4 sm:p-5 lg:border-l lg:border-t-0">
                 <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Sådan ser kunden den</p>
                 <SmsPreview body={smsDrafts[activeEvent].body} businessName={exampleBizName} businessPhone={exampleBizPhone} />
               </div>
             </div>
-            )
           )}
         </div>
       </div>
