@@ -579,25 +579,73 @@ const OrderCard = ({ order, onRespond }: {
                     <><XCircle className="h-3.5 w-3.5 text-destructive" /><span className="text-xs font-semibold text-destructive">Du afviste dette forslag</span></>
                   )}
                 </div>
-                {((order.adjusted_details as any)?.items || []).map((item: any, idx: number) => (
-                  <div key={idx} className="border-b border-border/50 last:border-b-0 px-4 py-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <span className="text-sm font-medium text-foreground">{item.service_name}</span>
-                        {item.details?.interval && item.details.interval !== "engangskøb" && (
-                          <span className="ml-2 text-[11px] text-accent">{INTERVAL_LABELS[item.details.interval] || item.details.interval}</span>
-                        )}
-                      </div>
-                      <span className="text-sm font-semibold text-foreground">{item.total_price} kr</span>
-                    </div>
-                    {item.details?.stepDetails?.map((sd: any, i: number) => (
-                      <div key={i} className="flex justify-between text-xs text-muted-foreground mt-0.5 pl-0.5">
-                        <span>{sd.label}: {sd.value} {sd.unit}</span>
-                        <span>{sd.subtotal} kr</span>
-                      </div>
-                    ))}
-                  </div>
-                ))}
+                {(() => {
+                  const adjItems: any[] = (order.adjusted_details as any)?.items || [];
+                  const origByService: Record<string, any> = {};
+                  for (const it of items as any[]) {
+                    if (it?.service_id) origByService[it.service_id] = it;
+                  }
+                  const intervalChanges = adjItems
+                    .map((it) => {
+                      const orig = it.service_id ? origByService[it.service_id] : (items.length === 1 ? items[0] : null);
+                      const oldI = orig?.details?.interval || "engangskøb";
+                      const newI = it?.details?.interval || "engangskøb";
+                      return { it, oldI, newI, changed: oldI !== newI };
+                    });
+                  const anyToOneTime = intervalChanges.some((c) => c.changed && c.newI === "engangskøb" && c.oldI !== "engangskøb");
+                  const anyToRecurring = intervalChanges.some((c) => c.changed && c.newI !== "engangskøb" && c.oldI === "engangskøb");
+                  return (
+                    <>
+                      {(anyToOneTime || anyToRecurring) && (
+                        <div className={`px-4 py-2.5 text-xs border-b border-amber-200 ${anyToOneTime ? "bg-amber-100/60 text-amber-900" : "bg-amber-50 text-amber-900"}`}>
+                          <div className="font-semibold mb-0.5">
+                            {anyToOneTime ? "Bemærk: ændret til engangskøb" : "Bemærk: ændret til abonnement"}
+                          </div>
+                          <div className="text-amber-800">
+                            {anyToOneTime
+                              ? "Virksomheden har ændret aftalen fra et tilbagevendende abonnement til et engangskøb. Hvis du godkender, oprettes der ikke et abonnement, og servicen udføres kun én gang."
+                              : "Virksomheden har ændret aftalen fra engangskøb til et tilbagevendende abonnement. Hvis du godkender, oprettes et abonnement der gentages automatisk."}
+                          </div>
+                        </div>
+                      )}
+                      {intervalChanges.map(({ it: item, oldI, newI, changed }, idx) => (
+                        <div key={idx} className="border-b border-border/50 last:border-b-0 px-4 py-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <span className="text-sm font-medium text-foreground">{item.service_name}</span>
+                              <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                                {changed ? (
+                                  <>
+                                    <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground line-through">
+                                      {INTERVAL_LABELS[oldI] || oldI}
+                                    </span>
+                                    <span className="text-[11px] text-amber-700">→</span>
+                                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${newI === "engangskøb" ? "bg-amber-100 text-amber-900 border border-amber-300" : "bg-accent/10 text-accent border border-accent/30"}`}>
+                                      {newI === "engangskøb" ? "Engangskøb (ikke abonnement)" : (INTERVAL_LABELS[newI] || newI)}
+                                    </span>
+                                  </>
+                                ) : (
+                                  newI !== "engangskøb" && (
+                                    <span className="inline-flex items-center rounded-full bg-accent/10 px-2 py-0.5 text-[11px] text-accent">
+                                      {INTERVAL_LABELS[newI] || newI}
+                                    </span>
+                                  )
+                                )}
+                              </div>
+                            </div>
+                            <span className="text-sm font-semibold text-foreground shrink-0">{item.total_price} kr</span>
+                          </div>
+                          {item.details?.stepDetails?.map((sd: any, i: number) => (
+                            <div key={i} className="flex justify-between text-xs text-muted-foreground mt-0.5 pl-0.5">
+                              <span>{sd.label}: {sd.value} {sd.unit}</span>
+                              <span>{sd.subtotal} kr</span>
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                    </>
+                  );
+                })()}
                 <div className={`px-4 py-2.5 flex justify-between ${
                   hasProposal ? "bg-amber-50" : customerAccepted ? "bg-green-50" : "bg-destructive/5"
                 }`}>
