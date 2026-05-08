@@ -222,7 +222,7 @@ Deno.serve(async (req) => {
       }
 
       // Trigger en straks-pull af invoice state for at få fersk data
-      if (typeof adapter.getInvoiceStates === "function" && bookedInvoiceId && action !== "mark_paid") {
+      if (typeof adapter.getInvoiceStates === "function" && bookedInvoiceId && action !== "mark_paid" && action !== "credit_invoice") {
         try {
           const states = await adapter.getInvoiceStates([bookedInvoiceId]);
           const s = states[0];
@@ -248,7 +248,7 @@ Deno.serve(async (req) => {
       await admin.from("accounting_sync_log").insert({
         business_id: order.business_id, provider: integ.provider,
         direction: "push", entity_type: "invoice", entity_id: order_id,
-        external_id: bookedInvoiceId ?? link?.external_id ?? null,
+        external_id: externalId,
         status: "success", message: `Manuel handling: ${action}`,
       });
 
