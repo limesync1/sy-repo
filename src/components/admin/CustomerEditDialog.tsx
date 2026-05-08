@@ -86,6 +86,29 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
   const [saving, setSaving] = useState(false);
   const [savedCustomer, setSavedCustomer] = useState<EditableCustomer | null>(null);
   const [orderDialogOpen, setOrderDialogOpen] = useState(false);
+  const [accountingEnabled, setAccountingEnabled] = useState<boolean>(false);
+
+  // Tjek om virksomheden har et regnskabsprogram aktiveret — ellers skjuler vi
+  // hele "Regnskab & fakturering"-sektionen, så panelet er rent og enkelt.
+  useEffect(() => {
+    if (!open || !businessId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from("businesses")
+          .select("settings")
+          .eq("id", businessId)
+          .maybeSingle();
+        if (cancelled) return;
+        const enabled = !!(data?.settings as any)?.accounting_integration_enabled;
+        setAccountingEnabled(enabled);
+      } catch {
+        if (!cancelled) setAccountingEnabled(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [open, businessId]);
 
   // Geocode address — used after CVR autofill so adressefeltet ikke vises som "ikke fundet"
   const geocodeCurrentAddress = async (addr: string, zip: string, ci: string) => {
@@ -155,7 +178,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
 
   // Hent kundegrupper fra det forbundne regnskabsprogram (hvis nogen)
   useEffect(() => {
-    if (!open || !businessId) return;
+    if (!open || !businessId || !accountingEnabled) return;
     (async () => {
       try {
         const { data } = await supabase.functions.invoke("accounting-list-groups", {
@@ -167,7 +190,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
         if (label) setGroupsLabel(label);
       } catch { /* ingen integration — ignorér */ }
     })();
-  }, [open, businessId]);
+  }, [open, businessId, accountingEnabled]);
 
   const reset = () => {
     setType("private");
