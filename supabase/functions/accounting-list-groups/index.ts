@@ -14,7 +14,6 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const authHeader = req.headers.get("Authorization");
     const auth = await requireAuthenticatedUser(req, Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!);
     if ("error" in auth) return json({ error: auth.error }, auth.status);
     const supabase = auth.userClient;
