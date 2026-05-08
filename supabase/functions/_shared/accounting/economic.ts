@@ -689,7 +689,22 @@ export function makeEconomicAdapter(
     },
 
     async creditInvoice({ invoice_external_id }) {
-      // 1) Hent skabelon for kreditnota fra den bogførte faktura
+      // 1) Tjek først om fakturaen faktisk er bogført. Hvis den kun findes
+      // som kladde (eller er slettet), giv en brugbar fejlbesked i stedet
+      // for et råt 404 fra e-conomic.
+      const booked = await ecRequest(creds, `/invoices/booked/${invoice_external_id}`).catch(() => null);
+      if (!booked) {
+        const draft = await ecRequest(creds, `/invoices/drafts/${invoice_external_id}`).catch(() => null);
+        if (draft) {
+          throw new Error(
+            "Fakturaen er stadig en kladde i e-conomic og kan ikke krediteres. Annullér kladden i stedet, eller bogfør den først og kreditér derefter.",
+          );
+        }
+        throw new Error(
+          "Fakturaen findes ikke længere som bogført i e-conomic. Den er muligvis blevet slettet eller aldrig bogført — synkronisér regnskabet og prøv igen.",
+        );
+      }
+      // 2) Hent skabelon for kreditnota fra den bogførte faktura
       const tmpl = await ecRequest(
         creds,
         `/invoices/booked/${invoice_external_id}/templates/creditNote`,
@@ -704,11 +719,11 @@ export function makeEconomicAdapter(
       const draftNumber = draft?.draftInvoiceNumber;
       if (!draftNumber) throw new Error("E-conomic gav ikke et kreditnota-nummer tilbage.");
       // 3) Bogfør den med det samme
-      const booked = await ecRequest(creds, "/invoices/booked", {
+      const bookedCredit = await ecRequest(creds, "/invoices/booked", {
         method: "POST",
         body: JSON.stringify({ draftInvoice: { draftInvoiceNumber: Number(draftNumber) } }),
       });
-      const num = String(booked?.bookedInvoiceNumber ?? draftNumber);
+      const num = String(bookedCredit?.bookedInvoiceNumber ?? draftNumber);
       return { credit_note_external_id: num, credit_note_external_number: num };
     },
 
