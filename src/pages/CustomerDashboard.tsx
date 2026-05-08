@@ -93,7 +93,7 @@ const EmptyPanel = ({
 
 const CustomerDashboard = () => {
   const { user, loading } = useAuth();
-  const [tab, setTab] = useState<"orders" | "subscriptions" | "favorites" | "profile">("orders");
+  const [tab, setTab] = useState<"orders" | "onetime" | "subscriptions" | "favorites" | "profile">("orders");
   const { data: orders } = useMyOrders();
   const proposalCount = (orders || []).filter(
     (o: any) => o.business_response === "adjusted" && !o.customer_response,
@@ -111,6 +111,7 @@ const CustomerDashboard = () => {
 
   const tabs = [
     { key: "orders", label: "Bestillinger", icon: ShoppingCart, badge: proposalCount },
+    { key: "onetime", label: "Engangskøb", icon: Receipt },
     { key: "subscriptions", label: "Abonnementer", icon: Package },
     { key: "favorites", label: "Favoritter", icon: Heart },
     { key: "profile", label: "Min profil", icon: Settings },
@@ -118,6 +119,7 @@ const CustomerDashboard = () => {
 
   const headers: Record<typeof tab, { title: string; description: string }> = {
     orders: { title: "Bestillinger", description: "Se og besvar dine bestillinger og forslag fra virksomheder." },
+    onetime: { title: "Engangskøb", description: "Dine bestillinger der kun udføres én gang — uden tilbagevendende interval." },
     subscriptions: { title: "Abonnementer", description: "Administrer dine tilbagevendende services." },
     favorites: { title: "Favoritter", description: "Hurtig adgang til de virksomheder du har gemt." },
     profile: { title: "Min profil", description: "Opdater dine kontaktoplysninger og notifikationer." },
@@ -138,7 +140,8 @@ const CustomerDashboard = () => {
       >
         <div className="space-y-5">
           <PageHeader title={headers[tab].title} description={headers[tab].description} />
-          {tab === "orders" && <OrdersView />}
+          {tab === "orders" && <OrdersView mode="all" />}
+          {tab === "onetime" && <OrdersView mode="onetime" />}
           {tab === "subscriptions" && <SubscriptionsView />}
           {tab === "favorites" && <FavoritesView />}
           {tab === "profile" && <ProfileView />}
