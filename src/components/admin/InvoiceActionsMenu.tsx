@@ -73,6 +73,10 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
     | { kind: Action; label: string; tone: "warning" | "danger" | "success" | "neutral"; icon: React.ReactNode; onClick: () => void }
     | null;
 
+  // Vælg den mest meningsfulde primære handling baseret på fakturaens tilstand:
+  //   - Bogført + ubetalt → "Markér betalt" (success)
+  //   - Kladde            → "Annullér kladde" (neutral)
+  //   - Bogført + betalt  → "Krediter" (warning) — kun mulighed tilbage
   const primary: PrimaryAction = (() => {
     if (isCancelled || isCredited) return null;
     if (canMarkPaid) {
@@ -81,13 +85,16 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
     if (canVoid) {
       return { kind: "void_draft", label: "Annullér kladde", tone: "neutral", icon: <Ban className="h-3.5 w-3.5" />, onClick: () => setConfirm("void_draft") };
     }
+    if (canCredit && isPaid) {
+      return { kind: "credit_invoice", label: "Krediter", tone: "warning", icon: <Receipt className="h-3.5 w-3.5" />, onClick: () => setConfirm("credit_invoice") };
+    }
     return null;
   })();
 
   const toneCls = (tone: "warning" | "danger" | "success" | "neutral") => {
     switch (tone) {
       case "danger":  return "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/15 hover:text-destructive hover:border-destructive/50";
-      case "warning": return "border-amber-300/80 bg-amber-50 text-amber-900 hover:bg-amber-100 hover:text-amber-950 hover:border-amber-300";
+      case "warning": return "border-warning/40 bg-warning/15 text-warning-foreground hover:bg-warning/25 hover:border-warning/60";
       case "success": return "border-success/40 bg-success/10 text-success hover:bg-success/15 hover:text-success hover:border-success/50";
       default:        return "border-border bg-card text-foreground hover:bg-secondary hover:text-foreground";
     }
@@ -120,7 +127,13 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
   const Spinner = ({ a, fallback }: { a: Action; fallback: React.ReactNode }) =>
     busy === a ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <>{fallback}</>;
 
-  const hasOverflowItems = canCredit || canVoid || canMarkPaid;
+  // Overflow viser kun handlinger der IKKE allerede er primær — så samme knap
+  // ikke optræder to gange.
+  const primaryKind = primary?.kind ?? null;
+  const showCreditInOverflow = canCredit && primaryKind !== "credit_invoice";
+  const showVoidInOverflow   = canVoid   && primaryKind !== "void_draft";
+  const showMarkPaidInOverflow = canMarkPaid && primaryKind !== "mark_paid";
+  const hasOverflowItems = showCreditInOverflow || showVoidInOverflow || showMarkPaidInOverflow;
 
   if (compact) {
     if (!primary && !hasOverflowItems) return null;
@@ -154,17 +167,17 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" sideOffset={6} className="w-60 bg-popover border-border shadow-xl rounded-lg p-1">
-              {canMarkPaid && (
+              {showMarkPaidInOverflow && (
                 <DropdownMenuItem onSelect={() => setConfirm("mark_paid")} className="gap-2 cursor-pointer focus:bg-success/10 focus:text-success">
                   <CheckCircle2 className="h-3.5 w-3.5" /> Markér som betalt
                 </DropdownMenuItem>
               )}
-              {canCredit && (
-                <DropdownMenuItem onSelect={() => setConfirm("credit_invoice")} className="gap-2 cursor-pointer focus:bg-destructive/10 focus:text-destructive">
+              {showCreditInOverflow && (
+                <DropdownMenuItem onSelect={() => setConfirm("credit_invoice")} className="gap-2 cursor-pointer focus:bg-warning/15 focus:text-warning-foreground">
                   <Receipt className="h-3.5 w-3.5" /> Krediter faktura
                 </DropdownMenuItem>
               )}
-              {canVoid && (
+              {showVoidInOverflow && (
                 <>
                   <DropdownMenuSeparator className="my-1" />
                   <DropdownMenuItem onSelect={() => setConfirm("void_draft")} className="gap-2 cursor-pointer focus:bg-destructive/10 focus:text-destructive">
