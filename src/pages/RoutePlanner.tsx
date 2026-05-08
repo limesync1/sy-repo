@@ -516,11 +516,12 @@ const Planner = () => {
   const handleAutoDistribute = async () => {
     if (!businessId) return;
     const jobsWithDate = unassigned
+      .filter((j: any) => j.status !== "pending")
       .map((j: any) => ({ job: j, date: effectiveJobDate(j) }))
       .filter((x) => !!x.date) as { job: any; date: string }[];
 
     if (jobsWithDate.length === 0) {
-      toast.info("Ingen ledige aftaler med ønsket dato at fordele");
+      toast.info("Ingen godkendte aftaler med ønsket dato at fordele");
       return;
     }
 
