@@ -1,7 +1,7 @@
 // Shared types for accounting integrations
 // Each provider implements the AccountingAdapter interface below.
 
-export type AccountingProvider = "economic" | "billy" | "dinero" | "zenegy";
+export type AccountingProvider = "economic" | "billy" | "dinero";
 
 export interface AccountingCredentials {
   api_token?: string | null;
@@ -225,8 +225,7 @@ export interface AccountingAdapter {
    * Book an existing draft/order as a real invoice and (best-effort) send it
    * to the customer via the provider. Called when a route_stop is completed.
    * Returns the booked invoice id/number so we can poll status later.
-   * Implementations may throw when the provider does not support invoicing
-   * (e.g. Zenegy is payroll-only).
+   * Implementations may throw when the provider does not support invoicing.
    */
   bookInvoice?(input: {
     external_id: string;
