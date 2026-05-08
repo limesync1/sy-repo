@@ -56,6 +56,42 @@ Deno.serve(async (req) => {
       : { data: null } as any;
 
     const bookedInvoiceId = order.invoice_external_id ?? (link?.external_type === "invoice_booked" ? link.external_id : null);
+
+    // Capability probe — kaldes af UI for at afgøre om knapper kan vises.
+    // Vi prøver at slå fakturaen op hos udbyderen; hvis den ikke findes
+    // (eller intet endnu er pushet) returnerer vi falske flag i stedet for
+    // at bryde med en fejl, så UI'et bare skjuler knapperne.
+    if (action === "check_capabilities") {
+      const caps = {
+        can_credit: false,
+        can_void: false,
+        can_mark_paid: false,
+        is_booked: false,
+        is_draft: false,
+        exists_in_provider: false,
+      };
+      if (!integ) return json({ ok: true, caps });
+      const adapter = makeAdapter(integ.provider, integ as any, integ.settings ?? {});
+      try {
+        if (bookedInvoiceId && typeof adapter.getInvoiceStates === "function") {
+          const states = await adapter.getInvoiceStates([bookedInvoiceId]);
+          const s = states?.[0];
+          if (s) {
+            caps.exists_in_provider = true;
+            caps.is_booked = true;
+            caps.can_credit = typeof adapter.creditInvoice === "function" && s.status !== "credited";
+            caps.can_mark_paid = typeof adapter.markInvoicePaid === "function" && s.status !== "paid" && s.status !== "credited";
+          }
+        } else if (link?.external_id && typeof adapter.voidDraft === "function") {
+          // Kladde — kan annulleres
+          caps.exists_in_provider = true;
+          caps.is_draft = true;
+          caps.can_void = true;
+        }
+      } catch { /* ignorer — caps forbliver false så knapper skjules */ }
+      return json({ ok: true, caps });
+    }
+
     const markPaidLocally = async (amount: number, paidAt: string, note: string) => {
       await admin.from("orders").update({
         payment_status: "paid",
