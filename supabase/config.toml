@@ -40,7 +40,7 @@ project_id = "gkectsellkpltrxvusot"
   [functions.generate-lead-reply]
     verify_jwt = false
   [functions.accounting-test-connection]
-    verify_jwt = true
+    verify_jwt = false
   [functions.accounting-sync]
     verify_jwt = false
   [functions.accounting-action]
@@ -48,12 +48,12 @@ project_id = "gkectsellkpltrxvusot"
   [functions.accounting-cron]
     verify_jwt = false
   [functions.accounting-economic-callback]
-    verify_jwt = true
+    verify_jwt = false
   [functions.accounting-dinero-callback]
-    verify_jwt = true
+    verify_jwt = false
   [functions.accounting-zenegy-callback]
     verify_jwt = false
   [functions.accounting-dry-run]
-    verify_jwt = true
+    verify_jwt = false
   [functions.import-customers-ai]
     verify_jwt = false
