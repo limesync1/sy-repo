@@ -260,7 +260,24 @@ const FavoritesView = () => {
 const OrdersView = () => {
   const { data: orders, isLoading } = useMyOrders();
   const qc = useQueryClient();
+  const { user } = useAuth();
   const [filter, setFilter] = useState<string>("all");
+
+  // Realtime: lyt på ordrer + abonnementer + forslag-historik så UI altid er ajour
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel(`customer-orders-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders", filter: `customer_id=eq.${user.id}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["my-orders"] });
+          qc.invalidateQueries({ queryKey: ["my-subscriptions"] });
+        })
+      .on("postgres_changes", { event: "*", schema: "public", table: "subscriptions", filter: `customer_id=eq.${user.id}` },
+        () => qc.invalidateQueries({ queryKey: ["my-subscriptions"] }))
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.id, qc]);
 
   if (isLoading) return (
     <div className="grid gap-4 sm:grid-cols-2">
