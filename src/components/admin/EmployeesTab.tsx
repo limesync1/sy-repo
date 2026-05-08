@@ -338,7 +338,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                   className="h-10"
                 />
                 <p className="mt-1 text-[11px] text-muted-foreground">
-                  Bruges når lønsystemet (fx Zenegy) er forbundet.
+                  Bruges når lønsystemet er forbundet.
                 </p>
               </div>
               <div>
