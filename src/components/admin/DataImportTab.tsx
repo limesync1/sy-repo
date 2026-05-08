@@ -949,6 +949,9 @@ const ImportPanel = ({
 
   return (
     <div className="space-y-5">
+      {/* ─── Wizard steps ─── */}
+      <WizardSteps current={done ? 3 : (Object.keys(mapping).length === 0 ? 1 : (rows.length > 0 ? 2 : 1))} />
+
       {/* ─── Hero topbar — alt vigtigt på ét sted ─── */}
       <div className="overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-secondary/40 via-background to-background">
         <div className="flex flex-wrap items-start gap-4 p-4">
@@ -1068,7 +1071,7 @@ const ImportPanel = ({
           <ArrowRight className="ml-auto h-3.5 w-3.5 text-muted-foreground transition-transform group-open:rotate-90" />
         </summary>
         <div className="border-t border-border p-4">
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {FIELD_GROUPS[entity].map((group) => (
               <div key={group.title} className="space-y-1.5">
                 <p className="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">{group.title}</p>
@@ -1077,13 +1080,15 @@ const ImportPanel = ({
                   if (!f) return null;
                   const mapped = !!mapping[f.key];
                   return (
-                    <div key={f.key} className={`flex items-center gap-2 rounded-md border px-2 py-1.5 transition-colors ${mapped ? "border-accent/30 bg-accent/5" : "border-border bg-secondary/20"}`}>
-                      <div className={`h-1.5 w-1.5 shrink-0 rounded-full ${mapped ? "bg-accent" : f.required ? "bg-destructive" : "bg-muted-foreground/30"}`} />
-                      <p className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
-                        {f.label}{f.required && <span className="ml-0.5 text-destructive">*</span>}
-                      </p>
+                    <div key={f.key} className={`flex flex-col gap-1.5 rounded-md border px-2.5 py-2 transition-colors sm:flex-row sm:items-center sm:gap-2 ${mapped ? "border-accent/30 bg-accent/5" : "border-border bg-secondary/20"}`}>
+                      <div className="flex min-w-0 flex-1 items-center gap-2">
+                        <div className={`h-1.5 w-1.5 shrink-0 rounded-full ${mapped ? "bg-accent" : f.required ? "bg-destructive" : "bg-muted-foreground/30"}`} />
+                        <p className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
+                          {f.label}{f.required && <span className="ml-0.5 text-destructive">*</span>}
+                        </p>
+                      </div>
                       <Select value={mapping[f.key] || "__none__"} onValueChange={(v) => setMapping((m) => ({ ...m, [f.key]: v === "__none__" ? undefined : v }))}>
-                        <SelectTrigger className="h-7 w-[140px] text-xs"><SelectValue placeholder="—" /></SelectTrigger>
+                        <SelectTrigger className="h-8 w-full text-xs sm:w-[150px]"><SelectValue placeholder="—" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="__none__" className="text-xs">— Ingen —</SelectItem>
                           {headers.map((h) => <SelectItem key={h} value={h} className="text-xs">{h}</SelectItem>)}
