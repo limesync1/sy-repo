@@ -137,18 +137,33 @@ Deno.serve(async (req) => {
         if (bookedInvoiceId || link?.external_type === "invoice_booked") {
           return json({ error: "Fakturaen er allerede bogført — brug kreditering i stedet for annullering." }, 400);
         }
-        if (!link?.external_id) return json({ error: "Ingen kladde at annullere" }, 400);
-        await adapter.voidDraft({
-          external_id: link.external_id,
-          external_type: (link.external_type as any) ?? "invoice_draft",
-        });
+        if (link?.external_id) {
+          try {
+            await adapter.voidDraft({
+              external_id: link.external_id,
+              external_type: (link.external_type as any) ?? "invoice_draft",
+            });
+          } catch (e) {
+            const msg = e instanceof Error ? e.message : String(e);
+            // Hvis kladden allerede er væk hos udbyderen, fortsæt med at annullere lokalt
+            if (!/not\s*found|404|does not exist|ikke fundet/i.test(msg)) {
+              throw e;
+            }
+          }
+        }
         await admin.from("orders").update({
           voided_at: new Date().toISOString(),
           status: "cancelled",
         }).eq("id", order_id);
         await admin.from("accounting_order_links").delete()
           .eq("business_id", order.business_id).eq("provider", integ.provider).eq("order_id", order_id);
-        result = { ok: true, voided: true };
+        result = {
+          ok: true,
+          voided: true,
+          note: link?.external_id
+            ? undefined
+            : "Aftalen er annulleret lokalt. Der var ingen kladde i regnskabsprogrammet at annullere.",
+        };
       } else if (action === "mark_paid") {
         const amount = Number(params?.amount ?? order.total_amount ?? 0);
         if (!amount || amount <= 0) return json({ error: "Mangler beløb" }, 400);
