@@ -98,6 +98,8 @@ type SubRow = {
   total_price: number;
   preferred_route_id?: string | null;
   order_id?: string | null;
+  customer_id?: string | null;
+  created_at?: string | null;
 };
 
 type RouteStopRow = {
