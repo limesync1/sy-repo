@@ -146,6 +146,39 @@ const CartSheet = () => {
     }
 
     try {
+      // If the customer is not logged in, create an account first so that:
+      //  • the order is correctly tied to their customer_id (avoids "wrong customer" issues)
+      //  • they get login credentials emailed and are auto-logged in
+      let activeUserId = user?.id || null;
+      let createdAccount = false;
+      if (!user) {
+        const { data: acct, error: acctErr } = await supabase.functions.invoke(
+          "create-customer-account",
+          { body: { email: effectiveEmail, name: customerType === "business" ? (contactName || name) : name, phone: trimmedPhone } }
+        );
+        if (acctErr) {
+          toast.error("Kunne ikke oprette konto", { description: acctErr.message });
+          return;
+        }
+        if (acct?.created && acct?.password) {
+          const { error: signInErr } = await supabase.auth.signInWithPassword({
+            email: effectiveEmail,
+            password: acct.password,
+          });
+          if (signInErr) {
+            toast.error("Konto oprettet, men automatisk login fejlede", { description: signInErr.message });
+          } else {
+            activeUserId = acct.userId;
+            createdAccount = true;
+          }
+        } else if (acct?.existed) {
+          // Account already exists — proceed without auto-login. Order will still be linked by email.
+          toast.message("Du har allerede en konto", {
+            description: "Log ind for at se dine bestillinger på din konto.",
+          });
+        }
+      }
+
       for (const [businessId, group] of Object.entries(groupedByBusiness)) {
         const bizTotal = group.items.reduce((acc, i) => acc + i.total * i.quantity, 0);
 
@@ -179,7 +212,7 @@ const CartSheet = () => {
               preferred_time_end: null,
               estimated_duration_minutes: null,
               total_amount: lineTotal,
-              customer_id: user?.id || null,
+              customer_id: activeUserId,
             },
             items: [
               {
