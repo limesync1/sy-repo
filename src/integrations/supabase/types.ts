@@ -1527,6 +1527,62 @@ export type Database = {
           },
         ]
       }
+      order_proposal_history: {
+        Row: {
+          adjusted_amount: number | null
+          adjusted_items: Json | null
+          business_id: string
+          business_message: string | null
+          created_at: string
+          customer_decision: string | null
+          customer_id: string | null
+          decided_at: string | null
+          id: string
+          order_id: string
+          original_amount: number | null
+          original_items: Json | null
+          proposed_at: string
+        }
+        Insert: {
+          adjusted_amount?: number | null
+          adjusted_items?: Json | null
+          business_id: string
+          business_message?: string | null
+          created_at?: string
+          customer_decision?: string | null
+          customer_id?: string | null
+          decided_at?: string | null
+          id?: string
+          order_id: string
+          original_amount?: number | null
+          original_items?: Json | null
+          proposed_at?: string
+        }
+        Update: {
+          adjusted_amount?: number | null
+          adjusted_items?: Json | null
+          business_id?: string
+          business_message?: string | null
+          created_at?: string
+          customer_decision?: string | null
+          customer_id?: string | null
+          decided_at?: string | null
+          id?: string
+          order_id?: string
+          original_amount?: number | null
+          original_items?: Json | null
+          proposed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_proposal_history_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           accounting_notes: string | null
