@@ -11,7 +11,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Receipt, Ban, CheckCircle2, Loader2, MoreHorizontal } from "lucide-react";
 
 type Order = {
@@ -40,16 +40,43 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
   const isCredited = order.payment_status === "credited";
   const isCancelled = order.status === "cancelled";
 
+  // Probe regnskabsudbyderen for hvilke handlinger der faktisk kan udføres.
+  // Hvis fakturaen ikke findes (slettet/ikke pushet) returneres alle false
+  // og knapperne skjules — så brugeren aldrig kan trykke på noget der fejler.
+  const { data: capsData } = useQuery({
+    queryKey: ["invoice-caps", order.id, order.invoice_external_id, order.payment_status, order.status],
+    enabled: !isCancelled && !isCredited,
+    staleTime: 60_000,
+    retry: false,
+    queryFn: async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("accounting-action", {
+          body: { order_id: order.id, action: "check_capabilities" },
+        });
+        if (error) return null;
+        return (data as any)?.caps ?? null;
+      } catch { return null; }
+    },
+  });
+  const caps = capsData as null | {
+    can_credit: boolean; can_void: boolean; can_mark_paid: boolean;
+    is_booked: boolean; is_draft: boolean; exists_in_provider: boolean;
+  };
+  // Indtil vi har caps: vis intet for at undgå "knap der fejler".
+  const canCredit = !!caps?.can_credit;
+  const canVoid = !!caps?.can_void;
+  const canMarkPaid = !!caps?.can_mark_paid;
+
   type PrimaryAction =
     | { kind: Action; label: string; tone: "warning" | "danger" | "success" | "neutral"; icon: React.ReactNode; onClick: () => void }
     | null;
 
   const primary: PrimaryAction = (() => {
     if (isCancelled || isCredited) return null;
-    if (isInvoiced && !isPaid) {
+    if (canMarkPaid) {
       return { kind: "mark_paid", label: "Markér betalt", tone: "success", icon: <CheckCircle2 className="h-3.5 w-3.5" />, onClick: () => setConfirm("mark_paid") };
     }
-    if (!isInvoiced) {
+    if (canVoid) {
       return { kind: "void_draft", label: "Annullér kladde", tone: "neutral", icon: <Ban className="h-3.5 w-3.5" />, onClick: () => setConfirm("void_draft") };
     }
     return null;
@@ -91,7 +118,7 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
   const Spinner = ({ a, fallback }: { a: Action; fallback: React.ReactNode }) =>
     busy === a ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <>{fallback}</>;
 
-  const hasOverflowItems = (isInvoiced && !isCredited) || !isInvoiced;
+  const hasOverflowItems = canCredit || canVoid || canMarkPaid;
 
   if (compact) {
     if (!primary && !hasOverflowItems) return null;
@@ -125,17 +152,17 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" sideOffset={6} className="w-60 bg-popover border-border shadow-xl rounded-lg p-1">
-              {isInvoiced && !isPaid && !isCredited && (
+              {canMarkPaid && (
                 <DropdownMenuItem onSelect={() => setConfirm("mark_paid")} className="gap-2 cursor-pointer focus:bg-success/10 focus:text-success">
                   <CheckCircle2 className="h-3.5 w-3.5" /> Markér som betalt
                 </DropdownMenuItem>
               )}
-              {isInvoiced && !isCredited && (
+              {canCredit && (
                 <DropdownMenuItem onSelect={() => setConfirm("credit_invoice")} className="gap-2 cursor-pointer focus:bg-destructive/10 focus:text-destructive">
                   <Receipt className="h-3.5 w-3.5" /> Krediter faktura
                 </DropdownMenuItem>
               )}
-              {!isInvoiced && (
+              {canVoid && (
                 <>
                   <DropdownMenuSeparator className="my-1" />
                   <DropdownMenuItem onSelect={() => setConfirm("void_draft")} className="gap-2 cursor-pointer focus:bg-destructive/10 focus:text-destructive">
@@ -154,7 +181,7 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
 
   return (
     <div className="flex flex-wrap items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-      {isInvoiced && !isPaid && !isCredited && (
+      {canMarkPaid && (
         <Tooltip delayDuration={150}>
           <TooltipTrigger asChild>
             <Button
@@ -171,7 +198,7 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
         </Tooltip>
       )}
 
-      {isInvoiced && !isCredited && (
+      {canCredit && (
         <Tooltip delayDuration={150}>
           <TooltipTrigger asChild>
             <Button
@@ -188,7 +215,7 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
         </Tooltip>
       )}
 
-      {!isInvoiced && (
+      {canVoid && (
         <Tooltip delayDuration={150}>
           <TooltipTrigger asChild>
             <Button
