@@ -1540,11 +1540,14 @@ const AftaleTab = ({
                           const ps = (order as any).payment_status as string | null | undefined;
                           if (!ps) return null;
                           const PAY: Record<string, { label: string; cls: string; dot: string }> = {
-                            paid:           { label: "Betalt",           cls: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" },
-                            partially_paid: { label: "Delvist betalt",   cls: "bg-amber-50 text-amber-800 border-amber-200",       dot: "bg-amber-500" },
-                            overdue:        { label: "Forfalden",        cls: "bg-destructive/10 text-destructive border-destructive/30", dot: "bg-destructive" },
-                            credited:       { label: "Krediteret",       cls: "bg-secondary text-muted-foreground border-border",  dot: "bg-muted-foreground" },
-                            unpaid:         { label: "Ubetalt",          cls: "bg-secondary text-foreground border-border",        dot: "bg-muted-foreground" },
+                            paid:           { label: "Betalt",          cls: "bg-success/10 text-success border-success/30",            dot: "bg-success" },
+                            partially_paid: { label: "Delvist betalt",  cls: "bg-warning/15 text-warning-foreground border-warning/40", dot: "bg-warning" },
+                            overdue:        { label: "Forfalden",       cls: "bg-destructive/10 text-destructive border-destructive/30", dot: "bg-destructive" },
+                            credited:       { label: "Krediteret",      cls: "bg-secondary text-muted-foreground border-border",        dot: "bg-muted-foreground" },
+                            sent:           { label: "Faktura sendt",   cls: "bg-info/10 text-info border-info/30",                     dot: "bg-info" },
+                            unpaid:         { label: "Ubetalt",         cls: "bg-secondary text-foreground border-border",              dot: "bg-muted-foreground" },
+                            refunded:       { label: "Refunderet",      cls: "bg-secondary text-muted-foreground border-border",        dot: "bg-muted-foreground" },
+                            cancelled:      { label: "Annulleret",      cls: "bg-secondary text-muted-foreground border-border",        dot: "bg-muted-foreground" },
                           };
                           const p = PAY[ps];
                           if (!p) return null;
@@ -1572,7 +1575,7 @@ const AftaleTab = ({
                             : null;
                           return (
                             <span
-                              className="inline-flex shrink-0 items-center gap-1 rounded-full border border-amber-300/60 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-800"
+                              className="inline-flex shrink-0 items-center gap-1 rounded-full border border-warning/40 bg-warning/15 px-2 py-0.5 text-[10px] font-medium text-warning-foreground"
                               title={last ? `Sidste rykker sendt ${last.toLocaleString("da-DK")}` : "Rykker sendt"}
                             >
                               Rykker {rc}/3
@@ -1632,7 +1635,7 @@ const AftaleTab = ({
                                 daysUntilNext <= 0
                                   ? "font-medium text-destructive"
                                   : daysUntilNext <= 3
-                                  ? "font-medium text-amber-700"
+                                  ? "font-medium text-warning"
                                   : ""
                               }
                               title="Næste udførelse — ordren oprettes automatisk på dagen kl. 06:00."
