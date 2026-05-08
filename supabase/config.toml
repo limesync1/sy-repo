@@ -43,6 +43,8 @@ project_id = "gkectsellkpltrxvusot"
     verify_jwt = true
   [functions.accounting-sync]
     verify_jwt = false
+  [functions.accounting-action]
+    verify_jwt = false
   [functions.accounting-cron]
     verify_jwt = false
   [functions.accounting-economic-callback]
