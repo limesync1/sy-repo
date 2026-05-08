@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2, Mail, MessageSquare, Clock, Bell, CheckCircle2, RotateCcw, Phone, Plus, AlarmClock, CalendarDays } from "lucide-react";
+import { Loader2, Mail, MessageSquare, Bell, CheckCircle2, RotateCcw, Phone, Plus, AlarmClock, CalendarDays } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -116,11 +116,11 @@ const minutesToSchedule = (mins: number | null | undefined): { days: ScheduleDay
 };
 
 function SchedulePicker({
-  days, time, onChange, label, channel,
+  days, time, onChange, label,
 }: {
   days: ScheduleDays; time: string;
   onChange: (next: { days: ScheduleDays; time: string }) => void;
-  label: string; channel: "email" | "sms";
+  label: string;
 }) {
   return (
     <div className="rounded-lg border border-border bg-muted/20 p-3">
@@ -129,12 +129,9 @@ function SchedulePicker({
           <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
           <p className="text-[12px] font-semibold text-foreground">{label}</p>
         </div>
-        <span className="rounded-md bg-background px-2 py-0.5 text-[10.5px] font-medium text-muted-foreground">
-          {channel === "email" ? "E-mail" : "SMS"}
-        </span>
       </div>
       <p className="mt-1 text-[11px] text-muted-foreground">
-        Sendes <span className="font-medium text-foreground">{formatSchedule(days, time)}</span> ud fra aftalens dato på rutekalenderen.
+        Sendes <span className="font-medium text-foreground">{formatSchedule(days, time)}</span>. Gælder både e-mail og SMS.
       </p>
 
       <div className="mt-2.5">
