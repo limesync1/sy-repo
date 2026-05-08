@@ -889,29 +889,34 @@ const ImportPanel = ({
 
   if (!file) {
     return (
-      <div
-        onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
-        onDragLeave={() => setDragActive(false)}
-        onDrop={onDrop}
-        onClick={() => inputRef.current?.click()}
-        className={`group relative flex flex-col items-center justify-center gap-4 overflow-hidden rounded-2xl border-2 border-dashed px-6 py-14 text-center cursor-pointer transition-all ${dragActive ? "border-accent bg-accent/5 scale-[1.01]" : "border-border bg-secondary/20 hover:bg-secondary/40"}`}
-      >
-        <input ref={inputRef} type="file" accept=".csv,text/csv" className="hidden"
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-foreground text-background shadow-sm transition-transform group-hover:scale-105">
-          <UploadCloud className="h-6 w-6" />
-        </div>
-        <div className="max-w-md space-y-1">
-          <p className="text-base font-semibold text-foreground">Træk din CSV-fil hertil</p>
-          <p className="text-xs text-muted-foreground">
-            Vi finder selv ud af om det er <span className="font-medium text-foreground">kunder</span>, <span className="font-medium text-foreground">produkter</span> eller <span className="font-medium text-foreground">aftaler</span> — og om det er privat- eller erhvervskunder ud fra CVR.
-          </p>
-        </div>
-        <div className="flex flex-wrap justify-center gap-1.5">
-          <Badge variant="secondary" className="text-[10.5px]"><Sparkles className="mr-1 h-2.5 w-2.5" /> Auto-detektion</Badge>
-          <Badge variant="secondary" className="text-[10.5px]"><Wand2 className="mr-1 h-2.5 w-2.5" /> AI-mapping</Badge>
-          <Badge variant="secondary" className="text-[10.5px]">Op til 10.000 rækker</Badge>
-          <Badge variant="secondary" className="text-[10.5px]">UTF-8 / Windows-1252</Badge>
+      <div className="space-y-4">
+        <WizardSteps current={0} />
+        <div
+          onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+          onDragLeave={() => setDragActive(false)}
+          onDrop={onDrop}
+          onClick={() => inputRef.current?.click()}
+          className={`group relative flex flex-col items-center justify-center gap-5 overflow-hidden rounded-3xl border-2 border-dashed px-6 py-16 text-center cursor-pointer transition-all sm:py-20 ${dragActive ? "border-accent bg-accent/5 scale-[1.01]" : "border-border bg-secondary/20 hover:border-foreground/40 hover:bg-secondary/40"}`}
+        >
+          <input ref={inputRef} type="file" accept=".csv,text/csv" className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+          <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-foreground text-background shadow-sm transition-transform group-hover:scale-105">
+            <UploadCloud className="h-7 w-7" />
+          </div>
+          <div className="max-w-md space-y-2">
+            <p className="text-lg font-semibold text-foreground">Træk din CSV-fil hertil</p>
+            <p className="text-sm text-muted-foreground">
+              Eller <span className="font-medium text-foreground underline underline-offset-2">klik for at vælge</span> en fil fra din computer.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Vi finder selv ud af om det er <span className="font-medium text-foreground">kunder</span>, <span className="font-medium text-foreground">produkter</span> eller <span className="font-medium text-foreground">aftaler</span>.
+            </p>
+          </div>
+          <div className="flex flex-wrap justify-center gap-1.5">
+            <Badge variant="secondary" className="text-[10.5px]"><Sparkles className="mr-1 h-2.5 w-2.5" /> Auto-detektion</Badge>
+            <Badge variant="secondary" className="text-[10.5px]"><Wand2 className="mr-1 h-2.5 w-2.5" /> AI-mapping</Badge>
+            <Badge variant="secondary" className="text-[10.5px]">Op til 10.000 rækker</Badge>
+          </div>
         </div>
       </div>
     );
