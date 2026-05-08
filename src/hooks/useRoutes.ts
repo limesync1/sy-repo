@@ -533,11 +533,25 @@ export const useUnassignedJobs = (businessId: string | undefined) => {
         (rts || []).forEach((r: any) => routeNameById.set(r.id, r.name || "Rute"));
       }
 
+      const acceptedAdjustedItems = (order: any) => (
+        order.business_response === "adjusted" &&
+        order.customer_response === "accepted" &&
+        Array.isArray(order.adjusted_details?.items)
+      ) ? order.adjusted_details.items : null;
+
+      const hasRecurringInterval = (items: any[]) => items.some((it) => {
+        const interval = it?.details?.interval;
+        return interval && interval !== "engangskøb";
+      });
+
       return (orders || [])
         .filter((o) => {
           if (usedOpen.has(o.id)) return false;
+          const adjustedItems = acceptedAdjustedItems(o);
+          const effectiveItems = adjustedItems || o.order_items || [];
+          const isAcceptedOneTimeAdjustment = !!adjustedItems && !hasRecurringInterval(effectiveItems);
           const entry = subsByOrder.get(o.id);
-          if (entry && entry.statuses.length > 0) {
+          if (entry && entry.statuses.length > 0 && !isAcceptedOneTimeAdjustment) {
             const anyActive = entry.statuses.some((st) => st === "active");
             if (!anyActive) return false; // alle på pause/annulleret
           }
@@ -545,9 +559,13 @@ export const useUnassignedJobs = (businessId: string | undefined) => {
         })
         .map((o) => {
           const entry = subsByOrder.get(o.id);
-          const prefId = entry?.preferredRouteId || null;
+          const adjustedItems = acceptedAdjustedItems(o);
+          const effectiveItems = adjustedItems || o.order_items || [];
+          const isAcceptedOneTimeAdjustment = !!adjustedItems && !hasRecurringInterval(effectiveItems);
+          const prefId = isAcceptedOneTimeAdjustment ? null : (entry?.preferredRouteId || null);
           return {
             ...o,
+            total_amount: o.customer_response === "accepted" ? (o.adjusted_amount ?? o.total_amount) : o.total_amount,
             preferred_route_id: prefId,
             preferred_route_name: prefId ? (routeNameById.get(prefId) || null) : null,
           };
