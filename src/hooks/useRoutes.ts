@@ -485,6 +485,7 @@ export const useUnassignedJobs = (businessId: string | undefined) => {
           id, customer_name, customer_phone, customer_email, total_amount, status, notes,
           address, zip_code, city, latitude, longitude, created_at,
           preferred_date, preferred_time_start, preferred_time_end, estimated_duration_minutes, next_service_date,
+          business_response, customer_response, adjusted_details, adjusted_amount,
           order_items ( service_name, quantity, total_price, details )
         `)
         .eq("business_id", businessId!)
