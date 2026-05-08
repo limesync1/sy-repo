@@ -951,17 +951,35 @@ const AftaleTab = ({
     const isRecurring = order ? orderHasRecurring(order) : false;
     const interval = order ? getOrderInterval(order) : "engangskøb";
 
-    // For recurring orders: completing = auto-cycle to confirmed
-    if (newStatus === "completed" && isRecurring && interval !== "engangskøb") {
+    // Når aftalen markeres som udført og ligger på en rute, markerer vi
+    // selve rute-stoppet som udført — DB-triggeren sørger for at:
+    //  • opdatere ordren til 'completed' + bumpe completed_cycles
+    //  • oprette næste tilbagevendende ordre på næste interval-dato
+    //  • lægge en ny rute-stop ind på samme medarbejder/rute (eller ny rute samme dag)
+    const stop = newStatus === "completed" ? stopByOrder?.[orderId] : null;
+    if (newStatus === "completed" && stop?.id) {
+      const { error } = await supabase.from("route_stops").update({
+        status: "completed" as any,
+        completed_at: new Date().toISOString(),
+      }).eq("id", stop.id);
+      if (error) { toast.error(error.message); return; }
+      if (isRecurring && interval !== "engangskøb") {
+        const nextDate = calcNextServiceDate(interval);
+        toast.success(`Aftale udført — næste kørsel planlagt ${nextDate ? new Date(nextDate).toLocaleDateString("da-DK", { day: "numeric", month: "long" }) : ""}`);
+      } else {
+        toast.success("Aftale markeret som udført");
+      }
+    } else if (newStatus === "completed" && isRecurring && interval !== "engangskøb") {
+      // Tilbagevendende uden rute — fald tilbage til at bumpe cyklus så cron senere kan materialisere næste ordre.
       const nextDate = calcNextServiceDate(interval);
       const currentCycles = (order as any)?.completed_cycles || 0;
       const { error } = await supabase.from("orders").update({
-        status: "confirmed" as any,
+        status: "completed" as any,
         completed_cycles: currentCycles + 1,
         ...(nextDate ? { next_service_date: nextDate } : {}),
       }).eq("id", orderId);
       if (error) { toast.error(error.message); return; }
-      toast.success(`Service #${currentCycles + 1} udført — næste planlagt ${nextDate ? new Date(nextDate).toLocaleDateString("da-DK", { day: "numeric", month: "long" }) : ""}`);
+      toast.success(`Aftale udført — næste kørsel planlagt ${nextDate ? new Date(nextDate).toLocaleDateString("da-DK", { day: "numeric", month: "long" }) : ""}`);
     } else {
       const { error } = await supabase.from("orders").update({
         status: newStatus as any,
@@ -971,6 +989,7 @@ const AftaleTab = ({
     }
     qc.invalidateQueries({ queryKey: ["orders"] });
     qc.invalidateQueries({ queryKey: ["my-orders"] });
+    qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
   };
 
   const handleMarkPaid = async (order: any) => {
