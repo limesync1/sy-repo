@@ -124,7 +124,7 @@ const PROVIDERS: ProviderDef[] = [
     label: "Dinero",
     logo: dineroLogo,
     tagline: "",
-    description: "Hold dine kunder automatisk opdateret med Dinero.",
+    description: "Klik her for at integrere din virksomhed med Dinero som dit regnskabsprogram.",
     helpUrl: "https://developer.dinero.dk/",
     helpUrlLabel: "Åbn Dineros udviklerside",
     fields: [
@@ -1825,7 +1825,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">
                     {isHealthy
-                      ? `Alt kører automatisk. Næste opdatering kl. ${nextRunTxt} (${formatCountdown(nextRun)}).`
+                      ? "Alt kører automatisk i baggrunden."
                       : "Se herunder — det er som regel en lille rettelse, så er det løst."}
                   </p>
                   <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
