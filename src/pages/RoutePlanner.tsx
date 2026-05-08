@@ -581,9 +581,7 @@ const Planner = () => {
             address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
             latitude: job.latitude,
             longitude: job.longitude,
-            service_summary: (job.order_items || [])
-              .map((it: any) => it.quantity > 1 ? `${it.quantity}× ${it.service_name}` : it.service_name)
-              .join(", ") || "Aftale",
+            service_summary: serviceSummaryForJob(job),
             duration_minutes: Number(job.estimated_duration_minutes) || 30,
             time_window_start: job.preferred_time_start || null,
             time_window_end: job.preferred_time_end || null,
