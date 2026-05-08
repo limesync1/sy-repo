@@ -1474,10 +1474,12 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
   const [existingCategories, setExistingCategories] = useState<{ category: string; subcategories: string[] }[]>([]);
   const [existingCustomers, setExistingCustomers] = useState<{ id: string; name: string; email: string; cvr?: string | null; phone?: string | null; zip_code?: string | null }[]>([]);
   const [existingServices, setExistingServices] = useState<{ id: string; name: string; product_number?: string | null; unit?: string | null; base_price?: number | null }[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      setLoading(true);
       const [biz, priv, svc, ord] = await Promise.all([
         supabase.from("business_customers").select("id,company_name,contact_name,email,cvr,phone,zip_code,customer_number,ean_number").eq("business_id", businessId),
         supabase.from("private_customers").select("id,name,email,phone,zip_code,customer_number").eq("business_id", businessId),
@@ -1543,14 +1545,19 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
       });
       setExistingExternalOrderNumbers(ords);
       setExistingByOrderNumber(byOrd);
+      setLoading(false);
     })();
     return () => { cancelled = true; };
   }, [businessId]);
 
   const tabs: EntityType[] = ["customers", "services", "orders"];
 
+  if (loading) {
+    return <PageSkeleton withStats={false} rows={4} />;
+  }
+
   return (
-    <div className="space-y-5 animate-fade-in">
+    <div className="space-y-5">
       <PageHeader
         title="Dataimport"
         description="Træk CSV-filer ind, og lad AI matche kolonnerne automatisk. Du godkender altid før noget oprettes."
