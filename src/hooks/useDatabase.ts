@@ -177,6 +177,8 @@ export const useOrders = (businessId: string | undefined) => {
       return data;
     },
     enabled: !!businessId,
+    staleTime: 5_000,
+    refetchOnWindowFocus: true,
   });
 };
 
