@@ -111,6 +111,53 @@ Deno.serve(async (req) => {
     for (const o of groupFull || []) {
       const items: any[] = (o as any)?.adjusted_details?.items || []
 
+      // Når virksomheden har sendt et tilpasset forslag og kunden accepterer,
+      // er det den NYE pris og de NYE service-detaljer der gælder. Vi opdaterer
+      // derfor ordrelinjerne (order_items) og total_amount, så fakturaer,
+      // regnskabs-sync og UI altid afspejler det kunden faktisk godkendte —
+      // ikke den oprindelige bestilling.
+      if (items.length > 0) {
+        const newItems = items.map((it: any) => {
+          const quantity = Number(it.quantity ?? it.details?.quantity ?? 1) || 1
+          const totalPrice = Number(it.total_price ?? it.totalPrice ?? 0) || 0
+          const unitPrice = Number(
+            it.unit_price ?? it.unitPrice ?? (quantity > 0 ? totalPrice / quantity : totalPrice),
+          ) || 0
+          return {
+            order_id: (o as any).id,
+            service_id: it.service_id ?? null,
+            service_name: it.service_name || it.name || 'Service',
+            quantity,
+            unit_price: unitPrice,
+            total_price: totalPrice,
+            details: it.details || {},
+          }
+        })
+
+        // Erstat eksisterende linjer med de godkendte/tilpassede linjer.
+        await supabase.from('order_items').delete().eq('order_id', (o as any).id)
+        await supabase.from('order_items').insert(newItems as any)
+
+        const newTotal = typeof (o as any).adjusted_amount === 'number'
+          ? (o as any).adjusted_amount
+          : newItems.reduce((s, it) => s + Number(it.total_price || 0), 0)
+
+        await supabase
+          .from('orders')
+          .update({ total_amount: newTotal })
+          .eq('id', (o as any).id)
+
+        // Marker ordren til genudsendelse i regnskabsprogrammet, så den
+        // opdaterede faktura/ordre overskriver den tidligere version.
+        await supabase.from('accounting_sync_queue').insert({
+          business_id: (o as any).business_id,
+          entity_type: 'order',
+          entity_id: (o as any).id,
+          operation: 'update',
+          payload: { reason: 'customer_accepted_adjusted_proposal' },
+        }).then(() => {}, () => {})
+      }
+
       const { data: linkedSubs } = await supabase
         .from('subscriptions')
         .select('id, service_id, interval, details')
