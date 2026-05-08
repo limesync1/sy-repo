@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   UploadCloud, Loader2, FileText, Sparkles, CheckCircle2, AlertTriangle,
-  Trash2, X, ArrowRight, Building2, User, HelpCircle, Mail, Users, Package, ClipboardList, FolderTree, Wand2, ChevronDown, ChevronRight,
+  Trash2, X, ArrowRight, Building2, User, HelpCircle, Mail, Users, Package, ClipboardList, FolderTree, Wand2, ChevronDown, ChevronRight, Check, ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader, SectionCard, EmptyState } from "@/components/admin/shared/AdminUI";
@@ -255,6 +255,26 @@ const RowDetails = ({ row, entity, headers, mapping }: { row: any; entity: Entit
     </div>
   );
 };
+
+// ---------- Wizard step indicator ----------
+const WIZARD_STEPS = ["Upload", "Tjek mapping", "Forhåndsvis", "Importér"];
+const WizardSteps = ({ current }: { current: number }) => (
+  <ol className="flex flex-wrap items-center gap-1.5 text-[11px]">
+    {WIZARD_STEPS.map((label, i) => {
+      const done = i < current;
+      const active = i === current;
+      return (
+        <li key={label} className="flex items-center gap-1.5">
+          <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold ${done ? "bg-accent text-accent-foreground" : active ? "bg-foreground text-background" : "bg-muted text-muted-foreground"}`}>
+            {done ? <Check className="h-3 w-3" /> : i + 1}
+          </span>
+          <span className={`font-medium ${active ? "text-foreground" : done ? "text-foreground/70" : "text-muted-foreground"}`}>{label}</span>
+          {i < WIZARD_STEPS.length - 1 && <ArrowRight className="h-3 w-3 text-muted-foreground/40" />}
+        </li>
+      );
+    })}
+  </ol>
+);
 
 const ImportPanel = ({
   entity, businessId, existingEmails, existingProductNumbers, existingExternalOrderNumbers, existingCategories, existingCustomers, existingServices,
@@ -889,29 +909,34 @@ const ImportPanel = ({
 
   if (!file) {
     return (
-      <div
-        onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
-        onDragLeave={() => setDragActive(false)}
-        onDrop={onDrop}
-        onClick={() => inputRef.current?.click()}
-        className={`group relative flex flex-col items-center justify-center gap-4 overflow-hidden rounded-2xl border-2 border-dashed px-6 py-14 text-center cursor-pointer transition-all ${dragActive ? "border-accent bg-accent/5 scale-[1.01]" : "border-border bg-secondary/20 hover:bg-secondary/40"}`}
-      >
-        <input ref={inputRef} type="file" accept=".csv,text/csv" className="hidden"
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-foreground text-background shadow-sm transition-transform group-hover:scale-105">
-          <UploadCloud className="h-6 w-6" />
-        </div>
-        <div className="max-w-md space-y-1">
-          <p className="text-base font-semibold text-foreground">Træk din CSV-fil hertil</p>
-          <p className="text-xs text-muted-foreground">
-            Vi finder selv ud af om det er <span className="font-medium text-foreground">kunder</span>, <span className="font-medium text-foreground">produkter</span> eller <span className="font-medium text-foreground">aftaler</span> — og om det er privat- eller erhvervskunder ud fra CVR.
-          </p>
-        </div>
-        <div className="flex flex-wrap justify-center gap-1.5">
-          <Badge variant="secondary" className="text-[10.5px]"><Sparkles className="mr-1 h-2.5 w-2.5" /> Auto-detektion</Badge>
-          <Badge variant="secondary" className="text-[10.5px]"><Wand2 className="mr-1 h-2.5 w-2.5" /> AI-mapping</Badge>
-          <Badge variant="secondary" className="text-[10.5px]">Op til 10.000 rækker</Badge>
-          <Badge variant="secondary" className="text-[10.5px]">UTF-8 / Windows-1252</Badge>
+      <div className="space-y-4">
+        <WizardSteps current={0} />
+        <div
+          onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+          onDragLeave={() => setDragActive(false)}
+          onDrop={onDrop}
+          onClick={() => inputRef.current?.click()}
+          className={`group relative flex flex-col items-center justify-center gap-5 overflow-hidden rounded-3xl border-2 border-dashed px-6 py-16 text-center cursor-pointer transition-all sm:py-20 ${dragActive ? "border-accent bg-accent/5 scale-[1.01]" : "border-border bg-secondary/20 hover:border-foreground/40 hover:bg-secondary/40"}`}
+        >
+          <input ref={inputRef} type="file" accept=".csv,text/csv" className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+          <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-foreground text-background shadow-sm transition-transform group-hover:scale-105">
+            <UploadCloud className="h-7 w-7" />
+          </div>
+          <div className="max-w-md space-y-2">
+            <p className="text-lg font-semibold text-foreground">Træk din CSV-fil hertil</p>
+            <p className="text-sm text-muted-foreground">
+              Eller <span className="font-medium text-foreground underline underline-offset-2">klik for at vælge</span> en fil fra din computer.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Vi finder selv ud af om det er <span className="font-medium text-foreground">kunder</span>, <span className="font-medium text-foreground">produkter</span> eller <span className="font-medium text-foreground">aftaler</span>.
+            </p>
+          </div>
+          <div className="flex flex-wrap justify-center gap-1.5">
+            <Badge variant="secondary" className="text-[10.5px]"><Sparkles className="mr-1 h-2.5 w-2.5" /> Auto-detektion</Badge>
+            <Badge variant="secondary" className="text-[10.5px]"><Wand2 className="mr-1 h-2.5 w-2.5" /> AI-mapping</Badge>
+            <Badge variant="secondary" className="text-[10.5px]">Op til 10.000 rækker</Badge>
+          </div>
         </div>
       </div>
     );
@@ -924,6 +949,9 @@ const ImportPanel = ({
 
   return (
     <div className="space-y-5">
+      {/* ─── Wizard steps ─── */}
+      <WizardSteps current={done ? 3 : (Object.keys(mapping).length === 0 ? 1 : (rows.length > 0 ? 2 : 1))} />
+
       {/* ─── Hero topbar — alt vigtigt på ét sted ─── */}
       <div className="overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-secondary/40 via-background to-background">
         <div className="flex flex-wrap items-start gap-4 p-4">
@@ -1043,7 +1071,7 @@ const ImportPanel = ({
           <ArrowRight className="ml-auto h-3.5 w-3.5 text-muted-foreground transition-transform group-open:rotate-90" />
         </summary>
         <div className="border-t border-border p-4">
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {FIELD_GROUPS[entity].map((group) => (
               <div key={group.title} className="space-y-1.5">
                 <p className="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">{group.title}</p>
@@ -1052,13 +1080,15 @@ const ImportPanel = ({
                   if (!f) return null;
                   const mapped = !!mapping[f.key];
                   return (
-                    <div key={f.key} className={`flex items-center gap-2 rounded-md border px-2 py-1.5 transition-colors ${mapped ? "border-accent/30 bg-accent/5" : "border-border bg-secondary/20"}`}>
-                      <div className={`h-1.5 w-1.5 shrink-0 rounded-full ${mapped ? "bg-accent" : f.required ? "bg-destructive" : "bg-muted-foreground/30"}`} />
-                      <p className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
-                        {f.label}{f.required && <span className="ml-0.5 text-destructive">*</span>}
-                      </p>
+                    <div key={f.key} className={`flex flex-col gap-1.5 rounded-md border px-2.5 py-2 transition-colors sm:flex-row sm:items-center sm:gap-2 ${mapped ? "border-accent/30 bg-accent/5" : "border-border bg-secondary/20"}`}>
+                      <div className="flex min-w-0 flex-1 items-center gap-2">
+                        <div className={`h-1.5 w-1.5 shrink-0 rounded-full ${mapped ? "bg-accent" : f.required ? "bg-destructive" : "bg-muted-foreground/30"}`} />
+                        <p className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
+                          {f.label}{f.required && <span className="ml-0.5 text-destructive">*</span>}
+                        </p>
+                      </div>
                       <Select value={mapping[f.key] || "__none__"} onValueChange={(v) => setMapping((m) => ({ ...m, [f.key]: v === "__none__" ? undefined : v }))}>
-                        <SelectTrigger className="h-7 w-[140px] text-xs"><SelectValue placeholder="—" /></SelectTrigger>
+                        <SelectTrigger className="h-8 w-full text-xs sm:w-[150px]"><SelectValue placeholder="—" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="__none__" className="text-xs">— Ingen —</SelectItem>
                           {headers.map((h) => <SelectItem key={h} value={h} className="text-xs">{h}</SelectItem>)}
@@ -1107,7 +1137,7 @@ const ImportPanel = ({
             {filteredRows.length === 0 ? 0 : safePage * PAGE_SIZE + 1}–{Math.min((safePage + 1) * PAGE_SIZE, filteredRows.length)} af {filteredRows.length.toLocaleString("da-DK")}
           </span>
         </div>
-        <div className="overflow-x-auto">
+        <div className="hidden overflow-x-auto md:block">
         <table className="w-full text-xs">
           <thead className="bg-secondary/60">
             <tr className="text-left">
@@ -1301,6 +1331,72 @@ const ImportPanel = ({
           </tbody>
         </table>
         </div>
+        {/* Mobile card-list view */}
+        <div className="divide-y divide-border md:hidden">
+          {visibleRows.length === 0 && (
+            <div className="px-4 py-6 text-center text-xs text-muted-foreground">Ingen rækker.</div>
+          )}
+          {visibleRows.map((r: any, i) => {
+            const realIdx = prepared.indexOf(r);
+            const sel = isSelected(realIdx, r);
+            const isOpen = expanded.has(realIdx);
+            const title =
+              entity === "customers"
+                ? (r.company_name || r.name || "—")
+                : entity === "services"
+                ? (r.name || "—")
+                : `${r.customer_name || "—"} · ${r.service_name || ""}`;
+            const sub =
+              entity === "customers"
+                ? [r.email, r.phone, r.city].filter(Boolean).join(" · ")
+                : entity === "services"
+                ? [r.base_price != null ? `${r.base_price.toLocaleString("da-DK")} kr` : null, r.unit, r.interval || "engangskøb"].filter(Boolean).join(" · ")
+                : [r.external_order_number, r.preferred_date, r.total_amount != null ? `${r.total_amount.toLocaleString("da-DK")} kr` : null].filter(Boolean).join(" · ");
+            return (
+              <div key={`m-${safePage * PAGE_SIZE + i}`} className={`px-3 py-3 ${!sel ? "opacity-60" : ""}`}>
+                <div className="flex items-start gap-2">
+                  <Checkbox
+                    className="mt-0.5"
+                    checked={sel}
+                    onCheckedChange={(v) => {
+                      if (v) {
+                        setExcluded((p) => { const n = new Set(p); n.delete(realIdx); return n; });
+                        if (r.errors.length > 0 || r.isDuplicate) setForceInclude((p) => new Set(p).add(realIdx));
+                      } else {
+                        setForceInclude((p) => { const n = new Set(p); n.delete(realIdx); return n; });
+                        setExcluded((p) => new Set(p).add(realIdx));
+                      }
+                    }}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-foreground">{title}</p>
+                    {sub && <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{sub}</p>}
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                      {r.errors.length > 0 ? (
+                        <Badge variant="destructive" className="text-[10px]">Fejl: {r.errors.join(", ")}</Badge>
+                      ) : r.isDuplicate ? (
+                        <Badge variant="secondary" className="text-[10px]">Dublet</Badge>
+                      ) : (
+                        <Badge className="bg-accent/15 text-accent hover:bg-accent/20 text-[10px]">Klar</Badge>
+                      )}
+                      {entity === "customers" && (
+                        <Badge variant="outline" className="text-[10px]">{r.type === "business" ? "Erhverv" : "Privat"}</Badge>
+                      )}
+                    </div>
+                  </div>
+                  <button onClick={() => toggleExpand(realIdx)} className="rounded p-1 text-muted-foreground hover:bg-secondary hover:text-foreground">
+                    {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  </button>
+                </div>
+                {isOpen && (
+                  <div className="mt-3 rounded-md bg-secondary/30 p-3">
+                    <RowDetails row={r} entity={entity} headers={headers} mapping={mapping} />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
         {pageCount > 1 && (
           <div className="flex items-center justify-between gap-2 border-t border-border bg-secondary/20 px-3 py-2 text-[11px] text-muted-foreground">
             <span>Side <span className="font-semibold text-foreground">{safePage + 1}</span> af {pageCount}</span>
@@ -1324,12 +1420,21 @@ const ImportPanel = ({
           <Button variant="outline" size="sm" onClick={reset}><Trash2 className="mr-1.5 h-3.5 w-3.5" /> Ny import</Button>
         </div>
       ) : (
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <Button variant="ghost" onClick={reset} disabled={importing}>Annullér</Button>
-          <Button onClick={runImport} disabled={importing || stats.selected === 0}>
+        <div className="sticky bottom-0 -mx-4 mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border bg-background/95 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-xl sm:border sm:px-4">
+          <div className="text-xs text-muted-foreground">
+            <span className="font-semibold text-foreground">{stats.selected.toLocaleString("da-DK")}</span> af {stats.total.toLocaleString("da-DK")} valgt
+            {stats.errors > 0 && <span className="ml-2 text-destructive">· {stats.errors} fejl</span>}
+            {stats.duplicates > 0 && <span className="ml-2 text-amber-600">· {stats.duplicates} dubletter</span>}
+          </div>
+          <div className="flex items-center gap-2">
+          <Button variant="ghost" onClick={reset} disabled={importing} className="h-9">
+            <ArrowLeft className="mr-1.5 h-3.5 w-3.5" /> Start forfra
+          </Button>
+          <Button onClick={runImport} disabled={importing || stats.selected === 0} className="h-9">
             {importing ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-1.5 h-4 w-4" />}
             Importér {stats.selected}
           </Button>
+          </div>
         </div>
       )}
     </div>
