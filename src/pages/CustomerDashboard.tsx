@@ -93,7 +93,7 @@ const EmptyPanel = ({
 
 const CustomerDashboard = () => {
   const { user, loading } = useAuth();
-  const [tab, setTab] = useState<"orders" | "subscriptions" | "favorites" | "profile">("orders");
+  const [tab, setTab] = useState<"orders" | "onetime" | "subscriptions" | "favorites" | "profile">("orders");
   const { data: orders } = useMyOrders();
   const proposalCount = (orders || []).filter(
     (o: any) => o.business_response === "adjusted" && !o.customer_response,
@@ -111,6 +111,7 @@ const CustomerDashboard = () => {
 
   const tabs = [
     { key: "orders", label: "Bestillinger", icon: ShoppingCart, badge: proposalCount },
+    { key: "onetime", label: "Engangskøb", icon: Receipt },
     { key: "subscriptions", label: "Abonnementer", icon: Package },
     { key: "favorites", label: "Favoritter", icon: Heart },
     { key: "profile", label: "Min profil", icon: Settings },
@@ -118,6 +119,7 @@ const CustomerDashboard = () => {
 
   const headers: Record<typeof tab, { title: string; description: string }> = {
     orders: { title: "Bestillinger", description: "Se og besvar dine bestillinger og forslag fra virksomheder." },
+    onetime: { title: "Engangskøb", description: "Dine bestillinger der kun udføres én gang — uden tilbagevendende interval." },
     subscriptions: { title: "Abonnementer", description: "Administrer dine tilbagevendende services." },
     favorites: { title: "Favoritter", description: "Hurtig adgang til de virksomheder du har gemt." },
     profile: { title: "Min profil", description: "Opdater dine kontaktoplysninger og notifikationer." },
@@ -138,7 +140,8 @@ const CustomerDashboard = () => {
       >
         <div className="space-y-5">
           <PageHeader title={headers[tab].title} description={headers[tab].description} />
-          {tab === "orders" && <OrdersView />}
+          {tab === "orders" && <OrdersView mode="all" />}
+          {tab === "onetime" && <OrdersView mode="onetime" />}
           {tab === "subscriptions" && <SubscriptionsView />}
           {tab === "favorites" && <FavoritesView />}
           {tab === "profile" && <ProfileView />}
@@ -257,8 +260,15 @@ const FavoritesView = () => {
 /* ════════════════════════════════════════════════ */
 /*  Orders View — shows proposals, accepts/rejects  */
 /* ════════════════════════════════════════════════ */
-const OrdersView = () => {
-  const { data: orders, isLoading } = useMyOrders();
+const OrdersView = ({ mode = "all" }: { mode?: "all" | "onetime" }) => {
+  const { data: allOrders, isLoading } = useMyOrders();
+  // Engangskøb-fane viser kun bestillinger uden tilbagevendende interval på nogen item.
+  const orders = mode === "onetime"
+    ? (allOrders || []).filter((o: any) => {
+        const items = (o.order_items || []) as any[];
+        return items.length > 0 && items.every((it) => !it?.details?.interval || it.details.interval === "engangskøb");
+      })
+    : allOrders;
   const qc = useQueryClient();
   const { user } = useAuth();
   const [filter, setFilter] = useState<string>("all");
@@ -505,6 +515,32 @@ const OrderCard = ({ order, onRespond }: {
                   {new Date(order.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
                   {items.length > 0 && ` · ${items.length} ${items.length === 1 ? "service" : "services"}`}
                 </p>
+                {(() => {
+                  const names = items.map((it: any) => it.service_name).filter(Boolean);
+                  const summary = names.slice(0, 2).join(", ") + (names.length > 2 ? ` +${names.length - 2}` : "");
+                  const hasRecurring = items.some((it: any) => it.details?.interval && it.details.interval !== "engangskøb");
+                  const cityLine = [order.address, [order.zip_code, order.city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+                  return (
+                    <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
+                      {summary && <span className="truncate max-w-[220px] text-foreground/80">{summary}</span>}
+                      {hasRecurring && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-accent/10 text-accent px-1.5 py-px text-[10px] font-medium">
+                          <CalendarClock className="h-2.5 w-2.5" /> Abonnement
+                        </span>
+                      )}
+                      {!hasRecurring && items.length > 0 && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-secondary text-foreground/70 px-1.5 py-px text-[10px] font-medium">
+                          Engangskøb
+                        </span>
+                      )}
+                      {cityLine && (
+                        <span className="inline-flex items-center gap-0.5 truncate">
+                          <MapPin className="h-2.5 w-2.5 shrink-0" /> <span className="truncate max-w-[180px]">{cityLine}</span>
+                        </span>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">

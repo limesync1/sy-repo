@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrders, useServices, useBusinessSubscriptions } from "@/hooks/useDatabase";
@@ -786,13 +786,59 @@ const AftaleTab = ({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("route_stops")
-        .select("id, order_id, sequence, status, planned_arrival, planned_departure, route:routes!inner(id, name, route_date, color, status, business_id)")
+        .select("id, order_id, sequence, status, planned_arrival, planned_departure, route:routes!inner(id, name, route_date, color, status, business_id, created_at)")
         .eq("route.business_id", businessId);
       if (error) throw error;
       return data || [];
     },
     enabled: !!businessId && routePlanningEnabled,
+    staleTime: 10_000,
   });
+
+  // Hent alle ruter (uafhængigt af stops) så vi kan udregne det samme
+  // "Kørsel N" fallback-navn som ruteplanlæggeren bruger pr. dag.
+  const { data: allBusinessRoutes } = useQuery({
+    queryKey: ["aftaler-all-routes", businessId, routePlanningEnabled],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("routes")
+        .select("id, name, route_date, color, created_at")
+        .eq("business_id", businessId)
+        .order("route_date", { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!businessId && routePlanningEnabled,
+    staleTime: 10_000,
+  });
+
+  // Realtime: hold listen ajour når ordrer, ruter eller stops ændrer sig
+  // (fx hvis en aftale flyttes til en rute, eller en kunde godkender et forslag).
+  useEffect(() => {
+    if (!businessId) return;
+    const channel = supabase
+      .channel(`aftale-tab-${businessId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders", filter: `business_id=eq.${businessId}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["orders", businessId] });
+          qc.invalidateQueries({ queryKey: ["business-subscriptions", businessId] });
+        })
+      .on("postgres_changes", { event: "*", schema: "public", table: "subscriptions", filter: `business_id=eq.${businessId}` },
+        () => qc.invalidateQueries({ queryKey: ["business-subscriptions", businessId] }))
+      .on("postgres_changes", { event: "*", schema: "public", table: "routes", filter: `business_id=eq.${businessId}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["aftaler-route-stops", businessId] });
+          qc.invalidateQueries({ queryKey: ["aftaler-all-routes", businessId] });
+          qc.invalidateQueries({ queryKey: ["routes-for-range"] });
+        })
+      .on("postgres_changes", { event: "*", schema: "public", table: "route_stops" },
+        () => {
+          qc.invalidateQueries({ queryKey: ["aftaler-route-stops", businessId] });
+          qc.invalidateQueries({ queryKey: ["stops-for-routes"] });
+        })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [businessId, qc]);
 
   const { data: activeAccountingIntegration } = useQuery({
     queryKey: ["active-accounting-integration", businessId],
@@ -814,6 +860,39 @@ const AftaleTab = ({
     if (s.order_id && !acc[s.order_id]) acc[s.order_id] = s;
     return acc;
   }, {});
+
+  // Beregn samme "Kørsel N" pr. dag som ruteplanlæggeren bruger, så et
+  // navnløst rute-kort hedder det samme begge steder.
+  const routeUniverse = (() => {
+    const map = new Map<string, { id: string; name: string | null; route_date: string; created_at?: string | null }>();
+    for (const r of (allBusinessRoutes || []) as any[]) {
+      map.set(r.id, r);
+    }
+    for (const s of (routeStops || []) as any[]) {
+      const r = s.route;
+      if (r && !map.has(r.id)) map.set(r.id, r);
+    }
+    return map;
+  })();
+  const dayIndexByRoute = (() => {
+    const arr = Array.from(routeUniverse.values()).sort((a, b) => {
+      if ((a.route_date || "") !== (b.route_date || "")) return (a.route_date || "") < (b.route_date || "") ? -1 : 1;
+      return (a.created_at || "").localeCompare(b.created_at || "");
+    });
+    const counter = new Map<string, number>();
+    const out = new Map<string, number>();
+    for (const r of arr) {
+      const n = (counter.get(r.route_date) || 0) + 1;
+      counter.set(r.route_date, n);
+      out.set(r.id, n);
+    }
+    return out;
+  })();
+  const routeDisplayName = (r: any): string => {
+    if (!r) return "Rute";
+    if (r.name) return r.name as string;
+    return `Kørsel ${dayIndexByRoute.get(r.id) || 1}`;
+  };
 
   const dndSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
   const hasActiveAccountingIntegration = !!activeAccountingIntegration?.is_active;
@@ -1460,7 +1539,7 @@ const AftaleTab = ({
               const orderStatus = linkedOrder?.status as string | undefined;
               const statusCfg = orderStatus ? (STATUS_CONFIG[orderStatus] || STATUS_CONFIG.pending) : null;
               const stop = linkedOrder ? stopByOrder[linkedOrder.id] : null;
-              const routeName = stop?.route?.name as string | undefined;
+              const routeName = stop?.route ? routeDisplayName(stop.route) : undefined;
               const routeColor = (stop?.route?.color as string | undefined) || "#64748b";
               const stopSeq = stop?.sequence;
               const stopStatus = formatStopStatus(stop?.status);
@@ -1722,10 +1801,10 @@ const AftaleTab = ({
                               backgroundColor: `${routeInfo.color}14`,
                               color: routeInfo.color,
                             }}
-                            title={`Rute ${routeInfo.name || ""} · ${routeDate?.toLocaleDateString("da-DK")}`}
+                            title={`Rute ${routeDisplayName(routeInfo)} · ${routeDate?.toLocaleDateString("da-DK")}`}
                           >
                             <RouteIcon className="h-2.5 w-2.5" />
-                            {routeInfo.name || "Rute"}
+                            {routeDisplayName(routeInfo)}
                           </span>
                         )}
                       </div>
@@ -1829,7 +1908,7 @@ const AftaleTab = ({
                           <div className="flex items-center gap-2 min-w-0">
                             <RouteIcon className="h-4 w-4 shrink-0" style={{ color: routeInfo.color }} />
                             <span className="text-sm font-semibold text-foreground truncate">
-                              {routeInfo.name || "Rute"}
+                              {routeDisplayName(routeInfo)}
                             </span>
                             {routeDate && (
                               <span className="text-xs text-muted-foreground shrink-0">

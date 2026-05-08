@@ -160,33 +160,10 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
       const lat = latitude;
       const lng = longitude;
 
-      // Tjek om kunden allerede er kendt i virksomhedens system.
-      // Kendte kunder behøver ikke godkende bestillingen — virksomheden
-      // har en eksisterende relation, og bestillingen kan derfor aktiveres
-      // direkte. Det matcher hvordan oprettelse "for" en kunde fungerer
-      // i de fleste service-systemer.
+      // Bestillinger oprettet manuelt af virksomheden er altid forhåndsgodkendt
+      // — virksomheden har allerede besluttet at tage opgaven, så kunden skal
+      // bare modtage en bekræftelses-mail (ligesom et helt almindeligt køb).
       const customerEmailLower = customerEmail.trim().toLowerCase();
-      const [erhvervKnown, privatKnown] = await Promise.all([
-        supabase
-          .from("business_customers")
-          .select("id")
-          .eq("business_id", businessId)
-          .ilike("email", customerEmailLower)
-          .maybeSingle(),
-        supabase
-          .from("private_customers")
-          .select("id")
-          .eq("business_id", businessId)
-          .ilike("email", customerEmailLower)
-          .maybeSingle(),
-      ]);
-      const customerKnown = !!erhvervKnown.data || !!privatKnown.data;
-
-      // Build approval token + expiry — ÉN token deles af alle child-ordrer
-      const tokenBytes = new Uint8Array(32);
-      crypto.getRandomValues(tokenBytes);
-      const token = Array.from(tokenBytes).map((b) => b.toString(16).padStart(2, "0")).join("");
-      const expires = new Date(); expires.setDate(expires.getDate() + 7);
 
       // Én ordre pr. service. Første ordre = forælder; alle peger på dens id via parent_order_id.
       const parentOrderId = crypto.randomUUID();
@@ -217,12 +194,11 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
           total_amount: total,
           // Kendte kunder: ordren bekræftes med det samme.
           // Ukendte kunder: afventer approval via mail-link.
-          status: (customerKnown ? "confirmed" : "pending") as "pending" | "confirmed",
+          status: "confirmed" as const,
           business_message: isParent ? (businessMessage.trim() || null) : null,
-          // Kun forælderen får token — godkendelse cascader til børn via edge function.
-          approval_token: customerKnown ? null : (isParent ? token : null),
-          approval_expires_at: customerKnown ? null : (isParent ? expires.toISOString() : null),
-          requires_customer_approval: !customerKnown,
+          approval_token: null,
+          approval_expires_at: null,
+          requires_customer_approval: false,
         };
       });
       const { error: orderErr } = await supabase.from("orders").insert(orderRows as any);
@@ -265,8 +241,8 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
         .eq("id", businessId)
         .maybeSingle();
 
-      if (customerKnown) {
-        // Kendt kunde: send blot en bekræftelses-mail (ingen godkendelse).
+      // Manuel oprettelse er altid forhåndsgodkendt — send bekræftelses-mail.
+      {
         const { error: mailErr } = await supabase.functions.invoke("send-transactional-email", {
           body: {
             templateName: "manual-order-confirmed",
@@ -309,54 +285,6 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
         onOpenChange(false);
         return;
       }
-
-      // Ukendt kunde: send approval-mail.
-      // Mailen peger på forælder-ordren — edge function godkender hele gruppen.
-      const approvalUrl = `${window.location.origin}/godkend-bestilling/${parentOrderId}?token=${token}`;
-      const { error: mailErr } = await supabase.functions.invoke("send-transactional-email", {
-        body: {
-          templateName: "manual-order-approval",
-          recipientEmail: customerEmailLower,
-          idempotencyKey: `manual-order-${parentOrderId}`,
-          templateData: {
-            customerName: customerName.trim(),
-            businessName: biz?.name || businessName,
-            businessPhone: biz?.phone,
-            businessEmail: biz?.email,
-            businessMessage: businessMessage.trim() || undefined,
-            orderId: parentOrderId,
-            approvalUrl,
-            expiresInDays: 7,
-            address: address.trim()
-              ? `${address.trim()}${zipCode.trim() || city.trim() ? `, ${[zipCode.trim(), city.trim()].filter(Boolean).join(" ")}` : ""}`
-              : undefined,
-            preferredDate: preferredDate || undefined,
-            totalAmount,
-            items: items.map((it) => ({
-              name: it.service.name,
-              quantity: 1,
-              price: roundPrice(calcItemTotal(it)),
-              intervalLabel: it.interval && it.interval !== "engangskøb" ? INTERVAL_LABELS[it.interval] || it.interval : undefined,
-              description: it.service.pricing_type === "timepris" ? `${it.hours} timer` : undefined,
-              stepDetails: it.service.pricing_type === "prisberegner"
-                ? (it.service.calculator_steps || []).map((s) => ({
-                    label: s.label, value: it.stepValues[s.id] || 0, unit: s.unit,
-                    subtotal: roundPrice((it.stepValues[s.id] || 0) * Number(s.price_per_unit)),
-                  }))
-                : undefined,
-            })),
-          },
-        },
-      });
-      if (mailErr) {
-        console.error("Mail send failed:", mailErr);
-        toast.error("Bestilling oprettet, men godkendelsesmailen kunne ikke sendes. Kontakt support.");
-      } else {
-        toast.success("Bestilling oprettet — kunden har modtaget en mail med godkendelseslink");
-      }
-
-      reset();
-      onOpenChange(false);
     } catch (e: any) {
       toast.error("Kunne ikke oprette bestilling: " + (e.message || "Ukendt fejl"));
     } finally {
@@ -373,7 +301,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
             title={<DialogTitle className="text-base">Opret bestilling for kunde</DialogTitle>}
             description={
               <DialogDescription className="text-xs leading-snug">
-                Vælg services fra dit katalog og udfyld kundens oplysninger. Hvis kunden allerede findes i dit system, bekræftes bestillingen direkte — ellers får kunden en mail med godkendelses-link.
+                Vælg services fra dit katalog og udfyld kundens oplysninger. Bestillingen oprettes som forhåndsgodkendt og kunden modtager en bekræftelses-mail med det samme.
               </DialogDescription>
             }
           />
