@@ -78,9 +78,22 @@ Deno.serve(async (req) => {
           const s = states?.[0];
           if (s) {
             caps.exists_in_provider = true;
-            caps.is_booked = true;
-            caps.can_credit = typeof adapter.creditInvoice === "function" && s.status !== "credited";
-            caps.can_mark_paid = typeof adapter.markInvoicePaid === "function" && s.status !== "paid" && s.status !== "credited";
+            // Skeln imellem bogført og kladde via raw payload (e-conomic falder
+            // tilbage til /invoices/drafts hvis booked ikke findes). Vi vil
+            // KUN tillade kreditering / markér betalt for reelt bogførte fakturaer.
+            const raw = (s as any).raw ?? {};
+            const isBooked = raw?.bookedInvoiceNumber != null;
+            const isDraft = !isBooked && raw?.draftInvoiceNumber != null;
+            caps.is_booked = isBooked;
+            caps.is_draft = isDraft;
+            const fullyPaid = s.status === "paid" || s.status === "credited";
+            caps.can_credit = isBooked
+              && typeof adapter.creditInvoice === "function"
+              && s.status !== "credited";
+            caps.can_mark_paid = isBooked
+              && typeof adapter.markInvoicePaid === "function"
+              && !fullyPaid;
+            caps.can_void = isDraft && typeof adapter.voidDraft === "function";
           }
         } else if (link?.external_id && typeof adapter.voidDraft === "function") {
           // Kladde — kan annulleres
