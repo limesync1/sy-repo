@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
 
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
     const { data: order } = await admin.from("orders")
-      .select("id, business_id, invoice_external_id, total_amount, customer_email, reminder_history")
+      .select("id, business_id, invoice_external_id, total_amount, customer_email")
       .eq("id", order_id).maybeSingle();
     if (!order) return json({ error: "Order not found" }, 404);
 
@@ -91,26 +91,9 @@ Deno.serve(async (req) => {
         // nedenfor. Vi sætter blot et flag så vi ikke fejler.
         result = { ok: true, sync: true };
       } else if (action === "send_reminder") {
-        if (!bookedInvoiceId) {
-          return json({ error: "Faktura er ikke bogført endnu — kan ikke sende rykker." }, 400);
-        }
-        if (typeof adapter.sendReminder !== "function") {
-          return json({ error: `${integ.provider} understøtter ikke rykkere via API` }, 400);
-        }
-        const res = await adapter.sendReminder({
-          invoice_external_id: bookedInvoiceId,
-          type: params?.type ?? "auto",
-        });
-        // Append til reminder_history straks så UI'et opdateres uden at vente
-        const history = Array.isArray(order.reminder_history) ? order.reminder_history : [];
-        history.push(res);
-        await admin.from("orders").update({
-          reminder_count: history.length,
-          last_reminder_at: res.sent_at,
-          last_reminder_type: res.type,
-          reminder_history: history,
-        }).eq("id", order_id);
-        result = { ok: true, result: res, reminder: res };
+        return json({
+          error: "Rykker-håndtering er flyttet til dit regnskabsprogram. Aktivér automatisk rykkerkørsel der.",
+        }, 400);
       } else if (action === "credit_invoice") {
         if (typeof adapter.creditInvoice !== "function") {
           return json({ error: `${integ.provider} understøtter ikke kreditering via API` }, 400);
