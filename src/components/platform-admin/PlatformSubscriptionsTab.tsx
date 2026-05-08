@@ -147,7 +147,7 @@ const SubscriptionRow = ({ s }: { s: any }) => {
                     {s.service_name} <span className="text-muted-foreground">→ {s.businesses?.name || "—"}</span>
                   </p>
                   <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                    <span>{s.interval}</span>
+                    <span>{INTERVAL_LABELS[s.interval] || s.interval}</span>
                     <span>·</span>
                     <span>Næste: {next ? next.toLocaleDateString("da-DK") : "—"}</span>
                     {overdue && (
