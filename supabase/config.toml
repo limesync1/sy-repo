@@ -59,3 +59,5 @@ project_id = "gkectsellkpltrxvusot"
     verify_jwt = false
   [functions.import-customers-ai]
     verify_jwt = false
+  [functions.create-customer-account]
+    verify_jwt = false
