@@ -195,12 +195,11 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
           total_amount: total,
           // Kendte kunder: ordren bekræftes med det samme.
           // Ukendte kunder: afventer approval via mail-link.
-          status: (customerKnown ? "confirmed" : "pending") as "pending" | "confirmed",
+          status: "confirmed" as const,
           business_message: isParent ? (businessMessage.trim() || null) : null,
-          // Kun forælderen får token — godkendelse cascader til børn via edge function.
-          approval_token: customerKnown ? null : (isParent ? token : null),
-          approval_expires_at: customerKnown ? null : (isParent ? expires.toISOString() : null),
-          requires_customer_approval: !customerKnown,
+          approval_token: null,
+          approval_expires_at: null,
+          requires_customer_approval: false,
         };
       });
       const { error: orderErr } = await supabase.from("orders").insert(orderRows as any);
