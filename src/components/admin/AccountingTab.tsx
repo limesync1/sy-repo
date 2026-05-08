@@ -149,26 +149,6 @@ const PROVIDERS: ProviderDef[] = [
       body: "Dinero tillader kun automatisk forbindelse for kunder på Pro-pakken. Har du Small eller Medium, skal du først opgradere via Dinero → Indstillinger → Abonnement — ellers afvises forbindelsen.",
     },
   },
-  {
-    value: "zenegy",
-    label: "Zenegy",
-    logo: zenegyLogo,
-    tagline: "",
-    description: "Forbind Zenegy med ét klik. Ingen koder at kopiere — du logger bare ind hos Zenegy.",
-    helpUrl: "https://zenegy.com/",
-    helpUrlLabel: "Læs mere om Zenegy",
-    fields: [],
-    setupSteps: [
-      "Tryk 'Forbind Zenegy' nedenfor — et nyt vindue åbner hos Zenegy.",
-      "Log ind på Zenegy og vælg den virksomhed, du vil forbinde med Serviceydere.",
-      "Tryk 'Tildel adgang' i Zenegy — så sendes du automatisk tilbage hertil, og forbindelsen er klar.",
-    ],
-    note: {
-      tone: "info",
-      title: "Sikker ét-klik forbindelse",
-      body: "Du logger ind direkte hos Zenegy, så vi aldrig ser dit kodeord. Du kan altid trække adgangen tilbage igen inde i Zenegy.",
-    },
-  },
 ];
 
 interface Integration {
