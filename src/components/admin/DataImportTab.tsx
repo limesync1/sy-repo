@@ -933,6 +933,28 @@ const ImportPanel = ({
             details: { unit: r.unit || null, interval: r.interval || null },
           } as any);
           if (itemErr) throw itemErr;
+          // Berig kunden (oprettet/matchet via trigger eller match) med ekstra
+          // felter fra ordre-rækken — kundenummer, kundegruppe, EAN, valuta osv.
+          // Vi opdaterer både private_customers og business_customers; kun den
+          // matchende e-mail/CVR opdateres faktisk.
+          const enrich: Record<string, any> = {};
+          if (r.customer_number) enrich.customer_number = r.customer_number;
+          if (r.ean_number) enrich.ean_number = r.ean_number;
+          if (r.customer_group) enrich.customer_group = r.customer_group;
+          if (r.currency) enrich.currency = r.currency;
+          if (r.payment_terms_days != null) enrich.payment_terms_days = r.payment_terms_days;
+          if (r.phone) enrich.phone = r.phone;
+          if (r.address) enrich.address = r.address;
+          if (r.zip_code) enrich.zip_code = r.zip_code;
+          if (r.city) enrich.city = r.city;
+          if (Object.keys(enrich).length > 0 && r.customer_email) {
+            const isBiz = !!(r.cvr || r.company_name);
+            const table = isBiz ? "business_customers" : "private_customers";
+            await supabase.from(table as any)
+              .update(enrich)
+              .eq("business_id", businessId)
+              .ilike("email", r.customer_email);
+          }
           created += 1;
         }
       }
