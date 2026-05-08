@@ -815,7 +815,9 @@ const ImportPanel = ({
           phone: r.phone || null, address: r.address || null, zip_code: r.zip_code || null, city: r.city || null,
           notes: mergeNotes(r.notes, buildExtraNotes(r.source)), customer_number: r.customer_number || null,
           ean_number: r.ean_number || null, payment_terms_days: r.payment_terms_days ?? null,
-          // private_customers har ikke customer_group/vat_zone — gem som note hvis sat
+          customer_group: r.customer_group || null,
+          currency: r.currency || null,
+          vat_zone: r.vat_zone || null,
         }));
         for (const part of chunk(biz, 100)) {
           const { data, error } = await supabase.from("business_customers").upsert(part as any, { onConflict: "business_id,email", ignoreDuplicates: true }).select("id");
