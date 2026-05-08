@@ -1801,10 +1801,10 @@ const AftaleTab = ({
                               backgroundColor: `${routeInfo.color}14`,
                               color: routeInfo.color,
                             }}
-                            title={`Rute ${routeInfo.name || ""} · ${routeDate?.toLocaleDateString("da-DK")}`}
+                            title={`Rute ${routeDisplayName(routeInfo)} · ${routeDate?.toLocaleDateString("da-DK")}`}
                           >
                             <RouteIcon className="h-2.5 w-2.5" />
-                            {routeInfo.name || "Rute"}
+                            {routeDisplayName(routeInfo)}
                           </span>
                         )}
                       </div>
