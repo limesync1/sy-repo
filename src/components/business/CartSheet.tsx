@@ -145,12 +145,12 @@ const CartSheet = () => {
       coords = { lat: r.lat!, lng: r.lng! };
     }
 
+    let activeUserId: string | null = user?.id || null;
+    let createdAccount = false;
     try {
       // If the customer is not logged in, create an account first so that:
       //  • the order is correctly tied to their customer_id (avoids "wrong customer" issues)
       //  • they get login credentials emailed and are auto-logged in
-      let activeUserId = user?.id || null;
-      let createdAccount = false;
       if (!user) {
         const { data: acct, error: acctErr } = await supabase.functions.invoke(
           "create-customer-account",
