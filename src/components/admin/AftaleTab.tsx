@@ -744,7 +744,7 @@ const AftaleTab = ({
         .eq("is_active", true)
         .maybeSingle();
       if (error) throw error;
-      return data as { id: string; provider: string; is_active: boolean } | null;
+      return data as unknown as { id: string; provider: string; is_active: boolean } | null;
     },
     enabled: !!businessId,
   });
@@ -1667,7 +1667,7 @@ const AftaleTab = ({
                           {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                         </button>
                       </div>
-                      {((order as any).invoice_external_id || (order as any).accounting_synced_at) && order.status !== "cancelled" && (
+                      {hasActiveAccountingIntegration && ((order as any).invoice_external_id || (order as any).accounting_synced_at) && order.status !== "cancelled" && (
                         <InvoiceActionsMenu order={order as any} compact />
                       )}
                     </div>
@@ -1820,10 +1820,9 @@ const AftaleTab = ({
                           </Button>
                         )}
 
-                        {/* Markér som betalt — tilgængelig så snart aftalen er bekræftet
-                            og endnu ikke registreret som betalt/krediteret/annulleret.
-                            Virker både med og uden regnskabsintegration. */}
-                        {(order.status === "confirmed" || order.status === "in_progress" || order.status === "completed") &&
+                        {/* Markér som betalt — vises kun når en regnskabsintegration er aktiv. */}
+                        {hasActiveAccountingIntegration &&
+                          (order.status === "confirmed" || order.status === "in_progress" || order.status === "completed") &&
                           (order as any).payment_status !== "paid" &&
                           (order as any).payment_status !== "credited" && (
                             <Button
