@@ -218,7 +218,7 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
           <TooltipTrigger asChild>
             <Button
               variant="ghost" size="sm"
-              className="h-8 w-8 p-0 border border-border bg-card text-muted-foreground hover:text-destructive hover:bg-destructive/10 hover:border-destructive/40"
+              className="h-8 w-8 p-0 border border-warning/40 bg-warning/10 text-warning-foreground hover:bg-warning/20 hover:border-warning/60"
               disabled={busy !== null}
               onClick={() => setConfirm("credit_invoice")}
               aria-label="Krediter faktura"
