@@ -164,6 +164,16 @@ const Planner = () => {
     return null;
   };
 
+  const effectiveJobItems = (job: any) => (
+    job.business_response === "adjusted" &&
+    job.customer_response === "accepted" &&
+    Array.isArray(job.adjusted_details?.items)
+  ) ? job.adjusted_details.items : (job.order_items || []);
+
+  const serviceSummaryForJob = (job: any) => effectiveJobItems(job)
+    .map((it: any) => it.quantity > 1 ? `${it.quantity}× ${it.service_name}` : it.service_name)
+    .join(", ") || "Aftale";
+
   /** Tæller (uden filter) hvor mange aftaler der ligger uden for ±3 dage-vinduet
       omkring den valgte dag. Vises som hint ifm. auto-fordel knap. */
   const outsideWindowCount = useMemo(() => {
