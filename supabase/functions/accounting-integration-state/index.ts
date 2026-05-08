@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { cleanAccountingSettings, clearAccountingRuntimeState } from "../_shared/accounting/state.ts";
+import { requireAuthenticatedUser } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -19,16 +20,9 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) return json({ error: "Missing auth" }, 401);
-
-    const userClient = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } },
-    );
-    const { data: { user } } = await userClient.auth.getUser();
-    if (!user) return json({ error: "Unauthorized" }, 401);
+    const auth = await requireAuthenticatedUser(req, Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!);
+    if ("error" in auth) return json({ error: auth.error }, auth.status);
+    const userClient = auth.userClient;
 
     const body = await req.json().catch(() => ({}));
     const { action, business_id } = body ?? {};
@@ -39,7 +33,7 @@ Deno.serve(async (req) => {
       .select("id, owner_id")
       .eq("id", business_id)
       .maybeSingle();
-    if (!biz || biz.owner_id !== user.id) return json({ error: "Forbidden" }, 403);
+    if (!biz || biz.owner_id !== auth.userId) return json({ error: "Forbidden" }, 403);
 
     const admin = createClient(
       Deno.env.get("SUPABASE_URL")!,

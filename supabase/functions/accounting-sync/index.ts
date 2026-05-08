@@ -4,6 +4,7 @@
 // - Mode "push_order": force re-push of one order
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { makeAdapter, AccountingAdapter } from "../_shared/accounting/index.ts";
+import { requireAuthenticatedUser } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -30,17 +31,13 @@ Deno.serve(async (req) => {
 
     // If called externally (not internal cron), verify caller owns the business
     if (!internal_mode) {
-      const authHeader = req.headers.get("Authorization");
-      if (!authHeader) return json({ error: "Missing auth" }, 401);
-      const userClient = createClient(SUPABASE_URL, ANON_KEY, {
-        global: { headers: { Authorization: authHeader } },
-      });
-      const { data: { user } } = await userClient.auth.getUser();
-      if (!user) return json({ error: "Unauthorized" }, 401);
+      const auth = await requireAuthenticatedUser(req, SUPABASE_URL, ANON_KEY);
+      if ("error" in auth) return json({ error: auth.error }, auth.status);
+      const userClient = auth.userClient;
       if (business_id) {
         const { data: biz } = await userClient.from("businesses")
           .select("id, owner_id").eq("id", business_id).maybeSingle();
-        if (!biz || biz.owner_id !== user.id) return json({ error: "Forbidden" }, 403);
+        if (!biz || biz.owner_id !== auth.userId) return json({ error: "Forbidden" }, 403);
       }
     }
 

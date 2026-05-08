@@ -734,6 +734,21 @@ const AftaleTab = ({
     enabled: !!businessId && routePlanningEnabled,
   });
 
+  const { data: activeAccountingIntegration } = useQuery({
+    queryKey: ["active-accounting-integration", businessId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("accounting_integrations" as any)
+        .select("id, provider, is_active")
+        .eq("business_id", businessId)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (error) throw error;
+      return data as unknown as { id: string; provider: string; is_active: boolean } | null;
+    },
+    enabled: !!businessId,
+  });
+
   // Map: order_id → første tilknyttede stop (en aftale ligger typisk på én rute).
   const stopByOrder = (routeStops || []).reduce<Record<string, any>>((acc, s: any) => {
     if (s.order_id && !acc[s.order_id]) acc[s.order_id] = s;
@@ -741,6 +756,7 @@ const AftaleTab = ({
   }, {});
 
   const dndSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+  const hasActiveAccountingIntegration = !!activeAccountingIntegration?.is_active;
 
   if (isLoading) return <ListCardSkeleton rows={6} />;
 
@@ -1651,7 +1667,7 @@ const AftaleTab = ({
                           {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                         </button>
                       </div>
-                      {((order as any).invoice_external_id || (order as any).accounting_synced_at) && order.status !== "cancelled" && (
+                      {hasActiveAccountingIntegration && ((order as any).invoice_external_id || (order as any).accounting_synced_at) && order.status !== "cancelled" && (
                         <InvoiceActionsMenu order={order as any} compact />
                       )}
                     </div>
@@ -1804,10 +1820,9 @@ const AftaleTab = ({
                           </Button>
                         )}
 
-                        {/* Markér som betalt — tilgængelig så snart aftalen er bekræftet
-                            og endnu ikke registreret som betalt/krediteret/annulleret.
-                            Virker både med og uden regnskabsintegration. */}
-                        {(order.status === "confirmed" || order.status === "in_progress" || order.status === "completed") &&
+                        {/* Markér som betalt — vises kun når en regnskabsintegration er aktiv. */}
+                        {hasActiveAccountingIntegration &&
+                          (order.status === "confirmed" || order.status === "in_progress" || order.status === "completed") &&
                           (order as any).payment_status !== "paid" &&
                           (order as any).payment_status !== "credited" && (
                             <Button
