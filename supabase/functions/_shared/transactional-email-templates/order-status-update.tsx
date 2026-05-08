@@ -199,7 +199,7 @@ const OrderStatusUpdateEmail = ({
 }: OrderStatusUpdateProps) => {
  const colors = STATUS_COLOR[event] ?? STATUS_COLOR.confirmed
  const headline = STATUS_HEADLINE[event] ?? STATUS_HEADLINE.confirmed
- const businessLabel = businessName || 'Leverandøren'
+ const businessLabel = businessName || 'Serviceyderen'
  const intro = (STATUS_INTRO[event] ?? STATUS_INTRO.confirmed)(businessLabel)
  const nextSteps = STATUS_NEXT[event] ?? []
  const date = fmtDate(serviceDate)
@@ -224,7 +224,7 @@ const OrderStatusUpdateEmail = ({
  const ctaLabel =
  event === 'adjusted' ? 'Godkend eller afvis forslag'
  : event === 'completed' ? 'Skriv en anmeldelse'
- : event === 'cancelled' ? 'Find en ny leverandør'
+ : event === 'cancelled' ? 'Find en ny serviceyder'
  : 'Se ordren'
 
  const ctaHref =
