@@ -22,6 +22,9 @@ const FIELD_SETS: Record<string, { key: string; desc: string }[]> = {
     { key: "customer_number", desc: "Internt kundenummer" },
     { key: "ean_number", desc: "EAN-nummer (13 cifre, offentlige kunder)" },
     { key: "payment_terms_days", desc: "Betalingsbetingelser i dage" },
+    { key: "customer_group", desc: "Kundegruppe / segment (fx 'Erhverv', 'VIP', 'Standard')" },
+    { key: "currency", desc: "Valutakode (fx DKK, EUR, USD, SEK, NOK)" },
+    { key: "vat_zone", desc: "Momszone (fx DK/Indenlands, EU, Eksport)" },
   ],
   services: [
     { key: "name", desc: "Produkt- eller service-navn" },
@@ -33,6 +36,8 @@ const FIELD_SETS: Record<string, { key: string; desc: string }[]> = {
     { key: "subcategory", desc: "Underkategori" },
     { key: "default_vat_rate", desc: "Momssats i procent (typisk 25)" },
     { key: "accounting_account_number", desc: "Bogføringskonto" },
+    { key: "currency", desc: "Valutakode (fx DKK, EUR)" },
+    { key: "interval", desc: "Interval (engangskøb, ugentligt, månedligt, …)" },
   ],
   orders: [
     { key: "external_order_number", desc: "Ordre-/faktura-nummer fra kildesystemet" },
@@ -52,6 +57,14 @@ const FIELD_SETS: Record<string, { key: string; desc: string }[]> = {
     { key: "status", desc: "Ordrestatus (pending, confirmed, completed)" },
     { key: "payment_terms_days", desc: "Betalingsfrist i dage" },
     { key: "notes", desc: "Noter til ordren" },
+    { key: "customer_number", desc: "Internt kundenummer (på kunden bag ordren)" },
+    { key: "ean_number", desc: "EAN-nummer på kunden" },
+    { key: "customer_group", desc: "Kundegruppe / segment" },
+    { key: "product_number", desc: "Varenummer på den solgte service" },
+    { key: "currency", desc: "Valutakode (fx DKK, EUR)" },
+    { key: "default_vat_rate", desc: "Momssats i procent" },
+    { key: "unit", desc: "Enhed på linjen (stk, time, m²…)" },
+    { key: "interval", desc: "Interval på aftalen (engangskøb, ugentligt, månedligt…)" },
   ],
 };
 
