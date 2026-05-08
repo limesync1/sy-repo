@@ -34,6 +34,9 @@ const FIELD_DEFS: Record<EntityType, { key: string; label: string; required?: bo
     { key: "city", label: "By" },
     { key: "customer_number", label: "Kundenummer" },
     { key: "ean_number", label: "EAN-nummer" },
+    { key: "customer_group", label: "Kundegruppe" },
+    { key: "currency", label: "Valuta (DKK, EUR…)" },
+    { key: "vat_zone", label: "Momszone (DK, EU, eksport)" },
     { key: "payment_terms_days", label: "Betalingsfrist (dage)" },
     { key: "notes", label: "Noter" },
   ],
@@ -41,6 +44,7 @@ const FIELD_DEFS: Record<EntityType, { key: string; label: string; required?: bo
     { key: "name", label: "Navn", required: true },
     { key: "description", label: "Beskrivelse" },
     { key: "base_price", label: "Pris" },
+    { key: "currency", label: "Valuta (DKK, EUR…)" },
     { key: "unit", label: "Enhed (stk, time, m²)" },
     { key: "interval", label: "Interval (engangskøb, ugentligt, mdr.)" },
     { key: "product_number", label: "Varenummer" },
@@ -56,15 +60,21 @@ const FIELD_DEFS: Record<EntityType, { key: string; label: string; required?: bo
     { key: "customer_phone", label: "Kunde telefon" },
     { key: "company_name", label: "Virksomhedsnavn" },
     { key: "cvr", label: "CVR" },
+    { key: "customer_number", label: "Kundenummer" },
+    { key: "ean_number", label: "EAN-nummer" },
+    { key: "customer_group", label: "Kundegruppe" },
     { key: "address", label: "Adresse" },
     { key: "zip_code", label: "Postnummer" },
     { key: "city", label: "By" },
     { key: "service_name", label: "Produkt/service" },
+    { key: "product_number", label: "Varenummer" },
     { key: "quantity", label: "Antal" },
     { key: "unit", label: "Enhed (stk, time, m²)" },
     { key: "interval", label: "Interval (engangskøb, ugentligt, mdr.)" },
     { key: "unit_price", label: "Stykpris" },
     { key: "total_amount", label: "Beløb i alt" },
+    { key: "currency", label: "Valuta (DKK, EUR…)" },
+    { key: "default_vat_rate", label: "Momssats %" },
     { key: "preferred_date", label: "Aftaledato" },
     { key: "status", label: "Status" },
     { key: "payment_terms_days", label: "Betalingsfrist (dage)" },
@@ -155,22 +165,23 @@ const detectCustomerType = (row: Row, mapping: Mapping, fallback: "private" | "b
 // ---------- Mapping field-grupper (smartere layout) ----------
 const FIELD_GROUPS: Record<EntityType, { title: string; keys: string[] }[]> = {
   customers: [
-    { title: "Identitet", keys: ["type", "name", "company_name", "cvr", "contact_name", "customer_number", "ean_number"] },
+    { title: "Identitet", keys: ["type", "name", "company_name", "cvr", "contact_name", "customer_number", "ean_number", "customer_group"] },
     { title: "Kontakt", keys: ["email", "phone"] },
     { title: "Adresse", keys: ["address", "zip_code", "city"] },
-    { title: "Andet", keys: ["payment_terms_days", "notes"] },
+    { title: "Fakturering", keys: ["currency", "vat_zone", "payment_terms_days"] },
+    { title: "Andet", keys: ["notes"] },
   ],
   services: [
     { title: "Produkt", keys: ["name", "description", "product_number"] },
-    { title: "Pris & enhed", keys: ["base_price", "unit", "interval", "default_vat_rate"] },
+    { title: "Pris & enhed", keys: ["base_price", "currency", "unit", "interval", "default_vat_rate"] },
     { title: "Kategorisering", keys: ["service_category", "subcategory"] },
     { title: "Bogføring", keys: ["accounting_account_number"] },
   ],
   orders: [
     { title: "Ordre", keys: ["external_order_number", "preferred_date", "status", "payment_terms_days", "notes"] },
-    { title: "Kunde", keys: ["customer_email", "customer_name", "customer_phone", "company_name", "cvr"] },
+    { title: "Kunde", keys: ["customer_email", "customer_name", "customer_phone", "company_name", "cvr", "customer_number", "ean_number", "customer_group"] },
     { title: "Adresse", keys: ["address", "zip_code", "city"] },
-    { title: "Linje", keys: ["service_name", "quantity", "unit", "interval", "unit_price", "total_amount"] },
+    { title: "Linje", keys: ["service_name", "product_number", "quantity", "unit", "interval", "unit_price", "total_amount", "currency", "default_vat_rate"] },
   ],
 };
 
@@ -590,6 +601,9 @@ const ImportPanel = ({
           city: get(row, mapping, "city"),
           customer_number: get(row, mapping, "customer_number"),
           ean_number: get(row, mapping, "ean_number"),
+          customer_group: get(row, mapping, "customer_group"),
+          currency: get(row, mapping, "currency")?.toUpperCase(),
+          vat_zone: get(row, mapping, "vat_zone"),
           payment_terms_days: parseDays(get(row, mapping, "payment_terms_days")),
           notes: get(row, mapping, "notes"),
           errors, isDuplicate, duplicateReason,
@@ -633,6 +647,7 @@ const ImportPanel = ({
           name: name || "",
           description: get(row, mapping, "description"),
           base_price: basePrice,
+          currency: get(row, mapping, "currency")?.toUpperCase(),
           unit,
           interval,
           raw_unit: rawUnit,
@@ -694,10 +709,14 @@ const ImportPanel = ({
         customer_phone: cleanPhone(get(row, mapping, "customer_phone")),
         company_name: get(row, mapping, "company_name"),
         cvr: get(row, mapping, "cvr")?.replace(/\D/g, "") || undefined,
+        customer_number: get(row, mapping, "customer_number"),
+        ean_number: get(row, mapping, "ean_number"),
+        customer_group: get(row, mapping, "customer_group"),
         address: get(row, mapping, "address"),
         zip_code: get(row, mapping, "zip_code"),
         city: get(row, mapping, "city"),
         service_name: get(row, mapping, "service_name") || "Importeret ordrelinje",
+        product_number: get(row, mapping, "product_number"),
         quantity: qty,
         unit: unitO,
         interval: intervalO,
@@ -705,6 +724,8 @@ const ImportPanel = ({
         raw_interval: rawIntervalO,
         unit_price: unit_price ?? total_amount / Math.max(qty, 1),
         total_amount,
+        currency: get(row, mapping, "currency")?.toUpperCase(),
+        default_vat_rate: parseNum(get(row, mapping, "default_vat_rate")),
         preferred_date: parseDate(get(row, mapping, "preferred_date")),
         status: (get(row, mapping, "status") || "completed").toLowerCase(),
         payment_terms_days: parseDays(get(row, mapping, "payment_terms_days")),
@@ -785,12 +806,18 @@ const ImportPanel = ({
           phone: r.phone || null, address: r.address || null, zip_code: r.zip_code || null, city: r.city || null,
           notes: mergeNotes(r.notes, buildExtraNotes(r.source)), customer_number: r.customer_number || null,
           ean_number: r.ean_number || null, payment_terms_days: r.payment_terms_days ?? null,
+          customer_group: r.customer_group || null,
+          currency: r.currency || null,
+          vat_zone: r.vat_zone || null,
         }));
         const priv = (valid as any[]).filter((r) => r.type === "private").map((r) => ({
           business_id: businessId, name: r.name || r.company_name || "Ukendt", email: r.email,
           phone: r.phone || null, address: r.address || null, zip_code: r.zip_code || null, city: r.city || null,
           notes: mergeNotes(r.notes, buildExtraNotes(r.source)), customer_number: r.customer_number || null,
           ean_number: r.ean_number || null, payment_terms_days: r.payment_terms_days ?? null,
+          customer_group: r.customer_group || null,
+          currency: r.currency || null,
+          vat_zone: r.vat_zone || null,
         }));
         for (const part of chunk(biz, 100)) {
           const { data, error } = await supabase.from("business_customers").upsert(part as any, { onConflict: "business_id,email", ignoreDuplicates: true }).select("id");
@@ -906,6 +933,28 @@ const ImportPanel = ({
             details: { unit: r.unit || null, interval: r.interval || null },
           } as any);
           if (itemErr) throw itemErr;
+          // Berig kunden (oprettet/matchet via trigger eller match) med ekstra
+          // felter fra ordre-rækken — kundenummer, kundegruppe, EAN, valuta osv.
+          // Vi opdaterer både private_customers og business_customers; kun den
+          // matchende e-mail/CVR opdateres faktisk.
+          const enrich: Record<string, any> = {};
+          if (r.customer_number) enrich.customer_number = r.customer_number;
+          if (r.ean_number) enrich.ean_number = r.ean_number;
+          if (r.customer_group) enrich.customer_group = r.customer_group;
+          if (r.currency) enrich.currency = r.currency;
+          if (r.payment_terms_days != null) enrich.payment_terms_days = r.payment_terms_days;
+          if (r.phone) enrich.phone = r.phone;
+          if (r.address) enrich.address = r.address;
+          if (r.zip_code) enrich.zip_code = r.zip_code;
+          if (r.city) enrich.city = r.city;
+          if (Object.keys(enrich).length > 0 && r.customer_email) {
+            const isBiz = !!(r.cvr || r.company_name);
+            const table = isBiz ? "business_customers" : "private_customers";
+            await supabase.from(table as any)
+              .update(enrich)
+              .eq("business_id", businessId)
+              .ilike("email", r.customer_email);
+          }
           created += 1;
         }
       }
