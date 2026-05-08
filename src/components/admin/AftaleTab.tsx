@@ -1131,6 +1131,31 @@ const AftaleTab = ({
     }
   };
 
+  // Slet en annulleret aftale permanent. Tilkalder en SECURITY DEFINER funktion
+  // der både validerer ejerskab + status og rydder relaterede rækker
+  // (rute-stops, abonnementer, faktura-links, notifikationer m.fl.).
+  const handleDeleteOrder = async (order: any) => {
+    if (order.status !== "cancelled") {
+      toast.error("Kun annullerede aftaler kan slettes");
+      return;
+    }
+    if (!confirm("Slet denne annullerede aftale permanent? Dette kan ikke fortrydes.")) return;
+    try {
+      const { error } = await supabase.rpc("delete_cancelled_order" as any, { _order_id: order.id });
+      if (error) throw error;
+      toast.success("Aftale slettet");
+      setExpandedOrder(null);
+      qc.invalidateQueries({ queryKey: ["orders"] });
+      qc.invalidateQueries({ queryKey: ["my-orders"] });
+      qc.invalidateQueries({ queryKey: ["business-subscriptions"] });
+      qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
+      qc.invalidateQueries({ queryKey: ["routes-for-range"] });
+      qc.invalidateQueries({ queryKey: ["stops-for-routes"] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Kunne ikke slette aftalen");
+    }
+  };
+
   const handleResponse = async (orderId: string) => {
     try {
       const adjustedData = responseType === "adjusted" ? adjustedItems[orderId] : null;
