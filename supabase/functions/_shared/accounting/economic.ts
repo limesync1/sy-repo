@@ -44,6 +44,9 @@ function pickDraftInvoicePayload(template: any): Record<string, unknown> {
 }
 
 function pickEconomicRef(value: any, numberKey: string): Record<string, unknown> | undefined {
+  if (numberKey === "productNumber" && value?.productNumber != null) {
+    return { productNumber: String(value.productNumber) };
+  }
   const num = Number(value?.[numberKey]);
   if (Number.isFinite(num) && num > 0) return { [numberKey]: num };
   if (value?.self) return { self: value.self };
