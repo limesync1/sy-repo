@@ -453,8 +453,10 @@ const OrderCard = ({ order, onRespond }: {
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium ${statusCfg.color}`}>
-                {statusCfg.label}
+              <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium ${
+                hasProposal ? "bg-amber-50 text-amber-800 border-amber-200" : statusCfg.color
+              }`}>
+                {hasProposal ? "Afventer dit svar" : statusCfg.label}
               </span>
               <div className="text-right">
                 <span className="text-sm font-bold text-foreground">
