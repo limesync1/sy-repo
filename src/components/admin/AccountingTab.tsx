@@ -2643,13 +2643,13 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       {/* TRIN 2 */}
       {step === 2 && (
         <div className={
-          provider === "billy" || provider === "economic" || provider === "dinero" || provider === "zenegy"
+          provider === "billy" || provider === "economic" || provider === "dinero"
             ? "grid gap-4 lg:grid-cols-[1fr,1.2fr] xl:grid-cols-[1fr,1.1fr]"
             : "mx-auto max-w-2xl"
         }>
           {/* Venstre kolonne: hjælp & forklaring (kun på desktop, ellers
               ovenfor connect-kortet på mobil) */}
-          {(provider === "billy" || provider === "economic" || provider === "dinero" || provider === "zenegy") && (
+          {(provider === "billy" || provider === "economic" || provider === "dinero") && (
             <SectionCard
               title="Sådan fungerer det"
               icon={<img src={currentProvider.logo} alt="" className="h-4 w-auto" />}
@@ -2670,13 +2670,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                       "Klik 'Se og opret API-nøgler' og opret en ny forbindelse (kald den fx 'Serviceydere').",
                       "Kopiér Bruger-ID og den hemmelige kode — den vises kun én gang!",
                       "Indsæt dem her sammen med dit Dinero-nummer, og tryk 'Forbind Dinero'.",
-                    ]
-                  : provider === "zenegy"
-                  ? [
-                      "Vi åbner Zenegy i et nyt vindue, så du kan logge ind med din egen bruger.",
-                      "Vælg den virksomhed, du vil forbinde med Serviceydere.",
-                      "Tryk 'Tildel adgang' i Zenegy.",
-                      "Du sendes automatisk tilbage hertil, og vi gør resten.",
                     ]
                   : [
                       "Vi åbner e-conomic i et nyt vindue.",
@@ -2706,7 +2699,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             </SectionCard>
           )}
 
-          {provider === "billy" || provider === "economic" || provider === "dinero" || provider === "zenegy" ? (
+          {provider === "billy" || provider === "economic" || provider === "dinero" ? (
             <div>
               {provider === "billy" ? (
                 <BillyConnectCard
@@ -2726,7 +2719,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   waiting={economicWaiting}
                   connectResult={testResult}
                 />
-              ) : provider === "dinero" ? (
+              ) : (
                 <DineroConnectCard
                   apiToken={creds.api_token ?? ""}
                   apiSecret={creds.api_secret ?? ""}
@@ -2740,14 +2733,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   onConnect={handleDineroAutoConnect}
                   status={dineroStatus}
                   errorMessage={dineroError}
-                />
-              ) : (
-                <ZenegyConnectCard
-                  onConnect={handleZenegyOAuthConnect}
-                  connecting={zenegyOAuthConnecting}
-                  waiting={zenegyWaiting}
-                  oauthEnabled={zenegyOAuthEnabled}
-                  connectResult={zenegyResult}
                 />
               )}
             </div>
@@ -2885,7 +2870,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         </Button>
 
        {step < 3 ? (
-         provider === "billy" || provider === "economic" || provider === "dinero" || provider === "zenegy" ? null :
+         provider === "billy" || provider === "economic" || provider === "dinero" ? null :
           <PrimaryButton
             onClick={() => setStep((step + 1) as 1 | 2 | 3)}
             disabled={step === 2 && !testResult?.ok}
