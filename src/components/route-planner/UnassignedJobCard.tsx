@@ -104,6 +104,10 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
   const items = useAdjusted
     ? ((job.adjusted_details as any).items as OrderItem[])
     : (job.order_items || []);
+  const hasRecurringInterval = items.some((it: any) => {
+    const interval = it.details?.interval;
+    return interval && interval !== "engangskøb";
+  });
   const itemCount = items.length;
   // Vis hele adressen: gade, postnummer og by samlet
   const cityLine = [job.zip_code, job.city].filter(Boolean).join(" ");
@@ -122,9 +126,14 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
 
   // Foretrukken dato — recurring abonnementer bruger next_service_date som "skal udføres senest".
   // For engangs aftaler bruges kundens preferred_date.
-  const scheduleDate = job.next_service_date || job.preferred_date || null;
+  const scheduleDate = hasRecurringInterval
+    ? job.next_service_date || job.preferred_date || null
+    : job.preferred_date || job.next_service_date || null;
   const schedule = getSchedule(scheduleDate);
   const hasGps = job.latitude != null && job.longitude != null;
+  const displayAmount = job.customer_response === "accepted"
+    ? job.adjusted_amount ?? job.total_amount
+    : job.total_amount;
 
   return (
     <div
@@ -158,7 +167,7 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
               <p className="text-sm font-semibold truncate">{job.customer_name}</p>
             </div>
             <span className="text-xs font-bold text-primary shrink-0 tabular-nums">
-              {Math.round(Number(job.total_amount || 0))} kr
+              {Math.round(Number(displayAmount || 0))} kr
             </span>
           </div>
 
