@@ -550,7 +550,7 @@ export function CustomerNotificationsSettings({
                       <MessageSquare className="h-2.5 w-2.5" /> SMS {sOn ? "til" : "fra"}
                     </span>
                     {e.key === "service_upcoming" && (
-                      <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground" title="Hvornår beskederne sendes før besøget">
+                      <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground" title="Hvornår påmindelsen sendes før besøget">
                         <AlarmClock className="h-2.5 w-2.5" />
                         {formatSchedule(drafts[e.key].days, drafts[e.key].time)}
                       </span>
@@ -565,7 +565,7 @@ export function CustomerNotificationsSettings({
           <div className="mt-4 rounded-xl border border-dashed border-border bg-muted/30 p-3">
             <p className="text-[11px] font-semibold text-foreground">💡 Sådan virker det</p>
             <p className="mt-1 text-[11px] leading-[1.55] text-muted-foreground">
-              Når en aftale planlægges eller markeres som færdig, sender vi automatisk de beskeder I har slået til.
+              Når en aftale planlægges eller markeres som færdig, sender vi automatisk de e-mails og SMS'er I har slået til.
               Tekst i klammer som <code className="rounded bg-background px-1 text-[10px]">{`{{kundens navn}}`}</code> bliver erstattet med rigtige oplysninger.
             </p>
           </div>
@@ -589,7 +589,7 @@ export function CustomerNotificationsSettings({
           {activeEvent === "service_upcoming" && (
             <div className="border-b border-border bg-muted/10 p-4 sm:p-5">
               <SchedulePicker
-                label="Hvornår skal beskeden sendes?"
+                label="Hvornår skal påmindelsen sendes?"
                 days={drafts[activeEvent].days}
                 time={drafts[activeEvent].time}
                 onChange={(s) => {
@@ -659,7 +659,7 @@ export function CustomerNotificationsSettings({
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Selve beskeden</Label>
+                  <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Indhold</Label>
                   <Textarea
                     ref={bodyCursor.ref}
                     rows={10}
@@ -702,7 +702,7 @@ export function CustomerNotificationsSettings({
               <div className="space-y-4 p-4 sm:p-5">
                 <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3 hover:bg-muted/50 transition-colors">
                   <div>
-                    <p className="text-xs font-semibold text-foreground">Send SMS for netop denne besked</p>
+                    <p className="text-xs font-semibold text-foreground">Send også SMS for denne påmindelse</p>
                     <p className="text-[11px] text-muted-foreground">Slå til, hvis kunden også skal have en kort SMS — ud over e-mailen.</p>
                   </div>
                   <Switch
