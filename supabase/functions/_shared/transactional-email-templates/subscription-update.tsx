@@ -52,7 +52,7 @@ const EVENT_NEXT: Record<SubscriptionEvent, string[]> = {
  paused: ['Aftalen er midlertidigt stoppet, og der planlægges ingen nye serviceringer.', 'Du kan genoptage aftalen når som helst fra dit kundepanel.'],
  resumed: ['Næste service er planlagt og udføres på den nye aktive aftale.', 'Du kan stadig pause eller opsige aftalen igen senere.'],
  cancelled: ['Aftalen er afsluttet, og der kommer ikke flere serviceringer eller opkrævninger.', 'Hvis du vil i gang igen, kan du altid bestille en ny service.'],
- rescheduled: ['Sørg for adgang til adressen på den nye dato.', 'Kontakt leverandøren direkte, hvis det nye tidspunkt ikke passer.'],
+ rescheduled: ['Sørg for adgang til adressen på den nye dato.', 'Kontakt virksomheden direkte, hvis det nye tidspunkt ikke passer.'],
 }
 const fmt = (n: number) => new Intl.NumberFormat('da-DK', { style: 'currency', currency: 'DKK', maximumFractionDigits: 0 }).format(n)
 const fmtDate = (s?: string) => { if (!s) return null; try { return new Date(s).toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) } catch { return s } }
@@ -60,7 +60,7 @@ const fmtDate = (s?: string) => { if (!s) return null; try { return new Date(s).
 const SubscriptionUpdateEmail = ({ customerName, businessName, businessPhone, businessEmail, serviceName = 'din service', intervalLabel, totalPrice, event = 'paused', nextServiceDate, previousServiceDate, pausedAt, cancelledAt, reason, completedCycles }: SubscriptionUpdateProps) => {
  const colors = EVENT_COLOR[event] ?? EVENT_COLOR.paused
  const headline = EVENT_HEADLINE[event] ?? EVENT_HEADLINE.paused
- const businessLabel = businessName || 'leverandøren'
+ const businessLabel = businessName || 'virksomheden'
  const intro = (EVENT_INTRO[event] ?? EVENT_INTRO.paused)(serviceName, businessLabel)
  const nextSteps = EVENT_NEXT[event] ?? []
  const nextDate = fmtDate(nextServiceDate)
@@ -87,7 +87,7 @@ const SubscriptionUpdateEmail = ({ customerName, businessName, businessPhone, bu
 
  <Section style={card}>
  <Text style={cardLabel}>Service</Text><Text style={cardValue}>{serviceName}</Text>
- {businessName && <><Text style={cardLabel}>Leverandør</Text><Text style={cardValue}>{businessName}</Text></>}
+ {businessName && <><Text style={cardLabel}>Virksomhed</Text><Text style={cardValue}>{businessName}</Text></>}
  {intervalLabel && <><Text style={cardLabel}>Interval</Text><Text style={cardValue}>{intervalLabel}</Text></>}
  {typeof totalPrice === 'number' && <><Text style={cardLabel}>Pris pr. gang</Text><Text style={cardValue}>{fmt(totalPrice)}</Text></>}
  {typeof completedCycles === 'number' && completedCycles > 0 && <><Text style={cardLabel}>Udført i alt</Text><Text style={cardValue}>{completedCycles} {completedCycles === 1 ? 'gang' : 'gange'}</Text></>}

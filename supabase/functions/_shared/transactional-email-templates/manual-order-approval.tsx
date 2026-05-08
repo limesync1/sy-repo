@@ -64,7 +64,7 @@ const ManualOrderApprovalEmail = ({
  totalAmount = 0,
 }: ManualOrderApprovalProps) => {
  const shortId = orderId ? `#${orderId.slice(0, 8).toUpperCase()}` : null
- const businessLabel = businessName || 'En leverandør'
+ const businessLabel = businessName || 'En virksomhed'
 
  return (
  <Html lang="da" dir="ltr">

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader, SectionCard, EmptyState } from "@/components/admin/shared/AdminUI";
+import { PageSkeleton } from "@/components/admin/shared/Skeletons";
 
 type EntityType = "customers" | "services" | "orders";
 type Row = Record<string, string>;
@@ -824,9 +825,31 @@ const ImportPanel = ({
       } else {
         // orders — opret order + 1 line per række. Hvis en ordre refererer til en
         // service der ikke findes endnu, opretter vi den automatisk så ordren
-        // ikke står med en tom linje.
+        // ikke står med en tom linje. Inden vi opretter dem, lader vi AI'en
+        // klassificere de nye service-navne på baggrund af eksisterende
+        // kategorier — så de lander det rigtige sted i kataloget.
         const serviceCache = new Map<string, string>(); // navn (lowercase) → id
         existingServices.forEach((s) => { if (s.name) serviceCache.set(s.name.toLowerCase(), s.id); });
+        // Find unikke service-navne der mangler at blive oprettet
+        const missingNames = Array.from(new Set(
+          (valid as any[])
+            .filter((r) => !r.matched_service_id && r.service_name)
+            .map((r) => String(r.service_name).trim())
+            .filter((n) => n && !serviceCache.has(n.toLowerCase()))
+        ));
+        const aiCategoryByName = new Map<string, { service_category?: string; subcategory?: string }>();
+        if (missingNames.length > 0) {
+          try {
+            const items = missingNames.map((n) => ({ name: n, description: "", raw_category: "", raw_subcategory: "", product_number: "", unit: "" }));
+            const { data: aiData } = await supabase.functions.invoke("import-customers-ai", {
+              body: { mode: "classify_services", items, existing: existingCategories },
+            });
+            const arr: any[] = aiData?.classifications || [];
+            arr.forEach((c, i) => {
+              if (c) aiCategoryByName.set(missingNames[i].toLowerCase(), { service_category: c.service_category, subcategory: c.subcategory });
+            });
+          } catch { /* stille fejl — opretter uden kategori */ }
+        }
         for (const r of valid as any[]) {
           // Find / opret service hvis nødvendigt
           let serviceId: string | null = r.matched_service_id || null;
@@ -834,6 +857,7 @@ const ImportPanel = ({
             const key = String(r.service_name).toLowerCase().trim();
             if (serviceCache.has(key)) serviceId = serviceCache.get(key)!;
             else {
+              const cat = aiCategoryByName.get(key);
               const { data: newSvc, error: svcErr } = await supabase
                 .from("services")
                 .insert({
@@ -845,6 +869,8 @@ const ImportPanel = ({
                   pricing_type: "fast_pris" as const,
                   default_vat_rate: 25,
                   is_active: true,
+                  service_category: cat?.service_category || null,
+                  subcategory: cat?.subcategory || null,
                 } as any)
                 .select("id")
                 .single();
@@ -916,11 +942,11 @@ const ImportPanel = ({
           onDragLeave={() => setDragActive(false)}
           onDrop={onDrop}
           onClick={() => inputRef.current?.click()}
-          className={`group relative flex flex-col items-center justify-center gap-5 overflow-hidden rounded-3xl border-2 border-dashed px-6 py-16 text-center cursor-pointer transition-all sm:py-20 ${dragActive ? "border-accent bg-accent/5 scale-[1.01]" : "border-border bg-secondary/20 hover:border-foreground/40 hover:bg-secondary/40"}`}
+          className={`group relative flex flex-col items-center justify-center gap-5 overflow-hidden rounded-3xl border-2 border-dashed px-6 py-16 text-center cursor-pointer sm:py-20 ${dragActive ? "border-accent bg-accent/5" : "border-border bg-secondary/20"}`}
         >
           <input ref={inputRef} type="file" accept=".csv,text/csv" className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
-          <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-foreground text-background shadow-sm transition-transform group-hover:scale-105">
+          <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-foreground text-background shadow-sm">
             <UploadCloud className="h-7 w-7" />
           </div>
           <div className="max-w-md space-y-2">
@@ -975,8 +1001,8 @@ const ImportPanel = ({
                 {detection.is_mixed && detection.recommendations.map((r) => r !== entity && (
                   <button key={r}
                     onClick={() => window.dispatchEvent(new CustomEvent("dataimport:switch-entity", { detail: r }))}
-                    className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-0.5 text-[10.5px] font-medium text-foreground hover:bg-secondary/60">
-                    <ArrowRight className="h-2.5 w-2.5" /> Importér også som {r === "customers" ? "kunder" : r === "services" ? "produkter" : "aftaler"}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-accent bg-accent text-accent-foreground px-3 py-1 text-xs font-semibold shadow-sm hover:brightness-95 transition">
+                    <ArrowRight className="h-3 w-3" /> Importér også som {r === "customers" ? "kunder" : r === "services" ? "produkter" : "aftaler"}
                   </button>
                 ))}
                 {!detection.is_mixed && detection.primary !== entity && (
@@ -1473,10 +1499,12 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
   const [existingCategories, setExistingCategories] = useState<{ category: string; subcategories: string[] }[]>([]);
   const [existingCustomers, setExistingCustomers] = useState<{ id: string; name: string; email: string; cvr?: string | null; phone?: string | null; zip_code?: string | null }[]>([]);
   const [existingServices, setExistingServices] = useState<{ id: string; name: string; product_number?: string | null; unit?: string | null; base_price?: number | null }[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      setLoading(true);
       const [biz, priv, svc, ord] = await Promise.all([
         supabase.from("business_customers").select("id,company_name,contact_name,email,cvr,phone,zip_code,customer_number,ean_number").eq("business_id", businessId),
         supabase.from("private_customers").select("id,name,email,phone,zip_code,customer_number").eq("business_id", businessId),
@@ -1542,14 +1570,19 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
       });
       setExistingExternalOrderNumbers(ords);
       setExistingByOrderNumber(byOrd);
+      setLoading(false);
     })();
     return () => { cancelled = true; };
   }, [businessId]);
 
   const tabs: EntityType[] = ["customers", "services", "orders"];
 
+  if (loading) {
+    return <PageSkeleton withStats={false} rows={4} />;
+  }
+
   return (
-    <div className="space-y-5 animate-fade-in">
+    <div className="space-y-5">
       <PageHeader
         title="Dataimport"
         description="Træk CSV-filer ind, og lad AI matche kolonnerne automatisk. Du godkender altid før noget oprettes."

@@ -277,7 +277,7 @@ const OrderStatusUpdateEmail = ({
  )}
  {businessName && (
  <>
- <Text style={cardLabel}>Leverandør</Text>
+ <Text style={cardLabel}>Virksomhed</Text>
  <Text style={cardValue}>{businessName}</Text>
  </>
  )}

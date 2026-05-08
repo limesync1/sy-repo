@@ -67,7 +67,7 @@ const OrderConfirmationEmail = ({
  hasRecurring = false,
 }: OrderConfirmationProps) => {
  const shortId = orderId ? `#${orderId.slice(0, 8).toUpperCase()}` : null
- const businessLabel = businessName || 'leverandøren'
+ const businessLabel = businessName || 'virksomheden'
 
  return (
  <Html lang="da" dir="ltr">
@@ -165,7 +165,7 @@ const OrderConfirmationEmail = ({
  {/* Business contact */}
  {(businessName || businessPhone || businessEmail || businessAddress) && (
  <>
- <Text style={h2}>Leverandøren</Text>
+ <Text style={h2}>Virksomheden</Text>
  <Section style={card}>
  {businessName && (
  <Text style={{ ...cardRowText, fontWeight: 600, color: '#0d1729', fontSize: '15px' }}>
