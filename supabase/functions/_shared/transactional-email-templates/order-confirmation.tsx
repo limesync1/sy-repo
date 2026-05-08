@@ -197,10 +197,6 @@ const OrderConfirmationEmail = ({
  <span style={stepNumber}>2</span>
  Du får en e-mail, så snart der er nyt. Du kan også følge ordren i dit kundepanel.
  </li>
- <li style={stepItem}>
- <span style={stepNumber}>3</span>
- Når ordren er bekræftet, aftaler I tid og {businessLabel} udfører servicen.
- </li>
  </ol>
 
  {hasRecurring && (

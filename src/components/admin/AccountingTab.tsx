@@ -73,7 +73,7 @@ const PROVIDERS: ProviderDef[] = [
     label: "e-conomic",
     logo: economicLogo,
     tagline: "",
-    description: "Send dine kunder direkte til e-conomic. Ændringer holdes automatisk opdateret begge veje.",
+    description: "Klik her for at integrere din virksomhed med e-conomic som dit regnskabsprogram.",
     helpUrl: "https://www.e-conomic.com/developer",
     helpUrlLabel: "Åbn e-conomic udviklerside",
     fields: [
@@ -101,7 +101,7 @@ const PROVIDERS: ProviderDef[] = [
     label: "Billy",
     logo: billyLogo,
     tagline: "",
-    description: "Forbind med en lille adgangsnøgle fra Billy. Vi gemmer aldrig din adgangskode.",
+    description: "Klik her for at integrere din virksomhed med Billy som dit regnskabsprogram.",
     helpUrl: "https://mit.billy.dk/",
     helpUrlLabel: "Åbn Billy",
     fields: [
@@ -124,7 +124,7 @@ const PROVIDERS: ProviderDef[] = [
     label: "Dinero",
     logo: dineroLogo,
     tagline: "",
-    description: "Hold dine kunder automatisk opdateret med Dinero.",
+    description: "Klik her for at integrere din virksomhed med Dinero som dit regnskabsprogram.",
     helpUrl: "https://developer.dinero.dk/",
     helpUrlLabel: "Åbn Dineros udviklerside",
     fields: [
@@ -1825,7 +1825,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">
                     {isHealthy
-                      ? `Alt kører automatisk. Næste opdatering kl. ${nextRunTxt} (${formatCountdown(nextRun)}).`
+                      ? "Alt kører automatisk i baggrunden."
                       : "Se herunder — det er som regel en lille rettelse, så er det løst."}
                   </p>
                   <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">

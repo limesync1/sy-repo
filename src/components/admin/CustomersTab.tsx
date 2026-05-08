@@ -98,6 +98,8 @@ type SubRow = {
   total_price: number;
   preferred_route_id?: string | null;
   order_id?: string | null;
+  customer_id?: string | null;
+  created_at?: string | null;
 };
 
 type RouteStopRow = {
@@ -361,15 +363,19 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
         if (!o) return true;
         return o.status !== "cancelled";
       });
-      // Dedupe — behold nyeste pr. (order_id, service_id-eller-name)
+      // Dedupe — én pr. (kunde, service). Det forhindrer at den samme aftale
+      // dukker op flere gange selvom der findes legacy-rækker pr. ordre.
+      // Vi beholder den nyeste/active-versionen.
+      const rank = (st: string) => st === "active" ? 4 : st === "paused" ? 3 : st === "pending" ? 2 : st === "cancelled" ? 1 : 0;
       const seen = new Map<string, SubRow>();
-      for (const s of livingSubs) {
-        const key = `${s.order_id || "none"}::${(s as any).service_id || s.service_name}`;
-        const existing = seen.get(key);
-        if (!existing) { seen.set(key, s); continue; }
-        // foretræk active > paused > cancelled, dernæst nyeste
-        const rank = (st: string) => st === "active" ? 3 : st === "paused" ? 2 : st === "pending" ? 1 : 0;
-        if (rank(s.status) > rank(existing.status)) seen.set(key, s);
+      const sorted = [...livingSubs].sort((a, b) => {
+        const r = rank(b.status) - rank(a.status);
+        if (r !== 0) return r;
+        return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+      });
+      for (const s of sorted) {
+        const key = `${s.customer_id || "anon"}::${(s as any).service_id || s.service_name}`;
+        if (!seen.has(key)) seen.set(key, s);
       }
       const filteredSubs = Array.from(seen.values());
 
@@ -1089,17 +1095,6 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
             <SheetHeader className="border-b border-border p-5">
               <SheetTitle className="text-left">
                 <div className="flex items-start gap-3">
-                  {customer.avatar_url ? (
-                    <img
-                      src={customer.avatar_url}
-                      alt=""
-                      className="h-12 w-12 rounded-lg object-cover border border-border shrink-0"
-                     loading="lazy" decoding="async"/>
-                  ) : (
-                    <div className="h-12 w-12 rounded-lg bg-secondary flex items-center justify-center text-base font-semibold text-foreground shrink-0">
-                      {customer.type === "business" ? <Building2 className="h-5 w-5" /> : (customer.name?.charAt(0)?.toUpperCase() || "?")}
-                    </div>
-                  )}
                   <div className="min-w-0 flex-1">
                     <h3 className="text-lg font-bold text-foreground truncate">{customer.name}</h3>
                     <p className="text-xs text-muted-foreground font-normal">

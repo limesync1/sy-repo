@@ -73,7 +73,7 @@ interface OrderStatusUpdateProps {
 
 const STATUS_LABEL: Record<EventType, string> = {
  pending: 'Ny bestilling',
- adjusted: 'Forslag fra leverandøren',
+ adjusted: 'Forslag fra serviceyderen',
  confirmed: 'Aftalt',
  in_progress: 'I gang',
  completed: 'Udført',
@@ -109,30 +109,30 @@ const STATUS_INTRO: Record<EventType, (biz: string) => string> = {
 
 const STATUS_NEXT: Record<EventType, string[]> = {
  pending: [
- 'Leverandøren bekræfter, foreslår en tilpasning, eller afviser ordren.',
+ 'Serviceyderen bekræfter, foreslår en tilpasning, eller afviser ordren.',
  'Du får en e-mail, så snart der er nyt typisk inden for 24 timer.',
  ],
  adjusted: [
  'Åbn ordren i dit kundepanel og gennemgå forslaget.',
  'Tryk Godkend, hvis du accepterer så bliver aftalen bekræftet.',
- 'Tryk Afvis, hvis du ikke ønsker tilpasningen leverandøren får besked og kan sende et nyt forslag.',
+ 'Tryk Afvis, hvis du ikke ønsker tilpasningen og aftalen bliver annulleret helt.',
  ],
  confirmed: [
  'Hav adressen klar og sørg for adgang på den aftalte dato.',
- 'Kontakt leverandøren direkte, hvis tidspunktet ikke længere passer.',
+ 'Kontakt serviceyderen direkte, hvis tidspunktet ikke længere passer.',
  'Du får en e-mail, når servicen går i gang og igen, når den er udført.',
  ],
  in_progress: [
- 'Leverandøren arbejder lige nu på din service.',
+ 'Serviceyderen arbejder lige nu på din service.',
  'Du modtager en bekræftelse, så snart arbejdet er udført.',
  ],
  completed: [
- 'Hvis du er tilfreds, vil leverandøren sætte stor pris på en anmeldelse.',
+ 'Hvis du er tilfreds, vil serviceyderen sætte stor pris på en anmeldelse.',
  'Har du en tilbagevendende aftale, planlægges næste service automatisk.',
  ],
  cancelled: [
- 'Du kan altid afgive en ny bestilling fra leverandørens side eller søge en ny.',
- 'Hvis du har spørgsmål til annulleringen, så kontakt leverandøren direkte.',
+ 'Du kan altid afgive en ny bestilling fra serviceyderens side eller søge en ny.',
+ 'Hvis du har spørgsmål til annulleringen, så kontakt serviceyderen direkte.',
  ],
 }
 
@@ -199,7 +199,7 @@ const OrderStatusUpdateEmail = ({
 }: OrderStatusUpdateProps) => {
  const colors = STATUS_COLOR[event] ?? STATUS_COLOR.confirmed
  const headline = STATUS_HEADLINE[event] ?? STATUS_HEADLINE.confirmed
- const businessLabel = businessName || 'Leverandøren'
+ const businessLabel = businessName || 'Serviceyderen'
  const intro = (STATUS_INTRO[event] ?? STATUS_INTRO.confirmed)(businessLabel)
  const nextSteps = STATUS_NEXT[event] ?? []
  const date = fmtDate(serviceDate)
@@ -224,7 +224,7 @@ const OrderStatusUpdateEmail = ({
  const ctaLabel =
  event === 'adjusted' ? 'Godkend eller afvis forslag'
  : event === 'completed' ? 'Skriv en anmeldelse'
- : event === 'cancelled' ? 'Find en ny leverandør'
+ : event === 'cancelled' ? 'Find en ny serviceyder'
  : 'Se ordren'
 
  const ctaHref =
@@ -291,7 +291,7 @@ const OrderStatusUpdateEmail = ({
  {visibleItems.length > 0 && (
  <>
  <Text style={{ ...cardLabel, marginTop: '8px' }}>
- {event === 'adjusted' ? 'Foreslåede services' : 'Bestilte services'}</Text>
+ {event === 'adjusted' ? 'Forslag fra virksomheden' : 'Bestilte services'}</Text>
  {renderItems(visibleItems)}
  </>
  )}
@@ -389,7 +389,7 @@ export const template = {
  const lbl = STATUS_LABEL[data.event as EventType] ?? 'Opdatering'
  const biz = data.businessName ? ` ${data.businessName}` : ''
  const id = data.orderId ? ` #${String(data.orderId).slice(0, 8).toUpperCase()}` : ''
- if (data.event === 'adjusted') return`Forslag fra ${data.businessName || 'leverandøren'}${id} godkend eller afvis`
+ if (data.event === 'adjusted') return`Forslag fra ${data.businessName || 'serviceyderen'}${id} godkend eller afvis`
  if (data.event === 'completed') return`Din service er udført${biz}`
  if (data.event === 'in_progress') return`Din service er i gang${biz}`
  if (data.event === 'confirmed') return`Din bestilling er aftalt${biz}`
