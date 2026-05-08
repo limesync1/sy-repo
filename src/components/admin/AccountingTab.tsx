@@ -31,7 +31,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import economicLogo from "@/assets/accounting/economic.png";
 import billyLogo from "@/assets/accounting/billy.png";
 import dineroLogo from "@/assets/accounting/dinero.png";
-import zenegyLogo from "@/assets/accounting/zenegy.svg";
 
 /**
  * AccountingTab — virksomhedens regnskabs-integration.
@@ -45,7 +44,7 @@ import zenegyLogo from "@/assets/accounting/zenegy.svg";
  *    og venlige fejlmeddelelser fra adapter-laget.
  */
 
-type Provider = "economic" | "billy" | "dinero" | "zenegy";
+type Provider = "economic" | "billy" | "dinero";
 
 interface ProviderField {
   key: string;
@@ -148,26 +147,6 @@ const PROVIDERS: ProviderDef[] = [
       tone: "warning",
       title: "Kræver Dinero Pro-abonnement",
       body: "Dinero tillader kun automatisk forbindelse for kunder på Pro-pakken. Har du Small eller Medium, skal du først opgradere via Dinero → Indstillinger → Abonnement — ellers afvises forbindelsen.",
-    },
-  },
-  {
-    value: "zenegy",
-    label: "Zenegy",
-    logo: zenegyLogo,
-    tagline: "",
-    description: "Forbind Zenegy med ét klik. Ingen koder at kopiere — du logger bare ind hos Zenegy.",
-    helpUrl: "https://zenegy.com/",
-    helpUrlLabel: "Læs mere om Zenegy",
-    fields: [],
-    setupSteps: [
-      "Tryk 'Forbind Zenegy' nedenfor — et nyt vindue åbner hos Zenegy.",
-      "Log ind på Zenegy og vælg den virksomhed, du vil forbinde med Serviceydere.",
-      "Tryk 'Tildel adgang' i Zenegy — så sendes du automatisk tilbage hertil, og forbindelsen er klar.",
-    ],
-    note: {
-      tone: "info",
-      title: "Sikker ét-klik forbindelse",
-      body: "Du logger ind direkte hos Zenegy, så vi aldrig ser dit kodeord. Du kan altid trække adgangen tilbage igen inde i Zenegy.",
     },
   },
 ];
@@ -622,82 +601,6 @@ const DineroConnectCard = React.forwardRef<HTMLDivElement, {
 });
 DineroConnectCard.displayName = "DineroConnectCard";
 
-/**
- * ZenegyConnectCard — ét-klik OAuth 2.0-flow.
- *
- * Spejler EconomicConnectCard. Knappen er disabled indtil
- * `accounting-zenegy-callback` returnerer enabled:true (dvs. når
- * server-secrets ZENEGY_CLIENT_ID/SECRET/REDIRECT_URL er sat).
- */
-const ZenegyConnectCard = React.forwardRef<HTMLDivElement, {
-  onConnect: () => void;
-  connecting: boolean;
-  waiting: boolean;
-  oauthEnabled: boolean;
-  connectResult: { ok: boolean; message?: string } | null;
-}>(({ onConnect, connecting, waiting, oauthEnabled, connectResult }, _ref) => {
-  return (
-    <ConnectCardShell logo={zenegyLogo} name="Zenegy" tagline="Ét-klik forbindelse — tager under 30 sekunder">
-      <div className="space-y-5">
-        <Button
-          onClick={onConnect}
-          disabled={connecting || !oauthEnabled || connectResult?.ok === true}
-          size="lg"
-          className="w-full"
-        >
-          {connectResult?.ok
-            ? <Check className="mr-2 h-5 w-5" />
-            : connecting
-              ? <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              : <ExternalLink className="mr-2 h-5 w-5" />}
-          {connectResult?.ok ? "Forbundet" : connecting ? "Forbinder…" : "Forbind Zenegy"}
-        </Button>
-
-        {!oauthEnabled && (
-          <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-900 dark:text-amber-200">
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-            <div className="min-w-0">
-              <div className="font-medium">Vi venter på godkendelse fra Zenegy</div>
-              <div className="opacity-90 text-xs mt-0.5">
-                Vi mangler de sidste detaljer fra Zenegy, før forbindelsen kan tages i brug. Knappen tænder af sig selv, så snart alt er på plads — du behøver ikke gøre noget.
-              </div>
-            </div>
-          </div>
-        )}
-
-        {waiting && oauthEnabled && !connectResult?.ok && (
-          <div className="flex items-start gap-2 rounded-lg border border-border bg-secondary/40 p-3 text-sm text-foreground">
-            <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
-            <div className="min-w-0">
-              <div className="font-medium">Venter på godkendelse i Zenegy…</div>
-              <div className="opacity-80 text-xs mt-0.5">Et nyt vindue er åbnet. Log ind, vælg din virksomhed og tryk "Tildel adgang".</div>
-            </div>
-          </div>
-        )}
-
-        {connectResult && (
-          <div className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${
-            connectResult.ok
-              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300"
-              : "border-destructive/30 bg-destructive/10 text-destructive"
-          }`}>
-            {connectResult.ok ? <Check className="mt-0.5 h-4 w-4 shrink-0" /> : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />}
-            <div className="min-w-0">
-              <div className="font-medium">{connectResult.ok ? "Zenegy er forbundet!" : "Forbindelsen kunne ikke gennemføres"}</div>
-              {connectResult.message && <div className="break-words opacity-90">{connectResult.message}</div>}
-            </div>
-          </div>
-        )}
-
-        <p className="text-center text-xs text-muted-foreground">
-          🔒 Du kan altid tilbagekalde adgangen i Zenegy under <strong>Indstillinger → Integrationer</strong>.
-        </p>
-      </div>
-    </ConnectCardShell>
-  );
-});
-ZenegyConnectCard.displayName = "ZenegyConnectCard";
-
 export default function AccountingTab({ businessId }: { businessId: string; businessName: string }) {
   const navigate = useNavigate();
   const [integration, setIntegration] = useState<Integration | null>(null);
@@ -756,11 +659,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   // Dinero OAuth (kun aktiv når Dinero har godkendt Serviceydere som partner-app)
   const [dineroOAuthEnabled, setDineroOAuthEnabled] = useState(false);
   const [dineroOAuthConnecting, setDineroOAuthConnecting] = useState(false);
-  // Zenegy OAuth state — spejler Dinero/e-conomic.
-  const [zenegyOAuthEnabled, setZenegyOAuthEnabled] = useState(false);
-  const [zenegyOAuthConnecting, setZenegyOAuthConnecting] = useState(false);
-  const [zenegyWaiting, setZenegyWaiting] = useState(false);
-  const [zenegyResult, setZenegyResult] = useState<{ ok: boolean; message?: string } | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [logs, setLogs] = useState<any[]>([]);
   const [queueCount, setQueueCount] = useState(0);
@@ -819,7 +717,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     setDryRunning(false);
     try { sessionStorage.removeItem("economic_pending_business_id"); } catch { /* ignore */ }
     try { sessionStorage.removeItem("dinero_pending_business_id"); } catch { /* ignore */ }
-    try { sessionStorage.removeItem("zenegy_pending_business_id"); } catch { /* ignore */ }
   };
 
   const chooseProvider = (nextProvider: Provider) => {
@@ -1308,201 +1205,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       setDineroOAuthConnecting(false);
     }
   };
-
-  /**
-   * Zenegy OAuth — spejler Dinero/e-conomic-flowet. Aktiveres automatisk når
-   * `accounting-zenegy-callback` returnerer enabled:true (dvs. når
-   * server-secrets ZENEGY_CLIENT_ID/SECRET/REDIRECT_URL er sat).
-   */
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const { data } = await supabase.functions.invoke(
-          "accounting-zenegy-callback",
-          { body: { action: "install_url", business_id: businessId } },
-        );
-        if (!cancelled && (data as any)?.enabled === true) {
-          setZenegyOAuthEnabled(true);
-        }
-      } catch { /* OAuth er bare ikke aktiveret endnu */ }
-    })();
-    return () => { cancelled = true; };
-  }, [businessId]);
-
-  const handleZenegyOAuthConnect = async () => {
-    const runId = ++setupRunRef.current;
-    setZenegyOAuthConnecting(true);
-    setZenegyResult(null);
-    setZenegyWaiting(false);
-    const popup = window.open("about:blank", "zenegy_connect");
-    if (popup) {
-      try {
-        popup.document.write(
-          `<!doctype html><html lang="da"><head><meta charset="utf-8"><title>Forbinder til Zenegy…</title>` +
-          `<style>body{font-family:-apple-system,system-ui,Segoe UI,Roboto,sans-serif;background:#0f172a;color:#e2e8f0;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}` +
-          `.box{text-align:center}.spinner{width:32px;height:32px;border:3px solid #334155;border-top-color:#22d3ee;border-radius:50%;animation:s 1s linear infinite;margin:0 auto 16px}` +
-          `@keyframes s{to{transform:rotate(360deg)}}</style></head>` +
-          `<body><div class="box"><div class="spinner"></div><div>Sender dig til Zenegy…</div></div></body></html>`
-        );
-      } catch { /* ignore */ }
-    }
-    try {
-      sessionStorage.setItem("zenegy_pending_business_id", businessId);
-      const { data, error } = await supabase.functions.invoke(
-        "accounting-zenegy-callback",
-        { body: { action: "install_url", business_id: businessId, prepare: true } },
-      );
-      if (runId !== setupRunRef.current) return;
-      if (error) throw error;
-      const url = (data as any)?.install_url;
-      if (!url) throw new Error("Zenegy OAuth er ikke aktiveret endnu — Serviceydere venter på godkendelse fra Zenegy.");
-      if (popup && !popup.closed) {
-        popup.location.href = url;
-      } else {
-        window.open(url, "_blank", "noopener,noreferrer");
-      }
-      setZenegyOAuthConnecting(false);
-      setZenegyWaiting(true);
-    } catch (e: any) {
-      if (runId !== setupRunRef.current) return;
-      if (popup && !popup.closed) popup.close();
-      sessionStorage.removeItem("zenegy_pending_business_id");
-      const msg = e?.message ?? "Kunne ikke åbne Zenegy";
-      setZenegyResult({ ok: false, message: msg });
-      toast.error(msg);
-      setZenegyOAuthConnecting(false);
-      setZenegyWaiting(false);
-    }
-  };
-
-  const applyZenegyOAuthResult = async (status: string, reason?: string | null) => {
-    sessionStorage.removeItem("zenegy_pending_business_id");
-    setZenegyOAuthConnecting(false);
-    setZenegyWaiting(false);
-    if (status === "connected") {
-      setProvider("zenegy");
-      setZenegyResult({ ok: true, message: "Zenegy er forbundet og klar." });
-      toast.success("Zenegy er nu forbundet!");
-      await load().then(() => setMode("overview"));
-    } else {
-      const msg = reason ? `Zenegy fejl: ${reason}` : "Zenegy-forbindelsen blev afbrudt.";
-      setZenegyResult({ ok: false, message: msg });
-      toast.error(msg);
-    }
-  };
-
-  const exchangeZenegyCode = async (code: string, state: string | null) => {
-    const pendingBiz = sessionStorage.getItem("zenegy_pending_business_id");
-    const targetBusinessId = pendingBiz || businessId;
-    sessionStorage.removeItem("zenegy_pending_business_id");
-    setProvider("zenegy");
-    setMode("wizard");
-    setStep(2);
-    setZenegyOAuthConnecting(true);
-    setZenegyWaiting(false);
-    try {
-      const { data, error } = await supabase.functions.invoke(
-        "accounting-zenegy-callback",
-        { body: { action: "exchange", business_id: targetBusinessId, code, state } },
-      );
-      if (error) throw error;
-      if ((data as any)?.error) throw new Error((data as any).error);
-      navigate("/virksomhed?tab=accounting", { replace: true });
-      await applyZenegyOAuthResult("connected");
-    } catch (e: any) {
-      const msg = e?.message ?? "Kunne ikke gemme Zenegy-forbindelsen";
-      setZenegyResult({ ok: false, message: msg });
-      toast.error(msg);
-      setZenegyOAuthConnecting(false);
-      setZenegyWaiting(false);
-    }
-  };
-
-  // Opfang ?zenegy=connected|error når brugeren returnerer fra edge function callback.
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
-    const state = params.get("state");
-    if (code) {
-      if (window.opener && !window.opener.closed && window.opener !== window) {
-        try {
-          window.opener.postMessage(
-            { type: "zenegy_oauth_code", code, state, businessId },
-            "*",
-          );
-          const cleanUrl = new URL(window.location.href);
-          cleanUrl.searchParams.delete("code");
-          cleanUrl.searchParams.delete("state");
-          cleanUrl.searchParams.delete("scope");
-          cleanUrl.searchParams.delete("session_state");
-          window.history.replaceState({}, "", cleanUrl.toString());
-          window.close();
-          return;
-        } catch (e) {
-          console.error("[zenegy] kunne ikke sende kode til opener:", e);
-        }
-      }
-      const cleanUrl = new URL(window.location.href);
-      cleanUrl.searchParams.delete("code");
-      cleanUrl.searchParams.delete("state");
-      cleanUrl.searchParams.delete("scope");
-      cleanUrl.searchParams.delete("session_state");
-      window.history.replaceState({}, "", cleanUrl.toString());
-      void exchangeZenegyCode(code, state);
-      return;
-    }
-
-    const status = params.get("zenegy");
-    if (!status) return;
-
-    const reason = params.get("reason");
-
-    if (window.opener && !window.opener.closed && window.opener !== window) {
-      try {
-        window.opener.postMessage(
-          { type: "zenegy_oauth_result", status, reason, businessId },
-          "*",
-        );
-        const cleanUrl = new URL(window.location.href);
-        cleanUrl.searchParams.delete("zenegy");
-        cleanUrl.searchParams.delete("reason");
-        window.history.replaceState({}, "", cleanUrl.toString());
-        window.close();
-        return;
-      } catch (e) {
-        console.error("[zenegy] kunne ikke sende status til opener:", e);
-      }
-    }
-
-    const cleanUrl = new URL(window.location.href);
-    cleanUrl.searchParams.delete("zenegy");
-    cleanUrl.searchParams.delete("reason");
-    window.history.replaceState({}, "", cleanUrl.toString());
-
-    void applyZenegyOAuthResult(status, reason);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [businessId]);
-
-  useEffect(() => {
-    const onMessage = (ev: MessageEvent) => {
-      const allowedOrigins = new Set([window.location.origin, "https://serviceydere.dk", "https://www.serviceydere.dk"]);
-      if (!allowedOrigins.has(ev.origin)) return;
-      const data = ev.data;
-      if (!data || (data.type !== "zenegy_oauth_result" && data.type !== "zenegy_oauth_code")) return;
-      if (data.businessId && data.businessId !== businessId) return;
-      if (data.type === "zenegy_oauth_code" && data.code) {
-        void exchangeZenegyCode(String(data.code), data.state ? String(data.state) : null);
-        return;
-      }
-      if (data.type === "zenegy_oauth_result" && data.status) {
-        void applyZenegyOAuthResult(String(data.status), data.reason ? String(data.reason) : null);
-      }
-    };
-    window.addEventListener("message", onMessage);
-    return () => window.removeEventListener("message", onMessage);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [businessId]);
 
   /**
    * E-conomic-flow:
@@ -2941,13 +2643,13 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       {/* TRIN 2 */}
       {step === 2 && (
         <div className={
-          provider === "billy" || provider === "economic" || provider === "dinero" || provider === "zenegy"
+          provider === "billy" || provider === "economic" || provider === "dinero"
             ? "grid gap-4 lg:grid-cols-[1fr,1.2fr] xl:grid-cols-[1fr,1.1fr]"
             : "mx-auto max-w-2xl"
         }>
           {/* Venstre kolonne: hjælp & forklaring (kun på desktop, ellers
               ovenfor connect-kortet på mobil) */}
-          {(provider === "billy" || provider === "economic" || provider === "dinero" || provider === "zenegy") && (
+          {(provider === "billy" || provider === "economic" || provider === "dinero") && (
             <SectionCard
               title="Sådan fungerer det"
               icon={<img src={currentProvider.logo} alt="" className="h-4 w-auto" />}
@@ -2968,13 +2670,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                       "Klik 'Se og opret API-nøgler' og opret en ny forbindelse (kald den fx 'Serviceydere').",
                       "Kopiér Bruger-ID og den hemmelige kode — den vises kun én gang!",
                       "Indsæt dem her sammen med dit Dinero-nummer, og tryk 'Forbind Dinero'.",
-                    ]
-                  : provider === "zenegy"
-                  ? [
-                      "Vi åbner Zenegy i et nyt vindue, så du kan logge ind med din egen bruger.",
-                      "Vælg den virksomhed, du vil forbinde med Serviceydere.",
-                      "Tryk 'Tildel adgang' i Zenegy.",
-                      "Du sendes automatisk tilbage hertil, og vi gør resten.",
                     ]
                   : [
                       "Vi åbner e-conomic i et nyt vindue.",
@@ -3004,7 +2699,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             </SectionCard>
           )}
 
-          {provider === "billy" || provider === "economic" || provider === "dinero" || provider === "zenegy" ? (
+          {provider === "billy" || provider === "economic" || provider === "dinero" ? (
             <div>
               {provider === "billy" ? (
                 <BillyConnectCard
@@ -3024,7 +2719,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   waiting={economicWaiting}
                   connectResult={testResult}
                 />
-              ) : provider === "dinero" ? (
+              ) : (
                 <DineroConnectCard
                   apiToken={creds.api_token ?? ""}
                   apiSecret={creds.api_secret ?? ""}
@@ -3038,14 +2733,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   onConnect={handleDineroAutoConnect}
                   status={dineroStatus}
                   errorMessage={dineroError}
-                />
-              ) : (
-                <ZenegyConnectCard
-                  onConnect={handleZenegyOAuthConnect}
-                  connecting={zenegyOAuthConnecting}
-                  waiting={zenegyWaiting}
-                  oauthEnabled={zenegyOAuthEnabled}
-                  connectResult={zenegyResult}
                 />
               )}
             </div>
@@ -3183,7 +2870,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         </Button>
 
        {step < 3 ? (
-         provider === "billy" || provider === "economic" || provider === "dinero" || provider === "zenegy" ? null :
+         provider === "billy" || provider === "economic" || provider === "dinero" ? null :
           <PrimaryButton
             onClick={() => setStep((step + 1) as 1 | 2 | 3)}
             disabled={step === 2 && !testResult?.ok}

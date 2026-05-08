@@ -14,7 +14,7 @@ function json(data: unknown, status = 200) {
   });
 }
 
-const PROVIDERS = new Set(["economic", "billy", "dinero", "zenegy"]);
+const PROVIDERS = new Set(["economic", "billy", "dinero"]);
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
