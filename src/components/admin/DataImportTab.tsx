@@ -917,11 +917,11 @@ const ImportPanel = ({
           onDragLeave={() => setDragActive(false)}
           onDrop={onDrop}
           onClick={() => inputRef.current?.click()}
-          className={`group relative flex flex-col items-center justify-center gap-5 overflow-hidden rounded-3xl border-2 border-dashed px-6 py-16 text-center cursor-pointer transition-all sm:py-20 ${dragActive ? "border-accent bg-accent/5 scale-[1.01]" : "border-border bg-secondary/20 hover:border-foreground/40 hover:bg-secondary/40"}`}
+          className={`group relative flex flex-col items-center justify-center gap-5 overflow-hidden rounded-3xl border-2 border-dashed px-6 py-16 text-center cursor-pointer sm:py-20 ${dragActive ? "border-accent bg-accent/5" : "border-border bg-secondary/20"}`}
         >
           <input ref={inputRef} type="file" accept=".csv,text/csv" className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
-          <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-foreground text-background shadow-sm transition-transform group-hover:scale-105">
+          <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-foreground text-background shadow-sm">
             <UploadCloud className="h-7 w-7" />
           </div>
           <div className="max-w-md space-y-2">
