@@ -160,33 +160,11 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
       const lat = latitude;
       const lng = longitude;
 
-      // Tjek om kunden allerede er kendt i virksomhedens system.
-      // Kendte kunder behøver ikke godkende bestillingen — virksomheden
-      // har en eksisterende relation, og bestillingen kan derfor aktiveres
-      // direkte. Det matcher hvordan oprettelse "for" en kunde fungerer
-      // i de fleste service-systemer.
+      // Bestillinger oprettet manuelt af virksomheden er altid forhåndsgodkendt
+      // — virksomheden har allerede besluttet at tage opgaven, så kunden skal
+      // bare modtage en bekræftelses-mail (ligesom et helt almindeligt køb).
       const customerEmailLower = customerEmail.trim().toLowerCase();
-      const [erhvervKnown, privatKnown] = await Promise.all([
-        supabase
-          .from("business_customers")
-          .select("id")
-          .eq("business_id", businessId)
-          .ilike("email", customerEmailLower)
-          .maybeSingle(),
-        supabase
-          .from("private_customers")
-          .select("id")
-          .eq("business_id", businessId)
-          .ilike("email", customerEmailLower)
-          .maybeSingle(),
-      ]);
-      const customerKnown = !!erhvervKnown.data || !!privatKnown.data;
-
-      // Build approval token + expiry — ÉN token deles af alle child-ordrer
-      const tokenBytes = new Uint8Array(32);
-      crypto.getRandomValues(tokenBytes);
-      const token = Array.from(tokenBytes).map((b) => b.toString(16).padStart(2, "0")).join("");
-      const expires = new Date(); expires.setDate(expires.getDate() + 7);
+      const customerKnown = true;
 
       // Én ordre pr. service. Første ordre = forælder; alle peger på dens id via parent_order_id.
       const parentOrderId = crypto.randomUUID();
