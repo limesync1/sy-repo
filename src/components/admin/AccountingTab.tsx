@@ -73,7 +73,7 @@ const PROVIDERS: ProviderDef[] = [
     label: "e-conomic",
     logo: economicLogo,
     tagline: "",
-    description: "Send dine kunder direkte til e-conomic. Ændringer holdes automatisk opdateret begge veje.",
+    description: "Klik her for at integrere din virksomhed med e-conomic som dit regnskabsprogram.",
     helpUrl: "https://www.e-conomic.com/developer",
     helpUrlLabel: "Åbn e-conomic udviklerside",
     fields: [
@@ -101,7 +101,7 @@ const PROVIDERS: ProviderDef[] = [
     label: "Billy",
     logo: billyLogo,
     tagline: "",
-    description: "Forbind med en lille adgangsnøgle fra Billy. Vi gemmer aldrig din adgangskode.",
+    description: "Klik her for at integrere din virksomhed med Billy som dit regnskabsprogram.",
     helpUrl: "https://mit.billy.dk/",
     helpUrlLabel: "Åbn Billy",
     fields: [
