@@ -825,9 +825,31 @@ const ImportPanel = ({
       } else {
         // orders — opret order + 1 line per række. Hvis en ordre refererer til en
         // service der ikke findes endnu, opretter vi den automatisk så ordren
-        // ikke står med en tom linje.
+        // ikke står med en tom linje. Inden vi opretter dem, lader vi AI'en
+        // klassificere de nye service-navne på baggrund af eksisterende
+        // kategorier — så de lander det rigtige sted i kataloget.
         const serviceCache = new Map<string, string>(); // navn (lowercase) → id
         existingServices.forEach((s) => { if (s.name) serviceCache.set(s.name.toLowerCase(), s.id); });
+        // Find unikke service-navne der mangler at blive oprettet
+        const missingNames = Array.from(new Set(
+          (valid as any[])
+            .filter((r) => !r.matched_service_id && r.service_name)
+            .map((r) => String(r.service_name).trim())
+            .filter((n) => n && !serviceCache.has(n.toLowerCase()))
+        ));
+        const aiCategoryByName = new Map<string, { service_category?: string; subcategory?: string }>();
+        if (missingNames.length > 0) {
+          try {
+            const items = missingNames.map((n) => ({ name: n, description: "", raw_category: "", raw_subcategory: "", product_number: "", unit: "" }));
+            const { data: aiData } = await supabase.functions.invoke("import-customers-ai", {
+              body: { mode: "classify_services", items, existing: existingCategories },
+            });
+            const arr: any[] = aiData?.classifications || [];
+            arr.forEach((c, i) => {
+              if (c) aiCategoryByName.set(missingNames[i].toLowerCase(), { service_category: c.service_category, subcategory: c.subcategory });
+            });
+          } catch { /* stille fejl — opretter uden kategori */ }
+        }
         for (const r of valid as any[]) {
           // Find / opret service hvis nødvendigt
           let serviceId: string | null = r.matched_service_id || null;
@@ -835,6 +857,7 @@ const ImportPanel = ({
             const key = String(r.service_name).toLowerCase().trim();
             if (serviceCache.has(key)) serviceId = serviceCache.get(key)!;
             else {
+              const cat = aiCategoryByName.get(key);
               const { data: newSvc, error: svcErr } = await supabase
                 .from("services")
                 .insert({
@@ -846,6 +869,8 @@ const ImportPanel = ({
                   pricing_type: "fast_pris" as const,
                   default_vat_rate: 25,
                   is_active: true,
+                  service_category: cat?.service_category || null,
+                  subcategory: cat?.subcategory || null,
                 } as any)
                 .select("id")
                 .single();
