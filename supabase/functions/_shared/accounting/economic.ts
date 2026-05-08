@@ -761,14 +761,11 @@ export function makeEconomicAdapter(
           "Fakturaen findes ikke længere som bogført i e-conomic. Den er muligvis blevet slettet eller aldrig bogført — synkronisér regnskabet og prøv igen.",
         );
       }
-      // 2) Hent skabelon for kreditnota fra den bogførte faktura
-      const tmpl = await ecRequest(
-        creds,
-        `/invoices/booked/${invoice_external_id}/templates/creditNote`,
-      );
-      const payload = pickDraftInvoicePayload(tmpl);
       // 2) Opret kladdekreditnota — i e-conomic er kreditnotaer blot
       // negative kladdefakturaer på samme endpoint.
+      // REST API'et har ikke et stabilt /templates/creditNote endpoint, så vi
+      // bygger kreditnotaen ud fra den bogførte fakturas egne felter.
+      const payload = buildCreditNoteDraftPayload(booked);
       const draft = await ecRequest(creds, "/invoices/drafts", {
         method: "POST",
         body: JSON.stringify(payload),
