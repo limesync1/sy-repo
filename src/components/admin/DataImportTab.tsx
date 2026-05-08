@@ -647,6 +647,7 @@ const ImportPanel = ({
           name: name || "",
           description: get(row, mapping, "description"),
           base_price: basePrice,
+          currency: get(row, mapping, "currency")?.toUpperCase(),
           unit,
           interval,
           raw_unit: rawUnit,
