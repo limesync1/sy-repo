@@ -918,7 +918,15 @@ const SubscriptionsView = () => {
     });
   };
 
-  if (!subscriptions || subscriptions.length === 0) {
+  // Engangskøb hører ikke hjemme under "Abonnementer". Hvis virksomheden har
+  // ændret intervallet til engangskøb (eller subscription er oprettet uden
+  // tilbagevendende interval), skjuler vi den her — bestillingen findes
+  // stadig under "Bestillinger".
+  const visibleSubscriptions = (subscriptions || []).filter(
+    (s: any) => s.interval && s.interval !== "engangskøb",
+  );
+
+  if (visibleSubscriptions.length === 0) {
     return (
       <EmptyPanel
         icon={<Package className="h-7 w-7" />}
@@ -931,7 +939,7 @@ const SubscriptionsView = () => {
   }
 
   const grouped: Record<string, { biz: any; subs: any[] }> = {};
-  subscriptions.forEach((sub: any) => {
+  visibleSubscriptions.forEach((sub: any) => {
     const bizId = sub.business_id;
     if (!grouped[bizId]) grouped[bizId] = { biz: sub.businesses || {}, subs: [] };
     grouped[bizId].subs.push(sub);
