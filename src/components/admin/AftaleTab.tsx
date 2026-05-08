@@ -861,6 +861,39 @@ const AftaleTab = ({
     return acc;
   }, {});
 
+  // Beregn samme "Kørsel N" pr. dag som ruteplanlæggeren bruger, så et
+  // navnløst rute-kort hedder det samme begge steder.
+  const routeUniverse = (() => {
+    const map = new Map<string, { id: string; name: string | null; route_date: string; created_at?: string | null }>();
+    for (const r of (allBusinessRoutes || []) as any[]) {
+      map.set(r.id, r);
+    }
+    for (const s of (routeStops || []) as any[]) {
+      const r = s.route;
+      if (r && !map.has(r.id)) map.set(r.id, r);
+    }
+    return map;
+  })();
+  const dayIndexByRoute = (() => {
+    const arr = Array.from(routeUniverse.values()).sort((a, b) => {
+      if ((a.route_date || "") !== (b.route_date || "")) return (a.route_date || "") < (b.route_date || "") ? -1 : 1;
+      return (a.created_at || "").localeCompare(b.created_at || "");
+    });
+    const counter = new Map<string, number>();
+    const out = new Map<string, number>();
+    for (const r of arr) {
+      const n = (counter.get(r.route_date) || 0) + 1;
+      counter.set(r.route_date, n);
+      out.set(r.id, n);
+    }
+    return out;
+  })();
+  const routeDisplayName = (r: any): string => {
+    if (!r) return "Rute";
+    if (r.name) return r.name as string;
+    return `Kørsel ${dayIndexByRoute.get(r.id) || 1}`;
+  };
+
   const dndSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
   const hasActiveAccountingIntegration = !!activeAccountingIntegration?.is_active;
 
