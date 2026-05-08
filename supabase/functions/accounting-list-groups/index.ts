@@ -3,6 +3,7 @@
 // populate dropdowns in the UI.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { makeAdapter } from "../_shared/accounting/index.ts";
+import { requireAuthenticatedUser } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -14,15 +15,9 @@ Deno.serve(async (req) => {
 
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) return json({ error: "Missing auth" }, 401);
-
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } },
-    );
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return json({ error: "Unauthorized" }, 401);
+    const auth = await requireAuthenticatedUser(req, Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!);
+    if ("error" in auth) return json({ error: auth.error }, auth.status);
+    const supabase = auth.userClient;
 
     const body = await req.json().catch(() => ({}));
     const { business_id } = body ?? {};
@@ -30,7 +25,7 @@ Deno.serve(async (req) => {
 
     const { data: biz } = await supabase.from("businesses")
       .select("id, owner_id").eq("id", business_id).maybeSingle();
-    if (!biz || biz.owner_id !== user.id) return json({ error: "Forbidden" }, 403);
+    if (!biz || biz.owner_id !== auth.userId) return json({ error: "Forbidden" }, 403);
 
     const admin = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -41,7 +36,10 @@ Deno.serve(async (req) => {
     if (!integ) return json({ error: "No active integration" }, 404);
 
     const adapter = makeAdapter(integ.provider, integ as any, integ.settings ?? {});
-    const groups = await adapter.listGroups();
+    const groups = await adapter.listGroups().catch((e) => {
+      console.warn("[accounting-list-groups] provider failed", e instanceof Error ? e.message : String(e));
+      return { customer_groups: [], product_groups: [], income_accounts: [], labels: {} };
+    });
     return json({ ok: true, ...groups });
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : String(e) }, 500);
