@@ -298,10 +298,33 @@ const OrdersView = () => {
 
       // Aktivér eller annullér tilknyttede abonnementer på baggrund af kundens svar på tilpasset forslag
       if (response === "accepted") {
-        await supabase.from("subscriptions")
-          .update({ status: "active" })
-          .eq("order_id", orderId)
-          .eq("status", "pending");
+        // Hent abonnementer knyttet til ordren så vi kan synkronisere
+        // pris + detaljer fra det godkendte forslag (adjusted_details/amount).
+        // Uden dette ville kunden stadig se den oprindelige pris under "Abonnementer".
+        const { data: linkedSubs } = await supabase
+          .from("subscriptions")
+          .select("id, service_id, total_price, details")
+          .eq("order_id", orderId);
+
+        const items: any[] = (order.adjusted_details as any)?.items || [];
+        for (const sub of linkedSubs || []) {
+          // Match item på service_id; fallback til første item hvis kun ét.
+          const match = items.find((it) => it.service_id === sub.service_id)
+            || (items.length === 1 ? items[0] : null);
+          const update: any = { status: "active" };
+          if (match) {
+            if (typeof match.total_price === "number") update.total_price = match.total_price;
+            if (match.details) {
+              update.details = {
+                ...(sub.details as any || {}),
+                ...match.details,
+              };
+            }
+          } else if (typeof order.adjusted_amount === "number") {
+            update.total_price = order.adjusted_amount;
+          }
+          await supabase.from("subscriptions").update(update).eq("id", sub.id);
+        }
       } else {
         await supabase.from("subscriptions")
           .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
@@ -311,6 +334,7 @@ const OrdersView = () => {
 
       toast.success(response === "accepted" ? "Du har godkendt forslaget!" : "Du har afvist forslaget. Virksomheden vil modtage besked.");
       qc.invalidateQueries({ queryKey: ["my-orders"] });
+      qc.invalidateQueries({ queryKey: ["my-subscriptions"] });
     } catch (e: any) {
       toast.error(e.message);
     }
