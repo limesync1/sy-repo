@@ -2883,6 +2883,10 @@ export type Database = {
         }
         Returns: number
       }
+      order_group_has_active_approval_token: {
+        Args: { _parent_order_id: string }
+        Returns: boolean
+      }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
