@@ -70,13 +70,13 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
   const canMarkPaid = !!caps?.can_mark_paid && !isPaid && !isCredited && !isCancelled;
 
   type PrimaryAction =
-    | { kind: Action; label: string; tone: "warning" | "danger" | "success" | "neutral"; icon: React.ReactNode; onClick: () => void }
+    | { kind: Action; label: string; tone: "danger" | "success" | "neutral"; icon: React.ReactNode; onClick: () => void }
     | null;
 
   // Vælg den mest meningsfulde primære handling baseret på fakturaens tilstand:
-  //   - Bogført + ubetalt → "Markér betalt" (success)
-  //   - Kladde            → "Annullér kladde" (neutral)
-  //   - Bogført + betalt  → "Krediter" (warning) — kun mulighed tilbage
+  //   - Bogført + ubetalt → "Markér betalt" (success — positiv bekræftelse)
+  //   - Kladde            → "Annullér kladde" (neutral — let destruktiv på hover)
+  //   - Bogført + betalt  → "Krediter" (danger — reverserer bogført faktura)
   const primary: PrimaryAction = (() => {
     if (isCancelled || isCredited) return null;
     if (canMarkPaid) {
@@ -86,17 +86,21 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
       return { kind: "void_draft", label: "Annullér kladde", tone: "neutral", icon: <Ban className="h-3.5 w-3.5" />, onClick: () => setConfirm("void_draft") };
     }
     if (canCredit && isPaid) {
-      return { kind: "credit_invoice", label: "Krediter", tone: "warning", icon: <Receipt className="h-3.5 w-3.5" />, onClick: () => setConfirm("credit_invoice") };
+      return { kind: "credit_invoice", label: "Krediter", tone: "danger", icon: <Receipt className="h-3.5 w-3.5" />, onClick: () => setConfirm("credit_invoice") };
     }
     return null;
   })();
 
-  const toneCls = (tone: "warning" | "danger" | "success" | "neutral") => {
+  // Solide hover-tilstande sikrer altid læsbar tekst — ingen "tekst forsvinder
+  // i baggrunden" når man holder musen over knappen.
+  const toneCls = (tone: "danger" | "success" | "neutral") => {
     switch (tone) {
-      case "danger":  return "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/15 hover:text-destructive hover:border-destructive/50";
-      case "warning": return "border-warning/40 bg-warning/15 text-warning-foreground hover:bg-warning/25 hover:border-warning/60";
-      case "success": return "border-success/40 bg-success/10 text-success hover:bg-success/15 hover:text-success hover:border-success/50";
-      default:        return "border-border bg-card text-foreground hover:bg-secondary hover:text-foreground";
+      case "danger":
+        return "border-destructive/40 bg-destructive/5 text-destructive hover:bg-destructive hover:text-destructive-foreground hover:border-destructive";
+      case "success":
+        return "border-success/40 bg-success/10 text-success hover:bg-success hover:text-success-foreground hover:border-success";
+      default:
+        return "border-border bg-card text-foreground hover:bg-foreground hover:text-background hover:border-foreground";
     }
   };
 
@@ -168,19 +172,19 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" sideOffset={6} className="w-60 bg-popover border-border shadow-xl rounded-lg p-1">
               {showMarkPaidInOverflow && (
-                <DropdownMenuItem onSelect={() => setConfirm("mark_paid")} className="gap-2 cursor-pointer focus:bg-success/10 focus:text-success">
+                <DropdownMenuItem onSelect={() => setConfirm("mark_paid")} className="gap-2 cursor-pointer focus:bg-success focus:text-success-foreground">
                   <CheckCircle2 className="h-3.5 w-3.5" /> Markér som betalt
                 </DropdownMenuItem>
               )}
               {showCreditInOverflow && (
-                <DropdownMenuItem onSelect={() => setConfirm("credit_invoice")} className="gap-2 cursor-pointer focus:bg-warning/15 focus:text-warning-foreground">
+                <DropdownMenuItem onSelect={() => setConfirm("credit_invoice")} className="gap-2 cursor-pointer focus:bg-destructive focus:text-destructive-foreground">
                   <Receipt className="h-3.5 w-3.5" /> Krediter faktura
                 </DropdownMenuItem>
               )}
               {showVoidInOverflow && (
                 <>
                   <DropdownMenuSeparator className="my-1" />
-                  <DropdownMenuItem onSelect={() => setConfirm("void_draft")} className="gap-2 cursor-pointer focus:bg-destructive/10 focus:text-destructive">
+                  <DropdownMenuItem onSelect={() => setConfirm("void_draft")} className="gap-2 cursor-pointer focus:bg-foreground focus:text-background">
                     <Ban className="h-3.5 w-3.5" /> Annullér kladde
                   </DropdownMenuItem>
                 </>
@@ -201,7 +205,7 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
           <TooltipTrigger asChild>
             <Button
               variant="outline" size="sm"
-              className="h-8 px-2.5 text-xs font-medium border-success/40 bg-success/10 text-success hover:bg-success/20 hover:text-success"
+              className="h-8 px-2.5 text-xs font-medium border-success/40 bg-success/10 text-success transition-colors hover:bg-success hover:text-success-foreground hover:border-success"
               disabled={busy !== null}
               onClick={() => setConfirm("mark_paid")}
             >
@@ -218,7 +222,7 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
           <TooltipTrigger asChild>
             <Button
               variant="ghost" size="sm"
-              className="h-8 w-8 p-0 border border-warning/40 bg-warning/10 text-warning-foreground hover:bg-warning/20 hover:border-warning/60"
+              className="h-8 w-8 p-0 border border-destructive/40 bg-destructive/5 text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground hover:border-destructive"
               disabled={busy !== null}
               onClick={() => setConfirm("credit_invoice")}
               aria-label="Krediter faktura"
@@ -235,7 +239,7 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
           <TooltipTrigger asChild>
             <Button
               variant="ghost" size="sm"
-              className="h-8 w-8 p-0 border border-border bg-card text-muted-foreground hover:text-destructive hover:bg-destructive/10 hover:border-destructive/40"
+              className="h-8 w-8 p-0 border border-border bg-card text-muted-foreground transition-colors hover:bg-foreground hover:text-background hover:border-foreground"
               disabled={busy !== null}
               onClick={() => setConfirm("void_draft")}
               aria-label="Annullér kladde"
