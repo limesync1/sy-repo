@@ -41,12 +41,14 @@ const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secon
   cancelled: { label: "Opsagt", variant: "destructive" },
 };
 
+// Bruger det fælles status-farvesystem så aftaler ser ens ud i hele platformen.
+import { STATUS_BADGE_CLASS, STATUS_LABELS } from "@/lib/statusColors";
 const ORDER_STATUS: Record<string, { label: string; color: string; icon: typeof Clock }> = {
-  pending: { label: "Afventer", color: "bg-amber-50 text-amber-700 border-amber-200", icon: Clock },
-  confirmed: { label: "Godkendt", color: "bg-green-50 text-green-700 border-green-200", icon: CheckCircle2 },
-  in_progress: { label: "I gang", color: "bg-blue-50 text-blue-700 border-blue-200", icon: Clock },
-  completed: { label: "Afsluttet", color: "bg-secondary text-foreground border-border", icon: CheckCircle2 },
-  cancelled: { label: "Annulleret", color: "bg-destructive/5 text-destructive border-destructive/20", icon: XCircle },
+  pending:     { label: STATUS_LABELS.pending,     color: STATUS_BADGE_CLASS.pending,     icon: Clock },
+  confirmed:   { label: "Bekræftet",               color: STATUS_BADGE_CLASS.confirmed,   icon: CheckCircle2 },
+  in_progress: { label: STATUS_LABELS.in_progress, color: STATUS_BADGE_CLASS.in_progress, icon: Clock },
+  completed:   { label: STATUS_LABELS.completed,   color: STATUS_BADGE_CLASS.completed,   icon: CheckCircle2 },
+  cancelled:   { label: STATUS_LABELS.cancelled,   color: STATUS_BADGE_CLASS.cancelled,   icon: XCircle },
 };
 
 /* ════════════════════════════════════════════════ */

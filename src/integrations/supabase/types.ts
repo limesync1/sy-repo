@@ -2836,6 +2836,15 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      find_or_create_route_for_employee: {
+        Args: {
+          _business_id: string
+          _employee_id: string
+          _route_date: string
+          _source_route_id: string
+        }
+        Returns: string
+      }
       get_platform_pricing: {
         Args: never
         Returns: {

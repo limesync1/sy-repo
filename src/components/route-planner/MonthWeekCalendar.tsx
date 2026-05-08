@@ -369,7 +369,7 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
       >
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-semibold truncate text-foreground leading-tight">
-            {route.name || `Rute ${format(parseISO(route.route_date), "d/M")}`}
+            {route.name || `Kørsel ${format(parseISO(route.route_date), "d/M")}`}
           </p>
           {!compact ? (
             <div className="flex items-center gap-1 text-[10px] text-muted-foreground tabular-nums mt-0.5">

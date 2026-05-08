@@ -242,6 +242,18 @@ const Planner = () => {
       arr.push(s);
       stopsByRoute.set(s.route_id, arr);
     }
+    // Per-day numbering ("Kørsel 1", "Kørsel 2", ...)
+    const sortedByDate = [...calendarRoutesRaw].sort((a, b) => {
+      if (a.route_date !== b.route_date) return a.route_date < b.route_date ? -1 : 1;
+      return (a.created_at || "").localeCompare(b.created_at || "");
+    });
+    const indexByRouteId = new Map<string, number>();
+    const counterByDate = new Map<string, number>();
+    for (const r of sortedByDate) {
+      const n = (counterByDate.get(r.route_date) || 0) + 1;
+      counterByDate.set(r.route_date, n);
+      indexByRouteId.set(r.id, n);
+    }
     return calendarRoutesRaw.map((r) => {
       // Saml UNIK liste af medarbejdere på tværs af alle stops på ruten
       const empIds = new Set<string>();
@@ -254,8 +266,10 @@ const Planner = () => {
         .map((id) => activeEmployees.find((e: any) => e.id === id))
         .filter(Boolean)
         .map((e: any) => ({ id: e.id, name: e.name, avatar_url: e.avatar_url, color: e.color }));
+      const dayIndex = indexByRouteId.get(r.id) || 1;
       return {
         ...r,
+        name: r.name || `Kørsel ${dayIndex}`,
         stops: stopsForRoute,
         attachedEmployees: emps,
         attachedEmployeeCount: emps.length,
@@ -426,7 +440,7 @@ const Planner = () => {
         const created = await createRoute.mutateAsync({
           business_id: businessId,
           route_date: newDate,
-          name: `Rute ${format(parseISO(newDate), "d/M", { locale: da })}`,
+          name: null,
           color: pickAvailableColor(usedColorsThisDay),
         });
         await addStop.mutateAsync({
@@ -526,7 +540,7 @@ const Planner = () => {
           const created = await createRoute.mutateAsync({
             business_id: businessId,
             route_date: d,
-            name: `Auto · ${format(parseISO(d), "EEE d/M", { locale: da })}`,
+            name: null,
           });
           routeId = created.id;
           routesCreated++;
@@ -763,6 +777,9 @@ const Planner = () => {
                         {filteredUnassigned.length}
                       </Badge>
                     </div>
+                    <p className="text-[10px] text-muted-foreground leading-snug">
+                      Træk en aftale ind i kalenderen for at planlægge den. Når en aftale med interval markeres som udført, opretter vi automatisk næste aftale på samme rute og medarbejder.
+                    </p>
                     {filteredUnassigned.length > 0 && (
                       <p className="text-[10px] text-muted-foreground tabular-nums">
                         Total værdi: <span className="font-semibold text-foreground">{Math.round(unassignedTotal).toLocaleString("da-DK")} kr</span>
