@@ -201,6 +201,23 @@ const buildAdjustmentItem = (item: any, service?: BusinessService): AdjustmentIt
   };
 };
 
+const toMailItem = (item: any) => ({
+  name: item.service_name,
+  quantity: item.quantity,
+  price: roundPrice(parseNumber(item.total_price, 0)),
+  intervalLabel: item.details?.interval && item.details.interval !== "engangskøb"
+    ? INTERVAL_LABELS[item.details.interval] || item.details.interval
+    : undefined,
+  description: item.details?.description,
+  stepDetails: item.details?.stepDetails?.map((sd: any) => ({
+    label: sd.label,
+    value: sd.value,
+    unit: sd.unit,
+    subtotal: sd.subtotal,
+    price_per_unit: sd.price_per_unit,
+  })),
+});
+
 /* ─── Status config ─── 
    The lifecycle:
    pending    → Ny bestilling, virksomheden skal svare (godkend/tilpas/afvis)
