@@ -420,13 +420,13 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
 
 const StatusBadge = ({ status }: { status: string }) => {
   const map: Record<string, { label: string; dot: string }> = {
-    pending:     { label: "Afventer planlægning", dot: "bg-amber-500" },
-    confirmed:   { label: "Planlagt",             dot: "bg-blue-500" },
-    in_progress: { label: "Under udførelse",      dot: "bg-violet-500" },
-    completed:   { label: "Udført",               dot: "bg-emerald-500" },
+    pending:     { label: "Afventer planlægning", dot: "bg-warning" },
+    confirmed:   { label: "Planlagt",             dot: "bg-info" },
+    in_progress: { label: "Under udførelse",      dot: "bg-accent" },
+    completed:   { label: "Udført",               dot: "bg-success" },
     cancelled:   { label: "Annulleret",           dot: "bg-destructive" },
-    active:      { label: "Aktiv",                dot: "bg-emerald-500" },
-    paused:      { label: "På pause",             dot: "bg-amber-500" },
+    active:      { label: "Aktiv",                dot: "bg-success" },
+    paused:      { label: "På pause",             dot: "bg-warning" },
   };
   const m = map[status] || { label: status, dot: "bg-muted-foreground/40" };
   return (
@@ -442,10 +442,11 @@ const PaymentBadge = ({ status, syncedAt }: { status?: string | null; syncedAt?:
   if (!status) return null;
   const map: Record<string, { label: string; dot: string; help: string }> = {
     unpaid:          { label: "Ikke betalt",     dot: "bg-muted-foreground/50", help: "Faktura er sendt, men endnu ikke betalt." },
-    sent:            { label: "Faktura sendt",   dot: "bg-blue-500",            help: "Faktura er sendt til kunden via dit regnskabsprogram." },
-    partially_paid:  { label: "Delvist betalt",  dot: "bg-amber-500",           help: "Kunden har betalt en del af fakturaen." },
-    paid:            { label: "Betalt",          dot: "bg-emerald-500",         help: "Fakturaen er fuldt betalt." },
+    sent:            { label: "Faktura sendt",   dot: "bg-info",                help: "Faktura er sendt til kunden via dit regnskabsprogram." },
+    partially_paid:  { label: "Delvist betalt",  dot: "bg-warning",             help: "Kunden har betalt en del af fakturaen." },
+    paid:            { label: "Betalt",          dot: "bg-success",             help: "Fakturaen er fuldt betalt." },
     overdue:         { label: "Forfalden",       dot: "bg-destructive",         help: "Betalingsfristen er overskredet." },
+    credited:        { label: "Krediteret",      dot: "bg-muted-foreground/50", help: "Fakturaen er krediteret med en kreditnota." },
     refunded:        { label: "Refunderet",      dot: "bg-muted-foreground/50", help: "Beløbet er ført tilbage til kunden." },
     cancelled:       { label: "Annulleret",      dot: "bg-muted-foreground/50", help: "Fakturaen er annulleret." },
   };
