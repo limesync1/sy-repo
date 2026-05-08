@@ -842,6 +842,7 @@ const ImportPanel = ({
           subcategory: r.subcategory || null,
           default_vat_rate: r.default_vat_rate ?? 25,
           accounting_account_number: r.accounting_account_number || null,
+          vat_zone: r.vat_zone || null,
           pricing_type: "fast_pris" as const,
           is_active: true,
         }));
