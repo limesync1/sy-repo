@@ -1635,7 +1635,7 @@ const AftaleTab = ({
                                 daysUntilNext <= 0
                                   ? "font-medium text-destructive"
                                   : daysUntilNext <= 3
-                                  ? "font-medium text-amber-700"
+                                  ? "font-medium text-warning"
                                   : ""
                               }
                               title="Næste udførelse — ordren oprettes automatisk på dagen kl. 06:00."
