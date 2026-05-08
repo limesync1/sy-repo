@@ -97,13 +97,74 @@ Deno.serve(async (req) => {
     if (updateErr) return json({ error: 'update_failed', detail: updateErr.message }, 500)
   }
 
-  // Aktivér eventuelle pending-abonnementer for denne gruppe når kunden accepterer
+  // Aktivér / synkronisér abonnementer for denne gruppe når kunden accepterer.
+  // Hvis virksomheden har sendt et tilpasset forslag (adjusted_details), kan
+  // pris OG interval være ændret — fx fra engangskøb til hver_14_dag, hvilket
+  // betyder at ordren nu skal optræde som et abonnement hos kunden.
   if (decision === 'accepted') {
-    await supabase
-      .from('subscriptions')
-      .update({ status: 'active' })
-      .in('order_id', ids)
-      .eq('status', 'pending')
+    // Hent alle ordrer i gruppen med deres adjusted_details
+    const { data: groupFull } = await supabase
+      .from('orders')
+      .select('id, customer_id, business_id, customer_email, customer_name, total_amount, adjusted_amount, adjusted_details')
+      .in('id', ids)
+
+    for (const o of groupFull || []) {
+      const items: any[] = (o as any)?.adjusted_details?.items || []
+
+      const { data: linkedSubs } = await supabase
+        .from('subscriptions')
+        .select('id, service_id, interval, details')
+        .eq('order_id', o.id)
+
+      const handled = new Set<string>()
+      for (const sub of linkedSubs || []) {
+        const match = items.find((it: any) => it.service_id === sub.service_id)
+          || (items.length === 1 ? items[0] : null)
+        const update: Record<string, any> = { status: 'active' }
+        if (match) {
+          if (match.service_id) handled.add(match.service_id)
+          if (typeof match.total_price === 'number') update.total_price = match.total_price
+          if (match.details) {
+            update.details = { ...((sub as any).details || {}), ...match.details }
+            const newInterval = match.details?.interval
+            if (newInterval && newInterval !== (sub as any).interval) {
+              update.interval = newInterval
+              if (newInterval === 'engangskøb') {
+                update.status = 'cancelled'
+                update.cancelled_at = new Date().toISOString()
+              }
+            }
+          }
+        }
+        await supabase.from('subscriptions').update(update).eq('id', (sub as any).id)
+      }
+
+      // Opret nye abonnementer for items med tilbagevendende interval, hvor
+      // der ikke fandtes et abonnement i forvejen.
+      const newSubs = items
+        .filter((it: any) =>
+          it?.service_id &&
+          !handled.has(it.service_id) &&
+          it?.details?.interval &&
+          it.details.interval !== 'engangskøb'
+        )
+        .map((it: any) => ({
+          customer_id: (o as any).customer_id,
+          business_id: (o as any).business_id,
+          service_id: it.service_id,
+          order_id: o.id,
+          service_name: it.service_name || it.name || 'Service',
+          interval: it.details.interval,
+          total_price: typeof it.total_price === 'number' ? it.total_price : 0,
+          details: it.details || {},
+          status: 'active',
+          customer_email: (o as any).customer_email || null,
+          customer_name: (o as any).customer_name || null,
+        }))
+      if (newSubs.length > 0) {
+        await supabase.from('subscriptions').insert(newSubs as any)
+      }
+    }
   }
 
   // Notify the business owner — fire and forget
