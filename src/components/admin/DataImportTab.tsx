@@ -1420,12 +1420,21 @@ const ImportPanel = ({
           <Button variant="outline" size="sm" onClick={reset}><Trash2 className="mr-1.5 h-3.5 w-3.5" /> Ny import</Button>
         </div>
       ) : (
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <Button variant="ghost" onClick={reset} disabled={importing}>Annullér</Button>
-          <Button onClick={runImport} disabled={importing || stats.selected === 0}>
+        <div className="sticky bottom-0 -mx-4 mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border bg-background/95 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-xl sm:border sm:px-4">
+          <div className="text-xs text-muted-foreground">
+            <span className="font-semibold text-foreground">{stats.selected.toLocaleString("da-DK")}</span> af {stats.total.toLocaleString("da-DK")} valgt
+            {stats.errors > 0 && <span className="ml-2 text-destructive">· {stats.errors} fejl</span>}
+            {stats.duplicates > 0 && <span className="ml-2 text-amber-600">· {stats.duplicates} dubletter</span>}
+          </div>
+          <div className="flex items-center gap-2">
+          <Button variant="ghost" onClick={reset} disabled={importing} className="h-9">
+            <ArrowLeft className="mr-1.5 h-3.5 w-3.5" /> Start forfra
+          </Button>
+          <Button onClick={runImport} disabled={importing || stats.selected === 0} className="h-9">
             {importing ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-1.5 h-4 w-4" />}
             Importér {stats.selected}
           </Button>
+          </div>
         </div>
       )}
     </div>
