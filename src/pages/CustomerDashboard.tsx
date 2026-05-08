@@ -515,6 +515,32 @@ const OrderCard = ({ order, onRespond }: {
                   {new Date(order.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
                   {items.length > 0 && ` · ${items.length} ${items.length === 1 ? "service" : "services"}`}
                 </p>
+                {(() => {
+                  const names = items.map((it: any) => it.service_name).filter(Boolean);
+                  const summary = names.slice(0, 2).join(", ") + (names.length > 2 ? ` +${names.length - 2}` : "");
+                  const hasRecurring = items.some((it: any) => it.details?.interval && it.details.interval !== "engangskøb");
+                  const cityLine = [order.address, [order.zip_code, order.city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+                  return (
+                    <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
+                      {summary && <span className="truncate max-w-[220px] text-foreground/80">{summary}</span>}
+                      {hasRecurring && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-accent/10 text-accent px-1.5 py-px text-[10px] font-medium">
+                          <CalendarClock className="h-2.5 w-2.5" /> Abonnement
+                        </span>
+                      )}
+                      {!hasRecurring && items.length > 0 && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-secondary text-foreground/70 px-1.5 py-px text-[10px] font-medium">
+                          Engangskøb
+                        </span>
+                      )}
+                      {cityLine && (
+                        <span className="inline-flex items-center gap-0.5 truncate">
+                          <MapPin className="h-2.5 w-2.5 shrink-0" /> <span className="truncate max-w-[180px]">{cityLine}</span>
+                        </span>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
