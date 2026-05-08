@@ -56,6 +56,7 @@ Deno.serve(async (req) => {
       : { data: null } as any;
 
     const bookedInvoiceId = order.invoice_external_id ?? (link?.external_type === "invoice_booked" ? link.external_id : null);
+    const externalId = bookedInvoiceId ?? link?.external_id ?? null;
 
     // Capability probe — kaldes af UI for at afgøre om knapper kan vises.
     // Vi prøver at slå fakturaen op hos udbyderen; hvis den ikke findes
@@ -73,8 +74,8 @@ Deno.serve(async (req) => {
       if (!integ) return json({ ok: true, caps });
       const adapter = makeAdapter(integ.provider, integ as any, integ.settings ?? {});
       try {
-        if (bookedInvoiceId && typeof adapter.getInvoiceStates === "function") {
-          const states = await adapter.getInvoiceStates([bookedInvoiceId]);
+        if (externalId && typeof adapter.getInvoiceStates === "function") {
+          const states = await adapter.getInvoiceStates([externalId]);
           const s = states?.[0];
           if (s) {
             caps.exists_in_provider = true;
@@ -147,9 +148,9 @@ Deno.serve(async (req) => {
         if (typeof adapter.creditInvoice !== "function") {
           return json({ error: `${integ.provider} understøtter ikke kreditering via API` }, 400);
         }
-        if (!bookedInvoiceId) return json({ error: "Faktura er ikke bogført endnu — kan ikke krediteres." }, 400);
+        if (!externalId) return json({ error: "Faktura er ikke bogført endnu — kan ikke krediteres." }, 400);
         const res = await adapter.creditInvoice({
-          invoice_external_id: bookedInvoiceId,
+          invoice_external_id: externalId,
           reason: params?.reason ?? null,
         });
         await admin.from("orders").update({
