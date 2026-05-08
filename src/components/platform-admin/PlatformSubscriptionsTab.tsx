@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { exportCsv } from "./lib/csv";
 import { PageHeader, StatCard, SearchInput, EmptyState } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
+import { INTERVAL_LABELS } from "@/types/service";
 
 const fmtKr = (n: number) => `${Number(n).toLocaleString("da-DK")} kr`;
 
