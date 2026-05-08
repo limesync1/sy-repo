@@ -1,6 +1,6 @@
 import {
-  AlertCircle, Bell, CheckCircle2, Clock, Play, Pencil,
-  CreditCard, FileText, Gavel, Sparkles,
+  AlertCircle, CheckCircle2, Clock, Play, Pencil,
+  CreditCard, FileText, Sparkles,
 } from "lucide-react";
 
 type Order = {
@@ -18,7 +18,7 @@ type Order = {
 type Step = {
   title: string;
   description: string;
-  icon: typeof Bell;
+  icon: typeof AlertCircle;
   tone: "info" | "warning" | "danger" | "success" | "neutral";
   action?: string;
   terminal?: boolean;
@@ -35,7 +35,6 @@ const TONE_CLS: Record<Step["tone"], { wrap: string; iconWrap: string; icon: str
 function computeStep(order: Order): Step | null {
   const s = order.status;
   const ps = order.payment_status;
-  const reminders = order.reminder_count ?? 0;
   const isOverdue = order.due_date
     ? new Date(order.due_date).getTime() < Date.now() && ps !== "paid" && ps !== "credited"
     : false;
@@ -104,26 +103,11 @@ function computeStep(order: Order): Step | null {
       icon: FileText, tone: "warning",
     };
   }
-  if (isOverdue && reminders >= 3) {
-    return {
-      title: "Send til inkasso",
-      description: `Du har sendt ${reminders} rykkere uden betaling. Næste skridt er inkasso.`,
-      icon: Gavel, tone: "danger",
-    };
-  }
-  if (isOverdue && reminders >= 1) {
-    const next = Math.min(reminders + 1, 3);
-    return {
-      title: `Send ${next}. rykker`,
-      description: `${reminders} ${reminders === 1 ? "rykker er" : "rykkere er"} allerede sendt. Fakturaen er stadig ubetalt — send næste rykker.`,
-      icon: Bell, tone: "danger",
-    };
-  }
   if (isOverdue) {
     return {
-      title: "Send 1. rykker",
-      description: "Forfaldsdatoen er overskredet. Send en venlig rykker til kunden.",
-      icon: Bell, tone: "warning",
+      title: "Faktura forfalden",
+      description: "Forfaldsdatoen er overskredet. Rykkere håndteres automatisk i dit regnskabsprogram (rykkerkørsel).",
+      icon: AlertCircle, tone: "danger",
     };
   }
   if (ps === "unpaid" || !ps) {
@@ -138,7 +122,7 @@ function computeStep(order: Order): Step | null {
   if (ps === "partially_paid") {
     return {
       title: "Delvist betalt",
-      description: "Kunden har betalt en del af fakturaen. Bekræft restbeløbet eller send rykker.",
+      description: "Kunden har betalt en del af fakturaen. Bekræft restbeløbet i dit regnskabsprogram.",
       icon: CreditCard, tone: "warning",
     };
   }
