@@ -1408,6 +1408,8 @@ const AftaleTab = ({
               const linkedOrder = (orders || []).find((o: any) => o.id === (sub as any).order_id);
               const customerName = linkedOrder?.customer_name
                 || linkedOrder?.company_name
+                || (sub as any).customer_name
+                || (sub as any).customer_email
                 || (sub as any).profiles?.display_name
                 || "Ukendt kunde";
               const orderStatus = linkedOrder?.status as string | undefined;
