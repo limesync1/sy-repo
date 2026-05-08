@@ -786,13 +786,59 @@ const AftaleTab = ({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("route_stops")
-        .select("id, order_id, sequence, status, planned_arrival, planned_departure, route:routes!inner(id, name, route_date, color, status, business_id)")
+        .select("id, order_id, sequence, status, planned_arrival, planned_departure, route:routes!inner(id, name, route_date, color, status, business_id, created_at)")
         .eq("route.business_id", businessId);
       if (error) throw error;
       return data || [];
     },
     enabled: !!businessId && routePlanningEnabled,
+    staleTime: 10_000,
   });
+
+  // Hent alle ruter (uafhængigt af stops) så vi kan udregne det samme
+  // "Kørsel N" fallback-navn som ruteplanlæggeren bruger pr. dag.
+  const { data: allBusinessRoutes } = useQuery({
+    queryKey: ["aftaler-all-routes", businessId, routePlanningEnabled],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("routes")
+        .select("id, name, route_date, color, created_at")
+        .eq("business_id", businessId)
+        .order("route_date", { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!businessId && routePlanningEnabled,
+    staleTime: 10_000,
+  });
+
+  // Realtime: hold listen ajour når ordrer, ruter eller stops ændrer sig
+  // (fx hvis en aftale flyttes til en rute, eller en kunde godkender et forslag).
+  useEffect(() => {
+    if (!businessId) return;
+    const channel = supabase
+      .channel(`aftale-tab-${businessId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders", filter: `business_id=eq.${businessId}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["orders", businessId] });
+          qc.invalidateQueries({ queryKey: ["business-subscriptions", businessId] });
+        })
+      .on("postgres_changes", { event: "*", schema: "public", table: "subscriptions", filter: `business_id=eq.${businessId}` },
+        () => qc.invalidateQueries({ queryKey: ["business-subscriptions", businessId] }))
+      .on("postgres_changes", { event: "*", schema: "public", table: "routes", filter: `business_id=eq.${businessId}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["aftaler-route-stops", businessId] });
+          qc.invalidateQueries({ queryKey: ["aftaler-all-routes", businessId] });
+          qc.invalidateQueries({ queryKey: ["routes-for-range"] });
+        })
+      .on("postgres_changes", { event: "*", schema: "public", table: "route_stops" },
+        () => {
+          qc.invalidateQueries({ queryKey: ["aftaler-route-stops", businessId] });
+          qc.invalidateQueries({ queryKey: ["stops-for-routes"] });
+        })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [businessId, qc]);
 
   const { data: activeAccountingIntegration } = useQuery({
     queryKey: ["active-accounting-integration", businessId],
