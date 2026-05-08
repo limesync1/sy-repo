@@ -532,10 +532,6 @@ export const useUnassignedJobs = (businessId: string | undefined) => {
         (rts || []).forEach((r: any) => routeNameById.set(r.id, r.name || "Rute"));
       }
 
-      // Skjul recurring ordrer hvis næste service-dato er mere end 14 dage fremme
-      const horizon = new Date();
-      horizon.setDate(horizon.getDate() + 14);
-
       return (orders || [])
         .filter((o) => {
           if (usedOpen.has(o.id)) return false;
@@ -543,10 +539,6 @@ export const useUnassignedJobs = (businessId: string | undefined) => {
           if (entry && entry.statuses.length > 0) {
             const anyActive = entry.statuses.some((st) => st === "active");
             if (!anyActive) return false; // alle på pause/annulleret
-          }
-          if (o.next_service_date) {
-            const nsd = new Date(o.next_service_date);
-            if (nsd > horizon) return false;
           }
           return true;
         })
