@@ -777,6 +777,9 @@ const Planner = () => {
                         {filteredUnassigned.length}
                       </Badge>
                     </div>
+                    <p className="text-[10px] text-muted-foreground leading-snug">
+                      Træk en aftale ind i kalenderen for at planlægge den. Når en aftale med interval markeres som udført, opretter vi automatisk næste aftale på samme rute og medarbejder.
+                    </p>
                     {filteredUnassigned.length > 0 && (
                       <p className="text-[10px] text-muted-foreground tabular-nums">
                         Total værdi: <span className="font-semibold text-foreground">{Math.round(unassignedTotal).toLocaleString("da-DK")} kr</span>
