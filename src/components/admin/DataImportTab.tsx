@@ -256,6 +256,26 @@ const RowDetails = ({ row, entity, headers, mapping }: { row: any; entity: Entit
   );
 };
 
+// ---------- Wizard step indicator ----------
+const WIZARD_STEPS = ["Upload", "Tjek mapping", "Forhåndsvis", "Importér"];
+const WizardSteps = ({ current }: { current: number }) => (
+  <ol className="flex flex-wrap items-center gap-1.5 text-[11px]">
+    {WIZARD_STEPS.map((label, i) => {
+      const done = i < current;
+      const active = i === current;
+      return (
+        <li key={label} className="flex items-center gap-1.5">
+          <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold ${done ? "bg-accent text-accent-foreground" : active ? "bg-foreground text-background" : "bg-muted text-muted-foreground"}`}>
+            {done ? <Check className="h-3 w-3" /> : i + 1}
+          </span>
+          <span className={`font-medium ${active ? "text-foreground" : done ? "text-foreground/70" : "text-muted-foreground"}`}>{label}</span>
+          {i < WIZARD_STEPS.length - 1 && <ArrowRight className="h-3 w-3 text-muted-foreground/40" />}
+        </li>
+      );
+    })}
+  </ol>
+);
+
 const ImportPanel = ({
   entity, businessId, existingEmails, existingProductNumbers, existingExternalOrderNumbers, existingCategories, existingCustomers, existingServices,
   existingByEmail, existingByCvr, existingByCustomerNumber, existingByEan, existingByOrderNumber, existingByProductNumber, existingServiceNames,
