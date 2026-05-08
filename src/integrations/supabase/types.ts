@@ -2568,7 +2568,9 @@ export type Database = {
           business_id: string
           cancelled_at: string | null
           created_at: string
-          customer_id: string
+          customer_email: string | null
+          customer_id: string | null
+          customer_name: string | null
           details: Json | null
           id: string
           interval: string
@@ -2586,7 +2588,9 @@ export type Database = {
           business_id: string
           cancelled_at?: string | null
           created_at?: string
-          customer_id: string
+          customer_email?: string | null
+          customer_id?: string | null
+          customer_name?: string | null
           details?: Json | null
           id?: string
           interval?: string
@@ -2604,7 +2608,9 @@ export type Database = {
           business_id?: string
           cancelled_at?: string | null
           created_at?: string
-          customer_id?: string
+          customer_email?: string | null
+          customer_id?: string | null
+          customer_name?: string | null
           details?: Json | null
           id?: string
           interval?: string
@@ -2852,6 +2858,10 @@ export type Database = {
         Returns: boolean
       }
       interval_to_duration: { Args: { _interval: string }; Returns: string }
+      is_business_owner: {
+        Args: { _business_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_route_assigned_employee: {
         Args: { _route_id: string; _user_id: string }
         Returns: boolean

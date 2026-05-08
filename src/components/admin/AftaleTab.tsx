@@ -201,6 +201,23 @@ const buildAdjustmentItem = (item: any, service?: BusinessService): AdjustmentIt
   };
 };
 
+const toMailItem = (item: any) => ({
+  name: item.service_name,
+  quantity: item.quantity,
+  price: roundPrice(parseNumber(item.total_price, 0)),
+  intervalLabel: item.details?.interval && item.details.interval !== "engangskøb"
+    ? INTERVAL_LABELS[item.details.interval] || item.details.interval
+    : undefined,
+  description: item.details?.description,
+  stepDetails: item.details?.stepDetails?.map((sd: any) => ({
+    label: sd.label,
+    value: sd.value,
+    unit: sd.unit,
+    subtotal: sd.subtotal,
+    price_per_unit: sd.price_per_unit,
+  })),
+});
+
 /* ─── Status config ─── 
    The lifecycle:
    pending    → Ny bestilling, virksomheden skal svare (godkend/tilpas/afvis)
@@ -1004,6 +1021,44 @@ const AftaleTab = ({
           .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
           .eq("order_id", orderId)
           .in("status", ["pending", "active"]);
+      }
+
+      const order = (orders || []).find((o: any) => o.id === orderId) as any;
+      if (order?.customer_email) {
+        const event = responseType === "adjusted" ? "adjusted" : responseType === "accepted" ? "confirmed" : "cancelled";
+        const { data: biz } = await supabase
+          .from("businesses")
+          .select("name, phone, email, address, zip_code, city")
+          .eq("id", businessId)
+          .maybeSingle();
+        const businessAddress = biz
+          ? [biz.address, [biz.zip_code, biz.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")
+          : undefined;
+        const { error: mailErr } = await supabase.functions.invoke("send-transactional-email", {
+          body: {
+            templateName: "order-status-update",
+            recipientEmail: order.customer_email,
+            idempotencyKey: `order-status-${event}-${orderId}-${Date.now()}`,
+            templateData: {
+              customerName: order.customer_name,
+              businessName: biz?.name || businessName,
+              businessPhone: biz?.phone,
+              businessEmail: biz?.email,
+              businessAddress,
+              orderId,
+              event,
+              message: responseMessage || undefined,
+              serviceDate: order.preferred_date || undefined,
+              originalAmount: Number(order.total_amount || 0),
+              proposedAmount: responseType === "adjusted" ? Number(adjustedTotal || 0) : undefined,
+              finalAmount: responseType === "accepted" ? Number(order.total_amount || 0) : undefined,
+              items: (order.order_items || []).map(toMailItem),
+              proposedItems: adjustedData ? adjustedData.map(toMailItem) : undefined,
+              hasRecurring: orderHasRecurring(order),
+            },
+          },
+        });
+        if (mailErr) toast.warning("Aftalen blev opdateret, men mailen kunne ikke sendes.");
       }
 
       toast.success(

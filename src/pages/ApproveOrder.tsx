@@ -85,7 +85,18 @@ const ApproveOrder = () => {
         setLoading(false);
         return;
       }
-      setOrder(data as any);
+      const groupId = (data as any).parent_order_id || data.id;
+      const { data: groupRows } = await supabase
+        .from("orders")
+        .select("*, order_items(*)")
+        .or(`id.eq.${groupId},parent_order_id.eq.${groupId}`);
+      const group = Array.isArray(groupRows) && groupRows.length > 0 ? groupRows : [data];
+      const mergedOrder = {
+        ...data,
+        order_items: group.flatMap((row: any) => row.order_items || []),
+        total_amount: group.reduce((sum: number, row: any) => sum + Number(row.total_amount || 0), 0),
+      };
+      setOrder(mergedOrder as any);
       if (data.business_id) {
         const { data: biz } = await supabase
           .from("businesses")
