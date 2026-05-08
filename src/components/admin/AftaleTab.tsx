@@ -327,9 +327,7 @@ const getActions = (order: any): { canRespond: boolean; canProgress: boolean; ne
     return { canRespond: false, canProgress: true, nextStatus: "in_progress", nextLabel: "Marker som i gang" };
   }
   if (status === "in_progress") {
-    // For recurring: the button says "Udført & plan næste"
-    const isRecurring = (order.order_items || []).some((item: any) => item.details?.interval && item.details.interval !== "engangskøb");
-    return { canRespond: false, canProgress: true, nextStatus: "completed", nextLabel: isRecurring ? "Udført — plan næste" : "Marker som udført" };
+    return { canRespond: false, canProgress: true, nextStatus: "completed", nextLabel: "Udført" };
   }
   return { canRespond: false, canProgress: false, nextStatus: null, nextLabel: null };
 };
