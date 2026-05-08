@@ -303,27 +303,65 @@ const OrdersView = () => {
         // Uden dette ville kunden stadig se den oprindelige pris under "Abonnementer".
         const { data: linkedSubs } = await supabase
           .from("subscriptions")
-          .select("id, service_id, total_price, details")
+          .select("id, service_id, total_price, details, interval")
           .eq("order_id", orderId);
 
         const items: any[] = (order.adjusted_details as any)?.items || [];
+        const handledServiceIds = new Set<string>();
         for (const sub of linkedSubs || []) {
           // Match item på service_id; fallback til første item hvis kun ét.
           const match = items.find((it) => it.service_id === sub.service_id)
             || (items.length === 1 ? items[0] : null);
           const update: any = { status: "active" };
           if (match) {
+            handledServiceIds.add(match.service_id);
             if (typeof match.total_price === "number") update.total_price = match.total_price;
             if (match.details) {
               update.details = {
                 ...(sub.details as any || {}),
                 ...match.details,
               };
+              // Sync interval hvis virksomheden har ændret det (fx engangskøb → hver_14_dag)
+              const newInterval = match.details?.interval;
+              if (newInterval && newInterval !== sub.interval) {
+                update.interval = newInterval;
+                // Hvis det nye interval er engangskøb, så er det ikke længere et abonnement
+                if (newInterval === "engangskøb") {
+                  update.status = "cancelled";
+                  update.cancelled_at = new Date().toISOString();
+                }
+              }
             }
           } else if (typeof order.adjusted_amount === "number") {
             update.total_price = order.adjusted_amount;
           }
           await supabase.from("subscriptions").update(update).eq("id", sub.id);
+        }
+
+        // Opret nye abonnementer for items med tilbagevendende interval som ikke
+        // havde et abonnement i forvejen (fx ordre var engangskøb → ændret til hver_14_dag).
+        const newSubs = items
+          .filter((it: any) =>
+            it?.service_id &&
+            !handledServiceIds.has(it.service_id) &&
+            it?.details?.interval &&
+            it.details.interval !== "engangskøb"
+          )
+          .map((it: any) => ({
+            customer_id: order.customer_id,
+            business_id: order.business_id,
+            service_id: it.service_id,
+            order_id: orderId,
+            service_name: it.service_name || it.name || "Service",
+            interval: it.details.interval,
+            total_price: typeof it.total_price === "number" ? it.total_price : 0,
+            details: it.details || {},
+            status: "active" as const,
+            customer_email: (order as any).customer_email || null,
+            customer_name: (order as any).customer_name || null,
+          }));
+        if (newSubs.length > 0) {
+          await supabase.from("subscriptions").insert(newSubs as any);
         }
       } else {
         await supabase.from("subscriptions")
