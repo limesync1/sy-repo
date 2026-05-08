@@ -265,7 +265,15 @@ const OrdersView = ({ mode = "all" }: { mode?: "all" | "onetime" }) => {
   // Engangskøb-fane viser kun bestillinger uden tilbagevendende interval på nogen item.
   const orders = mode === "onetime"
     ? (allOrders || []).filter((o: any) => {
-        const items = (o.order_items || []) as any[];
+        // Brug "effektive" items: hvis kunden har accepteret et tilpasset
+        // forslag, er det de tilpassede items der gælder (her kan en
+        // engangskøb-ordre være ændret til et abonnement og bør derfor
+        // ikke længere vises under "Engangskøb").
+        const accepted = o.business_response === "adjusted" && o.customer_response === "accepted";
+        const adjustedItems = accepted ? (o.adjusted_details?.items as any[] | undefined) : undefined;
+        const items = (adjustedItems && adjustedItems.length > 0
+          ? adjustedItems
+          : (o.order_items || [])) as any[];
         return items.length > 0 && items.every((it) => !it?.details?.interval || it.details.interval === "engangskøb");
       })
     : allOrders;

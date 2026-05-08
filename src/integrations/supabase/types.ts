@@ -2880,6 +2880,10 @@ export type Database = {
         Returns: string
       }
       cleanup_accounting_sync_log: { Args: never; Returns: undefined }
+      delete_cancelled_order: {
+        Args: { _order_id: string }
+        Returns: undefined
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean

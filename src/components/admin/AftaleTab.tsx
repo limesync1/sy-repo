@@ -1131,6 +1131,31 @@ const AftaleTab = ({
     }
   };
 
+  // Slet en annulleret aftale permanent. Tilkalder en SECURITY DEFINER funktion
+  // der både validerer ejerskab + status og rydder relaterede rækker
+  // (rute-stops, abonnementer, faktura-links, notifikationer m.fl.).
+  const handleDeleteOrder = async (order: any) => {
+    if (order.status !== "cancelled") {
+      toast.error("Kun annullerede aftaler kan slettes");
+      return;
+    }
+    if (!confirm("Slet denne annullerede aftale permanent? Dette kan ikke fortrydes.")) return;
+    try {
+      const { error } = await supabase.rpc("delete_cancelled_order" as any, { _order_id: order.id });
+      if (error) throw error;
+      toast.success("Aftale slettet");
+      setExpandedOrder(null);
+      qc.invalidateQueries({ queryKey: ["orders"] });
+      qc.invalidateQueries({ queryKey: ["my-orders"] });
+      qc.invalidateQueries({ queryKey: ["business-subscriptions"] });
+      qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
+      qc.invalidateQueries({ queryKey: ["routes-for-range"] });
+      qc.invalidateQueries({ queryKey: ["stops-for-routes"] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Kunne ikke slette aftalen");
+    }
+  };
+
   const handleResponse = async (orderId: string) => {
     try {
       const adjustedData = responseType === "adjusted" ? adjustedItems[orderId] : null;
@@ -2024,6 +2049,14 @@ const AftaleTab = ({
                           <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, "cancelled"); }}
                             className="ml-auto gap-1.5 rounded-lg border-border text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
                             <XCircle className="h-3.5 w-3.5" /> Annuller
+                          </Button>
+                        )}
+
+                        {/* Slet — kun tilgængelig for annullerede aftaler */}
+                        {order.status === "cancelled" && (
+                          <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order); }}
+                            className="ml-auto gap-1.5 rounded-lg border-destructive/40 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
+                            <Trash2 className="h-3.5 w-3.5" /> Slet aftale
                           </Button>
                         )}
 
