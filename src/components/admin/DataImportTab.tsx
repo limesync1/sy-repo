@@ -1137,7 +1137,7 @@ const ImportPanel = ({
             {filteredRows.length === 0 ? 0 : safePage * PAGE_SIZE + 1}–{Math.min((safePage + 1) * PAGE_SIZE, filteredRows.length)} af {filteredRows.length.toLocaleString("da-DK")}
           </span>
         </div>
-        <div className="overflow-x-auto">
+        <div className="hidden overflow-x-auto md:block">
         <table className="w-full text-xs">
           <thead className="bg-secondary/60">
             <tr className="text-left">
