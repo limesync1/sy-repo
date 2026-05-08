@@ -585,19 +585,34 @@ export function CustomerNotificationsSettings({
             </div>
           </div>
 
+          {/* Unified schedule — gælder for både e-mail og SMS for denne besked */}
+          {activeEvent === "service_upcoming" && (
+            <div className="border-b border-border bg-muted/10 p-4 sm:p-5">
+              <SchedulePicker
+                label="Hvornår skal beskeden sendes?"
+                days={drafts[activeEvent].days}
+                time={drafts[activeEvent].time}
+                onChange={(s) => {
+                  setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], days: s.days, time: s.time } }));
+                  setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], days: s.days, time: s.time } }));
+                }}
+              />
+            </div>
+          )}
+
           {/* Channel tabs */}
-          <div className="flex border-b border-border bg-card px-3">
+          <div className="flex overflow-x-auto border-b border-border bg-card px-2 sm:px-3">
             {(["email", "sms"] as const).map((c) => {
               const active = channelTab === c;
               const Icon = c === "email" ? Mail : MessageSquare;
-              const enabled = c === "email" ? drafts[activeEvent].enabled : smsDrafts[activeEvent].enabled && smsEnabled;
+              const enabled = c === "email" ? drafts[activeEvent].enabled : smsDrafts[activeEvent].enabled;
               const dirty = c === "email" ? emailDirty : smsDirty;
               return (
                 <button
                   key={c}
                   onClick={() => setChannelTab(c)}
                   className={cn(
-                    "relative flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors",
+                    "relative flex shrink-0 items-center gap-2 px-3 py-3 text-sm font-medium transition-colors sm:px-4",
                     active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
                   )}
                 >
@@ -620,7 +635,7 @@ export function CustomerNotificationsSettings({
           {channelTab === "email" ? (
             <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
               {/* Editor */}
-              <div className="space-y-4 p-5">
+              <div className="space-y-4 p-4 sm:p-5">
                 <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3 hover:bg-muted/50 transition-colors">
                   <div>
                     <p className="text-xs font-semibold text-foreground">Send denne e-mail til kunden</p>
@@ -631,16 +646,6 @@ export function CustomerNotificationsSettings({
                     onCheckedChange={(v) => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: v } }))}
                   />
                 </label>
-
-                {activeEvent === "service_upcoming" && (
-                  <SchedulePicker
-                    label="Hvornår skal e-mailen sendes?"
-                    channel="email"
-                    days={drafts[activeEvent].days}
-                    time={drafts[activeEvent].time}
-                    onChange={(s) => setDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], days: s.days, time: s.time } }))}
-                  />
-                )}
 
                 <div className="space-y-2">
                   <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Emnelinje</Label>
@@ -687,52 +692,27 @@ export function CustomerNotificationsSettings({
               </div>
 
               {/* Preview */}
-              <div className="border-t border-border bg-muted/20 p-5 lg:border-l lg:border-t-0">
+              <div className="border-t border-border bg-muted/20 p-4 sm:p-5 lg:border-l lg:border-t-0">
                 <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Sådan ser kunden den</p>
                 <EmailPreview subject={drafts[activeEvent].subject} body={drafts[activeEvent].body} businessName={exampleBizName} />
               </div>
             </div>
           ) : (
-            !smsEnabled ? (
-              <div className="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-                  <MessageSquare className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="max-w-sm">
-                  <p className="text-sm font-semibold text-foreground">I sender ikke SMS lige nu</p>
-                  <p className="mt-1 text-[12px] text-muted-foreground">
-                    Slå SMS til, hvis I også vil have beskeden landet direkte i kundens lomme — ud over e-mailen.
-                    Afsenderen står som "Serviceydere", og vi tilføjer automatisk jeres firmanavn og telefonnummer, så kunden ved hvem det er fra.
-                  </p>
-                </div>
-                <Button size="sm" onClick={() => onSmsEnabledChange(true)}>
-                  <MessageSquare className="mr-1.5 h-3.5 w-3.5" /> Slå SMS til
-                </Button>
-              </div>
-            ) : (
             <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
-              <div className="space-y-4 p-5">
+              <div className="space-y-4 p-4 sm:p-5">
                 <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3 hover:bg-muted/50 transition-colors">
                   <div>
                     <p className="text-xs font-semibold text-foreground">Send SMS for netop denne besked</p>
-                    <p className="text-[11px] text-muted-foreground">Slå fra, hvis I kun vil sende e-mail for denne specifikke hændelse — uden at slå SMS fra for de andre.</p>
+                    <p className="text-[11px] text-muted-foreground">Slå til, hvis kunden også skal have en kort SMS — ud over e-mailen.</p>
                   </div>
                   <Switch
                     checked={smsDrafts[activeEvent].enabled}
-                    disabled={!smsEnabled}
-                    onCheckedChange={(v) => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: v } }))}
+                    onCheckedChange={(v) => {
+                      setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], enabled: v } }));
+                      if (v && !smsEnabled) onSmsEnabledChange(true);
+                    }}
                   />
                 </label>
-
-                {activeEvent === "service_upcoming" && (
-                  <SchedulePicker
-                    label="Hvornår skal SMS'en sendes?"
-                    channel="sms"
-                    days={smsDrafts[activeEvent].days}
-                    time={smsDrafts[activeEvent].time}
-                    onChange={(s) => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], days: s.days, time: s.time } }))}
-                  />
-                )}
 
                 <div className="space-y-2">
                   <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">SMS-tekst</Label>
@@ -740,7 +720,6 @@ export function CustomerNotificationsSettings({
                     ref={smsCursor.ref}
                     rows={6}
                     value={smsDrafts[activeEvent].body}
-                    disabled={!smsEnabled}
                     maxLength={459}
                     onChange={(ev) => setSmsDrafts((p) => ({ ...p, [activeEvent]: { ...p[activeEvent], body: ev.target.value } }))}
                   />
@@ -774,12 +753,11 @@ export function CustomerNotificationsSettings({
                 </div>
               </div>
 
-              <div className="border-t border-border bg-muted/20 p-5 lg:border-l lg:border-t-0">
+              <div className="border-t border-border bg-muted/20 p-4 sm:p-5 lg:border-l lg:border-t-0">
                 <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Sådan ser kunden den</p>
                 <SmsPreview body={smsDrafts[activeEvent].body} businessName={exampleBizName} businessPhone={exampleBizPhone} />
               </div>
             </div>
-            )
           )}
         </div>
       </div>
