@@ -422,7 +422,8 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
               <Textarea value={notes} onChange={(e) => setNotes(e.target.value.slice(0, 1000))} rows={2} placeholder="Fx kode til hoveddør, særlige aftaler…" className="bg-background resize-none" />
             </div>
 
-            {/* Regnskabs-felter */}
+            {/* Regnskabs-felter — vises kun hvis virksomheden har integreret et regnskabsprogram */}
+            {accountingEnabled && (
             <div className="rounded-lg border bg-card p-3 space-y-3">
               <p className="text-xs font-medium text-foreground">Regnskab & fakturering</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -474,6 +475,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
                 <Switch checked={isBlocked} onCheckedChange={setIsBlocked} />
               </div>
             </div>
+            )}
 
             {/* Ekstra kontaktpersoner — kun for erhvervskunder */}
             {type === "business" && (
