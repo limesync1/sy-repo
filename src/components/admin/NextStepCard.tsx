@@ -56,7 +56,7 @@ function computeStep(order: Order): Step | null {
   if (s === "pending" && order.business_response === "adjusted") {
     return {
       title: "Afventer kundens svar",
-      description: "Kunden skal godkende dit tilpassede forslag. Du kan rykke kunden via mail.",
+      description: "Kunden skal godkende dit tilpassede forslag, vent venligst.",
       icon: Clock, tone: "info",
     };
   }
