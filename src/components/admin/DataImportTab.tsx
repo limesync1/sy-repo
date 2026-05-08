@@ -976,8 +976,8 @@ const ImportPanel = ({
                 {detection.is_mixed && detection.recommendations.map((r) => r !== entity && (
                   <button key={r}
                     onClick={() => window.dispatchEvent(new CustomEvent("dataimport:switch-entity", { detail: r }))}
-                    className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-0.5 text-[10.5px] font-medium text-foreground hover:bg-secondary/60">
-                    <ArrowRight className="h-2.5 w-2.5" /> Importér også som {r === "customers" ? "kunder" : r === "services" ? "produkter" : "aftaler"}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-accent bg-accent text-accent-foreground px-3 py-1 text-xs font-semibold shadow-sm hover:brightness-95 transition">
+                    <ArrowRight className="h-3 w-3" /> Importér også som {r === "customers" ? "kunder" : r === "services" ? "produkter" : "aftaler"}
                   </button>
                 ))}
                 {!detection.is_mixed && detection.primary !== entity && (
