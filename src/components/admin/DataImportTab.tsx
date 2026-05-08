@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader, SectionCard, EmptyState } from "@/components/admin/shared/AdminUI";
+import { PageSkeleton } from "@/components/admin/shared/Skeletons";
 
 type EntityType = "customers" | "services" | "orders";
 type Row = Record<string, string>;
