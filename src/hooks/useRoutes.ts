@@ -533,11 +533,25 @@ export const useUnassignedJobs = (businessId: string | undefined) => {
         (rts || []).forEach((r: any) => routeNameById.set(r.id, r.name || "Rute"));
       }
 
+      const acceptedAdjustedItems = (order: any) => (
+        order.business_response === "adjusted" &&
+        order.customer_response === "accepted" &&
+        Array.isArray(order.adjusted_details?.items)
+      ) ? order.adjusted_details.items : null;
+
+      const hasRecurringInterval = (items: any[]) => items.some((it) => {
+        const interval = it?.details?.interval;
+        return interval && interval !== "engangskøb";
+      });
+
       return (orders || [])
         .filter((o) => {
           if (usedOpen.has(o.id)) return false;
+          const adjustedItems = acceptedAdjustedItems(o);
+          const effectiveItems = adjustedItems || o.order_items || [];
+          const isAcceptedOneTimeAdjustment = !!adjustedItems && !hasRecurringInterval(effectiveItems);
           const entry = subsByOrder.get(o.id);
-          if (entry && entry.statuses.length > 0) {
+          if (entry && entry.statuses.length > 0 && !isAcceptedOneTimeAdjustment) {
             const anyActive = entry.statuses.some((st) => st === "active");
             if (!anyActive) return false; // alle på pause/annulleret
           }
@@ -545,9 +559,13 @@ export const useUnassignedJobs = (businessId: string | undefined) => {
         })
         .map((o) => {
           const entry = subsByOrder.get(o.id);
-          const prefId = entry?.preferredRouteId || null;
+          const adjustedItems = acceptedAdjustedItems(o);
+          const effectiveItems = adjustedItems || o.order_items || [];
+          const isAcceptedOneTimeAdjustment = !!adjustedItems && !hasRecurringInterval(effectiveItems);
+          const prefId = isAcceptedOneTimeAdjustment ? null : (entry?.preferredRouteId || null);
           return {
             ...o,
+            total_amount: o.customer_response === "accepted" ? (o.adjusted_amount ?? o.total_amount) : o.total_amount,
             preferred_route_id: prefId,
             preferred_route_name: prefId ? (routeNameById.get(prefId) || null) : null,
           };
@@ -566,7 +584,7 @@ export const useOrderForStop = (orderId: string | null | undefined) => {
         .select(`
           *,
           order_items (
-            service_name, quantity, unit_price, total_price, details,
+            service_id, service_name, quantity, unit_price, total_price, details,
             services ( id, description, service_category, subcategory, pricing_type, unit, base_price, image_url, interval_options )
           ),
           businesses ( name, phone, email )
@@ -575,6 +593,25 @@ export const useOrderForStop = (orderId: string | null | undefined) => {
         .maybeSingle();
       if (error) throw error;
 
+      const effectiveOrder = (() => {
+        const items = (data as any)?.business_response === "adjusted" &&
+          (data as any)?.customer_response === "accepted" &&
+          Array.isArray((data as any)?.adjusted_details?.items)
+          ? (data as any).adjusted_details.items.map((item: any) => ({
+              ...item,
+              services: (data as any)?.order_items?.find((original: any) =>
+                original.service_id === item.service_id || original.service_name === item.service_name,
+              )?.services,
+            }))
+          : null;
+
+        return items ? {
+          ...(data || {}),
+          total_amount: (data as any)?.adjusted_amount ?? (data as any)?.total_amount,
+          order_items: items,
+        } : (data || {});
+      })();
+
       // Also fetch any active/paused subscription tied to this order so the
       // planner sees if the visit is recurring and on which interval.
       const { data: subs } = await supabase
@@ -582,7 +619,7 @@ export const useOrderForStop = (orderId: string | null | undefined) => {
         .select("id, interval, status, next_service_date, paused_at, total_price, service_name")
         .eq("order_id", orderId!);
 
-      return { ...(data || {}), subscriptions: subs || [] } as any;
+      return { ...effectiveOrder, subscriptions: subs || [] } as any;
     },
   });
 };
