@@ -1331,6 +1331,72 @@ const ImportPanel = ({
           </tbody>
         </table>
         </div>
+        {/* Mobile card-list view */}
+        <div className="divide-y divide-border md:hidden">
+          {visibleRows.length === 0 && (
+            <div className="px-4 py-6 text-center text-xs text-muted-foreground">Ingen rækker.</div>
+          )}
+          {visibleRows.map((r: any, i) => {
+            const realIdx = prepared.indexOf(r);
+            const sel = isSelected(realIdx, r);
+            const isOpen = expanded.has(realIdx);
+            const title =
+              entity === "customers"
+                ? (r.company_name || r.name || "—")
+                : entity === "services"
+                ? (r.name || "—")
+                : `${r.customer_name || "—"} · ${r.service_name || ""}`;
+            const sub =
+              entity === "customers"
+                ? [r.email, r.phone, r.city].filter(Boolean).join(" · ")
+                : entity === "services"
+                ? [r.base_price != null ? `${r.base_price.toLocaleString("da-DK")} kr` : null, r.unit, r.interval || "engangskøb"].filter(Boolean).join(" · ")
+                : [r.external_order_number, r.preferred_date, r.total_amount != null ? `${r.total_amount.toLocaleString("da-DK")} kr` : null].filter(Boolean).join(" · ");
+            return (
+              <div key={`m-${safePage * PAGE_SIZE + i}`} className={`px-3 py-3 ${!sel ? "opacity-60" : ""}`}>
+                <div className="flex items-start gap-2">
+                  <Checkbox
+                    className="mt-0.5"
+                    checked={sel}
+                    onCheckedChange={(v) => {
+                      if (v) {
+                        setExcluded((p) => { const n = new Set(p); n.delete(realIdx); return n; });
+                        if (r.errors.length > 0 || r.isDuplicate) setForceInclude((p) => new Set(p).add(realIdx));
+                      } else {
+                        setForceInclude((p) => { const n = new Set(p); n.delete(realIdx); return n; });
+                        setExcluded((p) => new Set(p).add(realIdx));
+                      }
+                    }}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-foreground">{title}</p>
+                    {sub && <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{sub}</p>}
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                      {r.errors.length > 0 ? (
+                        <Badge variant="destructive" className="text-[10px]">Fejl: {r.errors.join(", ")}</Badge>
+                      ) : r.isDuplicate ? (
+                        <Badge variant="secondary" className="text-[10px]">Dublet</Badge>
+                      ) : (
+                        <Badge className="bg-accent/15 text-accent hover:bg-accent/20 text-[10px]">Klar</Badge>
+                      )}
+                      {entity === "customers" && (
+                        <Badge variant="outline" className="text-[10px]">{r.type === "business" ? "Erhverv" : "Privat"}</Badge>
+                      )}
+                    </div>
+                  </div>
+                  <button onClick={() => toggleExpand(realIdx)} className="rounded p-1 text-muted-foreground hover:bg-secondary hover:text-foreground">
+                    {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  </button>
+                </div>
+                {isOpen && (
+                  <div className="mt-3 rounded-md bg-secondary/30 p-3">
+                    <RowDetails row={r} entity={entity} headers={headers} mapping={mapping} />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
         {pageCount > 1 && (
           <div className="flex items-center justify-between gap-2 border-t border-border bg-secondary/20 px-3 py-2 text-[11px] text-muted-foreground">
             <span>Side <span className="font-semibold text-foreground">{safePage + 1}</span> af {pageCount}</span>
