@@ -28,12 +28,17 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) return json({ error: "Missing auth" }, 401);
+    if (!authHeader?.startsWith("Bearer ")) return json({ error: "Missing auth" }, 401);
     const userClient = createClient(SUPABASE_URL, ANON_KEY, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: { user } } = await userClient.auth.getUser();
-    if (!user) return json({ error: "Unauthorized" }, 401);
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(token);
+    if (claimsErr || !claimsData?.claims?.sub) {
+      console.error("[accounting-action] auth failed", claimsErr);
+      return json({ error: "Unauthorized" }, 401);
+    }
+    const user = { id: claimsData.claims.sub as string };
 
     const { order_id, action, params } = await req.json();
     if (!order_id || !action) return json({ error: "Missing order_id/action" }, 400);
