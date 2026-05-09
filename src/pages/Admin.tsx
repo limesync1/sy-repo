@@ -962,6 +962,16 @@ const ServiceForm = ({
   const [intervalOptions, setIntervalOptions] = useState<string[]>(
     existingService?.interval_options || ["engangskøb"]
   );
+  // Standard medarbejdere (arves af nye aftaler) + standard varighed
+  const [defaultEmployeeIds, setDefaultEmployeeIds] = useState<string[]>(
+    Array.isArray(existingService?.default_employee_ids) ? existingService.default_employee_ids : []
+  );
+  const [estimatedDurationMinutes, setEstimatedDurationMinutes] = useState<string>(
+    existingService?.estimated_duration_minutes != null
+      ? String(existingService.estimated_duration_minutes)
+      : "60"
+  );
+  const { data: businessEmployees } = useEmployees(businessId);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiDescAutoTried, setAiDescAutoTried] = useState(!!existingService?.description);
 
