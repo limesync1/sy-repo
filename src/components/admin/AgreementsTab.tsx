@@ -154,6 +154,7 @@ const AgreementsTab = ({ businessId, businessName }: Props) => {
   const { data: allCustomers = [] } = useAllCustomers(businessId);
   const ensure = useEnsureOccurrences();
   const enqueueMonthly = useEnqueueMonthlyInvoices();
+  const itemsBulk = useAgreementItemsBulk(useMemo(() => agreements.map(a => a.id), [agreements]));
 
   const hasServices = allServices.length > 0;
   const hasCustomers = allCustomers.length > 0;
@@ -372,7 +373,13 @@ const AgreementsTab = ({ businessId, businessName }: Props) => {
       ) : (
         <div className="space-y-2">
           {filtered.map((a) => (
-            <AgreementRow key={a.id} agreement={a} businessId={businessId} onClick={() => setSelectedId(a.id)} />
+            <AgreementRow
+              key={a.id}
+              agreement={a}
+              businessId={businessId}
+              items={itemsBulk.data?.[a.id] || []}
+              onClick={() => setSelectedId(a.id)}
+            />
           ))}
         </div>
       )}
