@@ -425,7 +425,12 @@ const AgreementRow = ({ agreement, businessId, onClick }: { agreement: Agreement
   );
 };
 
-/* ─── Create dialog ─── */
+/* ─── Create dialog ───
+   Følger samme tankegang som kunde-bestillingsflowet (DynamicServiceCard):
+   1) Vælg kunde og service
+   2) Service-typen styrer hvilke felter der vises (fast pris / timepris / prisberegner)
+   3) Service-typen styrer også hvilke intervaller man kan vælge
+   4) Total beregnes løbende — kan stadig overstyres manuelt */
 const CreateAgreementDialog = ({
   businessId, open, onOpenChange,
 }: { businessId: string; open: boolean; onOpenChange: (v: boolean) => void }) => {
@@ -442,23 +447,70 @@ const CreateAgreementDialog = ({
   const [endDate, setEndDate] = useState<string>("");
   const [templateId, setTemplateId] = useState<string>("__none__");
   const [time, setTime] = useState<string>("08:00");
-  const [price, setPrice] = useState<string>("");
   const [duration, setDuration] = useState<string>("");
   const [notes, setNotes] = useState("");
 
+  // Pricing-state spejler DynamicServiceCard: timer + step-værdier + manuel override
+  const [hours, setHours] = useState<number>(1);
+  const [stepValues, setStepValues] = useState<Record<string, number>>({});
+  const [priceOverride, setPriceOverride] = useState<string>("");
+
   const customer = customers.find((c) => c.id === customerId);
-  const service = services.find((s) => s.id === serviceId);
+  const service = services.find((s) => s.id === serviceId) as (Service & { calculator_steps?: CalculatorStep[] }) | undefined;
+
+  // Tilladte intervaller for den valgte service. Falder tilbage til
+  // ["engangskøb"] hvis service ikke definerer noget.
+  const allowedIntervals = useMemo<AgreementInterval[]>(() => {
+    const opts = service?.interval_options;
+    if (!opts || opts.length === 0) return ["engangskøb"];
+    const mapped = opts
+      .map((o) => SERVICE_TO_AGREEMENT_INTERVAL[o])
+      .filter((x): x is AgreementInterval => !!x);
+    return mapped.length > 0 ? mapped : ["engangskøb"];
+  }, [service]);
+
+  // Sortér calculator-steps på samme måde som booking-kortet
+  const sortedSteps = useMemo<CalculatorStep[]>(() => {
+    return [...(service?.calculator_steps || [])].sort(
+      (a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0),
+    );
+  }, [service]);
+
+  // Beregnet total ud fra service-typen
+  const calculatedTotal = useMemo<number>(() => {
+    if (!service) return 0;
+    if (service.pricing_type === "fast_pris") return Number(service.base_price || 0);
+    if (service.pricing_type === "timepris") return Number(service.base_price || 0) * hours;
+    if (service.pricing_type === "prisberegner") {
+      return sortedSteps.reduce((sum, s: any) => sum + (stepValues[s.id] || 0) * Number(s.price_per_unit || 0), 0);
+    }
+    return 0;
+  }, [service, hours, stepValues, sortedSteps]);
+
+  const totalPrice = priceOverride.trim() !== "" ? Number(priceOverride) : roundPrice(calculatedTotal);
 
   const handleServiceChange = (id: string) => {
     setServiceId(id);
-    const s = services.find((x) => x.id === id);
-    if (s) {
-      setPrice(String(s.base_price ?? 0));
-      if ((s as any).estimated_duration_minutes) setDuration(String((s as any).estimated_duration_minutes));
-    }
+    const s = services.find((x) => x.id === id) as (Service & { calculator_steps?: CalculatorStep[] }) | undefined;
+    if (!s) return;
+    // Reset pricing-state til service-defaults
+    setPriceOverride("");
+    setHours(1);
+    const initial: Record<string, number> = {};
+    (s.calculator_steps || []).forEach((step: any) => {
+      initial[step.id] = step.default_value ?? step.min_value ?? 0;
+    });
+    setStepValues(initial);
+    if ((s as any).estimated_duration_minutes) setDuration(String((s as any).estimated_duration_minutes));
+    // Hvis valgte interval ikke er tilladt for ny service → fald tilbage
+    const opts = (s.interval_options || ["engangskøb"])
+      .map((o) => SERVICE_TO_AGREEMENT_INTERVAL[o])
+      .filter((x): x is AgreementInterval => !!x);
+    const fallback = opts[0] || "engangskøb";
+    setInterval((prev) => (opts.includes(prev) ? prev : fallback));
   };
 
-  const canSave = !!customer && !!service && !!startDate;
+  const canSave = !!customer && !!service && !!startDate && totalPrice > 0;
 
   const handleSave = async () => {
     if (!customer || !service) return;
@@ -466,7 +518,27 @@ const CreateAgreementDialog = ({
       toast.error("Kunden mangler email — tilføj email før aftalen kan oprettes");
       return;
     }
-    const totalPrice = Number(price) || 0;
+    // Byg item-detaljer der matcher pricing-modellen — så aftalen indeholder
+    // samme "snapshot" som en bestilling og kan vises identisk på fakturaen.
+    let details: Record<string, unknown> = {};
+    let quantity = 1;
+    let unitPrice = totalPrice;
+    if (service.pricing_type === "timepris") {
+      details = { hours, hourly_rate: Number(service.base_price || 0) };
+      quantity = hours;
+      unitPrice = Number(service.base_price || 0);
+    } else if (service.pricing_type === "prisberegner") {
+      details = {
+        steps: sortedSteps.map((s: any) => ({
+          id: s.id, label: s.label, unit: s.unit,
+          value: stepValues[s.id] || 0,
+          price_per_unit: Number(s.price_per_unit || 0),
+          subtotal: roundPrice((stepValues[s.id] || 0) * Number(s.price_per_unit || 0)),
+        })),
+      };
+    }
+    const pricingSnapshot = buildPricingSnapshot(service);
+
     await create.mutateAsync({
       business_id: businessId,
       business_customer_id: customer.type === "business" ? customer.id : null,
@@ -494,10 +566,10 @@ const CreateAgreementDialog = ({
       items: [{
         service_id: service.id,
         service_name: service.name,
-        quantity: 1,
-        unit_price: totalPrice,
+        quantity,
+        unit_price: unitPrice,
         total_price: totalPrice,
-        details: {},
+        details: { ...details, pricing_snapshot: pricingSnapshot },
       }],
     });
     toast.success("Aftale oprettet");
@@ -506,16 +578,16 @@ const CreateAgreementDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0">
+      <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto p-0 gap-0">
         <DialogHeader className="px-6 py-4 border-b shrink-0">
           <DialogTitle className="text-base">Ny aftale</DialogTitle>
           <DialogDescription className="text-xs">
-            Vælg kunde og service — vi opretter automatisk besøg i kalenderen efter intervallet.
+            Vælg kunde og service, justér felterne præcis som kunden ville selv — aftalen kører automatisk fremover.
           </DialogDescription>
         </DialogHeader>
 
         <div className="px-6 py-5 space-y-5">
-          {/* ── Sektion 1: Kunde ── */}
+          {/* ── 1. Kunde ── */}
           <FormSection icon={<User className="h-3.5 w-3.5" />} title="Kunde" step={1}>
             {customers.length === 0 ? (
               <InlineCallout
@@ -551,7 +623,7 @@ const CreateAgreementDialog = ({
             )}
           </FormSection>
 
-          {/* ── Sektion 2: Service ── */}
+          {/* ── 2. Service ── */}
           <FormSection icon={<Package className="h-3.5 w-3.5" />} title="Service" step={2}>
             {services.length === 0 ? (
               <InlineCallout
@@ -560,126 +632,301 @@ const CreateAgreementDialog = ({
                 action={<Button size="sm" variant="outline" asChild><a href="/virksomhed?tab=services"><Package className="h-3.5 w-3.5 mr-1.5" />Opret service</a></Button>}
               />
             ) : (
-              <>
-                <Select value={serviceId} onValueChange={handleServiceChange}>
-                  <SelectTrigger><SelectValue placeholder="Vælg service" /></SelectTrigger>
-                  <SelectContent>
-                    {services.map((s) => (
-                      <SelectItem key={s.id} value={s.id}>
-                        <span className="flex items-center gap-2">
-                          <span>{s.name}</span>
-                          {s.base_price ? (
-                            <span className="text-[10px] tabular-nums text-muted-foreground">{Math.round(Number(s.base_price)).toLocaleString("da-DK")} kr</span>
-                          ) : null}
+              <Select value={serviceId} onValueChange={handleServiceChange}>
+                <SelectTrigger><SelectValue placeholder="Vælg service" /></SelectTrigger>
+                <SelectContent>
+                  {services.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      <span className="flex items-center gap-2">
+                        <span>{s.name}</span>
+                        <span className="text-[10px] tabular-nums text-muted-foreground">
+                          {s.pricing_type === "fast_pris" && `${Math.round(Number(s.base_price || 0))} kr`}
+                          {s.pricing_type === "timepris" && `${Math.round(Number(s.base_price || 0))} kr/t`}
+                          {s.pricing_type === "prisberegner" && "Prisberegner"}
                         </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {service && (
-                  <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
-                    <Badge variant="secondary" className="rounded-md">
-                      <Tag className="h-2.5 w-2.5 mr-1" />Standardpris {Math.round(Number((service as any).base_price || 0)).toLocaleString("da-DK")} kr
-                    </Badge>
-                    {(service as any).estimated_duration_minutes && (
-                      <Badge variant="secondary" className="rounded-md">
-                        <Clock className="h-2.5 w-2.5 mr-1" />{(service as any).estimated_duration_minutes} min
-                      </Badge>
-                    )}
-                    <span className="text-muted-foreground">→ kan overstyres herunder</span>
-                  </div>
-                )}
-              </>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             )}
           </FormSection>
 
-          {/* ── Sektion 3: Tid & interval ── */}
-          <FormSection icon={<Repeat className="h-3.5 w-3.5" />} title="Tid & interval" step={3}>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs">Interval</Label>
-                <Select value={interval} onValueChange={(v) => setInterval(v as AgreementInterval)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {(Object.keys(INTERVAL_LABELS) as AgreementInterval[]).map((k) => (
-                      <SelectItem key={k} value={k}>{INTERVAL_LABELS[k]}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Standard-rute</Label>
-                <Select value={templateId} onValueChange={setTemplateId}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none__">Ingen (lægges i pool)</SelectItem>
-                    {templates.map((t) => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.name}{t.weekday !== null ? ` · ${WEEKDAY_LABELS[t.weekday]}` : ""}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Startdato</Label>
-                <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Slutdato (valgfri)</Label>
-                <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Foretrukken starttid</Label>
-                <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Varighed (min)</Label>
-                <Input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="fx 45" />
-              </div>
-            </div>
-          </FormSection>
+          {/* ── 3. Tilpas service (samme felter som kunden ville se) ── */}
+          {service && (
+            <FormSection icon={<Calculator className="h-3.5 w-3.5" />} title="Tilpas service" step={3}>
+              <ServicePricingPanel
+                service={service}
+                sortedSteps={sortedSteps}
+                hours={hours}
+                onHoursChange={setHours}
+                stepValues={stepValues}
+                onStepChange={(id, v) => setStepValues((prev) => ({ ...prev, [id]: v }))}
+                calculatedTotal={calculatedTotal}
+              />
+            </FormSection>
+          )}
 
-          {/* ── Sektion 4: Pris & fakturering ── */}
-          <FormSection icon={<CreditCard className="h-3.5 w-3.5" />} title="Pris & fakturering" step={4}>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs">Pris pr. besøg (kr)</Label>
-                <Input type="number" value={price} onChange={(e) => setPrice(e.target.value)} />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Fakturering</Label>
-                <Select value={billingModel} onValueChange={(v) => setBillingModel(v as AgreementBillingModel)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {(Object.keys(BILLING_MODEL_LABELS) as AgreementBillingModel[]).map((k) => (
-                      <SelectItem key={k} value={k}>{BILLING_MODEL_LABELS[k]}</SelectItem>
+          {/* ── 4. Interval & planlægning ── */}
+          {service && (
+            <FormSection icon={<Repeat className="h-3.5 w-3.5" />} title="Interval & planlægning" step={4}>
+              <div className="space-y-3">
+                <div>
+                  <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Hvor ofte?</Label>
+                  <div className="mt-1.5 flex flex-wrap gap-1.5">
+                    {allowedIntervals.map((iv) => (
+                      <button
+                        key={iv}
+                        type="button"
+                        onClick={() => setInterval(iv)}
+                        className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                          interval === iv
+                            ? "border-foreground bg-foreground text-background"
+                            : "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground"
+                        }`}
+                      >
+                        {INTERVAL_LABELS[iv]}
+                      </button>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </div>
+                  {(service.interval_options || []).length > allowedIntervals.length && (
+                    <p className="mt-1.5 text-[10px] text-muted-foreground">
+                      Servicen tilbyder også intervaller (fx daglig) der ikke kan bruges til faste aftaler — vælg et af dem ovenfor.
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Startdato</Label>
+                    <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Slutdato (valgfri)</Label>
+                    <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Foretrukken starttid</Label>
+                    <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Varighed (min)</Label>
+                    <Input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="fx 45" />
+                  </div>
+                  <div className="space-y-1.5 col-span-2">
+                    <Label className="text-xs">Standard-rute (valgfri)</Label>
+                    <Select value={templateId} onValueChange={setTemplateId}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">Ingen — lægges i pool og kan trækkes ind senere</SelectItem>
+                        {templates.map((t) => (
+                          <SelectItem key={t.id} value={t.id}>
+                            {t.name}{t.weekday !== null ? ` · ${WEEKDAY_LABELS[t.weekday]}` : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
-            </div>
-            <p className="text-[11px] text-muted-foreground mt-2 rounded-md bg-secondary/40 px-2 py-1.5">
-              {billingModel === "per_visit"
-                ? "💳 Faktura sendes hver gang et besøg markeres udført."
-                : "📅 Alle udførte besøg i en måned samles på én faktura — kør 'Samlefaktura forrige måned' eller via cron."}
-            </p>
-            <div className="space-y-1.5 mt-3">
-              <Label className="text-xs">Noter (valgfri)</Label>
-              <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Fx nøgle ligger under måtten, hund i huset..." />
-            </div>
-          </FormSection>
+            </FormSection>
+          )}
+
+          {/* ── 5. Pris & fakturering ── */}
+          {service && (
+            <FormSection icon={<CreditCard className="h-3.5 w-3.5" />} title="Pris & fakturering" step={5}>
+              <div className="space-y-3">
+                <div className="rounded-xl border border-foreground/10 bg-secondary/40 p-3.5 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Beregnet pris pr. besøg</p>
+                    <p className="mt-0.5 text-2xl font-bold tabular-nums text-foreground">
+                      {roundPrice(calculatedTotal).toLocaleString("da-DK")} <span className="text-sm font-normal text-muted-foreground">kr</span>
+                    </p>
+                  </div>
+                  <div className="w-32">
+                    <Label className="text-[10px] uppercase tracking-wide text-muted-foreground">Overstyr</Label>
+                    <Input
+                      type="number"
+                      value={priceOverride}
+                      onChange={(e) => setPriceOverride(e.target.value)}
+                      placeholder={String(roundPrice(calculatedTotal))}
+                      className="h-8 text-right tabular-nums"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Fakturering</Label>
+                  <Select value={billingModel} onValueChange={(v) => setBillingModel(v as AgreementBillingModel)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {(Object.keys(BILLING_MODEL_LABELS) as AgreementBillingModel[]).map((k) => (
+                        <SelectItem key={k} value={k}>{BILLING_MODEL_LABELS[k]}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[11px] text-muted-foreground rounded-md bg-secondary/40 px-2 py-1.5">
+                    {billingModel === "per_visit"
+                      ? "💳 Faktura sendes hver gang et besøg markeres udført."
+                      : "📅 Alle udførte besøg i en måned samles på én faktura — kør 'Samlefaktura forrige måned' eller via cron."}
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Noter (valgfri)</Label>
+                  <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Fx nøgle ligger under måtten, hund i huset..." />
+                </div>
+              </div>
+            </FormSection>
+          )}
         </div>
 
-        <DialogFooter className="px-6 py-3 border-t bg-secondary/20">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Annullér</Button>
-          <Button onClick={handleSave} disabled={!canSave || create.isPending}>
-            {create.isPending && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
-            Opret aftale
-          </Button>
+        <DialogFooter className="px-6 py-3 border-t bg-secondary/20 flex sm:items-center sm:justify-between gap-2">
+          <div className="text-xs text-muted-foreground hidden sm:block">
+            {service ? (
+              <>I alt: <span className="font-semibold text-foreground tabular-nums">{totalPrice.toLocaleString("da-DK")} kr</span> pr. besøg · {INTERVAL_LABELS[interval]}</>
+            ) : "Vælg kunde og service for at fortsætte"}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>Annullér</Button>
+            <Button onClick={handleSave} disabled={!canSave || create.isPending}>
+              {create.isPending && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
+              Opret aftale
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+};
+
+/* ─── Pricing-panel (genbrug af kunde-bestillingsflowets logik) ─── */
+const ServicePricingPanel = ({
+  service, sortedSteps, hours, onHoursChange, stepValues, onStepChange, calculatedTotal,
+}: {
+  service: Service & { calculator_steps?: CalculatorStep[] };
+  sortedSteps: CalculatorStep[];
+  hours: number;
+  onHoursChange: (v: number) => void;
+  stepValues: Record<string, number>;
+  onStepChange: (id: string, v: number) => void;
+  calculatedTotal: number;
+}) => {
+  return (
+    <div className="rounded-xl border border-border bg-card overflow-hidden">
+      <div className="px-3.5 py-2.5 border-b bg-secondary/30 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="rounded-md text-[10px]">
+            {service.pricing_type === "fast_pris" ? "Fast pris" : service.pricing_type === "timepris" ? "Timepris" : "Prisberegner"}
+          </Badge>
+          {(service as any).subcategory && (
+            <span className="text-[11px] text-muted-foreground">{(service as any).subcategory}</span>
+          )}
+        </div>
+        <span className="text-[11px] text-muted-foreground">Samme felter som kunden ser</span>
+      </div>
+
+      <div className="p-3.5 space-y-3">
+        {service.pricing_type === "fast_pris" && (
+          <p className="text-sm text-muted-foreground">
+            Servicen er sat til en fast pris på <span className="font-semibold text-foreground tabular-nums">{Math.round(Number(service.base_price || 0)).toLocaleString("da-DK")} kr</span> pr. besøg.
+          </p>
+        )}
+
+        {service.pricing_type === "timepris" && (
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-medium text-foreground">Antal timer</p>
+              <p className="text-[11px] text-muted-foreground">
+                {Number(service.base_price || 0).toLocaleString("da-DK")} kr / time
+              </p>
+            </div>
+            <StepperInput value={hours} onChange={onHoursChange} min={0.5} max={24} step={0.5} unit="t" />
+          </div>
+        )}
+
+        {service.pricing_type === "prisberegner" && sortedSteps.length === 0 && (
+          <p className="text-xs text-amber-700 dark:text-amber-400">
+            Servicen er sat op som prisberegner men har ingen trin — gå til Services og tilføj felter (fx m², antal lokaler).
+          </p>
+        )}
+
+        {service.pricing_type === "prisberegner" && sortedSteps.map((step: any) => {
+          const value = stepValues[step.id] ?? step.default_value ?? step.min_value ?? 0;
+          const subtotal = roundPrice(value * Number(step.price_per_unit || 0));
+          return (
+            <div key={step.id} className="flex items-center justify-between gap-3 border-t pt-3 first:border-t-0 first:pt-0">
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-foreground">{step.label}</p>
+                <p className="text-[11px] text-muted-foreground">
+                  {Number(step.price_per_unit || 0).toLocaleString("da-DK")} kr / {step.unit}
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <StepperInput
+                  value={value}
+                  onChange={(v) => onStepChange(step.id, v)}
+                  min={Number(step.min_value ?? 0)}
+                  max={Number(step.max_value ?? 100)}
+                  unit={step.unit}
+                />
+                <span className="text-xs font-semibold tabular-nums text-foreground w-20 text-right shrink-0">
+                  {subtotal.toLocaleString("da-DK")} kr
+                </span>
+              </div>
+            </div>
+          );
+        })}
+
+        {service.pricing_type !== "fast_pris" && (
+          <div className="border-t pt-3 flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">I alt</span>
+            <span className="text-base font-bold tabular-nums text-foreground">
+              {roundPrice(calculatedTotal).toLocaleString("da-DK")} kr
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/* ─── Stepper-input (samme look som kunde-bestillingen, lidt strammere) ─── */
+const StepperInput = ({
+  value, onChange, min, max, step: stepOverride, unit,
+}: {
+  value: number; onChange: (v: number) => void; min: number; max: number; step?: number; unit: string;
+}) => {
+  const step = stepOverride ?? getSmartStep(unit, min, max);
+  const dec = () => onChange(Math.max(min, +(value - step).toFixed(2)));
+  const inc = () => onChange(Math.min(max, +(value + step).toFixed(2)));
+  const isLargeRange = (max - min) > 20;
+  return (
+    <div className="inline-flex items-center gap-2">
+      <div className="inline-flex items-center">
+        <button type="button" onClick={dec} disabled={value <= min}
+          className="flex h-8 w-8 items-center justify-center rounded-l-md border border-r-0 border-border bg-card text-foreground hover:bg-secondary disabled:opacity-30 disabled:hover:bg-card">
+          <Minus className="h-3 w-3" />
+        </button>
+        {isLargeRange ? (
+          <input
+            type="number" value={value}
+            onChange={(e) => { const v = parseFloat(e.target.value); if (!isNaN(v)) onChange(Math.max(min, Math.min(max, v))); }}
+            min={min} max={max} step={step}
+            className="h-8 w-16 border-y border-border bg-card px-1 text-center text-xs font-semibold text-foreground outline-none focus:bg-background [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          />
+        ) : (
+          <div className="flex h-8 min-w-[2.5rem] items-center justify-center border-y border-border bg-card px-2 text-xs font-semibold text-foreground tabular-nums">
+            {value}
+          </div>
+        )}
+        <button type="button" onClick={inc} disabled={value >= max}
+          className="flex h-8 w-8 items-center justify-center rounded-r-md border border-l-0 border-border bg-card text-foreground hover:bg-secondary disabled:opacity-30 disabled:hover:bg-card">
+          <Plus className="h-3 w-3" />
+        </button>
+      </div>
+      <span className="text-[11px] text-muted-foreground">{unit}</span>
+    </div>
   );
 };
 
