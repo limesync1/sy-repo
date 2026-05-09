@@ -260,6 +260,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
       }
       qc.invalidateQueries({ queryKey: ["customers", businessId] });
       qc.invalidateQueries({ queryKey: ["saved-customers", businessId] });
+      qc.invalidateQueries({ queryKey: ["agreement-customer-options", businessId] });
       toast.success(initial?.id ? "Kunde opdateret" : "Kunde oprettet");
 
       const saved: EditableCustomer = {
@@ -278,6 +279,8 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
         longitude: savedRow.longitude,
         notes: savedRow.notes,
       };
+
+      onSaved?.(saved);
 
       if (alsoCreateOrder) {
         setSavedCustomer(saved);
