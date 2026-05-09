@@ -219,6 +219,18 @@ const LiveChatWidget = () => {
       HIDDEN_PREFIXES.some((p) => pathname === p.replace(/\/$/, "") || pathname.startsWith(p)),
     [pathname],
   );
+  const hideTrigger = useMemo(
+    () => HIDE_TRIGGER_PREFIXES.some((p) => pathname === p.replace(/\/$/, "") || pathname.startsWith(p)),
+    [pathname],
+  );
+
+  // Tillad eksterne knapper (fx "Support" i virksomhedspanelets header) at åbne
+  // platform-chatten via et window-event, selv når den flydende knap er skjult.
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener("serviceydere:open-platform-chat", handler);
+    return () => window.removeEventListener("serviceydere:open-platform-chat", handler);
+  }, [setOpen]);
 
   useEffect(() => {
     if (!user) return;
