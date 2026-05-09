@@ -30,6 +30,7 @@ import { toast } from "sonner";
 import {
   AccountingStatusRow,
   CustomerOrderStatusSummary,
+  derivePaymentStatus,
   summarizeCustomerOrders,
   type CustomerOrderSummary,
   type OrderForStatus,
@@ -45,6 +46,7 @@ type Customer = {
   customer_id?: string | null;
   total_revenue: number;
   orders_count: number;
+  live_orders_count?: number;
   active_subs: number;
   paused_subs: number;
   last_order_at: string;
