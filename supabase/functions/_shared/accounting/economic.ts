@@ -239,6 +239,15 @@ async function ecRequest(
   });
   if (!res.ok) {
     const text = await res.text();
+    // Når kalderen eksplicit beder om "silent 404" (fx kunde-/faktura-opslag
+    // hvor not-found er en gyldig forretningstilstand), skal vi IKKE kaste en
+    // generisk fejl. Vi returnerer `null` i stedet, så kalderen kan reagere
+    // præcist (rydde forældet link, oprette på ny osv.) — uden at brugeren
+    // ser "E-conomic kunne ikke finde det forespurgte. Tjek at din aftale
+    // er aktiv." på en ellers fungerende integration.
+    if (opts.silent404 && res.status === 404) {
+      return null;
+    }
     if (!(opts.silent404 && res.status === 404)) {
       console.error("[economic] request failed", {
         method: init.method ?? "GET",
