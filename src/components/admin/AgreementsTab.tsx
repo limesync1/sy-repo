@@ -850,24 +850,28 @@ const CreateAgreementDialog = ({
                 <div>
                   <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Hvor ofte?</Label>
                   <div className="mt-1.5 flex flex-wrap gap-1.5">
-                    {allowedIntervals.map((iv) => (
-                      <button
-                        key={iv}
-                        type="button"
-                        onClick={() => setInterval(iv)}
-                        className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-                          interval === iv
-                            ? "border-foreground bg-foreground text-background"
-                            : "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground"
-                        }`}
-                      >
-                        {INTERVAL_LABELS[iv]}
-                      </button>
-                    ))}
+                    {allowedIntervalChoices.map((c) => {
+                      const k = `${c.interval}:${c.days ?? ""}`;
+                      const selected = intervalKey === k;
+                      return (
+                        <button
+                          key={k}
+                          type="button"
+                          onClick={() => setIntervalKey(k)}
+                          className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                            selected
+                              ? "border-foreground bg-foreground text-background shadow-sm"
+                              : "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground hover:bg-secondary/50"
+                          }`}
+                        >
+                          {c.label}
+                        </button>
+                      );
+                    })}
                   </div>
-                  {(service.interval_options || []).length > allowedIntervals.length && (
+                  {(service.interval_options || []).includes("10_min") && (
                     <p className="mt-1.5 text-[10px] text-muted-foreground">
-                      Servicen tilbyder også intervaller (fx daglig) der ikke kan bruges til faste aftaler — vælg et af dem ovenfor.
+                      Servicens "hvert 10. minut"-interval bruges kun til engangsbestillinger og kan ikke vælges på faste aftaler.
                     </p>
                   )}
                 </div>
