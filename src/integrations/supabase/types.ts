@@ -3222,6 +3222,10 @@ export type Database = {
         Args: { _agreement_id: string; _until_date: string }
         Returns: number
       }
+      _materialize_single_occurrence: {
+        Args: { _occurrence_id: string }
+        Returns: undefined
+      }
       admin_business_stats: {
         Args: never
         Returns: {
