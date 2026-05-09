@@ -985,7 +985,6 @@ const ImportPanel = ({
   if (!file) {
     return (
       <div className="space-y-4">
-        <WizardSteps current={0} />
         <div
           onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
           onDragLeave={() => setDragActive(false)}
