@@ -470,6 +470,23 @@ const AgreementDetailSheet = ({
               <p className="text-xs text-muted-foreground">Standard-rute</p>
               <p>{tpl ? tpl.name : "Ingen"}</p>
             </div>
+            <div className="col-span-2">
+              <p className="text-xs text-muted-foreground">Fakturering</p>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline">{BILLING_MODEL_LABELS[agreement.billing_model]}</Badge>
+                <Select
+                  value={agreement.billing_model}
+                  onValueChange={(v) => update.mutate({ id: agreement.id, billing_model: v as AgreementBillingModel })}
+                >
+                  <SelectTrigger className="h-7 w-auto text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {(Object.keys(BILLING_MODEL_LABELS) as AgreementBillingModel[]).map((k) => (
+                      <SelectItem key={k} value={k}>{BILLING_MODEL_LABELS[k]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
 
           {agreement.notes && (
