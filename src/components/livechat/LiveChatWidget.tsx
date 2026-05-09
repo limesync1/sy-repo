@@ -622,7 +622,7 @@ const LiveChatWidget = () => {
 
   return (
     <>
-      {!open && (
+      {!open && !hideTrigger && (
         <button
           type="button"
           onClick={handleOpen}
