@@ -8,6 +8,7 @@ export type AgreementInterval =
 
 export type AgreementStatus = "draft" | "pending_approval" | "active" | "paused" | "ended" | "cancelled";
 export type OccurrenceStatus = "planned" | "completed" | "cancelled" | "skipped";
+export type AgreementBillingModel = "per_visit" | "monthly_consolidated";
 
 export type Agreement = {
   id: string;
@@ -36,6 +37,7 @@ export type Agreement = {
   total_amount: number;
   notes: string | null;
   status: AgreementStatus;
+  billing_model: AgreementBillingModel;
   payment_terms_days: number | null;
   created_at: string;
   updated_at: string;
@@ -268,4 +270,22 @@ export const INTERVAL_LABELS: Record<AgreementInterval, string> = {
   "halvårlig": "Halvårlig",
   "årlig": "Årlig",
   "custom": "Brugerdefineret",
+};
+
+export const BILLING_MODEL_LABELS: Record<AgreementBillingModel, string> = {
+  per_visit: "Pr. besøg",
+  monthly_consolidated: "Samlefaktura pr. måned",
+};
+
+export const useEnqueueMonthlyInvoices = () => {
+  return useMutation({
+    mutationFn: async ({ business_id, year, month }: { business_id: string; year: number; month: number }) => {
+      const { data, error } = await supabase.rpc("enqueue_monthly_consolidated_invoices", {
+        _business_id: business_id, _year: year, _month: month,
+      });
+      if (error) throw error;
+      return data as number;
+    },
+    onError: (e: any) => toast.error(e.message || "Kunne ikke generere samlefakturaer"),
+  });
 };

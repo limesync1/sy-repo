@@ -6,7 +6,9 @@ import { useQuery } from "@tanstack/react-query";
 import {
   useAgreements, useCreateAgreement, useUpdateAgreement, useDeleteAgreement,
   useEnsureOccurrences, useOccurrencesForAgreement,
-  INTERVAL_LABELS, type Agreement, type AgreementInterval, type AgreementStatus,
+  useEnqueueMonthlyInvoices,
+  INTERVAL_LABELS, BILLING_MODEL_LABELS,
+  type Agreement, type AgreementInterval, type AgreementStatus, type AgreementBillingModel,
 } from "@/hooks/useAgreements";
 import { useRouteTemplates, WEEKDAY_LABELS } from "@/hooks/useRouteTemplates";
 import { useServices } from "@/hooks/useDatabase";
@@ -74,6 +76,7 @@ const AgreementsTab = ({ businessId, businessName }: Props) => {
 
   const { data: agreements = [], isLoading } = useAgreements(businessId, statusFilter);
   const ensure = useEnsureOccurrences();
+  const enqueueMonthly = useEnqueueMonthlyInvoices();
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -97,6 +100,19 @@ const AgreementsTab = ({ businessId, businessName }: Props) => {
     toast.success(`${inserted} forekomster genereret`);
   };
 
+  const handleMonthly = async () => {
+    const now = new Date();
+    // Default: forrige måned (typisk fakturerings-tidspunkt)
+    const target = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const created = await enqueueMonthly.mutateAsync({
+      business_id: businessId,
+      year: target.getFullYear(),
+      month: target.getMonth() + 1,
+    });
+    if (created === 0) toast.info("Ingen aftaler med ufakturerede besøg i forrige måned");
+    else toast.success(`${created} samlefakturaer sat i kø for ${format(target, "MMMM yyyy", { locale: da })}`);
+  };
+
   return (
     <div className="space-y-4">
       <PageHeader
@@ -104,6 +120,10 @@ const AgreementsTab = ({ businessId, businessName }: Props) => {
         description="Serier af besøg pr. kunde — én aftale udfolder sig automatisk i kalender og regnskab."
         action={
           <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handleMonthly} disabled={enqueueMonthly.isPending}>
+              {enqueueMonthly.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Receipt className="h-3.5 w-3.5 mr-1.5" />}
+              Samlefaktura forrige måned
+            </Button>
             <Button variant="outline" size="sm" onClick={handleEnsure} disabled={ensure.isPending}>
               {ensure.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5 mr-1.5" />}
               Generér forekomster
@@ -220,6 +240,7 @@ const CreateAgreementDialog = ({
   const [customerId, setCustomerId] = useState<string>("");
   const [serviceId, setServiceId] = useState<string>("");
   const [interval, setInterval] = useState<AgreementInterval>("hver_4_uge");
+  const [billingModel, setBillingModel] = useState<AgreementBillingModel>("per_visit");
   const [startDate, setStartDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
   const [endDate, setEndDate] = useState<string>("");
   const [templateId, setTemplateId] = useState<string>("__none__");
@@ -261,6 +282,7 @@ const CreateAgreementDialog = ({
       start_date: startDate,
       end_date: endDate || null,
       interval,
+      billing_model: billingModel,
       default_route_template_id: templateId === "__none__" ? null : templateId,
       preferred_time_start: time || null,
       estimated_duration_minutes: duration ? Number(duration) : null,
@@ -329,6 +351,22 @@ const CreateAgreementDialog = ({
               <Label>Pris pr. besøg (kr)</Label>
               <Input type="number" value={price} onChange={(e) => setPrice(e.target.value)} />
             </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Fakturering</Label>
+            <Select value={billingModel} onValueChange={(v) => setBillingModel(v as AgreementBillingModel)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {(Object.keys(BILLING_MODEL_LABELS) as AgreementBillingModel[]).map((k) => (
+                  <SelectItem key={k} value={k}>{BILLING_MODEL_LABELS[k]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {billingModel === "per_visit"
+                ? "Faktura sendes hver gang et besøg markeres udført."
+                : "Alle udførte besøg i en måned samles på én faktura — kør 'Samlefaktura forrige måned' eller via cron."}
+            </p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
@@ -431,6 +469,23 @@ const AgreementDetailSheet = ({
             <div className="col-span-2">
               <p className="text-xs text-muted-foreground">Standard-rute</p>
               <p>{tpl ? tpl.name : "Ingen"}</p>
+            </div>
+            <div className="col-span-2">
+              <p className="text-xs text-muted-foreground">Fakturering</p>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline">{BILLING_MODEL_LABELS[agreement.billing_model]}</Badge>
+                <Select
+                  value={agreement.billing_model}
+                  onValueChange={(v) => update.mutate({ id: agreement.id, billing_model: v as AgreementBillingModel })}
+                >
+                  <SelectTrigger className="h-7 w-auto text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {(Object.keys(BILLING_MODEL_LABELS) as AgreementBillingModel[]).map((k) => (
+                      <SelectItem key={k} value={k}>{BILLING_MODEL_LABELS[k]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
