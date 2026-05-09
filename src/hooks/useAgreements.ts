@@ -8,6 +8,7 @@ export type AgreementInterval =
 
 export type AgreementStatus = "draft" | "pending_approval" | "active" | "paused" | "ended" | "cancelled";
 export type OccurrenceStatus = "planned" | "completed" | "cancelled" | "skipped";
+export type AgreementBillingModel = "per_visit" | "monthly_consolidated";
 
 export type Agreement = {
   id: string;
@@ -36,6 +37,7 @@ export type Agreement = {
   total_amount: number;
   notes: string | null;
   status: AgreementStatus;
+  billing_model: AgreementBillingModel;
   payment_terms_days: number | null;
   created_at: string;
   updated_at: string;
