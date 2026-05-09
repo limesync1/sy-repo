@@ -949,6 +949,16 @@ const CreateAgreementDialog = ({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    {/* Inline kunde-oprettelse — auto-vælger kunden i aftalen efter gem */}
+    <CustomerEditDialog
+      open={newCustomerOpen}
+      onOpenChange={setNewCustomerOpen}
+      businessId={businessId}
+      businessName={""}
+      onSaved={(saved) => { if (saved.id) setCustomerId(saved.id); }}
+    />
+    </>
   );
 };
 
