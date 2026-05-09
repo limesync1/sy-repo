@@ -1965,6 +1965,78 @@ const ServiceForm = ({
             <p className="text-sm text-destructive">Vælg mindst ét interval</p>
           )}
 
+          {/* Standardteam + varighed — arves af nye aftaler så ruteplanlægningen
+              automatisk har medarbejder og tid på hvert besøg. */}
+          <div className="rounded-xl border border-border bg-card p-4 space-y-4">
+            <div className="flex items-start gap-2">
+              <Users className="h-4 w-4 mt-0.5 text-muted-foreground" />
+              <div className="min-w-0">
+                <h4 className="text-sm font-semibold text-foreground">Standardteam & varighed</h4>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Forudfyldes automatisk på nye aftaler — kan altid overstyres pr. aftale eller besøg.
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-foreground">
+                Standard medarbejder(e)
+              </label>
+              {(businessEmployees ?? []).length === 0 ? (
+                <p className="text-xs text-muted-foreground italic">
+                  Ingen medarbejdere oprettet endnu — opret dem under Medarbejdere.
+                </p>
+              ) : (
+                <div className="flex flex-wrap gap-1.5">
+                  {(businessEmployees ?? []).map((emp) => {
+                    const selected = defaultEmployeeIds.includes(emp.id);
+                    return (
+                      <button
+                        key={emp.id}
+                        type="button"
+                        onClick={() =>
+                          setDefaultEmployeeIds((prev) =>
+                            prev.includes(emp.id)
+                              ? prev.filter((id) => id !== emp.id)
+                              : [...prev, emp.id]
+                          )
+                        }
+                        className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                          selected
+                            ? "border-foreground bg-foreground text-background"
+                            : "border-border bg-secondary/50 text-foreground hover:bg-secondary"
+                        }`}
+                      >
+                        {selected && <Check className="h-3 w-3" />}
+                        {emp.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-foreground inline-flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                Standard varighed (minutter)
+              </label>
+              <Input
+                type="number"
+                inputMode="numeric"
+                min={5}
+                step={5}
+                value={estimatedDurationMinutes}
+                onChange={(e) => setEstimatedDurationMinutes(e.target.value)}
+                placeholder="60"
+                className="bg-secondary/30 max-w-[160px]"
+              />
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Bruges til at planlægge tidsforbrug i ruteplanlæggeren.
+              </p>
+            </div>
+          </div>
+
           {/* Status: aktiv/inaktiv */}
           <div className="rounded-xl border border-border bg-card p-4 flex items-center justify-between gap-4">
             <div className="min-w-0">
