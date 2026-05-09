@@ -34,18 +34,21 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   Plus, Search, Loader2, Calendar as CalendarIcon, Repeat, MapPin, User,
-  Trash2, Pencil, RefreshCw, Receipt,
+  Trash2, Pencil, RefreshCw, Receipt, TrendingUp, Clock, AlertCircle, CheckCircle2,
 } from "lucide-react";
 import { PageHeader, EmptyState } from "@/components/admin/shared/AdminUI";
+import { StatusPill, type StatusTone } from "@/components/admin/shared/StatusPill";
+import { QuickFilters } from "@/components/admin/shared/QuickFilters";
+import { KpiBar } from "@/components/admin/shared/KpiBar";
 import { toast } from "sonner";
 
-const STATUS_CONFIG: Record<AgreementStatus, { label: string; cls: string }> = {
-  draft:            { label: "Kladde",    cls: "bg-muted text-muted-foreground" },
-  pending_approval: { label: "Afventer godkendelse", cls: "bg-amber-100 text-amber-900 dark:bg-amber-500/15 dark:text-amber-200" },
-  active:           { label: "Aktiv",     cls: "bg-emerald-100 text-emerald-900 dark:bg-emerald-500/15 dark:text-emerald-200" },
-  paused:           { label: "Sat på pause", cls: "bg-blue-100 text-blue-900 dark:bg-blue-500/15 dark:text-blue-200" },
-  ended:            { label: "Afsluttet", cls: "bg-secondary text-foreground" },
-  cancelled:        { label: "Annulleret", cls: "bg-destructive/10 text-destructive" },
+const STATUS_CONFIG: Record<AgreementStatus, { label: string; tone: StatusTone }> = {
+  draft:            { label: "Kladde",              tone: "neutral" },
+  pending_approval: { label: "Afventer godkendelse", tone: "warning" },
+  active:           { label: "Aktiv",               tone: "success" },
+  paused:           { label: "Sat på pause",        tone: "info" },
+  ended:            { label: "Afsluttet",           tone: "neutral" },
+  cancelled:        { label: "Annulleret",          tone: "danger" },
 };
 
 type Props = {
@@ -128,6 +131,62 @@ const AgreementsTab = ({ businessId, businessName }: Props) => {
     return c;
   }, [agreements]);
 
+  // KPI'er — beregnes fra alle aftaler (ikke filtrerede). MRR vurderes ud fra
+  // intervallet: hvor mange besøg pr. måned * pris pr. besøg. Engangskøb
+  // tæller ikke som tilbagevendende omsætning.
+  const kpis = useMemo(() => {
+    const visitsPerMonth: Record<AgreementInterval, number> = {
+      "engangskøb": 0,
+      "ugentlig": 4.33,
+      "hver_14_dag": 2.17,
+      "hver_4_uge": 1.08,
+      "månedlig": 1,
+      "kvartalsvis": 1 / 3,
+      "halvårlig": 1 / 6,
+      "årlig": 1 / 12,
+      "custom": 0,
+    };
+    const active = agreements.filter((a) => a.status === "active");
+    const mrr = Math.round(
+      active.reduce((s, a) => s + Number(a.total_amount || 0) * (visitsPerMonth[a.interval] ?? 0), 0),
+    );
+    const in7days = (() => {
+      // hurtig estimat: én næste-besøg pr. aktiv aftale med interval i de næste 7 dage.
+      // Vi har ikke occurrences her i listen — vi bruger interval som proxy.
+      return active.filter((a) => (visitsPerMonth[a.interval] ?? 0) >= 1).length;
+    })();
+    return [
+      {
+        label: "Aktive aftaler",
+        value: active.length,
+        icon: <CheckCircle2 />,
+        tone: "success" as const,
+        hint: `af ${agreements.length} i alt`,
+      },
+      {
+        label: "MRR (estimat)",
+        value: `${mrr.toLocaleString("da-DK")} kr`,
+        icon: <TrendingUp />,
+        tone: "accent" as const,
+        hint: "tilbagevendende pr. måned",
+      },
+      {
+        label: "Næste 7 dage",
+        value: in7days,
+        icon: <Clock />,
+        tone: "info" as const,
+        hint: "aftaler med besøg",
+      },
+      {
+        label: "Afventer godkendelse",
+        value: counts.pending_approval || 0,
+        icon: <AlertCircle />,
+        tone: (counts.pending_approval || 0) > 0 ? ("warning" as const) : ("neutral" as const),
+        hint: "kræver handling",
+      },
+    ];
+  }, [agreements, counts]);
+
   const handleEnsure = async () => {
     const until = format(new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), "yyyy-MM-dd");
     const inserted = await ensure.mutateAsync({ business_id: businessId, until_date: until });
@@ -169,23 +228,29 @@ const AgreementsTab = ({ businessId, businessName }: Props) => {
         }
       />
 
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-        <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
-          <TabsList>
-            <TabsTrigger value="all">Alle ({counts.all || 0})</TabsTrigger>
-            <TabsTrigger value="active">Aktive ({counts.active || 0})</TabsTrigger>
-            <TabsTrigger value="pending_approval">Afventer ({counts.pending_approval || 0})</TabsTrigger>
-            <TabsTrigger value="paused">Pause ({counts.paused || 0})</TabsTrigger>
-            <TabsTrigger value="ended">Afsluttede ({counts.ended || 0})</TabsTrigger>
-          </TabsList>
-        </Tabs>
-        <div className="relative flex-1 sm:max-w-xs">
-          <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+      {/* KPI-bar: nøgletal i toppen så MRR, antal aktive og afventere er synlige */}
+      <KpiBar items={kpis} />
+
+      {/* Filter-rude: status-chips + søgefelt på samme linje */}
+      <div className="flex flex-wrap items-center gap-2">
+        <QuickFilters
+          value={statusFilter}
+          onChange={(v) => setStatusFilter(v as AgreementStatus | "all")}
+          options={[
+            { key: "all", label: "Alle", count: counts.all || 0 },
+            { key: "active", label: "Aktive", count: counts.active || 0 },
+            { key: "pending_approval", label: "Afventer", count: counts.pending_approval || 0 },
+            { key: "paused", label: "Pause", count: counts.paused || 0 },
+            { key: "ended", label: "Afsluttet", count: counts.ended || 0 },
+          ]}
+        />
+        <div className="relative flex-1 sm:max-w-xs sm:ml-auto">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Søg kunde..."
-            className="pl-8 h-9"
+            placeholder="Søg kunde, firma eller email..."
+            className="pl-8 h-9 rounded-lg"
           />
         </div>
       </div>
@@ -238,24 +303,38 @@ const AgreementRow = ({ agreement, businessId, onClick }: { agreement: Agreement
       onClick={onClick}
     >
       <div className="flex items-center gap-3">
-        {tpl && <span className="h-10 w-1 rounded-full" style={{ background: tpl.color }} />}
+        {/* Farvet sidestripe matcher rute-skemaets farve — visuelt link til
+            Ruter-siden hvor samme farve vises i kalenderen. */}
+        <span
+          className="h-12 w-1 rounded-full shrink-0"
+          style={{ background: tpl?.color ?? "hsl(var(--muted))" }}
+        />
+        {/* Avatar-cirkel med initialer i sammenhængende design med Kunder */}
+        <div className="h-9 w-9 shrink-0 rounded-full bg-secondary text-foreground flex items-center justify-center text-xs font-semibold">
+          {(agreement.company_name || agreement.customer_name || "?").trim().charAt(0).toUpperCase()}
+        </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="font-medium truncate">
+            <p className="font-semibold truncate text-foreground">
               {agreement.company_name || agreement.customer_name}
             </p>
-            <Badge variant="secondary" className={status.cls}>{status.label}</Badge>
+            <StatusPill tone={status.tone}>{status.label}</StatusPill>
           </div>
-          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5 flex-wrap">
+          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1 flex-wrap">
             <span className="inline-flex items-center gap-1"><Repeat className="h-3 w-3" />{INTERVAL_LABELS[agreement.interval]}</span>
             <span className="inline-flex items-center gap-1"><CalendarIcon className="h-3 w-3" />Start {fmtDate(agreement.start_date)}</span>
-            {tpl && <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{tpl.name}</span>}
-            {!tpl && <span className="text-amber-700 dark:text-amber-400">Ingen rute</span>}
+            {tpl ? (
+              <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{tpl.name}</span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-400">
+                <MapPin className="h-3 w-3" />Standardrute
+              </span>
+            )}
           </div>
         </div>
         <div className="text-right shrink-0">
-          <p className="font-semibold tabular-nums">{Math.round(Number(agreement.total_amount || 0))} kr</p>
-          <p className="text-xs text-muted-foreground">pr. besøg</p>
+          <p className="font-semibold tabular-nums text-foreground">{Math.round(Number(agreement.total_amount || 0)).toLocaleString("da-DK")} kr</p>
+          <p className="text-[11px] text-muted-foreground">pr. besøg</p>
         </div>
       </div>
     </Card>
@@ -486,9 +565,11 @@ const AgreementDetailSheet = ({
           <SheetTitle>{agreement.company_name || agreement.customer_name}</SheetTitle>
         </SheetHeader>
         <div className="space-y-4 mt-4">
-          <div className="flex items-center gap-2">
-            <Badge className={status.cls}>{status.label}</Badge>
-            <span className="text-sm text-muted-foreground">{INTERVAL_LABELS[agreement.interval]}</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <StatusPill tone={status.tone}>{status.label}</StatusPill>
+            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              <Repeat className="h-3 w-3" />{INTERVAL_LABELS[agreement.interval]}
+            </span>
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-sm">

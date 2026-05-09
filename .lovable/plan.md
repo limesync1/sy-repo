@@ -1,80 +1,82 @@
 
-# Aftaler ↔ Ruter ↔ Regnskab — kort version med Ready2Clean-eksempel
+# Stort UI/UX-løft: Ruter · Aftaler · Kunder
 
-## Modellen i én sætning
+Bekræftet først: alle 21 forekomster fra dine 2 aftaler er nu på ruter (mette jensen, månedlig + hver 14. dag). Auto-materialisering virker. ✓
 
-> En **aftale** er en serie (kunde + service + interval). Den hænger på en **rute-skabelon**. Når kalenderen åbnes, **udfoldes** den til faktiske stop — og når et stop markeres **udført**, ryger det automatisk videre til regnskabsprogrammet (e-conomic / Billy / Dinero).
+Mål: De tre sider skal føles som én sammenhængende app — samme sprog, samme komponenter, samme rytme. Færre klik, bedre overblik, smukkere look.
 
+## Fælles fundament (deles på tværs af alle 3 sider)
+
+Nye genbrugskomponenter under `src/components/admin/shared/`:
+
+- **`PageHeader`** — stor titel + undertekst, primær CTA-knap, inline søg, antal-badge. Ens på alle sider.
+- **`StatCardRow`** — 4 KPI-kort øverst (fx "Aktive aftaler · MRR · Næste 7 dage · Ubekræftede").
+- **`DataTable`** — sticky header, hover-row, klik-åbner-panel, sortérbare kolonner, tom-tilstand med illustration + CTA.
+- **`DetailSheet`** — højre-glide-panel (shadcn Sheet) til detalje/rediger uden side-skift.
+- **`StatusPill`** — én farveskala for status på tværs af aftaler/ruter/kunder.
+- **`EmptyState`** — venlig dansk tekst + ikon + primær CTA.
+- **`QuickFilters`** — chips med antal pr. status (Alle 12 · Aktive 8 · Pause 2 · Afsluttet 2).
+
+Designtokens vi læner os op ad: foreground for primær handling, accent (teal) sparsomt, bløde shadows, 16px radius på kort.
+
+## Side 1: Kunder
+
+Ny struktur:
 ```text
-Service ─► Aftale (interval) ─► Rute-skabelon ─► Forekomst i kalender ─► Udført ─► Faktura i regnskab
+[PageHeader: "Kunder" + "Tilføj kunde"]
+[StatCardRow: I alt · Privat · Erhverv · Med åben aftale]
+[QuickFilters: Alle · Privat · Erhverv · VIP · Inaktive]   [Søg]
+[DataTable]
+  Avatar+navn · Type · Kontakt · By · Aftaler (chip) · Sidste besøg · ⋮
+  → klik åbner DetailSheet med 3 tabs: Info · Aftaler · Dokumenter
 ```
 
-## Konkret eksempel — Ready2Clean ApS
+- Privat- og erhvervskunder samlet i én tabel med tydelig type-pill.
+- Inline-handling: ring-op, send mail, kopi-adresse direkte fra rækken.
+- Detalje-sheet viser kundens aftaler + næste besøg uden side-skift.
 
-Service: "Udvendig vinduespudsning" (standard: Anna, 45 min, 450 kr).
+## Side 2: Aftaler
 
-**3 aftaler:**
-
-| Kunde | Interval | Default-rute | Pris/gang |
-|---|---|---|---|
-| Café Mocca | Hver 2. uge (man) | Mandagsrute Aarhus C | 450 kr |
-| Tandlæge Hansen | Hver 4. uge (man) | Mandagsrute Aarhus N | 600 kr |
-| Familien Jensen | Engangskøb | — (pool) | 450 kr |
-
-**I kalenderen — man 11. maj:**
+Ny struktur (split-view):
 ```text
-Mandagsrute Aarhus C (Anna) → Café Mocca       ✓ udført 10:30
-Mandagsrute Aarhus N (Bo)   → Tandlæge Hansen  ✓ udført 13:15
+[PageHeader: "Aftaler" + "Ny aftale"]
+[StatCardRow: Aktive · MRR · Næste 7 dage · Afventer godkendelse]
+[QuickFilters med antal pr. status]               [Søg + interval-filter]
+[Venstre 60%: DataTable]              [Højre 40%: forhåndsvisning]
+  Kunde · Interval-badge · Næste     →  Når en række er valgt:
+  besøg · MRR · Status · ⋮              kunde, services, kommende
+                                         forekomster (mini-tidslinje),
+                                         knap "Åbn fuld redigering"
 ```
 
-**Det der sker automatisk når Anna trykker "Udført":**
-1. `agreement_occurrences.status = done` + `completed_at` sættes
-2. `accounting_sync_queue` får en `invoice_create` for forekomsten
-3. `accounting-sync` kører: opretter kladde-faktura i e-conomic på Café Mocca (kunde matchet via `accounting_customer_links`), linje = "Udvendig vinduespudsning · 11. maj 2026" · 450 kr
-4. Faktura-nr + status gemmes på `agreement_occurrences.invoice_external_id` + `invoice_status`
-5. Når kunden betaler → webhook/cron opdaterer `payment_status = paid` på forekomsten
+- Næste 4 forekomster som chip-tidslinje pr. aftale.
+- Hurtig-handlinger: Pause · Genoptag · Afslut serie · Dupliker.
+- Tom-tilstand: stor venlig "Opret din første aftale" med CTA.
+- Form-dialog: ryddet op i sektioner (Kunde → Service → Tid & interval → Pris).
 
-Næste mandag d. 25. maj rammer Café Mocca igen automatisk → ny forekomst → ny faktura når den udføres. Ingen manuelle ordrer, ingen dobbelt-tastning.
+## Side 3: Ruter
 
-## Regnskabs-koblingen (det vigtige)
+Beholder kalender/kort, men polerer chrome'en så den matcher de andre to:
 
-| Niveau | Hvad sendes til regnskab | Hvornår |
-|---|---|---|
-| **Kunde** | Café Mocca → e-conomic kunde-nr 1042 | Ved første aftale-oprettelse (eller eksisterende link genbruges) |
-| **Produkt** | "Udvendig vinduespudsning" → e-conomic produkt-nr 100 | Ved service-oprettelse / første brug |
-| **Faktura** | 1 forekomst = 1 faktura | Når stop markeres udført |
-| **Status tilbage** | Betalt / forfalden / kreditnota | Pull fra regnskab via cron |
+- Ny `PageHeader` øverst med dato-vælger + "Auto-fordel" + "Optimer" som primære actions.
+- StatCardRow: Stops i dag · Estimeret km · Estimeret timer · Uden rute.
+- "Aftaler uden rute"-panel får samme look som DataTable-rækker.
+- Manuelt-stop knap omdøbes/tydeliggøres med ikon.
+- Farve-konsistens: rute-farver = aftale-farver = kunde-type-farver.
 
-Eksisterende tabeller bruges direkte:
-- `accounting_customer_links` (kunde → ekstern ID)
-- `accounting_product_links` (service → ekstern produkt)
-- `accounting_order_links` → udvides/erstattes til at pege på `agreement_occurrence_id` i stedet for `order_id`
-- `accounting_sync_queue` får `entity_type = 'agreement_occurrence'`
+## Tekniske detaljer
 
-**Faktureringsmodeller pr. aftale** (vælges ved oprettelse):
-- **Pr. besøg**: én faktura hver gang stoppet udføres (Ready2Clean default)
-- **Månedlig samlefaktura**: alle udførte forekomster i måneden samles på én faktura pr. kunde (relevant for B2B med mange besøg, fx Tandlæge Hansen kunne få "4 besøg i juli = 1 faktura")
-- **Forudbetalt periode**: én faktura ved aftale-start dækker fx 6 mdr. (mindre relevant for vinduespudsning, men kan tilføjes senere)
+- Ny mappe `src/components/admin/shared/` med 7 nye filer (ovenstående komponenter).
+- `AgreementsTab.tsx` refaktoreres til `AgreementsTab.tsx` (liste+sheet) + `AgreementFormDialog.tsx` (udskilt).
+- `CustomersTab.tsx` får ny tabel-render og DetailSheet — eksisterende `CustomerEditDialog` genbruges som "fuld redigering".
+- `RoutePlanner.tsx` får udskiftet header + stats-bar + panel-styling. Drag-and-drop logik røres ikke.
+- Ingen DB-ændringer — kun frontend.
+- Danske tekster overalt, semantiske tokens kun (ingen hex i komponenter).
 
-## Daglig drift — eksempler
+## Hvad jeg IKKE rører
 
-- **Café Mocca flytter ét besøg** → "Kun denne gang" → tirsdag i stedet. Faktura følger den nye dato.
-- **Anna er syg** → Cafés stop flagges "mangler ressource", admin re-assigner til Bo. Regnskab uændret.
-- **Tandlæge Hansen siger op** → "Afslut serien". Allerede udførte besøg er allerede faktureret; fremtidige forekomster slettes.
-- **Faktura sendt med fejlpris** → ret på forekomsten → "Send kreditnota + ny faktura" knap (bruger eksisterende accounting-action edge function).
+- Backend, hooks, datamodel, RLS, edge functions.
+- Drag-and-drop i ruteplanlæggeren.
+- Aftale-godkendelses-flow (allerede færdigt).
 
-## Implementerings-rækkefølge
-
-1. **ServicesTab**: Standard-medarbejder + standard-varighed + standard-pris
-2. **Hooks**: `useAgreements`, `useRouteTemplates`, `useEnsureOccurrences`
-3. **Rute-skabeloner** CRUD i Rutelaneren
-4. **AftaleTab rebuild**: liste pr. aftale, "næste gang"-kolonne, detalje-sheet (interval, rute, faktureringsmodel)
-5. **Rutekalender**: forekomster i stedet for ordrer; pool; drag/drop flytter én forekomst
-6. **Stop-sheet**: "Kun denne gang" vs. "Hele serien fremad"
-7. **Regnskabs-integration**: opdater `accounting-sync`, `customer-approve-order` → `agreement_occurrence_id`; samlefaktura-job for månedlig model
-8. **Notifikationer** peger på forekomster
-9. **Oprydning**: fjern `subscriptions`, `recurring-orders` cron, gamle `order`-felter
-
----
-
-Lyder det rigtigt? Sig til hvis fakturerings-modellen skal være anderledes — fx om Ready2Clean skal kunne sætte "samlefaktura pr. måned" som default på erhvervskunder, eller om vi skal vente med samlefaktura til senere fase.
+Estimeret omfang: ~10 nye/ændrede filer, ~1500 linjer. Jeg laver det som ét sammenhængende løft.
