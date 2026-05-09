@@ -178,9 +178,11 @@ const useCustomers = (businessId: string) => {
         arr.push(accOrder);
         ordersByCustomer.set(key, arr);
         const existing = grouped.get(key);
+        const isLiveOrder = !["cancelled", "rejected"].includes((o as any).status);
         if (existing) {
           existing.total_revenue += Number(o.total_amount || 0);
           existing.orders_count += 1;
+          existing.live_orders_count = (existing.live_orders_count || 0) + (isLiveOrder ? 1 : 0);
           if (o.created_at > existing.last_order_at) {
             existing.last_order_at = o.created_at;
             if (o.customer_name) existing.name = o.customer_name;
@@ -203,6 +205,7 @@ const useCustomers = (businessId: string) => {
             customer_id: o.customer_id,
             total_revenue: Number(o.total_amount || 0),
             orders_count: 1,
+            live_orders_count: isLiveOrder ? 1 : 0,
             active_subs: o.customer_id ? (activeByCustomer.get(o.customer_id) || 0) : 0,
             paused_subs: o.customer_id ? (pausedByCustomer.get(o.customer_id) || 0) : 0,
             last_order_at: o.created_at,
@@ -248,6 +251,7 @@ const useCustomers = (businessId: string) => {
             customer_id: null,
             total_revenue: 0,
             orders_count: 0,
+            live_orders_count: 0,
             active_subs: 0,
             paused_subs: 0,
             last_order_at: "",
