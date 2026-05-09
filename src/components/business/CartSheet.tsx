@@ -334,6 +334,10 @@ const CartSheet = () => {
         toast.success("Din bestilling er sendt! Virksomheden vil gennemgå og bekræfte den.");
       }
     }, 2000);
+    } finally {
+      submittingRef.current = false;
+      setSubmitting(false);
+    }
   };
 
   const businessCount = Object.keys(groupedByBusiness).length;
