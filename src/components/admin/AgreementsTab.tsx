@@ -477,114 +477,172 @@ const CreateAgreementDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Ny aftale</DialogTitle>
-          <DialogDescription>Vælg kunde og service. Aftalen udfolder sig automatisk efter intervallet.</DialogDescription>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0">
+        <DialogHeader className="px-6 py-4 border-b shrink-0">
+          <DialogTitle className="text-base">Ny aftale</DialogTitle>
+          <DialogDescription className="text-xs">
+            Vælg kunde og service — vi opretter automatisk besøg i kalenderen efter intervallet.
+          </DialogDescription>
         </DialogHeader>
-        <div className="space-y-3">
-          <div className="space-y-1.5">
-            <Label>Kunde</Label>
-            <Select value={customerId} onValueChange={setCustomerId}>
-              <SelectTrigger>
-                <SelectValue placeholder={customers.length === 0 ? "Opret kunder først (under fanen Kunder)" : "Vælg kunde"} />
-              </SelectTrigger>
-              <SelectContent>
-                {customers.map((c) => (
-                  <SelectItem key={`${c.type}:${c.id}`} value={c.id}>
-                    {c.display_name}
-                    <span className="ml-2 text-xs text-muted-foreground">
-                      {c.type === "business" ? "Erhverv" : "Privat"}
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Service</Label>
-            <Select value={serviceId} onValueChange={handleServiceChange}>
-              <SelectTrigger><SelectValue placeholder="Vælg service" /></SelectTrigger>
-              <SelectContent>
-                {services.map((s) => (
-                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Interval</Label>
-              <Select value={interval} onValueChange={(v) => setInterval(v as AgreementInterval)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {(Object.keys(INTERVAL_LABELS) as AgreementInterval[]).map((k) => (
-                    <SelectItem key={k} value={k}>{INTERVAL_LABELS[k]}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+
+        <div className="px-6 py-5 space-y-5">
+          {/* ── Sektion 1: Kunde ── */}
+          <FormSection icon={<User className="h-3.5 w-3.5" />} title="Kunde" step={1}>
+            {customers.length === 0 ? (
+              <InlineCallout
+                title="Ingen kunder endnu"
+                description="Tilføj en kunde først, så kan du oprette aftaler for dem."
+                action={<Button size="sm" variant="outline" asChild><a href="/virksomhed?tab=customers"><Users className="h-3.5 w-3.5 mr-1.5" />Tilføj kunde</a></Button>}
+              />
+            ) : (
+              <>
+                <Select value={customerId} onValueChange={setCustomerId}>
+                  <SelectTrigger><SelectValue placeholder="Vælg kunde" /></SelectTrigger>
+                  <SelectContent>
+                    {customers.map((c) => (
+                      <SelectItem key={`${c.type}:${c.id}`} value={c.id}>
+                        <span className="flex items-center gap-2">
+                          <span>{c.display_name}</span>
+                          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                            {c.type === "business" ? "Erhverv" : "Privat"}
+                          </span>
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {customer && (
+                  <div className="mt-2 rounded-lg border bg-secondary/40 p-2.5 text-xs space-y-0.5">
+                    {customer.address && <p className="text-muted-foreground">📍 {customer.address}{customer.city ? `, ${customer.city}` : ""}</p>}
+                    {customer.email && <p className="text-muted-foreground">✉ {customer.email}</p>}
+                    {!customer.email && <p className="text-amber-700 dark:text-amber-400">⚠ Mangler email — tilføj før aftalen kan oprettes</p>}
+                  </div>
+                )}
+              </>
+            )}
+          </FormSection>
+
+          {/* ── Sektion 2: Service ── */}
+          <FormSection icon={<Package className="h-3.5 w-3.5" />} title="Service" step={2}>
+            {services.length === 0 ? (
+              <InlineCallout
+                title="Ingen services endnu"
+                description="En aftale skal indeholde en service — opret en først (fx Privatrengøring 90 min)."
+                action={<Button size="sm" variant="outline" asChild><a href="/virksomhed?tab=services"><Package className="h-3.5 w-3.5 mr-1.5" />Opret service</a></Button>}
+              />
+            ) : (
+              <>
+                <Select value={serviceId} onValueChange={handleServiceChange}>
+                  <SelectTrigger><SelectValue placeholder="Vælg service" /></SelectTrigger>
+                  <SelectContent>
+                    {services.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        <span className="flex items-center gap-2">
+                          <span>{s.name}</span>
+                          {s.base_price ? (
+                            <span className="text-[10px] tabular-nums text-muted-foreground">{Math.round(Number(s.base_price)).toLocaleString("da-DK")} kr</span>
+                          ) : null}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {service && (
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
+                    <Badge variant="secondary" className="rounded-md">
+                      <Tag className="h-2.5 w-2.5 mr-1" />Standardpris {Math.round(Number((service as any).base_price || 0)).toLocaleString("da-DK")} kr
+                    </Badge>
+                    {(service as any).estimated_duration_minutes && (
+                      <Badge variant="secondary" className="rounded-md">
+                        <Clock className="h-2.5 w-2.5 mr-1" />{(service as any).estimated_duration_minutes} min
+                      </Badge>
+                    )}
+                    <span className="text-muted-foreground">→ kan overstyres herunder</span>
+                  </div>
+                )}
+              </>
+            )}
+          </FormSection>
+
+          {/* ── Sektion 3: Tid & interval ── */}
+          <FormSection icon={<Repeat className="h-3.5 w-3.5" />} title="Tid & interval" step={3}>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Interval</Label>
+                <Select value={interval} onValueChange={(v) => setInterval(v as AgreementInterval)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {(Object.keys(INTERVAL_LABELS) as AgreementInterval[]).map((k) => (
+                      <SelectItem key={k} value={k}>{INTERVAL_LABELS[k]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Standard-rute</Label>
+                <Select value={templateId} onValueChange={setTemplateId}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">Ingen (lægges i pool)</SelectItem>
+                    {templates.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.name}{t.weekday !== null ? ` · ${WEEKDAY_LABELS[t.weekday]}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Startdato</Label>
+                <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Slutdato (valgfri)</Label>
+                <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Foretrukken starttid</Label>
+                <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Varighed (min)</Label>
+                <Input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="fx 45" />
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <Label>Pris pr. besøg (kr)</Label>
-              <Input type="number" value={price} onChange={(e) => setPrice(e.target.value)} />
+          </FormSection>
+
+          {/* ── Sektion 4: Pris & fakturering ── */}
+          <FormSection icon={<CreditCard className="h-3.5 w-3.5" />} title="Pris & fakturering" step={4}>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Pris pr. besøg (kr)</Label>
+                <Input type="number" value={price} onChange={(e) => setPrice(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Fakturering</Label>
+                <Select value={billingModel} onValueChange={(v) => setBillingModel(v as AgreementBillingModel)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {(Object.keys(BILLING_MODEL_LABELS) as AgreementBillingModel[]).map((k) => (
+                      <SelectItem key={k} value={k}>{BILLING_MODEL_LABELS[k]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Fakturering</Label>
-            <Select value={billingModel} onValueChange={(v) => setBillingModel(v as AgreementBillingModel)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {(Object.keys(BILLING_MODEL_LABELS) as AgreementBillingModel[]).map((k) => (
-                  <SelectItem key={k} value={k}>{BILLING_MODEL_LABELS[k]}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[11px] text-muted-foreground mt-2 rounded-md bg-secondary/40 px-2 py-1.5">
               {billingModel === "per_visit"
-                ? "Faktura sendes hver gang et besøg markeres udført."
-                : "Alle udførte besøg i en måned samles på én faktura — kør 'Samlefaktura forrige måned' eller via cron."}
+                ? "💳 Faktura sendes hver gang et besøg markeres udført."
+                : "📅 Alle udførte besøg i en måned samles på én faktura — kør 'Samlefaktura forrige måned' eller via cron."}
             </p>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Startdato</Label>
-              <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            <div className="space-y-1.5 mt-3">
+              <Label className="text-xs">Noter (valgfri)</Label>
+              <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Fx nøgle ligger under måtten, hund i huset..." />
             </div>
-            <div className="space-y-1.5">
-              <Label>Slutdato (valgfri)</Label>
-              <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Standard-rute</Label>
-            <Select value={templateId} onValueChange={setTemplateId}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">Ingen (lægges i pool)</SelectItem>
-                {templates.map((t) => (
-                  <SelectItem key={t.id} value={t.id}>
-                    {t.name}{t.weekday !== null ? ` · ${WEEKDAY_LABELS[t.weekday]}` : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Foretrukken starttid</Label>
-              <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Varighed (min)</Label>
-              <Input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="fx 45" />
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Noter (valgfri)</Label>
-            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
-          </div>
+          </FormSection>
         </div>
-        <DialogFooter>
+
+        <DialogFooter className="px-6 py-3 border-t bg-secondary/20">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Annullér</Button>
           <Button onClick={handleSave} disabled={!canSave || create.isPending}>
             {create.isPending && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
@@ -595,6 +653,34 @@ const CreateAgreementDialog = ({
     </Dialog>
   );
 };
+
+/* ─── Form helpers ─── */
+const FormSection = ({
+  icon, title, step, children,
+}: { icon: React.ReactNode; title: string; step: number; children: React.ReactNode }) => (
+  <section className="space-y-2">
+    <div className="flex items-center gap-2">
+      <span className="h-5 w-5 shrink-0 rounded-full bg-foreground text-background text-[10px] font-semibold flex items-center justify-center tabular-nums">
+        {step}
+      </span>
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground flex items-center gap-1.5">
+        <span className="text-muted-foreground">{icon}</span>
+        {title}
+      </h3>
+    </div>
+    <div className="pl-7">{children}</div>
+  </section>
+);
+
+const InlineCallout = ({ title, description, action }: { title: string; description: string; action: React.ReactNode }) => (
+  <div className="rounded-lg border border-dashed border-border bg-secondary/30 p-3 flex items-start gap-3">
+    <div className="flex-1 min-w-0">
+      <p className="text-sm font-medium text-foreground">{title}</p>
+      <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
+    </div>
+    <div className="shrink-0">{action}</div>
+  </div>
+);
 
 /* ─── Detail sheet ─── */
 const AgreementDetailSheet = ({
