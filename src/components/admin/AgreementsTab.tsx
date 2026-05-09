@@ -303,24 +303,38 @@ const AgreementRow = ({ agreement, businessId, onClick }: { agreement: Agreement
       onClick={onClick}
     >
       <div className="flex items-center gap-3">
-        {tpl && <span className="h-10 w-1 rounded-full" style={{ background: tpl.color }} />}
+        {/* Farvet sidestripe matcher rute-skemaets farve — visuelt link til
+            Ruter-siden hvor samme farve vises i kalenderen. */}
+        <span
+          className="h-12 w-1 rounded-full shrink-0"
+          style={{ background: tpl?.color ?? "hsl(var(--muted))" }}
+        />
+        {/* Avatar-cirkel med initialer i sammenhængende design med Kunder */}
+        <div className="h-9 w-9 shrink-0 rounded-full bg-secondary text-foreground flex items-center justify-center text-xs font-semibold">
+          {(agreement.company_name || agreement.customer_name || "?").trim().charAt(0).toUpperCase()}
+        </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="font-medium truncate">
+            <p className="font-semibold truncate text-foreground">
               {agreement.company_name || agreement.customer_name}
             </p>
-            <Badge variant="secondary" className={status.cls}>{status.label}</Badge>
+            <StatusPill tone={status.tone}>{status.label}</StatusPill>
           </div>
-          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5 flex-wrap">
+          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1 flex-wrap">
             <span className="inline-flex items-center gap-1"><Repeat className="h-3 w-3" />{INTERVAL_LABELS[agreement.interval]}</span>
             <span className="inline-flex items-center gap-1"><CalendarIcon className="h-3 w-3" />Start {fmtDate(agreement.start_date)}</span>
-            {tpl && <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{tpl.name}</span>}
-            {!tpl && <span className="text-amber-700 dark:text-amber-400">Ingen rute</span>}
+            {tpl ? (
+              <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{tpl.name}</span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-400">
+                <MapPin className="h-3 w-3" />Standardrute
+              </span>
+            )}
           </div>
         </div>
         <div className="text-right shrink-0">
-          <p className="font-semibold tabular-nums">{Math.round(Number(agreement.total_amount || 0))} kr</p>
-          <p className="text-xs text-muted-foreground">pr. besøg</p>
+          <p className="font-semibold tabular-nums text-foreground">{Math.round(Number(agreement.total_amount || 0)).toLocaleString("da-DK")} kr</p>
+          <p className="text-[11px] text-muted-foreground">pr. besøg</p>
         </div>
       </div>
     </Card>
