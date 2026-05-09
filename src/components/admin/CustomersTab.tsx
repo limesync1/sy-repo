@@ -1314,13 +1314,13 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                     );
                   })()}
 
-                  {/* Route history */}
                   {data && data.stops.length > 0 && (
-                    <div className="space-y-2">
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                        <RouteIcon className="h-3.5 w-3.5" /> Rutehistorik ({data.stops.length})
-                      </h4>
-                      <div className="space-y-1.5">
+                    <details className="group rounded-lg border border-border bg-card/60 px-3 py-2 text-xs">
+                      <summary className="flex cursor-pointer items-center justify-between gap-2 list-none font-medium text-foreground">
+                        <span className="inline-flex items-center gap-1.5"><RouteIcon className="h-3.5 w-3.5 text-muted-foreground" /> Rutehistorik ({data.stops.length})</span>
+                        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground transition-transform group-open:rotate-90" />
+                      </summary>
+                      <div className="mt-2 space-y-1.5">
                         {data.stops
                           .sort((a, b) => (b.routes?.route_date || "").localeCompare(a.routes?.route_date || ""))
                           .slice(0, 8)
@@ -1328,87 +1328,21 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                             <Link
                               key={s.id}
                               to={`/virksomhed/ruter?date=${s.routes?.route_date}`}
-                              className="flex items-center gap-3 rounded-lg border border-border bg-card p-2.5 hover:border-accent/40 transition-colors"
+                              className="flex items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-2 transition-colors hover:border-accent/40"
                             >
-                              <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm text-foreground truncate">
-                                  {s.routes?.route_date ? format(parseISO(s.routes.route_date), "EEEE d. MMM yyyy", { locale: da }) : "—"}
+                              <Calendar className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-xs text-foreground">
+                                  {s.routes?.route_date ? format(parseISO(s.routes.route_date), "d. MMM yyyy", { locale: da }) : "—"}
                                 </p>
-                                <p className="text-[11px] text-muted-foreground truncate">{s.routes?.name || "Rute"}</p>
+                                <p className="truncate text-[11px] text-muted-foreground">{s.routes?.name || "Rute"}</p>
                               </div>
                               <StatusBadge status={s.status} />
                               <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
                             </Link>
                           ))}
                       </div>
-                    </div>
-                  )}
-
-                  {/* Orders */}
-                  {data && data.orders.length > 0 && (
-                    <div className="space-y-2">
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                        <Package className="h-3.5 w-3.5" /> Aftaler ({data.orders.length})
-                      </h4>
-                      <p className="text-[11px] text-muted-foreground">
-                        Hver aftale viser udførelsesstatus og betalingsstatus. Betalingsstatus hentes automatisk fra dit regnskabsprogram.
-                      </p>
-                      <div className="space-y-2">
-                        {data.orders.map(o => (
-                          <div key={o.id} className="rounded-xl border border-border bg-card p-3 space-y-1.5">
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="min-w-0 flex-1">
-                                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                                  <Clock className="h-3 w-3" />
-                                  {format(parseISO(o.created_at), "d. MMM yyyy, HH:mm", { locale: da })}
-                                </p>
-                                {o.preferred_date && (
-                                  <p className="text-[11px] text-accent flex items-center gap-1 mt-0.5">
-                                    <Calendar className="h-3 w-3" />
-                                    Ønsket: {format(parseISO(o.preferred_date), "d. MMM yyyy", { locale: da })}
-                                  </p>
-                                )}
-                                {o.is_paused && (
-                                  <p className="text-[11px] text-amber-700 flex items-center gap-1 mt-0.5 font-medium">
-                                    <Pause className="h-3 w-3" />
-                                    Abonnementet er på pause — indgår ikke i ruteplanlægning
-                                  </p>
-                                )}
-                              </div>
-                              <div className="flex flex-col items-end gap-1.5 shrink-0">
-                                <div className="flex items-center gap-2">
-                                  {o.is_paused
-                                    ? <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-amber-300 text-amber-700 bg-amber-50">På pause</Badge>
-                                    : <StatusBadge status={o.status} />}
-                                  <span className="text-sm font-bold text-foreground tabular-nums">{fmtKr(o.total_amount)}</span>
-                                </div>
-                                <AccountingStatusRow order={o as OrderForStatus} size="xs" />
-                              </div>
-                            </div>
-                            {o.order_items && o.order_items.length > 0 && (
-                              <ul className="text-xs text-foreground/80 space-y-0.5">
-                                {o.order_items.map((it, i) => (
-                                  <li key={i} className="flex justify-between">
-                                    <span className="truncate">
-                                      {it.quantity > 1 && <span className="text-muted-foreground">{it.quantity}× </span>}
-                                      {it.service_name}
-                                      {it.details?.interval && it.details.interval !== "engangskøb" && (
-                                        <span className="text-accent ml-1">· {INTERVAL_LABELS[it.details.interval] || it.details.interval}</span>
-                                      )}
-                                    </span>
-                                    <span className="text-muted-foreground tabular-nums shrink-0 ml-2">{fmtKr(Number(it.total_price))}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                            {o.notes && (
-                              <p className="text-[11px] text-muted-foreground italic bg-secondary/40 rounded px-2 py-1">📝 {o.notes}</p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                    </details>
                   )}
 
                   {/* Reviews */}
