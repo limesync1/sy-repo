@@ -1539,3 +1539,155 @@ async function bookInvoiceForOccurrence(
     message: result.sent ? "Faktura bogført og sendt" : "Faktura bogført",
   });
 }
+
+// =====================================================================
+// Monthly samlefaktura — én faktura pr. aftale pr. måned, samler alle
+// completed forekomster i den måned der ikke allerede er faktureret.
+// =====================================================================
+async function bookMonthlyConsolidatedInvoice(
+  admin: SupabaseClient,
+  integ: Integration,
+  adapter: AccountingAdapter,
+  agreementId: string,
+  payload: { year?: number; month?: number },
+) {
+  if (typeof adapter.bookInvoice !== "function") {
+    throw new Error(`Provider ${integ.provider} understøtter ikke fakturabogføring`);
+  }
+  const year = Number(payload.year);
+  const month = Number(payload.month);
+  if (!year || !month) throw new Error("Manglende år/måned i payload");
+
+  const { data: agreement } = await admin.from("agreements")
+    .select("*, agreement_items(*)").eq("id", agreementId).maybeSingle();
+  if (!agreement) throw new Error("Aftalen findes ikke længere");
+
+  const fromDate = `${year}-${String(month).padStart(2, "0")}-01`;
+  const toMonth = month === 12 ? 1 : month + 1;
+  const toYear = month === 12 ? year + 1 : year;
+  const toDate = `${toYear}-${String(toMonth).padStart(2, "0")}-01`;
+
+  const { data: occs } = await admin.from("agreement_occurrences")
+    .select("id, occurrence_date, invoice_external_id, status")
+    .eq("agreement_id", agreementId)
+    .eq("status", "completed")
+    .is("invoice_external_id", null)
+    .gte("occurrence_date", fromDate)
+    .lt("occurrence_date", toDate)
+    .order("occurrence_date", { ascending: true });
+  const pending = (occs ?? []) as Array<{ id: string; occurrence_date: string }>;
+  if (pending.length === 0) {
+    await logSync(admin, {
+      business_id: integ.business_id, provider: integ.provider, direction: "push",
+      entity_type: "agreement_monthly_invoice", entity_id: agreementId,
+      status: "success", message: "Ingen ufakturerede forekomster i måneden",
+    });
+    return;
+  }
+
+  const synthOrder = {
+    customer_email: agreement.customer_email,
+    customer_name: agreement.customer_name,
+    customer_phone: agreement.customer_phone,
+    company_name: agreement.company_name,
+    cvr: agreement.cvr,
+    address: agreement.address,
+    zip_code: agreement.zip_code,
+    city: agreement.city,
+  };
+  const customerExtId = await ensureCustomerLink(admin, integ, adapter, synthOrder);
+  if (!customerExtId) throw new Error("Kunne ikke matche/oprette kunde i regnskabsprogrammet");
+
+  const items = (agreement.agreement_items ?? []) as any[];
+  if (items.length === 0) throw new Error("Aftalen har ingen ydelser at fakturere");
+
+  // Ét linjesæt pr. forekomst: hver forekomst bliver én linje pr. ydelse, så
+  // kunden kan se hvilke besøg samlefakturaen dækker.
+  const lines: any[] = [];
+  for (const occ of pending) {
+    const dateLabel = new Date(occ.occurrence_date).toLocaleDateString("da-DK", {
+      day: "2-digit", month: "long", year: "numeric",
+    });
+    for (const it of items) {
+      let extProductId: string | null = null;
+      let extProductNumber: string | null = null;
+      if (it.service_id) {
+        const { data: pl } = await admin.from("accounting_product_links")
+          .select("external_id, external_product_number")
+          .eq("business_id", integ.business_id).eq("provider", integ.provider)
+          .eq("service_id", it.service_id).maybeSingle();
+        if (pl) { extProductId = pl.external_id; extProductNumber = pl.external_product_number; }
+        else if (integ.settings?.auto_create_products !== false) {
+          await pushProduct(admin, integ, adapter, it.service_id);
+          const { data: pl2 } = await admin.from("accounting_product_links")
+            .select("external_id, external_product_number")
+            .eq("business_id", integ.business_id).eq("provider", integ.provider)
+            .eq("service_id", it.service_id).maybeSingle();
+          extProductId = pl2?.external_id ?? null;
+          extProductNumber = pl2?.external_product_number ?? null;
+        }
+      }
+      lines.push({
+        service_id: it.service_id,
+        product_external_id: extProductId,
+        product_external_number: extProductNumber,
+        description: `${it.service_name} · ${dateLabel}`,
+        quantity: Number(it.quantity ?? 1),
+        unit_price: Number(it.unit_price ?? 0),
+      });
+    }
+  }
+
+  const sendAs = (integ.settings?.send_order_as ?? "order") as "order"|"invoice_draft"|"quote";
+  const dateLabel = new Intl.DateTimeFormat("da-DK", { month: "long", year: "numeric" })
+    .format(new Date(year, month - 1, 1));
+  const upsertResult = await adapter.upsertOrder({
+    internal_id: `${agreementId}:${year}-${month}`,
+    external_id: undefined,
+    external_type: sendAs,
+    customer_external_id: customerExtId,
+    customer_name: agreement.customer_name,
+    status: "completed",
+    notes: `Samlefaktura ${dateLabel}` + (agreement.notes ? `\n\n${agreement.notes}` : ""),
+    payment_terms_days: agreement.payment_terms_days,
+    currency: "DKK",
+    date: new Date().toISOString().slice(0, 10),
+    lines,
+  });
+
+  const result = await adapter.bookInvoice({
+    external_id: upsertResult.external_id,
+    external_type: (upsertResult.external_type as any) ?? "order",
+    customer_email: agreement.customer_email ?? null,
+  });
+
+  // Stamp alle dækkede forekomster med samme faktura-id
+  await admin.from("agreement_occurrences").update({
+    invoiced_at: new Date().toISOString(),
+    invoice_external_id: result.invoice_external_id,
+    invoice_status: result.sent ? "sent" : "booked",
+  }).in("id", pending.map((p) => p.id));
+
+  // Opret link-rows pr. forekomst (alle peger på samme eksterne faktura)
+  const linkRows = pending.map((p) => ({
+    business_id: integ.business_id,
+    provider: integ.provider,
+    agreement_occurrence_id: p.id,
+    external_id: result.invoice_external_id,
+    external_number: result.invoice_external_number,
+    external_type: "invoice_booked",
+    last_pushed_at: new Date().toISOString(),
+    last_status_synced: result.sent ? "sent" : "booked",
+  }));
+  await admin.from("accounting_order_links").upsert(
+    linkRows, { onConflict: "business_id,provider,agreement_occurrence_id" },
+  );
+
+  await logSync(admin, {
+    business_id: integ.business_id, provider: integ.provider, direction: "push",
+    entity_type: "agreement_monthly_invoice", entity_id: agreementId,
+    external_id: result.invoice_external_id, status: "success",
+    message: `Samlefaktura ${dateLabel} bogført (${pending.length} besøg)`,
+  });
+}
+}
