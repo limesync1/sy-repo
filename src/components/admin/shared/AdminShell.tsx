@@ -349,10 +349,21 @@ export const AdminShell = ({
               onClick={() => window.dispatchEvent(new CustomEvent("serviceydere:open-platform-chat"))}
               title="Kontakt Serviceydere kundeservice"
               aria-label="Kontakt Serviceydere kundeservice"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-3 py-2 text-xs font-semibold text-background shadow-[0_14px_32px_-14px_hsl(var(--foreground)/0.55)] transition-all hover:bg-foreground/90 hover:shadow-[0_18px_40px_-14px_hsl(var(--foreground)/0.6)] active:scale-95"
             >
-              <LifeBuoy className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Support</span>
+              <span className="relative flex h-5 w-5 items-center justify-center">
+                <img
+                  src="/serviceydere-ikon.webp"
+                  alt=""
+                  aria-hidden="true"
+                  className="h-5 w-5 rounded-full object-cover"
+                />
+                <span className="absolute -right-0.5 -top-0.5 flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70 opacity-75"></span>
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-success ring-2 ring-foreground"></span>
+                </span>
+              </span>
+              <span className="hidden sm:inline">Kundeservice</span>
             </button>
           </div>
         </header>
