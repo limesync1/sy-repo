@@ -506,7 +506,6 @@ const CreateAgreementDialog = ({
 
   const [customerId, setCustomerId] = useState<string>("");
   const [serviceId, setServiceId] = useState<string>("");
-  const [interval, setInterval] = useState<AgreementInterval>("hver_4_uge");
   const [billingModel, setBillingModel] = useState<AgreementBillingModel>("per_visit");
   const [startDate, setStartDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
   const [endDate, setEndDate] = useState<string>("");
