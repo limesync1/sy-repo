@@ -497,6 +497,7 @@ const CustomerStatusPill = ({ c }: { c: Customer }) => {
     ? Math.floor((Date.now() - new Date(c.last_order_at).getTime()) / (1000 * 60 * 60 * 24))
     : null;
   const isRecent = daysSinceLast !== null && daysSinceLast <= 90;
+  const liveOrders = c.live_orders_count ?? c.orders_count;
 
   if (c.active_subs > 0) {
     const extra = c.paused_subs > 0 ? ` (+${c.paused_subs} på pause)` : "";
@@ -512,22 +513,27 @@ const CustomerStatusPill = ({ c }: { c: Customer }) => {
     dot = "bg-amber-500";
     icon = <Pause className="h-3 w-3" />;
     help = "Alle kundens abonnementer er sat på pause. De indgår ikke i ruteplanlægningen, men kan genoptages når som helst.";
-  } else if (c.orders_count > 0 && isRecent) {
-    label = c.orders_count === 1
+  } else if (liveOrders > 0 && isRecent) {
+    label = liveOrders === 1
       ? "Aktiv kunde · 1 aftale"
-      : `Aktiv kunde · ${c.orders_count} aftaler`;
+      : `Aktiv kunde · ${liveOrders} aftaler`;
     dot = "bg-emerald-500";
     icon = <Package className="h-3 w-3" />;
-    help = `Kunden har ${c.orders_count === 1 ? "én aftale" : `${c.orders_count} aftaler`} og har handlet hos jer inden for de sidste 90 dage. Kunden har ikke et fast abonnement endnu.`;
-  } else if (c.orders_count > 0) {
-    label = c.orders_count === 1
+    help = `Kunden har ${liveOrders === 1 ? "én åben aftale" : `${liveOrders} åbne aftaler`} og har handlet hos jer inden for de sidste 90 dage. Annullerede aftaler tælles ikke som aktive.`;
+  } else if (liveOrders > 0) {
+    label = liveOrders === 1
       ? "Engangskunde"
-      : `Tidligere kunde · ${c.orders_count} aftaler`;
+      : `Tidligere kunde · ${liveOrders} aftaler`;
     dot = "bg-blue-500";
     icon = <Package className="h-3 w-3" />;
-    help = c.orders_count === 1
+    help = liveOrders === 1
       ? "Kunden har haft én aftale hos jer, og der er gået mere end 90 dage siden sidst."
-      : `Kunden har haft ${c.orders_count} aftaler hos jer, men har ikke et fast abonnement og har ikke handlet i mere end 90 dage.`;
+      : `Kunden har haft ${liveOrders} aftaler hos jer, men har ikke et fast abonnement og har ikke handlet i mere end 90 dage.`;
+  } else if (c.orders_count > 0) {
+    label = "Kun annullerede aftaler";
+    dot = "bg-muted-foreground/40";
+    icon = <Package className="h-3 w-3" />;
+    help = "Kunden har kun annullerede eller afviste aftaler. De tæller ikke som aktive aftaler.";
   } else {
     label = "Ny i kartotek";
     dot = "bg-muted-foreground/40";
