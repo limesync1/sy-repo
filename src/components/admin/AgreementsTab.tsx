@@ -959,7 +959,7 @@ const CreateAgreementDialog = ({
         <DialogFooter className="px-6 py-3 border-t bg-secondary/20 flex sm:items-center sm:justify-between gap-2">
           <div className="text-xs text-muted-foreground hidden sm:block">
             {service ? (
-              <>I alt: <span className="font-semibold text-foreground tabular-nums">{totalPrice.toLocaleString("da-DK")} kr</span> pr. besøg · {INTERVAL_LABELS[interval]}</>
+              <>I alt: <span className="font-semibold text-foreground tabular-nums">{totalPrice.toLocaleString("da-DK")} kr</span> pr. besøg · {intervalChoice.label}</>
             ) : "Vælg kunde og service for at fortsætte"}
           </div>
           <div className="flex items-center gap-2">
