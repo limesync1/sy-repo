@@ -489,7 +489,10 @@ export const useUnassignedJobs = (businessId: string | undefined) => {
           order_items ( service_name, quantity, total_price, details )
         `)
         .eq("business_id", businessId!)
-        .in("status", ["pending", "confirmed", "in_progress"])
+        // Aftaler der afventer godkendelse (pending) skal IKKE vises i
+        // "Aftaler uden rute" — vi venter til kunden / virksomheden har
+        // bekræftet (status = confirmed) eller arbejdet er i gang.
+        .in("status", ["confirmed", "in_progress"])
         .order("preferred_date", { ascending: true, nullsFirst: false })
         .order("created_at", { ascending: false })
         .limit(300);
