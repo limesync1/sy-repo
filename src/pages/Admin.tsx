@@ -1448,6 +1448,10 @@ const ServiceForm = ({
         product_number: productNumber.trim() || null,
         vat_zone: vatZone || null,
         is_active: isActive,
+        default_employee_ids: defaultEmployeeIds,
+        estimated_duration_minutes: estimatedDurationMinutes
+          ? Math.max(5, parseInt(estimatedDurationMinutes, 10) || 0)
+          : null,
       };
 
       if (existingService) {
