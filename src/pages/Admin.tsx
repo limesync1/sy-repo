@@ -1443,9 +1443,6 @@ const ServiceForm = ({
         vat_zone: vatZone || null,
         is_active: isActive,
         default_employee_ids: defaultEmployeeIds,
-        estimated_duration_minutes: estimatedDurationMinutes
-          ? Math.max(5, parseInt(estimatedDurationMinutes, 10) || 0)
-          : null,
       };
 
       if (existingService) {
@@ -2010,25 +2007,6 @@ const ServiceForm = ({
               )}
             </div>
 
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-foreground inline-flex items-center gap-1.5">
-                <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                Standard varighed (minutter)
-              </label>
-              <Input
-                type="number"
-                inputMode="numeric"
-                min={5}
-                step={5}
-                value={estimatedDurationMinutes}
-                onChange={(e) => setEstimatedDurationMinutes(e.target.value)}
-                placeholder="60"
-                className="bg-secondary/30 max-w-[160px]"
-              />
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                Bruges til at planlægge tidsforbrug i ruteplanlæggeren.
-              </p>
-            </div>
           </div>
 
           {/* Status: aktiv/inaktiv */}
