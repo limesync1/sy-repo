@@ -37,7 +37,7 @@ import {
 import {
   Plus, Search, Loader2, Calendar as CalendarIcon, Repeat, MapPin, User,
   Trash2, Pencil, RefreshCw, Receipt, TrendingUp, Clock, AlertCircle, CheckCircle2,
-  Package, CreditCard, Users, ArrowRight, Sparkles, Tag, Minus, Calculator,
+  Package, CreditCard, Users, ArrowRight, Sparkles, Tag, Minus, Calculator, Check,
 } from "lucide-react";
 import { PageHeader, PrimaryButton, EmptyState } from "@/components/admin/shared/AdminUI";
 import { StatusPill, type StatusTone } from "@/components/admin/shared/StatusPill";
@@ -122,6 +122,27 @@ const useAllCustomers = (businessId: string) => useQuery({
   },
 });
 
+// Bulk-hent alle agreement_items for et sæt aftaler i ét kald — undgår
+// N+1 queries når listen renderes. Vi grupperer efter agreement_id og
+// returnerer { [agreementId]: AgreementItem[] }.
+const useAgreementItemsBulk = (agreementIds: string[]) => useQuery({
+  queryKey: ["agreement-items-bulk", [...agreementIds].sort().join(",")],
+  enabled: agreementIds.length > 0,
+  staleTime: 30_000,
+  queryFn: async (): Promise<Record<string, { service_id: string | null; service_name: string; total_price: number }[]>> => {
+    const { data, error } = await supabase
+      .from("agreement_items")
+      .select("agreement_id, service_id, service_name, total_price")
+      .in("agreement_id", agreementIds);
+    if (error) throw error;
+    const map: Record<string, any[]> = {};
+    (data || []).forEach((it: any) => {
+      (map[it.agreement_id] ||= []).push(it);
+    });
+    return map;
+  },
+});
+
 const AgreementsTab = ({ businessId, businessName }: Props) => {
   const [statusFilter, setStatusFilter] = useState<AgreementStatus | "all">("all");
   const [search, setSearch] = useState("");
@@ -133,6 +154,7 @@ const AgreementsTab = ({ businessId, businessName }: Props) => {
   const { data: allCustomers = [] } = useAllCustomers(businessId);
   const ensure = useEnsureOccurrences();
   const enqueueMonthly = useEnqueueMonthlyInvoices();
+  const itemsBulk = useAgreementItemsBulk(useMemo(() => agreements.map(a => a.id), [agreements]));
 
   const hasServices = allServices.length > 0;
   const hasCustomers = allCustomers.length > 0;
@@ -351,7 +373,13 @@ const AgreementsTab = ({ businessId, businessName }: Props) => {
       ) : (
         <div className="space-y-2">
           {filtered.map((a) => (
-            <AgreementRow key={a.id} agreement={a} businessId={businessId} onClick={() => setSelectedId(a.id)} />
+            <AgreementRow
+              key={a.id}
+              agreement={a}
+              businessId={businessId}
+              items={itemsBulk.data?.[a.id] || []}
+              onClick={() => setSelectedId(a.id)}
+            />
           ))}
         </div>
       )}
@@ -376,10 +404,22 @@ const AgreementsTab = ({ businessId, businessName }: Props) => {
 };
 
 /* ─── Row ─── */
-const AgreementRow = ({ agreement, businessId, onClick }: { agreement: Agreement; businessId: string; onClick: () => void }) => {
+const AgreementRow = ({ agreement, businessId, items, onClick }: {
+  agreement: Agreement;
+  businessId: string;
+  items: { service_id: string | null; service_name: string; total_price: number }[];
+  onClick: () => void;
+}) => {
   const { data: templates = [] } = useRouteTemplates(businessId);
+  const { data: employees = [] } = useEmployees(businessId);
   const tpl = templates.find((t) => t.id === agreement.default_route_template_id);
   const status = STATUS_CONFIG[agreement.status];
+  const serviceLabel = items.length === 0
+    ? "Service"
+    : items.length === 1
+      ? items[0].service_name
+      : `${items[0].service_name} +${items.length - 1}`;
+  const assignedEmps = employees.filter((e) => agreement.employee_ids?.includes(e.id));
 
   return (
     <Card
@@ -404,16 +444,24 @@ const AgreementRow = ({ agreement, businessId, onClick }: { agreement: Agreement
             </p>
             <StatusPill tone={status.tone}>{status.label}</StatusPill>
           </div>
-          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1 flex-wrap">
+          <p className="text-xs text-foreground/80 mt-0.5 truncate">
+            <Package className="h-3 w-3 inline-block mr-1 -mt-0.5 text-muted-foreground" />
+            {serviceLabel}
+          </p>
+          <div className="flex items-center gap-3 text-[11px] text-muted-foreground mt-1 flex-wrap">
             <span className="inline-flex items-center gap-1"><Repeat className="h-3 w-3" />{INTERVAL_LABELS[agreement.interval]}</span>
             <span className="inline-flex items-center gap-1"><CalendarIcon className="h-3 w-3" />Start {fmtDate(agreement.start_date)}</span>
             {tpl ? (
               <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{tpl.name}</span>
             ) : (
               <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-400">
-                <MapPin className="h-3 w-3" />Standardrute
+                <MapPin className="h-3 w-3" />Ingen rute
               </span>
             )}
+            <span className="inline-flex items-center gap-1">
+              <Users className="h-3 w-3" />
+              {assignedEmps.length === 0 ? "Ingen medarbejder" : assignedEmps.map(e => e.name.split(" ")[0]).join(", ")}
+            </span>
           </div>
         </div>
         <div className="text-right shrink-0">
@@ -966,6 +1014,8 @@ const AgreementDetailSheet = ({
   const agreement = agreements.find((a) => a.id === agreementId);
   const { data: occurrences = [] } = useOccurrencesForAgreement(agreementId);
   const { data: templates = [] } = useRouteTemplates(businessId);
+  const { data: employees = [] } = useEmployees(businessId);
+  const { data: itemsMap } = useAgreementItemsBulk(agreement ? [agreement.id] : []);
   const update = useUpdateAgreement();
   const remove = useDeleteAgreement();
 
@@ -974,6 +1024,13 @@ const AgreementDetailSheet = ({
   const tpl = templates.find((t) => t.id === agreement.default_route_template_id);
   const future = occurrences.filter((o) => isAfter(parseISO(o.occurrence_date), new Date()));
   const status = STATUS_CONFIG[agreement.status];
+  const items = itemsMap?.[agreement.id] || [];
+  const toggleEmployee = (id: string) => {
+    const next = agreement.employee_ids?.includes(id)
+      ? agreement.employee_ids.filter((x) => x !== id)
+      : [...(agreement.employee_ids || []), id];
+    update.mutate({ id: agreement.id, employee_ids: next });
+  };
 
   return (
     <Sheet open onOpenChange={(o) => !o && onClose()}>
@@ -987,6 +1044,21 @@ const AgreementDetailSheet = ({
             <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
               <Repeat className="h-3 w-3" />{INTERVAL_LABELS[agreement.interval]}
             </span>
+          </div>
+
+          {/* Services i aftalen — vises altid så det er klart hvad aftalen dækker */}
+          <div className="rounded-lg border border-border bg-card p-3 space-y-1.5">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+              <Package className="h-3 w-3" /> Services i aftalen
+            </p>
+            {items.length === 0 ? (
+              <p className="text-xs text-muted-foreground">Ingen linjer.</p>
+            ) : items.map((it, i) => (
+              <div key={i} className="flex items-center justify-between text-sm">
+                <span className="truncate">{it.service_name}</span>
+                <span className="tabular-nums text-foreground/80 shrink-0 ml-2">{Math.round(Number(it.total_price || 0)).toLocaleString("da-DK")} kr</span>
+              </div>
+            ))}
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-sm">
@@ -1007,10 +1079,59 @@ const AgreementDetailSheet = ({
               <p className="text-xs text-muted-foreground">Slut</p>
               <p>{fmtDate(agreement.end_date)}</p>
             </div>
-            <div className="col-span-2">
-              <p className="text-xs text-muted-foreground">Standard-rute</p>
-              <p>{tpl ? tpl.name : "Ingen"}</p>
+            <div className="col-span-2 space-y-1.5">
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <MapPin className="h-3 w-3" /> Standard-rute
+              </p>
+              <Select
+                value={agreement.default_route_template_id ?? "__none__"}
+                onValueChange={(v) => update.mutate({ id: agreement.id, default_route_template_id: v === "__none__" ? null : v })}
+              >
+                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Ingen — ligger i pool</SelectItem>
+                  {templates.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.name}{t.weekday !== null ? ` · ${WEEKDAY_LABELS[t.weekday]}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-muted-foreground">Ændres med det samme — gælder kun fremtidige besøg.</p>
             </div>
+
+            <div className="col-span-2 space-y-1.5">
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <Users className="h-3 w-3" /> Medarbejder(e) på besøgene
+              </p>
+              {employees.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic">Ingen medarbejdere oprettet endnu.</p>
+              ) : (
+                <div className="flex flex-wrap gap-1.5">
+                  {employees.map((e) => {
+                    const selected = agreement.employee_ids?.includes(e.id);
+                    return (
+                      <button
+                        key={e.id}
+                        type="button"
+                        onClick={() => toggleEmployee(e.id)}
+                        disabled={update.isPending}
+                        className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                          selected
+                            ? "border-foreground bg-foreground text-background"
+                            : "border-border bg-secondary/50 text-foreground hover:bg-secondary"
+                        }`}
+                      >
+                        {selected && <Check className="h-3 w-3" />}
+                        {e.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              <p className="text-[11px] text-muted-foreground">Klik for at vælge/fravælge — gemmes automatisk.</p>
+            </div>
+
             <div className="col-span-2">
               <p className="text-xs text-muted-foreground">Fakturering</p>
               <div className="flex items-center gap-2">

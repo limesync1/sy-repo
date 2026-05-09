@@ -126,7 +126,7 @@ const useCustomers = (businessId: string) => {
   return useQuery({
     queryKey: ["customers", businessId],
     queryFn: async (): Promise<Customer[]> => {
-      const [ordersRes, subsRes, privRes, bizRes] = await Promise.all([
+      const [ordersRes, subsRes, agreementsRes, privRes, bizRes] = await Promise.all([
         supabase
           .from("orders")
           .select("id, status, customer_name, customer_email, customer_phone, customer_id, address, zip_code, city, total_amount, created_at, company_name, cvr, payment_status, paid_at, due_date, invoice_external_id, invoiced_at, reminder_count, last_reminder_at, last_reminder_type, credited_at, voided_at")
@@ -135,6 +135,10 @@ const useCustomers = (businessId: string) => {
         supabase
           .from("subscriptions")
           .select("customer_id, status")
+          .eq("business_id", businessId),
+        supabase
+          .from("agreements")
+          .select("id, status, customer_name, customer_email, customer_phone, business_customer_id, address, zip_code, city, total_amount, created_at, company_name, cvr, interval")
           .eq("business_id", businessId),
         supabase
           .from("private_customers")
@@ -148,6 +152,7 @@ const useCustomers = (businessId: string) => {
       if (ordersRes.error) throw ordersRes.error;
       const orders = ordersRes.data || [];
       const subs = subsRes.data || [];
+      const agreementsAll = (agreementsRes.data || []) as any[];
       const privCustomers = privRes.data || [];
       const bizCustomers = bizRes.data || [];
 
@@ -223,6 +228,49 @@ const useCustomers = (businessId: string) => {
       grouped.forEach((c, key) => {
         const list = ordersByCustomer.get(key) || [];
         c.accounting_summary = summarizeCustomerOrders(list);
+      });
+
+      // ── Aftaler (agreements) — fold ind i kundeoversigten så kunder med
+      // faste aftaler (men måske ingen "orders") også vises korrekt med
+      // tæller, omsætning og status. Aftaler er den moderne afløser for
+      // subscriptions, så de skal regnes med i live_orders_count og
+      // active_subs/paused_subs.
+      agreementsAll.forEach((a) => {
+        const key = (a.customer_email || "").toLowerCase();
+        if (!key) return;
+        const isLive = !["cancelled", "ended"].includes(a.status);
+        const isActive = a.status === "active";
+        const isPaused = a.status === "paused";
+        const existing = grouped.get(key);
+        if (existing) {
+          if (isLive) existing.live_orders_count = (existing.live_orders_count || 0) + 1;
+          existing.orders_count += 1;
+          existing.total_revenue += Number(a.total_amount || 0);
+          if (isActive) existing.active_subs += 1;
+          if (isPaused) existing.paused_subs += 1;
+          if (!existing.last_order_at || a.created_at > existing.last_order_at) existing.last_order_at = a.created_at;
+          if (!existing.first_order_at || a.created_at < existing.first_order_at) existing.first_order_at = a.created_at;
+        } else {
+          grouped.set(key, {
+            email: a.customer_email,
+            name: a.customer_name,
+            phone: a.customer_phone,
+            address: a.address,
+            zip_code: a.zip_code,
+            city: a.city,
+            customer_id: null,
+            total_revenue: Number(a.total_amount || 0),
+            orders_count: 1,
+            live_orders_count: isLive ? 1 : 0,
+            active_subs: isActive ? 1 : 0,
+            paused_subs: isPaused ? 1 : 0,
+            last_order_at: a.created_at,
+            first_order_at: a.created_at,
+            company_name: a.company_name,
+            cvr: a.cvr,
+            type: a.business_customer_id ? "business" : "unknown",
+          });
+        }
       });
 
       // Merge privat-kartotek
@@ -322,7 +370,7 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
     queryKey: ["customer-details", businessId, email],
     enabled: !!businessId && !!email,
     queryFn: async () => {
-      const [ordersRes, subsRes] = await Promise.all([
+      const [ordersRes, subsRes, agreementsRes] = await Promise.all([
         supabase
           .from("orders")
           .select("id, status, total_amount, preferred_date, created_at, notes, address, zip_code, city, payment_status, paid_at, payment_status_synced_at, due_date, invoice_external_id, invoiced_at, invoice_status, reminder_count, last_reminder_at, last_reminder_type, reminder_history, credited_at, voided_at, order_items(service_name, quantity, total_price, details)")
@@ -333,6 +381,12 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
           .from("subscriptions")
           .select("id, service_name, interval, status, next_service_date, total_price, preferred_route_id, order_id, customer_id, created_at")
           .eq("business_id", businessId)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("agreements")
+          .select("id, status, interval, start_date, end_date, total_amount, default_route_template_id, employee_ids, billing_model, created_at, agreement_items(service_name, total_price)")
+          .eq("business_id", businessId)
+          .ilike("customer_email", email!)
           .order("created_at", { ascending: false }),
       ]);
 
@@ -429,6 +483,7 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
         stops,
         reviews,
         preferredRoutes,
+        agreements: (agreementsRes.data || []) as any[],
       };
     },
   });
@@ -1349,6 +1404,40 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                       </div>
                     );
                   })()}
+
+                  {/* Aftaler (faste/abonnementer) — den nye agreements-tabel */}
+                  {data && (data as any).agreements && (data as any).agreements.length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                        <Repeat className="h-3.5 w-3.5" /> Faste aftaler ({(data as any).agreements.length})
+                      </h4>
+                      <div className="space-y-1.5">
+                        {(data as any).agreements.map((a: any) => {
+                          const services = (a.agreement_items || []).map((i: any) => i.service_name).filter(Boolean);
+                          const label = services.length === 0 ? "Aftale" : services.length === 1 ? services[0] : `${services[0]} +${services.length - 1}`;
+                          return (
+                            <div key={a.id} className="rounded-lg border border-border bg-card px-3 py-2">
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-sm font-semibold text-foreground truncate">{label}</p>
+                                  <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                                    <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-accent/40 text-accent bg-accent/5">
+                                      {INTERVAL_LABELS[a.interval] || a.interval}
+                                    </Badge>
+                                    <StatusBadge status={a.status} />
+                                    <span className="text-[11px] text-muted-foreground inline-flex items-center gap-1">
+                                      <Calendar className="h-3 w-3" /> Start {fmtDate(a.start_date)}
+                                    </span>
+                                  </div>
+                                </div>
+                                <span className="text-sm font-bold text-foreground tabular-nums shrink-0">{fmtKr(Number(a.total_amount || 0))}</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
 
                   {data && data.stops.length > 0 && (
                     <details className="group rounded-lg border border-border bg-card/60 px-3 py-2 text-xs">
