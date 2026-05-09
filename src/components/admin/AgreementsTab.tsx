@@ -633,6 +633,7 @@ const CreateAgreementDialog = ({
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto p-0 gap-0">
         <DialogHeader className="px-6 py-4 border-b shrink-0">
