@@ -380,12 +380,13 @@ const CustomerOrderSummary = ({ order }: { order: any }) => {
   if (items.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-border overflow-hidden">
-      <div className="px-4 py-2.5 bg-muted/40 border-b border-border">
-        <span className="text-sm font-semibold text-foreground">Bestilte services</span>
+    <div className="rounded-lg border border-border bg-card overflow-hidden">
+      <div className="flex items-center justify-between gap-3 border-b border-border bg-secondary/40 px-3 py-2">
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Aftalens indhold</span>
+        <span className="text-sm font-bold tabular-nums text-foreground">{roundPrice(order.total_amount)} kr</span>
       </div>
       {items.map((item: any) => (
-        <div key={item.id} className="border-b border-border last:border-b-0 px-4 py-3">
+        <div key={item.id} className="border-b border-border last:border-b-0 px-3 py-2">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <span className="text-sm font-semibold text-foreground">{item.service_name}</span>
@@ -399,7 +400,7 @@ const CustomerOrderSummary = ({ order }: { order: any }) => {
             <span className="text-sm font-bold text-foreground shrink-0">{item.total_price} kr</span>
           </div>
           {item.details?.stepDetails && (
-            <div className="mt-2 space-y-1 pl-0.5">
+            <div className="mt-1.5 space-y-0.5 pl-0.5">
               {(item.details.stepDetails as any[]).map((sd: any, i: number) => (
                 <div key={i} className="flex justify-between text-xs text-muted-foreground">
                   <span>{sd.label}: <span className="font-medium text-foreground/80">{sd.value} {sd.unit}</span>
@@ -412,10 +413,6 @@ const CustomerOrderSummary = ({ order }: { order: any }) => {
           )}
         </div>
       ))}
-      <div className="px-4 py-2.5 flex justify-between bg-muted/30 border-t border-border">
-        <span className="text-sm font-bold text-foreground">I alt</span>
-        <span className="text-sm font-bold text-foreground">{order.total_amount} kr</span>
-      </div>
     </div>
   );
 };
