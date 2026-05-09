@@ -721,11 +721,11 @@ const CartSheet = () => {
               </div>
               <Button
                 onClick={handleOrder}
-                disabled={createOrder.isPending}
+                disabled={createOrder.isPending || submitting}
                 size="lg"
                 className="w-full rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 font-semibold text-base shadow-sm hover:shadow-md transition-all"
               >
-                {createOrder.isPending ? (
+                {createOrder.isPending || submitting ? (
                   <><Loader2 className="h-4 w-4 animate-spin" /> Sender bestilling...</>
                 ) : (
                   <>Send bestilling <CheckCircle2 className="h-4 w-4" /></>
