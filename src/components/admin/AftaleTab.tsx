@@ -2036,6 +2036,82 @@ const AftaleTab = ({
                       </div>
                     )}
 
+                    {/* Response form */}
+                    {isResponding && (
+                      <div className="rounded-lg border border-border bg-card p-3 space-y-3" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex gap-1.5">
+                          {(["accepted", "adjusted", "rejected"] as const).map((type) => (
+                            <button key={type} onClick={() => {
+                              setResponseType(type);
+                              if (type === "adjusted" && !adjustedItems[order.id]) initAdjustedItems(order);
+                            }}
+                              className={`flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors ${
+                                responseType === type
+                                  ? "border-border bg-foreground text-background"
+                                  : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
+                              }`}>
+                              {type === "accepted" ? <><Check className="h-3.5 w-3.5" /> Godkend</>
+                                : type === "adjusted" ? <><Pencil className="h-3.5 w-3.5" /> Tilpas</>
+                                : <><X className="h-3.5 w-3.5" /> Afvis</>}
+                            </button>
+                          ))}
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <Button size="sm" onClick={() => handleResponse(order.id)}
+                              className={`h-8 rounded-md px-3 text-xs ${
+                                responseType === "rejected" ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                                : "bg-foreground text-background hover:bg-foreground/90"
+                              }`}>
+                              {responseType === "accepted" ? "Bekræft godkendelse"
+                                : responseType === "rejected" ? "Bekræft afvisning"
+                                : `Send forslag · ${roundPrice(getAdjustedTotal(order.id))} kr`}
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => { setRespondingTo(null); setResponseMessage(""); }}
+                              className="h-8 rounded-md px-2.5 text-xs text-muted-foreground hover:bg-secondary hover:text-foreground">Annuller</Button>
+                          </div>
+                        </div>
+
+                        {responseType === "adjusted" && adjustedItems[order.id] && (
+                          <div className="space-y-3">
+                            <AdjustmentEditor
+                              orderId={order.id}
+                              items={adjustedItems[order.id]}
+                              onUpdateStep={updateAdjustedStep}
+                              onUpdateInterval={updateAdjustedInterval}
+                              onUpdateFixedPrice={updateAdjustedFixedPrice}
+                            />
+                            <div className="flex items-center justify-between rounded-lg border border-border bg-secondary px-3 py-2">
+                              <div>
+                                <span className="text-xs text-muted-foreground">Kundens pris</span>
+                                <span className="ml-2 text-sm line-through text-muted-foreground">{order.total_amount} kr</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                                <div>
+                                  <span className="text-xs text-muted-foreground">Din pris</span>
+                                  <span className="ml-2 text-base font-bold text-foreground">{roundPrice(getAdjustedTotal(order.id))} kr</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                            {responseType === "accepted" ? "Valgfri besked" : "Besked til kunden"}
+                          </label>
+                          <Textarea value={responseMessage} onChange={(e) => setResponseMessage(e.target.value)}
+                            placeholder={
+                              responseType === "accepted" ? "Tak for din aftale! Vi glæder os til at hjælpe dig."
+                              : responseType === "adjusted" ? "Vi vil gerne foreslå en tilpasning af aftalen..."
+                              : "Vi kan desværre ikke udføre denne opgave fordi..."
+                            }
+                            rows={responseType === "accepted" ? 2 : 3} className="text-sm" />
+                        </div>
+                      </div>
+                    )}
+
                     {/* ── 2) Hvad er aftalen om? ── */}
                     <CustomerOrderSummary order={order} />
 
@@ -2047,7 +2123,6 @@ const AftaleTab = ({
                     )}
 
                     {/* ── 3) Kontekst — kontakt, rute, abonnement, tidslinje ── */}
-                    {/* Kompakt kontaktbar */}
                     <div className="flex flex-wrap items-center gap-1.5">
                       <a href={`mailto:${order.customer_email}`}
                         className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground hover:bg-secondary/60 max-w-full">
@@ -2062,7 +2137,6 @@ const AftaleTab = ({
                       )}
                     </div>
 
-                    {/* Rute-info — kun når ruteplanlægning er aktiv */}
                     {routePlanningEnabled && routeInfo ? (
                       <div
                         className="rounded-lg border px-3 py-2 space-y-1"
@@ -2097,22 +2171,21 @@ const AftaleTab = ({
                           {routeStop.status && (
                             <span className="inline-flex items-center gap-1">
                               <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: routeInfo.color }} />
-                              Status på dette stop: <span className="text-foreground font-medium">{formatStopStatus(routeStop.status)}</span>
+                              Stop: <span className="text-foreground font-medium">{formatStopStatus(routeStop.status)}</span>
                             </span>
                           )}
                           {routeInfo.status && (
-                            <span>Status på rute: <span className="text-foreground font-medium">{formatRouteStatus(routeInfo.status)}</span></span>
+                            <span>Rute: <span className="text-foreground font-medium">{formatRouteStatus(routeInfo.status)}</span></span>
                           )}
                         </div>
                       </div>
                     ) : routePlanningEnabled && !["completed", "cancelled"].includes(order.status) && (
                       <div className="rounded-lg border border-dashed border-border px-3 py-2 flex items-center gap-2 text-xs text-muted-foreground">
                         <MapPin className="h-3.5 w-3.5" />
-                        Denne aftale er endnu ikke planlagt på en rute.
+                        Ikke planlagt på rute
                       </div>
                     )}
 
-                    {/* Tilbagevendende & tidslinje — sekundær kontekst, foldet sammen som standard */}
                     <LinkedSubscriptionInfo orderId={order.id} subscriptions={allSubs} />
                     <details className="group rounded-lg border border-border bg-card/60 px-3 py-2 text-xs">
                       <summary className="flex cursor-pointer items-center justify-between gap-2 list-none text-foreground font-medium">
@@ -2121,81 +2194,6 @@ const AftaleTab = ({
                       </summary>
                       <div className="mt-2"><OrderTimeline order={order as any} /></div>
                     </details>
-
-                    {/* Response form */}
-                    {isResponding && (
-                      <div className="rounded-xl border border-border bg-card p-4 space-y-4" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex gap-2">
-                          {(["accepted", "adjusted", "rejected"] as const).map((type) => (
-                            <button key={type} onClick={() => {
-                              setResponseType(type);
-                              if (type === "adjusted" && !adjustedItems[order.id]) initAdjustedItems(order);
-                            }}
-                              className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
-                                responseType === type
-                                  ? "border-border bg-secondary text-foreground"
-                                  : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
-                              }`}>
-                              {type === "accepted" ? <><Check className="h-3.5 w-3.5" /> Godkend</>
-                                : type === "adjusted" ? <><Pencil className="h-3.5 w-3.5" /> Tilpas</>
-                                : <><X className="h-3.5 w-3.5" /> Afvis</>}
-                            </button>
-                          ))}
-                        </div>
-
-                        {responseType === "adjusted" && adjustedItems[order.id] && (
-                          <div className="space-y-3">
-                            <AdjustmentEditor
-                              orderId={order.id}
-                              items={adjustedItems[order.id]}
-                              onUpdateStep={updateAdjustedStep}
-                              onUpdateInterval={updateAdjustedInterval}
-                              onUpdateFixedPrice={updateAdjustedFixedPrice}
-                            />
-                            <div className="flex items-center justify-between rounded-xl border border-border bg-secondary px-4 py-3">
-                              <div>
-                                <span className="text-xs text-muted-foreground">Kundens pris</span>
-                                <span className="ml-2 text-sm line-through text-muted-foreground">{order.total_amount} kr</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                                <div>
-                                  <span className="text-xs text-muted-foreground">Din pris</span>
-                                  <span className="ml-2 text-base font-bold text-foreground">{roundPrice(getAdjustedTotal(order.id))} kr</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        <div>
-                          <label className="mb-1 block text-xs font-medium text-muted-foreground">
-                            Besked til kunden {responseType === "accepted" ? "(valgfrit)" : ""}
-                          </label>
-                          <Textarea value={responseMessage} onChange={(e) => setResponseMessage(e.target.value)}
-                            placeholder={
-                              responseType === "accepted" ? "Tak for din aftale! Vi glæder os til at hjælpe dig."
-                              : responseType === "adjusted" ? "Vi vil gerne foreslå en tilpasning af aftalen..."
-                              : "Vi kan desværre ikke udføre denne opgave fordi..."
-                            }
-                            rows={3} className="text-sm" />
-                        </div>
-
-                        <div className="flex gap-2">
-                          <Button size="sm" onClick={() => handleResponse(order.id)}
-                            className={`rounded-lg text-xs ${
-                              responseType === "rejected" ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-                              : "bg-foreground text-background hover:bg-foreground/90"
-                            }`}>
-                            {responseType === "accepted" ? "Bekræft godkendelse"
-                              : responseType === "rejected" ? "Bekræft afvisning"
-                              : `Send forslag – ${roundPrice(getAdjustedTotal(order.id))} kr`}
-                          </Button>
-                          <Button variant="ghost" size="sm" onClick={() => { setRespondingTo(null); setResponseMessage(""); }}
-                            className="rounded-lg text-xs text-muted-foreground hover:bg-secondary hover:text-foreground">Annuller</Button>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 )}
               </Card>
