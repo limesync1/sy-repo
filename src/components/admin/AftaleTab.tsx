@@ -2198,6 +2198,7 @@ const AftaleTab = ({
                       <div className="mt-2"><OrderTimeline order={order as any} /></div>
                     </details>
                   </div>
+                  </div>
                 )}
               </Card>
             );
