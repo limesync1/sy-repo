@@ -122,6 +122,27 @@ const useAllCustomers = (businessId: string) => useQuery({
   },
 });
 
+// Bulk-hent alle agreement_items for et sæt aftaler i ét kald — undgår
+// N+1 queries når listen renderes. Vi grupperer efter agreement_id og
+// returnerer { [agreementId]: AgreementItem[] }.
+const useAgreementItemsBulk = (agreementIds: string[]) => useQuery({
+  queryKey: ["agreement-items-bulk", [...agreementIds].sort().join(",")],
+  enabled: agreementIds.length > 0,
+  staleTime: 30_000,
+  queryFn: async (): Promise<Record<string, { service_id: string | null; service_name: string; total_price: number }[]>> => {
+    const { data, error } = await supabase
+      .from("agreement_items")
+      .select("agreement_id, service_id, service_name, total_price")
+      .in("agreement_id", agreementIds);
+    if (error) throw error;
+    const map: Record<string, any[]> = {};
+    (data || []).forEach((it: any) => {
+      (map[it.agreement_id] ||= []).push(it);
+    });
+    return map;
+  },
+});
+
 const AgreementsTab = ({ businessId, businessName }: Props) => {
   const [statusFilter, setStatusFilter] = useState<AgreementStatus | "all">("all");
   const [search, setSearch] = useState("");
