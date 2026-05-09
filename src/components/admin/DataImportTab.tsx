@@ -985,7 +985,6 @@ const ImportPanel = ({
   if (!file) {
     return (
       <div className="space-y-4">
-        <WizardSteps current={0} />
         <div
           onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
           onDragLeave={() => setDragActive(false)}
@@ -1110,11 +1109,12 @@ const ImportPanel = ({
         )}
       </div>
 
-      {/* ─── Statistik-kort (klikbare filtre) ─── */}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      {/* ─── Statistik-kort (klikbare filtre) ─── 
+          Tre status-knapper + en "Alle" toggle — totalen vises i hero, så det
+          slipper at fylde et helt kort her. */}
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {[
           { label: "Klar til import", value: stats.ok, tone: "ok", filter: "ok" as const, icon: CheckCircle2 },
-          { label: "I alt", value: stats.total, tone: "neutral", filter: "all" as const, icon: FileText },
           { label: "Dubletter", value: stats.duplicates, tone: "warn", filter: "dup" as const, icon: AlertTriangle },
           { label: "Fejl", value: stats.errors, tone: stats.errors > 0 ? "err" : "neutral", filter: "err" as const, icon: AlertTriangle },
         ].map((s) => {
@@ -1127,9 +1127,9 @@ const ImportPanel = ({
             >
               <div>
                 <p className="text-[10.5px] uppercase tracking-wide text-muted-foreground">{s.label}</p>
-                <p className={`text-xl font-bold ${s.tone === "ok" ? "text-accent" : s.tone === "warn" ? "text-amber-600" : s.tone === "err" ? "text-destructive" : "text-foreground"}`}>{s.value.toLocaleString("da-DK")}</p>
+                <p className={`text-xl font-bold ${s.tone === "ok" ? "text-foreground" : s.tone === "warn" ? "text-amber-600" : s.tone === "err" ? "text-destructive" : "text-foreground"}`}>{s.value.toLocaleString("da-DK")}</p>
               </div>
-              <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${s.tone === "ok" ? "bg-accent/10 text-accent" : s.tone === "warn" ? "bg-amber-500/10 text-amber-600" : s.tone === "err" ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}>
+              <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${s.tone === "ok" ? "bg-secondary text-foreground" : s.tone === "warn" ? "bg-amber-500/10 text-amber-600" : s.tone === "err" ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}>
                 <SI className="h-4 w-4" />
               </div>
             </button>
@@ -1137,13 +1137,20 @@ const ImportPanel = ({
         })}
       </div>
 
-      {/* ─── Felt-mapping (grupperet i kolonner) ─── */}
-      <details open className="group rounded-xl border border-border bg-background">
-        <summary className="flex cursor-pointer items-center gap-2 px-4 py-3 text-sm font-semibold text-foreground">
-          <Wand2 className="h-4 w-4 text-accent" />
-          Felt-mapping
-          <span className="ml-1 text-xs font-normal text-muted-foreground">{mappedCount}/{totalFields} mappet</span>
-          <ArrowRight className="ml-auto h-3.5 w-3.5 text-muted-foreground transition-transform group-open:rotate-90" />
+      {/* ─── Felt-mapping (grupperet i kolonner) ─── 
+          Bruger en styled details så vi får samme ramme/typografi som de
+          øvrige kort i admin-panelet (i stedet for browserens default). */}
+      <details open className="group rounded-xl border border-border bg-card">
+        <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-semibold text-foreground select-none [&::-webkit-details-marker]:hidden">
+          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-secondary text-foreground">
+            <Wand2 className="h-3.5 w-3.5" />
+          </span>
+          <span>Felt-mapping</span>
+          <span className="text-xs font-normal text-muted-foreground">· {mappedCount}/{totalFields} mappet</span>
+          {requiredMissing > 0 && (
+            <Badge variant="destructive" className="text-[10px]">{requiredMissing} påkrævet mangler</Badge>
+          )}
+          <ChevronDown className="ml-auto h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180" />
         </summary>
         <div className="border-t border-border p-4">
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -1303,7 +1310,7 @@ const ImportPanel = ({
                       Dublet — {r.duplicateReason}
                     </Badge>
                   ) : (
-                    <Badge className="bg-accent/15 text-accent hover:bg-accent/20 text-[10px]">Klar</Badge>
+                    <Badge variant="outline" className="border-foreground/20 bg-secondary text-foreground text-[10px]">Klar</Badge>
                   )}
                 </td>
                 {entity === "customers" && <>
@@ -1452,7 +1459,7 @@ const ImportPanel = ({
                       ) : r.isDuplicate ? (
                         <Badge variant="secondary" className="text-[10px]">Dublet</Badge>
                       ) : (
-                        <Badge className="bg-accent/15 text-accent hover:bg-accent/20 text-[10px]">Klar</Badge>
+                        <Badge variant="outline" className="border-foreground/20 bg-secondary text-foreground text-[10px]">Klar</Badge>
                       )}
                       {entity === "customers" && (
                         <Badge variant="outline" className="text-[10px]">{r.type === "business" ? "Erhverv" : "Privat"}</Badge>
@@ -1637,26 +1644,26 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
         description="Træk CSV-filer ind, og lad AI matche kolonnerne automatisk. Du godkender altid før noget oprettes."
       />
 
-      <Card className="border-accent/30 bg-accent/5">
-        <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-              <HelpCircle className="h-4 w-4" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-foreground">Kundeservice kan også hjælpe</p>
-              <p className="text-xs text-muted-foreground">
-                Send os jeres eksport — vi importerer kunder, produkter og ordrer for jer.
-              </p>
-            </div>
+      {/* Diskret hjælpe-stribe — mindre fremtrædende end før så fokus
+          forbliver på selve upload-flowet. */}
+      <div className="flex flex-col gap-2 rounded-xl border border-border bg-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
+            <HelpCircle className="h-4 w-4" />
           </div>
-          <Button asChild variant="outline" size="sm" className="shrink-0">
-            <a href={`mailto:kontakt@serviceydere.dk?subject=Hj%C3%A6lp%20med%20dataimport%20-%20${encodeURIComponent(businessName)}`}>
-              <Mail className="mr-1.5 h-3.5 w-3.5" /> Kontakt kundeservice
-            </a>
-          </Button>
-        </CardContent>
-      </Card>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-foreground">Lad os klare importen for jer</p>
+            <p className="text-xs text-muted-foreground">
+              Send eksport-filen — vi importerer kunder, produkter og ordrer for jer.
+            </p>
+          </div>
+        </div>
+        <Button asChild variant="outline" size="sm" className="shrink-0">
+          <a href={`mailto:kontakt@serviceydere.dk?subject=Hj%C3%A6lp%20med%20dataimport%20-%20${encodeURIComponent(businessName)}`}>
+            <Mail className="mr-1.5 h-3.5 w-3.5" /> Kontakt os
+          </a>
+        </Button>
+      </div>
 
       <SectionCard
         title={sharedFile ? "Gennemgå og importér" : "Upload din fil"}
