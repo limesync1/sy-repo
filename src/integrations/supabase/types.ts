@@ -169,6 +169,7 @@ export type Database = {
       }
       accounting_order_links: {
         Row: {
+          agreement_occurrence_id: string | null
           business_id: string
           created_at: string
           external_data: Json | null
@@ -178,11 +179,12 @@ export type Database = {
           id: string
           last_pushed_at: string
           last_status_synced: string | null
-          order_id: string
+          order_id: string | null
           provider: string
           updated_at: string
         }
         Insert: {
+          agreement_occurrence_id?: string | null
           business_id: string
           created_at?: string
           external_data?: Json | null
@@ -192,11 +194,12 @@ export type Database = {
           id?: string
           last_pushed_at?: string
           last_status_synced?: string | null
-          order_id: string
+          order_id?: string | null
           provider: string
           updated_at?: string
         }
         Update: {
+          agreement_occurrence_id?: string | null
           business_id?: string
           created_at?: string
           external_data?: Json | null
@@ -206,7 +209,7 @@ export type Database = {
           id?: string
           last_pushed_at?: string
           last_status_synced?: string | null
-          order_id?: string
+          order_id?: string | null
           provider?: string
           updated_at?: string
         }
