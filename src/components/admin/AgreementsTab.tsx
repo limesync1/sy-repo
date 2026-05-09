@@ -515,7 +515,63 @@ const CreateAgreementDialog = ({
   // UI-state for søge-popovers og inline kunde-oprettelse
   const [customerPickerOpen, setCustomerPickerOpen] = useState(false);
   const [servicePickerOpen, setServicePickerOpen] = useState(false);
-  const [newCustomerOpen, setNewCustomerOpen] = useState(false);
+  // Inline kunde-form: vises direkte i samme popup når brugeren klikker
+  // "Opret ny kunde" — så de ikke skal hoppe ud i en anden dialog.
+  const [showNewCustomer, setShowNewCustomer] = useState(false);
+  const [ncType, setNcType] = useState<"private" | "business">("private");
+  const [ncName, setNcName] = useState("");
+  const [ncCompany, setNcCompany] = useState("");
+  const [ncEmail, setNcEmail] = useState("");
+  const [ncPhone, setNcPhone] = useState("");
+  const [ncAddress, setNcAddress] = useState("");
+  const [ncZip, setNcZip] = useState("");
+  const [ncCity, setNcCity] = useState("");
+  const [ncSaving, setNcSaving] = useState(false);
+  const qc = useQueryClient();
+
+  const resetNewCustomer = () => {
+    setShowNewCustomer(false);
+    setNcType("private"); setNcName(""); setNcCompany("");
+    setNcEmail(""); setNcPhone("");
+    setNcAddress(""); setNcZip(""); setNcCity("");
+  };
+
+  const handleSaveNewCustomer = async () => {
+    if (!ncEmail.trim() || !/^\S+@\S+\.\S+$/.test(ncEmail.trim())) {
+      toast.error("Indtast en gyldig email");
+      return;
+    }
+    if (ncType === "private" && !ncName.trim()) { toast.error("Navn er påkrævet"); return; }
+    if (ncType === "business" && !ncCompany.trim()) { toast.error("Firmanavn er påkrævet"); return; }
+    setNcSaving(true);
+    try {
+      const shared = {
+        business_id: businessId,
+        email: ncEmail.trim().toLowerCase(),
+        phone: ncPhone.trim() || null,
+        address: ncAddress.trim() || null,
+        zip_code: ncZip.trim() || null,
+        city: ncCity.trim() || null,
+      };
+      const { data, error } = ncType === "private"
+        ? await supabase.from("private_customers")
+            .upsert({ ...shared, name: ncName.trim() }, { onConflict: "business_id,email" })
+            .select("*").single()
+        : await supabase.from("business_customers")
+            .upsert({ ...shared, company_name: ncCompany.trim() }, { onConflict: "business_id,email" })
+            .select("*").single();
+      if (error) throw error;
+      await qc.invalidateQueries({ queryKey: ["agreement-customer-options", businessId] });
+      await qc.invalidateQueries({ queryKey: ["customers", businessId] });
+      setCustomerId((data as any).id);
+      toast.success("Kunde oprettet og valgt");
+      resetNewCustomer();
+    } catch (e: any) {
+      toast.error(e.message || "Kunne ikke oprette kunde");
+    } finally {
+      setNcSaving(false);
+    }
+  };
 
   // Pricing-state spejler DynamicServiceCard: timer + step-værdier + manuel override
   const [hours, setHours] = useState<number>(1);
