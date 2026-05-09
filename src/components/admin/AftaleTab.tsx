@@ -1446,58 +1446,63 @@ const AftaleTab = ({
         }
       />
 
-      {/* Stats — kun det der reelt giver beslutningsstøtte. Tomme tal vises stille,
-          mens aktive problemer (forfalden betaling, kræver handling) bliver fremhævet. */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {(() => {
-          const upcomingThisWeek = upcomingSubs.filter(s =>
-            new Date(s.next_service_date!).getTime() <= oneWeekFromNow
-          ).length;
-          const cards: Array<{
-            key: string; label: string; value: number | string; sub?: string;
-            tone?: "danger" | "warning" | "neutral"; onClick?: () => void;
-          }> = [
-            { key: "active", label: "Aktive aftaler", value: activeOrders.length,
-              sub: `${notPlannedOrders.length} ikke planlagt`,
-              tone: "neutral", onClick: () => setFilter("active") },
-            { key: "action", label: "Kræver handling", value: actionNeeded.length,
-              sub: actionNeeded.length === 0 ? "Alt er besvaret" : "Godkend, tilpas eller afvis",
-              tone: actionNeeded.length > 0 ? "warning" : "neutral",
-              onClick: () => actionNeeded.length > 0 && setFilter("action_needed") },
-            { key: "overdue", label: "Forfalden betaling", value: overduePaymentOrders.length,
-              sub: overduePaymentOrders.length === 0 ? "Ingen forfaldne fakturaer" : "Send rykker eller følg op",
-              tone: overduePaymentOrders.length > 0 ? "danger" : "neutral",
-              onClick: () => overduePaymentOrders.length > 0 && setFilter("overdue") },
-            { key: "upcoming", label: "Kommende denne uge", value: upcomingThisWeek,
-              sub: upcomingSubs.length > upcomingThisWeek ? `${upcomingSubs.length} i alt fremad` : (upcomingThisWeek === 0 ? "Ingen planlagte" : "Næste 7 dage"),
-              tone: "neutral" },
-          ];
-          return cards.map(c => {
-            const isClickable = !!c.onClick;
-            const toneCls =
-              c.tone === "danger" ? "border-destructive/30 bg-destructive/5"
-              : c.tone === "warning" ? "border-amber-300/60 bg-amber-50"
-              : "border-border/80";
-            const valueCls =
-              c.tone === "danger" ? "text-destructive"
-              : c.tone === "warning" ? "text-amber-900"
-              : "text-foreground";
-            return (
-              <Card
-                key={c.key}
-                className={`surface-admin rounded-xl shadow-sm transition-colors ${toneCls} ${isClickable ? "cursor-pointer hover:bg-secondary/40" : ""}`}
-                onClick={c.onClick}
-              >
-                <CardContent className="p-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{c.label}</p>
-                  <p className={`mt-1 text-2xl font-semibold tabular-nums ${valueCls}`}>{c.value}</p>
-                  {c.sub && <p className="mt-0.5 text-[11px] text-muted-foreground">{c.sub}</p>}
-                </CardContent>
-              </Card>
-            );
-          });
-        })()}
-      </div>
+      {/* Stats — kompakt: kun det der kræver opmærksomhed vises som kort.
+          Aktive/kommende totaler står i header-beskrivelsen ovenfor. */}
+      {(() => {
+        const upcomingThisWeek = upcomingSubs.filter(s =>
+          new Date(s.next_service_date!).getTime() <= oneWeekFromNow
+        ).length;
+        const cards: Array<{
+          key: string; label: string; value: number; sub?: string;
+          tone: "danger" | "warning" | "neutral"; onClick?: () => void;
+        }> = [];
+        if (actionNeeded.length > 0) cards.push({
+          key: "action", label: "Kræver handling", value: actionNeeded.length,
+          sub: "Godkend, tilpas eller afvis", tone: "warning",
+          onClick: () => setFilter("action_needed"),
+        });
+        if (overduePaymentOrders.length > 0) cards.push({
+          key: "overdue", label: "Forfalden betaling", value: overduePaymentOrders.length,
+          sub: "Send rykker eller følg op", tone: "danger",
+          onClick: () => setFilter("overdue"),
+        });
+        if (upcomingThisWeek > 0) cards.push({
+          key: "upcoming", label: "Kommende denne uge", value: upcomingThisWeek,
+          sub: upcomingSubs.length > upcomingThisWeek ? `${upcomingSubs.length} i alt fremad` : "Næste 7 dage",
+          tone: "neutral",
+        });
+        if (cards.length === 0) return null;
+        return (
+          <div className={`grid gap-3 sm:grid-cols-2 ${cards.length >= 3 ? "lg:grid-cols-3" : ""}`}>
+            {cards.map(c => {
+              const isClickable = !!c.onClick;
+              const toneCls =
+                c.tone === "danger" ? "border-destructive/30 bg-destructive/5"
+                : c.tone === "warning" ? "border-amber-300/60 bg-amber-50"
+                : "border-border/80";
+              const valueCls =
+                c.tone === "danger" ? "text-destructive"
+                : c.tone === "warning" ? "text-amber-900"
+                : "text-foreground";
+              return (
+                <Card
+                  key={c.key}
+                  className={`surface-admin rounded-xl shadow-sm transition-colors ${toneCls} ${isClickable ? "cursor-pointer hover:bg-secondary/40" : ""}`}
+                  onClick={c.onClick}
+                >
+                  <CardContent className="p-3">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{c.label}</p>
+                      <p className={`text-xl font-semibold tabular-nums ${valueCls}`}>{c.value}</p>
+                    </div>
+                    {c.sub && <p className="mt-0.5 text-[11px] text-muted-foreground">{c.sub}</p>}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        );
+      })()}
 
       {/* Søgefelt + sortering */}
       <div className={`grid gap-5 ${routePlanningEnabled ? "lg:grid-cols-[7fr_3fr]" : ""}`}>

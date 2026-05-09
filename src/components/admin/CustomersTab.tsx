@@ -745,70 +745,55 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         }
       />
 
-      {/* Stats + filters */}
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
-        <div className={`grid gap-3 ${stats.withOverdue > 0 ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3"}`}>
-          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-            <CardContent className="p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kunder i alt</p>
-              <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{stats.total}</p>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">{stats.privateCount} privat · {stats.businessCount} erhverv</p>
-            </CardContent>
-          </Card>
-          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-            <CardContent className="p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Faste kunder</p>
-              <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{stats.recurring}</p>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">Med mindst ét aktivt abonnement</p>
-            </CardContent>
-          </Card>
-          {stats.withOverdue > 0 && (
-            <Card className="surface-admin rounded-xl border-destructive/30 bg-destructive/5 shadow-sm">
-              <CardContent className="p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Forfalden betaling</p>
-                <p className="mt-1 text-2xl font-semibold tabular-nums text-destructive">{stats.withOverdue}</p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">{stats.withOverdue === 1 ? "Kunde" : "Kunder"} med forfaldne fakturaer eller rykkere</p>
-              </CardContent>
-            </Card>
-          )}
-          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-            <CardContent className="p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Samlet omsætning</p>
-              <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{fmtKr(stats.totalRev)}</p>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">På tværs af alle aftaler</p>
-            </CardContent>
-          </Card>
-        </div>
+      {/* Forfalden betaling — vises kun når relevant, så fokus er på handling */}
+      {stats.withOverdue > 0 && (
+        <Card className="surface-admin rounded-xl border-destructive/30 bg-destructive/5 shadow-sm">
+          <CardContent className="flex items-center justify-between gap-3 p-3">
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Forfalden betaling</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {stats.withOverdue} {stats.withOverdue === 1 ? "kunde" : "kunder"} med forfaldne fakturaer eller rykkere
+              </p>
+            </div>
+            <p className="text-xl font-semibold tabular-nums text-destructive shrink-0">{stats.withOverdue}</p>
+          </CardContent>
+        </Card>
+      )}
 
-        <div className="flex flex-wrap gap-2 lg:justify-end">
+      {/* Søg + type-filter på samme linje — kompakt værktøjsbar */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex-1 min-w-[240px]">
+          <SearchInput value={search} onChange={setSearch} placeholder="Søg navn, email, firma, CVR eller by..." />
+        </div>
+        <div className="inline-flex flex-wrap items-center gap-0 rounded-lg border border-border bg-card p-0.5 shadow-sm">
           {[
             { key: "all", label: "Alle", count: stats.total },
             { key: "private", label: "Privat", count: stats.privateCount },
             { key: "business", label: "Erhverv", count: stats.businessCount },
-          ].map(({ key, label, count }) => (
-            <button
-              key={key}
-              onClick={() => setTypeFilter(key as any)}
-              className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
-                typeFilter === key
-                  ? "border-border bg-secondary text-foreground"
-                  : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
-              }`}
-            >
-              {label}
-              {count > 0 && <span className="ml-1.5 tabular-nums">{count}</span>}
-            </button>
-          ))}
+          ].map(({ key, label, count }) => {
+            const isActive = typeFilter === key;
+            return (
+              <button
+                key={key}
+                onClick={() => setTypeFilter(key as any)}
+                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                  isActive ? "bg-foreground text-background" : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                }`}
+              >
+                <span>{label}</span>
+                {count > 0 && (
+                  <span className={`tabular-nums rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${
+                    isActive ? "bg-black/15 text-current" : "bg-secondary text-foreground/70"
+                  }`}>{count}</span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Search */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <SearchInput value={search} onChange={setSearch} placeholder="Søg navn, email, firma, CVR eller by..." />
-      </div>
-
-      {/* Status-guide — hjælper nye brugere med at forstå pillerne ved hver kunde */}
-      <details className="group rounded-xl border border-border bg-card/60 px-4 py-2.5 text-xs text-muted-foreground">
+      {/* Status-guide — kompakt hjælp, foldet sammen som standard */}
+      <details className="group rounded-lg border border-border bg-card/60 px-3 py-2 text-xs text-muted-foreground">
         <summary className="flex cursor-pointer items-center justify-between gap-2 list-none">
           <span className="font-medium text-foreground">Sådan læser du kundestatus</span>
           <ChevronRight className="h-3.5 w-3.5 transition-transform group-open:rotate-90" />
