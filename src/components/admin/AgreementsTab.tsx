@@ -172,23 +172,29 @@ const AgreementsTab = ({ businessId, businessName }: Props) => {
         }
       />
 
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-        <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
-          <TabsList>
-            <TabsTrigger value="all">Alle ({counts.all || 0})</TabsTrigger>
-            <TabsTrigger value="active">Aktive ({counts.active || 0})</TabsTrigger>
-            <TabsTrigger value="pending_approval">Afventer ({counts.pending_approval || 0})</TabsTrigger>
-            <TabsTrigger value="paused">Pause ({counts.paused || 0})</TabsTrigger>
-            <TabsTrigger value="ended">Afsluttede ({counts.ended || 0})</TabsTrigger>
-          </TabsList>
-        </Tabs>
-        <div className="relative flex-1 sm:max-w-xs">
-          <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+      {/* KPI-bar: nøgletal i toppen så MRR, antal aktive og afventere er synlige */}
+      <KpiBar items={kpis} />
+
+      {/* Filter-rude: status-chips + søgefelt på samme linje */}
+      <div className="flex flex-wrap items-center gap-2">
+        <QuickFilters
+          value={statusFilter}
+          onChange={(v) => setStatusFilter(v as AgreementStatus | "all")}
+          options={[
+            { key: "all", label: "Alle", count: counts.all || 0 },
+            { key: "active", label: "Aktive", count: counts.active || 0 },
+            { key: "pending_approval", label: "Afventer", count: counts.pending_approval || 0 },
+            { key: "paused", label: "Pause", count: counts.paused || 0 },
+            { key: "ended", label: "Afsluttet", count: counts.ended || 0 },
+          ]}
+        />
+        <div className="relative flex-1 sm:max-w-xs sm:ml-auto">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Søg kunde..."
-            className="pl-8 h-9"
+            placeholder="Søg kunde, firma eller email..."
+            className="pl-8 h-9 rounded-lg"
           />
         </div>
       </div>
