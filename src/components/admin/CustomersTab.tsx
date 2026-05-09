@@ -1154,11 +1154,14 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
 
   return (
     <Sheet open={!!email} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-0">
+      <SheetContent hideCloseButton className="w-full sm:max-w-xl overflow-y-auto p-0">
         {customer && (
           <>
-            {/* Header — pr-10 giver plads til Sheet's indbyggede X-knap så den ikke overlapper indhold */}
-            <SheetHeader className="sticky top-0 z-10 border-b border-border bg-background p-3 pr-12">
+            <SheetHeader className="sticky top-0 z-20 border-b border-border bg-background p-3 pr-12">
+              <SheetClose className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
+                <CloseIcon className="h-4 w-4" />
+                <span className="sr-only">Luk</span>
+              </SheetClose>
               <SheetTitle className="text-left">
                 <div className="min-w-0">
                   <div className="flex min-w-0 items-center gap-2">
@@ -1202,7 +1205,32 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                 <DialogDetailsSkeleton sections={2} />
               ) : (
                 <>
-                  {nextOrder && (
+                  <div className="rounded-lg border border-border bg-secondary/40 px-3 py-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Fokus</p>
+                        <p className="mt-0.5 truncate text-sm font-semibold text-foreground">{focusText}</p>
+                        {nextOrder && (
+                          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                            <span className="truncate text-xs text-muted-foreground">
+                              {nextOrder.order_items?.[0]?.service_name || "Aftale"}
+                              {nextOrder.order_items?.length > 1 ? ` +${nextOrder.order_items.length - 1}` : ""}
+                            </span>
+                            <StatusBadge status={nextOrder.status} />
+                            <AccountingStatusRow order={nextOrder as OrderForStatus} size="xs" />
+                            {nextOrder.preferred_date && (
+                              <span className="inline-flex h-5 items-center gap-1 rounded-full border border-border bg-card px-1.5 text-[10px] text-foreground">
+                                <Calendar className="h-2.5 w-2.5" /> {fmtDate(nextOrder.preferred_date)}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      {nextOrder && <span className="shrink-0 text-sm font-bold tabular-nums text-foreground">{fmtKr(nextOrder.total_amount)}</span>}
+                    </div>
+                  </div>
+
+                  {false && nextOrder && (
                     <div className="rounded-lg border border-border bg-secondary/40 px-3 py-2">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
