@@ -526,16 +526,24 @@ const CreateAgreementDialog = ({
   const customer = customers.find((c) => c.id === customerId);
   const service = services.find((s) => s.id === serviceId) as (Service & { calculator_steps?: CalculatorStep[] }) | undefined;
 
-  // Tilladte intervaller for den valgte service. Falder tilbage til
-  // ["engangskøb"] hvis service ikke definerer noget.
-  const allowedIntervals = useMemo<AgreementInterval[]>(() => {
+  // Alle intervaller servicen tilbyder, mappet til en aftale-mulighed.
+  // Vi viser dem i samme rækkefølge som de står på servicen, så aftalen 1:1
+  // afspejler hvad kunden ville se i bookingflowet.
+  const allowedIntervalChoices = useMemo<AgreementIntervalChoice[]>(() => {
     const opts = service?.interval_options;
-    if (!opts || opts.length === 0) return ["engangskøb"];
-    const mapped = opts
-      .map((o) => SERVICE_TO_AGREEMENT_INTERVAL[o])
-      .filter((x): x is AgreementInterval => !!x);
-    return mapped.length > 0 ? mapped : ["engangskøb"];
+    const list = (opts && opts.length > 0 ? opts : ["engangskøb"])
+      .map((o) => SERVICE_INTERVAL_TO_AGREEMENT(o))
+      .filter((x): x is AgreementIntervalChoice => x !== null);
+    return list.length > 0 ? list : [SERVICE_INTERVAL_TO_AGREEMENT("engangskøb")!];
   }, [service]);
+
+  // Vælg-state holder det rå service-interval (string), så vi kan slå
+  // den fulde {interval, days, label}-trio op igen ved gem.
+  const [intervalKey, setIntervalKey] = useState<string>("hver_4_uge");
+  const intervalChoice = useMemo<AgreementIntervalChoice>(() => {
+    return allowedIntervalChoices.find((c) => `${c.interval}:${c.days ?? ""}` === intervalKey)
+      || allowedIntervalChoices[0];
+  }, [allowedIntervalChoices, intervalKey]);
 
   // Sortér calculator-steps på samme måde som booking-kortet
   const sortedSteps = useMemo<CalculatorStep[]>(() => {
@@ -569,12 +577,12 @@ const CreateAgreementDialog = ({
       initial[step.id] = step.default_value ?? step.min_value ?? 0;
     });
     setStepValues(initial);
-    // Hvis valgte interval ikke er tilladt for ny service → fald tilbage
-    const opts = (s.interval_options || ["engangskøb"])
-      .map((o) => SERVICE_TO_AGREEMENT_INTERVAL[o])
-      .filter((x): x is AgreementInterval => !!x);
-    const fallback = opts[0] || "engangskøb";
-    setInterval((prev) => (opts.includes(prev) ? prev : fallback));
+    // Vælg automatisk det første interval servicen tilbyder
+    const choices = (s.interval_options || ["engangskøb"])
+      .map((o) => SERVICE_INTERVAL_TO_AGREEMENT(o))
+      .filter((x): x is AgreementIntervalChoice => x !== null);
+    const first = choices[0] || SERVICE_INTERVAL_TO_AGREEMENT("engangskøb")!;
+    setIntervalKey(`${first.interval}:${first.days ?? ""}`);
   };
 
   const canSave = !!customer && !!service && !!startDate && totalPrice > 0;
