@@ -499,12 +499,6 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
                 {saving ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Save className="h-4 w-4 mr-1.5" />}
                 Gem kunde
               </Button>
-              {!initial?.id && (
-                <Button onClick={() => handleSave(true)} disabled={saving} className="bg-accent text-accent-foreground hover:bg-accent/90">
-                  <ShoppingBag className="h-4 w-4 mr-1.5" />
-                  Gem & opret bestilling
-                </Button>
-              )}
             </div>
           </DialogFooter>
         </DialogContent>
