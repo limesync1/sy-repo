@@ -760,7 +760,7 @@ const Planner = () => {
                 className="h-7"
                 onClick={() => setCreateOrderOpen(true)}
               >
-                <ShoppingBag className="h-3.5 w-3.5 mr-1" />Opret bestilling
+                <ShoppingBag className="h-3.5 w-3.5 mr-1" />Manuelt stop
               </Button>
 
               <Button
