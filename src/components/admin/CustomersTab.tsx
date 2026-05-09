@@ -576,7 +576,12 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
     const recurring = customers.filter(c => c.active_subs > 0).length;
     const privateCount = customers.filter(c => c.type === "private").length;
     const businessCount = customers.filter(c => c.type === "business").length;
-    return { totalRev, recurring, total: customers.length, privateCount, businessCount };
+    // Antal kunder med mindst én forfalden faktura eller udsendt rykker — så
+    // brugeren straks kan se hvor mange kunder der reelt mangler at betale.
+    const withOverdue = customers.filter(c =>
+      (c.accounting_summary?.overdue ?? 0) > 0 || (c.accounting_summary?.reminders ?? 0) > 0
+    ).length;
+    return { totalRev, recurring, total: customers.length, privateCount, businessCount, withOverdue };
   }, [customers]);
 
   const openCreateDialog = () => {
