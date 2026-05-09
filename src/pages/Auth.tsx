@@ -166,11 +166,12 @@ const Auth = () => {
   const isBusiness = mode === "business";
   const isCustomer = mode === "customer";
   const isEmployee = mode === "employee";
-  // Type-vælgeren skal KUN vises på opret-konto-flowet (signup) når brugeren
-  // ikke har valgt type endnu. Log-ind kører altid på samme form, fordi vi
-  // detekterer rollen automatisk efter login.
-  const showSignupTypeSelector = !mode && !isResetMode && isSignUp;
+  // Opret-konto siden viser KUN kundeoprettelse. Virksomheder bruger
+  // /opret-virksomhed, og medarbejdere aktiveres fra virksomhedspanelet.
+  // Hvis brugeren lander på signup uden mode, behandl det som kunde.
+  const showSignupTypeSelector = false;
   const showLoginForm = !mode && !isResetMode && !isSignUp;
+  const effectiveIsCustomer = isCustomer || (!mode && !isResetMode && isSignUp);
 
   const heroTitle = isSignUp
     ? (isBusiness ? "Opret virksomhedskonto" : isEmployee ? "Aktivér medarbejderkonto" : "Opret din konto")
