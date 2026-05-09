@@ -565,9 +565,11 @@ const AgreementDetailSheet = ({
           <SheetTitle>{agreement.company_name || agreement.customer_name}</SheetTitle>
         </SheetHeader>
         <div className="space-y-4 mt-4">
-          <div className="flex items-center gap-2">
-            <Badge className={status.cls}>{status.label}</Badge>
-            <span className="text-sm text-muted-foreground">{INTERVAL_LABELS[agreement.interval]}</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <StatusPill tone={status.tone}>{status.label}</StatusPill>
+            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              <Repeat className="h-3 w-3" />{INTERVAL_LABELS[agreement.interval]}
+            </span>
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-sm">
