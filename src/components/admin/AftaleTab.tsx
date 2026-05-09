@@ -1774,7 +1774,8 @@ const AftaleTab = ({
                           if (!ps) return null;
                           // Skjul betalingsstatus hvis selve aftalen er annulleret/afvist —
                           // ellers står der "Ubetalt" på en aftale der reelt er aflyst.
-                          if (order.status === "cancelled" || order.status === "rejected") return null;
+                          const os = order.status as string;
+                          if (os === "cancelled" || os === "rejected") return null;
                           const PAY: Record<string, { label: string; cls: string; dot: string }> = {
                             paid:           { label: "Betalt",          cls: "bg-success/10 text-success border-success/30",            dot: "bg-success" },
                             partially_paid: { label: "Delvist betalt",  cls: "bg-warning/15 text-warning-foreground border-warning/40", dot: "bg-warning" },
@@ -1806,7 +1807,8 @@ const AftaleTab = ({
                         {(() => {
                           const rc = Number((order as any).reminder_count ?? 0);
                           if (rc <= 0) return null;
-                          if (order.status === "cancelled" || order.status === "rejected") return null;
+                          const os = order.status as string;
+                          if (os === "cancelled" || os === "rejected") return null;
                           const last = (order as any).last_reminder_at
                             ? new Date((order as any).last_reminder_at)
                             : null;
