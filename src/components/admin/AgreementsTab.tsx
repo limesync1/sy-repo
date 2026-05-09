@@ -37,7 +37,7 @@ import {
 import {
   Plus, Search, Loader2, Calendar as CalendarIcon, Repeat, MapPin, User,
   Trash2, Pencil, RefreshCw, Receipt, TrendingUp, Clock, AlertCircle, CheckCircle2,
-  Package, CreditCard, Users, ArrowRight, Sparkles, Tag, Minus, Calculator,
+  Package, CreditCard, Users, ArrowRight, Sparkles, Tag, Minus, Calculator, Check,
 } from "lucide-react";
 import { PageHeader, PrimaryButton, EmptyState } from "@/components/admin/shared/AdminUI";
 import { StatusPill, type StatusTone } from "@/components/admin/shared/StatusPill";
