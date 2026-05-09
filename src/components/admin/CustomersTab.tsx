@@ -126,7 +126,7 @@ const useCustomers = (businessId: string) => {
   return useQuery({
     queryKey: ["customers", businessId],
     queryFn: async (): Promise<Customer[]> => {
-      const [ordersRes, subsRes, privRes, bizRes] = await Promise.all([
+      const [ordersRes, subsRes, agreementsRes, privRes, bizRes] = await Promise.all([
         supabase
           .from("orders")
           .select("id, status, customer_name, customer_email, customer_phone, customer_id, address, zip_code, city, total_amount, created_at, company_name, cvr, payment_status, paid_at, due_date, invoice_external_id, invoiced_at, reminder_count, last_reminder_at, last_reminder_type, credited_at, voided_at")
@@ -135,6 +135,10 @@ const useCustomers = (businessId: string) => {
         supabase
           .from("subscriptions")
           .select("customer_id, status")
+          .eq("business_id", businessId),
+        supabase
+          .from("agreements")
+          .select("id, status, customer_name, customer_email, customer_phone, business_customer_id, address, zip_code, city, total_amount, created_at, company_name, cvr, interval")
           .eq("business_id", businessId),
         supabase
           .from("private_customers")
@@ -148,6 +152,7 @@ const useCustomers = (businessId: string) => {
       if (ordersRes.error) throw ordersRes.error;
       const orders = ordersRes.data || [];
       const subs = subsRes.data || [];
+      const agreementsAll = (agreementsRes.data || []) as any[];
       const privCustomers = privRes.data || [];
       const bizCustomers = bizRes.data || [];
 
@@ -223,6 +228,49 @@ const useCustomers = (businessId: string) => {
       grouped.forEach((c, key) => {
         const list = ordersByCustomer.get(key) || [];
         c.accounting_summary = summarizeCustomerOrders(list);
+      });
+
+      // ── Aftaler (agreements) — fold ind i kundeoversigten så kunder med
+      // faste aftaler (men måske ingen "orders") også vises korrekt med
+      // tæller, omsætning og status. Aftaler er den moderne afløser for
+      // subscriptions, så de skal regnes med i live_orders_count og
+      // active_subs/paused_subs.
+      agreementsAll.forEach((a) => {
+        const key = (a.customer_email || "").toLowerCase();
+        if (!key) return;
+        const isLive = !["cancelled", "ended"].includes(a.status);
+        const isActive = a.status === "active";
+        const isPaused = a.status === "paused";
+        const existing = grouped.get(key);
+        if (existing) {
+          if (isLive) existing.live_orders_count = (existing.live_orders_count || 0) + 1;
+          existing.orders_count += 1;
+          existing.total_revenue += Number(a.total_amount || 0);
+          if (isActive) existing.active_subs += 1;
+          if (isPaused) existing.paused_subs += 1;
+          if (!existing.last_order_at || a.created_at > existing.last_order_at) existing.last_order_at = a.created_at;
+          if (!existing.first_order_at || a.created_at < existing.first_order_at) existing.first_order_at = a.created_at;
+        } else {
+          grouped.set(key, {
+            email: a.customer_email,
+            name: a.customer_name,
+            phone: a.customer_phone,
+            address: a.address,
+            zip_code: a.zip_code,
+            city: a.city,
+            customer_id: null,
+            total_revenue: Number(a.total_amount || 0),
+            orders_count: 1,
+            live_orders_count: isLive ? 1 : 0,
+            active_subs: isActive ? 1 : 0,
+            paused_subs: isPaused ? 1 : 0,
+            last_order_at: a.created_at,
+            first_order_at: a.created_at,
+            company_name: a.company_name,
+            cvr: a.cvr,
+            type: a.business_customer_id ? "business" : "unknown",
+          });
+        }
       });
 
       // Merge privat-kartotek
