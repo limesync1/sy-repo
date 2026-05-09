@@ -271,3 +271,21 @@ export const INTERVAL_LABELS: Record<AgreementInterval, string> = {
   "årlig": "Årlig",
   "custom": "Brugerdefineret",
 };
+
+export const BILLING_MODEL_LABELS: Record<AgreementBillingModel, string> = {
+  per_visit: "Pr. besøg",
+  monthly_consolidated: "Samlefaktura pr. måned",
+};
+
+export const useEnqueueMonthlyInvoices = () => {
+  return useMutation({
+    mutationFn: async ({ business_id, year, month }: { business_id: string; year: number; month: number }) => {
+      const { data, error } = await supabase.rpc("enqueue_monthly_consolidated_invoices", {
+        _business_id: business_id, _year: year, _month: month,
+      });
+      if (error) throw error;
+      return data as number;
+    },
+    onError: (e: any) => toast.error(e.message || "Kunne ikke generere samlefakturaer"),
+  });
+};
