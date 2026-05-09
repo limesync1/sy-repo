@@ -1821,58 +1821,7 @@ const AftaleTab = ({
                           <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
                           {cfg.label}
                         </span>
-                        {(() => {
-                          const ps = (order as any).payment_status as string | null | undefined;
-                          if (!ps) return null;
-                          // Skjul betalingsstatus hvis selve aftalen er annulleret/afvist —
-                          // ellers står der "Ubetalt" på en aftale der reelt er aflyst.
-                          const os = order.status as string;
-                          if (os === "cancelled" || os === "rejected") return null;
-                          const PAY: Record<string, { label: string; cls: string; dot: string }> = {
-                            paid:           { label: "Betalt",          cls: "bg-success/10 text-success border-success/30",            dot: "bg-success" },
-                            partially_paid: { label: "Delvist betalt",  cls: "bg-warning/15 text-warning-foreground border-warning/40", dot: "bg-warning" },
-                            overdue:        { label: "Forfalden",       cls: "bg-destructive/10 text-destructive border-destructive/30", dot: "bg-destructive" },
-                            credited:       { label: "Krediteret",      cls: "bg-secondary text-muted-foreground border-border",        dot: "bg-muted-foreground" },
-                            sent:           { label: "Faktura sendt",   cls: "bg-info/10 text-info border-info/30",                     dot: "bg-info" },
-                            unpaid:         { label: "Ubetalt",         cls: "bg-secondary text-foreground border-border",              dot: "bg-muted-foreground" },
-                            refunded:       { label: "Refunderet",      cls: "bg-secondary text-muted-foreground border-border",        dot: "bg-muted-foreground" },
-                            cancelled:      { label: "Annulleret",      cls: "bg-secondary text-muted-foreground border-border",        dot: "bg-muted-foreground" },
-                          };
-                          const p = PAY[ps];
-                          if (!p) return null;
-                          const syncedAt = (order as any).payment_status_synced_at
-                            ? new Date((order as any).payment_status_synced_at)
-                            : null;
-                          const syncedLabel = syncedAt
-                            ? syncedAt.toLocaleString("da-DK", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
-                            : "endnu ikke";
-                          return (
-                            <span
-                              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium ${p.cls}`}
-                              title={`Betalingsstatus hentes automatisk fra dit regnskabsprogram hvert 5. minut.\nSidst opdateret: ${syncedLabel}.`}
-                            >
-                              <span className={`h-1.5 w-1.5 rounded-full ${p.dot}`} />
-                              {p.label}
-                            </span>
-                          );
-                        })()}
-                        {(() => {
-                          const rc = Number((order as any).reminder_count ?? 0);
-                          if (rc <= 0) return null;
-                          const os = order.status as string;
-                          if (os === "cancelled" || os === "rejected") return null;
-                          const last = (order as any).last_reminder_at
-                            ? new Date((order as any).last_reminder_at)
-                            : null;
-                          return (
-                            <span
-                              className="inline-flex shrink-0 items-center gap-1 rounded-full border border-warning/40 bg-warning/15 px-2 py-0.5 text-[10px] font-medium text-warning-foreground"
-                              title={last ? `Sidste rykker sendt ${last.toLocaleString("da-DK")}` : "Rykker sendt"}
-                            >
-                              Rykker {rc}/3
-                            </span>
-                          );
-                        })()}
+                        <AccountingStatusRow order={order as OrderForStatus} size="xs" />
                         {hasRecurring && (
                           <span
                             className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-secondary/70 px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
