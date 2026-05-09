@@ -131,6 +131,62 @@ const AgreementsTab = ({ businessId, businessName }: Props) => {
     return c;
   }, [agreements]);
 
+  // KPI'er — beregnes fra alle aftaler (ikke filtrerede). MRR vurderes ud fra
+  // intervallet: hvor mange besøg pr. måned * pris pr. besøg. Engangskøb
+  // tæller ikke som tilbagevendende omsætning.
+  const kpis = useMemo(() => {
+    const visitsPerMonth: Record<AgreementInterval, number> = {
+      "engangskøb": 0,
+      "ugentlig": 4.33,
+      "hver_14_dag": 2.17,
+      "hver_4_uge": 1.08,
+      "månedlig": 1,
+      "kvartalsvis": 1 / 3,
+      "halvårlig": 1 / 6,
+      "årlig": 1 / 12,
+      "custom": 0,
+    };
+    const active = agreements.filter((a) => a.status === "active");
+    const mrr = Math.round(
+      active.reduce((s, a) => s + Number(a.total_amount || 0) * (visitsPerMonth[a.interval] ?? 0), 0),
+    );
+    const in7days = (() => {
+      // hurtig estimat: én næste-besøg pr. aktiv aftale med interval i de næste 7 dage.
+      // Vi har ikke occurrences her i listen — vi bruger interval som proxy.
+      return active.filter((a) => (visitsPerMonth[a.interval] ?? 0) >= 1).length;
+    })();
+    return [
+      {
+        label: "Aktive aftaler",
+        value: active.length,
+        icon: <CheckCircle2 />,
+        tone: "success" as const,
+        hint: `af ${agreements.length} i alt`,
+      },
+      {
+        label: "MRR (estimat)",
+        value: `${mrr.toLocaleString("da-DK")} kr`,
+        icon: <TrendingUp />,
+        tone: "accent" as const,
+        hint: "tilbagevendende pr. måned",
+      },
+      {
+        label: "Næste 7 dage",
+        value: in7days,
+        icon: <Clock />,
+        tone: "info" as const,
+        hint: "aftaler med besøg",
+      },
+      {
+        label: "Afventer godkendelse",
+        value: counts.pending_approval || 0,
+        icon: <AlertCircle />,
+        tone: (counts.pending_approval || 0) > 0 ? ("warning" as const) : ("neutral" as const),
+        hint: "kræver handling",
+      },
+    ];
+  }, [agreements, counts]);
+
   const handleEnsure = async () => {
     const until = format(new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), "yyyy-MM-dd");
     const inserted = await ensure.mutateAsync({ business_id: businessId, until_date: until });
