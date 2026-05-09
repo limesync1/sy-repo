@@ -26,7 +26,7 @@ import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { INTERVAL_LABELS } from "@/types/service";
-import { Section, SheetHeaderBlock, SheetFooterBar } from "./SheetSection";
+import { Section, SheetFooterBar } from "./SheetSection";
 
 type Props = {
   stop: RouteStop | null;
@@ -147,39 +147,52 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent className="sm:max-w-lg w-full p-0 flex flex-col">
-          <SheetHeader className="px-5 py-4 border-b shrink-0 space-y-0">
-            <SheetHeaderBlock
-              accent={routeColor}
-              badge={sequenceLabel ?? <MapPin className="h-4 w-4" />}
-              title={<SheetTitle className="text-base">{stop.customer_name || "Stop"}</SheetTitle>}
-              description={
-                <SheetDescription className="text-xs">
-                  {business?.name ? <>Bestilling hos <strong>{business.name}</strong></> : "Detaljer for dette stop"}
-                </SheetDescription>
-              }
-            >
-              {statusBadge()}
-              {pausedSub && (
-                <Badge variant="outline" className="text-orange-600 border-orange-300 gap-1 text-[10px]">
-                  <PauseCircle className="h-2.5 w-2.5" />Abonnement på pause
-                </Badge>
-              )}
-              {recurringInterval && recurringInterval !== "engangskøb" && (
-                <Badge variant="secondary" className="gap-1 text-[10px]">
-                  <Repeat className="h-2.5 w-2.5" />
-                  {INTERVAL_LABELS[recurringInterval] || recurringInterval}
-                </Badge>
-              )}
-              {!hasCoords && (
-                <Badge variant="outline" className="text-orange-600 border-orange-300 gap-1 text-[10px]">
-                  <AlertCircle className="h-2.5 w-2.5" />Mangler GPS
-                </Badge>
-              )}
-            </SheetHeaderBlock>
+        <SheetContent className="sm:max-w-2xl w-full p-0 flex flex-col">
+          {/* Header — samme look som "Se detaljer" på kunder-siden:
+              kompakt titel, lille beskrivelse og en række diskrete status-pills. */}
+          <SheetHeader className="border-b border-border p-5 shrink-0 space-y-0">
+            <SheetTitle className="text-left">
+              <div className="flex items-start gap-3">
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-lg font-bold text-foreground truncate flex items-center gap-2">
+                    {routeColor && (
+                      <span
+                        className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
+                        style={{ background: routeColor }}
+                        aria-hidden
+                      />
+                    )}
+                    {stop.customer_name || "Stop"}
+                  </h3>
+                  <SheetDescription className="text-xs text-muted-foreground font-normal mt-0.5">
+                    {typeof sequenceLabel === "number" ? <>Stop #{sequenceLabel} · </> : null}
+                    {business?.name ? <>Bestilling hos <strong className="font-semibold">{business.name}</strong></> : "Detaljer for dette stop"}
+                  </SheetDescription>
+                  <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+                    {statusBadge()}
+                    {pausedSub && (
+                      <Badge variant="outline" className="text-orange-600 border-orange-300 gap-1 text-[10px]">
+                        <PauseCircle className="h-2.5 w-2.5" />Abonnement på pause
+                      </Badge>
+                    )}
+                    {recurringInterval && recurringInterval !== "engangskøb" && (
+                      <Badge variant="secondary" className="gap-1 text-[10px]">
+                        <Repeat className="h-2.5 w-2.5" />
+                        {INTERVAL_LABELS[recurringInterval] || recurringInterval}
+                      </Badge>
+                    )}
+                    {!hasCoords && (
+                      <Badge variant="outline" className="text-orange-600 border-orange-300 gap-1 text-[10px]">
+                        <AlertCircle className="h-2.5 w-2.5" />Mangler GPS
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </SheetTitle>
           </SheetHeader>
 
-          <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5 bg-secondary/30">
+          <div className="flex-1 overflow-y-auto p-5 space-y-5">
               {/* Medarbejdere på aftalen (pr-stop tildeling) — vises øverst for hurtig tildeling */}
               {!readOnly && (
                 <Section
