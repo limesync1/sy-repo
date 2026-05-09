@@ -54,9 +54,13 @@ interface Props {
   businessId: string;
   businessName: string;
   initial?: EditableCustomer | null;
+  /** Optional callback fired after a successful save (create or update).
+   *  Receives the saved customer so callers can auto-select it (e.g. in
+   *  the agreement-creation flow). */
+  onSaved?: (saved: EditableCustomer) => void;
 }
 
-const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, initial }: Props) => {
+const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, initial, onSaved }: Props) => {
   const qc = useQueryClient();
   const [type, setType] = useState<CustomerType>(initial?.type || "private");
   const [name, setName] = useState(initial?.name || "");
