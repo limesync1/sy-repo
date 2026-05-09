@@ -27,6 +27,11 @@ import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { INTERVAL_LABELS } from "@/types/service";
 import { Section, SheetFooterBar } from "./SheetSection";
+import {
+  useOccurrenceContext,
+  useCancelOccurrence,
+  useEndSeriesFromOccurrence,
+} from "@/hooks/useAgreementSeriesActions";
 
 type Props = {
   stop: RouteStop | null;
@@ -56,8 +61,16 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
   const [timeSlot, setTimeSlot] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirmCancelOnce, setConfirmCancelOnce] = useState(false);
+  const [confirmEndSeries, setConfirmEndSeries] = useState(false);
   const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
   const [leadId, setLeadId] = useState<string | null>(null);
+
+  // Series context (kun hvis stoppet stammer fra en aftale-forekomst)
+  const occurrenceId = stop?.agreement_occurrence_id ?? null;
+  const { data: seriesCtx } = useOccurrenceContext(occurrenceId);
+  const cancelOccurrence = useCancelOccurrence();
+  const endSeries = useEndSeriesFromOccurrence();
 
   useEffect(() => {
     if (!stop) return;
