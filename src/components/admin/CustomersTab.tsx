@@ -1097,78 +1097,83 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-0">
         {customer && (
           <>
-            <SheetHeader className="border-b border-border p-5">
+            <SheetHeader className="border-b border-border p-4">
               <SheetTitle className="text-left">
-                <div className="flex items-start gap-3">
+                <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <h3 className="text-lg font-bold text-foreground truncate">{customer.name}</h3>
-                    <p className="text-xs text-muted-foreground font-normal">
-                      {customer.first_order_at
-                        ? <>Kunde siden {fmtDate(customer.first_order_at)}</>
-                        : "Endnu ingen aftaler"}
-                    </p>
-                    <div className="mt-2"><CustomerStatusPill c={customer} /></div>
+                    <div className="mt-1 flex items-center gap-2 flex-wrap">
+                      <CustomerStatusPill c={customer} />
+                      <span className="text-xs text-muted-foreground font-normal">
+                        {customer.first_order_at
+                          ? <>Kunde siden {fmtDate(customer.first_order_at)}</>
+                          : "Endnu ingen aftaler"}
+                      </span>
+                    </div>
                   </div>
+                  {customer.total_revenue > 0 && (
+                    <div className="text-right shrink-0">
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Omsætning</p>
+                      <p className="text-base font-bold text-foreground tabular-nums">{fmtKr(customer.total_revenue)}</p>
+                    </div>
+                  )}
                 </div>
               </SheetTitle>
             </SheetHeader>
 
-            <div className="p-5 space-y-5">
-              {/* Contact */}
-              <div className="space-y-2">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Kontakt</h4>
-                <div className="rounded-xl border border-border bg-card divide-y divide-border">
-                  <a href={`mailto:${customer.email}`} className="flex items-center gap-3 p-3 hover:bg-secondary/40">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-foreground flex-1">{customer.email}</span>
-                  </a>
-                  {customer.phone && (
-                    <a href={`tel:${customer.phone}`} className="flex items-center gap-3 p-3 hover:bg-secondary/40">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-foreground flex-1">{customer.phone}</span>
-                    </a>
-                  )}
-                  {(customer.address || customer.city) && (
-                    <div className="flex items-center gap-3 p-3">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-foreground flex-1">
-                        {[customer.address, [customer.zip_code, customer.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")}
-                      </span>
-                    </div>
-                  )}
+            <div className="p-4 space-y-4">
+              {/* Forfalden betaling — vises øverst når relevant, så fokus er handling */}
+              {customer.accounting_summary && customer.accounting_summary.overdue > 0 && (
+                <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2">
+                  <CustomerOrderStatusSummary summary={customer.accounting_summary} />
                 </div>
+              )}
+
+              {/* Kontakt — kompakt: én række med ikon-knapper */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                <a href={`mailto:${customer.email}`}
+                  className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs text-foreground hover:bg-secondary/60 max-w-full">
+                  <Mail className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <span className="truncate">{customer.email}</span>
+                </a>
+                {customer.phone && (
+                  <a href={`tel:${customer.phone}`}
+                    className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs text-foreground hover:bg-secondary/60">
+                    <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span>{customer.phone}</span>
+                  </a>
+                )}
+                {(customer.address || customer.city) && (
+                  <span className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs text-foreground max-w-full">
+                    <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <span className="truncate">
+                      {[customer.address, [customer.zip_code, customer.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")}
+                    </span>
+                  </span>
+                )}
               </div>
 
-              {/* Quick stats */}
-              <div className="grid grid-cols-3 gap-2">
-                <div
-                  className="rounded-xl border border-border bg-card p-3 text-center"
-                  title="Samlet beløb kunden har handlet for hos jer på tværs af alle aftaler."
-                >
-                  <p className="text-xs text-muted-foreground">Samlet omsætning</p>
-                  <p className="text-base font-bold text-foreground">{fmtKr(customer.total_revenue)}</p>
+              {/* Quick stats — kompakt inline-bar i stedet for tre store kort */}
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 rounded-lg border border-border bg-card px-3 py-2">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-base font-bold text-foreground tabular-nums">{customer.orders_count}</span>
+                  <span className="text-[11px] text-muted-foreground">{customer.orders_count === 1 ? "aftale" : "aftaler"}</span>
                 </div>
-                <div
-                  className="rounded-xl border border-border bg-card p-3 text-center"
-                  title="Antal aftaler kunden har haft hos jer i alt — både engangskøb og ydelser fra abonnementer."
-                >
-                  <p className="text-xs text-muted-foreground">Aftaler i alt</p>
-                  <p className="text-base font-bold text-foreground">{customer.orders_count}</p>
-                </div>
-                <div
-                  className="rounded-xl border border-border bg-card p-3 text-center"
-                  title="Aktive abonnementer kører automatisk efter aftalt interval. Pausede er midlertidigt sat på pause."
-                >
-                  <p className="text-xs text-muted-foreground">Abonnementer</p>
-                  <p className="text-base font-bold text-foreground">
-                    {customer.active_subs}
+                {(customer.active_subs > 0 || customer.paused_subs > 0) && (
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-base font-bold text-foreground tabular-nums">{customer.active_subs}</span>
+                    <span className="text-[11px] text-muted-foreground">aktive abonnementer</span>
                     {customer.paused_subs > 0 && (
-                      <span className="ml-1 text-xs font-normal text-amber-600">
-                        +{customer.paused_subs} pause
-                      </span>
+                      <span className="text-[11px] text-amber-700">+{customer.paused_subs} pause</span>
                     )}
-                  </p>
-                </div>
+                  </div>
+                )}
+                {customer.total_revenue > 0 && (
+                  <div className="ml-auto flex items-baseline gap-1.5">
+                    <span className="text-[11px] text-muted-foreground">Omsætning</span>
+                    <span className="text-base font-bold text-foreground tabular-nums">{fmtKr(customer.total_revenue)}</span>
+                  </div>
+                )}
               </div>
 
               {isLoading ? (
