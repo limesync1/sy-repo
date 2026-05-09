@@ -477,6 +477,19 @@ const ImportPanel = ({
       }
       setConfidence(typeof data?.confidence === "number" ? data.confidence : null);
       setAiNotes(data?.notes || null);
+      // Per-kolonne analyse fra AI'en — bruges til badges/tooltip i mapping-panelet.
+      const analysisArr: any[] = Array.isArray(data?.column_analysis) ? data.column_analysis : [];
+      const analysisMap: Record<string, { suggested_field: string | null; confidence: number; reason: string }> = {};
+      analysisArr.forEach((a: any) => {
+        if (a && typeof a.column === "string" && hdrs.includes(a.column)) {
+          analysisMap[a.column] = {
+            suggested_field: a.suggested_field || null,
+            confidence: typeof a.confidence === "number" ? a.confidence : 0,
+            reason: typeof a.reason === "string" ? a.reason : "",
+          };
+        }
+      });
+      setColumnAnalysis(analysisMap);
     } catch {
       toast.error("AI-analyse fejlede — vælg felterne manuelt");
     } finally { setAiLoading(false); }
