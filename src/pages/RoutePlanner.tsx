@@ -927,6 +927,14 @@ const Planner = () => {
           />
         )}
 
+        {businessId && (
+          <RouteTemplatesDialog
+            open={templatesOpen}
+            onOpenChange={setTemplatesOpen}
+            businessId={businessId}
+          />
+        )}
+
         {/* Slet rute bekræftelse */}
         <AlertDialog open={!!routeToDelete} onOpenChange={(o) => !o && setRouteToDelete(null)}>
           <AlertDialogContent>
