@@ -35,6 +35,7 @@ import {
 import {
   Plus, Search, Loader2, Calendar as CalendarIcon, Repeat, MapPin, User,
   Trash2, Pencil, RefreshCw, Receipt, TrendingUp, Clock, AlertCircle, CheckCircle2,
+  Package, CreditCard, Users, ArrowRight, Sparkles, Tag,
 } from "lucide-react";
 import { PageHeader, EmptyState } from "@/components/admin/shared/AdminUI";
 import { StatusPill, type StatusTone } from "@/components/admin/shared/StatusPill";
@@ -112,8 +113,14 @@ const AgreementsTab = ({ businessId, businessName }: Props) => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const { data: agreements = [], isLoading } = useAgreements(businessId, statusFilter);
+  const { data: allServices = [] } = useServices(businessId);
+  const { data: allCustomers = [] } = useAllCustomers(businessId);
   const ensure = useEnsureOccurrences();
   const enqueueMonthly = useEnqueueMonthlyInvoices();
+
+  const hasServices = allServices.length > 0;
+  const hasCustomers = allCustomers.length > 0;
+  const canCreate = hasServices && hasCustomers;
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -210,7 +217,7 @@ const AgreementsTab = ({ businessId, businessName }: Props) => {
     <div className="space-y-4">
       <PageHeader
         title="Aftaler"
-        description="Serier af besøg pr. kunde — én aftale udfolder sig automatisk i kalender og regnskab."
+        description="Tilbagevendende aftaler kobler en kunde sammen med en service og et interval. Resten — kalender, ruter og fakturaer — kører automatisk."
         action={
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={handleMonthly} disabled={enqueueMonthly.isPending}>
@@ -221,7 +228,7 @@ const AgreementsTab = ({ businessId, businessName }: Props) => {
               {ensure.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5 mr-1.5" />}
               Generér forekomster
             </Button>
-            <Button size="sm" onClick={() => setCreateOpen(true)}>
+            <Button size="sm" onClick={() => setCreateOpen(true)} title={!canCreate ? "Opret kunde og service først" : "Ny aftale"}>
               <Plus className="h-3.5 w-3.5 mr-1.5" />Ny aftale
             </Button>
           </div>
@@ -230,6 +237,42 @@ const AgreementsTab = ({ businessId, businessName }: Props) => {
 
       {/* KPI-bar: nøgletal i toppen så MRR, antal aktive og afventere er synlige */}
       <KpiBar items={kpis} />
+
+      {/* Forudsætnings-banner: hvis kunde eller service mangler, gør det
+          tydeligt hvor man starter. Aftaler giver ikke mening uden begge. */}
+      {(!hasCustomers || !hasServices) && (
+        <Card className="rounded-xl border-amber-200 bg-amber-50/50 dark:bg-amber-500/5 dark:border-amber-500/20 p-4">
+          <div className="flex items-start gap-3">
+            <div className="h-9 w-9 rounded-lg bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0">
+              <Sparkles className="h-4 w-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground">Sådan kommer du i gang med aftaler</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                En aftale binder en <strong>kunde</strong> sammen med en <strong>service</strong> og et interval. Du skal have begge dele før du kan oprette en aftale.
+              </p>
+              <div className="flex flex-wrap items-center gap-2 mt-3">
+                {!hasServices && (
+                  <Button size="sm" variant="outline" asChild>
+                    <a href="/virksomhed?tab=services">
+                      <Package className="h-3.5 w-3.5 mr-1.5" />
+                      Opret service <ArrowRight className="h-3 w-3 ml-1.5" />
+                    </a>
+                  </Button>
+                )}
+                {!hasCustomers && (
+                  <Button size="sm" variant="outline" asChild>
+                    <a href="/virksomhed?tab=customers">
+                      <Users className="h-3.5 w-3.5 mr-1.5" />
+                      Tilføj kunde <ArrowRight className="h-3 w-3 ml-1.5" />
+                    </a>
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Filter-rude: status-chips + søgefelt på samme linje */}
       <div className="flex flex-wrap items-center gap-2">
@@ -260,9 +303,21 @@ const AgreementsTab = ({ businessId, businessName }: Props) => {
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={<Repeat className="h-8 w-8" />}
-          title="Ingen aftaler endnu"
-          description="Opret din første aftale — fast kunde, service og interval. Resten kører automatisk."
-          action={<Button onClick={() => setCreateOpen(true)}><Plus className="h-3.5 w-3.5 mr-1.5" />Opret aftale</Button>}
+          title={search ? "Ingen aftaler matcher søgningen" : "Ingen aftaler endnu"}
+          description={
+            search
+              ? "Prøv at rydde søgningen eller skift status-filter."
+              : canCreate
+                ? "Opret din første aftale — vælg kunde, service og interval. Vi laver kalender-besøg automatisk."
+                : "Du mangler enten en kunde eller en service før du kan oprette en aftale."
+          }
+          action={
+            canCreate
+              ? <Button onClick={() => setCreateOpen(true)}><Plus className="h-3.5 w-3.5 mr-1.5" />Opret aftale</Button>
+              : !hasServices
+                ? <Button asChild><a href="/virksomhed?tab=services"><Package className="h-3.5 w-3.5 mr-1.5" />Opret første service</a></Button>
+                : <Button asChild><a href="/virksomhed?tab=customers"><Users className="h-3.5 w-3.5 mr-1.5" />Tilføj første kunde</a></Button>
+          }
         />
       ) : (
         <div className="space-y-2">
