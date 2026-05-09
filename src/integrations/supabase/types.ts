@@ -3218,6 +3218,10 @@ export type Database = {
       }
     }
     Functions: {
+      _generate_occurrences_for_agreement: {
+        Args: { _agreement_id: string; _until_date: string }
+        Returns: number
+      }
       admin_business_stats: {
         Args: never
         Returns: {
