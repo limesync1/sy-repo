@@ -34,6 +34,7 @@ import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon,
   Loader2, Search, Plus, Inbox, ArrowUpDown, X, Keyboard,
   ShoppingBag, Route as RouteIcon, Tag, Palette, Layers,
+  Wand2,
 } from "lucide-react";
 import { format, addDays, addWeeks, addMonths, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { da } from "date-fns/locale";
@@ -79,6 +80,7 @@ const Planner = () => {
   const [createOrderOpen, setCreateOrderOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [materializing, setMaterializing] = useState(false);
   const [newRouteName, setNewRouteName] = useState("");
   const [newRouteColor, setNewRouteColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
   const [newRouteDate, setNewRouteDate] = useState(todayStr());
@@ -769,6 +771,46 @@ const Planner = () => {
                 title="Rute-skabeloner"
               >
                 <Layers className="h-3.5 w-3.5 mr-1" />Skabeloner
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7"
+                disabled={!businessId || materializing}
+                onClick={async () => {
+                  if (!businessId) return;
+                  setMaterializing(true);
+                  try {
+                    const start = view === "week"
+                      ? startOfWeek(parseISO(date), { weekStartsOn: 1 })
+                      : startOfMonth(parseISO(date));
+                    const end = view === "week"
+                      ? endOfWeek(parseISO(date), { weekStartsOn: 1 })
+                      : endOfMonth(parseISO(date));
+                    const from = format(start, "yyyy-MM-dd");
+                    const to = format(end, "yyyy-MM-dd");
+                    await supabase.rpc("ensure_agreement_occurrences", {
+                      _business_id: businessId,
+                      _until_date: to,
+                    });
+                    const { data, error } = await supabase.rpc("materialize_occurrences_to_routes", {
+                      _business_id: businessId,
+                      _from: from,
+                      _to: to,
+                    });
+                    if (error) throw error;
+                    toast.success(`${data || 0} aftaler lagt på ruter`);
+                  } catch (e: any) {
+                    toast.error(e.message || "Kunne ikke materialisere");
+                  } finally {
+                    setMaterializing(false);
+                  }
+                }}
+                title="Auto-fyld ruter fra aftaler i den viste periode"
+              >
+                {materializing ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Wand2 className="h-3.5 w-3.5 mr-1" />}
+                Auto-fyld
               </Button>
 
               <Tooltip>
