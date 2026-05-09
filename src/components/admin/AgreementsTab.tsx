@@ -11,14 +11,16 @@ import {
   type Agreement, type AgreementInterval, type AgreementStatus, type AgreementBillingModel,
 } from "@/hooks/useAgreements";
 import { useRouteTemplates, WEEKDAY_LABELS } from "@/hooks/useRouteTemplates";
-import { useServices } from "@/hooks/useDatabase";
+import { useServices, type Service, type CalculatorStep } from "@/hooks/useDatabase";
+import { INTERVAL_LABELS as SERVICE_INTERVAL_LABELS } from "@/types/service";
+import { roundPrice, getSmartStep, buildPricingSnapshot } from "@/lib/service-pricing";
 import { useEmployees } from "@/hooks/useEmployees";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -35,12 +37,11 @@ import {
 import {
   Plus, Search, Loader2, Calendar as CalendarIcon, Repeat, MapPin, User,
   Trash2, Pencil, RefreshCw, Receipt, TrendingUp, Clock, AlertCircle, CheckCircle2,
-  Package, CreditCard, Users, ArrowRight, Sparkles, Tag,
+  Package, CreditCard, Users, ArrowRight, Sparkles, Tag, Minus, Calculator,
 } from "lucide-react";
-import { PageHeader, EmptyState } from "@/components/admin/shared/AdminUI";
+import { PageHeader, PrimaryButton, EmptyState } from "@/components/admin/shared/AdminUI";
 import { StatusPill, type StatusTone } from "@/components/admin/shared/StatusPill";
 import { QuickFilters } from "@/components/admin/shared/QuickFilters";
-import { KpiBar } from "@/components/admin/shared/KpiBar";
 import { toast } from "sonner";
 
 const STATUS_CONFIG: Record<AgreementStatus, { label: string; tone: StatusTone }> = {
@@ -58,6 +59,21 @@ type Props = {
 };
 
 const fmtDate = (d?: string | null) => (d ? format(parseISO(d), "d. MMM yyyy", { locale: da }) : "—");
+
+// Mapping fra service-intervaller → aftale-intervaller. Service-systemet
+// understøtter flere granulariteter (10 min, dagligt, hver 8. uge) end aftaler;
+// vi viser kun dem der har en aftale-pendant så brugeren ikke vælger noget
+// vi ikke kan materialisere på en kalender.
+const SERVICE_TO_AGREEMENT_INTERVAL: Record<string, AgreementInterval> = {
+  "engangskøb": "engangskøb",
+  "ugentlig": "ugentlig",
+  "hver_14_dag": "hver_14_dag",
+  "hver_4_uge": "hver_4_uge",
+  "månedlig": "månedlig",
+  "kvartalsvis": "kvartalsvis",
+  "halvårlig": "halvårlig",
+  "årlig": "årlig",
+};
 
 type CustomerOption = {
   id: string;
