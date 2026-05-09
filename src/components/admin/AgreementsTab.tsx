@@ -404,10 +404,22 @@ const AgreementsTab = ({ businessId, businessName }: Props) => {
 };
 
 /* ─── Row ─── */
-const AgreementRow = ({ agreement, businessId, onClick }: { agreement: Agreement; businessId: string; onClick: () => void }) => {
+const AgreementRow = ({ agreement, businessId, items, onClick }: {
+  agreement: Agreement;
+  businessId: string;
+  items: { service_id: string | null; service_name: string; total_price: number }[];
+  onClick: () => void;
+}) => {
   const { data: templates = [] } = useRouteTemplates(businessId);
+  const { data: employees = [] } = useEmployees(businessId);
   const tpl = templates.find((t) => t.id === agreement.default_route_template_id);
   const status = STATUS_CONFIG[agreement.status];
+  const serviceLabel = items.length === 0
+    ? "Service"
+    : items.length === 1
+      ? items[0].service_name
+      : `${items[0].service_name} +${items.length - 1}`;
+  const assignedEmps = employees.filter((e) => agreement.employee_ids?.includes(e.id));
 
   return (
     <Card
@@ -432,16 +444,24 @@ const AgreementRow = ({ agreement, businessId, onClick }: { agreement: Agreement
             </p>
             <StatusPill tone={status.tone}>{status.label}</StatusPill>
           </div>
-          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1 flex-wrap">
+          <p className="text-xs text-foreground/80 mt-0.5 truncate">
+            <Package className="h-3 w-3 inline-block mr-1 -mt-0.5 text-muted-foreground" />
+            {serviceLabel}
+          </p>
+          <div className="flex items-center gap-3 text-[11px] text-muted-foreground mt-1 flex-wrap">
             <span className="inline-flex items-center gap-1"><Repeat className="h-3 w-3" />{INTERVAL_LABELS[agreement.interval]}</span>
             <span className="inline-flex items-center gap-1"><CalendarIcon className="h-3 w-3" />Start {fmtDate(agreement.start_date)}</span>
             {tpl ? (
               <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{tpl.name}</span>
             ) : (
               <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-400">
-                <MapPin className="h-3 w-3" />Standardrute
+                <MapPin className="h-3 w-3" />Ingen rute
               </span>
             )}
+            <span className="inline-flex items-center gap-1">
+              <Users className="h-3 w-3" />
+              {assignedEmps.length === 0 ? "Ingen medarbejder" : assignedEmps.map(e => e.name.split(" ")[0]).join(", ")}
+            </span>
           </div>
         </div>
         <div className="text-right shrink-0">
