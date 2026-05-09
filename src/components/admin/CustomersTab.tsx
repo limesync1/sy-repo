@@ -1405,6 +1405,40 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                     );
                   })()}
 
+                  {/* Aftaler (faste/abonnementer) — den nye agreements-tabel */}
+                  {data && (data as any).agreements && (data as any).agreements.length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                        <Repeat className="h-3.5 w-3.5" /> Faste aftaler ({(data as any).agreements.length})
+                      </h4>
+                      <div className="space-y-1.5">
+                        {(data as any).agreements.map((a: any) => {
+                          const services = (a.agreement_items || []).map((i: any) => i.service_name).filter(Boolean);
+                          const label = services.length === 0 ? "Aftale" : services.length === 1 ? services[0] : `${services[0]} +${services.length - 1}`;
+                          return (
+                            <div key={a.id} className="rounded-lg border border-border bg-card px-3 py-2">
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-sm font-semibold text-foreground truncate">{label}</p>
+                                  <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                                    <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-accent/40 text-accent bg-accent/5">
+                                      {INTERVAL_LABELS[a.interval] || a.interval}
+                                    </Badge>
+                                    <StatusBadge status={a.status} />
+                                    <span className="text-[11px] text-muted-foreground inline-flex items-center gap-1">
+                                      <Calendar className="h-3 w-3" /> Start {fmtDate(a.start_date)}
+                                    </span>
+                                  </div>
+                                </div>
+                                <span className="text-sm font-bold text-foreground tabular-nums shrink-0">{fmtKr(Number(a.total_amount || 0))}</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
                   {data && data.stops.length > 0 && (
                     <details className="group rounded-lg border border-border bg-card/60 px-3 py-2 text-xs">
                       <summary className="flex cursor-pointer items-center justify-between gap-2 list-none font-medium text-foreground">
