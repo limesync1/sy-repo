@@ -102,7 +102,7 @@ const AgreementsTab = ({ businessId, businessName }: Props) => {
       <PageHeader
         title="Aftaler"
         description="Serier af besøg pr. kunde — én aftale udfolder sig automatisk i kalender og regnskab."
-        actions={
+        action={
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={handleEnsure} disabled={ensure.isPending}>
               {ensure.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5 mr-1.5" />}
@@ -236,7 +236,7 @@ const CreateAgreementDialog = ({
     const s = services.find((x) => x.id === id);
     if (s) {
       setPrice(String(s.base_price ?? 0));
-      if (s.estimated_duration_minutes) setDuration(String(s.estimated_duration_minutes));
+      if ((s as any).estimated_duration_minutes) setDuration(String((s as any).estimated_duration_minutes));
     }
   };
 
