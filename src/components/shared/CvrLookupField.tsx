@@ -29,7 +29,7 @@ interface Props {
  */
 const CvrLookupField = ({ value, onChange, onResult, className }: Props) => {
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<"idle" | "ok" | "notfound" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "ok" | "notfound" | "service_down" | "error">("idle");
   const [companyName, setCompanyName] = useState<string | null>(null);
   const [manualName, setManualName] = useState("");
 
@@ -42,18 +42,26 @@ const CvrLookupField = ({ value, onChange, onResult, className }: Props) => {
     setStatus("idle");
     try {
       const { data, error } = await supabase.functions.invoke("cvr-lookup", { body: { cvr: cleaned } });
-      if (error) { setStatus("error"); return; }
+      if (error) {
+        // Edge function svarede ikke — typisk netværk eller midlertidigt nede.
+        setStatus("service_down");
+        return;
+      }
       if (data?.found) {
         setStatus("ok");
         setCompanyName(data.name);
         onResult?.(data as CvrResult);
+      } else if (data?.reason === "service_down") {
+        setStatus("service_down");
+        setCompanyName(null);
+        onResult?.(null);
       } else {
         setStatus("notfound");
         setCompanyName(null);
         onResult?.(null);
       }
     } catch {
-      setStatus("error");
+      setStatus("service_down");
     } finally {
       setLoading(false);
     }
@@ -115,7 +123,7 @@ const CvrLookupField = ({ value, onChange, onResult, className }: Props) => {
           <AlertCircle className="h-3 w-3" /> Intet CVR-nummer fundet
         </span>
       )}
-      {status === "error" && (
+      {(status === "error" || status === "service_down") && (
         <div className="space-y-1.5">
           <span className="inline-flex items-center gap-1.5 text-xs text-destructive rounded-md bg-destructive/10 border border-destructive/20 px-2 py-1">
             <AlertCircle className="h-3 w-3" /> CVR-tjenesten er midlertidigt nede — indtast firmanavn manuelt
