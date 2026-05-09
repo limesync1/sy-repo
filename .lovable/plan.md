@@ -1,74 +1,90 @@
-# Plan: Klogere dataimport + support-knap i header
 
-## 1. AI-baseret felt-mapping med begrundelser
+# Ny aftale-model: serier, intervaller, ruter & arvet medarbejder
 
-I `DataImportTab.tsx` udvides den eksisterende mapping-flow med en "Foreslå med AI"-knap, der kalder en ny edge function `suggest-field-mapping` (Lovable AI Gateway, `google/gemini-3-flash-preview`).
+Vi laver "Aftaler" om fra enkeltstående ordrer til **serier** (Outlook-stil) med opstartsdato + interval, en valgfri default-rute, og medarbejder der arves fra servicen. Forekomster materialiseres rullende ind i rutekalenderen så du kan se næste gang + alle fremtidige gange.
 
-- Input til AI: kolonneoverskrifter + 3-5 eksempelværdier pr. kolonne + entitetstype (kunder, ordrer, abonnementer, medarbejdere).
-- Output (struktureret JSON): `{ column: string, suggested_field: string|null, confidence: "høj"|"middel"|"lav", reason: string }[]`.
-- UI:
-  - Knap øverst i mapping-panelet: "✨ Foreslå mapping med AI".
-  - Hver kolonne får en lille badge med konfidens-farve (grøn/gul/rød) og en tooltip/ikon med begrundelsen.
-  - Lave-konfidens kolonner markeres tydeligt (gul kant) så brugeren kan vælge selv hurtigt.
-  - Bruger kan acceptere alle forslag på én gang eller pr. felt.
+## Sådan kommer det til at fungere (for brugeren)
 
-## 2. Preview Diff før import
+1. **Service oprettes** → vælg en eller flere medarbejdere som default-team.
+2. **Aftale oprettes** (kunde booker eller admin opretter manuelt) → vælg:
+   - Opstartsdato
+   - Interval (engangskøb, ugentligt, hver 2. uge, hver 4. uge, månedligt, …) + evt. slutdato
+   - Default-rute (rute-skabelon, fx "Mandagsrute Nord") — kan også vælges/ændres senere på Aftaler-siden
+   - Medarbejder (forudfyldt fra service, kan overstyres)
+3. **På Aftaler-siden** kan du:
+   - Se aftalen med "næste gang: man 12. maj" + liste over kommende forekomster
+   - Klikke ind og skifte default-rute fra et dropdown
+   - Trække aftalen i en rute-pool (som i dag) — dét flytter den næste forekomst
+4. **I Rutekalenderen** ser du alle materialiserede forekomster så langt frem du scroller. En enkelt forekomst kan flyttes/aflyses uden at det rører resten af serien (Outlook "kun denne begivenhed" vs. "hele serien").
 
-Inden den endelige import køres en "diff-analyse" lokalt der pr. entity viser:
+## Arkitektur
 
-- **Opret** (n rækker) — nye records.
-- **Opdater** (n rækker) — eksisterende records (matchet via key fx email/CVR/ekstern id) der får nye felter.
-- **Uændret** (n rækker) — exact match.
-- **Fejl** (n rækker) — validation eller manglende krævede felter.
+```text
+services ──(default_employee_ids)──┐
+                                   ▼
+business_customers              agreements (ny)              route_templates (ny)
+        │                       ├─ start_date                ├─ name "Mandagsrute Nord"
+        │                       ├─ interval                  ├─ weekday/cadence
+        └─────────────────────► ├─ end_date (nullable)       ├─ default_employee_id
+                                ├─ default_route_template_id ┘
+                                ├─ employee_ids (override)
+                                ▼
+                        agreement_occurrences (materialiseret)
+                                ├─ occurrence_date
+                                ├─ status (planned/done/cancelled/skipped)
+                                ├─ route_id (konkret dag-rute)
+                                └─ employee_ids (override pr. forekomst)
+                                ▼
+                        routes (eksisterer) — én pr. dato, født af route_template
+```
 
-UI: Ny "Preview"-fane før "Importér", med:
-- Sammenfatningskort pr. entitet (4 tal + bjælke).
-- Klik på en kategori → tabel med de berørte rækker + felt-niveau diff (gammel → ny værdi for opdateringer).
-- "Importér"-knappen disables hvis der er kritiske fejl, indtil brugeren har rettet eller eksplicit valgt "spring fejl over".
+## Datamodel-ændringer
 
-Matching-logik:
-- Kunder: email eller CVR.
-- Ordrer: ordrenummer eller (kunde + dato + service).
-- Medarbejdere: email.
-- Abonnementer: (kunde + service).
+**Wipe**: `orders`, `order_items`, `route_stops`, `routes`, `subscriptions` (data, ikke skema endnu) ryddes for at starte rent.
 
-## 3. Trinvis validering med fejl pr. række/kolonne
+**Nye tabeller:**
+- `agreements` — selve serien. Felter: `business_id`, `business_customer_id`, `start_date`, `interval` (enum: `once`, `weekly`, `biweekly`, `every_4_weeks`, `monthly`, `custom_days`), `interval_days` (for custom), `end_date`, `default_route_template_id`, `employee_ids[]` (override), `total_amount`, `notes`, `status` (`active`/`paused`/`ended`), prising/fakturafelter overført fra `orders`.
+- `agreement_items` — linjer (service_id, qty, price) — erstatter `order_items`.
+- `route_templates` — genbrugbar rute-skabelon: `name`, `weekday` (0–6) eller `cadence`, `default_employee_id`, `start_address`, farve.
+- `agreement_occurrences` — materialiseret forekomst: `agreement_id`, `occurrence_date`, `route_id` (nullable indtil placeret), `status`, `employee_ids` (override), `completed_at`.
 
-Tilføj `validateRow()` der kører på hver række efter mapping og før preview:
+**Ændringer på eksisterende:**
+- `services.default_employee_ids uuid[]` tilføjes — vises som multi-select i service-form.
+- `routes` får `route_template_id` (nullable) så vi ved hvilken skabelon en konkret dag-rute kommer fra.
+- `route_stops` peger fremover på `agreement_occurrence_id` i stedet for `order_id` (kolonnen tilføjes; `order_id` fjernes efter wipe).
 
-- Påkrævede felter (per entitet) — fejl hvis tom.
-- Type-validering (email, telefon, postnr, CVR 8 cifre, beløb numerisk, dato parsable).
-- Reference-validering (fx kunde-email findes i kunder-arket eller i DB).
+**Materialisering** (rullende vindue):
+- Når kalenderen vises for en periode (fx +12 uger), kalder klienten en RPC `ensure_occurrences(business_id, until_date)` der genererer manglende `agreement_occurrences` for alle aktive aftaler ud fra deres interval.
+- Default tildeles `route_id` ud fra `default_route_template_id` + ugedag (vi opretter `routes`-rækken hvis den ikke findes for den dato).
+- Drag/drop i pool eller kalender opdaterer `agreement_occurrences.route_id` for én forekomst — serien er uændret.
+- "Rediger hele serien" vs. "kun denne forekomst" eksponeres i UI.
 
-UI:
-- Valideringspanel med fejlliste grupperet pr. kolonne, klik → scroll til celle i preview-tabellen.
-- Cellen highlights rød med tooltip-fejl.
-- Brugeren kan ændre mapping eller redigere cellen direkte (inline edit) og fejlen forsvinder.
-- Tæller i toppen: "12 fejl i 4 kolonner — ret eller spring over".
+## UI-ændringer
 
-## 4. Flyt "Serviceydere kundeservice"-knap til virksomhedspanel-headeren
+- **ServicesTab / service-form**: ny "Standard medarbejdere" multi-select.
+- **AftaleTab**: 
+  - Liste viser én række pr. **aftale** (ikke pr. forekomst) med kolonner: Kunde · Service · Interval · Næste gang · Default-rute · Medarbejder · Status.
+  - Detalje-sheet: opstartsdato, interval-vælger, default-rute dropdown, medarbejder-override, slutdato, samt "Kommende forekomster" liste (klik = hop til den dato i rutekalenderen).
+  - Pool nederst (uplaceret) virker som i dag — drag flytter `agreement_occurrences.route_id`.
+- **Route Planner**: 
+  - "Rute-skabeloner" sektion (CRUD af `route_templates`).
+  - Kalenderen kalder `ensure_occurrences` ved navigation; viser materialiserede forekomster.
+  - "Rediger" på et stop: vælg "Kun denne gang" / "Hele serien fremad".
+- **Customers**: "Aftaler"-fanen i kundekortet viser serier + næste forekomst.
 
-I dag rendres `LiveChatWidget` floating i `/virksomhed/*` og kan overlappe andre knapper.
+## Implementeringsfaser
 
-- Skjul den floating trigger-knap når `pathname.startsWith("/virksomhed")` (men behold selve chat-popup'en så den kan åbnes).
-- Tilføj en kompakt "Support"-knap (`MessageCircle`-ikon + "Support"-label) i `PageHeader`/topbjælken på `/virksomhed`-siderne.
-- Knappen sætter `sessionStorage.serviceydere_open_chat_key = platformKey()` og dispatcher event så widget'en åbner — samme mekanisme som allerede bruges andre steder.
+1. **DB**: wipe + nye tabeller + RLS + RPC `ensure_occurrences`.
+2. **Services**: tilføj `default_employee_ids` i form + visning.
+3. **Agreements backend**: hooks (`useAgreements`, `useAgreementOccurrences`) + opret/rediger/slet.
+4. **AftaleTab UI** rebuild på den nye model.
+5. **Route templates** + materialisering i kalender + drag/drop pr. forekomst.
+6. **Customer-aftaler-fane** opdateret.
+7. **Oprydning**: fjern død kode (`subscriptions`-flow, `recurrence_cycle` på orders, gamle "approval"-felter beholdes på agreements).
 
-## Tekniske detaljer
+## Tekniske noter
 
-- Ny edge function: `supabase/functions/suggest-field-mapping/index.ts` med `verify_jwt = false` (mapping er ikke følsom data, men vi sender kun kolonnenavne + sample values).
-- Diff- og valideringslogik kører klientside i ny modul: `src/components/admin/dataimport/diff.ts` og `validation.ts`.
-- DataImportTab opsplittes lidt: nye komponenter `MappingPanel.tsx`, `PreviewDiffPanel.tsx`, `ValidationPanel.tsx` for at holde filen håndterbar.
-- LiveChatWidget: udvid `HIDDEN_PREFIXES` med `/virksomhed` for trigger-knap, men eksporter en lille hook/funktion `openPlatformChat()` til brug fra header-knappen.
-
-## Filer der ændres
-
-- `src/components/admin/DataImportTab.tsx` (refactor + integration)
-- `src/components/admin/dataimport/MappingPanel.tsx` (ny)
-- `src/components/admin/dataimport/PreviewDiffPanel.tsx` (ny)
-- `src/components/admin/dataimport/ValidationPanel.tsx` (ny)
-- `src/components/admin/dataimport/diff.ts` (ny)
-- `src/components/admin/dataimport/validation.ts` (ny)
-- `supabase/functions/suggest-field-mapping/index.ts` (ny)
-- `src/components/livechat/LiveChatWidget.tsx` (skjul trigger på /virksomhed, eksportér openPlatformChat)
-- `src/pages/Admin.tsx` + evt. `RoutePlanner.tsx` (support-knap i header)
+- Interval-beregning gøres server-side i SQL (`generate_series` + offsetting) for konsistens.
+- Approval-flow (kunde godkender pris) flyttes fra `orders` til `agreements` (én godkendelse pr. serie ved oprettelse, ikke pr. forekomst).
+- Fakturering: én faktura pr. `agreement_occurrence` der er markeret `done` (samme som i dag pr. ordre) — accounting-koblingen genbruges, vi peger bare på `agreement_occurrence_id` i stedet for `order_id`.
+- Edge functions der i dag rører `orders` (`customer-approve-order`, `recurring-orders`, `accounting-sync`, `apply-route-suggestion`) opdateres eller udfases — `recurring-orders` cron bliver overflødig, da forekomster nu materialiseres on-demand.

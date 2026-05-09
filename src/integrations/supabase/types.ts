@@ -404,6 +404,296 @@ export type Database = {
         }
         Relationships: []
       }
+      agreement_items: {
+        Row: {
+          agreement_id: string
+          created_at: string
+          details: Json
+          id: string
+          quantity: number
+          service_id: string | null
+          service_name: string
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          agreement_id: string
+          created_at?: string
+          details?: Json
+          id?: string
+          quantity?: number
+          service_id?: string | null
+          service_name: string
+          total_price?: number
+          unit_price?: number
+        }
+        Update: {
+          agreement_id?: string
+          created_at?: string
+          details?: Json
+          id?: string
+          quantity?: number
+          service_id?: string | null
+          service_name?: string
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agreement_items_agreement_id_fkey"
+            columns: ["agreement_id"]
+            isOneToOne: false
+            referencedRelation: "agreements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agreement_items_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agreement_occurrences: {
+        Row: {
+          agreement_id: string
+          business_id: string
+          completed_at: string | null
+          created_at: string
+          due_date: string | null
+          employee_ids: string[]
+          id: string
+          invoice_external_id: string | null
+          invoice_status: string | null
+          invoiced_at: string | null
+          notes: string | null
+          occurrence_date: string
+          paid_amount: number | null
+          paid_at: string | null
+          payment_status:
+            | Database["public"]["Enums"]["order_payment_status"]
+            | null
+          planned_arrival: string | null
+          route_id: string | null
+          sequence_index: number
+          status: Database["public"]["Enums"]["occurrence_status"]
+          updated_at: string
+        }
+        Insert: {
+          agreement_id: string
+          business_id: string
+          completed_at?: string | null
+          created_at?: string
+          due_date?: string | null
+          employee_ids?: string[]
+          id?: string
+          invoice_external_id?: string | null
+          invoice_status?: string | null
+          invoiced_at?: string | null
+          notes?: string | null
+          occurrence_date: string
+          paid_amount?: number | null
+          paid_at?: string | null
+          payment_status?:
+            | Database["public"]["Enums"]["order_payment_status"]
+            | null
+          planned_arrival?: string | null
+          route_id?: string | null
+          sequence_index?: number
+          status?: Database["public"]["Enums"]["occurrence_status"]
+          updated_at?: string
+        }
+        Update: {
+          agreement_id?: string
+          business_id?: string
+          completed_at?: string | null
+          created_at?: string
+          due_date?: string | null
+          employee_ids?: string[]
+          id?: string
+          invoice_external_id?: string | null
+          invoice_status?: string | null
+          invoiced_at?: string | null
+          notes?: string | null
+          occurrence_date?: string
+          paid_amount?: number | null
+          paid_at?: string | null
+          payment_status?:
+            | Database["public"]["Enums"]["order_payment_status"]
+            | null
+          planned_arrival?: string | null
+          route_id?: string | null
+          sequence_index?: number
+          status?: Database["public"]["Enums"]["occurrence_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agreement_occurrences_agreement_id_fkey"
+            columns: ["agreement_id"]
+            isOneToOne: false
+            referencedRelation: "agreements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agreement_occurrences_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agreement_occurrences_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agreements: {
+        Row: {
+          address: string | null
+          adjusted_amount: number | null
+          adjusted_details: Json | null
+          approval_expires_at: string | null
+          approval_token: string | null
+          business_customer_id: string | null
+          business_id: string
+          business_message: string | null
+          business_response: string | null
+          city: string | null
+          company_name: string | null
+          created_at: string
+          customer_email: string
+          customer_id: string | null
+          customer_name: string
+          customer_phone: string | null
+          customer_response: string | null
+          cvr: string | null
+          default_route_template_id: string | null
+          employee_ids: string[]
+          end_date: string | null
+          estimated_duration_minutes: number | null
+          id: string
+          interval: Database["public"]["Enums"]["agreement_interval"]
+          interval_days: number | null
+          latitude: number | null
+          longitude: number | null
+          notes: string | null
+          payment_terms_days: number | null
+          preferred_time_end: string | null
+          preferred_time_start: string | null
+          requires_customer_approval: boolean
+          start_date: string
+          status: Database["public"]["Enums"]["agreement_status"]
+          total_amount: number
+          updated_at: string
+          zip_code: string | null
+        }
+        Insert: {
+          address?: string | null
+          adjusted_amount?: number | null
+          adjusted_details?: Json | null
+          approval_expires_at?: string | null
+          approval_token?: string | null
+          business_customer_id?: string | null
+          business_id: string
+          business_message?: string | null
+          business_response?: string | null
+          city?: string | null
+          company_name?: string | null
+          created_at?: string
+          customer_email: string
+          customer_id?: string | null
+          customer_name: string
+          customer_phone?: string | null
+          customer_response?: string | null
+          cvr?: string | null
+          default_route_template_id?: string | null
+          employee_ids?: string[]
+          end_date?: string | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          interval?: Database["public"]["Enums"]["agreement_interval"]
+          interval_days?: number | null
+          latitude?: number | null
+          longitude?: number | null
+          notes?: string | null
+          payment_terms_days?: number | null
+          preferred_time_end?: string | null
+          preferred_time_start?: string | null
+          requires_customer_approval?: boolean
+          start_date: string
+          status?: Database["public"]["Enums"]["agreement_status"]
+          total_amount?: number
+          updated_at?: string
+          zip_code?: string | null
+        }
+        Update: {
+          address?: string | null
+          adjusted_amount?: number | null
+          adjusted_details?: Json | null
+          approval_expires_at?: string | null
+          approval_token?: string | null
+          business_customer_id?: string | null
+          business_id?: string
+          business_message?: string | null
+          business_response?: string | null
+          city?: string | null
+          company_name?: string | null
+          created_at?: string
+          customer_email?: string
+          customer_id?: string | null
+          customer_name?: string
+          customer_phone?: string | null
+          customer_response?: string | null
+          cvr?: string | null
+          default_route_template_id?: string | null
+          employee_ids?: string[]
+          end_date?: string | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          interval?: Database["public"]["Enums"]["agreement_interval"]
+          interval_days?: number | null
+          latitude?: number | null
+          longitude?: number | null
+          notes?: string | null
+          payment_terms_days?: number | null
+          preferred_time_end?: string | null
+          preferred_time_start?: string | null
+          requires_customer_approval?: boolean
+          start_date?: string
+          status?: Database["public"]["Enums"]["agreement_status"]
+          total_amount?: number
+          updated_at?: string
+          zip_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agreements_business_customer_id_fkey"
+            columns: ["business_customer_id"]
+            isOneToOne: false
+            referencedRelation: "business_customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agreements_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agreements_default_route_template_id_fkey"
+            columns: ["default_route_template_id"]
+            isOneToOne: false
+            referencedRelation: "route_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_customers: {
         Row: {
           address: string | null
@@ -2246,6 +2536,7 @@ export type Database = {
       route_stops: {
         Row: {
           address: string | null
+          agreement_occurrence_id: string | null
           assigned_employee_id: string | null
           completed_at: string | null
           created_at: string
@@ -2274,6 +2565,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          agreement_occurrence_id?: string | null
           assigned_employee_id?: string | null
           completed_at?: string | null
           created_at?: string
@@ -2302,6 +2594,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          agreement_occurrence_id?: string | null
           assigned_employee_id?: string | null
           completed_at?: string | null
           created_at?: string
@@ -2329,6 +2622,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "route_stops_agreement_occurrence_id_fkey"
+            columns: ["agreement_occurrence_id"]
+            isOneToOne: false
+            referencedRelation: "agreement_occurrences"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "route_stops_assigned_employee_id_fkey"
             columns: ["assigned_employee_id"]
@@ -2359,6 +2659,72 @@ export type Database = {
           },
         ]
       }
+      route_templates: {
+        Row: {
+          business_id: string
+          color: string
+          created_at: string
+          default_employee_id: string | null
+          id: string
+          is_active: boolean
+          name: string
+          planned_start_time: string
+          start_address: string | null
+          start_from_home: boolean
+          start_latitude: number | null
+          start_longitude: number | null
+          updated_at: string
+          weekday: number | null
+        }
+        Insert: {
+          business_id: string
+          color?: string
+          created_at?: string
+          default_employee_id?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          planned_start_time?: string
+          start_address?: string | null
+          start_from_home?: boolean
+          start_latitude?: number | null
+          start_longitude?: number | null
+          updated_at?: string
+          weekday?: number | null
+        }
+        Update: {
+          business_id?: string
+          color?: string
+          created_at?: string
+          default_employee_id?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          planned_start_time?: string
+          start_address?: string | null
+          start_from_home?: boolean
+          start_latitude?: number | null
+          start_longitude?: number | null
+          updated_at?: string
+          weekday?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_templates_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_templates_default_employee_id_fkey"
+            columns: ["default_employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       routes: {
         Row: {
           business_id: string
@@ -2373,6 +2739,7 @@ export type Database = {
           optimized_at: string | null
           planned_start_time: string | null
           route_date: string
+          route_template_id: string | null
           start_address: string | null
           start_from_home: boolean
           start_latitude: number | null
@@ -2395,6 +2762,7 @@ export type Database = {
           optimized_at?: string | null
           planned_start_time?: string | null
           route_date: string
+          route_template_id?: string | null
           start_address?: string | null
           start_from_home?: boolean
           start_latitude?: number | null
@@ -2417,6 +2785,7 @@ export type Database = {
           optimized_at?: string | null
           planned_start_time?: string | null
           route_date?: string
+          route_template_id?: string | null
           start_address?: string | null
           start_from_home?: boolean
           start_latitude?: number | null
@@ -2439,6 +2808,13 @@ export type Database = {
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "routes_route_template_id_fkey"
+            columns: ["route_template_id"]
+            isOneToOne: false
+            referencedRelation: "route_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -2493,6 +2869,7 @@ export type Database = {
           base_price: number | null
           business_id: string
           created_at: string
+          default_employee_ids: string[]
           default_vat_rate: number | null
           description: string | null
           id: string
@@ -2516,6 +2893,7 @@ export type Database = {
           base_price?: number | null
           business_id: string
           created_at?: string
+          default_employee_ids?: string[]
           default_vat_rate?: number | null
           description?: string | null
           id?: string
@@ -2539,6 +2917,7 @@ export type Database = {
           base_price?: number | null
           business_id?: string
           created_at?: string
+          default_employee_ids?: string[]
           default_vat_rate?: number | null
           description?: string | null
           id?: string
@@ -2864,6 +3243,13 @@ export type Database = {
         }
         Returns: undefined
       }
+      agreement_interval_days: {
+        Args: {
+          _custom_days: number
+          _interval: Database["public"]["Enums"]["agreement_interval"]
+        }
+        Returns: number
+      }
       auto_recur_due_orders: {
         Args: never
         Returns: {
@@ -2894,6 +3280,10 @@ export type Database = {
       }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
+        Returns: number
+      }
+      ensure_agreement_occurrences: {
+        Args: { _business_id: string; _until_date: string }
         Returns: number
       }
       find_or_create_route_for_employee: {
@@ -2968,7 +3358,25 @@ export type Database = {
       retry_dlq_job: { Args: { _dlq_id: string }; Returns: string }
     }
     Enums: {
+      agreement_interval:
+        | "engangskøb"
+        | "ugentlig"
+        | "hver_14_dag"
+        | "hver_4_uge"
+        | "månedlig"
+        | "kvartalsvis"
+        | "halvårlig"
+        | "årlig"
+        | "custom"
+      agreement_status:
+        | "draft"
+        | "pending_approval"
+        | "active"
+        | "paused"
+        | "ended"
+        | "cancelled"
       app_role: "admin" | "business_owner" | "user" | "employee"
+      occurrence_status: "planned" | "completed" | "cancelled" | "skipped"
       order_payment_status:
         | "unpaid"
         | "partially_paid"
@@ -3109,7 +3517,27 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      agreement_interval: [
+        "engangskøb",
+        "ugentlig",
+        "hver_14_dag",
+        "hver_4_uge",
+        "månedlig",
+        "kvartalsvis",
+        "halvårlig",
+        "årlig",
+        "custom",
+      ],
+      agreement_status: [
+        "draft",
+        "pending_approval",
+        "active",
+        "paused",
+        "ended",
+        "cancelled",
+      ],
       app_role: ["admin", "business_owner", "user", "employee"],
+      occurrence_status: ["planned", "completed", "cancelled", "skipped"],
       order_payment_status: [
         "unpaid",
         "partially_paid",
