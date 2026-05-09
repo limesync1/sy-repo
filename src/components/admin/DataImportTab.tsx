@@ -1109,11 +1109,12 @@ const ImportPanel = ({
         )}
       </div>
 
-      {/* ─── Statistik-kort (klikbare filtre) ─── */}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      {/* ─── Statistik-kort (klikbare filtre) ─── 
+          Tre status-knapper + en "Alle" toggle — totalen vises i hero, så det
+          slipper at fylde et helt kort her. */}
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {[
           { label: "Klar til import", value: stats.ok, tone: "ok", filter: "ok" as const, icon: CheckCircle2 },
-          { label: "I alt", value: stats.total, tone: "neutral", filter: "all" as const, icon: FileText },
           { label: "Dubletter", value: stats.duplicates, tone: "warn", filter: "dup" as const, icon: AlertTriangle },
           { label: "Fejl", value: stats.errors, tone: stats.errors > 0 ? "err" : "neutral", filter: "err" as const, icon: AlertTriangle },
         ].map((s) => {
@@ -1126,9 +1127,9 @@ const ImportPanel = ({
             >
               <div>
                 <p className="text-[10.5px] uppercase tracking-wide text-muted-foreground">{s.label}</p>
-                <p className={`text-xl font-bold ${s.tone === "ok" ? "text-accent" : s.tone === "warn" ? "text-amber-600" : s.tone === "err" ? "text-destructive" : "text-foreground"}`}>{s.value.toLocaleString("da-DK")}</p>
+                <p className={`text-xl font-bold ${s.tone === "ok" ? "text-foreground" : s.tone === "warn" ? "text-amber-600" : s.tone === "err" ? "text-destructive" : "text-foreground"}`}>{s.value.toLocaleString("da-DK")}</p>
               </div>
-              <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${s.tone === "ok" ? "bg-accent/10 text-accent" : s.tone === "warn" ? "bg-amber-500/10 text-amber-600" : s.tone === "err" ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}>
+              <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${s.tone === "ok" ? "bg-secondary text-foreground" : s.tone === "warn" ? "bg-amber-500/10 text-amber-600" : s.tone === "err" ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}>
                 <SI className="h-4 w-4" />
               </div>
             </button>
