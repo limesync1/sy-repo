@@ -1121,6 +1121,65 @@ const InlineCallout = ({ title, description, action }: { title: string; descript
   </div>
 );
 
+/* ─── DateField — pænere date-picker end <input type="date">
+   Bruges til startdato/slutdato i ny-aftale-dialogen så det matcher
+   resten af admin-panelets popover-baserede UI. */
+const DateField = ({
+  label, value, onChange, optional, minDate,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  optional?: boolean;
+  minDate?: string;
+}) => {
+  const [open, setOpen] = useState(false);
+  const date = value ? parseISO(value) : undefined;
+  const min = minDate ? parseISO(minDate) : undefined;
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs">
+        {label} {optional && <span className="text-muted-foreground font-normal">(valgfri)</span>}
+      </Label>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className={`w-full justify-start font-normal hover:bg-secondary/60 data-[state=open]:border-foreground/40 ${
+              !date ? "text-muted-foreground" : ""
+            }`}
+          >
+            <CalendarIcon className="h-3.5 w-3.5 mr-2 shrink-0 opacity-70" />
+            {date ? format(date, "d. MMM yyyy", { locale: da }) : "Vælg dato"}
+            {date && optional && (
+              <span
+                role="button"
+                tabIndex={0}
+                onClick={(e) => { e.stopPropagation(); onChange(""); }}
+                className="ml-auto text-muted-foreground hover:text-foreground text-xs"
+              >×</span>
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={(d) => {
+              if (d) onChange(format(d, "yyyy-MM-dd"));
+              setOpen(false);
+            }}
+            disabled={min ? (d) => d < min : undefined}
+            initialFocus
+            locale={da}
+            className="p-3 pointer-events-auto"
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+};
+
 /* ─── Detail sheet ─── */
 const AgreementDetailSheet = ({
   agreementId, businessId, onClose,
