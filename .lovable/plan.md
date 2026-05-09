@@ -1,90 +1,80 @@
 
-# Ny aftale-model: serier, intervaller, ruter & arvet medarbejder
+# Aftaler ↔ Ruter ↔ Regnskab — kort version med Ready2Clean-eksempel
 
-Vi laver "Aftaler" om fra enkeltstående ordrer til **serier** (Outlook-stil) med opstartsdato + interval, en valgfri default-rute, og medarbejder der arves fra servicen. Forekomster materialiseres rullende ind i rutekalenderen så du kan se næste gang + alle fremtidige gange.
+## Modellen i én sætning
 
-## Sådan kommer det til at fungere (for brugeren)
-
-1. **Service oprettes** → vælg en eller flere medarbejdere som default-team.
-2. **Aftale oprettes** (kunde booker eller admin opretter manuelt) → vælg:
-   - Opstartsdato
-   - Interval (engangskøb, ugentligt, hver 2. uge, hver 4. uge, månedligt, …) + evt. slutdato
-   - Default-rute (rute-skabelon, fx "Mandagsrute Nord") — kan også vælges/ændres senere på Aftaler-siden
-   - Medarbejder (forudfyldt fra service, kan overstyres)
-3. **På Aftaler-siden** kan du:
-   - Se aftalen med "næste gang: man 12. maj" + liste over kommende forekomster
-   - Klikke ind og skifte default-rute fra et dropdown
-   - Trække aftalen i en rute-pool (som i dag) — dét flytter den næste forekomst
-4. **I Rutekalenderen** ser du alle materialiserede forekomster så langt frem du scroller. En enkelt forekomst kan flyttes/aflyses uden at det rører resten af serien (Outlook "kun denne begivenhed" vs. "hele serien").
-
-## Arkitektur
+> En **aftale** er en serie (kunde + service + interval). Den hænger på en **rute-skabelon**. Når kalenderen åbnes, **udfoldes** den til faktiske stop — og når et stop markeres **udført**, ryger det automatisk videre til regnskabsprogrammet (e-conomic / Billy / Dinero).
 
 ```text
-services ──(default_employee_ids)──┐
-                                   ▼
-business_customers              agreements (ny)              route_templates (ny)
-        │                       ├─ start_date                ├─ name "Mandagsrute Nord"
-        │                       ├─ interval                  ├─ weekday/cadence
-        └─────────────────────► ├─ end_date (nullable)       ├─ default_employee_id
-                                ├─ default_route_template_id ┘
-                                ├─ employee_ids (override)
-                                ▼
-                        agreement_occurrences (materialiseret)
-                                ├─ occurrence_date
-                                ├─ status (planned/done/cancelled/skipped)
-                                ├─ route_id (konkret dag-rute)
-                                └─ employee_ids (override pr. forekomst)
-                                ▼
-                        routes (eksisterer) — én pr. dato, født af route_template
+Service ─► Aftale (interval) ─► Rute-skabelon ─► Forekomst i kalender ─► Udført ─► Faktura i regnskab
 ```
 
-## Datamodel-ændringer
+## Konkret eksempel — Ready2Clean ApS
 
-**Wipe**: `orders`, `order_items`, `route_stops`, `routes`, `subscriptions` (data, ikke skema endnu) ryddes for at starte rent.
+Service: "Udvendig vinduespudsning" (standard: Anna, 45 min, 450 kr).
 
-**Nye tabeller:**
-- `agreements` — selve serien. Felter: `business_id`, `business_customer_id`, `start_date`, `interval` (enum: `once`, `weekly`, `biweekly`, `every_4_weeks`, `monthly`, `custom_days`), `interval_days` (for custom), `end_date`, `default_route_template_id`, `employee_ids[]` (override), `total_amount`, `notes`, `status` (`active`/`paused`/`ended`), prising/fakturafelter overført fra `orders`.
-- `agreement_items` — linjer (service_id, qty, price) — erstatter `order_items`.
-- `route_templates` — genbrugbar rute-skabelon: `name`, `weekday` (0–6) eller `cadence`, `default_employee_id`, `start_address`, farve.
-- `agreement_occurrences` — materialiseret forekomst: `agreement_id`, `occurrence_date`, `route_id` (nullable indtil placeret), `status`, `employee_ids` (override), `completed_at`.
+**3 aftaler:**
 
-**Ændringer på eksisterende:**
-- `services.default_employee_ids uuid[]` tilføjes — vises som multi-select i service-form.
-- `routes` får `route_template_id` (nullable) så vi ved hvilken skabelon en konkret dag-rute kommer fra.
-- `route_stops` peger fremover på `agreement_occurrence_id` i stedet for `order_id` (kolonnen tilføjes; `order_id` fjernes efter wipe).
+| Kunde | Interval | Default-rute | Pris/gang |
+|---|---|---|---|
+| Café Mocca | Hver 2. uge (man) | Mandagsrute Aarhus C | 450 kr |
+| Tandlæge Hansen | Hver 4. uge (man) | Mandagsrute Aarhus N | 600 kr |
+| Familien Jensen | Engangskøb | — (pool) | 450 kr |
 
-**Materialisering** (rullende vindue):
-- Når kalenderen vises for en periode (fx +12 uger), kalder klienten en RPC `ensure_occurrences(business_id, until_date)` der genererer manglende `agreement_occurrences` for alle aktive aftaler ud fra deres interval.
-- Default tildeles `route_id` ud fra `default_route_template_id` + ugedag (vi opretter `routes`-rækken hvis den ikke findes for den dato).
-- Drag/drop i pool eller kalender opdaterer `agreement_occurrences.route_id` for én forekomst — serien er uændret.
-- "Rediger hele serien" vs. "kun denne forekomst" eksponeres i UI.
+**I kalenderen — man 11. maj:**
+```text
+Mandagsrute Aarhus C (Anna) → Café Mocca       ✓ udført 10:30
+Mandagsrute Aarhus N (Bo)   → Tandlæge Hansen  ✓ udført 13:15
+```
 
-## UI-ændringer
+**Det der sker automatisk når Anna trykker "Udført":**
+1. `agreement_occurrences.status = done` + `completed_at` sættes
+2. `accounting_sync_queue` får en `invoice_create` for forekomsten
+3. `accounting-sync` kører: opretter kladde-faktura i e-conomic på Café Mocca (kunde matchet via `accounting_customer_links`), linje = "Udvendig vinduespudsning · 11. maj 2026" · 450 kr
+4. Faktura-nr + status gemmes på `agreement_occurrences.invoice_external_id` + `invoice_status`
+5. Når kunden betaler → webhook/cron opdaterer `payment_status = paid` på forekomsten
 
-- **ServicesTab / service-form**: ny "Standard medarbejdere" multi-select.
-- **AftaleTab**: 
-  - Liste viser én række pr. **aftale** (ikke pr. forekomst) med kolonner: Kunde · Service · Interval · Næste gang · Default-rute · Medarbejder · Status.
-  - Detalje-sheet: opstartsdato, interval-vælger, default-rute dropdown, medarbejder-override, slutdato, samt "Kommende forekomster" liste (klik = hop til den dato i rutekalenderen).
-  - Pool nederst (uplaceret) virker som i dag — drag flytter `agreement_occurrences.route_id`.
-- **Route Planner**: 
-  - "Rute-skabeloner" sektion (CRUD af `route_templates`).
-  - Kalenderen kalder `ensure_occurrences` ved navigation; viser materialiserede forekomster.
-  - "Rediger" på et stop: vælg "Kun denne gang" / "Hele serien fremad".
-- **Customers**: "Aftaler"-fanen i kundekortet viser serier + næste forekomst.
+Næste mandag d. 25. maj rammer Café Mocca igen automatisk → ny forekomst → ny faktura når den udføres. Ingen manuelle ordrer, ingen dobbelt-tastning.
 
-## Implementeringsfaser
+## Regnskabs-koblingen (det vigtige)
 
-1. **DB**: wipe + nye tabeller + RLS + RPC `ensure_occurrences`.
-2. **Services**: tilføj `default_employee_ids` i form + visning.
-3. **Agreements backend**: hooks (`useAgreements`, `useAgreementOccurrences`) + opret/rediger/slet.
-4. **AftaleTab UI** rebuild på den nye model.
-5. **Route templates** + materialisering i kalender + drag/drop pr. forekomst.
-6. **Customer-aftaler-fane** opdateret.
-7. **Oprydning**: fjern død kode (`subscriptions`-flow, `recurrence_cycle` på orders, gamle "approval"-felter beholdes på agreements).
+| Niveau | Hvad sendes til regnskab | Hvornår |
+|---|---|---|
+| **Kunde** | Café Mocca → e-conomic kunde-nr 1042 | Ved første aftale-oprettelse (eller eksisterende link genbruges) |
+| **Produkt** | "Udvendig vinduespudsning" → e-conomic produkt-nr 100 | Ved service-oprettelse / første brug |
+| **Faktura** | 1 forekomst = 1 faktura | Når stop markeres udført |
+| **Status tilbage** | Betalt / forfalden / kreditnota | Pull fra regnskab via cron |
 
-## Tekniske noter
+Eksisterende tabeller bruges direkte:
+- `accounting_customer_links` (kunde → ekstern ID)
+- `accounting_product_links` (service → ekstern produkt)
+- `accounting_order_links` → udvides/erstattes til at pege på `agreement_occurrence_id` i stedet for `order_id`
+- `accounting_sync_queue` får `entity_type = 'agreement_occurrence'`
 
-- Interval-beregning gøres server-side i SQL (`generate_series` + offsetting) for konsistens.
-- Approval-flow (kunde godkender pris) flyttes fra `orders` til `agreements` (én godkendelse pr. serie ved oprettelse, ikke pr. forekomst).
-- Fakturering: én faktura pr. `agreement_occurrence` der er markeret `done` (samme som i dag pr. ordre) — accounting-koblingen genbruges, vi peger bare på `agreement_occurrence_id` i stedet for `order_id`.
-- Edge functions der i dag rører `orders` (`customer-approve-order`, `recurring-orders`, `accounting-sync`, `apply-route-suggestion`) opdateres eller udfases — `recurring-orders` cron bliver overflødig, da forekomster nu materialiseres on-demand.
+**Faktureringsmodeller pr. aftale** (vælges ved oprettelse):
+- **Pr. besøg**: én faktura hver gang stoppet udføres (Ready2Clean default)
+- **Månedlig samlefaktura**: alle udførte forekomster i måneden samles på én faktura pr. kunde (relevant for B2B med mange besøg, fx Tandlæge Hansen kunne få "4 besøg i juli = 1 faktura")
+- **Forudbetalt periode**: én faktura ved aftale-start dækker fx 6 mdr. (mindre relevant for vinduespudsning, men kan tilføjes senere)
+
+## Daglig drift — eksempler
+
+- **Café Mocca flytter ét besøg** → "Kun denne gang" → tirsdag i stedet. Faktura følger den nye dato.
+- **Anna er syg** → Cafés stop flagges "mangler ressource", admin re-assigner til Bo. Regnskab uændret.
+- **Tandlæge Hansen siger op** → "Afslut serien". Allerede udførte besøg er allerede faktureret; fremtidige forekomster slettes.
+- **Faktura sendt med fejlpris** → ret på forekomsten → "Send kreditnota + ny faktura" knap (bruger eksisterende accounting-action edge function).
+
+## Implementerings-rækkefølge
+
+1. **ServicesTab**: Standard-medarbejder + standard-varighed + standard-pris
+2. **Hooks**: `useAgreements`, `useRouteTemplates`, `useEnsureOccurrences`
+3. **Rute-skabeloner** CRUD i Rutelaneren
+4. **AftaleTab rebuild**: liste pr. aftale, "næste gang"-kolonne, detalje-sheet (interval, rute, faktureringsmodel)
+5. **Rutekalender**: forekomster i stedet for ordrer; pool; drag/drop flytter én forekomst
+6. **Stop-sheet**: "Kun denne gang" vs. "Hele serien fremad"
+7. **Regnskabs-integration**: opdater `accounting-sync`, `customer-approve-order` → `agreement_occurrence_id`; samlefaktura-job for månedlig model
+8. **Notifikationer** peger på forekomster
+9. **Oprydning**: fjern `subscriptions`, `recurring-orders` cron, gamle `order`-felter
+
+---
+
+Lyder det rigtigt? Sig til hvis fakturerings-modellen skal være anderledes — fx om Ready2Clean skal kunne sætte "samlefaktura pr. måned" som default på erhvervskunder, eller om vi skal vente med samlefaktura til senere fase.
