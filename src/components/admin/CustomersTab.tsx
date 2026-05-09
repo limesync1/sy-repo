@@ -761,50 +761,51 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         }
       />
 
-      {/* Forfalden betaling — vises kun når relevant, så fokus er på handling */}
-      {stats.withOverdue > 0 && (
-        <Card className="surface-admin rounded-xl border-destructive/30 bg-destructive/5 shadow-sm">
-          <CardContent className="flex items-center justify-between gap-3 p-3">
-            <div className="min-w-0">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Forfalden betaling</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {stats.withOverdue} {stats.withOverdue === 1 ? "kunde" : "kunder"} med forfaldne fakturaer eller rykkere
-              </p>
-            </div>
-            <p className="text-xl font-semibold tabular-nums text-destructive shrink-0">{stats.withOverdue}</p>
-          </CardContent>
-        </Card>
-      )}
+      {/* KPI-bar — samme rytme som Aftaler-siden, så hele admin føles ens */}
+      <KpiBar items={[
+        {
+          label: "Kunder",
+          value: stats.total,
+          hint: `${stats.privateCount} privat · ${stats.businessCount} erhverv`,
+          icon: <Users />,
+          tone: "neutral",
+        },
+        {
+          label: "Faste kunder",
+          value: stats.recurring,
+          hint: "med aktivt abonnement",
+          icon: <Repeat />,
+          tone: "success",
+        },
+        {
+          label: "Samlet omsætning",
+          value: `${Math.round(stats.totalRev).toLocaleString("da-DK")} kr`,
+          hint: "alle ordrer",
+          icon: <TrendingUp />,
+          tone: "accent",
+        },
+        {
+          label: "Forfalden betaling",
+          value: stats.withOverdue,
+          hint: stats.withOverdue > 0 ? "kræver handling" : "alle betalt",
+          icon: <AlertCircle />,
+          tone: stats.withOverdue > 0 ? "danger" : "neutral",
+        },
+      ]} />
 
       {/* Søg + type-filter på samme linje — kompakt værktøjsbar */}
       <div className="flex flex-wrap items-center gap-2">
-        <div className="flex-1 min-w-[240px]">
-          <SearchInput value={search} onChange={setSearch} placeholder="Søg navn, email, firma, CVR eller by..." />
-        </div>
-        <div className="inline-flex flex-wrap items-center gap-0 rounded-lg border border-border bg-card p-0.5 shadow-sm">
-          {[
+        <QuickFilters
+          value={typeFilter}
+          onChange={(v) => setTypeFilter(v as typeof typeFilter)}
+          options={[
             { key: "all", label: "Alle", count: stats.total },
             { key: "private", label: "Privat", count: stats.privateCount },
             { key: "business", label: "Erhverv", count: stats.businessCount },
-          ].map(({ key, label, count }) => {
-            const isActive = typeFilter === key;
-            return (
-              <button
-                key={key}
-                onClick={() => setTypeFilter(key as any)}
-                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                  isActive ? "bg-foreground text-background" : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                }`}
-              >
-                <span>{label}</span>
-                {count > 0 && (
-                  <span className={`tabular-nums rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${
-                    isActive ? "bg-black/15 text-current" : "bg-secondary text-foreground/70"
-                  }`}>{count}</span>
-                )}
-              </button>
-            );
-          })}
+          ]}
+        />
+        <div className="flex-1 min-w-[240px] sm:max-w-md sm:ml-auto">
+          <SearchInput value={search} onChange={setSearch} placeholder="Søg navn, email, firma, CVR eller by..." />
         </div>
       </div>
 
