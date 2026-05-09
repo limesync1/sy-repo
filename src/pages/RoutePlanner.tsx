@@ -33,7 +33,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon,
   Loader2, Search, Plus, Inbox, ArrowUpDown, X, Keyboard,
-  ShoppingBag, Route as RouteIcon, Tag, Palette,
+  ShoppingBag, Route as RouteIcon, Tag, Palette, Layers,
 } from "lucide-react";
 import { format, addDays, addWeeks, addMonths, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { da } from "date-fns/locale";
@@ -50,6 +50,7 @@ import { DatePickerField } from "@/components/route-planner/DatePickerField";
 import { RouteStopsPanel } from "@/components/route-planner/RouteStopsPanel";
 import { supabase } from "@/integrations/supabase/client";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
+import { RouteTemplatesDialog } from "@/components/route-planner/RouteTemplatesDialog";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
 import { AdminShell } from "@/components/admin/shared/AdminShell";
 import { useWeatherForecast, type WeatherDay } from "@/hooks/useWeather";
@@ -77,6 +78,7 @@ const Planner = () => {
   const [geocoding, setGeocoding] = useState(false);
   const [createOrderOpen, setCreateOrderOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
   const [newRouteName, setNewRouteName] = useState("");
   const [newRouteColor, setNewRouteColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
   const [newRouteDate, setNewRouteDate] = useState(todayStr());
@@ -759,6 +761,16 @@ const Planner = () => {
                 <ShoppingBag className="h-3.5 w-3.5 mr-1" />Opret bestilling
               </Button>
 
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7"
+                onClick={() => setTemplatesOpen(true)}
+                title="Rute-skabeloner"
+              >
+                <Layers className="h-3.5 w-3.5 mr-1" />Skabeloner
+              </Button>
+
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Tastatur-genveje">
@@ -912,6 +924,14 @@ const Planner = () => {
             onOpenChange={setCreateOrderOpen}
             businessId={businessId}
             businessName={business?.name || ""}
+          />
+        )}
+
+        {businessId && (
+          <RouteTemplatesDialog
+            open={templatesOpen}
+            onOpenChange={setTemplatesOpen}
+            businessId={businessId}
           />
         )}
 
