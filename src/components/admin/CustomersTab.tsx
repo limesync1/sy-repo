@@ -434,11 +434,12 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
 
 const StatusBadge = ({ status }: { status: string }) => {
   const map: Record<string, { label: string; dot: string }> = {
-    pending:     { label: "Afventer planlægning", dot: "bg-warning" },
-    confirmed:   { label: "Planlagt",             dot: "bg-info" },
-    in_progress: { label: "Under udførelse",      dot: "bg-accent" },
+    pending:     { label: "Ny bestilling",        dot: "bg-warning" },
+    confirmed:   { label: "Aftalt",               dot: "bg-info" },
+    in_progress: { label: "I gang",               dot: "bg-accent" },
     completed:   { label: "Udført",               dot: "bg-success" },
     cancelled:   { label: "Annulleret",           dot: "bg-destructive" },
+    rejected:    { label: "Afvist",               dot: "bg-destructive" },
     active:      { label: "Aktiv",                dot: "bg-success" },
     paused:      { label: "På pause",             dot: "bg-warning" },
   };
