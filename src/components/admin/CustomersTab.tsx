@@ -1167,7 +1167,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                   </div>
                   <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-normal text-muted-foreground">
                     <span>{activeOrders.length > 0 ? `${activeOrders.length} aktive aftaler` : customer.first_order_at ? `Kunde siden ${fmtDate(customer.first_order_at)}` : "Ingen aftaler endnu"}</span>
-                    {paymentIssueCount > 0 && <span className="font-medium text-destructive">{paymentIssueCount} kræver betaling</span>}
+                    {paymentIssueOrders.length > 0 && <span className="font-medium text-destructive">{paymentIssueOrders.length} kræver betaling</span>}
                     {customer.total_revenue > 0 && <span>Omsætning {fmtKr(customer.total_revenue)}</span>}
                   </div>
                 </div>
