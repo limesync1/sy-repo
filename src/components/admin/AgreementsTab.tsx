@@ -34,18 +34,21 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   Plus, Search, Loader2, Calendar as CalendarIcon, Repeat, MapPin, User,
-  Trash2, Pencil, RefreshCw, Receipt,
+  Trash2, Pencil, RefreshCw, Receipt, TrendingUp, Clock, AlertCircle, CheckCircle2,
 } from "lucide-react";
 import { PageHeader, EmptyState } from "@/components/admin/shared/AdminUI";
+import { StatusPill, type StatusTone } from "@/components/admin/shared/StatusPill";
+import { QuickFilters } from "@/components/admin/shared/QuickFilters";
+import { KpiBar } from "@/components/admin/shared/KpiBar";
 import { toast } from "sonner";
 
-const STATUS_CONFIG: Record<AgreementStatus, { label: string; cls: string }> = {
-  draft:            { label: "Kladde",    cls: "bg-muted text-muted-foreground" },
-  pending_approval: { label: "Afventer godkendelse", cls: "bg-amber-100 text-amber-900 dark:bg-amber-500/15 dark:text-amber-200" },
-  active:           { label: "Aktiv",     cls: "bg-emerald-100 text-emerald-900 dark:bg-emerald-500/15 dark:text-emerald-200" },
-  paused:           { label: "Sat på pause", cls: "bg-blue-100 text-blue-900 dark:bg-blue-500/15 dark:text-blue-200" },
-  ended:            { label: "Afsluttet", cls: "bg-secondary text-foreground" },
-  cancelled:        { label: "Annulleret", cls: "bg-destructive/10 text-destructive" },
+const STATUS_CONFIG: Record<AgreementStatus, { label: string; tone: StatusTone }> = {
+  draft:            { label: "Kladde",              tone: "neutral" },
+  pending_approval: { label: "Afventer godkendelse", tone: "warning" },
+  active:           { label: "Aktiv",               tone: "success" },
+  paused:           { label: "Sat på pause",        tone: "info" },
+  ended:            { label: "Afsluttet",           tone: "neutral" },
+  cancelled:        { label: "Annulleret",          tone: "danger" },
 };
 
 type Props = {
