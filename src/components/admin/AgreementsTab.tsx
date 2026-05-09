@@ -240,6 +240,7 @@ const CreateAgreementDialog = ({
   const [customerId, setCustomerId] = useState<string>("");
   const [serviceId, setServiceId] = useState<string>("");
   const [interval, setInterval] = useState<AgreementInterval>("hver_4_uge");
+  const [billingModel, setBillingModel] = useState<AgreementBillingModel>("per_visit");
   const [startDate, setStartDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
   const [endDate, setEndDate] = useState<string>("");
   const [templateId, setTemplateId] = useState<string>("__none__");
@@ -281,6 +282,7 @@ const CreateAgreementDialog = ({
       start_date: startDate,
       end_date: endDate || null,
       interval,
+      billing_model: billingModel,
       default_route_template_id: templateId === "__none__" ? null : templateId,
       preferred_time_start: time || null,
       estimated_duration_minutes: duration ? Number(duration) : null,
