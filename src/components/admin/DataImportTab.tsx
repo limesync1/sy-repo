@@ -1310,7 +1310,7 @@ const ImportPanel = ({
                       Dublet — {r.duplicateReason}
                     </Badge>
                   ) : (
-                    <Badge className="bg-accent/15 text-accent hover:bg-accent/20 text-[10px]">Klar</Badge>
+                    <Badge variant="outline" className="border-foreground/20 bg-secondary text-foreground text-[10px]">Klar</Badge>
                   )}
                 </td>
                 {entity === "customers" && <>
@@ -1459,7 +1459,7 @@ const ImportPanel = ({
                       ) : r.isDuplicate ? (
                         <Badge variant="secondary" className="text-[10px]">Dublet</Badge>
                       ) : (
-                        <Badge className="bg-accent/15 text-accent hover:bg-accent/20 text-[10px]">Klar</Badge>
+                        <Badge variant="outline" className="border-foreground/20 bg-secondary text-foreground text-[10px]">Klar</Badge>
                       )}
                       {entity === "customers" && (
                         <Badge variant="outline" className="text-[10px]">{r.type === "business" ? "Erhverv" : "Privat"}</Badge>
