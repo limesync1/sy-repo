@@ -25,7 +25,7 @@ import { useEmployees } from "@/hooks/useEmployees";
 // Lazy load tunge tabs så hver fane først downloades når brugeren åbner den
 const DashboardTab = lazy(() => import("@/components/admin/DashboardTab"));
 const ReviewsTab = lazy(() => import("@/components/admin/ReviewsTab"));
-const AftaleTab = lazy(() => import("@/components/admin/AftaleTab"));
+const AgreementsTab = lazy(() => import("@/components/admin/AgreementsTab"));
 const EmployeesTab = lazy(() => import("@/components/admin/EmployeesTab"));
 const CustomersTab = lazy(() => import("@/components/admin/CustomersTab"));
 const SettingsTab = lazy(() => import("@/components/admin/SettingsTab"));
@@ -284,10 +284,9 @@ const AdminDashboard = () => {
       case "dashboard": return <DashboardWrapper business={business} onNavigate={(t) => handleTabChange(t as AdminTabKey)} />;
       case "services": return <ServicesTab businessId={business.id} business={business} />;
       case "orders": return (
-        <AftaleTab
+        <AgreementsTab
           businessId={business.id}
           businessName={business.name}
-          routePlanningEnabled={!!(business.settings as any)?.route_planning_enabled}
         />
       );
       case "customers": return <CustomersTab businessId={business.id} businessName={business.name} />;
