@@ -1543,6 +1543,7 @@ const AftaleTab = ({
             ([
               { key: "action_needed", label: "Kræver handling", count: actionNeeded.length, tone: "danger" as const },
               { key: "waiting", label: "Afventer kunde", count: waitingForCustomer.length, tone: "warning" as const },
+              { key: "overdue", label: "Forfalden betaling", count: overduePaymentOrders.length, tone: "danger" as const },
             ] as Chip[]).filter(b => b.count > 0),
             // Rute-relaterede filtre vises kun når ruteplanlægning er slået til.
             [
