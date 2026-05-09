@@ -16,7 +16,7 @@ import {
   User, Mail, Phone, MapPin, Package, Repeat, Calendar,
   Route as RouteIcon, Star, Clock, ChevronRight, ExternalLink, Pause,
   UserPlus, Building2, Pencil, Trash2, ShoppingBag, MoreHorizontal,
-  CreditCard, Contact as ContactIcon, X as CloseIcon,
+  CreditCard, Contact as ContactIcon, X as CloseIcon, Users, TrendingUp, AlertCircle,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
@@ -24,6 +24,8 @@ import { INTERVAL_LABELS } from "@/types/service";
 import { Link } from "react-router-dom";
 import CustomerEditDialog, { type EditableCustomer } from "./CustomerEditDialog";
 import { PageHeader, PrimaryButton, SearchInput, EmptyState } from "@/components/admin/shared/AdminUI";
+import { QuickFilters } from "@/components/admin/shared/QuickFilters";
+import { KpiBar } from "@/components/admin/shared/KpiBar";
 import { ListCardSkeleton, DialogDetailsSkeleton } from "@/components/admin/shared/Skeletons";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
