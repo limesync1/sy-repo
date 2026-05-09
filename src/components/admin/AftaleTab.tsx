@@ -1977,94 +1977,83 @@ const AftaleTab = ({
                     2) Hvad er aftalen om? (ydelser, kundens note)
                     3) Kontekst (kontakt, rute, tilbagevendende, tidslinje) */}
                 {isExpanded && (
-                  <div className="border-t border-border bg-background px-4 py-3 space-y-3">
-                    {/* ── 1) Næste skridt — det vigtigste øverst ── */}
-                    <NextStepCard order={order as any} />
-
-                    {/* Status-bannere/-beskeder relateret til aftalens forløb */}
-                    {!isResponding && <ProposalStatusBanner order={order} />}
-                    {order.business_message && !isResponding && (
-                      <div className="rounded-lg border border-border bg-card px-3 py-2">
-                        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-0.5">Din besked til kunden</p>
-                        <p className="text-sm text-foreground">{order.business_message}</p>
-                      </div>
-                    )}
-                    {!isResponding && <AdjustmentDisplay order={order} />}
-
-                    {/* Handlingsknapper — placeret tæt på "næste skridt" så det er nemt at agere */}
-                    {!isResponding && (
-                      <div className="flex flex-wrap gap-2">
-                        {actions.canRespond && (
-                          <>
-                            <Button size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("accepted"); }}
-                              className="gap-1.5 rounded-lg text-xs bg-foreground text-background hover:bg-foreground/90">
-                              <Check className="h-3.5 w-3.5" /> Godkend aftale
-                            </Button>
-                            <Button variant="outline" size="sm" onClick={(e) => {
-                              e.stopPropagation(); initAdjustedItems(order);
-                              setRespondingTo(order.id); setResponseType("adjusted");
-                            }} className="gap-1.5 rounded-lg border-border text-xs text-foreground hover:bg-secondary hover:text-foreground">
-                              <Pencil className="h-3.5 w-3.5" /> Tilpas aftale
-                            </Button>
-                            <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("rejected"); }}
-                              className="gap-1.5 rounded-lg border-border text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
-                              <X className="h-3.5 w-3.5" /> Afvis
-                            </Button>
-                          </>
-                        )}
-                        {actions.canProgress && actions.nextStatus && (
-                          <Button size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, actions.nextStatus!); }}
-                            className="gap-1.5 rounded-lg text-xs bg-foreground text-background hover:bg-foreground/90">
-                            {actions.nextStatus === "in_progress" && <><Play className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
-                            {actions.nextStatus === "completed" && hasRecurring && <><RefreshCw className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
-                            {actions.nextStatus === "completed" && !hasRecurring && <><CheckCircle2 className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
-                          </Button>
-                        )}
-                        {hasActiveAccountingIntegration &&
-                          (order.status === "confirmed" || order.status === "in_progress" || order.status === "completed") &&
-                          (order as any).payment_status !== "paid" &&
-                          (order as any).payment_status !== "credited" && (
-                            <Button variant="outline" size="sm"
-                              onClick={(e) => { e.stopPropagation(); handleMarkPaid(order); }}
-                              className="gap-1.5 rounded-lg border-success/40 bg-success/10 text-success text-xs hover:bg-success/15 hover:text-success hover:border-success/50">
-                              <CreditCard className="h-3.5 w-3.5" /> Markér som betalt
-                            </Button>
-                          )}
-                        {(order.status === "confirmed" || order.status === "in_progress") && (
-                          <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, "cancelled"); }}
-                            className="ml-auto gap-1.5 rounded-lg border-border text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
-                            <XCircle className="h-3.5 w-3.5" /> Annuller
-                          </Button>
-                        )}
-                        {order.status === "cancelled" && (
-                          <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order); }}
-                            className="ml-auto gap-1.5 rounded-lg border-destructive/40 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
-                            <Trash2 className="h-3.5 w-3.5" /> Slet aftale
-                          </Button>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Response form */}
-                    {isResponding && (
-                      <div className="rounded-lg border border-border bg-card p-3 space-y-3" onClick={(e) => e.stopPropagation()}>
+                  <div className="border-t border-border bg-background">
+                    <div className="sticky top-0 z-20 border-b border-border bg-background/95 px-3 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/90">
+                      {!isResponding ? (
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div className="flex gap-1.5">
-                          {(["accepted", "adjusted", "rejected"] as const).map((type) => (
-                            <button key={type} onClick={() => {
-                              setResponseType(type);
-                              if (type === "adjusted" && !adjustedItems[order.id]) initAdjustedItems(order);
-                            }}
-                              className={`flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors ${
-                                responseType === type
-                                  ? "border-border bg-foreground text-background"
-                                  : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
-                              }`}>
-                              {type === "accepted" ? <><Check className="h-3.5 w-3.5" /> Godkend</>
-                                : type === "adjusted" ? <><Pencil className="h-3.5 w-3.5" /> Tilpas</>
-                                : <><X className="h-3.5 w-3.5" /> Afvis</>}
-                            </button>
-                          ))}
+                          <div className="min-w-0">
+                            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Fokus</p>
+                            <p className="truncate text-sm font-semibold text-foreground">{getFocusLine(order)}</p>
+                          </div>
+                          <div className="flex flex-wrap items-center justify-end gap-1.5">
+                            {actions.canRespond && (
+                              <>
+                                <Button size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("accepted"); }}
+                                  className="h-8 gap-1.5 rounded-md px-2.5 text-xs bg-foreground text-background hover:bg-foreground/90">
+                                  <Check className="h-3.5 w-3.5" /> Godkend
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={(e) => {
+                                  e.stopPropagation(); initAdjustedItems(order);
+                                  setRespondingTo(order.id); setResponseType("adjusted");
+                                }} className="h-8 gap-1.5 rounded-md border-border px-2.5 text-xs text-foreground hover:bg-secondary hover:text-foreground">
+                                  <Pencil className="h-3.5 w-3.5" /> Tilpas
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("rejected"); }}
+                                  className="h-8 gap-1.5 rounded-md border-border px-2.5 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
+                                  <X className="h-3.5 w-3.5" /> Afvis
+                                </Button>
+                              </>
+                            )}
+                            {actions.canProgress && actions.nextStatus && (
+                              <Button size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, actions.nextStatus!); }}
+                                className="h-8 gap-1.5 rounded-md px-2.5 text-xs bg-foreground text-background hover:bg-foreground/90">
+                                {actions.nextStatus === "in_progress" && <><Play className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
+                                {actions.nextStatus === "completed" && hasRecurring && <><RefreshCw className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
+                                {actions.nextStatus === "completed" && !hasRecurring && <><CheckCircle2 className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
+                              </Button>
+                            )}
+                            {hasActiveAccountingIntegration &&
+                              (order.status === "confirmed" || order.status === "in_progress" || order.status === "completed") &&
+                              (order as any).payment_status !== "paid" &&
+                              (order as any).payment_status !== "credited" && (
+                                <Button variant="outline" size="sm"
+                                  onClick={(e) => { e.stopPropagation(); handleMarkPaid(order); }}
+                                  className="h-8 gap-1.5 rounded-md border-success/40 bg-success/10 px-2.5 text-xs text-success hover:bg-success/15 hover:text-success hover:border-success/50">
+                                  <CreditCard className="h-3.5 w-3.5" /> Betalt
+                                </Button>
+                              )}
+                            {(order.status === "confirmed" || order.status === "in_progress") && (
+                              <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, "cancelled"); }}
+                                className="h-8 gap-1.5 rounded-md border-border px-2.5 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
+                                <XCircle className="h-3.5 w-3.5" /> Annuller
+                              </Button>
+                            )}
+                            {order.status === "cancelled" && (
+                              <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order); }}
+                                className="h-8 gap-1.5 rounded-md border-destructive/40 px-2.5 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
+                                <Trash2 className="h-3.5 w-3.5" /> Slet
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-wrap items-center justify-between gap-2" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {(["accepted", "adjusted", "rejected"] as const).map((type) => (
+                              <button key={type} onClick={() => {
+                                setResponseType(type);
+                                if (type === "adjusted" && !adjustedItems[order.id]) initAdjustedItems(order);
+                              }}
+                                className={`flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors ${
+                                  responseType === type
+                                    ? "border-border bg-foreground text-background"
+                                    : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
+                                }`}>
+                                {type === "accepted" ? <><Check className="h-3.5 w-3.5" /> Godkend</>
+                                  : type === "adjusted" ? <><Pencil className="h-3.5 w-3.5" /> Tilpas</>
+                                  : <><X className="h-3.5 w-3.5" /> Afvis</>}
+                              </button>
+                            ))}
                           </div>
                           <div className="flex items-center gap-1.5">
                             <Button size="sm" onClick={() => handleResponse(order.id)}
@@ -2077,12 +2066,16 @@ const AftaleTab = ({
                                 : `Send forslag · ${roundPrice(getAdjustedTotal(order.id))} kr`}
                             </Button>
                             <Button variant="ghost" size="sm" onClick={() => { setRespondingTo(null); setResponseMessage(""); }}
-                              className="h-8 rounded-md px-2.5 text-xs text-muted-foreground hover:bg-secondary hover:text-foreground">Annuller</Button>
+                              className="h-8 rounded-md px-2.5 text-xs text-muted-foreground hover:bg-secondary hover:text-foreground">Luk</Button>
                           </div>
                         </div>
+                      )}
+                    </div>
 
+                    {isResponding && (
+                      <div className="border-b border-border bg-card/70 px-3 py-2 space-y-2" onClick={(e) => e.stopPropagation()}>
                         {responseType === "adjusted" && adjustedItems[order.id] && (
-                          <div className="space-y-3">
+                          <div className="space-y-2">
                             <AdjustmentEditor
                               orderId={order.id}
                               items={adjustedItems[order.id]}
@@ -2090,22 +2083,12 @@ const AftaleTab = ({
                               onUpdateInterval={updateAdjustedInterval}
                               onUpdateFixedPrice={updateAdjustedFixedPrice}
                             />
-                            <div className="flex items-center justify-between rounded-lg border border-border bg-secondary px-3 py-2">
-                              <div>
-                                <span className="text-xs text-muted-foreground">Kundens pris</span>
-                                <span className="ml-2 text-sm line-through text-muted-foreground">{order.total_amount} kr</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                                <div>
-                                  <span className="text-xs text-muted-foreground">Din pris</span>
-                                  <span className="ml-2 text-base font-bold text-foreground">{roundPrice(getAdjustedTotal(order.id))} kr</span>
-                                </div>
-                              </div>
+                            <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-secondary px-3 py-2">
+                              <span className="text-xs text-muted-foreground">Kundens pris <span className="ml-1 line-through">{order.total_amount} kr</span></span>
+                              <span className="text-sm font-bold text-foreground">Dit forslag: {roundPrice(getAdjustedTotal(order.id))} kr</span>
                             </div>
                           </div>
                         )}
-
                         <div>
                           <label className="mb-1 block text-xs font-medium text-muted-foreground">
                             {responseType === "accepted" ? "Valgfri besked" : "Besked til kunden"}
@@ -2120,6 +2103,17 @@ const AftaleTab = ({
                         </div>
                       </div>
                     )}
+
+                    <div className="px-3 py-3 space-y-2.5">
+                    {!isResponding && <NextStepCard order={order as any} />}
+                    {!isResponding && <ProposalStatusBanner order={order} />}
+                    {order.business_message && !isResponding && (
+                      <div className="rounded-lg border border-border bg-card px-3 py-2">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-0.5">Din besked til kunden</p>
+                        <p className="text-sm text-foreground">{order.business_message}</p>
+                      </div>
+                    )}
+                    {!isResponding && <AdjustmentDisplay order={order} />}
 
                     {/* ── 2) Hvad er aftalen om? ── */}
                     <CustomerOrderSummary order={order} />
