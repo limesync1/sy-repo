@@ -231,28 +231,41 @@ const AgreementsTab = ({ businessId, businessName }: Props) => {
 
   return (
     <div className="space-y-4">
+      {/* Header — matcher Services-fanens design: stor titel + kort
+          beskrivelse + samme PrimaryButton-stil. */}
       <PageHeader
         title="Aftaler"
-        description="Tilbagevendende aftaler kobler en kunde sammen med en service og et interval. Resten — kalender, ruter og fakturaer — kører automatisk."
+        description={`${agreements.length} ${agreements.length === 1 ? "aftale" : "aftaler"} · ${(counts.active || 0)} aktive · automatisk kalender, ruter og faktura`}
         action={
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handleMonthly} disabled={enqueueMonthly.isPending}>
+            <Button variant="outline" size="sm" onClick={handleMonthly} disabled={enqueueMonthly.isPending} className="h-9 rounded-lg">
               {enqueueMonthly.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Receipt className="h-3.5 w-3.5 mr-1.5" />}
               Samlefaktura forrige måned
             </Button>
-            <Button variant="outline" size="sm" onClick={handleEnsure} disabled={ensure.isPending}>
+            <Button variant="outline" size="sm" onClick={handleEnsure} disabled={ensure.isPending} className="h-9 rounded-lg">
               {ensure.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5 mr-1.5" />}
               Generér forekomster
             </Button>
-            <Button size="sm" onClick={() => setCreateOpen(true)} title={!canCreate ? "Opret kunde og service først" : "Ny aftale"}>
-              <Plus className="h-3.5 w-3.5 mr-1.5" />Ny aftale
-            </Button>
+            <PrimaryButton onClick={() => setCreateOpen(true)} icon={<Plus />} disabled={!canCreate}>
+              Ny aftale
+            </PrimaryButton>
           </div>
         }
       />
 
-      {/* KPI-bar: nøgletal i toppen så MRR, antal aktive og afventere er synlige */}
-      <KpiBar items={kpis} />
+      {/* Stats — samme rytme og typografi som Services-fanen: små
+          uppercase-labels, store tabular tal i ren rounded-xl-card. */}
+      <div className="grid gap-3 sm:grid-cols-4">
+        {kpis.map((k, i) => (
+          <Card key={i} className="surface-admin rounded-xl border-border/80 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{k.label}</p>
+              <p className="mt-1 text-2xl font-semibold text-foreground tabular-nums">{k.value}</p>
+              {k.hint && <p className="mt-0.5 text-[11px] text-muted-foreground">{k.hint}</p>}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
       {/* Forudsætnings-banner: hvis kunde eller service mangler, gør det
           tydeligt hvor man starter. Aftaler giver ikke mening uden begge. */}
