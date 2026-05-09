@@ -29,6 +29,9 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Calendar } from "@/components/ui/calendar";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -38,10 +41,13 @@ import {
   Plus, Search, Loader2, Calendar as CalendarIcon, Repeat, MapPin, User,
   Trash2, Pencil, RefreshCw, Receipt, TrendingUp, Clock, AlertCircle, CheckCircle2,
   Package, CreditCard, Users, ArrowRight, Sparkles, Tag, Minus, Calculator, Check,
+  ChevronsUpDown, UserPlus, Building2,
 } from "lucide-react";
 import { PageHeader, PrimaryButton, EmptyState } from "@/components/admin/shared/AdminUI";
 import { StatusPill, type StatusTone } from "@/components/admin/shared/StatusPill";
 import { QuickFilters } from "@/components/admin/shared/QuickFilters";
+import CustomerEditDialog from "@/components/admin/CustomerEditDialog";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const STATUS_CONFIG: Record<AgreementStatus, { label: string; tone: StatusTone }> = {
