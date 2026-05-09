@@ -1155,6 +1155,116 @@ const ImportPanel = ({
         })}
       </div>
 
+      {/* ─── Smart preview-diff + validering ───
+          Før import får brugeren et klart "her er hvad der sker"-overblik
+          delt op i: oprettes nyt, springes over som dublet, fejler validering.
+          Validerings­fejl grupperes pr. felt så det er nemt at se om problemet
+          kan løses ved at skifte mapping eller rette i kildefilen. */}
+      {(() => {
+        // Saml fejl pr. felt så vi kan vise grupperede mapping-/validerings-issues.
+        const errorByField = new Map<string, number>();
+        prepared.forEach((r: any) => {
+          (r.errors || []).forEach((msg: string) => {
+            // Heuristik: træk feltnavn ud ("Mangler navn", "Ukendt enhed", "Ugyldig e-mail")
+            const key = msg.length > 60 ? msg.slice(0, 60) + "…" : msg;
+            errorByField.set(key, (errorByField.get(key) || 0) + 1);
+          });
+        });
+        const groupedErrors = Array.from(errorByField.entries()).sort((a, b) => b[1] - a[1]).slice(0, 6);
+        const lowConfCols = Object.entries(columnAnalysis)
+          .filter(([col, a]) => a.confidence < 60 && Object.values(mapping).includes(col))
+          .slice(0, 4);
+        return (
+          <div className="overflow-hidden rounded-xl border border-border bg-card">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-secondary/30 px-3 py-2">
+              <div className="flex items-center gap-2">
+                <span className="flex h-6 w-6 items-center justify-center rounded-md bg-secondary text-foreground">
+                  <GitCompare className="h-3.5 w-3.5" />
+                </span>
+                <span className="text-sm font-semibold text-foreground">Hvad sker der ved import?</span>
+                <Badge variant="outline" className="text-[10px]">Forhåndsvisning</Badge>
+              </div>
+              <span className="text-[11px] text-muted-foreground">{stats.total.toLocaleString("da-DK")} rækker analyseret</span>
+            </div>
+            <div className="grid divide-y divide-border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+              <div className="px-3 py-2.5">
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-foreground" />
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-foreground">Oprettes</span>
+                </div>
+                <p className="mt-0.5 text-2xl font-bold tabular-nums text-foreground">{stats.ok.toLocaleString("da-DK")}</p>
+                <p className="text-[10.5px] text-muted-foreground">
+                  {entity === "customers" ? "nye kunder" : entity === "services" ? "nye produkter/services" : "nye ordrer"}
+                </p>
+              </div>
+              <div className="px-3 py-2.5">
+                <div className="flex items-center gap-1.5">
+                  <Eye className="h-3.5 w-3.5 text-amber-600" />
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-foreground">Springes over</span>
+                </div>
+                <p className="mt-0.5 text-2xl font-bold tabular-nums text-amber-700">{stats.duplicates.toLocaleString("da-DK")}</p>
+                <p className="text-[10.5px] text-muted-foreground">findes allerede (dublet på e-mail/CVR/varenr.)</p>
+              </div>
+              <div className="px-3 py-2.5">
+                <div className="flex items-center gap-1.5">
+                  <AlertTriangle className={`h-3.5 w-3.5 ${stats.errors > 0 ? "text-destructive" : "text-muted-foreground"}`} />
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-foreground">Fejler</span>
+                </div>
+                <p className={`mt-0.5 text-2xl font-bold tabular-nums ${stats.errors > 0 ? "text-destructive" : "text-foreground"}`}>{stats.errors.toLocaleString("da-DK")}</p>
+                <p className="text-[10.5px] text-muted-foreground">kan ikke importeres uden rettelse</p>
+              </div>
+            </div>
+
+            {(groupedErrors.length > 0 || lowConfCols.length > 0) && (
+              <div className="space-y-2 border-t border-border bg-background px-3 py-2.5">
+                {groupedErrors.length > 0 && (
+                  <div>
+                    <p className="mb-1 flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      <AlertTriangle className="h-3 w-3 text-destructive" /> Fejl grupperet pr. type
+                      <span className="ml-auto text-[10px] font-normal normal-case text-muted-foreground">Klik for at se de berørte rækker</span>
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {groupedErrors.map(([msg, count]) => (
+                        <button
+                          key={msg}
+                          type="button"
+                          onClick={() => setRowFilter("err")}
+                          className="inline-flex items-center gap-1 rounded-full border border-destructive/30 bg-destructive/5 px-2 py-0.5 text-[10.5px] text-destructive hover:bg-destructive/10"
+                          title={`${count} række${count === 1 ? "" : "r"} med denne fejl — klik for at filtrere`}
+                        >
+                          <span className="font-semibold">{count}×</span>
+                          <span>{msg}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {lowConfCols.length > 0 && (
+                  <div>
+                    <p className="mb-1 flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      <Info className="h-3 w-3 text-amber-600" /> AI er usikker på disse kolonner
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {lowConfCols.map(([col, a]) => (
+                        <span
+                          key={col}
+                          className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10.5px] text-amber-800"
+                          title={a.reason || "AI er ikke sikker på denne kolonne"}
+                        >
+                          <span className="font-semibold">{col}</span>
+                          <span className="opacity-70">({a.confidence}%)</span>
+                        </span>
+                      ))}
+                    </div>
+                    <p className="mt-1 text-[10px] text-muted-foreground">Tjek mapping-panelet nedenfor — gule felter er dem AI'en er i tvivl om.</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
       {/* ─── Felt-mapping (grupperet i kolonner) ─── 
           Bruger en styled details så vi får samme ramme/typografi som de
           øvrige kort i admin-panelet (i stedet for browserens default). */}
