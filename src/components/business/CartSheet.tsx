@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Package, CalendarClock, Store, ChevronLeft, CheckCircle2, Loader2, User, MapPin, ShoppingBag, Sparkles, Building2, UserRound } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { INTERVAL_LABELS } from "@/types/service";
@@ -27,6 +27,12 @@ const CartSheet = () => {
   const createOrder = useCreateOrder();
   const navigate = useNavigate();
   const [checkout, setCheckout] = useState(false);
+  // Re-entry guard: forhindrer at samme bestilling sendes flere gange,
+  // hvis kunden klikker hurtigt eller har en dårlig forbindelse, og
+  // checkout-flowet stadig kører de første awaits (geocoding, signup
+  // osv.) før createOrder.isPending bliver true.
+  const submittingRef = useRef(false);
+  const [submitting, setSubmitting] = useState(false);
   const [customerType, setCustomerType] = useState<"private" | "business">("private");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -114,6 +120,10 @@ const CartSheet = () => {
   }, [address, zipCode, city, checkout]);
 
   const handleOrder = async () => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
+    setSubmitting(true);
+    try {
     const nextErrors: Record<string, string> = {};
     const trimmedEmail = email.trim();
     const effectiveEmail = (user?.email || trimmedEmail).trim().toLowerCase();
@@ -130,6 +140,8 @@ const CartSheet = () => {
 
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
+      submittingRef.current = false;
+      setSubmitting(false);
       return;
     }
 
@@ -140,6 +152,8 @@ const CartSheet = () => {
       const r = await verifyAddress();
       if (!r) {
         setErrors({ address: "Adressen kunne ikke verificeres. Vælg adressen fra listen igen." });
+        submittingRef.current = false;
+        setSubmitting(false);
         return;
       }
       coords = { lat: r.lat!, lng: r.lng! };
