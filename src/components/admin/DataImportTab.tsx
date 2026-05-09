@@ -1137,13 +1137,20 @@ const ImportPanel = ({
         })}
       </div>
 
-      {/* ─── Felt-mapping (grupperet i kolonner) ─── */}
-      <details open className="group rounded-xl border border-border bg-background">
-        <summary className="flex cursor-pointer items-center gap-2 px-4 py-3 text-sm font-semibold text-foreground">
-          <Wand2 className="h-4 w-4 text-accent" />
-          Felt-mapping
-          <span className="ml-1 text-xs font-normal text-muted-foreground">{mappedCount}/{totalFields} mappet</span>
-          <ArrowRight className="ml-auto h-3.5 w-3.5 text-muted-foreground transition-transform group-open:rotate-90" />
+      {/* ─── Felt-mapping (grupperet i kolonner) ─── 
+          Bruger en styled details så vi får samme ramme/typografi som de
+          øvrige kort i admin-panelet (i stedet for browserens default). */}
+      <details open className="group rounded-xl border border-border bg-card">
+        <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-semibold text-foreground select-none [&::-webkit-details-marker]:hidden">
+          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-secondary text-foreground">
+            <Wand2 className="h-3.5 w-3.5" />
+          </span>
+          <span>Felt-mapping</span>
+          <span className="text-xs font-normal text-muted-foreground">· {mappedCount}/{totalFields} mappet</span>
+          {requiredMissing > 0 && (
+            <Badge variant="destructive" className="text-[10px]">{requiredMissing} påkrævet mangler</Badge>
+          )}
+          <ChevronDown className="ml-auto h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180" />
         </summary>
         <div className="border-t border-border p-4">
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
