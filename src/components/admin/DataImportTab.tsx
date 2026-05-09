@@ -1637,26 +1637,26 @@ const DataImportTab = ({ businessId, businessName }: { businessId: string; busin
         description="Træk CSV-filer ind, og lad AI matche kolonnerne automatisk. Du godkender altid før noget oprettes."
       />
 
-      <Card className="border-accent/30 bg-accent/5">
-        <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-              <HelpCircle className="h-4 w-4" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-foreground">Kundeservice kan også hjælpe</p>
-              <p className="text-xs text-muted-foreground">
-                Send os jeres eksport — vi importerer kunder, produkter og ordrer for jer.
-              </p>
-            </div>
+      {/* Diskret hjælpe-stribe — mindre fremtrædende end før så fokus
+          forbliver på selve upload-flowet. */}
+      <div className="flex flex-col gap-2 rounded-xl border border-border bg-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
+            <HelpCircle className="h-4 w-4" />
           </div>
-          <Button asChild variant="outline" size="sm" className="shrink-0">
-            <a href={`mailto:kontakt@serviceydere.dk?subject=Hj%C3%A6lp%20med%20dataimport%20-%20${encodeURIComponent(businessName)}`}>
-              <Mail className="mr-1.5 h-3.5 w-3.5" /> Kontakt kundeservice
-            </a>
-          </Button>
-        </CardContent>
-      </Card>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-foreground">Lad os klare importen for jer</p>
+            <p className="text-xs text-muted-foreground">
+              Send eksport-filen — vi importerer kunder, produkter og ordrer for jer.
+            </p>
+          </div>
+        </div>
+        <Button asChild variant="outline" size="sm" className="shrink-0">
+          <a href={`mailto:kontakt@serviceydere.dk?subject=Hj%C3%A6lp%20med%20dataimport%20-%20${encodeURIComponent(businessName)}`}>
+            <Mail className="mr-1.5 h-3.5 w-3.5" /> Kontakt os
+          </a>
+        </Button>
+      </div>
 
       <SectionCard
         title={sharedFile ? "Gennemgå og importér" : "Upload din fil"}
