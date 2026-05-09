@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { format, parseISO, isAfter } from "date-fns";
 import { da } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
@@ -657,7 +657,7 @@ const CreateAgreementDialog = ({
 /* ─── Form helpers ─── */
 const FormSection = ({
   icon, title, step, children,
-}: { icon: React.ReactNode; title: string; step: number; children: React.ReactNode }) => (
+}: { icon: ReactNode; title: string; step: number; children: ReactNode }) => (
   <section className="space-y-2">
     <div className="flex items-center gap-2">
       <span className="h-5 w-5 shrink-0 rounded-full bg-foreground text-background text-[10px] font-semibold flex items-center justify-center tabular-nums">
@@ -672,7 +672,7 @@ const FormSection = ({
   </section>
 );
 
-const InlineCallout = ({ title, description, action }: { title: string; description: string; action: React.ReactNode }) => (
+const InlineCallout = ({ title, description, action }: { title: string; description: string; action: ReactNode }) => (
   <div className="rounded-lg border border-dashed border-border bg-secondary/30 p-3 flex items-start gap-3">
     <div className="flex-1 min-w-0">
       <p className="text-sm font-medium text-foreground">{title}</p>
