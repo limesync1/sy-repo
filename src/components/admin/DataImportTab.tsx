@@ -373,6 +373,7 @@ const ImportPanel = ({
   const reset = () => {
     setFile(null); setRows([]); setHeaders([]); setMapping({});
     setAiNotes(null); setConfidence(null); setDone(null);
+    setColumnAnalysis({});
     setClassifications({});
     setOrderMatches({});
     setDetection(null);
