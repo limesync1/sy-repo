@@ -2,7 +2,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { format, parseISO, isAfter } from "date-fns";
 import { da } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   useAgreements, useCreateAgreement, useUpdateAgreement, useDeleteAgreement,
   useEnsureOccurrences, useOccurrencesForAgreement,
@@ -66,19 +66,30 @@ type Props = {
 
 const fmtDate = (d?: string | null) => (d ? format(parseISO(d), "d. MMM yyyy", { locale: da }) : "—");
 
-// Mapping fra service-intervaller → aftale-intervaller. Service-systemet
-// understøtter flere granulariteter (10 min, dagligt, hver 8. uge) end aftaler;
-// vi viser kun dem der har en aftale-pendant så brugeren ikke vælger noget
-// vi ikke kan materialisere på en kalender.
-const SERVICE_TO_AGREEMENT_INTERVAL: Record<string, AgreementInterval> = {
-  "engangskøb": "engangskøb",
-  "ugentlig": "ugentlig",
-  "hver_14_dag": "hver_14_dag",
-  "hver_4_uge": "hver_4_uge",
-  "månedlig": "månedlig",
-  "kvartalsvis": "kvartalsvis",
-  "halvårlig": "halvårlig",
-  "årlig": "årlig",
+// Mapping fra service-intervaller → aftale-intervaller. Aftale-systemet har et
+// fast enum (engangskøb, ugentlig, hver_14_dag, hver_4_uge, månedlig, kvartalsvis,
+// halvårlig, årlig, custom). For service-intervaller der ikke har et direkte
+// match (fx daglig, hver_8_uge) bruger vi `custom` + interval_days, så ALLE
+// intervaller fra servicen kan vælges på aftalen.
+//
+// Returnerer null hvis intervallet er for finkornet til en aftale (fx 10 min).
+type AgreementIntervalChoice = { interval: AgreementInterval; days: number | null; label: string };
+const SERVICE_INTERVAL_TO_AGREEMENT = (key: string): AgreementIntervalChoice | null => {
+  switch (key) {
+    case "engangskøb":  return { interval: "engangskøb",  days: null, label: "Engangskøb" };
+    case "daglig":      return { interval: "custom",      days: 1,    label: "Hver dag" };
+    case "ugentlig":    return { interval: "ugentlig",    days: 7,    label: "Hver uge" };
+    case "hver_14_dag": return { interval: "hver_14_dag", days: 14,   label: "Hver 14. dag" };
+    case "hver_4_uge":  return { interval: "hver_4_uge",  days: 28,   label: "Hver 4. uge" };
+    case "hver_8_uge":  return { interval: "custom",      days: 56,   label: "Hver 8. uge" };
+    case "månedlig":    return { interval: "månedlig",    days: 30,   label: "Hver måned" };
+    case "kvartalsvis": return { interval: "kvartalsvis", days: 90,   label: "Hvert kvartal" };
+    case "halvårlig":   return { interval: "halvårlig",   days: 180,  label: "Hvert halve år" };
+    case "årlig":       return { interval: "årlig",       days: 365,  label: "Hvert år" };
+    // 10_min er intra-day og giver ikke mening for tilbagevendende aftaler
+    case "10_min":      return null;
+    default:            return null;
+  }
 };
 
 type CustomerOption = {
@@ -495,7 +506,6 @@ const CreateAgreementDialog = ({
 
   const [customerId, setCustomerId] = useState<string>("");
   const [serviceId, setServiceId] = useState<string>("");
-  const [interval, setInterval] = useState<AgreementInterval>("hver_4_uge");
   const [billingModel, setBillingModel] = useState<AgreementBillingModel>("per_visit");
   const [startDate, setStartDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
   const [endDate, setEndDate] = useState<string>("");
@@ -505,7 +515,63 @@ const CreateAgreementDialog = ({
   // UI-state for søge-popovers og inline kunde-oprettelse
   const [customerPickerOpen, setCustomerPickerOpen] = useState(false);
   const [servicePickerOpen, setServicePickerOpen] = useState(false);
-  const [newCustomerOpen, setNewCustomerOpen] = useState(false);
+  // Inline kunde-form: vises direkte i samme popup når brugeren klikker
+  // "Opret ny kunde" — så de ikke skal hoppe ud i en anden dialog.
+  const [showNewCustomer, setShowNewCustomer] = useState(false);
+  const [ncType, setNcType] = useState<"private" | "business">("private");
+  const [ncName, setNcName] = useState("");
+  const [ncCompany, setNcCompany] = useState("");
+  const [ncEmail, setNcEmail] = useState("");
+  const [ncPhone, setNcPhone] = useState("");
+  const [ncAddress, setNcAddress] = useState("");
+  const [ncZip, setNcZip] = useState("");
+  const [ncCity, setNcCity] = useState("");
+  const [ncSaving, setNcSaving] = useState(false);
+  const qc = useQueryClient();
+
+  const resetNewCustomer = () => {
+    setShowNewCustomer(false);
+    setNcType("private"); setNcName(""); setNcCompany("");
+    setNcEmail(""); setNcPhone("");
+    setNcAddress(""); setNcZip(""); setNcCity("");
+  };
+
+  const handleSaveNewCustomer = async () => {
+    if (!ncEmail.trim() || !/^\S+@\S+\.\S+$/.test(ncEmail.trim())) {
+      toast.error("Indtast en gyldig email");
+      return;
+    }
+    if (ncType === "private" && !ncName.trim()) { toast.error("Navn er påkrævet"); return; }
+    if (ncType === "business" && !ncCompany.trim()) { toast.error("Firmanavn er påkrævet"); return; }
+    setNcSaving(true);
+    try {
+      const shared = {
+        business_id: businessId,
+        email: ncEmail.trim().toLowerCase(),
+        phone: ncPhone.trim() || null,
+        address: ncAddress.trim() || null,
+        zip_code: ncZip.trim() || null,
+        city: ncCity.trim() || null,
+      };
+      const { data, error } = ncType === "private"
+        ? await supabase.from("private_customers")
+            .upsert({ ...shared, name: ncName.trim() }, { onConflict: "business_id,email" })
+            .select("*").single()
+        : await supabase.from("business_customers")
+            .upsert({ ...shared, company_name: ncCompany.trim() }, { onConflict: "business_id,email" })
+            .select("*").single();
+      if (error) throw error;
+      await qc.invalidateQueries({ queryKey: ["agreement-customer-options", businessId] });
+      await qc.invalidateQueries({ queryKey: ["customers", businessId] });
+      setCustomerId((data as any).id);
+      toast.success("Kunde oprettet og valgt");
+      resetNewCustomer();
+    } catch (e: any) {
+      toast.error(e.message || "Kunne ikke oprette kunde");
+    } finally {
+      setNcSaving(false);
+    }
+  };
 
   // Pricing-state spejler DynamicServiceCard: timer + step-værdier + manuel override
   const [hours, setHours] = useState<number>(1);
@@ -515,16 +581,24 @@ const CreateAgreementDialog = ({
   const customer = customers.find((c) => c.id === customerId);
   const service = services.find((s) => s.id === serviceId) as (Service & { calculator_steps?: CalculatorStep[] }) | undefined;
 
-  // Tilladte intervaller for den valgte service. Falder tilbage til
-  // ["engangskøb"] hvis service ikke definerer noget.
-  const allowedIntervals = useMemo<AgreementInterval[]>(() => {
+  // Alle intervaller servicen tilbyder, mappet til en aftale-mulighed.
+  // Vi viser dem i samme rækkefølge som de står på servicen, så aftalen 1:1
+  // afspejler hvad kunden ville se i bookingflowet.
+  const allowedIntervalChoices = useMemo<AgreementIntervalChoice[]>(() => {
     const opts = service?.interval_options;
-    if (!opts || opts.length === 0) return ["engangskøb"];
-    const mapped = opts
-      .map((o) => SERVICE_TO_AGREEMENT_INTERVAL[o])
-      .filter((x): x is AgreementInterval => !!x);
-    return mapped.length > 0 ? mapped : ["engangskøb"];
+    const list = (opts && opts.length > 0 ? opts : ["engangskøb"])
+      .map((o) => SERVICE_INTERVAL_TO_AGREEMENT(o))
+      .filter((x): x is AgreementIntervalChoice => x !== null);
+    return list.length > 0 ? list : [SERVICE_INTERVAL_TO_AGREEMENT("engangskøb")!];
   }, [service]);
+
+  // Vælg-state holder det rå service-interval (string), så vi kan slå
+  // den fulde {interval, days, label}-trio op igen ved gem.
+  const [intervalKey, setIntervalKey] = useState<string>("hver_4_uge");
+  const intervalChoice = useMemo<AgreementIntervalChoice>(() => {
+    return allowedIntervalChoices.find((c) => `${c.interval}:${c.days ?? ""}` === intervalKey)
+      || allowedIntervalChoices[0];
+  }, [allowedIntervalChoices, intervalKey]);
 
   // Sortér calculator-steps på samme måde som booking-kortet
   const sortedSteps = useMemo<CalculatorStep[]>(() => {
@@ -558,12 +632,12 @@ const CreateAgreementDialog = ({
       initial[step.id] = step.default_value ?? step.min_value ?? 0;
     });
     setStepValues(initial);
-    // Hvis valgte interval ikke er tilladt for ny service → fald tilbage
-    const opts = (s.interval_options || ["engangskøb"])
-      .map((o) => SERVICE_TO_AGREEMENT_INTERVAL[o])
-      .filter((x): x is AgreementInterval => !!x);
-    const fallback = opts[0] || "engangskøb";
-    setInterval((prev) => (opts.includes(prev) ? prev : fallback));
+    // Vælg automatisk det første interval servicen tilbyder
+    const choices = (s.interval_options || ["engangskøb"])
+      .map((o) => SERVICE_INTERVAL_TO_AGREEMENT(o))
+      .filter((x): x is AgreementIntervalChoice => x !== null);
+    const first = choices[0] || SERVICE_INTERVAL_TO_AGREEMENT("engangskøb")!;
+    setIntervalKey(`${first.interval}:${first.days ?? ""}`);
   };
 
   const canSave = !!customer && !!service && !!startDate && totalPrice > 0;
@@ -610,11 +684,11 @@ const CreateAgreementDialog = ({
       longitude: customer.longitude as any,
       start_date: startDate,
       end_date: endDate || null,
-      interval,
+      interval: intervalChoice.interval,
+      interval_days: intervalChoice.interval === "custom" ? intervalChoice.days : null,
       billing_model: billingModel,
       default_route_template_id: templateId === "__none__" ? null : templateId,
       preferred_time_start: null,
-      estimated_duration_minutes: (service as any).estimated_duration_minutes ?? null,
       employee_ids: (service as any).default_employee_ids || [],
       total_amount: totalPrice,
       status: "active",
@@ -679,7 +753,7 @@ const CreateAgreementDialog = ({
                           Ingen kunder matcher.
                           <Button
                             size="sm" variant="ghost" className="mt-2 w-full"
-                            onClick={() => { setCustomerPickerOpen(false); setNewCustomerOpen(true); }}
+                            onClick={() => { setCustomerPickerOpen(false); setShowNewCustomer(true); }}
                           >
                             <UserPlus className="h-3.5 w-3.5 mr-1.5" /> Opret ny kunde
                           </Button>
@@ -722,13 +796,43 @@ const CreateAgreementDialog = ({
               </Popover>
               <Button
                 type="button" variant="outline" size="icon"
-                onClick={() => setNewCustomerOpen(true)}
+                onClick={() => setShowNewCustomer((v) => !v)}
                 title="Opret ny kunde"
                 className="shrink-0 hover:bg-secondary/60"
               >
                 <UserPlus className="h-4 w-4" />
               </Button>
             </div>
+            {showNewCustomer && (
+              <div className="mt-3 rounded-xl border border-foreground/10 bg-card shadow-sm p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold text-foreground">Opret ny kunde</p>
+                  <button type="button" onClick={resetNewCustomer} className="text-[11px] text-muted-foreground hover:text-foreground">Annullér</button>
+                </div>
+                <Tabs value={ncType} onValueChange={(v) => setNcType(v as any)}>
+                  <TabsList className="grid grid-cols-2 w-full h-8">
+                    <TabsTrigger value="private" className="text-xs h-6"><User className="h-3 w-3 mr-1" />Privat</TabsTrigger>
+                    <TabsTrigger value="business" className="text-xs h-6"><Building2 className="h-3 w-3 mr-1" />Erhverv</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+                <div className="grid grid-cols-2 gap-2">
+                  {ncType === "private" ? (
+                    <Input className="col-span-2 h-9" placeholder="Navn *" value={ncName} onChange={(e) => setNcName(e.target.value)} />
+                  ) : (
+                    <Input className="col-span-2 h-9" placeholder="Firmanavn *" value={ncCompany} onChange={(e) => setNcCompany(e.target.value)} />
+                  )}
+                  <Input className="h-9" placeholder="Email *" type="email" value={ncEmail} onChange={(e) => setNcEmail(e.target.value)} />
+                  <Input className="h-9" placeholder="Telefon" value={ncPhone} onChange={(e) => setNcPhone(e.target.value)} />
+                  <Input className="col-span-2 h-9" placeholder="Adresse" value={ncAddress} onChange={(e) => setNcAddress(e.target.value)} />
+                  <Input className="h-9" placeholder="Postnr." value={ncZip} onChange={(e) => setNcZip(e.target.value)} />
+                  <Input className="h-9" placeholder="By" value={ncCity} onChange={(e) => setNcCity(e.target.value)} />
+                </div>
+                <Button size="sm" className="w-full" onClick={handleSaveNewCustomer} disabled={ncSaving}>
+                  {ncSaving && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
+                  Gem og vælg kunde
+                </Button>
+              </div>
+            )}
             {customer && (
               <div className="mt-2 rounded-lg border bg-secondary/40 p-2.5 text-xs space-y-0.5">
                 {customer.address && <p className="text-muted-foreground">📍 {customer.address}{customer.city ? `, ${customer.city}` : ""}</p>}
@@ -831,24 +935,28 @@ const CreateAgreementDialog = ({
                 <div>
                   <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Hvor ofte?</Label>
                   <div className="mt-1.5 flex flex-wrap gap-1.5">
-                    {allowedIntervals.map((iv) => (
-                      <button
-                        key={iv}
-                        type="button"
-                        onClick={() => setInterval(iv)}
-                        className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-                          interval === iv
-                            ? "border-foreground bg-foreground text-background"
-                            : "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground"
-                        }`}
-                      >
-                        {INTERVAL_LABELS[iv]}
-                      </button>
-                    ))}
+                    {allowedIntervalChoices.map((c) => {
+                      const k = `${c.interval}:${c.days ?? ""}`;
+                      const selected = intervalKey === k;
+                      return (
+                        <button
+                          key={k}
+                          type="button"
+                          onClick={() => setIntervalKey(k)}
+                          className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                            selected
+                              ? "border-foreground bg-foreground text-background shadow-sm"
+                              : "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground hover:bg-secondary/50"
+                          }`}
+                        >
+                          {c.label}
+                        </button>
+                      );
+                    })}
                   </div>
-                  {(service.interval_options || []).length > allowedIntervals.length && (
+                  {(service.interval_options || []).includes("10_min") && (
                     <p className="mt-1.5 text-[10px] text-muted-foreground">
-                      Servicen tilbyder også intervaller (fx daglig) der ikke kan bruges til faste aftaler — vælg et af dem ovenfor.
+                      Servicens "hvert 10. minut"-interval bruges kun til engangsbestillinger og kan ikke vælges på faste aftaler.
                     </p>
                   )}
                 </div>
@@ -937,7 +1045,7 @@ const CreateAgreementDialog = ({
         <DialogFooter className="px-6 py-3 border-t bg-secondary/20 flex sm:items-center sm:justify-between gap-2">
           <div className="text-xs text-muted-foreground hidden sm:block">
             {service ? (
-              <>I alt: <span className="font-semibold text-foreground tabular-nums">{totalPrice.toLocaleString("da-DK")} kr</span> pr. besøg · {INTERVAL_LABELS[interval]}</>
+              <>I alt: <span className="font-semibold text-foreground tabular-nums">{totalPrice.toLocaleString("da-DK")} kr</span> pr. besøg · {intervalChoice.label}</>
             ) : "Vælg kunde og service for at fortsætte"}
           </div>
           <div className="flex items-center gap-2">
@@ -951,14 +1059,6 @@ const CreateAgreementDialog = ({
       </DialogContent>
     </Dialog>
 
-    {/* Inline kunde-oprettelse — auto-vælger kunden i aftalen efter gem */}
-    <CustomerEditDialog
-      open={newCustomerOpen}
-      onOpenChange={setNewCustomerOpen}
-      businessId={businessId}
-      businessName={""}
-      onSaved={(saved) => { if (saved.id) setCustomerId(saved.id); }}
-    />
     </>
   );
 };
