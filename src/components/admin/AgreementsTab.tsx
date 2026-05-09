@@ -66,19 +66,30 @@ type Props = {
 
 const fmtDate = (d?: string | null) => (d ? format(parseISO(d), "d. MMM yyyy", { locale: da }) : "—");
 
-// Mapping fra service-intervaller → aftale-intervaller. Service-systemet
-// understøtter flere granulariteter (10 min, dagligt, hver 8. uge) end aftaler;
-// vi viser kun dem der har en aftale-pendant så brugeren ikke vælger noget
-// vi ikke kan materialisere på en kalender.
-const SERVICE_TO_AGREEMENT_INTERVAL: Record<string, AgreementInterval> = {
-  "engangskøb": "engangskøb",
-  "ugentlig": "ugentlig",
-  "hver_14_dag": "hver_14_dag",
-  "hver_4_uge": "hver_4_uge",
-  "månedlig": "månedlig",
-  "kvartalsvis": "kvartalsvis",
-  "halvårlig": "halvårlig",
-  "årlig": "årlig",
+// Mapping fra service-intervaller → aftale-intervaller. Aftale-systemet har et
+// fast enum (engangskøb, ugentlig, hver_14_dag, hver_4_uge, månedlig, kvartalsvis,
+// halvårlig, årlig, custom). For service-intervaller der ikke har et direkte
+// match (fx daglig, hver_8_uge) bruger vi `custom` + interval_days, så ALLE
+// intervaller fra servicen kan vælges på aftalen.
+//
+// Returnerer null hvis intervallet er for finkornet til en aftale (fx 10 min).
+type AgreementIntervalChoice = { interval: AgreementInterval; days: number | null; label: string };
+const SERVICE_INTERVAL_TO_AGREEMENT = (key: string): AgreementIntervalChoice | null => {
+  switch (key) {
+    case "engangskøb":  return { interval: "engangskøb",  days: null, label: "Engangskøb" };
+    case "daglig":      return { interval: "custom",      days: 1,    label: "Hver dag" };
+    case "ugentlig":    return { interval: "ugentlig",    days: 7,    label: "Hver uge" };
+    case "hver_14_dag": return { interval: "hver_14_dag", days: 14,   label: "Hver 14. dag" };
+    case "hver_4_uge":  return { interval: "hver_4_uge",  days: 28,   label: "Hver 4. uge" };
+    case "hver_8_uge":  return { interval: "custom",      days: 56,   label: "Hver 8. uge" };
+    case "månedlig":    return { interval: "månedlig",    days: 30,   label: "Hver måned" };
+    case "kvartalsvis": return { interval: "kvartalsvis", days: 90,   label: "Hvert kvartal" };
+    case "halvårlig":   return { interval: "halvårlig",   days: 180,  label: "Hvert halve år" };
+    case "årlig":       return { interval: "årlig",       days: 365,  label: "Hvert år" };
+    // 10_min er intra-day og giver ikke mening for tilbagevendende aftaler
+    case "10_min":      return null;
+    default:            return null;
+  }
 };
 
 type CustomerOption = {
