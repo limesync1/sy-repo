@@ -16,10 +16,12 @@ import {
   Plus, Trash2,
   Sparkles, Calculator, Wrench, Wand2, Loader2, Check,
   ArrowUp, ArrowDown, Copy, Tag, FolderTree, Receipt, BookOpen, Repeat,
+  Users, Clock,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useEmployees } from "@/hooks/useEmployees";
 // Lazy load tunge tabs så hver fane først downloades når brugeren åbner den
 const DashboardTab = lazy(() => import("@/components/admin/DashboardTab"));
 const ReviewsTab = lazy(() => import("@/components/admin/ReviewsTab"));
