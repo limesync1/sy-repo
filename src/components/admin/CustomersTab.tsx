@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -16,7 +16,7 @@ import {
   User, Mail, Phone, MapPin, Package, Repeat, Calendar,
   Route as RouteIcon, Star, Clock, ChevronRight, ExternalLink, Pause,
   UserPlus, Building2, Pencil, Trash2, ShoppingBag, MoreHorizontal,
-  CreditCard, Contact as ContactIcon,
+  CreditCard, Contact as ContactIcon, X as CloseIcon,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
