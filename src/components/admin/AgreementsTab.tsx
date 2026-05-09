@@ -29,6 +29,9 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Calendar } from "@/components/ui/calendar";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -38,10 +41,13 @@ import {
   Plus, Search, Loader2, Calendar as CalendarIcon, Repeat, MapPin, User,
   Trash2, Pencil, RefreshCw, Receipt, TrendingUp, Clock, AlertCircle, CheckCircle2,
   Package, CreditCard, Users, ArrowRight, Sparkles, Tag, Minus, Calculator, Check,
+  ChevronsUpDown, UserPlus, Building2,
 } from "lucide-react";
 import { PageHeader, PrimaryButton, EmptyState } from "@/components/admin/shared/AdminUI";
 import { StatusPill, type StatusTone } from "@/components/admin/shared/StatusPill";
 import { QuickFilters } from "@/components/admin/shared/QuickFilters";
+import CustomerEditDialog from "@/components/admin/CustomerEditDialog";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const STATUS_CONFIG: Record<AgreementStatus, { label: string; tone: StatusTone }> = {
@@ -494,9 +500,12 @@ const CreateAgreementDialog = ({
   const [startDate, setStartDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
   const [endDate, setEndDate] = useState<string>("");
   const [templateId, setTemplateId] = useState<string>("__none__");
-  const [time, setTime] = useState<string>("08:00");
-  const [duration, setDuration] = useState<string>("");
   const [notes, setNotes] = useState("");
+
+  // UI-state for søge-popovers og inline kunde-oprettelse
+  const [customerPickerOpen, setCustomerPickerOpen] = useState(false);
+  const [servicePickerOpen, setServicePickerOpen] = useState(false);
+  const [newCustomerOpen, setNewCustomerOpen] = useState(false);
 
   // Pricing-state spejler DynamicServiceCard: timer + step-værdier + manuel override
   const [hours, setHours] = useState<number>(1);
@@ -549,7 +558,6 @@ const CreateAgreementDialog = ({
       initial[step.id] = step.default_value ?? step.min_value ?? 0;
     });
     setStepValues(initial);
-    if ((s as any).estimated_duration_minutes) setDuration(String((s as any).estimated_duration_minutes));
     // Hvis valgte interval ikke er tilladt for ny service → fald tilbage
     const opts = (s.interval_options || ["engangskøb"])
       .map((o) => SERVICE_TO_AGREEMENT_INTERVAL[o])
@@ -605,8 +613,8 @@ const CreateAgreementDialog = ({
       interval,
       billing_model: billingModel,
       default_route_template_id: templateId === "__none__" ? null : templateId,
-      preferred_time_start: time || null,
-      estimated_duration_minutes: duration ? Number(duration) : null,
+      preferred_time_start: null,
+      estimated_duration_minutes: (service as any).estimated_duration_minutes ?? null,
       employee_ids: (service as any).default_employee_ids || [],
       total_amount: totalPrice,
       status: "active",
@@ -625,6 +633,7 @@ const CreateAgreementDialog = ({
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto p-0 gap-0">
         <DialogHeader className="px-6 py-4 border-b shrink-0">
@@ -637,37 +646,95 @@ const CreateAgreementDialog = ({
         <div className="px-6 py-5 space-y-5">
           {/* ── 1. Kunde ── */}
           <FormSection icon={<User className="h-3.5 w-3.5" />} title="Kunde" step={1}>
-            {customers.length === 0 ? (
-              <InlineCallout
-                title="Ingen kunder endnu"
-                description="Tilføj en kunde først, så kan du oprette aftaler for dem."
-                action={<Button size="sm" variant="outline" asChild><a href="/virksomhed?tab=customers"><Users className="h-3.5 w-3.5 mr-1.5" />Tilføj kunde</a></Button>}
-              />
-            ) : (
-              <>
-                <Select value={customerId} onValueChange={setCustomerId}>
-                  <SelectTrigger><SelectValue placeholder="Vælg kunde" /></SelectTrigger>
-                  <SelectContent>
-                    {customers.map((c) => (
-                      <SelectItem key={`${c.type}:${c.id}`} value={c.id}>
-                        <span className="flex items-center gap-2">
-                          <span>{c.display_name}</span>
-                          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                            {c.type === "business" ? "Erhverv" : "Privat"}
-                          </span>
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {customer && (
-                  <div className="mt-2 rounded-lg border bg-secondary/40 p-2.5 text-xs space-y-0.5">
-                    {customer.address && <p className="text-muted-foreground">📍 {customer.address}{customer.city ? `, ${customer.city}` : ""}</p>}
-                    {customer.email && <p className="text-muted-foreground">✉ {customer.email}</p>}
-                    {!customer.email && <p className="text-amber-700 dark:text-amber-400">⚠ Mangler email — tilføj før aftalen kan oprettes</p>}
-                  </div>
-                )}
-              </>
+            <div className="flex gap-2">
+              <Popover open={customerPickerOpen} onOpenChange={setCustomerPickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={customerPickerOpen}
+                    className="flex-1 justify-between font-normal hover:bg-secondary/60 data-[state=open]:border-foreground/40"
+                  >
+                    {customer ? (
+                      <span className="flex items-center gap-2 min-w-0">
+                        {customer.type === "business"
+                          ? <Building2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                          : <User className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}
+                        <span className="truncate">{customer.display_name}</span>
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-2 text-muted-foreground">
+                        <Search className="h-3.5 w-3.5" /> Søg efter kunde…
+                      </span>
+                    )}
+                    <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)]" align="start">
+                  <Command>
+                    <CommandInput placeholder="Søg navn, firma, email…" />
+                    <CommandList>
+                      <CommandEmpty>
+                        <div className="p-3 text-center text-xs text-muted-foreground">
+                          Ingen kunder matcher.
+                          <Button
+                            size="sm" variant="ghost" className="mt-2 w-full"
+                            onClick={() => { setCustomerPickerOpen(false); setNewCustomerOpen(true); }}
+                          >
+                            <UserPlus className="h-3.5 w-3.5 mr-1.5" /> Opret ny kunde
+                          </Button>
+                        </div>
+                      </CommandEmpty>
+                      <CommandGroup>
+                        {customers.map((c) => {
+                          const search = `${c.display_name} ${c.email || ""} ${c.phone || ""} ${c.cvr || ""}`;
+                          return (
+                            <CommandItem
+                              key={`${c.type}:${c.id}`}
+                              value={search}
+                              onSelect={() => { setCustomerId(c.id); setCustomerPickerOpen(false); }}
+                              className="flex items-start gap-2 py-2 cursor-pointer aria-selected:bg-secondary/80 data-[selected=true]:bg-secondary/80"
+                            >
+                              {c.type === "business"
+                                ? <Building2 className="h-3.5 w-3.5 mt-0.5 text-muted-foreground" />
+                                : <User className="h-3.5 w-3.5 mt-0.5 text-muted-foreground" />}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="truncate text-sm">{c.display_name}</span>
+                                  <span className="text-[9px] uppercase tracking-wide text-muted-foreground">
+                                    {c.type === "business" ? "Erhverv" : "Privat"}
+                                  </span>
+                                </div>
+                                {(c.email || c.address) && (
+                                  <div className="text-[11px] text-muted-foreground truncate">
+                                    {c.email}{c.email && c.address ? " · " : ""}{c.address}
+                                  </div>
+                                )}
+                              </div>
+                              <Check className={cn("h-3.5 w-3.5 shrink-0", customerId === c.id ? "opacity-100" : "opacity-0")} />
+                            </CommandItem>
+                          );
+                        })}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              <Button
+                type="button" variant="outline" size="icon"
+                onClick={() => setNewCustomerOpen(true)}
+                title="Opret ny kunde"
+                className="shrink-0 hover:bg-secondary/60"
+              >
+                <UserPlus className="h-4 w-4" />
+              </Button>
+            </div>
+            {customer && (
+              <div className="mt-2 rounded-lg border bg-secondary/40 p-2.5 text-xs space-y-0.5">
+                {customer.address && <p className="text-muted-foreground">📍 {customer.address}{customer.city ? `, ${customer.city}` : ""}</p>}
+                {customer.email && <p className="text-muted-foreground">✉ {customer.email}</p>}
+                {!customer.email && <p className="text-amber-700 dark:text-amber-400">⚠ Mangler email — tilføj før aftalen kan oprettes</p>}
+              </div>
             )}
           </FormSection>
 
@@ -680,23 +747,65 @@ const CreateAgreementDialog = ({
                 action={<Button size="sm" variant="outline" asChild><a href="/virksomhed?tab=services"><Package className="h-3.5 w-3.5 mr-1.5" />Opret service</a></Button>}
               />
             ) : (
-              <Select value={serviceId} onValueChange={handleServiceChange}>
-                <SelectTrigger><SelectValue placeholder="Vælg service" /></SelectTrigger>
-                <SelectContent>
-                  {services.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      <span className="flex items-center gap-2">
-                        <span>{s.name}</span>
-                        <span className="text-[10px] tabular-nums text-muted-foreground">
-                          {s.pricing_type === "fast_pris" && `${Math.round(Number(s.base_price || 0))} kr`}
-                          {s.pricing_type === "timepris" && `${Math.round(Number(s.base_price || 0))} kr/t`}
-                          {s.pricing_type === "prisberegner" && "Prisberegner"}
+              <Popover open={servicePickerOpen} onOpenChange={setServicePickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={servicePickerOpen}
+                    className="w-full justify-between font-normal hover:bg-secondary/60 data-[state=open]:border-foreground/40"
+                  >
+                    {service ? (
+                      <span className="flex items-center gap-2 min-w-0">
+                        <Package className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                        <span className="truncate">{service.name}</span>
+                        <span className="text-[10px] tabular-nums text-muted-foreground shrink-0">
+                          {service.pricing_type === "fast_pris" && `${Math.round(Number(service.base_price || 0))} kr`}
+                          {service.pricing_type === "timepris" && `${Math.round(Number(service.base_price || 0))} kr/t`}
+                          {service.pricing_type === "prisberegner" && "Prisberegner"}
                         </span>
                       </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                    ) : (
+                      <span className="flex items-center gap-2 text-muted-foreground">
+                        <Search className="h-3.5 w-3.5" /> Søg efter service…
+                      </span>
+                    )}
+                    <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)]" align="start">
+                  <Command>
+                    <CommandInput placeholder="Søg service…" />
+                    <CommandList>
+                      <CommandEmpty>Ingen services matcher.</CommandEmpty>
+                      <CommandGroup>
+                        {services.map((s) => (
+                          <CommandItem
+                            key={s.id}
+                            value={`${s.name} ${(s as any).subcategory || ""}`}
+                            onSelect={() => { handleServiceChange(s.id); setServicePickerOpen(false); }}
+                            className="flex items-center gap-2 py-2 cursor-pointer aria-selected:bg-secondary/80 data-[selected=true]:bg-secondary/80"
+                          >
+                            <Package className="h-3.5 w-3.5 text-muted-foreground" />
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm truncate">{s.name}</div>
+                              {(s as any).subcategory && (
+                                <div className="text-[11px] text-muted-foreground truncate">{(s as any).subcategory}</div>
+                              )}
+                            </div>
+                            <span className="text-[10px] tabular-nums text-muted-foreground shrink-0">
+                              {s.pricing_type === "fast_pris" && `${Math.round(Number(s.base_price || 0))} kr`}
+                              {s.pricing_type === "timepris" && `${Math.round(Number(s.base_price || 0))} kr/t`}
+                              {s.pricing_type === "prisberegner" && "Beregner"}
+                            </span>
+                            <Check className={cn("h-3.5 w-3.5 shrink-0 ml-1", serviceId === s.id ? "opacity-100" : "opacity-0")} />
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             )}
           </FormSection>
 
@@ -745,22 +854,18 @@ const CreateAgreementDialog = ({
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Startdato</Label>
-                    <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Slutdato (valgfri)</Label>
-                    <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Foretrukken starttid</Label>
-                    <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Varighed (min)</Label>
-                    <Input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="fx 45" />
-                  </div>
+                  <DateField
+                    label="Startdato"
+                    value={startDate}
+                    onChange={(v) => setStartDate(v || format(new Date(), "yyyy-MM-dd"))}
+                  />
+                  <DateField
+                    label="Slutdato"
+                    optional
+                    value={endDate}
+                    onChange={(v) => setEndDate(v)}
+                    minDate={startDate}
+                  />
                   <div className="space-y-1.5 col-span-2">
                     <Label className="text-xs">Standard-rute (valgfri)</Label>
                     <Select value={templateId} onValueChange={setTemplateId}>
@@ -845,6 +950,16 @@ const CreateAgreementDialog = ({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    {/* Inline kunde-oprettelse — auto-vælger kunden i aftalen efter gem */}
+    <CustomerEditDialog
+      open={newCustomerOpen}
+      onOpenChange={setNewCustomerOpen}
+      businessId={businessId}
+      businessName={""}
+      onSaved={(saved) => { if (saved.id) setCustomerId(saved.id); }}
+    />
+    </>
   );
 };
 
@@ -1005,6 +1120,65 @@ const InlineCallout = ({ title, description, action }: { title: string; descript
     <div className="shrink-0">{action}</div>
   </div>
 );
+
+/* ─── DateField — pænere date-picker end <input type="date">
+   Bruges til startdato/slutdato i ny-aftale-dialogen så det matcher
+   resten af admin-panelets popover-baserede UI. */
+const DateField = ({
+  label, value, onChange, optional, minDate,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  optional?: boolean;
+  minDate?: string;
+}) => {
+  const [open, setOpen] = useState(false);
+  const date = value ? parseISO(value) : undefined;
+  const min = minDate ? parseISO(minDate) : undefined;
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs">
+        {label} {optional && <span className="text-muted-foreground font-normal">(valgfri)</span>}
+      </Label>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className={`w-full justify-start font-normal hover:bg-secondary/60 data-[state=open]:border-foreground/40 ${
+              !date ? "text-muted-foreground" : ""
+            }`}
+          >
+            <CalendarIcon className="h-3.5 w-3.5 mr-2 shrink-0 opacity-70" />
+            {date ? format(date, "d. MMM yyyy", { locale: da }) : "Vælg dato"}
+            {date && optional && (
+              <span
+                role="button"
+                tabIndex={0}
+                onClick={(e) => { e.stopPropagation(); onChange(""); }}
+                className="ml-auto text-muted-foreground hover:text-foreground text-xs"
+              >×</span>
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={(d) => {
+              if (d) onChange(format(d, "yyyy-MM-dd"));
+              setOpen(false);
+            }}
+            disabled={min ? (d) => d < min : undefined}
+            initialFocus
+            locale={da}
+            className="p-3 pointer-events-auto"
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+};
 
 /* ─── Detail sheet ─── */
 const AgreementDetailSheet = ({
