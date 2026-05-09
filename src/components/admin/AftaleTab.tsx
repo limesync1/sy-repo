@@ -1431,7 +1431,14 @@ const AftaleTab = ({
       <div className="space-y-5">
       <PageHeader
         title="Aftaler"
-        description={`${orders?.length || 0} aftaler i alt${upcomingSubs.length > 0 ? ` · ${upcomingSubs.length} kommende ${upcomingSubs.length === 1 ? "aftale" : "aftaler"}` : ""}`}
+        description={(() => {
+          const parts: string[] = [];
+          parts.push(`${activeOrders.length} aktive`);
+          if (actionNeeded.length > 0) parts.push(`${actionNeeded.length} kræver handling`);
+          if (overduePaymentOrders.length > 0) parts.push(`${overduePaymentOrders.length} forfalden betaling`);
+          else if (upcomingSubs.length > 0) parts.push(`${upcomingSubs.length} kommende`);
+          return parts.join(" · ");
+        })()}
         action={
           <PrimaryButton onClick={() => setCreateOrderOpen(true)} icon={<ShoppingCart />}>
             Opret bestilling
@@ -1439,26 +1446,57 @@ const AftaleTab = ({
         }
       />
 
-      {/* Stats — én række, fuld bredde, ligesom Services */}
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-          <CardContent className="p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Aftaler i alt</p>
-            <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{orders?.length || 0}</p>
-          </CardContent>
-        </Card>
-        <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-          <CardContent className="p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kræver handling</p>
-            <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{actionNeeded.length}</p>
-          </CardContent>
-        </Card>
-        <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-          <CardContent className="p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kommende aftaler</p>
-            <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{upcomingSubs.length}</p>
-          </CardContent>
-        </Card>
+      {/* Stats — kun det der reelt giver beslutningsstøtte. Tomme tal vises stille,
+          mens aktive problemer (forfalden betaling, kræver handling) bliver fremhævet. */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {(() => {
+          const upcomingThisWeek = upcomingSubs.filter(s =>
+            new Date(s.next_service_date!).getTime() <= oneWeekFromNow
+          ).length;
+          const cards: Array<{
+            key: string; label: string; value: number | string; sub?: string;
+            tone?: "danger" | "warning" | "neutral"; onClick?: () => void;
+          }> = [
+            { key: "active", label: "Aktive aftaler", value: activeOrders.length,
+              sub: `${notPlannedOrders.length} ikke planlagt`,
+              tone: "neutral", onClick: () => setFilter("active") },
+            { key: "action", label: "Kræver handling", value: actionNeeded.length,
+              sub: actionNeeded.length === 0 ? "Alt er besvaret" : "Godkend, tilpas eller afvis",
+              tone: actionNeeded.length > 0 ? "warning" : "neutral",
+              onClick: () => actionNeeded.length > 0 && setFilter("action_needed") },
+            { key: "overdue", label: "Forfalden betaling", value: overduePaymentOrders.length,
+              sub: overduePaymentOrders.length === 0 ? "Ingen forfaldne fakturaer" : "Send rykker eller følg op",
+              tone: overduePaymentOrders.length > 0 ? "danger" : "neutral",
+              onClick: () => overduePaymentOrders.length > 0 && setFilter("overdue") },
+            { key: "upcoming", label: "Kommende denne uge", value: upcomingThisWeek,
+              sub: upcomingSubs.length > upcomingThisWeek ? `${upcomingSubs.length} i alt fremad` : (upcomingThisWeek === 0 ? "Ingen planlagte" : "Næste 7 dage"),
+              tone: "neutral" },
+          ];
+          return cards.map(c => {
+            const isClickable = !!c.onClick;
+            const toneCls =
+              c.tone === "danger" ? "border-destructive/30 bg-destructive/5"
+              : c.tone === "warning" ? "border-amber-300/60 bg-amber-50"
+              : "border-border/80";
+            const valueCls =
+              c.tone === "danger" ? "text-destructive"
+              : c.tone === "warning" ? "text-amber-900"
+              : "text-foreground";
+            return (
+              <Card
+                key={c.key}
+                className={`surface-admin rounded-xl shadow-sm transition-colors ${toneCls} ${isClickable ? "cursor-pointer hover:bg-secondary/40" : ""}`}
+                onClick={c.onClick}
+              >
+                <CardContent className="p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{c.label}</p>
+                  <p className={`mt-1 text-2xl font-semibold tabular-nums ${valueCls}`}>{c.value}</p>
+                  {c.sub && <p className="mt-0.5 text-[11px] text-muted-foreground">{c.sub}</p>}
+                </CardContent>
+              </Card>
+            );
+          });
+        })()}
       </div>
 
       {/* Søgefelt + sortering */}
