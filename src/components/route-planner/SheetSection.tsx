@@ -33,14 +33,14 @@ export const SheetHeaderBlock = ({
   return (
     <div className="flex items-start gap-3">
       <span
-        className="flex h-9 w-9 items-center justify-center rounded-md text-white text-sm font-bold shrink-0 shadow-sm"
+        className="flex h-10 w-10 items-center justify-center rounded-lg text-white text-sm font-bold shrink-0 shadow-sm"
         style={{ background: bg }}
         aria-hidden={!badge}
       >
         {badge ?? icon}
       </span>
       <div className="flex-1 min-w-0">
-        <div className="text-base font-semibold leading-tight text-left truncate">
+        <div className="text-lg font-bold leading-tight text-left truncate text-foreground">
           {title}
         </div>
         {description && (
@@ -73,18 +73,22 @@ export const Section = ({
   children: React.ReactNode;
   className?: string;
 }) => (
-  <div className={cn("bg-background rounded-lg border p-3.5", className)}>
-    <div className="flex items-center gap-1.5 mb-2.5">
-      <span className="text-muted-foreground inline-flex items-center justify-center h-4 w-4">
+  // Matcher kunde-detalje-sheetet (rounded-xl border-border bg-card, h4 uppercase
+  // tracking-wider) så de to paneler ser ud som ét designsystem.
+  <div className={cn("space-y-2", className)}>
+    <div className="flex items-center gap-1.5">
+      <span className="text-muted-foreground inline-flex items-center justify-center h-3.5 w-3.5">
         {icon}
       </span>
-      <h3 className="text-xs font-semibold uppercase tracking-wide text-foreground">
+      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         {title}
-      </h3>
+      </h4>
       {required && <span className="text-[10px] text-destructive">*</span>}
       {hint && <span className="ml-auto text-[10px] text-muted-foreground">{hint}</span>}
     </div>
-    {children}
+    <div className="rounded-xl border border-border bg-card p-3">
+      {children}
+    </div>
   </div>
 );
 
@@ -109,19 +113,19 @@ export const CollapsibleSection = ({
 }) => {
   const [open, setOpen] = React.useState(defaultOpen);
   return (
-    <div className={cn("bg-background rounded-lg border", className)}>
+    <div className={cn("bg-card rounded-xl border border-border", className)}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="w-full flex items-center gap-1.5 px-3.5 py-2.5 hover:bg-secondary/40 active:bg-secondary/60 transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+        className="w-full flex items-center gap-1.5 px-3.5 py-2.5 hover:bg-secondary/40 active:bg-secondary/60 transition-colors rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
       >
         <span className="text-muted-foreground inline-flex items-center justify-center h-4 w-4">
           {icon}
         </span>
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-foreground">
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           {title}
-        </h3>
+        </h4>
         {hint && <span className="ml-auto text-[10px] text-muted-foreground">{hint}</span>}
         <ChevronDown
           className={cn(
