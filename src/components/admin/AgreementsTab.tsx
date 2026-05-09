@@ -1014,6 +1014,8 @@ const AgreementDetailSheet = ({
   const agreement = agreements.find((a) => a.id === agreementId);
   const { data: occurrences = [] } = useOccurrencesForAgreement(agreementId);
   const { data: templates = [] } = useRouteTemplates(businessId);
+  const { data: employees = [] } = useEmployees(businessId);
+  const { data: itemsMap } = useAgreementItemsBulk(agreement ? [agreement.id] : []);
   const update = useUpdateAgreement();
   const remove = useDeleteAgreement();
 
@@ -1022,6 +1024,13 @@ const AgreementDetailSheet = ({
   const tpl = templates.find((t) => t.id === agreement.default_route_template_id);
   const future = occurrences.filter((o) => isAfter(parseISO(o.occurrence_date), new Date()));
   const status = STATUS_CONFIG[agreement.status];
+  const items = itemsMap?.[agreement.id] || [];
+  const toggleEmployee = (id: string) => {
+    const next = agreement.employee_ids?.includes(id)
+      ? agreement.employee_ids.filter((x) => x !== id)
+      : [...(agreement.employee_ids || []), id];
+    update.mutate({ id: agreement.id, employee_ids: next });
+  };
 
   return (
     <Sheet open onOpenChange={(o) => !o && onClose()}>
@@ -1035,6 +1044,21 @@ const AgreementDetailSheet = ({
             <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
               <Repeat className="h-3 w-3" />{INTERVAL_LABELS[agreement.interval]}
             </span>
+          </div>
+
+          {/* Services i aftalen — vises altid så det er klart hvad aftalen dækker */}
+          <div className="rounded-lg border border-border bg-card p-3 space-y-1.5">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+              <Package className="h-3 w-3" /> Services i aftalen
+            </p>
+            {items.length === 0 ? (
+              <p className="text-xs text-muted-foreground">Ingen linjer.</p>
+            ) : items.map((it, i) => (
+              <div key={i} className="flex items-center justify-between text-sm">
+                <span className="truncate">{it.service_name}</span>
+                <span className="tabular-nums text-foreground/80 shrink-0 ml-2">{Math.round(Number(it.total_price || 0)).toLocaleString("da-DK")} kr</span>
+              </div>
+            ))}
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-sm">
@@ -1055,10 +1079,59 @@ const AgreementDetailSheet = ({
               <p className="text-xs text-muted-foreground">Slut</p>
               <p>{fmtDate(agreement.end_date)}</p>
             </div>
-            <div className="col-span-2">
-              <p className="text-xs text-muted-foreground">Standard-rute</p>
-              <p>{tpl ? tpl.name : "Ingen"}</p>
+            <div className="col-span-2 space-y-1.5">
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <MapPin className="h-3 w-3" /> Standard-rute
+              </p>
+              <Select
+                value={agreement.default_route_template_id ?? "__none__"}
+                onValueChange={(v) => update.mutate({ id: agreement.id, default_route_template_id: v === "__none__" ? null : v })}
+              >
+                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Ingen — ligger i pool</SelectItem>
+                  {templates.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.name}{t.weekday !== null ? ` · ${WEEKDAY_LABELS[t.weekday]}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-muted-foreground">Ændres med det samme — gælder kun fremtidige besøg.</p>
             </div>
+
+            <div className="col-span-2 space-y-1.5">
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <Users className="h-3 w-3" /> Medarbejder(e) på besøgene
+              </p>
+              {employees.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic">Ingen medarbejdere oprettet endnu.</p>
+              ) : (
+                <div className="flex flex-wrap gap-1.5">
+                  {employees.map((e) => {
+                    const selected = agreement.employee_ids?.includes(e.id);
+                    return (
+                      <button
+                        key={e.id}
+                        type="button"
+                        onClick={() => toggleEmployee(e.id)}
+                        disabled={update.isPending}
+                        className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                          selected
+                            ? "border-foreground bg-foreground text-background"
+                            : "border-border bg-secondary/50 text-foreground hover:bg-secondary"
+                        }`}
+                      >
+                        {selected && <Check className="h-3 w-3" />}
+                        {e.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              <p className="text-[11px] text-muted-foreground">Klik for at vælge/fravælge — gemmes automatisk.</p>
+            </div>
+
             <div className="col-span-2">
               <p className="text-xs text-muted-foreground">Fakturering</p>
               <div className="flex items-center gap-2">
