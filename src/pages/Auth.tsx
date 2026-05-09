@@ -586,7 +586,7 @@ const Auth = () => {
             )}
 
             {/* ── Login / Signup Form ── */}
-            {(isBusiness || isCustomer || isEmployee) && (
+            {(isBusiness || effectiveIsCustomer || isEmployee) && (
               <div className="space-y-7">
                 {/* Mode chip */}
                 <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold ${
