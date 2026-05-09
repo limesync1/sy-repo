@@ -3333,6 +3333,10 @@ export type Database = {
         Args: { _business_id: string }
         Returns: undefined
       }
+      materialize_occurrences_to_routes: {
+        Args: { _business_id: string; _from: string; _to: string }
+        Returns: number
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
