@@ -6,7 +6,9 @@ import { useQuery } from "@tanstack/react-query";
 import {
   useAgreements, useCreateAgreement, useUpdateAgreement, useDeleteAgreement,
   useEnsureOccurrences, useOccurrencesForAgreement,
-  INTERVAL_LABELS, type Agreement, type AgreementInterval, type AgreementStatus,
+  useEnqueueMonthlyInvoices,
+  INTERVAL_LABELS, BILLING_MODEL_LABELS,
+  type Agreement, type AgreementInterval, type AgreementStatus, type AgreementBillingModel,
 } from "@/hooks/useAgreements";
 import { useRouteTemplates, WEEKDAY_LABELS } from "@/hooks/useRouteTemplates";
 import { useServices } from "@/hooks/useDatabase";
@@ -74,6 +76,7 @@ const AgreementsTab = ({ businessId, businessName }: Props) => {
 
   const { data: agreements = [], isLoading } = useAgreements(businessId, statusFilter);
   const ensure = useEnsureOccurrences();
+  const enqueueMonthly = useEnqueueMonthlyInvoices();
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -97,6 +100,19 @@ const AgreementsTab = ({ businessId, businessName }: Props) => {
     toast.success(`${inserted} forekomster genereret`);
   };
 
+  const handleMonthly = async () => {
+    const now = new Date();
+    // Default: forrige måned (typisk fakturerings-tidspunkt)
+    const target = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const created = await enqueueMonthly.mutateAsync({
+      business_id: businessId,
+      year: target.getFullYear(),
+      month: target.getMonth() + 1,
+    });
+    if (created === 0) toast.info("Ingen aftaler med ufakturerede besøg i forrige måned");
+    else toast.success(`${created} samlefakturaer sat i kø for ${format(target, "MMMM yyyy", { locale: da })}`);
+  };
+
   return (
     <div className="space-y-4">
       <PageHeader
@@ -104,6 +120,10 @@ const AgreementsTab = ({ businessId, businessName }: Props) => {
         description="Serier af besøg pr. kunde — én aftale udfolder sig automatisk i kalender og regnskab."
         action={
           <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handleMonthly} disabled={enqueueMonthly.isPending}>
+              {enqueueMonthly.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Receipt className="h-3.5 w-3.5 mr-1.5" />}
+              Samlefaktura forrige måned
+            </Button>
             <Button variant="outline" size="sm" onClick={handleEnsure} disabled={ensure.isPending}>
               {ensure.isPending ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5 mr-1.5" />}
               Generér forekomster
