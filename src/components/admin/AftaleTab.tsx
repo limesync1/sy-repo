@@ -1708,24 +1708,8 @@ const AftaleTab = ({
         </Card>
       )}
 
-      {/* Action needed alert */}
-      {actionNeeded.length > 0 && (
-        <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-          <CardContent className="flex items-center gap-3 p-4">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary">
-              <Clock className="h-4 w-4 text-foreground" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-foreground">{actionNeeded.length} {actionNeeded.length === 1 ? "aftale kræver" : "aftaler kræver"} din handling</p>
-              <p className="text-xs text-muted-foreground">Godkend, tilpas eller afvis for at give kunden besked.</p>
-            </div>
-            <Button size="sm" variant="outline" onClick={() => setFilter("action_needed")}
-              className="shrink-0 rounded-lg border-border text-xs text-foreground hover:bg-secondary hover:text-foreground">
-              Vis dem
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+      {/* Tidligere blev "kræver handling" vist både som stat-kort og som banner —
+          det er nu konsolideret i det fremhævede stat-kort øverst. */}
 
       {/* Aftale-liste — individuelle kort pr. aftale (samme stil som Services-fanen).
           Hvert kort viser kunde, services, status og beløb i headeren. Klik for at folde ud. */}
