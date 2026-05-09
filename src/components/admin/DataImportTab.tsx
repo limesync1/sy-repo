@@ -1179,19 +1179,84 @@ const ImportPanel = ({
                   const f = fields.find((x) => x.key === k);
                   if (!f) return null;
                   const mapped = !!mapping[f.key];
+                  // Find AI-analyse for den kolonne der er valgt (eller foreslået).
+                  const mappedCol = mapping[f.key];
+                  const analysis = mappedCol ? columnAnalysis[mappedCol] : undefined;
+                  // Hvis AI'en har en alternativ-foreslået kolonne for dette felt
+                  // (men brugeren har valgt noget andet eller intet), find den.
+                  const aiSuggestedCol = !mappedCol
+                    ? Object.entries(columnAnalysis).find(([, a]) => a.suggested_field === f.key && a.confidence >= 50)?.[0]
+                    : undefined;
+                  const aiSuggestion = aiSuggestedCol ? columnAnalysis[aiSuggestedCol] : undefined;
+                  const conf = analysis?.confidence ?? aiSuggestion?.confidence;
+                  const reason = analysis?.reason || aiSuggestion?.reason || "";
+                  const lowConfidence = mapped && typeof conf === "number" && conf < 60;
+                  const tone =
+                    typeof conf !== "number" ? null :
+                    conf >= 80 ? "high" :
+                    conf >= 60 ? "med" : "low";
                   return (
-                    <div key={f.key} className={`flex flex-col gap-1.5 rounded-md border px-2.5 py-2 transition-colors sm:flex-row sm:items-center sm:gap-2 ${mapped ? "border-accent/30 bg-accent/5" : "border-border bg-secondary/20"}`}>
+                    <div key={f.key} className={`flex flex-col gap-1.5 rounded-md border px-2.5 py-2 transition-colors sm:flex-row sm:items-center sm:gap-2 ${
+                      lowConfidence
+                        ? "border-amber-500/50 bg-amber-500/5"
+                        : mapped
+                        ? "border-accent/30 bg-accent/5"
+                        : "border-border bg-secondary/20"
+                    }`}>
                       <div className="flex min-w-0 flex-1 items-center gap-2">
                         <div className={`h-1.5 w-1.5 shrink-0 rounded-full ${mapped ? "bg-accent" : f.required ? "bg-destructive" : "bg-muted-foreground/30"}`} />
-                        <p className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
-                          {f.label}{f.required && <span className="ml-0.5 text-destructive">*</span>}
-                        </p>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-xs font-medium text-foreground">
+                            {f.label}{f.required && <span className="ml-0.5 text-destructive">*</span>}
+                          </p>
+                          {(reason || aiSuggestion) && (
+                            <p
+                              className={`mt-0.5 truncate text-[10px] leading-tight ${
+                                tone === "high" ? "text-foreground/60"
+                                : tone === "med" ? "text-amber-700"
+                                : tone === "low" ? "text-amber-700 font-medium"
+                                : "text-muted-foreground"
+                              }`}
+                              title={reason || `AI foreslår "${aiSuggestedCol}"`}
+                            >
+                              {aiSuggestion && !mapped
+                                ? <>✨ AI foreslår "{aiSuggestedCol}" {typeof aiSuggestion.confidence === "number" ? `(${aiSuggestion.confidence}%)` : ""}</>
+                                : <>{tone === "low" ? "⚠ AI er usikker · " : ""}{reason}</>}
+                            </p>
+                          )}
+                        </div>
                       </div>
+                      {mapped && typeof conf === "number" && (
+                        <span
+                          className={`hidden shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-semibold sm:inline-block ${
+                            tone === "high" ? "bg-accent/15 text-accent"
+                            : tone === "med" ? "bg-amber-500/15 text-amber-700"
+                            : "bg-amber-500/25 text-amber-800"
+                          }`}
+                          title={reason}
+                        >
+                          {conf}%
+                        </span>
+                      )}
+                      {!mapped && aiSuggestion && (
+                        <button
+                          type="button"
+                          onClick={() => setMapping((prev) => ({ ...prev, [f.key]: aiSuggestedCol }))}
+                          className="hidden shrink-0 rounded-md border border-accent/40 bg-accent/10 px-1.5 py-0.5 text-[10px] font-semibold text-accent hover:bg-accent/20 sm:inline-block"
+                          title={`Brug AI's forslag: ${aiSuggestedCol}`}
+                        >
+                          Brug forslag
+                        </button>
+                      )}
                       <Select value={mapping[f.key] || "__none__"} onValueChange={(v) => setMapping((m) => ({ ...m, [f.key]: v === "__none__" ? undefined : v }))}>
                         <SelectTrigger className="h-8 w-full text-xs sm:w-[150px]"><SelectValue placeholder="—" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="__none__" className="text-xs">— Ingen —</SelectItem>
-                          {headers.map((h) => <SelectItem key={h} value={h} className="text-xs">{h}</SelectItem>)}
+                          {headers.map((h) => {
+                            const a = columnAnalysis[h];
+                            const suffix = a && typeof a.confidence === "number" ? ` · ${a.confidence}%` : "";
+                            return <SelectItem key={h} value={h} className="text-xs">{h}{suffix}</SelectItem>;
+                          })}
                         </SelectContent>
                       </Select>
                     </div>
