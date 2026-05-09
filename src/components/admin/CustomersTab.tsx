@@ -1108,13 +1108,16 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
   const orders = data?.orders ?? [];
   const liveOrders = orders.filter(o => !["cancelled", "rejected"].includes(o.status));
   const activeOrders = liveOrders.filter(o => ["pending", "confirmed", "in_progress"].includes(o.status));
-  const paymentIssueCount = orders.filter(o => {
+  const paymentIssueOrders = orders.filter(o => {
     if (["cancelled", "rejected"].includes(o.status)) return false;
-    return o.payment_status === "overdue" || Number(o.reminder_count ?? 0) > 0;
-  }).length;
+    const payment = derivePaymentStatus(o as OrderForStatus);
+    return payment === "overdue" || Number(o.reminder_count ?? 0) > 0;
+  });
+  const pendingOrders = liveOrders.filter(o => o.status === "pending");
   const nextOrder = [...liveOrders].sort((a, b) => {
     const priority = (o: OrderRow) => {
-      if (o.payment_status === "overdue" || Number(o.reminder_count ?? 0) > 0) return 0;
+      const payment = derivePaymentStatus(o as OrderForStatus);
+      if (payment === "overdue" || Number(o.reminder_count ?? 0) > 0) return 0;
       if (o.status === "pending") return 1;
       if (o.status === "confirmed" || o.status === "in_progress") return 2;
       if (o.preferred_date) return 3;
@@ -1124,9 +1127,21 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
     if (diff !== 0) return diff;
     return (a.preferred_date || a.created_at).localeCompare(b.preferred_date || b.created_at);
   })[0];
+  const focusText = paymentIssueOrders.length > 0
+    ? `${paymentIssueOrders.length} betaling${paymentIssueOrders.length === 1 ? "" : "er"} kræver opmærksomhed`
+    : pendingOrders.length > 0
+      ? `${pendingOrders.length} ny${pendingOrders.length === 1 ? "" : "e"} bestilling${pendingOrders.length === 1 ? "" : "er"} afventer svar`
+      : activeOrders.length > 0
+        ? `${activeOrders.length} aktiv${activeOrders.length === 1 ? "" : "e"} aftale${activeOrders.length === 1 ? "" : "r"}`
+        : liveOrders.length > 0
+          ? "Ingen åben handling lige nu"
+          : orders.length > 0
+            ? "Kun historik — ingen aktive aftaler"
+            : "Ingen aftaler endnu";
   const sortedOrders = [...orders].sort((a, b) => {
     const score = (o: OrderRow) => {
-      if (o.payment_status === "overdue" || Number(o.reminder_count ?? 0) > 0) return 0;
+      const payment = derivePaymentStatus(o as OrderForStatus);
+      if (payment === "overdue" || Number(o.reminder_count ?? 0) > 0) return 0;
       if (o.status === "pending") return 1;
       if (o.status === "confirmed" || o.status === "in_progress") return 2;
       if (o.status === "completed") return 3;
