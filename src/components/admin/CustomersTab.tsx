@@ -125,7 +125,7 @@ const useCustomers = (businessId: string) => {
       const [ordersRes, subsRes, privRes, bizRes] = await Promise.all([
         supabase
           .from("orders")
-          .select("id, customer_name, customer_email, customer_phone, customer_id, address, zip_code, city, total_amount, created_at, company_name, cvr, payment_status, paid_at, due_date, invoice_external_id, invoiced_at, reminder_count, last_reminder_at, last_reminder_type, credited_at, voided_at")
+          .select("id, status, customer_name, customer_email, customer_phone, customer_id, address, zip_code, city, total_amount, created_at, company_name, cvr, payment_status, paid_at, due_date, invoice_external_id, invoiced_at, reminder_count, last_reminder_at, last_reminder_type, credited_at, voided_at")
           .eq("business_id", businessId)
           .order("created_at", { ascending: false }),
         supabase
@@ -160,6 +160,7 @@ const useCustomers = (businessId: string) => {
       orders.forEach(o => {
         const key = o.customer_email.toLowerCase();
         const accOrder: OrderForStatus = {
+          status: (o as any).status,
           payment_status: (o as any).payment_status,
           paid_at: (o as any).paid_at,
           due_date: (o as any).due_date,
