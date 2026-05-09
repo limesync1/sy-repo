@@ -7,6 +7,9 @@ import { CreditCard, Bell, Receipt, Ban, AlertTriangle, CheckCircle2 } from "luc
  * så samme aftale altid ser ens ud begge steder.
  */
 export type OrderForStatus = {
+  /** Aftalens egen livscyklus-status (ikke betalingsstatus). Bruges til at skjule
+   * betalings-/rykker-badges når selve aftalen er annulleret eller afvist. */
+  status?: string | null;
   payment_status?: string | null;
   payment_status_synced_at?: string | null;
   paid_at?: string | null;
@@ -58,6 +61,9 @@ const REMINDER_LABEL: Record<string, string> = {
  * payment_status så den altid afspejler regnskabsprogrammets seneste tilstand.
  */
 export function derivePaymentStatus(o: OrderForStatus): string | null {
+  // En annulleret/afvist aftale skal ikke vise "Ubetalt" — det giver intet
+  // mening at kræve betaling for noget der ikke længere er gyldigt.
+  if (o.status === "cancelled" || o.status === "rejected") return null;
   if (o.voided_at) return "cancelled";
   if (o.credited_at) return "credited";
   if (o.paid_at || o.payment_status === "paid") return "paid";
@@ -165,6 +171,8 @@ export type CustomerOrderSummary = {
 export function summarizeCustomerOrders(orders: OrderForStatus[]): CustomerOrderSummary {
   const s: CustomerOrderSummary = { unpaid: 0, overdue: 0, reminders: 0, paid: 0, credited: 0, cancelled: 0 };
   for (const o of orders) {
+    // Spring annullerede aftaler helt over — de skal ikke fylde i overblikket.
+    if (o.status === "cancelled" || o.status === "rejected") continue;
     const status = derivePaymentStatus(o);
     if (status === "paid") s.paid++;
     else if (status === "overdue") s.overdue++;
