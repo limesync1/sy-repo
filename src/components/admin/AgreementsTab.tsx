@@ -352,6 +352,22 @@ const CreateAgreementDialog = ({
               <Input type="number" value={price} onChange={(e) => setPrice(e.target.value)} />
             </div>
           </div>
+          <div className="space-y-1.5">
+            <Label>Fakturering</Label>
+            <Select value={billingModel} onValueChange={(v) => setBillingModel(v as AgreementBillingModel)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {(Object.keys(BILLING_MODEL_LABELS) as AgreementBillingModel[]).map((k) => (
+                  <SelectItem key={k} value={k}>{BILLING_MODEL_LABELS[k]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {billingModel === "per_visit"
+                ? "Faktura sendes hver gang et besøg markeres udført."
+                : "Alle udførte besøg i en måned samles på én faktura — kør 'Samlefaktura forrige måned' eller via cron."}
+            </p>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Startdato</Label>
