@@ -95,6 +95,8 @@ export type RouteStop = {
   order_amount?: number | null;
   /** Vej + postnr + by — beregnet i useMyDayStops så listen ikke kun viser gaden. */
   full_address?: string | null;
+  /** Hvis stoppet er materialiseret fra en aftale-forekomst, peger på den. */
+  agreement_occurrence_id?: string | null;
 };
 
 export type RouteEmployee = {
