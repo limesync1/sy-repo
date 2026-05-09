@@ -2,7 +2,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { format, parseISO, isAfter } from "date-fns";
 import { da } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   useAgreements, useCreateAgreement, useUpdateAgreement, useDeleteAgreement,
   useEnsureOccurrences, useOccurrencesForAgreement,
@@ -753,7 +753,7 @@ const CreateAgreementDialog = ({
                           Ingen kunder matcher.
                           <Button
                             size="sm" variant="ghost" className="mt-2 w-full"
-                            onClick={() => { setCustomerPickerOpen(false); setNewCustomerOpen(true); }}
+                            onClick={() => { setCustomerPickerOpen(false); setShowNewCustomer(true); }}
                           >
                             <UserPlus className="h-3.5 w-3.5 mr-1.5" /> Opret ny kunde
                           </Button>
@@ -796,13 +796,43 @@ const CreateAgreementDialog = ({
               </Popover>
               <Button
                 type="button" variant="outline" size="icon"
-                onClick={() => setNewCustomerOpen(true)}
+                onClick={() => setShowNewCustomer((v) => !v)}
                 title="Opret ny kunde"
                 className="shrink-0 hover:bg-secondary/60"
               >
                 <UserPlus className="h-4 w-4" />
               </Button>
             </div>
+            {showNewCustomer && (
+              <div className="mt-3 rounded-xl border border-foreground/10 bg-card shadow-sm p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold text-foreground">Opret ny kunde</p>
+                  <button type="button" onClick={resetNewCustomer} className="text-[11px] text-muted-foreground hover:text-foreground">Annullér</button>
+                </div>
+                <Tabs value={ncType} onValueChange={(v) => setNcType(v as any)}>
+                  <TabsList className="grid grid-cols-2 w-full h-8">
+                    <TabsTrigger value="private" className="text-xs h-6"><User className="h-3 w-3 mr-1" />Privat</TabsTrigger>
+                    <TabsTrigger value="business" className="text-xs h-6"><Building2 className="h-3 w-3 mr-1" />Erhverv</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+                <div className="grid grid-cols-2 gap-2">
+                  {ncType === "private" ? (
+                    <Input className="col-span-2 h-9" placeholder="Navn *" value={ncName} onChange={(e) => setNcName(e.target.value)} />
+                  ) : (
+                    <Input className="col-span-2 h-9" placeholder="Firmanavn *" value={ncCompany} onChange={(e) => setNcCompany(e.target.value)} />
+                  )}
+                  <Input className="h-9" placeholder="Email *" type="email" value={ncEmail} onChange={(e) => setNcEmail(e.target.value)} />
+                  <Input className="h-9" placeholder="Telefon" value={ncPhone} onChange={(e) => setNcPhone(e.target.value)} />
+                  <Input className="col-span-2 h-9" placeholder="Adresse" value={ncAddress} onChange={(e) => setNcAddress(e.target.value)} />
+                  <Input className="h-9" placeholder="Postnr." value={ncZip} onChange={(e) => setNcZip(e.target.value)} />
+                  <Input className="h-9" placeholder="By" value={ncCity} onChange={(e) => setNcCity(e.target.value)} />
+                </div>
+                <Button size="sm" className="w-full" onClick={handleSaveNewCustomer} disabled={ncSaving}>
+                  {ncSaving && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
+                  Gem og vælg kunde
+                </Button>
+              </div>
+            )}
             {customer && (
               <div className="mt-2 rounded-lg border bg-secondary/40 p-2.5 text-xs space-y-0.5">
                 {customer.address && <p className="text-muted-foreground">📍 {customer.address}{customer.city ? `, ${customer.city}` : ""}</p>}
@@ -1029,14 +1059,6 @@ const CreateAgreementDialog = ({
       </DialogContent>
     </Dialog>
 
-    {/* Inline kunde-oprettelse — auto-vælger kunden i aftalen efter gem */}
-    <CustomerEditDialog
-      open={newCustomerOpen}
-      onOpenChange={setNewCustomerOpen}
-      businessId={businessId}
-      businessName={""}
-      onSaved={(saved) => { if (saved.id) setCustomerId(saved.id); }}
-    />
     </>
   );
 };
