@@ -1109,11 +1109,29 @@ const AftaleTab = ({
         status: newStatus as any,
       }).eq("id", orderId);
       if (error) { toast.error(error.message); return; }
+      // Hvis aftalen annulleres, så annullér også eventuelle aktive/pending
+      // abonnementsrækker — ellers vil de blive ved med at dukke op under
+      // "Kommende aftaler" selvom selve ordren er annulleret.
+      if (newStatus === "cancelled") {
+        await supabase.from("subscriptions")
+          .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
+          .eq("order_id", orderId)
+          .in("status", ["pending", "active", "paused"]);
+      }
+      // Når et engangskøb markeres udført, sæt eventuelt abonnement til
+      // completed så det ikke længere vises som kommende.
+      if (newStatus === "completed" && !isRecurring) {
+        await supabase.from("subscriptions")
+          .update({ status: "completed" as any })
+          .eq("order_id", orderId)
+          .in("status", ["pending", "active"]);
+      }
       toast.success(`Status ændret til "${STATUS_CONFIG[newStatus as keyof typeof STATUS_CONFIG]?.label}"`);
     }
     qc.invalidateQueries({ queryKey: ["orders"] });
     qc.invalidateQueries({ queryKey: ["my-orders"] });
     qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
+    qc.invalidateQueries({ queryKey: ["business-subscriptions"] });
   };
 
   const handleMarkPaid = async (order: any) => {
