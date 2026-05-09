@@ -540,20 +540,22 @@ const Auth = () => {
                     Kom i gang.
                   </h1>
                   <p className="mt-3 text-[15px] leading-6 text-muted-foreground">
-                    Vælg hvilken type konto du vil oprette.
+                    Opret en kundekonto for at bestille services. Er du en virksomhed,{" "}
+                    <Link to="/opret-virksomhed" className="font-semibold text-foreground underline-offset-2 hover:underline">
+                      bliv udbyder her
+                    </Link>.
                   </p>
                 </div>
 
                 <div className="space-y-2.5">
                   {[
                     { to: `/log-ind?mode=customer&signup=1`, icon: User, title: "Privat / kunde", sub: "Find og bestil services hos verificerede udbydere", tone: "accent" as const },
-                    { to: `/log-ind?mode=business&signup=1`, icon: Building2, title: "Virksomhed", sub: "Tilbyd dine services og få nye kunder", tone: "foreground" as const },
                     { to: `/log-ind?mode=employee&signup=1`, icon: HardHat, title: "Medarbejder", sub: "Aktivér din invitation fra arbejdsgiveren", tone: "muted" as const },
                   ].map((opt) => (
                     <Link key={opt.to} to={opt.to} className="group block">
                       <div className="relative flex items-center gap-4 rounded-2xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-[0_18px_44px_-22px_hsl(var(--foreground)/0.28)]">
                         <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${
-                          opt.tone === "accent" ? "bg-accent/10 text-accent" : opt.tone === "foreground" ? "bg-foreground/5 text-foreground" : "bg-secondary text-foreground"
+                          opt.tone === "accent" ? "bg-accent/10 text-accent" : "bg-secondary text-foreground"
                         }`}>
                           <opt.icon className="h-5 w-5" />
                         </div>
