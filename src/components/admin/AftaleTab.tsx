@@ -936,6 +936,20 @@ const AftaleTab = ({
   const notPlannedOrders = activeOrders.filter(o => !stopByOrder[o.id]);
   const inRouteOrders = activeOrders.filter(o => stopByOrder[o.id]);
 
+  // Forfalden betaling = aftaler med en faktura der er overskredet eller med
+  // udsendte rykkere. Annullerede aftaler tæller ikke med — det giver ikke
+  // mening at kræve betaling for noget der er aflyst.
+  const overduePaymentOrders = (orders || []).filter((o: any) => {
+    if (o.status === "cancelled" || o.status === "rejected") return false;
+    if (o.voided_at || o.credited_at || o.paid_at) return false;
+    if (o.payment_status === "overdue") return true;
+    if ((o.reminder_count ?? 0) > 0 && o.payment_status !== "paid") return true;
+    return false;
+  });
+
+  // Kommende denne uge: antal abonnementer med næste service inden for 7 dage.
+  const oneWeekFromNow = Date.now() + 7 * 24 * 60 * 60 * 1000;
+
   const baseFilteredOrders =
     filter === "all" ? orders
     : filter === "active" ? activeOrders
@@ -943,6 +957,7 @@ const AftaleTab = ({
     : filter === "waiting" ? waitingForCustomer
     : filter === "not_planned" ? notPlannedOrders
     : filter === "in_route" ? inRouteOrders
+    : filter === "overdue" ? overduePaymentOrders
     : orders?.filter(o => o.status === filter);
 
   // Søgning på kundenavn, e-mail, telefon, adresse og service-navne
@@ -1416,7 +1431,14 @@ const AftaleTab = ({
       <div className="space-y-5">
       <PageHeader
         title="Aftaler"
-        description={`${orders?.length || 0} aftaler i alt${upcomingSubs.length > 0 ? ` · ${upcomingSubs.length} kommende ${upcomingSubs.length === 1 ? "aftale" : "aftaler"}` : ""}`}
+        description={(() => {
+          const parts: string[] = [];
+          parts.push(`${activeOrders.length} aktive`);
+          if (actionNeeded.length > 0) parts.push(`${actionNeeded.length} kræver handling`);
+          if (overduePaymentOrders.length > 0) parts.push(`${overduePaymentOrders.length} forfalden betaling`);
+          else if (upcomingSubs.length > 0) parts.push(`${upcomingSubs.length} kommende`);
+          return parts.join(" · ");
+        })()}
         action={
           <PrimaryButton onClick={() => setCreateOrderOpen(true)} icon={<ShoppingCart />}>
             Opret bestilling
@@ -1424,26 +1446,57 @@ const AftaleTab = ({
         }
       />
 
-      {/* Stats — én række, fuld bredde, ligesom Services */}
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-          <CardContent className="p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Aftaler i alt</p>
-            <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{orders?.length || 0}</p>
-          </CardContent>
-        </Card>
-        <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-          <CardContent className="p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kræver handling</p>
-            <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{actionNeeded.length}</p>
-          </CardContent>
-        </Card>
-        <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-          <CardContent className="p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kommende aftaler</p>
-            <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{upcomingSubs.length}</p>
-          </CardContent>
-        </Card>
+      {/* Stats — kun det der reelt giver beslutningsstøtte. Tomme tal vises stille,
+          mens aktive problemer (forfalden betaling, kræver handling) bliver fremhævet. */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {(() => {
+          const upcomingThisWeek = upcomingSubs.filter(s =>
+            new Date(s.next_service_date!).getTime() <= oneWeekFromNow
+          ).length;
+          const cards: Array<{
+            key: string; label: string; value: number | string; sub?: string;
+            tone?: "danger" | "warning" | "neutral"; onClick?: () => void;
+          }> = [
+            { key: "active", label: "Aktive aftaler", value: activeOrders.length,
+              sub: `${notPlannedOrders.length} ikke planlagt`,
+              tone: "neutral", onClick: () => setFilter("active") },
+            { key: "action", label: "Kræver handling", value: actionNeeded.length,
+              sub: actionNeeded.length === 0 ? "Alt er besvaret" : "Godkend, tilpas eller afvis",
+              tone: actionNeeded.length > 0 ? "warning" : "neutral",
+              onClick: () => actionNeeded.length > 0 && setFilter("action_needed") },
+            { key: "overdue", label: "Forfalden betaling", value: overduePaymentOrders.length,
+              sub: overduePaymentOrders.length === 0 ? "Ingen forfaldne fakturaer" : "Send rykker eller følg op",
+              tone: overduePaymentOrders.length > 0 ? "danger" : "neutral",
+              onClick: () => overduePaymentOrders.length > 0 && setFilter("overdue") },
+            { key: "upcoming", label: "Kommende denne uge", value: upcomingThisWeek,
+              sub: upcomingSubs.length > upcomingThisWeek ? `${upcomingSubs.length} i alt fremad` : (upcomingThisWeek === 0 ? "Ingen planlagte" : "Næste 7 dage"),
+              tone: "neutral" },
+          ];
+          return cards.map(c => {
+            const isClickable = !!c.onClick;
+            const toneCls =
+              c.tone === "danger" ? "border-destructive/30 bg-destructive/5"
+              : c.tone === "warning" ? "border-amber-300/60 bg-amber-50"
+              : "border-border/80";
+            const valueCls =
+              c.tone === "danger" ? "text-destructive"
+              : c.tone === "warning" ? "text-amber-900"
+              : "text-foreground";
+            return (
+              <Card
+                key={c.key}
+                className={`surface-admin rounded-xl shadow-sm transition-colors ${toneCls} ${isClickable ? "cursor-pointer hover:bg-secondary/40" : ""}`}
+                onClick={c.onClick}
+              >
+                <CardContent className="p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{c.label}</p>
+                  <p className={`mt-1 text-2xl font-semibold tabular-nums ${valueCls}`}>{c.value}</p>
+                  {c.sub && <p className="mt-0.5 text-[11px] text-muted-foreground">{c.sub}</p>}
+                </CardContent>
+              </Card>
+            );
+          });
+        })()}
       </div>
 
       {/* Søgefelt + sortering */}
@@ -1490,6 +1543,7 @@ const AftaleTab = ({
             ([
               { key: "action_needed", label: "Kræver handling", count: actionNeeded.length, tone: "danger" as const },
               { key: "waiting", label: "Afventer kunde", count: waitingForCustomer.length, tone: "warning" as const },
+              { key: "overdue", label: "Forfalden betaling", count: overduePaymentOrders.length, tone: "danger" as const },
             ] as Chip[]).filter(b => b.count > 0),
             // Rute-relaterede filtre vises kun når ruteplanlægning er slået til.
             [
@@ -1654,24 +1708,8 @@ const AftaleTab = ({
         </Card>
       )}
 
-      {/* Action needed alert */}
-      {actionNeeded.length > 0 && (
-        <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-          <CardContent className="flex items-center gap-3 p-4">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary">
-              <Clock className="h-4 w-4 text-foreground" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-foreground">{actionNeeded.length} {actionNeeded.length === 1 ? "aftale kræver" : "aftaler kræver"} din handling</p>
-              <p className="text-xs text-muted-foreground">Godkend, tilpas eller afvis for at give kunden besked.</p>
-            </div>
-            <Button size="sm" variant="outline" onClick={() => setFilter("action_needed")}
-              className="shrink-0 rounded-lg border-border text-xs text-foreground hover:bg-secondary hover:text-foreground">
-              Vis dem
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+      {/* Tidligere blev "kræver handling" vist både som stat-kort og som banner —
+          det er nu konsolideret i det fremhævede stat-kort øverst. */}
 
       {/* Aftale-liste — individuelle kort pr. aftale (samme stil som Services-fanen).
           Hvert kort viser kunde, services, status og beløb i headeren. Klik for at folde ud. */}

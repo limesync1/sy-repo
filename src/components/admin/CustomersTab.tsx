@@ -576,7 +576,12 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
     const recurring = customers.filter(c => c.active_subs > 0).length;
     const privateCount = customers.filter(c => c.type === "private").length;
     const businessCount = customers.filter(c => c.type === "business").length;
-    return { totalRev, recurring, total: customers.length, privateCount, businessCount };
+    // Antal kunder med mindst én forfalden faktura eller udsendt rykker — så
+    // brugeren straks kan se hvor mange kunder der reelt mangler at betale.
+    const withOverdue = customers.filter(c =>
+      (c.accounting_summary?.overdue ?? 0) > 0 || (c.accounting_summary?.reminders ?? 0) > 0
+    ).length;
+    return { totalRev, recurring, total: customers.length, privateCount, businessCount, withOverdue };
   }, [customers]);
 
   const openCreateDialog = () => {
@@ -727,7 +732,12 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
     <div className="space-y-4">
       <PageHeader
         title="Kunder"
-        description="Her er alle jeres kunder samlet ét sted — både privat og erhverv. Klik på en kunde for at se aftaler, abonnementer, betalinger og rutehistorik."
+        description={(() => {
+          const parts: string[] = [`${stats.total} ${stats.total === 1 ? "kunde" : "kunder"}`];
+          if (stats.recurring > 0) parts.push(`${stats.recurring} ${stats.recurring === 1 ? "fast" : "faste"}`);
+          if (stats.withOverdue > 0) parts.push(`${stats.withOverdue} med forfalden betaling`);
+          return parts.join(" · ");
+        })()}
         action={
           <PrimaryButton onClick={openCreateDialog} icon={<UserPlus />}>
             Tilføj kunde
@@ -737,7 +747,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
 
       {/* Stats + filters */}
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className={`grid gap-3 ${stats.withOverdue > 0 ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3"}`}>
           <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
             <CardContent className="p-4">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Kunder i alt</p>
@@ -752,6 +762,15 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
               <p className="mt-0.5 text-[11px] text-muted-foreground">Med mindst ét aktivt abonnement</p>
             </CardContent>
           </Card>
+          {stats.withOverdue > 0 && (
+            <Card className="surface-admin rounded-xl border-destructive/30 bg-destructive/5 shadow-sm">
+              <CardContent className="p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Forfalden betaling</p>
+                <p className="mt-1 text-2xl font-semibold tabular-nums text-destructive">{stats.withOverdue}</p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">{stats.withOverdue === 1 ? "Kunde" : "Kunder"} med forfaldne fakturaer eller rykkere</p>
+              </CardContent>
+            </Card>
+          )}
           <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
             <CardContent className="p-4">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Samlet omsætning</p>
