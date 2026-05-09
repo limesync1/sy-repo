@@ -1097,26 +1097,19 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-0">
         {customer && (
           <>
-            <SheetHeader className="border-b border-border p-4">
+            {/* Header — pr-10 giver plads til Sheet's indbyggede X-knap så den ikke overlapper indhold */}
+            <SheetHeader className="border-b border-border p-4 pr-10">
               <SheetTitle className="text-left">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-lg font-bold text-foreground truncate">{customer.name}</h3>
-                    <div className="mt-1 flex items-center gap-2 flex-wrap">
-                      <CustomerStatusPill c={customer} />
-                      <span className="text-xs text-muted-foreground font-normal">
-                        {customer.first_order_at
-                          ? <>Kunde siden {fmtDate(customer.first_order_at)}</>
-                          : "Endnu ingen aftaler"}
-                      </span>
-                    </div>
+                <div className="min-w-0">
+                  <h3 className="text-lg font-bold text-foreground truncate">{customer.name}</h3>
+                  <div className="mt-1 flex items-center gap-2 flex-wrap">
+                    <CustomerStatusPill c={customer} />
+                    <span className="text-xs text-muted-foreground font-normal">
+                      {customer.first_order_at
+                        ? <>Kunde siden {fmtDate(customer.first_order_at)}</>
+                        : "Endnu ingen aftaler"}
+                    </span>
                   </div>
-                  {customer.total_revenue > 0 && (
-                    <div className="text-right shrink-0">
-                      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Omsætning</p>
-                      <p className="text-base font-bold text-foreground tabular-nums">{fmtKr(customer.total_revenue)}</p>
-                    </div>
-                  )}
                 </div>
               </SheetTitle>
             </SheetHeader>

@@ -1963,29 +1963,109 @@ const AftaleTab = ({
                     </div>
                 </div>
 
-                {/* Expanded content */}
+                {/* Expanded content — prioriteret rækkefølge:
+                    1) Hvad skal jeg gøre nu? (NextStep + status-bannere + handlingsknapper)
+                    2) Hvad er aftalen om? (ydelser, kundens note)
+                    3) Kontekst (kontakt, rute, tilbagevendende, tidslinje) */}
                 {isExpanded && (
-                  <div className="border-t border-border bg-background px-4 py-4 space-y-4">
-                    {/* Contact info */}
-                    <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
-                      <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-                        <Mail className="h-3.5 w-3.5" /> {order.customer_email}
-                      </span>
+                  <div className="border-t border-border bg-background px-4 py-3 space-y-3">
+                    {/* ── 1) Næste skridt — det vigtigste øverst ── */}
+                    <NextStepCard order={order as any} />
+
+                    {/* Status-bannere/-beskeder relateret til aftalens forløb */}
+                    {!isResponding && <ProposalStatusBanner order={order} />}
+                    {order.business_message && !isResponding && (
+                      <div className="rounded-lg border border-border bg-card px-3 py-2">
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-0.5">Din besked til kunden</p>
+                        <p className="text-sm text-foreground">{order.business_message}</p>
+                      </div>
+                    )}
+                    {!isResponding && <AdjustmentDisplay order={order} />}
+
+                    {/* Handlingsknapper — placeret tæt på "næste skridt" så det er nemt at agere */}
+                    {!isResponding && (
+                      <div className="flex flex-wrap gap-2">
+                        {actions.canRespond && (
+                          <>
+                            <Button size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("accepted"); }}
+                              className="gap-1.5 rounded-lg text-xs bg-foreground text-background hover:bg-foreground/90">
+                              <Check className="h-3.5 w-3.5" /> Godkend aftale
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={(e) => {
+                              e.stopPropagation(); initAdjustedItems(order);
+                              setRespondingTo(order.id); setResponseType("adjusted");
+                            }} className="gap-1.5 rounded-lg border-border text-xs text-foreground hover:bg-secondary hover:text-foreground">
+                              <Pencil className="h-3.5 w-3.5" /> Tilpas aftale
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("rejected"); }}
+                              className="gap-1.5 rounded-lg border-border text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
+                              <X className="h-3.5 w-3.5" /> Afvis
+                            </Button>
+                          </>
+                        )}
+                        {actions.canProgress && actions.nextStatus && (
+                          <Button size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, actions.nextStatus!); }}
+                            className="gap-1.5 rounded-lg text-xs bg-foreground text-background hover:bg-foreground/90">
+                            {actions.nextStatus === "in_progress" && <><Play className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
+                            {actions.nextStatus === "completed" && hasRecurring && <><RefreshCw className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
+                            {actions.nextStatus === "completed" && !hasRecurring && <><CheckCircle2 className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
+                          </Button>
+                        )}
+                        {hasActiveAccountingIntegration &&
+                          (order.status === "confirmed" || order.status === "in_progress" || order.status === "completed") &&
+                          (order as any).payment_status !== "paid" &&
+                          (order as any).payment_status !== "credited" && (
+                            <Button variant="outline" size="sm"
+                              onClick={(e) => { e.stopPropagation(); handleMarkPaid(order); }}
+                              className="gap-1.5 rounded-lg border-success/40 bg-success/10 text-success text-xs hover:bg-success/15 hover:text-success hover:border-success/50">
+                              <CreditCard className="h-3.5 w-3.5" /> Markér som betalt
+                            </Button>
+                          )}
+                        {(order.status === "confirmed" || order.status === "in_progress") && (
+                          <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, "cancelled"); }}
+                            className="ml-auto gap-1.5 rounded-lg border-border text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
+                            <XCircle className="h-3.5 w-3.5" /> Annuller
+                          </Button>
+                        )}
+                        {order.status === "cancelled" && (
+                          <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order); }}
+                            className="ml-auto gap-1.5 rounded-lg border-destructive/40 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
+                            <Trash2 className="h-3.5 w-3.5" /> Slet aftale
+                          </Button>
+                        )}
+                      </div>
+                    )}
+
+                    {/* ── 2) Hvad er aftalen om? ── */}
+                    <CustomerOrderSummary order={order} />
+
+                    {order.notes && (
+                      <div className="flex gap-2 rounded-lg bg-card border border-border px-3 py-2">
+                        <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                        <p className="text-sm text-foreground">{order.notes}</p>
+                      </div>
+                    )}
+
+                    {/* ── 3) Kontekst — kontakt, rute, abonnement, tidslinje ── */}
+                    {/* Kompakt kontaktbar */}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <a href={`mailto:${order.customer_email}`}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground hover:bg-secondary/60 max-w-full">
+                        <Mail className="h-3 w-3 text-muted-foreground shrink-0" />
+                        <span className="truncate">{order.customer_email}</span>
+                      </a>
                       {order.customer_phone && (
-                        <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-                          <Phone className="h-3.5 w-3.5" /> {order.customer_phone}
-                        </span>
+                        <a href={`tel:${order.customer_phone}`}
+                          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground hover:bg-secondary/60">
+                          <Phone className="h-3 w-3 text-muted-foreground" /> {order.customer_phone}
+                        </a>
                       )}
                     </div>
 
-                    {/* Næste skridt — smart kontekstuel guide */}
-                    <NextStepCard order={order as any} />
-
-                    {/* Rute-info — vis på hvilken rute denne aftale er placeret.
-                        Hele blokken skjules når ruteplanlægning er deaktiveret. */}
+                    {/* Rute-info — kun når ruteplanlægning er aktiv */}
                     {routePlanningEnabled && routeInfo ? (
                       <div
-                        className="rounded-xl border px-4 py-3 space-y-1.5"
+                        className="rounded-lg border px-3 py-2 space-y-1"
                         style={{ borderColor: `${routeInfo.color}40`, backgroundColor: `${routeInfo.color}0d` }}
                       >
                         <div className="flex items-center justify-between gap-3">
@@ -2026,115 +2106,21 @@ const AftaleTab = ({
                         </div>
                       </div>
                     ) : routePlanningEnabled && !["completed", "cancelled"].includes(order.status) && (
-                      <div className="rounded-xl border border-dashed border-border px-4 py-3 flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="rounded-lg border border-dashed border-border px-3 py-2 flex items-center gap-2 text-xs text-muted-foreground">
                         <MapPin className="h-3.5 w-3.5" />
                         Denne aftale er endnu ikke planlagt på en rute.
                       </div>
                     )}
 
-                    {/* Order items summary */}
-                    <CustomerOrderSummary order={order} />
-
-                    {/* Linked subscriptions (recurring service schedule) */}
+                    {/* Tilbagevendende & tidslinje — sekundær kontekst, foldet sammen som standard */}
                     <LinkedSubscriptionInfo orderId={order.id} subscriptions={allSubs} />
-
-                    {/* Tidslinje — viser bestilling, faktura, rykkere, betalinger og status-skift */}
-                    <OrderTimeline order={order as any} />
-
-                    {/* Customer note */}
-                    {order.notes && (
-                      <div className="flex gap-2 rounded-xl bg-card border border-border px-3.5 py-2.5">
-                        <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-                        <p className="text-sm text-foreground">{order.notes}</p>
-                      </div>
-                    )}
-
-                    {/* Proposal status banner */}
-                    {!isResponding && <ProposalStatusBanner order={order} />}
-
-                    {/* Business message (if already sent) */}
-                    {order.business_message && !isResponding && (
-                      <div className="rounded-xl border border-border bg-card px-4 py-3">
-                        <p className="text-xs font-semibold text-muted-foreground mb-1">Din besked til kunden:</p>
-                        <p className="text-sm text-foreground">{order.business_message}</p>
-                      </div>
-                    )}
-
-                    {/* Previous adjustment display */}
-                    {!isResponding && <AdjustmentDisplay order={order} />}
-
-                    {/* Action buttons */}
-                    {!isResponding && (
-                      <div className="flex flex-wrap gap-2 pt-1">
-                        {/* Respond buttons for pending orders needing action */}
-                        {actions.canRespond && (
-                          <>
-                            <Button size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("accepted"); }}
-                              className="gap-1.5 rounded-lg text-xs bg-foreground text-background hover:bg-foreground/90">
-                              <Check className="h-3.5 w-3.5" /> Godkend aftale
-                            </Button>
-                            <Button variant="outline" size="sm" onClick={(e) => {
-                              e.stopPropagation(); initAdjustedItems(order);
-                              setRespondingTo(order.id); setResponseType("adjusted");
-                            }} className="gap-1.5 rounded-lg border-border text-xs text-foreground hover:bg-secondary hover:text-foreground">
-                              <Pencil className="h-3.5 w-3.5" /> Tilpas aftale
-                            </Button>
-                            <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setRespondingTo(order.id); setResponseType("rejected"); }}
-                              className="gap-1.5 rounded-lg border-border text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
-                              <X className="h-3.5 w-3.5" /> Afvis
-                            </Button>
-                          </>
-                        )}
-
-                        {/* Progress button for confirmed/in_progress */}
-                        {actions.canProgress && actions.nextStatus && (
-                          <div className="flex flex-col gap-1">
-                            <Button size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, actions.nextStatus!); }}
-                              className="gap-1.5 rounded-lg text-xs bg-foreground text-background hover:bg-foreground/90">
-                              {actions.nextStatus === "in_progress" && <><Play className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
-                              {actions.nextStatus === "completed" && hasRecurring && <><RefreshCw className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
-                              {actions.nextStatus === "completed" && !hasRecurring && <><CheckCircle2 className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
-                            </Button>
-                            {actions.nextStatus === "in_progress" && routePlanningEnabled && !routeStop && (
-                              <p className="text-[10px] leading-tight text-muted-foreground max-w-[200px]">
-                                Bruges når aftalen ikke ligger på en rute og blot skal udføres.
-                              </p>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Cancel is always available for non-terminal states */}
-                        {(order.status === "confirmed" || order.status === "in_progress") && (
-                          <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, "cancelled"); }}
-                            className="ml-auto gap-1.5 rounded-lg border-border text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
-                            <XCircle className="h-3.5 w-3.5" /> Annuller
-                          </Button>
-                        )}
-
-                        {/* Slet — kun tilgængelig for annullerede aftaler */}
-                        {order.status === "cancelled" && (
-                          <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order); }}
-                            className="ml-auto gap-1.5 rounded-lg border-destructive/40 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
-                            <Trash2 className="h-3.5 w-3.5" /> Slet aftale
-                          </Button>
-                        )}
-
-                        {/* Markér som betalt — vises kun når en regnskabsintegration er aktiv. */}
-                        {hasActiveAccountingIntegration &&
-                          (order.status === "confirmed" || order.status === "in_progress" || order.status === "completed") &&
-                          (order as any).payment_status !== "paid" &&
-                          (order as any).payment_status !== "credited" && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={(e) => { e.stopPropagation(); handleMarkPaid(order); }}
-                              className="gap-1.5 rounded-lg border-success/40 bg-success/10 text-success text-xs hover:bg-success/15 hover:text-success hover:border-success/50"
-                            >
-                              <CreditCard className="h-3.5 w-3.5" /> Markér som betalt
-                            </Button>
-                          )}
-                      </div>
-                    )}
+                    <details className="group rounded-lg border border-border bg-card/60 px-3 py-2 text-xs">
+                      <summary className="flex cursor-pointer items-center justify-between gap-2 list-none text-foreground font-medium">
+                        <span className="inline-flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-muted-foreground" /> Tidslinje & historik</span>
+                        <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform group-open:rotate-180" />
+                      </summary>
+                      <div className="mt-2"><OrderTimeline order={order as any} /></div>
+                    </details>
 
                     {/* Response form */}
                     {isResponding && (
