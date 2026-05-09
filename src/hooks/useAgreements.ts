@@ -138,7 +138,7 @@ export const useCreateAgreement = () => {
       if (items && items.length > 0) {
         const { error: itemsErr } = await supabase
           .from("agreement_items")
-          .insert(items.map((i) => ({ ...i, agreement_id: created.id })));
+          .insert(items.map((i) => ({ ...i, agreement_id: created.id })) as any);
         if (itemsErr) throw itemsErr;
       }
       return created;
@@ -244,7 +244,7 @@ export const useUpdateOccurrence = () => {
     mutationFn: async ({ id, ...patch }: Partial<AgreementOccurrence> & { id: string }) => {
       const { data, error } = await supabase
         .from("agreement_occurrences")
-        .update(patch)
+        .update(patch as any)
         .eq("id", id)
         .select("*")
         .single();
