@@ -62,6 +62,10 @@ const startSchema = z.object({
 // egen livechat tager over.
 const HIDDEN_PREFIXES = ["/admin", "/medarbejder", "/godkend-bestilling", "/v/"];
 const HIDDEN_EXACT: string[] = [];
+// På virksomhedspanelet skal selve widget'en stadig fungere (åbnes via "Support"-knap
+// i topbjælken), men den flydende kundeservice-knap skjules så den ikke overlapper
+// andre knapper i fx ruteplanlæggeren eller på "Aftaler"-siden.
+const HIDE_TRIGGER_PREFIXES = ["/virksomhed"];
 
 const QUICK_TOPICS = [
   { label: "💸 Pris og pakker", subject: "Pris og pakker", suggest: "Hej, jeg vil gerne høre mere om jeres priser og hvilke pakker I tilbyder." },
@@ -215,6 +219,18 @@ const LiveChatWidget = () => {
       HIDDEN_PREFIXES.some((p) => pathname === p.replace(/\/$/, "") || pathname.startsWith(p)),
     [pathname],
   );
+  const hideTrigger = useMemo(
+    () => HIDE_TRIGGER_PREFIXES.some((p) => pathname === p.replace(/\/$/, "") || pathname.startsWith(p)),
+    [pathname],
+  );
+
+  // Tillad eksterne knapper (fx "Support" i virksomhedspanelets header) at åbne
+  // platform-chatten via et window-event, selv når den flydende knap er skjult.
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener("serviceydere:open-platform-chat", handler);
+    return () => window.removeEventListener("serviceydere:open-platform-chat", handler);
+  }, [setOpen]);
 
   useEffect(() => {
     if (!user) return;
@@ -606,7 +622,7 @@ const LiveChatWidget = () => {
 
   return (
     <>
-      {!open && (
+      {!open && !hideTrigger && (
         <button
           type="button"
           onClick={handleOpen}

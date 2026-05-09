@@ -284,10 +284,18 @@ Returnér KUN gyldig JSON med formatet:
   "mapping": { "<serviceydere_felt>": "<csv_kolonnenavn eller null>" },
   ${type === "customers" ? `"default_type": "private" | "business",` : ""}
   "confidence": 0-100,
-  "notes": "kort dansk forklaring"
+  "notes": "kort dansk forklaring",
+  "column_analysis": [
+    { "column": "<csv_kolonnenavn>", "suggested_field": "<serviceydere_felt eller null>", "confidence": 0-100, "reason": "kort dansk begrundelse på 1 sætning" }
+  ]
 }
 
 ${type === "customers" ? `Brug 'default_type' = 'business' hvis kolonner som CVR, virksomhedsnavn, EAN, kontaktperson tyder på erhvervskunder. Ellers 'private'.\n` : ""}Kolonnenavne skal matche EKSAKT som de står i CSV-headers (case-sensitive).
+
+VIGTIGT: 'column_analysis' SKAL indeholde præcist én post pr. CSV-kolonne i samme rækkefølge som CSV-headers.
+- 'confidence' skal afspejle hvor sikker du er på mapping'en. Sæt LAVT (<60) hvis kolonne-navn er tvetydigt eller eksempelværdierne ikke matcher feltet.
+- Sæt 'suggested_field' til null hvis kolonnen ikke har et oplagt match i feltlisten — fx interne id'er, system-flag eller felter vi ikke bruger.
+- 'reason' skal være KORT (max 1 sætning på dansk), fx "Indeholder e-mailadresser i alle eksempler" eller "Tvetydigt — kunne være både kontaktperson og virksomhedsnavn".
 
 VIGTIGE HINTS for kendte eksport-formater:
 

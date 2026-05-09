@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   UploadCloud, Loader2, FileText, Sparkles, CheckCircle2, AlertTriangle,
-  Trash2, X, ArrowRight, Building2, User, HelpCircle, Mail, Users, Package, ClipboardList, FolderTree, Wand2, ChevronDown, ChevronRight, Check, ArrowLeft,
+  Trash2, X, ArrowRight, Building2, User, HelpCircle, Mail, Users, Package, ClipboardList, FolderTree, Wand2, ChevronDown, ChevronRight, Check, ArrowLeft, Info, GitCompare, Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader, SectionCard, EmptyState } from "@/components/admin/shared/AdminUI";
@@ -320,6 +320,10 @@ const ImportPanel = ({
   const [aiLoading, setAiLoading] = useState(false);
   const [aiNotes, setAiNotes] = useState<string | null>(null);
   const [confidence, setConfidence] = useState<number | null>(null);
+  // Per-kolonne AI-analyse: hvad foreslår AI'en for hver CSV-kolonne, med
+  // begrundelse + konfidens. Bruges til at vise badges + tooltips i mapping-
+  // panelet og til at fremhæve usikre kolonner brugeren bør tjekke.
+  const [columnAnalysis, setColumnAnalysis] = useState<Record<string, { suggested_field: string | null; confidence: number; reason: string }>>({});
   const [importing, setImporting] = useState(false);
   const [done, setDone] = useState<{ created: number; skipped: number } | null>(null);
   const [dragActive, setDragActive] = useState(false);
@@ -369,6 +373,7 @@ const ImportPanel = ({
   const reset = () => {
     setFile(null); setRows([]); setHeaders([]); setMapping({});
     setAiNotes(null); setConfidence(null); setDone(null);
+    setColumnAnalysis({});
     setClassifications({});
     setOrderMatches({});
     setDetection(null);
@@ -472,6 +477,19 @@ const ImportPanel = ({
       }
       setConfidence(typeof data?.confidence === "number" ? data.confidence : null);
       setAiNotes(data?.notes || null);
+      // Per-kolonne analyse fra AI'en — bruges til badges/tooltip i mapping-panelet.
+      const analysisArr: any[] = Array.isArray(data?.column_analysis) ? data.column_analysis : [];
+      const analysisMap: Record<string, { suggested_field: string | null; confidence: number; reason: string }> = {};
+      analysisArr.forEach((a: any) => {
+        if (a && typeof a.column === "string" && hdrs.includes(a.column)) {
+          analysisMap[a.column] = {
+            suggested_field: a.suggested_field || null,
+            confidence: typeof a.confidence === "number" ? a.confidence : 0,
+            reason: typeof a.reason === "string" ? a.reason : "",
+          };
+        }
+      });
+      setColumnAnalysis(analysisMap);
     } catch {
       toast.error("AI-analyse fejlede — vælg felterne manuelt");
     } finally { setAiLoading(false); }
@@ -1137,6 +1155,116 @@ const ImportPanel = ({
         })}
       </div>
 
+      {/* ─── Smart preview-diff + validering ───
+          Før import får brugeren et klart "her er hvad der sker"-overblik
+          delt op i: oprettes nyt, springes over som dublet, fejler validering.
+          Validerings­fejl grupperes pr. felt så det er nemt at se om problemet
+          kan løses ved at skifte mapping eller rette i kildefilen. */}
+      {(() => {
+        // Saml fejl pr. felt så vi kan vise grupperede mapping-/validerings-issues.
+        const errorByField = new Map<string, number>();
+        prepared.forEach((r: any) => {
+          (r.errors || []).forEach((msg: string) => {
+            // Heuristik: træk feltnavn ud ("Mangler navn", "Ukendt enhed", "Ugyldig e-mail")
+            const key = msg.length > 60 ? msg.slice(0, 60) + "…" : msg;
+            errorByField.set(key, (errorByField.get(key) || 0) + 1);
+          });
+        });
+        const groupedErrors = Array.from(errorByField.entries()).sort((a, b) => b[1] - a[1]).slice(0, 6);
+        const lowConfCols = Object.entries(columnAnalysis)
+          .filter(([col, a]) => a.confidence < 60 && Object.values(mapping).includes(col))
+          .slice(0, 4);
+        return (
+          <div className="overflow-hidden rounded-xl border border-border bg-card">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-secondary/30 px-3 py-2">
+              <div className="flex items-center gap-2">
+                <span className="flex h-6 w-6 items-center justify-center rounded-md bg-secondary text-foreground">
+                  <GitCompare className="h-3.5 w-3.5" />
+                </span>
+                <span className="text-sm font-semibold text-foreground">Hvad sker der ved import?</span>
+                <Badge variant="outline" className="text-[10px]">Forhåndsvisning</Badge>
+              </div>
+              <span className="text-[11px] text-muted-foreground">{stats.total.toLocaleString("da-DK")} rækker analyseret</span>
+            </div>
+            <div className="grid divide-y divide-border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+              <div className="px-3 py-2.5">
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-foreground" />
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-foreground">Oprettes</span>
+                </div>
+                <p className="mt-0.5 text-2xl font-bold tabular-nums text-foreground">{stats.ok.toLocaleString("da-DK")}</p>
+                <p className="text-[10.5px] text-muted-foreground">
+                  {entity === "customers" ? "nye kunder" : entity === "services" ? "nye produkter/services" : "nye ordrer"}
+                </p>
+              </div>
+              <div className="px-3 py-2.5">
+                <div className="flex items-center gap-1.5">
+                  <Eye className="h-3.5 w-3.5 text-amber-600" />
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-foreground">Springes over</span>
+                </div>
+                <p className="mt-0.5 text-2xl font-bold tabular-nums text-amber-700">{stats.duplicates.toLocaleString("da-DK")}</p>
+                <p className="text-[10.5px] text-muted-foreground">findes allerede (dublet på e-mail/CVR/varenr.)</p>
+              </div>
+              <div className="px-3 py-2.5">
+                <div className="flex items-center gap-1.5">
+                  <AlertTriangle className={`h-3.5 w-3.5 ${stats.errors > 0 ? "text-destructive" : "text-muted-foreground"}`} />
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-foreground">Fejler</span>
+                </div>
+                <p className={`mt-0.5 text-2xl font-bold tabular-nums ${stats.errors > 0 ? "text-destructive" : "text-foreground"}`}>{stats.errors.toLocaleString("da-DK")}</p>
+                <p className="text-[10.5px] text-muted-foreground">kan ikke importeres uden rettelse</p>
+              </div>
+            </div>
+
+            {(groupedErrors.length > 0 || lowConfCols.length > 0) && (
+              <div className="space-y-2 border-t border-border bg-background px-3 py-2.5">
+                {groupedErrors.length > 0 && (
+                  <div>
+                    <p className="mb-1 flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      <AlertTriangle className="h-3 w-3 text-destructive" /> Fejl grupperet pr. type
+                      <span className="ml-auto text-[10px] font-normal normal-case text-muted-foreground">Klik for at se de berørte rækker</span>
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {groupedErrors.map(([msg, count]) => (
+                        <button
+                          key={msg}
+                          type="button"
+                          onClick={() => setRowFilter("err")}
+                          className="inline-flex items-center gap-1 rounded-full border border-destructive/30 bg-destructive/5 px-2 py-0.5 text-[10.5px] text-destructive hover:bg-destructive/10"
+                          title={`${count} række${count === 1 ? "" : "r"} med denne fejl — klik for at filtrere`}
+                        >
+                          <span className="font-semibold">{count}×</span>
+                          <span>{msg}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {lowConfCols.length > 0 && (
+                  <div>
+                    <p className="mb-1 flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      <Info className="h-3 w-3 text-amber-600" /> AI er usikker på disse kolonner
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {lowConfCols.map(([col, a]) => (
+                        <span
+                          key={col}
+                          className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10.5px] text-amber-800"
+                          title={a.reason || "AI er ikke sikker på denne kolonne"}
+                        >
+                          <span className="font-semibold">{col}</span>
+                          <span className="opacity-70">({a.confidence}%)</span>
+                        </span>
+                      ))}
+                    </div>
+                    <p className="mt-1 text-[10px] text-muted-foreground">Tjek mapping-panelet nedenfor — gule felter er dem AI'en er i tvivl om.</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
       {/* ─── Felt-mapping (grupperet i kolonner) ─── 
           Bruger en styled details så vi får samme ramme/typografi som de
           øvrige kort i admin-panelet (i stedet for browserens default). */}
@@ -1161,19 +1289,84 @@ const ImportPanel = ({
                   const f = fields.find((x) => x.key === k);
                   if (!f) return null;
                   const mapped = !!mapping[f.key];
+                  // Find AI-analyse for den kolonne der er valgt (eller foreslået).
+                  const mappedCol = mapping[f.key];
+                  const analysis = mappedCol ? columnAnalysis[mappedCol] : undefined;
+                  // Hvis AI'en har en alternativ-foreslået kolonne for dette felt
+                  // (men brugeren har valgt noget andet eller intet), find den.
+                  const aiSuggestedCol = !mappedCol
+                    ? Object.entries(columnAnalysis).find(([, a]) => a.suggested_field === f.key && a.confidence >= 50)?.[0]
+                    : undefined;
+                  const aiSuggestion = aiSuggestedCol ? columnAnalysis[aiSuggestedCol] : undefined;
+                  const conf = analysis?.confidence ?? aiSuggestion?.confidence;
+                  const reason = analysis?.reason || aiSuggestion?.reason || "";
+                  const lowConfidence = mapped && typeof conf === "number" && conf < 60;
+                  const tone =
+                    typeof conf !== "number" ? null :
+                    conf >= 80 ? "high" :
+                    conf >= 60 ? "med" : "low";
                   return (
-                    <div key={f.key} className={`flex flex-col gap-1.5 rounded-md border px-2.5 py-2 transition-colors sm:flex-row sm:items-center sm:gap-2 ${mapped ? "border-accent/30 bg-accent/5" : "border-border bg-secondary/20"}`}>
+                    <div key={f.key} className={`flex flex-col gap-1.5 rounded-md border px-2.5 py-2 transition-colors sm:flex-row sm:items-center sm:gap-2 ${
+                      lowConfidence
+                        ? "border-amber-500/50 bg-amber-500/5"
+                        : mapped
+                        ? "border-accent/30 bg-accent/5"
+                        : "border-border bg-secondary/20"
+                    }`}>
                       <div className="flex min-w-0 flex-1 items-center gap-2">
                         <div className={`h-1.5 w-1.5 shrink-0 rounded-full ${mapped ? "bg-accent" : f.required ? "bg-destructive" : "bg-muted-foreground/30"}`} />
-                        <p className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
-                          {f.label}{f.required && <span className="ml-0.5 text-destructive">*</span>}
-                        </p>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-xs font-medium text-foreground">
+                            {f.label}{f.required && <span className="ml-0.5 text-destructive">*</span>}
+                          </p>
+                          {(reason || aiSuggestion) && (
+                            <p
+                              className={`mt-0.5 truncate text-[10px] leading-tight ${
+                                tone === "high" ? "text-foreground/60"
+                                : tone === "med" ? "text-amber-700"
+                                : tone === "low" ? "text-amber-700 font-medium"
+                                : "text-muted-foreground"
+                              }`}
+                              title={reason || `AI foreslår "${aiSuggestedCol}"`}
+                            >
+                              {aiSuggestion && !mapped
+                                ? <>✨ AI foreslår "{aiSuggestedCol}" {typeof aiSuggestion.confidence === "number" ? `(${aiSuggestion.confidence}%)` : ""}</>
+                                : <>{tone === "low" ? "⚠ AI er usikker · " : ""}{reason}</>}
+                            </p>
+                          )}
+                        </div>
                       </div>
+                      {mapped && typeof conf === "number" && (
+                        <span
+                          className={`hidden shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-semibold sm:inline-block ${
+                            tone === "high" ? "bg-accent/15 text-accent"
+                            : tone === "med" ? "bg-amber-500/15 text-amber-700"
+                            : "bg-amber-500/25 text-amber-800"
+                          }`}
+                          title={reason}
+                        >
+                          {conf}%
+                        </span>
+                      )}
+                      {!mapped && aiSuggestion && (
+                        <button
+                          type="button"
+                          onClick={() => setMapping((prev) => ({ ...prev, [f.key]: aiSuggestedCol }))}
+                          className="hidden shrink-0 rounded-md border border-accent/40 bg-accent/10 px-1.5 py-0.5 text-[10px] font-semibold text-accent hover:bg-accent/20 sm:inline-block"
+                          title={`Brug AI's forslag: ${aiSuggestedCol}`}
+                        >
+                          Brug forslag
+                        </button>
+                      )}
                       <Select value={mapping[f.key] || "__none__"} onValueChange={(v) => setMapping((m) => ({ ...m, [f.key]: v === "__none__" ? undefined : v }))}>
                         <SelectTrigger className="h-8 w-full text-xs sm:w-[150px]"><SelectValue placeholder="—" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="__none__" className="text-xs">— Ingen —</SelectItem>
-                          {headers.map((h) => <SelectItem key={h} value={h} className="text-xs">{h}</SelectItem>)}
+                          {headers.map((h) => {
+                            const a = columnAnalysis[h];
+                            const suffix = a && typeof a.confidence === "number" ? ` · ${a.confidence}%` : "";
+                            return <SelectItem key={h} value={h} className="text-xs">{h}{suffix}</SelectItem>;
+                          })}
                         </SelectContent>
                       </Select>
                     </div>
