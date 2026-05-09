@@ -1465,11 +1465,6 @@ const AftaleTab = ({
           key: string; label: string; value: number; sub?: string;
           tone: "danger" | "warning" | "neutral"; onClick?: () => void;
         }> = [];
-        if (actionNeeded.length > 0) cards.push({
-          key: "action", label: "Kræver handling", value: actionNeeded.length,
-          sub: "Godkend, tilpas eller afvis", tone: "warning",
-          onClick: () => setFilter("action_needed"),
-        });
         if (overduePaymentOrders.length > 0) cards.push({
           key: "overdue", label: "Forfalden betaling", value: overduePaymentOrders.length,
           sub: "Send rykker eller følg op", tone: "danger",
