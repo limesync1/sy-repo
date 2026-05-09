@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -16,7 +16,7 @@ import {
   User, Mail, Phone, MapPin, Package, Repeat, Calendar,
   Route as RouteIcon, Star, Clock, ChevronRight, ExternalLink, Pause,
   UserPlus, Building2, Pencil, Trash2, ShoppingBag, MoreHorizontal,
-  CreditCard, Contact as ContactIcon,
+  CreditCard, Contact as ContactIcon, X as CloseIcon,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
@@ -30,6 +30,7 @@ import { toast } from "sonner";
 import {
   AccountingStatusRow,
   CustomerOrderStatusSummary,
+  derivePaymentStatus,
   summarizeCustomerOrders,
   type CustomerOrderSummary,
   type OrderForStatus,
@@ -45,6 +46,7 @@ type Customer = {
   customer_id?: string | null;
   total_revenue: number;
   orders_count: number;
+  live_orders_count?: number;
   active_subs: number;
   paused_subs: number;
   last_order_at: string;
@@ -176,9 +178,11 @@ const useCustomers = (businessId: string) => {
         arr.push(accOrder);
         ordersByCustomer.set(key, arr);
         const existing = grouped.get(key);
+        const isLiveOrder = !["cancelled", "rejected"].includes((o as any).status);
         if (existing) {
           existing.total_revenue += Number(o.total_amount || 0);
           existing.orders_count += 1;
+          existing.live_orders_count = (existing.live_orders_count || 0) + (isLiveOrder ? 1 : 0);
           if (o.created_at > existing.last_order_at) {
             existing.last_order_at = o.created_at;
             if (o.customer_name) existing.name = o.customer_name;
@@ -201,6 +205,7 @@ const useCustomers = (businessId: string) => {
             customer_id: o.customer_id,
             total_revenue: Number(o.total_amount || 0),
             orders_count: 1,
+            live_orders_count: isLiveOrder ? 1 : 0,
             active_subs: o.customer_id ? (activeByCustomer.get(o.customer_id) || 0) : 0,
             paused_subs: o.customer_id ? (pausedByCustomer.get(o.customer_id) || 0) : 0,
             last_order_at: o.created_at,
@@ -246,6 +251,7 @@ const useCustomers = (businessId: string) => {
             customer_id: null,
             total_revenue: 0,
             orders_count: 0,
+            live_orders_count: 0,
             active_subs: 0,
             paused_subs: 0,
             last_order_at: "",
@@ -287,6 +293,7 @@ const useCustomers = (businessId: string) => {
             customer_id: null,
             total_revenue: 0,
             orders_count: 0,
+            live_orders_count: 0,
             active_subs: 0,
             paused_subs: 0,
             last_order_at: "",
@@ -427,11 +434,12 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
 
 const StatusBadge = ({ status }: { status: string }) => {
   const map: Record<string, { label: string; dot: string }> = {
-    pending:     { label: "Afventer planlægning", dot: "bg-warning" },
-    confirmed:   { label: "Planlagt",             dot: "bg-info" },
-    in_progress: { label: "Under udførelse",      dot: "bg-accent" },
+    pending:     { label: "Ny bestilling",        dot: "bg-warning" },
+    confirmed:   { label: "Aftalt",               dot: "bg-info" },
+    in_progress: { label: "I gang",               dot: "bg-accent" },
     completed:   { label: "Udført",               dot: "bg-success" },
     cancelled:   { label: "Annulleret",           dot: "bg-destructive" },
+    rejected:    { label: "Afvist",               dot: "bg-destructive" },
     active:      { label: "Aktiv",                dot: "bg-success" },
     paused:      { label: "På pause",             dot: "bg-warning" },
   };
@@ -490,6 +498,7 @@ const CustomerStatusPill = ({ c }: { c: Customer }) => {
     ? Math.floor((Date.now() - new Date(c.last_order_at).getTime()) / (1000 * 60 * 60 * 24))
     : null;
   const isRecent = daysSinceLast !== null && daysSinceLast <= 90;
+  const liveOrders = c.live_orders_count ?? c.orders_count;
 
   if (c.active_subs > 0) {
     const extra = c.paused_subs > 0 ? ` (+${c.paused_subs} på pause)` : "";
@@ -505,22 +514,27 @@ const CustomerStatusPill = ({ c }: { c: Customer }) => {
     dot = "bg-amber-500";
     icon = <Pause className="h-3 w-3" />;
     help = "Alle kundens abonnementer er sat på pause. De indgår ikke i ruteplanlægningen, men kan genoptages når som helst.";
-  } else if (c.orders_count > 0 && isRecent) {
-    label = c.orders_count === 1
+  } else if (liveOrders > 0 && isRecent) {
+    label = liveOrders === 1
       ? "Aktiv kunde · 1 aftale"
-      : `Aktiv kunde · ${c.orders_count} aftaler`;
+      : `Aktiv kunde · ${liveOrders} aftaler`;
     dot = "bg-emerald-500";
     icon = <Package className="h-3 w-3" />;
-    help = `Kunden har ${c.orders_count === 1 ? "én aftale" : `${c.orders_count} aftaler`} og har handlet hos jer inden for de sidste 90 dage. Kunden har ikke et fast abonnement endnu.`;
-  } else if (c.orders_count > 0) {
-    label = c.orders_count === 1
+    help = `Kunden har ${liveOrders === 1 ? "én åben aftale" : `${liveOrders} åbne aftaler`} og har handlet hos jer inden for de sidste 90 dage. Annullerede aftaler tælles ikke som aktive.`;
+  } else if (liveOrders > 0) {
+    label = liveOrders === 1
       ? "Engangskunde"
-      : `Tidligere kunde · ${c.orders_count} aftaler`;
+      : `Tidligere kunde · ${liveOrders} aftaler`;
     dot = "bg-blue-500";
     icon = <Package className="h-3 w-3" />;
-    help = c.orders_count === 1
+    help = liveOrders === 1
       ? "Kunden har haft én aftale hos jer, og der er gået mere end 90 dage siden sidst."
-      : `Kunden har haft ${c.orders_count} aftaler hos jer, men har ikke et fast abonnement og har ikke handlet i mere end 90 dage.`;
+      : `Kunden har haft ${liveOrders} aftaler hos jer, men har ikke et fast abonnement og har ikke handlet i mere end 90 dage.`;
+  } else if (c.orders_count > 0) {
+    label = "Kun annullerede aftaler";
+    dot = "bg-muted-foreground/40";
+    icon = <Package className="h-3 w-3" />;
+    help = "Kunden har kun annullerede eller afviste aftaler. De tæller ikke som aktive aftaler.";
   } else {
     label = "Ny i kartotek";
     dot = "bg-muted-foreground/40";
@@ -1094,13 +1108,16 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
   const orders = data?.orders ?? [];
   const liveOrders = orders.filter(o => !["cancelled", "rejected"].includes(o.status));
   const activeOrders = liveOrders.filter(o => ["pending", "confirmed", "in_progress"].includes(o.status));
-  const paymentIssueCount = orders.filter(o => {
+  const paymentIssueOrders = orders.filter(o => {
     if (["cancelled", "rejected"].includes(o.status)) return false;
-    return o.payment_status === "overdue" || Number(o.reminder_count ?? 0) > 0;
-  }).length;
+    const payment = derivePaymentStatus(o as OrderForStatus);
+    return payment === "overdue" || Number(o.reminder_count ?? 0) > 0;
+  });
+  const pendingOrders = liveOrders.filter(o => o.status === "pending");
   const nextOrder = [...liveOrders].sort((a, b) => {
     const priority = (o: OrderRow) => {
-      if (o.payment_status === "overdue" || Number(o.reminder_count ?? 0) > 0) return 0;
+      const payment = derivePaymentStatus(o as OrderForStatus);
+      if (payment === "overdue" || Number(o.reminder_count ?? 0) > 0) return 0;
       if (o.status === "pending") return 1;
       if (o.status === "confirmed" || o.status === "in_progress") return 2;
       if (o.preferred_date) return 3;
@@ -1110,9 +1127,21 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
     if (diff !== 0) return diff;
     return (a.preferred_date || a.created_at).localeCompare(b.preferred_date || b.created_at);
   })[0];
+  const focusText = paymentIssueOrders.length > 0
+    ? `${paymentIssueOrders.length} betaling${paymentIssueOrders.length === 1 ? "" : "er"} kræver opmærksomhed`
+    : pendingOrders.length > 0
+      ? `${pendingOrders.length} ny${pendingOrders.length === 1 ? "" : "e"} bestilling${pendingOrders.length === 1 ? "" : "er"} afventer svar`
+      : activeOrders.length > 0
+        ? `${activeOrders.length} aktiv${activeOrders.length === 1 ? "" : "e"} aftale${activeOrders.length === 1 ? "" : "r"}`
+        : liveOrders.length > 0
+          ? "Ingen åben handling lige nu"
+          : orders.length > 0
+            ? "Kun historik — ingen aktive aftaler"
+            : "Ingen aftaler endnu";
   const sortedOrders = [...orders].sort((a, b) => {
     const score = (o: OrderRow) => {
-      if (o.payment_status === "overdue" || Number(o.reminder_count ?? 0) > 0) return 0;
+      const payment = derivePaymentStatus(o as OrderForStatus);
+      if (payment === "overdue" || Number(o.reminder_count ?? 0) > 0) return 0;
       if (o.status === "pending") return 1;
       if (o.status === "confirmed" || o.status === "in_progress") return 2;
       if (o.status === "completed") return 3;
@@ -1125,11 +1154,14 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
 
   return (
     <Sheet open={!!email} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-0">
+      <SheetContent hideCloseButton className="w-full sm:max-w-xl overflow-y-auto p-0">
         {customer && (
           <>
-            {/* Header — pr-10 giver plads til Sheet's indbyggede X-knap så den ikke overlapper indhold */}
-            <SheetHeader className="sticky top-0 z-10 border-b border-border bg-background p-3 pr-12">
+            <SheetHeader className="sticky top-0 z-20 border-b border-border bg-background p-3 pr-12">
+              <SheetClose className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
+                <CloseIcon className="h-4 w-4" />
+                <span className="sr-only">Luk</span>
+              </SheetClose>
               <SheetTitle className="text-left">
                 <div className="min-w-0">
                   <div className="flex min-w-0 items-center gap-2">
@@ -1138,7 +1170,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                   </div>
                   <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-normal text-muted-foreground">
                     <span>{activeOrders.length > 0 ? `${activeOrders.length} aktive aftaler` : customer.first_order_at ? `Kunde siden ${fmtDate(customer.first_order_at)}` : "Ingen aftaler endnu"}</span>
-                    {paymentIssueCount > 0 && <span className="font-medium text-destructive">{paymentIssueCount} kræver betaling</span>}
+                    {paymentIssueOrders.length > 0 && <span className="font-medium text-destructive">{paymentIssueOrders.length} kræver betaling</span>}
                     {customer.total_revenue > 0 && <span>Omsætning {fmtKr(customer.total_revenue)}</span>}
                   </div>
                 </div>
@@ -1173,16 +1205,17 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                 <DialogDetailsSkeleton sections={2} />
               ) : (
                 <>
-                  {nextOrder && (
-                    <div className="rounded-lg border border-border bg-secondary/40 px-3 py-2">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Fokus nu</p>
-                          <p className="mt-0.5 truncate text-sm font-semibold text-foreground">
-                            {nextOrder.order_items?.[0]?.service_name || "Aftale"}
-                            {nextOrder.order_items?.length > 1 ? ` +${nextOrder.order_items.length - 1}` : ""}
-                          </p>
+                  <div className="rounded-lg border border-border bg-secondary/40 px-3 py-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Fokus</p>
+                        <p className="mt-0.5 truncate text-sm font-semibold text-foreground">{focusText}</p>
+                        {nextOrder && (
                           <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                            <span className="truncate text-xs text-muted-foreground">
+                              {nextOrder.order_items?.[0]?.service_name || "Aftale"}
+                              {nextOrder.order_items?.length > 1 ? ` +${nextOrder.order_items.length - 1}` : ""}
+                            </span>
                             <StatusBadge status={nextOrder.status} />
                             <AccountingStatusRow order={nextOrder as OrderForStatus} size="xs" />
                             {nextOrder.preferred_date && (
@@ -1191,11 +1224,11 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                               </span>
                             )}
                           </div>
-                        </div>
-                        <span className="shrink-0 text-sm font-bold tabular-nums text-foreground">{fmtKr(nextOrder.total_amount)}</span>
+                        )}
                       </div>
+                      {nextOrder && <span className="shrink-0 text-sm font-bold tabular-nums text-foreground">{fmtKr(nextOrder.total_amount)}</span>}
                     </div>
-                  )}
+                  </div>
 
                   {customer.accounting_summary && (customer.accounting_summary.overdue > 0 || customer.accounting_summary.reminders > 0 || customer.accounting_summary.unpaid > 0) && (
                     <div className="rounded-lg border border-border bg-card px-3 py-2">
