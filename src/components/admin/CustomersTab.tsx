@@ -1091,6 +1091,37 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
   onClose: () => void;
 }) => {
   const { data, isLoading } = useCustomerDetails(businessId, email);
+  const orders = data?.orders ?? [];
+  const liveOrders = orders.filter(o => !["cancelled", "rejected"].includes(o.status));
+  const activeOrders = liveOrders.filter(o => ["pending", "confirmed", "in_progress"].includes(o.status));
+  const paymentIssueCount = orders.filter(o => {
+    if (["cancelled", "rejected"].includes(o.status)) return false;
+    return o.payment_status === "overdue" || Number(o.reminder_count ?? 0) > 0;
+  }).length;
+  const nextOrder = [...liveOrders].sort((a, b) => {
+    const priority = (o: OrderRow) => {
+      if (o.payment_status === "overdue" || Number(o.reminder_count ?? 0) > 0) return 0;
+      if (o.status === "pending") return 1;
+      if (o.status === "confirmed" || o.status === "in_progress") return 2;
+      if (o.preferred_date) return 3;
+      return 4;
+    };
+    const diff = priority(a) - priority(b);
+    if (diff !== 0) return diff;
+    return (a.preferred_date || a.created_at).localeCompare(b.preferred_date || b.created_at);
+  })[0];
+  const sortedOrders = [...orders].sort((a, b) => {
+    const score = (o: OrderRow) => {
+      if (o.payment_status === "overdue" || Number(o.reminder_count ?? 0) > 0) return 0;
+      if (o.status === "pending") return 1;
+      if (o.status === "confirmed" || o.status === "in_progress") return 2;
+      if (o.status === "completed") return 3;
+      return 4;
+    };
+    const diff = score(a) - score(b);
+    if (diff !== 0) return diff;
+    return b.created_at.localeCompare(a.created_at);
+  });
 
   return (
     <Sheet open={!!email} onOpenChange={(v) => !v && onClose()}>
@@ -1098,46 +1129,38 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
         {customer && (
           <>
             {/* Header — pr-10 giver plads til Sheet's indbyggede X-knap så den ikke overlapper indhold */}
-            <SheetHeader className="border-b border-border p-4 pr-10">
+            <SheetHeader className="sticky top-0 z-10 border-b border-border bg-background p-3 pr-12">
               <SheetTitle className="text-left">
                 <div className="min-w-0">
-                  <h3 className="text-lg font-bold text-foreground truncate">{customer.name}</h3>
-                  <div className="mt-1 flex items-center gap-2 flex-wrap">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <h3 className="truncate text-base font-bold text-foreground">{customer.name}</h3>
                     <CustomerStatusPill c={customer} />
-                    <span className="text-xs text-muted-foreground font-normal">
-                      {customer.first_order_at
-                        ? <>Kunde siden {fmtDate(customer.first_order_at)}</>
-                        : "Endnu ingen aftaler"}
-                    </span>
+                  </div>
+                  <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-normal text-muted-foreground">
+                    <span>{activeOrders.length > 0 ? `${activeOrders.length} aktive aftaler` : customer.first_order_at ? `Kunde siden ${fmtDate(customer.first_order_at)}` : "Ingen aftaler endnu"}</span>
+                    {paymentIssueCount > 0 && <span className="font-medium text-destructive">{paymentIssueCount} kræver betaling</span>}
+                    {customer.total_revenue > 0 && <span>Omsætning {fmtKr(customer.total_revenue)}</span>}
                   </div>
                 </div>
               </SheetTitle>
             </SheetHeader>
 
-            <div className="p-4 space-y-4">
-              {/* Forfalden betaling — vises øverst når relevant, så fokus er handling */}
-              {customer.accounting_summary && customer.accounting_summary.overdue > 0 && (
-                <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2">
-                  <CustomerOrderStatusSummary summary={customer.accounting_summary} />
-                </div>
-              )}
-
-              {/* Kontakt — kompakt: én række med ikon-knapper */}
-              <div className="flex flex-wrap items-center gap-1.5">
+            <div className="p-3 space-y-3">
+              <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-border bg-card px-2 py-1.5">
                 <a href={`mailto:${customer.email}`}
-                  className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs text-foreground hover:bg-secondary/60 max-w-full">
+                  className="inline-flex min-w-0 items-center gap-1.5 rounded-md px-1.5 py-1 text-xs text-foreground hover:bg-secondary/60 max-w-full">
                   <Mail className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                   <span className="truncate">{customer.email}</span>
                 </a>
                 {customer.phone && (
                   <a href={`tel:${customer.phone}`}
-                    className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs text-foreground hover:bg-secondary/60">
+                    className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-xs text-foreground hover:bg-secondary/60">
                     <Phone className="h-3.5 w-3.5 text-muted-foreground" />
                     <span>{customer.phone}</span>
                   </a>
                 )}
                 {(customer.address || customer.city) && (
-                  <span className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs text-foreground max-w-full">
+                  <span className="inline-flex min-w-0 items-center gap-1.5 rounded-md px-1.5 py-1 text-xs text-foreground max-w-full">
                     <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                     <span className="truncate">
                       {[customer.address, [customer.zip_code, customer.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")}
@@ -1146,33 +1169,79 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                 )}
               </div>
 
-              {/* Quick stats — kompakt inline-bar i stedet for tre store kort */}
-              <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 rounded-lg border border-border bg-card px-3 py-2">
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-base font-bold text-foreground tabular-nums">{customer.orders_count}</span>
-                  <span className="text-[11px] text-muted-foreground">{customer.orders_count === 1 ? "aftale" : "aftaler"}</span>
-                </div>
-                {(customer.active_subs > 0 || customer.paused_subs > 0) && (
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-base font-bold text-foreground tabular-nums">{customer.active_subs}</span>
-                    <span className="text-[11px] text-muted-foreground">aktive abonnementer</span>
-                    {customer.paused_subs > 0 && (
-                      <span className="text-[11px] text-amber-700">+{customer.paused_subs} pause</span>
-                    )}
-                  </div>
-                )}
-                {customer.total_revenue > 0 && (
-                  <div className="ml-auto flex items-baseline gap-1.5">
-                    <span className="text-[11px] text-muted-foreground">Omsætning</span>
-                    <span className="text-base font-bold text-foreground tabular-nums">{fmtKr(customer.total_revenue)}</span>
-                  </div>
-                )}
-              </div>
-
               {isLoading ? (
                 <DialogDetailsSkeleton sections={2} />
               ) : (
                 <>
+                  {nextOrder && (
+                    <div className="rounded-lg border border-border bg-secondary/40 px-3 py-2">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Fokus nu</p>
+                          <p className="mt-0.5 truncate text-sm font-semibold text-foreground">
+                            {nextOrder.order_items?.[0]?.service_name || "Aftale"}
+                            {nextOrder.order_items?.length > 1 ? ` +${nextOrder.order_items.length - 1}` : ""}
+                          </p>
+                          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                            <StatusBadge status={nextOrder.status} />
+                            <AccountingStatusRow order={nextOrder as OrderForStatus} size="xs" />
+                            {nextOrder.preferred_date && (
+                              <span className="inline-flex h-5 items-center gap-1 rounded-full border border-border bg-card px-1.5 text-[10px] text-foreground">
+                                <Calendar className="h-2.5 w-2.5" /> {fmtDate(nextOrder.preferred_date)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <span className="shrink-0 text-sm font-bold tabular-nums text-foreground">{fmtKr(nextOrder.total_amount)}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {customer.accounting_summary && (customer.accounting_summary.overdue > 0 || customer.accounting_summary.reminders > 0 || customer.accounting_summary.unpaid > 0) && (
+                    <div className="rounded-lg border border-border bg-card px-3 py-2">
+                      <CustomerOrderStatusSummary summary={customer.accounting_summary} />
+                    </div>
+                  )}
+
+                  {/* Orders — vigtigste først */}
+                  {sortedOrders.length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        <Package className="h-3.5 w-3.5" /> Aftaler ({sortedOrders.length})
+                      </h4>
+                      <div className="space-y-1.5">
+                        {sortedOrders.map(o => {
+                          const serviceNames = (o.order_items || []).map(it => it.service_name).filter(Boolean);
+                          const serviceLabel = serviceNames.length > 0
+                            ? serviceNames.slice(0, 2).join(", ") + (serviceNames.length > 2 ? ` +${serviceNames.length - 2}` : "")
+                            : "Aftale";
+                          return (
+                            <div key={o.id} className="rounded-lg border border-border bg-card px-3 py-2">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                                    <p className="truncate text-sm font-semibold text-foreground">{serviceLabel}</p>
+                                    {o.is_paused
+                                      ? <Badge variant="outline" className="h-5 border-warning/40 bg-warning/10 px-1.5 text-[10px] text-warning-foreground">På pause</Badge>
+                                      : <StatusBadge status={o.status} />}
+                                    <AccountingStatusRow order={o as OrderForStatus} size="xs" />
+                                  </div>
+                                  <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
+                                    <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {format(parseISO(o.created_at), "d. MMM yyyy", { locale: da })}</span>
+                                    {o.preferred_date && <span className="inline-flex items-center gap-1 text-accent"><Calendar className="h-3 w-3" /> Ønsket {fmtDate(o.preferred_date)}</span>}
+                                    {(o.address || o.city) && <span className="truncate">{[o.address, [o.zip_code, o.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")}</span>}
+                                  </div>
+                                </div>
+                                <span className="shrink-0 text-sm font-bold tabular-nums text-foreground">{fmtKr(o.total_amount)}</span>
+                              </div>
+                              {o.notes && <p className="mt-1.5 rounded bg-secondary/50 px-2 py-1 text-[11px] text-muted-foreground">📝 {o.notes}</p>}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Subscriptions — split active vs paused */}
                   {data && data.subscriptions.length > 0 && (() => {
                     const activeSubs = data.subscriptions.filter(s => s.status === "active");
@@ -1181,7 +1250,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                     const renderSub = (s: SubRow) => {
                       const pref = s.preferred_route_id ? data.preferredRoutes[s.preferred_route_id] : null;
                       return (
-                        <div key={s.id} className="rounded-xl border border-border bg-card p-3">
+                        <div key={s.id} className="rounded-lg border border-border bg-card px-3 py-2">
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0 flex-1">
                               <p className="text-sm font-semibold text-foreground truncate">{s.service_name}</p>
@@ -1216,13 +1285,13 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                       );
                     };
                     return (
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         {activeSubs.length > 0 && (
                           <div className="space-y-2">
                             <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                               <Repeat className="h-3.5 w-3.5" /> Aktive abonnementer ({activeSubs.length})
                             </h4>
-                            <div className="space-y-2">{activeSubs.map(renderSub)}</div>
+                            <div className="space-y-1.5">{activeSubs.map(renderSub)}</div>
                           </div>
                         )}
                         {pausedSubs.length > 0 && (
@@ -1230,8 +1299,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                             <h4 className="text-xs font-semibold uppercase tracking-wider text-amber-700 flex items-center gap-1.5">
                               <Pause className="h-3.5 w-3.5" /> På pause ({pausedSubs.length})
                             </h4>
-                            <p className="text-[11px] text-muted-foreground">Disse abonnementer indgår ikke i ruteplanlægning. Når kunden genoptager dem, vises de igen — gerne på samme rute som før.</p>
-                            <div className="space-y-2">{pausedSubs.map(renderSub)}</div>
+                            <div className="space-y-1.5">{pausedSubs.map(renderSub)}</div>
                           </div>
                         )}
                         {cancelledSubs.length > 0 && (
@@ -1239,20 +1307,20 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                             <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                               <Repeat className="h-3.5 w-3.5" /> Opsagte ({cancelledSubs.length})
                             </h4>
-                            <div className="space-y-2 opacity-60">{cancelledSubs.map(renderSub)}</div>
+                            <div className="space-y-1.5 opacity-60">{cancelledSubs.map(renderSub)}</div>
                           </div>
                         )}
                       </div>
                     );
                   })()}
 
-                  {/* Route history */}
                   {data && data.stops.length > 0 && (
-                    <div className="space-y-2">
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                        <RouteIcon className="h-3.5 w-3.5" /> Rutehistorik ({data.stops.length})
-                      </h4>
-                      <div className="space-y-1.5">
+                    <details className="group rounded-lg border border-border bg-card/60 px-3 py-2 text-xs">
+                      <summary className="flex cursor-pointer items-center justify-between gap-2 list-none font-medium text-foreground">
+                        <span className="inline-flex items-center gap-1.5"><RouteIcon className="h-3.5 w-3.5 text-muted-foreground" /> Rutehistorik ({data.stops.length})</span>
+                        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground transition-transform group-open:rotate-90" />
+                      </summary>
+                      <div className="mt-2 space-y-1.5">
                         {data.stops
                           .sort((a, b) => (b.routes?.route_date || "").localeCompare(a.routes?.route_date || ""))
                           .slice(0, 8)
@@ -1260,87 +1328,21 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                             <Link
                               key={s.id}
                               to={`/virksomhed/ruter?date=${s.routes?.route_date}`}
-                              className="flex items-center gap-3 rounded-lg border border-border bg-card p-2.5 hover:border-accent/40 transition-colors"
+                              className="flex items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-2 transition-colors hover:border-accent/40"
                             >
-                              <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm text-foreground truncate">
-                                  {s.routes?.route_date ? format(parseISO(s.routes.route_date), "EEEE d. MMM yyyy", { locale: da }) : "—"}
+                              <Calendar className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-xs text-foreground">
+                                  {s.routes?.route_date ? format(parseISO(s.routes.route_date), "d. MMM yyyy", { locale: da }) : "—"}
                                 </p>
-                                <p className="text-[11px] text-muted-foreground truncate">{s.routes?.name || "Rute"}</p>
+                                <p className="truncate text-[11px] text-muted-foreground">{s.routes?.name || "Rute"}</p>
                               </div>
                               <StatusBadge status={s.status} />
                               <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
                             </Link>
                           ))}
                       </div>
-                    </div>
-                  )}
-
-                  {/* Orders */}
-                  {data && data.orders.length > 0 && (
-                    <div className="space-y-2">
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                        <Package className="h-3.5 w-3.5" /> Aftaler ({data.orders.length})
-                      </h4>
-                      <p className="text-[11px] text-muted-foreground">
-                        Hver aftale viser udførelsesstatus og betalingsstatus. Betalingsstatus hentes automatisk fra dit regnskabsprogram.
-                      </p>
-                      <div className="space-y-2">
-                        {data.orders.map(o => (
-                          <div key={o.id} className="rounded-xl border border-border bg-card p-3 space-y-1.5">
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="min-w-0 flex-1">
-                                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                                  <Clock className="h-3 w-3" />
-                                  {format(parseISO(o.created_at), "d. MMM yyyy, HH:mm", { locale: da })}
-                                </p>
-                                {o.preferred_date && (
-                                  <p className="text-[11px] text-accent flex items-center gap-1 mt-0.5">
-                                    <Calendar className="h-3 w-3" />
-                                    Ønsket: {format(parseISO(o.preferred_date), "d. MMM yyyy", { locale: da })}
-                                  </p>
-                                )}
-                                {o.is_paused && (
-                                  <p className="text-[11px] text-amber-700 flex items-center gap-1 mt-0.5 font-medium">
-                                    <Pause className="h-3 w-3" />
-                                    Abonnementet er på pause — indgår ikke i ruteplanlægning
-                                  </p>
-                                )}
-                              </div>
-                              <div className="flex flex-col items-end gap-1.5 shrink-0">
-                                <div className="flex items-center gap-2">
-                                  {o.is_paused
-                                    ? <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-amber-300 text-amber-700 bg-amber-50">På pause</Badge>
-                                    : <StatusBadge status={o.status} />}
-                                  <span className="text-sm font-bold text-foreground tabular-nums">{fmtKr(o.total_amount)}</span>
-                                </div>
-                                <AccountingStatusRow order={o as OrderForStatus} size="xs" />
-                              </div>
-                            </div>
-                            {o.order_items && o.order_items.length > 0 && (
-                              <ul className="text-xs text-foreground/80 space-y-0.5">
-                                {o.order_items.map((it, i) => (
-                                  <li key={i} className="flex justify-between">
-                                    <span className="truncate">
-                                      {it.quantity > 1 && <span className="text-muted-foreground">{it.quantity}× </span>}
-                                      {it.service_name}
-                                      {it.details?.interval && it.details.interval !== "engangskøb" && (
-                                        <span className="text-accent ml-1">· {INTERVAL_LABELS[it.details.interval] || it.details.interval}</span>
-                                      )}
-                                    </span>
-                                    <span className="text-muted-foreground tabular-nums shrink-0 ml-2">{fmtKr(Number(it.total_price))}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                            {o.notes && (
-                              <p className="text-[11px] text-muted-foreground italic bg-secondary/40 rounded px-2 py-1">📝 {o.notes}</p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                    </details>
                   )}
 
                   {/* Reviews */}
