@@ -179,7 +179,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
             </SheetHeaderBlock>
           </SheetHeader>
 
-          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3 bg-secondary/20">
+          <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5 bg-secondary/30">
               {/* Medarbejdere på aftalen (pr-stop tildeling) — vises øverst for hurtig tildeling */}
               {!readOnly && (
                 <Section

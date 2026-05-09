@@ -1265,41 +1265,18 @@ const AftaleTab = ({
     //   2) Ellers placér aftalen sidst i ruten.
     // Bagefter forskydes alle efterfølgende pending-stops én sekvens ned, så
     // ingen kolliderer.
-    const stopsForThisRoute = (poolStops || [])
-      .filter((s: any) => s.route_id === routeId)
-      .sort((a: any, b: any) => (a.sequence ?? 0) - (b.sequence ?? 0));
-
-    const doneStatuses = new Set(["completed", "in_progress", "arrived", "skipped"]);
-    const lastDoneIdx = (() => {
-      let idx = -1;
-      stopsForThisRoute.forEach((s: any, i: number) => {
-        if (doneStatuses.has(s.status)) idx = i;
-      });
-      return idx;
-    })();
-
-    const insertAfterSeq = lastDoneIdx >= 0
-      ? (stopsForThisRoute[lastDoneIdx].sequence ?? lastDoneIdx)
-      : (stopsForThisRoute.length > 0
-          ? Math.max(...stopsForThisRoute.map((s: any) => s.sequence ?? 0))
-          : -1);
-    const nextSeq = insertAfterSeq + 1;
-
-    // Skub efterfølgende stops én ned, så det nye stop får en unik plads.
-    const toShift = stopsForThisRoute.filter((s: any) => (s.sequence ?? 0) >= nextSeq);
-    if (toShift.length > 0) {
-      // Opdater sekvens i omvendt rækkefølge for at undgå mellemkollisioner.
-      for (const s of [...toShift].reverse()) {
-        const { error } = await supabase
-          .from("route_stops")
-          .update({ sequence: (s.sequence ?? 0) + 1 })
-          .eq("id", s.id);
-        if (error) {
-          toast.error("Kunne ikke gøre plads til aftalen i ruten");
-          return;
-        }
-      }
-    }
+    // Hent ALLE stops på den valgte rute direkte fra DB — poolStops kan være
+    // forældet/filtreret efter dato-vinduet i kalenderen. Vi tilføjer altid
+    // det nye stop sidst i ruten, så positionen vises korrekt i toast'en.
+    const { data: dbStops } = await supabase
+      .from("route_stops")
+      .select("id, sequence")
+      .eq("route_id", routeId);
+    const existingCount = (dbStops || []).length;
+    const maxSeq = existingCount > 0
+      ? Math.max(...(dbStops || []).map((s: any) => s.sequence ?? 0))
+      : -1;
+    const nextSeq = maxSeq + 1;
 
     const items = ((order as any).order_items || []) as any[];
     const summary = items.map((it) => `${it.service_name}${it.quantity > 1 ? ` ×${it.quantity}` : ""}`).join(", ");

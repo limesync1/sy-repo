@@ -17,17 +17,33 @@ Deno.serve(async (req) => {
     }
 
     const url = `https://cvrapi.dk/api?search=${cleaned}&country=dk`;
-    const resp = await fetch(url, {
-      headers: { "User-Agent": "Serviceydere/1.0 (kontakt@serviceydere.dk)" },
-    });
-    if (!resp.ok) {
-      return new Response(JSON.stringify({ error: "CVR-service utilgængelig" }), {
-        status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    let resp: Response;
+    try {
+      resp = await fetch(url, {
+        headers: { "User-Agent": "Serviceydere/1.0 (kontakt@serviceydere.dk)" },
+      });
+    } catch {
+      return new Response(JSON.stringify({ found: false, reason: "service_down" }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const data = await resp.json();
-    if (data.error || !data.name) {
-      return new Response(JSON.stringify({ found: false }), {
+    // cvrapi.dk returnerer 404 når CVR-nummeret ikke findes — det er IKKE
+    // en fejl, blot et "not found".  Andre status-koder behandles som
+    // midlertidig utilgængelighed (vis venlig besked i stedet for fejl-toast).
+    if (resp.status === 404) {
+      return new Response(JSON.stringify({ found: false, reason: "not_found" }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!resp.ok) {
+      return new Response(JSON.stringify({ found: false, reason: "service_down" }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    let data: any = null;
+    try { data = await resp.json(); } catch { /* invalid JSON */ }
+    if (!data || data.error || !data.name) {
+      return new Response(JSON.stringify({ found: false, reason: "not_found" }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

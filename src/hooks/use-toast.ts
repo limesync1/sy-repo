@@ -3,8 +3,8 @@ import * as React from "react";
 import type { ToastActionElement, ToastProps } from "@/components/ui/toast";
 
 const TOAST_LIMIT = 1;
-// Toast vises i 4 sekunder før den lukkes automatisk (var tidligere ~16 min).
-const TOAST_REMOVE_DELAY = 4000;
+// Toast vises i 2.5 sekunder før den lukkes automatisk — kort og kompakt.
+const TOAST_REMOVE_DELAY = 2500;
 
 type ToasterToast = ToastProps & {
   id: string;
