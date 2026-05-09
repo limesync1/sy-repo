@@ -1230,30 +1230,6 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                     </div>
                   </div>
 
-                  {false && nextOrder && (
-                    <div className="rounded-lg border border-border bg-secondary/40 px-3 py-2">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Fokus nu</p>
-                          <p className="mt-0.5 truncate text-sm font-semibold text-foreground">
-                            {nextOrder.order_items?.[0]?.service_name || "Aftale"}
-                            {nextOrder.order_items?.length > 1 ? ` +${nextOrder.order_items.length - 1}` : ""}
-                          </p>
-                          <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                            <StatusBadge status={nextOrder.status} />
-                            <AccountingStatusRow order={nextOrder as OrderForStatus} size="xs" />
-                            {nextOrder.preferred_date && (
-                              <span className="inline-flex h-5 items-center gap-1 rounded-full border border-border bg-card px-1.5 text-[10px] text-foreground">
-                                <Calendar className="h-2.5 w-2.5" /> {fmtDate(nextOrder.preferred_date)}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <span className="shrink-0 text-sm font-bold tabular-nums text-foreground">{fmtKr(nextOrder.total_amount)}</span>
-                      </div>
-                    </div>
-                  )}
-
                   {customer.accounting_summary && (customer.accounting_summary.overdue > 0 || customer.accounting_summary.reminders > 0 || customer.accounting_summary.unpaid > 0) && (
                     <div className="rounded-lg border border-border bg-card px-3 py-2">
                       <CustomerOrderStatusSummary summary={customer.accounting_summary} />
