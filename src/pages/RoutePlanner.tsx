@@ -1088,6 +1088,9 @@ const Planner = () => {
           onOpenChange={(o) => !o && setEditingRoute(null)}
           stopCount={activeEditingRoute ? (calendarStops.filter((s) => s.route_id === activeEditingRoute.id).length) : 0}
           stops={activeEditingRoute ? calendarStops.filter((s) => s.route_id === activeEditingRoute.id) : []}
+          employees={activeEmployees.map((e: any) => ({
+            id: e.id, name: e.name, avatar_url: e.avatar_url, color: e.color,
+          }))}
         />
 
         {/* Slide-in: stops på den valgte rute (vises ved siden af rute-redigering) */}
