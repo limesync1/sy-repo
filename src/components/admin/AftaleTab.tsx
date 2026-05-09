@@ -1109,11 +1109,29 @@ const AftaleTab = ({
         status: newStatus as any,
       }).eq("id", orderId);
       if (error) { toast.error(error.message); return; }
+      // Hvis aftalen annulleres, så annullér også eventuelle aktive/pending
+      // abonnementsrækker — ellers vil de blive ved med at dukke op under
+      // "Kommende aftaler" selvom selve ordren er annulleret.
+      if (newStatus === "cancelled") {
+        await supabase.from("subscriptions")
+          .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
+          .eq("order_id", orderId)
+          .in("status", ["pending", "active", "paused"]);
+      }
+      // Når et engangskøb markeres udført, sæt eventuelt abonnement til
+      // completed så det ikke længere vises som kommende.
+      if (newStatus === "completed" && !isRecurring) {
+        await supabase.from("subscriptions")
+          .update({ status: "completed" as any })
+          .eq("order_id", orderId)
+          .in("status", ["pending", "active"]);
+      }
       toast.success(`Status ændret til "${STATUS_CONFIG[newStatus as keyof typeof STATUS_CONFIG]?.label}"`);
     }
     qc.invalidateQueries({ queryKey: ["orders"] });
     qc.invalidateQueries({ queryKey: ["my-orders"] });
     qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
+    qc.invalidateQueries({ queryKey: ["business-subscriptions"] });
   };
 
   const handleMarkPaid = async (order: any) => {
@@ -1242,9 +1260,24 @@ const AftaleTab = ({
     }
   };
 
-  // Upcoming service dates from subscriptions
+  // Upcoming service dates from subscriptions.
+  // Vi viser KUN aftaler hvor:
+  //  • abonnementet er aktivt og har en næste-dato
+  //  • den tilknyttede ordre stadig findes
+  //  • ordren ikke er annulleret eller udført
+  //  • næste service-dato ligger i fremtiden (eller højst 6 timer i fortiden,
+  //    så aftaler "i dag" stadig vises selvom klokken er passeret).
+  const ordersById = new Map((orders || []).map((o: any) => [o.id, o]));
+  const cutoff = Date.now() - 6 * 60 * 60 * 1000;
   const upcomingSubs = allSubs
-    .filter(s => s.status === "active" && s.next_service_date)
+    .filter(s => {
+      if (s.status !== "active" || !s.next_service_date) return false;
+      if (new Date(s.next_service_date).getTime() < cutoff) return false;
+      const linked = (s as any).order_id ? ordersById.get((s as any).order_id) : null;
+      if ((s as any).order_id && !linked) return false; // ordren er slettet
+      if (linked && ["cancelled", "completed"].includes((linked as any).status)) return false;
+      return true;
+    })
     .sort((a, b) => new Date(a.next_service_date!).getTime() - new Date(b.next_service_date!).getTime());
 
   // ─── Tilføj aftale til en eksisterende rute (drag-drop fra aftalekort) ───
