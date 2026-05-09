@@ -761,6 +761,16 @@ const Planner = () => {
                 <ShoppingBag className="h-3.5 w-3.5 mr-1" />Opret bestilling
               </Button>
 
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7"
+                onClick={() => setTemplatesOpen(true)}
+                title="Rute-skabeloner"
+              >
+                <Layers className="h-3.5 w-3.5 mr-1" />Skabeloner
+              </Button>
+
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Tastatur-genveje">
