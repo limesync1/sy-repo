@@ -562,6 +562,7 @@ export type Database = {
           adjusted_details: Json | null
           approval_expires_at: string | null
           approval_token: string | null
+          billing_model: Database["public"]["Enums"]["agreement_billing_model"]
           business_customer_id: string | null
           business_id: string
           business_message: string | null
@@ -601,6 +602,7 @@ export type Database = {
           adjusted_details?: Json | null
           approval_expires_at?: string | null
           approval_token?: string | null
+          billing_model?: Database["public"]["Enums"]["agreement_billing_model"]
           business_customer_id?: string | null
           business_id: string
           business_message?: string | null
@@ -640,6 +642,7 @@ export type Database = {
           adjusted_details?: Json | null
           approval_expires_at?: string | null
           approval_token?: string | null
+          billing_model?: Database["public"]["Enums"]["agreement_billing_model"]
           business_customer_id?: string | null
           business_id?: string
           business_message?: string | null
@@ -1294,6 +1297,7 @@ export type Database = {
       }
       customer_notification_queue: {
         Row: {
+          agreement_occurrence_id: string | null
           attempts: number
           business_id: string
           channel: string
@@ -1310,6 +1314,7 @@ export type Database = {
           status: string
         }
         Insert: {
+          agreement_occurrence_id?: string | null
           attempts?: number
           business_id: string
           channel?: string
@@ -1326,6 +1331,7 @@ export type Database = {
           status?: string
         }
         Update: {
+          agreement_occurrence_id?: string | null
           attempts?: number
           business_id?: string
           channel?: string
@@ -3285,6 +3291,10 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      enqueue_monthly_consolidated_invoices: {
+        Args: { _business_id: string; _month: number; _year: number }
+        Returns: number
+      }
       ensure_agreement_occurrences: {
         Args: { _business_id: string; _until_date: string }
         Returns: number
@@ -3365,6 +3375,7 @@ export type Database = {
       retry_dlq_job: { Args: { _dlq_id: string }; Returns: string }
     }
     Enums: {
+      agreement_billing_model: "per_visit" | "monthly_consolidated"
       agreement_interval:
         | "engangskøb"
         | "ugentlig"
@@ -3524,6 +3535,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      agreement_billing_model: ["per_visit", "monthly_consolidated"],
       agreement_interval: [
         "engangskøb",
         "ugentlig",
