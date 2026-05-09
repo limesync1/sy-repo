@@ -936,6 +936,20 @@ const AftaleTab = ({
   const notPlannedOrders = activeOrders.filter(o => !stopByOrder[o.id]);
   const inRouteOrders = activeOrders.filter(o => stopByOrder[o.id]);
 
+  // Forfalden betaling = aftaler med en faktura der er overskredet eller med
+  // udsendte rykkere. Annullerede aftaler tæller ikke med — det giver ikke
+  // mening at kræve betaling for noget der er aflyst.
+  const overduePaymentOrders = (orders || []).filter((o: any) => {
+    if (o.status === "cancelled" || o.status === "rejected") return false;
+    if (o.voided_at || o.credited_at || o.paid_at) return false;
+    if (o.payment_status === "overdue") return true;
+    if ((o.reminder_count ?? 0) > 0 && o.payment_status !== "paid") return true;
+    return false;
+  });
+
+  // Kommende denne uge: antal abonnementer med næste service inden for 7 dage.
+  const oneWeekFromNow = Date.now() + 7 * 24 * 60 * 60 * 1000;
+
   const baseFilteredOrders =
     filter === "all" ? orders
     : filter === "active" ? activeOrders
@@ -943,6 +957,7 @@ const AftaleTab = ({
     : filter === "waiting" ? waitingForCustomer
     : filter === "not_planned" ? notPlannedOrders
     : filter === "in_route" ? inRouteOrders
+    : filter === "overdue" ? overduePaymentOrders
     : orders?.filter(o => o.status === filter);
 
   // Søgning på kundenavn, e-mail, telefon, adresse og service-navne
