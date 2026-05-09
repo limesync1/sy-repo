@@ -62,6 +62,10 @@ const startSchema = z.object({
 // egen livechat tager over.
 const HIDDEN_PREFIXES = ["/admin", "/medarbejder", "/godkend-bestilling", "/v/"];
 const HIDDEN_EXACT: string[] = [];
+// På virksomhedspanelet skal selve widget'en stadig fungere (åbnes via "Support"-knap
+// i topbjælken), men den flydende kundeservice-knap skjules så den ikke overlapper
+// andre knapper i fx ruteplanlæggeren eller på "Aftaler"-siden.
+const HIDE_TRIGGER_PREFIXES = ["/virksomhed"];
 
 const QUICK_TOPICS = [
   { label: "💸 Pris og pakker", subject: "Pris og pakker", suggest: "Hej, jeg vil gerne høre mere om jeres priser og hvilke pakker I tilbyder." },
