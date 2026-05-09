@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServices } from "@/hooks/useDatabase";
 import { Button } from "@/components/ui/button";
@@ -92,6 +92,10 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
   // Cart
   const [items, setItems] = useState<BuilderItem[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  // Synkron re-entry guard — staten "submitting" opdateres asynkront, så
+  // hurtige dobbelt-klik kan nå at trigge handleSubmit to gange. Ref'en
+  // blokerer det øjeblikkeligt, så samme bestilling aldrig oprettes 2x.
+  const submittingRef = useRef(false);
 
   // Forudfyld fra initialCustomer når dialogen åbner
   useEffect(() => {
@@ -141,16 +145,21 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
   };
 
   const handleSubmit = async () => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     if (!customerName.trim() || !customerEmail.trim()) {
       toast.error("Udfyld kundens navn og email");
+      submittingRef.current = false;
       return;
     }
     if (!/^\S+@\S+\.\S+$/.test(customerEmail)) {
       toast.error("Ugyldig email-adresse");
+      submittingRef.current = false;
       return;
     }
     if (items.length === 0) {
       toast.error("Tilføj mindst én service til bestillingen");
+      submittingRef.current = false;
       return;
     }
 
@@ -289,6 +298,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
       toast.error("Kunne ikke oprette bestilling: " + (e.message || "Ukendt fejl"));
     } finally {
       setSubmitting(false);
+      submittingRef.current = false;
     }
   };
 
