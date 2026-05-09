@@ -55,16 +55,50 @@ type Props = {
 
 const fmtDate = (d?: string | null) => (d ? format(parseISO(d), "d. MMM yyyy", { locale: da }) : "—");
 
-const useBusinessCustomers = (businessId: string) => useQuery({
-  queryKey: ["business-customers-mini", businessId],
-  queryFn: async () => {
-    const { data, error } = await supabase
-      .from("business_customers")
-      .select("id, company_name, contact_name, email, phone, address, zip_code, city, latitude, longitude, cvr")
-      .eq("business_id", businessId)
-      .order("company_name");
-    if (error) throw error;
-    return data || [];
+type CustomerOption = {
+  id: string;
+  type: "business" | "private";
+  display_name: string;
+  contact_name: string | null;
+  company_name: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  zip_code: string | null;
+  city: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  cvr: string | null;
+};
+
+const useAllCustomers = (businessId: string) => useQuery({
+  queryKey: ["agreement-customer-options", businessId],
+  queryFn: async (): Promise<CustomerOption[]> => {
+    const [bc, pc] = await Promise.all([
+      supabase.from("business_customers")
+        .select("id, company_name, contact_name, email, phone, address, zip_code, city, latitude, longitude, cvr")
+        .eq("business_id", businessId).order("company_name"),
+      supabase.from("private_customers")
+        .select("id, name, email, phone, address, zip_code, city, latitude, longitude")
+        .eq("business_id", businessId).order("name"),
+    ]);
+    if (bc.error) throw bc.error;
+    if (pc.error) throw pc.error;
+    const business: CustomerOption[] = (bc.data || []).map((c: any) => ({
+      id: c.id, type: "business",
+      display_name: c.company_name + (c.contact_name ? ` · ${c.contact_name}` : ""),
+      contact_name: c.contact_name, company_name: c.company_name,
+      email: c.email, phone: c.phone, address: c.address, zip_code: c.zip_code,
+      city: c.city, latitude: c.latitude, longitude: c.longitude, cvr: c.cvr,
+    }));
+    const priv: CustomerOption[] = (pc.data || []).map((c: any) => ({
+      id: c.id, type: "private",
+      display_name: c.name,
+      contact_name: c.name, company_name: null,
+      email: c.email, phone: c.phone, address: c.address, zip_code: c.zip_code,
+      city: c.city, latitude: c.latitude, longitude: c.longitude, cvr: null,
+    }));
+    return [...business, ...priv];
   },
 });
 
@@ -232,7 +266,7 @@ const AgreementRow = ({ agreement, businessId, onClick }: { agreement: Agreement
 const CreateAgreementDialog = ({
   businessId, open, onOpenChange,
 }: { businessId: string; open: boolean; onOpenChange: (v: boolean) => void }) => {
-  const { data: customers = [] } = useBusinessCustomers(businessId);
+  const { data: customers = [] } = useAllCustomers(businessId);
   const { data: services = [] } = useServices(businessId);
   const { data: templates = [] } = useRouteTemplates(businessId);
   const create = useCreateAgreement();
@@ -265,11 +299,15 @@ const CreateAgreementDialog = ({
 
   const handleSave = async () => {
     if (!customer || !service) return;
+    if (!customer.email) {
+      toast.error("Kunden mangler email — tilføj email før aftalen kan oprettes");
+      return;
+    }
     const totalPrice = Number(price) || 0;
     await create.mutateAsync({
       business_id: businessId,
-      business_customer_id: customer.id,
-      customer_name: customer.contact_name || customer.company_name,
+      business_customer_id: customer.type === "business" ? customer.id : null,
+      customer_name: customer.contact_name || customer.company_name || customer.display_name,
       customer_email: customer.email,
       customer_phone: customer.phone,
       company_name: customer.company_name,
@@ -314,11 +352,16 @@ const CreateAgreementDialog = ({
           <div className="space-y-1.5">
             <Label>Kunde</Label>
             <Select value={customerId} onValueChange={setCustomerId}>
-              <SelectTrigger><SelectValue placeholder={customers.length === 0 ? "Opret kunder først" : "Vælg kunde"} /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder={customers.length === 0 ? "Opret kunder først (under fanen Kunder)" : "Vælg kunde"} />
+              </SelectTrigger>
               <SelectContent>
                 {customers.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.company_name}{c.contact_name ? ` · ${c.contact_name}` : ""}
+                  <SelectItem key={`${c.type}:${c.id}`} value={c.id}>
+                    {c.display_name}
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      {c.type === "business" ? "Erhverv" : "Privat"}
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>
