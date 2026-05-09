@@ -12,7 +12,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   LogOut, LayoutDashboard, Wrench, ShoppingCart, Star, Settings,
-  Menu, X, ExternalLink, Users, Route as RouteIcon, Contact, Sparkles, MessageCircle, Calculator, Upload,
+  Menu, X, ExternalLink, Users, Route as RouteIcon, Contact, Sparkles, MessageCircle, Calculator, Upload, LifeBuoy,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -342,9 +342,19 @@ export const AdminShell = ({
           <h1 className="text-lg font-semibold text-foreground truncate">
             {title ?? currentNav?.label}
           </h1>
-          {topbarRight && (
-            <div className="ml-auto flex items-center gap-2 min-w-0">{topbarRight}</div>
-          )}
+          <div className="ml-auto flex items-center gap-2 min-w-0">
+            {topbarRight}
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent("serviceydere:open-platform-chat"))}
+              title="Kontakt Serviceydere kundeservice"
+              aria-label="Kontakt Serviceydere kundeservice"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            >
+              <LifeBuoy className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Support</span>
+            </button>
+          </div>
         </header>
 
         <main
