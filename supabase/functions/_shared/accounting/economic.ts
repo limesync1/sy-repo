@@ -501,6 +501,11 @@ export function makeEconomicAdapter(
           {},
           { silent404: true },
         );
+        if (cust === null) {
+          // Kunden findes ikke længere i e-conomic — meld som forældet link så
+          // drainQueue kan rydde det og oprette kunden på ny ved næste forsøg.
+          throw new Error(`ECONOMIC_CUSTOMER_NOT_FOUND:${input.customer_external_id}`);
+        }
         if (cust?.paymentTerms?.paymentTermsNumber) {
           (body as any).paymentTerms = {
             paymentTermsNumber: cust.paymentTerms.paymentTermsNumber,
