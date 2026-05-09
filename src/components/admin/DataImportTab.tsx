@@ -320,6 +320,10 @@ const ImportPanel = ({
   const [aiLoading, setAiLoading] = useState(false);
   const [aiNotes, setAiNotes] = useState<string | null>(null);
   const [confidence, setConfidence] = useState<number | null>(null);
+  // Per-kolonne AI-analyse: hvad foreslår AI'en for hver CSV-kolonne, med
+  // begrundelse + konfidens. Bruges til at vise badges + tooltips i mapping-
+  // panelet og til at fremhæve usikre kolonner brugeren bør tjekke.
+  const [columnAnalysis, setColumnAnalysis] = useState<Record<string, { suggested_field: string | null; confidence: number; reason: string }>>({});
   const [importing, setImporting] = useState(false);
   const [done, setDone] = useState<{ created: number; skipped: number } | null>(null);
   const [dragActive, setDragActive] = useState(false);
