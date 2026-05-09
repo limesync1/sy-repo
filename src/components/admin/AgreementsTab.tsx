@@ -500,9 +500,12 @@ const CreateAgreementDialog = ({
   const [startDate, setStartDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
   const [endDate, setEndDate] = useState<string>("");
   const [templateId, setTemplateId] = useState<string>("__none__");
-  const [time, setTime] = useState<string>("08:00");
-  const [duration, setDuration] = useState<string>("");
   const [notes, setNotes] = useState("");
+
+  // UI-state for søge-popovers og inline kunde-oprettelse
+  const [customerPickerOpen, setCustomerPickerOpen] = useState(false);
+  const [servicePickerOpen, setServicePickerOpen] = useState(false);
+  const [newCustomerOpen, setNewCustomerOpen] = useState(false);
 
   // Pricing-state spejler DynamicServiceCard: timer + step-værdier + manuel override
   const [hours, setHours] = useState<number>(1);
@@ -555,7 +558,6 @@ const CreateAgreementDialog = ({
       initial[step.id] = step.default_value ?? step.min_value ?? 0;
     });
     setStepValues(initial);
-    if ((s as any).estimated_duration_minutes) setDuration(String((s as any).estimated_duration_minutes));
     // Hvis valgte interval ikke er tilladt for ny service → fald tilbage
     const opts = (s.interval_options || ["engangskøb"])
       .map((o) => SERVICE_TO_AGREEMENT_INTERVAL[o])
