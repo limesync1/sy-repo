@@ -333,6 +333,17 @@ const getActions = (order: any): { canRespond: boolean; canProgress: boolean; ne
   return { canRespond: false, canProgress: false, nextStatus: null, nextLabel: null };
 };
 
+const getFocusLine = (order: any) => {
+  const actions = getActions(order);
+  if (actions.canRespond) return "Venter på dig · godkend, tilpas eller afvis";
+  if (order.status === "pending" && order.business_response === "adjusted" && !order.customer_response) return "Venter på kunden · dit forslag er sendt";
+  if (order.status === "pending" && order.customer_response === "rejected") return "Kunden afviste forslaget · send nyt forslag eller annullér";
+  if (actions.canProgress && actions.nextLabel) return actions.nextLabel;
+  if (order.status === "completed") return "Aftalen er afsluttet";
+  if (order.status === "cancelled") return "Aftalen er annulleret";
+  return "Ingen handling nødvendig lige nu";
+};
+
 /* ─── Stepper Input ─── */
 const StepperInput = ({
   value, onChange, min, max, unit,
