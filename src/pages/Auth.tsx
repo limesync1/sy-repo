@@ -555,7 +555,7 @@ const Auth = () => {
                     <Link key={opt.to} to={opt.to} className="group block">
                       <div className="relative flex items-center gap-4 rounded-2xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-[0_18px_44px_-22px_hsl(var(--foreground)/0.28)]">
                         <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${
-                          opt.tone === "accent" ? "bg-accent/10 text-accent" : opt.tone === "foreground" ? "bg-foreground/5 text-foreground" : "bg-secondary text-foreground"
+                          opt.tone === "accent" ? "bg-accent/10 text-accent" : "bg-secondary text-foreground"
                         }`}>
                           <opt.icon className="h-5 w-5" />
                         </div>
