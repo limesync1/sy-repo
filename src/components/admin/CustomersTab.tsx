@@ -293,6 +293,7 @@ const useCustomers = (businessId: string) => {
             customer_id: null,
             total_revenue: 0,
             orders_count: 0,
+            live_orders_count: 0,
             active_subs: 0,
             paused_subs: 0,
             last_order_at: "",
