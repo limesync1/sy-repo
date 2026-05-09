@@ -54,6 +54,7 @@ import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrde
 import { RouteTemplatesDialog } from "@/components/route-planner/RouteTemplatesDialog";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
 import { AdminShell } from "@/components/admin/shared/AdminShell";
+import { StatusPill } from "@/components/admin/shared/StatusPill";
 import { useWeatherForecast, type WeatherDay } from "@/hooks/useWeather";
 import { ShellSkeleton } from "@/components/admin/shared/Skeletons";
 
@@ -837,27 +838,32 @@ const Planner = () => {
             <ResizablePanelGroup direction="horizontal" className="h-full rounded-lg">
               {/* Sidebar: Aftaler uden rute */}
               <ResizablePanel defaultSize={20} minSize={14} maxSize={36} className="overflow-hidden">
-                <Card data-tour="routes-unassigned" className="flex flex-col h-full overflow-hidden">
-                  <div className="p-3 border-b bg-secondary/30 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <h2 className="font-semibold text-sm flex items-center gap-1.5">
-                        <Inbox className="h-4 w-4 text-primary" />
+                <Card data-tour="routes-unassigned" className="flex flex-col h-full overflow-hidden rounded-xl">
+                  {/* Header — matcher shared admin-stil: tydelig titel, neutral
+                      tæller-pill, kort hjælpetekst og kompakt nøgletals-rude. */}
+                  <div className="p-3 border-b bg-card space-y-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <h2 className="font-semibold text-sm flex items-center gap-1.5 text-foreground tracking-tight">
+                        <Inbox className="h-4 w-4 text-muted-foreground" />
                         Aftaler uden rute
                       </h2>
-                      <Badge variant="secondary" className="tabular-nums">
-                        {filteredUnassigned.length}
-                      </Badge>
+                      <StatusPill tone="neutral" dot={false}>
+                        <span className="tabular-nums">{filteredUnassigned.length}</span>
+                      </StatusPill>
                     </div>
-                    <p className="text-[10px] text-muted-foreground leading-snug">
-                      Træk en aftale ind i kalenderen for at planlægge den. Når en aftale med interval markeres som udført, opretter vi automatisk næste aftale på samme rute og medarbejder.
+                    <p className="text-[11px] text-muted-foreground leading-snug">
+                      Træk en aftale ind i kalenderen for at planlægge den.
                     </p>
                     {filteredUnassigned.length > 0 && (
-                      <p className="text-[10px] text-muted-foreground tabular-nums">
-                        Total værdi: <span className="font-semibold text-foreground">{Math.round(unassignedTotal).toLocaleString("da-DK")} kr</span>
-                      </p>
+                      <div className="flex items-center justify-between gap-2 rounded-md bg-secondary/60 border border-border/60 px-2 py-1.5">
+                        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Total værdi</span>
+                        <span className="text-xs font-semibold tabular-nums text-foreground">
+                          {Math.round(unassignedTotal).toLocaleString("da-DK")} kr
+                        </span>
+                      </div>
                     )}
                     {outsideWindowCount > 0 && (
-                      <p className="text-[10px] text-muted-foreground rounded px-2 py-1 leading-snug bg-muted/40 border border-border/60">
+                      <p className="text-[10px] text-muted-foreground rounded px-2 py-1 leading-snug bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-800 dark:text-amber-200">
                         +{outsideWindowCount} aftale{outsideWindowCount === 1 ? "" : "r"} ligger uden for det viste vindue.
                       </p>
                     )}
@@ -867,7 +873,7 @@ const Planner = () => {
                         placeholder="Søg navn eller adresse..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="h-7 pl-7 pr-7 text-xs"
+                        className="h-8 pl-7 pr-7 text-xs rounded-md"
                       />
                       {search && (
                         <button
