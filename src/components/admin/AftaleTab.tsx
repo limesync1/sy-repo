@@ -1912,9 +1912,11 @@ const AftaleTab = ({
                                   ? "font-medium text-warning"
                                   : ""
                               }
-                              title="Næste udførelse — ordren oprettes automatisk på dagen kl. 06:00."
+                              title={cycles === 0
+                                ? "Opstartsdato — første udførelse af aftalen."
+                                : "Næste udførelse — ordren oprettes automatisk på dagen kl. 06:00."}
                             >
-                              Næste: {nextDate.toLocaleDateString("da-DK", { day: "numeric", month: "short" })} · {relativeFromNow(nextDate)}
+                              {cycles === 0 ? "Opstart" : "Næste"}: {nextDate.toLocaleDateString("da-DK", { day: "numeric", month: "short" })} · {relativeFromNow(nextDate)}
                             </span>
                           </>
                         )}
