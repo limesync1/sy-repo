@@ -299,7 +299,7 @@ export const RouteEditSheet = ({
             <Section
               icon={<CalendarDays className="h-3.5 w-3.5" />}
               title="Dato"
-              hint={(seriesInfo?.futureRouteCount ?? 1) >= 2 ? "Del af fast rute" : "Træk i kalenderen for hurtigt skift"}
+              hint={(seriesInfo?.recurringAppointmentCount ?? 0) >= 1 ? "Del af fast rute" : "Træk i kalenderen for hurtigt skift"}
             >
               <DatePickerField value={date} onChange={handleDateChange} />
             </Section>
@@ -384,7 +384,7 @@ export const RouteEditSheet = ({
         routeName={route.name || "Rute"}
         fromDate={route.route_date}
         toDate={pendingDate || ""}
-        futureRouteCount={seriesInfo?.futureRouteCount ?? 1}
+        recurringAppointmentCount={seriesInfo?.recurringAppointmentCount ?? 0}
         linkedSubscriptionCount={seriesInfo?.linkedSubscriptionCount ?? 0}
         loading={moveRouteSeries.isPending}
         onConfirm={handleConfirmMoveDate}

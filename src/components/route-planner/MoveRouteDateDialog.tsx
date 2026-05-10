@@ -26,9 +26,9 @@ type Props = {
   routeName: string;
   fromDate: string;
   toDate: string;
-  /** Hvor mange fremtidige ruter findes i samme serie (inkl. denne)? Hvis 0/1 vises kun "kun denne". */
-  futureRouteCount: number;
-  /** Hvor mange tilknyttede abonnementer findes på fremtidige ruter? Hvis 0 skjules valget. */
+  /** Antal tilbagevendende aftaler (abonnementer) der ligger på denne rute. */
+  recurringAppointmentCount: number;
+  /** (Behold for bagudkompatibilitet — bruges ikke længere visuelt.) */
   linkedSubscriptionCount: number;
   loading?: boolean;
   onConfirm: (scope: MoveRouteScope, moveLinkedSubscriptions: boolean) => Promise<void> | void;
@@ -36,8 +36,9 @@ type Props = {
 
 export const MoveRouteDateDialog = ({
   open, onOpenChange, routeName, fromDate, toDate,
-  futureRouteCount, linkedSubscriptionCount, loading, onConfirm,
+  recurringAppointmentCount, linkedSubscriptionCount, loading, onConfirm,
 }: Props) => {
+  void linkedSubscriptionCount;
   const [scope, setScope] = useState<MoveRouteScope>("single");
   const [moveLinked, setMoveLinked] = useState(true);
 
@@ -59,7 +60,7 @@ export const MoveRouteDateDialog = ({
     catch { return d; }
   };
 
-  const canChooseFuture = futureRouteCount >= 2;
+  const canChooseFuture = recurringAppointmentCount >= 1;
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -94,51 +95,29 @@ export const MoveRouteDateDialog = ({
             selected={scope === "single"}
             onClick={() => setScope("single")}
             title="Kun denne gang"
-            description="Flyt kun denne ene rute. Fremtidige ruter forbliver på deres nuværende dage."
+            description="Flyt kun denne ene dato. Fremtidige forekomster af de tilbagevendende aftaler forbliver uændrede."
           />
           <ScopeOption
             selected={scope === "future"}
             onClick={() => canChooseFuture && setScope("future")}
             disabled={!canChooseFuture}
-            title="Fremtidige også"
+            title="Fremtidige aftaler også"
             description={
               canChooseFuture
-                ? `Flyt denne og alle ${futureRouteCount - 1} fremtidige ruter i samme serie. Bruges fx hvis ruten fast skal være på en anden ugedag.`
-                : "Ingen fremtidige ruter i samme serie at flytte."
+                ? `Flyt denne dato og forskyd ${recurringAppointmentCount} tilbagevendende aftale${recurringAppointmentCount === 1 ? "" : "r"} med samme antal dage — så fremtidige besøg fast lander på den nye ugedag.`
+                : "Ingen tilbagevendende aftaler på ruten at forskyde."
             }
             icon={<Repeat className="h-3.5 w-3.5" />}
           />
 
-          {scope === "future" && linkedSubscriptionCount > 0 && (
-            <label
-              className={cn(
-                "flex items-start gap-2 rounded-md border p-2.5 cursor-pointer text-xs",
-                moveLinked ? "border-accent bg-accent/5" : "border-border hover:bg-secondary/40",
-              )}
-            >
-              <Checkbox
-                checked={moveLinked}
-                onCheckedChange={(c) => setMoveLinked(!!c)}
-                className="mt-0.5"
-              />
-              <div className="flex-1">
-                <p className="font-medium text-foreground">
-                  Flyt også tilknyttede aftaler ({linkedSubscriptionCount})
-                </p>
-                <p className="text-muted-foreground leading-snug">
-                  Forskyder næste-besøg-datoen for abonnementer der er knyttet til
-                  ruterne — fx kunder med fast indvendig vinduespudsning der bør
-                  følge den udvendige rute.
-                </p>
-              </div>
-            </label>
-          )}
+          {/* Linked-subscriptions checkbox fjernet: ved "fremtidige" forskydes
+              de tilbagevendende aftalers next_service_date altid med samme delta. */}
         </div>
 
         <AlertDialogFooter>
           <AlertDialogCancel disabled={loading}>Annullér</AlertDialogCancel>
           <Button
-            onClick={async () => { await onConfirm(scope, scope === "future" && moveLinked); }}
+            onClick={async () => { await onConfirm(scope, scope === "future" ? moveLinked : false); }}
             disabled={loading}
           >
             {loading && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}

@@ -1143,7 +1143,7 @@ const Planner = () => {
           routeName={pendingRouteMove?.route.name || "Rute"}
           fromDate={pendingRouteMove?.route.route_date || ""}
           toDate={pendingRouteMove?.newDate || ""}
-          futureRouteCount={pendingSeriesInfo?.futureRouteCount ?? 1}
+          recurringAppointmentCount={pendingSeriesInfo?.recurringAppointmentCount ?? 0}
           linkedSubscriptionCount={pendingSeriesInfo?.linkedSubscriptionCount ?? 0}
           loading={moveRouteSeries.isPending}
           onConfirm={handleConfirmMoveRoute}
