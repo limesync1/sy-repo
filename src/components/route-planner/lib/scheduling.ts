@@ -66,8 +66,12 @@ export const findFirstFreeSlot = (
     const end = start + dur;
     const clash = sorted.find((b) => start < b.end && end > b.start);
     if (!clash) return start;
-    // Ryk til slutningen af det clash-interval, snap op
-    start = snapMinutes(clash.end + step - 1, step);
+    // Ryk til slutningen af det clash-interval, snap OP til nærmeste step.
+    // Bug-fix: tidligere brugte vi `snapMinutes(clash.end + step - 1)` som er
+    // round-to-nearest — det kunne give 9:15 i stedet for 9:00 når clash.end
+    // allerede lå på et helt slot. Math.ceil rammer altid det første lovlige
+    // step ≥ clash.end.
+    start = Math.ceil(clash.end / step) * step;
   }
   return start;
 };
