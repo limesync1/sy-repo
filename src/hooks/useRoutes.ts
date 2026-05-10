@@ -17,6 +17,7 @@ export const invalidateRouteSyncQueries = (qc: ReturnType<typeof useQueryClient>
   qc.invalidateQueries({ queryKey: ["my-route-data"] });
   qc.invalidateQueries({ queryKey: ["my-employee-stats"] });
   qc.invalidateQueries({ queryKey: ["order-for-stop"] });
+  qc.invalidateQueries({ queryKey: ["route-occurrence-exceptions"] });
 };
 
 /** Map Postgres-fejl fra route_stop_assignees til danske beskeder. */
@@ -1745,6 +1746,7 @@ export const useMoveRouteSeries = () => {
       qc.invalidateQueries({ queryKey: ["route-series-info"] });
       qc.invalidateQueries({ queryKey: ["recurring-agreements-for-planner"] });
       qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
+      qc.invalidateQueries({ queryKey: ["route-occurrence-exceptions"] });
     },
     onError: (e: any) => toast.error(e.message || "Kunne ikke flytte rute"),
   });
