@@ -181,11 +181,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                         {INTERVAL_LABELS[recurringInterval] || recurringInterval}
                       </Badge>
                     )}
-                    {!hasCoords && (
-                      <Badge variant="outline" className="text-orange-600 border-orange-300 gap-1 text-[10px]">
-                        <AlertCircle className="h-2.5 w-2.5" />Mangler GPS
-                      </Badge>
-                    )}
                   </div>
                 </div>
               </div>
@@ -715,107 +710,6 @@ const PlanningSection = ({
             Hvornår på dagen besøget skal udføres.
           </p>
         </div>
-
-        {/* Varighed */}
-        <div className="space-y-2">
-          <Label>Estimeret varighed</Label>
-          <Popover open={durOpen} onOpenChange={setDurOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                type="button"
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal h-9 bg-background",
-                  "hover:bg-accent/10 hover:text-foreground hover:border-accent/40",
-                  totalMin === 0 && "text-muted-foreground",
-                )}
-              >
-                <Hourglass className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
-                <span className="font-medium">{durationLabel}</span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[280px] p-3" align="start">
-              {/* Presets */}
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5 font-semibold">
-                Hurtigvalg
-              </p>
-              <div className="grid grid-cols-4 gap-1.5 mb-3">
-                {DURATION_PRESETS.map((p) => {
-                  const active = p.hours === durationHours && p.minutes === durationMinutes;
-                  return (
-                    <button
-                      key={p.label}
-                      type="button"
-                      onClick={() => {
-                        setDurationHours(p.hours);
-                        setDurationMinutes(p.minutes);
-                      }}
-                      className={cn(
-                        "h-8 rounded-md text-xs font-medium border transition-colors",
-                        active
-                          ? "bg-foreground text-background border-foreground"
-                          : "bg-background hover:bg-accent/10 hover:border-accent/40",
-                      )}
-                    >
-                      {p.label}
-                    </button>
-                  );
-                })}
-              </div>
-              {/* Brugerdefineret */}
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5 font-semibold">
-                Brugerdefineret
-              </p>
-              <div className="flex items-center gap-2">
-                <div className="flex-1">
-                  <Input
-                    type="number"
-                    min={0}
-                    max={23}
-                    value={durationHours}
-                    onChange={(e) => setDurationHours(Math.max(0, Math.min(23, Number(e.target.value) || 0)))}
-                    className="h-9 text-center tabular-nums"
-                    aria-label="Timer"
-                  />
-                  <p className="text-[10px] text-center text-muted-foreground mt-1">timer</p>
-                </div>
-                <span className="text-muted-foreground pb-5">:</span>
-                <div className="flex-1">
-                  <Input
-                    type="number"
-                    min={0}
-                    max={59}
-                    step={5}
-                    value={durationMinutes}
-                    onChange={(e) => setDurationMinutes(Math.max(0, Math.min(59, Number(e.target.value) || 0)))}
-                    className="h-9 text-center tabular-nums"
-                    aria-label="Minutter"
-                  />
-                  <p className="text-[10px] text-center text-muted-foreground mt-1">min</p>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-          <p className="text-[11px] text-muted-foreground">
-            Bruges til at beregne ankomsttider for resten af ruten.
-          </p>
-        </div>
-
-        {/* Planlagt ankomst (read-only info-strip) */}
-        {plannedArrival && (
-          <div className="rounded-md bg-secondary/50 border px-3 py-2 text-xs flex items-center gap-2">
-            <Timer className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-            <span className="text-muted-foreground">Planlagt ankomst:</span>
-            <strong className="text-foreground tabular-nums">
-              {format(parseISO(plannedArrival), "HH:mm")}
-            </strong>
-            {distanceToNextKm != null && distanceToNextKm > 0 && (
-              <span className="ml-auto text-muted-foreground tabular-nums">
-                → næste: {distanceToNextKm.toFixed(1)} km
-              </span>
-            )}
-          </div>
-        )}
 
         {/* Note */}
         <div className="space-y-2">

@@ -222,7 +222,7 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
             </div>
           )}
 
-          {/* Compact badge row — interval, varighed osv. */}
+          {/* Compact badge row — interval osv. */}
           <div className="flex items-center gap-1 flex-wrap">
             {/* Interval badge — viser engangs vs abonnement */}
             {(() => {
@@ -251,10 +251,6 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
                 {job.preferred_time_end && `–${job.preferred_time_end.slice(0, 5)}`}
               </Badge>
             )}
-            <Badge variant="secondary" className="h-4 text-[10px] px-1.5 gap-0.5">
-              <Hourglass className="h-2.5 w-2.5" />
-              ~{formatDurationMin(estimatedMin, { short: true })}
-            </Badge>
           </div>
         </button>
       </div>

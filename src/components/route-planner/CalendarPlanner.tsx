@@ -672,7 +672,8 @@ const StopBlock = ({
   const leftPct = lanes > 1 ? lane * widthPct : 0;
 
   // Visnings-tærskler i absolutte pixels — uafhængig af zoom
-  const showService = heightPx >= 56;
+  // Service vises altid så medarbejdere/ejere kan se hvad der skal udføres.
+  const showService = true;
   const showAssign = heightPx >= 50;
   const showAddress = heightPx >= 78;
   const showWindow = heightPx >= 96;
@@ -714,9 +715,6 @@ const StopBlock = ({
           {isDone && <CheckCircle2 className="h-3 w-3 text-emerald-600 shrink-0" />}
           {isInProgress && (
             <span title="I gang" className="h-2 w-2 rounded-full bg-blue-500 animate-pulse shrink-0" />
-          )}
-          {!hasCoords && (
-            <span title="Mangler GPS koordinater"><AlertCircle className="h-3 w-3 text-orange-500 shrink-0" /></span>
           )}
           {hasConflict && (
             <span title="Overlapper med et andet stop hos samme medarbejder">

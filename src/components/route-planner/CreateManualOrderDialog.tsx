@@ -22,6 +22,8 @@ import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupFie
 import { Building2, BadgeCheck } from "lucide-react";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection";
 import CustomerEmailAutocomplete from "./CustomerEmailAutocomplete";
+import { DatePickerField } from "./DatePickerField";
+import { format } from "date-fns";
 
 type CalcStep = { id: string; label: string; unit: string; price_per_unit: number; min_value: number | null; max_value: number | null; default_value: number | null; sort_order: number | null };
 type Service = { id: string; name: string; description: string | null; pricing_type: "fast_pris" | "timepris" | "prisberegner"; base_price: number | null; unit: string | null; is_active: boolean | null; interval_options: string[] | null; calculator_steps?: CalcStep[]; business_id: string };
@@ -32,6 +34,8 @@ interface BuilderItem {
   hours: number;
   stepValues: Record<string, number>;
   interval: string;
+  /** Opstartsdato pr. service (yyyy-MM-dd). */
+  startDate: string;
 }
 
 const fmt = (n: number) =>
@@ -80,7 +84,6 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
   const [longitude, setLongitude] = useState<number | null>(null);
   const [cvr, setCvr] = useState("");
   const [companyName, setCompanyName] = useState("");
-  const [preferredDate, setPreferredDate] = useState("");
   const [businessMessage, setBusinessMessage] = useState("");
 
   // Cart
@@ -115,10 +118,12 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
     const stepValues: Record<string, number> = {};
     (svc.calculator_steps || []).forEach((s) => { stepValues[s.id] = Number(s.default_value ?? s.min_value ?? 0); });
     const intervals = svc.interval_options && svc.interval_options.length > 0 ? svc.interval_options : ["engangskøb"];
+    // Default opstartsdato = i dag (gør UI venligt — brugeren kan altid ændre).
+    const today = format(new Date(), "yyyy-MM-dd");
     setItems((prev) => [
       ...prev,
       {
-        serviceId, service: svc, hours: 1, stepValues, interval: intervals[0],
+        serviceId, service: svc, hours: 1, stepValues, interval: intervals[0], startDate: today,
       },
     ]);
   };
@@ -133,7 +138,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
     setAddress(""); setZipCode(""); setCity("");
     setLatitude(null); setLongitude(null);
     setCvr(""); setCompanyName("");
-    setPreferredDate(""); setBusinessMessage("");
+    setBusinessMessage("");
     setItems([]);
   };
 
@@ -189,7 +194,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
           cvr: cvr.replace(/\D/g, "") || null,
           company_name: companyName.trim() || null,
           notes: contactPerson.trim() ? `Kontaktperson: ${contactPerson.trim()}` : null,
-          preferred_date: preferredDate || null,
+          preferred_date: it.startDate || null,
           preferred_time_start: null,
           preferred_time_end: null,
           estimated_duration_minutes: null,
@@ -257,7 +262,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
               address: address.trim()
                 ? `${address.trim()}${zipCode.trim() || city.trim() ? `, ${[zipCode.trim(), city.trim()].filter(Boolean).join(" ")}` : ""}`
                 : undefined,
-              preferredDate: preferredDate || undefined,
+              preferredDate: items[0]?.startDate || undefined,
               totalAmount,
               items: items.map((it) => ({
                 name: it.service.name,
@@ -265,6 +270,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                 price: roundPrice(calcItemTotal(it)),
                 intervalLabel: it.interval && it.interval !== "engangskøb" ? INTERVAL_LABELS[it.interval] || it.interval : undefined,
                 description: it.service.pricing_type === "timepris" ? `${it.hours} timer` : undefined,
+                preferredDate: it.startDate || undefined,
                 stepDetails: it.service.pricing_type === "prisberegner"
                   ? (it.service.calculator_steps || []).map((s) => ({
                       label: s.label, value: it.stepValues[s.id] || 0, unit: s.unit,
@@ -382,12 +388,6 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                     </Field>
                   </div>
                 )}
-                {(zipCode || city) && (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
-                    <Field label="Postnr."><Input value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="h-9" /></Field>
-                    <div className="sm:col-span-2"><Field label="By"><Input value={city} onChange={(e) => setCity(e.target.value)} className="h-9" /></Field></div>
-                  </div>
-                )}
               </Section>
             );
           })()}
@@ -489,24 +489,21 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                         </Select>
                       )}
 
-                      {/* Opstartsdato — vises kun på første service-kort, da datoen gælder hele bestillingen */}
-                      {idx === 0 && (
-                        <div className="mt-2 rounded-md bg-secondary/30 p-2.5">
-                          <Label className="text-[11px] text-muted-foreground uppercase tracking-wide flex items-center gap-1.5 mb-1.5">
-                            <Calendar className="h-3 w-3" />
-                            Opstartsdato
-                          </Label>
-                          <Input
-                            type="date"
-                            value={preferredDate}
-                            onChange={(e) => setPreferredDate(e.target.value)}
-                            className="h-9 bg-background"
-                          />
-                          <p className="mt-1 text-[10px] text-muted-foreground">
-                            Datoen hvor opgaven (eller første gentagelse, ved abonnement) skal starte. Tidspunkt og varighed planlægges på ruten.
-                          </p>
-                        </div>
-                      )}
+                      {/* Opstartsdato — pr. service, så hver aftale kan have sin egen startdato */}
+                      <div className="mt-2 rounded-md bg-secondary/30 p-2.5">
+                        <Label className="text-[11px] text-muted-foreground uppercase tracking-wide flex items-center gap-1.5 mb-1.5">
+                          <Calendar className="h-3 w-3" />
+                          Opstartsdato
+                        </Label>
+                        <DatePickerField
+                          value={it.startDate}
+                          onChange={(v) => updateItem(it.serviceId, { startDate: v })}
+                          minDate={format(new Date(), "yyyy-MM-dd")}
+                        />
+                        <p className="mt-1 text-[10px] text-muted-foreground">
+                          Datoen hvor denne service skal starte{it.interval && it.interval !== "engangskøb" ? " (første gentagelse)" : ""}. Tidspunkt planlægges på ruten.
+                        </p>
+                      </div>
 
                       <div className="mt-2 flex items-center justify-between pt-2 border-t border-border/60">
                         <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Subtotal</span>
