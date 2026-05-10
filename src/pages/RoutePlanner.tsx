@@ -802,6 +802,59 @@ const Planner = () => {
       }
     };
 
+    /** Aftalens opstartsdato (yyyy-MM-dd) — preferred_date eller next_service_date. */
+    const jobStartDate = (job: any): string | null => {
+      const raw = job?.preferred_date || job?.next_service_date;
+      return raw ? String(raw).slice(0, 10) : null;
+    };
+
+    /** Skubber aftalens opstartsdato til ny dato i alle relaterede tabeller. */
+    const shiftJobStartDate = async (orderId: string, newDate: string) => {
+      // Bedst-effort: orders, subscriptions og agreements opdateres parallelt.
+      // Stille fejl pr. tabel — UI'et viser allerede succes på selve droppet.
+      const tasks: Promise<any>[] = [
+        supabase.from("orders").update({
+          preferred_date: newDate,
+          next_service_date: newDate,
+        }).eq("id", orderId),
+        supabase.from("subscriptions").update({
+          next_service_date: newDate,
+        }).eq("order_id", orderId).eq("status", "active"),
+        supabase.from("agreements").update({
+          start_date: newDate,
+        }).eq("business_id", businessId!).or(
+          `legacy_subscription_id.in.(select id from subscriptions where order_id=eq.${orderId})`,
+        ),
+      ];
+      const results = await Promise.allSettled(tasks);
+      results.forEach((r, i) => {
+        if (r.status === "rejected") console.warn(`shiftJobStartDate task ${i} failed`, r.reason);
+      });
+    };
+
+    /** Returnerer true hvis droppet må fortsætte. Hvis target-datoen ikke
+     *  matcher aftalens opstartsdato, åbnes en bekræftelsesdialog der
+     *  beder brugeren om at flytte opstartsdatoen — i så fald bailes der ud
+     *  her og dropet eksekveres senere via `execute()`. */
+    const ensureStartDateMatches = (
+      job: any,
+      targetDate: string,
+      targetLabel: string,
+      execute: () => Promise<void>,
+    ): boolean => {
+      const start = jobStartDate(job);
+      if (!start || start === targetDate) return true;
+      setPendingStartDateChange({
+        job,
+        currentStart: start,
+        targetDate,
+        isBefore: targetDate < start,
+        targetLabel,
+        execute,
+      });
+      return false;
+    };
+
     const activeData: any = active.data.current;
     const overData: any = over.data.current;
 
