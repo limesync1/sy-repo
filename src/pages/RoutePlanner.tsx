@@ -435,61 +435,83 @@ const Planner = () => {
       counterByDate.set(r.route_date, n);
       indexByRouteId.set(r.id, n);
     }
-    const built = calendarRoutesRaw.map((r) => {
-      // Saml UNIK liste af medarbejdere på tværs af alle stops på ruten
+    // Hjælper: aflæs medarbejdere på en rute ud fra dens stops.
+    const employeesForStops = (stops: any[]) => {
       const empIds = new Set<string>();
-      const stopsForRoute = stopsByRoute.get(r.id) || [];
-      for (const s of stopsForRoute) {
-        const ids = s.assignee_ids ?? (s.assigned_employee_id ? [s.assigned_employee_id] : []);
-        for (const id of ids) empIds.add(id);
+      for (const s of stops || []) {
+        const ids = (s as any).assignee_ids ?? ((s as any).assigned_employee_id ? [(s as any).assigned_employee_id] : []);
+        for (const id of ids) if (id) empIds.add(id);
       }
-      const emps = Array.from(empIds)
+      return Array.from(empIds)
         .map((id) => activeEmployees.find((e: any) => e.id === id))
         .filter(Boolean)
         .map((e: any) => ({ id: e.id, name: e.name, avatar_url: e.avatar_url, color: e.color }));
+    };
+    // Hjælper: udled smart auto-navn ud fra medarbejdere + dominerende by.
+    const computeAutoName = (emps: any[], stops: any[], fallback: string) => {
+      const firstName = (full: string | null | undefined) =>
+        (full || "").trim().split(/\s+/)[0] || "";
+      const empPart = (() => {
+        if (emps.length === 1) return firstName(emps[0].name);
+        if (emps.length === 2) {
+          const a = firstName(emps[0].name);
+          const b = firstName(emps[1].name);
+          return a && b ? `${a} & ${b}` : a || b;
+        }
+        if (emps.length > 2) return `${emps.length} medarb.`;
+        return "";
+      })();
+      const cityPart = (() => {
+        if (!stops || stops.length === 0) return "";
+        if (stops.length < 2) {
+          const c = (stops[0] as any)?.city?.trim();
+          return c || "";
+        }
+        const counts = new Map<string, number>();
+        for (const s of stops) {
+          const city = ((s as any).city || "").trim();
+          if (!city) continue;
+          counts.set(city, (counts.get(city) || 0) + 1);
+        }
+        let best = ""; let bestN = 0;
+        counts.forEach((n, c) => { if (n > bestN) { bestN = n; best = c; } });
+        return bestN / stops.length >= 0.6 ? best : "";
+      })();
+      if (empPart && cityPart) return `${empPart} · ${cityPart}`;
+      if (empPart) return empPart;
+      if (cityPart) return cityPart;
+      return fallback;
+    };
+    // Map til hurtig opslag på basis-rutens visningsnavn/farve, så
+    // materialiserede gentagende ruter arver detaljer fra originalen.
+    const baseInfoById = new Map<string, { name: string | null; color: string | null }>();
+    for (const b of recurringBaseRoutes as any[]) {
+      const baseEmps = employeesForStops(b.stops || []);
+      const explicit = (b.name && String(b.name).trim()) ? String(b.name).trim() : null;
+      const display = explicit || computeAutoName(baseEmps, b.stops || [], "");
+      baseInfoById.set(b.id, { name: display || null, color: b.color || null });
+    }
+    const built = calendarRoutesRaw.map((r) => {
+      const stopsForRoute = stopsByRoute.get(r.id) || [];
+      const emps = employeesForStops(stopsForRoute);
       const dayIndex = indexByRouteId.get(r.id) || 1;
+      // Materialiseret gentagende rute: arv navn + farve fra basisruten,
+      // så alle forekomster i serien hedder/ser ens ud.
+      const baseInfo = (r as any).base_route_id ? baseInfoById.get((r as any).base_route_id) : null;
       // Smart auto-navngivning: brug brugerens egen titel hvis sat, ellers
-      // udled noget meningsfuldt fra ruten (medarbejder + dominerende by),
-      // og fald først tilbage til "Kørsel N" hvis intet andet kendes.
+      // brug basisrutens navn hvis dette er en materialiseret forekomst,
+      // ellers udled fra rutens egne medarbejdere/by, og fald til sidst
+      // tilbage til "Kørsel N".
       const autoName = (() => {
         if (r.name && r.name.trim()) return r.name;
-        const firstName = (full: string | null | undefined) =>
-          (full || "").trim().split(/\s+/)[0] || "";
-        const empPart = (() => {
-          if (emps.length === 1) return firstName(emps[0].name);
-          if (emps.length === 2) {
-            const a = firstName(emps[0].name);
-            const b = firstName(emps[1].name);
-            return a && b ? `${a} & ${b}` : a || b;
-          }
-          if (emps.length > 2) return `${emps.length} medarb.`;
-          return "";
-        })();
-        // Find dominerende by (≥60% af stops, mindst 2 stop)
-        const cityPart = (() => {
-          if (stopsForRoute.length < 2) {
-            const c = (stopsForRoute[0] as any)?.city?.trim();
-            return c || "";
-          }
-          const counts = new Map<string, number>();
-          for (const s of stopsForRoute) {
-            const city = ((s as any).city || "").trim();
-            if (!city) continue;
-            counts.set(city, (counts.get(city) || 0) + 1);
-          }
-          let best = "";
-          let bestN = 0;
-          counts.forEach((n, c) => { if (n > bestN) { bestN = n; best = c; } });
-          return bestN / stopsForRoute.length >= 0.6 ? best : "";
-        })();
-        if (empPart && cityPart) return `${empPart} · ${cityPart}`;
-        if (empPart) return empPart;
-        if (cityPart) return cityPart;
-        return `Kørsel ${dayIndex}`;
+        if (baseInfo?.name) return baseInfo.name;
+        return computeAutoName(emps, stopsForRoute, `Kørsel ${dayIndex}`);
       })();
+      const inheritedColor = baseInfo?.color && !r.color ? baseInfo.color : r.color;
       return {
         ...r,
         name: autoName,
+        color: inheritedColor,
         stops: stopsForRoute,
         attachedEmployees: emps,
         attachedEmployeeCount: emps.length,
@@ -502,7 +524,7 @@ const Planner = () => {
       return built.filter((r) => (r.stops?.length ?? 0) > 0);
     }
     return built;
-  }, [calendarRoutesRaw, visibleCalendarStops, activeEmployees]);
+  }, [calendarRoutesRaw, visibleCalendarStops, activeEmployees, recurringBaseRoutes]);
 
   /* ─── Gentagende ruter: hent aktive abonnementer med preferred_route_id og
          projicér virtuelle forekomster på fremtidige datoer (op til 6 mdr.).
