@@ -1165,17 +1165,17 @@ const Planner = () => {
       }
       if (
         startDateForJob &&
-        String(startDateForJob).slice(0, 10) !== newDate &&
-        newDate < String(startDateForJob).slice(0, 10)
+        String(startDateForJob).slice(0, 10) !== newDate
       ) {
-        // Kun bloker når flytningen er FØR opstartsdatoen (det er den
-        // virkelige fejl). Efter opstartsdato er normalt OK for et stop
-        // i en gentagende serie.
+        // Bloker drop hvis target-datoen ikke matcher opstartsdatoen — uanset
+        // om den er før eller efter. Brugeren bekræfter om opstartsdatoen
+        // skal flyttes, eller annullerer.
+        const startStr = String(startDateForJob).slice(0, 10);
         setPendingStartDateChange({
           job: { id: stop.order_id, customer_name: customerName },
-          currentStart: String(startDateForJob).slice(0, 10),
+          currentStart: startStr,
           targetDate: newDate,
-          isBefore: true,
+          isBefore: newDate < startStr,
           targetLabel: `${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`,
           execute: async () => {
             await shiftJobStartDate(stop.order_id, newDate);
