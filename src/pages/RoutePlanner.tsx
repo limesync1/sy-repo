@@ -535,20 +535,9 @@ const Planner = () => {
         .filter(Boolean)
         .map((e: any) => ({ id: e.id, name: e.name, avatar_url: e.avatar_url, color: e.color }));
     };
-    // Hjælper: udled smart auto-navn ud fra medarbejdere + dominerende by.
-    const computeAutoName = (emps: any[], stops: any[], fallback: string) => {
-      const firstName = (full: string | null | undefined) =>
-        (full || "").trim().split(/\s+/)[0] || "";
-      const empPart = (() => {
-        if (emps.length === 1) return firstName(emps[0].name);
-        if (emps.length === 2) {
-          const a = firstName(emps[0].name);
-          const b = firstName(emps[1].name);
-          return a && b ? `${a} & ${b}` : a || b;
-        }
-        if (emps.length > 2) return `${emps.length} medarb.`;
-        return "";
-      })();
+    // Hjælper: udled smart auto-navn ud fra dominerende by — bevidst UDEN
+    // medarbejdere, så tildeling af en medarbejder ikke ændrer rutens navn.
+    const computeAutoName = (_emps: any[], stops: any[], fallback: string) => {
       const cityPart = (() => {
         if (!stops || stops.length === 0) return "";
         if (stops.length < 2) {
@@ -565,10 +554,7 @@ const Planner = () => {
         counts.forEach((n, c) => { if (n > bestN) { bestN = n; best = c; } });
         return bestN / stops.length >= 0.6 ? best : "";
       })();
-      if (empPart && cityPart) return `${empPart} · ${cityPart}`;
-      if (empPart) return empPart;
-      if (cityPart) return cityPart;
-      return fallback;
+      return cityPart || fallback;
     };
     // Map til hurtig opslag på basis-rutens visningsnavn/farve, så
     // materialiserede gentagende ruter arver detaljer fra originalen.
