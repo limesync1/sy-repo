@@ -35,7 +35,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon,
   Loader2, Search, Plus, Inbox, ArrowUpDown, X, Keyboard, Filter,
-  ShoppingBag, Route as RouteIcon, Tag, Palette,
+  ShoppingBag, Route as RouteIcon, Tag, Palette, ListChecks,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -63,6 +63,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { expandRecurringRoutes } from "@/lib/recurring-projection";
 import { invalidateRouteSyncQueries } from "@/hooks/useRoutes";
+import { cn } from "@/lib/utils";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -98,6 +99,8 @@ const Planner = () => {
   const [newRouteName, setNewRouteName] = useState("");
   const [newRouteColor, setNewRouteColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
   const [newRouteDate, setNewRouteDate] = useState(todayStr());
+  const [newRouteJobIds, setNewRouteJobIds] = useState<string[]>([]);
+  const [newRouteJobSearch, setNewRouteJobSearch] = useState("");
   const [editingRoute, setEditingRoute] = useState<Route | null>(null);
   const [routeToDelete, setRouteToDelete] = useState<{ id: string; name: string } | null>(null);
   const [distributing, setDistributing] = useState(false);
@@ -498,6 +501,8 @@ const Planner = () => {
       .filter((r) => r.route_date === newRouteDate)
       .map((r) => r.color);
     setNewRouteColor(pickAvailableColor(usedColorsThisDay));
+    setNewRouteJobIds([]);
+    setNewRouteJobSearch("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [createOpen, newRouteDate]);
 
@@ -772,15 +777,46 @@ const Planner = () => {
 
   const handleCreateRoute = async () => {
     if (!businessId) return;
+    if (newRouteJobIds.length === 0) {
+      toast.error("Vælg mindst én aftale", {
+        description: "En rute skal indeholde mindst én aftale.",
+      });
+      return;
+    }
     try {
-      await createRoute.mutateAsync({
+      const created = await createRoute.mutateAsync({
         business_id: businessId,
         route_date: newRouteDate,
         name: newRouteName.trim() || null,
         color: newRouteColor,
       });
-      toast.success("Rute oprettet");
+      // Læg de valgte aftaler på den nye rute (i den rækkefølge brugeren valgte).
+      let seq = 0;
+      for (const jobId of newRouteJobIds) {
+        const job = unassigned.find((j: any) => j.id === jobId);
+        if (!job) continue;
+        try {
+          await addStop.mutateAsync({
+            route_id: created.id,
+            order_id: job.id,
+            sequence: seq++,
+            customer_name: job.customer_name,
+            customer_phone: job.customer_phone,
+            address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
+            latitude: job.latitude,
+            longitude: job.longitude,
+            service_summary: serviceSummaryForJob(job),
+            duration_minutes: Number(job.estimated_duration_minutes) || 30,
+            time_window_start: job.preferred_time_start || null,
+            time_window_end: job.preferred_time_end || null,
+          });
+        } catch (err: any) {
+          console.error("[CreateRoute] kunne ikke tilføje stop", err);
+        }
+      }
+      toast.success(`Rute oprettet med ${newRouteJobIds.length} aftale${newRouteJobIds.length === 1 ? "" : "r"}`);
       setNewRouteName("");
+      setNewRouteJobIds([]);
       setCreateOpen(false);
     } catch { /* toast handled in hook */ }
   };
@@ -1106,6 +1142,77 @@ const Planner = () => {
                         ))}
                       </div>
                     </Section>
+
+                    <Section
+                      icon={<ListChecks className="h-3.5 w-3.5" />}
+                      title="Aftaler på ruten"
+                      hint={`${newRouteJobIds.length} valgt`}
+                    >
+                      <p className="text-[11px] text-muted-foreground mb-2">
+                        Vælg mindst én aftale fra aftalepoolen — ruter kan ikke oprettes uden aftaler.
+                      </p>
+                      <div className="relative mb-2">
+                        <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                        <Input
+                          placeholder="Søg kunde eller adresse..."
+                          value={newRouteJobSearch}
+                          onChange={(e) => setNewRouteJobSearch(e.target.value)}
+                          className="h-7 pl-6 text-xs"
+                        />
+                      </div>
+                      <div className="max-h-56 overflow-y-auto rounded border divide-y bg-background">
+                        {unassigned.length === 0 && (
+                          <div className="p-4 text-center text-xs text-muted-foreground">
+                            Ingen aftaler i poolen. Opret en bestilling først.
+                          </div>
+                        )}
+                        {unassigned
+                          .filter((j: any) => j.status !== "pending")
+                          .filter((j: any) => {
+                            const q = newRouteJobSearch.trim().toLowerCase();
+                            if (!q) return true;
+                            return (
+                              j.customer_name?.toLowerCase().includes(q) ||
+                              j.address?.toLowerCase().includes(q) ||
+                              j.city?.toLowerCase().includes(q)
+                            );
+                          })
+                          .slice(0, 50)
+                          .map((j: any) => {
+                            const checked = newRouteJobIds.includes(j.id);
+                            return (
+                              <label
+                                key={j.id}
+                                className={cn(
+                                  "flex items-start gap-2 p-2 cursor-pointer hover:bg-secondary/50 text-xs",
+                                  checked && "bg-accent/5",
+                                )}
+                              >
+                                <Checkbox
+                                  checked={checked}
+                                  onCheckedChange={(v) =>
+                                    setNewRouteJobIds((prev) =>
+                                      v ? [...prev, j.id] : prev.filter((x) => x !== j.id),
+                                    )
+                                  }
+                                  className="mt-0.5"
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium truncate">{j.customer_name}</p>
+                                  <p className="text-[10px] text-muted-foreground truncate">
+                                    {serviceSummaryForJob(j)}
+                                  </p>
+                                  {(j.address || j.city) && (
+                                    <p className="text-[10px] text-muted-foreground truncate">
+                                      {[j.address, [j.zip_code, j.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")}
+                                    </p>
+                                  )}
+                                </div>
+                              </label>
+                            );
+                          })}
+                      </div>
+                    </Section>
                   </div>
 
                   <SheetFooterBar>
@@ -1113,9 +1220,12 @@ const Planner = () => {
                       <Button variant="outline" onClick={() => setCreateOpen(false)} disabled={createRoute.isPending}>
                         Annullér
                       </Button>
-                      <Button onClick={handleCreateRoute} disabled={createRoute.isPending}>
+                      <Button
+                        onClick={handleCreateRoute}
+                        disabled={createRoute.isPending || newRouteJobIds.length === 0}
+                      >
                         {createRoute.isPending && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
-                        Opret rute
+                        Opret rute{newRouteJobIds.length > 0 ? ` med ${newRouteJobIds.length} aftale${newRouteJobIds.length === 1 ? "" : "r"}` : ""}
                       </Button>
                     </div>
                   </SheetFooterBar>
