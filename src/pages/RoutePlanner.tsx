@@ -91,9 +91,16 @@ const Planner = () => {
   const { data: employees = [] } = useEmployees(businessId);
   const activeEmployees = useMemo(() => employees.filter((e: any) => e.is_active), [employees]);
 
-  const { data: unassigned = [] } = useUnassignedJobs(businessId);
+  const { data: unassignedOrders = [] } = useUnassignedJobs(businessId);
   const { data: unassignedOccurrences = [] } = useUnassignedOccurrences(businessId);
   const materializeOccurrence = useMaterializeOccurrenceToRoute();
+  // Slå almindelige ordrer (ad-hoc bestillinger uden rute) sammen med
+  // aftale-forekomster (faste aftaler hvor næste gang ikke er på en rute endnu).
+  // Begge skal kunne trækkes ind på en rute fra samme panel.
+  const unassigned = useMemo(
+    () => [...unassignedOrders, ...unassignedOccurrences],
+    [unassignedOrders, unassignedOccurrences],
+  );
 
   // Range for kalender: hele måneden hvis month-view, ugen hvis week-view
   const calendarRange = useMemo(() => {
