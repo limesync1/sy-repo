@@ -181,11 +181,9 @@ const SortableStopCard = ({
               <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse shrink-0" />
             )}
           </div>
-          {stop.service_summary && (
-            <p className="text-[10px] text-foreground/75 truncate font-medium mt-0.5">
-              {stop.service_summary}
-            </p>
-          )}
+          <p className="text-[10px] text-foreground/75 truncate font-medium mt-0.5">
+            {stop.service_summary || "Aftale"}
+          </p>
           {stop.address && (
             <p className="text-[10px] text-muted-foreground truncate flex items-center gap-0.5 mt-0.5">
               <MapPin className="h-2.5 w-2.5" />{stop.address}
