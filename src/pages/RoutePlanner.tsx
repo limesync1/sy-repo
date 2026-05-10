@@ -942,8 +942,17 @@ const Planner = () => {
                 <MonthWeekCalendar
                   view={view}
                   anchorDate={date}
-                  routes={calendarRoutes}
-                  onSelectRoute={(r) => setEditingRoute(r)}
+                  routes={calendarRoutesAll}
+                  onSelectRoute={(r: any) => {
+                    // Klik på en virtuel (gentagende) forekomst åbner basisruten,
+                    // ikke det virtuelle id som ikke findes i DB.
+                    if (r.isVirtual) {
+                      const baseId = String(r.id).split(":")[1];
+                      const base = calendarRoutesRaw.find((x) => x.id === baseId);
+                      if (base) { setEditingRoute(base); return; }
+                    }
+                    setEditingRoute(r);
+                  }}
                   onSelectStop={(s) => setSelectedStopId(s.id)}
                   onCreateRoute={(d) => { setNewRouteDate(d); setCreateOpen(true); }}
                   onOptimizeRoute={(id) => {
