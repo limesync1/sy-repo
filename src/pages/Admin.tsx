@@ -734,25 +734,12 @@ const ServiceRow = ({ service, orderCount, accountingMeta, onEdit, onDelete }: {
   onDelete: () => void;
 }) => {
   const pricingLabels: Record<string, string> = { fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner" };
-  const intervalLabels: Record<string, string> = {
-    engangskøb: "Engangskøb",
-    "10_min": "Hver 10. minut",
-    daglig: "Daglig",
-    ugentlig: "Ugentlig",
-    hver_14_dag: "Hver 14. dag",
-    hver_4_uge: "Hver 4. uge",
-    hver_8_uge: "Hver 8. uge",
-    månedlig: "Månedlig",
-    kvartalsvis: "Kvartalsvis",
-    halvårlig: "Halvårlig",
-    årlig: "Årlig",
-  };
 
   const intervals = service.interval_options || [];
   const hasRecurring = intervals.some((i: string) => i !== "engangskøb");
   const categoryIcon = industryIcon(service.service_category);
   const intervalSummary = intervals.length > 0
-    ? intervals.slice(0, 2).map((interval: string) => intervalLabels[interval] || interval).join(", ") + (intervals.length > 2 ? ` +${intervals.length - 2}` : "")
+    ? intervals.slice(0, 2).map((interval: string) => formatInterval(interval)).join(", ") + (intervals.length > 2 ? ` +${intervals.length - 2}` : "")
     : "Ikke angivet";
   const priceSummary = service.base_price != null
     ? `${service.base_price} kr${service.unit ? ` / ${service.unit}` : ""}`
