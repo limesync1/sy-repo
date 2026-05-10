@@ -947,7 +947,6 @@ export const useMaterializeVirtualRoute = () => {
 
       return created as unknown as Route;
       }),
-    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["routes"] });
       qc.invalidateQueries({ queryKey: ["routes-range"] });
