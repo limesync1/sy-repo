@@ -172,9 +172,60 @@ const Planner = () => {
     calendarRange.end,
   );
   const calendarRoutesRaw = calendarData?.routes ?? [];
-  const calendarStops = calendarData?.stops ?? [];
+  const rawCalendarStops = calendarData?.stops ?? [];
   const loadingCalendarRoutes = loadingCalendar;
   const loadingCalendarStops = loadingCalendar;
+
+  /* ─── Opstartsdato + "første gang"-indikator pr. ordre ───
+     Henter preferred_date + completed_cycles for alle ordrer der har stops i
+     synligt interval. Bruges til at vise "Opstart: DD/MM"-badge på aftalekort
+     indtil aftalen er udført første gang. */
+  const orderIdsForStops = useMemo(() => {
+    const ids = new Set<string>();
+    for (const s of rawCalendarStops) if (s.order_id) ids.add(s.order_id as string);
+    return Array.from(ids).sort();
+  }, [rawCalendarStops]);
+
+  const { data: orderStartInfo } = useQuery({
+    queryKey: ["route-stop-order-start-info", orderIdsForStops.join(",")],
+    enabled: orderIdsForStops.length > 0,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const map = new Map<string, { preferred_date: string | null; completed_cycles: number }>();
+      // Chunk i batches af 500 så vi ikke rammer .in()-limits ved meget store kalendre.
+      const chunkSize = 500;
+      for (let i = 0; i < orderIdsForStops.length; i += chunkSize) {
+        const chunk = orderIdsForStops.slice(i, i + chunkSize);
+        const { data, error } = await supabase
+          .from("orders")
+          .select("id, preferred_date, completed_cycles")
+          .in("id", chunk);
+        if (error) throw error;
+        for (const o of data || []) {
+          map.set(o.id as string, {
+            preferred_date: (o.preferred_date as string | null) ?? null,
+            completed_cycles: Number(o.completed_cycles ?? 0),
+          });
+        }
+      }
+      return map;
+    },
+  });
+
+  /** Decorerede stops: tilføjer `start_date` + `is_first_occurrence` så
+      kort kan vise "Opstart"-badge når aftalen ikke er kørt endnu. */
+  const calendarStops = useMemo(() => {
+    if (!orderStartInfo || orderStartInfo.size === 0) return rawCalendarStops as RouteStop[];
+    return rawCalendarStops.map((s) => {
+      const info = s.order_id ? orderStartInfo.get(s.order_id as string) : undefined;
+      if (!info) return s as RouteStop;
+      return {
+        ...s,
+        start_date: info.preferred_date,
+        is_first_occurrence: info.completed_cycles === 0,
+      } as RouteStop;
+    });
+  }, [rawCalendarStops, orderStartInfo]);
 
   // Vejrudsigt — bruger gennemsnit af stop-koordinater i det viste interval,
   // ellers Danmarks centrum. Open-Meteo kan levere op til 16 dage frem.
