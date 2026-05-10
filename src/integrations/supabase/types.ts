@@ -2602,24 +2602,10 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "route_planner_events_base_route_id_fkey"
-            columns: ["base_route_id"]
-            isOneToOne: false
-            referencedRelation: "routes"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "route_planner_events_business_id_fkey"
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "route_planner_events_route_id_fkey"
-            columns: ["route_id"]
-            isOneToOne: false
-            referencedRelation: "routes"
             referencedColumns: ["id"]
           },
         ]
