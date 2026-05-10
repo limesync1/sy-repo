@@ -70,18 +70,31 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops }: Props) => 
     setMoving(true);
     let movedCount = 0;
     let errorCount = 0;
+    let missingEmployee = 0;
     try {
+      // Fallback: hvis et stop ikke har en explicit medarbejder, brug en
+      // medarbejder der er tilknyttet kilderuten (route_employees).
+      const { data: routeEmps } = await supabase
+        .from("route_employees")
+        .select("employee_id")
+        .eq("route_id", route.id)
+        .order("created_at", { ascending: true });
+      const fallbackEmployeeId =
+        (routeEmps && routeEmps[0]?.employee_id) ||
+        (route as any).employee_id ||
+        null;
+
       for (const stopId of selected) {
         const stop = stops.find((s) => s.id === stopId);
         if (!stop) continue;
-        // Vælg medarbejder: stop's første assignee → ellers rutens employee
+        // Vælg medarbejder: stop's første assignee → ellers rutens medarbejder.
         const employeeId =
           (Array.isArray(stop.assignee_ids) && stop.assignee_ids[0]) ||
           stop.assigned_employee_id ||
-          (route as any).employee_id ||
+          fallbackEmployeeId ||
           null;
         if (!employeeId) {
-          errorCount++;
+          missingEmployee++;
           continue;
         }
         const { data: targetRouteId, error: rpcErr } = await supabase.rpc(
@@ -115,10 +128,16 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops }: Props) => 
           `${movedCount} aftale${movedCount === 1 ? "" : "r"} flyttet til ${format(parseISO(targetDate), "EEEE d. MMM", { locale: da })}`,
         );
       }
+      if (missingEmployee > 0) {
+        toast.error(
+          `${missingEmployee} aftale${missingEmployee === 1 ? "" : "r"} mangler en medarbejder`,
+          { description: "Tilknyt en medarbejder til ruten eller aftalen, og prøv igen." },
+        );
+      }
       if (errorCount > 0) {
         toast.error(
           `${errorCount} aftale${errorCount === 1 ? "" : "r"} kunne ikke flyttes`,
-          { description: "Tjek at aftalerne har en tilknyttet medarbejder." },
+          { description: "Prøv igen — tjek netværksforbindelsen eller genindlæs siden." },
         );
       }
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
