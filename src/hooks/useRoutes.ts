@@ -796,6 +796,7 @@ export const useDeleteRoute = () => {
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
       qc.invalidateQueries({ queryKey: ["route-employees-bulk"] });
       qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
+      qc.invalidateQueries({ queryKey: ["unassigned-occurrences"] });
     },
     onError: (e: any) => toast.error(e.message || "Kunne ikke slette rute"),
   });
