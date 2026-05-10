@@ -34,9 +34,11 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon,
-  Loader2, Search, Plus, Inbox, ArrowUpDown, X, Keyboard,
+  Loader2, Search, Plus, Inbox, ArrowUpDown, X, Keyboard, Filter,
   ShoppingBag, Route as RouteIcon, Tag, Palette,
 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import { format, addDays, addWeeks, addMonths, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { da } from "date-fns/locale";
 import { toast } from "sonner";
@@ -61,6 +63,14 @@ import { useQuery } from "@tanstack/react-query";
 import { expandRecurringRoutes } from "@/lib/recurring-projection";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
+
+/** Konverterer "HH:MM[:SS]" til minutter siden midnat (eller null). */
+const toMin = (t: string | null | undefined): number | null => {
+  if (!t) return null;
+  const [h, m] = t.split(":").map((n) => parseInt(n, 10));
+  if (Number.isNaN(h) || Number.isNaN(m)) return null;
+  return h * 60 + m;
+};
 
 const RoutePlanner = () => {
   const { user, loading } = useAuth();
@@ -178,6 +188,35 @@ const Planner = () => {
   // Pr-rute "pending" state — kun den rute der faktisk optimeres viser spinner
   const [optimizingRouteId, setOptimizingRouteId] = useState<string | null>(null);
 
+  // ── Filtre: kun vis stops for valgte assignees / forekomst-statusser ──
+  const [filterAssigneeIds, setFilterAssigneeIds] = useState<string[]>([]);
+  const [filterStatuses, setFilterStatuses] = useState<string[]>([]);
+  const STATUS_OPTIONS: { value: string; label: string }[] = [
+    { value: "planned",   label: "Planlagt" },
+    { value: "confirmed", label: "Bekræftet" },
+    { value: "in_progress", label: "I gang" },
+    { value: "completed", label: "Færdig" },
+    { value: "cancelled", label: "Aflyst" },
+  ];
+  const filtersActive = filterAssigneeIds.length > 0 || filterStatuses.length > 0;
+
+  /** Stops efter filter — bruges både til rute-bygger og kalender-kort. */
+  const visibleCalendarStops = useMemo(() => {
+    if (!filtersActive) return calendarStops;
+    return calendarStops.filter((s: any) => {
+      if (filterAssigneeIds.length > 0) {
+        const ids = (s.assignee_ids || []) as string[];
+        if (!ids.some((id) => filterAssigneeIds.includes(id))) return false;
+      }
+      if (filterStatuses.length > 0) {
+        const occ = (s.occurrence_status as string | undefined) ?? null;
+        const eff = occ ?? s.status; // forekomst-status er kanonisk, fallback til legacy stop-status
+        if (!filterStatuses.includes(eff)) return false;
+      }
+      return true;
+    });
+  }, [calendarStops, filterAssigneeIds, filterStatuses, filtersActive]);
+
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   /** Kundens ønskede dato — preferred_date primært, ellers next_service_date (abonnement). */
@@ -270,7 +309,7 @@ const Planner = () => {
   /* Build CalendarRoute[] for MonthWeekCalendar (range covers month/week view) */
   const calendarRoutes: CalendarRoute[] = useMemo(() => {
     const stopsByRoute = new Map<string, RouteStop[]>();
-    for (const s of calendarStops) {
+    for (const s of visibleCalendarStops) {
       const arr = stopsByRoute.get(s.route_id) || [];
       arr.push(s);
       stopsByRoute.set(s.route_id, arr);
@@ -308,7 +347,7 @@ const Planner = () => {
         attachedEmployeeCount: emps.length,
       };
     });
-  }, [calendarRoutesRaw, calendarStops, activeEmployees]);
+  }, [calendarRoutesRaw, visibleCalendarStops, activeEmployees]);
 
   /* ─── Gentagende ruter: hent aktive abonnementer med preferred_route_id og
          projicér virtuelle forekomster på fremtidige datoer (op til 6 mdr.).
@@ -467,6 +506,49 @@ const Planner = () => {
     setActiveDragData(e.active.data.current);
   };
 
+  /** Tjekker om en flytning af et stop til en ny dato vil overlappe
+   *  med en assignees øvrige stops på den dato. Returnerer en kort
+   *  beskrivende tekst (eller null hvis ingen konflikt). */
+  const detectAssigneeConflicts = (
+    stop: any,
+    targetDate: string,
+  ): string | null => {
+    const assignees: string[] = stop.assignee_ids || (stop.assigned_employee_id ? [stop.assigned_employee_id] : []);
+    if (assignees.length === 0) return null;
+    const dur = Number(stop.duration_minutes || 30);
+    const startMin = stop.planned_arrival
+      ? (() => { const d = new Date(stop.planned_arrival); return d.getHours() * 60 + d.getMinutes(); })()
+      : (stop.time_window_start ? toMin(stop.time_window_start) : null);
+    if (startMin == null) return null;
+    const endMin = startMin + dur;
+
+    // Find route_ids på targetDate
+    const targetRouteIds = new Set(
+      calendarRoutesRaw.filter((r) => r.route_date === targetDate).map((r) => r.id),
+    );
+    if (targetRouteIds.size === 0) return null;
+
+    const conflicts: string[] = [];
+    for (const other of calendarStops) {
+      if (other.id === stop.id) continue;
+      if (!targetRouteIds.has(other.route_id)) continue;
+      const otherIds: string[] = (other as any).assignee_ids || [];
+      const overlap = otherIds.some((id) => assignees.includes(id));
+      if (!overlap) continue;
+      const oStart = (other as any).planned_arrival
+        ? (() => { const d = new Date((other as any).planned_arrival); return d.getHours() * 60 + d.getMinutes(); })()
+        : (other.time_window_start ? toMin(other.time_window_start) : null);
+      if (oStart == null) continue;
+      const oEnd = oStart + Number(other.duration_minutes || 30);
+      if (startMin < oEnd && oStart < endMin) {
+        conflicts.push(other.customer_name || "Stop");
+      }
+    }
+    return conflicts.length === 0
+      ? null
+      : `Overlapper med ${conflicts.length === 1 ? conflicts[0] : `${conflicts.length} andre stops`}`;
+  };
+
   const handleDragEnd = async (e: DragEndEvent) => {
     const { active, over } = e;
     setActiveDragId(null);
@@ -577,6 +659,44 @@ const Planner = () => {
         toast.success(`Ny rute oprettet på ${format(parseISO(newDate), "d. MMM", { locale: da })}`);
       } catch (err: any) {
         toast.error(err.message || "Kunne ikke oprette rute");
+      }
+      return;
+    }
+
+    // ── Træk et eksisterende stop fra én rute → en anden dag ──
+    // Bruger move_stops_to_date som finder/opretter målrute pr. assignee
+    // og opdaterer agreement_occurrences via DB-trigger.
+    if (activeData?.type === "stop" && overData?.type === "day") {
+      const stop = activeData.stop;
+      const newDate: string = overData.date;
+      // Find aktuel rute-dato — undgå "flytning" til samme dag
+      const currentRoute = calendarRoutesRaw.find((r) => r.id === stop.route_id);
+      if (currentRoute && currentRoute.route_date === newDate) return;
+
+      // Konflikt-tjek: advar hvis assignee har overlappende stops på dato
+      const conflictMsg = detectAssigneeConflicts(stop, newDate);
+      try {
+        const { data, error } = await supabase.rpc("move_stops_to_date", {
+          _stop_ids: [stop.id],
+          _target_date: newDate,
+        });
+        if (error) throw error;
+        const row = Array.isArray(data) ? data[0] : data;
+        const moved = Number(row?.moved_count ?? 0);
+        const missing = Number(row?.missing_employee_count ?? 0);
+        if (moved > 0) {
+          toast.success(
+            `Stop flyttet til ${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`,
+            conflictMsg ? { description: `⚠️ ${conflictMsg} — tjek tidsplanen` } : undefined,
+          );
+        }
+        if (missing > 0) {
+          toast.error("Stoppet mangler en medarbejder for at kunne flyttes", {
+            description: "Tilknyt en medarbejder til ruten eller aftalen, og prøv igen.",
+          });
+        }
+      } catch (err: any) {
+        toast.error(err.message || "Kunne ikke flytte stop");
       }
       return;
     }
@@ -764,6 +884,112 @@ const Planner = () => {
                 <TabsTrigger value="week" className="text-xs h-5 px-2">Uge</TabsTrigger>
               </TabsList>
             </Tabs>
+
+            {/* Filtre — assignee og forekomst-status */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={filtersActive ? "default" : "outline"}
+                  size="sm"
+                  className="h-7 gap-1.5"
+                >
+                  <Filter className="h-3.5 w-3.5" />
+                  Filtre
+                  {filtersActive && (
+                    <Badge variant="secondary" className="h-4 px-1 text-[10px] tabular-nums">
+                      {filterAssigneeIds.length + filterStatuses.length}
+                    </Badge>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-72 p-3 space-y-3">
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <Label className="text-xs font-semibold">Medarbejdere</Label>
+                    {filterAssigneeIds.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setFilterAssigneeIds([])}
+                        className="text-[10px] text-muted-foreground hover:text-foreground"
+                      >
+                        Ryd
+                      </button>
+                    )}
+                  </div>
+                  <div className="max-h-48 overflow-y-auto space-y-1 rounded border p-1.5">
+                    {activeEmployees.length === 0 && (
+                      <p className="text-[11px] text-muted-foreground px-1.5 py-1">Ingen medarbejdere</p>
+                    )}
+                    {activeEmployees.map((emp: any) => {
+                      const checked = filterAssigneeIds.includes(emp.id);
+                      return (
+                        <label
+                          key={emp.id}
+                          className="flex items-center gap-2 px-1.5 py-1 rounded hover:bg-secondary cursor-pointer text-xs"
+                        >
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={(v) =>
+                              setFilterAssigneeIds((prev) =>
+                                v ? [...prev, emp.id] : prev.filter((id) => id !== emp.id),
+                              )
+                            }
+                          />
+                          <span className="truncate">{emp.name}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <Label className="text-xs font-semibold">Status</Label>
+                    {filterStatuses.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setFilterStatuses([])}
+                        className="text-[10px] text-muted-foreground hover:text-foreground"
+                      >
+                        Ryd
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-1 rounded border p-1.5">
+                    {STATUS_OPTIONS.map((opt) => {
+                      const checked = filterStatuses.includes(opt.value);
+                      return (
+                        <label
+                          key={opt.value}
+                          className="flex items-center gap-2 px-1.5 py-1 rounded hover:bg-secondary cursor-pointer text-xs"
+                        >
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={(v) =>
+                              setFilterStatuses((prev) =>
+                                v ? [...prev, opt.value] : prev.filter((s) => s !== opt.value),
+                              )
+                            }
+                          />
+                          <span>{opt.label}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {filtersActive && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full h-7 text-xs"
+                    onClick={() => { setFilterAssigneeIds([]); setFilterStatuses([]); }}
+                  >
+                    Nulstil alle filtre
+                  </Button>
+                )}
+              </PopoverContent>
+            </Popover>
 
             <div className="flex items-center gap-1.5">
               <Button
@@ -1026,7 +1252,12 @@ const Planner = () => {
                     handleOptimize(id, r?.name ?? null);
                   }}
                   optimizingRouteId={optimizingRouteId}
-                  draggingType={activeDragData?.type === "job" ? "job" : activeDragData?.type === "route" ? "route" : null}
+                  draggingType={
+                    activeDragData?.type === "job" ? "job"
+                      : activeDragData?.type === "route" ? "route"
+                      : activeDragData?.type === "stop" ? "stop"
+                      : null
+                  }
                   weatherByDate={weatherByDate}
                   loadingRoutes={loadingCalendarRoutes || loadingCalendarStops}
                   loadingWeather={loadingWeather}
