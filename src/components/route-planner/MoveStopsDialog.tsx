@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, ArrowRight, CalendarDays, Route as RouteIcon } from "lucide-react";
+import { Loader2, ArrowRight, CalendarDays, Route as RouteIcon, Check, MapPin } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { toast } from "sonner";
@@ -24,9 +24,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import type { Route, RouteStop } from "@/hooks/useRoutes";
 import { invalidateRouteSyncQueries } from "@/hooks/useRoutes";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -66,12 +63,18 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops }: Props) => 
     queryFn: async () => {
       const { data, error } = await supabase
         .from("routes")
-        .select("id, route_date, name, color")
+        .select("id, route_date, name, color, route_stops(count)")
         .eq("business_id", route!.business_id)
         .neq("id", route!.id)
         .order("route_date", { ascending: true });
       if (error) throw error;
-      return (data || []) as Array<{ id: string; route_date: string; name: string | null; color: string }>;
+      return (data || []).map((r: any) => ({
+        id: r.id as string,
+        route_date: r.route_date as string,
+        name: (r.name as string | null) ?? null,
+        color: r.color as string,
+        stop_count: Number(r.route_stops?.[0]?.count ?? 0),
+      }));
     },
   });
 
@@ -293,35 +296,63 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops }: Props) => 
               </>
             ) : (
               <>
-                <Select value={targetRouteId} onValueChange={setTargetRouteId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Vælg målrute…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {otherRoutes.length === 0 && (
-                      <div className="p-2 text-xs text-muted-foreground">Ingen andre ruter</div>
-                    )}
-                    {otherRoutes.map((r) => (
-                      <SelectItem key={r.id} value={r.id}>
-                        <span className="flex items-center gap-2">
-                          <span
-                            className="inline-block h-2.5 w-2.5 rounded-full"
-                            style={{ background: r.color }}
-                          />
-                          <span className="capitalize">
-                            {format(parseISO(r.route_date), "EEE d. MMM", { locale: da })}
-                          </span>
-                          <span className="text-muted-foreground">
-                            — {r.name || "Rute"}
-                          </span>
+                <div className="max-h-[220px] overflow-y-auto rounded-md border divide-y bg-background">
+                  {otherRoutes.length === 0 && (
+                    <div className="p-4 text-center text-sm text-muted-foreground">
+                      Der er ingen andre ruter at flytte til.
+                    </div>
+                  )}
+                  {otherRoutes.map((r) => {
+                    const isSelected = targetRouteId === r.id;
+                    return (
+                      <button
+                        key={r.id}
+                        type="button"
+                        onClick={() => setTargetRouteId(r.id)}
+                        className={cn(
+                          "w-full flex items-center gap-3 p-2.5 text-left transition-colors",
+                          isSelected ? "bg-accent/10" : "hover:bg-secondary/50",
+                        )}
+                      >
+                        <span
+                          className="h-9 w-1.5 rounded-full shrink-0"
+                          style={{ background: r.color }}
+                          aria-hidden
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-medium truncate">
+                              {r.name || "Rute uden navn"}
+                            </p>
+                            <span className="text-[10px] uppercase tracking-wide text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">
+                              {r.stop_count} {r.stop_count === 1 ? "stop" : "stops"}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground capitalize flex items-center gap-1">
+                            <CalendarDays className="h-3 w-3" />
+                            {format(parseISO(r.route_date), "EEEE d. MMM yyyy", { locale: da })}
+                          </p>
+                        </div>
+                        <span
+                          className={cn(
+                            "h-5 w-5 rounded-full border flex items-center justify-center shrink-0 transition-colors",
+                            isSelected
+                              ? "bg-accent border-accent text-accent-foreground"
+                              : "border-border bg-background",
+                          )}
+                        >
+                          {isSelected && <Check className="h-3 w-3" />}
                         </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="mt-1.5 text-[11px] text-muted-foreground">
-                  Aftalerne tilføjes til slutningen af den valgte rute.
-                </p>
+                      </button>
+                    );
+                  })}
+                </div>
+                {targetRouteId && (
+                  <p className="mt-1.5 text-[11px] text-muted-foreground flex items-center gap-1">
+                    <MapPin className="h-3 w-3" />
+                    Aftalerne tilføjes til slutningen af den valgte rute.
+                  </p>
+                )}
               </>
             )}
           </div>
