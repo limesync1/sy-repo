@@ -3354,6 +3354,10 @@ export type Database = {
         Args: { _business_id: string }
         Returns: undefined
       }
+      materialize_occurrence_to_route: {
+        Args: { _occurrence_id: string; _target_route_id: string }
+        Returns: string
+      }
       materialize_occurrences_to_routes: {
         Args: { _business_id: string; _from: string; _to: string }
         Returns: number

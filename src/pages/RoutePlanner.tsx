@@ -8,6 +8,7 @@ import {
   useAddStop,
   useOptimizeRoute, useGeocodeAddress, useRoutesForRange,
   useCreateRoute, useDeleteRoute, useUpdateRoute,
+  useUnassignedOccurrences, useMaterializeOccurrenceToRoute,
   type RouteStop, type Route,
 } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
@@ -31,9 +32,9 @@ import {
 } from "@/components/ui/resizable";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
-  ChevronLeft, ChevronRight, Calendar as CalendarIcon,
+  ChevronLeft, ChevronRight,
   Loader2, Search, Plus, Inbox, ArrowUpDown, X, Keyboard,
-  ShoppingBag, Route as RouteIcon, Tag, Palette, Layers,
+  Route as RouteIcon, Tag, Palette,
   Wand2,
 } from "lucide-react";
 import { format, addDays, addWeeks, addMonths, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
@@ -50,8 +51,6 @@ import { RouteEditSheet, ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor }
 import { DatePickerField } from "@/components/route-planner/DatePickerField";
 import { RouteStopsPanel } from "@/components/route-planner/RouteStopsPanel";
 import { supabase } from "@/integrations/supabase/client";
-import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
-import { RouteTemplatesDialog } from "@/components/route-planner/RouteTemplatesDialog";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
 import { AdminShell } from "@/components/admin/shared/AdminShell";
 import { StatusPill } from "@/components/admin/shared/StatusPill";
@@ -78,9 +77,7 @@ const Planner = () => {
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragData, setActiveDragData] = useState<any>(null);
   const [geocoding, setGeocoding] = useState(false);
-  const [createOrderOpen, setCreateOrderOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
-  const [templatesOpen, setTemplatesOpen] = useState(false);
   const [materializing, setMaterializing] = useState(false);
   const [newRouteName, setNewRouteName] = useState("");
   const [newRouteColor, setNewRouteColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
@@ -94,7 +91,16 @@ const Planner = () => {
   const { data: employees = [] } = useEmployees(businessId);
   const activeEmployees = useMemo(() => employees.filter((e: any) => e.is_active), [employees]);
 
-  const { data: unassigned = [] } = useUnassignedJobs(businessId);
+  const { data: unassignedOrders = [] } = useUnassignedJobs(businessId);
+  const { data: unassignedOccurrences = [] } = useUnassignedOccurrences(businessId);
+  const materializeOccurrence = useMaterializeOccurrenceToRoute();
+  // Slå almindelige ordrer (ad-hoc bestillinger uden rute) sammen med
+  // aftale-forekomster (faste aftaler hvor næste gang ikke er på en rute endnu).
+  // Begge skal kunne trækkes ind på en rute fra samme panel.
+  const unassigned = useMemo(
+    () => [...unassignedOrders, ...unassignedOccurrences],
+    [unassignedOrders, unassignedOccurrences],
+  );
 
   // Range for kalender: hele måneden hvis month-view, ugen hvis week-view
   const calendarRange = useMemo(() => {
@@ -424,6 +430,14 @@ const Planner = () => {
       }
       const targetRouteId: string = overData.routeId;
       try {
+        if (job.source === "occurrence" && job.occurrence_id) {
+          await materializeOccurrence.mutateAsync({
+            occurrence_id: job.occurrence_id,
+            route_id: targetRouteId,
+          });
+          toast.success("Aftale tilføjet til ruten");
+          return;
+        }
         const { data: existingStops } = await supabase
           .from("route_stops").select("id").eq("route_id", targetRouteId);
         await addStop.mutateAsync({
@@ -468,6 +482,14 @@ const Planner = () => {
           name: null,
           color: pickAvailableColor(usedColorsThisDay),
         });
+        if (job.source === "occurrence" && job.occurrence_id) {
+          await materializeOccurrence.mutateAsync({
+            occurrence_id: job.occurrence_id,
+            route_id: created.id,
+          });
+          toast.success(`Ny rute oprettet på ${format(parseISO(newDate), "d. MMM", { locale: da })}`);
+          return;
+        }
         await addStop.mutateAsync({
           route_id: created.id,
           order_id: job.id,
@@ -755,26 +777,6 @@ const Planner = () => {
               </Dialog>
 
               <Button
-                data-tour="routes-create-order"
-                variant="default"
-                size="sm"
-                className="h-7"
-                onClick={() => setCreateOrderOpen(true)}
-              >
-                <ShoppingBag className="h-3.5 w-3.5 mr-1" />Manuelt stop
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7"
-                onClick={() => setTemplatesOpen(true)}
-                title="Rute-skabeloner"
-              >
-                <Layers className="h-3.5 w-3.5 mr-1" />Skabeloner
-              </Button>
-
-              <Button
                 variant="outline"
                 size="sm"
                 className="h-7"
@@ -965,23 +967,6 @@ const Planner = () => {
             </ResizablePanelGroup>
         </div>
 
-        {/* Manuel ordre-oprettelse — kunde modtager mail med godkendelseslink */}
-        {businessId && (
-          <CreateManualOrderDialog
-            open={createOrderOpen}
-            onOpenChange={setCreateOrderOpen}
-            businessId={businessId}
-            businessName={business?.name || ""}
-          />
-        )}
-
-        {businessId && (
-          <RouteTemplatesDialog
-            open={templatesOpen}
-            onOpenChange={setTemplatesOpen}
-            businessId={businessId}
-          />
-        )}
 
         {/* Slet rute bekræftelse */}
         <AlertDialog open={!!routeToDelete} onOpenChange={(o) => !o && setRouteToDelete(null)}>
