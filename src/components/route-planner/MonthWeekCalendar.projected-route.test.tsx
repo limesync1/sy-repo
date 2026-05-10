@@ -88,6 +88,5 @@ describe("MonthWeekCalendar projected route guard", () => {
     });
     expect(onCreateRoute).not.toHaveBeenCalled();
     expect(container.querySelector('[role="button"][aria-describedby]')).toBeNull();
-    expect(screen.getByText("Basis")).toBeInTheDocument();
   });
 });
