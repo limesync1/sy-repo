@@ -1439,6 +1439,7 @@ const ServiceForm = ({
         product_number: productNumber.trim() || null,
         vat_zone: vatZone || null,
         is_active: isActive,
+        default_employee_id: defaultEmployeeId || null,
       };
 
       if (existingService) {
