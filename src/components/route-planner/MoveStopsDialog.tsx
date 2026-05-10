@@ -23,6 +23,11 @@ import { DatePickerField } from "./DatePickerField";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Route, RouteStop } from "@/hooks/useRoutes";
+import { invalidateRouteSyncQueries } from "@/hooks/useRoutes";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -37,6 +42,8 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops }: Props) => 
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [targetDate, setTargetDate] = useState<string>("");
   const [moving, setMoving] = useState(false);
+  const [emptyRouteConfirm, setEmptyRouteConfirm] = useState<{ id: string; date: string } | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -96,18 +103,45 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops }: Props) => 
           { description: "Tilknyt en medarbejder til ruten eller aftalen, og prøv igen." },
         );
       }
-      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
-      qc.invalidateQueries({ queryKey: ["routes-range"] });
-      qc.invalidateQueries({ queryKey: ["routes"] });
-      if (movedCount > 0) onOpenChange(false);
+      invalidateRouteSyncQueries(qc);
+      await qc.refetchQueries({ queryKey: ["route-calendar"] });
+      if (movedCount > 0) {
+        // Tjek om kilderuten nu er tom — så tilbyd at slette den
+        const { count } = await supabase
+          .from("route_stops")
+          .select("id", { count: "exact", head: true })
+          .eq("route_id", route.id);
+        onOpenChange(false);
+        if ((count ?? 0) === 0) {
+          setEmptyRouteConfirm({ id: route.id, date: route.route_date });
+        }
+      }
     } finally {
       setMoving(false);
+    }
+  };
+
+  const handleDeleteEmptyRoute = async () => {
+    if (!emptyRouteConfirm) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase.from("routes").delete().eq("id", emptyRouteConfirm.id);
+      if (error) {
+        toast.error("Kunne ikke slette rute", { description: error.message });
+        return;
+      }
+      toast.success("Tom rute slettet");
+      invalidateRouteSyncQueries(qc);
+      setEmptyRouteConfirm(null);
+    } finally {
+      setDeleting(false);
     }
   };
 
   if (!route) return null;
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
@@ -200,5 +234,23 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops }: Props) => 
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    <AlertDialog open={!!emptyRouteConfirm} onOpenChange={(o) => !o && setEmptyRouteConfirm(null)}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Slet tom rute?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Ruten {emptyRouteConfirm ? format(parseISO(emptyRouteConfirm.date), "EEEE d. MMM", { locale: da }) : ""} har ikke længere nogen aftaler. Vil du slette den?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={deleting}>Behold rute</AlertDialogCancel>
+          <AlertDialogAction onClick={handleDeleteEmptyRoute} disabled={deleting}>
+            {deleting && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
+            Slet rute
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 };
