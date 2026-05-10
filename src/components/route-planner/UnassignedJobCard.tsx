@@ -201,6 +201,9 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
           {schedule && (
             <div className={`flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] font-medium ${schedule.tone}`}>
               <CalendarClock className="h-3 w-3 shrink-0" />
+              <span className="opacity-70 font-normal">
+                {hasRecurringInterval ? "Næste:" : "Opstart:"}
+              </span>
               <span className="font-semibold">{schedule.dayLabel}</span>
               <span className="opacity-80">· {schedule.relative}</span>
               {job.preferred_time_start && (
