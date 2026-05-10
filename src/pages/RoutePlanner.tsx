@@ -625,6 +625,17 @@ const Planner = () => {
           isVirtual: true,
           sequence: s.sequence ?? i,
         }));
+        // Saml medarbejdere fra basis-rutens stops så virtuelle ruter også
+        // viser tilknyttede medarbejdere på kalender-kortet.
+        const empIds = new Set<string>();
+        for (const s of projectedStops) {
+          const ids = s.assignee_ids ?? (s.assigned_employee_id ? [s.assigned_employee_id] : []);
+          for (const id of ids) if (id) empIds.add(id);
+        }
+        const emps = Array.from(empIds)
+          .map((id) => activeEmployees.find((e: any) => e.id === id))
+          .filter(Boolean)
+          .map((e: any) => ({ id: e.id, name: e.name, avatar_url: e.avatar_url, color: e.color }));
         return {
           ...base,
           id: p.id,
@@ -634,13 +645,13 @@ const Planner = () => {
           // hedder det samme i kalenderen (i stedet for "Kørsel <dato>").
           name: base.name || (base.route_date ? `Kørsel ${format(parseISO(base.route_date), "d/M")}` : null),
           stops: projectedStops,
-          attachedEmployees: [],
-          attachedEmployeeCount: 0,
+          attachedEmployees: emps,
+          attachedEmployeeCount: emps.length,
           isVirtual: true,
         } as CalendarRoute;
       })
       .filter(Boolean) as CalendarRoute[];
-  }, [recurringSources, recurringBaseRoutes, calendarRoutesRaw, calendarRange.start, calendarRange.end]);
+  }, [recurringSources, recurringBaseRoutes, calendarRoutesRaw, calendarRange.start, calendarRange.end, activeEmployees]);
 
   /* ─── Fallback-projektion fra agreement_occurrences ───
      Tilbagevendende aftaler genererer planlagte forekomster (`agreement_occurrences`)
