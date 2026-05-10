@@ -3375,6 +3375,13 @@ export type Database = {
         Args: { _business_id: string; _from: string; _to: string }
         Returns: number
       }
+      move_stops_to_date: {
+        Args: { _stop_ids: string[]; _target_date: string }
+        Returns: {
+          missing_employee_count: number
+          moved_count: number
+        }[]
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -3387,6 +3394,10 @@ export type Database = {
       order_group_has_active_approval_token: {
         Args: { _parent_order_id: string }
         Returns: boolean
+      }
+      pick_route_color: {
+        Args: { _business_id: string; _route_date: string }
+        Returns: string
       }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
