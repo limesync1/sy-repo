@@ -24,10 +24,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import type { Route, RouteStop } from "@/hooks/useRoutes";
 import { invalidateRouteSyncQueries } from "@/hooks/useRoutes";
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 
 type Props = {
