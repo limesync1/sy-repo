@@ -51,7 +51,6 @@ import { RouteEditSheet, ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor }
 import { DatePickerField } from "@/components/route-planner/DatePickerField";
 import { RouteStopsPanel } from "@/components/route-planner/RouteStopsPanel";
 import { supabase } from "@/integrations/supabase/client";
-import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
 import { AdminShell } from "@/components/admin/shared/AdminShell";
 import { StatusPill } from "@/components/admin/shared/StatusPill";
@@ -78,7 +77,6 @@ const Planner = () => {
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragData, setActiveDragData] = useState<any>(null);
   const [geocoding, setGeocoding] = useState(false);
-  const [createOrderOpen, setCreateOrderOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [materializing, setMaterializing] = useState(false);
   const [newRouteName, setNewRouteName] = useState("");
@@ -946,15 +944,6 @@ const Planner = () => {
             </ResizablePanelGroup>
         </div>
 
-        {/* Manuel ordre-oprettelse — kunde modtager mail med godkendelseslink */}
-        {businessId && (
-          <CreateManualOrderDialog
-            open={createOrderOpen}
-            onOpenChange={setCreateOrderOpen}
-            businessId={businessId}
-            businessName={business?.name || ""}
-          />
-        )}
 
         {/* Slet rute bekræftelse */}
         <AlertDialog open={!!routeToDelete} onOpenChange={(o) => !o && setRouteToDelete(null)}>
