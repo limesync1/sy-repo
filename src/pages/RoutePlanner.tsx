@@ -60,7 +60,9 @@ import { AdminShell } from "@/components/admin/shared/AdminShell";
 import { useWeatherForecast, type WeatherDay } from "@/hooks/useWeather";
 import { ShellSkeleton } from "@/components/admin/shared/Skeletons";
 import { useQuery } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { expandRecurringRoutes } from "@/lib/recurring-projection";
+import { invalidateRouteSyncQueries } from "@/hooks/useRoutes";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -81,6 +83,7 @@ const RoutePlanner = () => {
 
 const Planner = () => {
   const { data: business } = useMyBusiness();
+  const qc = useQueryClient();
   const [date, setDate] = useState<string>(todayStr());
   const [view, setView] = useState<"month" | "week">("month");
   const [search, setSearch] = useState("");
@@ -100,6 +103,26 @@ const Planner = () => {
   const [distributing, setDistributing] = useState(false);
   const businessId = business?.id;
   const routePlanningEnabled = !!(business?.settings as any)?.route_planning_enabled;
+
+  // Realtime: når ruter, stops, aftaler eller forekomster ændres et andet sted
+  // (anden bruger, baggrundsjob, mobilapp), invalider queries så kalenderen
+  // og aftalepoolen opdateres uden manuel refresh.
+  useEffect(() => {
+    if (!businessId) return;
+    const filter = `business_id=eq.${businessId}`;
+    const channel = supabase
+      .channel(`route-planner:${businessId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "routes", filter }, () => invalidateRouteSyncQueries(qc))
+      .on("postgres_changes", { event: "*", schema: "public", table: "agreements", filter }, () => {
+        invalidateRouteSyncQueries(qc);
+        qc.invalidateQueries({ queryKey: ["recurring-agreements-for-planner"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "agreement_occurrences" }, () => invalidateRouteSyncQueries(qc))
+      .on("postgres_changes", { event: "*", schema: "public", table: "route_stops" }, () => invalidateRouteSyncQueries(qc))
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders", filter }, () => invalidateRouteSyncQueries(qc))
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [businessId, qc]);
 
   const { data: employees = [] } = useEmployees(businessId);
   const activeEmployees = useMemo(() => employees.filter((e: any) => e.is_active), [employees]);
