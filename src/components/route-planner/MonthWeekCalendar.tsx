@@ -324,16 +324,19 @@ type RoutePillProps = {
 };
 
 const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing, compact, jobDragActive }: RoutePillProps) => {
-  // Drag-handle: hele pillen kan trækkes til ny dato
+  const isVirtual = !!route.isVirtual;
+  // Drag-handle: hele pillen kan trækkes til ny dato (kun rigtige ruter).
   const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({
     id: `route:${route.id}`,
     data: { type: "route", route },
+    disabled: isVirtual,
   });
 
-  // Drop-zone: aftaler kan slippes på pillen for at blive tilføjet til ruten
+  // Drop-zone: aftaler kan slippes på pillen for at blive tilføjet til ruten.
   const { setNodeRef: setDropRef, isOver } = useDroppable({
     id: `route-drop:${route.id}`,
     data: { type: "route", routeId: route.id, date: route.route_date },
+    disabled: isVirtual,
   });
 
   // Combined ref
@@ -355,39 +358,53 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
         "relative rounded-md border-l-4 cursor-pointer transition-all overflow-hidden bg-card hover:shadow-sm",
         "border border-border/60",
         isDragging && "opacity-40",
+        isVirtual && "opacity-55 hover:opacity-80 bg-card/60 border-dashed",
         // Når en aftale er ved at blive sluppet på pillen — markér tydeligt
-        jobDragActive && !isOver && "ring-1 shadow-sm",
-        isOver && "ring-2 ring-accent shadow-md scale-[1.02]",
+        !isVirtual && jobDragActive && !isOver && "ring-1 shadow-sm",
+        !isVirtual && isOver && "ring-2 ring-accent shadow-md scale-[1.02]",
       )}
       style={{
         borderLeftColor: route.color,
-        ...(jobDragActive && !isOver
+        ...(!isVirtual && jobDragActive && !isOver
           ? { boxShadow: `0 0 0 1px ${route.color}40, 0 1px 3px ${route.color}20` }
           : {}),
       }}
+      title={isVirtual ? "Planlagt gentagende rute — låst indtil forrige er udført" : undefined}
     >
       <div
-        {...listeners}
-        {...attributes}
-        className="px-2 py-1 flex items-center justify-between gap-1 cursor-grab active:cursor-grabbing"
+        {...(isVirtual ? {} : listeners)}
+        {...(isVirtual ? {} : attributes)}
+        className={cn(
+          "px-2 py-1 flex items-center justify-between gap-1",
+          isVirtual ? "cursor-default" : "cursor-grab active:cursor-grabbing",
+        )}
       >
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-semibold truncate text-foreground leading-tight">
-            {route.name || `Kørsel ${format(parseISO(route.route_date), "d/M")}`}
+          <p className="text-[11px] font-semibold truncate text-foreground leading-tight flex items-center gap-1">
+            {isVirtual && <Repeat className="h-2.5 w-2.5 shrink-0 text-muted-foreground" />}
+            <span className="truncate">{route.name || `Kørsel ${format(parseISO(route.route_date), "d/M")}`}</span>
           </p>
           {!compact ? (
             <div className="flex items-center gap-1 text-[10px] text-muted-foreground tabular-nums mt-0.5">
-              <MapPin className="h-2.5 w-2.5" />{stopCount}
-              {completedCount > 0 && <span className="text-emerald-600">({completedCount}✓)</span>}
+              {isVirtual ? (
+                <span className="inline-flex items-center gap-0.5"><Lock className="h-2.5 w-2.5" />Gentages</span>
+              ) : (
+                <>
+                  <MapPin className="h-2.5 w-2.5" />{stopCount}
+                  {completedCount > 0 && <span className="text-emerald-600">({completedCount}✓)</span>}
+                </>
+              )}
             </div>
           ) : (
-            stopCount > 0 && (
+            isVirtual ? (
+              <p className="text-[9px] text-muted-foreground italic">Gentages</p>
+            ) : stopCount > 0 && (
               <p className="text-[9px] text-muted-foreground tabular-nums">{stopCount} stop</p>
             )
           )}
         </div>
         {/* Medarbejder-avatarer */}
-        {visibleEmployees.length > 0 && (
+        {!isVirtual && visibleEmployees.length > 0 && (
           <div className="flex -space-x-1 shrink-0" title={route.attachedEmployees.map((e) => e.name).join(", ")}>
             {visibleEmployees.map((emp) =>
               emp.avatar_url ? (
@@ -416,12 +433,12 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
             )}
           </div>
         )}
-        {visibleEmployees.length === 0 && route.attachedEmployeeCount === 0 && !compact && (
+        {!isVirtual && visibleEmployees.length === 0 && route.attachedEmployeeCount === 0 && !compact && (
           <span className="text-[9px] text-muted-foreground italic flex items-center gap-0.5 shrink-0">
             <Users className="h-2.5 w-2.5" />0
           </span>
         )}
-        {stopCount >= 2 && (
+        {!isVirtual && stopCount >= 2 && (
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onOptimize(); }}
@@ -438,7 +455,7 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
       </div>
 
       {/* Stops under ruten — kun i uge-visning (mere plads) */}
-      {!compact && stopCount > 0 && (
+      {!isVirtual && !compact && stopCount > 0 && (
         <div className="border-t border-border/40 bg-secondary/20 max-h-32 overflow-y-auto">
           {route.stops
             .slice()
