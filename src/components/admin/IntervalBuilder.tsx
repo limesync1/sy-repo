@@ -11,6 +11,7 @@ import {
   unitLabel,
   type IntervalUnit,
 } from "@/lib/interval";
+import { toLegacyEnum } from "@/lib/interval";
 
 /**
  * Brugerflade til at definere hvilke intervaller en service skal kunne
@@ -50,7 +51,11 @@ export const IntervalBuilder = ({ value, onChange }: IntervalBuilderProps) => {
 
   const add = () => {
     const n = Math.max(1, Math.min(999, parseInt(draftN, 10) || 1));
-    const key = buildInterval(n, draftUnit);
+    // Normalisér til legacy enum-værdi hvor muligt, så DB-triggers og
+    // agreements-enum stadig accepterer nyoprettede services. Falder ellers
+    // tilbage til det nye `every_<N>_<unit>` format.
+    const newKey = buildInterval(n, draftUnit);
+    const key = toLegacyEnum(newKey) ?? newKey;
     if (items.includes(key)) return;
     commit([...items, key]);
     setDraftN("1");
