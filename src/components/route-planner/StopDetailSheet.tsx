@@ -181,6 +181,12 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                         {INTERVAL_LABELS[recurringInterval] || recurringInterval}
                       </Badge>
                     )}
+                    {(stop as any).occurrence_date && (
+                      <Badge variant="outline" className="gap-1 text-[10px]">
+                        <CalendarClock className="h-2.5 w-2.5" />
+                        Forekomst {format(parseISO((stop as any).occurrence_date), "d. MMM yyyy", { locale: da })}
+                      </Badge>
+                    )}
                   </div>
                 </div>
               </div>
