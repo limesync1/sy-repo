@@ -645,8 +645,18 @@ const Planner = () => {
     for (const ex of routeOccurrenceExceptions) {
       realKeys.add(`${(ex as any).base_route_id}|${String((ex as any).occurrence_date).slice(0, 10)}`);
     }
+    // Override seed_date med basisrutens AKTUELLE dato. Når brugeren flytter
+    // basisruten (fx fra 16. maj til 28. maj), skal projektionen følge med —
+    // ellers efterlades en "spøgelses"-projektion på den oprindelige dato.
+    // Routens dato er sandheden; aftalens start_date er kun den oprindelige
+    // seed og må ikke kunne genskabe en serie på en flyttet dato.
+    const sourcesWithRouteSeed = recurringSources.map((s: any) => {
+      const base = s.preferred_route_id ? baseById.get(s.preferred_route_id) : null;
+      const routeDate = base?.route_date ? String(base.route_date).slice(0, 10) : null;
+      return routeDate ? { ...s, seed_date: routeDate } : s;
+    });
     const projections = expandRecurringRoutes({
-      sources: recurringSources,
+      sources: sourcesWithRouteSeed,
       // Projicér ALDRIG i fortiden — selvom kalenderens visuelle range
       // starter før i dag (fx månedens grid begynder mandag i forrige uge),
       // skal projicerede ruter aldrig dukke op på datoer der er passeret.
