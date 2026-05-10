@@ -21,8 +21,10 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import {
   GripVertical, MapPin, Clock, Trash2, Inbox, ExternalLink, Loader2,
-  Crown, UserPlus, Check,
+  Crown, UserPlus, Check, PlayCircle,
 } from "lucide-react";
+import { format, parseISO } from "date-fns";
+import { da } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import {
@@ -265,6 +267,18 @@ const SortableStopRow = ({ stop, index, color, employees, onSetAssignees, onSele
           )}
           {stop.status === "completed" && (
             <p className="text-[10px] text-foreground/80 mt-0.5">✓ Færdig</p>
+          )}
+          {stop.is_first_occurrence && stop.start_date && stop.status !== "completed" && (
+            <p
+              className="text-[10px] mt-0.5 inline-flex items-center gap-1 rounded-sm bg-accent/10 text-accent-foreground/90 px-1.5 py-0.5 font-medium"
+              title="Aftalen er ikke kørt endnu — dette er opstartsdatoen"
+            >
+              <PlayCircle className="h-2.5 w-2.5" />
+              Opstart {(() => {
+                try { return format(parseISO(stop.start_date), "d. MMM", { locale: da }); }
+                catch { return stop.start_date; }
+              })()}
+            </p>
           )}
         </button>
 

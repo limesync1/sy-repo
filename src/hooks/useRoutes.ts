@@ -119,6 +119,10 @@ export type RouteStop = {
   agreement_id?: string | null;
   /** Aftaleinterval — fx 'ugentlig', 'månedlig'. */
   agreement_interval?: string | null;
+  /** Aftalens opstartsdato (yyyy-MM-dd) — preferred_date på ordren. Decoreret client-side. */
+  start_date?: string | null;
+  /** True hvis aftalen endnu ikke er udført én gang (completed_cycles = 0). Decoreret client-side. */
+  is_first_occurrence?: boolean;
 };
 
 export type RouteEmployee = {
