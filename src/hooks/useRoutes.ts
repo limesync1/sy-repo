@@ -18,6 +18,19 @@ export const invalidateRouteSyncQueries = (qc: ReturnType<typeof useQueryClient>
   qc.invalidateQueries({ queryKey: ["order-for-stop"] });
 };
 
+/** Map Postgres-fejl fra route_stop_assignees til danske beskeder. */
+const friendlyAssigneeError = (err: any): Error => {
+  const msg = String(err?.message || "");
+  const code = String(err?.code || "");
+  if (code === "23505" || /duplicate key|unique constraint/i.test(msg)) {
+    return new Error("Medarbejderen er allerede tilknyttet dette stop.");
+  }
+  if (code === "23503" || /foreign key/i.test(msg)) {
+    return new Error("Stoppet eller medarbejderen findes ikke længere — opdatér siden.");
+  }
+  return new Error(msg || "Kunne ikke gemme medarbejder­tilknytning.");
+};
+
 export type Route = {
   id: string;
   business_id: string;
