@@ -1125,7 +1125,7 @@ const Planner = () => {
 
       // Konflikt-tjek: advar hvis assignee har overlappende stops på dato
       const conflictMsg = detectAssigneeConflicts(stop, newDate);
-      try {
+      const performMoveStop = async () => {
         const { data, error } = await supabase.rpc("move_stops_to_date", {
           _stop_ids: [stop.id],
           _target_date: newDate,
@@ -1145,6 +1145,48 @@ const Planner = () => {
             description: "Tilknyt en medarbejder til ruten eller aftalen, og prøv igen.",
           });
         }
+      };
+      // Klog tjek: hent ordrens opstartsdato og advar hvis den nye dato
+      // ligger før (eller ikke matcher) opstartsdatoen.
+      let startDateForJob: string | null = null;
+      let customerName: string | null = stop.customer_name || null;
+      if (stop.order_id) {
+        try {
+          const { data: o } = await supabase
+            .from("orders")
+            .select("preferred_date, next_service_date, customer_name")
+            .eq("id", stop.order_id)
+            .maybeSingle();
+          if (o) {
+            startDateForJob = (o.preferred_date || o.next_service_date) as string | null;
+            customerName = customerName || (o.customer_name as string | null);
+          }
+        } catch { /* stille fejl — vi fortsætter uden tjek */ }
+      }
+      if (
+        startDateForJob &&
+        String(startDateForJob).slice(0, 10) !== newDate &&
+        newDate < String(startDateForJob).slice(0, 10)
+      ) {
+        // Kun bloker når flytningen er FØR opstartsdatoen (det er den
+        // virkelige fejl). Efter opstartsdato er normalt OK for et stop
+        // i en gentagende serie.
+        setPendingStartDateChange({
+          job: { id: stop.order_id, customer_name: customerName },
+          currentStart: String(startDateForJob).slice(0, 10),
+          targetDate: newDate,
+          isBefore: true,
+          targetLabel: `${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`,
+          execute: async () => {
+            await shiftJobStartDate(stop.order_id, newDate);
+            await performMoveStop();
+          },
+        });
+        releaseDrop();
+        return;
+      }
+      try {
+        await performMoveStop();
       } catch (err: any) {
         toast.error(err.message || "Kunne ikke flytte stop");
       } finally {
