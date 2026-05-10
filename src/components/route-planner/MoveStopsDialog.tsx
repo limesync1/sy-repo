@@ -196,11 +196,11 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops }: Props) => 
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CalendarDays className="h-4 w-4 text-accent" />
-            Flyt aftaler til ny dato
+            Flyt aftaler
           </DialogTitle>
           <DialogDescription>
-            Vælg hvilke aftaler der skal flyttes — kun de markerede flyttes.
-            Resten bliver liggende på den nuværende rute.
+            Vælg hvilke aftaler der skal flyttes — enten til en ny dato eller
+            direkte til en eksisterende rute. Kun de markerede flyttes.
           </DialogDescription>
         </DialogHeader>
 
