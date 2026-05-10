@@ -223,6 +223,8 @@ const RequestQuote = () => {
     product_number: null,
     vat_zone: null,
     interval_options: s.interval_options || ["engangskøb"],
+    default_employee_id: null,
+    default_employee_ids: [],
     calculator_steps: s.calculator_steps.map((cs) => ({
       id: cs.id,
       label: cs.label,

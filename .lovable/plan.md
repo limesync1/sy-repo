@@ -1,74 +1,78 @@
-# Plan: Klogere dataimport + support-knap i header
+## Plan: 4 forbedringer til bestillinger, ruter og services
 
-## 1. AI-baseret felt-mapping med begrundelser
+Dette er et større stykke arbejde fordelt på 4 områder. Jeg foreslår at vi tager dem som separate, fokuserede ændringer for at undgå fejl i de meget store filer (AftaleTab er 2400 linjer, useRoutes 1600 linjer, SettingsTab 2200 linjer).
 
-I `DataImportTab.tsx` udvides den eksisterende mapping-flow med en "Foreslå med AI"-knap, der kalder en ny edge function `suggest-field-mapping` (Lovable AI Gateway, `google/gemini-3-flash-preview`).
+---
 
-- Input til AI: kolonneoverskrifter + 3-5 eksempelværdier pr. kolonne + entitetstype (kunder, ordrer, abonnementer, medarbejdere).
-- Output (struktureret JSON): `{ column: string, suggested_field: string|null, confidence: "høj"|"middel"|"lav", reason: string }[]`.
-- UI:
-  - Knap øverst i mapping-panelet: "✨ Foreslå mapping med AI".
-  - Hver kolonne får en lille badge med konfidens-farve (grøn/gul/rød) og en tooltip/ikon med begrundelsen.
-  - Lave-konfidens kolonner markeres tydeligt (gul kant) så brugeren kan vælge selv hurtigt.
-  - Bruger kan acceptere alle forslag på én gang eller pr. felt.
+### 1) "Opret bestilling"-dialog: erstat tidsfelter med opstartsdato
 
-## 2. Preview Diff før import
+**Hvad:**
+- Fjern felterne "Tidsrum (start–slut)" og "Estimeret varighed" fra `CreateManualOrderDialog`
+- Omdøb "Foreslået dato" til **"Opstartsdato"**
+- I databasen mappes opstartsdato til `preferred_date` (uændret kolonne), `preferred_time_start/end` og `estimated_duration_minutes` sættes til `null`
+- I aftale-detaljevisningen (`AftaleTab`) vises "Opstartsdato" i stedet for "Foreslået dato / Tidsrum / Varighed" når disse er tomme
 
-Inden den endelige import køres en "diff-analyse" lokalt der pr. entity viser:
+**Hvorfor opstartsdato giver mening:** for gentagende aftaler er det den dato hvor første udførsel starter — derefter overtager rute-planlægningen tidsstyringen.
 
-- **Opret** (n rækker) — nye records.
-- **Opdater** (n rækker) — eksisterende records (matchet via key fx email/CVR/ekstern id) der får nye felter.
-- **Uændret** (n rækker) — exact match.
-- **Fejl** (n rækker) — validation eller manglende krævede felter.
+---
 
-UI: Ny "Preview"-fane før "Importér", med:
-- Sammenfatningskort pr. entitet (4 tal + bjælke).
-- Klik på en kategori → tabel med de berørte rækker + felt-niveau diff (gammel → ny værdi for opdateringer).
-- "Importér"-knappen disables hvis der er kritiske fejl, indtil brugeren har rettet eller eksplicit valgt "spring fejl over".
+### 2) "Opret bestilling" springer kunde-godkendelse over
 
-Matching-logik:
-- Kunder: email eller CVR.
-- Ordrer: ordrenummer eller (kunde + dato + service).
-- Medarbejdere: email.
-- Abonnementer: (kunde + service).
+**Hvad:**
+- I `CreateManualOrderDialog` sættes `requires_customer_approval = false` og `status = 'confirmed'` direkte ved oprettelse fra virksomhedspanelet
+- Kunden modtager **ordrebekræftelse** (samme template som ved selvbestilling) i stedet for "godkend bestilling"-mail
+- Eksisterende "send godkendelseslink"-flow fjernes fra dialogen
 
-## 3. Trinvis validering med fejl pr. række/kolonne
+**Effekt:** aftalen er klar til planlægning med det samme; ingen ventetid på kunde-svar.
 
-Tilføj `validateRow()` der kører på hver række efter mapping og før preview:
+---
 
-- Påkrævede felter (per entitet) — fejl hvis tom.
-- Type-validering (email, telefon, postnr, CVR 8 cifre, beløb numerisk, dato parsable).
-- Reference-validering (fx kunde-email findes i kunder-arket eller i DB).
+### 3) Gentagende ruter / faste aftaler i kalenderen
 
-UI:
-- Valideringspanel med fejlliste grupperet pr. kolonne, klik → scroll til celle i preview-tabellen.
-- Cellen highlights rød med tooltip-fejl.
-- Brugeren kan ændre mapping eller redigere cellen direkte (inline edit) og fejlen forsvinder.
-- Tæller i toppen: "12 fejl i 4 kolonner — ret eller spring over".
+Dette er den mest omfattende del. Forklaring:
 
-## 4. Flyt "Serviceydere kundeservice"-knap til virksomhedspanel-headeren
+**Nuværende opførsel:** når en aftale er en abonnementsaftale (interval ≠ engangskøb), opretter `auto_recur_due_orders()` (DB-funktion) en NY ordre + route_stop først når `next_service_date` er passeret. Derfor kan man kun se "næste" — ikke fremtidige forekomster.
 
-I dag rendres `LiveChatWidget` floating i `/virksomhed/*` og kan overlappe andre knapper.
+**Forslag:**
+- **Visuelt i kalenderen** (`CalendarPlanner` + `MonthWeekCalendar`): tegn "virtuelle" forekomster af gentagende stops på alle fremtidige datoer baseret på subscription-interval, indtil et valgt horisont (fx 6 måneder frem). Virtuelle stops er read-only (kan ikke flyttes/redigeres) og vises med rutens navn + farve men dæmpet (50% opacity + lås-ikon).
+- **"Næste udførsel"-badge** vises på selve rutekortet (fx "Næste: 10. maj").
+- **Medarbejder-låsning:** i `EmployeeApp` / route-stop-listen vises kun den næste planlagte rute som "udfør-bar". Fremtidige ruter er låst med besked "Tilgængelig efter forrige rute er gennemført". Når den aktive rute markeres `completed`, åbner DB-trigger `auto_recur_due_orders` for næste forekomst (allerede eksisterende mekanisme).
+- **Rutens identitet arves:** route_stops viser allerede `route.color/name`. Vi sikrer at virtuelle forekomster i kalenderen + medarbejderpanel viser samme farve/navn.
 
-- Skjul den floating trigger-knap når `pathname.startsWith("/virksomhed")` (men behold selve chat-popup'en så den kan åbnes).
-- Tilføj en kompakt "Support"-knap (`MessageCircle`-ikon + "Support"-label) i `PageHeader`/topbjælken på `/virksomhed`-siderne.
-- Knappen sætter `sessionStorage.serviceydere_open_chat_key = platformKey()` og dispatcher event så widget'en åbner — samme mekanisme som allerede bruges andre steder.
+**Tekniske detaljer:**
+- Virtuelle stops genereres client-side i en ny helper `expandRecurringStops(stops, subscriptions, horizonDays)` — ingen DB-ændringer nødvendige
+- `MonthWeekCalendar` får en `virtualStops` prop og renderer dem dæmpet
+- `EmployeeRoute`-siden får en check: hvis der findes en åben rute med tidligere `route_date`, lås den nuværende
 
-## Tekniske detaljer
+---
 
-- Ny edge function: `supabase/functions/suggest-field-mapping/index.ts` med `verify_jwt = false` (mapping er ikke følsom data, men vi sender kun kolonnenavne + sample values).
-- Diff- og valideringslogik kører klientside i ny modul: `src/components/admin/dataimport/diff.ts` og `validation.ts`.
-- DataImportTab opsplittes lidt: nye komponenter `MappingPanel.tsx`, `PreviewDiffPanel.tsx`, `ValidationPanel.tsx` for at holde filen håndterbar.
-- LiveChatWidget: udvid `HIDDEN_PREFIXES` med `/virksomhed` for trigger-knap, men eksporter en lille hook/funktion `openPlatformChat()` til brug fra header-knappen.
+### 4) Standard-medarbejder pr. service
 
-## Filer der ændres
+**Hvad:**
+- Tilføj kolonne `default_employee_id uuid` på `services`-tabellen (FK til `employees.id`, `ON DELETE SET NULL`)
+- I service-redigering på `SettingsTab` (Services-fanen): tilføj en "Standard-medarbejder"-dropdown
+- Ved oprettelse af aftale (`CreateManualOrderDialog` + customer-flow) auto-vælges denne medarbejder på den tilknyttede `route_stop` hvis ingen er valgt
+- Manuelle ændringer på en aftale påvirker ikke service-defaulten
 
-- `src/components/admin/DataImportTab.tsx` (refactor + integration)
-- `src/components/admin/dataimport/MappingPanel.tsx` (ny)
-- `src/components/admin/dataimport/PreviewDiffPanel.tsx` (ny)
-- `src/components/admin/dataimport/ValidationPanel.tsx` (ny)
-- `src/components/admin/dataimport/diff.ts` (ny)
-- `src/components/admin/dataimport/validation.ts` (ny)
-- `supabase/functions/suggest-field-mapping/index.ts` (ny)
-- `src/components/livechat/LiveChatWidget.tsx` (skjul trigger på /virksomhed, eksportér openPlatformChat)
-- `src/pages/Admin.tsx` + evt. `RoutePlanner.tsx` (support-knap i header)
+**Migration:**
+```sql
+ALTER TABLE public.services ADD COLUMN default_employee_id uuid REFERENCES public.employees(id) ON DELETE SET NULL;
+```
+
+---
+
+### Implementeringsrækkefølge
+
+Jeg foreslår vi tager dem i denne rækkefølge for at holde diff'erne overskuelige:
+
+1. **Punkt 1 + 2** (samme dialog — `CreateManualOrderDialog` + lille ændring i `AftaleTab`-visning)
+2. **Punkt 4** (migration + Services-fane + auto-tildeling i CreateManualOrderDialog)
+3. **Punkt 3** (kalender-udvidelse — størst, kræver mest test)
+
+### Spørgsmål inden jeg går i gang
+
+- **Punkt 3 horisont:** skal virtuelle forekomster vises 3, 6 eller 12 måneder frem? (Default: 6)
+- **Punkt 3 medarbejder-lås:** skal en låst rute helt skjules i medarbejder-app, eller vises som "kommende" med disabled-knap? (Min anbefaling: vis som disabled så medarbejderen kan se hvad der venter)
+- **Punkt 1:** skal vi helt slette tidskolonnerne fra DB, eller bare lade dialogen ikke udfylde dem? (Min anbefaling: lad kolonnerne stå — andre flows bruger dem stadig)
+
+Skal jeg bare gå i gang med standardvalgene, eller vil du justere noget først?
