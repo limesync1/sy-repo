@@ -64,6 +64,14 @@ import { expandRecurringRoutes } from "@/lib/recurring-projection";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
+/** Konverterer "HH:MM[:SS]" til minutter siden midnat (eller null). */
+const toMin = (t: string | null | undefined): number | null => {
+  if (!t) return null;
+  const [h, m] = t.split(":").map((n) => parseInt(n, 10));
+  if (Number.isNaN(h) || Number.isNaN(m)) return null;
+  return h * 60 + m;
+};
+
 const RoutePlanner = () => {
   const { user, loading } = useAuth();
   if (loading) return <ShellSkeleton />;
