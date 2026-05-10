@@ -489,10 +489,42 @@ const Planner = () => {
     },
   });
 
+  // Hent basis-ruterne for alle gentagne kilder UAFHÆNGIGT af synligt interval,
+  // så projektionen kan finde sin "skabelon" selv når brugeren bladrer flere år
+  // frem og basis-ruten ligger langt tilbage i tiden.
+  const recurringRouteIds = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          recurringSources
+            .map((s) => s.preferred_route_id)
+            .filter((id): id is string => !!id),
+        ),
+      ),
+    [recurringSources],
+  );
+  const { data: recurringBaseRoutes = [] } = useQuery({
+    queryKey: ["recurring-base-routes", businessId, recurringRouteIds.sort().join(",")],
+    enabled: !!businessId && recurringRouteIds.length > 0,
+    staleTime: 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("routes")
+        .select("*")
+        .in("id", recurringRouteIds);
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+  });
+
   const virtualCalendarRoutes: CalendarRoute[] = useMemo(() => {
-    if (!recurringSources.length || !calendarRoutesRaw.length) return [];
-    // Map for hurtig opslag på basis-rute, og sæt af "rigtige" (rute,dato)-par.
-    const baseById = new Map(calendarRoutesRaw.map((r) => [r.id, r]));
+    if (!recurringSources.length) return [];
+    // Map for hurtig opslag på basis-rute. Vi falder tilbage til den separat
+    // hentede basis-rute hvis den ikke er i det synlige interval — så
+    // projektionen virker uendeligt frem (og tilbage) i tiden.
+    const baseById = new Map<string, any>();
+    for (const r of recurringBaseRoutes) baseById.set(r.id, r);
+    for (const r of calendarRoutesRaw) baseById.set(r.id, r);
     const realKeys = new Set(calendarRoutesRaw.map((r) => `${r.id}|${r.route_date}`));
     const projections = expandRecurringRoutes({
       sources: recurringSources,
@@ -518,7 +550,7 @@ const Planner = () => {
         } as CalendarRoute;
       })
       .filter(Boolean) as CalendarRoute[];
-  }, [recurringSources, calendarRoutesRaw, calendarRange.start, calendarRange.end]);
+  }, [recurringSources, recurringBaseRoutes, calendarRoutesRaw, calendarRange.start, calendarRange.end]);
 
   const calendarRoutesAll: CalendarRoute[] = useMemo(
     () => [...calendarRoutes, ...virtualCalendarRoutes],
