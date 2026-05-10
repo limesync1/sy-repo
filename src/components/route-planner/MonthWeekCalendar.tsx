@@ -469,9 +469,7 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
                 className="w-full text-left px-2 py-0.5 text-[10px] hover:bg-accent/10 truncate text-foreground/80 border-t border-border/30 first:border-t-0"
               >
                 <span className="font-medium">{s.customer_name || "Stop"}</span>
-                {s.service_summary && (
-                  <span className="ml-1 text-foreground/60">· {s.service_summary}</span>
-                )}
+                <span className="ml-1 text-foreground/60">· {s.service_summary || "Aftale"}</span>
               </button>
             ))}
           {stopCount > 4 && (

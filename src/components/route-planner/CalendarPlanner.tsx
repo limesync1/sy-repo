@@ -724,11 +724,9 @@ const StopBlock = ({
         </div>
 
         {/* Service-summary — vises altid */}
-        {stop.service_summary && (
-          <p className="text-[11px] text-foreground/75 truncate leading-tight">
-            {stop.service_summary}
-          </p>
-        )}
+        <p className="text-[11px] text-foreground/75 truncate leading-tight">
+          {stop.service_summary || "Aftale"}
+        </p>
 
         {/* Adresse */}
         {showAddress && stop.address && (
