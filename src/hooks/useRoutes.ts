@@ -36,6 +36,8 @@ export type Route = {
   id: string;
   business_id: string;
   employee_id: string | null; // legacy — kept for back-compat, not used in new model
+  base_route_id?: string | null;
+  route_template_id?: string | null;
   route_date: string;
   status: string;
   name: string | null;
