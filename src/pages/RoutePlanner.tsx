@@ -886,8 +886,24 @@ const Planner = () => {
 
   /* ─── DnD ─── */
   const handleDragStart = (e: DragStartEvent) => {
+    const data: any = e.active.data.current;
+    if (data?.type === "route" && data?.route?.isVirtual) {
+      setActiveDragId(null);
+      setActiveDragData(null);
+      if (businessId) {
+        void logRoutePlannerEvent({
+          businessId,
+          eventType: "virtual_route_drag_blocked_client",
+          severity: "warning",
+          baseRouteId: data.route.baseRouteId ?? null,
+          projectedDate: data.route.route_date ?? null,
+          details: { routeId: data.route.id },
+        });
+      }
+      return;
+    }
     setActiveDragId(e.active.id as string);
-    setActiveDragData(e.active.data.current);
+    setActiveDragData(data);
   };
 
   /** Tjekker om en flytning af et stop til en ny dato vil overlappe
@@ -1012,6 +1028,18 @@ const Planner = () => {
 
     const activeData: any = active.data.current;
     const overData: any = over.data.current;
+    if (activeData?.type === "route" && activeData?.route?.isVirtual) {
+      await logRoutePlannerEvent({
+        businessId,
+        eventType: "virtual_route_move_blocked_client",
+        severity: "error",
+        baseRouteId: activeData.route.baseRouteId ?? null,
+        projectedDate: activeData.route.route_date ?? null,
+        details: { routeId: activeData.route.id, overType: overData?.type ?? null },
+      });
+      toast.info("Projicerede ruter kan åbnes, men ikke flyttes direkte");
+      return;
+    }
 
     // ─── Re-entrancy-guard ───
     // Beskyt mod dobbelt-drop (hurtig-klik / accidentel re-fyring) som ellers
@@ -2166,18 +2194,7 @@ const Planner = () => {
                     // når brugeren eksplicit flytter/redigerer en enkelt
                     // forekomst (drag-and-drop til ny dato).
                     if (r.isVirtual) {
-                      const baseId = r.baseRouteId || (typeof r.id === "string" ? r.id.split(":")[1] : null);
-                      if (!baseId) {
-                        toast.error("Kunne ikke åbne projiceret rute");
-                        return;
-                      }
-                      const baseRoute = calendarRoutesRaw.find((x) => x.id === baseId)
-                        || (recurringBaseRoutes as any[]).find((x) => x.id === baseId);
-                      if (!baseRoute) {
-                        toast.error("Basisruten kunne ikke findes");
-                        return;
-                      }
-                      setEditingRoute(baseRoute);
+                      await openProjectedRoute(r);
                       return;
                     }
                     setEditingRoute(r);
