@@ -2119,23 +2119,24 @@ const Planner = () => {
                   anchorDate={date}
                   routes={calendarRoutesAll}
                   onSelectRoute={async (r: any) => {
-                    // Projicerede (gentagende) ruter materialiseres til en
-                    // rigtig DB-rute første gang brugeren åbner dem — så
-                    // navn, farve, dato og stops kan redigeres frit.
+                    // Projicerede (gentagende) ruter må IKKE duplikeres ved
+                    // simpelt klik. Åbn i stedet basisruten direkte, så
+                    // ændringer gælder hele serien. Materialisering sker først
+                    // når brugeren eksplicit flytter/redigerer en enkelt
+                    // forekomst (drag-and-drop til ny dato).
                     if (r.isVirtual) {
-                      const baseId = r.baseRouteId || String(r.id).split(":")[1];
-                      const date = r.route_date;
-                      if (!baseId || !date) {
+                      const baseId = r.baseRouteId || (typeof r.id === "string" ? r.id.split(":")[1] : null);
+                      if (!baseId) {
                         toast.error("Kunne ikke åbne projiceret rute");
                         return;
                       }
-                      try {
-                        const created = await materializeVirtual.mutateAsync({
-                          baseRouteId: baseId,
-                          date,
-                        });
-                        setEditingRoute(created);
-                      } catch { /* toast håndteret i hook */ }
+                      const baseRoute = calendarRoutesRaw.find((x) => x.id === baseId)
+                        || (recurringBaseRoutes as any[]).find((x) => x.id === baseId);
+                      if (!baseRoute) {
+                        toast.error("Basisruten kunne ikke findes");
+                        return;
+                      }
+                      setEditingRoute(baseRoute);
                       return;
                     }
                     setEditingRoute(r);
