@@ -15,15 +15,18 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, ArrowRight, CalendarDays } from "lucide-react";
+import { Loader2, ArrowRight, CalendarDays, Route as RouteIcon } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { toast } from "sonner";
 import { DatePickerField } from "./DatePickerField";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import type { Route, RouteStop } from "@/hooks/useRoutes";
 import { invalidateRouteSyncQueries } from "@/hooks/useRoutes";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -40,7 +43,9 @@ type Props = {
 export const MoveStopsDialog = ({ open, onOpenChange, route, stops }: Props) => {
   const qc = useQueryClient();
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [mode, setMode] = useState<"date" | "route">("date");
   const [targetDate, setTargetDate] = useState<string>("");
+  const [targetRouteId, setTargetRouteId] = useState<string>("");
   const [moving, setMoving] = useState(false);
   const [emptyRouteConfirm, setEmptyRouteConfirm] = useState<{ id: string; date: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -48,9 +53,27 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops }: Props) => 
   useEffect(() => {
     if (open) {
       setSelected(new Set());
+      setMode("date");
       setTargetDate(route?.route_date || "");
+      setTargetRouteId("");
     }
   }, [open, route?.route_date]);
+
+  // Hent andre ruter for samme business som mulige mål
+  const { data: otherRoutes = [] } = useQuery({
+    queryKey: ["move-stops-routes", route?.business_id, route?.id],
+    enabled: open && !!route?.business_id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("routes")
+        .select("id, route_date, name, color")
+        .eq("business_id", route!.business_id)
+        .neq("id", route!.id)
+        .order("route_date", { ascending: true });
+      if (error) throw error;
+      return (data || []) as Array<{ id: string; route_date: string; name: string | null; color: string }>;
+    },
+  });
 
   const toggle = (id: string) => {
     setSelected((prev) => {
@@ -66,35 +89,61 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops }: Props) => 
   };
 
   const canConfirm = useMemo(() => {
-    if (!route || !targetDate) return false;
+    if (!route) return false;
     if (selected.size === 0) return false;
-    if (targetDate === route.route_date) return false;
-    return true;
-  }, [route, targetDate, selected]);
+    if (mode === "date") {
+      if (!targetDate) return false;
+      if (targetDate === route.route_date) return false;
+      return true;
+    }
+    return !!targetRouteId;
+  }, [route, targetDate, targetRouteId, selected, mode]);
 
   const handleConfirm = async () => {
     if (!route || !canConfirm) return;
     setMoving(true);
     try {
-      // Én RPC i én transaktion — server-siden finder/opretter målrute pr.
-      // medarbejder, sætter sequence korrekt og flytter alle valgte stops.
-      const { data, error } = await supabase.rpc("move_stops_to_date", {
-        _stop_ids: Array.from(selected),
-        _target_date: targetDate,
-      });
-      if (error) {
-        console.error("[MoveStops] move_stops_to_date fejlede", error);
-        toast.error("Aftaler kunne ikke flyttes", {
-          description: error.message || "Prøv igen om lidt.",
+      let movedCount = 0;
+      let missingEmployee = 0;
+      let successLabel = "";
+      if (mode === "date") {
+        const { data, error } = await supabase.rpc("move_stops_to_date", {
+          _stop_ids: Array.from(selected),
+          _target_date: targetDate,
         });
-        return;
+        if (error) {
+          console.error("[MoveStops] move_stops_to_date fejlede", error);
+          toast.error("Aftaler kunne ikke flyttes", {
+            description: error.message || "Prøv igen om lidt.",
+          });
+          return;
+        }
+        const row = Array.isArray(data) ? data[0] : data;
+        movedCount = Number(row?.moved_count ?? 0);
+        missingEmployee = Number(row?.missing_employee_count ?? 0);
+        successLabel = format(parseISO(targetDate), "EEEE d. MMM", { locale: da });
+      } else {
+        const { data, error } = await supabase.rpc("move_stops_to_route", {
+          _stop_ids: Array.from(selected),
+          _target_route_id: targetRouteId,
+        });
+        if (error) {
+          console.error("[MoveStops] move_stops_to_route fejlede", error);
+          toast.error("Aftaler kunne ikke flyttes", {
+            description: error.message || "Prøv igen om lidt.",
+          });
+          return;
+        }
+        const row = Array.isArray(data) ? data[0] : data;
+        movedCount = Number(row?.moved_count ?? 0);
+        const target = otherRoutes.find((r) => r.id === targetRouteId);
+        successLabel = target
+          ? `${target.name || "rute"} (${format(parseISO(target.route_date), "EEEE d. MMM", { locale: da })})`
+          : "valgt rute";
       }
-      const row = Array.isArray(data) ? data[0] : data;
-      const movedCount = Number(row?.moved_count ?? 0);
-      const missingEmployee = Number(row?.missing_employee_count ?? 0);
       if (movedCount > 0) {
         toast.success(
-          `${movedCount} aftale${movedCount === 1 ? "" : "r"} flyttet til ${format(parseISO(targetDate), "EEEE d. MMM", { locale: da })}`,
+          `${movedCount} aftale${movedCount === 1 ? "" : "r"} flyttet til ${successLabel}`,
         );
       }
       if (missingEmployee > 0) {
@@ -205,20 +254,75 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops }: Props) => 
           </div>
 
           <div>
-            <p className="text-xs font-medium text-muted-foreground mb-1.5">
-              Flyt til dato
-            </p>
-            <DatePickerField value={targetDate} onChange={setTargetDate} />
-            {targetDate && route.route_date && targetDate !== route.route_date && (
-              <p className="mt-1.5 text-[11px] text-muted-foreground flex items-center gap-1">
-                <span className="capitalize">
-                  {format(parseISO(route.route_date), "EEEE d. MMM", { locale: da })}
-                </span>
-                <ArrowRight className="h-3 w-3" />
-                <span className="capitalize text-foreground font-medium">
-                  {format(parseISO(targetDate), "EEEE d. MMM", { locale: da })}
-                </span>
-              </p>
+            <div className="flex gap-1 mb-2 rounded-md bg-secondary/50 p-0.5">
+              <button
+                type="button"
+                onClick={() => setMode("date")}
+                className={cn(
+                  "flex-1 text-xs font-medium py-1.5 rounded transition-colors flex items-center justify-center gap-1.5",
+                  mode === "date" ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <CalendarDays className="h-3.5 w-3.5" /> Ny dato
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("route")}
+                className={cn(
+                  "flex-1 text-xs font-medium py-1.5 rounded transition-colors flex items-center justify-center gap-1.5",
+                  mode === "route" ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <RouteIcon className="h-3.5 w-3.5" /> Eksisterende rute
+              </button>
+            </div>
+            {mode === "date" ? (
+              <>
+                <DatePickerField value={targetDate} onChange={setTargetDate} />
+                {targetDate && route.route_date && targetDate !== route.route_date && (
+                  <p className="mt-1.5 text-[11px] text-muted-foreground flex items-center gap-1">
+                    <span className="capitalize">
+                      {format(parseISO(route.route_date), "EEEE d. MMM", { locale: da })}
+                    </span>
+                    <ArrowRight className="h-3 w-3" />
+                    <span className="capitalize text-foreground font-medium">
+                      {format(parseISO(targetDate), "EEEE d. MMM", { locale: da })}
+                    </span>
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                <Select value={targetRouteId} onValueChange={setTargetRouteId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Vælg målrute…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {otherRoutes.length === 0 && (
+                      <div className="p-2 text-xs text-muted-foreground">Ingen andre ruter</div>
+                    )}
+                    {otherRoutes.map((r) => (
+                      <SelectItem key={r.id} value={r.id}>
+                        <span className="flex items-center gap-2">
+                          <span
+                            className="inline-block h-2.5 w-2.5 rounded-full"
+                            style={{ background: r.color }}
+                          />
+                          <span className="capitalize">
+                            {format(parseISO(r.route_date), "EEE d. MMM", { locale: da })}
+                          </span>
+                          <span className="text-muted-foreground">
+                            — {r.name || "Rute"}
+                          </span>
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="mt-1.5 text-[11px] text-muted-foreground">
+                  Aftalerne tilføjes til slutningen af den valgte rute.
+                </p>
+              </>
             )}
           </div>
         </div>
