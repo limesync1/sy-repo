@@ -24,21 +24,38 @@ Deno.serve(async (req) => {
     const query = [address, zip, city, "Danmark"].filter(Boolean).join(", ");
     const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&countrycodes=dk&q=${encodeURIComponent(query)}`;
 
-    const resp = await fetch(url, {
-      headers: { "User-Agent": "Serviceydere/1.0 (kontakt@serviceydere.dk)" },
-    });
-    if (!resp.ok) {
-      return new Response(JSON.stringify({ error: "Geocoding service error" }), {
-        status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    let resp: Response;
+    try {
+      resp = await fetch(url, {
+        headers: { "User-Agent": "Serviceydere/1.0 (kontakt@serviceydere.dk)" },
+      });
+    } catch (e) {
+      console.error("Geocoding fetch failed:", e);
+      return new Response(JSON.stringify({ found: false, fallback: true, error: "GEOCODING_UNREACHABLE" }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const data = await resp.json();
+    if (!resp.ok) {
+      const text = await resp.text().catch(() => "");
+      console.error("Geocoding service error:", resp.status, text);
+      return new Response(JSON.stringify({ found: false, fallback: true, error: "GEOCODING_SERVICE_ERROR", upstream_status: resp.status }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    let data: unknown;
+    try {
+      data = await resp.json();
+    } catch {
+      return new Response(JSON.stringify({ found: false, fallback: true, error: "GEOCODING_INVALID_RESPONSE" }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     if (!Array.isArray(data) || data.length === 0) {
       return new Response(JSON.stringify({ found: false }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const hit = data[0];
+    const hit = (data as any[])[0];
     // Build a clean Danish-format display name: "Vej Nr, 1234 By"
     // Nominatim returns address parts when addressdetails=1 — but to keep this lightweight
     // we parse from the input + display fallback.
