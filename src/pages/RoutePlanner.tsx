@@ -498,7 +498,6 @@ const Planner = () => {
       sources: recurringSources,
       rangeStart: calendarRange.start,
       rangeEnd: calendarRange.end,
-      horizonDays: 180,
       realRouteDates: realKeys,
     });
     return projections
