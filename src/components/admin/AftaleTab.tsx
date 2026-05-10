@@ -1748,6 +1748,12 @@ const AftaleTab = ({
             const currentTotal = order.adjusted_amount && order.customer_response === "accepted" ? order.adjusted_amount : originalTotal;
             const hasRecurring = orderHasRecurring(order);
             const date = new Date(order.created_at);
+            // Opstartsdato sat på aftalen — den dato kunden ønsker arbejdet
+            // udført / serien skal starte. Vises som primær dato på kortet
+            // når den findes; ellers falder vi tilbage på oprettelsesdato.
+            const startDate = (order as any).preferred_date
+              ? new Date((order as any).preferred_date)
+              : null;
             const items = ((order as any).order_items || []) as any[];
             const itemCount = items.length;
             // Sammenfattet liste over services i denne aftale (vises i header-rækken,
@@ -1878,10 +1884,29 @@ const AftaleTab = ({
 
                       {/* Linje 3: dato-meta — sekundær */}
                       <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
-                        <span className="inline-flex items-center gap-1">
-                          <CalendarClock className="h-3 w-3 opacity-70" />
-                          {date.toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
-                        </span>
+                        {startDate ? (
+                          <span
+                            className="inline-flex items-center gap-1 font-medium text-foreground"
+                            title="Opstartsdato — kundens ønskede start på aftalen"
+                          >
+                            <CalendarClock className="h-3 w-3 opacity-70" />
+                            <span className="text-muted-foreground">Opstart:</span>
+                            {startDate.toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1" title="Oprettet">
+                            <CalendarClock className="h-3 w-3 opacity-70" />
+                            {date.toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
+                          </span>
+                        )}
+                        {startDate && (
+                          <>
+                            <span className="text-border">·</span>
+                            <span title="Oprettelsesdato">
+                              Oprettet {date.toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
+                            </span>
+                          </>
+                        )}
                         {nextDate && daysUntilNext !== null && (
                           <>
                             <span className="text-border">·</span>
