@@ -95,6 +95,16 @@ export type RouteStop = {
   order_amount?: number | null;
   /** Vej + postnr + by — beregnet i useMyDayStops så listen ikke kun viser gaden. */
   full_address?: string | null;
+  /** Link til materialiseret aftaleforekomst (single source of truth). */
+  agreement_occurrence_id?: string | null;
+  /** Status på aftaleforekomsten: planned | completed | cancelled | rescheduled. */
+  occurrence_status?: string | null;
+  /** Aftaleforekomstens kalenderdato. */
+  occurrence_date?: string | null;
+  /** ID på den underliggende aftale (hvis kendt). */
+  agreement_id?: string | null;
+  /** Aftaleinterval — fx 'ugentlig', 'månedlig'. */
+  agreement_interval?: string | null;
 };
 
 export type RouteEmployee = {
