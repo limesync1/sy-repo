@@ -1572,6 +1572,11 @@ export const useUpdateRoute = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["routes"] });
       qc.invalidateQueries({ queryKey: ["routes-range"] });
+      // Sørg for at kalender-cachen og basisrute-cachen til projektionen
+      // også opdateres, ellers fortsætter projicerede ruter med at vise
+      // det gamle navn/farve indtil næste fulde refetch.
+      qc.invalidateQueries({ queryKey: ["route-calendar"] });
+      qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
     },
     onError: (e: any, _vars, ctx) => {
       ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data));
