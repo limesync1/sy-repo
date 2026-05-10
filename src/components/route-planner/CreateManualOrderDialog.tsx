@@ -22,6 +22,8 @@ import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupFie
 import { Building2, BadgeCheck } from "lucide-react";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection";
 import CustomerEmailAutocomplete from "./CustomerEmailAutocomplete";
+import { DatePickerField } from "./DatePickerField";
+import { format } from "date-fns";
 
 type CalcStep = { id: string; label: string; unit: string; price_per_unit: number; min_value: number | null; max_value: number | null; default_value: number | null; sort_order: number | null };
 type Service = { id: string; name: string; description: string | null; pricing_type: "fast_pris" | "timepris" | "prisberegner"; base_price: number | null; unit: string | null; is_active: boolean | null; interval_options: string[] | null; calculator_steps?: CalcStep[]; business_id: string };
@@ -32,6 +34,8 @@ interface BuilderItem {
   hours: number;
   stepValues: Record<string, number>;
   interval: string;
+  /** Opstartsdato pr. service (yyyy-MM-dd). */
+  startDate: string;
 }
 
 const fmt = (n: number) =>
@@ -80,7 +84,6 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
   const [longitude, setLongitude] = useState<number | null>(null);
   const [cvr, setCvr] = useState("");
   const [companyName, setCompanyName] = useState("");
-  const [preferredDate, setPreferredDate] = useState("");
   const [businessMessage, setBusinessMessage] = useState("");
 
   // Cart
@@ -115,10 +118,12 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
     const stepValues: Record<string, number> = {};
     (svc.calculator_steps || []).forEach((s) => { stepValues[s.id] = Number(s.default_value ?? s.min_value ?? 0); });
     const intervals = svc.interval_options && svc.interval_options.length > 0 ? svc.interval_options : ["engangskøb"];
+    // Default opstartsdato = i dag (gør UI venligt — brugeren kan altid ændre).
+    const today = format(new Date(), "yyyy-MM-dd");
     setItems((prev) => [
       ...prev,
       {
-        serviceId, service: svc, hours: 1, stepValues, interval: intervals[0],
+        serviceId, service: svc, hours: 1, stepValues, interval: intervals[0], startDate: today,
       },
     ]);
   };
@@ -133,7 +138,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
     setAddress(""); setZipCode(""); setCity("");
     setLatitude(null); setLongitude(null);
     setCvr(""); setCompanyName("");
-    setPreferredDate(""); setBusinessMessage("");
+    setBusinessMessage("");
     setItems([]);
   };
 
@@ -189,7 +194,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
           cvr: cvr.replace(/\D/g, "") || null,
           company_name: companyName.trim() || null,
           notes: contactPerson.trim() ? `Kontaktperson: ${contactPerson.trim()}` : null,
-          preferred_date: preferredDate || null,
+          preferred_date: it.startDate || null,
           preferred_time_start: null,
           preferred_time_end: null,
           estimated_duration_minutes: null,
@@ -257,7 +262,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
               address: address.trim()
                 ? `${address.trim()}${zipCode.trim() || city.trim() ? `, ${[zipCode.trim(), city.trim()].filter(Boolean).join(" ")}` : ""}`
                 : undefined,
-              preferredDate: preferredDate || undefined,
+              preferredDate: items[0]?.startDate || undefined,
               totalAmount,
               items: items.map((it) => ({
                 name: it.service.name,
@@ -265,6 +270,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                 price: roundPrice(calcItemTotal(it)),
                 intervalLabel: it.interval && it.interval !== "engangskøb" ? INTERVAL_LABELS[it.interval] || it.interval : undefined,
                 description: it.service.pricing_type === "timepris" ? `${it.hours} timer` : undefined,
+                preferredDate: it.startDate || undefined,
                 stepDetails: it.service.pricing_type === "prisberegner"
                   ? (it.service.calculator_steps || []).map((s) => ({
                       label: s.label, value: it.stepValues[s.id] || 0, unit: s.unit,
