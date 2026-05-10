@@ -298,18 +298,25 @@ const Planner = () => {
 
   /** Pr. valgt dag: vis aftaler der er
       - uden dato (fleksible)
-      - forsinkede (effectiveDate ≤ valgt dag)
-      - inden for ±3 dage omkring valgt dag */
+      - inden for ±3 dage omkring valgt dag
+      - forsinkede (ed < i dag) MEN kun når man kigger på i dag / nær fremtid,
+        så en aftale fra 14. maj ikke pludselig dukker op når man scroller til juni */
   const filteredUnassigned = useMemo(() => {
     const target = parseISO(date).getTime();
     const dayMs = 24 * 60 * 60 * 1000;
+    const todayMs = parseISO(new Date().toISOString().slice(0, 10)).getTime();
+    const targetIsNearToday = (target - todayMs) / dayMs >= -1 && (target - todayMs) / dayMs <= 7;
 
     let list = unassigned.filter((j: any) => {
       const ed = effectiveJobDate(j);
       if (!ed) return true; // ingen dato → altid vis
-      const diffDays = (parseISO(ed).getTime() - target) / dayMs;
-      // forsinket (negativ) ELLER inden for 3 dage frem
-      return diffDays <= 3;
+      const edMs = parseISO(ed).getTime();
+      const diffDays = (edMs - target) / dayMs;
+      // Vis altid hvis aftalen er inden for ±3 dage af valgt dag
+      if (Math.abs(diffDays) <= 3) return true;
+      // Vis kun forsinkede (ed < i dag) når man kigger på i dag / nær fremtid
+      if (targetIsNearToday && edMs < todayMs) return true;
+      return false;
     });
 
     if (search.trim()) {
