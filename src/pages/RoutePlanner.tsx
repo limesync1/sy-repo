@@ -96,6 +96,18 @@ const Planner = () => {
   // Beskytter mod dobbelt-drop på samme kilde+mål — undgår dubletruter og
   // "uniq_route_stops_route_order" race conditions.
   const inFlightDropsRef = useRef<Set<string>>(new Set());
+  // Synlig "behandler"-tilstand pr. drop-target (route:<id> eller day:<date>).
+  // Bruges af kalenderen til at deaktivere drop og vise spinner mens en
+  // flytning er i gang — så brugeren ikke kan slippe igen ved et uheld.
+  const [busyTargets, setBusyTargets] = useState<Set<string>>(new Set());
+  const setTargetBusy = (target: string | null, busy: boolean) => {
+    if (!target) return;
+    setBusyTargets((prev) => {
+      const next = new Set(prev);
+      if (busy) next.add(target); else next.delete(target);
+      return next;
+    });
+  };
   const [geocoding, setGeocoding] = useState(false);
   const [createOrderOpen, setCreateOrderOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
