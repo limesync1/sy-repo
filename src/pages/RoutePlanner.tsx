@@ -392,9 +392,48 @@ const Planner = () => {
         .filter(Boolean)
         .map((e: any) => ({ id: e.id, name: e.name, avatar_url: e.avatar_url, color: e.color }));
       const dayIndex = indexByRouteId.get(r.id) || 1;
+      // Smart auto-navngivning: brug brugerens egen titel hvis sat, ellers
+      // udled noget meningsfuldt fra ruten (medarbejder + dominerende by),
+      // og fald først tilbage til "Kørsel N" hvis intet andet kendes.
+      const autoName = (() => {
+        if (r.name && r.name.trim()) return r.name;
+        const firstName = (full: string | null | undefined) =>
+          (full || "").trim().split(/\s+/)[0] || "";
+        const empPart = (() => {
+          if (emps.length === 1) return firstName(emps[0].name);
+          if (emps.length === 2) {
+            const a = firstName(emps[0].name);
+            const b = firstName(emps[1].name);
+            return a && b ? `${a} & ${b}` : a || b;
+          }
+          if (emps.length > 2) return `${emps.length} medarb.`;
+          return "";
+        })();
+        // Find dominerende by (≥60% af stops, mindst 2 stop)
+        const cityPart = (() => {
+          if (stopsForRoute.length < 2) {
+            const c = (stopsForRoute[0] as any)?.city?.trim();
+            return c || "";
+          }
+          const counts = new Map<string, number>();
+          for (const s of stopsForRoute) {
+            const city = ((s as any).city || "").trim();
+            if (!city) continue;
+            counts.set(city, (counts.get(city) || 0) + 1);
+          }
+          let best = "";
+          let bestN = 0;
+          counts.forEach((n, c) => { if (n > bestN) { bestN = n; best = c; } });
+          return bestN / stopsForRoute.length >= 0.6 ? best : "";
+        })();
+        if (empPart && cityPart) return `${empPart} · ${cityPart}`;
+        if (empPart) return empPart;
+        if (cityPart) return cityPart;
+        return `Kørsel ${dayIndex}`;
+      })();
       return {
         ...r,
-        name: r.name || `Kørsel ${dayIndex}`,
+        name: autoName,
         stops: stopsForRoute,
         attachedEmployees: emps,
         attachedEmployeeCount: emps.length,
