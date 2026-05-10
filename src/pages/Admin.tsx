@@ -1978,6 +1978,28 @@ const ServiceForm = ({
             </button>
           </div>
 
+          {/* Standard-medarbejder — automatisk tildeles aftaler oprettet med denne service */}
+          <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+            <div>
+              <h4 className="text-sm font-semibold text-foreground">Standard-medarbejder</h4>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Når en aftale oprettes med denne service, foreslås denne medarbejder automatisk på ruten. Du kan altid ændre eller tilføje flere på den enkelte aftale.
+              </p>
+            </div>
+            <Select
+              value={defaultEmployeeId || "__none__"}
+              onValueChange={(v) => setDefaultEmployeeId(v === "__none__" ? "" : v)}
+            >
+              <SelectTrigger className="bg-card"><SelectValue placeholder="Ingen — vælg manuelt på hver aftale" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Ingen — vælg manuelt på hver aftale</SelectItem>
+                {(employeesForDefault as any[]).map((e) => (
+                  <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Regnskabs-felter på service: vare-nr og momszone */}
           <div className="rounded-xl border border-border bg-secondary/30 p-4 space-y-4">
             <div>
