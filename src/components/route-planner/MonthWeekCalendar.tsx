@@ -340,22 +340,24 @@ type RoutePillProps = {
   optimizing: boolean;
   compact: boolean;
   jobDragActive?: boolean;
+  /** True hvis ruten pt. behandler en flytning — drop deaktiveres + spinner. */
+  busy?: boolean;
 };
 
-const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing, compact, jobDragActive }: RoutePillProps) => {
+const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing, compact, jobDragActive, busy }: RoutePillProps) => {
   const isVirtual = !!route.isVirtual;
   // Drag-handle: hele pillen kan trækkes til ny dato (kun rigtige ruter).
   const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({
     id: `route:${route.id}`,
     data: { type: "route", route },
-    disabled: isVirtual,
+    disabled: isVirtual || !!busy,
   });
 
   // Drop-zone: aftaler kan slippes på pillen for at blive tilføjet til ruten.
   const { setNodeRef: setDropRef, isOver } = useDroppable({
     id: `route-drop:${route.id}`,
     data: { type: "route", routeId: route.id, date: route.route_date },
-    disabled: isVirtual,
+    disabled: isVirtual || !!busy,
   });
 
   // Combined ref
@@ -381,6 +383,7 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
         // Når en aftale er ved at blive sluppet på pillen — markér tydeligt
         !isVirtual && jobDragActive && !isOver && "ring-1 shadow-sm",
         !isVirtual && isOver && "ring-2 ring-accent shadow-md scale-[1.02]",
+        busy && "cursor-wait",
       )}
       style={{
         borderLeftColor: route.color,
@@ -389,7 +392,13 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
           : {}),
       }}
       title={isVirtual ? "Planlagt gentagende rute — låst indtil forrige er udført" : undefined}
+      aria-busy={busy || undefined}
     >
+      {busy && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/70 backdrop-blur-[1px] pointer-events-none">
+          <Loader2 className="h-3.5 w-3.5 animate-spin text-accent" />
+        </div>
+      )}
       <div
         {...(isVirtual ? {} : listeners)}
         {...(isVirtual ? {} : attributes)}
