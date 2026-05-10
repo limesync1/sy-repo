@@ -570,9 +570,100 @@ export const useUnassignedJobs = (businessId: string | undefined) => {
           const prefId = isAcceptedOneTimeAdjustment ? null : (entry?.preferredRouteId || null);
           return {
             ...o,
+            source: "order" as const,
             total_amount: o.customer_response === "accepted" ? (o.adjusted_amount ?? o.total_amount) : o.total_amount,
             preferred_route_id: prefId,
             preferred_route_name: prefId ? (routeNameById.get(prefId) || null) : null,
+          };
+        });
+    },
+  });
+};
+
+/**
+ * Aftale-forekomster (agreement_occurrences) som endnu ikke ligger på en rute.
+ * Disse er materialiserede gentagelser fra faste aftaler — de skal vises
+ * sammen med ordrer i "Aftaler uden rute" så ejeren kan trække dem ind på en
+ * konkret rute via drag & drop.
+ */
+export const useUnassignedOccurrences = (businessId: string | undefined) => {
+  return useQuery({
+    queryKey: ["unassigned-occurrences", businessId],
+    enabled: !!businessId,
+    staleTime: 30 * 1000,
+    gcTime: 5 * 60 * 1000,
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      const { data: occs, error } = await supabase
+        .from("agreement_occurrences")
+        .select(`
+          id, agreement_id, occurrence_date, status, planned_arrival,
+          agreements!inner (
+            id, customer_name, customer_phone, customer_email, company_name,
+            address, zip_code, city, latitude, longitude,
+            preferred_time_start, preferred_time_end, estimated_duration_minutes,
+            notes, total_amount, default_route_template_id, status,
+            agreement_items ( service_name, quantity, total_price )
+          )
+        `)
+        .eq("business_id", businessId!)
+        .is("route_id", null)
+        .eq("status", "planned")
+        .order("occurrence_date", { ascending: true })
+        .limit(300);
+      if (error) throw error;
+
+      // Find rutenavne for evt. preferred (template) route så vi kan vise hint
+      const tplIds = Array.from(new Set(
+        ((occs as any[]) || []).map((o) => o.agreements?.default_route_template_id).filter(Boolean) as string[],
+      ));
+      const tplNameById = new Map<string, string>();
+      if (tplIds.length > 0) {
+        const { data: tpls } = await supabase
+          .from("route_templates")
+          .select("id, name")
+          .in("id", tplIds);
+        (tpls || []).forEach((t: any) => tplNameById.set(t.id, t.name || "Skabelon"));
+      }
+
+      return ((occs as any[]) || [])
+        .filter((o) => o.agreements && !["cancelled", "ended"].includes(o.agreements.status))
+        .map((o) => {
+          const a = o.agreements;
+          const items = (a.agreement_items || []).map((it: any) => ({
+            service_name: it.service_name,
+            quantity: it.quantity || 1,
+            total_price: Number(it.total_price || 0),
+            details: { interval: "fast aftale" },
+          }));
+          const tplName = a.default_route_template_id
+            ? tplNameById.get(a.default_route_template_id) || null
+            : null;
+          return {
+            id: `occ-${o.id}`,
+            occurrence_id: o.id,
+            agreement_id: a.id,
+            source: "occurrence" as const,
+            status: "confirmed",
+            customer_name: a.company_name || a.customer_name,
+            customer_phone: a.customer_phone,
+            customer_email: a.customer_email,
+            address: a.address,
+            zip_code: a.zip_code,
+            city: a.city,
+            latitude: a.latitude,
+            longitude: a.longitude,
+            total_amount: Number(a.total_amount || 0),
+            preferred_date: o.occurrence_date,
+            next_service_date: o.occurrence_date,
+            preferred_time_start: a.preferred_time_start,
+            preferred_time_end: a.preferred_time_end,
+            estimated_duration_minutes: a.estimated_duration_minutes,
+            notes: a.notes,
+            preferred_route_id: null,
+            preferred_route_name: tplName,
+            order_items: items,
+            created_at: o.occurrence_date,
           };
         });
     },
