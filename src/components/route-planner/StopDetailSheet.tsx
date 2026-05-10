@@ -27,11 +27,6 @@ import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { INTERVAL_LABELS } from "@/types/service";
 import { Section, SheetFooterBar } from "./SheetSection";
-import {
-  useOccurrenceContext,
-  useCancelOccurrence,
-  useEndSeriesFromOccurrence,
-} from "@/hooks/useAgreementSeriesActions";
 
 type Props = {
   stop: RouteStop | null;
@@ -61,16 +56,8 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
   const [timeSlot, setTimeSlot] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [confirmCancelOnce, setConfirmCancelOnce] = useState(false);
-  const [confirmEndSeries, setConfirmEndSeries] = useState(false);
   const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
   const [leadId, setLeadId] = useState<string | null>(null);
-
-  // Series context (kun hvis stoppet stammer fra en aftale-forekomst)
-  const occurrenceId = stop?.agreement_occurrence_id ?? null;
-  const { data: seriesCtx } = useOccurrenceContext(occurrenceId);
-  const cancelOccurrence = useCancelOccurrence();
-  const endSeries = useEndSeriesFromOccurrence();
 
   useEffect(() => {
     if (!stop) return;
@@ -465,49 +452,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
               )}
 
               {isLoading && <p className="text-xs text-muted-foreground italic">Indlæser ordredetaljer...</p>}
-
-              {/* Serie-handlinger — vises kun hvis stoppet er én forekomst i en gentagende aftale */}
-              {!readOnly && occurrenceId && seriesCtx?.isSeries && (
-                <Section
-                  icon={<Repeat className="h-3.5 w-3.5" />}
-                  title="Gentagende aftale"
-                  hint={
-                    seriesCtx.futurePlannedCount > 0
-                      ? `${seriesCtx.futurePlannedCount} fremtidige besøg planlagt`
-                      : "Ingen fremtidige besøg planlagt"
-                  }
-                >
-                  <div className="space-y-2">
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      Dette stop er ét besøg i en serie. Vælg om en ændring skal gælde
-                      <strong className="text-foreground"> kun denne gang</strong> eller
-                      <strong className="text-foreground"> hele serien fremad</strong>.
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="justify-start"
-                        onClick={() => setConfirmCancelOnce(true)}
-                        disabled={cancelOccurrence.isPending}
-                      >
-                        <XIcon className="h-3.5 w-3.5 mr-1.5" />
-                        Aflys kun denne gang
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
-                        onClick={() => setConfirmEndSeries(true)}
-                        disabled={endSeries.isPending || seriesCtx.futurePlannedCount === 0}
-                      >
-                        <PauseCircle className="h-3.5 w-3.5 mr-1.5" />
-                        Afslut serien fra og med denne dato
-                      </Button>
-                    </div>
-                  </div>
-                </Section>
-              )}
           </div>
 
           {/* Footer actions */}
@@ -551,59 +495,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Fjern stop
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog open={confirmCancelOnce} onOpenChange={setConfirmCancelOnce}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Aflys kun denne gang?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Besøget hos <strong>{stop.customer_name}</strong> aflyses for denne dato.
-              Den gentagende aftale fortsætter som normalt — næste planlagte besøg påvirkes ikke.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Behold besøget</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={async () => {
-                if (!occurrenceId) return;
-                await cancelOccurrence.mutateAsync(occurrenceId);
-                setConfirmCancelOnce(false);
-                onOpenChange(false);
-              }}
-            >
-              Aflys denne gang
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog open={confirmEndSeries} onOpenChange={setConfirmEndSeries}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Afslut hele serien?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Dette aflyser besøget hos <strong>{stop.customer_name}</strong> og
-              <strong> {seriesCtx?.futurePlannedCount ?? 0} fremtidige planlagte besøg</strong>.
-              Aftalen markeres som afsluttet fra og med denne dato. Allerede udførte besøg
-              forbliver uændret (og er allerede faktureret).
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annullér</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={async () => {
-                if (!occurrenceId) return;
-                await endSeries.mutateAsync(occurrenceId);
-                setConfirmEndSeries(false);
-                onOpenChange(false);
-              }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Afslut serien
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

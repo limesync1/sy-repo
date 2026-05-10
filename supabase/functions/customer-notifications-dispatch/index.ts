@@ -72,43 +72,20 @@ Deno.serve(async (req) => {
   let sent = 0; let failed = 0;
   for (const job of jobs ?? []) {
     try {
-      // Hent virksomhed + (ordre eller aftale-forekomst) + stop-info
-      const bizRes = await admin
-        .from("businesses")
-        .select("id, name, phone, settings, notification_settings")
-        .eq("id", job.business_id).maybeSingle();
+      // Hent virksomhed + ordre + service-navn + medarbejder
+      const [bizRes, orderRes, stopRes] = await Promise.all([
+        admin.from("businesses").select("id, name, phone, settings, notification_settings").eq("id", job.business_id).maybeSingle(),
+        admin.from("orders").select("id, customer_name, customer_email").eq("id", job.order_id).maybeSingle(),
+        job.route_stop_id
+          ? admin.from("route_stops").select("planned_arrival, service_summary").eq("id", job.route_stop_id).maybeSingle()
+          : Promise.resolve({ data: null }),
+      ]);
       const biz = bizRes.data;
-
-      // Et job peger enten på en order eller på en agreement_occurrence
-      let order: { customer_name: string | null; customer_email: string | null } | null = null;
-      let stop: { planned_arrival: string | null; service_summary: string | null } | null = null;
-
-      if (job.agreement_occurrence_id) {
-        const { data: occ } = await admin
-          .from("agreement_occurrences")
-          .select("planned_arrival, occurrence_date, agreements!inner(customer_name, customer_email, agreement_items(service_name))")
-          .eq("id", job.agreement_occurrence_id).maybeSingle();
-        if (occ) {
-          const agr = (occ as any).agreements;
-          const items = (agr?.agreement_items ?? []) as Array<{ service_name: string }>;
-          order = { customer_name: agr?.customer_name ?? null, customer_email: agr?.customer_email ?? null };
-          stop = {
-            planned_arrival: (occ as any).planned_arrival ?? `${(occ as any).occurrence_date}T08:00:00Z`,
-            service_summary: items.map((i) => i.service_name).join(", ") || null,
-          };
-        }
-      } else if (job.order_id) {
-        const orderRes = await admin.from("orders").select("id, customer_name, customer_email").eq("id", job.order_id).maybeSingle();
-        order = orderRes.data as any;
-        if (job.route_stop_id) {
-          const stopRes = await admin.from("route_stops").select("planned_arrival, service_summary").eq("id", job.route_stop_id).maybeSingle();
-          stop = stopRes.data as any;
-        }
-      }
-
+      const order = orderRes.data;
+      const stop = stopRes.data as any;
       if (!biz || !order) {
         await admin.from("customer_notification_queue").update({
-          status: "cancelled", last_error: "Modtager eller virksomhed ikke fundet",
+          status: "cancelled", last_error: "Ordre eller virksomhed ikke fundet",
         }).eq("id", job.id);
         continue;
       }

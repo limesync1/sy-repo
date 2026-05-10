@@ -16,16 +16,14 @@ import {
   Plus, Trash2,
   Sparkles, Calculator, Wrench, Wand2, Loader2, Check,
   ArrowUp, ArrowDown, Copy, Tag, FolderTree, Receipt, BookOpen, Repeat,
-  Users, Clock,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useEmployees } from "@/hooks/useEmployees";
 // Lazy load tunge tabs så hver fane først downloades når brugeren åbner den
 const DashboardTab = lazy(() => import("@/components/admin/DashboardTab"));
 const ReviewsTab = lazy(() => import("@/components/admin/ReviewsTab"));
-const AgreementsTab = lazy(() => import("@/components/admin/AgreementsTab"));
+const AftaleTab = lazy(() => import("@/components/admin/AftaleTab"));
 const EmployeesTab = lazy(() => import("@/components/admin/EmployeesTab"));
 const CustomersTab = lazy(() => import("@/components/admin/CustomersTab"));
 const SettingsTab = lazy(() => import("@/components/admin/SettingsTab"));
@@ -284,9 +282,10 @@ const AdminDashboard = () => {
       case "dashboard": return <DashboardWrapper business={business} onNavigate={(t) => handleTabChange(t as AdminTabKey)} />;
       case "services": return <ServicesTab businessId={business.id} business={business} />;
       case "orders": return (
-        <AgreementsTab
+        <AftaleTab
           businessId={business.id}
           businessName={business.name}
+          routePlanningEnabled={!!(business.settings as any)?.route_planning_enabled}
         />
       );
       case "customers": return <CustomersTab businessId={business.id} businessName={business.name} />;
@@ -961,11 +960,6 @@ const ServiceForm = ({
   const [intervalOptions, setIntervalOptions] = useState<string[]>(
     existingService?.interval_options || ["engangskøb"]
   );
-  // Standard medarbejdere (arves af nye aftaler) + standard varighed
-  const [defaultEmployeeIds, setDefaultEmployeeIds] = useState<string[]>(
-    Array.isArray(existingService?.default_employee_ids) ? existingService.default_employee_ids : []
-  );
-  const { data: businessEmployees } = useEmployees(businessId);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiDescAutoTried, setAiDescAutoTried] = useState(!!existingService?.description);
 
@@ -1442,7 +1436,6 @@ const ServiceForm = ({
         product_number: productNumber.trim() || null,
         vat_zone: vatZone || null,
         is_active: isActive,
-        default_employee_ids: defaultEmployeeIds,
       };
 
       if (existingService) {
@@ -1955,59 +1948,6 @@ const ServiceForm = ({
           {intervalOptions.length === 0 && (
             <p className="text-sm text-destructive">Vælg mindst ét interval</p>
           )}
-
-          {/* Standardteam + varighed — arves af nye aftaler så ruteplanlægningen
-              automatisk har medarbejder og tid på hvert besøg. */}
-          <div className="rounded-xl border border-border bg-card p-4 space-y-4">
-            <div className="flex items-start gap-2">
-              <Users className="h-4 w-4 mt-0.5 text-muted-foreground" />
-              <div className="min-w-0">
-                <h4 className="text-sm font-semibold text-foreground">Standardteam & varighed</h4>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  Forudfyldes automatisk på nye aftaler — kan altid overstyres pr. aftale eller besøg.
-                </p>
-              </div>
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-foreground">
-                Standard medarbejder(e)
-              </label>
-              {(businessEmployees ?? []).length === 0 ? (
-                <p className="text-xs text-muted-foreground italic">
-                  Ingen medarbejdere oprettet endnu — opret dem under Medarbejdere.
-                </p>
-              ) : (
-                <div className="flex flex-wrap gap-1.5">
-                  {(businessEmployees ?? []).map((emp) => {
-                    const selected = defaultEmployeeIds.includes(emp.id);
-                    return (
-                      <button
-                        key={emp.id}
-                        type="button"
-                        onClick={() =>
-                          setDefaultEmployeeIds((prev) =>
-                            prev.includes(emp.id)
-                              ? prev.filter((id) => id !== emp.id)
-                              : [...prev, emp.id]
-                          )
-                        }
-                        className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                          selected
-                            ? "border-foreground bg-foreground text-background"
-                            : "border-border bg-secondary/50 text-foreground hover:bg-secondary"
-                        }`}
-                      >
-                        {selected && <Check className="h-3 w-3" />}
-                        {emp.name}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-          </div>
 
           {/* Status: aktiv/inaktiv */}
           <div className="rounded-xl border border-border bg-card p-4 flex items-center justify-between gap-4">

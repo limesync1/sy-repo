@@ -8,7 +8,6 @@ import {
   useAddStop,
   useOptimizeRoute, useGeocodeAddress, useRoutesForRange,
   useCreateRoute, useDeleteRoute, useUpdateRoute,
-  useUnassignedOccurrences, useMaterializeOccurrenceToRoute,
   type RouteStop, type Route,
 } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
@@ -32,10 +31,9 @@ import {
 } from "@/components/ui/resizable";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
-  ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight, Calendar as CalendarIcon,
   Loader2, Search, Plus, Inbox, ArrowUpDown, X, Keyboard,
-  Route as RouteIcon, Tag, Palette,
-  Wand2,
+  ShoppingBag, Route as RouteIcon, Tag, Palette,
 } from "lucide-react";
 import { format, addDays, addWeeks, addMonths, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { da } from "date-fns/locale";
@@ -51,9 +49,9 @@ import { RouteEditSheet, ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor }
 import { DatePickerField } from "@/components/route-planner/DatePickerField";
 import { RouteStopsPanel } from "@/components/route-planner/RouteStopsPanel";
 import { supabase } from "@/integrations/supabase/client";
+import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
 import { AdminShell } from "@/components/admin/shared/AdminShell";
-import { StatusPill } from "@/components/admin/shared/StatusPill";
 import { useWeatherForecast, type WeatherDay } from "@/hooks/useWeather";
 import { ShellSkeleton } from "@/components/admin/shared/Skeletons";
 
@@ -77,8 +75,8 @@ const Planner = () => {
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragData, setActiveDragData] = useState<any>(null);
   const [geocoding, setGeocoding] = useState(false);
+  const [createOrderOpen, setCreateOrderOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
-  const [materializing, setMaterializing] = useState(false);
   const [newRouteName, setNewRouteName] = useState("");
   const [newRouteColor, setNewRouteColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
   const [newRouteDate, setNewRouteDate] = useState(todayStr());
@@ -91,16 +89,7 @@ const Planner = () => {
   const { data: employees = [] } = useEmployees(businessId);
   const activeEmployees = useMemo(() => employees.filter((e: any) => e.is_active), [employees]);
 
-  const { data: unassignedOrders = [] } = useUnassignedJobs(businessId);
-  const { data: unassignedOccurrences = [] } = useUnassignedOccurrences(businessId);
-  const materializeOccurrence = useMaterializeOccurrenceToRoute();
-  // Slå almindelige ordrer (ad-hoc bestillinger uden rute) sammen med
-  // aftale-forekomster (faste aftaler hvor næste gang ikke er på en rute endnu).
-  // Begge skal kunne trækkes ind på en rute fra samme panel.
-  const unassigned = useMemo(
-    () => [...unassignedOrders, ...unassignedOccurrences],
-    [unassignedOrders, unassignedOccurrences],
-  );
+  const { data: unassigned = [] } = useUnassignedJobs(businessId);
 
   // Range for kalender: hele måneden hvis month-view, ugen hvis week-view
   const calendarRange = useMemo(() => {
@@ -430,14 +419,6 @@ const Planner = () => {
       }
       const targetRouteId: string = overData.routeId;
       try {
-        if (job.source === "occurrence" && job.occurrence_id) {
-          await materializeOccurrence.mutateAsync({
-            occurrence_id: job.occurrence_id,
-            route_id: targetRouteId,
-          });
-          toast.success("Aftale tilføjet til ruten");
-          return;
-        }
         const { data: existingStops } = await supabase
           .from("route_stops").select("id").eq("route_id", targetRouteId);
         await addStop.mutateAsync({
@@ -482,14 +463,6 @@ const Planner = () => {
           name: null,
           color: pickAvailableColor(usedColorsThisDay),
         });
-        if (job.source === "occurrence" && job.occurrence_id) {
-          await materializeOccurrence.mutateAsync({
-            occurrence_id: job.occurrence_id,
-            route_id: created.id,
-          });
-          toast.success(`Ny rute oprettet på ${format(parseISO(newDate), "d. MMM", { locale: da })}`);
-          return;
-        }
         await addStop.mutateAsync({
           route_id: created.id,
           order_id: job.id,
@@ -777,43 +750,13 @@ const Planner = () => {
               </Dialog>
 
               <Button
-                variant="outline"
+                data-tour="routes-create-order"
+                variant="default"
                 size="sm"
                 className="h-7"
-                disabled={!businessId || materializing}
-                onClick={async () => {
-                  if (!businessId) return;
-                  setMaterializing(true);
-                  try {
-                    const start = view === "week"
-                      ? startOfWeek(parseISO(date), { weekStartsOn: 1 })
-                      : startOfMonth(parseISO(date));
-                    const end = view === "week"
-                      ? endOfWeek(parseISO(date), { weekStartsOn: 1 })
-                      : endOfMonth(parseISO(date));
-                    const from = format(start, "yyyy-MM-dd");
-                    const to = format(end, "yyyy-MM-dd");
-                    await supabase.rpc("ensure_agreement_occurrences", {
-                      _business_id: businessId,
-                      _until_date: to,
-                    });
-                    const { data, error } = await supabase.rpc("materialize_occurrences_to_routes", {
-                      _business_id: businessId,
-                      _from: from,
-                      _to: to,
-                    });
-                    if (error) throw error;
-                    toast.success(`${data || 0} aftaler lagt på ruter`);
-                  } catch (e: any) {
-                    toast.error(e.message || "Kunne ikke materialisere");
-                  } finally {
-                    setMaterializing(false);
-                  }
-                }}
-                title="Auto-fyld ruter fra aftaler i den viste periode"
+                onClick={() => setCreateOrderOpen(true)}
               >
-                {materializing ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Wand2 className="h-3.5 w-3.5 mr-1" />}
-                Auto-fyld
+                <ShoppingBag className="h-3.5 w-3.5 mr-1" />Opret bestilling
               </Button>
 
               <Tooltip>
@@ -840,32 +783,27 @@ const Planner = () => {
             <ResizablePanelGroup direction="horizontal" className="h-full rounded-lg">
               {/* Sidebar: Aftaler uden rute */}
               <ResizablePanel defaultSize={20} minSize={14} maxSize={36} className="overflow-hidden">
-                <Card data-tour="routes-unassigned" className="flex flex-col h-full overflow-hidden rounded-xl">
-                  {/* Header — matcher shared admin-stil: tydelig titel, neutral
-                      tæller-pill, kort hjælpetekst og kompakt nøgletals-rude. */}
-                  <div className="p-3 border-b bg-card space-y-2.5">
-                    <div className="flex items-center justify-between gap-2">
-                      <h2 className="font-semibold text-sm flex items-center gap-1.5 text-foreground tracking-tight">
-                        <Inbox className="h-4 w-4 text-muted-foreground" />
+                <Card data-tour="routes-unassigned" className="flex flex-col h-full overflow-hidden">
+                  <div className="p-3 border-b bg-secondary/30 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h2 className="font-semibold text-sm flex items-center gap-1.5">
+                        <Inbox className="h-4 w-4 text-primary" />
                         Aftaler uden rute
                       </h2>
-                      <StatusPill tone="neutral" dot={false}>
-                        <span className="tabular-nums">{filteredUnassigned.length}</span>
-                      </StatusPill>
+                      <Badge variant="secondary" className="tabular-nums">
+                        {filteredUnassigned.length}
+                      </Badge>
                     </div>
-                    <p className="text-[11px] text-muted-foreground leading-snug">
-                      Træk en aftale ind i kalenderen for at planlægge den.
+                    <p className="text-[10px] text-muted-foreground leading-snug">
+                      Træk en aftale ind i kalenderen for at planlægge den. Når en aftale med interval markeres som udført, opretter vi automatisk næste aftale på samme rute og medarbejder.
                     </p>
                     {filteredUnassigned.length > 0 && (
-                      <div className="flex items-center justify-between gap-2 rounded-md bg-secondary/60 border border-border/60 px-2 py-1.5">
-                        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Total værdi</span>
-                        <span className="text-xs font-semibold tabular-nums text-foreground">
-                          {Math.round(unassignedTotal).toLocaleString("da-DK")} kr
-                        </span>
-                      </div>
+                      <p className="text-[10px] text-muted-foreground tabular-nums">
+                        Total værdi: <span className="font-semibold text-foreground">{Math.round(unassignedTotal).toLocaleString("da-DK")} kr</span>
+                      </p>
                     )}
                     {outsideWindowCount > 0 && (
-                      <p className="text-[10px] text-muted-foreground rounded px-2 py-1 leading-snug bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-800 dark:text-amber-200">
+                      <p className="text-[10px] text-muted-foreground rounded px-2 py-1 leading-snug bg-muted/40 border border-border/60">
                         +{outsideWindowCount} aftale{outsideWindowCount === 1 ? "" : "r"} ligger uden for det viste vindue.
                       </p>
                     )}
@@ -875,7 +813,7 @@ const Planner = () => {
                         placeholder="Søg navn eller adresse..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="h-8 pl-7 pr-7 text-xs rounded-md"
+                        className="h-7 pl-7 pr-7 text-xs"
                       />
                       {search && (
                         <button
@@ -967,6 +905,15 @@ const Planner = () => {
             </ResizablePanelGroup>
         </div>
 
+        {/* Manuel ordre-oprettelse — kunde modtager mail med godkendelseslink */}
+        {businessId && (
+          <CreateManualOrderDialog
+            open={createOrderOpen}
+            onOpenChange={setCreateOrderOpen}
+            businessId={businessId}
+            businessName={business?.name || ""}
+          />
+        )}
 
         {/* Slet rute bekræftelse */}
         <AlertDialog open={!!routeToDelete} onOpenChange={(o) => !o && setRouteToDelete(null)}>
@@ -1073,9 +1020,6 @@ const Planner = () => {
           onOpenChange={(o) => !o && setEditingRoute(null)}
           stopCount={activeEditingRoute ? (calendarStops.filter((s) => s.route_id === activeEditingRoute.id).length) : 0}
           stops={activeEditingRoute ? calendarStops.filter((s) => s.route_id === activeEditingRoute.id) : []}
-          employees={activeEmployees.map((e: any) => ({
-            id: e.id, name: e.name, avatar_url: e.avatar_url, color: e.color,
-          }))}
         />
 
         {/* Slide-in: stops på den valgte rute (vises ved siden af rute-redigering) */}

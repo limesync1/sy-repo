@@ -54,13 +54,9 @@ interface Props {
   businessId: string;
   businessName: string;
   initial?: EditableCustomer | null;
-  /** Optional callback fired after a successful save (create or update).
-   *  Receives the saved customer so callers can auto-select it (e.g. in
-   *  the agreement-creation flow). */
-  onSaved?: (saved: EditableCustomer) => void;
 }
 
-const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, initial, onSaved }: Props) => {
+const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, initial }: Props) => {
   const qc = useQueryClient();
   const [type, setType] = useState<CustomerType>(initial?.type || "private");
   const [name, setName] = useState(initial?.name || "");
@@ -260,7 +256,6 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
       }
       qc.invalidateQueries({ queryKey: ["customers", businessId] });
       qc.invalidateQueries({ queryKey: ["saved-customers", businessId] });
-      qc.invalidateQueries({ queryKey: ["agreement-customer-options", businessId] });
       toast.success(initial?.id ? "Kunde opdateret" : "Kunde oprettet");
 
       const saved: EditableCustomer = {
@@ -279,8 +274,6 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
         longitude: savedRow.longitude,
         notes: savedRow.notes,
       };
-
-      onSaved?.(saved);
 
       if (alsoCreateOrder) {
         setSavedCustomer(saved);
@@ -506,6 +499,12 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
                 {saving ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Save className="h-4 w-4 mr-1.5" />}
                 Gem kunde
               </Button>
+              {!initial?.id && (
+                <Button onClick={() => handleSave(true)} disabled={saving} className="bg-accent text-accent-foreground hover:bg-accent/90">
+                  <ShoppingBag className="h-4 w-4 mr-1.5" />
+                  Gem & opret bestilling
+                </Button>
+              )}
             </div>
           </DialogFooter>
         </DialogContent>

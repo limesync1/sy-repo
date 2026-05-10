@@ -16,7 +16,7 @@ import {
   User, Mail, Phone, MapPin, Package, Repeat, Calendar,
   Route as RouteIcon, Star, Clock, ChevronRight, ExternalLink, Pause,
   UserPlus, Building2, Pencil, Trash2, ShoppingBag, MoreHorizontal,
-  CreditCard, Contact as ContactIcon, X as CloseIcon, Users, TrendingUp, AlertCircle,
+  CreditCard, Contact as ContactIcon, X as CloseIcon,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
@@ -24,8 +24,6 @@ import { INTERVAL_LABELS } from "@/types/service";
 import { Link } from "react-router-dom";
 import CustomerEditDialog, { type EditableCustomer } from "./CustomerEditDialog";
 import { PageHeader, PrimaryButton, SearchInput, EmptyState } from "@/components/admin/shared/AdminUI";
-import { QuickFilters } from "@/components/admin/shared/QuickFilters";
-import { KpiBar } from "@/components/admin/shared/KpiBar";
 import { ListCardSkeleton, DialogDetailsSkeleton } from "@/components/admin/shared/Skeletons";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -126,7 +124,7 @@ const useCustomers = (businessId: string) => {
   return useQuery({
     queryKey: ["customers", businessId],
     queryFn: async (): Promise<Customer[]> => {
-      const [ordersRes, subsRes, agreementsRes, privRes, bizRes] = await Promise.all([
+      const [ordersRes, subsRes, privRes, bizRes] = await Promise.all([
         supabase
           .from("orders")
           .select("id, status, customer_name, customer_email, customer_phone, customer_id, address, zip_code, city, total_amount, created_at, company_name, cvr, payment_status, paid_at, due_date, invoice_external_id, invoiced_at, reminder_count, last_reminder_at, last_reminder_type, credited_at, voided_at")
@@ -135,10 +133,6 @@ const useCustomers = (businessId: string) => {
         supabase
           .from("subscriptions")
           .select("customer_id, status")
-          .eq("business_id", businessId),
-        supabase
-          .from("agreements")
-          .select("id, status, customer_name, customer_email, customer_phone, business_customer_id, address, zip_code, city, total_amount, created_at, company_name, cvr, interval")
           .eq("business_id", businessId),
         supabase
           .from("private_customers")
@@ -152,7 +146,6 @@ const useCustomers = (businessId: string) => {
       if (ordersRes.error) throw ordersRes.error;
       const orders = ordersRes.data || [];
       const subs = subsRes.data || [];
-      const agreementsAll = (agreementsRes.data || []) as any[];
       const privCustomers = privRes.data || [];
       const bizCustomers = bizRes.data || [];
 
@@ -228,49 +221,6 @@ const useCustomers = (businessId: string) => {
       grouped.forEach((c, key) => {
         const list = ordersByCustomer.get(key) || [];
         c.accounting_summary = summarizeCustomerOrders(list);
-      });
-
-      // ── Aftaler (agreements) — fold ind i kundeoversigten så kunder med
-      // faste aftaler (men måske ingen "orders") også vises korrekt med
-      // tæller, omsætning og status. Aftaler er den moderne afløser for
-      // subscriptions, så de skal regnes med i live_orders_count og
-      // active_subs/paused_subs.
-      agreementsAll.forEach((a) => {
-        const key = (a.customer_email || "").toLowerCase();
-        if (!key) return;
-        const isLive = !["cancelled", "ended"].includes(a.status);
-        const isActive = a.status === "active";
-        const isPaused = a.status === "paused";
-        const existing = grouped.get(key);
-        if (existing) {
-          if (isLive) existing.live_orders_count = (existing.live_orders_count || 0) + 1;
-          existing.orders_count += 1;
-          existing.total_revenue += Number(a.total_amount || 0);
-          if (isActive) existing.active_subs += 1;
-          if (isPaused) existing.paused_subs += 1;
-          if (!existing.last_order_at || a.created_at > existing.last_order_at) existing.last_order_at = a.created_at;
-          if (!existing.first_order_at || a.created_at < existing.first_order_at) existing.first_order_at = a.created_at;
-        } else {
-          grouped.set(key, {
-            email: a.customer_email,
-            name: a.customer_name,
-            phone: a.customer_phone,
-            address: a.address,
-            zip_code: a.zip_code,
-            city: a.city,
-            customer_id: null,
-            total_revenue: Number(a.total_amount || 0),
-            orders_count: 1,
-            live_orders_count: isLive ? 1 : 0,
-            active_subs: isActive ? 1 : 0,
-            paused_subs: isPaused ? 1 : 0,
-            last_order_at: a.created_at,
-            first_order_at: a.created_at,
-            company_name: a.company_name,
-            cvr: a.cvr,
-            type: a.business_customer_id ? "business" : "unknown",
-          });
-        }
       });
 
       // Merge privat-kartotek
@@ -370,7 +320,7 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
     queryKey: ["customer-details", businessId, email],
     enabled: !!businessId && !!email,
     queryFn: async () => {
-      const [ordersRes, subsRes, agreementsRes] = await Promise.all([
+      const [ordersRes, subsRes] = await Promise.all([
         supabase
           .from("orders")
           .select("id, status, total_amount, preferred_date, created_at, notes, address, zip_code, city, payment_status, paid_at, payment_status_synced_at, due_date, invoice_external_id, invoiced_at, invoice_status, reminder_count, last_reminder_at, last_reminder_type, reminder_history, credited_at, voided_at, order_items(service_name, quantity, total_price, details)")
@@ -381,12 +331,6 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
           .from("subscriptions")
           .select("id, service_name, interval, status, next_service_date, total_price, preferred_route_id, order_id, customer_id, created_at")
           .eq("business_id", businessId)
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("agreements")
-          .select("id, status, interval, start_date, end_date, total_amount, default_route_template_id, employee_ids, billing_model, created_at, agreement_items(service_name, total_price)")
-          .eq("business_id", businessId)
-          .ilike("customer_email", email!)
           .order("created_at", { ascending: false }),
       ]);
 
@@ -483,7 +427,6 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
         stops,
         reviews,
         preferredRoutes,
-        agreements: (agreementsRes.data || []) as any[],
       };
     },
   });
@@ -816,51 +759,50 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         }
       />
 
-      {/* KPI-bar — samme rytme som Aftaler-siden, så hele admin føles ens */}
-      <KpiBar items={[
-        {
-          label: "Kunder",
-          value: stats.total,
-          hint: `${stats.privateCount} privat · ${stats.businessCount} erhverv`,
-          icon: <Users />,
-          tone: "neutral",
-        },
-        {
-          label: "Faste kunder",
-          value: stats.recurring,
-          hint: "med aktivt abonnement",
-          icon: <Repeat />,
-          tone: "success",
-        },
-        {
-          label: "Samlet omsætning",
-          value: `${Math.round(stats.totalRev).toLocaleString("da-DK")} kr`,
-          hint: "alle ordrer",
-          icon: <TrendingUp />,
-          tone: "accent",
-        },
-        {
-          label: "Forfalden betaling",
-          value: stats.withOverdue,
-          hint: stats.withOverdue > 0 ? "kræver handling" : "alle betalt",
-          icon: <AlertCircle />,
-          tone: stats.withOverdue > 0 ? "danger" : "neutral",
-        },
-      ]} />
+      {/* Forfalden betaling — vises kun når relevant, så fokus er på handling */}
+      {stats.withOverdue > 0 && (
+        <Card className="surface-admin rounded-xl border-destructive/30 bg-destructive/5 shadow-sm">
+          <CardContent className="flex items-center justify-between gap-3 p-3">
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Forfalden betaling</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {stats.withOverdue} {stats.withOverdue === 1 ? "kunde" : "kunder"} med forfaldne fakturaer eller rykkere
+              </p>
+            </div>
+            <p className="text-xl font-semibold tabular-nums text-destructive shrink-0">{stats.withOverdue}</p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Søg + type-filter på samme linje — kompakt værktøjsbar */}
       <div className="flex flex-wrap items-center gap-2">
-        <QuickFilters
-          value={typeFilter}
-          onChange={(v) => setTypeFilter(v as typeof typeFilter)}
-          options={[
+        <div className="flex-1 min-w-[240px]">
+          <SearchInput value={search} onChange={setSearch} placeholder="Søg navn, email, firma, CVR eller by..." />
+        </div>
+        <div className="inline-flex flex-wrap items-center gap-0 rounded-lg border border-border bg-card p-0.5 shadow-sm">
+          {[
             { key: "all", label: "Alle", count: stats.total },
             { key: "private", label: "Privat", count: stats.privateCount },
             { key: "business", label: "Erhverv", count: stats.businessCount },
-          ]}
-        />
-        <div className="flex-1 min-w-[240px] sm:max-w-md sm:ml-auto">
-          <SearchInput value={search} onChange={setSearch} placeholder="Søg navn, email, firma, CVR eller by..." />
+          ].map(({ key, label, count }) => {
+            const isActive = typeFilter === key;
+            return (
+              <button
+                key={key}
+                onClick={() => setTypeFilter(key as any)}
+                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                  isActive ? "bg-foreground text-background" : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                }`}
+              >
+                <span>{label}</span>
+                {count > 0 && (
+                  <span className={`tabular-nums rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${
+                    isActive ? "bg-black/15 text-current" : "bg-secondary text-foreground/70"
+                  }`}>{count}</span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -1212,97 +1154,50 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
 
   return (
     <Sheet open={!!email} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent hideCloseButton className="w-full sm:max-w-xl overflow-y-auto p-0 bg-background">
+      <SheetContent hideCloseButton className="w-full sm:max-w-xl overflow-y-auto p-0">
         {customer && (
           <>
-            {/* Kompakt header — avatar, navn, status og hurtig-handlinger
-                samles i én flot stribe der følger samme stil som Aftaler/Services. */}
-            <SheetHeader className="sticky top-0 z-20 border-b border-border bg-card/95 backdrop-blur p-4 pr-12">
+            <SheetHeader className="sticky top-0 z-20 border-b border-border bg-background p-3 pr-12">
               <SheetClose className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
                 <CloseIcon className="h-4 w-4" />
                 <span className="sr-only">Luk</span>
               </SheetClose>
               <SheetTitle className="text-left">
-                <div className="flex min-w-0 items-start gap-3">
-                  {customer.avatar_url ? (
-                    <img src={customer.avatar_url} alt="" loading="lazy" decoding="async"
-                      className="h-11 w-11 shrink-0 rounded-full border border-border object-cover" />
-                  ) : (
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-secondary">
-                      {customer.type === "business"
-                        ? <Building2 className="h-5 w-5 text-muted-foreground" />
-                        : <User className="h-5 w-5 text-muted-foreground" />}
-                    </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex min-w-0 flex-wrap items-center gap-2">
-                      <h3 className="truncate text-base font-bold text-foreground">
-                        {customer.type === "business" && customer.company_name ? customer.company_name : customer.name}
-                      </h3>
-                      <CustomerStatusPill c={customer} />
-                    </div>
-                    {customer.type === "business" && customer.company_name && customer.contact_name && (
-                      <p className="mt-0.5 truncate text-xs font-normal text-muted-foreground">
-                        Kontakt: {customer.contact_name}
-                      </p>
-                    )}
-                    {/* Tre nøgletal i ét sted — undgår at brugeren skal scrolle for at se essensen */}
-                    <div className="mt-2 grid grid-cols-3 gap-2 text-xs font-normal">
-                      <div className="rounded-md border border-border bg-secondary/40 px-2 py-1.5">
-                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Aftaler</p>
-                        <p className="text-sm font-semibold text-foreground tabular-nums">{customer.orders_count || 0}</p>
-                      </div>
-                      <div className="rounded-md border border-border bg-secondary/40 px-2 py-1.5">
-                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Omsætning</p>
-                        <p className="text-sm font-semibold text-foreground tabular-nums">{customer.total_revenue > 0 ? fmtKr(customer.total_revenue) : "—"}</p>
-                      </div>
-                      <div className="rounded-md border border-border bg-secondary/40 px-2 py-1.5">
-                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Kunde siden</p>
-                        <p className="text-sm font-semibold text-foreground">{customer.first_order_at ? fmtDate(customer.first_order_at).replace(/\s\d{4}$/, "") : "—"}</p>
-                      </div>
-                    </div>
+                <div className="min-w-0">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <h3 className="truncate text-base font-bold text-foreground">{customer.name}</h3>
+                    <CustomerStatusPill c={customer} />
+                  </div>
+                  <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-normal text-muted-foreground">
+                    <span>{activeOrders.length > 0 ? `${activeOrders.length} aktive aftaler` : customer.first_order_at ? `Kunde siden ${fmtDate(customer.first_order_at)}` : "Ingen aftaler endnu"}</span>
+                    {paymentIssueOrders.length > 0 && <span className="font-medium text-destructive">{paymentIssueOrders.length} kræver betaling</span>}
+                    {customer.total_revenue > 0 && <span>Omsætning {fmtKr(customer.total_revenue)}</span>}
                   </div>
                 </div>
               </SheetTitle>
             </SheetHeader>
 
-            <div className="space-y-3 p-4">
-              {/* Kontakt-stribe — alle kontaktpunkter i én linje, klikbare */}
-              <div className="flex flex-wrap items-center gap-1 rounded-lg border border-border bg-card px-2 py-1.5">
+            <div className="p-3 space-y-3">
+              <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-border bg-card px-2 py-1.5">
                 <a href={`mailto:${customer.email}`}
-                  className="inline-flex min-w-0 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-foreground hover:bg-secondary max-w-full">
+                  className="inline-flex min-w-0 items-center gap-1.5 rounded-md px-1.5 py-1 text-xs text-foreground hover:bg-secondary/60 max-w-full">
                   <Mail className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                   <span className="truncate">{customer.email}</span>
                 </a>
                 {customer.phone && (
-                  <>
-                    <span className="text-muted-foreground/30">·</span>
-                    <a href={`tel:${customer.phone}`}
-                      className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-foreground hover:bg-secondary">
-                      <Phone className="h-3.5 w-3.5 text-muted-foreground" />
-                      <span>{customer.phone}</span>
-                    </a>
-                  </>
+                  <a href={`tel:${customer.phone}`}
+                    className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-xs text-foreground hover:bg-secondary/60">
+                    <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span>{customer.phone}</span>
+                  </a>
                 )}
                 {(customer.address || customer.city) && (
-                  <>
-                    <span className="text-muted-foreground/30">·</span>
-                    <span className="inline-flex min-w-0 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-foreground max-w-full">
-                      <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                      <span className="truncate">
-                        {[customer.address, [customer.zip_code, customer.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")}
-                      </span>
+                  <span className="inline-flex min-w-0 items-center gap-1.5 rounded-md px-1.5 py-1 text-xs text-foreground max-w-full">
+                    <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <span className="truncate">
+                      {[customer.address, [customer.zip_code, customer.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")}
                     </span>
-                  </>
-                )}
-                {customer.cvr && (
-                  <>
-                    <span className="text-muted-foreground/30">·</span>
-                    <span className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-foreground">
-                      <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                      CVR {customer.cvr}
-                    </span>
-                  </>
+                  </span>
                 )}
               </div>
 
@@ -1310,40 +1205,30 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                 <DialogDetailsSkeleton sections={2} />
               ) : (
                 <>
-                  {/* Fokus-stribe — viser tydeligt hvad der kræver handling lige nu.
-                      Tonen ændres efter type, så brugeren ikke skal læse for at forstå. */}
-                  {(nextOrder || paymentIssueOrders.length > 0 || pendingOrders.length > 0) && (
-                    <div className={`rounded-lg border px-3 py-2 ${
-                      paymentIssueOrders.length > 0
-                        ? "border-destructive/40 bg-destructive/5"
-                        : pendingOrders.length > 0
-                          ? "border-warning/40 bg-warning/5"
-                          : "border-border bg-secondary/40"
-                    }`}>
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Fokus</p>
-                          <p className="mt-0.5 truncate text-sm font-semibold text-foreground">{focusText}</p>
-                          {nextOrder && (
-                            <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                              <span className="truncate text-xs text-muted-foreground">
-                                {nextOrder.order_items?.[0]?.service_name || "Aftale"}
-                                {nextOrder.order_items?.length > 1 ? ` +${nextOrder.order_items.length - 1}` : ""}
+                  <div className="rounded-lg border border-border bg-secondary/40 px-3 py-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Fokus</p>
+                        <p className="mt-0.5 truncate text-sm font-semibold text-foreground">{focusText}</p>
+                        {nextOrder && (
+                          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                            <span className="truncate text-xs text-muted-foreground">
+                              {nextOrder.order_items?.[0]?.service_name || "Aftale"}
+                              {nextOrder.order_items?.length > 1 ? ` +${nextOrder.order_items.length - 1}` : ""}
+                            </span>
+                            <StatusBadge status={nextOrder.status} />
+                            <AccountingStatusRow order={nextOrder as OrderForStatus} size="xs" />
+                            {nextOrder.preferred_date && (
+                              <span className="inline-flex h-5 items-center gap-1 rounded-full border border-border bg-card px-1.5 text-[10px] text-foreground">
+                                <Calendar className="h-2.5 w-2.5" /> {fmtDate(nextOrder.preferred_date)}
                               </span>
-                              <StatusBadge status={nextOrder.status} />
-                              <AccountingStatusRow order={nextOrder as OrderForStatus} size="xs" />
-                              {nextOrder.preferred_date && (
-                                <span className="inline-flex h-5 items-center gap-1 rounded-full border border-border bg-card px-1.5 text-[10px] text-foreground">
-                                  <Calendar className="h-2.5 w-2.5" /> {fmtDate(nextOrder.preferred_date)}
-                                </span>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                        {nextOrder && <span className="shrink-0 text-sm font-bold tabular-nums text-foreground">{fmtKr(nextOrder.total_amount)}</span>}
+                            )}
+                          </div>
+                        )}
                       </div>
+                      {nextOrder && <span className="shrink-0 text-sm font-bold tabular-nums text-foreground">{fmtKr(nextOrder.total_amount)}</span>}
                     </div>
-                  )}
+                  </div>
 
                   {customer.accounting_summary && (customer.accounting_summary.overdue > 0 || customer.accounting_summary.reminders > 0 || customer.accounting_summary.unpaid > 0) && (
                     <div className="rounded-lg border border-border bg-card px-3 py-2">
@@ -1461,40 +1346,6 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                       </div>
                     );
                   })()}
-
-                  {/* Aftaler (faste/abonnementer) — den nye agreements-tabel */}
-                  {data && (data as any).agreements && (data as any).agreements.length > 0 && (
-                    <div className="space-y-2">
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                        <Repeat className="h-3.5 w-3.5" /> Faste aftaler ({(data as any).agreements.length})
-                      </h4>
-                      <div className="space-y-1.5">
-                        {(data as any).agreements.map((a: any) => {
-                          const services = (a.agreement_items || []).map((i: any) => i.service_name).filter(Boolean);
-                          const label = services.length === 0 ? "Aftale" : services.length === 1 ? services[0] : `${services[0]} +${services.length - 1}`;
-                          return (
-                            <div key={a.id} className="rounded-lg border border-border bg-card px-3 py-2">
-                              <div className="flex items-start justify-between gap-2">
-                                <div className="min-w-0 flex-1">
-                                  <p className="text-sm font-semibold text-foreground truncate">{label}</p>
-                                  <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                                    <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-accent/40 text-accent bg-accent/5">
-                                      {INTERVAL_LABELS[a.interval] || a.interval}
-                                    </Badge>
-                                    <StatusBadge status={a.status} />
-                                    <span className="text-[11px] text-muted-foreground inline-flex items-center gap-1">
-                                      <Calendar className="h-3 w-3" /> Start {fmtDate(a.start_date)}
-                                    </span>
-                                  </div>
-                                </div>
-                                <span className="text-sm font-bold text-foreground tabular-nums shrink-0">{fmtKr(Number(a.total_amount || 0))}</span>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
 
                   {data && data.stops.length > 0 && (
                     <details className="group rounded-lg border border-border bg-card/60 px-3 py-2 text-xs">

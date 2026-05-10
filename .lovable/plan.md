@@ -1,82 +1,74 @@
+# Plan: Klogere dataimport + support-knap i header
 
-# Stort UI/UX-løft: Ruter · Aftaler · Kunder
+## 1. AI-baseret felt-mapping med begrundelser
 
-Bekræftet først: alle 21 forekomster fra dine 2 aftaler er nu på ruter (mette jensen, månedlig + hver 14. dag). Auto-materialisering virker. ✓
+I `DataImportTab.tsx` udvides den eksisterende mapping-flow med en "Foreslå med AI"-knap, der kalder en ny edge function `suggest-field-mapping` (Lovable AI Gateway, `google/gemini-3-flash-preview`).
 
-Mål: De tre sider skal føles som én sammenhængende app — samme sprog, samme komponenter, samme rytme. Færre klik, bedre overblik, smukkere look.
+- Input til AI: kolonneoverskrifter + 3-5 eksempelværdier pr. kolonne + entitetstype (kunder, ordrer, abonnementer, medarbejdere).
+- Output (struktureret JSON): `{ column: string, suggested_field: string|null, confidence: "høj"|"middel"|"lav", reason: string }[]`.
+- UI:
+  - Knap øverst i mapping-panelet: "✨ Foreslå mapping med AI".
+  - Hver kolonne får en lille badge med konfidens-farve (grøn/gul/rød) og en tooltip/ikon med begrundelsen.
+  - Lave-konfidens kolonner markeres tydeligt (gul kant) så brugeren kan vælge selv hurtigt.
+  - Bruger kan acceptere alle forslag på én gang eller pr. felt.
 
-## Fælles fundament (deles på tværs af alle 3 sider)
+## 2. Preview Diff før import
 
-Nye genbrugskomponenter under `src/components/admin/shared/`:
+Inden den endelige import køres en "diff-analyse" lokalt der pr. entity viser:
 
-- **`PageHeader`** — stor titel + undertekst, primær CTA-knap, inline søg, antal-badge. Ens på alle sider.
-- **`StatCardRow`** — 4 KPI-kort øverst (fx "Aktive aftaler · MRR · Næste 7 dage · Ubekræftede").
-- **`DataTable`** — sticky header, hover-row, klik-åbner-panel, sortérbare kolonner, tom-tilstand med illustration + CTA.
-- **`DetailSheet`** — højre-glide-panel (shadcn Sheet) til detalje/rediger uden side-skift.
-- **`StatusPill`** — én farveskala for status på tværs af aftaler/ruter/kunder.
-- **`EmptyState`** — venlig dansk tekst + ikon + primær CTA.
-- **`QuickFilters`** — chips med antal pr. status (Alle 12 · Aktive 8 · Pause 2 · Afsluttet 2).
+- **Opret** (n rækker) — nye records.
+- **Opdater** (n rækker) — eksisterende records (matchet via key fx email/CVR/ekstern id) der får nye felter.
+- **Uændret** (n rækker) — exact match.
+- **Fejl** (n rækker) — validation eller manglende krævede felter.
 
-Designtokens vi læner os op ad: foreground for primær handling, accent (teal) sparsomt, bløde shadows, 16px radius på kort.
+UI: Ny "Preview"-fane før "Importér", med:
+- Sammenfatningskort pr. entitet (4 tal + bjælke).
+- Klik på en kategori → tabel med de berørte rækker + felt-niveau diff (gammel → ny værdi for opdateringer).
+- "Importér"-knappen disables hvis der er kritiske fejl, indtil brugeren har rettet eller eksplicit valgt "spring fejl over".
 
-## Side 1: Kunder
+Matching-logik:
+- Kunder: email eller CVR.
+- Ordrer: ordrenummer eller (kunde + dato + service).
+- Medarbejdere: email.
+- Abonnementer: (kunde + service).
 
-Ny struktur:
-```text
-[PageHeader: "Kunder" + "Tilføj kunde"]
-[StatCardRow: I alt · Privat · Erhverv · Med åben aftale]
-[QuickFilters: Alle · Privat · Erhverv · VIP · Inaktive]   [Søg]
-[DataTable]
-  Avatar+navn · Type · Kontakt · By · Aftaler (chip) · Sidste besøg · ⋮
-  → klik åbner DetailSheet med 3 tabs: Info · Aftaler · Dokumenter
-```
+## 3. Trinvis validering med fejl pr. række/kolonne
 
-- Privat- og erhvervskunder samlet i én tabel med tydelig type-pill.
-- Inline-handling: ring-op, send mail, kopi-adresse direkte fra rækken.
-- Detalje-sheet viser kundens aftaler + næste besøg uden side-skift.
+Tilføj `validateRow()` der kører på hver række efter mapping og før preview:
 
-## Side 2: Aftaler
+- Påkrævede felter (per entitet) — fejl hvis tom.
+- Type-validering (email, telefon, postnr, CVR 8 cifre, beløb numerisk, dato parsable).
+- Reference-validering (fx kunde-email findes i kunder-arket eller i DB).
 
-Ny struktur (split-view):
-```text
-[PageHeader: "Aftaler" + "Ny aftale"]
-[StatCardRow: Aktive · MRR · Næste 7 dage · Afventer godkendelse]
-[QuickFilters med antal pr. status]               [Søg + interval-filter]
-[Venstre 60%: DataTable]              [Højre 40%: forhåndsvisning]
-  Kunde · Interval-badge · Næste     →  Når en række er valgt:
-  besøg · MRR · Status · ⋮              kunde, services, kommende
-                                         forekomster (mini-tidslinje),
-                                         knap "Åbn fuld redigering"
-```
+UI:
+- Valideringspanel med fejlliste grupperet pr. kolonne, klik → scroll til celle i preview-tabellen.
+- Cellen highlights rød med tooltip-fejl.
+- Brugeren kan ændre mapping eller redigere cellen direkte (inline edit) og fejlen forsvinder.
+- Tæller i toppen: "12 fejl i 4 kolonner — ret eller spring over".
 
-- Næste 4 forekomster som chip-tidslinje pr. aftale.
-- Hurtig-handlinger: Pause · Genoptag · Afslut serie · Dupliker.
-- Tom-tilstand: stor venlig "Opret din første aftale" med CTA.
-- Form-dialog: ryddet op i sektioner (Kunde → Service → Tid & interval → Pris).
+## 4. Flyt "Serviceydere kundeservice"-knap til virksomhedspanel-headeren
 
-## Side 3: Ruter
+I dag rendres `LiveChatWidget` floating i `/virksomhed/*` og kan overlappe andre knapper.
 
-Beholder kalender/kort, men polerer chrome'en så den matcher de andre to:
-
-- Ny `PageHeader` øverst med dato-vælger + "Auto-fordel" + "Optimer" som primære actions.
-- StatCardRow: Stops i dag · Estimeret km · Estimeret timer · Uden rute.
-- "Aftaler uden rute"-panel får samme look som DataTable-rækker.
-- Manuelt-stop knap omdøbes/tydeliggøres med ikon.
-- Farve-konsistens: rute-farver = aftale-farver = kunde-type-farver.
+- Skjul den floating trigger-knap når `pathname.startsWith("/virksomhed")` (men behold selve chat-popup'en så den kan åbnes).
+- Tilføj en kompakt "Support"-knap (`MessageCircle`-ikon + "Support"-label) i `PageHeader`/topbjælken på `/virksomhed`-siderne.
+- Knappen sætter `sessionStorage.serviceydere_open_chat_key = platformKey()` og dispatcher event så widget'en åbner — samme mekanisme som allerede bruges andre steder.
 
 ## Tekniske detaljer
 
-- Ny mappe `src/components/admin/shared/` med 7 nye filer (ovenstående komponenter).
-- `AgreementsTab.tsx` refaktoreres til `AgreementsTab.tsx` (liste+sheet) + `AgreementFormDialog.tsx` (udskilt).
-- `CustomersTab.tsx` får ny tabel-render og DetailSheet — eksisterende `CustomerEditDialog` genbruges som "fuld redigering".
-- `RoutePlanner.tsx` får udskiftet header + stats-bar + panel-styling. Drag-and-drop logik røres ikke.
-- Ingen DB-ændringer — kun frontend.
-- Danske tekster overalt, semantiske tokens kun (ingen hex i komponenter).
+- Ny edge function: `supabase/functions/suggest-field-mapping/index.ts` med `verify_jwt = false` (mapping er ikke følsom data, men vi sender kun kolonnenavne + sample values).
+- Diff- og valideringslogik kører klientside i ny modul: `src/components/admin/dataimport/diff.ts` og `validation.ts`.
+- DataImportTab opsplittes lidt: nye komponenter `MappingPanel.tsx`, `PreviewDiffPanel.tsx`, `ValidationPanel.tsx` for at holde filen håndterbar.
+- LiveChatWidget: udvid `HIDDEN_PREFIXES` med `/virksomhed` for trigger-knap, men eksporter en lille hook/funktion `openPlatformChat()` til brug fra header-knappen.
 
-## Hvad jeg IKKE rører
+## Filer der ændres
 
-- Backend, hooks, datamodel, RLS, edge functions.
-- Drag-and-drop i ruteplanlæggeren.
-- Aftale-godkendelses-flow (allerede færdigt).
-
-Estimeret omfang: ~10 nye/ændrede filer, ~1500 linjer. Jeg laver det som ét sammenhængende løft.
+- `src/components/admin/DataImportTab.tsx` (refactor + integration)
+- `src/components/admin/dataimport/MappingPanel.tsx` (ny)
+- `src/components/admin/dataimport/PreviewDiffPanel.tsx` (ny)
+- `src/components/admin/dataimport/ValidationPanel.tsx` (ny)
+- `src/components/admin/dataimport/diff.ts` (ny)
+- `src/components/admin/dataimport/validation.ts` (ny)
+- `supabase/functions/suggest-field-mapping/index.ts` (ny)
+- `src/components/livechat/LiveChatWidget.tsx` (skjul trigger på /virksomhed, eksportér openPlatformChat)
+- `src/pages/Admin.tsx` + evt. `RoutePlanner.tsx` (support-knap i header)
