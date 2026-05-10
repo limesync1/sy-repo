@@ -774,6 +774,49 @@ const Planner = () => {
     }
   };
 
+  // Flet alle aftaler fra én rute over i en anden, og slet kilden.
+  const handleConfirmRouteMerge = async () => {
+    if (!pendingRouteMerge) return;
+    const { source, target } = pendingRouteMerge;
+    setMergingRoute(true);
+    try {
+      const sourceStops = calendarStops.filter((s: any) => s.route_id === source.id);
+      if (sourceStops.length === 0) {
+        // Ruten er allerede tom — slet bare kilderuten.
+        await supabase.from("routes").delete().eq("id", source.id);
+        toast.success("Tom rute slettet");
+        invalidateRouteSyncQueries(qc);
+        setPendingRouteMerge(null);
+        return;
+      }
+      const { data, error } = await supabase.rpc("move_stops_to_route", {
+        _stop_ids: sourceStops.map((s: any) => s.id),
+        _target_route_id: target.id,
+      });
+      if (error) throw error;
+      const row = Array.isArray(data) ? data[0] : data;
+      const moved = Number(row?.moved_count ?? 0);
+      // Auto-slet kilderute (den er nu tom efter et fuldt merge)
+      const { count } = await supabase
+        .from("route_stops")
+        .select("id", { count: "exact", head: true })
+        .eq("route_id", source.id);
+      if ((count ?? 0) === 0) {
+        await supabase.from("routes").delete().eq("id", source.id);
+      }
+      toast.success(
+        `${moved} aftale${moved === 1 ? "" : "r"} flettet ind i ${target.name || "rute"}`,
+        { description: "Kilderuten blev slettet automatisk." },
+      );
+      invalidateRouteSyncQueries(qc);
+      setPendingRouteMerge(null);
+    } catch (err: any) {
+      toast.error(err.message || "Kunne ikke flette ruterne");
+    } finally {
+      setMergingRoute(false);
+    }
+  };
+
   const handleOptimize = async (routeId: string, routeName: string | null) => {
     setOptimizingRouteId(routeId);
     const label = routeName || "Rute";
