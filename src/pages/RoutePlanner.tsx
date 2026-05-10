@@ -781,6 +781,23 @@ const Planner = () => {
       toast.error("Kunne ikke åbne projiceret rute");
       return;
     }
+    // Find basisruten direkte i den lokale cache — projicerede ruter må
+    // ALDRIG have deres eget modal. Vi åbner altid den originale ruten,
+    // så ændringer (navn, farve, osv.) gælder hele serien.
+    const localBase = calendarRoutesRaw.find((x: any) => x.id === baseId);
+    if (localBase) {
+      setEditingRoute(localBase as Route);
+      // Telemetri i baggrunden — ikke blokerende.
+      void logRoutePlannerEvent({
+        businessId,
+        eventType: "projected_route_opened_base_local",
+        severity: "info",
+        baseRouteId: baseId,
+        projectedDate,
+        clientEventId,
+      });
+      return;
+    }
     try {
       const beforeCount = calendarRoutesRaw.filter(
         (x: any) => x.base_route_id === baseId && String(x.route_date).slice(0, 10) === projectedDate,
