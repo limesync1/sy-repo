@@ -1596,22 +1596,23 @@ export const useRouteSeriesInfo = (
 export const useMoveRouteSeries = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({
+    mutationFn: ({
       routeId, newDate, scope, moveLinkedSubscriptions,
     }: {
       routeId: string;
       newDate: string;
       scope: "single" | "future";
       moveLinkedSubscriptions: boolean;
-    }) => {
+    }) => routeMutationQueue.run(async () => {
       const { data: route, error } = await supabase
         .from("routes")
-        .select("id, route_date")
+        .select("id, business_id, route_date, base_route_id, route_template_id")
         .eq("id", routeId)
         .maybeSingle();
       if (error || !route) throw new Error("Rute ikke fundet");
       const fromDate = route.route_date as string;
       if (fromDate === newDate) return;
+      const baseRouteId = (route as any).base_route_id || route.id;
 
       // Flyt altid selve rute-instansen til den nye dato.
       const { error: e2 } = await supabase
@@ -1619,6 +1620,20 @@ export const useMoveRouteSeries = () => {
         .update({ route_date: newDate })
         .eq("id", routeId);
       if (e2) throw e2;
+
+      // Husk den oprindelige projekterede dato som erstattet/flyttet. Ellers
+      // kan den gamle virtuelle forekomst dukke op igen som en dublet, især
+      // når brugeren flytter "kun denne gang".
+      await supabase.from("route_occurrence_exceptions" as any).upsert(
+        {
+          business_id: (route as any).business_id,
+          base_route_id: baseRouteId,
+          occurrence_date: fromDate,
+          replacement_route_id: routeId,
+          exception_type: "moved",
+        },
+        { onConflict: "base_route_id,occurrence_date" },
+      );
 
       // "future" = forskyd også fremtidige forekomster af de tilbagevendende
       // aftaler på ruten — både dem der ligger som stops PÅ ruten og dem der
@@ -1709,7 +1724,7 @@ export const useMoveRouteSeries = () => {
 
       // moveLinkedSubscriptions er nu altid implicit ved "future".
       void moveLinkedSubscriptions;
-    },
+    }),
     onSuccess: () => {
       invalidateRouteSyncQueries(qc);
       qc.invalidateQueries({ queryKey: ["route-series-info"] });
