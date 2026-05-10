@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyBusiness } from "@/hooks/useDatabase";
@@ -93,6 +93,9 @@ const Planner = () => {
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragData, setActiveDragData] = useState<any>(null);
+  // Beskytter mod dobbelt-drop på samme kilde+mål — undgår dubletruter og
+  // "uniq_route_stops_route_order" race conditions.
+  const inFlightDropsRef = useRef<Set<string>>(new Set());
   const [geocoding, setGeocoding] = useState(false);
   const [createOrderOpen, setCreateOrderOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
@@ -592,15 +595,33 @@ const Planner = () => {
     const activeData: any = active.data.current;
     const overData: any = over.data.current;
 
+    // ─── Re-entrancy-guard ───
+    // Beskyt mod dobbelt-drop (hurtig-klik / accidentel re-fyring) som ellers
+    // kunne oprette dublet-ruter eller udløse "uniq_route_stops_route_order".
+    const dropKey = (() => {
+      if (activeData?.type === "job" && overData?.type === "route") return `job:${activeData.job?.id}->route:${overData.routeId}`;
+      if (activeData?.type === "job" && overData?.type === "day") return `job:${activeData.job?.id}->day:${overData.date}`;
+      if (activeData?.type === "stop" && overData?.type === "day") return `stop:${activeData.stop?.id}->day:${overData.date}`;
+      if (activeData?.type === "route" && overData?.type === "route") return `route:${activeData.route?.id}->route:${overData.routeId}`;
+      if (activeData?.type === "route" && overData?.type === "day") return `route:${activeData.route?.id}->day:${overData.date}`;
+      return null;
+    })();
+    if (dropKey) {
+      if (inFlightDropsRef.current.has(dropKey)) return;
+      inFlightDropsRef.current.add(dropKey);
+    }
+    const releaseDrop = () => { if (dropKey) inFlightDropsRef.current.delete(dropKey); };
+
     /* ─── Drop fra MonthWeekCalendar ─── */
     // Træk en hel rute → en anden rute = flet/merge alle stops ind i målrute
     if (activeData?.type === "route" && overData?.type === "route") {
       const source: Route = activeData.route;
       const targetRouteId: string = overData.routeId;
-      if (source.id === targetRouteId) return;
+      if (source.id === targetRouteId) { releaseDrop(); return; }
       const target = calendarRoutesRaw.find((r) => r.id === targetRouteId);
-      if (!target) return;
+      if (!target) { releaseDrop(); return; }
       setPendingRouteMerge({ source, target: target as unknown as Route });
+      releaseDrop();
       return;
     }
 
@@ -608,10 +629,11 @@ const Planner = () => {
     if (activeData?.type === "route" && overData?.type === "day") {
       const route: Route = activeData.route;
       const newDate: string = overData.date;
-      if (route.route_date === newDate) return;
+      if (route.route_date === newDate) { releaseDrop(); return; }
       // Åbn dialog — hvis ruten er del af en serie kan brugeren vælge scope.
       // For enkelt-ruter (uden template) viser dialogen kun "Kun denne gang".
       setPendingRouteMove({ route, newDate });
+      releaseDrop();
       return;
     }
 
@@ -622,6 +644,7 @@ const Planner = () => {
         toast.error("Aftalen skal godkendes først", {
           description: "Aftalen er endnu ikke bekræftet af jer eller kunden — godkend den før den kan lægges på en rute.",
         });
+        releaseDrop();
         return;
       }
       const targetRouteId: string = overData.routeId;
@@ -649,7 +672,16 @@ const Planner = () => {
         });
         toast.success("Aftale tilføjet til ruten");
       } catch (err: any) {
-        toast.error(err.message || "Kunne ikke tilføje aftale");
+        const msg = String(err?.message || "");
+        if (msg.includes("uniq_route_stops_route_order") || msg.includes("duplicate key")) {
+          // Race / dobbelt-drop — den anden kørsel har allerede tilføjet stoppet.
+          toast.info("Aftalen ligger allerede på denne rute");
+          invalidateRouteSyncQueries(qc);
+        } else {
+          toast.error(err.message || "Kunne ikke tilføje aftale");
+        }
+      } finally {
+        releaseDrop();
       }
       return;
     }
@@ -661,10 +693,21 @@ const Planner = () => {
         toast.error("Aftalen skal godkendes først", {
           description: "Aftalen er endnu ikke bekræftet af jer eller kunden — godkend den før den kan lægges på en rute.",
         });
+        releaseDrop();
         return;
       }
       const newDate: string = overData.date;
       try {
+        // Hvis aftalen allerede er lagt på en rute samme dag (fx pga. tidligere
+        // hurtig-drop som lige har committet), så afbryd for at undgå dublet-ruter.
+        const alreadyOnDay = calendarStops.some(
+          (s: any) => s.order_id === job.id &&
+            calendarRoutesRaw.find((r) => r.id === s.route_id)?.route_date === newDate,
+        );
+        if (alreadyOnDay) {
+          toast.info("Aftalen ligger allerede på en rute den dag");
+          return;
+        }
         // Server-side farvevælger undgår race conditions hvis to brugere
         // dropper samtidigt; falder tilbage til klient-valg ved fejl.
         let chosenColor: string | null = null;
@@ -703,7 +746,15 @@ const Planner = () => {
         });
         toast.success(`Ny rute oprettet på ${format(parseISO(newDate), "d. MMM", { locale: da })}`);
       } catch (err: any) {
-        toast.error(err.message || "Kunne ikke oprette rute");
+        const msg = String(err?.message || "");
+        if (msg.includes("uniq_route_stops_route_order") || msg.includes("duplicate key")) {
+          toast.info("Aftalen ligger allerede på en rute den dag");
+          invalidateRouteSyncQueries(qc);
+        } else {
+          toast.error(err.message || "Kunne ikke oprette rute");
+        }
+      } finally {
+        releaseDrop();
       }
       return;
     }
@@ -716,7 +767,7 @@ const Planner = () => {
       const newDate: string = overData.date;
       // Find aktuel rute-dato — undgå "flytning" til samme dag
       const currentRoute = calendarRoutesRaw.find((r) => r.id === stop.route_id);
-      if (currentRoute && currentRoute.route_date === newDate) return;
+      if (currentRoute && currentRoute.route_date === newDate) { releaseDrop(); return; }
 
       // Konflikt-tjek: advar hvis assignee har overlappende stops på dato
       const conflictMsg = detectAssigneeConflicts(stop, newDate);
@@ -742,10 +793,13 @@ const Planner = () => {
         }
       } catch (err: any) {
         toast.error(err.message || "Kunne ikke flytte stop");
+      } finally {
+        releaseDrop();
       }
       return;
     }
 
+    releaseDrop();
   };
 
   const handleConfirmMoveRoute = async (
