@@ -566,6 +566,52 @@ const Planner = () => {
       .filter(Boolean) as CalendarRoute[];
   }, [recurringSources, recurringBaseRoutes, calendarRoutesRaw, calendarRange.start, calendarRange.end]);
 
+  /* ─── Fallback-projektion fra agreement_occurrences ───
+     Tilbagevendende aftaler genererer planlagte forekomster (`agreement_occurrences`)
+     for op til 6 mdr. frem — også når aftalen endnu IKKE har en preferred_route_id.
+     Vi viser dem som virtuelle "ghost"-rutekort på datoen, så brugeren altid kan
+     se hvad der venter selvom aftalen ikke er tildelt en rute endnu. */
+  const { data: pendingOccurrences = [] } = useQuery({
+    queryKey: ["pending-occurrences", businessId, calendarRange.start, calendarRange.end],
+    enabled: !!businessId,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("agreement_occurrences")
+        .select("id, agreement_id, occurrence_date, status, route_id, agreements(customer_name, interval, preferred_route_id)")
+        .eq("business_id", businessId!)
+        .gte("occurrence_date", calendarRange.start)
+        .lte("occurrence_date", calendarRange.end)
+        .is("route_id", null)
+        .eq("status", "planned");
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+  });
+
+  const occurrenceVirtualRoutes: CalendarRoute[] = useMemo(() => {
+    if (!pendingOccurrences.length) return [];
+    return pendingOccurrences
+      // Spring forekomster over hvor aftalen allerede har en preferred_route_id
+      // — de tegnes via `virtualCalendarRoutes` (basis-rute-projektionen).
+      .filter((o: any) => !o.agreements?.preferred_route_id)
+      .map((o: any) => ({
+        id: `agr-occ:${o.id}`,
+        business_id: businessId!,
+        employee_id: null,
+        route_date: String(o.occurrence_date).slice(0, 10),
+        status: "planned",
+        name: `Aftale · ${o.agreements?.customer_name || "kunde"}`,
+        color: "hsl(var(--muted-foreground))",
+        total_distance_km: null,
+        total_duration_minutes: null,
+        stops: [],
+        attachedEmployees: [],
+        attachedEmployeeCount: 0,
+        isVirtual: true,
+      } as unknown as CalendarRoute));
+  }, [pendingOccurrences, businessId]);
+
   const calendarRoutesAll: CalendarRoute[] = useMemo(
     // Skjul projicerede (virtuelle) ruter når filtre er aktive — de har
     // ingen stops endnu, så vi kan ikke matche dem mod assignee/status-filtret.
