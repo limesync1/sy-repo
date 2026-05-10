@@ -103,6 +103,11 @@ const Planner = () => {
   const [newRouteJobSearch, setNewRouteJobSearch] = useState("");
   const [editingRoute, setEditingRoute] = useState<Route | null>(null);
   const [routeToDelete, setRouteToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [pendingRouteMerge, setPendingRouteMerge] = useState<{
+    source: Route;
+    target: Route;
+  } | null>(null);
+  const [mergingRoute, setMergingRoute] = useState(false);
   const [distributing, setDistributing] = useState(false);
   const businessId = business?.id;
   const routePlanningEnabled = !!(business?.settings as any)?.route_planning_enabled;
@@ -588,6 +593,17 @@ const Planner = () => {
     const overData: any = over.data.current;
 
     /* ─── Drop fra MonthWeekCalendar ─── */
+    // Træk en hel rute → en anden rute = flet/merge alle stops ind i målrute
+    if (activeData?.type === "route" && overData?.type === "route") {
+      const source: Route = activeData.route;
+      const targetRouteId: string = overData.routeId;
+      if (source.id === targetRouteId) return;
+      const target = calendarRoutesRaw.find((r) => r.id === targetRouteId);
+      if (!target) return;
+      setPendingRouteMerge({ source, target: target as unknown as Route });
+      return;
+    }
+
     // Træk en hel rute → ny dato
     if (activeData?.type === "route" && overData?.type === "day") {
       const route: Route = activeData.route;
