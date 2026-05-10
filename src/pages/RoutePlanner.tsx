@@ -1595,6 +1595,7 @@ const Planner = () => {
                   loadingRoutes={loadingCalendarRoutes || loadingCalendarStops}
                   loadingWeather={loadingWeather}
                   weatherError={weatherError}
+                  busyTargets={busyTargets}
                 />
                 </div>
               </ResizablePanel>
