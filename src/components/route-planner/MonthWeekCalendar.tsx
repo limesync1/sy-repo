@@ -56,6 +56,10 @@ type Props = {
   loadingWeather?: boolean;
   /** Vejr-API fejlede — vis diskret fallback-ikon så brugeren ved at vejret er utilgængeligt. */
   weatherError?: boolean;
+  /** Sæt af drop-target-nøgler (`route:<id>` eller `day:<yyyy-MM-dd>`) der
+   *  pt. behandler en flytning. Targets i settet deaktiveres som drop-zone
+   *  og viser en spinner, så brugeren ikke kan slippe igen ved et uheld. */
+  busyTargets?: Set<string>;
 };
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
@@ -63,7 +67,7 @@ const ymd = (d: Date) => format(d, "yyyy-MM-dd");
 export const MonthWeekCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
   onCreateRoute, onOptimizeRoute, optimizingRouteId, draggingType, weatherByDate,
-  loadingRoutes, loadingWeather, weatherError,
+  loadingRoutes, loadingWeather, weatherError, busyTargets,
 }: Props) => {
   const anchor = parseISO(anchorDate);
 
@@ -148,6 +152,8 @@ export const MonthWeekCalendar = ({
                     loadingRoutes={!!loadingRoutes}
                     loadingWeather={!!loadingWeather}
                     weatherError={!!weatherError}
+                    busy={!!busyTargets?.has(`day:${dateStr}`)}
+                    busyRouteIds={busyTargets}
                   />
                 );
               })}
