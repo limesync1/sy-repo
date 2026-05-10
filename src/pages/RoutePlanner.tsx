@@ -54,7 +54,6 @@ import { DatePickerField } from "@/components/route-planner/DatePickerField";
 import { RouteStopsPanel } from "@/components/route-planner/RouteStopsPanel";
 import { MoveRouteDateDialog, type MoveRouteScope } from "@/components/route-planner/MoveRouteDateDialog";
 import { MergeRoutesDialog } from "@/components/route-planner/MergeRoutesDialog";
-import { AllUnassignedDialog } from "@/components/route-planner/AllUnassignedDialog";
 import { supabase } from "@/integrations/supabase/client";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
@@ -126,7 +125,6 @@ const Planner = () => {
   } | null>(null);
   const [mergingRoute, setMergingRoute] = useState(false);
   const [distributing, setDistributing] = useState(false);
-  const [showAllUnassigned, setShowAllUnassigned] = useState(false);
   const businessId = business?.id;
   const routePlanningEnabled = !!(business?.settings as any)?.route_planning_enabled;
 
@@ -355,42 +353,11 @@ const Planner = () => {
     .map((it: any) => it.quantity > 1 ? `${it.quantity}× ${it.service_name}` : it.service_name)
     .join(", ") || "Aftale";
 
-  /** Tæller (uden filter) hvor mange aftaler der ligger uden for ±3 dage-vinduet
-      omkring den valgte dag. Vises som hint ifm. auto-fordel knap. */
-  const outsideWindowCount = useMemo(() => {
-    const target = parseISO(date).getTime();
-    const dayMs = 24 * 60 * 60 * 1000;
-    return unassigned.filter((j: any) => {
-      const ed = effectiveJobDate(j);
-      if (!ed) return false;
-      const diffDays = (parseISO(ed).getTime() - target) / dayMs;
-      // udeladt = fremtidig aftale længere end 3 dage frem
-      return diffDays > 3;
-    }).length;
-  }, [unassigned, date]);
-
-  /** Pr. valgt dag: vis aftaler der er
-      - uden dato (fleksible)
-      - inden for ±3 dage omkring valgt dag
-      - forsinkede (ed < i dag) MEN kun når man kigger på i dag / nær fremtid,
-        så en aftale fra 14. maj ikke pludselig dukker op når man scroller til juni */
+  /** Vis ALLE aftaler uden rute i poolen — ingen dato-vinduesfiltrering.
+      Brugeren foretrækker at se hele listen ad gangen, fremfor at skulle
+      åbne en separat dialog for at finde aftaler der ligger længere ude. */
   const filteredUnassigned = useMemo(() => {
-    const target = parseISO(date).getTime();
-    const dayMs = 24 * 60 * 60 * 1000;
-    const todayMs = parseISO(new Date().toISOString().slice(0, 10)).getTime();
-    const targetIsNearToday = (target - todayMs) / dayMs >= -1 && (target - todayMs) / dayMs <= 7;
-
-    let list = unassigned.filter((j: any) => {
-      const ed = effectiveJobDate(j);
-      if (!ed) return true; // ingen dato → altid vis
-      const edMs = parseISO(ed).getTime();
-      const diffDays = (edMs - target) / dayMs;
-      // Vis altid hvis aftalen er inden for ±3 dage af valgt dag
-      if (Math.abs(diffDays) <= 3) return true;
-      // Vis kun forsinkede (ed < i dag) når man kigger på i dag / nær fremtid
-      if (targetIsNearToday && edMs < todayMs) return true;
-      return false;
-    });
+    let list = [...unassigned];
 
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -416,7 +383,7 @@ const Planner = () => {
       sorted.sort((a: any, b: any) => (a.customer_name || "").localeCompare(b.customer_name || "", "da"));
     }
     return sorted;
-  }, [unassigned, search, sortBy, date]);
+  }, [unassigned, search, sortBy]);
 
   const unassignedTotal = useMemo(
     () => filteredUnassigned.reduce((s: number, j: any) => s + Number(j.total_amount || 0), 0),
@@ -1903,27 +1870,12 @@ const Planner = () => {
                         {filteredUnassigned.length}
                       </Badge>
                     </div>
-                    {unassigned.length > filteredUnassigned.length && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-6 w-full text-[11px]"
-                        onClick={() => setShowAllUnassigned(true)}
-                      >
-                        Vis alle {unassigned.length} aftaler uden rute
-                      </Button>
-                    )}
                     <p className="text-[10px] text-muted-foreground leading-snug">
                       Træk en aftale ind i kalenderen for at planlægge den. Når en aftale med interval markeres som udført, opretter vi automatisk næste aftale på samme rute og medarbejder.
                     </p>
                     {filteredUnassigned.length > 0 && (
                       <p className="text-[10px] text-muted-foreground tabular-nums">
                         Total værdi: <span className="font-semibold text-foreground">{Math.round(unassignedTotal).toLocaleString("da-DK")} kr</span>
-                      </p>
-                    )}
-                    {outsideWindowCount > 0 && (
-                      <p className="text-[10px] text-muted-foreground rounded px-2 py-1 leading-snug bg-muted/40 border border-border/60">
-                        +{outsideWindowCount} aftale{outsideWindowCount === 1 ? "" : "r"} ligger uden for det viste vindue.
                       </p>
                     )}
                     <div className="relative">
@@ -2094,12 +2046,6 @@ const Planner = () => {
           recurringAppointmentCount={pendingMergeSeriesInfo?.recurringAppointmentCount ?? 0}
           loading={mergingRoute}
           onConfirm={(scope) => handleConfirmRouteMerge(scope)}
-        />
-
-        <AllUnassignedDialog
-          open={showAllUnassigned}
-          onOpenChange={setShowAllUnassigned}
-          jobs={unassigned as any}
         />
 
         <DragOverlay>
