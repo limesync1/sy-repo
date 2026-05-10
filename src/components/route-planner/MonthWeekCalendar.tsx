@@ -287,6 +287,7 @@ const DayCellInner = ({
             optimizing={optimizingRouteId === r.id}
             compact={compact}
             jobDragActive={isJobDragActive}
+            busy={!!busyRouteIds?.has(`route:${r.id}`)}
           />
         ))}
 
