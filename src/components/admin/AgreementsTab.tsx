@@ -1289,7 +1289,7 @@ const DateField = ({
         <PopoverTrigger asChild>
           <Button
             variant="outline"
-            className={`w-full justify-start font-normal hover:bg-secondary/60 data-[state=open]:border-foreground/40 ${
+            className={`w-full justify-start font-normal bg-card hover:bg-secondary/60 data-[state=open]:border-foreground/40 data-[state=open]:ring-2 data-[state=open]:ring-ring/30 ${
               !date ? "text-muted-foreground" : ""
             }`}
           >
@@ -1305,7 +1305,7 @@ const DateField = ({
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent className="w-auto p-0 bg-card border-border shadow-xl" align="start">
           <Calendar
             mode="single"
             selected={date}
