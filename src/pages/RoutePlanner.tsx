@@ -849,6 +849,12 @@ const Planner = () => {
       const currentRoute = calendarRoutesRaw.find((r) => r.id === stop.route_id);
       if (currentRoute && currentRoute.route_date === newDate) { releaseDrop(); return; }
 
+      if (!(await claimIdempotency())) {
+        toast.info("Stoppet er allerede ved at blive flyttet");
+        releaseDrop();
+        return;
+      }
+
       // Konflikt-tjek: advar hvis assignee har overlappende stops på dato
       const conflictMsg = detectAssigneeConflicts(stop, newDate);
       try {
