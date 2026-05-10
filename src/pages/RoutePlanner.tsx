@@ -2110,6 +2110,71 @@ const Planner = () => {
           loading={moveRouteSeries.isPending}
           onConfirm={handleConfirmMoveRoute}
         />
+
+        {/* Klog opstartsdato-validering ved drop af aftale på dato/rute. */}
+        <AlertDialog
+          open={!!pendingStartDateChange}
+          onOpenChange={(o) => { if (!o && !confirmingStartDate) setPendingStartDateChange(null); }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {pendingStartDateChange?.isBefore
+                  ? "Datoen er før aftalens opstartsdato"
+                  : "Datoen passer ikke med opstartsdatoen"}
+              </AlertDialogTitle>
+              <AlertDialogDescription asChild>
+                <div className="space-y-2 text-sm">
+                  <p>
+                    Aftalen for <strong>{pendingStartDateChange?.job?.customer_name || "kunden"}</strong> har
+                    opstartsdato{" "}
+                    <strong>
+                      {pendingStartDateChange?.currentStart
+                        ? format(parseISO(pendingStartDateChange.currentStart), "EEEE d. MMM yyyy", { locale: da })
+                        : ""}
+                    </strong>.
+                  </p>
+                  <p>
+                    Du er ved at lægge den på{" "}
+                    <strong>
+                      {pendingStartDateChange?.targetDate
+                        ? format(parseISO(pendingStartDateChange.targetDate), "EEEE d. MMM yyyy", { locale: da })
+                        : ""}
+                    </strong>{" "}
+                    ({pendingStartDateChange?.targetLabel}).
+                  </p>
+                  <p className="text-muted-foreground">
+                    Vil du flytte aftalens opstartsdato til den nye dato? Det opdaterer også
+                    fremtidige forekomster og evt. tilknyttet abonnement.
+                  </p>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={confirmingStartDate}>
+                Annullér drop
+              </AlertDialogCancel>
+              <AlertDialogAction
+                disabled={confirmingStartDate}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  if (!pendingStartDateChange) return;
+                  setConfirmingStartDate(true);
+                  try {
+                    await pendingStartDateChange.execute();
+                  } catch (err: any) {
+                    toast.error(err?.message || "Kunne ikke flytte aftalen");
+                  } finally {
+                    setConfirmingStartDate(false);
+                    setPendingStartDateChange(null);
+                  }
+                }}
+              >
+                {confirmingStartDate ? "Flytter…" : "Flyt opstartsdato og placér"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </AdminShell>
     </DndContext>
   );
