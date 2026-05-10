@@ -1,9 +1,9 @@
 // Projektion af gentagende ruter i kalenderen.
-// Subscriptions har en `interval` + `next_service_date` + `preferred_route_id`.
-// Vi bruger den til at "tegne" virtuelle forekomster af eksisterende ruter på
-// fremtidige datoer indtil en horisont (default 180 dage). Virtuelle ruter er
-// read-only — de bliver til rigtige route_stops når DB-jobbet `auto_recur_due_orders`
-// kører efter `next_service_date` er passeret.
+// Vi bruger aftaler (`agreements`) som sandhed: hver aftale har et `interval`,
+// en `start_date` (eller næste planlagte besøgs-dato) og evt. en `preferred_route_id`.
+// Virtuelle ruter er read-only — de bliver til rigtige route_stops når
+// DB-jobbet `auto_recur_due_orders` materialiserer dem, eller når en bruger
+// dropper en aftale ind på en rute.
 import { addDays, format, parseISO, isBefore } from "date-fns";
 
 export const intervalToDays = (interval: string | null | undefined): number | null => {
@@ -26,27 +26,24 @@ export type ProjectedRoute = {
   date: string;          // yyyy-MM-dd
 };
 
-type Sub = {
+type RecurringSource = {
   id: string;
   interval: string;
-  status: string;
-  next_service_date: string | null;
+  /** First date of the series (yyyy-MM-dd or ISO timestamp). */
+  seed_date: string | null;
   preferred_route_id: string | null;
 };
 
 export const expandRecurringRoutes = (params: {
-  subscriptions: Sub[];
+  sources: RecurringSource[];
   rangeStart: string;
   rangeEnd: string;
   horizonDays?: number;
   /** Sæt af `${routeId}|${yyyy-MM-dd}` der allerede har en rigtig rute — disse springes over. */
   realRouteDates: Set<string>;
 }): ProjectedRoute[] => {
-  // Tidligere version grupperede pr. rute og brugte den tidligste
-  // next_service_date som kadence — det betød at fx en månedlig aftale på
-  // samme rute som en ugentlig aftale fejlagtigt blev projiceret hver uge.
-  // Nu projicerer vi pr. abonnement og samler datoer pr. rute, så samme
-  // dato ikke duplikeres når flere abonnementer falder sammen.
+  // Projicerer pr. kilde (aftale) og samler datoer pr. rute, så samme dato
+  // ikke duplikeres når flere aftaler falder sammen på samme rute/dag.
   const seen = new Set<string>(); // `${routeId}|${date}`
   const out: ProjectedRoute[] = [];
   const start = parseISO(params.rangeStart);
@@ -54,13 +51,12 @@ export const expandRecurringRoutes = (params: {
   const horizonEnd = addDays(new Date(), params.horizonDays ?? 180);
   const limit = isBefore(end, horizonEnd) ? end : horizonEnd;
 
-  for (const s of params.subscriptions) {
-    if (s.status !== "active") continue;
-    if (!s.preferred_route_id || !s.next_service_date) continue;
+  for (const s of params.sources) {
+    if (!s.preferred_route_id || !s.seed_date) continue;
     const days = intervalToDays(s.interval);
     if (!days) continue;
     const routeId = s.preferred_route_id;
-    let cursor = parseISO(String(s.next_service_date).slice(0, 10));
+    let cursor = parseISO(String(s.seed_date).slice(0, 10));
     let safety = 0;
     while (!isBefore(limit, cursor) && safety++ < 400) {
       const ds = format(cursor, "yyyy-MM-dd");
