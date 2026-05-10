@@ -658,8 +658,11 @@ const StopBlock = ({
     data: { type: "stop", stop },
   });
 
-  const isDone = stop.status === "completed";
-  const isInProgress = stop.status === "in_progress";
+  // Prefer occurrence-status (kanonisk kilde) når tilgængelig, ellers fald tilbage på legacy stop.status.
+  const occStatus = (stop as any).occurrence_status as string | undefined;
+  const isDone = occStatus === "completed" || stop.status === "completed";
+  const isCancelled = occStatus === "cancelled";
+  const isInProgress = !isDone && !isCancelled && stop.status === "in_progress";
   const hasCoords = stop.latitude != null && stop.longitude != null;
   const arrivalLabel = stop.planned_arrival ? format(new Date(stop.planned_arrival), "HH:mm") : "";
   const departureLabel = stop.planned_departure ? format(new Date(stop.planned_departure), "HH:mm") : "";
