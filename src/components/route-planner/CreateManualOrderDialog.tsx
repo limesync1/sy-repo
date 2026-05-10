@@ -545,7 +545,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
               </Button>
               <Button onClick={handleSubmit} disabled={submitting || items.length === 0}>
                 {submitting ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Send className="h-4 w-4 mr-1.5" />}
-                Send til godkendelse
+                Opret bestilling
               </Button>
             </div>
           </div>
