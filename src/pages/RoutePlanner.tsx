@@ -1710,6 +1710,16 @@ const Planner = () => {
                         {filteredUnassigned.length}
                       </Badge>
                     </div>
+                    {unassigned.length > filteredUnassigned.length && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-6 w-full text-[11px]"
+                        onClick={() => setShowAllUnassigned(true)}
+                      >
+                        Vis alle {unassigned.length} aftaler uden rute
+                      </Button>
+                    )}
                     <p className="text-[10px] text-muted-foreground leading-snug">
                       Træk en aftale ind i kalenderen for at planlægge den. Når en aftale med interval markeres som udført, opretter vi automatisk næste aftale på samme rute og medarbejder.
                     </p>
