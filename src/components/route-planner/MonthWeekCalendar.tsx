@@ -46,7 +46,7 @@ type Props = {
   onOptimizeRoute: (routeId: string) => void;
   optimizingRouteId?: string | null;
   /** Sat til 'job' når brugeren trækker en aftale fra aftalepoolen — får drop-targets til at lyse op. */
-  draggingType?: "job" | "route" | null;
+  draggingType?: "job" | "route" | "stop" | null;
   /** Map fra yyyy-MM-dd → vejrudsigt for dagen. */
   weatherByDate?: Map<string, WeatherDay>;
   /** Vi henter stadig ruter/stops til perioden — vis skeleton-piller i hver dag-celle
@@ -172,7 +172,7 @@ type DayCellProps = {
   onOptimizeRoute: (routeId: string) => void;
   optimizingRouteId?: string | null;
   compact: boolean;
-  draggingType?: "job" | "route" | null;
+  draggingType?: "job" | "route" | "stop" | null;
   weather?: WeatherDay | null;
   loadingRoutes?: boolean;
   loadingWeather?: boolean;
