@@ -384,7 +384,7 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
         "relative rounded-md border-l-[3px] cursor-pointer transition-all overflow-hidden bg-card hover:shadow-sm",
         "border border-border/60",
         isDragging && "opacity-40",
-        isVirtual && "opacity-55 hover:opacity-80 bg-card/60 border-dashed",
+        isVirtual && "border-dashed",
         // Når en aftale er ved at blive sluppet på pillen — markér tydeligt
         !isVirtual && jobDragActive && !isOver && "ring-1 shadow-sm",
         !isVirtual && isOver && "ring-2 ring-accent shadow-md scale-[1.02]",
@@ -397,7 +397,7 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
           ? { boxShadow: `0 0 0 1px ${route.color}40, 0 1px 3px ${route.color}20` }
           : {}),
       }}
-      title={isVirtual ? "Planlagt gentagende rute — låst indtil forrige er udført" : undefined}
+      title={isVirtual ? "Gentagende rute — klik for at redigere denne dato" : undefined}
       aria-busy={busy || undefined}
     >
       {busy && (
@@ -420,27 +420,17 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
           </p>
           {!compact ? (
             <div className="flex items-center gap-1 text-[10px] text-muted-foreground tabular-nums mt-0.5">
-              {isVirtual ? (
-                <span className="inline-flex items-center gap-0.5 text-[9px] italic font-normal">
-                  <Lock className="h-2.5 w-2.5" />Planlagt, låst indtil forrige er udført
-                </span>
-              ) : (
-                <>
-                  <MapPin className="h-2.5 w-2.5" />{stopCount}
-                  {completedCount > 0 && <span className="text-emerald-600">({completedCount}✓)</span>}
-                </>
-              )}
+              <MapPin className="h-2.5 w-2.5" />{stopCount}
+              {completedCount > 0 && <span className="text-emerald-600">({completedCount}✓)</span>}
             </div>
           ) : (
-            isVirtual ? (
-              <p className="text-[9px] text-muted-foreground italic leading-tight">Planlagt, låst indtil forrige er udført</p>
-            ) : stopCount > 0 && (
+            stopCount > 0 && (
               <p className="text-[9px] text-muted-foreground tabular-nums">{stopCount} stop</p>
             )
           )}
         </div>
         {/* Medarbejder-avatarer */}
-        {!isVirtual && visibleEmployees.length > 0 && (
+        {visibleEmployees.length > 0 && (
           <div className="flex -space-x-1 shrink-0" title={route.attachedEmployees.map((e) => e.name).join(", ")}>
             {visibleEmployees.map((emp) =>
               emp.avatar_url ? (
@@ -469,7 +459,7 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
             )}
           </div>
         )}
-        {!isVirtual && visibleEmployees.length === 0 && route.attachedEmployeeCount === 0 && !compact && (
+        {visibleEmployees.length === 0 && route.attachedEmployeeCount === 0 && !compact && (
           <span className="text-[9px] text-muted-foreground italic flex items-center gap-0.5 shrink-0">
             <Users className="h-2.5 w-2.5" />0
           </span>
