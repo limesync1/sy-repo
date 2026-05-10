@@ -41,7 +41,7 @@ import {
   Plus, Search, Loader2, Calendar as CalendarIcon, Repeat, MapPin, User,
   Trash2, Pencil, RefreshCw, Receipt, TrendingUp, Clock, AlertCircle, CheckCircle2,
   Package, CreditCard, Users, ArrowRight, Sparkles, Tag, Minus, Calculator, Check,
-  ChevronsUpDown, UserPlus, Building2,
+  ChevronsUpDown, UserPlus, Building2, X as CloseIcon, Mail, Phone, Route as RouteIcon,
 } from "lucide-react";
 import { PageHeader, PrimaryButton, EmptyState } from "@/components/admin/shared/AdminUI";
 import { StatusPill, type StatusTone } from "@/components/admin/shared/StatusPill";
@@ -1308,22 +1308,96 @@ const AgreementDetailSheet = ({
 
   return (
     <Sheet open onOpenChange={(o) => !o && onClose()}>
-      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>{agreement.company_name || agreement.customer_name}</SheetTitle>
+      <SheetContent hideCloseButton className="w-full sm:max-w-lg overflow-y-auto p-0 bg-background">
+        {/* Sticky kompakt header — samme rytme som kunde-popuppen så hele
+            virksomhedspanelet føles ens. */}
+        <SheetHeader className="sticky top-0 z-20 border-b border-border bg-card/95 backdrop-blur p-4 pr-12">
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            aria-label="Luk"
+          >
+            <CloseIcon className="h-4 w-4" />
+          </button>
+          <SheetTitle className="text-left">
+            <div className="flex min-w-0 items-start gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-secondary">
+                {agreement.company_name
+                  ? <Building2 className="h-5 w-5 text-muted-foreground" />
+                  : <User className="h-5 w-5 text-muted-foreground" />}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                  <h3 className="truncate text-base font-bold text-foreground">
+                    {agreement.company_name || agreement.customer_name}
+                  </h3>
+                  <StatusPill tone={status.tone}>{status.label}</StatusPill>
+                </div>
+                <p className="mt-0.5 truncate text-xs font-normal text-muted-foreground">
+                  {items.length > 0
+                    ? items.map((i) => i.service_name).slice(0, 2).join(", ") + (items.length > 2 ? ` +${items.length - 2}` : "")
+                    : "Ingen services"}
+                </p>
+                {/* Tre nøgletal — interval, pris, næste besøg */}
+                <div className="mt-2 grid grid-cols-3 gap-2 text-xs font-normal">
+                  <div className="rounded-md border border-border bg-secondary/40 px-2 py-1.5">
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Interval</p>
+                    <p className="truncate text-sm font-semibold text-foreground">{INTERVAL_LABELS[agreement.interval]}</p>
+                  </div>
+                  <div className="rounded-md border border-border bg-secondary/40 px-2 py-1.5">
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Pr. besøg</p>
+                    <p className="text-sm font-semibold text-foreground tabular-nums">{Math.round(Number(agreement.total_amount || 0)).toLocaleString("da-DK")} kr</p>
+                  </div>
+                  <div className="rounded-md border border-border bg-secondary/40 px-2 py-1.5">
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Næste besøg</p>
+                    <p className="text-sm font-semibold text-foreground">
+                      {future[0] ? fmtDate(future[0].occurrence_date).replace(/\s\d{4}$/, "") : "—"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </SheetTitle>
         </SheetHeader>
-        <div className="space-y-4 mt-4">
-          <div className="flex items-center gap-2 flex-wrap">
-            <StatusPill tone={status.tone}>{status.label}</StatusPill>
-            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-              <Repeat className="h-3 w-3" />{INTERVAL_LABELS[agreement.interval]}
-            </span>
+
+        <div className="space-y-3 p-4">
+          {/* Kontakt-stribe i én linje */}
+          <div className="flex flex-wrap items-center gap-1 rounded-lg border border-border bg-card px-2 py-1.5">
+            {agreement.customer_email && (
+              <a href={`mailto:${agreement.customer_email}`}
+                className="inline-flex min-w-0 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-foreground hover:bg-secondary max-w-full">
+                <Mail className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="truncate">{agreement.customer_email}</span>
+              </a>
+            )}
+            {agreement.customer_phone && (
+              <>
+                <span className="text-muted-foreground/30">·</span>
+                <a href={`tel:${agreement.customer_phone}`}
+                  className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-foreground hover:bg-secondary">
+                  <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span>{agreement.customer_phone}</span>
+                </a>
+              </>
+            )}
+            {(agreement.address || agreement.city) && (
+              <>
+                <span className="text-muted-foreground/30">·</span>
+                <span className="inline-flex min-w-0 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-foreground max-w-full">
+                  <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <span className="truncate">
+                    {[agreement.address, [agreement.zip_code, agreement.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")}
+                  </span>
+                </span>
+              </>
+            )}
           </div>
 
-          {/* Services i aftalen — vises altid så det er klart hvad aftalen dækker */}
-          <div className="rounded-lg border border-border bg-card p-3 space-y-1.5">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
-              <Package className="h-3 w-3" /> Services i aftalen
+          {/* Services i aftalen */}
+          <div className="rounded-lg border border-border bg-card px-3 py-2 space-y-1.5">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+              <Package className="h-3 w-3" /> Services
             </p>
             {items.length === 0 ? (
               <p className="text-xs text-muted-foreground">Ingen linjer.</p>
@@ -1335,29 +1409,40 @@ const AgreementDetailSheet = ({
             ))}
           </div>
 
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div>
-              <p className="text-xs text-muted-foreground">Kunde</p>
-              <p>{agreement.customer_name}</p>
-              <p className="text-xs text-muted-foreground">{agreement.customer_email}</p>
+          {/* Periode + fakturering — kompakt grid */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="rounded-lg border border-border bg-card px-3 py-2">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                <CalendarIcon className="h-3 w-3" /> Periode
+              </p>
+              <p className="mt-0.5 text-sm text-foreground">
+                {fmtDate(agreement.start_date)} — {agreement.end_date ? fmtDate(agreement.end_date) : "løbende"}
+              </p>
             </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Pris pr. besøg</p>
-              <p className="font-semibold">{Math.round(Number(agreement.total_amount || 0))} kr</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Start</p>
-              <p>{fmtDate(agreement.start_date)}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Slut</p>
-              <p>{fmtDate(agreement.end_date)}</p>
-            </div>
-            <div className="col-span-2 space-y-1.5">
-              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                <MapPin className="h-3 w-3" /> Standard-rute
+            <div className="rounded-lg border border-border bg-card px-3 py-2">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                <CreditCard className="h-3 w-3" /> Fakturering
               </p>
               <Select
+                value={agreement.billing_model}
+                onValueChange={(v) => update.mutate({ id: agreement.id, billing_model: v as AgreementBillingModel })}
+              >
+                <SelectTrigger className="h-7 mt-0.5 border-0 px-0 text-sm font-semibold focus:ring-0 shadow-none"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(BILLING_MODEL_LABELS) as AgreementBillingModel[]).map((k) => (
+                    <SelectItem key={k} value={k}>{BILLING_MODEL_LABELS[k]}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Standard-rute */}
+          <div className="rounded-lg border border-border bg-card px-3 py-2 space-y-1.5">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+              <RouteIcon className="h-3 w-3" /> Standard-rute
+            </p>
+            <Select
                 value={agreement.default_route_template_id ?? "__none__"}
                 onValueChange={(v) => update.mutate({ id: agreement.id, default_route_template_id: v === "__none__" ? null : v })}
               >
@@ -1371,13 +1456,14 @@ const AgreementDetailSheet = ({
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-[11px] text-muted-foreground">Ændres med det samme — gælder kun fremtidige besøg.</p>
-            </div>
+            <p className="text-[10px] text-muted-foreground">Ingen rute? Træk besøget ind på en rute fra "Aftaler uden rute" på ruter-siden.</p>
+          </div>
 
-            <div className="col-span-2 space-y-1.5">
-              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                <Users className="h-3 w-3" /> Medarbejder(e) på besøgene
-              </p>
+          {/* Medarbejdere */}
+          <div className="rounded-lg border border-border bg-card px-3 py-2 space-y-1.5">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+              <Users className="h-3 w-3" /> Medarbejdere
+            </p>
               {employees.length === 0 ? (
                 <p className="text-xs text-muted-foreground italic">Ingen medarbejdere oprettet endnu.</p>
               ) : (
@@ -1390,7 +1476,7 @@ const AgreementDetailSheet = ({
                         type="button"
                         onClick={() => toggleEmployee(e.id)}
                         disabled={update.isPending}
-                        className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                        className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors ${
                           selected
                             ? "border-foreground bg-foreground text-background"
                             : "border-border bg-secondary/50 text-foreground hover:bg-secondary"
@@ -1403,49 +1489,32 @@ const AgreementDetailSheet = ({
                   })}
                 </div>
               )}
-              <p className="text-[11px] text-muted-foreground">Klik for at vælge/fravælge — gemmes automatisk.</p>
-            </div>
-
-            <div className="col-span-2">
-              <p className="text-xs text-muted-foreground">Fakturering</p>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline">{BILLING_MODEL_LABELS[agreement.billing_model]}</Badge>
-                <Select
-                  value={agreement.billing_model}
-                  onValueChange={(v) => update.mutate({ id: agreement.id, billing_model: v as AgreementBillingModel })}
-                >
-                  <SelectTrigger className="h-7 w-auto text-xs"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {(Object.keys(BILLING_MODEL_LABELS) as AgreementBillingModel[]).map((k) => (
-                      <SelectItem key={k} value={k}>{BILLING_MODEL_LABELS[k]}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
           </div>
 
           {agreement.notes && (
-            <div>
-              <p className="text-xs text-muted-foreground">Noter</p>
-              <p className="text-sm whitespace-pre-line">{agreement.notes}</p>
+            <div className="rounded-lg border border-border bg-secondary/40 px-3 py-2">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Noter</p>
+              <p className="mt-1 text-sm whitespace-pre-line text-foreground">{agreement.notes}</p>
             </div>
           )}
 
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-semibold text-sm">Kommende besøg</h3>
-              <span className="text-xs text-muted-foreground">{future.length} planlagt</span>
+          {/* Kommende besøg */}
+          <div className="rounded-lg border border-border bg-card px-3 py-2">
+            <div className="flex items-center justify-between mb-1.5">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                <CalendarIcon className="h-3 w-3" /> Kommende besøg
+              </p>
+              <span className="text-[10px] text-muted-foreground">{future.length} planlagt</span>
             </div>
             {future.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Ingen kommende besøg. Tryk "Generér forekomster" på listen.</p>
+              <p className="text-xs text-muted-foreground">Ingen kommende besøg. Tryk "Generér forekomster" på listen.</p>
             ) : (
-              <div className="space-y-1.5">
+              <div className="grid grid-cols-2 gap-1">
                 {future.slice(0, 10).map((o) => (
-                  <div key={o.id} className="flex items-center justify-between rounded border p-2 text-sm">
-                    <span>{fmtDate(o.occurrence_date)}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {o.route_id ? "På rute" : "Ikke planlagt"}
+                  <div key={o.id} className="flex items-center justify-between rounded-md border border-border bg-secondary/30 px-2 py-1 text-xs">
+                    <span className="truncate">{fmtDate(o.occurrence_date)}</span>
+                    <span className={o.route_id ? "text-success font-medium shrink-0 ml-2" : "text-muted-foreground shrink-0 ml-2"}>
+                      {o.route_id ? "Rute" : "—"}
                     </span>
                   </div>
                 ))}
@@ -1453,7 +1522,7 @@ const AgreementDetailSheet = ({
             )}
           </div>
 
-          <div className="flex items-center justify-between gap-2 pt-4 border-t">
+          <div className="flex items-center justify-between gap-2 pt-3 border-t border-border">
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="ghost" size="sm" className="text-destructive">
