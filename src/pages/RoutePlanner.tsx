@@ -8,6 +8,7 @@ import {
   useAddStop,
   useOptimizeRoute, useGeocodeAddress, useRoutesForRange,
   useCreateRoute, useDeleteRoute, useUpdateRoute,
+  useRouteSeriesInfo, useMoveRouteSeries,
   type RouteStop, type Route,
 } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,7 @@ import { MonthWeekCalendar, type CalendarRoute } from "@/components/route-planne
 import { RouteEditSheet, ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor } from "@/components/route-planner/RouteEditSheet";
 import { DatePickerField } from "@/components/route-planner/DatePickerField";
 import { RouteStopsPanel } from "@/components/route-planner/RouteStopsPanel";
+import { MoveRouteDateDialog, type MoveRouteScope } from "@/components/route-planner/MoveRouteDateDialog";
 import { supabase } from "@/integrations/supabase/client";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
