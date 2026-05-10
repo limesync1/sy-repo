@@ -847,7 +847,7 @@ export const useAddStop = () => {
         try {
           const { data: subs } = await supabase
             .from("subscriptions")
-            .select("id, preferred_route_id, status, interval, legacy_agreement_id")
+            .select("id, preferred_route_id, status, interval")
             .eq("order_id", payload.order_id);
           const targets = (subs || []).filter((s: any) =>
             s.status === "active" &&
