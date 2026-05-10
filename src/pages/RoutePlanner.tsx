@@ -309,7 +309,7 @@ const Planner = () => {
   /* Build CalendarRoute[] for MonthWeekCalendar (range covers month/week view) */
   const calendarRoutes: CalendarRoute[] = useMemo(() => {
     const stopsByRoute = new Map<string, RouteStop[]>();
-    for (const s of calendarStops) {
+    for (const s of visibleCalendarStops) {
       const arr = stopsByRoute.get(s.route_id) || [];
       arr.push(s);
       stopsByRoute.set(s.route_id, arr);
@@ -347,7 +347,7 @@ const Planner = () => {
         attachedEmployeeCount: emps.length,
       };
     });
-  }, [calendarRoutesRaw, calendarStops, activeEmployees]);
+  }, [calendarRoutesRaw, visibleCalendarStops, activeEmployees]);
 
   /* ─── Gentagende ruter: hent aktive abonnementer med preferred_route_id og
          projicér virtuelle forekomster på fremtidige datoer (op til 6 mdr.).
