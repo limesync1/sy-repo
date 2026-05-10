@@ -291,6 +291,15 @@ const Planner = () => {
     execute: () => Promise<void>;
   } | null>(null);
   const [confirmingStartDate, setConfirmingStartDate] = useState(false);
+  // Bulk-konflikt: når brugeren opretter en rute med flere aftaler hvis
+  // opstartsdatoer ikke matcher rutens dato, beder vi om bekræftelse på at
+  // flytte ALLE de pågældende opstartsdatoer i én operation.
+  const [pendingBulkStartDateChange, setPendingBulkStartDateChange] = useState<{
+    targetDate: string;
+    mismatches: Array<{ job: any; currentStart: string }>;
+    execute: () => Promise<void>;
+  } | null>(null);
+  const [confirmingBulkStartDate, setConfirmingBulkStartDate] = useState(false);
   const { data: pendingSeriesInfo } = useRouteSeriesInfo(
     pendingRouteMove?.route.id ?? null,
     pendingRouteMove?.route.route_date ?? null,
