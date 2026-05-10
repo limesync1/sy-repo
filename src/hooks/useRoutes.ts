@@ -58,6 +58,56 @@ export type Route = {
   updated_at: string;
 };
 
+export type OpenProjectedRouteBaseInput = {
+  businessId: string;
+  baseRouteId: string;
+  projectedDate: string;
+  clientEventId?: string;
+};
+
+export const openProjectedRouteBase = async ({
+  businessId,
+  baseRouteId,
+  projectedDate,
+  clientEventId,
+}: OpenProjectedRouteBaseInput): Promise<Route> => {
+  const { data, error } = await supabase.rpc("open_projected_route_base" as any, {
+    _business_id: businessId,
+    _base_route_id: baseRouteId,
+    _projected_date: projectedDate,
+    _client_event_id: clientEventId ?? null,
+  } as any);
+  if (error) throw error;
+  if (!data) throw new Error("Basisruten findes ikke længere");
+  return data as unknown as Route;
+};
+
+export const logRoutePlannerEvent = async (input: {
+  businessId: string;
+  eventType: string;
+  severity?: "info" | "warning" | "error";
+  baseRouteId?: string | null;
+  routeId?: string | null;
+  projectedDate?: string | null;
+  clientEventId?: string | null;
+  details?: Record<string, unknown>;
+}) => {
+  try {
+    await supabase.rpc("log_route_planner_event" as any, {
+      _business_id: input.businessId,
+      _event_type: input.eventType,
+      _severity: input.severity ?? "info",
+      _base_route_id: input.baseRouteId ?? null,
+      _route_id: input.routeId ?? null,
+      _projected_date: input.projectedDate ?? null,
+      _client_event_id: input.clientEventId ?? null,
+      _details: input.details ?? {},
+    } as any);
+  } catch (err) {
+    console.warn("route planner telemetry failed", err);
+  }
+};
+
 export type AISuggestion = {
   id: string;
   title: string;
