@@ -13,7 +13,7 @@ import { RoutePrintPreviewSheet } from "@/components/employee/RoutePrintPreviewS
 import {
   Calendar as CalendarIcon, Play, Printer, MapPin, Clock, CheckCircle2,
   ChevronLeft, ChevronRight, Route as RouteIcon, Navigation, PlayCircle, StopCircle,
-  Users, User as UserIcon, Info, CalendarCheck, Sparkles, ArrowRight, Eye,
+  Users, User as UserIcon, Info, CalendarCheck, Sparkles, ArrowRight, Eye, Lock as LockIcon,
 } from "lucide-react";
 import { format, addDays, parseISO, isToday, formatDistanceStrict } from "date-fns";
 import { da } from "date-fns/locale";
@@ -521,11 +521,41 @@ const EmployeeApp = () => {
         )}
 
         <div className="grid gap-4 lg:grid-cols-2">
-        {routes.map((r) => {
+        {(() => {
+          // ─── Sekventiel låsning ──────────────────────────────────────────
+          // Medarbejderen skal kun kunne starte ÉN rute ad gangen i dag.
+          // Vi sorterer dagens ruter efter planlagt starttid og finder den
+          // tidligste rute der ikke er færdig — alle senere ikke-færdige
+          // ruter rendes som "låst" (CTA disabled + lås-badge).
+          const ord = [...routes].sort((a, b) => {
+            const at = a.planned_start_time || "99:99";
+            const bt = b.planned_start_time || "99:99";
+            if (at !== bt) return at < bt ? -1 : 1;
+            return (a.created_at || "").localeCompare(b.created_at || "");
+          });
+          const firstActiveId = ord.find((r) => {
+            const rs = stopsByRoute.get(r.id) || [];
+            return rs.some((s) => s.status !== "completed");
+          })?.id ?? null;
+          return ord;
+        })().map((r) => {
           const myStops = (stopsByRoute.get(r.id) || []).sort((a, b) => a.sequence - b.sequence);
           const done = myStops.filter((s) => s.status === "completed").length;
           const total = myStops.length;
           const allDone = total > 0 && done === total;
+          // Beregn om ruten er låst (en tidligere rute mangler stadig stop).
+          // Vi rebygger samme orden her for at tjekke uden prop-drilling.
+          const sortedAll = [...routes].sort((a, b) => {
+            const at = a.planned_start_time || "99:99";
+            const bt = b.planned_start_time || "99:99";
+            if (at !== bt) return at < bt ? -1 : 1;
+            return (a.created_at || "").localeCompare(b.created_at || "");
+          });
+          const firstActiveId = sortedAll.find((rt) => {
+            const rs = stopsByRoute.get(rt.id) || [];
+            return rs.some((s) => s.status !== "completed");
+          })?.id ?? null;
+          const isLocked = !allDone && firstActiveId !== null && r.id !== firstActiveId && total > 0;
           const progress = total > 0 ? Math.round((done / total) * 100) : 0;
           const color = r.color || "hsl(var(--accent))";
           const startCoord: [number, number] | null =
@@ -783,9 +813,12 @@ const EmployeeApp = () => {
                     asChild={total > 0}
                     size="lg"
                     className="h-11 flex-1 gap-2 rounded-lg bg-foreground font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
-                    disabled={total === 0}
+                    disabled={total === 0 || isLocked}
+                    title={isLocked ? "Tilgængelig efter forrige rute er gennemført" : undefined}
                   >
-                    {total > 0 ? (
+                    {isLocked ? (
+                      <><LockIcon className="h-5 w-5" /> Låst — afslut forrige først</>
+                    ) : total > 0 ? (
                       <Link to={`/medarbejder/rute/${r.id}`}>
                         {done > 0 ? (
                           <><Navigation className="h-5 w-5" /> Fortsæt rute</>
