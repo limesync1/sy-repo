@@ -83,18 +83,13 @@ export interface BusinessInfo {
   contact: { email: string; phone: string; address: string };
 }
 
-export const INTERVAL_LABELS: Record<string, string> = {
-  engangskøb: "Engangskøb",
-  "10_min": "Hvert 10. minut",
-  daglig: "Daglig",
-  hver_2_dag: "Hver anden dag",
-  ugentlig: "Ugentlig",
-  hver_14_dag: "Hver 14. dag",
-  hver_3_uge: "Hver 3. uge",
-  hver_4_uge: "Hver 4. uge",
-  hver_8_uge: "Hver 8. uge",
-  månedlig: "Månedlig",
-  kvartalsvis: "Kvartalsvis",
-  halvårlig: "Halvårlig",
-  årlig: "Årlig",
-};
+// Tilbagekompatibel "label-map": alle opslag (også ukendte nøgler i nyt
+// `every_<N>_<unit>`-format) går igennem den centrale formatInterval-funktion,
+// så eksisterende `INTERVAL_LABELS[x] || x`-mønstre rundt om i kodebasen
+// automatisk får grammatisk korrekte danske labels.
+import { formatInterval } from "@/lib/interval";
+
+export const INTERVAL_LABELS = new Proxy({} as Record<string, string>, {
+  get: (_t, key) => formatInterval(String(key)),
+  has: () => true,
+});

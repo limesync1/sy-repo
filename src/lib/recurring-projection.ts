@@ -5,24 +5,14 @@
 // DB-jobbet `auto_recur_due_orders` materialiserer dem, eller når en bruger
 // dropper en aftale ind på en rute.
 import { addDays, format, parseISO, isBefore, differenceInCalendarDays } from "date-fns";
+import { intervalToDays as intervalToDaysCentral } from "@/lib/interval";
 
-export const intervalToDays = (interval: string | null | undefined): number | null => {
-  if (!interval) return null;
-  switch (interval) {
-    case "daglig": return 1;
-    case "hver_2_dag": return 2;
-    case "ugentlig": return 7;
-    case "hver_14_dag": return 14;
-    case "hver_3_uge": return 21;
-    case "hver_4_uge": return 28;
-    case "hver_8_uge": return 56;
-    case "månedlig": return 30;
-    case "kvartalsvis": return 91;
-    case "halvårlig": return 182;
-    case "årlig": return 365;
-    default: return null;
-  }
-};
+/**
+ * Tynd indpakning omkring den centrale interval-lib — bevares som eksport
+ * for bagudkompatibilitet (tests + ældre kode bruger denne path).
+ */
+export const intervalToDays = (interval: string | null | undefined): number | null =>
+  intervalToDaysCentral(interval);
 
 export type ProjectedRoute = {
   id: string;            // stable virtual id: `virtual:<routeId>:<date>`

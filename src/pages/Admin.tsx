@@ -34,6 +34,8 @@ const AccountingTab = lazy(() => import("@/components/admin/AccountingTab"));
 const DataImportTab = lazy(() => import("@/components/admin/DataImportTab"));
 import BusinessOnboarding from "@/components/admin/BusinessOnboarding";
 import OnboardingHub from "@/components/admin/onboarding/OnboardingHub";
+import { IntervalBuilder } from "@/components/admin/IntervalBuilder";
+import { formatInterval } from "@/lib/interval";
 import { PageHeader, PrimaryButton, SectionCard, FieldLabel, EmptyState } from "@/components/admin/shared/AdminUI";
 import { AdminShell, type AdminTabKey } from "@/components/admin/shared/AdminShell";
 import { ShellSkeleton, ListCardSkeleton, StatGridSkeleton, PageSkeleton, FormSkeleton, FilterBarSkeleton, PageHeaderSkeleton, ChartSkeleton } from "@/components/admin/shared/Skeletons";
@@ -732,25 +734,12 @@ const ServiceRow = ({ service, orderCount, accountingMeta, onEdit, onDelete }: {
   onDelete: () => void;
 }) => {
   const pricingLabels: Record<string, string> = { fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner" };
-  const intervalLabels: Record<string, string> = {
-    engangskøb: "Engangskøb",
-    "10_min": "Hver 10. minut",
-    daglig: "Daglig",
-    ugentlig: "Ugentlig",
-    hver_14_dag: "Hver 14. dag",
-    hver_4_uge: "Hver 4. uge",
-    hver_8_uge: "Hver 8. uge",
-    månedlig: "Månedlig",
-    kvartalsvis: "Kvartalsvis",
-    halvårlig: "Halvårlig",
-    årlig: "Årlig",
-  };
 
   const intervals = service.interval_options || [];
   const hasRecurring = intervals.some((i: string) => i !== "engangskøb");
   const categoryIcon = industryIcon(service.service_category);
   const intervalSummary = intervals.length > 0
-    ? intervals.slice(0, 2).map((interval: string) => intervalLabels[interval] || interval).join(", ") + (intervals.length > 2 ? ` +${intervals.length - 2}` : "")
+    ? intervals.slice(0, 2).map((interval: string) => formatInterval(interval)).join(", ") + (intervals.length > 2 ? ` +${intervals.length - 2}` : "")
     : "Ikke angivet";
   const priceSummary = service.base_price != null
     ? `${service.base_price} kr${service.unit ? ` / ${service.unit}` : ""}`
@@ -1102,26 +1091,6 @@ const ServiceForm = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep, name, serviceCategory]);
-
-  const ALL_INTERVALS = [
-    { value: "engangskøb", label: "Engangskøb" },
-    { value: "10_min", label: "Hver 10. minut (test)" },
-    { value: "daglig", label: "Daglig" },
-    { value: "ugentlig", label: "Ugentlig" },
-    { value: "hver_14_dag", label: "Hver 14. dag" },
-    { value: "hver_4_uge", label: "Hver 4. uge" },
-    { value: "hver_8_uge", label: "Hver 8. uge" },
-    { value: "månedlig", label: "Månedlig" },
-    { value: "kvartalsvis", label: "Kvartalsvis" },
-    { value: "halvårlig", label: "Halvårlig" },
-    { value: "årlig", label: "Årlig" },
-  ];
-
-  const toggleInterval = (v: string) => {
-    setIntervalOptions((prev) =>
-      prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]
-    );
-  };
 
   // ── Branchefiltrering ──────────────────────────────────────────────
   // Vi viser kun kategorier/underkategorier/forslag som matcher virksomhedens
@@ -1937,23 +1906,11 @@ const ServiceForm = ({
         <div className="space-y-5">
           <div>
             <h4 className="text-base font-semibold text-foreground">Vælg intervaller</h4>
-            <p className="mt-1 text-sm text-muted-foreground">Hvilke intervaller kan kunden vælge for denne service?</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Tilføj de intervaller kunden skal kunne vælge — antal og enhed (dage, uger, måneder, år). Træk dem i den rækkefølge du vil vise dem.
+            </p>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-            {ALL_INTERVALS.map((iv) => (
-              <button key={iv.value} type="button" onClick={() => toggleInterval(iv.value)}
-                className={`relative rounded-xl border px-4 py-3 text-center transition-all ${
-                  intervalOptions.includes(iv.value)
-                    ? "border-accent bg-accent text-accent-foreground shadow-sm ring-2 ring-accent/30"
-                    : "border-border bg-card hover:bg-secondary"
-                }`}>
-                {intervalOptions.includes(iv.value) && (
-                  <Check className="absolute right-2 top-2 h-3.5 w-3.5" />
-                )}
-                <span className={`text-sm font-medium ${intervalOptions.includes(iv.value) ? "" : "text-foreground"}`}>{iv.label}</span>
-              </button>
-            ))}
-          </div>
+          <IntervalBuilder value={intervalOptions} onChange={setIntervalOptions} />
           {intervalOptions.length === 0 && (
             <p className="text-sm text-destructive">Vælg mindst ét interval</p>
           )}
