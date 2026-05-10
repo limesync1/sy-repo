@@ -9,6 +9,7 @@ const invalidateRouteSyncQueries = (qc: ReturnType<typeof useQueryClient>) => {
   qc.invalidateQueries({ queryKey: ["routes"] });
   qc.invalidateQueries({ queryKey: ["routes-range"] });
   qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
+  qc.invalidateQueries({ queryKey: ["unassigned-occurrences"] });
   qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
   qc.invalidateQueries({ queryKey: ["my-day-stops"] });
   qc.invalidateQueries({ queryKey: ["my-day-routes"] });
