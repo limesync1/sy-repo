@@ -42,6 +42,7 @@ type Props = {
     customer_response?: string | null;
     adjusted_details?: any;
     adjusted_amount?: number | null;
+    completed_cycles?: number | null;
   };
   onClick?: () => void;
 };
@@ -108,6 +109,10 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
     const interval = it.details?.interval;
     return interval && interval !== "engangskøb";
   });
+  // Aftalen er "ny" indtil den er udført første gang. For sådanne aftaler
+  // viser vi "Opstart:" i stedet for "Næste:" — også for gentagne aftaler,
+  // siden næste forekomst først giver mening efter første udførelse.
+  const isFirstOccurrence = (job.completed_cycles ?? 0) === 0;
   const itemCount = items.length;
   // Vis hele adressen: gade, postnummer og by samlet
   const cityLine = [job.zip_code, job.city].filter(Boolean).join(" ");
@@ -202,7 +207,7 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
             <div className={`flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] font-medium ${schedule.tone}`}>
               <CalendarClock className="h-3 w-3 shrink-0" />
               <span className="opacity-70 font-normal">
-                {hasRecurringInterval ? "Næste:" : "Opstart:"}
+                {hasRecurringInterval && !isFirstOccurrence ? "Næste:" : "Opstart:"}
               </span>
               <span className="font-semibold">{schedule.dayLabel}</span>
               <span className="opacity-80">· {schedule.relative}</span>

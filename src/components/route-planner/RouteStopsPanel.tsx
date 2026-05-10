@@ -269,8 +269,9 @@ const SortableStopRow = ({ stop, index, color, employees, onSetAssignees, onSele
             <p className="text-[10px] text-foreground/80 mt-0.5">✓ Færdig</p>
           )}
           {stop.is_first_occurrence && stop.start_date && stop.status !== "completed" && (
-            <p
-              className="text-[10px] mt-0.5 inline-flex items-center gap-1 rounded-sm bg-accent/10 text-accent-foreground/90 px-1.5 py-0.5 font-medium"
+            <Badge
+              variant="outline"
+              className="mt-1 h-4 text-[10px] px-1.5 gap-0.5 border-primary/40 text-primary bg-primary/5 font-medium"
               title="Aftalen er ikke kørt endnu — dette er opstartsdatoen"
             >
               <PlayCircle className="h-2.5 w-2.5" />
@@ -278,7 +279,7 @@ const SortableStopRow = ({ stop, index, color, employees, onSetAssignees, onSele
                 try { return format(parseISO(stop.start_date), "d. MMM", { locale: da }); }
                 catch { return stop.start_date; }
               })()}
-            </p>
+            </Badge>
           )}
         </button>
 
