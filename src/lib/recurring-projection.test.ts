@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import { expandRecurringRoutes, intervalToDays } from "./recurring-projection";
 
 describe("intervalToDays", () => {
@@ -249,6 +249,16 @@ describe("expandRecurringRoutes — robustness", () => {
 // aftaler tvunget til samme seed_date (basisrutens dato), hvilket kollapsede
 // flere serier til én. Disse tests låser den korrekte adfærd fast.
 describe("expandRecurringRoutes — merge med blandede intervaller", () => {
+  // Lås "today" så past-clamp i expandRecurringRoutes ikke filtrerer testdatoer
+  // væk afhængigt af hvornår testen køres.
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-04-30T08:00:00Z"));
+  });
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
   const range = { rangeStart: "2026-05-01", rangeEnd: "2026-06-30" };
 
   it("projicerer både ugentlig og månedlig aftale på samme målrute", () => {
