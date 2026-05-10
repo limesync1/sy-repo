@@ -365,6 +365,18 @@ export const RouteEditSheet = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <MoveRouteDateDialog
+        open={!!pendingDate}
+        onOpenChange={(o) => { if (!o) setPendingDate(null); }}
+        routeName={route.name || "Rute"}
+        fromDate={route.route_date}
+        toDate={pendingDate || ""}
+        futureRouteCount={seriesInfo?.futureRouteCount ?? 1}
+        linkedSubscriptionCount={seriesInfo?.linkedSubscriptionCount ?? 0}
+        loading={moveRouteSeries.isPending}
+        onConfirm={handleConfirmMoveDate}
+      />
     </>
   );
 };
