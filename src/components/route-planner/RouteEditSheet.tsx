@@ -168,9 +168,17 @@ export const RouteEditSheet = ({
       return;
     }
 
+    // Debounce 500ms + in-flight guard: hvis en mutation allerede kører,
+    // udskydes næste kald til den er færdig. Det forhindrer race conditions
+    // og spam af DB-skrivninger når brugeren skriver hurtigt eller vælger
+    // farver i hurtig rækkefølge.
     const timeout = window.setTimeout(() => {
+      if (updateRoute.isPending) {
+        // Mutation kører — skip nu; en ny dirty-cyklus trigger en ny effect.
+        return;
+      }
       updateRoute.mutate(pendingPayload);
-    }, 250);
+    }, 500);
 
     return () => window.clearTimeout(timeout);
   }, [route, open, dirty, pendingPayload, updateRoute]);
