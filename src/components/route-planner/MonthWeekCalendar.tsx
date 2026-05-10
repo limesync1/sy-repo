@@ -183,16 +183,21 @@ type DayCellProps = {
   loadingRoutes?: boolean;
   loadingWeather?: boolean;
   weatherError?: boolean;
+  /** True hvis dagens drop-zone pt. behandler en flytning. */
+  busy?: boolean;
+  /** Sæt med alle busy targets — videresendes til RoutePill for rute-niveau. */
+  busyRouteIds?: Set<string>;
 };
 
 const DayCellInner = ({
   date, dateStr, routes, inMonth, today,
   onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, optimizingRouteId, compact, draggingType, weather,
-  loadingRoutes, loadingWeather, weatherError,
+  loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds,
 }: DayCellProps) => {
   const { setNodeRef, isOver } = useDroppable({
     id: `day:${dateStr}`,
     data: { type: "day", date: dateStr },
+    disabled: !!busy,
   });
 
   const isDragActive = !!draggingType;
@@ -210,8 +215,15 @@ const DayCellInner = ({
         isDragActive && inMonth && !isOver && "ring-1 ring-accent/30 ring-inset",
         // Når man hovrer over en dag — tydeligt highlight
         isOver && "bg-accent/15 ring-2 ring-accent ring-inset shadow-inner",
+        busy && "opacity-90 cursor-wait",
       )}
+      aria-busy={busy || undefined}
     >
+      {busy && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/60 backdrop-blur-[1px] rounded-sm pointer-events-none">
+          <Loader2 className="h-5 w-5 animate-spin text-accent" />
+        </div>
+      )}
       {/* Dato-header */}
       <div className="flex items-center justify-between mb-0.5">
         <span
