@@ -3539,7 +3539,7 @@ export type Database = {
       }
       materialize_occurrences_to_routes: {
         Args: { _business_id: string; _from: string; _to: string }
-        Returns: number
+        Returns: undefined
       }
       move_stops_to_date: {
         Args: { _stop_ids: string[]; _target_date: string }
