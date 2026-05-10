@@ -61,7 +61,7 @@ describe("formatInterval", () => {
 
   it("keeps labels when INTERVAL_LABELS is spread into local maps", async () => {
     const { INTERVAL_LABELS } = await import("@/types/service");
-    const localMap = { ...INTERVAL_LABELS, engangskøb: "Engangskøb" };
+    const localMap: Record<string, string> = { ...INTERVAL_LABELS, engangskøb: "Engangskøb" };
 
     expect(localMap.hver_14_dag).toBe("Hver 2. uge");
     expect(localMap.ugentlig).toBe("Ugentligt");
