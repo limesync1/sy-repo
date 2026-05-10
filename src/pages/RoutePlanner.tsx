@@ -1030,27 +1030,83 @@ const Planner = () => {
   };
 
   // Flet alle aftaler fra én rute over i en anden, og slet kilden.
-  const handleConfirmRouteMerge = async () => {
+  // scope === "future" → flyt også gentagne aftalers preferred_route_id over
+  // på målruten (og forskyd deres næste forekomst med dato-deltaet),
+  // præcis som "Flyt rute til ny dato" gør.
+  const handleConfirmRouteMerge = async (scope: "single" | "future" = "single") => {
     if (!pendingRouteMerge) return;
     const { source, target } = pendingRouteMerge;
     setMergingRoute(true);
     try {
       const sourceStops = calendarStops.filter((s: any) => s.route_id === source.id);
-      if (sourceStops.length === 0) {
-        // Ruten er allerede tom — slet bare kilderuten.
-        await supabase.from("routes").delete().eq("id", source.id);
-        toast.success("Tom rute slettet");
-        invalidateRouteSyncQueries(qc);
-        setPendingRouteMerge(null);
-        return;
+      let moved = 0;
+      if (sourceStops.length > 0) {
+        const { data, error } = await supabase.rpc("move_stops_to_route", {
+          _stop_ids: sourceStops.map((s: any) => s.id),
+          _target_route_id: target.id,
+        });
+        if (error) throw error;
+        const row = Array.isArray(data) ? data[0] : data;
+        moved = Number(row?.moved_count ?? 0);
       }
-      const { data, error } = await supabase.rpc("move_stops_to_route", {
-        _stop_ids: sourceStops.map((s: any) => s.id),
-        _target_route_id: target.id,
-      });
-      if (error) throw error;
-      const row = Array.isArray(data) ? data[0] : data;
-      const moved = Number(row?.moved_count ?? 0);
+
+      // "Fremtidige aftaler også": forskyd recurring aftaler/abonnementer
+      // på kilden til målrutens dato, og re-point preferred_route_id så
+      // fremtidige projektioner tegnes på målruten i stedet.
+      if (scope === "future") {
+        const deltaMs =
+          new Date(target.route_date).getTime() - new Date(source.route_date).getTime();
+        const deltaDays = Math.round(deltaMs / 86_400_000);
+        const shiftIso = (d: string) => {
+          const nd = new Date(d);
+          nd.setDate(nd.getDate() + deltaDays);
+          return nd.toISOString();
+        };
+        const shiftDate = (d: string) => {
+          const nd = new Date(d);
+          nd.setDate(nd.getDate() + deltaDays);
+          return nd.toISOString().slice(0, 10);
+        };
+        const [subsRes, agrsRes] = await Promise.all([
+          supabase
+            .from("subscriptions")
+            .select("id, next_service_date")
+            .eq("preferred_route_id", source.id)
+            .eq("status", "active")
+            .neq("interval", "engangskøb"),
+          supabase
+            .from("agreements")
+            .select("id, start_date")
+            .eq("preferred_route_id", source.id)
+            .eq("status", "active")
+            .neq("interval", "engangskøb"),
+        ]);
+        await Promise.all([
+          ...(subsRes.data || []).map((s: any) =>
+            supabase
+              .from("subscriptions")
+              .update({
+                preferred_route_id: target.id,
+                ...(deltaDays !== 0 && s.next_service_date
+                  ? { next_service_date: shiftIso(s.next_service_date) }
+                  : {}),
+              })
+              .eq("id", s.id),
+          ),
+          ...(agrsRes.data || []).map((a: any) =>
+            supabase
+              .from("agreements")
+              .update({
+                preferred_route_id: target.id,
+                ...(deltaDays !== 0 && a.start_date
+                  ? { start_date: shiftDate(a.start_date) }
+                  : {}),
+              })
+              .eq("id", a.id),
+          ),
+        ]);
+      }
+
       // Auto-slet kilderute (den er nu tom efter et fuldt merge)
       const { count } = await supabase
         .from("route_stops")
@@ -1060,10 +1116,20 @@ const Planner = () => {
         await supabase.from("routes").delete().eq("id", source.id);
       }
       toast.success(
-        `${moved} aftale${moved === 1 ? "" : "r"} flettet ind i ${target.name || "rute"}`,
-        { description: "Kilderuten blev slettet automatisk." },
+        sourceStops.length === 0
+          ? "Tom rute slettet"
+          : `${moved} aftale${moved === 1 ? "" : "r"} flettet ind i ${target.name || "rute"}`,
+        {
+          description:
+            scope === "future"
+              ? "Fremtidige forekomster af gentagne aftaler følger med."
+              : "Kilderuten blev slettet automatisk.",
+        },
       );
       invalidateRouteSyncQueries(qc);
+      qc.invalidateQueries({ queryKey: ["recurring-agreements-for-planner"] });
+      qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
+      qc.invalidateQueries({ queryKey: ["route-series-info"] });
       setPendingRouteMerge(null);
     } catch (err: any) {
       toast.error(err.message || "Kunne ikke flette ruterne");
