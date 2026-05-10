@@ -727,6 +727,30 @@ export const useAddStop = () => {
       time_window_end?: string | null;
       assigned_employee_id?: string | null;
     }) => {
+      // Auto-tildel service'ens standard-medarbejder hvis ingen er valgt
+      // og aftalen er knyttet til en ordre. Manuelle valg på enkelte
+      // aftaler tilsidesætter altid denne default.
+      let resolvedAssignee = payload.assigned_employee_id ?? null;
+      if (!resolvedAssignee && payload.order_id) {
+        try {
+          const { data: items } = await supabase
+            .from("order_items")
+            .select("service_id")
+            .eq("order_id", payload.order_id)
+            .limit(1);
+          const svcId = items?.[0]?.service_id;
+          if (svcId) {
+            const { data: svc } = await supabase
+              .from("services")
+              .select("default_employee_id")
+              .eq("id", svcId)
+              .maybeSingle();
+            if (svc?.default_employee_id) resolvedAssignee = svc.default_employee_id;
+          }
+        } catch {
+          /* lookup må aldrig blokere oprettelse */
+        }
+      }
       const { data, error } = await supabase
         .from("route_stops")
         .insert({
@@ -743,11 +767,19 @@ export const useAddStop = () => {
           duration_minutes: payload.duration_minutes ?? 30,
           time_window_start: payload.time_window_start ?? null,
           time_window_end: payload.time_window_end ?? null,
-          assigned_employee_id: payload.assigned_employee_id ?? null,
+          assigned_employee_id: resolvedAssignee,
         })
         .select("*")
         .single();
       if (error) throw error;
+      // Hvis vi auto-tildelte, opret også en assignee-række så det ses i UI
+      if (resolvedAssignee && !payload.assigned_employee_id) {
+        try {
+          await supabase
+            .from("route_stop_assignees")
+            .insert({ stop_id: (data as any).id, employee_id: resolvedAssignee, is_lead: true });
+        } catch { /* ignorer hvis trigger allerede har sat den */ }
+      }
       return data as RouteStop;
     },
     onSuccess: () => invalidateRouteSyncQueries(qc),
