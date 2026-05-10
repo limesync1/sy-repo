@@ -416,6 +416,50 @@ export const useStopsForRoutes = (routeIds: string[]) => {
 
 /* ─── Route ↔ Employees junction ─── */
 export const useRouteEmployees = (routeIds: string[]) => {
+  return useRouteEmployeesImpl(routeIds);
+};
+
+/**
+ * Samlet kalender-data: ruter + stops (med assignees + occurrence-status) i ét RPC-kald.
+ *
+ * Erstatter behovet for 3 separate queries (`useRoutesForRange` + `useStopsForRoutes`
+ * + N+1 assignees-fetch). Brug denne i RoutePlanner og lignende.
+ */
+export const useCalendarData = (
+  businessId: string | undefined,
+  from: string,
+  to: string,
+) => {
+  return useQuery({
+    queryKey: ["route-calendar", businessId, from, to],
+    enabled: !!businessId && !!from && !!to,
+    staleTime: 30 * 1000,
+    gcTime: 5 * 60 * 1000,
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_route_calendar", {
+        p_business_id: businessId!,
+        p_from: from,
+        p_to: to,
+      });
+      if (error) throw error;
+      const payload = (data || {}) as {
+        routes?: Route[];
+        stops?: any[];
+        unassigned_jobs?: any[];
+      };
+      const routes = (payload.routes || []) as Route[];
+      const stops = (payload.stops || []).map((s: any) => ({
+        ...s,
+        assignee_ids: s.assignee_ids || [],
+        lead_employee_id: s.lead_employee_id ?? s.assigned_employee_id ?? null,
+      })) as RouteStop[];
+      return { routes, stops };
+    },
+  });
+};
+
+const useRouteEmployeesImpl = (routeIds: string[]) => {
   return useQuery({
     queryKey: ["route-employees-bulk", [...routeIds].sort().join(",")],
     enabled: routeIds.length > 0,
