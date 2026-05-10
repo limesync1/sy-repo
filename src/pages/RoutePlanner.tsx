@@ -643,7 +643,43 @@ const Planner = () => {
       if (inFlightDropsRef.current.has(dropKey)) return;
       inFlightDropsRef.current.add(dropKey);
     }
-    const releaseDrop = () => { if (dropKey) inFlightDropsRef.current.delete(dropKey); };
+    // Bestem hvilket target der skal markeres som "behandler".
+    const targetKey = (() => {
+      if (overData?.type === "route") return `route:${overData.routeId}`;
+      if (overData?.type === "day") return `day:${overData.date}`;
+      return null;
+    })();
+    setTargetBusy(targetKey, true);
+    const releaseDrop = () => {
+      if (dropKey) inFlightDropsRef.current.delete(dropKey);
+      setTargetBusy(targetKey, false);
+    };
+
+    // Server-side idempotens-claim — atomart insert-on-conflict.
+    // Returnerer false hvis nøglen allerede findes (= dobbelt-kald), så
+    // vi bailer ud før der laves nogen som helst route/stop-mutationer.
+    // Tidsbucket på 3 sekunder gør at brugeren kan retry'e efter en kort
+    // pause hvis fx netværket fejlede.
+    const claimIdempotency = async (): Promise<boolean> => {
+      if (!dropKey) return true;
+      const bucket = Math.floor(Date.now() / 3000);
+      try {
+        const { data, error } = await supabase.rpc("claim_route_planner_idempotency", {
+          _key: `${businessId}:${dropKey}:${bucket}`,
+          _business_id: businessId,
+        });
+        if (error) {
+          // Hvis selve claim'et fejler, lader vi handlingen køre videre —
+          // bedre at risikere en advarsel end at blokere alt arbejde.
+          console.warn("idempotency claim failed", error);
+          return true;
+        }
+        return data === true;
+      } catch (err) {
+        console.warn("idempotency claim threw", err);
+        return true;
+      }
+    };
 
     /* ─── Drop fra MonthWeekCalendar ─── */
     // Træk en hel rute → en anden rute = flet/merge alle stops ind i målrute
