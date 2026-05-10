@@ -24,9 +24,10 @@ import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection
 import CustomerEmailAutocomplete from "./CustomerEmailAutocomplete";
 import { DatePickerField } from "./DatePickerField";
 import { format } from "date-fns";
+import { getCategoryIcon } from "@/lib/category-icons";
 
 type CalcStep = { id: string; label: string; unit: string; price_per_unit: number; min_value: number | null; max_value: number | null; default_value: number | null; sort_order: number | null };
-type Service = { id: string; name: string; description: string | null; pricing_type: "fast_pris" | "timepris" | "prisberegner"; base_price: number | null; unit: string | null; is_active: boolean | null; interval_options: string[] | null; calculator_steps?: CalcStep[]; business_id: string };
+type Service = { id: string; name: string; description: string | null; pricing_type: "fast_pris" | "timepris" | "prisberegner"; base_price: number | null; unit: string | null; is_active: boolean | null; interval_options: string[] | null; calculator_steps?: CalcStep[]; business_id: string; service_category?: string | null; subcategory?: string | null };
 
 interface BuilderItem {
   serviceId: string;
@@ -426,7 +427,15 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
               <SelectContent>
                 {activeServices.length === 0 && <SelectItem value="__none" disabled>Ingen services oprettet endnu</SelectItem>}
                 {activeServices.filter((s) => !items.some((i) => i.serviceId === s.id)).map((s) => (
-                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                  <SelectItem key={s.id} value={s.id}>
+                    <span className="inline-flex items-center gap-2">
+                      <span className="text-base leading-none" aria-hidden="true">{getCategoryIcon(s.service_category)}</span>
+                      <span className="truncate">{s.name}</span>
+                      {s.service_category && (
+                        <span className="text-[10px] text-muted-foreground">· {s.service_category}</span>
+                      )}
+                    </span>
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -439,7 +448,10 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                     <Card key={it.serviceId} className="p-3 bg-background border-l-2 border-l-primary/40">
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-sm leading-tight">{it.service.name}</p>
+                          <p className="font-semibold text-sm leading-tight flex items-center gap-1.5">
+                            <span className="text-base leading-none" aria-hidden="true">{getCategoryIcon(it.service.service_category)}</span>
+                            <span className="truncate">{it.service.name}</span>
+                          </p>
                           <Badge variant="outline" className="mt-1 text-[10px] font-normal">
                             {it.service.pricing_type === "fast_pris" ? "Fast pris" : it.service.pricing_type === "timepris" ? "Timepris" : "Prisberegner"}
                           </Badge>
