@@ -19,6 +19,7 @@ import {
   Inbox, CheckCircle2, PlayCircle, Wand2, ZoomIn, ZoomOut,
 } from "lucide-react";
 import { format, isToday, parseISO } from "date-fns";
+import { da } from "date-fns/locale";
 import type { RouteStop } from "@/hooks/useRoutes";
 
 const SLOT_MIN = 15;          // snap-interval (altid 15 min)
@@ -736,6 +737,22 @@ const StopBlock = ({
         <p className="text-[11px] text-foreground/75 truncate leading-tight">
           {stop.service_summary || "Aftale"}
         </p>
+
+        {/* Opstart-badge — vises kun når aftalen ikke er kørt endnu (første gang) */}
+        {stop.is_first_occurrence && stop.start_date && !isDone && !isCancelled && (
+          <p
+            className="text-[10px] text-accent-foreground/90 truncate inline-flex items-center gap-1 leading-tight font-medium"
+            title="Aftalen er ikke kørt endnu — dette er opstartsdatoen"
+          >
+            <PlayCircle className="h-2.5 w-2.5 shrink-0" />
+            <span className="truncate">
+              Opstart {(() => {
+                try { return format(parseISO(stop.start_date), "d. MMM", { locale: da }); }
+                catch { return stop.start_date; }
+              })()}
+            </span>
+          </p>
+        )}
 
         {/* Adresse */}
         {showAddress && stop.address && (
