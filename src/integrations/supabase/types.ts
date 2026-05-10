@@ -3395,6 +3395,12 @@ export type Database = {
           moved_count: number
         }[]
       }
+      move_stops_to_route: {
+        Args: { _stop_ids: string[]; _target_route_id: string }
+        Returns: {
+          moved_count: number
+        }[]
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
