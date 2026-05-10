@@ -34,9 +34,11 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon,
-  Loader2, Search, Plus, Inbox, ArrowUpDown, X, Keyboard,
+  Loader2, Search, Plus, Inbox, ArrowUpDown, X, Keyboard, Filter,
   ShoppingBag, Route as RouteIcon, Tag, Palette,
 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import { format, addDays, addWeeks, addMonths, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { da } from "date-fns/locale";
 import { toast } from "sonner";
@@ -177,6 +179,35 @@ const Planner = () => {
 
   // Pr-rute "pending" state — kun den rute der faktisk optimeres viser spinner
   const [optimizingRouteId, setOptimizingRouteId] = useState<string | null>(null);
+
+  // ── Filtre: kun vis stops for valgte assignees / forekomst-statusser ──
+  const [filterAssigneeIds, setFilterAssigneeIds] = useState<string[]>([]);
+  const [filterStatuses, setFilterStatuses] = useState<string[]>([]);
+  const STATUS_OPTIONS: { value: string; label: string }[] = [
+    { value: "planned",   label: "Planlagt" },
+    { value: "confirmed", label: "Bekræftet" },
+    { value: "in_progress", label: "I gang" },
+    { value: "completed", label: "Færdig" },
+    { value: "cancelled", label: "Aflyst" },
+  ];
+  const filtersActive = filterAssigneeIds.length > 0 || filterStatuses.length > 0;
+
+  /** Stops efter filter — bruges både til rute-bygger og kalender-kort. */
+  const visibleCalendarStops = useMemo(() => {
+    if (!filtersActive) return calendarStops;
+    return calendarStops.filter((s: any) => {
+      if (filterAssigneeIds.length > 0) {
+        const ids = (s.assignee_ids || []) as string[];
+        if (!ids.some((id) => filterAssigneeIds.includes(id))) return false;
+      }
+      if (filterStatuses.length > 0) {
+        const occ = (s.occurrence_status as string | undefined) ?? null;
+        const eff = occ ?? s.status; // forekomst-status er kanonisk, fallback til legacy stop-status
+        if (!filterStatuses.includes(eff)) return false;
+      }
+      return true;
+    });
+  }, [calendarStops, filterAssigneeIds, filterStatuses, filtersActive]);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -465,6 +496,49 @@ const Planner = () => {
   const handleDragStart = (e: DragStartEvent) => {
     setActiveDragId(e.active.id as string);
     setActiveDragData(e.active.data.current);
+  };
+
+  /** Tjekker om en flytning af et stop til en ny dato vil overlappe
+   *  med en assignees øvrige stops på den dato. Returnerer en kort
+   *  beskrivende tekst (eller null hvis ingen konflikt). */
+  const detectAssigneeConflicts = (
+    stop: any,
+    targetDate: string,
+  ): string | null => {
+    const assignees: string[] = stop.assignee_ids || (stop.assigned_employee_id ? [stop.assigned_employee_id] : []);
+    if (assignees.length === 0) return null;
+    const dur = Number(stop.duration_minutes || 30);
+    const startMin = stop.planned_arrival
+      ? (() => { const d = new Date(stop.planned_arrival); return d.getHours() * 60 + d.getMinutes(); })()
+      : (stop.time_window_start ? toMin(stop.time_window_start) : null);
+    if (startMin == null) return null;
+    const endMin = startMin + dur;
+
+    // Find route_ids på targetDate
+    const targetRouteIds = new Set(
+      calendarRoutesRaw.filter((r) => r.route_date === targetDate).map((r) => r.id),
+    );
+    if (targetRouteIds.size === 0) return null;
+
+    const conflicts: string[] = [];
+    for (const other of calendarStops) {
+      if (other.id === stop.id) continue;
+      if (!targetRouteIds.has(other.route_id)) continue;
+      const otherIds: string[] = (other as any).assignee_ids || [];
+      const overlap = otherIds.some((id) => assignees.includes(id));
+      if (!overlap) continue;
+      const oStart = (other as any).planned_arrival
+        ? (() => { const d = new Date((other as any).planned_arrival); return d.getHours() * 60 + d.getMinutes(); })()
+        : (other.time_window_start ? toMin(other.time_window_start) : null);
+      if (oStart == null) continue;
+      const oEnd = oStart + Number(other.duration_minutes || 30);
+      if (startMin < oEnd && oStart < endMin) {
+        conflicts.push(other.customer_name || "Stop");
+      }
+    }
+    return conflicts.length === 0
+      ? null
+      : `Overlapper med ${conflicts.length === 1 ? conflicts[0] : `${conflicts.length} andre stops`}`;
   };
 
   const handleDragEnd = async (e: DragEndEvent) => {
