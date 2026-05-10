@@ -34,6 +34,8 @@ const AccountingTab = lazy(() => import("@/components/admin/AccountingTab"));
 const DataImportTab = lazy(() => import("@/components/admin/DataImportTab"));
 import BusinessOnboarding from "@/components/admin/BusinessOnboarding";
 import OnboardingHub from "@/components/admin/onboarding/OnboardingHub";
+import { IntervalBuilder } from "@/components/admin/IntervalBuilder";
+import { formatInterval } from "@/lib/interval";
 import { PageHeader, PrimaryButton, SectionCard, FieldLabel, EmptyState } from "@/components/admin/shared/AdminUI";
 import { AdminShell, type AdminTabKey } from "@/components/admin/shared/AdminShell";
 import { ShellSkeleton, ListCardSkeleton, StatGridSkeleton, PageSkeleton, FormSkeleton, FilterBarSkeleton, PageHeaderSkeleton, ChartSkeleton } from "@/components/admin/shared/Skeletons";
