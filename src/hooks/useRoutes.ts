@@ -838,6 +838,43 @@ export const useAddStop = () => {
             .insert({ stop_id: (data as any).id, employee_id: resolvedAssignee, is_lead: true });
         } catch { /* ignorer hvis trigger allerede har sat den */ }
       }
+      // ─── Husk hvilken rute aftalen "hører hjemme" på ───
+      // Når en aftale med interval lægges på en rute første gang, sætter vi
+      // `preferred_route_id` på både subscription og agreement, så
+      // ruteplanlæggeren kan projicere fremtidige forekomster på samme rute
+      // (uden at overskrive et eksisterende manuelt valg).
+      if (payload.order_id) {
+        try {
+          const { data: subs } = await supabase
+            .from("subscriptions")
+            .select("id, preferred_route_id, status, interval, legacy_agreement_id")
+            .eq("order_id", payload.order_id);
+          const targets = (subs || []).filter((s: any) =>
+            s.status === "active" &&
+            s.interval && s.interval !== "engangskøb" &&
+            !s.preferred_route_id,
+          );
+          if (targets.length > 0) {
+            await supabase
+              .from("subscriptions")
+              .update({ preferred_route_id: payload.route_id })
+              .in("id", targets.map((s: any) => s.id));
+          }
+          // Tilsvarende på agreements (ny model) — match via legacy_subscription_id.
+          const subIds = (subs || []).map((s: any) => s.id);
+          if (subIds.length > 0) {
+            await supabase
+              .from("agreements")
+              .update({ preferred_route_id: payload.route_id })
+              .in("legacy_subscription_id", subIds)
+              .is("preferred_route_id", null)
+              .neq("interval", "engangskøb")
+              .eq("status", "active");
+          }
+        } catch {
+          /* preferred_route_id er en hint — må aldrig blokere drop'et */
+        }
+      }
       return data as RouteStop;
     },
     onSuccess: () => invalidateRouteSyncQueries(qc),
