@@ -1023,21 +1023,36 @@ export const useAddStop = () => {
 export const useUpdateStop = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<RouteStop> & { id: string }) => {
-      // Strip virtuelle felter der ikke findes i DB-tabellen
-      const { assignee_ids, lead_employee_id, required_staff, ...dbUpdates } = updates as any;
-      const payload: any = { ...dbUpdates };
-      if (typeof required_staff === "number") payload.required_staff = required_staff;
-      const { data, error } = await supabase
-        .from("route_stops")
-        .update(payload)
-        .eq("id", id)
-        .select("*")
-        .single();
-      if (error) throw error;
-      return data as RouteStop;
+    mutationFn: ({ id, ...updates }: Partial<RouteStop> & { id: string }) =>
+      routeMutationQueue.run(async () => {
+        // Strip virtuelle felter der ikke findes i DB-tabellen
+        const { assignee_ids, lead_employee_id, required_staff, ...dbUpdates } = updates as any;
+        const payload: any = { ...dbUpdates };
+        if (typeof required_staff === "number") payload.required_staff = required_staff;
+        const { data, error } = await supabase
+          .from("route_stops")
+          .update(payload)
+          .eq("id", id)
+          .select("*")
+          .single();
+        if (error) throw error;
+        return data as RouteStop;
+      }),
+    // Optimistic patch: opdatér allerede-cachede route-stops-bulk-lister med
+    // det nye payload, så UI'et ikke "blinker" tilbage til serverens gamle
+    // værdier mens mutationen er undervejs.
+    onMutate: async ({ id, ...updates }) => {
+      await qc.cancelQueries({ queryKey: ["route-stops-bulk"] });
+      const snapshots = qc.getQueriesData<RouteStop[]>({ queryKey: ["route-stops-bulk"] });
+      qc.setQueriesData<RouteStop[]>({ queryKey: ["route-stops-bulk"] }, (old) =>
+        old ? old.map((s) => (s.id === id ? ({ ...s, ...(updates as any) } as RouteStop) : s)) : old,
+      );
+      return { snapshots };
     },
-    onSuccess: () => {
+    onError: (_e, _vars, ctx) => {
+      ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data));
+    },
+    onSettled: () => {
       invalidateRouteSyncQueries(qc);
       qc.invalidateQueries({ queryKey: ["stop-assignees-bulk"] });
     },
@@ -1047,27 +1062,58 @@ export const useUpdateStop = () => {
 export const useReorderStops = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (updates: { id: string; sequence: number; route_id?: string }[]) => {
-      const results = await Promise.all(updates.map((u) => {
-        const patch: any = { sequence: u.sequence };
-        if (u.route_id) patch.route_id = u.route_id;
-        return supabase.from("route_stops").update(patch).eq("id", u.id);
-      }));
-      const failed = results.find((result) => result.error);
-      if (failed?.error) throw failed.error;
+    mutationFn: (updates: { id: string; sequence: number; route_id?: string }[]) =>
+      routeMutationQueue.run(async () => {
+        const results = await Promise.all(updates.map((u) => {
+          const patch: any = { sequence: u.sequence };
+          if (u.route_id) patch.route_id = u.route_id;
+          return supabase.from("route_stops").update(patch).eq("id", u.id);
+        }));
+        const failed = results.find((result) => result.error);
+        if (failed?.error) throw failed.error;
+      }),
+    onMutate: async (updates) => {
+      await qc.cancelQueries({ queryKey: ["route-stops-bulk"] });
+      const snapshots = qc.getQueriesData<RouteStop[]>({ queryKey: ["route-stops-bulk"] });
+      const byId = new Map(updates.map((u) => [u.id, u]));
+      qc.setQueriesData<RouteStop[]>({ queryKey: ["route-stops-bulk"] }, (old) =>
+        old
+          ? old.map((s) => {
+              const u = byId.get(s.id);
+              if (!u) return s;
+              return { ...s, sequence: u.sequence, ...(u.route_id ? { route_id: u.route_id } : {}) } as RouteStop;
+            })
+          : old,
+      );
+      return { snapshots };
     },
-    onSuccess: () => invalidateRouteSyncQueries(qc),
+    onError: (_e, _vars, ctx) => {
+      ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data));
+    },
+    onSettled: () => invalidateRouteSyncQueries(qc),
   });
 };
 
 export const useDeleteStop = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("route_stops").delete().eq("id", id);
-      if (error) throw error;
+    mutationFn: (id: string) =>
+      routeMutationQueue.run(async () => {
+        const { error } = await supabase.from("route_stops").delete().eq("id", id);
+        if (error) throw error;
+      }),
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ["route-stops-bulk"] });
+      const snapshots = qc.getQueriesData<RouteStop[]>({ queryKey: ["route-stops-bulk"] });
+      qc.setQueriesData<RouteStop[]>({ queryKey: ["route-stops-bulk"] }, (old) =>
+        old ? old.filter((s) => s.id !== id) : old,
+      );
+      return { snapshots };
     },
-    onSuccess: () => invalidateRouteSyncQueries(qc),
+    onError: (_e, _vars, ctx) => {
+      ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data));
+    },
+    onSettled: () => invalidateRouteSyncQueries(qc),
   });
 };
 
