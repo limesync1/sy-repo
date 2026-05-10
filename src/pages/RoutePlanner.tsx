@@ -647,7 +647,13 @@ const Planner = () => {
     }
     const projections = expandRecurringRoutes({
       sources: recurringSources,
-      rangeStart: calendarRange.start,
+      // Projicér ALDRIG i fortiden — selvom kalenderens visuelle range
+      // starter før i dag (fx månedens grid begynder mandag i forrige uge),
+      // skal projicerede ruter aldrig dukke op på datoer der er passeret.
+      rangeStart: (() => {
+        const todayStr = format(new Date(), "yyyy-MM-dd");
+        return calendarRange.start < todayStr ? todayStr : calendarRange.start;
+      })(),
       rangeEnd: calendarRange.end,
       realRouteDates: realKeys,
     });
