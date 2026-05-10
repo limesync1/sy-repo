@@ -444,8 +444,8 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
             onClick={(e) => { e.stopPropagation(); onOptimize(); }}
             disabled={optimizing}
             className="shrink-0 h-5 w-5 inline-flex items-center justify-center rounded hover:bg-accent/10 text-muted-foreground hover:text-accent disabled:opacity-50"
-            aria-label="Optimér rute"
-            title="Optimér rute (AI + Mapbox)"
+            aria-label="Optimér rækkefølge"
+            title="Optimér rækkefølge — ændrer kun rækkefølgen, ikke medarbejdere"
           >
             {optimizing
               ? <Loader2 className="h-2.5 w-2.5 animate-spin" />
