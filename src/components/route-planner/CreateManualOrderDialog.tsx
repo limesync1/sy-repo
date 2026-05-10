@@ -13,7 +13,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Trash2, Send, ShoppingBag, User, MessageSquare, Package } from "lucide-react";
+import { Loader2, Trash2, Send, ShoppingBag, User, MessageSquare, Package, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { INTERVAL_LABELS } from "@/types/service";
 import { roundPrice, buildPricingSnapshot } from "@/lib/service-pricing";
@@ -22,7 +22,6 @@ import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupFie
 import { Building2, BadgeCheck } from "lucide-react";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection";
 import CustomerEmailAutocomplete from "./CustomerEmailAutocomplete";
-import { DurationSlotPicker } from "@/components/shared/DurationSlotPicker";
 
 type CalcStep = { id: string; label: string; unit: string; price_per_unit: number; min_value: number | null; max_value: number | null; default_value: number | null; sort_order: number | null };
 type Service = { id: string; name: string; description: string | null; pricing_type: "fast_pris" | "timepris" | "prisberegner"; base_price: number | null; unit: string | null; is_active: boolean | null; interval_options: string[] | null; calculator_steps?: CalcStep[]; business_id: string };
@@ -33,11 +32,6 @@ interface BuilderItem {
   hours: number;
   stepValues: Record<string, number>;
   interval: string;
-  /** Anslået varighed pr. besøg (minutter). Default 30. */
-  durationMin: number;
-  /** Valgfrit blødt tidsvindue HH:MM (lokal tid). */
-  timeStart: string;
-  timeEnd: string;
 }
 
 const fmt = (n: number) =>
@@ -125,7 +119,6 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
       ...prev,
       {
         serviceId, service: svc, hours: 1, stepValues, interval: intervals[0],
-        durationMin: 30, timeStart: "", timeEnd: "",
       },
     ]);
   };
@@ -197,9 +190,9 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
           company_name: companyName.trim() || null,
           notes: contactPerson.trim() ? `Kontaktperson: ${contactPerson.trim()}` : null,
           preferred_date: preferredDate || null,
-          preferred_time_start: it.timeStart || null,
-          preferred_time_end: it.timeEnd || null,
-          estimated_duration_minutes: it.durationMin || 30,
+          preferred_time_start: null,
+          preferred_time_end: null,
+          estimated_duration_minutes: null,
           total_amount: total,
           // Kendte kunder: ordren bekræftes med det samme.
           // Ukendte kunder: afventer approval via mail-link.
@@ -234,8 +227,6 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
           details: {
             description,
             interval: it.interval,
-            durationMin: it.durationMin || 30,
-            timeWindow: it.timeStart && it.timeEnd ? { start: it.timeStart, end: it.timeEnd } : undefined,
             stepDetails: it.service.pricing_type === "prisberegner" ? stepDetails : undefined,
             pricingSnapshot: buildPricingSnapshot(it.service as any),
           },
