@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useMyEmployeeId } from "@/hooks/useMyEmployee";
 
-const invalidateRouteSyncQueries = (qc: ReturnType<typeof useQueryClient>) => {
+export const invalidateRouteSyncQueries = (qc: ReturnType<typeof useQueryClient>) => {
   qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
   qc.invalidateQueries({ queryKey: ["route-stops"] });
   qc.invalidateQueries({ queryKey: ["routes"] });
