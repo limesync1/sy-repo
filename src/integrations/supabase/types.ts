@@ -2878,6 +2878,7 @@ export type Database = {
           base_price: number | null
           business_id: string
           created_at: string
+          default_employee_id: string | null
           default_employee_ids: string[]
           default_vat_rate: number | null
           description: string | null
@@ -2902,6 +2903,7 @@ export type Database = {
           base_price?: number | null
           business_id: string
           created_at?: string
+          default_employee_id?: string | null
           default_employee_ids?: string[]
           default_vat_rate?: number | null
           description?: string | null
@@ -2926,6 +2928,7 @@ export type Database = {
           base_price?: number | null
           business_id?: string
           created_at?: string
+          default_employee_id?: string | null
           default_employee_ids?: string[]
           default_vat_rate?: number | null
           description?: string | null
@@ -2949,6 +2952,13 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "services_default_employee_id_fkey"
+            columns: ["default_employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
             referencedColumns: ["id"]
           },
         ]
