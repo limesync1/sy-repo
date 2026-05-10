@@ -388,12 +388,6 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                     </Field>
                   </div>
                 )}
-                {(zipCode || city) && (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
-                    <Field label="Postnr."><Input value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="h-9" /></Field>
-                    <div className="sm:col-span-2"><Field label="By"><Input value={city} onChange={(e) => setCity(e.target.value)} className="h-9" /></Field></div>
-                  </div>
-                )}
               </Section>
             );
           })()}
@@ -495,24 +489,21 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                         </Select>
                       )}
 
-                      {/* Opstartsdato — vises kun på første service-kort, da datoen gælder hele bestillingen */}
-                      {idx === 0 && (
-                        <div className="mt-2 rounded-md bg-secondary/30 p-2.5">
-                          <Label className="text-[11px] text-muted-foreground uppercase tracking-wide flex items-center gap-1.5 mb-1.5">
-                            <Calendar className="h-3 w-3" />
-                            Opstartsdato
-                          </Label>
-                          <Input
-                            type="date"
-                            value={preferredDate}
-                            onChange={(e) => setPreferredDate(e.target.value)}
-                            className="h-9 bg-background"
-                          />
-                          <p className="mt-1 text-[10px] text-muted-foreground">
-                            Datoen hvor opgaven (eller første gentagelse, ved abonnement) skal starte. Tidspunkt og varighed planlægges på ruten.
-                          </p>
-                        </div>
-                      )}
+                      {/* Opstartsdato — pr. service, så hver aftale kan have sin egen startdato */}
+                      <div className="mt-2 rounded-md bg-secondary/30 p-2.5">
+                        <Label className="text-[11px] text-muted-foreground uppercase tracking-wide flex items-center gap-1.5 mb-1.5">
+                          <Calendar className="h-3 w-3" />
+                          Opstartsdato
+                        </Label>
+                        <DatePickerField
+                          value={it.startDate}
+                          onChange={(v) => updateItem(it.serviceId, { startDate: v })}
+                          minDate={format(new Date(), "yyyy-MM-dd")}
+                        />
+                        <p className="mt-1 text-[10px] text-muted-foreground">
+                          Datoen hvor denne service skal starte{it.interval && it.interval !== "engangskøb" ? " (første gentagelse)" : ""}. Tidspunkt planlægges på ruten.
+                        </p>
+                      </div>
 
                       <div className="mt-2 flex items-center justify-between pt-2 border-t border-border/60">
                         <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Subtotal</span>
