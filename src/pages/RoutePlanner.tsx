@@ -643,12 +643,6 @@ const Planner = () => {
           .eq("order_id", orderId)
           .eq("status", "active")
           .neq("interval", "engangskøb");
-        await supabase
-          .from("agreements")
-          .update({ preferred_route_id: routeId })
-          .eq("order_id", orderId)
-          .eq("status", "active")
-          .neq("interval", "engangskøb");
       } catch (err) {
         console.warn("Kunne ikke knytte aftale til rute (projektion)", err);
       }
