@@ -291,6 +291,15 @@ const Planner = () => {
     execute: () => Promise<void>;
   } | null>(null);
   const [confirmingStartDate, setConfirmingStartDate] = useState(false);
+  // Bulk-konflikt: når brugeren opretter en rute med flere aftaler hvis
+  // opstartsdatoer ikke matcher rutens dato, beder vi om bekræftelse på at
+  // flytte ALLE de pågældende opstartsdatoer i én operation.
+  const [pendingBulkStartDateChange, setPendingBulkStartDateChange] = useState<{
+    targetDate: string;
+    mismatches: Array<{ job: any; currentStart: string }>;
+    execute: () => Promise<void>;
+  } | null>(null);
+  const [confirmingBulkStartDate, setConfirmingBulkStartDate] = useState(false);
   const { data: pendingSeriesInfo } = useRouteSeriesInfo(
     pendingRouteMove?.route.id ?? null,
     pendingRouteMove?.route.route_date ?? null,
@@ -1376,6 +1385,65 @@ const Planner = () => {
       });
       return;
     }
+    // Klog opstartsdato-validering: tjek om alle valgte aftalers
+    // opstartsdato matcher rutens dato. Hvis ikke — bed brugeren bekræfte
+    // at vi flytter opstartsdatoerne sammen med oprettelsen.
+    const jobStartOf = (j: any): string | null => {
+      const raw = j?.preferred_date || j?.next_service_date;
+      return raw ? String(raw).slice(0, 10) : null;
+    };
+    const shiftStartOf = async (orderId: string, newDate: string) => {
+      try {
+        await supabase.from("orders").update({
+          preferred_date: newDate,
+          next_service_date: newDate,
+        }).eq("id", orderId);
+      } catch (e) { console.warn("shift orders.preferred_date failed", e); }
+      try {
+        await supabase.from("subscriptions").update({
+          next_service_date: newDate,
+        }).eq("order_id", orderId).eq("status", "active");
+      } catch (e) { console.warn("shift subscriptions.next_service_date failed", e); }
+      try {
+        const { data: subs } = await supabase
+          .from("subscriptions").select("id").eq("order_id", orderId);
+        const subIds = (subs || []).map((s: any) => s.id);
+        if (subIds.length > 0) {
+          await supabase.from("agreements").update({ start_date: newDate })
+            .in("legacy_subscription_id", subIds);
+        }
+      } catch (e) { console.warn("shift agreements.start_date failed", e); }
+    };
+
+    const selectedJobs = newRouteJobIds
+      .map((id) => unassigned.find((j: any) => j.id === id))
+      .filter(Boolean) as any[];
+    const mismatches = selectedJobs
+      .map((job) => ({ job, currentStart: jobStartOf(job) }))
+      .filter((x) => x.currentStart && x.currentStart !== newRouteDate) as
+        Array<{ job: any; currentStart: string }>;
+
+    const execute = async () => {
+      // Flyt evt. opstartsdatoer FØR vi opretter ruten, så DB er konsistent.
+      for (const m of mismatches) {
+        try { await shiftStartOf(m.job.id, newRouteDate); } catch { /* logged */ }
+      }
+      await actuallyCreateRoute(selectedJobs);
+    };
+
+    if (mismatches.length > 0) {
+      setPendingBulkStartDateChange({
+        targetDate: newRouteDate,
+        mismatches,
+        execute,
+      });
+      return;
+    }
+    await actuallyCreateRoute(selectedJobs);
+  };
+
+  const actuallyCreateRoute = async (selectedJobs: any[]) => {
+    if (!businessId) return;
     try {
       const created = await createRoute.mutateAsync({
         business_id: businessId,
@@ -1385,9 +1453,7 @@ const Planner = () => {
       });
       // Læg de valgte aftaler på den nye rute (i den rækkefølge brugeren valgte).
       let seq = 0;
-      for (const jobId of newRouteJobIds) {
-        const job = unassigned.find((j: any) => j.id === jobId);
-        if (!job) continue;
+      for (const job of selectedJobs) {
         try {
           await addStop.mutateAsync({
             route_id: created.id,
@@ -1407,7 +1473,7 @@ const Planner = () => {
           console.error("[CreateRoute] kunne ikke tilføje stop", err);
         }
       }
-      toast.success(`Rute oprettet med ${newRouteJobIds.length} aftale${newRouteJobIds.length === 1 ? "" : "r"}`);
+      toast.success(`Rute oprettet med ${selectedJobs.length} aftale${selectedJobs.length === 1 ? "" : "r"}`);
       setNewRouteName("");
       setNewRouteJobIds([]);
       setCreateOpen(false);
@@ -1773,6 +1839,8 @@ const Planner = () => {
                           .slice(0, 50)
                           .map((j: any) => {
                             const checked = newRouteJobIds.includes(j.id);
+                            const jStart = (j.preferred_date || j.next_service_date || "").slice(0, 10);
+                            const mismatch = jStart && jStart !== newRouteDate;
                             return (
                               <label
                                 key={j.id}
@@ -1798,6 +1866,14 @@ const Planner = () => {
                                   {(j.address || j.city) && (
                                     <p className="text-[10px] text-muted-foreground truncate">
                                       {[j.address, [j.zip_code, j.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")}
+                                    </p>
+                                  )}
+                                  {checked && mismatch && (
+                                    <p
+                                      className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5 truncate"
+                                      title="Aftalens opstartsdato matcher ikke rutens dato — du vil blive bedt om at flytte den."
+                                    >
+                                      ⚠ Opstart {format(parseISO(jStart), "d. MMM", { locale: da })} — flyttes ved oprettelse
                                     </p>
                                   )}
                                 </div>
@@ -2210,6 +2286,71 @@ const Planner = () => {
                 }}
               >
                 {confirmingStartDate ? "Flytter…" : "Flyt opstartsdato og placér"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Bulk-validering: opret rute hvor flere aftaler har afvigende opstartsdato. */}
+        <AlertDialog
+          open={!!pendingBulkStartDateChange}
+          onOpenChange={(o) => { if (!o && !confirmingBulkStartDate) setPendingBulkStartDateChange(null); }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {pendingBulkStartDateChange?.mismatches.length === 1
+                  ? "1 aftale har en anden opstartsdato"
+                  : `${pendingBulkStartDateChange?.mismatches.length ?? 0} aftaler har afvigende opstartsdato`}
+              </AlertDialogTitle>
+              <AlertDialogDescription asChild>
+                <div className="space-y-2 text-sm">
+                  <p>
+                    Du opretter en rute på{" "}
+                    <strong>
+                      {pendingBulkStartDateChange?.targetDate
+                        ? format(parseISO(pendingBulkStartDateChange.targetDate), "EEEE d. MMM yyyy", { locale: da })
+                        : ""}
+                    </strong>, men følgende aftaler har en anden opstartsdato:
+                  </p>
+                  <ul className="rounded border bg-secondary/30 divide-y max-h-48 overflow-y-auto">
+                    {pendingBulkStartDateChange?.mismatches.map((m) => (
+                      <li key={m.job.id} className="px-2.5 py-1.5 text-xs flex items-center justify-between gap-2">
+                        <span className="font-medium truncate">{m.job.customer_name || "Aftale"}</span>
+                        <span className="text-muted-foreground shrink-0">
+                          {format(parseISO(m.currentStart), "d. MMM yyyy", { locale: da })}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-muted-foreground">
+                    Vil du flytte deres opstartsdato til rutens dato og fortsætte med oprettelsen?
+                    Det opdaterer også fremtidige forekomster og evt. tilknyttede abonnementer.
+                  </p>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={confirmingBulkStartDate}>
+                Annullér
+              </AlertDialogCancel>
+              <AlertDialogAction
+                disabled={confirmingBulkStartDate}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  if (!pendingBulkStartDateChange) return;
+                  setConfirmingBulkStartDate(true);
+                  try {
+                    await pendingBulkStartDateChange.execute();
+                  } catch (err: any) {
+                    toast.error(err?.message || "Kunne ikke oprette ruten");
+                  } finally {
+                    setConfirmingBulkStartDate(false);
+                    setPendingBulkStartDateChange(null);
+                  }
+                }}
+              >
+                {confirmingBulkStartDate ? "Opretter…" : "Flyt opstartsdatoer og opret"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

@@ -740,8 +740,9 @@ const StopBlock = ({
 
         {/* Opstart-badge — vises kun når aftalen ikke er kørt endnu (første gang) */}
         {stop.is_first_occurrence && stop.start_date && !isDone && !isCancelled && (
-          <p
-            className="text-[10px] text-accent-foreground/90 truncate inline-flex items-center gap-1 leading-tight font-medium"
+          <Badge
+            variant="outline"
+            className="mt-0.5 h-4 w-fit max-w-full text-[10px] px-1.5 gap-0.5 border-primary/40 text-primary bg-primary/5 font-medium"
             title="Aftalen er ikke kørt endnu — dette er opstartsdatoen"
           >
             <PlayCircle className="h-2.5 w-2.5 shrink-0" />
@@ -751,7 +752,7 @@ const StopBlock = ({
                 catch { return stop.start_date; }
               })()}
             </span>
-          </p>
+          </Badge>
         )}
 
         {/* Adresse */}
