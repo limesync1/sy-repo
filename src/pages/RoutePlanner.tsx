@@ -392,21 +392,42 @@ const Planner = () => {
     enabled: !!businessId,
     staleTime: 60 * 1000,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("agreements")
-        .select("id, interval, interval_days, start_date, preferred_route_id")
-        .eq("business_id", businessId!)
-        .eq("status", "active")
-        .neq("interval", "engangskøb")
-        .not("preferred_route_id", "is", null);
-      if (error) throw error;
-      return (data || []).map((a: any) => ({
-        id: a.id,
+      // Hent fra BEGGE modeller (agreements + subscriptions). De dedupes
+      // automatisk i projektionen via routeId|date-key.
+      const [agreementsRes, subsRes] = await Promise.all([
+        supabase
+          .from("agreements")
+          .select("id, interval, interval_days, start_date, preferred_route_id")
+          .eq("business_id", businessId!)
+          .eq("status", "active")
+          .neq("interval", "engangskøb")
+          .not("preferred_route_id", "is", null),
+        supabase
+          .from("subscriptions")
+          .select("id, interval, next_service_date, created_at, preferred_route_id, status")
+          .eq("business_id", businessId!)
+          .eq("status", "active")
+          .neq("interval", "engangskøb")
+          .not("preferred_route_id", "is", null),
+      ]);
+      if (agreementsRes.error) throw agreementsRes.error;
+      if (subsRes.error) throw subsRes.error;
+      const fromAgreements = (agreementsRes.data || []).map((a: any) => ({
+        id: `agr:${a.id}`,
         interval: a.interval as string,
         interval_days: (a.interval_days ?? null) as number | null,
         seed_date: a.start_date as string | null,
         preferred_route_id: a.preferred_route_id as string | null,
       }));
+      const fromSubs = (subsRes.data || []).map((s: any) => ({
+        id: `sub:${s.id}`,
+        interval: s.interval as string,
+        interval_days: null,
+        // Foretræk next_service_date — falder tilbage til oprettelsesdato.
+        seed_date: (s.next_service_date as string | null) || (s.created_at as string | null),
+        preferred_route_id: s.preferred_route_id as string | null,
+      }));
+      return [...fromAgreements, ...fromSubs];
     },
   });
 
