@@ -93,6 +93,9 @@ const Planner = () => {
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragData, setActiveDragData] = useState<any>(null);
+  // Beskytter mod dobbelt-drop på samme kilde+mål — undgår dubletruter og
+  // "uniq_route_stops_route_order" race conditions.
+  const inFlightDropsRef = useRef<Set<string>>(new Set());
   const [geocoding, setGeocoding] = useState(false);
   const [createOrderOpen, setCreateOrderOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
