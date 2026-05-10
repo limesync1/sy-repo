@@ -181,11 +181,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                         {INTERVAL_LABELS[recurringInterval] || recurringInterval}
                       </Badge>
                     )}
-                    {!hasCoords && (
-                      <Badge variant="outline" className="text-orange-600 border-orange-300 gap-1 text-[10px]">
-                        <AlertCircle className="h-2.5 w-2.5" />Mangler GPS
-                      </Badge>
-                    )}
                   </div>
                 </div>
               </div>

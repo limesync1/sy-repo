@@ -715,9 +715,6 @@ const StopBlock = ({
           {isInProgress && (
             <span title="I gang" className="h-2 w-2 rounded-full bg-blue-500 animate-pulse shrink-0" />
           )}
-          {!hasCoords && (
-            <span title="Mangler GPS koordinater"><AlertCircle className="h-3 w-3 text-orange-500 shrink-0" /></span>
-          )}
           {hasConflict && (
             <span title="Overlapper med et andet stop hos samme medarbejder">
               <AlertCircle className="h-3 w-3 text-destructive shrink-0" />
