@@ -293,7 +293,7 @@ export const RouteEditSheet = ({
                 {optimize.isPending
                   ? <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   : <Sparkles className="h-4 w-4 mr-2" />}
-                Optimér rute (AI + Mapbox)
+                Optimér rækkefølge
               </Button>
             )}
             <Button
