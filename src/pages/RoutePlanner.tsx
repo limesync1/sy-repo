@@ -1385,6 +1385,65 @@ const Planner = () => {
       });
       return;
     }
+    // Klog opstartsdato-validering: tjek om alle valgte aftalers
+    // opstartsdato matcher rutens dato. Hvis ikke — bed brugeren bekræfte
+    // at vi flytter opstartsdatoerne sammen med oprettelsen.
+    const jobStartOf = (j: any): string | null => {
+      const raw = j?.preferred_date || j?.next_service_date;
+      return raw ? String(raw).slice(0, 10) : null;
+    };
+    const shiftStartOf = async (orderId: string, newDate: string) => {
+      try {
+        await supabase.from("orders").update({
+          preferred_date: newDate,
+          next_service_date: newDate,
+        }).eq("id", orderId);
+      } catch (e) { console.warn("shift orders.preferred_date failed", e); }
+      try {
+        await supabase.from("subscriptions").update({
+          next_service_date: newDate,
+        }).eq("order_id", orderId).eq("status", "active");
+      } catch (e) { console.warn("shift subscriptions.next_service_date failed", e); }
+      try {
+        const { data: subs } = await supabase
+          .from("subscriptions").select("id").eq("order_id", orderId);
+        const subIds = (subs || []).map((s: any) => s.id);
+        if (subIds.length > 0) {
+          await supabase.from("agreements").update({ start_date: newDate })
+            .in("legacy_subscription_id", subIds);
+        }
+      } catch (e) { console.warn("shift agreements.start_date failed", e); }
+    };
+
+    const selectedJobs = newRouteJobIds
+      .map((id) => unassigned.find((j: any) => j.id === id))
+      .filter(Boolean) as any[];
+    const mismatches = selectedJobs
+      .map((job) => ({ job, currentStart: jobStartOf(job) }))
+      .filter((x) => x.currentStart && x.currentStart !== newRouteDate) as
+        Array<{ job: any; currentStart: string }>;
+
+    const execute = async () => {
+      // Flyt evt. opstartsdatoer FØR vi opretter ruten, så DB er konsistent.
+      for (const m of mismatches) {
+        try { await shiftStartOf(m.job.id, newRouteDate); } catch { /* logged */ }
+      }
+      await actuallyCreateRoute(selectedJobs);
+    };
+
+    if (mismatches.length > 0) {
+      setPendingBulkStartDateChange({
+        targetDate: newRouteDate,
+        mismatches,
+        execute,
+      });
+      return;
+    }
+    await actuallyCreateRoute(selectedJobs);
+  };
+
+  const actuallyCreateRoute = async (selectedJobs: any[]) => {
+    if (!businessId) return;
     try {
       const created = await createRoute.mutateAsync({
         business_id: businessId,
@@ -1394,9 +1453,7 @@ const Planner = () => {
       });
       // Læg de valgte aftaler på den nye rute (i den rækkefølge brugeren valgte).
       let seq = 0;
-      for (const jobId of newRouteJobIds) {
-        const job = unassigned.find((j: any) => j.id === jobId);
-        if (!job) continue;
+      for (const job of selectedJobs) {
         try {
           await addStop.mutateAsync({
             route_id: created.id,
@@ -1416,7 +1473,7 @@ const Planner = () => {
           console.error("[CreateRoute] kunne ikke tilføje stop", err);
         }
       }
-      toast.success(`Rute oprettet med ${newRouteJobIds.length} aftale${newRouteJobIds.length === 1 ? "" : "r"}`);
+      toast.success(`Rute oprettet med ${selectedJobs.length} aftale${selectedJobs.length === 1 ? "" : "r"}`);
       setNewRouteName("");
       setNewRouteJobIds([]);
       setCreateOpen(false);
