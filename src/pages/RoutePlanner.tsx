@@ -1839,6 +1839,8 @@ const Planner = () => {
                           .slice(0, 50)
                           .map((j: any) => {
                             const checked = newRouteJobIds.includes(j.id);
+                            const jStart = (j.preferred_date || j.next_service_date || "").slice(0, 10);
+                            const mismatch = jStart && jStart !== newRouteDate;
                             return (
                               <label
                                 key={j.id}
@@ -1864,6 +1866,14 @@ const Planner = () => {
                                   {(j.address || j.city) && (
                                     <p className="text-[10px] text-muted-foreground truncate">
                                       {[j.address, [j.zip_code, j.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")}
+                                    </p>
+                                  )}
+                                  {checked && mismatch && (
+                                    <p
+                                      className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5 truncate"
+                                      title="Aftalens opstartsdato matcher ikke rutens dato — du vil blive bedt om at flytte den."
+                                    >
+                                      ⚠ Opstart {format(parseISO(jStart), "d. MMM", { locale: da })} — flyttes ved oprettelse
                                     </p>
                                   )}
                                 </div>
