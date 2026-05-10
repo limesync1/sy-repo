@@ -1172,6 +1172,132 @@ export const useUpdateRoute = () => {
   });
 };
 
+/* ─── Recurring route series helpers ───
+ *
+ * En "rute-serie" er flere rute-instanser i `routes` der deler `route_template_id`.
+ * Bruges til at vise "Kun denne gang" vs. "Fremtidige også" når brugeren flytter
+ * en rute til en ny dato (træk i kalender eller ændrer dato i edit-sheet).
+ */
+
+export const useRouteSeriesInfo = (
+  routeId: string | null | undefined,
+  fromDate: string | null | undefined,
+) => {
+  return useQuery({
+    queryKey: ["route-series-info", routeId, fromDate],
+    enabled: !!routeId && !!fromDate,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { data: route } = await supabase
+        .from("routes")
+        .select("route_template_id")
+        .eq("id", routeId!)
+        .maybeSingle();
+      if (!route?.route_template_id) {
+        return { futureRouteCount: 1, linkedSubscriptionCount: 0, routeIds: [routeId!] };
+      }
+      const { data: futureRoutes } = await supabase
+        .from("routes")
+        .select("id")
+        .eq("route_template_id", route.route_template_id)
+        .gte("route_date", fromDate!);
+      const ids = (futureRoutes || []).map((r: any) => r.id);
+      let linked = 0;
+      if (ids.length > 0) {
+        const { count } = await supabase
+          .from("subscriptions")
+          .select("id", { count: "exact", head: true })
+          .in("preferred_route_id", ids)
+          .not("next_service_date", "is", null);
+        linked = count || 0;
+      }
+      return { futureRouteCount: ids.length, linkedSubscriptionCount: linked, routeIds: ids };
+    },
+  });
+};
+
+/** Flyt én rute eller hele resten af serien til en ny dato. */
+export const useMoveRouteSeries = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      routeId, newDate, scope, moveLinkedSubscriptions,
+    }: {
+      routeId: string;
+      newDate: string;
+      scope: "single" | "future";
+      moveLinkedSubscriptions: boolean;
+    }) => {
+      const { data: route, error } = await supabase
+        .from("routes")
+        .select("id, route_date, route_template_id")
+        .eq("id", routeId)
+        .maybeSingle();
+      if (error || !route) throw new Error("Rute ikke fundet");
+      const fromDate = route.route_date as string;
+      if (fromDate === newDate) return;
+
+      // Single move (eller serie ikke sat) → bare flyt denne ene
+      if (scope === "single" || !route.route_template_id) {
+        const { error: e2 } = await supabase
+          .from("routes")
+          .update({ route_date: newDate })
+          .eq("id", routeId);
+        if (e2) throw e2;
+        return;
+      }
+
+      const deltaMs = new Date(newDate).getTime() - new Date(fromDate).getTime();
+      const deltaDays = Math.round(deltaMs / 86_400_000);
+      if (deltaDays === 0) return;
+
+      const { data: futureRoutes, error: e3 } = await supabase
+        .from("routes")
+        .select("id, route_date")
+        .eq("route_template_id", route.route_template_id)
+        .gte("route_date", fromDate);
+      if (e3) throw e3;
+
+      const shift = (d: string) => {
+        const nd = new Date(d);
+        nd.setDate(nd.getDate() + deltaDays);
+        return nd.toISOString().slice(0, 10);
+      };
+
+      // Opdater hver rute (sekventielt for at undgå at skubbe duplikater)
+      for (const r of futureRoutes || []) {
+        await supabase
+          .from("routes")
+          .update({ route_date: shift(r.route_date as string) })
+          .eq("id", r.id);
+      }
+
+      if (moveLinkedSubscriptions) {
+        const ids = (futureRoutes || []).map((r: any) => r.id);
+        if (ids.length > 0) {
+          const { data: subs } = await supabase
+            .from("subscriptions")
+            .select("id, next_service_date")
+            .in("preferred_route_id", ids)
+            .not("next_service_date", "is", null);
+          for (const s of subs || []) {
+            if (!s.next_service_date) continue;
+            await supabase
+              .from("subscriptions")
+              .update({ next_service_date: shift(s.next_service_date as string) })
+              .eq("id", s.id);
+          }
+        }
+      }
+    },
+    onSuccess: () => {
+      invalidateRouteSyncQueries(qc);
+      qc.invalidateQueries({ queryKey: ["route-series-info"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Kunne ikke flytte rute"),
+  });
+};
+
 /* ─── Dispatch route — sends email to a SPECIFIC employee on the route. ─── */
 export const useDispatchRoute = () => {
   const qc = useQueryClient();
