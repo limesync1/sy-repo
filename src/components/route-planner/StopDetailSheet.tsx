@@ -429,7 +429,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                 <Section
                   icon={<CalendarClock className="h-3.5 w-3.5" />}
                   title="Planlægning"
-                  hint="Tidsrum, varighed & note"
+                  hint="Note til medarbejderen"
                 >
                   <PlanningSection
                     timeSlot={timeSlot}
@@ -645,72 +645,6 @@ const PlanningSection = ({
 
   return (
     <div className="space-y-4">
-        {/* Tidsrum */}
-        <div className="space-y-2">
-          <Label>Tidsrum</Label>
-          <Popover open={slotOpen} onOpenChange={setSlotOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                type="button"
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal h-9 bg-background",
-                  "hover:bg-accent/10 hover:text-foreground hover:border-accent/40",
-                  !selectedSlot && "text-muted-foreground",
-                )}
-              >
-                <Clock className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
-                {selectedSlot ? (
-                  <span>
-                    <span className="font-medium tabular-nums">{selectedSlot.short}</span>
-                    <span className="text-muted-foreground ml-2">· {selectedSlot.label}</span>
-                  </span>
-                ) : (
-                  <span>Vælg tidsrum</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[280px] p-2" align="start">
-              <div className="space-y-1">
-                {TIME_SLOTS.map((s) => {
-                  const active = s.value === timeSlot;
-                  return (
-                    <button
-                      key={s.value}
-                      type="button"
-                      onClick={() => { setTimeSlot(s.value); setSlotOpen(false); }}
-                      className={cn(
-                        "w-full flex items-center gap-3 rounded-md px-2.5 py-1.5 text-sm text-left transition-colors",
-                        active
-                          ? "bg-accent/15 text-foreground"
-                          : "hover:bg-accent/10",
-                      )}
-                    >
-                      <span className="font-semibold tabular-nums w-12 text-foreground">{s.short}</span>
-                      <span className="text-muted-foreground flex-1">{s.label}</span>
-                    </button>
-                  );
-                })}
-                {timeSlot && (
-                  <>
-                    <div className="border-t my-1" />
-                    <button
-                      type="button"
-                      onClick={() => { setTimeSlot(""); setSlotOpen(false); }}
-                      className="w-full text-left rounded-md px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-accent/10"
-                    >
-                      Ryd tidsrum
-                    </button>
-                  </>
-                )}
-              </div>
-            </PopoverContent>
-          </Popover>
-          <p className="text-[11px] text-muted-foreground">
-            Hvornår på dagen besøget skal udføres.
-          </p>
-        </div>
-
         {/* Note */}
         <div className="space-y-2">
           <Label>Intern note</Label>

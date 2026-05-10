@@ -723,15 +723,8 @@ const StopBlock = ({
           )}
         </div>
 
-        {/* Anden linje: varighed + sluttid */}
-        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground tabular-nums leading-none">
-          <Clock className="h-2.5 w-2.5 shrink-0" />
-          <span className="font-medium">{stop.duration_minutes}m</span>
-          {departureLabel && <span>· slutter {departureLabel}</span>}
-        </div>
-
-        {/* Service-summary */}
-        {showService && stop.service_summary && (
+        {/* Service-summary — vises altid */}
+        {stop.service_summary && (
           <p className="text-[11px] text-foreground/75 truncate leading-tight">
             {stop.service_summary}
           </p>
@@ -793,12 +786,6 @@ const StopBlock = ({
             </div>
           )}
 
-          {showWindow && stop.time_window_start && (
-            <Badge variant="outline" className="h-4 text-[9px] px-1 gap-0.5 border-amber-300 text-amber-700 bg-amber-50 tabular-nums">
-              {stop.time_window_start.slice(0, 5)}
-              {stop.time_window_end && `–${stop.time_window_end.slice(0, 5)}`}
-            </Badge>
-          )}
         </div>
       </div>
     </div>
