@@ -620,9 +620,8 @@ const Planner = () => {
     () => [
       ...calendarRoutes,
       ...(filtersActive ? [] : virtualCalendarRoutes),
-      ...(filtersActive ? [] : occurrenceVirtualRoutes),
     ],
-    [calendarRoutes, virtualCalendarRoutes, occurrenceVirtualRoutes, filtersActive],
+    [calendarRoutes, virtualCalendarRoutes, filtersActive],
   );
 
   const activeEditingRoute = useMemo(() => {
