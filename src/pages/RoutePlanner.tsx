@@ -616,6 +616,14 @@ const Planner = () => {
 
   const virtualCalendarRoutes: CalendarRoute[] = useMemo(() => {
     if (!recurringSources.length) return [];
+    // Slå basisrutens *færdige* visningsnavn og farve op fra det allerede
+    // byggede calendarRoutes (samme logik som rigtige rute-kort bruger).
+    // Det sikrer at projicerede forekomster altid arver præcis samme navn
+    // og farve som originalen — også når brugeren ikke har sat det manuelt.
+    const resolvedBaseById = new Map<string, { name: string | null; color: string | null }>();
+    for (const r of calendarRoutes as any[]) {
+      resolvedBaseById.set(r.id, { name: r.name || null, color: r.color || null });
+    }
     // Map for hurtig opslag på basis-rute. Vi falder tilbage til den separat
     // hentede basis-rute hvis den ikke er i det synlige interval — så
     // projektionen virker uendeligt frem (og tilbage) i tiden.
@@ -647,6 +655,7 @@ const Planner = () => {
       .map((p) => {
         const base = baseById.get(p.baseRouteId);
         if (!base) return null;
+        const resolved = resolvedBaseById.get(p.baseRouteId);
         // Projicér basis-rutens stops over på den virtuelle dato — gør at
         // brugeren ser kunderne i kalender-kortet selv før forekomsten er
         // materialiseret. Stops markeres som virtuelle så de ikke kan ændres.
@@ -674,9 +683,10 @@ const Planner = () => {
           id: p.id,
           baseRouteId: p.baseRouteId,
           route_date: p.date,
-          // Behold basis-rutens navn på alle gentagne forekomster, så de
-          // hedder det samme i kalenderen (i stedet for "Kørsel <dato>").
-          name: base.name || (base.route_date ? `Kørsel ${format(parseISO(base.route_date), "d/M")}` : null),
+          // Arv basis-rutens *visningsnavn og farve* (incl. auto-genereret),
+          // så hele serien ser identisk ud i kalenderen.
+          name: resolved?.name || base.name || (base.route_date ? `Kørsel ${format(parseISO(base.route_date), "d/M")}` : null),
+          color: resolved?.color || base.color || null,
           stops: projectedStops,
           attachedEmployees: emps,
           attachedEmployeeCount: emps.length,
@@ -684,7 +694,7 @@ const Planner = () => {
         } as CalendarRoute;
       })
       .filter(Boolean) as CalendarRoute[];
-  }, [recurringSources, recurringBaseRoutes, calendarRoutesRaw, routeOccurrenceExceptions, calendarRange.start, calendarRange.end, activeEmployees]);
+  }, [recurringSources, recurringBaseRoutes, calendarRoutesRaw, routeOccurrenceExceptions, calendarRange.start, calendarRange.end, activeEmployees, calendarRoutes]);
 
   /* ─── Fallback-projektion fra agreement_occurrences ───
      Tilbagevendende aftaler genererer planlagte forekomster (`agreement_occurrences`)
