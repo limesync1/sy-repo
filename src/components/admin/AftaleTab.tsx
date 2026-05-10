@@ -1089,8 +1089,12 @@ const AftaleTab = ({
     const d = new Date(fromDate);
     switch (interval) {
       case "daglig": d.setDate(d.getDate() + 1); break;
+      case "hver_2_dag": d.setDate(d.getDate() + 2); break;
       case "ugentlig": d.setDate(d.getDate() + 7); break;
       case "hver_14_dag": d.setDate(d.getDate() + 14); break;
+      case "hver_3_uge": d.setDate(d.getDate() + 21); break;
+      case "hver_4_uge": d.setDate(d.getDate() + 28); break;
+      case "hver_8_uge": d.setDate(d.getDate() + 56); break;
       case "månedlig": d.setMonth(d.getMonth() + 1); break;
       case "kvartalsvis": d.setMonth(d.getMonth() + 3); break;
       default: return "";
