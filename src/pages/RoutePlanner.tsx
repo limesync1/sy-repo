@@ -488,7 +488,12 @@ const Planner = () => {
       const targetRouteId: string = overData.routeId;
       try {
         const { data: existingStops } = await supabase
-          .from("route_stops").select("id").eq("route_id", targetRouteId);
+          .from("route_stops").select("id, order_id").eq("route_id", targetRouteId);
+        // Idempotens — undgå dubletter af samme aftale på samme rute.
+        if ((existingStops || []).some((s: any) => s.order_id === job.id)) {
+          toast.info("Aftalen ligger allerede på denne rute");
+          return;
+        }
         await addStop.mutateAsync({
           route_id: targetRouteId,
           order_id: job.id,
@@ -521,15 +526,27 @@ const Planner = () => {
       }
       const newDate: string = overData.date;
       try {
-        // Find ledig farve baseret på allerede brugte farver samme dag
-        const usedColorsThisDay = calendarRoutes
-          .filter((r) => r.route_date === newDate)
-          .map((r) => r.color);
+        // Server-side farvevælger undgår race conditions hvis to brugere
+        // dropper samtidigt; falder tilbage til klient-valg ved fejl.
+        let chosenColor: string | null = null;
+        try {
+          const { data: c } = await supabase.rpc("pick_route_color", {
+            _business_id: businessId,
+            _route_date: newDate,
+          });
+          if (typeof c === "string") chosenColor = c;
+        } catch { /* fallback nedenfor */ }
+        if (!chosenColor) {
+          const usedColorsThisDay = calendarRoutes
+            .filter((r) => r.route_date === newDate)
+            .map((r) => r.color);
+          chosenColor = pickAvailableColor(usedColorsThisDay);
+        }
         const created = await createRoute.mutateAsync({
           business_id: businessId,
           route_date: newDate,
           name: null,
-          color: pickAvailableColor(usedColorsThisDay),
+          color: chosenColor,
         });
         await addStop.mutateAsync({
           route_id: created.id,
