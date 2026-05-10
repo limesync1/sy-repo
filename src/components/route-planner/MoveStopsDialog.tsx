@@ -68,69 +68,23 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops }: Props) => 
   const handleConfirm = async () => {
     if (!route || !canConfirm) return;
     setMoving(true);
-    let movedCount = 0;
-    let errorCount = 0;
-    let missingEmployee = 0;
-    const errorMessages = new Set<string>();
     try {
-      // Fallback: hvis et stop ikke har en explicit medarbejder, brug en
-      // medarbejder der er tilknyttet kilderuten (route_employees).
-      const { data: routeEmps } = await supabase
-        .from("route_employees")
-        .select("employee_id")
-        .eq("route_id", route.id)
-        .order("created_at", { ascending: true });
-      const fallbackEmployeeId =
-        (routeEmps && routeEmps[0]?.employee_id) ||
-        (route as any).employee_id ||
-        null;
-
-      for (const stopId of selected) {
-        const stop = stops.find((s) => s.id === stopId);
-        if (!stop) continue;
-        // Vælg medarbejder: stop's første assignee → ellers rutens medarbejder.
-        const employeeId =
-          (Array.isArray(stop.assignee_ids) && stop.assignee_ids[0]) ||
-          stop.assigned_employee_id ||
-          fallbackEmployeeId ||
-          null;
-        if (!employeeId) {
-          missingEmployee++;
-          continue;
-        }
-        const { data: targetRouteId, error: rpcErr } = await supabase.rpc(
-          "find_or_create_route_for_employee",
-          {
-            _business_id: route.business_id,
-            _employee_id: employeeId,
-            _route_date: targetDate,
-            _source_route_id: route.id,
-          },
-        );
-        if (rpcErr || !targetRouteId) {
-          console.error("[MoveStops] find_or_create_route_for_employee fejlede", rpcErr);
-          if (rpcErr?.message) errorMessages.add(rpcErr.message);
-          errorCount++;
-          continue;
-        }
-        // Find næste sequence på målruten
-        const { data: existing } = await supabase
-          .from("route_stops")
-          .select("id")
-          .eq("route_id", targetRouteId);
-        const seq = (existing || []).length;
-        const { error: updErr } = await supabase
-          .from("route_stops")
-          .update({ route_id: targetRouteId, sequence: seq, planned_arrival: null })
-          .eq("id", stopId);
-        if (updErr) {
-          console.error("[MoveStops] update route_stop fejlede", updErr);
-          if (updErr.message) errorMessages.add(updErr.message);
-          errorCount++;
-        } else {
-          movedCount++;
-        }
+      // Én RPC i én transaktion — server-siden finder/opretter målrute pr.
+      // medarbejder, sætter sequence korrekt og flytter alle valgte stops.
+      const { data, error } = await supabase.rpc("move_stops_to_date", {
+        _stop_ids: Array.from(selected),
+        _target_date: targetDate,
+      });
+      if (error) {
+        console.error("[MoveStops] move_stops_to_date fejlede", error);
+        toast.error("Aftaler kunne ikke flyttes", {
+          description: error.message || "Prøv igen om lidt.",
+        });
+        return;
       }
+      const row = Array.isArray(data) ? data[0] : data;
+      const movedCount = Number(row?.moved_count ?? 0);
+      const missingEmployee = Number(row?.missing_employee_count ?? 0);
       if (movedCount > 0) {
         toast.success(
           `${movedCount} aftale${movedCount === 1 ? "" : "r"} flyttet til ${format(parseISO(targetDate), "EEEE d. MMM", { locale: da })}`,
@@ -140,15 +94,6 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops }: Props) => 
         toast.error(
           `${missingEmployee} aftale${missingEmployee === 1 ? "" : "r"} mangler en medarbejder`,
           { description: "Tilknyt en medarbejder til ruten eller aftalen, og prøv igen." },
-        );
-      }
-      if (errorCount > 0) {
-        const detail = errorMessages.size > 0
-          ? Array.from(errorMessages).join(" · ")
-          : "Prøv igen — tjek netværksforbindelsen eller genindlæs siden.";
-        toast.error(
-          `${errorCount} aftale${errorCount === 1 ? "" : "r"} kunne ikke flyttes`,
-          { description: detail },
         );
       }
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
