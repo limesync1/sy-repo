@@ -479,6 +479,38 @@ export const useCalendarData = (
   });
 };
 
+type RouteOccurrenceException = {
+  base_route_id: string;
+  occurrence_date: string;
+  replacement_route_id: string | null;
+  exception_type: string;
+};
+
+/** Datoer hvor en projiceret rute er flyttet/materialiseret, så gamle virtuelle forekomster ikke vises igen. */
+export const useRouteOccurrenceExceptions = (
+  businessId: string | undefined,
+  from: string,
+  to: string,
+) => {
+  return useQuery({
+    queryKey: ["route-occurrence-exceptions", businessId, from, to],
+    enabled: !!businessId && !!from && !!to,
+    staleTime: 30 * 1000,
+    gcTime: 5 * 60 * 1000,
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("route_occurrence_exceptions" as any)
+        .select("base_route_id, occurrence_date, replacement_route_id, exception_type")
+        .eq("business_id", businessId!)
+        .gte("occurrence_date", from)
+        .lte("occurrence_date", to);
+      if (error) throw error;
+      return (data || []) as unknown as RouteOccurrenceException[];
+    },
+  });
+};
+
 const useRouteEmployeesImpl = (routeIds: string[]) => {
   return useQuery({
     queryKey: ["route-employees-bulk", [...routeIds].sort().join(",")],
