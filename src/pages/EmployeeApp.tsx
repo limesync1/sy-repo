@@ -817,7 +817,7 @@ const EmployeeApp = () => {
                     title={isLocked ? "Tilgængelig efter forrige rute er gennemført" : undefined}
                   >
                     {isLocked ? (
-                      <><Lock className="h-5 w-5" /> Låst — afslut forrige først</>
+                      <><LockIcon className="h-5 w-5" /> Låst — afslut forrige først</>
                     ) : total > 0 ? (
                       <Link to={`/medarbejder/rute/${r.id}`}>
                         {done > 0 ? (
