@@ -780,6 +780,123 @@ export const useDeleteRoute = () => {
   });
 };
 
+/**
+ * Materialiserer en projiceret (virtuel) gentagende rute som en rigtig DB-rute
+ * for en specifik dato. Klone basisrutens metadata (navn, farve, startadresse)
+ * og dens stops, så brugeren kan redigere ruten frit. `base_route_id` peger på
+ * basisruten så projektionen ved at netop denne dato er overridet.
+ */
+export const useMaterializeVirtualRoute = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ baseRouteId, date }: { baseRouteId: string; date: string }) => {
+      const { data: base, error: baseErr } = await supabase
+        .from("routes")
+        .select("*")
+        .eq("id", baseRouteId)
+        .maybeSingle();
+      if (baseErr) throw baseErr;
+      if (!base) throw new Error("Basisruten findes ikke længere");
+
+      // Hvis der allerede findes en override for denne dato, returnér den
+      const { data: existing } = await supabase
+        .from("routes")
+        .select("*")
+        .eq("base_route_id", baseRouteId)
+        .eq("route_date", date)
+        .maybeSingle();
+      if (existing) return existing as unknown as Route;
+
+      const { data: created, error: insErr } = await supabase
+        .from("routes")
+        .insert({
+          business_id: (base as any).business_id,
+          route_date: date,
+          name: (base as any).name,
+          color: (base as any).color,
+          start_address: (base as any).start_address,
+          start_latitude: (base as any).start_latitude,
+          start_longitude: (base as any).start_longitude,
+          planned_start_time: (base as any).planned_start_time,
+          start_from_home: (base as any).start_from_home ?? false,
+          notes: (base as any).notes,
+          base_route_id: baseRouteId,
+        })
+        .select("*")
+        .single();
+      if (insErr) throw insErr;
+
+      // Klon stops fra basisruten — uden ordre/abonnement/forekomst-FK'er,
+      // så de er rene planlægnings-stops på den nye rute. Brugeren kan
+      // redigere/slette/tildele dem frit.
+      const { data: baseStops } = await supabase
+        .from("route_stops")
+        .select("*")
+        .eq("route_id", baseRouteId)
+        .order("sequence", { ascending: true });
+
+      if (baseStops && baseStops.length > 0) {
+        const cloned = baseStops.map((s: any, i: number) => ({
+          route_id: created.id,
+          sequence: s.sequence ?? i,
+          status: "pending",
+          address: s.address,
+          latitude: s.latitude,
+          longitude: s.longitude,
+          customer_name: s.customer_name,
+          customer_phone: s.customer_phone,
+          service_summary: s.service_summary,
+          duration_minutes: s.duration_minutes ?? 30,
+          time_window_start: s.time_window_start,
+          time_window_end: s.time_window_end,
+          assigned_employee_id: s.assigned_employee_id,
+          required_staff: s.required_staff ?? 1,
+          notes: s.notes,
+        }));
+        const { data: insertedStops, error: stopsErr } = await supabase
+          .from("route_stops")
+          .insert(cloned)
+          .select("id");
+        if (stopsErr) throw stopsErr;
+
+        // Klon assignees (route_stop_assignees) — bevar medarbejdertilknytninger
+        try {
+          const { data: assignees } = await supabase
+            .from("route_stop_assignees")
+            .select("stop_id, employee_id")
+            .in("stop_id", baseStops.map((s: any) => s.id));
+          if (assignees && assignees.length && insertedStops) {
+            const idMap = new Map<string, string>();
+            baseStops.forEach((s: any, i: number) => {
+              idMap.set(s.id, insertedStops[i].id);
+            });
+            const newRows = assignees
+              .map((a: any) => ({
+                stop_id: idMap.get(a.stop_id),
+                employee_id: a.employee_id,
+              }))
+              .filter((r) => !!r.stop_id);
+            if (newRows.length) {
+              await supabase.from("route_stop_assignees").insert(newRows);
+            }
+          }
+        } catch { /* non-fatal */ }
+      }
+
+      return created as unknown as Route;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["routes"] });
+      qc.invalidateQueries({ queryKey: ["routes-range"] });
+      qc.invalidateQueries({ queryKey: ["route-calendar"] });
+      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
+      qc.invalidateQueries({ queryKey: ["route-stops"] });
+      qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Kunne ikke materialisere rute"),
+  });
+};
+
 /* ─── Stops ─── */
 export const useAddStop = () => {
   const qc = useQueryClient();
