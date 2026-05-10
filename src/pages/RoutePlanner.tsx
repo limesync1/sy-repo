@@ -54,6 +54,8 @@ import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/r
 import { AdminShell } from "@/components/admin/shared/AdminShell";
 import { useWeatherForecast, type WeatherDay } from "@/hooks/useWeather";
 import { ShellSkeleton } from "@/components/admin/shared/Skeletons";
+import { useQuery } from "@tanstack/react-query";
+import { expandRecurringRoutes } from "@/lib/recurring-projection";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
