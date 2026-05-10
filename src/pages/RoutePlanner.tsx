@@ -632,6 +632,22 @@ const Planner = () => {
     setActiveDragData(null);
     if (!over || !businessId) return;
 
+    // Knyt en ordres aktive, gentagende abonnement til en bestemt rute,
+    // så ruteplanlæggeren kan projicere fremtidige forekomster (uger/måneder)
+    // af aftalen på den rute. Stille fejl — det må aldrig blokere selve droppet.
+    const linkAgreementToRoute = async (orderId: string, routeId: string) => {
+      try {
+        await supabase
+          .from("subscriptions")
+          .update({ preferred_route_id: routeId })
+          .eq("order_id", orderId)
+          .eq("status", "active")
+          .neq("interval", "engangskøb");
+      } catch (err) {
+        console.warn("Kunne ikke knytte aftale til rute (projektion)", err);
+      }
+    };
+
     const activeData: any = active.data.current;
     const overData: any = over.data.current;
 
@@ -752,6 +768,9 @@ const Planner = () => {
           time_window_start: job.preferred_time_start || null,
           time_window_end: job.preferred_time_end || null,
         });
+        // Hvis aftalen er gentagende — knyt subscription'en til denne rute,
+        // så virtuelle uger/måneder kan projicere fremad i kalenderen.
+        await linkAgreementToRoute(job.id, targetRouteId);
         toast.success("Aftale tilføjet til ruten");
       } catch (err: any) {
         const msg = String(err?.message || "");
@@ -831,6 +850,7 @@ const Planner = () => {
           time_window_start: job.preferred_time_start || null,
           time_window_end: job.preferred_time_end || null,
         });
+        await linkAgreementToRoute(job.id, created.id);
         toast.success(`Ny rute oprettet på ${format(parseISO(newDate), "d. MMM", { locale: da })}`);
       } catch (err: any) {
         const msg = String(err?.message || "");
