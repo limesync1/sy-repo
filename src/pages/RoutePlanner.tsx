@@ -10,6 +10,7 @@ import {
   useOptimizeRoute, useGeocodeAddress,
   useCreateRoute, useDeleteRoute, useUpdateRoute,
   useRouteSeriesInfo, useMoveRouteSeries, useMaterializeVirtualRoute,
+  useRouteOccurrenceExceptions,
   type RouteStop, type Route,
 } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
