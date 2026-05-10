@@ -9,8 +9,10 @@ import {
   useAddStop,
   useOptimizeRoute, useGeocodeAddress,
   useCreateRoute, useDeleteRoute, useUpdateRoute,
-  useRouteSeriesInfo, useMoveRouteSeries, useMaterializeVirtualRoute,
+  useRouteSeriesInfo, useMoveRouteSeries,
   useRouteOccurrenceExceptions,
+  openProjectedRouteBase,
+  logRoutePlannerEvent,
   type RouteStop, type Route,
 } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
@@ -273,7 +275,6 @@ const Planner = () => {
   const createRoute = useCreateRoute();
   const deleteRoute = useDeleteRoute();
   const updateRoute = useUpdateRoute();
-  const materializeVirtual = useMaterializeVirtualRoute();
   const moveRouteSeries = useMoveRouteSeries();
   const addStop = useAddStop();
   const optimizeRoute = useOptimizeRoute();
@@ -754,6 +755,46 @@ const Planner = () => {
     const fromBuilt = calendarRoutes.find((r) => r.id === editingRoute.id);
     return (fromBuilt as any)?.name || null;
   }, [editingRoute, calendarRoutes]);
+
+  const openProjectedRoute = async (r: any) => {
+    const baseId = r.baseRouteId || (typeof r.id === "string" ? r.id.split(":")[1] : null);
+    const projectedDate = String(r.route_date || "").slice(0, 10);
+    const clientEventId = `open-projected:${baseId || "missing"}:${projectedDate}:${Date.now()}`;
+    if (!businessId || !baseId || !projectedDate) {
+      toast.error("Kunne ikke åbne projiceret rute");
+      return;
+    }
+    try {
+      const beforeCount = calendarRoutesRaw.filter(
+        (x: any) => x.base_route_id === baseId && String(x.route_date).slice(0, 10) === projectedDate,
+      ).length;
+      if (beforeCount > 0) {
+        await logRoutePlannerEvent({
+          businessId,
+          eventType: "projected_route_click_duplicate_detected_client",
+          severity: "error",
+          baseRouteId: baseId,
+          projectedDate,
+          clientEventId,
+          details: { materializedCountInClientCache: beforeCount, action: "open_base_only" },
+        });
+      }
+      const baseRoute = await openProjectedRouteBase({ businessId, baseRouteId: baseId, projectedDate, clientEventId });
+      setEditingRoute(baseRoute);
+      await qc.invalidateQueries({ queryKey: ["route-planner-events"] });
+    } catch (err: any) {
+      toast.error(err.message || "Basisruten kunne ikke åbnes");
+      await logRoutePlannerEvent({
+        businessId,
+        eventType: "projected_route_open_failed_client",
+        severity: "error",
+        baseRouteId: baseId,
+        projectedDate,
+        clientEventId,
+        details: { message: String(err?.message || err) },
+      });
+    }
+  };
 
   /* Auto-geocode jobs missing coords */
   useEffect(() => {
