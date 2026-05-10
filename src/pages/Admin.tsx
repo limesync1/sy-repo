@@ -976,7 +976,11 @@ const ServiceForm = ({
   const [productNumber, setProductNumber] = useState<string>(existingService?.product_number || "");
   const [vatZone, setVatZone] = useState<string>(existingService?.vat_zone || "");
   const [isActive, setIsActive] = useState<boolean>(existingService?.is_active !== false);
-  const [defaultEmployeeId, setDefaultEmployeeId] = useState<string>(existingService?.default_employee_id || "");
+  const [defaultEmployeeIds, setDefaultEmployeeIds] = useState<string[]>(
+    (existingService?.default_employee_ids && existingService.default_employee_ids.length > 0)
+      ? existingService.default_employee_ids
+      : (existingService?.default_employee_id ? [existingService.default_employee_id] : []),
+  );
   const { data: employeesForDefault = [] } = useEmployees(businessId);
   const [hasIntegration, setHasIntegration] = useState(false);
   const [integrationProvider, setIntegrationProvider] = useState<string | null>(null);
@@ -1439,7 +1443,8 @@ const ServiceForm = ({
         product_number: productNumber.trim() || null,
         vat_zone: vatZone || null,
         is_active: isActive,
-        default_employee_id: defaultEmployeeId || null,
+        default_employee_id: defaultEmployeeIds[0] || null,
+        default_employee_ids: defaultEmployeeIds,
       };
 
       if (existingService) {
