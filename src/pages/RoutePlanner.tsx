@@ -152,9 +152,21 @@ const Planner = () => {
   const createRoute = useCreateRoute();
   const deleteRoute = useDeleteRoute();
   const updateRoute = useUpdateRoute();
+  const moveRouteSeries = useMoveRouteSeries();
   const addStop = useAddStop();
   const optimizeRoute = useOptimizeRoute();
   const geocode = useGeocodeAddress();
+
+  // Pending route-move: viser MoveRouteDateDialog. Hvis ruten er del af en
+  // serie spørger vi brugeren om kun denne ene eller alle fremtidige skal flyttes.
+  const [pendingRouteMove, setPendingRouteMove] = useState<{
+    route: Route;
+    newDate: string;
+  } | null>(null);
+  const { data: pendingSeriesInfo } = useRouteSeriesInfo(
+    pendingRouteMove?.route.id ?? null,
+    pendingRouteMove?.route.route_date ?? null,
+  );
 
   // Pr-rute "pending" state — kun den rute der faktisk optimeres viser spinner
   const [optimizingRouteId, setOptimizingRouteId] = useState<string | null>(null);
@@ -458,12 +470,9 @@ const Planner = () => {
       const route: Route = activeData.route;
       const newDate: string = overData.date;
       if (route.route_date === newDate) return;
-      try {
-        await updateRoute.mutateAsync({ id: route.id, route_date: newDate });
-        toast.success(`Rute flyttet til ${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`);
-      } catch (err: any) {
-        toast.error(err.message || "Kunne ikke flytte rute");
-      }
+      // Åbn dialog — hvis ruten er del af en serie kan brugeren vælge scope.
+      // For enkelt-ruter (uden template) viser dialogen kun "Kun denne gang".
+      setPendingRouteMove({ route, newDate });
       return;
     }
 
@@ -543,6 +552,32 @@ const Planner = () => {
       return;
     }
 
+  };
+
+  const handleConfirmMoveRoute = async (
+    scope: MoveRouteScope,
+    moveLinkedSubscriptions: boolean,
+  ) => {
+    if (!pendingRouteMove) return;
+    const { route, newDate } = pendingRouteMove;
+    try {
+      await moveRouteSeries.mutateAsync({
+        routeId: route.id,
+        newDate,
+        scope,
+        moveLinkedSubscriptions,
+      });
+      toast.success(
+        scope === "future"
+          ? `Ruteserien forskudt til ${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`
+          : `Rute flyttet til ${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`,
+      );
+      setPendingRouteMove(null);
+    } catch (err: any) {
+      toast.error(err.message || "Kunne ikke flytte rute", {
+        description: "Tjek at den nye dato er gyldig, og prøv igen.",
+      });
+    }
   };
 
   const handleOptimize = async (routeId: string, routeName: string | null) => {
