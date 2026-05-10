@@ -665,6 +665,10 @@ const Planner = () => {
 
   };
 
+  // ── Drag stop → ny dag (flyt aftaleforekomsten) ──
+  // Eksekveres som en separat gren for læsbarhed; bruges i handleDragEnd ovenfor.
+  // (Selve grenen tilføjes i handleDragEnd via patch nedenfor.)
+
   const handleConfirmMoveRoute = async (
     scope: MoveRouteScope,
     moveLinkedSubscriptions: boolean,
