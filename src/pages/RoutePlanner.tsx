@@ -1823,34 +1823,17 @@ const Planner = () => {
         </AlertDialog>
 
         {/* Bekræft fletning af to ruter (drag-and-drop rute → rute) */}
-        <AlertDialog
+        <MergeRoutesDialog
           open={!!pendingRouteMerge}
           onOpenChange={(o) => { if (!o && !mergingRoute) setPendingRouteMerge(null); }}
-        >
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Flet ruter?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Alle aftaler fra <strong>{pendingRouteMerge?.source.name || "rute uden navn"}</strong>
-                {" "}({pendingRouteMerge ? format(parseISO(pendingRouteMerge.source.route_date), "EEE d. MMM", { locale: da }) : ""})
-                {" "}flyttes ind i <strong>{pendingRouteMerge?.target.name || "målruten"}</strong>
-                {" "}({pendingRouteMerge ? format(parseISO(pendingRouteMerge.target.route_date), "EEE d. MMM", { locale: da }) : ""}),
-                og kilderuten slettes automatisk.
-                Medarbejder­tilknytninger på de enkelte aftaler bevares.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={mergingRoute}>Annullér</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={(e) => { e.preventDefault(); handleConfirmRouteMerge(); }}
-                disabled={mergingRoute}
-              >
-                {mergingRoute && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
-                Flet ruter
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+          sourceName={pendingRouteMerge?.source.name || "Rute uden navn"}
+          targetName={pendingRouteMerge?.target.name || "Målrute"}
+          sourceDate={pendingRouteMerge?.source.route_date || ""}
+          targetDate={pendingRouteMerge?.target.route_date || ""}
+          recurringAppointmentCount={pendingMergeSeriesInfo?.recurringAppointmentCount ?? 0}
+          loading={mergingRoute}
+          onConfirm={(scope) => handleConfirmRouteMerge(scope)}
+        />
 
         <DragOverlay>
           {activeDragId && activeDragData?.type === "job" && (
