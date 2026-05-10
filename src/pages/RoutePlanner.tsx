@@ -560,8 +560,10 @@ const Planner = () => {
   }, [recurringSources, recurringBaseRoutes, calendarRoutesRaw, calendarRange.start, calendarRange.end]);
 
   const calendarRoutesAll: CalendarRoute[] = useMemo(
-    () => [...calendarRoutes, ...virtualCalendarRoutes],
-    [calendarRoutes, virtualCalendarRoutes],
+    // Skjul projicerede (virtuelle) ruter når filtre er aktive — de har
+    // ingen stops endnu, så vi kan ikke matche dem mod assignee/status-filtret.
+    () => [...calendarRoutes, ...(filtersActive ? [] : virtualCalendarRoutes)],
+    [calendarRoutes, virtualCalendarRoutes, filtersActive],
   );
 
   const activeEditingRoute = useMemo(() => {
