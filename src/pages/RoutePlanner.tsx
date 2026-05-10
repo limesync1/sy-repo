@@ -631,16 +631,15 @@ const Planner = () => {
     for (const ex of routeOccurrenceExceptions) {
       realKeys.add(`${(ex as any).base_route_id}|${String((ex as any).occurrence_date).slice(0, 10)}`);
     }
-    // Override seed_date med basisrutens AKTUELLE dato. Når brugeren flytter
-    // basisruten (fx fra 16. maj til 28. maj), skal projektionen følge med —
-    // ellers efterlades en "spøgelses"-projektion på den oprindelige dato.
-    // Routens dato er sandheden; aftalens start_date er kun den oprindelige
-    // seed og må ikke kunne genskabe en serie på en flyttet dato.
-    const sourcesWithRouteSeed = recurringSources.map((s: any) => {
-      const base = s.preferred_route_id ? baseById.get(s.preferred_route_id) : null;
-      const routeDate = base?.route_date ? String(base.route_date).slice(0, 10) : null;
-      return routeDate ? { ...s, seed_date: routeDate } : s;
-    });
+    // VIGTIGT: vi overskriver IKKE seed_date pr. kilde. Hver aftale har sit
+    // eget interval (uge/14 dage/måned/...), og en universel override af alle
+    // seeds til basisrutens dato ville kollapse alle aftalerne til én fælles
+    // cyklus — så ruter med blandede intervaller kun ville vise nogle af
+    // forekomsterne. Spøgelses-projektioner ved flytning af basisruten
+    // håndteres allerede via `route_occurrence_exceptions` (se realKeys
+    // ovenfor) og af `useMoveRouteSeries`, som forskyder aftalernes egne
+    // start_date / next_service_date når brugeren vælger "Fremtidige også".
+    const sourcesWithRouteSeed = recurringSources;
     const projections = expandRecurringRoutes({
       sources: sourcesWithRouteSeed,
       // Projicér ALDRIG i fortiden — selvom kalenderens visuelle range
