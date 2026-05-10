@@ -24,10 +24,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import type { Route, RouteStop } from "@/hooks/useRoutes";
 import { invalidateRouteSyncQueries } from "@/hooks/useRoutes";
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -35,26 +31,29 @@ type Props = {
   onOpenChange: (open: boolean) => void;
   route: Route | null;
   stops: RouteStop[];
+  /** Forhåndsvalg af mode (date eller route). Default: "date" */
+  defaultMode?: "date" | "route";
+  /** Forvælg alle stops når dialogen åbnes (fx ved "flet rute") */
+  preselectAll?: boolean;
 };
 
-export const MoveStopsDialog = ({ open, onOpenChange, route, stops }: Props) => {
+export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode, preselectAll }: Props) => {
   const qc = useQueryClient();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [mode, setMode] = useState<"date" | "route">("date");
   const [targetDate, setTargetDate] = useState<string>("");
   const [targetRouteId, setTargetRouteId] = useState<string>("");
   const [moving, setMoving] = useState(false);
-  const [emptyRouteConfirm, setEmptyRouteConfirm] = useState<{ id: string; date: string } | null>(null);
-  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (open) {
-      setSelected(new Set());
-      setMode("date");
+      setSelected(preselectAll ? new Set(stops.map((s) => s.id)) : new Set());
+      setMode(defaultMode || "date");
       setTargetDate(route?.route_date || "");
       setTargetRouteId("");
     }
-  }, [open, route?.route_date]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, route?.route_date, defaultMode, preselectAll]);
 
   // Hent andre ruter for samme business som mulige mål
   const { data: otherRoutes = [] } = useQuery({
@@ -158,35 +157,26 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops }: Props) => 
       invalidateRouteSyncQueries(qc);
       await qc.refetchQueries({ queryKey: ["route-calendar"] });
       if (movedCount > 0) {
-        // Tjek om kilderuten nu er tom — så tilbyd at slette den
+        // Tjek om kilderuten nu er tom — slet automatisk uden at spørge.
+        // Tomme ruter er ikke tilladt og bringer ingen værdi at beholde.
         const { count } = await supabase
           .from("route_stops")
           .select("id", { count: "exact", head: true })
           .eq("route_id", route.id);
         onOpenChange(false);
         if ((count ?? 0) === 0) {
-          setEmptyRouteConfirm({ id: route.id, date: route.route_date });
+          const { error: delErr } = await supabase.from("routes").delete().eq("id", route.id);
+          if (delErr) {
+            console.error("[MoveStops] kunne ikke auto-slette tom kilderute", delErr);
+            toast.error("Kunne ikke slette tom rute", { description: delErr.message });
+          } else {
+            toast.success("Tom rute slettet automatisk");
+            invalidateRouteSyncQueries(qc);
+          }
         }
       }
     } finally {
       setMoving(false);
-    }
-  };
-
-  const handleDeleteEmptyRoute = async () => {
-    if (!emptyRouteConfirm) return;
-    setDeleting(true);
-    try {
-      const { error } = await supabase.from("routes").delete().eq("id", emptyRouteConfirm.id);
-      if (error) {
-        toast.error("Kunne ikke slette rute", { description: error.message });
-        return;
-      }
-      toast.success("Tom rute slettet");
-      invalidateRouteSyncQueries(qc);
-      setEmptyRouteConfirm(null);
-    } finally {
-      setDeleting(false);
     }
   };
 
@@ -369,23 +359,6 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops }: Props) => 
         </DialogFooter>
       </DialogContent>
     </Dialog>
-    <AlertDialog open={!!emptyRouteConfirm} onOpenChange={(o) => !o && setEmptyRouteConfirm(null)}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Slet tom rute?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Ruten {emptyRouteConfirm ? format(parseISO(emptyRouteConfirm.date), "EEEE d. MMM", { locale: da }) : ""} har ikke længere nogen aftaler. Vil du slette den?
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={deleting}>Behold rute</AlertDialogCancel>
-          <AlertDialogAction onClick={handleDeleteEmptyRoute} disabled={deleting}>
-            {deleting && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
-            Slet rute
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
     </>
   );
 };

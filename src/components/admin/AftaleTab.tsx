@@ -845,6 +845,21 @@ const AftaleTab = ({
           qc.invalidateQueries({ queryKey: ["aftaler-route-stops", businessId] });
           qc.invalidateQueries({ queryKey: ["stops-for-routes"] });
         })
+      .on("postgres_changes", { event: "*", schema: "public", table: "agreements", filter: `business_id=eq.${businessId}` },
+        () => {
+          // Nye/ændrede aftaler i den nye datamodel — kør et bredt invalidate
+          // så listen, ruter og abonnementsvisning alle opdateres.
+          qc.invalidateQueries({ queryKey: ["orders", businessId] });
+          qc.invalidateQueries({ queryKey: ["business-subscriptions", businessId] });
+          qc.invalidateQueries({ queryKey: ["aftaler-route-stops", businessId] });
+          qc.invalidateQueries({ queryKey: ["aftaler-all-routes", businessId] });
+        })
+      .on("postgres_changes", { event: "*", schema: "public", table: "agreement_occurrences", filter: `business_id=eq.${businessId}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["orders", businessId] });
+          qc.invalidateQueries({ queryKey: ["aftaler-route-stops", businessId] });
+          qc.invalidateQueries({ queryKey: ["aftaler-all-routes", businessId] });
+        })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [businessId, qc]);
