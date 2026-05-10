@@ -267,6 +267,7 @@ const Planner = () => {
   const createRoute = useCreateRoute();
   const deleteRoute = useDeleteRoute();
   const updateRoute = useUpdateRoute();
+  const materializeVirtual = useMaterializeVirtualRoute();
   const moveRouteSeries = useMoveRouteSeries();
   const addStop = useAddStop();
   const optimizeRoute = useOptimizeRoute();
