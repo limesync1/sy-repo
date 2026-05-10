@@ -9,7 +9,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Sparkles, Trash2, Check } from "lucide-react";
+import { Loader2, Sparkles, Trash2, Check, CalendarRange } from "lucide-react";
 import { Palette, CalendarDays, Pencil, Gauge } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
@@ -24,6 +24,7 @@ import { DatePickerField } from "./DatePickerField";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection";
 import { pickDuration } from "@/components/route/EtaBreakdown";
 import { MoveRouteDateDialog, type MoveRouteScope } from "./MoveRouteDateDialog";
+import { MoveStopsDialog } from "./MoveStopsDialog";
 
 export type RouteEmployeeOption = { id: string; name: string };
 
@@ -86,6 +87,7 @@ export const RouteEditSheet = ({
   // Pending date-flytning — hvis ruten er del af en serie spørger vi
   // brugeren om kun denne ene eller alle fremtidige skal flyttes.
   const [pendingDate, setPendingDate] = useState<string | null>(null);
+  const [moveStopsOpen, setMoveStopsOpen] = useState(false);
   const initialSyncDone = useRef(false);
 
   const updateRoute = useUpdateRoute();
@@ -335,6 +337,16 @@ export const RouteEditSheet = ({
                 Optimér rækkefølge
               </Button>
             )}
+            {stopCount >= 1 && (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setMoveStopsOpen(true)}
+              >
+                <CalendarRange className="h-4 w-4 mr-2" />
+                Flyt aftaler
+              </Button>
+            )}
             <Button
               variant="outline"
               className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
@@ -376,6 +388,13 @@ export const RouteEditSheet = ({
         linkedSubscriptionCount={seriesInfo?.linkedSubscriptionCount ?? 0}
         loading={moveRouteSeries.isPending}
         onConfirm={handleConfirmMoveDate}
+      />
+
+      <MoveStopsDialog
+        open={moveStopsOpen}
+        onOpenChange={setMoveStopsOpen}
+        route={route}
+        stops={stops}
       />
     </>
   );
