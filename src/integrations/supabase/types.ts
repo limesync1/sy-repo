@@ -3534,6 +3534,19 @@ export type Database = {
         Args: { _business_id: string }
         Returns: undefined
       }
+      log_route_planner_event: {
+        Args: {
+          _base_route_id?: string
+          _business_id: string
+          _client_event_id?: string
+          _details?: Json
+          _event_type: string
+          _projected_date?: string
+          _route_id?: string
+          _severity?: string
+        }
+        Returns: undefined
+      }
       materialize_occurrence_to_route: {
         Args: { _occurrence_id: string; _target_route_id: string }
         Returns: string
