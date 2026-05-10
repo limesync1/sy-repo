@@ -2769,6 +2769,7 @@ export type Database = {
       }
       routes: {
         Row: {
+          base_route_id: string | null
           business_id: string
           color: string
           created_at: string
@@ -2792,6 +2793,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          base_route_id?: string | null
           business_id: string
           color?: string
           created_at?: string
@@ -2815,6 +2817,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          base_route_id?: string | null
           business_id?: string
           color?: string
           created_at?: string
@@ -2838,6 +2841,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "routes_base_route_id_fkey"
+            columns: ["base_route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "routes_business_id_fkey"
             columns: ["business_id"]
