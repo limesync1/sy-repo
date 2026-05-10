@@ -363,23 +363,6 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
         </DialogFooter>
       </DialogContent>
     </Dialog>
-    <AlertDialog open={!!emptyRouteConfirm} onOpenChange={(o) => !o && setEmptyRouteConfirm(null)}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Slet tom rute?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Ruten {emptyRouteConfirm ? format(parseISO(emptyRouteConfirm.date), "EEEE d. MMM", { locale: da }) : ""} har ikke længere nogen aftaler. Vil du slette den?
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={deleting}>Behold rute</AlertDialogCancel>
-          <AlertDialogAction onClick={handleDeleteEmptyRoute} disabled={deleting}>
-            {deleting && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
-            Slet rute
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
     </>
   );
 };
