@@ -752,8 +752,15 @@ const Planner = () => {
   // pillen — i stedet for at vise et tomt felt.
   const activeEditingAutoName = useMemo<string | null>(() => {
     if (!editingRoute) return null;
-    const fromBuilt = calendarRoutes.find((r) => r.id === editingRoute.id);
-    return (fromBuilt as any)?.name || null;
+    // 1) Direkte match (rigtige rutekort)
+    const direct = calendarRoutes.find((r) => r.id === editingRoute.id);
+    if ((direct as any)?.name) return (direct as any).name;
+    // 2) Hvis editingRoute er en basisrute åbnet via en projiceret forekomst,
+    //    så find et virtuelt kort hvor baseRouteId peger på den.
+    const viaBase = calendarRoutes.find(
+      (r: any) => r.isVirtual && r.baseRouteId === editingRoute.id,
+    );
+    return (viaBase as any)?.name || null;
   }, [editingRoute, calendarRoutes]);
 
   const openProjectedRoute = async (r: any) => {
