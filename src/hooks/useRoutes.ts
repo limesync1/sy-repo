@@ -1188,30 +1188,42 @@ export const useRouteSeriesInfo = (
     enabled: !!routeId && !!fromDate,
     staleTime: 30_000,
     queryFn: async () => {
-      const { data: route } = await supabase
-        .from("routes")
-        .select("route_template_id")
-        .eq("id", routeId!)
-        .maybeSingle();
-      if (!route?.route_template_id) {
-        return { futureRouteCount: 1, linkedSubscriptionCount: 0, routeIds: [routeId!] };
+      // En "serie" = de tilbagevendende aftaler/abonnementer som ligger på denne rute.
+      // Ruter for kommende datoer er ikke nødvendigvis oprettet endnu — de skabes
+      // når abonnementets next_service_date forfalder. Derfor tæller vi
+      // tilbagevendende abonnementer på denne rutes stops, ikke søsterruter.
+      const { data: stops } = await supabase
+        .from("route_stops")
+        .select("subscription_id")
+        .eq("route_id", routeId!)
+        .not("subscription_id", "is", null);
+
+      const subIds = Array.from(
+        new Set((stops || []).map((s: any) => s.subscription_id).filter(Boolean)),
+      );
+
+      if (subIds.length === 0) {
+        return { recurringAppointmentCount: 0, linkedSubscriptionCount: 0, subscriptionIds: [] };
       }
-      const { data: futureRoutes } = await supabase
-        .from("routes")
-        .select("id")
-        .eq("route_template_id", route.route_template_id)
-        .gte("route_date", fromDate!);
-      const ids = (futureRoutes || []).map((r: any) => r.id);
-      let linked = 0;
-      if (ids.length > 0) {
-        const { count } = await supabase
-          .from("subscriptions")
-          .select("id", { count: "exact", head: true })
-          .in("preferred_route_id", ids)
-          .not("next_service_date", "is", null);
-        linked = count || 0;
-      }
-      return { futureRouteCount: ids.length, linkedSubscriptionCount: linked, routeIds: ids };
+
+      const { data: subs } = await supabase
+        .from("subscriptions")
+        .select("id, interval, status, next_service_date")
+        .in("id", subIds);
+
+      const recurring = (subs || []).filter(
+        (s: any) =>
+          s.status === "active" &&
+          s.interval &&
+          s.interval !== "engangskøb" &&
+          s.next_service_date,
+      );
+
+      return {
+        recurringAppointmentCount: recurring.length,
+        linkedSubscriptionCount: recurring.length,
+        subscriptionIds: recurring.map((s: any) => s.id),
+      };
     },
   });
 };
@@ -1230,65 +1242,68 @@ export const useMoveRouteSeries = () => {
     }) => {
       const { data: route, error } = await supabase
         .from("routes")
-        .select("id, route_date, route_template_id")
+        .select("id, route_date")
         .eq("id", routeId)
         .maybeSingle();
       if (error || !route) throw new Error("Rute ikke fundet");
       const fromDate = route.route_date as string;
       if (fromDate === newDate) return;
 
-      // Single move (eller serie ikke sat) → bare flyt denne ene
-      if (scope === "single" || !route.route_template_id) {
-        const { error: e2 } = await supabase
-          .from("routes")
-          .update({ route_date: newDate })
-          .eq("id", routeId);
-        if (e2) throw e2;
-        return;
-      }
+      // Flyt altid selve rute-instansen til den nye dato.
+      const { error: e2 } = await supabase
+        .from("routes")
+        .update({ route_date: newDate })
+        .eq("id", routeId);
+      if (e2) throw e2;
+
+      // "future" = forskyd også fremtidige forekomster af de tilbagevendende
+      // aftaler på ruten (ved at flytte deres next_service_date med samme delta).
+      if (scope !== "future") return;
 
       const deltaMs = new Date(newDate).getTime() - new Date(fromDate).getTime();
       const deltaDays = Math.round(deltaMs / 86_400_000);
       if (deltaDays === 0) return;
 
-      const { data: futureRoutes, error: e3 } = await supabase
-        .from("routes")
-        .select("id, route_date")
-        .eq("route_template_id", route.route_template_id)
-        .gte("route_date", fromDate);
-      if (e3) throw e3;
+      const { data: stops } = await supabase
+        .from("route_stops")
+        .select("subscription_id")
+        .eq("route_id", routeId)
+        .not("subscription_id", "is", null);
 
-      const shift = (d: string) => {
+      const subIds = Array.from(
+        new Set((stops || []).map((s: any) => s.subscription_id).filter(Boolean)),
+      );
+      if (subIds.length === 0) return;
+
+      const { data: subs } = await supabase
+        .from("subscriptions")
+        .select("id, interval, status, next_service_date")
+        .in("id", subIds);
+
+      const recurring = (subs || []).filter(
+        (s: any) =>
+          s.status === "active" &&
+          s.interval &&
+          s.interval !== "engangskøb" &&
+          s.next_service_date,
+      );
+
+      const shiftIso = (d: string) => {
         const nd = new Date(d);
         nd.setDate(nd.getDate() + deltaDays);
-        return nd.toISOString().slice(0, 10);
+        return nd.toISOString();
       };
 
-      // Opdater hver rute (sekventielt for at undgå at skubbe duplikater)
-      for (const r of futureRoutes || []) {
+      for (const s of recurring) {
         await supabase
-          .from("routes")
-          .update({ route_date: shift(r.route_date as string) })
-          .eq("id", r.id);
+          .from("subscriptions")
+          .update({ next_service_date: shiftIso(s.next_service_date as string) })
+          .eq("id", s.id);
       }
 
-      if (moveLinkedSubscriptions) {
-        const ids = (futureRoutes || []).map((r: any) => r.id);
-        if (ids.length > 0) {
-          const { data: subs } = await supabase
-            .from("subscriptions")
-            .select("id, next_service_date")
-            .in("preferred_route_id", ids)
-            .not("next_service_date", "is", null);
-          for (const s of subs || []) {
-            if (!s.next_service_date) continue;
-            await supabase
-              .from("subscriptions")
-              .update({ next_service_date: shift(s.next_service_date as string) })
-              .eq("id", s.id);
-          }
-        }
-      }
+      // moveLinkedSubscriptions er nu altid implicit ved "future" — parameter beholdes
+      // for bagudkompatibilitet med kaldere.
+      void moveLinkedSubscriptions;
     },
     onSuccess: () => {
       invalidateRouteSyncQueries(qc);
