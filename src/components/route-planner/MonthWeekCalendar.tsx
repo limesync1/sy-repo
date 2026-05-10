@@ -372,13 +372,18 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
   const completedCount = route.stops.filter((s) => s.status === "completed").length;
   const visibleEmployees = route.attachedEmployees.slice(0, 3);
   const extraEmployees = route.attachedEmployees.length - visibleEmployees.length;
+  // En rute er "klar til udførelse" når den både har medarbejdere og stops
+  // tilknyttet — så har medarbejderen reelt noget at tage ud på. Vises som en
+  // diskret grøn underkant på pillen.
+  const isReadyForExecution =
+    !isVirtual && route.attachedEmployeeCount > 0 && stopCount > 0;
 
   return (
     <div
       ref={setRefs}
       onClick={(e) => { e.stopPropagation(); if (!isDragging) onSelect(); }}
       className={cn(
-        "relative rounded-md border-l-4 cursor-pointer transition-all overflow-hidden bg-card hover:shadow-sm",
+        "relative rounded-md border-l-[6px] cursor-pointer transition-all overflow-hidden bg-card hover:shadow-sm",
         "border border-border/60",
         isDragging && "opacity-40",
         isVirtual && "opacity-55 hover:opacity-80 bg-card/60 border-dashed",
@@ -386,9 +391,11 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
         !isVirtual && jobDragActive && !isOver && "ring-1 shadow-sm",
         !isVirtual && isOver && "ring-2 ring-accent shadow-md scale-[1.02]",
         busy && "cursor-wait",
+        isReadyForExecution && "border-b-2 border-b-emerald-500",
       )}
       style={{
         borderLeftColor: route.color,
+        borderLeftWidth: 6,
         ...(!isVirtual && jobDragActive && !isOver
           ? { boxShadow: `0 0 0 1px ${route.color}40, 0 1px 3px ${route.color}20` }
           : {}),
@@ -417,7 +424,9 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
           {!compact ? (
             <div className="flex items-center gap-1 text-[10px] text-muted-foreground tabular-nums mt-0.5">
               {isVirtual ? (
-                <span className="inline-flex items-center gap-0.5"><Lock className="h-2.5 w-2.5" />Gentages</span>
+                <span className="inline-flex items-center gap-0.5 text-[9px] italic font-normal">
+                  <Lock className="h-2.5 w-2.5" />Planlagt, låst indtil forrige er udført
+                </span>
               ) : (
                 <>
                   <MapPin className="h-2.5 w-2.5" />{stopCount}
@@ -427,7 +436,7 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
             </div>
           ) : (
             isVirtual ? (
-              <p className="text-[9px] text-muted-foreground italic">Gentages</p>
+              <p className="text-[9px] text-muted-foreground italic leading-tight">Planlagt, låst indtil forrige er udført</p>
             ) : stopCount > 0 && (
               <p className="text-[9px] text-muted-foreground tabular-nums">{stopCount} stop</p>
             )

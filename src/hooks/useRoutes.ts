@@ -1284,6 +1284,8 @@ export const useRouteSeriesInfo = (
       // Ruter for kommende datoer er ikke nødvendigvis oprettet endnu — de skabes
       // når abonnementets next_service_date forfalder. Derfor tæller vi
       // tilbagevendende abonnementer på denne rutes stops, ikke søsterruter.
+      // 1) Tilbagevendende aftaler der ligger som stops på selve ruten
+      //    (subscription_id på route_stops).
       const { data: stops } = await supabase
         .from("route_stops")
         .select("subscription_id")
@@ -1294,16 +1296,31 @@ export const useRouteSeriesInfo = (
         new Set((stops || []).map((s: any) => s.subscription_id).filter(Boolean)),
       );
 
-      if (subIds.length === 0) {
-        return { recurringAppointmentCount: 0, linkedSubscriptionCount: 0, subscriptionIds: [] };
-      }
+      // 2) Aftaler/abonnementer der har ruten som "preferred_route_id" — det
+      //    er det signal kalender-projektionen bruger til at tegne fremtidige
+      //    forekomster, så det er også den korrekte tæller her.
+      const [subsByStops, subsByPref, agreementsByPref] = await Promise.all([
+        subIds.length > 0
+          ? supabase
+              .from("subscriptions")
+              .select("id, interval, status, next_service_date")
+              .in("id", subIds)
+          : Promise.resolve({ data: [] as any[], error: null } as any),
+        supabase
+          .from("subscriptions")
+          .select("id, interval, status, next_service_date")
+          .eq("preferred_route_id", routeId!)
+          .eq("status", "active")
+          .neq("interval", "engangskøb"),
+        supabase
+          .from("agreements")
+          .select("id, interval, status, start_date")
+          .eq("preferred_route_id", routeId!)
+          .eq("status", "active")
+          .neq("interval", "engangskøb"),
+      ]);
 
-      const { data: subs } = await supabase
-        .from("subscriptions")
-        .select("id, interval, status, next_service_date")
-        .in("id", subIds);
-
-      const recurring = (subs || []).filter(
+      const recurringSubs = (subsByStops.data || []).filter(
         (s: any) =>
           s.status === "active" &&
           s.interval &&
@@ -1311,10 +1328,15 @@ export const useRouteSeriesInfo = (
           s.next_service_date,
       );
 
+      const ids = new Set<string>();
+      for (const s of recurringSubs) ids.add(`sub:${s.id}`);
+      for (const s of (subsByPref.data || [])) ids.add(`sub:${s.id}`);
+      for (const a of (agreementsByPref.data || [])) ids.add(`agr:${a.id}`);
+
       return {
-        recurringAppointmentCount: recurring.length,
-        linkedSubscriptionCount: recurring.length,
-        subscriptionIds: recurring.map((s: any) => s.id),
+        recurringAppointmentCount: ids.size,
+        linkedSubscriptionCount: ids.size,
+        subscriptionIds: Array.from(ids),
       };
     },
   });
