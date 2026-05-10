@@ -2472,18 +2472,21 @@ export type Database = {
           created_at: string
           employee_id: string
           id: string
+          role: string | null
           route_id: string
         }
         Insert: {
           created_at?: string
           employee_id: string
           id?: string
+          role?: string | null
           route_id: string
         }
         Update: {
           created_at?: string
           employee_id?: string
           id?: string
+          role?: string | null
           route_id?: string
         }
         Relationships: [

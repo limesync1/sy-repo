@@ -1,0 +1,1 @@
+ALTER TABLE public.route_employees ADD COLUMN IF NOT EXISTS role text;
