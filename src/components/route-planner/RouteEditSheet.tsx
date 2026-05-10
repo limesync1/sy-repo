@@ -350,9 +350,22 @@ export const RouteEditSheet = ({
             <Button
               variant="outline"
               className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
-              onClick={() => setConfirmDelete(true)}
+              onClick={() => {
+                if (stopCount > 0) {
+                  // Ruter med aftaler kan ikke slettes direkte — flyt aftalerne
+                  // først, så ingen aftaler bliver væk og medarbejder-tilknytninger
+                  // bevares.
+                  toast.info("Flyt aftalerne først", {
+                    description: "Vælg en ny dato for aftalerne — ruten slettes automatisk når den er tom.",
+                  });
+                  setMoveStopsOpen(true);
+                } else {
+                  setConfirmDelete(true);
+                }
+              }}
             >
-              <Trash2 className="h-4 w-4 mr-1.5" />Slet
+              <Trash2 className="h-4 w-4 mr-1.5" />
+              {stopCount > 0 ? "Slet (flyt aftaler først)" : "Slet rute"}
             </Button>
           </SheetFooterBar>
         </SheetContent>
@@ -363,7 +376,7 @@ export const RouteEditSheet = ({
           <AlertDialogHeader>
             <AlertDialogTitle>Slet rute?</AlertDialogTitle>
             <AlertDialogDescription>
-              Ruten og dens {stopCount} stop slettes. Aftalerne vender tilbage til aftalepoolen.
+              Ruten er tom og slettes permanent.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
