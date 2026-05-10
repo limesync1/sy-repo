@@ -1,0 +1,177 @@
+/**
+ * Central interval-bibliotek.
+ *
+ * Understøtter to formater:
+ *   1) Legacy enum-værdier: "engangskøb", "ugentlig", "hver_14_dag", ...
+ *   2) Nyt fleksibelt format: "every_<N>_<unit>" hvor unit ∈ {day,week,month,year}
+ *      Eksempler: "every_1_day", "every_6_day", "every_3_week", "every_2_month".
+ *
+ * Formålet er at have ét sted som forstår alle intervaller, formaterer dem
+ * grammatisk korrekt på dansk, og kan oversætte dem til antal dage til brug
+ * i kalender-projektioner og næste-dato-beregninger.
+ */
+
+export type IntervalUnit = "day" | "week" | "month" | "year";
+
+export type ParsedInterval = {
+  /** Antal enheder; 0 betyder engangskøb. */
+  n: number;
+  /** Enhed; for engangskøb er den irrelevant (default day). */
+  unit: IntervalUnit;
+  /** True for engangskøb. */
+  once: boolean;
+  /** Den oprindelige nøgle, så vi kan slå farver/legacy-mapping op. */
+  raw: string;
+};
+
+/** Konstanter til UI-dropdowns. */
+export const INTERVAL_UNITS: { value: IntervalUnit; singular: string; plural: string; ordinalSingular: string }[] = [
+  { value: "day",   singular: "dag",   plural: "dage",    ordinalSingular: "dag" },
+  { value: "week",  singular: "uge",   plural: "uger",    ordinalSingular: "uge" },
+  { value: "month", singular: "måned", plural: "måneder", ordinalSingular: "måned" },
+  { value: "year",  singular: "år",    plural: "år",      ordinalSingular: "år" },
+];
+
+/** Tilbagefald for legacy-nøgler → {n, unit}. */
+const LEGACY_MAP: Record<string, { n: number; unit: IntervalUnit }> = {
+  "10_min":      { n: 1,  unit: "day" }, // teknisk test-værdi; vi behandler den som "daglig" for projektion
+  daglig:        { n: 1,  unit: "day" },
+  hver_2_dag:    { n: 2,  unit: "day" },
+  ugentlig:      { n: 1,  unit: "week" },
+  hver_14_dag:   { n: 2,  unit: "week" },
+  hver_3_uge:    { n: 3,  unit: "week" },
+  hver_4_uge:    { n: 4,  unit: "week" },
+  hver_8_uge:    { n: 8,  unit: "week" },
+  månedlig:      { n: 1,  unit: "month" },
+  kvartalsvis:   { n: 3,  unit: "month" },
+  halvårlig:     { n: 6,  unit: "month" },
+  årlig:         { n: 1,  unit: "year" },
+};
+
+/** Parser et hvilket som helst interval-string til en kanonisk form. */
+export function parseInterval(value: string | null | undefined): ParsedInterval | null {
+  if (!value) return null;
+  const v = String(value).trim();
+  if (!v || v === "engangskøb" || v === "engangskob" || v === "once") {
+    return { n: 0, unit: "day", once: true, raw: v };
+  }
+  // Nyt format: every_<N>_<unit>
+  const m = v.match(/^every[_:](\d+)[_:](day|week|month|year)s?$/i);
+  if (m) {
+    const n = Math.max(1, parseInt(m[1], 10) || 1);
+    const unit = m[2].toLowerCase() as IntervalUnit;
+    return { n, unit, once: false, raw: v };
+  }
+  const legacy = LEGACY_MAP[v];
+  if (legacy) return { n: legacy.n, unit: legacy.unit, once: false, raw: v };
+  return null;
+}
+
+/** Bygger den nye kanoniske string-repræsentation. */
+export function buildInterval(n: number, unit: IntervalUnit): string {
+  if (!n || n <= 0) return "engangskøb";
+  return `every_${Math.round(n)}_${unit}`;
+}
+
+/**
+ * Formaterer et interval grammatisk korrekt på dansk.
+ * - n=1: "Dagligt" / "Ugentligt" / "Månedligt" / "Årligt"
+ * - n>1: "Hver N. dag" / "Hver N. uge" / "Hver N. måned" / "Hvert N. år"
+ * - 0:   "Engangskøb"
+ */
+export function formatInterval(value: string | null | undefined): string {
+  const p = parseInterval(value);
+  if (!p) return value ? String(value) : "Engangskøb";
+  if (p.once) return "Engangskøb";
+  if (p.n === 1) {
+    switch (p.unit) {
+      case "day":   return "Dagligt";
+      case "week":  return "Ugentligt";
+      case "month": return "Månedligt";
+      case "year":  return "Årligt";
+    }
+  }
+  // "Hver" for fælleskøn (dag, uge, måned), "Hvert" for intetkøn (år).
+  const det = p.unit === "year" ? "Hvert" : "Hver";
+  const unitWord = INTERVAL_UNITS.find((u) => u.value === p.unit)!.ordinalSingular;
+  return `${det} ${p.n}. ${unitWord}`;
+}
+
+/** Kort variant til kompakte badges (samme som formatInterval pt., men adskilt API for fremtidssikring). */
+export function formatIntervalShort(value: string | null | undefined): string {
+  return formatInterval(value);
+}
+
+/** "Per ugentligt" → "/ugentligt", brugt fx i pris-suffixer. */
+export function formatIntervalSuffix(value: string | null | undefined): string {
+  const p = parseInterval(value);
+  if (!p || p.once) return "";
+  return `/${formatInterval(value).toLowerCase()}`;
+}
+
+/** Returnerer "dag/uge/måned/år" eller "dage/uger/måneder/år" baseret på antal. */
+export function unitLabel(n: number, unit: IntervalUnit): string {
+  const meta = INTERVAL_UNITS.find((u) => u.value === unit)!;
+  return n === 1 ? meta.singular : meta.plural;
+}
+
+/** Konverterer et interval til antal dage (bruges i kalender-projektion). */
+export function intervalToDays(value: string | null | undefined): number | null {
+  const p = parseInterval(value);
+  if (!p || p.once) return null;
+  switch (p.unit) {
+    case "day":   return p.n;
+    case "week":  return p.n * 7;
+    case "month": return p.n * 30;   // tilnærmet — DB bruger interval_to_duration for præcision
+    case "year":  return p.n * 365;
+  }
+}
+
+/** Returnerer den tilsvarende legacy-enum hvis intervallet matcher en af dem. */
+export function toLegacyEnum(value: string | null | undefined): string | null {
+  const p = parseInterval(value);
+  if (!p) return null;
+  if (p.once) return "engangskøb";
+  for (const [key, meta] of Object.entries(LEGACY_MAP)) {
+    if (meta.n === p.n && meta.unit === p.unit) return key;
+  }
+  return null;
+}
+
+/**
+ * Returnerer altid en gyldig agreement_interval enum-værdi til DB-storage.
+ * Hvis intervallet ikke kan udtrykkes som en kendt enum, returnerer vi "custom"
+ * (kalderen skal så også gemme `interval_days`).
+ */
+export function toAgreementEnum(value: string | null | undefined): { interval: string; interval_days: number | null } {
+  const p = parseInterval(value);
+  if (!p) return { interval: "engangskøb", interval_days: null };
+  if (p.once) return { interval: "engangskøb", interval_days: null };
+  const legacy = toLegacyEnum(value);
+  if (legacy && legacy !== "10_min") {
+    return { interval: legacy, interval_days: null };
+  }
+  return { interval: "custom", interval_days: intervalToDays(value) };
+}
+
+/** Tailwind farve-klasse til badge — fordeler farver på unit + n. */
+export function intervalBadgeClass(value: string | null | undefined): string {
+  const p = parseInterval(value);
+  if (!p) return "bg-secondary text-foreground border-border";
+  if (p.once) return "bg-secondary text-foreground border-border";
+  switch (p.unit) {
+    case "day":   return p.n === 1 ? "bg-orange-50 text-orange-700 border-orange-200" : "bg-amber-50 text-amber-700 border-amber-200";
+    case "week":  {
+      if (p.n <= 1) return "bg-blue-50 text-blue-700 border-blue-200";
+      if (p.n <= 2) return "bg-cyan-50 text-cyan-700 border-cyan-200";
+      if (p.n <= 4) return "bg-indigo-50 text-indigo-700 border-indigo-200";
+      return "bg-violet-50 text-violet-700 border-violet-200";
+    }
+    case "month": {
+      if (p.n === 1) return "bg-pink-50 text-pink-700 border-pink-200";
+      if (p.n <= 3) return "bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200";
+      return "bg-purple-50 text-purple-700 border-purple-200";
+    }
+    case "year":  return "bg-emerald-50 text-emerald-700 border-emerald-200";
+  }
+}
