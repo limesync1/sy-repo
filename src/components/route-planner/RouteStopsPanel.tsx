@@ -255,11 +255,9 @@ const SortableStopRow = ({ stop, index, color, employees, onSetAssignees, onSele
             )}
             <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 shrink-0" />
           </div>
-          {stop.service_summary && (
-            <p className="text-[10px] text-foreground/75 truncate mt-0.5 font-medium">
-              {stop.service_summary}
-            </p>
-          )}
+          <p className="text-[10px] text-foreground/75 truncate mt-0.5 font-medium">
+            {stop.service_summary || "Aftale"}
+          </p>
           {stop.address && (
             <p className="text-[10px] text-muted-foreground truncate flex items-center gap-1 mt-0.5">
               <MapPin className="h-2.5 w-2.5 shrink-0" />{stop.address}
