@@ -42,31 +42,35 @@ export const expandRecurringRoutes = (params: {
   /** Sæt af `${routeId}|${yyyy-MM-dd}` der allerede har en rigtig rute — disse springes over. */
   realRouteDates: Set<string>;
 }): ProjectedRoute[] => {
+  // Tidligere version grupperede pr. rute og brugte den tidligste
+  // next_service_date som kadence — det betød at fx en månedlig aftale på
+  // samme rute som en ugentlig aftale fejlagtigt blev projiceret hver uge.
+  // Nu projicerer vi pr. abonnement og samler datoer pr. rute, så samme
+  // dato ikke duplikeres når flere abonnementer falder sammen.
+  const seen = new Set<string>(); // `${routeId}|${date}`
   const out: ProjectedRoute[] = [];
   const start = parseISO(params.rangeStart);
   const end = parseISO(params.rangeEnd);
   const horizonEnd = addDays(new Date(), params.horizonDays ?? 180);
   const limit = isBefore(end, horizonEnd) ? end : horizonEnd;
 
-  // Vi grupperer pr. rute — den tidligste next_service_date på ruten styrer kadencen.
-  const byRoute = new Map<string, { interval: string; next: string }>();
   for (const s of params.subscriptions) {
     if (s.status !== "active") continue;
     if (!s.preferred_route_id || !s.next_service_date) continue;
     const days = intervalToDays(s.interval);
     if (!days) continue;
-    const next = String(s.next_service_date).slice(0, 10);
-    const ex = byRoute.get(s.preferred_route_id);
-    if (!ex || next < ex.next) byRoute.set(s.preferred_route_id, { interval: s.interval, next });
-  }
-
-  for (const [routeId, { interval, next }] of byRoute) {
-    const days = intervalToDays(interval)!;
-    let cursor = parseISO(next);
+    const routeId = s.preferred_route_id;
+    let cursor = parseISO(String(s.next_service_date).slice(0, 10));
     let safety = 0;
     while (!isBefore(limit, cursor) && safety++ < 400) {
       const ds = format(cursor, "yyyy-MM-dd");
-      if (!isBefore(cursor, start) && !params.realRouteDates.has(`${routeId}|${ds}`)) {
+      const key = `${routeId}|${ds}`;
+      if (
+        !isBefore(cursor, start) &&
+        !params.realRouteDates.has(key) &&
+        !seen.has(key)
+      ) {
+        seen.add(key);
         out.push({ id: `virtual:${routeId}:${ds}`, baseRouteId: routeId, date: ds });
       }
       cursor = addDays(cursor, days);
