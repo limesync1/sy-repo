@@ -32,7 +32,7 @@ import {
 import { INTERVAL_LABELS } from "@/types/service";
 import { EmptyState, PageHeader, PrimaryButton } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
-import { useRoutesForRange, useStopsForRoutes, useAddStop, useCreateRoute, useDeleteRoute } from "@/hooks/useRoutes";
+import { useCalendarData, useAddStop, useCreateRoute, useDeleteRoute } from "@/hooks/useRoutes";
 import { ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor } from "@/components/route-planner/RouteEditSheet";
 import { DatePickerField } from "@/components/route-planner/DatePickerField";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
@@ -777,13 +777,13 @@ const AftaleTab = ({
   // Når ruteplanlægning er deaktiveret skal vi hverken hente ruter eller stops —
   // sidebar'en skjules helt og badges/blokke renderes ikke. Vi sender et tomt id
   // ind så `useRoutesForRange` blot returnerer en tom liste.
-  const { data: poolRoutes } = useRoutesForRange(
+  const { data: poolCalendar } = useCalendarData(
     routePlanningEnabled ? businessId : "",
     fromIso,
     toIso,
   );
-  const poolRouteIds = (poolRoutes || []).map((r) => r.id);
-  const { data: poolStops } = useStopsForRoutes(routePlanningEnabled ? poolRouteIds : []);
+  const poolRoutes = poolCalendar?.routes ?? [];
+  const poolStops = poolCalendar?.stops ?? [];
   const addStop = useAddStop();
   const createRoute = useCreateRoute();
   const deleteRoute = useDeleteRoute();
