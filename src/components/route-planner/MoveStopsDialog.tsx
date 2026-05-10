@@ -71,6 +71,7 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops }: Props) => 
     let movedCount = 0;
     let errorCount = 0;
     let missingEmployee = 0;
+    const errorMessages = new Set<string>();
     try {
       // Fallback: hvis et stop ikke har en explicit medarbejder, brug en
       // medarbejder der er tilknyttet kilderuten (route_employees).
@@ -107,6 +108,8 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops }: Props) => 
           },
         );
         if (rpcErr || !targetRouteId) {
+          console.error("[MoveStops] find_or_create_route_for_employee fejlede", rpcErr);
+          if (rpcErr?.message) errorMessages.add(rpcErr.message);
           errorCount++;
           continue;
         }
@@ -120,8 +123,13 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops }: Props) => 
           .from("route_stops")
           .update({ route_id: targetRouteId, sequence: seq, planned_arrival: null })
           .eq("id", stopId);
-        if (updErr) errorCount++;
-        else movedCount++;
+        if (updErr) {
+          console.error("[MoveStops] update route_stop fejlede", updErr);
+          if (updErr.message) errorMessages.add(updErr.message);
+          errorCount++;
+        } else {
+          movedCount++;
+        }
       }
       if (movedCount > 0) {
         toast.success(
@@ -135,9 +143,12 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops }: Props) => 
         );
       }
       if (errorCount > 0) {
+        const detail = errorMessages.size > 0
+          ? Array.from(errorMessages).join(" · ")
+          : "Prøv igen — tjek netværksforbindelsen eller genindlæs siden.";
         toast.error(
           `${errorCount} aftale${errorCount === 1 ? "" : "r"} kunne ikke flyttes`,
-          { description: "Prøv igen — tjek netværksforbindelsen eller genindlæs siden." },
+          { description: detail },
         );
       }
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
