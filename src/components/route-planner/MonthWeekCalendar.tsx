@@ -397,7 +397,7 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
           ? { boxShadow: `0 0 0 1px ${route.color}40, 0 1px 3px ${route.color}20` }
           : {}),
       }}
-      title={isVirtual ? "Gentagende rute — klik for at redigere denne dato" : undefined}
+      title={isVirtual ? "Projiceret rute — klik åbner basisruten; flytning kræver eksplicit træk af en rigtig rute" : undefined}
       aria-busy={busy || undefined}
     >
       {busy && (
@@ -410,13 +410,14 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
         {...(isVirtual ? {} : attributes)}
         className={cn(
           "px-2 py-1 flex items-center justify-between gap-1",
-          isVirtual ? "cursor-default" : "cursor-grab active:cursor-grabbing",
+          isVirtual ? "cursor-pointer" : "cursor-grab active:cursor-grabbing",
         )}
       >
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-semibold truncate text-foreground leading-tight flex items-center gap-1">
             {isVirtual && <Repeat className="h-2.5 w-2.5 shrink-0 text-muted-foreground" />}
             <span className="truncate">{route.name || `Kørsel ${format(parseISO(route.route_date), "d/M")}`}</span>
+            {isVirtual && <Badge variant="secondary" className="h-4 px-1 text-[8px] shrink-0">Basis</Badge>}
           </p>
           {!compact ? (
             <div className="flex items-center gap-1 text-[10px] text-muted-foreground tabular-nums mt-0.5">
