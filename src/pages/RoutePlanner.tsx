@@ -4,9 +4,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useMyBusiness } from "@/hooks/useDatabase";
 import { useEmployees } from "@/hooks/useEmployees";
 import {
-  useStopsForRoutes, useUnassignedJobs,
+  useUnassignedJobs,
+  useCalendarData,
   useAddStop,
-  useOptimizeRoute, useGeocodeAddress, useRoutesForRange,
+  useOptimizeRoute, useGeocodeAddress,
   useCreateRoute, useDeleteRoute, useUpdateRoute,
   useRouteSeriesInfo, useMoveRouteSeries,
   type RouteStop, type Route,
@@ -106,9 +107,15 @@ const Planner = () => {
     const me = endOfWeek(endOfMonth(anchor), { weekStartsOn: 1 });
     return { start: format(ms, "yyyy-MM-dd"), end: format(me, "yyyy-MM-dd") };
   }, [date, view]);
-  const { data: calendarRoutesRaw = [], isLoading: loadingCalendarRoutes } = useRoutesForRange(businessId, calendarRange.start, calendarRange.end);
-  const calendarRouteIds = useMemo(() => calendarRoutesRaw.map((r) => r.id), [calendarRoutesRaw]);
-  const { data: calendarStops = [], isLoading: loadingCalendarStops } = useStopsForRoutes(calendarRouteIds);
+  const { data: calendarData, isLoading: loadingCalendar } = useCalendarData(
+    businessId,
+    calendarRange.start,
+    calendarRange.end,
+  );
+  const calendarRoutesRaw = calendarData?.routes ?? [];
+  const calendarStops = calendarData?.stops ?? [];
+  const loadingCalendarRoutes = loadingCalendar;
+  const loadingCalendarStops = loadingCalendar;
 
   // Vejrudsigt — bruger gennemsnit af stop-koordinater i det viste interval,
   // ellers Danmarks centrum. Open-Meteo kan levere op til 16 dage frem.
