@@ -327,7 +327,9 @@ const DayCell = memo(DayCellInner, (prev, next) => {
     prev.optimizingRouteId === next.optimizingRouteId &&
     prev.loadingRoutes === next.loadingRoutes &&
     prev.loadingWeather === next.loadingWeather &&
-    prev.weatherError === next.weatherError
+    prev.weatherError === next.weatherError &&
+    prev.busy === next.busy &&
+    prev.busyRouteIds === next.busyRouteIds
   );
 });
 
@@ -516,6 +518,7 @@ const RoutePill = memo(RoutePillInner, (prev, next) => {
     prev.route === next.route &&
     prev.optimizing === next.optimizing &&
     prev.compact === next.compact &&
-    prev.jobDragActive === next.jobDragActive
+    prev.jobDragActive === next.jobDragActive &&
+    prev.busy === next.busy
   );
 });
