@@ -229,6 +229,19 @@ const Planner = () => {
     route: Route;
     newDate: string;
   } | null>(null);
+
+  // Pending start-date konflikt: vises når brugeren dropper en aftale på en
+  // dato der ikke matcher aftalens opstartsdato. Brugeren bekræfter om
+  // opstartsdatoen skal flyttes — først derefter eksekveres `execute()`.
+  const [pendingStartDateChange, setPendingStartDateChange] = useState<{
+    job: any;
+    currentStart: string;
+    targetDate: string;
+    isBefore: boolean;
+    targetLabel: string;
+    execute: () => Promise<void>;
+  } | null>(null);
+  const [confirmingStartDate, setConfirmingStartDate] = useState(false);
   const { data: pendingSeriesInfo } = useRouteSeriesInfo(
     pendingRouteMove?.route.id ?? null,
     pendingRouteMove?.route.route_date ?? null,
@@ -789,6 +802,61 @@ const Planner = () => {
       }
     };
 
+    /** Aftalens opstartsdato (yyyy-MM-dd) — preferred_date eller next_service_date. */
+    const jobStartDate = (job: any): string | null => {
+      const raw = job?.preferred_date || job?.next_service_date;
+      return raw ? String(raw).slice(0, 10) : null;
+    };
+
+    /** Skubber aftalens opstartsdato til ny dato i alle relaterede tabeller.
+     *  Bedst-effort — UI'et viser allerede succes på selve droppet. */
+    const shiftJobStartDate = async (orderId: string, newDate: string) => {
+      try {
+        await supabase.from("orders").update({
+          preferred_date: newDate,
+          next_service_date: newDate,
+        }).eq("id", orderId);
+      } catch (e) { console.warn("shift orders.preferred_date failed", e); }
+      try {
+        await supabase.from("subscriptions").update({
+          next_service_date: newDate,
+        }).eq("order_id", orderId).eq("status", "active");
+      } catch (e) { console.warn("shift subscriptions.next_service_date failed", e); }
+      // Find aftaler via legacy_subscription_id og opdatér start_date.
+      try {
+        const { data: subs } = await supabase
+          .from("subscriptions").select("id").eq("order_id", orderId);
+        const subIds = (subs || []).map((s: any) => s.id);
+        if (subIds.length > 0) {
+          await supabase.from("agreements").update({ start_date: newDate })
+            .in("legacy_subscription_id", subIds);
+        }
+      } catch (e) { console.warn("shift agreements.start_date failed", e); }
+    };
+
+    /** Returnerer true hvis droppet må fortsætte. Hvis target-datoen ikke
+     *  matcher aftalens opstartsdato, åbnes en bekræftelsesdialog der
+     *  beder brugeren om at flytte opstartsdatoen — i så fald bailes der ud
+     *  her og dropet eksekveres senere via `execute()`. */
+    const ensureStartDateMatches = (
+      job: any,
+      targetDate: string,
+      targetLabel: string,
+      execute: () => Promise<void>,
+    ): boolean => {
+      const start = jobStartDate(job);
+      if (!start || start === targetDate) return true;
+      setPendingStartDateChange({
+        job,
+        currentStart: start,
+        targetDate,
+        isBefore: targetDate < start,
+        targetLabel,
+        execute,
+      });
+      return false;
+    };
+
     const activeData: any = active.data.current;
     const overData: any = over.data.current;
 
@@ -881,13 +949,15 @@ const Planner = () => {
         return;
       }
       const targetRouteId: string = overData.routeId;
+      const targetRoute = calendarRoutesRaw.find((r) => r.id === targetRouteId);
+      const targetDate = targetRoute?.route_date || (targetRoute as any)?.date;
       if (!(await claimIdempotency())) {
         // Et andet kald har allerede claimet samme drop — bail.
         toast.info("Aftalen er allerede ved at blive tilføjet");
         releaseDrop();
         return;
       }
-      try {
+      const performAddToRoute = async () => {
         const { data: existingStops } = await supabase
           .from("route_stops").select("id, order_id").eq("route_id", targetRouteId);
         // Idempotens — undgå dubletter af samme aftale på samme rute.
@@ -913,6 +983,22 @@ const Planner = () => {
         // så virtuelle uger/måneder kan projicere fremad i kalenderen.
         await linkAgreementToRoute(job.id, targetRouteId);
         toast.success("Aftale tilføjet til ruten");
+      };
+      // Klog tjek: matcher target-datoen aftalens opstartsdato?
+      // Hvis ikke, beder vi brugeren om bekræftelse før vi flytter opstartsdatoen.
+      if (targetDate && !ensureStartDateMatches(
+        job, targetDate,
+        targetRoute?.name ? `ruten "${targetRoute.name}"` : "ruten",
+        async () => {
+          await shiftJobStartDate(job.id, targetDate);
+          await performAddToRoute();
+        },
+      )) {
+        releaseDrop();
+        return;
+      }
+      try {
+        await performAddToRoute();
       } catch (err: any) {
         const msg = String(err?.message || "");
         if (msg.includes("uniq_route_stops_route_order") || msg.includes("duplicate key")) {
@@ -944,7 +1030,7 @@ const Planner = () => {
         releaseDrop();
         return;
       }
-      try {
+      const performCreateRouteWithStop = async () => {
         // Hvis aftalen allerede er lagt på en rute samme dag (fx pga. tidligere
         // hurtig-drop som lige har committet), så afbryd for at undgå dublet-ruter.
         const alreadyOnDay = calendarStops.some(
@@ -993,6 +1079,20 @@ const Planner = () => {
         });
         await linkAgreementToRoute(job.id, created.id);
         toast.success(`Ny rute oprettet på ${format(parseISO(newDate), "d. MMM", { locale: da })}`);
+      };
+      if (!ensureStartDateMatches(
+        job, newDate,
+        `${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`,
+        async () => {
+          await shiftJobStartDate(job.id, newDate);
+          await performCreateRouteWithStop();
+        },
+      )) {
+        releaseDrop();
+        return;
+      }
+      try {
+        await performCreateRouteWithStop();
       } catch (err: any) {
         const msg = String(err?.message || "");
         if (msg.includes("uniq_route_stops_route_order") || msg.includes("duplicate key")) {
@@ -2010,6 +2110,71 @@ const Planner = () => {
           loading={moveRouteSeries.isPending}
           onConfirm={handleConfirmMoveRoute}
         />
+
+        {/* Klog opstartsdato-validering ved drop af aftale på dato/rute. */}
+        <AlertDialog
+          open={!!pendingStartDateChange}
+          onOpenChange={(o) => { if (!o && !confirmingStartDate) setPendingStartDateChange(null); }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {pendingStartDateChange?.isBefore
+                  ? "Datoen er før aftalens opstartsdato"
+                  : "Datoen passer ikke med opstartsdatoen"}
+              </AlertDialogTitle>
+              <AlertDialogDescription asChild>
+                <div className="space-y-2 text-sm">
+                  <p>
+                    Aftalen for <strong>{pendingStartDateChange?.job?.customer_name || "kunden"}</strong> har
+                    opstartsdato{" "}
+                    <strong>
+                      {pendingStartDateChange?.currentStart
+                        ? format(parseISO(pendingStartDateChange.currentStart), "EEEE d. MMM yyyy", { locale: da })
+                        : ""}
+                    </strong>.
+                  </p>
+                  <p>
+                    Du er ved at lægge den på{" "}
+                    <strong>
+                      {pendingStartDateChange?.targetDate
+                        ? format(parseISO(pendingStartDateChange.targetDate), "EEEE d. MMM yyyy", { locale: da })
+                        : ""}
+                    </strong>{" "}
+                    ({pendingStartDateChange?.targetLabel}).
+                  </p>
+                  <p className="text-muted-foreground">
+                    Vil du flytte aftalens opstartsdato til den nye dato? Det opdaterer også
+                    fremtidige forekomster og evt. tilknyttet abonnement.
+                  </p>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={confirmingStartDate}>
+                Annullér drop
+              </AlertDialogCancel>
+              <AlertDialogAction
+                disabled={confirmingStartDate}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  if (!pendingStartDateChange) return;
+                  setConfirmingStartDate(true);
+                  try {
+                    await pendingStartDateChange.execute();
+                  } catch (err: any) {
+                    toast.error(err?.message || "Kunne ikke flytte aftalen");
+                  } finally {
+                    setConfirmingStartDate(false);
+                    setPendingStartDateChange(null);
+                  }
+                }}
+              >
+                {confirmingStartDate ? "Flytter…" : "Flyt opstartsdato og placér"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </AdminShell>
     </DndContext>
   );
