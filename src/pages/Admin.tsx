@@ -1092,26 +1092,6 @@ const ServiceForm = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep, name, serviceCategory]);
 
-  const ALL_INTERVALS = [
-    { value: "engangskøb", label: "Engangskøb" },
-    { value: "10_min", label: "Hver 10. minut (test)" },
-    { value: "daglig", label: "Daglig" },
-    { value: "ugentlig", label: "Ugentlig" },
-    { value: "hver_14_dag", label: "Hver 14. dag" },
-    { value: "hver_4_uge", label: "Hver 4. uge" },
-    { value: "hver_8_uge", label: "Hver 8. uge" },
-    { value: "månedlig", label: "Månedlig" },
-    { value: "kvartalsvis", label: "Kvartalsvis" },
-    { value: "halvårlig", label: "Halvårlig" },
-    { value: "årlig", label: "Årlig" },
-  ];
-
-  const toggleInterval = (v: string) => {
-    setIntervalOptions((prev) =>
-      prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]
-    );
-  };
-
   // ── Branchefiltrering ──────────────────────────────────────────────
   // Vi viser kun kategorier/underkategorier/forslag som matcher virksomhedens
   // valgte brancher. Hvis der er en eksisterende service med en gammel/custom
