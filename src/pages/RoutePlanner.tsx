@@ -430,6 +430,14 @@ const Planner = () => {
       }
       const targetRouteId: string = overData.routeId;
       try {
+        if (job.source === "occurrence" && job.occurrence_id) {
+          await materializeOccurrence.mutateAsync({
+            occurrence_id: job.occurrence_id,
+            route_id: targetRouteId,
+          });
+          toast.success("Aftale tilføjet til ruten");
+          return;
+        }
         const { data: existingStops } = await supabase
           .from("route_stops").select("id").eq("route_id", targetRouteId);
         await addStop.mutateAsync({
@@ -474,6 +482,14 @@ const Planner = () => {
           name: null,
           color: pickAvailableColor(usedColorsThisDay),
         });
+        if (job.source === "occurrence" && job.occurrence_id) {
+          await materializeOccurrence.mutateAsync({
+            occurrence_id: job.occurrence_id,
+            route_id: created.id,
+          });
+          toast.success(`Ny rute oprettet på ${format(parseISO(newDate), "d. MMM", { locale: da })}`);
+          return;
+        }
         await addStop.mutateAsync({
           route_id: created.id,
           order_id: job.id,
