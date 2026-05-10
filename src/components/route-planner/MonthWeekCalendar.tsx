@@ -11,7 +11,7 @@ import { useDroppable, useDraggable } from "@dnd-kit/core";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Plus, Users, MapPin, ArrowDown } from "lucide-react";
+import { Loader2, Sparkles, Plus, Users, MapPin, ArrowDown, Repeat, Lock } from "lucide-react";
 import { CloudOff } from "lucide-react";
 import {
   format, parseISO, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
@@ -29,6 +29,10 @@ export type CalendarRoute = Route & {
   stops: RouteStop[];
   attachedEmployeeCount: number;
   attachedEmployees: { id: string; name: string; avatar_url?: string | null; color?: string | null }[];
+  /** Når true er ruten en projiceret fremtidig forekomst af en gentagende rute.
+   *  Den vises dæmpet med lås-ikon, kan ikke trækkes/optimeres, og klik åbner
+   *  basisruten på dens næste rigtige dato. */
+  isVirtual?: boolean;
 };
 
 type Props = {
