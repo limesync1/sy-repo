@@ -289,6 +289,61 @@ const Planner = () => {
     });
   }, [calendarRoutesRaw, calendarStops, activeEmployees]);
 
+  /* ─── Gentagende ruter: hent aktive abonnementer med preferred_route_id og
+         projicér virtuelle forekomster på fremtidige datoer (op til 6 mdr.).
+         Virtuelle forekomster vises dæmpet med lås — de bliver til rigtige
+         route_stops når DB-jobbet `auto_recur_due_orders` kører. */
+  const { data: recurringSubs = [] } = useQuery({
+    queryKey: ["recurring-subs-for-planner", businessId],
+    enabled: !!businessId,
+    staleTime: 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("subscriptions")
+        .select("id, interval, status, next_service_date, preferred_route_id")
+        .eq("business_id", businessId!)
+        .eq("status", "active")
+        .not("preferred_route_id", "is", null)
+        .not("next_service_date", "is", null);
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+  });
+
+  const virtualCalendarRoutes: CalendarRoute[] = useMemo(() => {
+    if (!recurringSubs.length || !calendarRoutesRaw.length) return [];
+    // Map for hurtig opslag på basis-rute, og sæt af "rigtige" (rute,dato)-par.
+    const baseById = new Map(calendarRoutesRaw.map((r) => [r.id, r]));
+    const realKeys = new Set(calendarRoutesRaw.map((r) => `${r.id}|${r.route_date}`));
+    const projections = expandRecurringRoutes({
+      subscriptions: recurringSubs as any,
+      rangeStart: calendarRange.start,
+      rangeEnd: calendarRange.end,
+      horizonDays: 180,
+      realRouteDates: realKeys,
+    });
+    return projections
+      .map((p) => {
+        const base = baseById.get(p.baseRouteId);
+        if (!base) return null;
+        return {
+          ...base,
+          id: p.id,
+          route_date: p.date,
+          stops: [],
+          attachedEmployees: [],
+          attachedEmployeeCount: 0,
+          isVirtual: true,
+        } as CalendarRoute;
+      })
+      .filter(Boolean) as CalendarRoute[];
+  }, [recurringSubs, calendarRoutesRaw, calendarRange.start, calendarRange.end]);
+
+  const calendarRoutesAll: CalendarRoute[] = useMemo(
+    () => [...calendarRoutes, ...virtualCalendarRoutes],
+    [calendarRoutes, virtualCalendarRoutes],
+  );
+
   const activeEditingRoute = useMemo(() => {
     if (!editingRoute) return null;
     return calendarRoutesRaw.find((route) => route.id === editingRoute.id) ?? editingRoute;
