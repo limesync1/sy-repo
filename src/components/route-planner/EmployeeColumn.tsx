@@ -146,8 +146,9 @@ const SortableStopCard = ({
     opacity: isDragging ? 0.4 : 1,
   };
   const hasCoords = stop.latitude != null && stop.longitude != null;
-  const isDone = stop.status === "completed";
-  const isInProgress = stop.status === "in_progress";
+  const occStatus = (stop as any).occurrence_status as string | undefined;
+  const isDone = occStatus === "completed" || stop.status === "completed";
+  const isInProgress = !isDone && stop.status === "in_progress";
 
   return (
     <div
