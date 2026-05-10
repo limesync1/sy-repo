@@ -10,9 +10,12 @@ export const intervalToDays = (interval: string | null | undefined): number | nu
   if (!interval) return null;
   switch (interval) {
     case "daglig": return 1;
+    case "hver_2_dag": return 2;
     case "ugentlig": return 7;
     case "hver_14_dag": return 14;
+    case "hver_3_uge": return 21;
     case "hver_4_uge": return 28;
+    case "hver_8_uge": return 56;
     case "månedlig": return 30;
     case "kvartalsvis": return 91;
     case "halvårlig": return 182;
