@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import { expandRecurringRoutes, intervalToDays } from "./recurring-projection";
 
 describe("intervalToDays", () => {
@@ -240,5 +240,120 @@ describe("expandRecurringRoutes — robustness", () => {
       sources: [{ id: "a1", interval: "ugentlig", seed_date: "2026-05-04", preferred_route_id: "r1" }],
     });
     expect(out.map((p) => p.date)).toEqual(["2026-05-11", "2026-05-18"]);
+  });
+});
+
+// Regressionstests for fletning af ruter (MergeRoutesDialog → "Fremtidige aftaler også"):
+// Når flere aftaler med FORSKELLIGE intervaller re-pointes til samme målrute,
+// SKAL projektionen tegne alle intervaller — ikke kun ét. Tidligere blev alle
+// aftaler tvunget til samme seed_date (basisrutens dato), hvilket kollapsede
+// flere serier til én. Disse tests låser den korrekte adfærd fast.
+describe("expandRecurringRoutes — merge med blandede intervaller", () => {
+  // Lås "today" så past-clamp i expandRecurringRoutes ikke filtrerer testdatoer
+  // væk afhængigt af hvornår testen køres.
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-04-30T08:00:00Z"));
+  });
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
+  const range = { rangeStart: "2026-05-01", rangeEnd: "2026-06-30" };
+
+  it("projicerer både ugentlig og månedlig aftale på samme målrute", () => {
+    const out = expandRecurringRoutes({
+      ...range,
+      realRouteDates: new Set(),
+      sources: [
+        // Begge aftaler er nu re-pointet til "target" efter merge.
+        { id: "weekly", interval: "ugentlig", seed_date: "2026-05-04", preferred_route_id: "target" },
+        { id: "monthly", interval: "månedlig", seed_date: "2026-05-06", preferred_route_id: "target" },
+      ],
+    });
+    const dates = out.map((p) => p.date).sort();
+    // Ugentlig serie skal være med
+    expect(dates).toContain("2026-05-04");
+    expect(dates).toContain("2026-05-11");
+    expect(dates).toContain("2026-05-18");
+    expect(dates).toContain("2026-05-25");
+    // Månedlig serie (30 dages step) skal også være med
+    expect(dates).toContain("2026-05-06");
+    expect(dates).toContain("2026-06-05");
+    // Alle på målruten
+    expect(out.every((p) => p.baseRouteId === "target")).toBe(true);
+  });
+
+  it("projicerer tre forskellige intervaller (uge, 14-dag, 4-uge) på samme målrute", () => {
+    const out = expandRecurringRoutes({
+      ...range,
+      realRouteDates: new Set(),
+      sources: [
+        { id: "a1", interval: "ugentlig",    seed_date: "2026-05-04", preferred_route_id: "target" },
+        { id: "a2", interval: "hver_14_dag", seed_date: "2026-05-05", preferred_route_id: "target" },
+        { id: "a3", interval: "hver_4_uge",  seed_date: "2026-05-06", preferred_route_id: "target" },
+      ],
+    });
+    const dates = new Set(out.map((p) => p.date));
+    // Mindst én forekomst fra hver serie skal være til stede
+    expect(dates.has("2026-05-04")).toBe(true); // ugentlig seed
+    expect(dates.has("2026-05-05")).toBe(true); // 14-dag seed
+    expect(dates.has("2026-05-19")).toBe(true); // 14-dag næste
+    expect(dates.has("2026-05-06")).toBe(true); // 4-uge seed
+    expect(dates.has("2026-06-03")).toBe(true); // 4-uge næste (28 dage)
+  });
+
+  it("custom interval_days bevares efter merge sammen med standardintervaller", () => {
+    const out = expandRecurringRoutes({
+      ...range,
+      realRouteDates: new Set(),
+      sources: [
+        { id: "weekly", interval: "ugentlig", seed_date: "2026-05-04", preferred_route_id: "target" },
+        { id: "custom", interval: "custom", interval_days: 10, seed_date: "2026-05-02", preferred_route_id: "target" },
+      ],
+    });
+    const dates = out.map((p) => p.date).sort();
+    // Custom 10-dages serie
+    expect(dates).toContain("2026-05-02");
+    expect(dates).toContain("2026-05-12");
+    expect(dates).toContain("2026-05-22");
+    // Ugentlig serie
+    expect(dates).toContain("2026-05-04");
+    expect(dates).toContain("2026-05-11");
+  });
+
+  it("dedup: når to aftaler med forskellige intervaller falder på samme dag, kommer dagen kun én gang", () => {
+    const out = expandRecurringRoutes({
+      ...range,
+      realRouteDates: new Set(),
+      sources: [
+        { id: "a1", interval: "ugentlig",    seed_date: "2026-05-04", preferred_route_id: "target" },
+        { id: "a2", interval: "hver_14_dag", seed_date: "2026-05-04", preferred_route_id: "target" },
+      ],
+    });
+    const may4 = out.filter((p) => p.date === "2026-05-04");
+    expect(may4.length).toBe(1);
+    // Men ugentlige mellemforekomster skal stadig være der
+    expect(out.find((p) => p.date === "2026-05-11")).toBeDefined();
+  });
+
+  it("hver aftale beholder sin egen seed_date — ingen kollaps til fælles dato", () => {
+    // Dette er kerne-regressionen: hvis vi nogensinde igen tvinger alle
+    // aftaler til samme seed_date (fx basisrutens route_date), vil denne
+    // test fejle, fordi den anden series datoer ikke længere produceres.
+    const out = expandRecurringRoutes({
+      ...range,
+      realRouteDates: new Set(),
+      sources: [
+        { id: "mon", interval: "ugentlig", seed_date: "2026-05-04", preferred_route_id: "target" }, // mandag
+        { id: "wed", interval: "ugentlig", seed_date: "2026-05-06", preferred_route_id: "target" }, // onsdag
+      ],
+    });
+    const dates = out.map((p) => p.date);
+    // Begge ugedags-serier skal være bevaret
+    expect(dates).toContain("2026-05-04");
+    expect(dates).toContain("2026-05-06");
+    expect(dates).toContain("2026-05-11");
+    expect(dates).toContain("2026-05-13");
   });
 });
