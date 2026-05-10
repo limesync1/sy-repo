@@ -96,6 +96,18 @@ const Planner = () => {
   // Beskytter mod dobbelt-drop på samme kilde+mål — undgår dubletruter og
   // "uniq_route_stops_route_order" race conditions.
   const inFlightDropsRef = useRef<Set<string>>(new Set());
+  // Synlig "behandler"-tilstand pr. drop-target (route:<id> eller day:<date>).
+  // Bruges af kalenderen til at deaktivere drop og vise spinner mens en
+  // flytning er i gang — så brugeren ikke kan slippe igen ved et uheld.
+  const [busyTargets, setBusyTargets] = useState<Set<string>>(new Set());
+  const setTargetBusy = (target: string | null, busy: boolean) => {
+    if (!target) return;
+    setBusyTargets((prev) => {
+      const next = new Set(prev);
+      if (busy) next.add(target); else next.delete(target);
+      return next;
+    });
+  };
   const [geocoding, setGeocoding] = useState(false);
   const [createOrderOpen, setCreateOrderOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
@@ -631,7 +643,43 @@ const Planner = () => {
       if (inFlightDropsRef.current.has(dropKey)) return;
       inFlightDropsRef.current.add(dropKey);
     }
-    const releaseDrop = () => { if (dropKey) inFlightDropsRef.current.delete(dropKey); };
+    // Bestem hvilket target der skal markeres som "behandler".
+    const targetKey = (() => {
+      if (overData?.type === "route") return `route:${overData.routeId}`;
+      if (overData?.type === "day") return `day:${overData.date}`;
+      return null;
+    })();
+    setTargetBusy(targetKey, true);
+    const releaseDrop = () => {
+      if (dropKey) inFlightDropsRef.current.delete(dropKey);
+      setTargetBusy(targetKey, false);
+    };
+
+    // Server-side idempotens-claim — atomart insert-on-conflict.
+    // Returnerer false hvis nøglen allerede findes (= dobbelt-kald), så
+    // vi bailer ud før der laves nogen som helst route/stop-mutationer.
+    // Tidsbucket på 3 sekunder gør at brugeren kan retry'e efter en kort
+    // pause hvis fx netværket fejlede.
+    const claimIdempotency = async (): Promise<boolean> => {
+      if (!dropKey) return true;
+      const bucket = Math.floor(Date.now() / 3000);
+      try {
+        const { data, error } = await supabase.rpc("claim_route_planner_idempotency", {
+          _key: `${businessId}:${dropKey}:${bucket}`,
+          _business_id: businessId,
+        });
+        if (error) {
+          // Hvis selve claim'et fejler, lader vi handlingen køre videre —
+          // bedre at risikere en advarsel end at blokere alt arbejde.
+          console.warn("idempotency claim failed", error);
+          return true;
+        }
+        return data === true;
+      } catch (err) {
+        console.warn("idempotency claim threw", err);
+        return true;
+      }
+    };
 
     /* ─── Drop fra MonthWeekCalendar ─── */
     // Træk en hel rute → en anden rute = flet/merge alle stops ind i målrute
@@ -669,6 +717,12 @@ const Planner = () => {
         return;
       }
       const targetRouteId: string = overData.routeId;
+      if (!(await claimIdempotency())) {
+        // Et andet kald har allerede claimet samme drop — bail.
+        toast.info("Aftalen er allerede ved at blive tilføjet");
+        releaseDrop();
+        return;
+      }
       try {
         const { data: existingStops } = await supabase
           .from("route_stops").select("id, order_id").eq("route_id", targetRouteId);
@@ -718,6 +772,11 @@ const Planner = () => {
         return;
       }
       const newDate: string = overData.date;
+      if (!(await claimIdempotency())) {
+        toast.info("Aftalen er allerede ved at blive lagt på den dag");
+        releaseDrop();
+        return;
+      }
       try {
         // Hvis aftalen allerede er lagt på en rute samme dag (fx pga. tidligere
         // hurtig-drop som lige har committet), så afbryd for at undgå dublet-ruter.
@@ -789,6 +848,12 @@ const Planner = () => {
       // Find aktuel rute-dato — undgå "flytning" til samme dag
       const currentRoute = calendarRoutesRaw.find((r) => r.id === stop.route_id);
       if (currentRoute && currentRoute.route_date === newDate) { releaseDrop(); return; }
+
+      if (!(await claimIdempotency())) {
+        toast.info("Stoppet er allerede ved at blive flyttet");
+        releaseDrop();
+        return;
+      }
 
       // Konflikt-tjek: advar hvis assignee har overlappende stops på dato
       const conflictMsg = detectAssigneeConflicts(stop, newDate);
@@ -1530,6 +1595,7 @@ const Planner = () => {
                   loadingRoutes={loadingCalendarRoutes || loadingCalendarStops}
                   loadingWeather={loadingWeather}
                   weatherError={weatherError}
+                  busyTargets={busyTargets}
                 />
                 </div>
               </ResizablePanel>

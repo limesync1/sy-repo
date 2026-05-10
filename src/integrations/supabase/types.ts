@@ -2515,6 +2515,27 @@ export type Database = {
           },
         ]
       }
+      route_planner_idempotency: {
+        Row: {
+          business_id: string
+          created_at: string
+          key: string
+          user_id: string | null
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          key: string
+          user_id?: string | null
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          key?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       route_stop_assignees: {
         Row: {
           created_at: string
@@ -3304,7 +3325,12 @@ export type Database = {
         Args: { _customer_id: string }
         Returns: string
       }
+      claim_route_planner_idempotency: {
+        Args: { _business_id: string; _key: string }
+        Returns: boolean
+      }
       cleanup_accounting_sync_log: { Args: never; Returns: undefined }
+      cleanup_route_planner_idempotency: { Args: never; Returns: number }
       delete_cancelled_order: {
         Args: { _order_id: string }
         Returns: undefined

@@ -56,6 +56,10 @@ type Props = {
   loadingWeather?: boolean;
   /** Vejr-API fejlede — vis diskret fallback-ikon så brugeren ved at vejret er utilgængeligt. */
   weatherError?: boolean;
+  /** Sæt af drop-target-nøgler (`route:<id>` eller `day:<yyyy-MM-dd>`) der
+   *  pt. behandler en flytning. Targets i settet deaktiveres som drop-zone
+   *  og viser en spinner, så brugeren ikke kan slippe igen ved et uheld. */
+  busyTargets?: Set<string>;
 };
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
@@ -63,7 +67,7 @@ const ymd = (d: Date) => format(d, "yyyy-MM-dd");
 export const MonthWeekCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
   onCreateRoute, onOptimizeRoute, optimizingRouteId, draggingType, weatherByDate,
-  loadingRoutes, loadingWeather, weatherError,
+  loadingRoutes, loadingWeather, weatherError, busyTargets,
 }: Props) => {
   const anchor = parseISO(anchorDate);
 
@@ -148,6 +152,8 @@ export const MonthWeekCalendar = ({
                     loadingRoutes={!!loadingRoutes}
                     loadingWeather={!!loadingWeather}
                     weatherError={!!weatherError}
+                    busy={!!busyTargets?.has(`day:${dateStr}`)}
+                    busyRouteIds={busyTargets}
                   />
                 );
               })}
@@ -177,16 +183,21 @@ type DayCellProps = {
   loadingRoutes?: boolean;
   loadingWeather?: boolean;
   weatherError?: boolean;
+  /** True hvis dagens drop-zone pt. behandler en flytning. */
+  busy?: boolean;
+  /** Sæt med alle busy targets — videresendes til RoutePill for rute-niveau. */
+  busyRouteIds?: Set<string>;
 };
 
 const DayCellInner = ({
   date, dateStr, routes, inMonth, today,
   onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, optimizingRouteId, compact, draggingType, weather,
-  loadingRoutes, loadingWeather, weatherError,
+  loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds,
 }: DayCellProps) => {
   const { setNodeRef, isOver } = useDroppable({
     id: `day:${dateStr}`,
     data: { type: "day", date: dateStr },
+    disabled: !!busy,
   });
 
   const isDragActive = !!draggingType;
@@ -204,8 +215,15 @@ const DayCellInner = ({
         isDragActive && inMonth && !isOver && "ring-1 ring-accent/30 ring-inset",
         // Når man hovrer over en dag — tydeligt highlight
         isOver && "bg-accent/15 ring-2 ring-accent ring-inset shadow-inner",
+        busy && "opacity-90 cursor-wait",
       )}
+      aria-busy={busy || undefined}
     >
+      {busy && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/60 backdrop-blur-[1px] rounded-sm pointer-events-none">
+          <Loader2 className="h-5 w-5 animate-spin text-accent" />
+        </div>
+      )}
       {/* Dato-header */}
       <div className="flex items-center justify-between mb-0.5">
         <span
@@ -269,6 +287,7 @@ const DayCellInner = ({
             optimizing={optimizingRouteId === r.id}
             compact={compact}
             jobDragActive={isJobDragActive}
+            busy={!!busyRouteIds?.has(`route:${r.id}`)}
           />
         ))}
 
@@ -308,7 +327,9 @@ const DayCell = memo(DayCellInner, (prev, next) => {
     prev.optimizingRouteId === next.optimizingRouteId &&
     prev.loadingRoutes === next.loadingRoutes &&
     prev.loadingWeather === next.loadingWeather &&
-    prev.weatherError === next.weatherError
+    prev.weatherError === next.weatherError &&
+    prev.busy === next.busy &&
+    prev.busyRouteIds === next.busyRouteIds
   );
 });
 
@@ -321,22 +342,24 @@ type RoutePillProps = {
   optimizing: boolean;
   compact: boolean;
   jobDragActive?: boolean;
+  /** True hvis ruten pt. behandler en flytning — drop deaktiveres + spinner. */
+  busy?: boolean;
 };
 
-const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing, compact, jobDragActive }: RoutePillProps) => {
+const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing, compact, jobDragActive, busy }: RoutePillProps) => {
   const isVirtual = !!route.isVirtual;
   // Drag-handle: hele pillen kan trækkes til ny dato (kun rigtige ruter).
   const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({
     id: `route:${route.id}`,
     data: { type: "route", route },
-    disabled: isVirtual,
+    disabled: isVirtual || !!busy,
   });
 
   // Drop-zone: aftaler kan slippes på pillen for at blive tilføjet til ruten.
   const { setNodeRef: setDropRef, isOver } = useDroppable({
     id: `route-drop:${route.id}`,
     data: { type: "route", routeId: route.id, date: route.route_date },
-    disabled: isVirtual,
+    disabled: isVirtual || !!busy,
   });
 
   // Combined ref
@@ -362,6 +385,7 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
         // Når en aftale er ved at blive sluppet på pillen — markér tydeligt
         !isVirtual && jobDragActive && !isOver && "ring-1 shadow-sm",
         !isVirtual && isOver && "ring-2 ring-accent shadow-md scale-[1.02]",
+        busy && "cursor-wait",
       )}
       style={{
         borderLeftColor: route.color,
@@ -370,7 +394,13 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
           : {}),
       }}
       title={isVirtual ? "Planlagt gentagende rute — låst indtil forrige er udført" : undefined}
+      aria-busy={busy || undefined}
     >
+      {busy && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/70 backdrop-blur-[1px] pointer-events-none">
+          <Loader2 className="h-3.5 w-3.5 animate-spin text-accent" />
+        </div>
+      )}
       <div
         {...(isVirtual ? {} : listeners)}
         {...(isVirtual ? {} : attributes)}
@@ -488,6 +518,7 @@ const RoutePill = memo(RoutePillInner, (prev, next) => {
     prev.route === next.route &&
     prev.optimizing === next.optimizing &&
     prev.compact === next.compact &&
-    prev.jobDragActive === next.jobDragActive
+    prev.jobDragActive === next.jobDragActive &&
+    prev.busy === next.busy
   );
 });
