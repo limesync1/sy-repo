@@ -81,8 +81,10 @@ export const expandRecurringRoutes = (params: {
       const stepsAhead = Math.floor(diff / days);
       if (stepsAhead > 0) cursor = addDays(cursor, stepsAhead * days);
     }
+    // Safety-loft højt nok til daglige aftaler i flere års sigte uden at risikere
+    // uendelig løkke ved misformede data (fx negative interval_days).
     let safety = 0;
-    while (!isBefore(limit, cursor) && safety++ < 400) {
+    while (!isBefore(limit, cursor) && safety++ < 4000) {
       const ds = format(cursor, "yyyy-MM-dd");
       const key = `${routeId}|${ds}`;
       if (
