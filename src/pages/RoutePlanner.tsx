@@ -470,6 +470,9 @@ const Planner = () => {
           ...base,
           id: p.id,
           route_date: p.date,
+          // Behold basis-rutens navn på alle gentagne forekomster, så de
+          // hedder det samme i kalenderen (i stedet for "Kørsel <dato>").
+          name: base.name || (base.route_date ? `Kørsel ${format(parseISO(base.route_date), "d/M")}` : null),
           stops: [],
           attachedEmployees: [],
           attachedEmployeeCount: 0,
