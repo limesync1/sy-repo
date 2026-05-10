@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/resizable";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
-  ChevronLeft, ChevronRight, Calendar as CalendarIcon,
+  ChevronLeft, ChevronRight,
   Loader2, Search, Plus, Inbox, ArrowUpDown, X, Keyboard,
   Route as RouteIcon, Tag, Palette,
   Wand2,
