@@ -8,6 +8,7 @@ import {
   useAddStop,
   useOptimizeRoute, useGeocodeAddress, useRoutesForRange,
   useCreateRoute, useDeleteRoute, useUpdateRoute,
+  useUnassignedOccurrences, useMaterializeOccurrenceToRoute,
   type RouteStop, type Route,
 } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
@@ -33,7 +34,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon,
   Loader2, Search, Plus, Inbox, ArrowUpDown, X, Keyboard,
-  ShoppingBag, Route as RouteIcon, Tag, Palette, Layers,
+  Route as RouteIcon, Tag, Palette,
   Wand2,
 } from "lucide-react";
 import { format, addDays, addWeeks, addMonths, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
@@ -51,7 +52,6 @@ import { DatePickerField } from "@/components/route-planner/DatePickerField";
 import { RouteStopsPanel } from "@/components/route-planner/RouteStopsPanel";
 import { supabase } from "@/integrations/supabase/client";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
-import { RouteTemplatesDialog } from "@/components/route-planner/RouteTemplatesDialog";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
 import { AdminShell } from "@/components/admin/shared/AdminShell";
 import { StatusPill } from "@/components/admin/shared/StatusPill";
