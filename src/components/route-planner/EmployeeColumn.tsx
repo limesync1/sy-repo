@@ -181,28 +181,26 @@ const SortableStopCard = ({
               <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse shrink-0" />
             )}
           </div>
+          {stop.service_summary && (
+            <p className="text-[10px] text-foreground/75 truncate font-medium mt-0.5">
+              {stop.service_summary}
+            </p>
+          )}
           {stop.address && (
-            <p className="text-[10px] text-muted-foreground truncate flex items-center gap-0.5">
+            <p className="text-[10px] text-muted-foreground truncate flex items-center gap-0.5 mt-0.5">
               <MapPin className="h-2.5 w-2.5" />{stop.address}
             </p>
           )}
-          <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-muted-foreground">
-            <span className="flex items-center gap-0.5">
-              <Clock className="h-2.5 w-2.5" />{formatDurationMin(stop.duration_minutes, { short: true })}
-            </span>
-            {stop.time_window_start && (
-              <span className="text-amber-700 font-medium">
-                {stop.time_window_start.slice(0, 5)}
-                {stop.time_window_end && `–${stop.time_window_end.slice(0, 5)}`}
-              </span>
-            )}
-            {stop.distance_to_next_km != null && stop.distance_to_next_km > 0 && (
-              <span className="ml-auto">→ {stop.distance_to_next_km.toFixed(1)} km</span>
-            )}
-            {!hasCoords && (
-              <AlertCircle className="h-2.5 w-2.5 text-orange-500" />
-            )}
-          </div>
+          {(stop.distance_to_next_km != null && stop.distance_to_next_km > 0) || !hasCoords ? (
+            <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-muted-foreground">
+              {stop.distance_to_next_km != null && stop.distance_to_next_km > 0 && (
+                <span>→ {stop.distance_to_next_km.toFixed(1)} km</span>
+              )}
+              {!hasCoords && (
+                <AlertCircle className="h-2.5 w-2.5 text-orange-500" />
+              )}
+            </div>
+          ) : null}
         </div>
       </div>
     </div>
