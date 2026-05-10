@@ -80,7 +80,6 @@ const Planner = () => {
   const [geocoding, setGeocoding] = useState(false);
   const [createOrderOpen, setCreateOrderOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
-  const [templatesOpen, setTemplatesOpen] = useState(false);
   const [materializing, setMaterializing] = useState(false);
   const [newRouteName, setNewRouteName] = useState("");
   const [newRouteColor, setNewRouteColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
@@ -95,6 +94,8 @@ const Planner = () => {
   const activeEmployees = useMemo(() => employees.filter((e: any) => e.is_active), [employees]);
 
   const { data: unassigned = [] } = useUnassignedJobs(businessId);
+  const { data: unassignedOccurrences = [] } = useUnassignedOccurrences(businessId);
+  const materializeOccurrence = useMaterializeOccurrenceToRoute();
 
   // Range for kalender: hele måneden hvis month-view, ugen hvis week-view
   const calendarRange = useMemo(() => {
@@ -755,26 +756,6 @@ const Planner = () => {
               </Dialog>
 
               <Button
-                data-tour="routes-create-order"
-                variant="default"
-                size="sm"
-                className="h-7"
-                onClick={() => setCreateOrderOpen(true)}
-              >
-                <ShoppingBag className="h-3.5 w-3.5 mr-1" />Manuelt stop
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7"
-                onClick={() => setTemplatesOpen(true)}
-                title="Rute-skabeloner"
-              >
-                <Layers className="h-3.5 w-3.5 mr-1" />Skabeloner
-              </Button>
-
-              <Button
                 variant="outline"
                 size="sm"
                 className="h-7"
@@ -972,14 +953,6 @@ const Planner = () => {
             onOpenChange={setCreateOrderOpen}
             businessId={businessId}
             businessName={business?.name || ""}
-          />
-        )}
-
-        {businessId && (
-          <RouteTemplatesDialog
-            open={templatesOpen}
-            onOpenChange={setTemplatesOpen}
-            businessId={businessId}
           />
         )}
 
