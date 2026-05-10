@@ -723,6 +723,15 @@ const Planner = () => {
     return calendarRoutesRaw.find((route) => route.id === editingRoute.id) ?? editingRoute;
   }, [editingRoute, calendarRoutesRaw]);
 
+  // Find det auto-genererede visningsnavn (fra calendarRoutes-transformen) så
+  // edit-sheet kan pre-udfylde inputtet med det navn brugeren faktisk ser på
+  // pillen — i stedet for at vise et tomt felt.
+  const activeEditingAutoName = useMemo<string | null>(() => {
+    if (!editingRoute) return null;
+    const fromBuilt = calendarRoutes.find((r) => r.id === editingRoute.id);
+    return (fromBuilt as any)?.name || null;
+  }, [editingRoute, calendarRoutes]);
+
   /* Auto-geocode jobs missing coords */
   useEffect(() => {
     if (!businessId || geocoding) return;
