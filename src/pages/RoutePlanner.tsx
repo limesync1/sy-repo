@@ -230,6 +230,12 @@ const Planner = () => {
     pendingRouteMove?.route.id ?? null,
     pendingRouteMove?.route.route_date ?? null,
   );
+  // Serie-info for kilde-ruten i en igangværende fletning, så fletteren
+  // også kan tilbyde "fremtidige aftaler også" når kilden har gentagne aftaler.
+  const { data: pendingMergeSeriesInfo } = useRouteSeriesInfo(
+    pendingRouteMerge?.source.id ?? null,
+    pendingRouteMerge?.source.route_date ?? null,
+  );
 
   // Pr-rute "pending" state — kun den rute der faktisk optimeres viser spinner
   const [optimizingRouteId, setOptimizingRouteId] = useState<string | null>(null);
