@@ -663,6 +663,44 @@ const Planner = () => {
       return;
     }
 
+    // ── Træk et eksisterende stop fra én rute → en anden dag ──
+    // Bruger move_stops_to_date som finder/opretter målrute pr. assignee
+    // og opdaterer agreement_occurrences via DB-trigger.
+    if (activeData?.type === "stop" && overData?.type === "day") {
+      const stop = activeData.stop;
+      const newDate: string = overData.date;
+      // Find aktuel rute-dato — undgå "flytning" til samme dag
+      const currentRoute = calendarRoutesRaw.find((r) => r.id === stop.route_id);
+      if (currentRoute && currentRoute.route_date === newDate) return;
+
+      // Konflikt-tjek: advar hvis assignee har overlappende stops på dato
+      const conflictMsg = detectAssigneeConflicts(stop, newDate);
+      try {
+        const { data, error } = await supabase.rpc("move_stops_to_date", {
+          _stop_ids: [stop.id],
+          _target_date: newDate,
+        });
+        if (error) throw error;
+        const row = Array.isArray(data) ? data[0] : data;
+        const moved = Number(row?.moved_count ?? 0);
+        const missing = Number(row?.missing_employee_count ?? 0);
+        if (moved > 0) {
+          toast.success(
+            `Stop flyttet til ${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`,
+            conflictMsg ? { description: `⚠️ ${conflictMsg} — tjek tidsplanen` } : undefined,
+          );
+        }
+        if (missing > 0) {
+          toast.error("Stoppet mangler en medarbejder for at kunne flyttes", {
+            description: "Tilknyt en medarbejder til ruten eller aftalen, og prøv igen.",
+          });
+        }
+      } catch (err: any) {
+        toast.error(err.message || "Kunne ikke flytte stop");
+      }
+      return;
+    }
+
   };
 
   // ── Drag stop → ny dag (flyt aftaleforekomsten) ──
