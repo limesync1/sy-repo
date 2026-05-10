@@ -470,6 +470,7 @@ export type Database = {
           invoice_external_id: string | null
           invoice_status: string | null
           invoiced_at: string | null
+          legacy_order_id: string | null
           notes: string | null
           occurrence_date: string
           paid_amount: number | null
@@ -494,6 +495,7 @@ export type Database = {
           invoice_external_id?: string | null
           invoice_status?: string | null
           invoiced_at?: string | null
+          legacy_order_id?: string | null
           notes?: string | null
           occurrence_date: string
           paid_amount?: number | null
@@ -518,6 +520,7 @@ export type Database = {
           invoice_external_id?: string | null
           invoice_status?: string | null
           invoiced_at?: string | null
+          legacy_order_id?: string | null
           notes?: string | null
           occurrence_date?: string
           paid_amount?: number | null
@@ -584,6 +587,7 @@ export type Database = {
           interval: Database["public"]["Enums"]["agreement_interval"]
           interval_days: number | null
           latitude: number | null
+          legacy_subscription_id: string | null
           longitude: number | null
           notes: string | null
           payment_terms_days: number | null
@@ -624,6 +628,7 @@ export type Database = {
           interval?: Database["public"]["Enums"]["agreement_interval"]
           interval_days?: number | null
           latitude?: number | null
+          legacy_subscription_id?: string | null
           longitude?: number | null
           notes?: string | null
           payment_terms_days?: number | null
@@ -664,6 +669,7 @@ export type Database = {
           interval?: Database["public"]["Enums"]["agreement_interval"]
           interval_days?: number | null
           latitude?: number | null
+          legacy_subscription_id?: string | null
           longitude?: number | null
           notes?: string | null
           payment_terms_days?: number | null

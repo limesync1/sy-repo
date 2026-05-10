@@ -1,78 +1,88 @@
-## Plan: 4 forbedringer til bestillinger, ruter og services
+# Plan: Unific\u00e9r ruter/aftaler-logikken
 
-Dette er et større stykke arbejde fordelt på 4 områder. Jeg foreslår at vi tager dem som separate, fokuserede ændringer for at undgå fejl i de meget store filer (AftaleTab er 2400 linjer, useRoutes 1600 linjer, SettingsTab 2200 linjer).
+Du sagde "start med det der giver mening + migr\u00e9r data". Den r\u00e6kkef\u00f8lge giver st\u00f8rst v\u00e6rdi med mindst risiko:
 
----
+1. **Fundament f\u00f8rst** \u2014 \u00e9n sandhed for tilbagevendende arbejde (`agreements` + `agreement_occurrences`)
+2. **Migration** \u2014 flyt eksisterende `subscriptions` + deres ordrer ind i den model
+3. **Hurtig kalender** \u2014 \u00e9n RPC erstatter 4 hooks
+4. **Senere** \u2014 kapacitetsbevidst auto-fordel (n\u00e6ste runde)
 
-### 1) "Opret bestilling"-dialog: erstat tidsfelter med opstartsdato
+## Hvorfor denne r\u00e6kkef\u00f8lge
 
-**Hvad:**
-- Fjern felterne "Tidsrum (start–slut)" og "Estimeret varighed" fra `CreateManualOrderDialog`
-- Omdøb "Foreslået dato" til **"Opstartsdato"**
-- I databasen mappes opstartsdato til `preferred_date` (uændret kolonne), `preferred_time_start/end` og `estimated_duration_minutes` sættes til `null`
-- I aftale-detaljevisningen (`AftaleTab`) vises "Opstartsdato" i stedet for "Foreslået dato / Tidsrum / Varighed" når disse er tomme
+I dag har du to parallelle modeller for "tilbagevendende arbejde":
 
-**Hvorfor opstartsdato giver mening:** for gentagende aftaler er det den dato hvor første udførsel starter — derefter overtager rute-planlægningen tidsstyringen.
-
----
-
-### 2) "Opret bestilling" springer kunde-godkendelse over
-
-**Hvad:**
-- I `CreateManualOrderDialog` sættes `requires_customer_approval = false` og `status = 'confirmed'` direkte ved oprettelse fra virksomhedspanelet
-- Kunden modtager **ordrebekræftelse** (samme template som ved selvbestilling) i stedet for "godkend bestilling"-mail
-- Eksisterende "send godkendelseslink"-flow fjernes fra dialogen
-
-**Effekt:** aftalen er klar til planlægning med det samme; ingen ventetid på kunde-svar.
-
----
-
-### 3) Gentagende ruter / faste aftaler i kalenderen
-
-Dette er den mest omfattende del. Forklaring:
-
-**Nuværende opførsel:** når en aftale er en abonnementsaftale (interval ≠ engangskøb), opretter `auto_recur_due_orders()` (DB-funktion) en NY ordre + route_stop først når `next_service_date` er passeret. Derfor kan man kun se "næste" — ikke fremtidige forekomster.
-
-**Forslag:**
-- **Visuelt i kalenderen** (`CalendarPlanner` + `MonthWeekCalendar`): tegn "virtuelle" forekomster af gentagende stops på alle fremtidige datoer baseret på subscription-interval, indtil et valgt horisont (fx 6 måneder frem). Virtuelle stops er read-only (kan ikke flyttes/redigeres) og vises med rutens navn + farve men dæmpet (50% opacity + lås-ikon).
-- **"Næste udførsel"-badge** vises på selve rutekortet (fx "Næste: 10. maj").
-- **Medarbejder-låsning:** i `EmployeeApp` / route-stop-listen vises kun den næste planlagte rute som "udfør-bar". Fremtidige ruter er låst med besked "Tilgængelig efter forrige rute er gennemført". Når den aktive rute markeres `completed`, åbner DB-trigger `auto_recur_due_orders` for næste forekomst (allerede eksisterende mekanisme).
-- **Rutens identitet arves:** route_stops viser allerede `route.color/name`. Vi sikrer at virtuelle forekomster i kalenderen + medarbejderpanel viser samme farve/navn.
-
-**Tekniske detaljer:**
-- Virtuelle stops genereres client-side i en ny helper `expandRecurringStops(stops, subscriptions, horizonDays)` — ingen DB-ændringer nødvendige
-- `MonthWeekCalendar` får en `virtualStops` prop og renderer dem dæmpet
-- `EmployeeRoute`-siden får en check: hvis der findes en åben rute med tidligere `route_date`, lås den nuværende
-
----
-
-### 4) Standard-medarbejder pr. service
-
-**Hvad:**
-- Tilføj kolonne `default_employee_id uuid` på `services`-tabellen (FK til `employees.id`, `ON DELETE SET NULL`)
-- I service-redigering på `SettingsTab` (Services-fanen): tilføj en "Standard-medarbejder"-dropdown
-- Ved oprettelse af aftale (`CreateManualOrderDialog` + customer-flow) auto-vælges denne medarbejder på den tilknyttede `route_stop` hvis ingen er valgt
-- Manuelle ændringer på en aftale påvirker ikke service-defaulten
-
-**Migration:**
-```sql
-ALTER TABLE public.services ADD COLUMN default_employee_id uuid REFERENCES public.employees(id) ON DELETE SET NULL;
+```text
+ORDERS + SUBSCRIPTIONS (gammel)        AGREEMENTS + OCCURRENCES (ny)
+   \u2502                                       \u2502
+   \u251c\u2500 next_service_date                    \u251c\u2500 occurrence_date
+   \u251c\u2500 preferred_route_id                   \u251c\u2500 route_id (direkte link)
+   \u2514\u2500 frontend-projektion                  \u2514\u2500 status, payment_status, due_date
 ```
 
----
+`agreement_occurrences` er allerede den bedre model \u2014 den har `route_id`, `status`, betalings-felter og er materialiseret (ikke bare projiceret i frontend). Auto-fordel, kalender og kapacitet bliver alt sammen meget enklere n\u00e5r alt g\u00e5r gennem occurrences.
 
-### Implementeringsrækkefølge
+## Fase 1 \u2014 Migration (databasen)
 
-Jeg foreslår vi tager dem i denne rækkefølge for at holde diff'erne overskuelige:
+**Migration A: Konvert\u00e9r subscriptions \u2192 agreements**
 
-1. **Punkt 1 + 2** (samme dialog — `CreateManualOrderDialog` + lille ændring i `AftaleTab`-visning)
-2. **Punkt 4** (migration + Services-fane + auto-tildeling i CreateManualOrderDialog)
-3. **Punkt 3** (kalender-udvidelse — størst, kræver mest test)
+For hver aktiv `subscription`:
+- Opret matching `agreement` (kopi\u00e9r kunde/adresse fra ordren, interval, total_price)
+- Opret `agreement_items` fra `order_items`
+- Tilf\u00f8j `legacy_subscription_id` p\u00e5 `agreements` (sporbar mapping)
 
-### Spørgsmål inden jeg går i gang
+For hver eksisterende `route_stop` med `order_id` eller `subscription_id`:
+- Opret `agreement_occurrence` for det stop
+- S\u00e6t `route_stops.agreement_occurrence_id` 
+- Behold `order_id` for fakturering, men l\u00e6s status fra occurrence
 
-- **Punkt 3 horisont:** skal virtuelle forekomster vises 3, 6 eller 12 måneder frem? (Default: 6)
-- **Punkt 3 medarbejder-lås:** skal en låst rute helt skjules i medarbejder-app, eller vises som "kommende" med disabled-knap? (Min anbefaling: vis som disabled så medarbejderen kan se hvad der venter)
-- **Punkt 1:** skal vi helt slette tidskolonnerne fra DB, eller bare lade dialogen ikke udfylde dem? (Min anbefaling: lad kolonnerne stå — andre flows bruger dem stadig)
+For fremtidige planlagte besh\u00f8g (subscription.next_service_date):
+- Opret `agreement_occurrence` med `status='planned'`, ingen `route_id` endnu
 
-Skal jeg bare gå i gang med standardvalgene, eller vil du justere noget først?
+**Migration B: Opdat\u00e9r `auto_recur_due_orders`**
+
+I dag opretter den nye `orders` + `route_stops` n\u00e5r en subscription forfalder.
+\u00c6ndres til: opret `agreement_occurrence` (status=planned, ingen rute). Materialisering til rute sker n\u00e5r en bruger tildeler den.
+
+**Migration C: Behold subscriptions som read-only view**
+
+Ingen kode der skriver til `subscriptions` l\u00e6ngere. Tabellen bliver historik. Vi sletter den ikke endnu \u2014 sikkerhedsnet hvis noget overses.
+
+## Fase 2 \u2014 Frontend skifter sandhed
+
+- `recurring-projection.ts` slettes (ikke l\u00e6ngere n\u00f8dvendig \u2014 occurrences er materialiserede)
+- `RoutePlanner` l\u00e6ser `agreement_occurrences` direkte ind p\u00e5 ruter (via stop.agreement_occurrence_id)
+- Stop-kort viser status fra occurrence (planned/completed/cancelled) i stedet for at gisne
+- "Aftaler uden rute" = `agreement_occurrences WHERE route_id IS NULL AND occurrence_date BETWEEN ...`
+- Drop & drop til ny dato = `materialize_occurrence_to_route` RPC (findes allerede)
+
+## Fase 3 \u2014 Samlet calendar-RPC
+
+Ny RPC `get_calendar_data(business_id, from, to)` returnerer i \u00e9t kald:
+- Routes for perioden
+- Stops for de routes (med joined occurrence-status)
+- Route-employees
+- Unassigned occurrences i perioden
+
+Erstatter `useRoutesForRange` + `useStopsForRoutes` + `useRouteEmployees` + `useUnassignedAgreementOccurrences` \u2014 fra 4 round-trips til 1.
+
+## R\u00e6kkef\u00f8lge i implementering
+
+1. Skriv migration A+B+C (\u00e9n samlet SQL-fil) \u2014 du godkender den eksplicit
+2. Skift frontend til at l\u00e6se occurrences som sandhed
+3. Tilf\u00f8j `get_calendar_data` RPC
+4. Skift hooks til at bruge den ene RPC
+5. Slet d\u00f8d kode (`recurring-projection.ts`, gammel `useUnassignedAgreementOccurrences` osv.)
+
+## Risiko & sikkerhedsnet
+
+- `subscriptions` slettes IKKE \u2014 kun read-only
+- `legacy_subscription_id` p\u00e5 `agreements` g\u00f8r det muligt at rulle tilbage
+- Eksisterende `route_stops.order_id` bevares \u2014 fakturering p\u00e5virkes ikke
+- Migration k\u00f8rer i \u00e9n transaktion (alt-eller-intet)
+
+## Det her ber\u00f8rer
+
+Kode: `useRoutes.ts`, `RoutePlanner.tsx`, `recurring-projection.ts`, `MoveStopsDialog.tsx`, `useUnassignedAgreementOccurrences.ts`, `auto_recur_due_orders` (DB).  
+Estimat: ~1 stor DB-migration + ~6\u20138 fil-\u00e6ndringer i frontend.
+
+Sig til n\u00e5r du vil have mig til at starte (s\u00e5 begynder jeg med migrationen, som du f\u00e5r at godkende).
