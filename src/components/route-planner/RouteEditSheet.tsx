@@ -9,16 +9,22 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Sparkles, Trash2, Check } from "lucide-react";
+import { Loader2, Sparkles, Trash2, Check, CalendarRange } from "lucide-react";
 import { Palette, CalendarDays, Pencil, Gauge } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { useUpdateRoute, useDeleteRoute, useOptimizeRoute, useDirections, type Route, type RouteStop } from "@/hooks/useRoutes";
+import {
+  useUpdateRoute, useDeleteRoute, useOptimizeRoute, useDirections,
+  useRouteSeriesInfo, useMoveRouteSeries,
+  type Route, type RouteStop,
+} from "@/hooks/useRoutes";
 import { DatePickerField } from "./DatePickerField";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection";
 import { pickDuration } from "@/components/route/EtaBreakdown";
+import { MoveRouteDateDialog, type MoveRouteScope } from "./MoveRouteDateDialog";
+import { MoveStopsDialog } from "./MoveStopsDialog";
 
 export type RouteEmployeeOption = { id: string; name: string };
 
@@ -78,11 +84,17 @@ export const RouteEditSheet = ({
   const [color, setColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
   const [date, setDate] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  // Pending date-flytning — hvis ruten er del af en serie spørger vi
+  // brugeren om kun denne ene eller alle fremtidige skal flyttes.
+  const [pendingDate, setPendingDate] = useState<string | null>(null);
+  const [moveStopsOpen, setMoveStopsOpen] = useState(false);
   const initialSyncDone = useRef(false);
 
   const updateRoute = useUpdateRoute();
   const deleteRoute = useDeleteRoute();
   const optimize = useOptimizeRoute();
+  const moveRouteSeries = useMoveRouteSeries();
+  const { data: seriesInfo } = useRouteSeriesInfo(route?.id ?? null, route?.route_date ?? null);
 
   useEffect(() => {
     if (!route) return;
@@ -125,15 +137,13 @@ export const RouteEditSheet = ({
 
   const dirty =
     (route?.name || "") !== name ||
-    route?.color !== color ||
-    route?.route_date !== date;
+    route?.color !== color;
 
   const pendingPayload = useMemo(() => ({
     id: route?.id ?? "",
     name: name.trim() || null,
     color,
-    route_date: date,
-  }), [route?.id, name, color, date]);
+  }), [route?.id, name, color]);
 
   useEffect(() => {
     if (!route || !open || !dirty) return;
@@ -158,6 +168,37 @@ export const RouteEditSheet = ({
       onOpenChange(false);
     } catch { /* */ }
     setConfirmDelete(false);
+  };
+
+  // Hvis brugeren ændrer datoen i picker → åbn scope-dialog i stedet for at autosave.
+  const handleDateChange = (next: string) => {
+    if (!route || !next || next === route.route_date) {
+      setDate(next);
+      return;
+    }
+    setPendingDate(next);
+  };
+
+  const handleConfirmMoveDate = async (
+    scope: MoveRouteScope,
+    moveLinkedSubscriptions: boolean,
+  ) => {
+    if (!route || !pendingDate) return;
+    try {
+      await moveRouteSeries.mutateAsync({
+        routeId: route.id,
+        newDate: pendingDate,
+        scope,
+        moveLinkedSubscriptions,
+      });
+      setDate(pendingDate);
+      toast.success(
+        scope === "future" ? "Ruteserien flyttet" : "Rute flyttet til ny dato",
+      );
+      setPendingDate(null);
+    } catch (e: any) {
+      toast.error(e.message || "Kunne ikke flytte rute");
+    }
   };
 
   const handleOptimize = async () => {
@@ -258,9 +299,9 @@ export const RouteEditSheet = ({
             <Section
               icon={<CalendarDays className="h-3.5 w-3.5" />}
               title="Dato"
-              hint="Træk i kalenderen for hurtigt skift"
+              hint={(seriesInfo?.futureRouteCount ?? 1) >= 2 ? "Del af fast rute" : "Træk i kalenderen for hurtigt skift"}
             >
-              <DatePickerField value={date} onChange={setDate} />
+              <DatePickerField value={date} onChange={handleDateChange} />
             </Section>
 
             {/* Rejsetid — kort og enkel: "Estimeret rejsetid: 34 min" */}
@@ -296,6 +337,16 @@ export const RouteEditSheet = ({
                 Optimér rækkefølge
               </Button>
             )}
+            {stopCount >= 1 && (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setMoveStopsOpen(true)}
+              >
+                <CalendarRange className="h-4 w-4 mr-2" />
+                Flyt aftaler
+              </Button>
+            )}
             <Button
               variant="outline"
               className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
@@ -326,6 +377,25 @@ export const RouteEditSheet = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <MoveRouteDateDialog
+        open={!!pendingDate}
+        onOpenChange={(o) => { if (!o) setPendingDate(null); }}
+        routeName={route.name || "Rute"}
+        fromDate={route.route_date}
+        toDate={pendingDate || ""}
+        futureRouteCount={seriesInfo?.futureRouteCount ?? 1}
+        linkedSubscriptionCount={seriesInfo?.linkedSubscriptionCount ?? 0}
+        loading={moveRouteSeries.isPending}
+        onConfirm={handleConfirmMoveDate}
+      />
+
+      <MoveStopsDialog
+        open={moveStopsOpen}
+        onOpenChange={setMoveStopsOpen}
+        route={route}
+        stops={stops}
+      />
     </>
   );
 };
