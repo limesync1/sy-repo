@@ -229,6 +229,19 @@ const Planner = () => {
     route: Route;
     newDate: string;
   } | null>(null);
+
+  // Pending start-date konflikt: vises når brugeren dropper en aftale på en
+  // dato der ikke matcher aftalens opstartsdato. Brugeren bekræfter om
+  // opstartsdatoen skal flyttes — først derefter eksekveres `execute()`.
+  const [pendingStartDateChange, setPendingStartDateChange] = useState<{
+    job: any;
+    currentStart: string;
+    targetDate: string;
+    isBefore: boolean;
+    targetLabel: string;
+    execute: () => Promise<void>;
+  } | null>(null);
+  const [confirmingStartDate, setConfirmingStartDate] = useState(false);
   const { data: pendingSeriesInfo } = useRouteSeriesInfo(
     pendingRouteMove?.route.id ?? null,
     pendingRouteMove?.route.route_date ?? null,
