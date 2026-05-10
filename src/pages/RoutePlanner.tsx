@@ -53,6 +53,7 @@ import { RouteEditSheet, ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor }
 import { DatePickerField } from "@/components/route-planner/DatePickerField";
 import { RouteStopsPanel } from "@/components/route-planner/RouteStopsPanel";
 import { MoveRouteDateDialog, type MoveRouteScope } from "@/components/route-planner/MoveRouteDateDialog";
+import { MergeRoutesDialog } from "@/components/route-planner/MergeRoutesDialog";
 import { supabase } from "@/integrations/supabase/client";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
@@ -230,6 +231,12 @@ const Planner = () => {
     pendingRouteMove?.route.id ?? null,
     pendingRouteMove?.route.route_date ?? null,
   );
+  // Serie-info for kilde-ruten i en igangværende fletning, så fletteren
+  // også kan tilbyde "fremtidige aftaler også" når kilden har gentagne aftaler.
+  const { data: pendingMergeSeriesInfo } = useRouteSeriesInfo(
+    pendingRouteMerge?.source.id ?? null,
+    pendingRouteMerge?.source.route_date ?? null,
+  );
 
   // Pr-rute "pending" state — kun den rute der faktisk optimeres viser spinner
   const [optimizingRouteId, setOptimizingRouteId] = useState<string | null>(null);
@@ -379,7 +386,7 @@ const Planner = () => {
       counterByDate.set(r.route_date, n);
       indexByRouteId.set(r.id, n);
     }
-    return calendarRoutesRaw.map((r) => {
+    const built = calendarRoutesRaw.map((r) => {
       // Saml UNIK liste af medarbejdere på tværs af alle stops på ruten
       const empIds = new Set<string>();
       const stopsForRoute = stopsByRoute.get(r.id) || [];
@@ -439,6 +446,13 @@ const Planner = () => {
         attachedEmployeeCount: emps.length,
       };
     });
+    // Når filtre er aktive, skjul ruter helt hvis ingen af deres stops matcher.
+    // Ellers ser det ud som om filteret bare "skjuler detaljer" — hvilket
+    // forvirrer brugerne.
+    if (filtersActive) {
+      return built.filter((r) => (r.stops?.length ?? 0) > 0);
+    }
+    return built;
   }, [calendarRoutesRaw, visibleCalendarStops, activeEmployees]);
 
   /* ─── Gentagende ruter: hent aktive abonnementer med preferred_route_id og
@@ -553,8 +567,10 @@ const Planner = () => {
   }, [recurringSources, recurringBaseRoutes, calendarRoutesRaw, calendarRange.start, calendarRange.end]);
 
   const calendarRoutesAll: CalendarRoute[] = useMemo(
-    () => [...calendarRoutes, ...virtualCalendarRoutes],
-    [calendarRoutes, virtualCalendarRoutes],
+    // Skjul projicerede (virtuelle) ruter når filtre er aktive — de har
+    // ingen stops endnu, så vi kan ikke matche dem mod assignee/status-filtret.
+    () => [...calendarRoutes, ...(filtersActive ? [] : virtualCalendarRoutes)],
+    [calendarRoutes, virtualCalendarRoutes, filtersActive],
   );
 
   const activeEditingRoute = useMemo(() => {
@@ -1015,27 +1031,83 @@ const Planner = () => {
   };
 
   // Flet alle aftaler fra én rute over i en anden, og slet kilden.
-  const handleConfirmRouteMerge = async () => {
+  // scope === "future" → flyt også gentagne aftalers preferred_route_id over
+  // på målruten (og forskyd deres næste forekomst med dato-deltaet),
+  // præcis som "Flyt rute til ny dato" gør.
+  const handleConfirmRouteMerge = async (scope: "single" | "future" = "single") => {
     if (!pendingRouteMerge) return;
     const { source, target } = pendingRouteMerge;
     setMergingRoute(true);
     try {
       const sourceStops = calendarStops.filter((s: any) => s.route_id === source.id);
-      if (sourceStops.length === 0) {
-        // Ruten er allerede tom — slet bare kilderuten.
-        await supabase.from("routes").delete().eq("id", source.id);
-        toast.success("Tom rute slettet");
-        invalidateRouteSyncQueries(qc);
-        setPendingRouteMerge(null);
-        return;
+      let moved = 0;
+      if (sourceStops.length > 0) {
+        const { data, error } = await supabase.rpc("move_stops_to_route", {
+          _stop_ids: sourceStops.map((s: any) => s.id),
+          _target_route_id: target.id,
+        });
+        if (error) throw error;
+        const row = Array.isArray(data) ? data[0] : data;
+        moved = Number(row?.moved_count ?? 0);
       }
-      const { data, error } = await supabase.rpc("move_stops_to_route", {
-        _stop_ids: sourceStops.map((s: any) => s.id),
-        _target_route_id: target.id,
-      });
-      if (error) throw error;
-      const row = Array.isArray(data) ? data[0] : data;
-      const moved = Number(row?.moved_count ?? 0);
+
+      // "Fremtidige aftaler også": forskyd recurring aftaler/abonnementer
+      // på kilden til målrutens dato, og re-point preferred_route_id så
+      // fremtidige projektioner tegnes på målruten i stedet.
+      if (scope === "future") {
+        const deltaMs =
+          new Date(target.route_date).getTime() - new Date(source.route_date).getTime();
+        const deltaDays = Math.round(deltaMs / 86_400_000);
+        const shiftIso = (d: string) => {
+          const nd = new Date(d);
+          nd.setDate(nd.getDate() + deltaDays);
+          return nd.toISOString();
+        };
+        const shiftDate = (d: string) => {
+          const nd = new Date(d);
+          nd.setDate(nd.getDate() + deltaDays);
+          return nd.toISOString().slice(0, 10);
+        };
+        const [subsRes, agrsRes] = await Promise.all([
+          supabase
+            .from("subscriptions")
+            .select("id, next_service_date")
+            .eq("preferred_route_id", source.id)
+            .eq("status", "active")
+            .neq("interval", "engangskøb"),
+          supabase
+            .from("agreements")
+            .select("id, start_date")
+            .eq("preferred_route_id", source.id)
+            .eq("status", "active")
+            .neq("interval", "engangskøb"),
+        ]);
+        await Promise.all([
+          ...(subsRes.data || []).map((s: any) =>
+            supabase
+              .from("subscriptions")
+              .update({
+                preferred_route_id: target.id,
+                ...(deltaDays !== 0 && s.next_service_date
+                  ? { next_service_date: shiftIso(s.next_service_date) }
+                  : {}),
+              })
+              .eq("id", s.id),
+          ),
+          ...(agrsRes.data || []).map((a: any) =>
+            supabase
+              .from("agreements")
+              .update({
+                preferred_route_id: target.id,
+                ...(deltaDays !== 0 && a.start_date
+                  ? { start_date: shiftDate(a.start_date) }
+                  : {}),
+              })
+              .eq("id", a.id),
+          ),
+        ]);
+      }
+
       // Auto-slet kilderute (den er nu tom efter et fuldt merge)
       const { count } = await supabase
         .from("route_stops")
@@ -1045,10 +1117,20 @@ const Planner = () => {
         await supabase.from("routes").delete().eq("id", source.id);
       }
       toast.success(
-        `${moved} aftale${moved === 1 ? "" : "r"} flettet ind i ${target.name || "rute"}`,
-        { description: "Kilderuten blev slettet automatisk." },
+        sourceStops.length === 0
+          ? "Tom rute slettet"
+          : `${moved} aftale${moved === 1 ? "" : "r"} flettet ind i ${target.name || "rute"}`,
+        {
+          description:
+            scope === "future"
+              ? "Fremtidige forekomster af gentagne aftaler følger med."
+              : "Kilderuten blev slettet automatisk.",
+        },
       );
       invalidateRouteSyncQueries(qc);
+      qc.invalidateQueries({ queryKey: ["recurring-agreements-for-planner"] });
+      qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
+      qc.invalidateQueries({ queryKey: ["route-series-info"] });
       setPendingRouteMerge(null);
     } catch (err: any) {
       toast.error(err.message || "Kunne ikke flette ruterne");
@@ -1742,34 +1824,17 @@ const Planner = () => {
         </AlertDialog>
 
         {/* Bekræft fletning af to ruter (drag-and-drop rute → rute) */}
-        <AlertDialog
+        <MergeRoutesDialog
           open={!!pendingRouteMerge}
           onOpenChange={(o) => { if (!o && !mergingRoute) setPendingRouteMerge(null); }}
-        >
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Flet ruter?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Alle aftaler fra <strong>{pendingRouteMerge?.source.name || "rute uden navn"}</strong>
-                {" "}({pendingRouteMerge ? format(parseISO(pendingRouteMerge.source.route_date), "EEE d. MMM", { locale: da }) : ""})
-                {" "}flyttes ind i <strong>{pendingRouteMerge?.target.name || "målruten"}</strong>
-                {" "}({pendingRouteMerge ? format(parseISO(pendingRouteMerge.target.route_date), "EEE d. MMM", { locale: da }) : ""}),
-                og kilderuten slettes automatisk.
-                Medarbejder­tilknytninger på de enkelte aftaler bevares.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={mergingRoute}>Annullér</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={(e) => { e.preventDefault(); handleConfirmRouteMerge(); }}
-                disabled={mergingRoute}
-              >
-                {mergingRoute && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
-                Flet ruter
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+          sourceName={pendingRouteMerge?.source.name || "Rute uden navn"}
+          targetName={pendingRouteMerge?.target.name || "Målrute"}
+          sourceDate={pendingRouteMerge?.source.route_date || ""}
+          targetDate={pendingRouteMerge?.target.route_date || ""}
+          recurringAppointmentCount={pendingMergeSeriesInfo?.recurringAppointmentCount ?? 0}
+          loading={mergingRoute}
+          onConfirm={(scope) => handleConfirmRouteMerge(scope)}
+        />
 
         <DragOverlay>
           {activeDragId && activeDragData?.type === "job" && (

@@ -18,6 +18,19 @@ export const invalidateRouteSyncQueries = (qc: ReturnType<typeof useQueryClient>
   qc.invalidateQueries({ queryKey: ["order-for-stop"] });
 };
 
+/** Map Postgres-fejl fra route_stop_assignees til danske beskeder. */
+const friendlyAssigneeError = (err: any): Error => {
+  const msg = String(err?.message || "");
+  const code = String(err?.code || "");
+  if (code === "23505" || /duplicate key|unique constraint/i.test(msg)) {
+    return new Error("Medarbejderen er allerede tilknyttet dette stop.");
+  }
+  if (code === "23503" || /foreign key/i.test(msg)) {
+    return new Error("Stoppet eller medarbejderen findes ikke længere — opdatér siden.");
+  }
+  return new Error(msg || "Kunne ikke gemme medarbejder­tilknytning.");
+};
+
 export type Route = {
   id: string;
   business_id: string;
@@ -835,7 +848,10 @@ export const useAddStop = () => {
         try {
           await supabase
             .from("route_stop_assignees")
-            .insert({ stop_id: (data as any).id, employee_id: resolvedAssignee, is_lead: true });
+            .upsert(
+              { stop_id: (data as any).id, employee_id: resolvedAssignee, is_lead: true },
+              { onConflict: "stop_id,employee_id", ignoreDuplicates: true },
+            );
         } catch { /* ignorer hvis trigger allerede har sat den */ }
       }
       // ─── Husk hvilken rute aftalen "hører hjemme" på ───
@@ -963,8 +979,8 @@ export const useSetStopAssignees = () => {
       }));
       const { error: insErr } = await supabase
         .from("route_stop_assignees")
-        .insert(rows);
-      if (insErr) throw insErr;
+        .upsert(rows, { onConflict: "stop_id,employee_id", ignoreDuplicates: false });
+      if (insErr) throw friendlyAssigneeError(insErr);
       return { count: rows.length };
     },
     onSuccess: () => {
@@ -991,8 +1007,11 @@ export const useAssignSingleEmployee = () => {
       if (!employee_id) return;
       const { error: insErr } = await supabase
         .from("route_stop_assignees")
-        .insert({ stop_id, employee_id, is_lead: true });
-      if (insErr) throw insErr;
+        .upsert(
+          { stop_id, employee_id, is_lead: true },
+          { onConflict: "stop_id,employee_id", ignoreDuplicates: false },
+        );
+      if (insErr) throw friendlyAssigneeError(insErr);
     },
     onSuccess: () => invalidateRouteSyncQueries(qc),
     onError: (e: any) => toast.error(e.message || "Kunne ikke tildele medarbejder"),
@@ -1212,8 +1231,8 @@ export const useAutoAssignStops = () => {
       // Insert i batch
       const { error: insErr } = await supabase
         .from("route_stop_assignees")
-        .insert(inserts);
-      if (insErr) throw insErr;
+        .upsert(inserts, { onConflict: "stop_id,employee_id", ignoreDuplicates: true });
+      if (insErr) throw friendlyAssigneeError(insErr);
 
       // Tæl unikke stops
       const stopsTouched = new Set(inserts.map((i) => i.stop_id)).size;
