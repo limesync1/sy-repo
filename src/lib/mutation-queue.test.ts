@@ -97,9 +97,13 @@ describe("MutationQueue", () => {
     const q = new MutationQueue();
     const slow = q.run(async () => { await wait(20); return "done"; });
     const skipped = q.run(async () => "never");
+    // Catch immediately so the rejection isn't classified as unhandled.
+    const skippedSettled = skipped.catch((e) => e);
     q.clearPending();
     await expect(slow).resolves.toBe("done");
-    await expect(skipped).rejects.toThrow("queue cleared");
+    const reason = await skippedSettled;
+    expect(reason).toBeInstanceOf(Error);
+    expect((reason as Error).message).toBe("queue cleared");
   });
 
   it("tracks pending count correctly", async () => {
