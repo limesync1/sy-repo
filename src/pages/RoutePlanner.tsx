@@ -1898,6 +1898,12 @@ const Planner = () => {
           onConfirm={(scope) => handleConfirmRouteMerge(scope)}
         />
 
+        <AllUnassignedDialog
+          open={showAllUnassigned}
+          onOpenChange={setShowAllUnassigned}
+          jobs={unassigned as any}
+        />
+
         <DragOverlay>
           {activeDragId && activeDragData?.type === "job" && (
             <div
