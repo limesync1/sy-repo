@@ -9,7 +9,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Sparkles, Trash2, Check, CalendarRange } from "lucide-react";
+import { Loader2, Sparkles, Trash2, Check, CalendarRange, GitMerge } from "lucide-react";
 import { Palette, CalendarDays, Pencil, Gauge } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
@@ -88,6 +88,8 @@ export const RouteEditSheet = ({
   // brugeren om kun denne ene eller alle fremtidige skal flyttes.
   const [pendingDate, setPendingDate] = useState<string | null>(null);
   const [moveStopsOpen, setMoveStopsOpen] = useState(false);
+  const [mergeMode, setMergeMode] = useState<"normal" | "merge">("normal");
+  const [confirmMerge, setConfirmMerge] = useState(false);
   const initialSyncDone = useRef(false);
 
   const updateRoute = useUpdateRoute();
@@ -341,10 +343,20 @@ export const RouteEditSheet = ({
               <Button
                 variant="outline"
                 className="w-full"
-                onClick={() => setMoveStopsOpen(true)}
+                onClick={() => { setMergeMode("normal"); setMoveStopsOpen(true); }}
               >
                 <CalendarRange className="h-4 w-4 mr-2" />
                 Flyt aftaler
+              </Button>
+            )}
+            {stopCount >= 1 && (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setConfirmMerge(true)}
+              >
+                <GitMerge className="h-4 w-4 mr-2" />
+                Flet rute ind i anden rute
               </Button>
             )}
             <Button
@@ -405,10 +417,35 @@ export const RouteEditSheet = ({
 
       <MoveStopsDialog
         open={moveStopsOpen}
-        onOpenChange={setMoveStopsOpen}
+        onOpenChange={(o) => { setMoveStopsOpen(o); if (!o) setMergeMode("normal"); }}
         route={route}
         stops={stops}
+        defaultMode={mergeMode === "merge" ? "route" : "date"}
+        preselectAll={mergeMode === "merge"}
       />
+
+      <AlertDialog open={confirmMerge} onOpenChange={setConfirmMerge}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Flet rute ind i en anden rute?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Alle {stopCount} aftale{stopCount === 1 ? "" : "r"} på ruten "{route?.name || "uden navn"}" flyttes til den valgte målrute, og denne rute slettes automatisk når den er tom. Medarbejder­tilknytninger på de enkelte aftaler bevares.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annullér</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setConfirmMerge(false);
+                setMergeMode("merge");
+                setMoveStopsOpen(true);
+              }}
+            >
+              Vælg målrute
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
