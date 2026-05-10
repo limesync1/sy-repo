@@ -370,6 +370,7 @@ export const RouteEditSheet = ({
                   toast.info("Flyt aftalerne først", {
                     description: "Vælg en ny dato for aftalerne — ruten slettes automatisk når den er tom.",
                   });
+                  setMergeMode("normal");
                   setMoveStopsOpen(true);
                 } else {
                   setConfirmDelete(true);
