@@ -808,28 +808,30 @@ const Planner = () => {
       return raw ? String(raw).slice(0, 10) : null;
     };
 
-    /** Skubber aftalens opstartsdato til ny dato i alle relaterede tabeller. */
+    /** Skubber aftalens opstartsdato til ny dato i alle relaterede tabeller.
+     *  Bedst-effort — UI'et viser allerede succes på selve droppet. */
     const shiftJobStartDate = async (orderId: string, newDate: string) => {
-      // Bedst-effort: orders, subscriptions og agreements opdateres parallelt.
-      // Stille fejl pr. tabel — UI'et viser allerede succes på selve droppet.
-      const tasks: Promise<any>[] = [
-        supabase.from("orders").update({
+      try {
+        await supabase.from("orders").update({
           preferred_date: newDate,
           next_service_date: newDate,
-        }).eq("id", orderId),
-        supabase.from("subscriptions").update({
+        }).eq("id", orderId);
+      } catch (e) { console.warn("shift orders.preferred_date failed", e); }
+      try {
+        await supabase.from("subscriptions").update({
           next_service_date: newDate,
-        }).eq("order_id", orderId).eq("status", "active"),
-        supabase.from("agreements").update({
-          start_date: newDate,
-        }).eq("business_id", businessId!).or(
-          `legacy_subscription_id.in.(select id from subscriptions where order_id=eq.${orderId})`,
-        ),
-      ];
-      const results = await Promise.allSettled(tasks);
-      results.forEach((r, i) => {
-        if (r.status === "rejected") console.warn(`shiftJobStartDate task ${i} failed`, r.reason);
-      });
+        }).eq("order_id", orderId).eq("status", "active");
+      } catch (e) { console.warn("shift subscriptions.next_service_date failed", e); }
+      // Find aftaler via legacy_subscription_id og opdatér start_date.
+      try {
+        const { data: subs } = await supabase
+          .from("subscriptions").select("id").eq("order_id", orderId);
+        const subIds = (subs || []).map((s: any) => s.id);
+        if (subIds.length > 0) {
+          await supabase.from("agreements").update({ start_date: newDate })
+            .in("legacy_subscription_id", subIds);
+        }
+      } catch (e) { console.warn("shift agreements.start_date failed", e); }
     };
 
     /** Returnerer true hvis droppet må fortsætte. Hvis target-datoen ikke
