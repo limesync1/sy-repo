@@ -569,7 +569,26 @@ const Planner = () => {
         .select("*")
         .in("id", recurringRouteIds);
       if (error) throw error;
-      return (data || []) as any[];
+      const routes = (data || []) as any[];
+      // Hent også basis-rutens stops, så projicerede ruter kan vise dem
+      // (ellers er virtuelle ruter tomme i kalenderen).
+      const { data: stopsData, error: stopsErr } = await supabase
+        .from("route_stops")
+        .select("*")
+        .in("route_id", recurringRouteIds);
+      if (stopsErr) throw stopsErr;
+      const stopsByRoute = new Map<string, any[]>();
+      for (const s of stopsData || []) {
+        const arr = stopsByRoute.get(s.route_id) || [];
+        arr.push(s);
+        stopsByRoute.set(s.route_id, arr);
+      }
+      return routes.map((r) => ({
+        ...r,
+        stops: (stopsByRoute.get(r.id) || []).sort(
+          (a, b) => (a.sequence ?? 0) - (b.sequence ?? 0),
+        ),
+      }));
     },
   });
 
@@ -580,7 +599,10 @@ const Planner = () => {
     // projektionen virker uendeligt frem (og tilbage) i tiden.
     const baseById = new Map<string, any>();
     for (const r of recurringBaseRoutes) baseById.set(r.id, r);
-    for (const r of calendarRoutesRaw) baseById.set(r.id, r);
+    // Foretræk basis-versionen med stops; ellers brug rå-route-data.
+    for (const r of calendarRoutesRaw) {
+      if (!baseById.has(r.id)) baseById.set(r.id, r);
+    }
     const realKeys = new Set(calendarRoutesRaw.map((r) => `${r.id}|${r.route_date}`));
     const projections = expandRecurringRoutes({
       sources: recurringSources,
@@ -592,6 +614,17 @@ const Planner = () => {
       .map((p) => {
         const base = baseById.get(p.baseRouteId);
         if (!base) return null;
+        // Projicér basis-rutens stops over på den virtuelle dato — gør at
+        // brugeren ser kunderne i kalender-kortet selv før forekomsten er
+        // materialiseret. Stops markeres som virtuelle så de ikke kan ændres.
+        const projectedStops = (base.stops || []).map((s: any, i: number) => ({
+          ...s,
+          id: `virtual-stop:${p.baseRouteId}:${p.date}:${s.id}`,
+          route_id: p.id,
+          status: "planned",
+          isVirtual: true,
+          sequence: s.sequence ?? i,
+        }));
         return {
           ...base,
           id: p.id,
@@ -600,7 +633,7 @@ const Planner = () => {
           // Behold basis-rutens navn på alle gentagne forekomster, så de
           // hedder det samme i kalenderen (i stedet for "Kørsel <dato>").
           name: base.name || (base.route_date ? `Kørsel ${format(parseISO(base.route_date), "d/M")}` : null),
-          stops: [],
+          stops: projectedStops,
           attachedEmployees: [],
           attachedEmployeeCount: 0,
           isVirtual: true,
