@@ -976,7 +976,11 @@ const ServiceForm = ({
   const [productNumber, setProductNumber] = useState<string>(existingService?.product_number || "");
   const [vatZone, setVatZone] = useState<string>(existingService?.vat_zone || "");
   const [isActive, setIsActive] = useState<boolean>(existingService?.is_active !== false);
-  const [defaultEmployeeId, setDefaultEmployeeId] = useState<string>(existingService?.default_employee_id || "");
+  const [defaultEmployeeIds, setDefaultEmployeeIds] = useState<string[]>(
+    (existingService?.default_employee_ids && existingService.default_employee_ids.length > 0)
+      ? existingService.default_employee_ids
+      : (existingService?.default_employee_id ? [existingService.default_employee_id] : []),
+  );
   const { data: employeesForDefault = [] } = useEmployees(businessId);
   const [hasIntegration, setHasIntegration] = useState(false);
   const [integrationProvider, setIntegrationProvider] = useState<string | null>(null);
@@ -1439,7 +1443,8 @@ const ServiceForm = ({
         product_number: productNumber.trim() || null,
         vat_zone: vatZone || null,
         is_active: isActive,
-        default_employee_id: defaultEmployeeId || null,
+        default_employee_id: defaultEmployeeIds[0] || null,
+        default_employee_ids: defaultEmployeeIds,
       };
 
       if (existingService) {
@@ -1978,26 +1983,45 @@ const ServiceForm = ({
             </button>
           </div>
 
-          {/* Standard-medarbejder — automatisk tildeles aftaler oprettet med denne service */}
+          {/* Standard-medarbejdere — automatisk tildeles aftaler oprettet med denne service */}
           <div className="rounded-xl border border-border bg-card p-4 space-y-3">
             <div>
-              <h4 className="text-sm font-semibold text-foreground">Standard-medarbejder</h4>
+              <h4 className="text-sm font-semibold text-foreground">Standard-medarbejdere</h4>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                Når en aftale oprettes med denne service, foreslås denne medarbejder automatisk på ruten. Du kan altid ændre eller tilføje flere på den enkelte aftale.
+                Når en aftale oprettes med denne service, tildeles disse medarbejdere automatisk. Du kan altid ændre eller tilføje flere på den enkelte aftale uden at det påvirker standardindstillingen.
               </p>
             </div>
-            <Select
-              value={defaultEmployeeId || "__none__"}
-              onValueChange={(v) => setDefaultEmployeeId(v === "__none__" ? "" : v)}
-            >
-              <SelectTrigger className="bg-card"><SelectValue placeholder="Ingen — vælg manuelt på hver aftale" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">Ingen — vælg manuelt på hver aftale</SelectItem>
-                {(employeesForDefault as any[]).map((e) => (
-                  <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {(employeesForDefault as any[]).length === 0 ? (
+              <p className="text-xs text-muted-foreground italic">Ingen medarbejdere oprettet endnu.</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {(employeesForDefault as any[]).map((e) => {
+                  const selected = defaultEmployeeIds.includes(e.id);
+                  return (
+                    <button
+                      key={e.id}
+                      type="button"
+                      onClick={() =>
+                        setDefaultEmployeeIds((prev) =>
+                          prev.includes(e.id) ? prev.filter((x) => x !== e.id) : [...prev, e.id],
+                        )
+                      }
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                        selected
+                          ? "border-foreground bg-foreground text-background"
+                          : "border-border bg-card text-foreground hover:bg-secondary/60"
+                      }`}
+                    >
+                      {selected && <span aria-hidden>✓</span>}
+                      {e.name}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            {defaultEmployeeIds.length === 0 && (
+              <p className="text-[11px] text-muted-foreground">Ingen valgt — medarbejdere skal vælges manuelt på hver aftale.</p>
+            )}
           </div>
 
           {/* Regnskabs-felter på service: vare-nr og momszone */}
