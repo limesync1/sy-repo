@@ -1545,7 +1545,7 @@ const Planner = () => {
                           {search
                             ? "Ingen aftaler matcher søgningen"
                             : calendarRoutesRaw.length === 0
-                              ? "Opret en rute først, så kan du trække aftaler herfra og ind i kalenderen"
+                              ? "Træk en aftale ind på en dag i kalenderen — så opretter vi automatisk en rute for dig"
                               : "Alle aftaler er planlagt 🎉"}
                         </p>
                         {search && (
