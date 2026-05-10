@@ -170,6 +170,11 @@ const Planner = () => {
     calendarRange.start,
     calendarRange.end,
   );
+  const { data: routeOccurrenceExceptions = [] } = useRouteOccurrenceExceptions(
+    businessId,
+    calendarRange.start,
+    calendarRange.end,
+  );
   const calendarRoutesRaw = calendarData?.routes ?? [];
   const rawCalendarStops = calendarData?.stops ?? [];
   const loadingCalendarRoutes = loadingCalendar;
