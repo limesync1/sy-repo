@@ -5,6 +5,10 @@ describe("intervalToDays", () => {
   it("maps known intervals", () => {
     expect(intervalToDays("ugentlig")).toBe(7);
     expect(intervalToDays("hver_14_dag")).toBe(14);
+    expect(intervalToDays("hver_2_dag")).toBe(2);
+    expect(intervalToDays("hver_3_uge")).toBe(21);
+    expect(intervalToDays("hver_4_uge")).toBe(28);
+    expect(intervalToDays("hver_8_uge")).toBe(56);
     expect(intervalToDays("månedlig")).toBe(30);
   });
   it("returns null for unknown/empty", () => {
@@ -79,6 +83,17 @@ describe("expandRecurringRoutes", () => {
       ],
     });
     expect(out.map((p) => p.date)).toEqual(["2026-05-02", "2026-05-12", "2026-05-22"]);
+  });
+
+  it("projects every 14 days from the agreement seed date", () => {
+    const out = expandRecurringRoutes({
+      ...range,
+      realRouteDates: new Set(),
+      sources: [
+        { id: "a1", interval: "hver_14_dag", seed_date: "2026-05-10", preferred_route_id: "r14" },
+      ],
+    });
+    expect(out.map((p) => p.date)).toEqual(["2026-05-10", "2026-05-24"]);
   });
 
   it("deduplicates when multiple agreements share route + date", () => {

@@ -29,6 +29,8 @@ export type CalendarRoute = Route & {
   stops: RouteStop[];
   attachedEmployeeCount: number;
   attachedEmployees: { id: string; name: string; avatar_url?: string | null; color?: string | null }[];
+  /** Id på den rigtige basisrute når denne række kun er en kalender-projektion. */
+  baseRouteId?: string;
   /** Når true er ruten en projiceret fremtidig forekomst af en gentagende rute.
    *  Den vises dæmpet med lås-ikon, kan ikke trækkes/optimeres, og klik åbner
    *  basisruten på dens næste rigtige dato. */

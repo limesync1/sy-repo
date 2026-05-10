@@ -555,6 +555,7 @@ const Planner = () => {
         return {
           ...base,
           id: p.id,
+          baseRouteId: p.baseRouteId,
           route_date: p.date,
           // Behold basis-rutens navn på alle gentagne forekomster, så de
           // hedder det samme i kalenderen (i stedet for "Kørsel <dato>").
@@ -1815,9 +1816,14 @@ const Planner = () => {
                     // Klik på en virtuel (gentagende) forekomst åbner basisruten,
                     // ikke det virtuelle id som ikke findes i DB.
                     if (r.isVirtual) {
-                      const baseId = String(r.id).split(":")[1];
-                      const base = calendarRoutesRaw.find((x) => x.id === baseId);
+                      const baseId = r.baseRouteId || String(r.id).split(":")[1];
+                      const base = calendarRoutesRaw.find((x) => x.id === baseId)
+                        || recurringBaseRoutes.find((x: any) => x.id === baseId);
                       if (base) { setEditingRoute(base); return; }
+                      toast.error("Projektionsruten mangler sin basisrute", {
+                        description: "Opdatér siden og prøv igen — ruten bliver ikke gemt med et virtuelt ID.",
+                      });
+                      return;
                     }
                     setEditingRoute(r);
                   }}
