@@ -372,11 +372,7 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
   const completedCount = route.stops.filter((s) => s.status === "completed").length;
   const visibleEmployees = route.attachedEmployees.slice(0, 3);
   const extraEmployees = route.attachedEmployees.length - visibleEmployees.length;
-  // En rute er "klar til udførelse" når den både har medarbejdere og stops
-  // tilknyttet — så har medarbejderen reelt noget at tage ud på. Vises som en
-  // diskret grøn underkant på pillen.
-  const isReadyForExecution =
-    !isVirtual && route.attachedEmployeeCount > 0 && stopCount > 0;
+  // Fjernet: grøn bundkant og "klar til udførelse"-logik efter ønske.
 
   return (
     <div
