@@ -1488,6 +1488,14 @@ export const useUpdateRoute = () => {
   const qc = useQueryClient();
   return useMutation({
     onMutate: async ({ id, ...updates }: Partial<Route> & { id: string }) => {
+      await qc.cancelQueries({ queryKey: ["routes"] });
+      await qc.cancelQueries({ queryKey: ["routes-range"] });
+      await qc.cancelQueries({ queryKey: ["route-calendar"] });
+      const snapshots = [
+        ...qc.getQueriesData<Route[]>({ queryKey: ["routes"] }),
+        ...qc.getQueriesData<Route[]>({ queryKey: ["routes-range"] }),
+        ...qc.getQueriesData<{ routes: Route[]; stops: RouteStop[] }>({ queryKey: ["route-calendar"] }),
+      ];
       const mergeRoute = (route: Route) => (route.id === id ? { ...route, ...updates } : route);
       qc.setQueriesData({ queryKey: ["routes"] }, (old: Route[] | undefined) =>
         Array.isArray(old) ? old.map(mergeRoute) : old,
@@ -1495,6 +1503,10 @@ export const useUpdateRoute = () => {
       qc.setQueriesData({ queryKey: ["routes-range"] }, (old: Route[] | undefined) =>
         Array.isArray(old) ? old.map(mergeRoute) : old,
       );
+      qc.setQueriesData({ queryKey: ["route-calendar"] }, (old: { routes: Route[]; stops: RouteStop[] } | undefined) =>
+        old?.routes ? { ...old, routes: old.routes.map(mergeRoute) } : old,
+      );
+      return { snapshots };
     },
     mutationFn: async ({ id, ...updates }: Partial<Route> & { id: string }) => {
       const { data, error } = await supabase
@@ -1510,7 +1522,10 @@ export const useUpdateRoute = () => {
       qc.invalidateQueries({ queryKey: ["routes"] });
       qc.invalidateQueries({ queryKey: ["routes-range"] });
     },
-    onError: (e: any) => toast.error(e.message || "Kunne ikke opdatere rute"),
+    onError: (e: any, _vars, ctx) => {
+      ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data));
+      toast.error(e.message || "Kunne ikke opdatere rute");
+    },
   });
 };
 
