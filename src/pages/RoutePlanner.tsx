@@ -98,6 +98,8 @@ const Planner = () => {
   const [newRouteName, setNewRouteName] = useState("");
   const [newRouteColor, setNewRouteColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
   const [newRouteDate, setNewRouteDate] = useState(todayStr());
+  const [newRouteJobIds, setNewRouteJobIds] = useState<string[]>([]);
+  const [newRouteJobSearch, setNewRouteJobSearch] = useState("");
   const [editingRoute, setEditingRoute] = useState<Route | null>(null);
   const [routeToDelete, setRouteToDelete] = useState<{ id: string; name: string } | null>(null);
   const [distributing, setDistributing] = useState(false);
@@ -498,6 +500,8 @@ const Planner = () => {
       .filter((r) => r.route_date === newRouteDate)
       .map((r) => r.color);
     setNewRouteColor(pickAvailableColor(usedColorsThisDay));
+    setNewRouteJobIds([]);
+    setNewRouteJobSearch("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [createOpen, newRouteDate]);
 
@@ -772,15 +776,46 @@ const Planner = () => {
 
   const handleCreateRoute = async () => {
     if (!businessId) return;
+    if (newRouteJobIds.length === 0) {
+      toast.error("Vælg mindst én aftale", {
+        description: "En rute skal indeholde mindst én aftale.",
+      });
+      return;
+    }
     try {
-      await createRoute.mutateAsync({
+      const created = await createRoute.mutateAsync({
         business_id: businessId,
         route_date: newRouteDate,
         name: newRouteName.trim() || null,
         color: newRouteColor,
       });
-      toast.success("Rute oprettet");
+      // Læg de valgte aftaler på den nye rute (i den rækkefølge brugeren valgte).
+      let seq = 0;
+      for (const jobId of newRouteJobIds) {
+        const job = unassigned.find((j: any) => j.id === jobId);
+        if (!job) continue;
+        try {
+          await addStop.mutateAsync({
+            route_id: created.id,
+            order_id: job.id,
+            sequence: seq++,
+            customer_name: job.customer_name,
+            customer_phone: job.customer_phone,
+            address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
+            latitude: job.latitude,
+            longitude: job.longitude,
+            service_summary: serviceSummaryForJob(job),
+            duration_minutes: Number(job.estimated_duration_minutes) || 30,
+            time_window_start: job.preferred_time_start || null,
+            time_window_end: job.preferred_time_end || null,
+          });
+        } catch (err: any) {
+          console.error("[CreateRoute] kunne ikke tilføje stop", err);
+        }
+      }
+      toast.success(`Rute oprettet med ${newRouteJobIds.length} aftale${newRouteJobIds.length === 1 ? "" : "r"}`);
       setNewRouteName("");
+      setNewRouteJobIds([]);
       setCreateOpen(false);
     } catch { /* toast handled in hook */ }
   };
