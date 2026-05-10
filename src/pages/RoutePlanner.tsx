@@ -9,7 +9,7 @@ import {
   useAddStop,
   useOptimizeRoute, useGeocodeAddress,
   useCreateRoute, useDeleteRoute, useUpdateRoute,
-  useRouteSeriesInfo, useMoveRouteSeries,
+  useRouteSeriesInfo, useMoveRouteSeries, useMaterializeVirtualRoute,
   type RouteStop, type Route,
 } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
