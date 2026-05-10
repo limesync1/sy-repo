@@ -569,8 +569,12 @@ const Planner = () => {
   const calendarRoutesAll: CalendarRoute[] = useMemo(
     // Skjul projicerede (virtuelle) ruter når filtre er aktive — de har
     // ingen stops endnu, så vi kan ikke matche dem mod assignee/status-filtret.
-    () => [...calendarRoutes, ...(filtersActive ? [] : virtualCalendarRoutes)],
-    [calendarRoutes, virtualCalendarRoutes, filtersActive],
+    () => [
+      ...calendarRoutes,
+      ...(filtersActive ? [] : virtualCalendarRoutes),
+      ...(filtersActive ? [] : occurrenceVirtualRoutes),
+    ],
+    [calendarRoutes, virtualCalendarRoutes, occurrenceVirtualRoutes, filtersActive],
   );
 
   const activeEditingRoute = useMemo(() => {
