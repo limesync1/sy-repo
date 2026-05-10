@@ -717,6 +717,12 @@ const Planner = () => {
         return;
       }
       const targetRouteId: string = overData.routeId;
+      if (!(await claimIdempotency())) {
+        // Et andet kald har allerede claimet samme drop — bail.
+        toast.info("Aftalen er allerede ved at blive tilføjet");
+        releaseDrop();
+        return;
+      }
       try {
         const { data: existingStops } = await supabase
           .from("route_stops").select("id, order_id").eq("route_id", targetRouteId);
@@ -766,6 +772,11 @@ const Planner = () => {
         return;
       }
       const newDate: string = overData.date;
+      if (!(await claimIdempotency())) {
+        toast.info("Aftalen er allerede ved at blive lagt på den dag");
+        releaseDrop();
+        return;
+      }
       try {
         // Hvis aftalen allerede er lagt på en rute samme dag (fx pga. tidligere
         // hurtig-drop som lige har committet), så afbryd for at undgå dublet-ruter.
