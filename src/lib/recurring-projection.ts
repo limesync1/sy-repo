@@ -43,7 +43,11 @@ export const expandRecurringRoutes = (params: {
   // ikke duplikeres når flere aftaler falder sammen på samme rute/dag.
   const seen = new Set<string>(); // `${routeId}|${date}`
   const out: ProjectedRoute[] = [];
-  const start = parseISO(params.rangeStart);
+  // Hård sikring: projicér ALDRIG i fortiden, uanset hvilken rangeStart
+  // kalderen sender ind. Bruges som defense-in-depth oven på UI-clamp.
+  const today = parseISO(format(new Date(), "yyyy-MM-dd"));
+  const requestedStart = parseISO(params.rangeStart);
+  const start = isBefore(requestedStart, today) ? today : requestedStart;
   // Projicér så langt frem brugeren kigger — ingen kunstig horisont, så
   // gentagende ruter altid vises uanset hvilken måned/år kalenderen står på.
   const limit = parseISO(params.rangeEnd);
