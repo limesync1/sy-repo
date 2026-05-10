@@ -54,6 +54,7 @@ import { DatePickerField } from "@/components/route-planner/DatePickerField";
 import { RouteStopsPanel } from "@/components/route-planner/RouteStopsPanel";
 import { MoveRouteDateDialog, type MoveRouteScope } from "@/components/route-planner/MoveRouteDateDialog";
 import { MergeRoutesDialog } from "@/components/route-planner/MergeRoutesDialog";
+import { AllUnassignedDialog } from "@/components/route-planner/AllUnassignedDialog";
 import { supabase } from "@/integrations/supabase/client";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
@@ -125,6 +126,7 @@ const Planner = () => {
   } | null>(null);
   const [mergingRoute, setMergingRoute] = useState(false);
   const [distributing, setDistributing] = useState(false);
+  const [showAllUnassigned, setShowAllUnassigned] = useState(false);
   const businessId = business?.id;
   const routePlanningEnabled = !!(business?.settings as any)?.route_planning_enabled;
 
@@ -566,11 +568,61 @@ const Planner = () => {
       .filter(Boolean) as CalendarRoute[];
   }, [recurringSources, recurringBaseRoutes, calendarRoutesRaw, calendarRange.start, calendarRange.end]);
 
+  /* ─── Fallback-projektion fra agreement_occurrences ───
+     Tilbagevendende aftaler genererer planlagte forekomster (`agreement_occurrences`)
+     for op til 6 mdr. frem — også når aftalen endnu IKKE har en preferred_route_id.
+     Vi viser dem som virtuelle "ghost"-rutekort på datoen, så brugeren altid kan
+     se hvad der venter selvom aftalen ikke er tildelt en rute endnu. */
+  const { data: pendingOccurrences = [] } = useQuery({
+    queryKey: ["pending-occurrences", businessId, calendarRange.start, calendarRange.end],
+    enabled: !!businessId,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("agreement_occurrences")
+        .select("id, agreement_id, occurrence_date, status, route_id, agreements(customer_name, interval, preferred_route_id)")
+        .eq("business_id", businessId!)
+        .gte("occurrence_date", calendarRange.start)
+        .lte("occurrence_date", calendarRange.end)
+        .is("route_id", null)
+        .eq("status", "planned");
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+  });
+
+  const occurrenceVirtualRoutes: CalendarRoute[] = useMemo(() => {
+    if (!pendingOccurrences.length) return [];
+    return pendingOccurrences
+      // Spring forekomster over hvor aftalen allerede har en preferred_route_id
+      // — de tegnes via `virtualCalendarRoutes` (basis-rute-projektionen).
+      .filter((o: any) => !o.agreements?.preferred_route_id)
+      .map((o: any) => ({
+        id: `agr-occ:${o.id}`,
+        business_id: businessId!,
+        employee_id: null,
+        route_date: String(o.occurrence_date).slice(0, 10),
+        status: "planned",
+        name: `Aftale · ${o.agreements?.customer_name || "kunde"}`,
+        color: "hsl(var(--muted-foreground))",
+        total_distance_km: null,
+        total_duration_minutes: null,
+        stops: [],
+        attachedEmployees: [],
+        attachedEmployeeCount: 0,
+        isVirtual: true,
+      } as unknown as CalendarRoute));
+  }, [pendingOccurrences, businessId]);
+
   const calendarRoutesAll: CalendarRoute[] = useMemo(
     // Skjul projicerede (virtuelle) ruter når filtre er aktive — de har
     // ingen stops endnu, så vi kan ikke matche dem mod assignee/status-filtret.
-    () => [...calendarRoutes, ...(filtersActive ? [] : virtualCalendarRoutes)],
-    [calendarRoutes, virtualCalendarRoutes, filtersActive],
+    () => [
+      ...calendarRoutes,
+      ...(filtersActive ? [] : virtualCalendarRoutes),
+      ...(filtersActive ? [] : occurrenceVirtualRoutes),
+    ],
+    [calendarRoutes, virtualCalendarRoutes, occurrenceVirtualRoutes, filtersActive],
   );
 
   const activeEditingRoute = useMemo(() => {
@@ -1658,6 +1710,16 @@ const Planner = () => {
                         {filteredUnassigned.length}
                       </Badge>
                     </div>
+                    {unassigned.length > filteredUnassigned.length && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-6 w-full text-[11px]"
+                        onClick={() => setShowAllUnassigned(true)}
+                      >
+                        Vis alle {unassigned.length} aftaler uden rute
+                      </Button>
+                    )}
                     <p className="text-[10px] text-muted-foreground leading-snug">
                       Træk en aftale ind i kalenderen for at planlægge den. Når en aftale med interval markeres som udført, opretter vi automatisk næste aftale på samme rute og medarbejder.
                     </p>
@@ -1834,6 +1896,12 @@ const Planner = () => {
           recurringAppointmentCount={pendingMergeSeriesInfo?.recurringAppointmentCount ?? 0}
           loading={mergingRoute}
           onConfirm={(scope) => handleConfirmRouteMerge(scope)}
+        />
+
+        <AllUnassignedDialog
+          open={showAllUnassigned}
+          onOpenChange={setShowAllUnassigned}
+          jobs={unassigned as any}
         />
 
         <DragOverlay>
