@@ -489,37 +489,24 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                         </Select>
                       )}
 
-                      {/* Varighed + tidsrum + (på første kort) foreslået dato — kompakt 3-kolonne layout */}
-                      <div className="mt-2 rounded-md bg-secondary/30 p-2.5">
-                        <DurationSlotPicker
-                          layout="row"
-                          {...(idx === 0
-                            ? {
-                                date: preferredDate,
-                                onDateChange: setPreferredDate,
-                                dateLabel: "Foreslået dato",
-                                dateHint:
-                                  "Foreslået dato, ønsket tidsrum og estimeret varighed — kunden kan bekræfte eller ændre.",
-                              }
-                            : {})}
-                          timeSlot={
-                            it.timeStart && it.timeEnd
-                              ? `${it.timeStart}-${it.timeEnd}`
-                              : ""
-                          }
-                          onTimeSlotChange={(v) => {
-                            const [s, e] = v ? v.split("-") : ["", ""];
-                            updateItem(it.serviceId, { timeStart: s, timeEnd: e });
-                          }}
-                          durationHours={Math.floor((it.durationMin || 30) / 60)}
-                          durationMinutes={(it.durationMin || 30) % 60}
-                          onDurationChange={(h, m) =>
-                            updateItem(it.serviceId, {
-                              durationMin: Math.max(5, h * 60 + m),
-                            })
-                          }
-                        />
-                      </div>
+                      {/* Opstartsdato — vises kun på første service-kort, da datoen gælder hele bestillingen */}
+                      {idx === 0 && (
+                        <div className="mt-2 rounded-md bg-secondary/30 p-2.5">
+                          <Label className="text-[11px] text-muted-foreground uppercase tracking-wide flex items-center gap-1.5 mb-1.5">
+                            <Calendar className="h-3 w-3" />
+                            Opstartsdato
+                          </Label>
+                          <Input
+                            type="date"
+                            value={preferredDate}
+                            onChange={(e) => setPreferredDate(e.target.value)}
+                            className="h-9 bg-background"
+                          />
+                          <p className="mt-1 text-[10px] text-muted-foreground">
+                            Datoen hvor opgaven (eller første gentagelse, ved abonnement) skal starte. Tidspunkt og varighed planlægges på ruten.
+                          </p>
+                        </div>
+                      )}
 
                       <div className="mt-2 flex items-center justify-between pt-2 border-t border-border/60">
                         <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Subtotal</span>
