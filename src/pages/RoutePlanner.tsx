@@ -2280,6 +2280,71 @@ const Planner = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Bulk-validering: opret rute hvor flere aftaler har afvigende opstartsdato. */}
+        <AlertDialog
+          open={!!pendingBulkStartDateChange}
+          onOpenChange={(o) => { if (!o && !confirmingBulkStartDate) setPendingBulkStartDateChange(null); }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {pendingBulkStartDateChange?.mismatches.length === 1
+                  ? "1 aftale har en anden opstartsdato"
+                  : `${pendingBulkStartDateChange?.mismatches.length ?? 0} aftaler har afvigende opstartsdato`}
+              </AlertDialogTitle>
+              <AlertDialogDescription asChild>
+                <div className="space-y-2 text-sm">
+                  <p>
+                    Du opretter en rute på{" "}
+                    <strong>
+                      {pendingBulkStartDateChange?.targetDate
+                        ? format(parseISO(pendingBulkStartDateChange.targetDate), "EEEE d. MMM yyyy", { locale: da })
+                        : ""}
+                    </strong>, men følgende aftaler har en anden opstartsdato:
+                  </p>
+                  <ul className="rounded border bg-secondary/30 divide-y max-h-48 overflow-y-auto">
+                    {pendingBulkStartDateChange?.mismatches.map((m) => (
+                      <li key={m.job.id} className="px-2.5 py-1.5 text-xs flex items-center justify-between gap-2">
+                        <span className="font-medium truncate">{m.job.customer_name || "Aftale"}</span>
+                        <span className="text-muted-foreground shrink-0">
+                          {format(parseISO(m.currentStart), "d. MMM yyyy", { locale: da })}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-muted-foreground">
+                    Vil du flytte deres opstartsdato til rutens dato og fortsætte med oprettelsen?
+                    Det opdaterer også fremtidige forekomster og evt. tilknyttede abonnementer.
+                  </p>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={confirmingBulkStartDate}>
+                Annullér
+              </AlertDialogCancel>
+              <AlertDialogAction
+                disabled={confirmingBulkStartDate}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  if (!pendingBulkStartDateChange) return;
+                  setConfirmingBulkStartDate(true);
+                  try {
+                    await pendingBulkStartDateChange.execute();
+                  } catch (err: any) {
+                    toast.error(err?.message || "Kunne ikke oprette ruten");
+                  } finally {
+                    setConfirmingBulkStartDate(false);
+                    setPendingBulkStartDateChange(null);
+                  }
+                }}
+              >
+                {confirmingBulkStartDate ? "Opretter…" : "Flyt opstartsdatoer og opret"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </AdminShell>
     </DndContext>
   );
