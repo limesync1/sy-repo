@@ -307,30 +307,35 @@ const Planner = () => {
          projicér virtuelle forekomster på fremtidige datoer (op til 6 mdr.).
          Virtuelle forekomster vises dæmpet med lås — de bliver til rigtige
          route_stops når DB-jobbet `auto_recur_due_orders` kører. */
-  const { data: recurringSubs = [] } = useQuery({
-    queryKey: ["recurring-subs-for-planner", businessId],
+  const { data: recurringSources = [] } = useQuery({
+    queryKey: ["recurring-agreements-for-planner", businessId],
     enabled: !!businessId,
     staleTime: 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("subscriptions")
-        .select("id, interval, status, next_service_date, preferred_route_id")
+        .from("agreements")
+        .select("id, interval, start_date, preferred_route_id")
         .eq("business_id", businessId!)
         .eq("status", "active")
-        .not("preferred_route_id", "is", null)
-        .not("next_service_date", "is", null);
+        .neq("interval", "engangskøb")
+        .not("preferred_route_id", "is", null);
       if (error) throw error;
-      return (data || []) as any[];
+      return (data || []).map((a: any) => ({
+        id: a.id,
+        interval: a.interval as string,
+        seed_date: a.start_date as string | null,
+        preferred_route_id: a.preferred_route_id as string | null,
+      }));
     },
   });
 
   const virtualCalendarRoutes: CalendarRoute[] = useMemo(() => {
-    if (!recurringSubs.length || !calendarRoutesRaw.length) return [];
+    if (!recurringSources.length || !calendarRoutesRaw.length) return [];
     // Map for hurtig opslag på basis-rute, og sæt af "rigtige" (rute,dato)-par.
     const baseById = new Map(calendarRoutesRaw.map((r) => [r.id, r]));
     const realKeys = new Set(calendarRoutesRaw.map((r) => `${r.id}|${r.route_date}`));
     const projections = expandRecurringRoutes({
-      subscriptions: recurringSubs as any,
+      sources: recurringSources,
       rangeStart: calendarRange.start,
       rangeEnd: calendarRange.end,
       horizonDays: 180,
@@ -351,7 +356,7 @@ const Planner = () => {
         } as CalendarRoute;
       })
       .filter(Boolean) as CalendarRoute[];
-  }, [recurringSubs, calendarRoutesRaw, calendarRange.start, calendarRange.end]);
+  }, [recurringSources, calendarRoutesRaw, calendarRange.start, calendarRange.end]);
 
   const calendarRoutesAll: CalendarRoute[] = useMemo(
     () => [...calendarRoutes, ...virtualCalendarRoutes],
