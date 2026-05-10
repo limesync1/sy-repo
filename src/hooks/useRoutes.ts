@@ -1371,30 +1371,51 @@ export const useMoveRouteSeries = () => {
       if (e2) throw e2;
 
       // "future" = forskyd også fremtidige forekomster af de tilbagevendende
-      // aftaler på ruten (ved at flytte deres next_service_date med samme delta).
+      // aftaler på ruten — både dem der ligger som stops PÅ ruten og dem der
+      // bare har ruten som preferred_route_id (det er dem projektionen tegner).
       if (scope !== "future") return;
 
       const deltaMs = new Date(newDate).getTime() - new Date(fromDate).getTime();
       const deltaDays = Math.round(deltaMs / 86_400_000);
       if (deltaDays === 0) return;
 
-      const { data: stops } = await supabase
-        .from("route_stops")
-        .select("subscription_id")
-        .eq("route_id", routeId)
-        .not("subscription_id", "is", null);
+      // 1) Subs/agreements knyttet via stops eller preferred_route_id.
+      const [stopsRes, subsByPrefRes, agrByPrefRes] = await Promise.all([
+        supabase
+          .from("route_stops")
+          .select("subscription_id")
+          .eq("route_id", routeId)
+          .not("subscription_id", "is", null),
+        supabase
+          .from("subscriptions")
+          .select("id, interval, status, next_service_date")
+          .eq("preferred_route_id", routeId)
+          .eq("status", "active")
+          .neq("interval", "engangskøb"),
+        supabase
+          .from("agreements")
+          .select("id, interval, status, start_date")
+          .eq("preferred_route_id", routeId)
+          .eq("status", "active")
+          .neq("interval", "engangskøb"),
+      ]);
 
-      const subIds = Array.from(
-        new Set((stops || []).map((s: any) => s.subscription_id).filter(Boolean)),
+      const subIdsFromStops = Array.from(
+        new Set((stopsRes.data || []).map((s: any) => s.subscription_id).filter(Boolean)),
       );
-      if (subIds.length === 0) return;
 
-      const { data: subs } = await supabase
-        .from("subscriptions")
-        .select("id, interval, status, next_service_date")
-        .in("id", subIds);
+      const subsFromStops = subIdsFromStops.length > 0
+        ? (await supabase
+            .from("subscriptions")
+            .select("id, interval, status, next_service_date")
+            .in("id", subIdsFromStops)).data || []
+        : [];
 
-      const recurring = (subs || []).filter(
+      const allSubsMap = new Map<string, any>();
+      for (const s of subsFromStops) allSubsMap.set(s.id, s);
+      for (const s of (subsByPrefRes.data || [])) allSubsMap.set(s.id, s);
+
+      const recurringSubs = Array.from(allSubsMap.values()).filter(
         (s: any) =>
           s.status === "active" &&
           s.interval &&
@@ -1402,26 +1423,48 @@ export const useMoveRouteSeries = () => {
           s.next_service_date,
       );
 
+      const recurringAgrs = (agrByPrefRes.data || []).filter(
+        (a: any) =>
+          a.status === "active" &&
+          a.interval &&
+          a.interval !== "engangskøb" &&
+          a.start_date,
+      );
+
       const shiftIso = (d: string) => {
         const nd = new Date(d);
         nd.setDate(nd.getDate() + deltaDays);
         return nd.toISOString();
       };
+      const shiftDate = (d: string) => {
+        const nd = new Date(d);
+        nd.setDate(nd.getDate() + deltaDays);
+        return nd.toISOString().slice(0, 10);
+      };
 
-      for (const s of recurring) {
-        await supabase
-          .from("subscriptions")
-          .update({ next_service_date: shiftIso(s.next_service_date as string) })
-          .eq("id", s.id);
-      }
+      await Promise.all([
+        ...recurringSubs.map((s: any) =>
+          supabase
+            .from("subscriptions")
+            .update({ next_service_date: shiftIso(s.next_service_date as string) })
+            .eq("id", s.id),
+        ),
+        ...recurringAgrs.map((a: any) =>
+          supabase
+            .from("agreements")
+            .update({ start_date: shiftDate(a.start_date as string) })
+            .eq("id", a.id),
+        ),
+      ]);
 
-      // moveLinkedSubscriptions er nu altid implicit ved "future" — parameter beholdes
-      // for bagudkompatibilitet med kaldere.
+      // moveLinkedSubscriptions er nu altid implicit ved "future".
       void moveLinkedSubscriptions;
     },
     onSuccess: () => {
       invalidateRouteSyncQueries(qc);
       qc.invalidateQueries({ queryKey: ["route-series-info"] });
+      qc.invalidateQueries({ queryKey: ["recurring-agreements-for-planner"] });
+      qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
     },
     onError: (e: any) => toast.error(e.message || "Kunne ikke flytte rute"),
   });
