@@ -126,6 +126,7 @@ const Planner = () => {
   } | null>(null);
   const [mergingRoute, setMergingRoute] = useState(false);
   const [distributing, setDistributing] = useState(false);
+  const [showAllUnassigned, setShowAllUnassigned] = useState(false);
   const businessId = business?.id;
   const routePlanningEnabled = !!(business?.settings as any)?.route_planning_enabled;
 
