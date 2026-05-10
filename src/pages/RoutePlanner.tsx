@@ -9,7 +9,7 @@ import {
   useAddStop,
   useOptimizeRoute, useGeocodeAddress,
   useCreateRoute, useDeleteRoute, useUpdateRoute,
-  useRouteSeriesInfo, useMoveRouteSeries,
+  useRouteSeriesInfo, useMoveRouteSeries, useMaterializeVirtualRoute,
   type RouteStop, type Route,
 } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
@@ -267,6 +267,7 @@ const Planner = () => {
   const createRoute = useCreateRoute();
   const deleteRoute = useDeleteRoute();
   const updateRoute = useUpdateRoute();
+  const materializeVirtual = useMaterializeVirtualRoute();
   const moveRouteSeries = useMoveRouteSeries();
   const addStop = useAddStop();
   const optimizeRoute = useOptimizeRoute();
@@ -603,7 +604,15 @@ const Planner = () => {
     for (const r of calendarRoutesRaw) {
       if (!baseById.has(r.id)) baseById.set(r.id, r);
     }
-    const realKeys = new Set(calendarRoutesRaw.map((r) => `${r.id}|${r.route_date}`));
+    // Suppress projektion både for selve basisrutens dato OG for datoer hvor
+    // brugeren har materialiseret en override (rigtig rute med base_route_id).
+    const realKeys = new Set<string>();
+    for (const r of calendarRoutesRaw) {
+      realKeys.add(`${r.id}|${r.route_date}`);
+      if ((r as any).base_route_id) {
+        realKeys.add(`${(r as any).base_route_id}|${r.route_date}`);
+      }
+    }
     const projections = expandRecurringRoutes({
       sources: recurringSources,
       rangeStart: calendarRange.start,
@@ -2077,17 +2086,24 @@ const Planner = () => {
                   view={view}
                   anchorDate={date}
                   routes={calendarRoutesAll}
-                  onSelectRoute={(r: any) => {
-                    // Klik på en virtuel (gentagende) forekomst åbner basisruten,
-                    // ikke det virtuelle id som ikke findes i DB.
+                  onSelectRoute={async (r: any) => {
+                    // Projicerede (gentagende) ruter materialiseres til en
+                    // rigtig DB-rute første gang brugeren åbner dem — så
+                    // navn, farve, dato og stops kan redigeres frit.
                     if (r.isVirtual) {
                       const baseId = r.baseRouteId || String(r.id).split(":")[1];
-                      const base = calendarRoutesRaw.find((x) => x.id === baseId)
-                        || recurringBaseRoutes.find((x: any) => x.id === baseId);
-                      if (base) { setEditingRoute(base); return; }
-                      toast.error("Projektionsruten mangler sin basisrute", {
-                        description: "Opdatér siden og prøv igen — ruten bliver ikke gemt med et virtuelt ID.",
-                      });
+                      const date = r.route_date;
+                      if (!baseId || !date) {
+                        toast.error("Kunne ikke åbne projiceret rute");
+                        return;
+                      }
+                      try {
+                        const created = await materializeVirtual.mutateAsync({
+                          baseRouteId: baseId,
+                          date,
+                        });
+                        setEditingRoute(created);
+                      } catch { /* toast håndteret i hook */ }
                       return;
                     }
                     setEditingRoute(r);
