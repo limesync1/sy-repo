@@ -1136,6 +1136,18 @@ const Planner = () => {
             id: e.id, name: e.name, avatar_url: e.avatar_url, color: e.color,
           }))}
         />
+
+        <MoveRouteDateDialog
+          open={!!pendingRouteMove}
+          onOpenChange={(o) => { if (!o) setPendingRouteMove(null); }}
+          routeName={pendingRouteMove?.route.name || "Rute"}
+          fromDate={pendingRouteMove?.route.route_date || ""}
+          toDate={pendingRouteMove?.newDate || ""}
+          futureRouteCount={pendingSeriesInfo?.futureRouteCount ?? 1}
+          linkedSubscriptionCount={pendingSeriesInfo?.linkedSubscriptionCount ?? 0}
+          loading={moveRouteSeries.isPending}
+          onConfirm={handleConfirmMoveRoute}
+        />
       </AdminShell>
     </DndContext>
   );
