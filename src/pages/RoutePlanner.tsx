@@ -103,6 +103,11 @@ const Planner = () => {
   const [newRouteJobSearch, setNewRouteJobSearch] = useState("");
   const [editingRoute, setEditingRoute] = useState<Route | null>(null);
   const [routeToDelete, setRouteToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [pendingRouteMerge, setPendingRouteMerge] = useState<{
+    source: Route;
+    target: Route;
+  } | null>(null);
+  const [mergingRoute, setMergingRoute] = useState(false);
   const [distributing, setDistributing] = useState(false);
   const businessId = business?.id;
   const routePlanningEnabled = !!(business?.settings as any)?.route_planning_enabled;
@@ -588,6 +593,17 @@ const Planner = () => {
     const overData: any = over.data.current;
 
     /* ─── Drop fra MonthWeekCalendar ─── */
+    // Træk en hel rute → en anden rute = flet/merge alle stops ind i målrute
+    if (activeData?.type === "route" && overData?.type === "route") {
+      const source: Route = activeData.route;
+      const targetRouteId: string = overData.routeId;
+      if (source.id === targetRouteId) return;
+      const target = calendarRoutesRaw.find((r) => r.id === targetRouteId);
+      if (!target) return;
+      setPendingRouteMerge({ source, target: target as unknown as Route });
+      return;
+    }
+
     // Træk en hel rute → ny dato
     if (activeData?.type === "route" && overData?.type === "day") {
       const route: Route = activeData.route;
@@ -755,6 +771,49 @@ const Planner = () => {
       toast.error(err.message || "Kunne ikke flytte rute", {
         description: "Tjek at den nye dato er gyldig, og prøv igen.",
       });
+    }
+  };
+
+  // Flet alle aftaler fra én rute over i en anden, og slet kilden.
+  const handleConfirmRouteMerge = async () => {
+    if (!pendingRouteMerge) return;
+    const { source, target } = pendingRouteMerge;
+    setMergingRoute(true);
+    try {
+      const sourceStops = calendarStops.filter((s: any) => s.route_id === source.id);
+      if (sourceStops.length === 0) {
+        // Ruten er allerede tom — slet bare kilderuten.
+        await supabase.from("routes").delete().eq("id", source.id);
+        toast.success("Tom rute slettet");
+        invalidateRouteSyncQueries(qc);
+        setPendingRouteMerge(null);
+        return;
+      }
+      const { data, error } = await supabase.rpc("move_stops_to_route", {
+        _stop_ids: sourceStops.map((s: any) => s.id),
+        _target_route_id: target.id,
+      });
+      if (error) throw error;
+      const row = Array.isArray(data) ? data[0] : data;
+      const moved = Number(row?.moved_count ?? 0);
+      // Auto-slet kilderute (den er nu tom efter et fuldt merge)
+      const { count } = await supabase
+        .from("route_stops")
+        .select("id", { count: "exact", head: true })
+        .eq("route_id", source.id);
+      if ((count ?? 0) === 0) {
+        await supabase.from("routes").delete().eq("id", source.id);
+      }
+      toast.success(
+        `${moved} aftale${moved === 1 ? "" : "r"} flettet ind i ${target.name || "rute"}`,
+        { description: "Kilderuten blev slettet automatisk." },
+      );
+      invalidateRouteSyncQueries(qc);
+      setPendingRouteMerge(null);
+    } catch (err: any) {
+      toast.error(err.message || "Kunne ikke flette ruterne");
+    } finally {
+      setMergingRoute(false);
     }
   };
 
@@ -1436,6 +1495,36 @@ const Planner = () => {
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 Slet rute
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Bekræft fletning af to ruter (drag-and-drop rute → rute) */}
+        <AlertDialog
+          open={!!pendingRouteMerge}
+          onOpenChange={(o) => { if (!o && !mergingRoute) setPendingRouteMerge(null); }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Flet ruter?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Alle aftaler fra <strong>{pendingRouteMerge?.source.name || "rute uden navn"}</strong>
+                {" "}({pendingRouteMerge ? format(parseISO(pendingRouteMerge.source.route_date), "EEE d. MMM", { locale: da }) : ""})
+                {" "}flyttes ind i <strong>{pendingRouteMerge?.target.name || "målruten"}</strong>
+                {" "}({pendingRouteMerge ? format(parseISO(pendingRouteMerge.target.route_date), "EEE d. MMM", { locale: da }) : ""}),
+                og kilderuten slettes automatisk.
+                Medarbejder­tilknytninger på de enkelte aftaler bevares.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={mergingRoute}>Annullér</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(e) => { e.preventDefault(); handleConfirmRouteMerge(); }}
+                disabled={mergingRoute}
+              >
+                {mergingRoute && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
+                Flet ruter
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
