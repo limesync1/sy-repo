@@ -4,7 +4,7 @@
 // Virtuelle ruter er read-only — de bliver til rigtige route_stops når
 // DB-jobbet `auto_recur_due_orders` materialiserer dem, eller når en bruger
 // dropper en aftale ind på en rute.
-import { addDays, format, parseISO, isBefore } from "date-fns";
+import { addDays, format, parseISO, isBefore, differenceInCalendarDays } from "date-fns";
 
 export const intervalToDays = (interval: string | null | undefined): number | null => {
   if (!interval) return null;
@@ -62,7 +62,21 @@ export const expandRecurringRoutes = (params: {
     }
     if (!days) continue;
     const routeId = s.preferred_route_id;
-    let cursor = parseISO(String(s.seed_date).slice(0, 10));
+    let cursor: Date;
+    try {
+      cursor = parseISO(String(s.seed_date).slice(0, 10));
+      if (Number.isNaN(cursor.getTime())) continue;
+    } catch {
+      continue;
+    }
+    // Spol cursor frem til første forekomst inden for det synlige interval.
+    // Sparer iterationer når seed ligger langt tilbage i tiden (fx ugentlig
+    // aftale fra 2024 og vi viser maj 2026).
+    if (isBefore(cursor, start)) {
+      const diff = differenceInCalendarDays(start, cursor);
+      const stepsAhead = Math.floor(diff / days);
+      if (stepsAhead > 0) cursor = addDays(cursor, stepsAhead * days);
+    }
     let safety = 0;
     while (!isBefore(limit, cursor) && safety++ < 400) {
       const ds = format(cursor, "yyyy-MM-dd");
