@@ -619,6 +619,9 @@ const Planner = () => {
         realKeys.add(`${(r as any).base_route_id}|${r.route_date}`);
       }
     }
+    for (const ex of routeOccurrenceExceptions) {
+      realKeys.add(`${(ex as any).base_route_id}|${String((ex as any).occurrence_date).slice(0, 10)}`);
+    }
     const projections = expandRecurringRoutes({
       sources: recurringSources,
       rangeStart: calendarRange.start,
@@ -666,7 +669,7 @@ const Planner = () => {
         } as CalendarRoute;
       })
       .filter(Boolean) as CalendarRoute[];
-  }, [recurringSources, recurringBaseRoutes, calendarRoutesRaw, calendarRange.start, calendarRange.end, activeEmployees]);
+  }, [recurringSources, recurringBaseRoutes, calendarRoutesRaw, routeOccurrenceExceptions, calendarRange.start, calendarRange.end, activeEmployees]);
 
   /* ─── Fallback-projektion fra agreement_occurrences ───
      Tilbagevendende aftaler genererer planlagte forekomster (`agreement_occurrences`)
