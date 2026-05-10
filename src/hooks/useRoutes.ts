@@ -554,7 +554,7 @@ export const useUnassignedJobs = (businessId: string | undefined) => {
       const { data: orders, error } = await supabase
         .from("orders")
         .select(`
-          id, customer_name, customer_phone, customer_email, total_amount, status, notes,
+          id, customer_name, customer_phone, customer_email, total_amount, status, notes, completed_cycles,
           address, zip_code, city, latitude, longitude, created_at,
           preferred_date, preferred_time_start, preferred_time_end, estimated_duration_minutes, next_service_date,
           business_response, customer_response, adjusted_details, adjusted_amount,
@@ -640,6 +640,7 @@ export const useUnassignedJobs = (businessId: string | undefined) => {
           const prefId = isAcceptedOneTimeAdjustment ? null : (entry?.preferredRouteId || null);
           return {
             ...o,
+            completed_cycles: Number((o as any).completed_cycles ?? 0),
             total_amount: o.customer_response === "accepted" ? (o.adjusted_amount ?? o.total_amount) : o.total_amount,
             preferred_route_id: prefId,
             preferred_route_name: prefId ? (routeNameById.get(prefId) || null) : null,
