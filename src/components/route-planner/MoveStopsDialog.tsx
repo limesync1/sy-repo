@@ -124,6 +124,36 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
         movedCount = Number(row?.moved_count ?? 0);
         missingEmployee = Number(row?.missing_employee_count ?? 0);
         successLabel = format(parseISO(targetDate), "EEEE d. MMM", { locale: da });
+
+        // Hvis split: nyoprettede mål-ruter arver kilderutens navn (server-side
+        // for at bevare serie-identitet ved gentagende projektion). Det ser
+        // ud som en duplikat når brugeren manuelt splitter til en anden dato
+        // — så vi giver de nye ruter et dato-suffix der gør dem nemme at
+        // skelne fra kilderuten.
+        if (movedCount > 0 && route.name) {
+          const { data: movedNow } = await supabase
+            .from("route_stops")
+            .select("route_id")
+            .in("id", Array.from(selected));
+          const targetRouteIds = Array.from(
+            new Set((movedNow || []).map((s: any) => s.route_id).filter(Boolean)),
+          ).filter((rid) => rid !== route.id);
+          if (targetRouteIds.length > 0) {
+            const { data: targetRoutes } = await supabase
+              .from("routes")
+              .select("id, name, route_date")
+              .in("id", targetRouteIds);
+            const dateLabel = format(parseISO(targetDate), "d/M", { locale: da });
+            const newName = `${route.name} — ${dateLabel}`;
+            await Promise.all(
+              (targetRoutes || [])
+                .filter((r: any) => r.name === route.name && r.route_date !== route.route_date)
+                .map((r: any) =>
+                  supabase.from("routes").update({ name: newName }).eq("id", r.id),
+                ),
+            );
+          }
+        }
       } else {
         const { data, error } = await supabase.rpc("move_stops_to_route", {
           _stop_ids: Array.from(selected),
