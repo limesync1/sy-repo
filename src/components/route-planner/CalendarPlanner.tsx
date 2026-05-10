@@ -672,7 +672,8 @@ const StopBlock = ({
   const leftPct = lanes > 1 ? lane * widthPct : 0;
 
   // Visnings-tærskler i absolutte pixels — uafhængig af zoom
-  const showService = heightPx >= 56;
+  // Service vises altid så medarbejdere/ejere kan se hvad der skal udføres.
+  const showService = true;
   const showAssign = heightPx >= 50;
   const showAddress = heightPx >= 78;
   const showWindow = heightPx >= 96;
