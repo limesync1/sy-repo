@@ -416,6 +416,93 @@ const Planner = () => {
 
   /* Stop assignment handler */
   /* Build CalendarRoute[] for MonthWeekCalendar (range covers month/week view) */
+  /* ─── Gentagende ruter: hent aktive abonnementer med preferred_route_id og
+         projicér virtuelle forekomster på fremtidige datoer (op til 6 mdr.).
+         Virtuelle forekomster vises dæmpet med lås — de bliver til rigtige
+         route_stops når DB-jobbet `auto_recur_due_orders` kører. */
+  const { data: recurringSources = [] } = useQuery({
+    queryKey: ["recurring-agreements-for-planner", businessId],
+    enabled: !!businessId,
+    staleTime: 60 * 1000,
+    queryFn: async () => {
+      const [agreementsRes, subsRes] = await Promise.all([
+        supabase
+          .from("agreements")
+          .select("id, interval, interval_days, start_date, preferred_route_id")
+          .eq("business_id", businessId!)
+          .eq("status", "active")
+          .neq("interval", "engangskøb")
+          .not("preferred_route_id", "is", null),
+        supabase
+          .from("subscriptions")
+          .select("id, interval, next_service_date, created_at, preferred_route_id, status")
+          .eq("business_id", businessId!)
+          .eq("status", "active")
+          .neq("interval", "engangskøb")
+          .not("preferred_route_id", "is", null),
+      ]);
+      if (agreementsRes.error) throw agreementsRes.error;
+      if (subsRes.error) throw subsRes.error;
+      const fromAgreements = (agreementsRes.data || []).map((a: any) => ({
+        id: `agr:${a.id}`,
+        interval: a.interval as string,
+        interval_days: (a.interval_days ?? null) as number | null,
+        seed_date: a.start_date as string | null,
+        preferred_route_id: a.preferred_route_id as string | null,
+      }));
+      const fromSubs = (subsRes.data || []).map((s: any) => ({
+        id: `sub:${s.id}`,
+        interval: s.interval as string,
+        interval_days: null,
+        seed_date: (s.next_service_date as string | null) || (s.created_at as string | null),
+        preferred_route_id: s.preferred_route_id as string | null,
+      }));
+      return [...fromAgreements, ...fromSubs];
+    },
+  });
+
+  const recurringRouteIds = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          recurringSources
+            .map((s) => s.preferred_route_id)
+            .filter((id): id is string => !!id),
+        ),
+      ),
+    [recurringSources],
+  );
+  const { data: recurringBaseRoutes = [] } = useQuery({
+    queryKey: ["recurring-base-routes", businessId, recurringRouteIds.sort().join(",")],
+    enabled: !!businessId && recurringRouteIds.length > 0,
+    staleTime: 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("routes")
+        .select("*")
+        .in("id", recurringRouteIds);
+      if (error) throw error;
+      const routes = (data || []) as any[];
+      const { data: stopsData, error: stopsErr } = await supabase
+        .from("route_stops")
+        .select("*")
+        .in("route_id", recurringRouteIds);
+      if (stopsErr) throw stopsErr;
+      const stopsByRoute = new Map<string, any[]>();
+      for (const s of stopsData || []) {
+        const arr = stopsByRoute.get(s.route_id) || [];
+        arr.push(s);
+        stopsByRoute.set(s.route_id, arr);
+      }
+      return routes.map((r) => ({
+        ...r,
+        stops: (stopsByRoute.get(r.id) || []).sort(
+          (a, b) => (a.sequence ?? 0) - (b.sequence ?? 0),
+        ),
+      }));
+    },
+  });
+
   const calendarRoutes: CalendarRoute[] = useMemo(() => {
     const stopsByRoute = new Map<string, RouteStop[]>();
     for (const s of visibleCalendarStops) {
@@ -525,101 +612,6 @@ const Planner = () => {
     }
     return built;
   }, [calendarRoutesRaw, visibleCalendarStops, activeEmployees, recurringBaseRoutes]);
-
-  /* ─── Gentagende ruter: hent aktive abonnementer med preferred_route_id og
-         projicér virtuelle forekomster på fremtidige datoer (op til 6 mdr.).
-         Virtuelle forekomster vises dæmpet med lås — de bliver til rigtige
-         route_stops når DB-jobbet `auto_recur_due_orders` kører. */
-  const { data: recurringSources = [] } = useQuery({
-    queryKey: ["recurring-agreements-for-planner", businessId],
-    enabled: !!businessId,
-    staleTime: 60 * 1000,
-    queryFn: async () => {
-      // Hent fra BEGGE modeller (agreements + subscriptions). De dedupes
-      // automatisk i projektionen via routeId|date-key.
-      const [agreementsRes, subsRes] = await Promise.all([
-        supabase
-          .from("agreements")
-          .select("id, interval, interval_days, start_date, preferred_route_id")
-          .eq("business_id", businessId!)
-          .eq("status", "active")
-          .neq("interval", "engangskøb")
-          .not("preferred_route_id", "is", null),
-        supabase
-          .from("subscriptions")
-          .select("id, interval, next_service_date, created_at, preferred_route_id, status")
-          .eq("business_id", businessId!)
-          .eq("status", "active")
-          .neq("interval", "engangskøb")
-          .not("preferred_route_id", "is", null),
-      ]);
-      if (agreementsRes.error) throw agreementsRes.error;
-      if (subsRes.error) throw subsRes.error;
-      const fromAgreements = (agreementsRes.data || []).map((a: any) => ({
-        id: `agr:${a.id}`,
-        interval: a.interval as string,
-        interval_days: (a.interval_days ?? null) as number | null,
-        seed_date: a.start_date as string | null,
-        preferred_route_id: a.preferred_route_id as string | null,
-      }));
-      const fromSubs = (subsRes.data || []).map((s: any) => ({
-        id: `sub:${s.id}`,
-        interval: s.interval as string,
-        interval_days: null,
-        // Foretræk next_service_date — falder tilbage til oprettelsesdato.
-        seed_date: (s.next_service_date as string | null) || (s.created_at as string | null),
-        preferred_route_id: s.preferred_route_id as string | null,
-      }));
-      return [...fromAgreements, ...fromSubs];
-    },
-  });
-
-  // Hent basis-ruterne for alle gentagne kilder UAFHÆNGIGT af synligt interval,
-  // så projektionen kan finde sin "skabelon" selv når brugeren bladrer flere år
-  // frem og basis-ruten ligger langt tilbage i tiden.
-  const recurringRouteIds = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          recurringSources
-            .map((s) => s.preferred_route_id)
-            .filter((id): id is string => !!id),
-        ),
-      ),
-    [recurringSources],
-  );
-  const { data: recurringBaseRoutes = [] } = useQuery({
-    queryKey: ["recurring-base-routes", businessId, recurringRouteIds.sort().join(",")],
-    enabled: !!businessId && recurringRouteIds.length > 0,
-    staleTime: 60 * 1000,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("routes")
-        .select("*")
-        .in("id", recurringRouteIds);
-      if (error) throw error;
-      const routes = (data || []) as any[];
-      // Hent også basis-rutens stops, så projicerede ruter kan vise dem
-      // (ellers er virtuelle ruter tomme i kalenderen).
-      const { data: stopsData, error: stopsErr } = await supabase
-        .from("route_stops")
-        .select("*")
-        .in("route_id", recurringRouteIds);
-      if (stopsErr) throw stopsErr;
-      const stopsByRoute = new Map<string, any[]>();
-      for (const s of stopsData || []) {
-        const arr = stopsByRoute.get(s.route_id) || [];
-        arr.push(s);
-        stopsByRoute.set(s.route_id, arr);
-      }
-      return routes.map((r) => ({
-        ...r,
-        stops: (stopsByRoute.get(r.id) || []).sort(
-          (a, b) => (a.sequence ?? 0) - (b.sequence ?? 0),
-        ),
-      }));
-    },
-  });
 
   const virtualCalendarRoutes: CalendarRoute[] = useMemo(() => {
     if (!recurringSources.length) return [];
