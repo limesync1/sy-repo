@@ -691,6 +691,7 @@ const StopBlock = ({
       } ${
         isSelected ? "ring-2 ring-primary border-primary shadow-lg z-30"
           : isDone ? "opacity-60"
+          : isCancelled ? "opacity-40"
           : "hover:shadow-md hover:z-20 hover:border-foreground/40"
       } ${hasConflict ? "ring-1 ring-destructive/60" : ""}`}
       style={{
@@ -712,10 +713,15 @@ const StopBlock = ({
               {arrivalLabel}
             </span>
           )}
-          <p className={`text-[12px] font-semibold truncate flex-1 leading-tight ${isDone ? "line-through" : ""}`}>
+          <p className={`text-[12px] font-semibold truncate flex-1 leading-tight ${isDone || isCancelled ? "line-through" : ""}`}>
             {stop.customer_name || "Stop"}
           </p>
           {isDone && <CheckCircle2 className="h-3 w-3 text-emerald-600 shrink-0" />}
+          {isCancelled && (
+            <span title="Aflyst" className="text-[9px] font-semibold uppercase tracking-wide text-destructive shrink-0">
+              aflyst
+            </span>
+          )}
           {isInProgress && (
             <span title="I gang" className="h-2 w-2 rounded-full bg-blue-500 animate-pulse shrink-0" />
           )}
