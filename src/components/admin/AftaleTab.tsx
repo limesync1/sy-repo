@@ -242,17 +242,7 @@ const PRICING_LABELS: Record<string, string> = {
 };
 
 /* ─── Service category icons (samme system som Services-fanen) ─── */
-const CATEGORY_ICONS: Record<string, string> = {
-  "Rengøring": "🧹",
-  "Håndværker": "🔨",
-  "Flyttehjælp": "🚚",
-  "Haveservice": "🌿",
-  "Maler": "🎨",
-  "VVS": "💧",
-  "Elektriker": "⚡",
-  "Sikkerhed": "🛡️",
-};
-const DEFAULT_CATEGORY_ICON = "🧰";
+import { CATEGORY_ICONS, DEFAULT_CATEGORY_ICON } from "@/lib/category-icons";
 
 /* ─── Danske labels for rute- og stop-status ─── */
 const STOP_STATUS_LABELS: Record<string, string> = {
