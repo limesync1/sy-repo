@@ -949,13 +949,15 @@ const Planner = () => {
         return;
       }
       const targetRouteId: string = overData.routeId;
+      const targetRoute = calendarRoutesRaw.find((r) => r.id === targetRouteId);
+      const targetDate = targetRoute?.route_date || (targetRoute as any)?.date;
       if (!(await claimIdempotency())) {
         // Et andet kald har allerede claimet samme drop — bail.
         toast.info("Aftalen er allerede ved at blive tilføjet");
         releaseDrop();
         return;
       }
-      try {
+      const performAddToRoute = async () => {
         const { data: existingStops } = await supabase
           .from("route_stops").select("id, order_id").eq("route_id", targetRouteId);
         // Idempotens — undgå dubletter af samme aftale på samme rute.
@@ -981,6 +983,22 @@ const Planner = () => {
         // så virtuelle uger/måneder kan projicere fremad i kalenderen.
         await linkAgreementToRoute(job.id, targetRouteId);
         toast.success("Aftale tilføjet til ruten");
+      };
+      // Klog tjek: matcher target-datoen aftalens opstartsdato?
+      // Hvis ikke, beder vi brugeren om bekræftelse før vi flytter opstartsdatoen.
+      if (targetDate && !ensureStartDateMatches(
+        job, targetDate,
+        targetRoute?.name ? `ruten "${targetRoute.name}"` : "ruten",
+        async () => {
+          await shiftJobStartDate(job.id, targetDate);
+          await performAddToRoute();
+        },
+      )) {
+        releaseDrop();
+        return;
+      }
+      try {
+        await performAddToRoute();
       } catch (err: any) {
         const msg = String(err?.message || "");
         if (msg.includes("uniq_route_stops_route_order") || msg.includes("duplicate key")) {
@@ -1012,7 +1030,7 @@ const Planner = () => {
         releaseDrop();
         return;
       }
-      try {
+      const performCreateRouteWithStop = async () => {
         // Hvis aftalen allerede er lagt på en rute samme dag (fx pga. tidligere
         // hurtig-drop som lige har committet), så afbryd for at undgå dublet-ruter.
         const alreadyOnDay = calendarStops.some(
@@ -1061,6 +1079,20 @@ const Planner = () => {
         });
         await linkAgreementToRoute(job.id, created.id);
         toast.success(`Ny rute oprettet på ${format(parseISO(newDate), "d. MMM", { locale: da })}`);
+      };
+      if (!ensureStartDateMatches(
+        job, newDate,
+        `${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`,
+        async () => {
+          await shiftJobStartDate(job.id, newDate);
+          await performCreateRouteWithStop();
+        },
+      )) {
+        releaseDrop();
+        return;
+      }
+      try {
+        await performCreateRouteWithStop();
       } catch (err: any) {
         const msg = String(err?.message || "");
         if (msg.includes("uniq_route_stops_route_order") || msg.includes("duplicate key")) {
