@@ -873,6 +873,26 @@ export const useUpdateStop = () => {
   });
 };
 
+/**
+ * Læg en aftale-forekomst (uden rute) på en konkret eksisterende rute.
+ * Bruger SQL-helper `materialize_occurrence_to_route` så stop, agreement-link
+ * og occurrence.route_id alle opdateres atomisk på serveren.
+ */
+export const useMaterializeOccurrenceToRoute = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ occurrence_id, route_id }: { occurrence_id: string; route_id: string }) => {
+      const { data, error } = await supabase.rpc("materialize_occurrence_to_route", {
+        _occurrence_id: occurrence_id,
+        _target_route_id: route_id,
+      });
+      if (error) throw error;
+      return data as string;
+    },
+    onSuccess: () => invalidateRouteSyncQueries(qc),
+  });
+};
+
 export const useReorderStops = () => {
   const qc = useQueryClient();
   return useMutation({
