@@ -1463,6 +1463,8 @@ export const useMoveRouteSeries = () => {
     onSuccess: () => {
       invalidateRouteSyncQueries(qc);
       qc.invalidateQueries({ queryKey: ["route-series-info"] });
+      qc.invalidateQueries({ queryKey: ["recurring-agreements-for-planner"] });
+      qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
     },
     onError: (e: any) => toast.error(e.message || "Kunne ikke flytte rute"),
   });
