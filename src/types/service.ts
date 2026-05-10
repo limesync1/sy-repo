@@ -89,7 +89,22 @@ export interface BusinessInfo {
 // automatisk får grammatisk korrekte danske labels.
 import { formatInterval } from "@/lib/interval";
 
-export const INTERVAL_LABELS = new Proxy({} as Record<string, string>, {
+const LEGACY_INTERVAL_LABELS: Record<string, string> = {
+  engangskøb: formatInterval("engangskøb"),
+  daglig: formatInterval("daglig"),
+  hver_2_dag: formatInterval("hver_2_dag"),
+  ugentlig: formatInterval("ugentlig"),
+  hver_14_dag: formatInterval("hver_14_dag"),
+  hver_3_uge: formatInterval("hver_3_uge"),
+  hver_4_uge: formatInterval("hver_4_uge"),
+  hver_8_uge: formatInterval("hver_8_uge"),
+  månedlig: formatInterval("månedlig"),
+  kvartalsvis: formatInterval("kvartalsvis"),
+  halvårlig: formatInterval("halvårlig"),
+  årlig: formatInterval("årlig"),
+};
+
+export const INTERVAL_LABELS = new Proxy(LEGACY_INTERVAL_LABELS, {
   get: (_t, key) => formatInterval(String(key)),
   has: () => true,
 });
