@@ -17,6 +17,7 @@ export const invalidateRouteSyncQueries = (qc: ReturnType<typeof useQueryClient>
   qc.invalidateQueries({ queryKey: ["my-route-data"] });
   qc.invalidateQueries({ queryKey: ["my-employee-stats"] });
   qc.invalidateQueries({ queryKey: ["order-for-stop"] });
+  qc.invalidateQueries({ queryKey: ["route-occurrence-exceptions"] });
 };
 
 /** Map Postgres-fejl fra route_stop_assignees til danske beskeder. */
@@ -36,6 +37,8 @@ export type Route = {
   id: string;
   business_id: string;
   employee_id: string | null; // legacy — kept for back-compat, not used in new model
+  base_route_id?: string | null;
+  route_template_id?: string | null;
   route_date: string;
   status: string;
   name: string | null;
@@ -477,6 +480,38 @@ export const useCalendarData = (
   });
 };
 
+type RouteOccurrenceException = {
+  base_route_id: string;
+  occurrence_date: string;
+  replacement_route_id: string | null;
+  exception_type: string;
+};
+
+/** Datoer hvor en projiceret rute er flyttet/materialiseret, så gamle virtuelle forekomster ikke vises igen. */
+export const useRouteOccurrenceExceptions = (
+  businessId: string | undefined,
+  from: string,
+  to: string,
+) => {
+  return useQuery({
+    queryKey: ["route-occurrence-exceptions", businessId, from, to],
+    enabled: !!businessId && !!from && !!to,
+    staleTime: 30 * 1000,
+    gcTime: 5 * 60 * 1000,
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("route_occurrence_exceptions" as any)
+        .select("base_route_id, occurrence_date, replacement_route_id, exception_type")
+        .eq("business_id", businessId!)
+        .gte("occurrence_date", from)
+        .lte("occurrence_date", to);
+      if (error) throw error;
+      return (data || []) as unknown as RouteOccurrenceException[];
+    },
+  });
+};
+
 const useRouteEmployeesImpl = (routeIds: string[]) => {
   return useQuery({
     queryKey: ["route-employees-bulk", [...routeIds].sort().join(",")],
@@ -790,7 +825,8 @@ export const useDeleteRoute = () => {
 export const useMaterializeVirtualRoute = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ baseRouteId, date }: { baseRouteId: string; date: string }) => {
+    mutationFn: ({ baseRouteId, date }: { baseRouteId: string; date: string }) =>
+      routeMutationQueue.run(async () => {
       const { data: base, error: baseErr } = await supabase
         .from("routes")
         .select("*")
@@ -808,7 +844,8 @@ export const useMaterializeVirtualRoute = () => {
         .maybeSingle();
       if (existing) return existing as unknown as Route;
 
-      const { data: created, error: insErr } = await supabase
+      let created: any = null;
+      const { data: inserted, error: insErr } = await supabase
         .from("routes")
         .insert({
           business_id: (base as any).business_id,
@@ -825,7 +862,21 @@ export const useMaterializeVirtualRoute = () => {
         })
         .select("*")
         .single();
-      if (insErr) throw insErr;
+      if (insErr) {
+        const msg = String(insErr.message || "");
+        if (insErr.code === "23505" || /duplicate key|uniq_routes_base_route_date/i.test(msg)) {
+          const { data: raced, error: racedErr } = await supabase
+            .from("routes")
+            .select("*")
+            .eq("base_route_id", baseRouteId)
+            .eq("route_date", date)
+            .maybeSingle();
+          if (racedErr) throw racedErr;
+          if (raced) return raced as unknown as Route;
+        }
+        throw insErr;
+      }
+      created = inserted;
 
       // Klon stops fra basisruten — uden ordre/abonnement/forekomst-FK'er,
       // så de er rene planlægnings-stops på den nye rute. Brugeren kan
@@ -884,8 +935,19 @@ export const useMaterializeVirtualRoute = () => {
         } catch { /* non-fatal */ }
       }
 
+      await supabase.from("route_occurrence_exceptions" as any).upsert(
+        {
+          business_id: (base as any).business_id,
+          base_route_id: baseRouteId,
+          occurrence_date: date,
+          replacement_route_id: created.id,
+          exception_type: "moved",
+        },
+        { onConflict: "base_route_id,occurrence_date" },
+      );
+
       return created as unknown as Route;
-    },
+      }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["routes"] });
       qc.invalidateQueries({ queryKey: ["routes-range"] });
@@ -893,6 +955,7 @@ export const useMaterializeVirtualRoute = () => {
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
       qc.invalidateQueries({ queryKey: ["route-stops"] });
       qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
+      qc.invalidateQueries({ queryKey: ["route-occurrence-exceptions"] });
     },
     onError: (e: any) => toast.error(e.message || "Kunne ikke materialisere rute"),
   });
@@ -1426,6 +1489,14 @@ export const useUpdateRoute = () => {
   const qc = useQueryClient();
   return useMutation({
     onMutate: async ({ id, ...updates }: Partial<Route> & { id: string }) => {
+      await qc.cancelQueries({ queryKey: ["routes"] });
+      await qc.cancelQueries({ queryKey: ["routes-range"] });
+      await qc.cancelQueries({ queryKey: ["route-calendar"] });
+      const snapshots = [
+        ...qc.getQueriesData<Route[]>({ queryKey: ["routes"] }),
+        ...qc.getQueriesData<Route[]>({ queryKey: ["routes-range"] }),
+        ...qc.getQueriesData<{ routes: Route[]; stops: RouteStop[] }>({ queryKey: ["route-calendar"] }),
+      ];
       const mergeRoute = (route: Route) => (route.id === id ? { ...route, ...updates } : route);
       qc.setQueriesData({ queryKey: ["routes"] }, (old: Route[] | undefined) =>
         Array.isArray(old) ? old.map(mergeRoute) : old,
@@ -1433,6 +1504,10 @@ export const useUpdateRoute = () => {
       qc.setQueriesData({ queryKey: ["routes-range"] }, (old: Route[] | undefined) =>
         Array.isArray(old) ? old.map(mergeRoute) : old,
       );
+      qc.setQueriesData({ queryKey: ["route-calendar"] }, (old: { routes: Route[]; stops: RouteStop[] } | undefined) =>
+        old?.routes ? { ...old, routes: old.routes.map(mergeRoute) } : old,
+      );
+      return { snapshots };
     },
     mutationFn: async ({ id, ...updates }: Partial<Route> & { id: string }) => {
       const { data, error } = await supabase
@@ -1448,7 +1523,10 @@ export const useUpdateRoute = () => {
       qc.invalidateQueries({ queryKey: ["routes"] });
       qc.invalidateQueries({ queryKey: ["routes-range"] });
     },
-    onError: (e: any) => toast.error(e.message || "Kunne ikke opdatere rute"),
+    onError: (e: any, _vars, ctx) => {
+      ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data));
+      toast.error(e.message || "Kunne ikke opdatere rute");
+    },
   });
 };
 
@@ -1534,22 +1612,23 @@ export const useRouteSeriesInfo = (
 export const useMoveRouteSeries = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({
+    mutationFn: ({
       routeId, newDate, scope, moveLinkedSubscriptions,
     }: {
       routeId: string;
       newDate: string;
       scope: "single" | "future";
       moveLinkedSubscriptions: boolean;
-    }) => {
+    }) => routeMutationQueue.run(async () => {
       const { data: route, error } = await supabase
         .from("routes")
-        .select("id, route_date")
+        .select("id, business_id, route_date, base_route_id, route_template_id")
         .eq("id", routeId)
         .maybeSingle();
       if (error || !route) throw new Error("Rute ikke fundet");
       const fromDate = route.route_date as string;
       if (fromDate === newDate) return;
+      const baseRouteId = (route as any).base_route_id || route.id;
 
       // Flyt altid selve rute-instansen til den nye dato.
       const { error: e2 } = await supabase
@@ -1557,6 +1636,20 @@ export const useMoveRouteSeries = () => {
         .update({ route_date: newDate })
         .eq("id", routeId);
       if (e2) throw e2;
+
+      // Husk den oprindelige projekterede dato som erstattet/flyttet. Ellers
+      // kan den gamle virtuelle forekomst dukke op igen som en dublet, især
+      // når brugeren flytter "kun denne gang".
+      await supabase.from("route_occurrence_exceptions" as any).upsert(
+        {
+          business_id: (route as any).business_id,
+          base_route_id: baseRouteId,
+          occurrence_date: fromDate,
+          replacement_route_id: routeId,
+          exception_type: "moved",
+        },
+        { onConflict: "base_route_id,occurrence_date" },
+      );
 
       // "future" = forskyd også fremtidige forekomster af de tilbagevendende
       // aftaler på ruten — både dem der ligger som stops PÅ ruten og dem der
@@ -1647,12 +1740,13 @@ export const useMoveRouteSeries = () => {
 
       // moveLinkedSubscriptions er nu altid implicit ved "future".
       void moveLinkedSubscriptions;
-    },
+    }),
     onSuccess: () => {
       invalidateRouteSyncQueries(qc);
       qc.invalidateQueries({ queryKey: ["route-series-info"] });
       qc.invalidateQueries({ queryKey: ["recurring-agreements-for-planner"] });
       qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
+      qc.invalidateQueries({ queryKey: ["route-occurrence-exceptions"] });
     },
     onError: (e: any) => toast.error(e.message || "Kunne ikke flytte rute"),
   });

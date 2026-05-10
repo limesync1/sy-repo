@@ -2515,6 +2515,54 @@ export type Database = {
           },
         ]
       }
+      route_occurrence_exceptions: {
+        Row: {
+          base_route_id: string
+          business_id: string
+          created_at: string
+          exception_type: string
+          id: string
+          occurrence_date: string
+          replacement_route_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          base_route_id: string
+          business_id: string
+          created_at?: string
+          exception_type?: string
+          id?: string
+          occurrence_date: string
+          replacement_route_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          base_route_id?: string
+          business_id?: string
+          created_at?: string
+          exception_type?: string
+          id?: string
+          occurrence_date?: string
+          replacement_route_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_occurrence_exceptions_base_route_id_fkey"
+            columns: ["base_route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_occurrence_exceptions_replacement_route_id_fkey"
+            columns: ["replacement_route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       route_planner_idempotency: {
         Row: {
           business_id: string
