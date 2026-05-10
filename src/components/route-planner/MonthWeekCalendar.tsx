@@ -488,31 +488,7 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
         )}
       </div>
 
-      {/* Stops under ruten — kun i uge-visning (mere plads) */}
-      {!isVirtual && !compact && stopCount > 0 && (
-        <div className="border-t border-border/40 bg-secondary/20 max-h-32 overflow-y-auto">
-          {route.stops
-            .slice()
-            .sort((a, b) => a.sequence - b.sequence)
-            .slice(0, 4)
-            .map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                onClick={(e) => { e.stopPropagation(); onSelectStop(s); }}
-                className="w-full text-left px-2 py-0.5 text-[10px] hover:bg-accent/10 truncate text-foreground/80 border-t border-border/30 first:border-t-0"
-              >
-                <span className="font-medium">{s.customer_name || "Stop"}</span>
-                <span className="ml-1 text-foreground/60">· {s.service_summary || "Aftale"}</span>
-              </button>
-            ))}
-          {stopCount > 4 && (
-            <div className="px-2 py-0.5 text-[9px] text-muted-foreground italic">
-              +{stopCount - 4} mere
-            </div>
-          )}
-        </div>
-      )}
+      {/* Stops vises ikke under rute-pillen — åbn ruten ved at klikke for at se aftaler. */}
     </div>
   );
 };
