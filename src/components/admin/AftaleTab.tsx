@@ -16,6 +16,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { CATEGORY_ICONS, DEFAULT_CATEGORY_ICON } from "@/lib/category-icons";
 import {
   ShoppingCart, Pencil, Minus, Plus, Check, X, MessageSquare,
   ChevronDown, ChevronUp, Clock, Mail, Phone, ArrowRight,
@@ -241,8 +242,7 @@ const PRICING_LABELS: Record<string, string> = {
   prisberegner: "Prisberegner",
 };
 
-/* ─── Service category icons (samme system som Services-fanen) ─── */
-import { CATEGORY_ICONS, DEFAULT_CATEGORY_ICON } from "@/lib/category-icons";
+/* ─── Service category icons: importeres fra @/lib/category-icons ─── */
 
 /* ─── Danske labels for rute- og stop-status ─── */
 const STOP_STATUS_LABELS: Record<string, string> = {
