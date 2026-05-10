@@ -379,7 +379,7 @@ const Planner = () => {
       counterByDate.set(r.route_date, n);
       indexByRouteId.set(r.id, n);
     }
-    return calendarRoutesRaw.map((r) => {
+    const built = calendarRoutesRaw.map((r) => {
       // Saml UNIK liste af medarbejdere på tværs af alle stops på ruten
       const empIds = new Set<string>();
       const stopsForRoute = stopsByRoute.get(r.id) || [];
@@ -439,6 +439,13 @@ const Planner = () => {
         attachedEmployeeCount: emps.length,
       };
     });
+    // Når filtre er aktive, skjul ruter helt hvis ingen af deres stops matcher.
+    // Ellers ser det ud som om filteret bare "skjuler detaljer" — hvilket
+    // forvirrer brugerne.
+    if (filtersActive) {
+      return built.filter((r) => (r.stops?.length ?? 0) > 0);
+    }
+    return built;
   }, [calendarRoutesRaw, visibleCalendarStops, activeEmployees]);
 
   /* ─── Gentagende ruter: hent aktive abonnementer med preferred_route_id og
