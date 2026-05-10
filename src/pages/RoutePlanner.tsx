@@ -752,6 +752,9 @@ const Planner = () => {
           time_window_start: job.preferred_time_start || null,
           time_window_end: job.preferred_time_end || null,
         });
+        // Hvis aftalen er gentagende — knyt subscription'en til denne rute,
+        // så virtuelle uger/måneder kan projicere fremad i kalenderen.
+        await linkAgreementToRoute(job.id, targetRouteId);
         toast.success("Aftale tilføjet til ruten");
       } catch (err: any) {
         const msg = String(err?.message || "");
@@ -831,6 +834,7 @@ const Planner = () => {
           time_window_start: job.preferred_time_start || null,
           time_window_end: job.preferred_time_end || null,
         });
+        await linkAgreementToRoute(job.id, created.id);
         toast.success(`Ny rute oprettet på ${format(parseISO(newDate), "d. MMM", { locale: da })}`);
       } catch (err: any) {
         const msg = String(err?.message || "");
