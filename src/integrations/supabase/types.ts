@@ -3352,6 +3352,10 @@ export type Database = {
           trial_days: number
         }[]
       }
+      get_route_calendar: {
+        Args: { p_business_id: string; p_from: string; p_to: string }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
