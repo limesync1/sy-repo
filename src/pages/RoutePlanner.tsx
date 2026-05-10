@@ -360,7 +360,7 @@ const Planner = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("agreements")
-        .select("id, interval, start_date, preferred_route_id")
+        .select("id, interval, interval_days, start_date, preferred_route_id")
         .eq("business_id", businessId!)
         .eq("status", "active")
         .neq("interval", "engangskøb")
@@ -369,6 +369,7 @@ const Planner = () => {
       return (data || []).map((a: any) => ({
         id: a.id,
         interval: a.interval as string,
+        interval_days: (a.interval_days ?? null) as number | null,
         seed_date: a.start_date as string | null,
         preferred_route_id: a.preferred_route_id as string | null,
       }));

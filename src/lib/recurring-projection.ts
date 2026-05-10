@@ -9,6 +9,7 @@ import { addDays, format, parseISO, isBefore } from "date-fns";
 export const intervalToDays = (interval: string | null | undefined): number | null => {
   if (!interval) return null;
   switch (interval) {
+    case "daglig": return 1;
     case "ugentlig": return 7;
     case "hver_14_dag": return 14;
     case "hver_4_uge": return 28;
@@ -29,6 +30,8 @@ export type ProjectedRoute = {
 type RecurringSource = {
   id: string;
   interval: string;
+  /** Brugerdefineret antal dage mellem forekomster — bruges når interval === "custom". */
+  interval_days?: number | null;
   /** First date of the series (yyyy-MM-dd or ISO timestamp). */
   seed_date: string | null;
   preferred_route_id: string | null;
@@ -53,7 +56,10 @@ export const expandRecurringRoutes = (params: {
 
   for (const s of params.sources) {
     if (!s.preferred_route_id || !s.seed_date) continue;
-    const days = intervalToDays(s.interval);
+    let days = intervalToDays(s.interval);
+    if (!days && s.interval === "custom" && s.interval_days && s.interval_days > 0) {
+      days = s.interval_days;
+    }
     if (!days) continue;
     const routeId = s.preferred_route_id;
     let cursor = parseISO(String(s.seed_date).slice(0, 10));
