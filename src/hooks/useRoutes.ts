@@ -824,7 +824,8 @@ export const useDeleteRoute = () => {
 export const useMaterializeVirtualRoute = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ baseRouteId, date }: { baseRouteId: string; date: string }) => {
+    mutationFn: ({ baseRouteId, date }: { baseRouteId: string; date: string }) =>
+      routeMutationQueue.run(async () => {
       const { data: base, error: baseErr } = await supabase
         .from("routes")
         .select("*")
@@ -842,7 +843,8 @@ export const useMaterializeVirtualRoute = () => {
         .maybeSingle();
       if (existing) return existing as unknown as Route;
 
-      const { data: created, error: insErr } = await supabase
+      let created: any = null;
+      const { data: inserted, error: insErr } = await supabase
         .from("routes")
         .insert({
           business_id: (base as any).business_id,
@@ -859,7 +861,21 @@ export const useMaterializeVirtualRoute = () => {
         })
         .select("*")
         .single();
-      if (insErr) throw insErr;
+      if (insErr) {
+        const msg = String(insErr.message || "");
+        if (insErr.code === "23505" || /duplicate key|uniq_routes_base_route_date/i.test(msg)) {
+          const { data: raced, error: racedErr } = await supabase
+            .from("routes")
+            .select("*")
+            .eq("base_route_id", baseRouteId)
+            .eq("route_date", date)
+            .maybeSingle();
+          if (racedErr) throw racedErr;
+          if (raced) return raced as unknown as Route;
+        }
+        throw insErr;
+      }
+      created = inserted;
 
       // Klon stops fra basisruten — uden ordre/abonnement/forekomst-FK'er,
       // så de er rene planlægnings-stops på den nye rute. Brugeren kan
@@ -918,7 +934,19 @@ export const useMaterializeVirtualRoute = () => {
         } catch { /* non-fatal */ }
       }
 
+      await supabase.from("route_occurrence_exceptions" as any).upsert(
+        {
+          business_id: (base as any).business_id,
+          base_route_id: baseRouteId,
+          occurrence_date: date,
+          replacement_route_id: created.id,
+          exception_type: "moved",
+        },
+        { onConflict: "base_route_id,occurrence_date" },
+      );
+
       return created as unknown as Route;
+      }),
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["routes"] });
@@ -927,6 +955,7 @@ export const useMaterializeVirtualRoute = () => {
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
       qc.invalidateQueries({ queryKey: ["route-stops"] });
       qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
+      qc.invalidateQueries({ queryKey: ["route-occurrence-exceptions"] });
     },
     onError: (e: any) => toast.error(e.message || "Kunne ikke materialisere rute"),
   });
