@@ -591,6 +591,7 @@ export type Database = {
           longitude: number | null
           notes: string | null
           payment_terms_days: number | null
+          preferred_route_id: string | null
           preferred_time_end: string | null
           preferred_time_start: string | null
           requires_customer_approval: boolean
@@ -632,6 +633,7 @@ export type Database = {
           longitude?: number | null
           notes?: string | null
           payment_terms_days?: number | null
+          preferred_route_id?: string | null
           preferred_time_end?: string | null
           preferred_time_start?: string | null
           requires_customer_approval?: boolean
@@ -673,6 +675,7 @@ export type Database = {
           longitude?: number | null
           notes?: string | null
           payment_terms_days?: number | null
+          preferred_route_id?: string | null
           preferred_time_end?: string | null
           preferred_time_start?: string | null
           requires_customer_approval?: boolean
