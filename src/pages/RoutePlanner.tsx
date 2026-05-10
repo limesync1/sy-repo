@@ -9,8 +9,10 @@ import {
   useAddStop,
   useOptimizeRoute, useGeocodeAddress,
   useCreateRoute, useDeleteRoute, useUpdateRoute,
-  useRouteSeriesInfo, useMoveRouteSeries, useMaterializeVirtualRoute,
+  useRouteSeriesInfo, useMoveRouteSeries,
   useRouteOccurrenceExceptions,
+  openProjectedRouteBase,
+  logRoutePlannerEvent,
   type RouteStop, type Route,
 } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
@@ -273,7 +275,6 @@ const Planner = () => {
   const createRoute = useCreateRoute();
   const deleteRoute = useDeleteRoute();
   const updateRoute = useUpdateRoute();
-  const materializeVirtual = useMaterializeVirtualRoute();
   const moveRouteSeries = useMoveRouteSeries();
   const addStop = useAddStop();
   const optimizeRoute = useOptimizeRoute();
@@ -755,6 +756,46 @@ const Planner = () => {
     return (fromBuilt as any)?.name || null;
   }, [editingRoute, calendarRoutes]);
 
+  const openProjectedRoute = async (r: any) => {
+    const baseId = r.baseRouteId || (typeof r.id === "string" ? r.id.split(":")[1] : null);
+    const projectedDate = String(r.route_date || "").slice(0, 10);
+    const clientEventId = `open-projected:${baseId || "missing"}:${projectedDate}:${Date.now()}`;
+    if (!businessId || !baseId || !projectedDate) {
+      toast.error("Kunne ikke åbne projiceret rute");
+      return;
+    }
+    try {
+      const beforeCount = calendarRoutesRaw.filter(
+        (x: any) => x.base_route_id === baseId && String(x.route_date).slice(0, 10) === projectedDate,
+      ).length;
+      if (beforeCount > 0) {
+        await logRoutePlannerEvent({
+          businessId,
+          eventType: "projected_route_click_duplicate_detected_client",
+          severity: "error",
+          baseRouteId: baseId,
+          projectedDate,
+          clientEventId,
+          details: { materializedCountInClientCache: beforeCount, action: "open_base_only" },
+        });
+      }
+      const baseRoute = await openProjectedRouteBase({ businessId, baseRouteId: baseId, projectedDate, clientEventId });
+      setEditingRoute(baseRoute);
+      await qc.invalidateQueries({ queryKey: ["route-planner-events"] });
+    } catch (err: any) {
+      toast.error(err.message || "Basisruten kunne ikke åbnes");
+      await logRoutePlannerEvent({
+        businessId,
+        eventType: "projected_route_open_failed_client",
+        severity: "error",
+        baseRouteId: baseId,
+        projectedDate,
+        clientEventId,
+        details: { message: String(err?.message || err) },
+      });
+    }
+  };
+
   /* Auto-geocode jobs missing coords */
   useEffect(() => {
     if (!businessId || geocoding) return;
@@ -845,8 +886,24 @@ const Planner = () => {
 
   /* ─── DnD ─── */
   const handleDragStart = (e: DragStartEvent) => {
+    const data: any = e.active.data.current;
+    if (data?.type === "route" && data?.route?.isVirtual) {
+      setActiveDragId(null);
+      setActiveDragData(null);
+      if (businessId) {
+        void logRoutePlannerEvent({
+          businessId,
+          eventType: "virtual_route_drag_blocked_client",
+          severity: "warning",
+          baseRouteId: data.route.baseRouteId ?? null,
+          projectedDate: data.route.route_date ?? null,
+          details: { routeId: data.route.id },
+        });
+      }
+      return;
+    }
     setActiveDragId(e.active.id as string);
-    setActiveDragData(e.active.data.current);
+    setActiveDragData(data);
   };
 
   /** Tjekker om en flytning af et stop til en ny dato vil overlappe
@@ -971,6 +1028,18 @@ const Planner = () => {
 
     const activeData: any = active.data.current;
     const overData: any = over.data.current;
+    if (activeData?.type === "route" && activeData?.route?.isVirtual) {
+      await logRoutePlannerEvent({
+        businessId,
+        eventType: "virtual_route_move_blocked_client",
+        severity: "error",
+        baseRouteId: activeData.route.baseRouteId ?? null,
+        projectedDate: activeData.route.route_date ?? null,
+        details: { routeId: activeData.route.id, overType: overData?.type ?? null },
+      });
+      toast.info("Projicerede ruter kan åbnes, men ikke flyttes direkte");
+      return;
+    }
 
     // ─── Re-entrancy-guard ───
     // Beskyt mod dobbelt-drop (hurtig-klik / accidentel re-fyring) som ellers
@@ -2125,18 +2194,7 @@ const Planner = () => {
                     // når brugeren eksplicit flytter/redigerer en enkelt
                     // forekomst (drag-and-drop til ny dato).
                     if (r.isVirtual) {
-                      const baseId = r.baseRouteId || (typeof r.id === "string" ? r.id.split(":")[1] : null);
-                      if (!baseId) {
-                        toast.error("Kunne ikke åbne projiceret rute");
-                        return;
-                      }
-                      const baseRoute = calendarRoutesRaw.find((x) => x.id === baseId)
-                        || (recurringBaseRoutes as any[]).find((x) => x.id === baseId);
-                      if (!baseRoute) {
-                        toast.error("Basisruten kunne ikke findes");
-                        return;
-                      }
-                      setEditingRoute(baseRoute);
+                      await openProjectedRoute(r);
                       return;
                     }
                     setEditingRoute(r);

@@ -2563,6 +2563,67 @@ export type Database = {
           },
         ]
       }
+      route_planner_events: {
+        Row: {
+          base_route_id: string | null
+          business_id: string
+          client_event_id: string | null
+          created_at: string
+          details: Json
+          event_type: string
+          id: string
+          projected_date: string | null
+          route_id: string | null
+          severity: string
+        }
+        Insert: {
+          base_route_id?: string | null
+          business_id: string
+          client_event_id?: string | null
+          created_at?: string
+          details?: Json
+          event_type: string
+          id?: string
+          projected_date?: string | null
+          route_id?: string | null
+          severity?: string
+        }
+        Update: {
+          base_route_id?: string | null
+          business_id?: string
+          client_event_id?: string | null
+          created_at?: string
+          details?: Json
+          event_type?: string
+          id?: string
+          projected_date?: string | null
+          route_id?: string | null
+          severity?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_planner_events_base_route_id_fkey"
+            columns: ["base_route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_planner_events_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_planner_events_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       route_planner_idempotency: {
         Row: {
           business_id: string
@@ -3473,6 +3534,19 @@ export type Database = {
         Args: { _business_id: string }
         Returns: undefined
       }
+      log_route_planner_event: {
+        Args: {
+          _base_route_id?: string
+          _business_id: string
+          _client_event_id?: string
+          _details?: Json
+          _event_type: string
+          _projected_date?: string
+          _route_id?: string
+          _severity?: string
+        }
+        Returns: undefined
+      }
       materialize_occurrence_to_route: {
         Args: { _occurrence_id: string; _target_route_id: string }
         Returns: string
@@ -3502,6 +3576,44 @@ export type Database = {
           source_queue: string
         }
         Returns: number
+      }
+      open_projected_route_base: {
+        Args: {
+          _base_route_id: string
+          _business_id: string
+          _client_event_id?: string
+          _projected_date: string
+        }
+        Returns: {
+          base_route_id: string | null
+          business_id: string
+          color: string
+          created_at: string
+          employee_id: string | null
+          id: string
+          name: string | null
+          notes: string | null
+          optimization_suggestions: Json | null
+          optimization_summary: string | null
+          optimized_at: string | null
+          planned_start_time: string | null
+          route_date: string
+          route_template_id: string | null
+          start_address: string | null
+          start_from_home: boolean
+          start_latitude: number | null
+          start_longitude: number | null
+          status: string
+          total_distance_km: number | null
+          total_duration_minutes: number | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "routes"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       order_group_has_active_approval_token: {
         Args: { _parent_order_id: string }
