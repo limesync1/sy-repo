@@ -742,10 +742,13 @@ export const useAddStop = () => {
           if (svcId) {
             const { data: svc } = await supabase
               .from("services")
-              .select("default_employee_id")
+              .select("default_employee_id, default_employee_ids")
               .eq("id", svcId)
               .maybeSingle();
-            if (svc?.default_employee_id) resolvedAssignee = svc.default_employee_id;
+            const fromArr = Array.isArray((svc as any)?.default_employee_ids) && (svc as any).default_employee_ids.length > 0
+              ? (svc as any).default_employee_ids[0]
+              : null;
+            if (fromArr || svc?.default_employee_id) resolvedAssignee = fromArr || svc!.default_employee_id;
           }
         } catch {
           /* lookup må aldrig blokere oprettelse */
