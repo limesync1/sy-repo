@@ -3,6 +3,7 @@ import { MutationQueue, routeMutationQueue } from "@/lib/mutation-queue";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useMyEmployeeId } from "@/hooks/useMyEmployee";
+import { filterStopsByOccurrenceDate } from "@/lib/recurring-projection";
 
 export const invalidateRouteSyncQueries = (qc: ReturnType<typeof useQueryClient>) => {
   qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
