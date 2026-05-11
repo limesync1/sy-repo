@@ -2433,17 +2433,34 @@ const Planner = () => {
           // Stops for den aktive rute. Når sheet'et er åbnet via en projiceret
           // forekomst, filtrerer vi til kun de aftaler der reelt rammer den
           // dato (matcher mod projected-rutens sourceKeys). Ellers vises alle.
-          const baseStops = activeEditingRoute
-            ? calendarStops.filter((s) => s.route_id === activeEditingRoute.id)
-            : [];
           const projectionActive = !!(
             editingProjectedContext
             && activeEditingRoute
             && editingProjectedContext.baseRouteId === activeEditingRoute.id
           );
-          const stopsForActive = projectionActive
-            ? baseStops.filter((s: any) => projectedStopMatchesSources(s, editingProjectedContext!.sourceKeys))
-            : baseStops;
+          // Når projektion er aktiv bruger vi basis-rutens stops fra
+          // `recurringBaseRoutes` (som har `agreement_occurrences` joined ind),
+          // så sourceKey-matchingen virker pålideligt — calendar-RPC'en giver
+          // ikke nødvendigvis nested occurrence-data. Ellers viser vi alle
+          // stops fra calendar-vinduet som normalt.
+          let stopsForActive: RouteStop[] = [];
+          if (activeEditingRoute) {
+            if (projectionActive) {
+              const baseFromCache = (recurringBaseRoutes as any[]).find(
+                (r: any) => r.id === activeEditingRoute.id,
+              );
+              const sourced = (baseFromCache?.stops || [])
+                .filter((s: any) => projectedStopMatchesSources(s, editingProjectedContext!.sourceKeys))
+                .map((s: any) => ({
+                  ...s,
+                  assignee_ids: s.assignee_ids || [],
+                  lead_employee_id: s.lead_employee_id ?? s.assigned_employee_id ?? null,
+                })) as RouteStop[];
+              stopsForActive = sourced;
+            } else {
+              stopsForActive = calendarStops.filter((s) => s.route_id === activeEditingRoute.id);
+            }
+          }
           const closeAll = () => {
             setEditingRoute(null);
             setEditingProjectedContext(null);
