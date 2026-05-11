@@ -2194,13 +2194,24 @@ export const useMyRouteData = (routeId: string | undefined) => {
       const myStopIds = new Set((myAssign || []).map((a: any) => a.stop_id));
       const { data: rawStops } = await supabase
         .from("route_stops")
-        .select("*")
+        // Hent occurrence + aftalens interval i samme request — bruges
+        // både til interval-validering (dropper stops der ikke hører til
+        // dagen) og til at vise interval-label på aftalekortet i appen.
+        .select("*, agreement_occurrence:agreement_occurrences(occurrence_date, agreement:agreements(interval))")
         .eq("route_id", routeId!)
         .order("sequence", { ascending: true });
-      const routeHasMySpecificStops = (rawStops || []).some((s: any) =>
+      // Interval-validering: hvis ruten er dagens dato, drop stops hvis
+      // occurrence peger på en anden dato (legacy/fejlmaterialisering).
+      // Når vi ikke kender en specifik dag (route uden konkret dato eller
+      // legacy-stops uden occurrence), lader vi alle slippe igennem.
+      const dayKey = (route as any)?.route_date ? String((route as any).route_date).slice(0, 10) : null;
+      const intervalValidStops = dayKey
+        ? filterStopsByOccurrenceDate((rawStops || []) as any[], dayKey)
+        : (rawStops || []);
+      const routeHasMySpecificStops = (intervalValidStops || []).some((s: any) =>
         myStopIds.has(s.id) || s.assigned_employee_id === emp.id,
       );
-      const filteredStops = (rawStops || []).filter((s: any) => {
+      const filteredStops = (intervalValidStops || []).filter((s: any) => {
         const belongsToEmployee = myStopIds.has(s.id) || s.assigned_employee_id === emp.id;
         // Hvis medarbejderen har specifikke stop på ruten → kun deres egne.
         // Ellers (team-mode) → vis alle stop på ruten.
@@ -2228,7 +2239,7 @@ export const useMyRouteData = (routeId: string | undefined) => {
       // hvilket flere gange fører til besøg på forkert postdistrikt).
       const orderIds = Array.from(
         new Set(filteredStops.map((s: any) => s.order_id).filter(Boolean)),
-      );
+      ) as string[];
       const orderMap = new Map<string, { status: string | null; amount: number; zip_code: string | null; city: string | null; payment_status: string | null; invoice_status: string | null }>();
       if (orderIds.length > 0) {
         const { data: orderRows } = await supabase
@@ -2262,6 +2273,9 @@ export const useMyRouteData = (routeId: string | undefined) => {
           ...s,
           assignee_ids: entry?.ids || (s.assigned_employee_id ? [s.assigned_employee_id] : []),
           lead_employee_id: entry?.lead ?? s.assigned_employee_id ?? null,
+          // Hejs interval-tekst op fra det nestede join — så aftalekort
+          // og rute-modal i medarbejder-appen viser "Hver uge" osv.
+          agreement_interval: s.agreement_occurrence?.agreement?.interval ?? s.agreement_interval ?? null,
           order_status: order?.status ?? null,
           order_payment_status: order?.payment_status ?? null,
           order_invoice_status: order?.invoice_status ?? null,
