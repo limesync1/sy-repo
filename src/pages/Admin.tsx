@@ -1905,9 +1905,9 @@ const ServiceForm = ({
       {currentStep === totalSteps && (
         <div className="space-y-5">
           <div>
-            <h4 className="text-base font-semibold text-foreground">Vælg intervaller</h4>
+            <h4 className="text-base font-semibold text-foreground">Engangskøb eller abonnement</h4>
             <p className="mt-1 text-sm text-muted-foreground">
-              Tilføj de intervaller kunden skal kunne vælge — antal og enhed (dage, uger, måneder, år). Træk dem i den rækkefølge du vil vise dem.
+              Vælg om servicen skal kunne købes som <span className="font-medium text-foreground">engangskøb</span> (uden abonnement), som <span className="font-medium text-foreground">abonnement</span> med faste intervaller, eller begge dele. Du kan tilføje flere intervaller (fx ugentlig + månedlig) og bestemme rækkefølgen.
             </p>
           </div>
           <IntervalBuilder value={intervalOptions} onChange={setIntervalOptions} />
