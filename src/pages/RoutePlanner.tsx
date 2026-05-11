@@ -429,14 +429,14 @@ const Planner = () => {
       const [agreementsRes, subsRes] = await Promise.all([
         supabase
           .from("agreements")
-          .select("id, interval, interval_days, start_date, preferred_route_id")
+          .select("id, interval, interval_days, start_date, preferred_route_id, legacy_subscription_id")
           .eq("business_id", businessId!)
           .eq("status", "active")
           .neq("interval", "engangskøb")
           .not("preferred_route_id", "is", null),
         supabase
           .from("subscriptions")
-          .select("id, interval, next_service_date, created_at, preferred_route_id, status")
+          .select("id, interval, next_service_date, created_at, preferred_route_id, status, order_id")
           .eq("business_id", businessId!)
           .eq("status", "active")
           .neq("interval", "engangskøb")
@@ -450,6 +450,10 @@ const Planner = () => {
         interval_days: (a.interval_days ?? null) as number | null,
         seed_date: a.start_date as string | null,
         preferred_route_id: a.preferred_route_id as string | null,
+        sourceKeys: [
+          `agr:${a.id}`,
+          a.legacy_subscription_id ? `sub:${a.legacy_subscription_id}` : null,
+        ].filter(Boolean) as string[],
       }));
       const fromSubs = (subsRes.data || []).map((s: any) => ({
         id: `sub:${s.id}`,
@@ -457,6 +461,10 @@ const Planner = () => {
         interval_days: null,
         seed_date: (s.next_service_date as string | null) || (s.created_at as string | null),
         preferred_route_id: s.preferred_route_id as string | null,
+        sourceKeys: [
+          `sub:${s.id}`,
+          s.order_id ? `order:${s.order_id}` : null,
+        ].filter(Boolean) as string[],
       }));
       return [...fromAgreements, ...fromSubs];
     },
