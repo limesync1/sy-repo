@@ -65,7 +65,7 @@ import { useWeatherForecast, type WeatherDay } from "@/hooks/useWeather";
 import { ShellSkeleton } from "@/components/admin/shared/Skeletons";
 import { useQuery } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
-import { expandRecurringRoutes } from "@/lib/recurring-projection";
+import { expandRecurringRoutes, projectedStopMatchesSources } from "@/lib/recurring-projection";
 import { invalidateRouteSyncQueries } from "@/hooks/useRoutes";
 import { cn } from "@/lib/utils";
 
@@ -429,14 +429,14 @@ const Planner = () => {
       const [agreementsRes, subsRes] = await Promise.all([
         supabase
           .from("agreements")
-          .select("id, interval, interval_days, start_date, preferred_route_id")
+          .select("id, interval, interval_days, start_date, preferred_route_id, legacy_subscription_id")
           .eq("business_id", businessId!)
           .eq("status", "active")
           .neq("interval", "engangskøb")
           .not("preferred_route_id", "is", null),
         supabase
           .from("subscriptions")
-          .select("id, interval, next_service_date, created_at, preferred_route_id, status")
+          .select("id, interval, next_service_date, created_at, preferred_route_id, status, order_id")
           .eq("business_id", businessId!)
           .eq("status", "active")
           .neq("interval", "engangskøb")
@@ -444,20 +444,35 @@ const Planner = () => {
       ]);
       if (agreementsRes.error) throw agreementsRes.error;
       if (subsRes.error) throw subsRes.error;
+      const subOrderById = new Map((subsRes.data || []).map((s: any) => [s.id, s.order_id as string | null]));
+      const agreementLegacySubIds = new Set(
+        (agreementsRes.data || []).map((a: any) => a.legacy_subscription_id).filter(Boolean),
+      );
       const fromAgreements = (agreementsRes.data || []).map((a: any) => ({
         id: `agr:${a.id}`,
         interval: a.interval as string,
         interval_days: (a.interval_days ?? null) as number | null,
         seed_date: a.start_date as string | null,
         preferred_route_id: a.preferred_route_id as string | null,
+        sourceKeys: [
+          `agr:${a.id}`,
+          a.legacy_subscription_id ? `sub:${a.legacy_subscription_id}` : null,
+          a.legacy_subscription_id && subOrderById.get(a.legacy_subscription_id) ? `order:${subOrderById.get(a.legacy_subscription_id)}` : null,
+        ].filter(Boolean) as string[],
       }));
-      const fromSubs = (subsRes.data || []).map((s: any) => ({
-        id: `sub:${s.id}`,
-        interval: s.interval as string,
-        interval_days: null,
-        seed_date: (s.next_service_date as string | null) || (s.created_at as string | null),
-        preferred_route_id: s.preferred_route_id as string | null,
-      }));
+      const fromSubs = (subsRes.data || [])
+        .filter((s: any) => !agreementLegacySubIds.has(s.id))
+        .map((s: any) => ({
+          id: `sub:${s.id}`,
+          interval: s.interval as string,
+          interval_days: null,
+          seed_date: (s.next_service_date as string | null) || (s.created_at as string | null),
+          preferred_route_id: s.preferred_route_id as string | null,
+          sourceKeys: [
+            `sub:${s.id}`,
+            s.order_id ? `order:${s.order_id}` : null,
+          ].filter(Boolean) as string[],
+        }));
       return [...fromAgreements, ...fromSubs];
     },
   });
@@ -486,7 +501,7 @@ const Planner = () => {
       const routes = (data || []) as any[];
       const { data: stopsData, error: stopsErr } = await supabase
         .from("route_stops")
-        .select("*")
+        .select("*, agreement_occurrences(agreement_id, legacy_order_id)")
         .in("route_id", recurringRouteIds);
       if (stopsErr) throw stopsErr;
       const stopsByRoute = new Map<string, any[]>();
@@ -660,14 +675,17 @@ const Planner = () => {
         // Projicér basis-rutens stops over på den virtuelle dato — gør at
         // brugeren ser kunderne i kalender-kortet selv før forekomsten er
         // materialiseret. Stops markeres som virtuelle så de ikke kan ændres.
-        const projectedStops = (base.stops || []).map((s: any, i: number) => ({
-          ...s,
-          id: `virtual-stop:${p.baseRouteId}:${p.date}:${s.id}`,
-          route_id: p.id,
-          status: "planned",
-          isVirtual: true,
-          sequence: s.sequence ?? i,
-        }));
+        const projectedStops = (base.stops || [])
+          .filter((s: any) => projectedStopMatchesSources(s, p.sourceKeys))
+          .map((s: any, i: number) => ({
+            ...s,
+            id: `virtual-stop:${p.baseRouteId}:${p.date}:${s.id}`,
+            route_id: p.id,
+            status: "planned",
+            isVirtual: true,
+            sequence: i,
+          }));
+        if (projectedStops.length === 0) return null;
         // Saml medarbejdere fra basis-rutens stops så virtuelle ruter også
         // viser tilknyttede medarbejdere på kalender-kortet.
         const empIds = new Set<string>();

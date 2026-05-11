@@ -18,6 +18,25 @@ export type ProjectedRoute = {
   id: string;            // stable virtual id: `virtual:<routeId>:<date>`
   baseRouteId: string;
   date: string;          // yyyy-MM-dd
+  /** De konkrete aftale-/abonnementskilder der falder på denne dato. */
+  sourceKeys: string[];
+};
+
+export const recurringSourceKeysForStop = (stop: any): string[] => {
+  const occurrence = stop?.agreement_occurrences || stop?.agreement_occurrence || null;
+  return [
+    stop?.agreement_id ? `agr:${stop.agreement_id}` : null,
+    occurrence?.agreement_id ? `agr:${occurrence.agreement_id}` : null,
+    stop?.subscription_id ? `sub:${stop.subscription_id}` : null,
+    stop?.order_id ? `order:${stop.order_id}` : null,
+    occurrence?.legacy_order_id ? `order:${occurrence.legacy_order_id}` : null,
+  ].filter(Boolean) as string[];
+};
+
+export const projectedStopMatchesSources = (stop: any, sourceKeys: string[] | undefined): boolean => {
+  if (!sourceKeys || sourceKeys.length === 0) return true;
+  const active = new Set(sourceKeys);
+  return recurringSourceKeysForStop(stop).some((key) => active.has(key));
 };
 
 type RecurringSource = {
@@ -28,6 +47,8 @@ type RecurringSource = {
   /** First date of the series (yyyy-MM-dd or ISO timestamp). */
   seed_date: string | null;
   preferred_route_id: string | null;
+  /** Match-nøgler til stops: fx `agr:<id>`, `sub:<id>`, `order:<id>`. */
+  sourceKeys?: string[];
 };
 
 export const expandRecurringRoutes = (params: {
@@ -41,7 +62,7 @@ export const expandRecurringRoutes = (params: {
 }): ProjectedRoute[] => {
   // Projicerer pr. kilde (aftale) og samler datoer pr. rute, så samme dato
   // ikke duplikeres når flere aftaler falder sammen på samme rute/dag.
-  const seen = new Set<string>(); // `${routeId}|${date}`
+  const byRouteDate = new Map<string, ProjectedRoute>(); // `${routeId}|${date}`
   const out: ProjectedRoute[] = [];
   // Hård sikring: projicér ALDRIG i fortiden, uanset hvilken rangeStart
   // kalderen sender ind. Bruges som defense-in-depth oven på UI-clamp.
@@ -81,13 +102,18 @@ export const expandRecurringRoutes = (params: {
     while (!isBefore(limit, cursor) && safety++ < 4000) {
       const ds = format(cursor, "yyyy-MM-dd");
       const key = `${routeId}|${ds}`;
-      if (
-        !isBefore(cursor, start) &&
-        !params.realRouteDates.has(key) &&
-        !seen.has(key)
-      ) {
-        seen.add(key);
-        out.push({ id: `virtual:${routeId}:${ds}`, baseRouteId: routeId, date: ds });
+      if (!isBefore(cursor, start) && !params.realRouteDates.has(key)) {
+        const sourceKeys = (s.sourceKeys && s.sourceKeys.length > 0) ? s.sourceKeys : [s.id];
+        const existing = byRouteDate.get(key);
+        if (existing) {
+          const merged = new Set(existing.sourceKeys);
+          sourceKeys.forEach((sourceKey) => merged.add(sourceKey));
+          existing.sourceKeys = Array.from(merged);
+        } else {
+          const projected = { id: `virtual:${routeId}:${ds}`, baseRouteId: routeId, date: ds, sourceKeys: Array.from(new Set(sourceKeys)) };
+          byRouteDate.set(key, projected);
+          out.push(projected);
+        }
       }
       cursor = addDays(cursor, days);
     }
