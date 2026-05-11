@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
-import { expandRecurringRoutes, intervalToDays } from "./recurring-projection";
+import { expandRecurringRoutes, intervalToDays, projectedStopMatchesSources } from "./recurring-projection";
 
 // Lås "today" på filniveau, så past-clamp i expandRecurringRoutes ikke
 // filtrerer testdatoer afhængigt af kørselstidspunktet. Alle testdata er
@@ -118,6 +118,34 @@ describe("expandRecurringRoutes", () => {
     });
     const may4 = out.filter((p) => p.date === "2026-05-04");
     expect(may4.length).toBe(1);
+  });
+
+  it("bevarer aktive kilder når flere aftaler deler samme projicerede rute/dato", () => {
+    const [projected] = expandRecurringRoutes({
+      ...range,
+      realRouteDates: new Set(),
+      sources: [
+        { id: "a1", interval: "ugentlig", seed_date: "2026-05-04", preferred_route_id: "r1", sourceKeys: ["agr:a1"] },
+        { id: "a2", interval: "hver_14_dag", seed_date: "2026-05-04", preferred_route_id: "r1", sourceKeys: ["agr:a2"] },
+      ],
+    });
+    expect(projected.sourceKeys.sort()).toEqual(["agr:a1", "agr:a2"]);
+  });
+});
+
+describe("projectedStopMatchesSources", () => {
+  it("viser kun stops hvor aftalens interval faktisk rammer datoen", () => {
+    const weeklyStop = { agreement_id: "weekly" };
+    const monthlyStop = { agreement_id: "monthly" };
+    expect(projectedStopMatchesSources(weeklyStop, ["agr:weekly"])).toBe(true);
+    expect(projectedStopMatchesSources(monthlyStop, ["agr:weekly"])).toBe(false);
+  });
+
+  it("matcher også legacy subscription/order nøgler", () => {
+    expect(projectedStopMatchesSources({ subscription_id: "s1" }, ["sub:s1"])).toBe(true);
+    expect(projectedStopMatchesSources({ order_id: "o1" }, ["order:o1"])).toBe(true);
+    expect(projectedStopMatchesSources({ agreement_occurrences: { agreement_id: "a1", legacy_order_id: "o2" } }, ["agr:a1"])).toBe(true);
+    expect(projectedStopMatchesSources({ agreement_occurrences: { agreement_id: "a1", legacy_order_id: "o2" } }, ["order:o2"])).toBe(true);
   });
 });
 
