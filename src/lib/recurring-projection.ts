@@ -39,6 +39,37 @@ export const projectedStopMatchesSources = (stop: any, sourceKeys: string[] | un
   return recurringSourceKeysForStop(stop).some((key) => active.has(key));
 };
 
+/**
+ * Filtrerer en liste af stops så vi kun beholder dem der tilhører den
+ * konkrete dag — vurderet ud fra deres linkede `agreement_occurrence`'s
+ * `occurrence_date`.
+ *
+ * Regler:
+ *  - Stops UDEN nogen `agreement_occurrence(s).occurrence_date` slipper
+ *    altid igennem (one-off ordrer, legacy-data, ad-hoc tilføjelser).
+ *  - Stops MED en occurrence der peger på en anden dato end `dayDate`
+ *    skjules — de er "fremmede" forekomster der ved en fejl ligger på
+ *    den forkerte rute (typisk pga. legacy-materialisering).
+ *
+ * Bruges både i medarbejder-app (`useMyDayStops`, `useMyRouteData`) for
+ * at sikre at medarbejderen kun ser de aftaler der reelt skal udføres
+ * netop den dag — uanset hvilke historiske rækker der måtte ligge på
+ * basisruten.
+ */
+export const filterStopsByOccurrenceDate = <T extends Record<string, any>>(
+  stops: T[],
+  dayDate: string,
+): T[] => {
+  if (!stops || stops.length === 0) return stops ?? [];
+  const target = String(dayDate).slice(0, 10);
+  return stops.filter((s) => {
+    const occ = s?.agreement_occurrence || s?.agreement_occurrences || null;
+    const occDate = occ?.occurrence_date as string | undefined;
+    if (!occDate) return true;
+    return String(occDate).slice(0, 10) === target;
+  });
+};
+
 type RecurringSource = {
   id: string;
   interval: string;

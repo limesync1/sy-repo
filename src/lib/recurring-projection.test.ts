@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
-import { expandRecurringRoutes, intervalToDays, projectedStopMatchesSources } from "./recurring-projection";
+import { expandRecurringRoutes, intervalToDays, projectedStopMatchesSources, filterStopsByOccurrenceDate } from "./recurring-projection";
 
 // Lås "today" på filniveau, så past-clamp i expandRecurringRoutes ikke
 // filtrerer testdatoer afhængigt af kørselstidspunktet. Alle testdata er
@@ -789,5 +789,65 @@ describe("expandRecurringRoutes — samme projicerede rute, forskellige aktive i
     expect(projectedStopMatchesSources({ order_id: "legacy" }, may4.sourceKeys)).toBe(true);
     // Men en helt anden aftale skal afvises.
     expect(projectedStopMatchesSources({ agreement_id: "other" }, may4.sourceKeys)).toBe(false);
+  });
+});
+
+// Tests for filterStopsByOccurrenceDate — den hjælper både medarbejder-app og
+// rute-data-hooket bruger til at sikre at en dag KUN viser stops der reelt
+// hører til datoen (når aftalens occurrence er kendt).
+describe("filterStopsByOccurrenceDate", () => {
+  it("beholder stops uden occurrence (one-off / legacy)", () => {
+    const stops = [{ id: "a" }, { id: "b", order_id: "o1" }];
+    expect(filterStopsByOccurrenceDate(stops, "2026-05-11")).toEqual(stops);
+  });
+
+  it("beholder stops hvor occurrence_date matcher dagen", () => {
+    const stops = [
+      { id: "a", agreement_occurrence: { occurrence_date: "2026-05-11" } },
+      { id: "b", agreement_occurrence: { occurrence_date: "2026-05-11T08:00:00Z" } },
+    ];
+    expect(filterStopsByOccurrenceDate(stops, "2026-05-11").map((s) => s.id)).toEqual(["a", "b"]);
+  });
+
+  it("dropper stops hvor occurrence_date peger på en anden dag", () => {
+    const stops = [
+      { id: "today", agreement_occurrence: { occurrence_date: "2026-05-11" } },
+      { id: "yesterday", agreement_occurrence: { occurrence_date: "2026-05-10" } },
+      { id: "next-week", agreement_occurrence: { occurrence_date: "2026-05-18" } },
+    ];
+    expect(filterStopsByOccurrenceDate(stops, "2026-05-11").map((s) => s.id)).toEqual(["today"]);
+  });
+
+  it("understøtter både agreement_occurrence (singular) og agreement_occurrences (plural)", () => {
+    const stops = [
+      { id: "a", agreement_occurrences: { occurrence_date: "2026-05-11" } },
+      { id: "b", agreement_occurrence: { occurrence_date: "2026-05-12" } },
+    ];
+    expect(filterStopsByOccurrenceDate(stops, "2026-05-11").map((s) => s.id)).toEqual(["a"]);
+  });
+
+  it("blandet input: nogle med occurrence, andre uden — kun mismatch fjernes", () => {
+    const stops = [
+      { id: "no-occ" },
+      { id: "match", agreement_occurrence: { occurrence_date: "2026-05-11" } },
+      { id: "mismatch", agreement_occurrence: { occurrence_date: "2026-05-04" } },
+      { id: "legacy-order", order_id: "o9" },
+    ];
+    expect(filterStopsByOccurrenceDate(stops, "2026-05-11").map((s) => s.id))
+      .toEqual(["no-occ", "match", "legacy-order"]);
+  });
+
+  it("tomt input → tomt output, og crasher ikke på null/undefined", () => {
+    expect(filterStopsByOccurrenceDate([], "2026-05-11")).toEqual([]);
+    // Defensivt: hvis caller sender null, må vi ikke smide.
+    expect(filterStopsByOccurrenceDate(null as any, "2026-05-11")).toEqual([]);
+  });
+
+  it("normaliserer dayDate (slice 10) så ISO-tid også virker", () => {
+    const stops = [
+      { id: "a", agreement_occurrence: { occurrence_date: "2026-05-11" } },
+      { id: "b", agreement_occurrence: { occurrence_date: "2026-05-12" } },
+    ];
+    expect(filterStopsByOccurrenceDate(stops, "2026-05-11T23:59:00Z").map((s) => s.id)).toEqual(["a"]);
   });
 });

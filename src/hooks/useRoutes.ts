@@ -3,6 +3,7 @@ import { MutationQueue, routeMutationQueue } from "@/lib/mutation-queue";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useMyEmployeeId } from "@/hooks/useMyEmployee";
+import { filterStopsByOccurrenceDate } from "@/lib/recurring-projection";
 
 export const invalidateRouteSyncQueries = (qc: ReturnType<typeof useQueryClient>) => {
   qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
@@ -2069,13 +2070,13 @@ export const useMyDayStops = (date: string) => {
       const myStopIds = new Set(assignedStopIds);
       const { data, error } = await supabase
         .from("route_stops")
-        // Join occurrence så vi kan validere at stop'et faktisk hører til
-        // den interval-forekomst der ligger på medarbejderens dato. Hvis et
-        // stop har en `agreement_occurrence_id` peger det på en konkret
-        // forekomst — har den en anden `occurrence_date` end ruten, er
-        // stop'et kommet med ved en fejl (legacy / dubleret materialisering)
-        // og må ikke vises.
-        .select("*, agreement_occurrence:agreement_occurrences(occurrence_date)")
+        // Join occurrence + den linkede aftale så vi kan:
+        //  1) validere at stop'et faktisk hører til den interval-forekomst
+        //     der ligger på medarbejderens dato (ellers er rækken kommet
+        //     med ved en fejl — typisk legacy/dubleret materialisering),
+        //  2) hente aftalens `interval` så vi kan vise "Hver uge",
+        //     "Månedligt", osv. på aftalekortet i appen.
+        .select("*, agreement_occurrence:agreement_occurrences(occurrence_date, agreement:agreements(interval))")
         .in("route_id", todayIds)
         .order("sequence", { ascending: true });
       if (error) throw error;
@@ -2108,15 +2109,12 @@ export const useMyDayStops = (date: string) => {
       // Interval-validering: drop stops hvor en linket agreement_occurrence
       // peger på en ANDEN dato end medarbejderens dag. Stops uden occurrence
       // (one-off ordrer / legacy) går altid igennem — vi vil aldrig skjule
-      // ægte arbejde pga. manglende metadata.
-      const filteredByInterval = filtered.filter((s: any) => {
-        const occDate = s.agreement_occurrence?.occurrence_date as string | undefined;
-        if (!occDate) return true;
-        return String(occDate).slice(0, 10) === date;
-      });
+      // ægte arbejde pga. manglende metadata. Pure helper deles med
+      // `useMyRouteData` så reglerne er konsistente på tværs af appen.
+      const filteredByInterval = filterStopsByOccurrenceDate(filtered as any[], date);
       const orderIds = Array.from(
         new Set(filteredByInterval.map((s: any) => s.order_id).filter(Boolean)),
-      );
+      ) as string[];
       if (orderIds.length === 0) return filteredByInterval as RouteStop[];
 
       const { data: orderRows } = await supabase
@@ -2153,6 +2151,9 @@ export const useMyDayStops = (date: string) => {
         })();
         return {
           ...s,
+          // Hejs interval-tekst op fra det nestede join så aftalekortet kan
+          // vise "Hver uge", "Månedligt" osv. uden et ekstra request.
+          agreement_interval: s.agreement_occurrence?.agreement?.interval ?? s.agreement_interval ?? null,
           order_status: order?.status ?? null,
           order_payment_status: order?.payment_status ?? null,
           order_invoice_status: order?.invoice_status ?? null,
@@ -2193,13 +2194,24 @@ export const useMyRouteData = (routeId: string | undefined) => {
       const myStopIds = new Set((myAssign || []).map((a: any) => a.stop_id));
       const { data: rawStops } = await supabase
         .from("route_stops")
-        .select("*")
+        // Hent occurrence + aftalens interval i samme request — bruges
+        // både til interval-validering (dropper stops der ikke hører til
+        // dagen) og til at vise interval-label på aftalekortet i appen.
+        .select("*, agreement_occurrence:agreement_occurrences(occurrence_date, agreement:agreements(interval))")
         .eq("route_id", routeId!)
         .order("sequence", { ascending: true });
-      const routeHasMySpecificStops = (rawStops || []).some((s: any) =>
+      // Interval-validering: hvis ruten er dagens dato, drop stops hvis
+      // occurrence peger på en anden dato (legacy/fejlmaterialisering).
+      // Når vi ikke kender en specifik dag (route uden konkret dato eller
+      // legacy-stops uden occurrence), lader vi alle slippe igennem.
+      const dayKey = (route as any)?.route_date ? String((route as any).route_date).slice(0, 10) : null;
+      const intervalValidStops = dayKey
+        ? filterStopsByOccurrenceDate((rawStops || []) as any[], dayKey)
+        : (rawStops || []);
+      const routeHasMySpecificStops = (intervalValidStops || []).some((s: any) =>
         myStopIds.has(s.id) || s.assigned_employee_id === emp.id,
       );
-      const filteredStops = (rawStops || []).filter((s: any) => {
+      const filteredStops = (intervalValidStops || []).filter((s: any) => {
         const belongsToEmployee = myStopIds.has(s.id) || s.assigned_employee_id === emp.id;
         // Hvis medarbejderen har specifikke stop på ruten → kun deres egne.
         // Ellers (team-mode) → vis alle stop på ruten.
@@ -2227,7 +2239,7 @@ export const useMyRouteData = (routeId: string | undefined) => {
       // hvilket flere gange fører til besøg på forkert postdistrikt).
       const orderIds = Array.from(
         new Set(filteredStops.map((s: any) => s.order_id).filter(Boolean)),
-      );
+      ) as string[];
       const orderMap = new Map<string, { status: string | null; amount: number; zip_code: string | null; city: string | null; payment_status: string | null; invoice_status: string | null }>();
       if (orderIds.length > 0) {
         const { data: orderRows } = await supabase
@@ -2261,6 +2273,9 @@ export const useMyRouteData = (routeId: string | undefined) => {
           ...s,
           assignee_ids: entry?.ids || (s.assigned_employee_id ? [s.assigned_employee_id] : []),
           lead_employee_id: entry?.lead ?? s.assigned_employee_id ?? null,
+          // Hejs interval-tekst op fra det nestede join — så aftalekort
+          // og rute-modal i medarbejder-appen viser "Hver uge" osv.
+          agreement_interval: s.agreement_occurrence?.agreement?.interval ?? s.agreement_interval ?? null,
           order_status: order?.status ?? null,
           order_payment_status: order?.payment_status ?? null,
           order_invoice_status: order?.invoice_status ?? null,
