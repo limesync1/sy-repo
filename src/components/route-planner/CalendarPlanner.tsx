@@ -21,6 +21,7 @@ import {
 import { format, isToday, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import type { RouteStop } from "@/hooks/useRoutes";
+import { formatInterval } from "@/lib/interval";
 
 const SLOT_MIN = 15;          // snap-interval (altid 15 min)
 const START_HOUR = 6;
