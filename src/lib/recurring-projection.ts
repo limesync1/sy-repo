@@ -22,6 +22,23 @@ export type ProjectedRoute = {
   sourceKeys: string[];
 };
 
+export const recurringSourceKeysForStop = (stop: any): string[] => {
+  const occurrence = stop?.agreement_occurrences || stop?.agreement_occurrence || null;
+  return [
+    stop?.agreement_id ? `agr:${stop.agreement_id}` : null,
+    occurrence?.agreement_id ? `agr:${occurrence.agreement_id}` : null,
+    stop?.subscription_id ? `sub:${stop.subscription_id}` : null,
+    stop?.order_id ? `order:${stop.order_id}` : null,
+    occurrence?.legacy_order_id ? `order:${occurrence.legacy_order_id}` : null,
+  ].filter(Boolean) as string[];
+};
+
+export const projectedStopMatchesSources = (stop: any, sourceKeys: string[] | undefined): boolean => {
+  if (!sourceKeys || sourceKeys.length === 0) return true;
+  const active = new Set(sourceKeys);
+  return recurringSourceKeysForStop(stop).some((key) => active.has(key));
+};
+
 type RecurringSource = {
   id: string;
   interval: string;
