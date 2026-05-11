@@ -738,6 +738,11 @@ const StopBlock = ({
         <p className="text-[11px] text-foreground/75 truncate leading-tight">
           {stop.service_summary || "Aftale"}
         </p>
+        {stop.agreement_interval && (
+          <p className="text-[10px] text-muted-foreground truncate leading-tight">
+            {formatInterval(stop.agreement_interval)}
+          </p>
+        )}
 
         {/* Opstart-badge — vises kun når aftalen ikke er kørt endnu (første gang) */}
         {stop.is_first_occurrence && stop.start_date && !isDone && !isCancelled && (
