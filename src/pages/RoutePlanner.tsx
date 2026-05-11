@@ -488,13 +488,13 @@ const Planner = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("routes")
-        .select("*, agreement_occurrences(agreement_id, legacy_order_id)")
+        .select("*")
         .in("id", recurringRouteIds);
       if (error) throw error;
       const routes = (data || []) as any[];
       const { data: stopsData, error: stopsErr } = await supabase
         .from("route_stops")
-        .select("*")
+        .select("*, agreement_occurrences(agreement_id, legacy_order_id)")
         .in("route_id", recurringRouteIds);
       if (stopsErr) throw stopsErr;
       const stopsByRoute = new Map<string, any[]>();
