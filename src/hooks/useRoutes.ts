@@ -2069,13 +2069,13 @@ export const useMyDayStops = (date: string) => {
       const myStopIds = new Set(assignedStopIds);
       const { data, error } = await supabase
         .from("route_stops")
-        // Join occurrence så vi kan validere at stop'et faktisk hører til
-        // den interval-forekomst der ligger på medarbejderens dato. Hvis et
-        // stop har en `agreement_occurrence_id` peger det på en konkret
-        // forekomst — har den en anden `occurrence_date` end ruten, er
-        // stop'et kommet med ved en fejl (legacy / dubleret materialisering)
-        // og må ikke vises.
-        .select("*, agreement_occurrence:agreement_occurrences(occurrence_date)")
+        // Join occurrence + den linkede aftale så vi kan:
+        //  1) validere at stop'et faktisk hører til den interval-forekomst
+        //     der ligger på medarbejderens dato (ellers er rækken kommet
+        //     med ved en fejl — typisk legacy/dubleret materialisering),
+        //  2) hente aftalens `interval` så vi kan vise "Hver uge",
+        //     "Månedligt", osv. på aftalekortet i appen.
+        .select("*, agreement_occurrence:agreement_occurrences(occurrence_date, agreement:agreements(interval))")
         .in("route_id", todayIds)
         .order("sequence", { ascending: true });
       if (error) throw error;
@@ -2108,12 +2108,9 @@ export const useMyDayStops = (date: string) => {
       // Interval-validering: drop stops hvor en linket agreement_occurrence
       // peger på en ANDEN dato end medarbejderens dag. Stops uden occurrence
       // (one-off ordrer / legacy) går altid igennem — vi vil aldrig skjule
-      // ægte arbejde pga. manglende metadata.
-      const filteredByInterval = filtered.filter((s: any) => {
-        const occDate = s.agreement_occurrence?.occurrence_date as string | undefined;
-        if (!occDate) return true;
-        return String(occDate).slice(0, 10) === date;
-      });
+      // ægte arbejde pga. manglende metadata. Pure helper deles med
+      // `useMyRouteData` så reglerne er konsistente på tværs af appen.
+      const filteredByInterval = filterStopsByOccurrenceDate(filtered as any[], date);
       const orderIds = Array.from(
         new Set(filteredByInterval.map((s: any) => s.order_id).filter(Boolean)),
       );
