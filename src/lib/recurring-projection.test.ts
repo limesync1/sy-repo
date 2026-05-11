@@ -718,13 +718,16 @@ describe("expandRecurringRoutes — samme projicerede rute, forskellige aktive i
     const may4  = out.find((p) => p.date === "2026-05-04")!;
     const may11 = out.find((p) => p.date === "2026-05-11")!;
     const may18 = out.find((p) => p.date === "2026-05-18")!;
+    const may25 = out.find((p) => p.date === "2026-05-25")!;
     const jun01 = out.find((p) => p.date === "2026-06-01")!;
+    // 4/5 og 1/6 falder begge serier sammen (4-uges cyklus matcher ugentlig).
     expect(may4.sourceKeys.sort()).toEqual(["agr:a1", "agr:a2"]);
-    // 11/5 og 18/5 er kun ugentlig — a2 må IKKE være med.
+    expect(jun01.sourceKeys.sort()).toEqual(["agr:a1", "agr:a2"]);
+    // De øvrige uger er KUN den ugentlige — 4-uges-aftalen må ikke "lække"
+    // ind på naboforekomster.
     expect(may11.sourceKeys).toEqual(["agr:a1"]);
     expect(may18.sourceKeys).toEqual(["agr:a1"]);
-    // 1/6 er kun 4-uges aftalen.
-    expect(jun01.sourceKeys).toEqual(["agr:a2"]);
+    expect(may25.sourceKeys).toEqual(["agr:a1"]);
   });
 
   it("når flere aftaler smelter sammen på én dag bliver sourceKeys unikke (intet duplikeret id)", () => {
