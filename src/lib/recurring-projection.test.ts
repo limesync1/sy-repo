@@ -636,3 +636,158 @@ describe("expandRecurringRoutes — overlap/suppression mod rigtige ruter", () =
     expect(out.filter((p) => p.date === "2026-05-25").length).toBe(1);
   });
 });
+
+// Tests fokuseret på selve scenariet brugeren rapporterer: ÉN projiceret
+// rute (samme baseRouteId + samme dato) hvor flere aftaler med FORSKELLIGE
+// intervaller alle "rammer" netop den dag. Vi skal:
+//   1) kun udsende én projiceret rute pr. (baseRouteId, dato),
+//   2) bevare alle aktive sourceKeys så stops-filteret efterfølgende kan
+//      vise præcis de aftaler der reelt er aktuelle den dag,
+//   3) IKKE lække stops fra aftaler der ikke rammer datoen.
+describe("expandRecurringRoutes — samme projicerede rute, forskellige aktive intervaller", () => {
+  const range = { rangeStart: "2026-05-01", rangeEnd: "2026-06-30" };
+
+  it("samler kun aftaler hvis interval RAMMER den projicerede dato i sourceKeys", () => {
+    // Kun ugentlig (a1) og månedlig (a3) lander præcist på 2026-05-04.
+    // 14-dages-aftalen (a2) starter 2026-05-05 og rammer ikke 5/4.
+    const out = expandRecurringRoutes({
+      ...range,
+      realRouteDates: new Set(),
+      sources: [
+        { id: "a1", interval: "ugentlig",    seed_date: "2026-05-04", preferred_route_id: "r1", sourceKeys: ["agr:a1"] },
+        { id: "a2", interval: "hver_14_dag", seed_date: "2026-05-05", preferred_route_id: "r1", sourceKeys: ["agr:a2"] },
+        { id: "a3", interval: "månedlig",    seed_date: "2026-05-04", preferred_route_id: "r1", sourceKeys: ["agr:a3"] },
+      ],
+    });
+    const may4 = out.find((p) => p.date === "2026-05-04");
+    expect(may4).toBeDefined();
+    // Kun a1 og a3 må være aktive den 4. — IKKE a2.
+    expect(may4!.sourceKeys.sort()).toEqual(["agr:a1", "agr:a3"]);
+    // Den 5. skal til gengæld vise a2 (alene).
+    const may5 = out.find((p) => p.date === "2026-05-05");
+    expect(may5).toBeDefined();
+    expect(may5!.sourceKeys).toEqual(["agr:a2"]);
+  });
+
+  it("ugentlig + 14-dags falder sammen hver 14. dag → fælles sourceKeys, ene-uger har kun ugentlig", () => {
+    const out = expandRecurringRoutes({
+      ...range,
+      realRouteDates: new Set(),
+      sources: [
+        { id: "u",  interval: "ugentlig",    seed_date: "2026-05-04", preferred_route_id: "r1", sourceKeys: ["agr:u"] },
+        { id: "f",  interval: "hver_14_dag", seed_date: "2026-05-04", preferred_route_id: "r1", sourceKeys: ["agr:f"] },
+      ],
+    });
+    const byDate = new Map(out.map((p) => [p.date, p]));
+    // Sammenfald (uge 18 og 20)
+    expect(byDate.get("2026-05-04")!.sourceKeys.sort()).toEqual(["agr:f", "agr:u"]);
+    expect(byDate.get("2026-05-18")!.sourceKeys.sort()).toEqual(["agr:f", "agr:u"]);
+    // Mellem-uger har kun ugentlig
+    expect(byDate.get("2026-05-11")!.sourceKeys).toEqual(["agr:u"]);
+    expect(byDate.get("2026-05-25")!.sourceKeys).toEqual(["agr:u"]);
+  });
+
+  it("projectedStopMatchesSources viser kun de stops hvis aftale rammer datoen", () => {
+    // Simulér basisrutens stops: ét pr. aftale.
+    const baseStops = [
+      { id: "s-weekly",  agreement_id: "weekly" },
+      { id: "s-14",      agreement_id: "14d" },
+      { id: "s-monthly", agreement_id: "monthly" },
+      { id: "s-oneoff",  order_id: "o1" }, // engangs, ingen agreement
+    ];
+    // Projiceret rute hvor kun ugentlig og månedlig er aktive netop i dag.
+    const sourceKeys = ["agr:weekly", "agr:monthly"];
+    const visible = baseStops.filter((s) => projectedStopMatchesSources(s, sourceKeys));
+    expect(visible.map((s) => s.id).sort()).toEqual(["s-monthly", "s-weekly"]);
+    // Engangs-stop skal IKKE komme med på en projiceret dato — det hører
+    // ikke hjemme i nogen gentagende serie.
+    expect(visible.find((s) => s.id === "s-oneoff")).toBeUndefined();
+  });
+
+  it("dedup-merge må ikke 'lække' sourceKeys fra en serie der IKKE rammer datoen", () => {
+    // Regression: tidligere kunne en aftale der bare delte target-rute få
+    // sin sourceKey vedhæftet en projektion på en dag den ikke rammer.
+    const out = expandRecurringRoutes({
+      ...range,
+      realRouteDates: new Set(),
+      sources: [
+        { id: "a1", interval: "ugentlig",    seed_date: "2026-05-04", preferred_route_id: "r1", sourceKeys: ["agr:a1"] },
+        { id: "a2", interval: "hver_4_uge",  seed_date: "2026-05-04", preferred_route_id: "r1", sourceKeys: ["agr:a2"] },
+      ],
+    });
+    const may4  = out.find((p) => p.date === "2026-05-04")!;
+    const may11 = out.find((p) => p.date === "2026-05-11")!;
+    const may18 = out.find((p) => p.date === "2026-05-18")!;
+    const may25 = out.find((p) => p.date === "2026-05-25")!;
+    const jun01 = out.find((p) => p.date === "2026-06-01")!;
+    // 4/5 og 1/6 falder begge serier sammen (4-uges cyklus matcher ugentlig).
+    expect(may4.sourceKeys.sort()).toEqual(["agr:a1", "agr:a2"]);
+    expect(jun01.sourceKeys.sort()).toEqual(["agr:a1", "agr:a2"]);
+    // De øvrige uger er KUN den ugentlige — 4-uges-aftalen må ikke "lække"
+    // ind på naboforekomster.
+    expect(may11.sourceKeys).toEqual(["agr:a1"]);
+    expect(may18.sourceKeys).toEqual(["agr:a1"]);
+    expect(may25.sourceKeys).toEqual(["agr:a1"]);
+  });
+
+  it("når flere aftaler smelter sammen på én dag bliver sourceKeys unikke (intet duplikeret id)", () => {
+    // Tre aftaler — to af dem har FAKTISK samme sourceKey (samme legacy
+    // order rendering twice). Resultatet skal stadig være unikt.
+    const out = expandRecurringRoutes({
+      ...range,
+      realRouteDates: new Set(),
+      sources: [
+        { id: "a1", interval: "ugentlig", seed_date: "2026-05-04", preferred_route_id: "r1", sourceKeys: ["agr:shared"] },
+        { id: "a2", interval: "ugentlig", seed_date: "2026-05-04", preferred_route_id: "r1", sourceKeys: ["agr:shared"] },
+        { id: "a3", interval: "ugentlig", seed_date: "2026-05-04", preferred_route_id: "r1", sourceKeys: ["agr:other"] },
+      ],
+    });
+    const may4 = out.find((p) => p.date === "2026-05-04")!;
+    expect(may4.sourceKeys.sort()).toEqual(["agr:other", "agr:shared"]);
+    expect(new Set(may4.sourceKeys).size).toBe(may4.sourceKeys.length);
+  });
+
+  it("custom interval bevarer sin egen sourceKey og blander sig ikke ind på naboforekomster", () => {
+    const out = expandRecurringRoutes({
+      rangeStart: "2026-05-01",
+      rangeEnd: "2026-05-31",
+      realRouteDates: new Set(),
+      sources: [
+        { id: "u",  interval: "ugentlig",                 seed_date: "2026-05-04", preferred_route_id: "r1", sourceKeys: ["agr:u"] },
+        { id: "c",  interval: "custom", interval_days: 10, seed_date: "2026-05-02", preferred_route_id: "r1", sourceKeys: ["agr:c"] },
+      ],
+    });
+    const byDate = new Map(out.map((p) => [p.date, p]));
+    // Ugentlig serie — kun u
+    expect(byDate.get("2026-05-04")!.sourceKeys).toEqual(["agr:u"]);
+    expect(byDate.get("2026-05-11")!.sourceKeys).toEqual(["agr:u"]);
+    // Custom 10-dages serie — kun c (aldrig "lækker" u ind)
+    expect(byDate.get("2026-05-02")!.sourceKeys).toEqual(["agr:c"]);
+    expect(byDate.get("2026-05-12")!.sourceKeys).toEqual(["agr:c"]);
+    expect(byDate.get("2026-05-22")!.sourceKeys).toEqual(["agr:c"]);
+  });
+
+  it("subscription + agreement (legacy + ny) på samme dag → begge sourceKeys bevares", () => {
+    // Marketplace har historisk haft både `subscriptions` og nye `agreements`
+    // for samme aftale. Når begge kilder rammer samme dag på samme rute,
+    // skal projektionen huske begge nøgler så stops fra både legacy- og
+    // ny-ordningen kan vises (eller filtreres bort konsistent).
+    const out = expandRecurringRoutes({
+      rangeStart: "2026-05-01",
+      rangeEnd: "2026-05-31",
+      realRouteDates: new Set(),
+      sources: [
+        { id: "agreement", interval: "ugentlig", seed_date: "2026-05-04", preferred_route_id: "r1", sourceKeys: ["agr:abc"] },
+        { id: "legacy",    interval: "ugentlig", seed_date: "2026-05-04", preferred_route_id: "r1", sourceKeys: ["sub:xyz", "order:legacy"] },
+      ],
+    });
+    const may4 = out.find((p) => p.date === "2026-05-04")!;
+    expect(may4.sourceKeys.sort()).toEqual(["agr:abc", "order:legacy", "sub:xyz"]);
+    // Stops-filter skal nu kunne acceptere alle tre identifikator-typer.
+    expect(projectedStopMatchesSources({ agreement_id: "abc" }, may4.sourceKeys)).toBe(true);
+    expect(projectedStopMatchesSources({ subscription_id: "xyz" }, may4.sourceKeys)).toBe(true);
+    expect(projectedStopMatchesSources({ order_id: "legacy" }, may4.sourceKeys)).toBe(true);
+    // Men en helt anden aftale skal afvises.
+    expect(projectedStopMatchesSources({ agreement_id: "other" }, may4.sourceKeys)).toBe(false);
+  });
+});

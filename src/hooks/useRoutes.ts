@@ -1996,7 +1996,13 @@ export const useMyDayStops = (date: string) => {
       const myStopIds = new Set(assignedStopIds);
       const { data, error } = await supabase
         .from("route_stops")
-        .select("*")
+        // Join occurrence så vi kan validere at stop'et faktisk hører til
+        // den interval-forekomst der ligger på medarbejderens dato. Hvis et
+        // stop har en `agreement_occurrence_id` peger det på en konkret
+        // forekomst — har den en anden `occurrence_date` end ruten, er
+        // stop'et kommet med ved en fejl (legacy / dubleret materialisering)
+        // og må ikke vises.
+        .select("*, agreement_occurrence:agreement_occurrences(occurrence_date)")
         .in("route_id", todayIds)
         .order("sequence", { ascending: true });
       if (error) throw error;
@@ -2026,10 +2032,19 @@ export const useMyDayStops = (date: string) => {
         if (linkedRouteIds.has(s.route_id)) return true;
         return !s.assigned_employee_id;
       });
+      // Interval-validering: drop stops hvor en linket agreement_occurrence
+      // peger på en ANDEN dato end medarbejderens dag. Stops uden occurrence
+      // (one-off ordrer / legacy) går altid igennem — vi vil aldrig skjule
+      // ægte arbejde pga. manglende metadata.
+      const filteredByInterval = filtered.filter((s: any) => {
+        const occDate = s.agreement_occurrence?.occurrence_date as string | undefined;
+        if (!occDate) return true;
+        return String(occDate).slice(0, 10) === date;
+      });
       const orderIds = Array.from(
-        new Set(filtered.map((s: any) => s.order_id).filter(Boolean)),
+        new Set(filteredByInterval.map((s: any) => s.order_id).filter(Boolean)),
       );
-      if (orderIds.length === 0) return filtered as RouteStop[];
+      if (orderIds.length === 0) return filteredByInterval as RouteStop[];
 
       const { data: orderRows } = await supabase
         .from("orders")
@@ -2049,7 +2064,7 @@ export const useMyDayStops = (date: string) => {
         ]),
       );
 
-      return filtered.map((s: any) => {
+      return filteredByInterval.map((s: any) => {
         const order = s.order_id ? orderMap.get(s.order_id) : null;
         // Saml fuld adresse: vej + postnr + by — så medarbejderens
         // overbliksliste ALDRIG viser kun et vejnavn (flere danske
