@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { routeMutationQueue } from "@/lib/mutation-queue";
+import { MutationQueue, routeMutationQueue } from "@/lib/mutation-queue";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useMyEmployeeId } from "@/hooks/useMyEmployee";
@@ -31,6 +31,27 @@ const friendlyAssigneeError = (err: any): Error => {
     return new Error("Stoppet eller medarbejderen findes ikke længere — opdatér siden.");
   }
   return new Error(msg || "Kunne ikke gemme medarbejder­tilknytning.");
+};
+
+/**
+ * Per-stop serialisering af medarbejder-tildelinger.
+ *
+ * Hvis brugeren skifter medarbejder hurtigt på samme stop kan to parallelle
+ * `delete + upsert` race mod hinanden og holde row-locks længe nok til at
+ * Postgres rammer "canceling statement due to statement timeout". UI'et
+ * bugger også frem og tilbage fordi den hurtigste mutation's invalidate
+ * refetcher imens den næste mutation stadig har optimistisk state ude.
+ *
+ * Ved at sende alle assignment-mutationer for et givent stop_id gennem en
+ * dedikeret kø sikrer vi at kun én DB-roundtrip kører ad gangen pr. stop —
+ * og vi kan tjekke `pending` for at undgå unødige invalidates mens flere
+ * klik er på vej.
+ */
+const stopAssigneeQueues = new Map<string, MutationQueue>();
+const getStopQueue = (stopId: string): MutationQueue => {
+  let q = stopAssigneeQueues.get(stopId);
+  if (!q) { q = new MutationQueue(); stopAssigneeQueues.set(stopId, q); }
+  return q;
 };
 
 export type Route = {
