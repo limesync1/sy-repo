@@ -16,7 +16,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { CATEGORY_ICONS, DEFAULT_CATEGORY_ICON } from "@/lib/category-icons";
+import { CATEGORY_ICONS, DEFAULT_CATEGORY_ICON, getSubcategoryIcon } from "@/lib/category-icons";
 import {
   ShoppingCart, Pencil, Minus, Plus, Check, X, MessageSquare,
   ChevronDown, ChevronUp, Clock, Mail, Phone, ArrowRight,
@@ -1777,14 +1777,21 @@ const AftaleTab = ({
             const routeIsToday = routeDate ? routeDate.toDateString() === new Date().toDateString() : false;
             // Find primær service-kategori for at vælge ikon — bruger første order_item
             // der har et matchende service med kategori. Falder tilbage til standard-ikon.
-            const primaryCategory = (() => {
+            // Vælger primær service for at bestemme ikonet — vi bruger
+            // underkategorien (fx "Privatrengøring", "Vinduespudsning")
+            // hvis den findes, og falder ellers tilbage til kategorien.
+            const primary = (() => {
               for (const it of items) {
                 const svc = it.service_id ? servicesById[it.service_id] : undefined;
-                if (svc?.service_category) return svc.service_category;
+                if (svc?.service_category || svc?.subcategory) {
+                  return { category: svc.service_category as string | null, subcategory: (svc as any).subcategory as string | null };
+                }
               }
-              return null;
+              return { category: null as string | null, subcategory: null as string | null };
             })();
-            const categoryIcon = (primaryCategory && CATEGORY_ICONS[primaryCategory]) || DEFAULT_CATEGORY_ICON;
+            const primaryCategory = primary.category;
+            const primarySubcategory = primary.subcategory;
+            const categoryIcon = getSubcategoryIcon(primarySubcategory, primaryCategory) || DEFAULT_CATEGORY_ICON;
             // Aftalen kan kun trækkes til en rute hvis ruteplanlægning er slået
             // til, den ikke allerede ligger på en rute, og ikke er afsluttet/annulleret.
             const canDragToRoute = routePlanningEnabled && !routeStop && !["completed", "cancelled"].includes(order.status);
@@ -1817,7 +1824,7 @@ const AftaleTab = ({
                     {/* Ikon-badge */}
                     <div
                       className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground"
-                      title={primaryCategory || "Aftale"}
+                      title={primarySubcategory || primaryCategory || "Aftale"}
                     >
                       <span className="text-base leading-none">{categoryIcon}</span>
                     </div>

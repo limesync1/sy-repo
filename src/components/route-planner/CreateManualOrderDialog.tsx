@@ -24,7 +24,7 @@ import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection
 import CustomerEmailAutocomplete from "./CustomerEmailAutocomplete";
 import { DatePickerField } from "./DatePickerField";
 import { format } from "date-fns";
-import { getCategoryIcon } from "@/lib/category-icons";
+import { getSubcategoryIcon } from "@/lib/category-icons";
 
 type CalcStep = { id: string; label: string; unit: string; price_per_unit: number; min_value: number | null; max_value: number | null; default_value: number | null; sort_order: number | null };
 type Service = { id: string; name: string; description: string | null; pricing_type: "fast_pris" | "timepris" | "prisberegner"; base_price: number | null; unit: string | null; is_active: boolean | null; interval_options: string[] | null; calculator_steps?: CalcStep[]; business_id: string; service_category?: string | null; subcategory?: string | null };
@@ -421,40 +421,87 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
           </Section>
 
           {/* Services */}
-          <Section icon={<Package className="h-3.5 w-3.5" />} title="Services" required hint={`${items.length} valgt`}>
+          <Section
+            icon={<Package className="h-3.5 w-3.5" />}
+            title="Services"
+            required
+            hint={items.length > 0 ? `${items.length} valgt` : undefined}
+          >
             <Select value="" onValueChange={addService}>
-              <SelectTrigger className="h-9 bg-background"><SelectValue placeholder="Tilføj service fra dit katalog…" /></SelectTrigger>
-              <SelectContent>
-                {activeServices.length === 0 && <SelectItem value="__none" disabled>Ingen services oprettet endnu</SelectItem>}
-                {activeServices.filter((s) => !items.some((i) => i.serviceId === s.id)).map((s) => (
-                  <SelectItem key={s.id} value={s.id}>
-                    <span className="inline-flex items-center gap-2">
-                      <span className="text-base leading-none" aria-hidden="true">{getCategoryIcon(s.service_category)}</span>
-                      <span className="truncate">{s.name}</span>
-                      {s.service_category && (
-                        <span className="text-[10px] text-muted-foreground">· {s.service_category}</span>
-                      )}
-                    </span>
-                  </SelectItem>
-                ))}
+              <SelectTrigger className="h-10 bg-background">
+                <SelectValue placeholder="+ Tilføj service fra dit katalog…" />
+              </SelectTrigger>
+              <SelectContent className="max-h-[320px]">
+                {activeServices.length === 0 && (
+                  <SelectItem value="__none" disabled>Ingen services oprettet endnu</SelectItem>
+                )}
+                {activeServices
+                  .filter((s) => !items.some((i) => i.serviceId === s.id))
+                  .map((s) => {
+                    const sub = (s as any).subcategory as string | null;
+                    return (
+                      <SelectItem
+                        key={s.id}
+                        value={s.id}
+                        className="py-2 pr-3 pl-2 data-[highlighted]:bg-secondary data-[highlighted]:text-foreground focus:bg-secondary focus:text-foreground"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span
+                            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border bg-card text-base leading-none"
+                            aria-hidden="true"
+                          >
+                            {getSubcategoryIcon(sub, s.service_category)}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <div className="truncate text-sm font-medium text-foreground">{s.name}</div>
+                            {(sub || s.service_category) && (
+                              <div className="truncate text-[11px] text-muted-foreground">
+                                {sub || s.service_category}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
               </SelectContent>
             </Select>
 
+            {items.length === 0 && activeServices.length > 0 && (
+              <div className="mt-3 rounded-lg border border-dashed border-border bg-card/40 px-3 py-4 text-center">
+                <Package className="mx-auto h-5 w-5 text-muted-foreground/60" />
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  Ingen services valgt endnu. Tilføj én fra dropdown'en ovenfor for at komme i gang.
+                </p>
+              </div>
+            )}
+
             {items.length > 0 && (
-              <div className="mt-3 space-y-2">
-                {items.map((it, idx) => {
+              <div className="mt-3 space-y-2.5">
+                {items.map((it) => {
                   const intervals = it.service.interval_options && it.service.interval_options.length > 0 ? it.service.interval_options : ["engangskøb"];
+                  const sub = (it.service as any).subcategory as string | null;
                   return (
-                    <Card key={it.serviceId} className="p-3 bg-background border-l-2 border-l-primary/40">
-                      <div className="flex items-start justify-between gap-2 mb-2">
+                    <Card key={it.serviceId} className="p-3 bg-background shadow-sm">
+                      <div className="flex items-start gap-2.5 mb-2.5">
+                        <span
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-base leading-none"
+                          aria-hidden="true"
+                        >
+                          {getSubcategoryIcon(sub, it.service.service_category)}
+                        </span>
                         <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-sm leading-tight flex items-center gap-1.5">
-                            <span className="text-base leading-none" aria-hidden="true">{getCategoryIcon(it.service.service_category)}</span>
-                            <span className="truncate">{it.service.name}</span>
-                          </p>
-                          <Badge variant="outline" className="mt-1 text-[10px] font-normal">
-                            {it.service.pricing_type === "fast_pris" ? "Fast pris" : it.service.pricing_type === "timepris" ? "Timepris" : "Prisberegner"}
-                          </Badge>
+                          <p className="truncate font-semibold text-sm leading-tight text-foreground">{it.service.name}</p>
+                          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                            {(sub || it.service.service_category) && (
+                              <span className="text-[10px] text-muted-foreground">
+                                {sub || it.service.service_category}
+                              </span>
+                            )}
+                            <Badge variant="outline" className="text-[10px] font-normal">
+                              {it.service.pricing_type === "fast_pris" ? "Fast pris" : it.service.pricing_type === "timepris" ? "Timepris" : "Prisberegner"}
+                            </Badge>
+                          </div>
                         </div>
                         <button
                           onClick={() => removeItem(it.serviceId)}
