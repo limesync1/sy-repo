@@ -755,8 +755,16 @@ const Planner = () => {
 
   const activeEditingRoute = useMemo(() => {
     if (!editingRoute) return null;
-    return calendarRoutesRaw.find((route) => route.id === editingRoute.id) ?? editingRoute;
-  }, [editingRoute, calendarRoutesRaw]);
+    // Slå op i begge cacher: calendar-vinduet OG recurring-base-routes,
+    // så basisruter der ligger uden for den aktuelle kalender-range stadig
+    // vises med deres seneste data (fx når man åbner den via en projiceret
+    // forekomst i en fremtidig måned).
+    return (
+      calendarRoutesRaw.find((route) => route.id === editingRoute.id)
+      ?? (recurringBaseRoutes as any[]).find((r) => r.id === editingRoute.id)
+      ?? editingRoute
+    );
+  }, [editingRoute, calendarRoutesRaw, recurringBaseRoutes]);
 
   // Find det auto-genererede visningsnavn (fra calendarRoutes-transformen) så
   // edit-sheet kan pre-udfylde inputtet med det navn brugeren faktisk ser på
@@ -782,10 +790,15 @@ const Planner = () => {
       toast.error("Kunne ikke åbne projiceret rute");
       return;
     }
-    // Find basisruten direkte i den lokale cache — projicerede ruter må
+    // Find basisruten direkte i en af de lokale cacher — projicerede ruter må
     // ALDRIG have deres eget modal. Vi åbner altid den originale ruten,
-    // så ændringer (navn, farve, osv.) gælder hele serien.
-    const localBase = calendarRoutesRaw.find((x: any) => x.id === baseId);
+    // så ændringer (navn, farve, osv.) gælder hele serien. Vi tjekker
+    // BÅDE calendarRoutesRaw (basisrute i det aktuelle vindue) OG
+    // recurringBaseRoutes (basisrute uden for vinduet) før vi falder
+    // tilbage til serverkaldet.
+    const localBase =
+      calendarRoutesRaw.find((x: any) => x.id === baseId)
+      ?? (recurringBaseRoutes as any[]).find((x: any) => x.id === baseId);
     if (localBase) {
       setEditingRoute(localBase as Route);
       // Telemetri i baggrunden — ikke blokerende.
