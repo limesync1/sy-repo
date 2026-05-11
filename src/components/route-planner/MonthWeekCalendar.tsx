@@ -31,6 +31,10 @@ export type CalendarRoute = Route & {
   attachedEmployees: { id: string; name: string; avatar_url?: string | null; color?: string | null }[];
   /** Id på den rigtige basisrute når denne række kun er en kalender-projektion. */
   baseRouteId?: string;
+  /** Aktive aftale-/abonnements-kilder for denne projicerede dato.
+   *  Bruges af RoutePlanner til at filtrere basis-rutens stops til kun
+   *  dem der faktisk udføres på den projicerede dag. */
+  sourceKeys?: string[];
   /** Når true er ruten en projiceret fremtidig forekomst af en gentagende rute.
    *  Den vises dæmpet med lås-ikon, kan ikke trækkes/optimeres, og klik åbner
    *  basisruten på dens næste rigtige dato. */
