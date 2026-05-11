@@ -47,9 +47,23 @@ type Props = {
   onSelectStop: (stop: RouteStop) => void;
   /** Aktive medarbejdere for virksomheden — bruges til inline assignee-picker. */
   employees: EmpAvatar[];
+  /**
+   * Sand når panelet er åbnet via en projiceret rute-forekomst. Projicerede
+   * ruter er view-only afledninger af en originalrute — at fjerne et stop
+   * eller omrangere her ville mutere selve basisruten og dermed ALLE
+   * fremtidige forekomster, hvilket næsten aldrig er hvad brugeren mener.
+   * Når flag'et er sat:
+   *  - Drag-handle + "Fjern stop" skjules/disables
+   *  - Header viser en kort note der peger brugeren mod originalruten
+   *  - Assignee-picker forbliver aktiv (medarbejder­tildeling lever på
+   *    stop-niveau og er det normale brugsmønster på dagen)
+   */
+  isProjection?: boolean;
 };
 
-export const RouteStopsPanel = ({ route, stops, open, onOpenChange, onSelectStop, employees }: Props) => {
+export const RouteStopsPanel = ({
+  route, stops, open, onOpenChange, onSelectStop, employees, isProjection = false,
+}: Props) => {
   const reorder = useReorderStops();
   const deleteStop = useDeleteStop();
   const setAssignees = useSetStopAssignees();
@@ -64,6 +78,12 @@ export const RouteStopsPanel = ({ route, stops, open, onOpenChange, onSelectStop
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
   const handleDragEnd = async (e: DragEndEvent) => {
+    if (isProjection) {
+      toast.info("Rækkefølgen redigeres på originalruten", {
+        description: "Åbn originalruten for at ændre rækkefølgen — projicerede ruter er låste visninger.",
+      });
+      return;
+    }
     const { active, over } = e;
     if (!over || active.id === over.id) return;
     const oldIdx = items.findIndex((s) => s.id === active.id);
@@ -81,6 +101,7 @@ export const RouteStopsPanel = ({ route, stops, open, onOpenChange, onSelectStop
   };
 
   const handleDelete = async (stop: RouteStop) => {
+    if (isProjection) return; // safety — knappen er skjult i projection-mode
     try {
       await deleteStop.mutateAsync(stop.id);
       toast.success("Stop fjernet — aftalen ryger tilbage i aftalepoolen");
@@ -117,7 +138,9 @@ export const RouteStopsPanel = ({ route, stops, open, onOpenChange, onSelectStop
               </span>
             </SheetTitle>
             <SheetDescription className="text-xs">
-              Træk for at omrangere · Klik for detaljer
+              {isProjection
+                ? "Projiceret forekomst · rediger originalruten for at omrangere eller fjerne aftaler"
+                : "Træk for at omrangere · Klik for detaljer"}
             </SheetDescription>
           </SheetHeader>
 
@@ -142,6 +165,7 @@ export const RouteStopsPanel = ({ route, stops, open, onOpenChange, onSelectStop
                         index={idx + 1}
                         color={route.color}
                         employees={employees}
+                        isProjection={isProjection}
                         onSetAssignees={(ids, lead) =>
                           setAssignees.mutate({ stop_id: stop.id, employee_ids: ids, lead_id: lead })
                         }
@@ -193,14 +217,18 @@ type RowProps = {
   index: number;
   color: string;
   employees: EmpAvatar[];
+  isProjection?: boolean;
   onSetAssignees: (ids: string[], lead: string | null) => void;
   onSelect: () => void;
   onRemove: () => void;
 };
 
-const SortableStopRow = ({ stop, index, color, employees, onSetAssignees, onSelect, onRemove }: RowProps) => {
+const SortableStopRow = ({
+  stop, index, color, employees, onSetAssignees, onSelect, onRemove, isProjection = false,
+}: RowProps) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: stop.id,
+    disabled: isProjection,
   });
 
   const style = {
@@ -224,16 +252,26 @@ const SortableStopRow = ({ stop, index, color, employees, onSetAssignees, onSele
       )}
     >
       <div className="flex items-stretch">
-        {/* Drag handle */}
-        <button
-          type="button"
-          {...attributes}
-          {...listeners}
-          className="flex items-center justify-center px-1 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground rounded-l-md"
-          aria-label="Træk for at omrangere"
-        >
-          <GripVertical className="h-3.5 w-3.5" />
-        </button>
+        {/* Drag handle — skjult på projicerede ruter (read-only) */}
+        {!isProjection ? (
+          <button
+            type="button"
+            {...attributes}
+            {...listeners}
+            className="flex items-center justify-center px-1 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground rounded-l-md"
+            aria-label="Træk for at omrangere"
+          >
+            <GripVertical className="h-3.5 w-3.5" />
+          </button>
+        ) : (
+          <span
+            className="flex items-center justify-center px-1 text-muted-foreground/40"
+            aria-hidden
+            title="Projiceret rute — låst rækkefølge"
+          >
+            <GripVertical className="h-3.5 w-3.5" />
+          </span>
+        )}
 
         {/* Sequence indicator */}
         <div
@@ -297,15 +335,17 @@ const SortableStopRow = ({ stop, index, color, employees, onSetAssignees, onSele
             leadId={leadId}
             onChange={onSetAssignees}
           />
-          <button
-            type="button"
-            onClick={onRemove}
-            className="flex items-center justify-center w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/5 rounded-r-md opacity-0 group-hover:opacity-100"
-            aria-label="Fjern stop"
-            title="Fjern stop fra rute"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
+          {!isProjection && (
+            <button
+              type="button"
+              onClick={onRemove}
+              className="flex items-center justify-center w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/5 rounded-r-md opacity-0 group-hover:opacity-100"
+              aria-label="Fjern stop"
+              title="Fjern stop fra rute"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
       </div>
     </li>
