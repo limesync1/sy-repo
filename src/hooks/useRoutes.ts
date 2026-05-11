@@ -1265,11 +1265,37 @@ export const useSetStopAssignees = () => {
       if (insErr) throw friendlyAssigneeError(insErr);
       return { count: rows.length };
     },
-    onSuccess: () => {
+    // Optimistisk patch: opdatér caches øjeblikkeligt så avatars og medarbejder-
+    // kolonner skifter med det samme — uden at vente på round-trip + refetch.
+    onMutate: async ({ stop_id, employee_ids, lead_id }) => {
+      await qc.cancelQueries({ queryKey: ["route-stops-bulk"] });
+      await qc.cancelQueries({ queryKey: ["route-calendar"] });
+      const finalLead = employee_ids.length === 0
+        ? null
+        : (lead_id && employee_ids.includes(lead_id) ? lead_id : employee_ids[0]);
+      const stopsSnap = qc.getQueriesData<RouteStop[]>({ queryKey: ["route-stops-bulk"] });
+      const calSnap = qc.getQueriesData<{ routes: Route[]; stops: RouteStop[] }>({ queryKey: ["route-calendar"] });
+      const patchStop = (s: RouteStop): RouteStop =>
+        s.id === stop_id
+          ? ({ ...s, assignee_ids: [...employee_ids], lead_employee_id: finalLead, assigned_employee_id: finalLead } as RouteStop)
+          : s;
+      qc.setQueriesData<RouteStop[]>({ queryKey: ["route-stops-bulk"] }, (old) =>
+        Array.isArray(old) ? old.map(patchStop) : old,
+      );
+      qc.setQueriesData<{ routes: Route[]; stops: RouteStop[] }>({ queryKey: ["route-calendar"] }, (old) =>
+        old?.stops ? { ...old, stops: old.stops.map(patchStop) } : old,
+      );
+      return { stopsSnap, calSnap };
+    },
+    onError: (e: any, _vars, ctx) => {
+      ctx?.stopsSnap.forEach(([key, data]) => qc.setQueryData(key, data));
+      ctx?.calSnap.forEach(([key, data]) => qc.setQueryData(key, data));
+      toast.error(e.message || "Kunne ikke opdatere medarbejdere");
+    },
+    onSettled: () => {
       invalidateRouteSyncQueries(qc);
       qc.invalidateQueries({ queryKey: ["stop-assignees-bulk"] });
     },
-    onError: (e: any) => toast.error(e.message || "Kunne ikke opdatere medarbejdere"),
   });
 };
 
@@ -1295,8 +1321,29 @@ export const useAssignSingleEmployee = () => {
         );
       if (insErr) throw friendlyAssigneeError(insErr);
     },
-    onSuccess: () => invalidateRouteSyncQueries(qc),
-    onError: (e: any) => toast.error(e.message || "Kunne ikke tildele medarbejder"),
+    onMutate: async ({ stop_id, employee_id }) => {
+      await qc.cancelQueries({ queryKey: ["route-stops-bulk"] });
+      await qc.cancelQueries({ queryKey: ["route-calendar"] });
+      const stopsSnap = qc.getQueriesData<RouteStop[]>({ queryKey: ["route-stops-bulk"] });
+      const calSnap = qc.getQueriesData<{ routes: Route[]; stops: RouteStop[] }>({ queryKey: ["route-calendar"] });
+      const patchStop = (s: RouteStop): RouteStop =>
+        s.id === stop_id
+          ? ({ ...s, assignee_ids: employee_id ? [employee_id] : [], lead_employee_id: employee_id, assigned_employee_id: employee_id } as RouteStop)
+          : s;
+      qc.setQueriesData<RouteStop[]>({ queryKey: ["route-stops-bulk"] }, (old) =>
+        Array.isArray(old) ? old.map(patchStop) : old,
+      );
+      qc.setQueriesData<{ routes: Route[]; stops: RouteStop[] }>({ queryKey: ["route-calendar"] }, (old) =>
+        old?.stops ? { ...old, stops: old.stops.map(patchStop) } : old,
+      );
+      return { stopsSnap, calSnap };
+    },
+    onError: (e: any, _vars, ctx) => {
+      ctx?.stopsSnap.forEach(([key, data]) => qc.setQueryData(key, data));
+      ctx?.calSnap.forEach(([key, data]) => qc.setQueryData(key, data));
+      toast.error(e.message || "Kunne ikke tildele medarbejder");
+    },
+    onSettled: () => invalidateRouteSyncQueries(qc),
   });
 };
 

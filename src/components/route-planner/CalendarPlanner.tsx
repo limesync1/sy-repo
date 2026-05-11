@@ -21,6 +21,7 @@ import {
 import { format, isToday, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import type { RouteStop } from "@/hooks/useRoutes";
+import { formatInterval } from "@/lib/interval";
 
 const SLOT_MIN = 15;          // snap-interval (altid 15 min)
 const START_HOUR = 6;
@@ -737,6 +738,11 @@ const StopBlock = ({
         <p className="text-[11px] text-foreground/75 truncate leading-tight">
           {stop.service_summary || "Aftale"}
         </p>
+        {stop.agreement_interval && (
+          <p className="text-[10px] text-muted-foreground truncate leading-tight">
+            {formatInterval(stop.agreement_interval)}
+          </p>
+        )}
 
         {/* Opstart-badge — vises kun når aftalen ikke er kørt endnu (første gang) */}
         {stop.is_first_occurrence && stop.start_date && !isDone && !isCancelled && (

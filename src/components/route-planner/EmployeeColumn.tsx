@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Clock, Sparkles, Navigation, Loader2, Send, AlertCircle } from "lucide-react";
 import type { RouteStop } from "@/hooks/useRoutes";
 import { formatDurationMin } from "@/lib/duration-format";
+import { formatInterval } from "@/lib/interval";
 
 type Props = {
   routeId: string;
@@ -185,6 +186,11 @@ const SortableStopCard = ({
           <p className="text-[10px] text-foreground/75 truncate font-medium mt-0.5">
             {stop.service_summary || "Aftale"}
           </p>
+          {stop.agreement_interval && (
+            <p className="text-[10px] text-muted-foreground truncate mt-0.5">
+              {formatInterval(stop.agreement_interval)}
+            </p>
+          )}
           {stop.address && (
             <p className="text-[10px] text-muted-foreground truncate flex items-center gap-0.5 mt-0.5">
               <MapPin className="h-2.5 w-2.5" />{stop.address}
