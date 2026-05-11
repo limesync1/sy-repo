@@ -444,6 +444,10 @@ const Planner = () => {
       ]);
       if (agreementsRes.error) throw agreementsRes.error;
       if (subsRes.error) throw subsRes.error;
+      const subOrderById = new Map((subsRes.data || []).map((s: any) => [s.id, s.order_id as string | null]));
+      const agreementLegacySubIds = new Set(
+        (agreementsRes.data || []).map((a: any) => a.legacy_subscription_id).filter(Boolean),
+      );
       const fromAgreements = (agreementsRes.data || []).map((a: any) => ({
         id: `agr:${a.id}`,
         interval: a.interval as string,
@@ -453,19 +457,22 @@ const Planner = () => {
         sourceKeys: [
           `agr:${a.id}`,
           a.legacy_subscription_id ? `sub:${a.legacy_subscription_id}` : null,
+          a.legacy_subscription_id && subOrderById.get(a.legacy_subscription_id) ? `order:${subOrderById.get(a.legacy_subscription_id)}` : null,
         ].filter(Boolean) as string[],
       }));
-      const fromSubs = (subsRes.data || []).map((s: any) => ({
-        id: `sub:${s.id}`,
-        interval: s.interval as string,
-        interval_days: null,
-        seed_date: (s.next_service_date as string | null) || (s.created_at as string | null),
-        preferred_route_id: s.preferred_route_id as string | null,
-        sourceKeys: [
-          `sub:${s.id}`,
-          s.order_id ? `order:${s.order_id}` : null,
-        ].filter(Boolean) as string[],
-      }));
+      const fromSubs = (subsRes.data || [])
+        .filter((s: any) => !agreementLegacySubIds.has(s.id))
+        .map((s: any) => ({
+          id: `sub:${s.id}`,
+          interval: s.interval as string,
+          interval_days: null,
+          seed_date: (s.next_service_date as string | null) || (s.created_at as string | null),
+          preferred_route_id: s.preferred_route_id as string | null,
+          sourceKeys: [
+            `sub:${s.id}`,
+            s.order_id ? `order:${s.order_id}` : null,
+          ].filter(Boolean) as string[],
+        }));
       return [...fromAgreements, ...fromSubs];
     },
   });
