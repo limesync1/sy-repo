@@ -1,26 +1,42 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowDown, ArrowUp, Plus, Trash2, GripVertical, Check } from "lucide-react";
+import { Plus, Trash2, GripVertical, Check, Sparkles } from "lucide-react";
 import {
   buildInterval,
   formatInterval,
   INTERVAL_UNITS,
+  normalizeInterval,
   parseInterval,
-  unitLabel,
   type IntervalUnit,
 } from "@/lib/interval";
 import { toLegacyEnum } from "@/lib/interval";
+import {
+  DndContext,
+  PointerSensor,
+  KeyboardSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 /**
  * Brugerflade til at definere hvilke intervaller en service skal kunne
- * bookes på. Brugeren tilføjer rækker bestående af "antal" + "enhed",
- * kan rykke rækkerne op/ned, og vi gemmer dem som det nye fleksible
- * `every_<N>_<unit>`-format (eller "engangskøb").
- *
- * Værdierne er fuldt bagudkompatible: legacy-strenge som "ugentlig"
- * vises som "Ugentligt" via den centrale `formatInterval`-funktion.
+ * bookes på. Understøtter:
+ *  - Engangskøb-toggle
+ *  - Drag-and-drop til at ændre rækkefølge (dnd-kit)
+ *  - Hurtig-vælg-chips for de mest brugte intervaller
+ *  - Smart normalisering: 30 dage → 1 måned, 7 dage → 1 uge, 12 mdr → 1 år, osv.
  */
 export type IntervalBuilderProps = {
   value: string[];
@@ -34,13 +50,76 @@ const UNIT_LABEL_PLURAL: Record<IntervalUnit, string> = {
   year: "år",
 };
 
+// Hurtig-chips: hyppigt brugte intervaller.
+const QUICK_PICKS: { n: number; unit: IntervalUnit }[] = [
+  { n: 1, unit: "week" },
+  { n: 2, unit: "week" },
+  { n: 3, unit: "week" },
+  { n: 4, unit: "week" },
+  { n: 1, unit: "month" },
+  { n: 2, unit: "month" },
+  { n: 3, unit: "month" },
+  { n: 6, unit: "month" },
+  { n: 1, unit: "year" },
+];
+
+const SortableRow = ({
+  id,
+  label,
+  onRemove,
+}: {
+  id: string;
+  label: string;
+  onRemove: () => void;
+}) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+    zIndex: isDragging ? 10 : undefined,
+  };
+  return (
+    <li
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-2 rounded-lg border border-border bg-card px-2 py-2 shadow-sm"
+    >
+      <button
+        type="button"
+        className="flex h-8 w-7 cursor-grab items-center justify-center text-muted-foreground/70 hover:text-foreground active:cursor-grabbing touch-none"
+        aria-label="Træk for at flytte"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <span className="flex-1 text-sm font-medium text-foreground">{label}</span>
+      <Button
+        type="button"
+        size="sm"
+        variant="ghost"
+        className="h-7 w-7 p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+        onClick={onRemove}
+        aria-label="Fjern"
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </Button>
+    </li>
+  );
+};
+
 export const IntervalBuilder = ({ value, onChange }: IntervalBuilderProps) => {
-  // Lokal "draft"-række så brugeren kan se og skrive før de tilføjer.
   const [draftN, setDraftN] = useState<string>("1");
   const [draftUnit, setDraftUnit] = useState<IntervalUnit>("week");
-  const [includeOnce, setIncludeOnce] = useState<boolean>(value.includes("engangskøb"));
 
+  const includeOnce = value.includes("engangskøb");
   const items = value.filter((v) => v !== "engangskøb");
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
 
   const commit = (nextItems: string[], includeOnceNext = includeOnce) => {
     const out: string[] = [];
@@ -49,42 +128,46 @@ export const IntervalBuilder = ({ value, onChange }: IntervalBuilderProps) => {
     onChange(out.length > 0 ? out : ["engangskøb"]);
   };
 
-  const add = () => {
-    const n = Math.max(1, Math.min(999, parseInt(draftN, 10) || 1));
-    // Normalisér til legacy enum-værdi hvor muligt, så DB-triggers og
-    // agreements-enum stadig accepterer nyoprettede services. Falder ellers
-    // tilbage til det nye `every_<N>_<unit>` format.
-    const newKey = buildInterval(n, draftUnit);
-    const key = toLegacyEnum(newKey) ?? newKey;
+  const buildKey = (n: number, unit: IntervalUnit): string => {
+    const norm = normalizeInterval(n, unit);
+    const newKey = buildInterval(norm.n, norm.unit);
+    return toLegacyEnum(newKey) ?? newKey;
+  };
+
+  const add = (n?: number, unit?: IntervalUnit) => {
+    const useN = Math.max(1, Math.min(999, n ?? (parseInt(draftN, 10) || 1)));
+    const useUnit = unit ?? draftUnit;
+    const key = buildKey(useN, useUnit);
     if (items.includes(key)) return;
     commit([...items, key]);
-    setDraftN("1");
+    if (n === undefined) setDraftN("1");
   };
 
-  const remove = (idx: number) => {
-    const next = items.filter((_, i) => i !== idx);
-    commit(next);
-  };
-
-  const move = (idx: number, dir: -1 | 1) => {
-    const j = idx + dir;
-    if (j < 0 || j >= items.length) return;
-    const next = [...items];
-    [next[idx], next[j]] = [next[j], next[idx]];
-    commit(next);
+  const remove = (key: string) => {
+    commit(items.filter((k) => k !== key));
   };
 
   const toggleOnce = () => {
-    const next = !includeOnce;
-    setIncludeOnce(next);
-    commit(items, next);
+    commit(items, !includeOnce);
   };
 
-  // Live-preview af hvad draften vil hedde
-  const draftPreview = (() => {
+  const onDragEnd = (e: DragEndEvent) => {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const from = items.indexOf(String(active.id));
+    const to = items.indexOf(String(over.id));
+    if (from < 0 || to < 0) return;
+    commit(arrayMove(items, from, to));
+  };
+
+  // Live-preview: viser den smart-normaliserede draft.
+  const draftPreview = useMemo(() => {
     const n = Math.max(1, parseInt(draftN, 10) || 1);
-    return formatInterval(buildInterval(n, draftUnit));
-  })();
+    const norm = normalizeInterval(n, draftUnit);
+    const original = formatInterval(buildInterval(n, draftUnit));
+    const normalized = formatInterval(buildInterval(norm.n, norm.unit));
+    return { original, normalized, changed: norm.n !== n || norm.unit !== draftUnit };
+  }, [draftN, draftUnit]);
 
   return (
     <div className="space-y-4">
@@ -109,74 +192,56 @@ export const IntervalBuilder = ({ value, onChange }: IntervalBuilderProps) => {
         </span>
       </button>
 
-      {/* Liste af tilbagevendende intervaller */}
+      {/* Hurtig-vælg-chips */}
+      <div>
+        <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Hurtig-vælg
+        </p>
+        <div className="flex flex-wrap gap-1.5">
+          {QUICK_PICKS.map(({ n, unit }) => {
+            const key = buildKey(n, unit);
+            const active = items.includes(key);
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => (active ? remove(key) : add(n, unit))}
+                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                  active
+                    ? "border-accent bg-accent/15 text-foreground"
+                    : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"
+                }`}
+              >
+                {active && <Check className="-ml-0.5 mr-1 inline h-3 w-3" />}
+                {formatInterval(key)}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Liste af tilbagevendende intervaller (drag-and-drop) */}
       {items.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Tilbagevendende intervaller ({items.length})
+            Valgte abonnement-intervaller ({items.length}) — træk for at ændre rækkefølge
           </p>
-          <ul className="space-y-1.5">
-            {items.map((iv, idx) => {
-              const p = parseInterval(iv);
-              const n = p?.n ?? 1;
-              const unit = p?.unit ?? "week";
-              return (
-                <li
-                  key={iv}
-                  className="flex items-center gap-2 rounded-lg border border-border bg-card px-2 py-1.5"
-                >
-                  <GripVertical className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" />
-                  <span className="flex-1 text-sm font-medium text-foreground">
-                    {formatInterval(iv)}
-                  </span>
-                  <span className="text-[10.5px] text-muted-foreground tabular-nums">
-                    {n} {unitLabel(n, unit)}
-                  </span>
-                  <div className="flex items-center gap-0.5">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      className="h-7 w-7 p-0"
-                      onClick={() => move(idx, -1)}
-                      disabled={idx === 0}
-                      aria-label="Flyt op"
-                    >
-                      <ArrowUp className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      className="h-7 w-7 p-0"
-                      onClick={() => move(idx, 1)}
-                      disabled={idx === items.length - 1}
-                      aria-label="Flyt ned"
-                    >
-                      <ArrowDown className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      className="h-7 w-7 p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                      onClick={() => remove(idx)}
-                      aria-label="Fjern"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+            <SortableContext items={items} strategy={verticalListSortingStrategy}>
+              <ul className="space-y-1.5">
+                {items.map((iv) => (
+                  <SortableRow key={iv} id={iv} label={formatInterval(iv)} onRemove={() => remove(iv)} />
+                ))}
+              </ul>
+            </SortableContext>
+          </DndContext>
         </div>
       )}
 
-      {/* Tilføj nyt interval */}
+      {/* Brugerdefineret interval */}
       <div className="rounded-xl border border-dashed border-border bg-secondary/30 p-3">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Tilføj interval
+          Brugerdefineret interval
         </p>
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <span className="text-sm text-foreground">Hver</span>
@@ -210,15 +275,27 @@ export const IntervalBuilder = ({ value, onChange }: IntervalBuilderProps) => {
           <Button
             type="button"
             size="sm"
-            onClick={add}
+            onClick={() => add()}
             className="h-9"
-            disabled={items.includes(buildInterval(Math.max(1, parseInt(draftN, 10) || 1), draftUnit))}
+            disabled={items.includes(
+              buildKey(Math.max(1, parseInt(draftN, 10) || 1), draftUnit),
+            )}
           >
             <Plus className="mr-1 h-3.5 w-3.5" /> Tilføj
           </Button>
         </div>
-        <p className="mt-2 text-[11px] text-muted-foreground">
-          Vises som: <span className="font-medium text-foreground">{draftPreview}</span>
+        <p className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+          {draftPreview.changed ? (
+            <>
+              <Sparkles className="h-3 w-3 text-accent" />
+              <span>
+                Du skrev <span className="line-through">{draftPreview.original.toLowerCase()}</span> — vi
+                gemmer det som <span className="font-medium text-foreground">{draftPreview.normalized}</span>
+              </span>
+            </>
+          ) : (
+            <>Vises som: <span className="font-medium text-foreground">{draftPreview.normalized}</span></>
+          )}
         </p>
       </div>
     </div>

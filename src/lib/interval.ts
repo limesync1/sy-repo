@@ -127,6 +127,36 @@ export function intervalToDays(value: string | null | undefined): number | null 
   }
 }
 
+/**
+ * Smart-normalisering: tager (antal, enhed) og returnerer den "pæneste"
+ * ækvivalente repræsentation. Eksempler:
+ *   - 7 dage   → 1 uge
+ *   - 14 dage  → 2 uger
+ *   - 30 dage  → 1 måned
+ *   - 90 dage  → 3 måneder
+ *   - 365 dage → 1 år
+ *   - 12 mdr   → 1 år
+ *   - 4 uger   → 4 uger (vi rører IKKE ved uger→måned, da 4 uger ≠ 1 måned)
+ */
+export function normalizeInterval(n: number, unit: IntervalUnit): { n: number; unit: IntervalUnit } {
+  if (!n || n <= 0) return { n: 1, unit };
+  // Måneder → år
+  if (unit === "month" && n % 12 === 0) {
+    return { n: n / 12, unit: "year" };
+  }
+  // Dage → uger / måneder / år
+  if (unit === "day") {
+    if (n === 365) return { n: 1, unit: "year" };
+    // Foretræk måneder for klassiske månedslængder
+    const dayToMonth: Record<number, number> = { 30: 1, 60: 2, 90: 3, 120: 4, 150: 5, 180: 6, 270: 9 };
+    if (dayToMonth[n]) return { n: dayToMonth[n], unit: "month" };
+    if (n % 7 === 0 && n <= 56) return { n: n / 7, unit: "week" };
+  }
+  // Uger → år (52 uger ≈ 1 år, men kun ved nøjagtigt match)
+  if (unit === "week" && n === 52) return { n: 1, unit: "year" };
+  return { n, unit };
+}
+
 /** Returnerer den tilsvarende legacy-enum hvis intervallet matcher en af dem. */
 export function toLegacyEnum(value: string | null | undefined): string | null {
   const p = parseInterval(value);
