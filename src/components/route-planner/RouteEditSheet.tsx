@@ -103,6 +103,10 @@ export const RouteEditSheet = ({
   // og "fortryde" serverens ændring — hvilket giver oplevelsen af at
   // navnet hopper tilbage.
   const userEditedRef = useRef(false);
+  // Holder seneste payload klar til en synkron flush når sheet'et lukkes
+  // før debounce-timeren har fået lov at fyre. Uden dette ville hurtige
+  // edits efterfulgt af et "klik udenfor"/luk gå tabt.
+  const pendingFlushRef = useRef<{ id: string; name: string | null; color: string } | null>(null);
 
   const updateRoute = useUpdateRoute();
   const deleteRoute = useDeleteRoute();
@@ -116,6 +120,7 @@ export const RouteEditSheet = ({
     setColor(route.color || ROUTE_COLOR_PALETTE[0]);
     setDate(route.route_date);
     userEditedRef.current = false;
+    pendingFlushRef.current = null;
   }, [route?.id]);
 
   // Hvis serveren opdaterer route.name eller color (fx fra en anden klient
@@ -185,20 +190,38 @@ export const RouteEditSheet = ({
     // åbent.
     if (!userEditedRef.current) return;
 
-    // Debounce 500ms + in-flight guard: hvis en mutation allerede kører,
+    // Debounce 250ms + in-flight guard: hvis en mutation allerede kører,
     // udskydes næste kald til den er færdig. Det forhindrer race conditions
     // og spam af DB-skrivninger når brugeren skriver hurtigt eller vælger
     // farver i hurtig rækkefølge.
+    pendingFlushRef.current = pendingPayload;
     const timeout = window.setTimeout(() => {
       if (updateRoute.isPending) {
         // Mutation kører — skip nu; en ny dirty-cyklus trigger en ny effect.
         return;
       }
       updateRoute.mutate(pendingPayload);
-    }, 500);
+      pendingFlushRef.current = null;
+    }, 250);
 
     return () => window.clearTimeout(timeout);
   }, [route, open, dirty, pendingPayload, updateRoute]);
+
+  // Flush udestående ændringer øjeblikkeligt når sheet'et lukkes eller
+  // unmounts — ellers ville ændringer foretaget i de sidste ~250 ms før
+  // luk gå tabt fordi debounce-timeren cleanes op uden at fyre.
+  const flushPending = () => {
+    const payload = pendingFlushRef.current;
+    if (!payload || !payload.id) return;
+    pendingFlushRef.current = null;
+    updateRoute.mutate(payload);
+  };
+  useEffect(() => {
+    if (open) return;
+    flushPending();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+  useEffect(() => () => { flushPending(); }, []); // unmount safety
 
   if (!route) return null;
 

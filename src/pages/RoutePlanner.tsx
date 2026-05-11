@@ -712,6 +712,11 @@ const Planner = () => {
           ...base,
           id: p.id,
           baseRouteId: p.baseRouteId,
+          // Bevar sourceKeys på den virtuelle rute, så vi efter klik kan
+          // filtrere basis-rutens stops til præcis de aftaler der reelt
+          // udføres på den projicerede dato. Uden dette ender filteret med
+          // en tom liste og stops-panelet viser ingenting.
+          sourceKeys: p.sourceKeys,
           route_date: p.date,
           // Arv basis-rutens *visningsnavn og farve* (incl. auto-genereret),
           // så hele serien ser identisk ud i kalenderen.
