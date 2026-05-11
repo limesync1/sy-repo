@@ -2151,6 +2151,9 @@ export const useMyDayStops = (date: string) => {
         })();
         return {
           ...s,
+          // Hejs interval-tekst op fra det nestede join så aftalekortet kan
+          // vise "Hver uge", "Månedligt" osv. uden et ekstra request.
+          agreement_interval: s.agreement_occurrence?.agreement?.interval ?? s.agreement_interval ?? null,
           order_status: order?.status ?? null,
           order_payment_status: order?.payment_status ?? null,
           order_invoice_status: order?.invoice_status ?? null,
