@@ -32,6 +32,7 @@ import {
   type RouteStop, type Route,
 } from "@/hooks/useRoutes";
 import { formatDurationMin } from "@/lib/duration-format";
+import { formatInterval } from "@/lib/interval";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -260,6 +261,11 @@ const SortableStopRow = ({ stop, index, color, employees, onSetAssignees, onSele
           <p className="text-[10px] text-foreground/75 truncate mt-0.5 font-medium">
             {stop.service_summary || "Aftale"}
           </p>
+          {stop.agreement_interval && (
+            <p className="text-[10px] text-muted-foreground truncate mt-0.5">
+              {formatInterval(stop.agreement_interval)}
+            </p>
+          )}
           {stop.address && (
             <p className="text-[10px] text-muted-foreground truncate flex items-center gap-1 mt-0.5">
               <MapPin className="h-2.5 w-2.5 shrink-0" />{stop.address}
