@@ -839,8 +839,8 @@ describe("filterStopsByOccurrenceDate", () => {
 
   it("tomt input → tomt output, og crasher ikke på null/undefined", () => {
     expect(filterStopsByOccurrenceDate([], "2026-05-11")).toEqual([]);
-    // @ts-expect-error — defensivt: hvis caller sender null, må vi ikke smide.
-    expect(filterStopsByOccurrenceDate(null, "2026-05-11")).toEqual([]);
+    // Defensivt: hvis caller sender null, må vi ikke smide.
+    expect(filterStopsByOccurrenceDate(null as any, "2026-05-11")).toEqual([]);
   });
 
   it("normaliserer dayDate (slice 10) så ISO-tid også virker", () => {
