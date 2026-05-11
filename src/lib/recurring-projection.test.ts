@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
-import { expandRecurringRoutes, intervalToDays, projectedStopMatchesSources } from "./recurring-projection";
+import { expandRecurringRoutes, intervalToDays, projectedStopMatchesSources, filterStopsByOccurrenceDate } from "./recurring-projection";
 
 // Lås "today" på filniveau, så past-clamp i expandRecurringRoutes ikke
 // filtrerer testdatoer afhængigt af kørselstidspunktet. Alle testdata er
