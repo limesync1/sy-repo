@@ -2489,6 +2489,7 @@ const Planner = () => {
           employees={activeEmployees.map((e: any) => ({
             id: e.id, name: e.name, avatar_url: e.avatar_url, color: e.color,
           }))}
+                isProjection={projectionActive}
               />
             </>
           );
