@@ -668,14 +668,30 @@ const Planner = () => {
         // Projicér basis-rutens stops over på den virtuelle dato — gør at
         // brugeren ser kunderne i kalender-kortet selv før forekomsten er
         // materialiseret. Stops markeres som virtuelle så de ikke kan ændres.
-        const projectedStops = (base.stops || []).map((s: any, i: number) => ({
-          ...s,
-          id: `virtual-stop:${p.baseRouteId}:${p.date}:${s.id}`,
-          route_id: p.id,
-          status: "planned",
-          isVirtual: true,
-          sequence: s.sequence ?? i,
-        }));
+        const activeSourceKeys = new Set(p.sourceKeys || []);
+        const sourceKeyForStop = (s: any) => {
+          if (s.agreement_id) return `agr:${s.agreement_id}`;
+          if (s.subscription_id) return `sub:${s.subscription_id}`;
+          if (s.order_id) return `order:${s.order_id}`;
+          return null;
+        };
+        const sourceMatchesStop = (s: any) => {
+          if (activeSourceKeys.size === 0) return true;
+          const direct = sourceKeyForStop(s);
+          if (direct && activeSourceKeys.has(direct)) return true;
+          return false;
+        };
+        const projectedStops = (base.stops || [])
+          .filter(sourceMatchesStop)
+          .map((s: any, i: number) => ({
+            ...s,
+            id: `virtual-stop:${p.baseRouteId}:${p.date}:${s.id}`,
+            route_id: p.id,
+            status: "planned",
+            isVirtual: true,
+            sequence: i,
+          }));
+        if (projectedStops.length === 0) return null;
         // Saml medarbejdere fra basis-rutens stops så virtuelle ruter også
         // viser tilknyttede medarbejdere på kalender-kortet.
         const empIds = new Set<string>();
