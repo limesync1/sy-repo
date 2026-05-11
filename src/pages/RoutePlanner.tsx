@@ -121,6 +121,17 @@ const Planner = () => {
   const [newRouteJobIds, setNewRouteJobIds] = useState<string[]>([]);
   const [newRouteJobSearch, setNewRouteJobSearch] = useState("");
   const [editingRoute, setEditingRoute] = useState<Route | null>(null);
+  /**
+   * Når en projiceret rute åbnes (klik på virtuel pille i kalenderen) holder
+   * vi fast i de aktive sourceKeys for netop den dato. Det bruges til at
+   * filtrere basis-rutens stops i edit-sheet/stops-panel, så kun de aftaler
+   * der faktisk udføres på dén dag vises — ikke alle aftaler fra basisruten.
+   */
+  const [editingProjectedContext, setEditingProjectedContext] = useState<{
+    baseRouteId: string;
+    projectedDate: string;
+    sourceKeys: string[];
+  } | null>(null);
   const [routeToDelete, setRouteToDelete] = useState<{ id: string; name: string } | null>(null);
   const [pendingRouteMerge, setPendingRouteMerge] = useState<{
     source: Route;
@@ -808,6 +819,10 @@ const Planner = () => {
       toast.error("Kunne ikke åbne projiceret rute");
       return;
     }
+    // Husk hvilke aftale-kilder der er aktive for netop denne projicerede
+    // forekomst — så stops-listen i sheet/panel kun viser dem.
+    const projectedSourceKeys: string[] = Array.isArray(r.sourceKeys) ? r.sourceKeys : [];
+    setEditingProjectedContext({ baseRouteId: baseId, projectedDate, sourceKeys: projectedSourceKeys });
     // Find basisruten direkte i en af de lokale cacher — projicerede ruter må
     // ALDRIG have deres eget modal. Vi åbner altid den originale ruten,
     // så ændringer (navn, farve, osv.) gælder hele serien. Vi tjekker
@@ -2263,6 +2278,9 @@ const Planner = () => {
                       await openProjectedRoute(r);
                       return;
                     }
+                    // Almindelig (rigtig) rute: nulstil projektions-konteksten
+                    // så vi viser alle stops uden filter.
+                    setEditingProjectedContext(null);
                     setEditingRoute(r);
                   }}
                   onSelectStop={(s) => setSelectedStopId(s.id)}
