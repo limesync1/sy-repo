@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Clock, Sparkles, Navigation, Loader2, Send, AlertCircle } from "lucide-react";
 import type { RouteStop } from "@/hooks/useRoutes";
 import { formatDurationMin } from "@/lib/duration-format";
+import { formatInterval } from "@/lib/interval";
 
 type Props = {
   routeId: string;
