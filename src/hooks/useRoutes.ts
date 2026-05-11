@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { routeMutationQueue } from "@/lib/mutation-queue";
+import { MutationQueue, routeMutationQueue } from "@/lib/mutation-queue";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useMyEmployeeId } from "@/hooks/useMyEmployee";
@@ -31,6 +31,27 @@ const friendlyAssigneeError = (err: any): Error => {
     return new Error("Stoppet eller medarbejderen findes ikke længere — opdatér siden.");
   }
   return new Error(msg || "Kunne ikke gemme medarbejder­tilknytning.");
+};
+
+/**
+ * Per-stop serialisering af medarbejder-tildelinger.
+ *
+ * Hvis brugeren skifter medarbejder hurtigt på samme stop kan to parallelle
+ * `delete + upsert` race mod hinanden og holde row-locks længe nok til at
+ * Postgres rammer "canceling statement due to statement timeout". UI'et
+ * bugger også frem og tilbage fordi den hurtigste mutation's invalidate
+ * refetcher imens den næste mutation stadig har optimistisk state ude.
+ *
+ * Ved at sende alle assignment-mutationer for et givent stop_id gennem en
+ * dedikeret kø sikrer vi at kun én DB-roundtrip kører ad gangen pr. stop —
+ * og vi kan tjekke `pending` for at undgå unødige invalidates mens flere
+ * klik er på vej.
+ */
+const stopAssigneeQueues = new Map<string, MutationQueue>();
+const getStopQueue = (stopId: string): MutationQueue => {
+  let q = stopAssigneeQueues.get(stopId);
+  if (!q) { q = new MutationQueue(); stopAssigneeQueues.set(stopId, q); }
+  return q;
 };
 
 export type Route = {
@@ -1240,30 +1261,23 @@ export const useSetStopAssignees = () => {
     mutationFn: async ({
       stop_id, employee_ids, lead_id,
     }: { stop_id: string; employee_ids: string[]; lead_id?: string | null }) => {
-      // 1. Slet eksisterende
-      const { error: delErr } = await supabase
-        .from("route_stop_assignees")
-        .delete()
-        .eq("stop_id", stop_id);
-      if (delErr) throw delErr;
-
-      if (employee_ids.length === 0) {
-        // Trigger sætter assigned_employee_id = null automatisk
-        return { count: 0 };
-      }
-
-      // 2. Indsæt nye — sikr at præcis én er lead
-      const finalLead = lead_id && employee_ids.includes(lead_id) ? lead_id : employee_ids[0];
-      const rows = employee_ids.map((eid) => ({
-        stop_id,
-        employee_id: eid,
-        is_lead: eid === finalLead,
-      }));
-      const { error: insErr } = await supabase
-        .from("route_stop_assignees")
-        .upsert(rows, { onConflict: "stop_id,employee_id", ignoreDuplicates: false });
-      if (insErr) throw friendlyAssigneeError(insErr);
-      return { count: rows.length };
+      return getStopQueue(stop_id).run(async () => {
+        const { error: delErr } = await supabase
+          .from("route_stop_assignees")
+          .delete()
+          .eq("stop_id", stop_id);
+        if (delErr) throw delErr;
+        if (employee_ids.length === 0) return { count: 0 };
+        const finalLead = lead_id && employee_ids.includes(lead_id) ? lead_id : employee_ids[0];
+        const rows = employee_ids.map((eid) => ({
+          stop_id, employee_id: eid, is_lead: eid === finalLead,
+        }));
+        const { error: insErr } = await supabase
+          .from("route_stop_assignees")
+          .upsert(rows, { onConflict: "stop_id,employee_id", ignoreDuplicates: false });
+        if (insErr) throw friendlyAssigneeError(insErr);
+        return { count: rows.length };
+      });
     },
     // Optimistisk patch: opdatér caches øjeblikkeligt så avatars og medarbejder-
     // kolonner skifter med det samme — uden at vente på round-trip + refetch.
@@ -1292,7 +1306,13 @@ export const useSetStopAssignees = () => {
       ctx?.calSnap.forEach(([key, data]) => qc.setQueryData(key, data));
       toast.error(e.message || "Kunne ikke opdatere medarbejdere");
     },
-    onSettled: () => {
+    onSettled: (_data, _err, vars) => {
+      // Spring invalidate over hvis brugeren allerede har klikket igen —
+      // næste mutation's onSettled tager refetch'en. Det forhindrer
+      // "blink/bug" hvor en in-flight refetch overskriver den nyere
+      // optimistiske patch.
+      const q = stopAssigneeQueues.get(vars.stop_id);
+      if (q && (q.pending > 0 || q.isRunning)) return;
       invalidateRouteSyncQueries(qc);
       qc.invalidateQueries({ queryKey: ["stop-assignees-bulk"] });
     },
@@ -1307,19 +1327,21 @@ export const useAssignSingleEmployee = () => {
     mutationFn: async ({
       stop_id, employee_id,
     }: { stop_id: string; employee_id: string | null }) => {
-      const { error: delErr } = await supabase
-        .from("route_stop_assignees")
-        .delete()
-        .eq("stop_id", stop_id);
-      if (delErr) throw delErr;
-      if (!employee_id) return;
-      const { error: insErr } = await supabase
-        .from("route_stop_assignees")
-        .upsert(
-          { stop_id, employee_id, is_lead: true },
-          { onConflict: "stop_id,employee_id", ignoreDuplicates: false },
-        );
-      if (insErr) throw friendlyAssigneeError(insErr);
+      return getStopQueue(stop_id).run(async () => {
+        const { error: delErr } = await supabase
+          .from("route_stop_assignees")
+          .delete()
+          .eq("stop_id", stop_id);
+        if (delErr) throw delErr;
+        if (!employee_id) return;
+        const { error: insErr } = await supabase
+          .from("route_stop_assignees")
+          .upsert(
+            { stop_id, employee_id, is_lead: true },
+            { onConflict: "stop_id,employee_id", ignoreDuplicates: false },
+          );
+        if (insErr) throw friendlyAssigneeError(insErr);
+      });
     },
     onMutate: async ({ stop_id, employee_id }) => {
       await qc.cancelQueries({ queryKey: ["route-stops-bulk"] });
@@ -1343,7 +1365,11 @@ export const useAssignSingleEmployee = () => {
       ctx?.calSnap.forEach(([key, data]) => qc.setQueryData(key, data));
       toast.error(e.message || "Kunne ikke tildele medarbejder");
     },
-    onSettled: () => invalidateRouteSyncQueries(qc),
+    onSettled: (_data, _err, vars) => {
+      const q = stopAssigneeQueues.get(vars.stop_id);
+      if (q && (q.pending > 0 || q.isRunning)) return;
+      invalidateRouteSyncQueries(qc);
+    },
   });
 };
 
