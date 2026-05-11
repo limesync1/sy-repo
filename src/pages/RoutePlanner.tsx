@@ -65,7 +65,7 @@ import { useWeatherForecast, type WeatherDay } from "@/hooks/useWeather";
 import { ShellSkeleton } from "@/components/admin/shared/Skeletons";
 import { useQuery } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
-import { expandRecurringRoutes } from "@/lib/recurring-projection";
+import { expandRecurringRoutes, projectedStopMatchesSources } from "@/lib/recurring-projection";
 import { invalidateRouteSyncQueries } from "@/hooks/useRoutes";
 import { cn } from "@/lib/utils";
 
@@ -488,7 +488,7 @@ const Planner = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("routes")
-        .select("*")
+        .select("*, agreement_occurrences(agreement_id, legacy_order_id)")
         .in("id", recurringRouteIds);
       if (error) throw error;
       const routes = (data || []) as any[];
@@ -668,21 +668,8 @@ const Planner = () => {
         // Projicér basis-rutens stops over på den virtuelle dato — gør at
         // brugeren ser kunderne i kalender-kortet selv før forekomsten er
         // materialiseret. Stops markeres som virtuelle så de ikke kan ændres.
-        const activeSourceKeys = new Set(p.sourceKeys || []);
-        const sourceKeyForStop = (s: any) => {
-          if (s.agreement_id) return `agr:${s.agreement_id}`;
-          if (s.subscription_id) return `sub:${s.subscription_id}`;
-          if (s.order_id) return `order:${s.order_id}`;
-          return null;
-        };
-        const sourceMatchesStop = (s: any) => {
-          if (activeSourceKeys.size === 0) return true;
-          const direct = sourceKeyForStop(s);
-          if (direct && activeSourceKeys.has(direct)) return true;
-          return false;
-        };
         const projectedStops = (base.stops || [])
-          .filter(sourceMatchesStop)
+          .filter((s: any) => projectedStopMatchesSources(s, p.sourceKeys))
           .map((s: any, i: number) => ({
             ...s,
             id: `virtual-stop:${p.baseRouteId}:${p.date}:${s.id}`,
