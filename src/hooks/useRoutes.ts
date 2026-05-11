@@ -2114,7 +2114,7 @@ export const useMyDayStops = (date: string) => {
       const filteredByInterval = filterStopsByOccurrenceDate(filtered as any[], date);
       const orderIds = Array.from(
         new Set(filteredByInterval.map((s: any) => s.order_id).filter(Boolean)),
-      );
+      ) as string[];
       if (orderIds.length === 0) return filteredByInterval as RouteStop[];
 
       const { data: orderRows } = await supabase
