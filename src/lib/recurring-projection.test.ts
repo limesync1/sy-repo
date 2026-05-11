@@ -358,3 +358,253 @@ describe("expandRecurringRoutes — merge med blandede intervaller", () => {
     expect(dates).toContain("2026-05-13");
   });
 });
+
+// Overlap- og suppressions-tests: efterligner præcis hvordan RoutePlanner
+// bygger `realKeys` (både `routeId|date` og `base_route_id|date`), så vi
+// fanger alle de scenarier hvor en projiceret rute IKKE må dukke op
+// oven på en allerede materialiseret rute. Disse låser regression fast
+// for det gentagne problem hvor brugere ser en projektion + en rigtig
+// rute på samme dag, eller hvor klik på projektionen åbner et separat
+// modal i stedet for basisruten.
+describe("expandRecurringRoutes — overlap/suppression mod rigtige ruter", () => {
+  const range = { rangeStart: "2026-05-01", rangeEnd: "2026-05-31" };
+
+  // Hjælper: bygger realKeys på samme måde som RoutePlanner.tsx (linje 624-632).
+  const buildRealKeys = (
+    realRoutes: { id: string; route_date: string; base_route_id?: string | null }[],
+    occurrenceExceptions: { base_route_id: string; occurrence_date: string }[] = [],
+  ): Set<string> => {
+    const s = new Set<string>();
+    for (const r of realRoutes) {
+      s.add(`${r.id}|${r.route_date}`);
+      if (r.base_route_id) s.add(`${r.base_route_id}|${r.route_date}`);
+    }
+    for (const ex of occurrenceExceptions) {
+      s.add(`${ex.base_route_id}|${ex.occurrence_date}`);
+    }
+    return s;
+  };
+
+  it("suppressing via base_route_id på materialiseret child-rute", () => {
+    // Bruger har "låst op" en enkelt forekomst — den fik nyt route-id men
+    // peger tilbage på basisruten via base_route_id. Projektionen for
+    // basisruten på samme dag SKAL forsvinde, så vi ikke får dobbelt-pille.
+    const realKeys = buildRealKeys([
+      { id: "child-route-xyz", route_date: "2026-05-11", base_route_id: "base-1" },
+    ]);
+    const out = expandRecurringRoutes({
+      ...range,
+      realRouteDates: realKeys,
+      sources: [
+        { id: "agr", interval: "ugentlig", seed_date: "2026-05-04", preferred_route_id: "base-1" },
+      ],
+    });
+    expect(out.find((p) => p.date === "2026-05-11")).toBeUndefined();
+    // Andre forekomster i serien skal stadig være der
+    expect(out.find((p) => p.date === "2026-05-04")).toBeDefined();
+    expect(out.find((p) => p.date === "2026-05-18")).toBeDefined();
+  });
+
+  it("suppressing via route_occurrence_exceptions (skip-én-gang)", () => {
+    const realKeys = buildRealKeys([], [
+      { base_route_id: "base-1", occurrence_date: "2026-05-11" },
+    ]);
+    const out = expandRecurringRoutes({
+      ...range,
+      realRouteDates: realKeys,
+      sources: [
+        { id: "agr", interval: "ugentlig", seed_date: "2026-05-04", preferred_route_id: "base-1" },
+      ],
+    });
+    expect(out.find((p) => p.date === "2026-05-11")).toBeUndefined();
+    expect(out.length).toBe(3);
+  });
+
+  it("realRouteDates med FORKERT routeId blokerer ikke andre serier", () => {
+    // Hvis en helt anden rute er materialiseret på datoen, må vores serie
+    // ikke skjules. Tidligere bug: et globalt sæt af datoer (uden routeId)
+    // ville fejlagtigt blokere alle serier samme dag.
+    const realKeys = buildRealKeys([
+      { id: "other-route", route_date: "2026-05-11" },
+    ]);
+    const out = expandRecurringRoutes({
+      ...range,
+      realRouteDates: realKeys,
+      sources: [
+        { id: "agr", interval: "ugentlig", seed_date: "2026-05-04", preferred_route_id: "base-1" },
+      ],
+    });
+    expect(out.find((p) => p.date === "2026-05-11")).toBeDefined();
+  });
+
+  it("flere materialiseringer af samme base/dag blokerer kun den ene dag", () => {
+    // Defensivt: hvis DB ved et uheld har duplikerede materialiseringer for
+    // samme base+dag, skal projektionen stadig kun springe netop den dag over.
+    const realKeys = buildRealKeys([
+      { id: "child-a", route_date: "2026-05-11", base_route_id: "base-1" },
+      { id: "child-b", route_date: "2026-05-11", base_route_id: "base-1" },
+    ]);
+    const out = expandRecurringRoutes({
+      ...range,
+      realRouteDates: realKeys,
+      sources: [
+        { id: "agr", interval: "ugentlig", seed_date: "2026-05-04", preferred_route_id: "base-1" },
+      ],
+    });
+    expect(out.find((p) => p.date === "2026-05-11")).toBeUndefined();
+    expect(out.length).toBe(3);
+  });
+
+  it("idempotens: to identiske kald giver præcis samme resultat (ids + datoer)", () => {
+    const args = {
+      ...range,
+      realRouteDates: new Set<string>(),
+      sources: [
+        { id: "a1", interval: "ugentlig",    seed_date: "2026-05-04", preferred_route_id: "r1" },
+        { id: "a2", interval: "hver_14_dag", seed_date: "2026-05-05", preferred_route_id: "r2" },
+        { id: "a3", interval: "custom", interval_days: 10, seed_date: "2026-05-02", preferred_route_id: "r3" },
+      ],
+    };
+    const a = expandRecurringRoutes(args);
+    const b = expandRecurringRoutes(args);
+    expect(a).toEqual(b);
+  });
+
+  it("alle virtuelle ids er unikke inden for samme kald (ingen dubletter)", () => {
+    const out = expandRecurringRoutes({
+      rangeStart: "2026-05-01",
+      rangeEnd: "2026-08-31",
+      realRouteDates: new Set(),
+      sources: [
+        { id: "a1", interval: "ugentlig",    seed_date: "2026-05-04", preferred_route_id: "r1" },
+        { id: "a2", interval: "hver_14_dag", seed_date: "2026-05-05", preferred_route_id: "r1" },
+        { id: "a3", interval: "månedlig",    seed_date: "2026-05-04", preferred_route_id: "r1" },
+        { id: "a4", interval: "ugentlig",    seed_date: "2026-05-04", preferred_route_id: "r2" },
+      ],
+    });
+    const ids = out.map((p) => p.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    // Og hver id skal kunne dekodes tilbage til (baseRouteId, date).
+    for (const p of out) {
+      expect(p.id).toBe(`virtual:${p.baseRouteId}:${p.date}`);
+    }
+  });
+
+  it("ingen duplikerede (baseRouteId, date) på tværs af alle serier", () => {
+    const out = expandRecurringRoutes({
+      rangeStart: "2026-05-01",
+      rangeEnd: "2026-12-31",
+      realRouteDates: new Set(),
+      sources: [
+        // Alle peger på samme målrute — efter merge.
+        { id: "a1", interval: "ugentlig",    seed_date: "2026-05-04", preferred_route_id: "target" },
+        { id: "a2", interval: "hver_14_dag", seed_date: "2026-05-04", preferred_route_id: "target" },
+        { id: "a3", interval: "hver_4_uge",  seed_date: "2026-05-04", preferred_route_id: "target" },
+        { id: "a4", interval: "ugentlig",    seed_date: "2026-05-11", preferred_route_id: "target" },
+      ],
+    });
+    const keys = out.map((p) => `${p.baseRouteId}|${p.date}`);
+    expect(new Set(keys).size).toBe(keys.length);
+  });
+
+  it("rangeEnd før rangeStart → tomt resultat (ingen crash)", () => {
+    const out = expandRecurringRoutes({
+      rangeStart: "2026-05-31",
+      rangeEnd: "2026-05-01",
+      realRouteDates: new Set(),
+      sources: [{ id: "a1", interval: "ugentlig", seed_date: "2026-05-04", preferred_route_id: "r1" }],
+    });
+    expect(out).toEqual([]);
+  });
+
+  it("rangeStart === rangeEnd og seed rammer dagen → præcis 1 forekomst", () => {
+    const out = expandRecurringRoutes({
+      rangeStart: "2026-05-04",
+      rangeEnd: "2026-05-04",
+      realRouteDates: new Set(),
+      sources: [{ id: "a1", interval: "ugentlig", seed_date: "2026-05-04", preferred_route_id: "r1" }],
+    });
+    expect(out.map((p) => p.date)).toEqual(["2026-05-04"]);
+  });
+
+  it("klamper aldrig projektionen ind i fortiden, selv når rangeStart er før i dag", () => {
+    // Systemtid er låst til 2025-12-31 (se beforeAll øverst i filen).
+    // Selv hvis kalenderens rangeStart starter midt i december (fx fordi
+    // måneds-griddet inkluderer forrige måneds dage), må vi aldrig projicere
+    // forekomster i fortiden — de er allerede passeret.
+    const out = expandRecurringRoutes({
+      rangeStart: "2025-12-01",
+      rangeEnd: "2026-01-15",
+      realRouteDates: new Set(),
+      sources: [{ id: "a1", interval: "ugentlig", seed_date: "2025-12-01", preferred_route_id: "r1" }],
+    });
+    // Alle datoer skal være >= "i dag" (2025-12-31).
+    for (const p of out) {
+      expect(p.date >= "2025-12-31").toBe(true);
+    }
+  });
+
+  it("multi-year horisont med ugentlig serie projicerer alle uger uden tab", () => {
+    const out = expandRecurringRoutes({
+      rangeStart: "2026-01-01",
+      rangeEnd: "2027-12-31",
+      realRouteDates: new Set(),
+      sources: [{ id: "a1", interval: "ugentlig", seed_date: "2026-01-01", preferred_route_id: "r1" }],
+    });
+    // 2026-01-01 til 2027-12-31 = 730 dage = 105 hele uger (104 step + seed) = 105.
+    expect(out.length).toBeGreaterThanOrEqual(104);
+    expect(out.length).toBeLessThanOrEqual(106);
+    // Først og sidst skal være på korrekt cyklus (dage delelig med 7 fra seed).
+    const first = out[0].date;
+    const last = out[out.length - 1].date;
+    expect(first).toBe("2026-01-01");
+    expect(last <= "2027-12-31").toBe(true);
+  });
+
+  it("daglig serie i 4 år når safety-loftet (4000) men crasher ikke", () => {
+    const out = expandRecurringRoutes({
+      rangeStart: "2026-01-01",
+      rangeEnd: "2030-12-31", // ~1825 dage — under safety-loftet
+      realRouteDates: new Set(),
+      sources: [{ id: "a1", interval: "daglig", seed_date: "2026-01-01", preferred_route_id: "r1" }],
+    });
+    expect(out.length).toBeGreaterThan(1800);
+    expect(out.length).toBeLessThanOrEqual(4000);
+  });
+
+  it("samme aftale-id duplikeret i sources → datoer dedupes pr. (route,dato)", () => {
+    // Defensivt: hvis to identiske kilder smutter med (fx race i React-state),
+    // skal projektionen stadig kun give én forekomst pr. dag.
+    const dup = { id: "a1", interval: "ugentlig" as const, seed_date: "2026-05-04", preferred_route_id: "r1" };
+    const out = expandRecurringRoutes({
+      ...range,
+      realRouteDates: new Set(),
+      sources: [dup, dup],
+    });
+    const dates = out.map((p) => p.date);
+    expect(new Set(dates).size).toBe(dates.length);
+  });
+
+  it("efter merge: ALLE intervaller projiceres OG ingen dato kommer to gange", () => {
+    // Kombineret regression: 3 aftaler med forskellige intervaller på samme
+    // målrute. Vi tjekker både at alle serier er repræsenteret OG at der
+    // ikke er dubletter — det er præcis det scenarie hvor brugeren tidligere
+    // har set "ekstra" projektioner eller manglende serier.
+    const out = expandRecurringRoutes({
+      ...range,
+      realRouteDates: new Set(),
+      sources: [
+        { id: "u",  interval: "ugentlig",    seed_date: "2026-05-04", preferred_route_id: "t" },
+        { id: "f",  interval: "hver_14_dag", seed_date: "2026-05-04", preferred_route_id: "t" },
+        { id: "m",  interval: "månedlig",    seed_date: "2026-05-04", preferred_route_id: "t" },
+      ],
+    });
+    const keys = out.map((p) => `${p.baseRouteId}|${p.date}`);
+    expect(new Set(keys).size).toBe(keys.length);
+    // Alle 4 ugentlige forekomster i maj
+    expect(out.filter((p) => p.date === "2026-05-04").length).toBe(1);
+    expect(out.filter((p) => p.date === "2026-05-11").length).toBe(1);
+    expect(out.filter((p) => p.date === "2026-05-18").length).toBe(1);
+    expect(out.filter((p) => p.date === "2026-05-25").length).toBe(1);
+  });
+});
