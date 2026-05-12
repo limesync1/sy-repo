@@ -1307,11 +1307,13 @@ export const useSetStopAssignees = () => {
     onMutate: async ({ stop_id, employee_ids, lead_id }) => {
       await qc.cancelQueries({ queryKey: ["route-stops-bulk"] });
       await qc.cancelQueries({ queryKey: ["route-calendar"] });
+      await qc.cancelQueries({ queryKey: ["recurring-base-routes"] });
       const finalLead = employee_ids.length === 0
         ? null
         : (lead_id && employee_ids.includes(lead_id) ? lead_id : employee_ids[0]);
       const stopsSnap = qc.getQueriesData<RouteStop[]>({ queryKey: ["route-stops-bulk"] });
       const calSnap = qc.getQueriesData<{ routes: Route[]; stops: RouteStop[] }>({ queryKey: ["route-calendar"] });
+      const recSnap = qc.getQueriesData<any[]>({ queryKey: ["recurring-base-routes"] });
       const patchStop = (s: RouteStop): RouteStop =>
         s.id === stop_id
           ? ({ ...s, assignee_ids: [...employee_ids], lead_employee_id: finalLead, assigned_employee_id: finalLead } as RouteStop)
@@ -1322,11 +1324,17 @@ export const useSetStopAssignees = () => {
       qc.setQueriesData<{ routes: Route[]; stops: RouteStop[] }>({ queryKey: ["route-calendar"] }, (old) =>
         old?.stops ? { ...old, stops: old.stops.map(patchStop) } : old,
       );
-      return { stopsSnap, calSnap };
+      qc.setQueriesData<any[]>({ queryKey: ["recurring-base-routes"] }, (old) =>
+        Array.isArray(old)
+          ? old.map((r) => ({ ...r, stops: (r.stops || []).map(patchStop) }))
+          : old,
+      );
+      return { stopsSnap, calSnap, recSnap };
     },
     onError: (e: any, _vars, ctx) => {
       ctx?.stopsSnap.forEach(([key, data]) => qc.setQueryData(key, data));
       ctx?.calSnap.forEach(([key, data]) => qc.setQueryData(key, data));
+      ctx?.recSnap?.forEach(([key, data]) => qc.setQueryData(key, data));
       toast.error(e.message || "Kunne ikke opdatere medarbejdere");
     },
     onSettled: (_data, _err, vars) => {
@@ -1338,6 +1346,7 @@ export const useSetStopAssignees = () => {
       if (q && (q.pending > 0 || q.isRunning)) return;
       invalidateRouteSyncQueries(qc);
       qc.invalidateQueries({ queryKey: ["stop-assignees-bulk"] });
+      qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
     },
   });
 };
