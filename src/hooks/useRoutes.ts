@@ -1647,10 +1647,12 @@ export const useUpdateRoute = () => {
       await qc.cancelQueries({ queryKey: ["routes"] });
       await qc.cancelQueries({ queryKey: ["routes-range"] });
       await qc.cancelQueries({ queryKey: ["route-calendar"] });
+      await qc.cancelQueries({ queryKey: ["recurring-base-routes"] });
       const snapshots = [
         ...qc.getQueriesData<Route[]>({ queryKey: ["routes"] }),
         ...qc.getQueriesData<Route[]>({ queryKey: ["routes-range"] }),
         ...qc.getQueriesData<{ routes: Route[]; stops: RouteStop[] }>({ queryKey: ["route-calendar"] }),
+        ...qc.getQueriesData<any[]>({ queryKey: ["recurring-base-routes"] }),
       ];
       const mergeRoute = (route: Route) => (route.id === id ? { ...route, ...updates } : route);
       qc.setQueriesData({ queryKey: ["routes"] }, (old: Route[] | undefined) =>
@@ -1661,6 +1663,13 @@ export const useUpdateRoute = () => {
       );
       qc.setQueriesData({ queryKey: ["route-calendar"] }, (old: { routes: Route[]; stops: RouteStop[] } | undefined) =>
         old?.routes ? { ...old, routes: old.routes.map(mergeRoute) } : old,
+      );
+      // Patch også basisrute-cachen som projicerede ruter arver navn/farve fra,
+      // så ny farve slår igennem på projektioner med det samme.
+      qc.setQueriesData({ queryKey: ["recurring-base-routes"] }, (old: any[] | undefined) =>
+        Array.isArray(old)
+          ? old.map((r: any) => (r.id === id ? { ...r, ...updates } : r))
+          : old,
       );
       return { snapshots };
     },
