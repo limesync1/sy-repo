@@ -1145,6 +1145,28 @@ export const useAddStop = () => {
               .neq("interval", "engangskøb")
               .eq("status", "active");
           }
+          // Nye aftaler (uden legacy_subscription_id) findes via deres
+          // forekomster (agreement_occurrences.legacy_order_id == order_id).
+          // Det sikrer at projicerede ruter også oprettes første gang en
+          // ny aftale lægges på en rute.
+          try {
+            const { data: occs } = await supabase
+              .from("agreement_occurrences")
+              .select("agreement_id")
+              .eq("legacy_order_id", payload.order_id);
+            const agreementIds = Array.from(new Set(
+              (occs || []).map((o: any) => o.agreement_id).filter(Boolean) as string[]
+            ));
+            if (agreementIds.length > 0) {
+              await supabase
+                .from("agreements")
+                .update({ preferred_route_id: payload.route_id })
+                .in("id", agreementIds)
+                .is("preferred_route_id", null)
+                .neq("interval", "engangskøb")
+                .eq("status", "active");
+            }
+          } catch { /* projektion er best-effort */ }
         } catch {
           /* preferred_route_id er en hint — må aldrig blokere drop'et */
         }
