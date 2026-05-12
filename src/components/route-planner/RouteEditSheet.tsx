@@ -199,10 +199,12 @@ export const RouteEditSheet = ({
     // åbent.
     if (!userEditedRef.current) return;
 
-    // Debounce 250ms + in-flight guard: hvis en mutation allerede kører,
-    // udskydes næste kald til den er færdig. Det forhindrer race conditions
-    // og spam af DB-skrivninger når brugeren skriver hurtigt eller vælger
-    // farver i hurtig rækkefølge.
+    // Debounce: kort for navn (skrivning), nul for farve (diskret klik).
+    // Optimistiske patches fra useUpdateRoute.onMutate sørger for at både
+    // kalender, basisrute-cache og projicerede ruter opdaterer øjeblikkeligt
+    // — uden at brugeren behøver at lukke sheet'et.
+    const colorChanged = route.color !== color;
+    const delay = colorChanged ? 0 : 120;
     pendingFlushRef.current = pendingPayload;
     const timeout = window.setTimeout(() => {
       if (updateRoute.isPending) {
@@ -211,7 +213,7 @@ export const RouteEditSheet = ({
       }
       updateRoute.mutate(pendingPayload);
       pendingFlushRef.current = null;
-    }, 250);
+    }, delay);
 
     return () => window.clearTimeout(timeout);
   }, [route, open, dirty, pendingPayload, updateRoute]);
