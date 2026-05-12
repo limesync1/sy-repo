@@ -2404,6 +2404,83 @@ const AftaleTab = ({
                 ))}
               </div>
             </Section>
+
+            <Section
+              icon={<ListChecks className="h-3.5 w-3.5" />}
+              title="Aftaler på ruten"
+              hint={`${newRouteJobIds.length} valgt`}
+            >
+              <p className="text-[11px] text-muted-foreground mb-2">
+                Vælg mindst én aftale fra aftalepoolen — ruter kan ikke oprettes uden aftaler.
+              </p>
+              <div className="relative mb-2">
+                <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                <Input
+                  placeholder="Søg kunde eller adresse..."
+                  value={newRouteJobSearch}
+                  onChange={(e) => setNewRouteJobSearch(e.target.value)}
+                  className="h-7 pl-6 text-xs"
+                />
+              </div>
+              <div className="max-h-56 overflow-y-auto rounded border divide-y bg-background">
+                {(() => {
+                  const pool = (orders || []).filter(
+                    (o: any) => !stopByOrder[o.id] && !["cancelled", "completed", "pending"].includes(o.status),
+                  );
+                  if (pool.length === 0) {
+                    return (
+                      <div className="p-4 text-center text-xs text-muted-foreground">
+                        Ingen aftaler i poolen.
+                      </div>
+                    );
+                  }
+                  const q = newRouteJobSearch.trim().toLowerCase();
+                  const filtered = pool.filter((j: any) => {
+                    if (!q) return true;
+                    return (
+                      j.customer_name?.toLowerCase().includes(q) ||
+                      j.address?.toLowerCase().includes(q) ||
+                      j.city?.toLowerCase().includes(q)
+                    );
+                  }).slice(0, 50);
+                  return filtered.map((j: any) => {
+                    const checked = newRouteJobIds.includes(j.id);
+                    const items = (j.order_items || []) as any[];
+                    const summary = items.map((it) => `${it.service_name}${it.quantity > 1 ? ` ×${it.quantity}` : ""}`).join(", ");
+                    return (
+                      <label
+                        key={j.id}
+                        className={cn(
+                          "flex items-start gap-2 p-2 cursor-pointer hover:bg-secondary/50 text-xs",
+                          checked && "bg-accent/5",
+                        )}
+                      >
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(v) =>
+                            setNewRouteJobIds((prev) =>
+                              v ? [...prev, j.id] : prev.filter((x) => x !== j.id),
+                            )
+                          }
+                          className="mt-0.5"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{j.customer_name}</p>
+                          {summary && (
+                            <p className="text-[10px] text-muted-foreground truncate">{summary}</p>
+                          )}
+                          {(j.address || j.city) && (
+                            <p className="text-[10px] text-muted-foreground truncate">
+                              {[j.address, [j.zip_code, j.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")}
+                            </p>
+                          )}
+                        </div>
+                      </label>
+                    );
+                  });
+                })()}
+              </div>
+            </Section>
           </div>
 
           <SheetFooterBar>
