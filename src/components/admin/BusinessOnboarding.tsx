@@ -130,7 +130,7 @@ const BusinessOnboarding = () => {
 
   // ─── Form state ───
   const [features, setFeatures] = useState<Record<FeatureKey, boolean>>({
-    route_planning: false,
+    route_planning: true,
     accounting_integration: false,
     data_import: false,
     leads: true,
