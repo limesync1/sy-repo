@@ -409,9 +409,8 @@ const SettingsTab = ({ business }: { business: any }) => {
     lead_emails: true,
     ...((business.notification_settings as Record<string, boolean>) || {}),
   });
-  const [routePlanningEnabled, setRoutePlanningEnabled] = useState<boolean>(
-    !!(business.settings as any)?.route_planning_enabled
-  );
+  // Ruteplanlægning er nu altid aktiveret for alle virksomheder — toggle vises ikke længere.
+  const routePlanningEnabled = true;
   // Regnskabsprogram-integration — feature-flag som virksomheden selv kan slå
   // til/fra. Selve integrationen bygges senere; vi gemmer kun præferencen.
   const [accountingIntegrationEnabled, setAccountingIntegrationEnabled] = useState<boolean>(
