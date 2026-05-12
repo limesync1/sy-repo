@@ -2387,7 +2387,25 @@ const Planner = () => {
         </DragOverlay>
 
         <StopDetailSheet
-          stop={calendarStops.find((s) => s.id === selectedStopId) || null}
+          stop={(() => {
+            if (!selectedStopId) return null;
+            // Almindelige stops fra det aktuelle kalender-vindue.
+            const direct = calendarStops.find((s) => s.id === selectedStopId);
+            if (direct) return direct;
+            // Klik på et stop i en projiceret rute — id'et starter med
+            // `virtual-stop:` og findes derfor ikke i calendarStops. Vi
+            // udleder det rigtige basis-stop-id og slår op i basisrutens
+            // cache så detalje-sheet'et altid kan åbnes.
+            if (selectedStopId.startsWith("virtual-stop:")) {
+              const realId = selectedStopId.split(":").pop();
+              if (!realId) return null;
+              for (const r of (recurringBaseRoutes as any[])) {
+                const hit = (r.stops || []).find((s: any) => s.id === realId);
+                if (hit) return hit;
+              }
+            }
+            return null;
+          })()}
           open={!!selectedStopId}
           onOpenChange={(o) => !o && setSelectedStopId(null)}
         />
