@@ -409,9 +409,8 @@ const SettingsTab = ({ business }: { business: any }) => {
     lead_emails: true,
     ...((business.notification_settings as Record<string, boolean>) || {}),
   });
-  const [routePlanningEnabled, setRoutePlanningEnabled] = useState<boolean>(
-    !!(business.settings as any)?.route_planning_enabled
-  );
+  // Ruteplanlægning er nu altid aktiveret for alle virksomheder — toggle vises ikke længere.
+  const routePlanningEnabled = true;
   // Regnskabsprogram-integration — feature-flag som virksomheden selv kan slå
   // til/fra. Selve integrationen bygges senere; vi gemmer kun præferencen.
   const [accountingIntegrationEnabled, setAccountingIntegrationEnabled] = useState<boolean>(
@@ -1830,16 +1829,6 @@ const SettingsTab = ({ business }: { business: any }) => {
               <div>
                 <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Betalte tilvalg</p>
                 <div className="space-y-2.5">
-                  <FeatureRow
-                    icon={<Route />}
-                    title="Ruteplanlægning"
-                    priceLabel={pricing ? `+${Math.round(pricing.price_route_planning_dkk).toLocaleString("da-DK")} kr/md` : undefined}
-                    description="Få adgang til medarbejder-konti og daglig ruteplanlægning. Læg stop på kort, lad AI'en optimere kørselsrækkefølgen ud fra afstand og tidsvinduer, og giv medarbejderne deres egen app med dagens rute."
-                    active={routePlanningEnabled}
-                    activeLabel="Aktivt — ”Medarbejdere” og ”Ruter” er nu i menuen"
-                    inactiveLabel="Ikke aktivt — slå til for at få adgang til ruteplanlæggeren"
-                    onToggle={() => setRoutePlanningEnabled((v) => !v)}
-                  />
                   <FeatureRow
                     icon={<Calculator />}
                     title="Integration med regnskabsprogram"

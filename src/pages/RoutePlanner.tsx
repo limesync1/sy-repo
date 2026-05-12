@@ -1058,6 +1058,28 @@ const Planner = () => {
       } catch (err) {
         console.warn("Kunne ikke knytte aftale til rute (projektion)", err);
       }
+      // Nye aftaler (uden subscription) — find dem via deres forekomster
+      // og sæt preferred_route_id direkte. Dette sikrer at projicerede ruter
+      // oprettes første gang en aftale lægges på en rute.
+      try {
+        const { data: occs } = await supabase
+          .from("agreement_occurrences")
+          .select("agreement_id")
+          .eq("legacy_order_id", orderId);
+        const agreementIds = Array.from(new Set(
+          (occs || []).map((o: any) => o.agreement_id).filter(Boolean) as string[]
+        ));
+        if (agreementIds.length > 0) {
+          await supabase
+            .from("agreements")
+            .update({ preferred_route_id: routeId })
+            .in("id", agreementIds)
+            .neq("interval", "engangskøb")
+            .eq("status", "active");
+        }
+      } catch (err) {
+        console.warn("Kunne ikke knytte ny aftale til rute (projektion)", err);
+      }
     };
 
     /** Aftalens opstartsdato (yyyy-MM-dd) — preferred_date eller next_service_date. */

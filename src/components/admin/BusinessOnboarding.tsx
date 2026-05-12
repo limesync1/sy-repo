@@ -46,12 +46,6 @@ type BillingPeriod = "monthly" | "quarterly" | "yearly";
 
 const FEATURES: { key: FeatureKey; icon: typeof Route; title: string; description: string }[] = [
   {
-    key: "route_planning",
-    icon: Route,
-    title: "Ruteplanlægning",
-    description: "Planlæg medarbejdernes daglige ruter automatisk og optimér rækkefølgen ud fra afstand, tidsvinduer og prioritet.",
-  },
-  {
     key: "accounting_integration",
     icon: Calculator,
     title: "Regnskabsintegration",
@@ -136,7 +130,7 @@ const BusinessOnboarding = () => {
 
   // ─── Form state ───
   const [features, setFeatures] = useState<Record<FeatureKey, boolean>>({
-    route_planning: false,
+    route_planning: true,
     accounting_integration: false,
     data_import: false,
     leads: true,

@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -747,6 +749,10 @@ const AftaleTab = ({
   const [newRouteName, setNewRouteName] = useState("");
   const [newRouteDate, setNewRouteDate] = useState(new Date().toISOString().slice(0, 10));
   const [newRouteColor, setNewRouteColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
+  // Aftaler valgt til den nye rute — samme krav som i Ruteplanlæggeren:
+  // mindst én aftale skal vælges, så ruten ikke oprettes tom.
+  const [newRouteJobIds, setNewRouteJobIds] = useState<string[]>([]);
+  const [newRouteJobSearch, setNewRouteJobSearch] = useState("");
 
   // ─── Drag & drop til rute-pool ───
   // Vi tracker hvilken aftale der pt. trækkes (for visuel feedback) og hvilken
@@ -1375,16 +1381,51 @@ const AftaleTab = ({
   // Brugeren vælger navn (valgfrit), dato og farve.
   const handleConfirmCreateRoute = async () => {
     if (!businessId) return;
+    if (newRouteJobIds.length === 0) {
+      toast.error("Vælg mindst én aftale", {
+        description: "En rute skal indeholde mindst én aftale fra aftalepoolen.",
+      });
+      return;
+    }
+    const selectedJobs = newRouteJobIds
+      .map((id) => (orders || []).find((o: any) => o.id === id))
+      .filter(Boolean) as any[];
     try {
-      await createRoute.mutateAsync({
+      const created = await createRoute.mutateAsync({
         business_id: businessId,
         route_date: newRouteDate,
         name: newRouteName.trim() || null,
         color: newRouteColor,
       });
+      // Læg de valgte aftaler ind i samme rækkefølge som brugeren valgte dem.
+      let seq = 0;
+      for (const job of selectedJobs) {
+        try {
+          const items = ((job as any).order_items || []) as any[];
+          const summary = items.map((it) => `${it.service_name}${it.quantity > 1 ? ` ×${it.quantity}` : ""}`).join(", ");
+          const fullAddress = [job.address, [job.zip_code, job.city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+          await addStop.mutateAsync({
+            route_id: (created as any).id,
+            order_id: job.id,
+            sequence: seq++,
+            customer_name: job.customer_name || null,
+            customer_phone: job.customer_phone || null,
+            address: fullAddress || null,
+            latitude: (job as any).latitude ?? null,
+            longitude: (job as any).longitude ?? null,
+            service_summary: summary || null,
+            duration_minutes: (job as any).estimated_duration_minutes || 30,
+          });
+        } catch (err) {
+          console.warn("Kunne ikke tilføje aftale til den nye rute", err);
+        }
+      }
       toast.success("Rute oprettet");
       setNewRouteName("");
+      setNewRouteJobIds([]);
+      setNewRouteJobSearch("");
       setCreateRouteOpen(false);
+      qc.invalidateQueries({ queryKey: ["aftaler-route-stops", businessId] });
     } catch (e: any) {
       toast.error(e?.message || "Kunne ikke oprette ruten");
     }
@@ -1397,6 +1438,8 @@ const AftaleTab = ({
       .filter((r: any) => r.route_date === newRouteDate)
       .map((r: any) => r.color);
     setNewRouteColor(pickAvailableColor(usedColorsThisDay));
+    setNewRouteJobIds([]);
+    setNewRouteJobSearch("");
     setCreateRouteOpen(true);
   };
 
@@ -2359,6 +2402,83 @@ const AftaleTab = ({
                     aria-label={`Vælg farve ${c.name}`}
                   />
                 ))}
+              </div>
+            </Section>
+
+            <Section
+              icon={<ListChecks className="h-3.5 w-3.5" />}
+              title="Aftaler på ruten"
+              hint={`${newRouteJobIds.length} valgt`}
+            >
+              <p className="text-[11px] text-muted-foreground mb-2">
+                Vælg mindst én aftale fra aftalepoolen — ruter kan ikke oprettes uden aftaler.
+              </p>
+              <div className="relative mb-2">
+                <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                <Input
+                  placeholder="Søg kunde eller adresse..."
+                  value={newRouteJobSearch}
+                  onChange={(e) => setNewRouteJobSearch(e.target.value)}
+                  className="h-7 pl-6 text-xs"
+                />
+              </div>
+              <div className="max-h-56 overflow-y-auto rounded border divide-y bg-background">
+                {(() => {
+                  const pool = (orders || []).filter(
+                    (o: any) => !stopByOrder[o.id] && !["cancelled", "completed", "pending"].includes(o.status),
+                  );
+                  if (pool.length === 0) {
+                    return (
+                      <div className="p-4 text-center text-xs text-muted-foreground">
+                        Ingen aftaler i poolen.
+                      </div>
+                    );
+                  }
+                  const q = newRouteJobSearch.trim().toLowerCase();
+                  const filtered = pool.filter((j: any) => {
+                    if (!q) return true;
+                    return (
+                      j.customer_name?.toLowerCase().includes(q) ||
+                      j.address?.toLowerCase().includes(q) ||
+                      j.city?.toLowerCase().includes(q)
+                    );
+                  }).slice(0, 50);
+                  return filtered.map((j: any) => {
+                    const checked = newRouteJobIds.includes(j.id);
+                    const items = (j.order_items || []) as any[];
+                    const summary = items.map((it) => `${it.service_name}${it.quantity > 1 ? ` ×${it.quantity}` : ""}`).join(", ");
+                    return (
+                      <label
+                        key={j.id}
+                        className={cn(
+                          "flex items-start gap-2 p-2 cursor-pointer hover:bg-secondary/50 text-xs",
+                          checked && "bg-accent/5",
+                        )}
+                      >
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(v) =>
+                            setNewRouteJobIds((prev) =>
+                              v ? [...prev, j.id] : prev.filter((x) => x !== j.id),
+                            )
+                          }
+                          className="mt-0.5"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{j.customer_name}</p>
+                          {summary && (
+                            <p className="text-[10px] text-muted-foreground truncate">{summary}</p>
+                          )}
+                          {(j.address || j.city) && (
+                            <p className="text-[10px] text-muted-foreground truncate">
+                              {[j.address, [j.zip_code, j.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")}
+                            </p>
+                          )}
+                        </div>
+                      </label>
+                    );
+                  });
+                })()}
               </div>
             </Section>
           </div>
