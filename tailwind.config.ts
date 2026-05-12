@@ -159,6 +159,11 @@ export default {
           "0%, 100%": { opacity: "0.2", transform: "scale(0.9)" },
           "50%":      { opacity: "1",   transform: "scale(1.15)" },
         },
+        "ken-burns": {
+          "0%":   { transform: "scale(1.1) translate3d(0,0,0)" },
+          "50%":  { transform: "scale(1.16) translate3d(-1.5%, -1%, 0)" },
+          "100%": { transform: "scale(1.1) translate3d(0,0,0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -181,6 +186,7 @@ export default {
         "drift": "drift 8s ease-in-out infinite",
         "gradient-pan": "gradient-pan 8s ease-in-out infinite",
         "twinkle": "twinkle 3s ease-in-out infinite",
+        "ken-burns": "ken-burns 24s ease-in-out infinite",
       },
       boxShadow: {
         panel: "0 18px 40px -22px hsl(var(--foreground) / 0.18)",
