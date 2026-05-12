@@ -1830,16 +1830,6 @@ const SettingsTab = ({ business }: { business: any }) => {
                 <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Betalte tilvalg</p>
                 <div className="space-y-2.5">
                   <FeatureRow
-                    icon={<Route />}
-                    title="Ruteplanlægning"
-                    priceLabel={pricing ? `+${Math.round(pricing.price_route_planning_dkk).toLocaleString("da-DK")} kr/md` : undefined}
-                    description="Få adgang til medarbejder-konti og daglig ruteplanlægning. Læg stop på kort, lad AI'en optimere kørselsrækkefølgen ud fra afstand og tidsvinduer, og giv medarbejderne deres egen app med dagens rute."
-                    active={routePlanningEnabled}
-                    activeLabel="Aktivt — ”Medarbejdere” og ”Ruter” er nu i menuen"
-                    inactiveLabel="Ikke aktivt — slå til for at få adgang til ruteplanlæggeren"
-                    onToggle={() => setRoutePlanningEnabled((v) => !v)}
-                  />
-                  <FeatureRow
                     icon={<Calculator />}
                     title="Integration med regnskabsprogram"
                     priceLabel={pricing ? `+${Math.round(pricing.price_accounting_integration_dkk).toLocaleString("da-DK")} kr/md` : undefined}
