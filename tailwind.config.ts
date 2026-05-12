@@ -138,6 +138,27 @@ export default {
           "0%": { backgroundPosition: "-200% center" },
           "100%": { backgroundPosition: "200% center" },
         },
+        "blob": {
+          "0%, 100%": { transform: "translate(0px, 0px) scale(1)" },
+          "33%":      { transform: "translate(40px, -30px) scale(1.08)" },
+          "66%":      { transform: "translate(-30px, 25px) scale(0.95)" },
+        },
+        "float-y": {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%":      { transform: "translateY(-14px)" },
+        },
+        "drift": {
+          "0%, 100%": { transform: "translate(0,0) rotate(0deg)" },
+          "50%":      { transform: "translate(8px,-12px) rotate(2deg)" },
+        },
+        "gradient-pan": {
+          "0%, 100%": { backgroundPosition: "0% 50%" },
+          "50%":      { backgroundPosition: "100% 50%" },
+        },
+        "twinkle": {
+          "0%, 100%": { opacity: "0.2", transform: "scale(0.9)" },
+          "50%":      { opacity: "1",   transform: "scale(1.15)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -154,6 +175,12 @@ export default {
         "marquee": "marquee 40s linear infinite",
         "marquee-slow": "marquee 60s linear infinite",
         "shine": "shine 3s linear infinite",
+        "blob": "blob 14s ease-in-out infinite",
+        "blob-slow": "blob 22s ease-in-out infinite",
+        "float-y": "float-y 6s ease-in-out infinite",
+        "drift": "drift 8s ease-in-out infinite",
+        "gradient-pan": "gradient-pan 8s ease-in-out infinite",
+        "twinkle": "twinkle 3s ease-in-out infinite",
       },
       boxShadow: {
         panel: "0 18px 40px -22px hsl(var(--foreground) / 0.18)",
