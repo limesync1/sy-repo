@@ -515,10 +515,34 @@ const Planner = () => {
         .select("*, agreement_occurrences(agreement_id, legacy_order_id)")
         .in("route_id", recurringRouteIds);
       if (stopsErr) throw stopsErr;
+      // Berig stops med assignees fra junction-tabellen, så projicerede
+      // ruter arver ALLE tildelte medarbejdere fra basisruten — ikke kun
+      // den primære (assigned_employee_id). Uden dette vises projicerede
+      // ruter uden medarbejder-avatars når basisruten bruger multi-assign.
+      const stopIds = (stopsData || []).map((s: any) => s.id);
+      const byStop = new Map<string, { ids: string[]; lead: string | null }>();
+      if (stopIds.length > 0) {
+        const { data: assignees } = await supabase
+          .from("route_stop_assignees")
+          .select("stop_id, employee_id, is_lead")
+          .in("stop_id", stopIds);
+        (assignees || []).forEach((a: any) => {
+          const entry = byStop.get(a.stop_id) || { ids: [], lead: null };
+          entry.ids.push(a.employee_id);
+          if (a.is_lead) entry.lead = a.employee_id;
+          byStop.set(a.stop_id, entry);
+        });
+      }
       const stopsByRoute = new Map<string, any[]>();
       for (const s of stopsData || []) {
+        const entry = byStop.get(s.id);
+        const enriched = {
+          ...s,
+          assignee_ids: entry?.ids || (s.assigned_employee_id ? [s.assigned_employee_id] : []),
+          lead_employee_id: entry?.lead ?? s.assigned_employee_id ?? null,
+        };
         const arr = stopsByRoute.get(s.route_id) || [];
-        arr.push(s);
+        arr.push(enriched);
         stopsByRoute.set(s.route_id, arr);
       }
       return routes.map((r) => ({
