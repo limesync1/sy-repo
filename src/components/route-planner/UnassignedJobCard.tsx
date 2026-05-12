@@ -225,7 +225,7 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
           {job.preferred_route_name && (
             <div className="flex items-center gap-1.5 rounded-md border border-accent/40 bg-accent/5 px-2 py-1 text-[11px] font-medium text-accent">
               <RouteIcon className="h-3 w-3 shrink-0" />
-              <span>Læg på rute:</span>
+              <span>Foreslået rute:</span>
               <span className="font-semibold truncate">{job.preferred_route_name}</span>
             </div>
           )}
