@@ -1381,16 +1381,51 @@ const AftaleTab = ({
   // Brugeren vælger navn (valgfrit), dato og farve.
   const handleConfirmCreateRoute = async () => {
     if (!businessId) return;
+    if (newRouteJobIds.length === 0) {
+      toast.error("Vælg mindst én aftale", {
+        description: "En rute skal indeholde mindst én aftale fra aftalepoolen.",
+      });
+      return;
+    }
+    const selectedJobs = newRouteJobIds
+      .map((id) => (orders || []).find((o: any) => o.id === id))
+      .filter(Boolean) as any[];
     try {
-      await createRoute.mutateAsync({
+      const created = await createRoute.mutateAsync({
         business_id: businessId,
         route_date: newRouteDate,
         name: newRouteName.trim() || null,
         color: newRouteColor,
       });
+      // Læg de valgte aftaler ind i samme rækkefølge som brugeren valgte dem.
+      let seq = 0;
+      for (const job of selectedJobs) {
+        try {
+          const items = ((job as any).order_items || []) as any[];
+          const summary = items.map((it) => `${it.service_name}${it.quantity > 1 ? ` ×${it.quantity}` : ""}`).join(", ");
+          const fullAddress = [job.address, [job.zip_code, job.city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+          await addStop.mutateAsync({
+            route_id: (created as any).id,
+            order_id: job.id,
+            sequence: seq++,
+            customer_name: job.customer_name || null,
+            customer_phone: job.customer_phone || null,
+            address: fullAddress || null,
+            latitude: (job as any).latitude ?? null,
+            longitude: (job as any).longitude ?? null,
+            service_summary: summary || null,
+            duration_minutes: (job as any).estimated_duration_minutes || 30,
+          });
+        } catch (err) {
+          console.warn("Kunne ikke tilføje aftale til den nye rute", err);
+        }
+      }
       toast.success("Rute oprettet");
       setNewRouteName("");
+      setNewRouteJobIds([]);
+      setNewRouteJobSearch("");
       setCreateRouteOpen(false);
+      qc.invalidateQueries({ queryKey: ["aftaler-route-stops", businessId] });
     } catch (e: any) {
       toast.error(e?.message || "Kunne ikke oprette ruten");
     }
@@ -1403,6 +1438,8 @@ const AftaleTab = ({
       .filter((r: any) => r.route_date === newRouteDate)
       .map((r: any) => r.color);
     setNewRouteColor(pickAvailableColor(usedColorsThisDay));
+    setNewRouteJobIds([]);
+    setNewRouteJobSearch("");
     setCreateRouteOpen(true);
   };
 
