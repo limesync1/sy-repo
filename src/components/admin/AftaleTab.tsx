@@ -749,6 +749,10 @@ const AftaleTab = ({
   const [newRouteName, setNewRouteName] = useState("");
   const [newRouteDate, setNewRouteDate] = useState(new Date().toISOString().slice(0, 10));
   const [newRouteColor, setNewRouteColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
+  // Aftaler valgt til den nye rute — samme krav som i Ruteplanlæggeren:
+  // mindst én aftale skal vælges, så ruten ikke oprettes tom.
+  const [newRouteJobIds, setNewRouteJobIds] = useState<string[]>([]);
+  const [newRouteJobSearch, setNewRouteJobSearch] = useState("");
 
   // ─── Drag & drop til rute-pool ───
   // Vi tracker hvilken aftale der pt. trækkes (for visuel feedback) og hvilken
