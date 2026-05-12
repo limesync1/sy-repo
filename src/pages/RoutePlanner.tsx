@@ -720,7 +720,10 @@ const Planner = () => {
           route_date: p.date,
           // Arv basis-rutens *visningsnavn og farve* (incl. auto-genereret),
           // så hele serien ser identisk ud i kalenderen.
-          name: resolved?.name || base.name || (base.route_date ? `Kørsel ${format(parseISO(base.route_date), "d/M")}` : null),
+          name:
+            (resolved?.name && resolved.name.trim())
+            || (base.name && String(base.name).trim())
+            || `Kørsel ${format(parseISO(p.date), "d/M")}`,
           color: resolved?.color || base.color || null,
           stops: projectedStops,
           attachedEmployees: emps,
