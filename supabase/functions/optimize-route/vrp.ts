@@ -516,5 +516,6 @@ export async function solveVRP(
       soft_window_violations: softViolations,
     },
     provider,
+    weather,
   };
 }
