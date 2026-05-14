@@ -1,7 +1,7 @@
 // Shared types for accounting integrations
 // Each provider implements the AccountingAdapter interface below.
 
-export type AccountingProvider = "economic" | "billy" | "dinero";
+export type AccountingProvider = "economic" | "dinero";
 
 export interface AccountingCredentials {
   api_token?: string | null;
@@ -16,8 +16,8 @@ export interface AccountingSettings {
   default_vat_rate?: number;
   auto_create_products?: boolean;
   default_product_account?: string;
-  default_customer_group?: string;     // kundegruppe id (e-conomic) / contactType (billy) / contactGroup (dinero)
-  default_product_group?: string;      // produktgruppe id (e-conomic productGroupNumber, billy productGroupId, dinero account)
+  default_customer_group?: string;     // kundegruppe id (e-conomic) / contactGroup (dinero)
+  default_product_group?: string;      // produktgruppe id (e-conomic productGroupNumber, dinero account)
   default_income_account?: string;     // indtægtskonto-nr (typisk 1000-serien)
   send_order_as?: "order" | "invoice_draft" | "quote";
   [key: string]: unknown;
