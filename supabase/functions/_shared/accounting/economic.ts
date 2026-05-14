@@ -172,6 +172,9 @@ async function resolveCustomerPaymentJournal(creds: AccountingCredentials, setti
 
 function friendlyEconomicError(status: number, body: string): string {
   const lower = body.toLowerCase();
+  if (lower.includes("democompanyexpired") || lower.includes("demo company has been expired")) {
+    return "Din e-conomic demo-aftale er udløbet. Opgrader til en betalt aftale på e-conomic.dk, eller tilkobl en aktiv aftale i stedet.";
+  }
   if (status === 401 || status === 403 || lower.includes("unauthorized") || lower.includes("invalid token")) {
     return "Forbindelsen blev afvist. Tjek at både App Secret Token og Agreement Grant Token er korrekte og at app'en er installeret på din e-conomic-aftale.";
   }
