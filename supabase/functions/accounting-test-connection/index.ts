@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
     if (!biz || biz.owner_id !== auth.userId) return json({ error: "Forbidden" }, 403);
 
     const adapter = makeAdapter(provider, {
-      api_token: provider === "billy" ? normalizeToken(api_token) : api_token,
+      api_token,
       api_secret,
       agreement_number,
       organization_id,
