@@ -102,7 +102,7 @@ Deno.serve(async (req) => {
     // Idempotent backfill: enqueue entities that have NEVER been linked yet,
     // even if the queue currently has unrelated jobs. Without this, services
     // that existed before the trigger was active would never be pushed.
-    seeded += await seedMissing(admin, business_id);
+    seeded += await seedMissing(admin, business_id, integration.provider);
     const drained = await drainQueue(admin, integration, adapter);
     return json({ ok: true, processed: drained, seeded });
   } catch (e) {
@@ -215,13 +215,14 @@ async function seedQueue(admin: SupabaseClient, business_id: string): Promise<nu
 // Find services/customers/orders that never got pushed (no link row) and
 // enqueue them. Safe to call repeatedly — the unique index on the queue
 // prevents duplicates.
-async function seedMissing(admin: SupabaseClient, business_id: string): Promise<number> {
+async function seedMissing(admin: SupabaseClient, business_id: string, provider: string): Promise<number> {
   const rows: any[] = [];
 
   // Services without a product link
   const [{ data: svcs }, { data: prodLinks }] = await Promise.all([
     admin.from("services").select("id").eq("business_id", business_id),
-    admin.from("accounting_product_links").select("service_id").eq("business_id", business_id),
+    admin.from("accounting_product_links").select("service_id")
+      .eq("business_id", business_id).eq("provider", provider),
   ]);
   const linkedSvc = new Set((prodLinks ?? []).map((r: any) => r.service_id));
   for (const s of svcs ?? []) {
@@ -235,7 +236,7 @@ async function seedMissing(admin: SupabaseClient, business_id: string): Promise<
     admin.from("business_customers").select("id").eq("business_id", business_id),
     admin.from("private_customers").select("id").eq("business_id", business_id),
     admin.from("accounting_customer_links").select("business_customer_id, private_customer_id")
-      .eq("business_id", business_id),
+      .eq("business_id", business_id).eq("provider", provider),
   ]);
   const linkedBC = new Set((custLinks ?? []).map((r: any) => r.business_customer_id).filter(Boolean));
   const linkedPC = new Set((custLinks ?? []).map((r: any) => r.private_customer_id).filter(Boolean));
