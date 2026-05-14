@@ -29,7 +29,6 @@ import {
 } from "@/components/admin/shared/AdminUI";
 import { Skeleton } from "@/components/ui/skeleton";
 import economicLogo from "@/assets/accounting/economic.png";
-import billyLogo from "@/assets/accounting/billy.png";
 import dineroLogo from "@/assets/accounting/dinero.png";
 
 /**
@@ -44,7 +43,7 @@ import dineroLogo from "@/assets/accounting/dinero.png";
  *    og venlige fejlmeddelelser fra adapter-laget.
  */
 
-type Provider = "economic" | "billy" | "dinero";
+type Provider = "economic" | "dinero";
 
 interface ProviderField {
   key: string;
@@ -94,29 +93,6 @@ const PROVIDERS: ProviderDef[] = [
       tone: "info",
       title: "Hvorfor skal jeg selv oprette forbindelsen?",
       body: "e-conomic kræver at hver forbindelse oprettes inde i din egen aftale. Det er gratis, tager ca. 2 minutter, og du sparer e-conomics månedlige app-gebyr.",
-    },
-  },
-  {
-    value: "billy",
-    label: "Billy",
-    logo: billyLogo,
-    tagline: "",
-    description: "Klik her for at integrere din virksomhed med Billy som dit regnskabsprogram.",
-    helpUrl: "https://mit.billy.dk/",
-    helpUrlLabel: "Åbn Billy",
-    fields: [
-      { key: "api_token", label: "Adgangsnøgle fra Billy", type: "password",
-        help: "Du finder adgangsnøglen inde i Billy under Indstillinger → Adgangsnøgler.", placeholder: "Indsæt adgangsnøglen fra Billy" },
-    ],
-    setupSteps: [
-      "Tryk 'Åbn Billy' nedenfor og log ind på den virksomhed, du vil forbinde.",
-      "Gå til Indstillinger → Adgangsnøgler, tryk 'Opret adgangsnøgle', kald den 'Serviceydere' og tryk Opret.",
-      "Kopiér nøglen og kom tilbage hertil — så ordner vi resten automatisk.",
-    ],
-    note: {
-      tone: "info",
-      title: "Hvorfor en adgangsnøgle og ikke mit kodeord?",
-      body: "En adgangsnøgle er sikrere — den virker selv med to-trins-login, og du kan altid slette den igen inde i Billy, hvis du vil afbryde forbindelsen.",
     },
   },
   {
@@ -191,12 +167,6 @@ interface Integration {
 }
 
 type Mode = "overview" | "wizard";
-
-const normalizeBillyToken = (value: string): string => value
-  .trim()
-  .replace(/^x-access-token\s*:\s*/i, "")
-  .replace(/^bearer\s+/i, "")
-  .replace(/[\u200B-\u200D\uFEFF\s]/g, "");
 
 const formatRelativeDanish = (iso: string | null): string => {
   if (!iso) return "Aldrig";
@@ -339,93 +309,6 @@ function SuccessCard({ name }: { name: string }) {
     </div>
   );
 }
-
-/**
- * BillyConnectCard — guidet adgangsnøgle-flow.
- *
- * "Paste-and-go": brugeren paster sin adgangsnøgle, og vi kører automatisk
- * forbind → testdata → auto-opsætning → gem i ét. Ingen knapper at trykke.
- */
-const BillyConnectCard = React.forwardRef<HTMLDivElement, {
-  token: string;
-  onTokenChange: (value: string) => void;
-  onAutoConnect: (token: string) => void;
-  status: "idle" | "checking" | "testing" | "saving" | "done" | "error";
-  errorMessage: string | null;
-}>(({ token, onTokenChange, onAutoConnect, status, errorMessage }, _ref) => {
-  const isWorking = status === "checking" || status === "testing" || status === "saving";
-  const statusLabel =
-    status === "checking" ? "Tjekker forbindelsen…" :
-    status === "testing"  ? "Sender testdata til Billy…" :
-    status === "saving"   ? "Sætter alt op for dig…" :
-    null;
-  const shouldShowKeyHint = errorMessage
-    ? /nøgle|token|access|unauthorized|afviste/i.test(errorMessage)
-    : false;
-
-  // Paste handler: når nøglen indsættes, start auto-flow med det samme.
-  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    const pasted = normalizeBillyToken(e.clipboardData.getData("text"));
-    if (!pasted) return;
-    e.preventDefault();
-    onTokenChange(pasted);
-    setTimeout(() => onAutoConnect(pasted), 50);
-  };
-
-  if (status === "done") return <SuccessCard name="Billy" />;
-
-  return (
-    <ConnectCardShell logo={billyLogo} name="Billy" tagline="Indsæt adgangsnøgle — tager under 1 minut">
-      <div className="space-y-5">
-        <Button asChild variant="outline" size="lg" className="w-full">
-          <a href="https://mit.billy.dk/" target="_blank" rel="noopener noreferrer">
-            <ExternalLink className="mr-2 h-4 w-4" />
-            Åbn Billy i nyt vindue
-          </a>
-        </Button>
-
-        <div className="space-y-1.5">
-          <FieldLabel>Adgangsnøgle fra Billy</FieldLabel>
-          <Input
-            type="text"
-            value={token}
-            onChange={(e) => onTokenChange(e.target.value)}
-            onPaste={handlePaste}
-            placeholder="Indsæt nøglen her — vi går i gang automatisk"
-            autoComplete="off"
-            disabled={isWorking}
-            className="h-12 text-base"
-          />
-        </div>
-
-        {isWorking && statusLabel && (
-          <div className="flex items-center justify-center gap-2 rounded-lg border border-border bg-secondary/40 py-3 text-sm font-medium text-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            {statusLabel}
-          </div>
-        )}
-
-        {status === "error" && errorMessage && (
-          <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-            <div className="min-w-0">
-              <div className="font-medium">Det virkede desværre ikke</div>
-              <div className="mt-0.5 break-words opacity-90">{errorMessage}</div>
-              {shouldShowKeyHint && (
-                <div className="mt-1.5 text-xs opacity-80">Tjek at hele nøglen blev kopieret med — eller opret en ny i Billy.</div>
-              )}
-            </div>
-          </div>
-        )}
-
-        <p className="text-center text-xs text-muted-foreground">
-          🔒 Nøglen gemmes krypteret. Du kan altid slette den igen i Billy.
-        </p>
-      </div>
-    </ConnectCardShell>
-  );
-});
-BillyConnectCard.displayName = "BillyConnectCard";
 
 /**
  * EconomicConnectCard — guidet OAuth-lignende flow for e-conomic.
@@ -651,17 +534,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     note?: string;
     error?: string;
   } | null>(null);
-  // Billy paste-and-go: én samlet status fra "indsat" til "færdig opsat".
-  const [billyStatus, setBillyStatus] = useState<
-    "idle" | "checking" | "testing" | "saving" | "done" | "error"
-  >("idle");
-  const [billyError, setBillyError] = useState<string | null>(null);
-  // Inline "forny adgangsnøgle"-flow på oversigten (kun Billy).
-  // Lader brugeren udskifte nøglen med ét klik når Billy afviser den nuværende.
-  const [renewBillyOpen, setRenewBillyOpen] = useState(false);
-  const [renewBillyToken, setRenewBillyToken] = useState("");
-  const [renewBillyStatus, setRenewBillyStatus] = useState<"idle" | "checking" | "saving" | "error">("idle");
-  const [renewBillyError, setRenewBillyError] = useState<string | null>(null);
   const [resumingPause, setResumingPause] = useState(false);
   // Dinero paste-and-go: én samlet status fra "udfyldt" til "færdig opsat".
   const [dineroStatus, setDineroStatus] = useState<
@@ -719,8 +591,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     setShowSecret({});
     setTestResult(null);
     setDryRunResult(null);
-    setBillyStatus("idle");
-    setBillyError(null);
     setDineroStatus("idle");
     setDineroError(null);
     setEconomicConnecting(false);
@@ -918,127 +788,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   };
 
   /**
-   * Billy paste-and-go: når brugeren har indsat sin nøgle, kører vi automatisk
-   *  1) testConnection
-   *  2) dry-run (opret + slet testfaktura)
-   *  3) hent grupper og auto-vælg første indtægtskonto
-   *  4) gem integrationen og start første synk i baggrunden
-   * Hvis vi ikke kan auto-vælge en konto, falder vi tilbage til wizard step 3.
-   */
-  const handleBillyAutoConnect = async (rawToken: string) => {
-    const runId = ++setupRunRef.current;
-    const token = normalizeBillyToken(rawToken);
-    if (!token) return;
-    setCreds(prev => ({ ...prev, api_token: token }));
-    setBillyError(null);
-
-    // 1) Test forbindelse
-    setBillyStatus("checking");
-    try {
-      const { data, error } = await supabase.functions.invoke("accounting-test-connection", {
-        body: { business_id: businessId, provider: "billy", api_token: token, settings },
-      });
-      if (runId !== setupRunRef.current) return;
-      if (error) throw error;
-      const r = data as { ok: boolean; message?: string };
-      if (!r.ok) throw new Error(r.message ?? "Nøglen kunne ikke bruges");
-    } catch (e: any) {
-      if (runId !== setupRunRef.current) return;
-      setBillyError(e?.message ?? "Kunne ikke forbinde til Billy");
-      setBillyStatus("error");
-      return;
-    }
-
-    // 2) Dry-run: send rigtige testdata til Billy så vi ved synk virker
-    setBillyStatus("testing");
-    try {
-      const { data, error } = await supabase.functions.invoke("accounting-dry-run", {
-        body: { business_id: businessId, provider: "billy", api_token: token },
-      });
-      if (runId !== setupRunRef.current) return;
-      if (error) throw error;
-      const r = data as { ok: boolean; steps?: { ok: boolean; label: string; message?: string }[] };
-      if (!r.ok) {
-        const failed = r.steps?.find(s => !s.ok);
-        throw new Error(failed?.message ?? "Synk-testen kunne ikke gennemføres");
-      }
-    } catch (e: any) {
-      if (runId !== setupRunRef.current) return;
-      setBillyError(e?.message ?? "Synk-testen fejlede");
-      setBillyStatus("error");
-      return;
-    }
-
-    // 3) Hent grupper og find en fornuftig indtægtskonto
-    setBillyStatus("saving");
-    let autoIncomeAccount: string | null = null;
-    let foundGroups = false;
-    try {
-      // Gem først (uden konto) så accounting-list-groups kan finde integrationen
-      const { error: saveErr } = await supabase.functions.invoke("accounting-integration-state", {
-        body: {
-          action: "save",
-          business_id: businessId,
-          provider: "billy",
-          api_token: token,
-          settings: { ...defaultSettings },
-        },
-      });
-      if (runId !== setupRunRef.current) return;
-      if (saveErr) throw saveErr;
-
-      const { data: g } = await supabase.functions.invoke("accounting-list-groups", {
-        body: { business_id: businessId },
-      });
-      if (runId !== setupRunRef.current) return;
-      const incomeAccounts = ((g as any)?.income_accounts ?? []) as { id: string }[];
-      foundGroups = incomeAccounts.length > 0;
-      if (foundGroups) autoIncomeAccount = incomeAccounts[0].id;
-    } catch {
-      // Ikke kritisk — falder tilbage til manuelt valg nedenfor
-    }
-
-    // 4) Hvis vi fandt en konto: gem den og afslut. Ellers: fald tilbage til step 3.
-    if (autoIncomeAccount) {
-      const finalSettings = { ...defaultSettings, default_income_account: autoIncomeAccount };
-      try {
-        await supabase.from("accounting_integrations" as any)
-          .update({ settings: finalSettings as any })
-          .eq("business_id", businessId);
-        if (runId !== setupRunRef.current) return;
-        setSettings(finalSettings);
-        setProvider("billy");
-        setCreds({ api_token: token });
-        setBillyStatus("done");
-        toast.success("Billy er forbundet og klar!");
-        // Stille første synk i baggrunden
-        runFullSync(businessId).catch(() => { /* ignoreres */ });
-        // Vent 1.2s så brugeren ser succes-skærmen, så ryk til oversigten
-        setTimeout(async () => {
-          if (runId !== setupRunRef.current) return;
-          await load();
-          if (runId !== setupRunRef.current) return;
-          setMode("overview");
-        }, 1400);
-      } catch (e: any) {
-        if (runId !== setupRunRef.current) return;
-        setBillyError(e?.message ?? "Kunne ikke gemme indstillinger");
-        setBillyStatus("error");
-      }
-    } else {
-      // Ingen konti i Billy endnu — bed brugeren vælge i step 3 (B-fallback)
-      setProvider("billy");
-      setCreds({ api_token: token });
-      setSettings({ ...defaultSettings });
-      setBillyStatus("idle");
-      setStep(3);
-      await load({ preserveMode: true });
-      toast.info("Næsten klar — vælg lige en indtægtskonto");
-    }
-  };
-
-  /**
-   * Dinero "udfyld og forbind"-flow: spejler Billy auto-connect.
+   * Dinero "udfyld og forbind"-flow.
    *  1) testConnection
    *  2) dry-run (rigtige testdata frem og tilbage)
    *  3) gem + hent grupper og auto-vælg første indtægtskonto
@@ -1582,68 +1332,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     };
   }
 
-  /**
-   * Forny Billy-adgangsnøgle inline fra oversigten:
-   *  1) Test den nye nøgle direkte mod Billy
-   *  2) Hvis OK: gem nøglen, nulstil paused_until + consecutive_failures + last_error
-   *  3) Kør en ny synk så fejlende jobs forsøges igen med det samme
-   */
-  const handleRenewBillyToken = async () => {
-    const token = normalizeBillyToken(renewBillyToken);
-    if (!token) {
-      setRenewBillyError("Indsæt en adgangsnøgle først");
-      setRenewBillyStatus("error");
-      return;
-    }
-    setRenewBillyError(null);
-    setRenewBillyStatus("checking");
-    try {
-      const { data, error } = await supabase.functions.invoke("accounting-test-connection", {
-        body: { business_id: businessId, provider: "billy", api_token: token, settings },
-      });
-      if (error) throw error;
-      const r = data as { ok: boolean; message?: string };
-      if (!r.ok) throw new Error(r.message ?? "Den nye nøgle blev afvist af Billy");
-    } catch (e: any) {
-      setRenewBillyError(e?.message ?? "Den nye nøgle kunne ikke bruges");
-      setRenewBillyStatus("error");
-      return;
-    }
-
-    setRenewBillyStatus("saving");
-    try {
-      const { error } = await supabase.from("accounting_integrations" as any)
-        .update({
-          api_token: token,
-          last_error: null,
-          last_error_at: null,
-          paused_until: null,
-          consecutive_failures: 0,
-        })
-        .eq("business_id", businessId);
-      if (error) throw error;
-
-      // Frigiv evt. fejlende jobs så de prøves igen med den nye nøgle
-      await supabase.from("accounting_sync_queue" as any)
-        .update({ status: "pending", scheduled_for: new Date().toISOString(), last_error: null })
-        .eq("business_id", businessId).eq("status", "failed");
-
-      // Kør synk i baggrunden — fejler stille hvis kø er tom
-      supabase.functions.invoke("accounting-sync", {
-        body: { business_id: businessId, mode: "queue" },
-      }).catch(() => { /* ignored */ });
-
-      toast.success("Ny adgangsnøgle gemt — Billy er forbundet igen");
-      setRenewBillyOpen(false);
-      setRenewBillyToken("");
-      setRenewBillyStatus("idle");
-      await load();
-    } catch (e: any) {
-      setRenewBillyError(e?.message ?? "Kunne ikke gemme den nye nøgle");
-      setRenewBillyStatus("error");
-    }
-  };
-
   /** Genoptag synk efter auto-pause uden at vente på cron */
   const handleResumePause = async () => {
     setResumingPause(true);
@@ -1982,19 +1670,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           title="Forbindelsesstatus"
           icon={<ShieldCheck />}
           description={`Sådan står det til lige nu mellem Serviceydere og ${activeDef.label}.`}
-          action={
-            integration.provider === "billy" ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => { setRenewBillyToken(""); setRenewBillyError(null); setRenewBillyStatus("idle"); setRenewBillyOpen(true); }}
-                className="h-9 rounded-lg text-xs font-medium"
-              >
-                <KeyRound className="mr-1.5 h-3.5 w-3.5" />
-                Forny adgangsnøgle
-              </Button>
-            ) : undefined
-          }
         >
           <div className="grid gap-3 sm:grid-cols-2">
             {/* PUSH */}
@@ -2080,18 +1755,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             </div>
           </div>
 
-          {/* Hint hvis Billy specifikt har fejlet med "afviste API-nøglen" eller lignende */}
-          {integration.provider === "billy" && hasError && /nøgle|token|access|unauthorized|afviste|401|403/i.test(integration.last_error ?? "") && (
-            <div className="mt-4 flex items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-foreground">
-              <KeyRound className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
-              <div className="min-w-0">
-                <div className="font-medium">Det ser ud som om din Billy-adgangsnøgle ikke længere virker</div>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  Opret en ny i Billy under <strong>Indstillinger → Adgangsnøgler</strong> og tryk "Forny adgangsnøgle" øverst — så er du i gang igen på 30 sekunder.
-                </p>
-              </div>
-            </div>
-          )}
         </SectionCard>
 
         {/* Forbindelsesfejl — kun hvis noget er galt på selve forbindelsen */}
@@ -2527,70 +2190,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-
-        {/* Forny Billy-adgangsnøgle med ét klik */}
-        <Dialog open={renewBillyOpen} onOpenChange={(o) => { if (!o) { setRenewBillyOpen(false); setRenewBillyStatus("idle"); setRenewBillyError(null); } }}>
-          <DialogContent className="rounded-xl sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <KeyRound className="h-5 w-5 text-foreground" />
-                Forny Billy-adgangsnøgle
-              </DialogTitle>
-              <DialogDescription className="leading-relaxed">
-                Opret en ny adgangsnøgle i Billy under <strong>Indstillinger → Adgangsnøgler</strong>, og indsæt den nedenfor.
-                Vi tester den med det samme og udskifter automatisk den gamle.
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-3">
-              <Button asChild variant="outline" className="w-full">
-                <a href="https://mit.billy.dk/" target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="mr-2 h-4 w-4" /> Åbn Billy i nyt vindue
-                </a>
-              </Button>
-
-              <div className="space-y-1.5">
-                <FieldLabel>Ny adgangsnøgle</FieldLabel>
-                <Input
-                  type="text"
-                  value={renewBillyToken}
-                  onChange={(e) => setRenewBillyToken(e.target.value)}
-                  placeholder="Indsæt den nye nøgle her"
-                  autoComplete="off"
-                  disabled={renewBillyStatus === "checking" || renewBillyStatus === "saving"}
-                  className="h-11"
-                />
-              </div>
-
-              {renewBillyStatus === "error" && renewBillyError && (
-                <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                  <div className="min-w-0 break-words">{renewBillyError}</div>
-                </div>
-              )}
-            </div>
-
-            <DialogFooter className="gap-2">
-              <Button
-                variant="ghost"
-                onClick={() => setRenewBillyOpen(false)}
-                disabled={renewBillyStatus === "checking" || renewBillyStatus === "saving"}
-                className="h-9 rounded-lg text-sm font-medium"
-              >
-                Annuller
-              </Button>
-              <Button
-                onClick={handleRenewBillyToken}
-                disabled={!renewBillyToken.trim() || renewBillyStatus === "checking" || renewBillyStatus === "saving"}
-                className="h-9 rounded-lg text-sm font-medium"
-              >
-                {renewBillyStatus === "checking" && (<><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Tester nøglen…</>)}
-                {renewBillyStatus === "saving" && (<><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Gemmer…</>)}
-                {(renewBillyStatus === "idle" || renewBillyStatus === "error") && (<><Check className="mr-1.5 h-3.5 w-3.5" /> Test og gem</>)}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     );
   }
@@ -2661,13 +2260,13 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       {/* TRIN 2 */}
       {step === 2 && (
         <div className={
-          provider === "billy" || provider === "economic" || provider === "dinero"
+          provider === "economic" || provider === "dinero"
             ? "grid gap-4 lg:grid-cols-[1fr,1.2fr] xl:grid-cols-[1fr,1.1fr]"
             : "mx-auto max-w-2xl"
         }>
           {/* Venstre kolonne: hjælp & forklaring (kun på desktop, ellers
               ovenfor connect-kortet på mobil) */}
-          {(provider === "billy" || provider === "economic" || provider === "dinero") && (
+          {(provider === "economic" || provider === "dinero") && (
             <SectionCard
               title="Sådan fungerer det"
               icon={<img src={currentProvider.logo} alt="" className="h-4 w-auto" />}
@@ -2675,14 +2274,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               className="bg-secondary/30 lg:sticky lg:top-4 lg:self-start"
             >
               <ol className="space-y-3 text-sm">
-                {(provider === "billy"
-                  ? [
-                      "Vi åbner Billy i et nyt vindue, så du kan vælge din egen virksomhed.",
-                      "Du opretter en ny adgangsnøgle — det tager 5 sekunder i Billy.",
-                      "Kopier nøglen, og indsæt den her i feltet — så går vi i gang automatisk.",
-                      "Vi tester forbindelsen, opretter dine ydelser som varer, og er færdige.",
-                    ]
-                  : provider === "dinero"
+                {(provider === "dinero"
                   ? [
                       "Log ind i Dinero og gå til 'Integrationer' i menuen til venstre.",
                       "Klik 'Se og opret API-nøgler' og opret en ny forbindelse (kald den fx 'Serviceydere').",
@@ -2717,20 +2309,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             </SectionCard>
           )}
 
-          {provider === "billy" || provider === "economic" || provider === "dinero" ? (
+          {provider === "economic" || provider === "dinero" ? (
             <div>
-              {provider === "billy" ? (
-                <BillyConnectCard
-                  token={creds.api_token ?? ""}
-                  onTokenChange={(value) => {
-                    setCreds({ ...creds, api_token: value });
-                    if (billyStatus === "error") { setBillyStatus("idle"); setBillyError(null); }
-                  }}
-                  onAutoConnect={handleBillyAutoConnect}
-                  status={billyStatus}
-                  errorMessage={billyError}
-                />
-              ) : provider === "economic" ? (
+              {provider === "economic" ? (
                 <EconomicConnectCard
                   onConnect={handleEconomicConnect}
                   connecting={economicConnecting}
@@ -2888,7 +2469,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         </Button>
 
        {step < 3 ? (
-         provider === "billy" || provider === "economic" || provider === "dinero" ? null :
+         provider === "economic" || provider === "dinero" ? null :
           <PrimaryButton
             onClick={() => setStep((step + 1) as 1 | 2 | 3)}
             disabled={step === 2 && !testResult?.ok}

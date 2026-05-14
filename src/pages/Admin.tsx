@@ -490,9 +490,7 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
       // Provider-specifikke labels så de matcher det integrerede program.
       const labels = i.provider === "economic"
         ? { productLabel: "Varenr", groupLabel: "Varegruppe", accountLabel: "Salgskonto" }
-        : i.provider === "billy"
-          ? { productLabel: "Produktnr", groupLabel: "", accountLabel: "Indtægtskonto" }
-          : { productLabel: "Varenr", groupLabel: "Konto", accountLabel: "Konto" };
+        : { productLabel: "Varenr", groupLabel: "Konto", accountLabel: "Konto" };
 
       const { data: links } = await supabase
         .from("accounting_product_links" as any)
@@ -757,7 +755,7 @@ const ServiceRow = ({ service, orderCount, accountingMeta, onEdit, onDelete }: {
   const accountName = provider && accountId
     ? (accountingMeta?.incomeAccounts[accountId] ?? accountId)
     : null;
-  const providerLabel = provider === "economic" ? "e-conomic" : provider === "billy" ? "Billy" : provider === "dinero" ? "Dinero" : null;
+  const providerLabel = provider === "economic" ? "e-conomic" : provider === "dinero" ? "Dinero" : null;
 
   return (
     <Card className={`surface-admin rounded-lg border-border/80 shadow-sm overflow-hidden transition-colors ${!isActive ? "opacity-70" : "hover:border-foreground/20"}`}>
@@ -2004,7 +2002,7 @@ const ServiceForm = ({
             <div>
               <h4 className="text-sm font-semibold text-foreground">Regnskabsfelter</h4>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                Bruges når denne service synkroniseres til dit regnskabsprogram (e-conomic, Billy, Dinero).
+                Bruges når denne service synkroniseres til dit regnskabsprogram (e-conomic, Dinero).
               </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">

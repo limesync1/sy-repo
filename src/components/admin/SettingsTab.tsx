@@ -1838,7 +1838,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                         Kommer snart
                       </span>
                     }
-                    description="Send automatisk fakturaer og betalinger over i jeres regnskabsprogram (fx e-conomic, Dinero eller Billy), så I slipper for dobbelt indtastning. Funktionen er på vej — reservér jeres plads nu, så aktiverer vi den for jer, når den er klar."
+                    description="Send automatisk fakturaer og betalinger over i jeres regnskabsprogram (fx e-conomic eller Dinero), så I slipper for dobbelt indtastning. Funktionen er på vej — reservér jeres plads nu, så aktiverer vi den for jer, når den er klar."
                     active={accountingIntegrationEnabled}
                     activeLabel="Reserveret — I får besked, så snart integrationen åbner"
                     inactiveLabel="Ikke reserveret — slå til for at få plads i køen"
