@@ -1082,21 +1082,25 @@ async function pushOrder(admin: SupabaseClient, integ: Integration, adapter: Acc
         .eq("business_id", integ.business_id).eq("provider", integ.provider)
         .eq("service_id", it.service_id).maybeSingle();
       if (pl) { extProductId = pl.external_id; extProductNumber = pl.external_product_number; }
-      else if (integ.settings?.auto_create_products !== false) {
-        // Push product, men hvis det fejler (fx provider er nede) lader vi
-        // bare order-line være uden ekstern produkt-reference frem for at
-        // boble fejlen op og fejle hele orderen — orderen retries senere.
+      if (integ.settings?.auto_create_products !== false) {
+        // Vi pusher altid produktet før ordren — også når der findes et link.
+        // Linket kan være forældet (fx hvis produktet er slettet i
+        // regnskabsprogrammet, eller linket stammer fra en tidligere udbyder),
+        // og uden denne verificering fejler ordren med "lines.items"-validering.
         try {
           await pushProduct(admin, integ, adapter, it.service_id);
           const { data: pl2 } = await admin.from("accounting_product_links")
             .select("external_id, external_product_number")
             .eq("business_id", integ.business_id).eq("provider", integ.provider)
             .eq("service_id", it.service_id).maybeSingle();
-          extProductId = pl2?.external_id ?? null;
-          extProductNumber = pl2?.external_product_number ?? null;
-        } catch (_) {
-          // Provider-fejl — boble op så drainQueue ser den én gang
-          throw _;
+          if (pl2) {
+            extProductId = pl2.external_id;
+            extProductNumber = pl2.external_product_number;
+          }
+        } catch (e) {
+          // Hvis vi allerede har et eksisterende link, fortsætter vi med det
+          // gamle id — ellers boble fejlen op så jobbet retries.
+          if (!pl) throw e;
         }
       }
     }
