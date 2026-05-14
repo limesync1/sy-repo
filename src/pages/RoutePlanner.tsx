@@ -1104,6 +1104,14 @@ const Planner = () => {
       } catch (err) {
         console.warn("Kunne ikke knytte ny aftale til rute (projektion)", err);
       }
+      // VIGTIGT: invalidér eksplicit projektions-queries så virtuelle
+      // forekomster vises med det samme — vi kan ikke vente på realtime
+      // (postgres_changes på `agreements` fyrer ikke altid pålideligt og
+      // staleTime på 60s gjorde tidligere at projektionen først dukkede
+      // op efter første rute-flytning).
+      qc.invalidateQueries({ queryKey: ["recurring-agreements-for-planner"] });
+      qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
+      qc.invalidateQueries({ queryKey: ["pending-occurrences"] });
     };
 
     /** Aftalens opstartsdato (yyyy-MM-dd) — preferred_date eller next_service_date. */
