@@ -485,8 +485,9 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
           <AlertDialogHeader>
             <AlertDialogTitle>Fjern stop fra ruten?</AlertDialogTitle>
             <AlertDialogDescription>
-              Stoppet for <strong>{stop.customer_name}</strong> bliver fjernet fra denne rute og ryger
-              tilbage i aftalepoolen, så du kan planlægge det igen senere.
+              Stoppet for <strong>{stop.customer_name}</strong> bliver fjernet fra denne rute,
+              og aftalen ryger tilbage til aftaler uden rute, så du kan planlægge den igen senere.
+              Hvis det er rutens sidste stop, bliver ruten slettet.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
