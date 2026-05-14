@@ -750,7 +750,7 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
             order_id: newOrder.id,
             external_id: inv.external_id,
             external_number: inv.external_number,
-            external_type: "invoice_draft",
+            external_type: "invoice_booked",
             last_pushed_at: new Date().toISOString(),
             last_status_synced: new Date().toISOString(),
             external_data: inv.raw ?? {},
