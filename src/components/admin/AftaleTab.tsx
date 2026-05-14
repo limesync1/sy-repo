@@ -2382,7 +2382,7 @@ const AftaleTab = ({
                         <div className="flex items-center justify-between gap-2">
                           <div className="min-w-0">
                             <p className="truncate text-sm font-semibold text-foreground">
-                              {route.name || "Rute"}
+                              {routeDisplayName(route)}
                             </p>
                             <p className="text-[11px] text-muted-foreground">
                               {isToday ? "I dag · " : ""}
@@ -2398,7 +2398,7 @@ const AftaleTab = ({
                               onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                setRouteToDelete({ id: route.id, name: route.name || "Rute" });
+                                setRouteToDelete({ id: route.id, name: routeDisplayName(route) });
                               }}
                               aria-label="Slet rute"
                               title="Slet rute"
