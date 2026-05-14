@@ -2469,7 +2469,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
         </Button>
 
        {step < 3 ? (
-         provider === "billy" || provider === "economic" || provider === "dinero" ? null :
+         provider === "economic" || provider === "dinero" ? null :
           <PrimaryButton
             onClick={() => setStep((step + 1) as 1 | 2 | 3)}
             disabled={step === 2 && !testResult?.ok}
