@@ -1223,12 +1223,18 @@ const AftaleTab = ({
         return;
       }
     }
-    if (!confirm("Slet denne annullerede aftale permanent? Dette kan ikke fortrydes.")) return;
+    setOrderToDelete({ id: order.id });
+  };
+
+  const confirmDeleteOrder = async () => {
+    if (!orderToDelete) return;
+    setDeletingOrder(true);
     try {
-      const { error } = await supabase.rpc("delete_cancelled_order" as any, { _order_id: order.id });
+      const { error } = await supabase.rpc("delete_cancelled_order" as any, { _order_id: orderToDelete.id });
       if (error) throw error;
       toast.success("Aftale slettet");
       setExpandedOrder(null);
+      setOrderToDelete(null);
       qc.invalidateQueries({ queryKey: ["orders"] });
       qc.invalidateQueries({ queryKey: ["my-orders"] });
       qc.invalidateQueries({ queryKey: ["business-subscriptions"] });
@@ -1237,6 +1243,8 @@ const AftaleTab = ({
       qc.invalidateQueries({ queryKey: ["stops-for-routes"] });
     } catch (e: any) {
       toast.error(e?.message ?? "Kunne ikke slette aftalen");
+    } finally {
+      setDeletingOrder(false);
     }
   };
 
