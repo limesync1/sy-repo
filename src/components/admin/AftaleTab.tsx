@@ -2042,16 +2042,10 @@ const AftaleTab = ({
                                 {actions.nextStatus === "completed" && !hasRecurring && <><CheckCircle2 className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
                               </Button>
                             )}
-                            {hasActiveAccountingIntegration &&
-                              (order.status === "confirmed" || order.status === "in_progress" || order.status === "completed") &&
-                              (order as any).payment_status !== "paid" &&
-                              (order as any).payment_status !== "credited" && (
-                                <Button variant="outline" size="sm"
-                                  onClick={(e) => { e.stopPropagation(); handleMarkPaid(order); }}
-                                  className="h-8 gap-1.5 rounded-md border-success/40 bg-success/10 px-2.5 text-xs text-success hover:bg-success/15 hover:text-success hover:border-success/50">
-                                  <CreditCard className="h-3.5 w-3.5" /> Betalt
-                                </Button>
-                              )}
+                            {/* "Markér som betalt" og øvrige faktura-handlinger
+                                håndteres af InvoiceActionsMenu i højre kolonne — vi
+                                duplikerer dem ikke her, så brugeren ikke ser to
+                                forskellige knapper for samme handling. */}
                             {(order.status === "confirmed" || order.status === "in_progress") && (
                               <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, "cancelled"); }}
                                 className="h-8 gap-1.5 rounded-md border-border px-2.5 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
