@@ -103,8 +103,13 @@ export const RouteStopsPanel = ({
   const handleDelete = async (stop: RouteStop) => {
     if (isProjection) return; // safety — knappen er skjult i projection-mode
     try {
+      const isLast = items.length <= 1;
       await deleteStop.mutateAsync(stop.id);
-      toast.success("Stop fjernet — aftalen ryger tilbage i aftalepoolen");
+      toast.success(
+        isLast
+          ? "Stop fjernet — ruten blev slettet og aftalen ligger nu under aftaler uden rute"
+          : "Stop fjernet — aftalen ligger nu under aftaler uden rute",
+      );
     } catch (err: any) {
       toast.error(err.message || "Kunne ikke fjerne stop");
     }
@@ -192,8 +197,10 @@ export const RouteStopsPanel = ({
           <AlertDialogHeader>
             <AlertDialogTitle>Fjern stop fra ruten?</AlertDialogTitle>
             <AlertDialogDescription>
-              <strong>{confirmDelete?.customer_name}</strong> fjernes fra ruten.
-              Hvis stoppet kommer fra en ordre, ryger den tilbage i aftalepoolen.
+              <strong>{confirmDelete?.customer_name}</strong> fjernes fra ruten
+              {items.length <= 1
+                ? ", ruten bliver slettet og aftalen ryger tilbage til aftaler uden rute."
+                : " og aftalen ryger tilbage til aftaler uden rute."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
