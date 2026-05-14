@@ -168,12 +168,6 @@ interface Integration {
 
 type Mode = "overview" | "wizard";
 
-const normalizeBillyToken = (value: string): string => value
-  .trim()
-  .replace(/^x-access-token\s*:\s*/i, "")
-  .replace(/^bearer\s+/i, "")
-  .replace(/[\u200B-\u200D\uFEFF\s]/g, "");
-
 const formatRelativeDanish = (iso: string | null): string => {
   if (!iso) return "Aldrig";
   const ts = new Date(iso).getTime();
