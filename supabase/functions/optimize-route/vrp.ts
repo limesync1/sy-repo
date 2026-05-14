@@ -10,7 +10,7 @@
 // Stops med required_staff > 1 håndteres ved at vælge de N billigste medarbejdere
 // og synkronisere ankomst.
 
-import { buildMatrix, travelKm, travelSec, haversineKm, haversineSec } from "./geo.ts";
+import { buildMatrix, travelKm, travelSec, haversineKm, haversineSec, getWeatherAdjustment, applyDurationMultiplier } from "./geo.ts";
 import type {
   EmployeeCtx,
   LatLng,
@@ -330,7 +330,8 @@ function relocateInRoute(
 export async function solveVRP(
   employeesIn: EmployeeCtx[],
   stopsIn: Stop[],
-): Promise<{ plan: RoutePlan; provider: "mapbox" | "osrm" | "haversine" }> {
+  opts: { routeDate?: string | null } = {},
+): Promise<{ plan: RoutePlan; provider: "mapbox" | "osrm" | "haversine"; weather: { multiplier: number; summary: string | null } }> {
   // === DETERMINISME ===
   // Algoritmen er i sig selv deterministisk, men resultatet afhænger af
   // *rækkefølgen* på input (greedy insertion vælger første stop først, osv).
@@ -352,6 +353,20 @@ export async function solveVRP(
 
   const matrix = coords.length <= 25 ? await buildMatrix(coords) : null;
   const provider: "mapbox" | "osrm" | "haversine" = matrix?.provider ?? "haversine";
+
+  // === Vejr-justering ===
+  // Hent prognose for rute-dagen og brug den som hastigheds-multiplier
+  // på rejsetid. Dette giver mere realistisk planlægning ved regn/sne/glat
+  // føre. Mapbox's driving-traffic-profil dækker allerede normal trafik,
+  // så vi rører kun durations — distancer er uændrede.
+  let weather: { multiplier: number; summary: string | null } = { multiplier: 1.0, summary: null };
+  if (opts.routeDate && coords.length > 0) {
+    weather = await getWeatherAdjustment(coords[0], opts.routeDate);
+    if (matrix && weather.multiplier !== 1.0) {
+      applyDurationMultiplier(matrix, weather.multiplier);
+    }
+  }
+
   const travel = makeTravelers(matrix, coords);
 
   const empMeta = new Map<string, { startIdx: number; endIdx: number }>();
