@@ -415,7 +415,7 @@ export const RouteEditSheet = ({
 
           {/* Footer actions */}
           <SheetFooterBar className="space-y-2">
-            {stopCount >= 2 && (
+            {!isProjection && stopCount >= 2 && (
               <Button
                 variant="outline"
                 className="w-full"
@@ -428,7 +428,7 @@ export const RouteEditSheet = ({
                 Optimér rækkefølge
               </Button>
             )}
-            {stopCount >= 1 && (
+            {!isProjection && stopCount >= 1 && (
               <Button
                 variant="outline"
                 className="w-full"
@@ -438,6 +438,7 @@ export const RouteEditSheet = ({
                 Flyt aftaler
               </Button>
             )}
+            {!isProjection && (
             <Button
               variant="outline"
               className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
@@ -458,6 +459,13 @@ export const RouteEditSheet = ({
               <Trash2 className="h-4 w-4 mr-1.5" />
               {stopCount > 0 ? "Slet (flyt aftaler først)" : "Slet rute"}
             </Button>
+            )}
+            {isProjection && (
+              <p className="text-xs text-muted-foreground text-center px-2">
+                Dette er en projiceret forekomst af en fast rute. Ændringer i rækkefølge,
+                flytning eller sletning skal foretages på basis-ruten.
+              </p>
+            )}
           </SheetFooterBar>
         </SheetContent>
       </Sheet>
