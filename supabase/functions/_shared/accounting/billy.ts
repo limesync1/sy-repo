@@ -146,12 +146,29 @@ async function ensureBillyIncomeAccount(
   const cacheKey = `${orgId}::${accountId ?? "default"}`;
   const cached = incomeAccountCache.get(cacheKey);
   if (cached) return cached;
-  if (accountId) {
-    incomeAccountCache.set(cacheKey, accountId);
-    return accountId;
-  }
-
   try {
+    // Hvis brugeren har angivet en konto kan det være enten Billys interne id
+    // (opaque streng) ELLER et kontonummer fra kontoplanen (fx "1010"). Billy
+    // accepterer kun det interne id som `accountId`, så vi slår det op i
+    // kontoplanen og oversætter nummer → id når det er nødvendigt.
+    if (accountId) {
+      const accts = await billyRequest(creds, `/accounts?pageSize=1000`).catch(() => ({ accounts: [] }));
+      const list: any[] = accts?.accounts ?? [];
+      const direct = list.find(a => a.id === accountId);
+      if (direct?.id) {
+        incomeAccountCache.set(cacheKey, direct.id);
+        return direct.id;
+      }
+      const byNumber = list.find(a => String(a.accountNo ?? "") === String(accountId));
+      if (byNumber?.id) {
+        incomeAccountCache.set(cacheKey, byNumber.id);
+        return byNumber.id;
+      }
+      // Faldt igennem — log og fortsæt til auto-detection nedenfor i stedet
+      // for at sende et ugyldigt id videre til Billy (giver "non-existing account").
+      console.warn("ensureBillyIncomeAccount: account not found in Billy, falling back to default", { accountId });
+    }
+
     const org = await billyRequest(creds, "/organization").catch(() => null);
     const defaultAccountId = org?.organization?.defaultSalesAccountId
       ?? org?.organization?.defaultSalesAccount?.id
