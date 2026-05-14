@@ -7,7 +7,7 @@ import LocationChip from "@/components/LocationChip";
 
 const HeroSection = () => {
   return (
-    <header className="relative z-30 isolate overflow-hidden bg-foreground text-background">
+    <header className="relative z-30 isolate bg-foreground text-background">
       {/* Baggrundsbillede med blid Ken Burns-zoom — giver liv uden støj. */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <img
