@@ -1530,6 +1530,7 @@ async function bookInvoiceForOccurrence(
     invoice_status: result.sent ? "sent" : "booked",
     invoiced_at: new Date().toISOString(),
     invoice_external_id: result.invoice_external_id,
+    invoice_external_number: result.invoice_external_number ?? null,
     ...paymentUpdate,
   }).eq("id", occurrenceId);
   if (occUpdateErr) throw occUpdateErr;
