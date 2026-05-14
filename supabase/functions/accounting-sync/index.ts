@@ -1316,6 +1316,7 @@ async function bookInvoiceForOrder(
     invoice_status: result.sent ? "sent" : "booked",
     invoiced_at: new Date().toISOString(),
     invoice_external_id: result.invoice_external_id,
+    invoice_external_number: result.invoice_external_number ?? null,
     ...paymentUpdate,
   }).eq("id", orderId);
   if (orderUpdateError) throw orderUpdateError;
@@ -1465,6 +1466,10 @@ async function pushOccurrenceOrder(
     last_status_synced: occ.status,
   }, { onConflict: "business_id,provider,agreement_occurrence_id" });
 
+  await admin.from("agreement_occurrences").update({
+    external_order_number: result.external_number ?? null,
+  }).eq("id", occurrenceId);
+
   await logSync(admin, {
     business_id: integ.business_id, provider: integ.provider, direction: "push",
     entity_type: "order", entity_id: occurrenceId, external_id: result.external_id,
@@ -1529,6 +1534,7 @@ async function bookInvoiceForOccurrence(
     invoice_status: result.sent ? "sent" : "booked",
     invoiced_at: new Date().toISOString(),
     invoice_external_id: result.invoice_external_id,
+    invoice_external_number: result.invoice_external_number ?? null,
     ...paymentUpdate,
   }).eq("id", occurrenceId);
   if (occUpdateErr) throw occUpdateErr;

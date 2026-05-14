@@ -466,8 +466,10 @@ export type Database = {
           created_at: string
           due_date: string | null
           employee_ids: string[]
+          external_order_number: string | null
           id: string
           invoice_external_id: string | null
+          invoice_external_number: string | null
           invoice_status: string | null
           invoiced_at: string | null
           legacy_order_id: string | null
@@ -491,8 +493,10 @@ export type Database = {
           created_at?: string
           due_date?: string | null
           employee_ids?: string[]
+          external_order_number?: string | null
           id?: string
           invoice_external_id?: string | null
+          invoice_external_number?: string | null
           invoice_status?: string | null
           invoiced_at?: string | null
           legacy_order_id?: string | null
@@ -516,8 +520,10 @@ export type Database = {
           created_at?: string
           due_date?: string | null
           employee_ids?: string[]
+          external_order_number?: string | null
           id?: string
           invoice_external_id?: string | null
+          invoice_external_number?: string | null
           invoice_status?: string | null
           invoiced_at?: string | null
           legacy_order_id?: string | null
@@ -1921,6 +1927,7 @@ export type Database = {
           external_order_number: string | null
           id: string
           invoice_external_id: string | null
+          invoice_external_number: string | null
           invoice_status: string | null
           invoiced_at: string | null
           last_reminder_at: string | null
@@ -1979,6 +1986,7 @@ export type Database = {
           external_order_number?: string | null
           id?: string
           invoice_external_id?: string | null
+          invoice_external_number?: string | null
           invoice_status?: string | null
           invoiced_at?: string | null
           last_reminder_at?: string | null
@@ -2037,6 +2045,7 @@ export type Database = {
           external_order_number?: string | null
           id?: string
           invoice_external_id?: string | null
+          invoice_external_number?: string | null
           invoice_status?: string | null
           invoiced_at?: string | null
           last_reminder_at?: string | null

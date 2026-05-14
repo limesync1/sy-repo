@@ -80,13 +80,13 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
   const primary: PrimaryAction = (() => {
     if (isCancelled || isCredited) return null;
     if (canMarkPaid) {
-      return { kind: "mark_paid", label: "Markér betalt", tone: "success", icon: <CheckCircle2 className="h-3.5 w-3.5" />, onClick: () => setConfirm("mark_paid") };
+      return { kind: "mark_paid", label: "Markér som betalt", tone: "success", icon: <CheckCircle2 className="h-3.5 w-3.5" />, onClick: () => setConfirm("mark_paid") };
     }
     if (canVoid) {
       return { kind: "void_draft", label: "Annullér kladde", tone: "neutral", icon: <Ban className="h-3.5 w-3.5" />, onClick: () => setConfirm("void_draft") };
     }
     if (canCredit && isPaid) {
-      return { kind: "credit_invoice", label: "Krediter", tone: "danger", icon: <Receipt className="h-3.5 w-3.5" />, onClick: () => setConfirm("credit_invoice") };
+      return { kind: "credit_invoice", label: "Opret kreditnota", tone: "danger", icon: <Receipt className="h-3.5 w-3.5" />, onClick: () => setConfirm("credit_invoice") };
     }
     return null;
   })();
@@ -210,7 +210,7 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
               onClick={() => setConfirm("mark_paid")}
             >
               <Spinner a="mark_paid" fallback={<CheckCircle2 className="h-3.5 w-3.5" />} />
-              <span className="ml-1.5">Markér betalt</span>
+              <span className="ml-1.5">Markér som betalt</span>
             </Button>
           </TooltipTrigger>
           <TooltipContent side="top" className="bg-popover border-border">Bogfør betaling i regnskabsprogrammet</TooltipContent>

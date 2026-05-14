@@ -25,7 +25,7 @@ import {
   CheckCircle2, XCircle, RefreshCw, CalendarClock,
   Play, Pause, Search, Route as RouteIcon, MapPin, Plus as PlusIcon,
   GripVertical, Loader2, Tag, Palette, Trash2, ArrowUpDown, AlertCircle,
-  Filter as FilterIcon, Inbox, Hourglass, ListChecks, CreditCard,
+  Filter as FilterIcon, Inbox, Hourglass, ListChecks, CreditCard, Receipt,
 } from "lucide-react";
 import {
   DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
@@ -1970,6 +1970,24 @@ const AftaleTab = ({
                             </span>
                           </>
                         )}
+                        {((order as any).invoice_external_number || (order as any).external_order_number) && (
+                          <>
+                            <span className="text-border">·</span>
+                            <span
+                              className="inline-flex items-center gap-1 font-medium text-foreground/80"
+                              title={
+                                (order as any).invoice_external_number
+                                  ? `Faktura nr. ${(order as any).invoice_external_number} i regnskabsprogrammet — synkroniseres automatisk.`
+                                  : `Ordre nr. ${(order as any).external_order_number} (kladde) i regnskabsprogrammet — bliver til faktura når aftalen markeres udført.`
+                              }
+                            >
+                              <Receipt className="h-3 w-3 opacity-70" />
+                              {(order as any).invoice_external_number
+                                ? <>Faktura&nbsp;#{(order as any).invoice_external_number}</>
+                                : <>Ordre&nbsp;#{(order as any).external_order_number}</>}
+                            </span>
+                          </>
+                        )}
                       </div>
                     </div>
 
@@ -2042,16 +2060,10 @@ const AftaleTab = ({
                                 {actions.nextStatus === "completed" && !hasRecurring && <><CheckCircle2 className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
                               </Button>
                             )}
-                            {hasActiveAccountingIntegration &&
-                              (order.status === "confirmed" || order.status === "in_progress" || order.status === "completed") &&
-                              (order as any).payment_status !== "paid" &&
-                              (order as any).payment_status !== "credited" && (
-                                <Button variant="outline" size="sm"
-                                  onClick={(e) => { e.stopPropagation(); handleMarkPaid(order); }}
-                                  className="h-8 gap-1.5 rounded-md border-success/40 bg-success/10 px-2.5 text-xs text-success hover:bg-success/15 hover:text-success hover:border-success/50">
-                                  <CreditCard className="h-3.5 w-3.5" /> Betalt
-                                </Button>
-                              )}
+                            {/* "Markér som betalt" og øvrige faktura-handlinger
+                                håndteres af InvoiceActionsMenu i højre kolonne — vi
+                                duplikerer dem ikke her, så brugeren ikke ser to
+                                forskellige knapper for samme handling. */}
                             {(order.status === "confirmed" || order.status === "in_progress") && (
                               <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, "cancelled"); }}
                                 className="h-8 gap-1.5 rounded-md border-border px-2.5 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
