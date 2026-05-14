@@ -179,6 +179,29 @@ async function ensureBillyIncomeAccount(
   }
 }
 
+async function ensureBillyFallbackProduct(creds: AccountingCredentials, orgId: string, settings: AccountingSettings): Promise<string> {
+  const cached = fallbackProductCache.get(orgId);
+  if (cached) return cached;
+  const products = await billyRequest(creds, `/products?pageSize=1000`).catch(() => ({ products: [] }));
+  const existing = (products?.products ?? []).find((p: any) => p?.productNo === "SY-GENERIC" || p?.name === "Serviceydere ydelse");
+  if (existing?.id) {
+    fallbackProductCache.set(orgId, existing.id);
+    return existing.id;
+  }
+  const accountId = await ensureBillyIncomeAccount(creds, orgId, String(settings.default_income_account ?? "") || null);
+  if (!accountId) throw new Error("Billy mangler en indtægtskonto til ordrelinjer uden service. Vælg en indtægtskonto i opsætningen.");
+  const created = await billyRequest(creds, `/products`, {
+    method: "POST",
+    body: JSON.stringify({
+      product: { organizationId: orgId, name: "Serviceydere ydelse", productNo: "SY-GENERIC", accountId, prices: [{ unitPrice: 0, currencyId: "DKK" }] },
+    }),
+  });
+  const p = created?.products?.[0] ?? created?.product;
+  if (!p?.id) throw new Error("Billy kunne ikke oprette standardvaren til ordrelinjer uden service.");
+  fallbackProductCache.set(orgId, p.id);
+  return p.id;
+}
+
 // Billy gemmer email på contactPersons, mens telefonnummer ligger direkte på contact.
 // Vi opretter/opdaterer den primære kontaktperson når vi har email.
 async function syncBillyContactPerson(
