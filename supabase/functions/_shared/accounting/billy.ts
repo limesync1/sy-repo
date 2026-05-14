@@ -472,6 +472,7 @@ export function makeBillyAdapter(
       // dansk salgs-moms én gang og brug den som fallback — ellers fejler Billy
       // med en intetsigende "Invalid record".
       const fallbackTaxRateId = await getDefaultBillySalesTaxRate(creds, orgId);
+      const fallbackProductId = await ensureBillyFallbackProduct(creds, orgId, settings);
       const invoice: Record<string, unknown> = {
         organizationId: orgId,
         contactId: input.customer_external_id,
@@ -482,7 +483,7 @@ export function makeBillyAdapter(
         // Standard-valuta i Serviceydere er altid DKK.
         currencyId: "DKK",
         lines: input.lines.map((l) => ({
-          productId: l.product_external_id ?? undefined,
+          productId: l.product_external_id ?? fallbackProductId,
           description: l.description,
           quantity: l.quantity,
           unitPrice: l.unit_price,
