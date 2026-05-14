@@ -1332,68 +1332,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     };
   }
 
-  /**
-   * Forny Billy-adgangsnøgle inline fra oversigten:
-   *  1) Test den nye nøgle direkte mod Billy
-   *  2) Hvis OK: gem nøglen, nulstil paused_until + consecutive_failures + last_error
-   *  3) Kør en ny synk så fejlende jobs forsøges igen med det samme
-   */
-  const handleRenewBillyToken = async () => {
-    const token = normalizeBillyToken(renewBillyToken);
-    if (!token) {
-      setRenewBillyError("Indsæt en adgangsnøgle først");
-      setRenewBillyStatus("error");
-      return;
-    }
-    setRenewBillyError(null);
-    setRenewBillyStatus("checking");
-    try {
-      const { data, error } = await supabase.functions.invoke("accounting-test-connection", {
-        body: { business_id: businessId, provider: "billy", api_token: token, settings },
-      });
-      if (error) throw error;
-      const r = data as { ok: boolean; message?: string };
-      if (!r.ok) throw new Error(r.message ?? "Den nye nøgle blev afvist af Billy");
-    } catch (e: any) {
-      setRenewBillyError(e?.message ?? "Den nye nøgle kunne ikke bruges");
-      setRenewBillyStatus("error");
-      return;
-    }
-
-    setRenewBillyStatus("saving");
-    try {
-      const { error } = await supabase.from("accounting_integrations" as any)
-        .update({
-          api_token: token,
-          last_error: null,
-          last_error_at: null,
-          paused_until: null,
-          consecutive_failures: 0,
-        })
-        .eq("business_id", businessId);
-      if (error) throw error;
-
-      // Frigiv evt. fejlende jobs så de prøves igen med den nye nøgle
-      await supabase.from("accounting_sync_queue" as any)
-        .update({ status: "pending", scheduled_for: new Date().toISOString(), last_error: null })
-        .eq("business_id", businessId).eq("status", "failed");
-
-      // Kør synk i baggrunden — fejler stille hvis kø er tom
-      supabase.functions.invoke("accounting-sync", {
-        body: { business_id: businessId, mode: "queue" },
-      }).catch(() => { /* ignored */ });
-
-      toast.success("Ny adgangsnøgle gemt — Billy er forbundet igen");
-      setRenewBillyOpen(false);
-      setRenewBillyToken("");
-      setRenewBillyStatus("idle");
-      await load();
-    } catch (e: any) {
-      setRenewBillyError(e?.message ?? "Kunne ikke gemme den nye nøgle");
-      setRenewBillyStatus("error");
-    }
-  };
-
   /** Genoptag synk efter auto-pause uden at vente på cron */
   const handleResumePause = async () => {
     setResumingPause(true);
