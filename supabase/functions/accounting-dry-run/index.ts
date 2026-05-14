@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const provider = body?.provider as AccountingProvider | undefined;
-    const api_token = provider === "billy" ? normalizeToken(body?.api_token) : String(body?.api_token ?? "").trim();
+    const api_token = String(body?.api_token ?? "").trim();
     const business_id = body?.business_id as string | undefined;
 
     if (!provider || !business_id) {
