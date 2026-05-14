@@ -1396,3 +1396,214 @@ async function bookInvoiceForOrder(
     message: result.sent ? "Faktura bogført og sendt" : "Faktura bogført",
   });
 }
+
+// ─── AGREEMENT OCCURRENCE — ORDER + INVOICE ───────────────────────────────
+// Når en aftale-forekomst (agreement_occurrences) oprettes, pusher vi den som
+// en ordre/kladde til regnskabsprogrammet. Når den markeres udført, bogføres
+// kladden som faktura og sendes til kunden. Denne flow er separat fra det
+// gamle `orders`-baserede flow og bruger `accounting_order_links.agreement_occurrence_id`.
+
+async function loadOccurrenceContext(admin: SupabaseClient, occurrenceId: string) {
+  const { data: occ } = await admin
+    .from("agreement_occurrences")
+    .select("id, business_id, agreement_id, occurrence_date, status, invoice_external_id, invoice_status")
+    .eq("id", occurrenceId)
+    .maybeSingle();
+  if (!occ) return null;
+  const { data: agreement } = await admin
+    .from("agreements")
+    .select("id, business_id, customer_id, business_customer_id, customer_name, customer_email, customer_phone, company_name, cvr, address, zip_code, city, payment_terms_days, notes, total_amount, billing_model")
+    .eq("id", occ.agreement_id)
+    .maybeSingle();
+  if (!agreement) return null;
+  const { data: items } = await admin
+    .from("agreement_items")
+    .select("id, service_id, service_name, quantity, unit_price, total_price")
+    .eq("agreement_id", occ.agreement_id);
+  return { occ, agreement, items: items ?? [] };
+}
+
+async function ensureOccurrenceCustomerLink(
+  admin: SupabaseClient, integ: Integration, adapter: AccountingAdapter,
+  agreement: any,
+): Promise<string | null> {
+  // Brug det samme ensureCustomerLink som ordrer — den forventer order-lignende
+  // felter, og agreements har præcis samme kontaktfelter.
+  return ensureCustomerLink(admin, integ, adapter, {
+    customer_email: agreement.customer_email,
+    customer_name: agreement.customer_name,
+    customer_phone: agreement.customer_phone,
+    company_name: agreement.company_name,
+    cvr: agreement.cvr,
+    address: agreement.address,
+    zip_code: agreement.zip_code,
+    city: agreement.city,
+  });
+}
+
+async function pushOccurrenceOrder(
+  admin: SupabaseClient, integ: Integration, adapter: AccountingAdapter,
+  occurrenceId: string,
+) {
+  const ctx = await loadOccurrenceContext(admin, occurrenceId);
+  if (!ctx) return;
+  const { occ, agreement, items } = ctx;
+
+  // Allerede faktureret? Så skal vi ikke længere sende den som kladde.
+  if (occ.invoice_external_id) return;
+
+  // Findes link allerede?
+  const { data: existing } = await admin.from("accounting_order_links")
+    .select("external_id, external_type")
+    .eq("business_id", integ.business_id)
+    .eq("provider", integ.provider)
+    .eq("agreement_occurrence_id", occurrenceId)
+    .maybeSingle();
+  if (existing?.external_type === "invoice_booked") return;
+
+  const customerExtId = await ensureOccurrenceCustomerLink(admin, integ, adapter, agreement);
+  if (!customerExtId) throw new Error("Kunne ikke matche/oprette kunde i regnskabsprogrammet");
+
+  // Map agreement_items → ordrelinjer; sørg for at produkter er linkede.
+  const lines = await Promise.all((items as any[]).map(async (it) => {
+    let extProductId: string | null = null;
+    let extProductNumber: string | null = null;
+    if (it.service_id) {
+      const { data: pl } = await admin.from("accounting_product_links")
+        .select("external_id, external_product_number")
+        .eq("business_id", integ.business_id).eq("provider", integ.provider)
+        .eq("service_id", it.service_id).maybeSingle();
+      if (pl) { extProductId = pl.external_id; extProductNumber = pl.external_product_number; }
+      else if (integ.settings?.auto_create_products !== false) {
+        try {
+          await pushProduct(admin, integ, adapter, it.service_id);
+          const { data: pl2 } = await admin.from("accounting_product_links")
+            .select("external_id, external_product_number")
+            .eq("business_id", integ.business_id).eq("provider", integ.provider)
+            .eq("service_id", it.service_id).maybeSingle();
+          extProductId = pl2?.external_id ?? null;
+          extProductNumber = pl2?.external_product_number ?? null;
+        } catch (e) { throw e; }
+      }
+    }
+    return {
+      service_id: it.service_id,
+      product_external_id: extProductId,
+      product_external_number: extProductNumber,
+      description: it.service_name,
+      quantity: Number(it.quantity ?? 1),
+      unit_price: Number(it.unit_price ?? 0),
+    };
+  }));
+
+  const sendAs = (integ.settings?.send_order_as ?? "order") as "order"|"invoice_draft"|"quote";
+  const result = await adapter.upsertOrder({
+    internal_id: occurrenceId,
+    external_id: existing?.external_id,
+    external_type: sendAs,
+    customer_external_id: customerExtId,
+    customer_name: agreement.customer_name,
+    status: occ.status,
+    notes: agreement.notes,
+    payment_terms_days: agreement.payment_terms_days,
+    currency: "DKK",
+    date: occ.occurrence_date ?? new Date().toISOString().slice(0, 10),
+    lines,
+  });
+
+  await admin.from("accounting_order_links").upsert({
+    business_id: integ.business_id, provider: integ.provider,
+    agreement_occurrence_id: occurrenceId,
+    external_id: result.external_id, external_number: result.external_number,
+    external_type: result.external_type,
+    last_pushed_at: new Date().toISOString(),
+    last_status_synced: occ.status,
+  }, { onConflict: "business_id,provider,agreement_occurrence_id" });
+
+  await logSync(admin, {
+    business_id: integ.business_id, provider: integ.provider, direction: "push",
+    entity_type: "order", entity_id: occurrenceId, external_id: result.external_id,
+    status: "success",
+  });
+}
+
+async function bookInvoiceForOccurrence(
+  admin: SupabaseClient, integ: Integration, adapter: AccountingAdapter,
+  occurrenceId: string,
+) {
+  if (typeof adapter.bookInvoice !== "function") {
+    throw new Error(`Provider ${integ.provider} understøtter ikke fakturabogføring`);
+  }
+  const ctx = await loadOccurrenceContext(admin, occurrenceId);
+  if (!ctx) return;
+  const { occ, agreement } = ctx;
+
+  // Allerede bogført?
+  if (occ.invoice_external_id) return;
+
+  // Sørg for at ordre-link findes — opret den hvis nødvendigt
+  let { data: link } = await admin.from("accounting_order_links")
+    .select("external_id, external_type")
+    .eq("business_id", integ.business_id)
+    .eq("provider", integ.provider)
+    .eq("agreement_occurrence_id", occurrenceId)
+    .maybeSingle();
+  if (!link) {
+    await pushOccurrenceOrder(admin, integ, adapter, occurrenceId);
+    const reread = await admin.from("accounting_order_links")
+      .select("external_id, external_type")
+      .eq("business_id", integ.business_id)
+      .eq("provider", integ.provider)
+      .eq("agreement_occurrence_id", occurrenceId)
+      .maybeSingle();
+    link = reread.data ?? null;
+  }
+  if (!link) throw new Error("Kunne ikke pushe forekomst som ordre før fakturabogføring");
+
+  const result = await adapter.bookInvoice({
+    external_id: link.external_id,
+    external_type: (link.external_type as any) ?? "order",
+    customer_email: agreement.customer_email ?? null,
+  });
+
+  let paymentUpdate: Record<string, unknown> = {};
+  if (typeof adapter.getInvoiceStates === "function") {
+    const states = await adapter.getInvoiceStates([result.invoice_external_id]).catch(() => []);
+    const state = states[0];
+    if (state) {
+      paymentUpdate = {
+        payment_status: state.status,
+        paid_at: state.paid_at,
+        paid_amount: state.paid_amount ?? null,
+        due_date: state.due_date ?? null,
+      };
+    }
+  }
+
+  const { error: occUpdateErr } = await admin.from("agreement_occurrences").update({
+    invoice_status: result.sent ? "sent" : "booked",
+    invoiced_at: new Date().toISOString(),
+    invoice_external_id: result.invoice_external_id,
+    ...paymentUpdate,
+  }).eq("id", occurrenceId);
+  if (occUpdateErr) throw occUpdateErr;
+
+  const { error: linkUpdErr } = await admin.from("accounting_order_links").update({
+    external_id: result.invoice_external_id,
+    external_number: result.invoice_external_number,
+    external_type: "invoice_booked",
+    last_pushed_at: new Date().toISOString(),
+    last_status_synced: result.sent ? "sent" : "booked",
+  })
+    .eq("business_id", integ.business_id)
+    .eq("provider", integ.provider)
+    .eq("agreement_occurrence_id", occurrenceId);
+  if (linkUpdErr) throw linkUpdErr;
+
+  await logSync(admin, {
+    business_id: integ.business_id, provider: integ.provider, direction: "push",
+    entity_type: "invoice", entity_id: occurrenceId, external_id: result.invoice_external_id,
+    status: "success",
+    message: result.sent ? "Faktura bogført og sendt" : "Faktura bogført",
+  });
+}
