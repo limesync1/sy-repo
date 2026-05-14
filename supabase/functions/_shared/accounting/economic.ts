@@ -633,18 +633,10 @@ export function makeEconomicAdapter(
         draftNumber = draft?.draftInvoiceNumber ?? (draftPayload as any)?.draftInvoiceNumber ?? draftNumber;
       }
 
-      // Bog kladde-faktura → bookedInvoiceNumber. Hvis e-mail findes, beder vi
-      // e-conomic sende fakturaen med deres standard e-mail-skabelon.
-      const bookBody: Record<string, unknown> = {
-        draftInvoice: { draftInvoiceNumber: Number(draftNumber) },
-      };
-      if (input.customer_email) bookBody.sendBy = "Email";
-      const booked = await ecRequest(creds, "/invoices/booked", {
-        method: "POST",
-        body: JSON.stringify(bookBody),
-      });
-      const invNo = String(booked?.bookedInvoiceNumber ?? booked?.invoiceNumber ?? draftNumber);
-      return { invoice_external_id: invNo, invoice_external_number: invNo, sent: !!input.customer_email };
+      // Bog IKKE fakturaen — den skal ligge som "Igangværende faktura" (kladde)
+      // i e-conomic, så brugeren selv kan gennemgå og bogføre den.
+      const invNo = String(draftNumber);
+      return { invoice_external_id: invNo, invoice_external_number: invNo, sent: false };
     },
 
     async getInvoiceStates(externalIds: string[]): Promise<ExternalInvoiceState[]> {
