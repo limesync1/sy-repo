@@ -1755,18 +1755,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             </div>
           </div>
 
-          {/* Hint hvis Billy specifikt har fejlet med "afviste API-nøglen" eller lignende */}
-          {integration.provider === "billy" && hasError && /nøgle|token|access|unauthorized|afviste|401|403/i.test(integration.last_error ?? "") && (
-            <div className="mt-4 flex items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-foreground">
-              <KeyRound className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
-              <div className="min-w-0">
-                <div className="font-medium">Det ser ud som om din Billy-adgangsnøgle ikke længere virker</div>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  Opret en ny i Billy under <strong>Indstillinger → Adgangsnøgler</strong> og tryk "Forny adgangsnøgle" øverst — så er du i gang igen på 30 sekunder.
-                </p>
-              </div>
-            </div>
-          )}
         </SectionCard>
 
         {/* Forbindelsesfejl — kun hvis noget er galt på selve forbindelsen */}
