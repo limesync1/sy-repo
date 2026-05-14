@@ -1204,6 +1204,22 @@ const AftaleTab = ({
       toast.error("Kun annullerede aftaler kan slettes");
       return;
     }
+    // Tjek om aftalen ligger på en rute — og om den er det sidste stop.
+    // I så fald håndteres bekræftelse + sletning i AlertDialog'en nedenfor,
+    // så brugeren ved præcis hvilken rute der også forsvinder.
+    const stop = stopByOrder?.[order.id];
+    if (stop?.route?.id) {
+      const routeId = stop.route.id;
+      const siblingsOnRoute = (routeStops || []).filter((s: any) => s.route?.id === routeId);
+      if (siblingsOnRoute.length <= 1) {
+        setLastStopWarning({
+          orderId: order.id,
+          routeId,
+          routeName: routeDisplayName(stop.route) || "Rute",
+        });
+        return;
+      }
+    }
     if (!confirm("Slet denne annullerede aftale permanent? Dette kan ikke fortrydes.")) return;
     try {
       const { error } = await supabase.rpc("delete_cancelled_order" as any, { _order_id: order.id });
@@ -1218,6 +1234,40 @@ const AftaleTab = ({
       qc.invalidateQueries({ queryKey: ["stops-for-routes"] });
     } catch (e: any) {
       toast.error(e?.message ?? "Kunne ikke slette aftalen");
+    }
+  };
+
+  // Bekræft sletning af aftale + tilhørende (tomme) rute.
+  const confirmDeleteOrderAndRoute = async () => {
+    if (!lastStopWarning) return;
+    setDeletingLastStop(true);
+    try {
+      const { error: orderErr } = await supabase.rpc(
+        "delete_cancelled_order" as any,
+        { _order_id: lastStopWarning.orderId },
+      );
+      if (orderErr) throw orderErr;
+      // Sletter ruten — ruten er nu tom, så den giver ingen mening at beholde.
+      const { error: routeErr } = await supabase
+        .from("routes")
+        .delete()
+        .eq("id", lastStopWarning.routeId);
+      if (routeErr) throw routeErr;
+      toast.success(`Aftale slettet — ruten "${lastStopWarning.routeName}" blev også fjernet`);
+      setExpandedOrder(null);
+      setLastStopWarning(null);
+      qc.invalidateQueries({ queryKey: ["orders"] });
+      qc.invalidateQueries({ queryKey: ["my-orders"] });
+      qc.invalidateQueries({ queryKey: ["business-subscriptions"] });
+      qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
+      qc.invalidateQueries({ queryKey: ["aftaler-all-routes"] });
+      qc.invalidateQueries({ queryKey: ["routes"] });
+      qc.invalidateQueries({ queryKey: ["routes-for-range"] });
+      qc.invalidateQueries({ queryKey: ["stops-for-routes"] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Kunne ikke slette aftalen");
+    } finally {
+      setDeletingLastStop(false);
     }
   };
 
