@@ -126,25 +126,7 @@ export default function OrderTimeline({ order }: { order: Order }) {
         iconCls: overdue ? "text-destructive" : "text-muted-foreground",
       });
     }
-    const history: ReminderEntry[] = Array.isArray(order.reminder_history)
-      ? (order.reminder_history as ReminderEntry[])
-      : [];
-    history.forEach((r, idx) => {
-      const type = r.type || `reminder${idx + 1}`;
-      const isCollection = type === "collection";
-      out.push({
-        at: r.sent_at || new Date().toISOString(),
-        icon: isCollection ? Gavel : Bell,
-        title: REMINDER_LABEL[type] || `Rykker ${idx + 1}`,
-        detail: [
-          r.fee ? `Gebyr: ${r.fee} kr` : null,
-          r.external_id ? `Ref. ${r.external_id}` : null,
-          r.note,
-        ].filter(Boolean).join(" · "),
-        toneCls: REMINDER_TONE[type] || "border-amber-200 bg-amber-50",
-        iconCls: isCollection ? "text-destructive" : "text-amber-700",
-      });
-    });
+    // Rykkere vises ikke i aftalens tidslinje — de hører til faktura-/inkassohistorikken.
     if (order.paid_at) {
       out.push({
         at: order.paid_at, icon: CreditCard, title: "Faktura betalt",
@@ -192,7 +174,7 @@ export default function OrderTimeline({ order }: { order: Order }) {
         <div className="flex items-center gap-2">
           <RefreshCw className="h-3.5 w-3.5 text-muted-foreground" />
           <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Tidslinje &amp; rykkerhistorik
+            Tidslinje
           </span>
         </div>
         <span className="text-[10px] text-muted-foreground tabular-nums">
