@@ -1515,7 +1515,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       const r = await supabase.functions.invoke("accounting-sync", {
         body: { business_id: businessId, mode: "queue" },
       });
-      if (r.error) throw r.error;
+      const syncError = syncErrorMessage(r, "Kunne ikke prøve igen");
+      if (syncError) throw new Error(syncError);
       await load();
     } catch (e: any) {
       toast.error(e.message ?? "Kunne ikke prøve igen");
@@ -1532,7 +1533,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       const r = await supabase.functions.invoke("accounting-sync", {
         body: { business_id: businessId, mode: "queue" },
       });
-      if (r.error) throw r.error;
+      const syncError = syncErrorMessage(r, "Kunne ikke prøve igen");
+      if (syncError) throw new Error(syncError);
       await load();
     } catch (e: any) {
       toast.error(e.message ?? "Kunne ikke prøve igen");
@@ -1567,9 +1569,11 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   async function runFullSync(bizId: string) {
     // Kør push (queue-drain) først så pull ikke overskriver lokale ændringer
     const r1 = await supabase.functions.invoke("accounting-sync", { body: { business_id: bizId, mode: "queue" } });
-    if (r1.error) throw r1.error;
+    const pushError = syncErrorMessage(r1, "Push fejlede");
+    if (pushError) throw new Error(pushError);
     const r2 = await supabase.functions.invoke("accounting-sync", { body: { business_id: bizId, mode: "pull" } });
-    if (r2.error) throw r2.error;
+    const pullError = syncErrorMessage(r2, "Hent fejlede");
+    if (pullError) throw new Error(pullError);
     return {
       pushed: (r1.data as any)?.processed ?? 0,
       seeded: (r1.data as any)?.seeded ?? 0,
