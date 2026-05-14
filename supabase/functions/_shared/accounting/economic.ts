@@ -175,6 +175,8 @@ function friendlyEconomicError(status: number, body: string): string {
   if (lower.includes("democompanyexpired") || lower.includes("demo company has been expired")) {
     return "Din e-conomic demo-aftale er udløbet. Opgrader til en betalt aftale på e-conomic.dk, eller tilkobl en aktiv aftale i stedet.";
   }
+  const accessMessage = specificEconomicAccessError(status, body);
+  if (accessMessage) return accessMessage;
   if (status === 401 || status === 403 || lower.includes("unauthorized") || lower.includes("invalid token")) {
     return "Forbindelsen blev afvist. Tjek at både App Secret Token og Agreement Grant Token er korrekte og at app'en er installeret på din e-conomic-aftale.";
   }
@@ -225,6 +227,22 @@ function friendlyEconomicError(status: number, body: string): string {
   // Hvis vi ikke kunne parse JSON, så returnér rå body (afkortet) så vi ikke taber info
   const snippet = body.slice(0, 400);
   return `E-conomic afviste forespørgslen (${status})${snippet ? `: ${snippet}` : ""}.`;
+}
+
+function specificEconomicAccessError(status: number, body: string): string | null {
+  if (status !== 401 && status !== 403) return null;
+  try {
+    const j = JSON.parse(body);
+    const message = typeof j?.message === "string" ? j.message.trim() : "";
+    const code = typeof j?.errorCode === "string" ? j.errorCode.trim() : "";
+    if (!message && !code) return null;
+    if (/democompanyexpired|demo company has been expired/i.test(`${message} ${code}`)) {
+      return "Din e-conomic demo-aftale er udløbet. Opgrader til en betalt aftale på e-conomic.dk, eller tilkobl en aktiv aftale i stedet.";
+    }
+    return `E-conomic afviste adgangen${code ? ` (${code})` : ""}${message ? `: ${message}` : ""}. Tjek at din e-conomic-aftale er aktiv, og at app'en stadig er installeret på aftalen.`;
+  } catch {
+    return null;
+  }
 }
 
 async function ecRequest(
