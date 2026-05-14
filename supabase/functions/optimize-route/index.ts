@@ -281,7 +281,7 @@ Deno.serve(async (req) => {
     }
 
     // === Kør VRP ===
-    const { plan, provider } = await solveVRP(employees, validStops);
+    const { plan, provider, weather } = await solveVRP(employees, validStops, { routeDate: route.route_date });
 
     // === Skriv plan tilbage til DB ===
     // 1) Opdater route_stops: sequence, planned_arrival/departure, distance/travel
@@ -341,28 +341,40 @@ Deno.serve(async (req) => {
     // pga. afhængighed af plan-data, men vi kører det nu) ===
     const ai = await generateAIInsights(employees, validStops, plan);
 
+    const weatherNote = weather.summary
+      ? ` Vejr-justering anvendt (+${Math.round((weather.multiplier - 1) * 100)}%): ${weather.summary}.`
+      : "";
+    const trafficNote = provider === "mapbox"
+      ? " Rejsetider beregnet med live trafikforhold."
+      : provider === "osrm"
+        ? " Rejsetider beregnet uden live trafik (OSRM-fallback)."
+        : "";
+    const enrichedSummary = (ai?.summary ?? `VRP plan via ${provider} for ${employees.length} medarbejdere, ${validStops.length} stops`) + trafficNote + weatherNote;
+
     await supabase.from("routes").update({
       optimized_at: new Date().toISOString(),
       total_distance_km: plan.total_km,
       total_duration_minutes: plan.total_minutes,
-      optimization_summary: ai?.summary ?? null,
+      optimization_summary: enrichedSummary,
       // Gem som object så vi også kan persistere fingerprint sammen med items.
       // (Læses bagudkompatibelt nedenfor: hvis kolonnen er et array, bruges det direkte.)
       optimization_suggestions: {
         items: ai?.suggestions ?? [],
         _input_fingerprint: inputFingerprint,
+        _weather: weather,
       },
     }).eq("id", routeId);
 
     return new Response(JSON.stringify({
       ok: true,
-      reasoning: ai?.summary ?? `VRP plan via ${provider} for ${employees.length} medarbejdere, ${validStops.length} stops`,
-      summary: ai?.summary ?? null,
+      reasoning: enrichedSummary,
+      summary: enrichedSummary,
       suggestions: ai?.suggestions ?? [],
       reordered: validStops.length,
       total_km: plan.total_km,
       total_minutes: plan.total_minutes,
       provider,
+      weather,
       unassigned: plan.unassigned_stops.length,
       soft_violations: plan.soft_window_violations,
       employees: employees.length,
