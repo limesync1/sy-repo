@@ -1874,7 +1874,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                         const r = await supabase.functions.invoke("accounting-sync", {
                           body: { business_id: businessId, mode: "queue" },
                         });
-                        if (r.error) throw r.error;
+                        const syncError = syncErrorMessage(r, "Push fejlede");
+                        if (syncError) throw new Error(syncError);
                         const pushed = (r.data as any)?.processed ?? 0;
                         toast.success(`Sendt til ${activeDef.label}: ${pushed} kunder push'et.`);
                         await load();
@@ -1899,7 +1900,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                         const r = await supabase.functions.invoke("accounting-sync", {
                           body: { business_id: businessId, mode: "pull" },
                         });
-                        if (r.error) throw r.error;
+                        const syncError = syncErrorMessage(r, "Hent fejlede");
+                        if (syncError) throw new Error(syncError);
                         const pulled = (r.data as any)?.customers ?? 0;
                         toast.success(`Hentet fra ${activeDef.label}: ${pulled} kunder opdateret lokalt.`);
                         await load();
