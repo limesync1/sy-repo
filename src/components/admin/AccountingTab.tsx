@@ -96,29 +96,6 @@ const PROVIDERS: ProviderDef[] = [
     },
   },
   {
-    value: "billy",
-    label: "Billy",
-    logo: billyLogo,
-    tagline: "",
-    description: "Klik her for at integrere din virksomhed med Billy som dit regnskabsprogram.",
-    helpUrl: "https://mit.billy.dk/",
-    helpUrlLabel: "Åbn Billy",
-    fields: [
-      { key: "api_token", label: "Adgangsnøgle fra Billy", type: "password",
-        help: "Du finder adgangsnøglen inde i Billy under Indstillinger → Adgangsnøgler.", placeholder: "Indsæt adgangsnøglen fra Billy" },
-    ],
-    setupSteps: [
-      "Tryk 'Åbn Billy' nedenfor og log ind på den virksomhed, du vil forbinde.",
-      "Gå til Indstillinger → Adgangsnøgler, tryk 'Opret adgangsnøgle', kald den 'Serviceydere' og tryk Opret.",
-      "Kopiér nøglen og kom tilbage hertil — så ordner vi resten automatisk.",
-    ],
-    note: {
-      tone: "info",
-      title: "Hvorfor en adgangsnøgle og ikke mit kodeord?",
-      body: "En adgangsnøgle er sikrere — den virker selv med to-trins-login, og du kan altid slette den igen inde i Billy, hvis du vil afbryde forbindelsen.",
-    },
-  },
-  {
     value: "dinero",
     label: "Dinero",
     logo: dineroLogo,
