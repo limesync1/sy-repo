@@ -1,4 +1,4 @@
-import { ArrowRight, Star, ShieldCheck, Users } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import SmartLink from "@/components/SmartLink";
 import heroImage from "@/assets/hero-window-cleaning.webp";
 import { Button } from "@/components/ui/button";
@@ -41,12 +41,12 @@ const HeroSection = () => {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
             </span>
-            Tusindvis af serviceydere klar nu
+            Klar til at hjælpe dig i dag
           </div>
 
           <h1 className="animate-fade-in text-[2rem] font-semibold leading-[1.06] tracking-tight text-background sm:text-[3.25rem] lg:text-[3.75rem]">
             Find den rette{" "}
-            <span className="bg-[linear-gradient(110deg,hsl(var(--background))_0%,hsl(var(--accent))_50%,hsl(var(--background))_100%)] bg-[length:200%_100%] bg-clip-text text-transparent animate-gradient-pan">
+            <span className="bg-[linear-gradient(110deg,hsl(var(--background))_0%,hsl(184_90%_72%)_50%,hsl(var(--background))_100%)] bg-[length:200%_100%] bg-clip-text text-transparent animate-gradient-pan">
               serviceyder
             </span>{" "}
             til opgaven.
@@ -79,28 +79,6 @@ const HeroSection = () => {
                 <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
               </Button>
             </SmartLink>
-          </div>
-
-          {/* Lille trust-række — stjerner, verificerede og brugere. Animeres
-              ind sidst i sequencen så den lander roligt under CTA'erne. */}
-          <div className="animate-fade-in [animation-delay:420ms] mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs text-background/85">
-            <div className="flex items-center gap-1.5">
-              <div className="flex">
-                {[0, 1, 2, 3, 4].map((i) => (
-                  <Star key={i} className="h-4 w-4 fill-accent text-accent" />
-                ))}
-              </div>
-              <span className="font-medium">4,9 / 5</span>
-              <span className="text-background/60">· 2.400+ anmeldelser</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <ShieldCheck className="h-4 w-4 text-accent" />
-              <span>CVR-verificerede udbydere</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Users className="h-4 w-4 text-accent" />
-              <span>Brugt af 35.000+ danskere</span>
-            </div>
           </div>
         </div>
       </div>
