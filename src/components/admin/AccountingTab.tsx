@@ -591,8 +591,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     setShowSecret({});
     setTestResult(null);
     setDryRunResult(null);
-    setBillyStatus("idle");
-    setBillyError(null);
     setDineroStatus("idle");
     setDineroError(null);
     setEconomicConnecting(false);
