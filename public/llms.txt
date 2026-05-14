@@ -1,0 +1,31 @@
+# Serviceydere
+
+> Dansk marketplace og SaaS-platform hvor private og virksomheder finder, sammenligner og booker verificerede lokale serviceydere — rengøring, håndværker, flyttehjælp, haveservice m.fl.
+
+Serviceydere.dk forbinder kunder med lokale udbydere i hele Danmark. Kunder kan få op til 3 gratis tilbud, booke direkte fra virksomhedernes profilsider og se priser, anmeldelser og åbningstider. Virksomheder får en profilside, online booking, ruteplanlægger, fakturering og CRM på samme platform.
+
+## Pages
+
+- [Forside](/): Find og book lokale serviceydere i Danmark.
+- [Find virksomheder](/virksomheder): Søg og filtrér verificerede serviceydere efter kategori og by.
+- [Få tilbud](/tilbud): Beskriv din opgave og modtag op til 3 gratis tilbud fra relevante udbydere.
+- [Log ind](/log-ind): Login for kunder, virksomheder og medarbejdere.
+
+## Kategorier
+
+- [Rengøring](/virksomheder?category=Reng%C3%B8ring): Privat- og erhvervsrengøring.
+- [Håndværker](/virksomheder?category=H%C3%A5ndv%C3%A6rker): Tømrer, murer og alment håndværk.
+- [Flyttehjælp](/virksomheder?category=Flyttehj%C3%A6lp): Flytning af bolig og erhverv.
+- [Haveservice](/virksomheder?category=Haveservice): Havearbejde, hækklipning, græsslåning.
+- [Maler](/virksomheder?category=Maler): Indvendig og udvendig malerarbejde.
+- [VVS](/virksomheder?category=VVS): VVS-installatører og blikkenslagere.
+- [Elektriker](/virksomheder?category=Elektriker): Autoriserede elektrikere.
+- [Tømrer](/virksomheder?category=T%C3%B8mrer): Tømrer- og snedkerarbejde.
+- [Sikkerhed](/virksomheder?category=Sikkerhed): Alarm, låse og sikring.
+
+## Optional
+
+- [Cookies](/cookies): Cookiepolitik.
+- [Privatlivspolitik](/privatlivspolitik): Hvordan vi behandler persondata.
+- [Handelsbetingelser](/handelsbetingelser): Vilkår for brug af platformen.
+- [Sitemap](/sitemap.xml): XML-sitemap over alle offentlige sider.
