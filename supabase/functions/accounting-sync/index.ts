@@ -999,7 +999,9 @@ async function pushProduct(admin: SupabaseClient, integ: Integration, adapter: A
   const changed = existing?.external_id
     ? diffForPush(fullPayload, state)
     : { ...fullPayload };
-  if (existing?.external_id && Object.keys(changed).length === 0) return;
+  // Vi springer ikke længere over når intet er ændret — adapteren verificerer
+  // at produktet stadig findes i regnskabsprogrammet, og opretter det på ny
+  // hvis linket er forældet (fx slettet i e-conomic).
 
   const result = await adapter.upsertProduct({
     internal_id: serviceId,
