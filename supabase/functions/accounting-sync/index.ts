@@ -1106,6 +1106,18 @@ async function pushOrder(admin: SupabaseClient, integ: Integration, adapter: Acc
     .select("external_id, external_type").eq("business_id", integ.business_id)
     .eq("provider", integ.provider).eq("order_id", orderId).maybeSingle();
 
+  // Skygge-ordrer importeret fra regnskabsprogrammet er allerede fakturaer og
+  // må aldrig pushes tilbage som nye ordrekladder.
+  if (String(order.notes ?? "").startsWith("Auto-importeret fra ")) {
+    if (existing && existing.external_type !== "invoice_booked") {
+      await admin.from("accounting_order_links").update({
+        external_type: "invoice_booked",
+        last_status_synced: order.invoice_status ?? order.payment_status ?? "imported",
+      }).eq("business_id", integ.business_id).eq("provider", integ.provider).eq("order_id", orderId);
+    }
+    return;
+  }
+
   // Når Serviceydere allerede har et bogført fakturanummer, må aftalen aldrig
   // pushes igen som en ordrekladde. Det kunne overskrive linket fra
   // invoice_booked → order og gav efterfølgende 404 på /orders/drafts/{nr}.
