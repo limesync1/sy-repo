@@ -452,29 +452,41 @@ export function makeEconomicAdapter(
         productGroup: { productGroupNumber },
       };
       if (input.external_id) {
-        await ecRequest(creds, `/products/${input.external_id}`, {
-          method: "PUT",
-          body: JSON.stringify(body),
-        });
-        return {
-          external_id: input.external_id,
-          external_number: input.external_id,
-          name: input.name,
-          unit_price: input.unit_price,
-        };
-      } else {
-        const created = await ecRequest(creds, `/products`, {
-          method: "POST",
-          body: JSON.stringify(body),
-        });
-        return {
-          external_id: String(created.productNumber),
-          external_number: String(created.productNumber),
-          name: created.name,
-          unit_price: Number(created.salesPrice ?? 0),
-          raw: created,
-        };
+        // Verify the product still exists in e-conomic. Hvis linket peger på et
+        // produkt der er slettet (eller aldrig blev oprettet korrekt), falder vi
+        // tilbage til at oprette det på ny — ellers fejler efterfølgende
+        // ordre-pushes med "lines.items" fordi productNumber ikke findes.
+        const existing = await ecRequest(
+          creds,
+          `/products/${encodeURIComponent(input.external_id)}`,
+          {},
+          { silent404: true },
+        );
+        if (existing) {
+          await ecRequest(creds, `/products/${encodeURIComponent(input.external_id)}`, {
+            method: "PUT",
+            body: JSON.stringify(body),
+          });
+          return {
+            external_id: input.external_id,
+            external_number: input.external_id,
+            name: input.name,
+            unit_price: input.unit_price,
+          };
+        }
+        // ellers: produktet findes ikke længere — falder igennem til POST.
       }
+      const created = await ecRequest(creds, `/products`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      });
+      return {
+        external_id: String(created.productNumber),
+        external_number: String(created.productNumber),
+        name: created.name,
+        unit_price: Number(created.salesPrice ?? 0),
+        raw: created,
+      };
     },
 
     async upsertOrder(input: UpsertOrderInput) {
