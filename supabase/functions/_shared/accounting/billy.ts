@@ -105,6 +105,7 @@ async function getOrgId(creds: AccountingCredentials): Promise<string> {
 // Billy kræver en indtægtskonto på alle varer. Hvis brugeren ikke har valgt
 // en konto endnu, vælger vi automatisk en gyldig salgskonto fra Billy.
 const incomeAccountCache = new Map<string, string>();
+const fallbackProductCache = new Map<string, string>();
 // Billy kræver en taxRateId pr. linje når kontakten/varen ikke har en standard.
 // Vi henter Billys "domestic sales VAT" (fx U25) én gang pr. organisation.
 const taxRateCache = new Map<string, string | null>();
@@ -176,6 +177,29 @@ async function ensureBillyIncomeAccount(
     console.warn("ensureBillyIncomeAccount failed:", e instanceof Error ? e.message : e);
     return null;
   }
+}
+
+async function ensureBillyFallbackProduct(creds: AccountingCredentials, orgId: string, settings: AccountingSettings): Promise<string> {
+  const cached = fallbackProductCache.get(orgId);
+  if (cached) return cached;
+  const products = await billyRequest(creds, `/products?pageSize=1000`).catch(() => ({ products: [] }));
+  const existing = (products?.products ?? []).find((p: any) => p?.productNo === "SY-GENERIC" || p?.name === "Serviceydere ydelse");
+  if (existing?.id) {
+    fallbackProductCache.set(orgId, existing.id);
+    return existing.id;
+  }
+  const accountId = await ensureBillyIncomeAccount(creds, orgId, String(settings.default_income_account ?? "") || null);
+  if (!accountId) throw new Error("Billy mangler en indtægtskonto til ordrelinjer uden service. Vælg en indtægtskonto i opsætningen.");
+  const created = await billyRequest(creds, `/products`, {
+    method: "POST",
+    body: JSON.stringify({
+      product: { organizationId: orgId, name: "Serviceydere ydelse", productNo: "SY-GENERIC", accountId, prices: [{ unitPrice: 0, currencyId: "DKK" }] },
+    }),
+  });
+  const p = created?.products?.[0] ?? created?.product;
+  if (!p?.id) throw new Error("Billy kunne ikke oprette standardvaren til ordrelinjer uden service.");
+  fallbackProductCache.set(orgId, p.id);
+  return p.id;
 }
 
 // Billy gemmer email på contactPersons, mens telefonnummer ligger direkte på contact.
@@ -448,6 +472,7 @@ export function makeBillyAdapter(
       // dansk salgs-moms én gang og brug den som fallback — ellers fejler Billy
       // med en intetsigende "Invalid record".
       const fallbackTaxRateId = await getDefaultBillySalesTaxRate(creds, orgId);
+      const fallbackProductId = await ensureBillyFallbackProduct(creds, orgId, settings);
       const invoice: Record<string, unknown> = {
         organizationId: orgId,
         contactId: input.customer_external_id,
@@ -458,7 +483,7 @@ export function makeBillyAdapter(
         // Standard-valuta i Serviceydere er altid DKK.
         currencyId: "DKK",
         lines: input.lines.map((l) => ({
-          productId: l.product_external_id ?? undefined,
+          productId: l.product_external_id ?? fallbackProductId,
           description: l.description,
           quantity: l.quantity,
           unitPrice: l.unit_price,
