@@ -763,6 +763,14 @@ const AftaleTab = ({
   const [activeDragOrder, setActiveDragOrder] = useState<any | null>(null);
   // Bekræftelses-dialog inden en rute slettes permanent.
   const [routeToDelete, setRouteToDelete] = useState<{ id: string; name: string } | null>(null);
+  // Når man sletter en annulleret aftale der er det sidste stop på sin rute,
+  // skal vi advare brugeren om at hele ruten også forsvinder — og lade dem
+  // bekræfte med "Forstået" før både aftale og rute slettes.
+  const [lastStopWarning, setLastStopWarning] = useState<
+    | { orderId: string; routeId: string; routeName: string }
+    | null
+  >(null);
+  const [deletingLastStop, setDeletingLastStop] = useState(false);
 
   // Ruter for de næste 14 dage (incl. i dag) — det vindue virksomhedsejeren
   // typisk planlægger inden for. Sidebar-poolen viser disse ruter.
