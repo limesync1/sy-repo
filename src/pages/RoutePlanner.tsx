@@ -770,12 +770,15 @@ const Planner = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("agreement_occurrences")
-        .select("id, agreement_id, occurrence_date, status, route_id, agreements(customer_name, interval, preferred_route_id)")
+        .select("id, agreement_id, occurrence_date, status, route_id, agreements!inner(customer_name, interval, preferred_route_id, status)")
         .eq("business_id", businessId!)
         .gte("occurrence_date", calendarRange.start)
         .lte("occurrence_date", calendarRange.end)
         .is("route_id", null)
-        .eq("status", "planned");
+        .eq("status", "planned")
+        // Skjul forekomster fra inaktive/annullerede aftaler — uden dette
+        // hænger gamle "spøgelses-ruter" uden indhold på datoen.
+        .eq("agreements.status", "active");
       if (error) throw error;
       return (data || []) as any[];
     },
@@ -784,9 +787,10 @@ const Planner = () => {
   const occurrenceVirtualRoutes: CalendarRoute[] = useMemo(() => {
     if (!pendingOccurrences.length) return [];
     return pendingOccurrences
-      // Spring forekomster over hvor aftalen allerede har en preferred_route_id
-      // — de tegnes via `virtualCalendarRoutes` (basis-rute-projektionen).
-      .filter((o: any) => !o.agreements?.preferred_route_id)
+      // Spring forekomster over hvor aftalen mangler (orphan-row efter sletning)
+      // eller allerede har en preferred_route_id — de tegnes via
+      // `virtualCalendarRoutes` (basis-rute-projektionen).
+      .filter((o: any) => o.agreements && !o.agreements.preferred_route_id)
       .map((o: any) => ({
         id: `agr-occ:${o.id}`,
         business_id: businessId!,
