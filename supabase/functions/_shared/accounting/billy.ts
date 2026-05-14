@@ -105,6 +105,7 @@ async function getOrgId(creds: AccountingCredentials): Promise<string> {
 // Billy kræver en indtægtskonto på alle varer. Hvis brugeren ikke har valgt
 // en konto endnu, vælger vi automatisk en gyldig salgskonto fra Billy.
 const incomeAccountCache = new Map<string, string>();
+const fallbackProductCache = new Map<string, string>();
 // Billy kræver en taxRateId pr. linje når kontakten/varen ikke har en standard.
 // Vi henter Billys "domestic sales VAT" (fx U25) én gang pr. organisation.
 const taxRateCache = new Map<string, string | null>();
