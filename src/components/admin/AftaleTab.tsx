@@ -771,6 +771,9 @@ const AftaleTab = ({
     | null
   >(null);
   const [deletingLastStop, setDeletingLastStop] = useState(false);
+  // Bekræftelse af permanent sletning af en annulleret aftale (uden rute-konsekvens).
+  const [orderToDelete, setOrderToDelete] = useState<{ id: string } | null>(null);
+  const [deletingOrder, setDeletingOrder] = useState(false);
 
   // Ruter for de næste 14 dage (incl. i dag) — det vindue virksomhedsejeren
   // typisk planlægger inden for. Sidebar-poolen viser disse ruter.
