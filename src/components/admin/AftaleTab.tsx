@@ -2635,6 +2635,28 @@ const AftaleTab = ({
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Bekræft permanent sletning af en annulleret aftale. */}
+      <AlertDialog open={!!orderToDelete} onOpenChange={(o) => !o && !deletingOrder && setOrderToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Slet aftale permanent?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Den annullerede aftale fjernes permanent fra systemet. Dette kan ikke fortrydes.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingOrder}>Annullér</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); confirmDeleteOrder(); }}
+              disabled={deletingOrder}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deletingOrder ? "Sletter…" : "Slet aftale"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* DragOverlay — viser et flydende kort med kundenavn og pris mens
           aftalen trækkes (samme visuelle feedback som Ruteplanlæggeren). */}
       <DragOverlay>
