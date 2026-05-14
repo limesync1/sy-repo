@@ -1970,7 +1970,25 @@ const ServiceForm = ({
                       }`}
                     >
                       {selected && <span aria-hidden>✓</span>}
-                      {e.name}
+                      {e.avatar_url ? (
+                        <img
+                          src={e.avatar_url}
+                          alt=""
+                          className="h-5 w-5 rounded-full object-cover -ml-1"
+                          width={20}
+                          height={20}
+                          loading="lazy"
+                        />
+                      ) : (
+                        <span
+                          className="h-5 w-5 rounded-full inline-flex items-center justify-center text-[9px] font-bold text-white -ml-1"
+                          style={{ background: e.color || "hsl(220 13% 46%)" }}
+                          aria-hidden
+                        >
+                          {e.name.split(" ").map((p: string) => p[0]).slice(0, 2).join("").toUpperCase()}
+                        </span>
+                      )}
+                      <span>{e.name}</span>
                     </button>
                   );
                 })}
