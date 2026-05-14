@@ -49,7 +49,7 @@ const FEATURES: { key: FeatureKey; icon: typeof Route; title: string; descriptio
     key: "accounting_integration",
     icon: Calculator,
     title: "Regnskabsintegration",
-    description: "Synkronisér automatisk fakturaer og betalinger med fx e-conomic, Dinero eller Billy. Helt gratis — inkluderet i din pakke.",
+    description: "Synkronisér automatisk fakturaer og betalinger med fx e-conomic eller Dinero. Helt gratis — inkluderet i din pakke.",
   },
   {
     key: "data_import",
