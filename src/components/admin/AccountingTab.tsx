@@ -29,7 +29,6 @@ import {
 } from "@/components/admin/shared/AdminUI";
 import { Skeleton } from "@/components/ui/skeleton";
 import economicLogo from "@/assets/accounting/economic.png";
-import billyLogo from "@/assets/accounting/billy.png";
 import dineroLogo from "@/assets/accounting/dinero.png";
 
 /**
@@ -44,7 +43,7 @@ import dineroLogo from "@/assets/accounting/dinero.png";
  *    og venlige fejlmeddelelser fra adapter-laget.
  */
 
-type Provider = "economic" | "billy" | "dinero";
+type Provider = "economic" | "dinero";
 
 interface ProviderField {
   key: string;
