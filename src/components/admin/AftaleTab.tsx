@@ -2597,6 +2597,33 @@ const AftaleTab = ({
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Sidste-stop advarsel: når man sletter en aftale der er det eneste stop
+          tilbage på en rute, fortæller vi tydeligt at hele ruten også fjernes. */}
+      <AlertDialog open={!!lastStopWarning} onOpenChange={(o) => !o && !deletingLastStop && setLastStopWarning(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sletter du også ruten?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Denne aftale er den sidste på ruten <strong>{lastStopWarning?.routeName}</strong>.
+              Hvis du sletter aftalen, slettes ruten <strong>{lastStopWarning?.routeName}</strong> også
+              automatisk — ruten bliver tom og giver ikke længere mening at beholde.
+              <br /><br />
+              Dette kan ikke fortrydes.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingLastStop}>Annullér</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); confirmDeleteOrderAndRoute(); }}
+              disabled={deletingLastStop}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deletingLastStop ? "Sletter…" : "Forstået"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* DragOverlay — viser et flydende kort med kundenavn og pris mens
           aftalen trækkes (samme visuelle feedback som Ruteplanlæggeren). */}
       <DragOverlay>
