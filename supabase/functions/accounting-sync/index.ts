@@ -643,24 +643,25 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
     }).eq("business_id", integ.business_id);
     await setIntegrationError(admin, integ.business_id, null);
 
-    // ── Pull "skygge-fakturaer": fakturaer oprettet DIREKTE i regnskabs-
-    // programmet (ikke pushet fra Serviceydere) skal også vises i Service-
-    // ydere. Vi opretter en read-only ordre med status "completed" og
-    // payment_status fra udbyderen — så de fremgår af kundens fakturaliste.
-    let shadowInvoices = 0;
+    // ── Status-spejling for fakturaer vi SELV har pushet:
+    // Vi opretter ALDRIG nye ordrer/aftaler i Serviceydere fra fakturaer i
+    // regnskabsprogrammet — flowet er envejs (Serviceydere → regnskabsprogram).
+    // Her opdaterer vi kun betalingsstatus på vores eksisterende linkede
+    // ordrer/aftale-forekomster ud fra hvad regnskabsprogrammet rapporterer.
+    let invoiceStatusUpdates = 0;
     if (!CUSTOMERS_ONLY && typeof adapter.listInvoices === "function") {
       try {
         const externalInvoices = await adapter.listInvoices(since);
         for (const inv of externalInvoices) {
-          // Spring over hvis vi allerede har den linket til en ordre
           const { data: existingLink } = await admin.from("accounting_order_links")
-            .select("id, order_id")
+            .select("id, order_id, agreement_occurrence_id")
             .eq("business_id", integ.business_id)
             .eq("provider", integ.provider)
             .eq("external_id", inv.external_id)
             .maybeSingle();
-          if (existingLink) {
-            // Opdater betalingsstatus og total
+          if (!existingLink) continue; // Ikke pushet fra Serviceydere — ignorér
+
+          if (existingLink.order_id) {
             const { data: currentOrder } = await admin.from("orders")
               .select("payment_status, paid_at, paid_amount")
               .eq("id", existingLink.order_id).maybeSingle();
@@ -672,90 +673,16 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
               payment_status_synced_at: new Date().toISOString(),
               due_date: inv.due_date ?? null,
             }).eq("id", existingLink.order_id);
-            continue;
+            invoiceStatusUpdates++;
+          } else if (existingLink.agreement_occurrence_id) {
+            await admin.from("agreement_occurrences").update({
+              payment_status: inv.status,
+              paid_at: inv.paid_at,
+              paid_amount: inv.paid_amount ?? null,
+              due_date: inv.due_date ?? null,
+            }).eq("id", existingLink.agreement_occurrence_id);
+            invoiceStatusUpdates++;
           }
-
-          // Find matchende kunde via customer link
-          let matchedCustomerId: string | null = null;
-          let matchedTable: "business_customers" | "private_customers" = "private_customers";
-          let matchedEmail: string | null = null;
-          if (inv.customer_external_id) {
-            const { data: cl } = await admin.from("accounting_customer_links")
-              .select("business_customer_id, private_customer_id")
-              .eq("business_id", integ.business_id)
-              .eq("provider", integ.provider)
-              .eq("external_id", inv.customer_external_id)
-              .maybeSingle();
-            if (cl?.business_customer_id) {
-              matchedCustomerId = cl.business_customer_id;
-              matchedTable = "business_customers";
-              const { data: bc } = await admin.from("business_customers")
-                .select("email").eq("id", matchedCustomerId).maybeSingle();
-              matchedEmail = bc?.email ?? null;
-            } else if (cl?.private_customer_id) {
-              matchedCustomerId = cl.private_customer_id;
-              matchedTable = "private_customers";
-              const { data: pc } = await admin.from("private_customers")
-                .select("email").eq("id", matchedCustomerId).maybeSingle();
-              matchedEmail = pc?.email ?? null;
-            }
-          }
-
-          // Opret skygge-ordre
-          const { data: newOrder, error: orderErr } = await admin.from("orders").insert({
-            business_id: integ.business_id,
-            customer_id: matchedCustomerId,
-            customer_name: inv.customer_name ?? "Faktura fra regnskabsprogram",
-            customer_email: matchedEmail,
-            total_amount: inv.total_amount ?? 0,
-            status: "completed",
-            payment_status: inv.status,
-            paid_at: inv.paid_at,
-            paid_amount: inv.paid_amount ?? null,
-            payment_status_synced_at: new Date().toISOString(),
-            due_date: inv.due_date ?? null,
-            notes: `Auto-importeret fra ${integ.provider} (faktura ${inv.external_number ?? inv.external_id})`,
-          }).select("id").single();
-
-          if (orderErr || !newOrder) {
-            console.error("[pull] shadow order insert failed", orderErr?.message);
-            continue;
-          }
-
-          // Opret order_items hvis vi har linjer
-          if (Array.isArray(inv.lines) && inv.lines.length > 0) {
-            const items = inv.lines.map((l) => ({
-              order_id: newOrder.id,
-              service_name: l.description || "Faktura-linje",
-              quantity: l.quantity,
-              unit_price: l.unit_price,
-              total_price: l.quantity * l.unit_price,
-            }));
-            await admin.from("order_items").insert(items);
-          } else {
-            // Fallback: én sammenfattet linje
-            await admin.from("order_items").insert({
-              order_id: newOrder.id,
-              service_name: `Faktura ${inv.external_number ?? inv.external_id}`,
-              quantity: 1,
-              unit_price: inv.total_amount ?? 0,
-              total_price: inv.total_amount ?? 0,
-            });
-          }
-
-          // Opret link så vi ikke duplikerer ved næste pull
-          await admin.from("accounting_order_links").insert({
-            business_id: integ.business_id,
-            provider: integ.provider,
-            order_id: newOrder.id,
-            external_id: inv.external_id,
-            external_number: inv.external_number,
-            external_type: "invoice_booked",
-            last_pushed_at: new Date().toISOString(),
-            last_status_synced: new Date().toISOString(),
-            external_data: inv.raw ?? {},
-          });
-          shadowInvoices++;
         }
       } catch (e) {
         console.error("[pull] listInvoices failed", e instanceof Error ? e.message : String(e));
@@ -765,9 +692,9 @@ async function pullFromProvider(admin: SupabaseClient, integ: Integration, adapt
     await logSync(admin, {
       business_id: integ.business_id, provider: integ.provider,
       direction: "pull", entity_type: "connection", status: "success",
-      message: `Pulled ${customersPulled} customers, ${productsPulled} products, ${invoicesPulled} invoice statuses, ${shadowInvoices} shadow invoices`,
+      message: `Pulled ${customersPulled} customers, ${productsPulled} products, ${invoicesPulled} invoice statuses, ${invoiceStatusUpdates} invoice status updates`,
     });
-    return { customers: customersPulled, products: productsPulled, invoices: invoicesPulled, shadow_invoices: shadowInvoices };
+    return { customers: customersPulled, products: productsPulled, invoices: invoicesPulled, shadow_invoices: 0, invoice_status_updates: invoiceStatusUpdates };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     await setIntegrationError(admin, integ.business_id, msg);
