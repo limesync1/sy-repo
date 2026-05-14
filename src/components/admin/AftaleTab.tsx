@@ -763,6 +763,14 @@ const AftaleTab = ({
   const [activeDragOrder, setActiveDragOrder] = useState<any | null>(null);
   // Bekræftelses-dialog inden en rute slettes permanent.
   const [routeToDelete, setRouteToDelete] = useState<{ id: string; name: string } | null>(null);
+  // Når man sletter en annulleret aftale der er det sidste stop på sin rute,
+  // skal vi advare brugeren om at hele ruten også forsvinder — og lade dem
+  // bekræfte med "Forstået" før både aftale og rute slettes.
+  const [lastStopWarning, setLastStopWarning] = useState<
+    | { orderId: string; routeId: string; routeName: string }
+    | null
+  >(null);
+  const [deletingLastStop, setDeletingLastStop] = useState(false);
 
   // Ruter for de næste 14 dage (incl. i dag) — det vindue virksomhedsejeren
   // typisk planlægger inden for. Sidebar-poolen viser disse ruter.
@@ -1196,6 +1204,22 @@ const AftaleTab = ({
       toast.error("Kun annullerede aftaler kan slettes");
       return;
     }
+    // Tjek om aftalen ligger på en rute — og om den er det sidste stop.
+    // I så fald håndteres bekræftelse + sletning i AlertDialog'en nedenfor,
+    // så brugeren ved præcis hvilken rute der også forsvinder.
+    const stop = stopByOrder?.[order.id];
+    if (stop?.route?.id) {
+      const routeId = stop.route.id;
+      const siblingsOnRoute = (routeStops || []).filter((s: any) => s.route?.id === routeId);
+      if (siblingsOnRoute.length <= 1) {
+        setLastStopWarning({
+          orderId: order.id,
+          routeId,
+          routeName: routeDisplayName(stop.route) || "Rute",
+        });
+        return;
+      }
+    }
     if (!confirm("Slet denne annullerede aftale permanent? Dette kan ikke fortrydes.")) return;
     try {
       const { error } = await supabase.rpc("delete_cancelled_order" as any, { _order_id: order.id });
@@ -1210,6 +1234,40 @@ const AftaleTab = ({
       qc.invalidateQueries({ queryKey: ["stops-for-routes"] });
     } catch (e: any) {
       toast.error(e?.message ?? "Kunne ikke slette aftalen");
+    }
+  };
+
+  // Bekræft sletning af aftale + tilhørende (tomme) rute.
+  const confirmDeleteOrderAndRoute = async () => {
+    if (!lastStopWarning) return;
+    setDeletingLastStop(true);
+    try {
+      const { error: orderErr } = await supabase.rpc(
+        "delete_cancelled_order" as any,
+        { _order_id: lastStopWarning.orderId },
+      );
+      if (orderErr) throw orderErr;
+      // Sletter ruten — ruten er nu tom, så den giver ingen mening at beholde.
+      const { error: routeErr } = await supabase
+        .from("routes")
+        .delete()
+        .eq("id", lastStopWarning.routeId);
+      if (routeErr) throw routeErr;
+      toast.success(`Aftale slettet — ruten "${lastStopWarning.routeName}" blev også fjernet`);
+      setExpandedOrder(null);
+      setLastStopWarning(null);
+      qc.invalidateQueries({ queryKey: ["orders"] });
+      qc.invalidateQueries({ queryKey: ["my-orders"] });
+      qc.invalidateQueries({ queryKey: ["business-subscriptions"] });
+      qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
+      qc.invalidateQueries({ queryKey: ["aftaler-all-routes"] });
+      qc.invalidateQueries({ queryKey: ["routes"] });
+      qc.invalidateQueries({ queryKey: ["routes-for-range"] });
+      qc.invalidateQueries({ queryKey: ["stops-for-routes"] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Kunne ikke slette aftalen");
+    } finally {
+      setDeletingLastStop(false);
     }
   };
 
@@ -2534,6 +2592,33 @@ const AftaleTab = ({
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Slet rute
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Sidste-stop advarsel: når man sletter en aftale der er det eneste stop
+          tilbage på en rute, fortæller vi tydeligt at hele ruten også fjernes. */}
+      <AlertDialog open={!!lastStopWarning} onOpenChange={(o) => !o && !deletingLastStop && setLastStopWarning(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sletter du også ruten?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Denne aftale er den sidste på ruten <strong>{lastStopWarning?.routeName}</strong>.
+              Hvis du sletter aftalen, slettes ruten <strong>{lastStopWarning?.routeName}</strong> også
+              automatisk — ruten bliver tom og giver ikke længere mening at beholde.
+              <br /><br />
+              Dette kan ikke fortrydes.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingLastStop}>Annullér</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); confirmDeleteOrderAndRoute(); }}
+              disabled={deletingLastStop}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deletingLastStop ? "Sletter…" : "Forstået"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
