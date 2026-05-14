@@ -151,6 +151,18 @@ const PROVIDERS: ProviderDef[] = [
   },
 ];
 
+function syncErrorMessage(result: { data?: unknown; error?: unknown }, fallback: string): string | null {
+  const dataError = (result.data as any)?.error;
+  if (dataError) return String(dataError);
+  const err = result.error as any;
+  if (!err) return null;
+  const contextError = err?.context?.error ?? err?.context?.message;
+  if (contextError) return String(contextError);
+  const message = err?.message ? String(err.message) : fallback;
+  const match = message.match(/\{"error":"([\s\S]*?)"\}/);
+  return match?.[1] ? match[1].replace(/\\"/g, '"') : message;
+}
+
 interface Integration {
   id?: string;
   business_id: string;
