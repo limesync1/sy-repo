@@ -107,7 +107,9 @@ Deno.serve(async (req) => {
     return json({ ok: true, processed: drained, seeded });
   } catch (e) {
     console.error("accounting-sync error", e);
-    return json({ error: e instanceof Error ? e.message : String(e) }, 500);
+    const message = e instanceof Error ? e.message : String(e);
+    const userActionRequired = isUserActionableAccountingError(message);
+    return json({ ok: false, error: message, user_action_required: userActionRequired }, userActionRequired ? 200 : 500);
   }
 });
 
@@ -116,6 +118,10 @@ function json(data: unknown, status = 200) {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
+}
+
+function isUserActionableAccountingError(message: string): boolean {
+  return /demo-aftale er udløbet|forbindelsen blev afvist|app secret token|agreement grant token|api-nøglen|access token|afviste login|invalid token|unauthorized|forbidden/i.test(message);
 }
 
 // ─── SEED ────────────────────────────────────────────────────────────────

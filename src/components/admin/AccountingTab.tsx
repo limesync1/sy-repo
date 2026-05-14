@@ -151,6 +151,18 @@ const PROVIDERS: ProviderDef[] = [
   },
 ];
 
+function syncErrorMessage(result: { data?: unknown; error?: unknown }, fallback: string): string | null {
+  const dataError = (result.data as any)?.error;
+  if (dataError) return String(dataError);
+  const err = result.error as any;
+  if (!err) return null;
+  const contextError = err?.context?.error ?? err?.context?.message;
+  if (contextError) return String(contextError);
+  const message = err?.message ? String(err.message) : fallback;
+  const match = message.match(/\{"error":"([\s\S]*?)"\}/);
+  return match?.[1] ? match[1].replace(/\\"/g, '"') : message;
+}
+
 interface Integration {
   id?: string;
   business_id: string;
@@ -1503,7 +1515,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       const r = await supabase.functions.invoke("accounting-sync", {
         body: { business_id: businessId, mode: "queue" },
       });
-      if (r.error) throw r.error;
+      const syncError = syncErrorMessage(r, "Kunne ikke prøve igen");
+      if (syncError) throw new Error(syncError);
       await load();
     } catch (e: any) {
       toast.error(e.message ?? "Kunne ikke prøve igen");
@@ -1520,7 +1533,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       const r = await supabase.functions.invoke("accounting-sync", {
         body: { business_id: businessId, mode: "queue" },
       });
-      if (r.error) throw r.error;
+      const syncError = syncErrorMessage(r, "Kunne ikke prøve igen");
+      if (syncError) throw new Error(syncError);
       await load();
     } catch (e: any) {
       toast.error(e.message ?? "Kunne ikke prøve igen");
@@ -1555,9 +1569,11 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   async function runFullSync(bizId: string) {
     // Kør push (queue-drain) først så pull ikke overskriver lokale ændringer
     const r1 = await supabase.functions.invoke("accounting-sync", { body: { business_id: bizId, mode: "queue" } });
-    if (r1.error) throw r1.error;
+    const pushError = syncErrorMessage(r1, "Push fejlede");
+    if (pushError) throw new Error(pushError);
     const r2 = await supabase.functions.invoke("accounting-sync", { body: { business_id: bizId, mode: "pull" } });
-    if (r2.error) throw r2.error;
+    const pullError = syncErrorMessage(r2, "Hent fejlede");
+    if (pullError) throw new Error(pullError);
     return {
       pushed: (r1.data as any)?.processed ?? 0,
       seeded: (r1.data as any)?.seeded ?? 0,
@@ -1858,7 +1874,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                         const r = await supabase.functions.invoke("accounting-sync", {
                           body: { business_id: businessId, mode: "queue" },
                         });
-                        if (r.error) throw r.error;
+                        const syncError = syncErrorMessage(r, "Push fejlede");
+                        if (syncError) throw new Error(syncError);
                         const pushed = (r.data as any)?.processed ?? 0;
                         toast.success(`Sendt til ${activeDef.label}: ${pushed} kunder push'et.`);
                         await load();
@@ -1883,7 +1900,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                         const r = await supabase.functions.invoke("accounting-sync", {
                           body: { business_id: businessId, mode: "pull" },
                         });
-                        if (r.error) throw r.error;
+                        const syncError = syncErrorMessage(r, "Hent fejlede");
+                        if (syncError) throw new Error(syncError);
                         const pulled = (r.data as any)?.customers ?? 0;
                         toast.success(`Hentet fra ${activeDef.label}: ${pulled} kunder opdateret lokalt.`);
                         await load();
