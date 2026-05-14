@@ -25,7 +25,7 @@ import {
   CheckCircle2, XCircle, RefreshCw, CalendarClock,
   Play, Pause, Search, Route as RouteIcon, MapPin, Plus as PlusIcon,
   GripVertical, Loader2, Tag, Palette, Trash2, ArrowUpDown, AlertCircle,
-  Filter as FilterIcon, Inbox, Hourglass, ListChecks, CreditCard,
+  Filter as FilterIcon, Inbox, Hourglass, ListChecks, CreditCard, Receipt,
 } from "lucide-react";
 import {
   DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
