@@ -2260,13 +2260,13 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       {/* TRIN 2 */}
       {step === 2 && (
         <div className={
-          provider === "billy" || provider === "economic" || provider === "dinero"
+          provider === "economic" || provider === "dinero"
             ? "grid gap-4 lg:grid-cols-[1fr,1.2fr] xl:grid-cols-[1fr,1.1fr]"
             : "mx-auto max-w-2xl"
         }>
           {/* Venstre kolonne: hjælp & forklaring (kun på desktop, ellers
               ovenfor connect-kortet på mobil) */}
-          {(provider === "billy" || provider === "economic" || provider === "dinero") && (
+          {(provider === "economic" || provider === "dinero") && (
             <SectionCard
               title="Sådan fungerer det"
               icon={<img src={currentProvider.logo} alt="" className="h-4 w-auto" />}
@@ -2274,14 +2274,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               className="bg-secondary/30 lg:sticky lg:top-4 lg:self-start"
             >
               <ol className="space-y-3 text-sm">
-                {(provider === "billy"
-                  ? [
-                      "Vi åbner Billy i et nyt vindue, så du kan vælge din egen virksomhed.",
-                      "Du opretter en ny adgangsnøgle — det tager 5 sekunder i Billy.",
-                      "Kopier nøglen, og indsæt den her i feltet — så går vi i gang automatisk.",
-                      "Vi tester forbindelsen, opretter dine ydelser som varer, og er færdige.",
-                    ]
-                  : provider === "dinero"
+                {(provider === "dinero"
                   ? [
                       "Log ind i Dinero og gå til 'Integrationer' i menuen til venstre.",
                       "Klik 'Se og opret API-nøgler' og opret en ny forbindelse (kald den fx 'Serviceydere').",
@@ -2316,20 +2309,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             </SectionCard>
           )}
 
-          {provider === "billy" || provider === "economic" || provider === "dinero" ? (
+          {provider === "economic" || provider === "dinero" ? (
             <div>
-              {provider === "billy" ? (
-                <BillyConnectCard
-                  token={creds.api_token ?? ""}
-                  onTokenChange={(value) => {
-                    setCreds({ ...creds, api_token: value });
-                    if (billyStatus === "error") { setBillyStatus("idle"); setBillyError(null); }
-                  }}
-                  onAutoConnect={handleBillyAutoConnect}
-                  status={billyStatus}
-                  errorMessage={billyError}
-                />
-              ) : provider === "economic" ? (
+              {provider === "economic" ? (
                 <EconomicConnectCard
                   onConnect={handleEconomicConnect}
                   connecting={economicConnecting}
