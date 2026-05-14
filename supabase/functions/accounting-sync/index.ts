@@ -876,6 +876,14 @@ async function drainQueue(admin: SupabaseClient, integ: Integration, adapter: Ac
       else if (job.entity_type === "product") await pushProduct(admin, integ, adapter, job.entity_id);
       else if (job.entity_type === "order") await pushOrder(admin, integ, adapter, job.entity_id, job.operation);
       else if (job.entity_type === "invoice") await bookInvoiceForOrder(admin, integ, adapter, job.entity_id);
+      else if (job.entity_type === "agreement_occurrence") {
+        if (job.operation === "invoice") {
+          await bookInvoiceForOccurrence(admin, integ, adapter, job.entity_id);
+        } else {
+          // create_order, update, upsert → push som ordre/kladde
+          await pushOccurrenceOrder(admin, integ, adapter, job.entity_id);
+        }
+      }
       await admin.from("accounting_sync_queue").update({
         status: "done", processed_at: new Date().toISOString(), last_error: null,
       }).eq("id", job.id);
