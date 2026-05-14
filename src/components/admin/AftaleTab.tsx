@@ -1970,6 +1970,24 @@ const AftaleTab = ({
                             </span>
                           </>
                         )}
+                        {((order as any).invoice_external_number || (order as any).external_order_number) && (
+                          <>
+                            <span className="text-border">·</span>
+                            <span
+                              className="inline-flex items-center gap-1 font-medium text-foreground/80"
+                              title={
+                                (order as any).invoice_external_number
+                                  ? `Faktura nr. ${(order as any).invoice_external_number} i regnskabsprogrammet — synkroniseres automatisk.`
+                                  : `Ordre nr. ${(order as any).external_order_number} (kladde) i regnskabsprogrammet — bliver til faktura når aftalen markeres udført.`
+                              }
+                            >
+                              <Receipt className="h-3 w-3 opacity-70" />
+                              {(order as any).invoice_external_number
+                                ? <>Faktura&nbsp;#{(order as any).invoice_external_number}</>
+                                : <>Ordre&nbsp;#{(order as any).external_order_number}</>}
+                            </span>
+                          </>
+                        )}
                       </div>
                     </div>
 
