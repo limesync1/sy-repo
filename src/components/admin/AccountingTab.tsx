@@ -1670,19 +1670,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           title="Forbindelsesstatus"
           icon={<ShieldCheck />}
           description={`Sådan står det til lige nu mellem Serviceydere og ${activeDef.label}.`}
-          action={
-            integration.provider === "billy" ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => { setRenewBillyToken(""); setRenewBillyError(null); setRenewBillyStatus("idle"); setRenewBillyOpen(true); }}
-                className="h-9 rounded-lg text-xs font-medium"
-              >
-                <KeyRound className="mr-1.5 h-3.5 w-3.5" />
-                Forny adgangsnøgle
-              </Button>
-            ) : undefined
-          }
         >
           <div className="grid gap-3 sm:grid-cols-2">
             {/* PUSH */}
