@@ -534,17 +534,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     note?: string;
     error?: string;
   } | null>(null);
-  // Billy paste-and-go: én samlet status fra "indsat" til "færdig opsat".
-  const [billyStatus, setBillyStatus] = useState<
-    "idle" | "checking" | "testing" | "saving" | "done" | "error"
-  >("idle");
-  const [billyError, setBillyError] = useState<string | null>(null);
-  // Inline "forny adgangsnøgle"-flow på oversigten (kun Billy).
-  // Lader brugeren udskifte nøglen med ét klik når Billy afviser den nuværende.
-  const [renewBillyOpen, setRenewBillyOpen] = useState(false);
-  const [renewBillyToken, setRenewBillyToken] = useState("");
-  const [renewBillyStatus, setRenewBillyStatus] = useState<"idle" | "checking" | "saving" | "error">("idle");
-  const [renewBillyError, setRenewBillyError] = useState<string | null>(null);
   const [resumingPause, setResumingPause] = useState(false);
   // Dinero paste-and-go: én samlet status fra "udfyldt" til "færdig opsat".
   const [dineroStatus, setDineroStatus] = useState<
