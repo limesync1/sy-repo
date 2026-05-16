@@ -1242,7 +1242,7 @@ const AftaleTab = ({
       qc.invalidateQueries({ queryKey: ["routes-for-range"] });
       qc.invalidateQueries({ queryKey: ["stops-for-routes"] });
     } catch (e: any) {
-      toast.error(e?.message ?? "Kunne ikke slette aftalen");
+      toast.error(toDanishError(e, "Kunne ikke slette aftalen. Prøv igen."));
     } finally {
       setDeletingOrder(false);
     }
@@ -1276,7 +1276,7 @@ const AftaleTab = ({
       qc.invalidateQueries({ queryKey: ["routes-for-range"] });
       qc.invalidateQueries({ queryKey: ["stops-for-routes"] });
     } catch (e: any) {
-      toast.error(e?.message ?? "Kunne ikke slette aftalen");
+      toast.error(toDanishError(e, "Kunne ikke slette aftalen. Prøv igen."));
     } finally {
       setDeletingLastStop(false);
     }
