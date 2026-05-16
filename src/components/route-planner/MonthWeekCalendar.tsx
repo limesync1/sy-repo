@@ -440,6 +440,10 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
         isDragging && "opacity-40",
         isVirtual && "border-dashed",
         isPast && "opacity-50 saturate-50 hover:opacity-90",
+        // Under drag dæmpes fortids-ruter yderligere — de er ikke gyldige
+        // drop-targets (kalender-cellen er disabled), så de skal heller
+        // ikke visuelt invitere til drop.
+        jobDragActive && isPast && "opacity-25 pointer-events-none",
         // Når en aftale er ved at blive sluppet på pillen — markér tydeligt
         !isVirtual && jobDragActive && !isOver && "ring-1 shadow-sm",
         !isVirtual && isOver && "ring-2 ring-accent shadow-md scale-[1.02]",
