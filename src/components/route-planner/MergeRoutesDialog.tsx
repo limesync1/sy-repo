@@ -124,12 +124,12 @@ const ScopeOption = ({
     onClick={onClick}
     disabled={disabled}
     className={cn(
-      "w-full text-left rounded-md border p-2.5 transition-colors",
+      "w-full min-w-0 text-left rounded-md border p-2.5 transition-colors",
       selected ? "border-accent bg-accent/5 ring-1 ring-accent" : "border-border hover:bg-secondary/40",
       disabled && "opacity-50 cursor-not-allowed hover:bg-transparent",
     )}
   >
-    <div className="flex items-center gap-1.5 mb-0.5">
+    <div className="mb-0.5 flex min-w-0 items-start gap-1.5">
       <span
         className={cn(
           "inline-flex h-3.5 w-3.5 rounded-full border-2 shrink-0",
@@ -137,8 +137,8 @@ const ScopeOption = ({
         )}
       />
       {icon && <span className="text-muted-foreground">{icon}</span>}
-      <span className="text-sm font-semibold">{title}</span>
+      <span className="min-w-0 text-sm font-semibold [overflow-wrap:anywhere]">{title}</span>
     </div>
-    <p className="text-[11px] text-muted-foreground leading-snug pl-5">{description}</p>
+    <p className="min-w-0 pl-5 text-[11px] leading-snug text-muted-foreground [overflow-wrap:anywhere]">{description}</p>
   </button>
 );
