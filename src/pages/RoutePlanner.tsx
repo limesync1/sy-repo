@@ -1689,6 +1689,11 @@ const Planner = () => {
         const moved = Number(row?.moved_count ?? 0);
         const missing = Number(row?.missing_employee_count ?? 0);
         if (moved > 0) {
+          // Hvis flytningen oprettede en helt ny rute på den nye dato
+          // (split fra eksisterende rute), så omdøb den efter første kunde
+          // og giv den en ledig farve — samme adfærd som MoveStopsDialog.
+          try { await renameFreshSplitRoutes([stop.id], newDate); }
+          catch (e) { console.warn("renameFreshSplitRoutes", e); }
           toast.success(
             `Stop flyttet til ${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`,
             conflictMsg ? { description: `⚠️ ${conflictMsg} — tjek tidsplanen` } : undefined,
