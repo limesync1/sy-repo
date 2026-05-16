@@ -59,6 +59,7 @@ import { MoveRouteDateDialog, type MoveRouteScope } from "@/components/route-pla
 import { MergeRoutesDialog } from "@/components/route-planner/MergeRoutesDialog";
 import { supabase } from "@/integrations/supabase/client";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
+import { renameFreshSplitRoutes } from "@/components/route-planner/MoveStopsDialog";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
 import { AdminShell } from "@/components/admin/shared/AdminShell";
 import { useWeatherForecast, type WeatherDay } from "@/hooks/useWeather";
@@ -1378,6 +1379,24 @@ const Planner = () => {
 
     const activeData: any = active.data.current;
     const overData: any = over.data.current;
+    // ─── Hård spærring: aldrig drop på en dato før i dag ───
+    // Kalender-cellerne er allerede disabled som drop-target, men en
+    // eksplicit guard + toast sikrer at intet drop (rute, stop eller job)
+    // kan ramme bagud i tid — uanset hvilken vej dnd-kit routinger fyrer.
+    const targetDateForGuard: string | null =
+      overData?.type === "day" ? String(overData.date || "").slice(0, 10) :
+      overData?.type === "route"
+        ? (() => {
+            const tr = calendarRoutesRaw.find((r) => r.id === overData.routeId);
+            return tr?.route_date ? String(tr.route_date).slice(0, 10) : null;
+          })()
+        : null;
+    if (targetDateForGuard && targetDateForGuard < todayStr()) {
+      toast.error("Kan ikke flytte til en dato før i dag", {
+        description: "Ruter og aftaler kan kun planlægges fra dags dato og frem.",
+      });
+      return;
+    }
     if (activeData?.type === "route" && activeData?.route?.isVirtual) {
       await logRoutePlannerEvent({
         businessId,
@@ -1670,6 +1689,11 @@ const Planner = () => {
         const moved = Number(row?.moved_count ?? 0);
         const missing = Number(row?.missing_employee_count ?? 0);
         if (moved > 0) {
+          // Hvis flytningen oprettede en helt ny rute på den nye dato
+          // (split fra eksisterende rute), så omdøb den efter første kunde
+          // og giv den en ledig farve — samme adfærd som MoveStopsDialog.
+          try { await renameFreshSplitRoutes([stop.id], newDate); }
+          catch (e) { console.warn("renameFreshSplitRoutes", e); }
           toast.success(
             `Stop flyttet til ${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`,
             conflictMsg ? { description: `⚠️ ${conflictMsg} — tjek tidsplanen` } : undefined,
@@ -2750,6 +2774,22 @@ const Planner = () => {
           })()}
           open={!!selectedStopId}
           onOpenChange={(o) => !o && setSelectedStopId(null)}
+          effectiveDate={(() => {
+            // Projicerede klik: brug forekomstens dato fra editingProjectedContext.
+            if (editingProjectedContext?.projectedDate) {
+              return editingProjectedContext.projectedDate;
+            }
+            // Ellers: brug datoen for stoppets rute så "Næste besøg" beregnes
+            // ud fra præcis den forekomst brugeren kigger på.
+            if (!selectedStopId) return null;
+            const direct = calendarStops.find((s) => s.id === selectedStopId);
+            const rid = direct?.route_id;
+            if (rid) {
+              const r = calendarRoutesRaw.find((x) => x.id === rid);
+              if (r?.route_date) return String(r.route_date).slice(0, 10);
+            }
+            return null;
+          })()}
         />
 
         {/* Klik på en aftale i aftalepoolen åbner samme detalje-sheet i read-only */}
