@@ -133,7 +133,7 @@ export const RouteEditSheet = ({
   // Holder seneste payload klar til en synkron flush når sheet'et lukkes
   // før debounce-timeren har fået lov at fyre. Uden dette ville hurtige
   // edits efterfulgt af et "klik udenfor"/luk gå tabt.
-  const pendingFlushRef = useRef<{ id: string; name: string | null; color: string } | null>(null);
+  const pendingFlushRef = useRef<{ id: string; name?: string | null; color?: string } | null>(null);
 
   const updateRoute = useUpdateRoute();
   const deleteRoute = useDeleteRoute();
