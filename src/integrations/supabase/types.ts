@@ -3550,6 +3550,10 @@ export type Database = {
         Args: { _business_id: string; _from: string; _to: string }
         Returns: undefined
       }
+      move_route_to_date: {
+        Args: { _new_date: string; _route_id: string; _scope?: string }
+        Returns: Json
+      }
       move_stops_to_date: {
         Args: { _stop_ids: string[]; _target_date: string }
         Returns: {
