@@ -48,7 +48,7 @@ export const MergeRoutesDialog = ({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-md overflow-hidden">
+      <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
             <Combine className="h-4 w-4 text-accent" />
