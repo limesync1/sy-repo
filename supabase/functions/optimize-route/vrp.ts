@@ -32,11 +32,16 @@ const KM_COST_WEIGHT = 1.5;
  *  vejen. Penalty pr. "genåbning" af en allerede besøgt adresse-klynge er
  *  meget høj, så optimeren aldrig sender medarbejderen tilbage til en
  *  adresse den lige har forladt. */
-const SAME_LOCATION_PENALTY = 500;
+const SAME_LOCATION_PENALTY = 2000;
 /** Rund GPS til ~11 m for at fange "samme adresse" på trods af lille jitter
  *  i geokoderen (forskellige indgange, naboparkeringer osv.). */
-const locationKey = (s: Stop): string =>
-  `${s.latitude.toFixed(4)},${s.longitude.toFixed(4)}`;
+const locationKey = (s: Stop): string => {
+  // Foretræk normaliseret adresse-nøgle hvis sat — den fanger "samme bygning"
+  // selv hvis hver aftale er geokodet til en lidt anden indgang. Falder
+  // tilbage til GPS rundet til ~110 m hvis cluster_key mangler.
+  if (s.cluster_key && s.cluster_key.length > 0) return s.cluster_key;
+  return `${s.latitude.toFixed(3)},${s.longitude.toFixed(3)}`;
+};
 const ceilSnap = (m: number) => Math.ceil(m / SLOT_MIN) * SLOT_MIN;
 
 type IRoute = ScheduledStop[];
