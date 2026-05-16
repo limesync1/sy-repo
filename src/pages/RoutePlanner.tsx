@@ -1196,6 +1196,25 @@ const Planner = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [createOpen, newRouteDate]);
 
+  // ─── Stabile callbacks til MonthWeekCalendar ───
+  // VIGTIGT: Disse hooks SKAL stå før de tidlige `if (!business) return …`
+  // og `if (!routePlanningEnabled) return …` nedenfor, ellers ændrer
+  // hook-rækkefølgen sig mellem renders og React kaster
+  // "Rendered more hooks than during the previous render."
+  const handleCalendarSelectStop = useCallback((s: any) => {
+    setSelectedStopId(s.id);
+  }, []);
+  const handleCalendarCreateRoute = useCallback((d: string) => {
+    setNewRouteDate(d);
+    setCreateOpen(true);
+  }, []);
+  const draggingTypeForCalendar = useMemo<"job" | "route" | "stop" | null>(() => {
+    if (activeDragData?.type === "job") return "job";
+    if (activeDragData?.type === "route") return "route";
+    if (activeDragData?.type === "stop") return "stop";
+    return null;
+  }, [activeDragData?.type]);
+
   if (!business) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -1250,44 +1269,22 @@ const Planner = () => {
     setActiveDragData(data);
   };
 
-  // ─── Stabile callbacks til MonthWeekCalendar ───
-  // Tidligere blev disse oprettet som nye funktioner på hver render af
-  // Planner. Det busted React.memo på DayCell og RoutePill, så hele
-  // kalenderens 42 celler re-renderede ved hvert lille state-skift
-  // (vejret, drag-state, busyTargets). useCallback giver dem stabil
-  // identitet og halverer reelt antallet af renders under drag — særligt
-  // mærkbart på Windows/Android hvor V8/Hermes er langsommere end JSC.
-  const handleCalendarSelectRoute = useCallback(async (r: any) => {
+  // De øvrige kalender-callbacks afhænger af `openProjectedRoute` /
+  // `handleOptimize` som er defineret nedenfor, så de bliver almindelige
+  // (uden useCallback). MonthWeekCalendar-memoen accepterer det — kun de
+  // mest brugte callbacks (select stop / create route) skal være stabile.
+  const handleCalendarSelectRoute = async (r: any) => {
     if (r.isVirtual) {
       await openProjectedRoute(r);
       return;
     }
     setEditingProjectedContext(null);
     setEditingRoute(r);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  const handleCalendarSelectStop = useCallback((s: any) => {
-    setSelectedStopId(s.id);
-  }, []);
-  const handleCalendarCreateRoute = useCallback((d: string) => {
-    setNewRouteDate(d);
-    setCreateOpen(true);
-  }, []);
-  const handleCalendarOptimizeRoute = useCallback((id: string) => {
+  };
+  const handleCalendarOptimizeRoute = (id: string) => {
     const r = calendarRoutesRaw.find((x) => x.id === id);
     handleOptimize(id, r?.name ?? null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [calendarRoutesRaw]);
-
-  // draggingType udledes fra activeDragData — memoiseret så samme
-  // primitivt resultat ikke får MonthWeekCalendar til at se en "ny"
-  // prop ved urelaterede re-renders.
-  const draggingTypeForCalendar = useMemo<"job" | "route" | "stop" | null>(() => {
-    if (activeDragData?.type === "job") return "job";
-    if (activeDragData?.type === "route") return "route";
-    if (activeDragData?.type === "stop") return "stop";
-    return null;
-  }, [activeDragData?.type]);
+  };
 
   /** Tjekker om en flytning af et stop til en ny dato vil overlappe
    *  med en assignees øvrige stops på den dato. Returnerer en kort
