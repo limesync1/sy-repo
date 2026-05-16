@@ -58,7 +58,9 @@ export class MutationQueue {
         fn,
         resolve,
         reject,
-        retries: Math.max(1, opts.retries ?? 1),
+        // Default: retry transient failures twice (3 attempts total) — covers
+        // flaky network / Supabase cold-starts under drag-and-drop load.
+        retries: Math.max(1, opts.retries ?? 3),
         backoffMs: opts.backoffMs ?? 250,
         shouldRetry: opts.shouldRetry ?? defaultShouldRetry,
       } as Task<unknown>);
