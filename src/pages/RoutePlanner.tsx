@@ -817,13 +817,10 @@ const Planner = () => {
     const sourcesWithRouteSeed = recurringSources;
     const projections = expandRecurringRoutes({
       sources: sourcesWithRouteSeed,
-      // Projicér ALDRIG i fortiden — selvom kalenderens visuelle range
-      // starter før i dag (fx månedens grid begynder mandag i forrige uge),
-      // skal projicerede ruter aldrig dukke op på datoer der er passeret.
-      rangeStart: (() => {
-        const todayStr = format(new Date(), "yyyy-MM-dd");
-        return calendarRange.start < todayStr ? todayStr : calendarRange.start;
-      })(),
+      // Brug hele det synlige kalenderinterval — også datoer tidligere i
+      // måneden. Ellers forsvinder fx d. 14 i en 14-dages serie, når man ser
+      // måneden efter d. 14 er passeret.
+      rangeStart: calendarRange.start,
       rangeEnd: calendarRange.end,
       realRouteDates: realKeys,
     });
