@@ -2344,7 +2344,24 @@ const Planner = () => {
                   </div>
 
                   <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
-                    {filteredUnassigned.length === 0 && (
+                    {loadingUnassigned && unassigned.length === 0 && (
+                      <div className="space-y-1.5">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <div
+                            key={i}
+                            className="rounded-md border border-border/60 bg-card p-2 space-y-1.5"
+                          >
+                            <div className="flex items-center gap-2">
+                              <div className="h-3 w-1/2 rounded bg-muted animate-pulse" />
+                              <div className="ml-auto h-3 w-12 rounded bg-muted animate-pulse" />
+                            </div>
+                            <div className="h-2.5 w-3/4 rounded bg-muted/70 animate-pulse" />
+                            <div className="h-2.5 w-2/3 rounded bg-muted/60 animate-pulse" />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {!loadingUnassigned && filteredUnassigned.length === 0 && (
                       <div className="flex flex-col items-center justify-center py-12 px-4 text-center gap-2">
                         <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center">
                           <Inbox className="h-5 w-5 text-muted-foreground" />
