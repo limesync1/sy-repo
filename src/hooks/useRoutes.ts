@@ -815,40 +815,41 @@ export const useCreateRoute = () => {
     mutationFn: async ({
       business_id, route_date, name, color,
     }: { business_id: string; route_date: string; name?: string | null; color?: string | null }) => {
-      const { data: biz } = await supabase
-        .from("businesses")
-        .select("address, zip_code, city")
-        .eq("id", business_id)
-        .maybeSingle();
-      const startAddr = biz
-        ? [biz.address, [biz.zip_code, biz.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")
-        : null;
-
-      let startLat: number | null = null, startLng: number | null = null;
-      if (startAddr) {
-        try {
-          const { data: geo } = await supabase.functions.invoke("geocode-address", {
-            body: { address: biz?.address, zip_code: biz?.zip_code, city: biz?.city },
-          });
-          if (geo?.found) { startLat = geo.latitude; startLng = geo.longitude; }
-        } catch { /* non-fatal */ }
-      }
-
-      const { data, error } = await supabase
-        .from("routes")
-        .insert({
-          business_id,
-          route_date,
-          name: name || null,
-          color: color || "#14b8a6",
-          start_address: startAddr,
-          start_latitude: startLat,
-          start_longitude: startLng,
-        })
-        .select("*")
-        .single();
+      // Fast path: one RPC creates the route with start_address already filled in.
+      // Geocoding runs in the background and updates the row afterwards so the
+      // UI doesn't have to wait for the edge function round-trip.
+      const { data, error } = await supabase.rpc("create_route_fast" as any, {
+        _business_id: business_id,
+        _route_date: route_date,
+        _name: name || null,
+        _color: color || "#14b8a6",
+      });
       if (error) throw error;
-      return data as unknown as Route;
+      const route = data as unknown as Route;
+
+      // Fire-and-forget geocoding so the mutation resolves immediately.
+      (async () => {
+        try {
+          const { data: biz } = await supabase
+            .from("businesses")
+            .select("address, zip_code, city")
+            .eq("id", business_id)
+            .maybeSingle();
+          if (!biz?.address) return;
+          const { data: geo } = await supabase.functions.invoke("geocode-address", {
+            body: { address: biz.address, zip_code: biz.zip_code, city: biz.city },
+          });
+          if (geo?.found) {
+            await supabase
+              .from("routes")
+              .update({ start_latitude: geo.latitude, start_longitude: geo.longitude })
+              .eq("id", (route as any).id);
+            qc.invalidateQueries({ queryKey: ["routes"] });
+          }
+        } catch { /* non-fatal */ }
+      })();
+
+      return route;
     },
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ["routes", vars.business_id, vars.route_date] });
@@ -899,126 +900,14 @@ export const useMaterializeVirtualRoute = () => {
   return useMutation({
     mutationFn: ({ baseRouteId, date }: { baseRouteId: string; date: string }) =>
       routeMutationQueue.run(async () => {
-      const { data: base, error: baseErr } = await supabase
-        .from("routes")
-        .select("*")
-        .eq("id", baseRouteId)
-        .maybeSingle();
-      if (baseErr) throw baseErr;
-      if (!base) throw new Error("Basisruten findes ikke længere");
-
-      // Hvis der allerede findes en override for denne dato, returnér den
-      const { data: existing } = await supabase
-        .from("routes")
-        .select("*")
-        .eq("base_route_id", baseRouteId)
-        .eq("route_date", date)
-        .maybeSingle();
-      if (existing) return existing as unknown as Route;
-
-      let created: any = null;
-      const { data: inserted, error: insErr } = await supabase
-        .from("routes")
-        .insert({
-          business_id: (base as any).business_id,
-          route_date: date,
-          name: (base as any).name,
-          color: (base as any).color,
-          start_address: (base as any).start_address,
-          start_latitude: (base as any).start_latitude,
-          start_longitude: (base as any).start_longitude,
-          planned_start_time: (base as any).planned_start_time,
-          start_from_home: (base as any).start_from_home ?? false,
-          notes: (base as any).notes,
-          base_route_id: baseRouteId,
-        })
-        .select("*")
-        .single();
-      if (insErr) {
-        const msg = String(insErr.message || "");
-        if (insErr.code === "23505" || /duplicate key|uniq_routes_base_route_date/i.test(msg)) {
-          const { data: raced, error: racedErr } = await supabase
-            .from("routes")
-            .select("*")
-            .eq("base_route_id", baseRouteId)
-            .eq("route_date", date)
-            .maybeSingle();
-          if (racedErr) throw racedErr;
-          if (raced) return raced as unknown as Route;
-        }
-        throw insErr;
-      }
-      created = inserted;
-
-      // Klon stops fra basisruten — uden ordre/abonnement/forekomst-FK'er,
-      // så de er rene planlægnings-stops på den nye rute. Brugeren kan
-      // redigere/slette/tildele dem frit.
-      const { data: baseStops } = await supabase
-        .from("route_stops")
-        .select("*")
-        .eq("route_id", baseRouteId)
-        .order("sequence", { ascending: true });
-
-      if (baseStops && baseStops.length > 0) {
-        const cloned = baseStops.map((s: any, i: number) => ({
-          route_id: created.id,
-          sequence: s.sequence ?? i,
-          status: "pending",
-          address: s.address,
-          latitude: s.latitude,
-          longitude: s.longitude,
-          customer_name: s.customer_name,
-          customer_phone: s.customer_phone,
-          service_summary: s.service_summary,
-          duration_minutes: s.duration_minutes ?? 30,
-          time_window_start: s.time_window_start,
-          time_window_end: s.time_window_end,
-          assigned_employee_id: s.assigned_employee_id,
-          required_staff: s.required_staff ?? 1,
-          notes: s.notes,
-        }));
-        const { data: insertedStops, error: stopsErr } = await supabase
-          .from("route_stops")
-          .insert(cloned)
-          .select("id");
-        if (stopsErr) throw stopsErr;
-
-        // Klon assignees (route_stop_assignees) — bevar medarbejdertilknytninger
-        try {
-          const { data: assignees } = await supabase
-            .from("route_stop_assignees")
-            .select("stop_id, employee_id")
-            .in("stop_id", baseStops.map((s: any) => s.id));
-          if (assignees && assignees.length && insertedStops) {
-            const idMap = new Map<string, string>();
-            baseStops.forEach((s: any, i: number) => {
-              idMap.set(s.id, insertedStops[i].id);
-            });
-            const newRows = assignees
-              .map((a: any) => ({
-                stop_id: idMap.get(a.stop_id),
-                employee_id: a.employee_id,
-              }))
-              .filter((r) => !!r.stop_id);
-            if (newRows.length) {
-              await supabase.from("route_stop_assignees").insert(newRows);
-            }
-          }
-        } catch { /* non-fatal */ }
-      }
-
-      await supabase.from("route_occurrence_exceptions" as any).upsert(
-        {
-          business_id: (base as any).business_id,
-          base_route_id: baseRouteId,
-          occurrence_date: date,
-          replacement_route_id: created.id,
-          exception_type: "moved",
-        },
-        { onConflict: "base_route_id,occurrence_date" },
-      );
-
-      return created as unknown as Route;
+      // Single RPC materializes the route + clones stops + clones assignees +
+      // writes the occurrence exception atomically on the server.
+      const { data, error } = await supabase.rpc("materialize_virtual_route" as any, {
+        _base_route_id: baseRouteId,
+        _date: date,
+      });
+      if (error) throw error;
+      return data as unknown as Route;
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["routes"] });
@@ -1221,13 +1110,16 @@ export const useReorderStops = () => {
   return useMutation({
     mutationFn: (updates: { id: string; sequence: number; route_id?: string }[]) =>
       routeMutationQueue.run(async () => {
-        const results = await Promise.all(updates.map((u) => {
-          const patch: any = { sequence: u.sequence };
-          if (u.route_id) patch.route_id = u.route_id;
-          return supabase.from("route_stops").update(patch).eq("id", u.id);
-        }));
-        const failed = results.find((result) => result.error);
-        if (failed?.error) throw failed.error;
+        if (updates.length === 0) return;
+        // Single round-trip bulk update instead of N parallel UPDATEs.
+        const { error } = await supabase.rpc("reorder_route_stops" as any, {
+          _updates: updates.map((u) => ({
+            id: u.id,
+            sequence: u.sequence,
+            route_id: u.route_id ?? null,
+          })) as any,
+        });
+        if (error) throw error;
       }),
     onMutate: async (updates) => {
       await qc.cancelQueries({ queryKey: ["route-stops-bulk"] });
