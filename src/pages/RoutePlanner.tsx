@@ -2521,6 +2521,16 @@ const Planner = () => {
         </DragOverlay>
 
         <StopDetailSheet
+          readOnly={
+            !!selectedStopId && (
+              selectedStopId.startsWith("virtual-stop:")
+              || !!(
+                editingProjectedContext
+                && activeEditingRoute
+                && editingProjectedContext.baseRouteId === activeEditingRoute.id
+              )
+            )
+          }
           stop={(() => {
             if (!selectedStopId) return null;
             // Almindelige stops fra det aktuelle kalender-vindue.
