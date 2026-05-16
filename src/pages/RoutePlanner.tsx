@@ -939,31 +939,8 @@ const Planner = () => {
       ?? (recurringBaseRoutes as any[]).find((r) => r.id === editingRoute.id)
       ?? editingRoute
     );
-    // Apply optimistisk farve-override så sideløbende paneler skifter
-    // farve samtidig med RouteEditSheet's picker.
-    const override = routeColorOverride[base.id];
-    return override ? { ...base, color: override } : base;
-  }, [editingRoute, calendarRoutesRaw, recurringBaseRoutes, routeColorOverride]);
-
-  // Ryd override når cachens farve for ruten matcher den valgte farve —
-  // dvs. den optimistiske/server-mutation har slået igennem.
-  useEffect(() => {
-    const entries = Object.entries(routeColorOverride);
-    if (entries.length === 0) return;
-    const next: Record<string, string> = {};
-    let changed = false;
-    for (const [id, color] of entries) {
-      const cached =
-        calendarRoutesRaw.find((r) => r.id === id)
-        ?? (recurringBaseRoutes as any[]).find((r) => r.id === id);
-      if (cached && cached.color === color) {
-        changed = true;
-      } else {
-        next[id] = color;
-      }
-    }
-    if (changed) setRouteColorOverride(next);
-  }, [calendarRoutesRaw, recurringBaseRoutes, routeColorOverride]);
+    return base;
+  }, [editingRoute, calendarRoutesRaw, recurringBaseRoutes]);
 
   // Find det auto-genererede visningsnavn (fra calendarRoutes-transformen) så
   // edit-sheet kan pre-udfylde inputtet med det navn brugeren faktisk ser på
