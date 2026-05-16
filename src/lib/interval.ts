@@ -48,6 +48,15 @@ const LEGACY_MAP: Record<string, { n: number; unit: IntervalUnit }> = {
   årlig:         { n: 1,  unit: "year" },
 };
 
+const unitFromAnyLabel = (raw: string): IntervalUnit | null => {
+  const u = raw.toLowerCase().trim();
+  if (["day", "days", "dag", "dage"].includes(u)) return "day";
+  if (["week", "weeks", "uge", "uger"].includes(u)) return "week";
+  if (["month", "months", "måned", "maaned", "månedlig", "måneder", "maaneder"].includes(u)) return "month";
+  if (["year", "years", "år", "aar"].includes(u)) return "year";
+  return null;
+};
+
 /** Parser et hvilket som helst interval-string til en kanonisk form. */
 export function parseInterval(value: string | null | undefined): ParsedInterval | null {
   if (!value) return null;
@@ -64,6 +73,23 @@ export function parseInterval(value: string | null | undefined): ParsedInterval 
   }
   const legacy = LEGACY_MAP[v];
   if (legacy) return { n: legacy.n, unit: legacy.unit, once: false, raw: v };
+
+  // Defensive parser for older/handwritten Danish keys and labels that may
+  // already exist in service/order details, e.g. "hver_8_uge", "Hver 2. uge",
+  // "hvert 2. år" or "every-3-months". Projection must understand the
+  // cadence even if storage used a non-enum/custom representation.
+  const flexible = v
+    .toLowerCase()
+    .replace(/\./g, "")
+    .replace(/[_:-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const fm = flexible.match(/^(?:hver|hvert|every)\s+(\d+)\s+(day|days|dag|dage|week|weeks|uge|uger|month|months|måned|maaned|måneder|maaneder|year|years|år|aar)$/i);
+  if (fm) {
+    const n = Math.max(1, parseInt(fm[1], 10) || 1);
+    const unit = unitFromAnyLabel(fm[2]);
+    if (unit) return { n, unit, once: false, raw: v };
+  }
   return null;
 }
 
