@@ -696,6 +696,26 @@ const Planner = () => {
 
   const virtualCalendarRoutes: CalendarRoute[] = useMemo(() => {
     if (!recurringSources.length) return [];
+    // Map fra source-key (agr:.. / sub:.. / order:..) til intervallet
+    // aftalen/abonnementet kører på. Bruges til at hejse aftalens
+    // gentagelses-interval ned på de projicerede stops — uden dette ville
+    // basis-rute-stops uden agreement_occurrence-link vise "Engangsaftale"
+    // i alle projicerede ruter, selvom aftalen reelt gentages hver uge/14. dag.
+    const intervalByKey = new Map<string, string>();
+    for (const src of recurringSources) {
+      if (!src.interval) continue;
+      for (const key of src.sourceKeys) {
+        if (!intervalByKey.has(key)) intervalByKey.set(key, src.interval);
+      }
+    }
+    const intervalForStop = (s: any): string | null => {
+      const keys = recurringSourceKeysForStop(s);
+      for (const k of keys) {
+        const iv = intervalByKey.get(k);
+        if (iv) return iv;
+      }
+      return null;
+    };
     // Slå basisrutens *færdige* visningsnavn og farve op fra det allerede
     // byggede calendarRoutes (samme logik som rigtige rute-kort bruger).
     // Det sikrer at projicerede forekomster altid arver præcis samme navn
@@ -805,6 +825,10 @@ const Planner = () => {
             status: "planned",
             isVirtual: true,
             sequence: i,
+            // Arv aftalens interval fra den matchende recurring source —
+            // basis-stoppet har ofte ikke selv en agreement_occurrence-link,
+            // så uden dette ville badge'et fejlagtigt vise "Engangsaftale".
+            agreement_interval: s.agreement_interval ?? intervalForStop(s),
           }));
         if (projectedStops.length === 0) return null;
         // Saml medarbejdere fra basis-rutens stops så virtuelle ruter også
@@ -2706,11 +2730,27 @@ const Planner = () => {
               );
               const sourced = (baseFromCache?.stops || [])
                 .filter((s: any) => projectedStopMatchesSources(s, editingProjectedContext!.sourceKeys))
-                .map((s: any) => ({
-                  ...s,
-                  assignee_ids: s.assignee_ids || [],
-                  lead_employee_id: s.lead_employee_id ?? s.assigned_employee_id ?? null,
-                })) as RouteStop[];
+                .map((s: any) => {
+                  // Find aftalens interval via recurringSources (key→interval)
+                  // — basis-stop har ofte ikke selv et agreement_occurrence-
+                  // link, så uden dette viser detaljepanelet "Engangsaftale"
+                  // selv på en projiceret hver-14.-dag rute.
+                  let inheritedInterval: string | null = null;
+                  const keys = recurringSourceKeysForStop(s);
+                  for (const src of recurringSources) {
+                    if (!src.interval) continue;
+                    if (src.sourceKeys.some((k) => keys.includes(k))) {
+                      inheritedInterval = src.interval;
+                      break;
+                    }
+                  }
+                  return {
+                    ...s,
+                    assignee_ids: s.assignee_ids || [],
+                    lead_employee_id: s.lead_employee_id ?? s.assigned_employee_id ?? null,
+                    agreement_interval: s.agreement_interval ?? inheritedInterval,
+                  };
+                }) as RouteStop[];
               stopsForActive = sourced;
             } else {
               stopsForActive = calendarStops.filter((s) => s.route_id === activeEditingRoute.id);
