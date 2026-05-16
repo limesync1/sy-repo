@@ -64,21 +64,21 @@ export const MoveRouteDateDialog = ({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-md">
+      <AlertDialogContent className="max-w-md overflow-hidden">
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
             <CalendarRange className="h-4 w-4 text-accent" />
             Flyt rute til ny dato
           </AlertDialogTitle>
           <AlertDialogDescription asChild>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2 text-foreground">
-                <span className="font-medium truncate">{routeName}</span>
+            <div className="space-y-2 text-sm min-w-0">
+              <div className="flex items-center gap-2 text-foreground min-w-0">
+                <span className="font-medium truncate min-w-0 flex-1">{routeName}</span>
               </div>
-              <div className="flex items-center gap-2 text-muted-foreground tabular-nums">
-                <span className="capitalize">{fmt(fromDate)}</span>
-                <ArrowRight className="h-3 w-3" />
-                <span className="capitalize text-foreground font-medium">{fmt(toDate)}</span>
+              <div className="flex items-center gap-2 text-muted-foreground tabular-nums min-w-0 flex-wrap">
+                <span className="capitalize truncate">{fmt(fromDate)}</span>
+                <ArrowRight className="h-3 w-3 shrink-0" />
+                <span className="capitalize text-foreground font-medium truncate">{fmt(toDate)}</span>
               </div>
               {deltaDays !== 0 && (
                 <p className="text-[11px] text-muted-foreground">
