@@ -26,6 +26,17 @@ const WAIT_PENALTY_PER_MIN = 0.3;
 /** Vægt på km i den samlede cost-funktion. Højere = ruten "straffes" mere
  *  for at køre langt → giver bedre geografisk klynge-effekt. */
 const KM_COST_WEIGHT = 1.5;
+/** Straf for at splitte stops på samme adresse op. To stops med samme
+ *  GPS-koordinat (samme kunde / samme bygning) bør ALTID køres lige efter
+ *  hinanden — også hvis en anden adresse rent kørselsmæssigt ligger på
+ *  vejen. Penalty pr. "genåbning" af en allerede besøgt adresse-klynge er
+ *  meget høj, så optimeren aldrig sender medarbejderen tilbage til en
+ *  adresse den lige har forladt. */
+const SAME_LOCATION_PENALTY = 500;
+/** Rund GPS til ~11 m for at fange "samme adresse" på trods af lille jitter
+ *  i geokoderen (forskellige indgange, naboparkeringer osv.). */
+const locationKey = (s: Stop): string =>
+  `${s.latitude.toFixed(4)},${s.longitude.toFixed(4)}`;
 const ceilSnap = (m: number) => Math.ceil(m / SLOT_MIN) * SLOT_MIN;
 
 type IRoute = ScheduledStop[];
@@ -67,11 +78,25 @@ function scheduleRoute(
   let totalKm = 0;
   let cost = 0;
   let softViolations = 0;
+  // Track sidste position vi besøgte hver adresse-klynge. Hvis vi
+  // forlader en klynge og vender tilbage senere → tilføj kraftig straf,
+  // så ruter med 3 stops på samme adresse altid bliver kørt samlet.
+  const lastIdxByLocation = new Map<string, number>();
+  let fragmentationCount = 0;
 
   for (let i = 0; i < route.length; i++) {
     const r = route[i];
     const stop = stops.find((s) => s.id === r.stop_id);
     if (!stop) return { feasible: false, cost: Infinity, km: 0, durMin: 0, softViolations: 0 };
+    const locKey = locationKey(stop);
+    const lastLocIdx = lastIdxByLocation.get(locKey);
+    if (lastLocIdx !== undefined && lastLocIdx !== i - 1) {
+      // Vi har forladt denne adresse og kommer nu tilbage til den —
+      // tæl én "genåbning" pr. mellemliggende stop, så split af 3+
+      // stops på samme adresse straffes proportionalt.
+      fragmentationCount += 1;
+    }
+    lastIdxByLocation.set(locKey, i);
     const myIdx = stopIdx(stop.id);
     const tSec = travel.sec(prevIdx, myIdx);
     const travelMin = Math.round(tSec / 60);
@@ -117,6 +142,13 @@ function scheduleRoute(
     const homeKm = travel.km(prevIdx, empEndIdx);
     totalKm += homeKm;
     cost += homeKm * KM_COST_WEIGHT;
+  }
+
+  // Tilføj samme-adresse-strafgebyret til den samlede cost. Penalty er
+  // højt nok til at dominere selv flere km kørsel — så det er aldrig
+  // værd at splitte en klynge ad for at spare lidt vej.
+  if (fragmentationCount > 0) {
+    cost += fragmentationCount * SAME_LOCATION_PENALTY;
   }
 
   // Sæt travel-til-næste på hver stop (i → i+1)
