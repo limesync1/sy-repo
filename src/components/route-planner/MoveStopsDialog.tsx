@@ -39,7 +39,7 @@ export const renameFreshSplitRoutes = async (movedStopIds: string[], targetDate:
   if (movedStopIds.length === 0) return;
   const { data } = await supabase
     .from("route_stops")
-    .select("id, route_id, customer_name, service_summary, address, sequence, routes!inner(id, name, route_date, business_id)")
+    .select("id, route_id, customer_name, service_summary, address, sequence, routes!inner(id, name, route_date, business_id, created_at)")
     .in("id", movedStopIds);
   if (!data || data.length === 0) return;
   const groups = new Map<string, {
@@ -47,6 +47,7 @@ export const renameFreshSplitRoutes = async (movedStopIds: string[], targetDate:
     serviceSummary: string | null;
     address: string | null;
     routeName: string;
+    routeCreatedAt: string;
     businessId: string;
     date: string;
   }>();
@@ -60,6 +61,7 @@ export const renameFreshSplitRoutes = async (movedStopIds: string[], targetDate:
         serviceSummary: s.service_summary ?? null,
         address: s.address ?? null,
         routeName: r.name || "",
+        routeCreatedAt: r.created_at,
         businessId: r.business_id,
         date: String(r.route_date).slice(0, 10),
         ...({ seq: s.sequence ?? 999 } as any),
@@ -78,8 +80,10 @@ export const renameFreshSplitRoutes = async (movedStopIds: string[], targetDate:
     usedByBiz.set(bid, (dayRoutes || []).map((r: any) => r.color).filter(Boolean));
   }
   for (const [routeId, info] of groups) {
-    // Kun omdøb hvis navnet ligner det auto-genererede split-navn.
-    if (!/ — \d{2}\/\d{2}$/.test(info.routeName) && info.routeName.trim() !== "") continue;
+    // Kun omdøb ruter der lige er oprettet af move-funktionen (indenfor 60 sek).
+    // Ellers risikerer vi at overskrive ruter brugeren har navngivet selv.
+    const createdMs = new Date(info.routeCreatedAt).getTime();
+    if (!Number.isFinite(createdMs) || Date.now() - createdMs > 60_000) continue;
     const used = usedByBiz.get(info.businessId) || [];
     const color = pickAvailableColor(used);
     used.push(color);
