@@ -133,7 +133,7 @@ export const RouteEditSheet = ({
   // Holder seneste payload klar til en synkron flush når sheet'et lukkes
   // før debounce-timeren har fået lov at fyre. Uden dette ville hurtige
   // edits efterfulgt af et "klik udenfor"/luk gå tabt.
-  const pendingFlushRef = useRef<{ id: string; name: string | null; color: string } | null>(null);
+  const pendingFlushRef = useRef<{ id: string; name?: string | null; color?: string } | null>(null);
 
   const updateRoute = useUpdateRoute();
   const deleteRoute = useDeleteRoute();
@@ -192,24 +192,45 @@ export const RouteEditSheet = ({
     businessId: route?.business_id,
   });
 
-  // Hvis brugeren ikke har ændret det auto-genererede navn, skal vi ikke
-  // skrive det ned i DB — det skal forblive null så auto-navngivningen
-  // fortsat virker dynamisk (fx når medarbejdere/byer skifter).
+  // Hvad skal sendes til serveren?
+  //
+  // Reglen: vi rører KUN ved navnet hvis brugeren faktisk har ændret det
+  // i forhold til det navn der ligger i DB (route.name). Det forhindrer
+  // den klassiske bug hvor et farveskift ved et uheld nuller et manuelt
+  // navn — fordi det viste navn tilfældigvis matcher auto-fallback'et.
+  //
+  // - Hvis input er tomt → nuller navnet (eksplicit "ryd navn").
+  // - Hvis input matcher det aktuelle DB-navn → udelades helt fra payload.
+  // - Hvis input matcher det auto-genererede fallback OG der intet
+  //   eksplicit DB-navn er → behold null (auto-navngivningen forbliver
+  //   dynamisk).
+  // - Ellers → send det nye navn.
   const trimmedName = name.trim();
-  const effectiveName =
-    !trimmedName || trimmedName === initialAutoNameRef.current
-      ? null
-      : trimmedName;
+  const persistedName = (route?.name ?? "").trim();
 
-  const dirty =
-    (route?.name ?? null) !== effectiveName ||
-    route?.color !== color;
+  let nameChange: { changed: true; value: string | null } | { changed: false } = { changed: false };
+  if (trimmedName !== persistedName) {
+    if (!trimmedName) {
+      nameChange = { changed: true, value: null };
+    } else if (!persistedName && trimmedName === initialAutoNameRef.current) {
+      // Input står på fallback-navnet og DB var allerede null — ingen ændring.
+      nameChange = { changed: false };
+    } else {
+      nameChange = { changed: true, value: trimmedName };
+    }
+  }
+  const colorChanged = route?.color !== color;
+  const dirty = nameChange.changed || colorChanged;
 
-  const pendingPayload = useMemo(() => ({
-    id: route?.id ?? "",
-    name: effectiveName,
-    color,
-  }), [route?.id, effectiveName, color]);
+  const pendingPayload = useMemo(() => {
+    const payload: { id: string; name?: string | null; color?: string } = {
+      id: route?.id ?? "",
+    };
+    if (nameChange.changed) payload.name = nameChange.value;
+    if (colorChanged) payload.color = color;
+    return payload;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [route?.id, nameChange.changed, (nameChange as any).value, colorChanged, color]);
 
   useEffect(() => {
     if (!route || !open || !dirty) return;
