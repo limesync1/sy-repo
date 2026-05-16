@@ -332,7 +332,15 @@ Deno.serve(async (req) => {
     // Det gør toast-besparelsen ægte, også efter drag/drop eller manuel ændring.
     const beforeKm = current.feasible ? current.total_km : Number(route.total_distance_km ?? 0);
     const beforeMinutes = current.feasible ? current.total_minutes : Number(route.total_duration_minutes ?? 0);
-    const plannedOrder = Array.from(plan.per_employee.values()).flat().map((s) => s.stop_id);
+    const seenPlannedStops = new Set<string>();
+    const plannedOrder = Array.from(plan.per_employee.values())
+      .flat()
+      .map((s) => s.stop_id)
+      .filter((id) => {
+        if (seenPlannedStops.has(id)) return false;
+        seenPlannedStops.add(id);
+        return true;
+      });
     const orderChanged = plannedOrder.join("|") !== current.stop_order.join("|");
 
     // === Skriv plan tilbage til DB ===
