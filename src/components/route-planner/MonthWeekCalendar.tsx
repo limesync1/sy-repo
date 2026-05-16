@@ -238,6 +238,18 @@ const DayCellInner = ({
   // gør det entydigt for brugeren hvor man faktisk kan slippe.
   const canReceiveDrop = isDragActive && inMonth && !isPast && !busy;
 
+  // ─── Kontekst-følsom drop-label ───
+  // Når brugeren hovrer over en dag mid-drag, fortæller vi præcis hvad
+  // der vil ske: "Flyt rute til torsdag d. 23. maj" eller "Tilføj
+  // aftale". Bruger samme dato-format som resten af planlæggeren.
+  const dropVerb = (() => {
+    if (!isOver || !canReceiveDrop) return null;
+    if (draggingType === "job") return emptyDay ? "Opret ny rute" : "Tilføj til rute";
+    if (draggingType === "stop") return "Flyt stop hertil";
+    if (draggingType === "route") return "Flyt rute hertil";
+    return null;
+  })();
+
   return (
     <div
       ref={setNodeRef}
@@ -254,12 +266,29 @@ const DayCellInner = ({
         canReceiveDrop && !isOver && "ring-1 ring-accent/40 ring-inset",
         isDragActive && isPast && "opacity-40",
         isDragActive && !inMonth && "opacity-50",
+        // Eksplicit cursor-feedback: brugeren kan se INDEN drop om dagen
+        // accepterer slip eller ej. Sparer en mislykket drop-cyklus.
+        isDragActive && isPast && "cursor-not-allowed",
+        canReceiveDrop && "cursor-copy",
         // Når man hovrer over en gyldig dag — tydeligt highlight
-        isOver && "bg-accent/15 ring-2 ring-accent ring-inset shadow-inner",
+        isOver && canReceiveDrop && "bg-accent/20 ring-2 ring-accent ring-inset shadow-inner",
         busy && "opacity-90 cursor-wait",
       )}
       aria-busy={busy || undefined}
     >
+      {/* ─── Drop-target floating label ─── */}
+      {/* Vises kun mens brugeren hovrer over en gyldig drop-dag. Fortæller
+          eksplicit hvad der sker ved slip + præcis dato — så brugeren
+          aldrig er i tvivl om udfaldet før de slipper. */}
+      {dropVerb && (
+        <div
+          className="absolute top-1 right-1 z-30 pointer-events-none rounded-md bg-accent text-accent-foreground px-1.5 py-0.5 shadow-lg text-[10px] font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-150"
+          role="status"
+        >
+          <ArrowDown className="h-3 w-3" />
+          <span>{dropVerb}</span>
+        </div>
+      )}
       {busy && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/60 backdrop-blur-[1px] rounded-sm pointer-events-none">
           <Loader2 className="h-5 w-5 animate-spin text-accent" />
@@ -346,7 +375,7 @@ const DayCellInner = ({
         ))}
 
         {/* "Slip her" overlay på tomme dage når en aftale trækkes */}
-        {isJobDragActive && emptyDay && inMonth && (
+        {isJobDragActive && emptyDay && canReceiveDrop && (
           <div
             className={cn(
               "flex-1 flex flex-col items-center justify-center gap-1 rounded-md border-2 border-dashed transition-all",
@@ -357,7 +386,9 @@ const DayCellInner = ({
           >
             <ArrowDown className={cn("h-4 w-4", isOver && "animate-bounce")} />
             <span className="text-[10px] font-medium leading-tight text-center px-1">
-              Slip for ny rute
+              {isOver
+                ? `Opret rute · ${format(date, "EEEE d. MMM", { locale: da })}`
+                : "Slip for ny rute"}
             </span>
           </div>
         )}
