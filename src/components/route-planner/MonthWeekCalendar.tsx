@@ -375,7 +375,7 @@ const DayCellInner = ({
         ))}
 
         {/* "Slip her" overlay på tomme dage når en aftale trækkes */}
-        {isJobDragActive && emptyDay && inMonth && (
+        {isJobDragActive && emptyDay && canReceiveDrop && (
           <div
             className={cn(
               "flex-1 flex flex-col items-center justify-center gap-1 rounded-md border-2 border-dashed transition-all",
@@ -386,7 +386,9 @@ const DayCellInner = ({
           >
             <ArrowDown className={cn("h-4 w-4", isOver && "animate-bounce")} />
             <span className="text-[10px] font-medium leading-tight text-center px-1">
-              Slip for ny rute
+              {isOver
+                ? `Opret rute · ${format(date, "EEEE d. MMM", { locale: da })}`
+                : "Slip for ny rute"}
             </span>
           </div>
         )}
