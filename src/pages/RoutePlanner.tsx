@@ -1222,6 +1222,15 @@ const Planner = () => {
   /* ─── DnD ─── */
   const handleDragStart = (e: DragStartEvent) => {
     const data: any = e.active.data.current;
+    // ─── Metrics: start måling af drag-to-drop latency ───
+    // Sporer hvor lang tid brugeren bruger fra drag begynder til drop
+    // gennemføres. Sammen med klik-fejlraten (drag uden drop) kan vi
+    // sammenligne perf på Windows/Android vs. macOS/iOS.
+    const metricType: "job" | "route" | "stop" | "unknown" =
+      data?.type === "job" || data?.type === "route" || data?.type === "stop"
+        ? data.type
+        : "unknown";
+    dragMetrics.start(metricType);
     if (data?.type === "route" && data?.route?.isVirtual) {
       setActiveDragId(null);
       setActiveDragData(null);
@@ -1288,6 +1297,12 @@ const Planner = () => {
     const { active, over } = e;
     setActiveDragId(null);
     setActiveDragData(null);
+    // ─── Metrics: registrér resultatet af denne drag ───
+    // `dropped=true` kun når brugeren faktisk slap på et target. Drags
+    // der ender uden over-target tæller som "klik-fejl" — typisk når
+    // browseren startede en drag pga. en lille touch-bevægelse, mens
+    // brugeren forsøgte at klikke (særligt Windows-touchpads/Android).
+    dragMetrics.end(!!over);
     if (!over || !businessId) return;
 
     // Knyt en ordres aktive, gentagende abonnement til en bestemt rute,
