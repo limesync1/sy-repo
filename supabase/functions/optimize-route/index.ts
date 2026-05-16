@@ -157,11 +157,22 @@ Deno.serve(async (req) => {
       } as EmployeeCtx;
     });
 
-    if (employees.length === 0) {
-      return new Response(JSON.stringify({
-        ok: false,
-        error: "Ingen medarbejdere tildelt opgaverne på ruten — tildel mindst én medarbejder pr. opgave før optimering",
-      }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    // Hvis ingen medarbejdere er tilknyttet stops'ne, optimerer vi alligevel
+    // rækkefølgen som en simpel TSP for én virtuel "kørsel" der starter på
+    // rutens start-adresse. Vi rører IKKE assignees (preserveAssignees=true
+    // pr. default) — vi ændrer kun sequence og tider.
+    const usingVirtualEmployee = employees.length === 0;
+    if (usingVirtualEmployee) {
+      employees.push({
+        id: "__virtual_optimizer__",
+        name: "Optimering",
+        start_lat: defaultStart.lat,
+        start_lng: defaultStart.lng,
+        end_lat: defaultStart.lat,
+        end_lng: defaultStart.lng,
+        work_start_min: planStartMin,
+        work_end_min: 24 * 60,
+      } as EmployeeCtx);
     }
 
     // Saml stops til VRP-format
@@ -181,7 +192,11 @@ Deno.serve(async (req) => {
         preferred_start_min: null,
         preferred_end_min: null,
         required_staff: Math.max(1, s.required_staff || 1),
-        pinned_assignees: respectPinned ? (assigneesByStop.get(s.id) || []) : [],
+        // Med virtuel medarbejder skal vi ignorere pins — ellers afviser
+        // VRP'en alle stops (deres assignee findes ikke i employees-listen).
+        pinned_assignees: usingVirtualEmployee
+          ? []
+          : (respectPinned ? (assigneesByStop.get(s.id) || []) : []),
       }));
 
     if (validStops.length === 0) {
@@ -273,12 +288,20 @@ Deno.serve(async (req) => {
         reordered: 0,
         total_km: Number(route.total_distance_km ?? 0),
         total_minutes: Number(route.total_duration_minutes ?? 0),
+        before_km: Number(route.total_distance_km ?? 0),
+        before_minutes: Number(route.total_duration_minutes ?? 0),
+        saved_km: 0,
+        saved_minutes: 0,
         provider: "cached",
         unassigned: 0,
         soft_violations: 0,
         employees: employees.length,
       }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+
+    // Capture før-tilstand for delta-rapportering i toast.
+    const beforeKm = Number(route.total_distance_km ?? 0);
+    const beforeMinutes = Number(route.total_duration_minutes ?? 0);
 
     // === Kør VRP ===
     const { plan, provider, weather } = await solveVRP(employees, validStops, { routeDate: route.route_date });
@@ -373,6 +396,10 @@ Deno.serve(async (req) => {
       reordered: validStops.length,
       total_km: plan.total_km,
       total_minutes: plan.total_minutes,
+      before_km: beforeKm,
+      before_minutes: beforeMinutes,
+      saved_km: Math.max(0, beforeKm - plan.total_km),
+      saved_minutes: Math.max(0, beforeMinutes - plan.total_minutes),
       provider,
       weather,
       unassigned: plan.unassigned_stops.length,
