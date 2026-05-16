@@ -400,7 +400,7 @@ const Planner = () => {
 
   const serviceSummaryForJob = (job: any) => effectiveJobItems(job)
     .map((it: any) => it.quantity > 1 ? `${it.quantity}× ${it.service_name}` : it.service_name)
-    .join(", ") || "Aftale";
+    .join(", ") || "Ingen ydelser angivet";
 
   /** Vis ALLE aftaler uden rute i poolen — ingen dato-vinduesfiltrering.
       Brugeren foretrækker at se hele listen ad gangen, fremfor at skulle
