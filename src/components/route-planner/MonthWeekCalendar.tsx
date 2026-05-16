@@ -300,8 +300,20 @@ const DayCellInner = ({
             stabilt mellem måned/uge-skift. */}
         {loadingRoutes && routes.length === 0 && inMonth && (
           <>
-            <Skeleton className="h-5 rounded-md" />
-            {!compact && <Skeleton className="h-5 rounded-md w-3/4" />}
+            {/* Vis 1–2 realistiske skeleton-piller pr. dag — varieret bredde
+                så kalenderen ligner rigtigt indhold mens data hentes, og
+                layoutet ikke pop'er når ruterne lander. */}
+            <div className="flex items-center gap-1 rounded-md border border-border/60 bg-card/80 px-2 py-1">
+              <div className="h-2.5 w-2 rounded-sm bg-muted-foreground/20" />
+              <div className="h-2.5 flex-1 rounded bg-muted/70 animate-pulse" />
+              <div className="h-3 w-3 rounded-full bg-muted/70 animate-pulse" />
+            </div>
+            {!compact && (
+              <div className="flex items-center gap-1 rounded-md border border-border/60 bg-card/80 px-2 py-1 w-4/5">
+                <div className="h-2.5 w-2 rounded-sm bg-muted-foreground/20" />
+                <div className="h-2.5 flex-1 rounded bg-muted/60 animate-pulse" />
+              </div>
+            )}
           </>
         )}
         {routes.map((r) => (

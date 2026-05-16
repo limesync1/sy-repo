@@ -148,24 +148,45 @@ const Planner = () => {
   useEffect(() => {
     if (!businessId) return;
     const filter = `business_id=eq.${businessId}`;
+    // Coalesce flere postgres_changes-events til ÉN invalidering pr. ~250 ms.
+    // Når en stor batch-mutation rammer (fx materialisering af 20 forekomster)
+    // undgår vi at React Query trigger 20 refetches lige efter hinanden — det
+    // var en tydelig kilde til lag og duplikerede karts i kalenderen.
+    let pending: { route: boolean; recurring: boolean } = { route: false, recurring: false };
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const flush = () => {
+      timer = null;
+      const flags = pending;
+      pending = { route: false, recurring: false };
+      if (flags.route) invalidateRouteSyncQueries(qc);
+      if (flags.recurring) qc.invalidateQueries({ queryKey: ["recurring-agreements-for-planner"] });
+    };
+    const schedule = (which: "route" | "recurring") => {
+      pending[which] = true;
+      if (timer) return;
+      timer = setTimeout(flush, 250);
+    };
     const channel = supabase
       .channel(`route-planner:${businessId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "routes", filter }, () => invalidateRouteSyncQueries(qc))
+      .on("postgres_changes", { event: "*", schema: "public", table: "routes", filter }, () => schedule("route"))
       .on("postgres_changes", { event: "*", schema: "public", table: "agreements", filter }, () => {
-        invalidateRouteSyncQueries(qc);
-        qc.invalidateQueries({ queryKey: ["recurring-agreements-for-planner"] });
+        schedule("route");
+        schedule("recurring");
       })
-      .on("postgres_changes", { event: "*", schema: "public", table: "agreement_occurrences" }, () => invalidateRouteSyncQueries(qc))
-      .on("postgres_changes", { event: "*", schema: "public", table: "route_stops" }, () => invalidateRouteSyncQueries(qc))
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders", filter }, () => invalidateRouteSyncQueries(qc))
+      .on("postgres_changes", { event: "*", schema: "public", table: "agreement_occurrences" }, () => schedule("route"))
+      .on("postgres_changes", { event: "*", schema: "public", table: "route_stops" }, () => schedule("route"))
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders", filter }, () => schedule("route"))
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      if (timer) clearTimeout(timer);
+      supabase.removeChannel(channel);
+    };
   }, [businessId, qc]);
 
   const { data: employees = [] } = useEmployees(businessId);
   const activeEmployees = useMemo(() => employees.filter((e: any) => e.is_active), [employees]);
 
-  const { data: unassigned = [] } = useUnassignedJobs(businessId);
+  const { data: unassigned = [], isLoading: loadingUnassigned } = useUnassignedJobs(businessId);
 
   // Range for kalender: hele måneden hvis month-view, ugen hvis week-view
   const calendarRange = useMemo(() => {
@@ -1310,17 +1331,21 @@ const Planner = () => {
         return;
       }
       const performAddToRoute = async () => {
-        const { data: existingStops } = await supabase
-          .from("route_stops").select("id, order_id").eq("route_id", targetRouteId);
-        // Idempotens — undgå dubletter af samme aftale på samme rute.
-        if ((existingStops || []).some((s: any) => s.order_id === job.id)) {
+        // Klient-side dubletcheck mod allerede-cached stops — undgår en
+        // ekstra Supabase-roundtrip pr. drop. DB har stadig unique-constraint
+        // som sikkerhedsnet, og vi catcher fejlen længere nede.
+        const cachedDup = calendarStops.some(
+          (s: any) => s.route_id === targetRouteId && s.order_id === job.id,
+        );
+        if (cachedDup) {
           toast.info("Aftalen ligger allerede på denne rute");
           return;
         }
+        const sequence = calendarStops.filter((s: any) => s.route_id === targetRouteId).length;
         await addStop.mutateAsync({
           route_id: targetRouteId,
           order_id: job.id,
-          sequence: (existingStops || []).length,
+          sequence,
           customer_name: job.customer_name,
           customer_phone: job.customer_phone,
           address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
@@ -1331,10 +1356,10 @@ const Planner = () => {
           time_window_start: job.preferred_time_start || null,
           time_window_end: job.preferred_time_end || null,
         });
-        // Hvis aftalen er gentagende — knyt subscription'en til denne rute,
-        // så virtuelle uger/måneder kan projicere fremad i kalenderen.
-        await linkAgreementToRoute(job.id, targetRouteId);
+        // Vis success med det samme — koblingen til projektion sker i
+        // baggrunden så brugeren ikke mærker forsinkelse.
         toast.success("Aftale tilføjet til ruten");
+        void linkAgreementToRoute(job.id, targetRouteId);
       };
       // Klog tjek: matcher target-datoen aftalens opstartsdato?
       // Hvis ikke, beder vi brugeren om bekræftelse før vi flytter opstartsdatoen.
@@ -1429,8 +1454,8 @@ const Planner = () => {
           time_window_start: job.preferred_time_start || null,
           time_window_end: job.preferred_time_end || null,
         });
-        await linkAgreementToRoute(job.id, created.id);
         toast.success(`Ny rute oprettet på ${format(parseISO(newDate), "d. MMM", { locale: da })}`);
+        void linkAgreementToRoute(job.id, created.id);
       };
       if (!ensureStartDateMatches(
         job, newDate,
@@ -2319,7 +2344,24 @@ const Planner = () => {
                   </div>
 
                   <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
-                    {filteredUnassigned.length === 0 && (
+                    {loadingUnassigned && unassigned.length === 0 && (
+                      <div className="space-y-1.5">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <div
+                            key={i}
+                            className="rounded-md border border-border/60 bg-card p-2 space-y-1.5"
+                          >
+                            <div className="flex items-center gap-2">
+                              <div className="h-3 w-1/2 rounded bg-muted animate-pulse" />
+                              <div className="ml-auto h-3 w-12 rounded bg-muted animate-pulse" />
+                            </div>
+                            <div className="h-2.5 w-3/4 rounded bg-muted/70 animate-pulse" />
+                            <div className="h-2.5 w-2/3 rounded bg-muted/60 animate-pulse" />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {!loadingUnassigned && filteredUnassigned.length === 0 && (
                       <div className="flex flex-col items-center justify-center py-12 px-4 text-center gap-2">
                         <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center">
                           <Inbox className="h-5 w-5 text-muted-foreground" />
