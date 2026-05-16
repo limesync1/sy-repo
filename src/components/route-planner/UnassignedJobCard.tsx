@@ -2,14 +2,14 @@ import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import {
   GripVertical, MapPin, CalendarClock, Clock, Phone,
-  StickyNote, Hourglass, ChevronDown, ChevronRight, User, Repeat, Route as RouteIcon, Lock,
+  StickyNote, ChevronDown, ChevronRight, User, Route as RouteIcon, Lock,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format, parseISO, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
 import { da } from "date-fns/locale";
 import { formatDurationMin } from "@/lib/duration-format";
 import { relativeFromNow } from "@/lib/relative-time";
-import { INTERVAL_LABELS as SHARED_INTERVAL_LABELS } from "@/types/service";
+import { IntervalBadge } from "./IntervalBadge";
 
 type OrderItem = {
   service_name: string;
@@ -45,11 +45,6 @@ type Props = {
     completed_cycles?: number | null;
   };
   onClick?: () => void;
-};
-
-const INTERVAL_LABELS: Record<string, string> = {
-  ...SHARED_INTERVAL_LABELS,
-  engangskøb: "Engangskøb",
 };
 
 /** Beregn tydeligt label for hvornår jobbet skal udføres næste gang.
@@ -237,25 +232,8 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
 
           {/* Compact badge row — interval osv. */}
           <div className="flex items-center gap-1 flex-wrap">
-            {/* Interval badge — viser engangs vs abonnement */}
-            {(() => {
-              const interval = items.find((it: any) => it.details?.interval)?.details?.interval;
-              if (!interval) return null;
-              const isRecurring = interval !== "engangskøb";
-              return (
-                <Badge
-                  variant="outline"
-                  className={`h-4 text-[10px] px-1.5 gap-0.5 ${
-                    isRecurring
-                      ? "border-primary/40 text-primary bg-primary/5"
-                      : "border-border text-muted-foreground bg-secondary/40"
-                  }`}
-                >
-                  {isRecurring ? <Repeat className="h-2.5 w-2.5" /> : <Hourglass className="h-2.5 w-2.5" />}
-                  {INTERVAL_LABELS[interval] || interval}
-                </Badge>
-              );
-            })()}
+            {/* Interval badge — delt komponent for ensartet styling overalt på Ruter-siden */}
+            <IntervalBadge interval={items.find((it: any) => it.details?.interval)?.details?.interval} />
             {/* Tidsvindue vises kun her hvis der ikke er nogen schedule-banner ovenfor */}
             {!schedule && job.preferred_time_start && (
               <Badge variant="outline" className="h-4 text-[10px] px-1.5 gap-0.5 border-border text-muted-foreground">

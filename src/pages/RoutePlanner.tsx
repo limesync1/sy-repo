@@ -400,7 +400,7 @@ const Planner = () => {
 
   const serviceSummaryForJob = (job: any) => effectiveJobItems(job)
     .map((it: any) => it.quantity > 1 ? `${it.quantity}× ${it.service_name}` : it.service_name)
-    .join(", ") || "Aftale";
+    .join(", ") || "Ingen ydelser angivet";
 
   /** Vis ALLE aftaler uden rute i poolen — ingen dato-vinduesfiltrering.
       Brugeren foretrækker at se hele listen ad gangen, fremfor at skulle
@@ -2771,7 +2771,7 @@ const Planner = () => {
                   <ul className="rounded border bg-secondary/30 divide-y max-h-48 overflow-y-auto">
                     {pendingBulkStartDateChange?.mismatches.map((m) => (
                       <li key={m.job.id} className="px-2.5 py-1.5 text-xs flex items-center justify-between gap-2">
-                        <span className="font-medium truncate">{m.job.customer_name || "Aftale"}</span>
+                        <span className="font-medium truncate">{m.job.customer_name || "Ukendt kunde"}</span>
                         <span className="text-muted-foreground shrink-0">
                           {format(parseISO(m.currentStart), "d. MMM yyyy", { locale: da })}
                         </span>
