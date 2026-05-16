@@ -213,7 +213,9 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
                 {hasRecurringInterval && !isFirstOccurrence ? "Næste:" : "Opstart:"}
               </span>
               <span className="font-semibold">{schedule.dayLabel}</span>
-              <span className="opacity-80">· {schedule.relative}</span>
+              {schedule.relative && (
+                <span className="opacity-80">· {schedule.relative}</span>
+              )}
               {job.preferred_time_start && (
                 <span className="opacity-80 ml-auto">
                   {job.preferred_time_start.slice(0, 5)}
