@@ -3,6 +3,7 @@ import {
   buildInterval,
   formatInterval,
   intervalBadgeClass,
+  intervalToCadence,
   intervalToDays,
   parseInterval,
   toAgreementEnum,
@@ -85,6 +86,21 @@ describe("intervalToDays", () => {
     expect(intervalToDays("årlig")).toBe(365);
     expect(intervalToDays("every_6_day")).toBe(6);
     expect(intervalToDays("every_2_month")).toBe(60);
+  });
+});
+
+describe("intervalToCadence", () => {
+  it("uses exact units from parseable intervals", () => {
+    expect(intervalToCadence("hver_14_dag")).toEqual({ n: 2, unit: "week" });
+    expect(intervalToCadence("månedlig")).toEqual({ n: 1, unit: "month" });
+    expect(intervalToCadence("hver_8_uge")).toEqual({ n: 8, unit: "week" });
+  });
+
+  it("lifts custom day counts into calendar-aware cadence", () => {
+    expect(intervalToCadence("custom", 14)).toEqual({ n: 2, unit: "week" });
+    expect(intervalToCadence("custom", 30)).toEqual({ n: 1, unit: "month" });
+    expect(intervalToCadence("custom", 210)).toEqual({ n: 7, unit: "month" });
+    expect(intervalToCadence("custom", 365)).toEqual({ n: 1, unit: "year" });
   });
 });
 
