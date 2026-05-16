@@ -387,9 +387,11 @@ type RoutePillProps = {
   jobDragActive?: boolean;
   /** True hvis ruten pt. behandler en flytning — drop deaktiveres + spinner. */
   busy?: boolean;
+  /** True hvis rutens dato ligger før i dag — vis dæmpet visuel stil. */
+  isPast?: boolean;
 };
 
-const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing, compact, jobDragActive, busy }: RoutePillProps) => {
+const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing, compact, jobDragActive, busy, isPast }: RoutePillProps) => {
   const isVirtual = !!route.isVirtual;
   // Drag-handle: hele pillen kan trækkes til ny dato (kun rigtige ruter).
   const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({
@@ -426,6 +428,7 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
         "border border-border/60",
         isDragging && "opacity-40",
         isVirtual && "border-dashed",
+        isPast && "opacity-50 saturate-50 hover:opacity-90",
         // Når en aftale er ved at blive sluppet på pillen — markér tydeligt
         !isVirtual && jobDragActive && !isOver && "ring-1 shadow-sm",
         !isVirtual && isOver && "ring-2 ring-accent shadow-md scale-[1.02]",
