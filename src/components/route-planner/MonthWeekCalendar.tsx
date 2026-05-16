@@ -453,7 +453,7 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
         <div className="min-w-0 flex-1">
           <div className="text-[11px] font-semibold truncate text-foreground leading-tight flex items-center gap-1">
             {isVirtual && <Repeat className="h-2.5 w-2.5 shrink-0 text-muted-foreground" />}
-            <span className="truncate">{route.name || `Kørsel ${format(parseISO(route.route_date), "d/M")}`}</span>
+            <span className="truncate">{route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}</span>
           </div>
           {!compact ? (
             <div className="flex items-center gap-1 text-[10px] text-muted-foreground tabular-nums mt-0.5">
