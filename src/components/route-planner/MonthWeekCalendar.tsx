@@ -102,6 +102,27 @@ export const MonthWeekCalendar = ({
       arr.push(r);
       m.set(r.route_date, arr);
     }
+    // Sortér ruterne i hver dag deterministisk så projicerede (virtuelle)
+    // ruter ikke ender "bagved" den originale basisrute pga. tilfældig
+    // insertion-rækkefølge. Primært på planlagt starttid, sekundært på
+    // navn, og virtuelle ruter placeres FØR de rigtige ved tie — så
+    // brugeren altid kan se den projicerede forekomst først.
+    for (const [k, arr] of m) {
+      arr.sort((a, b) => {
+        const at = (a as any).planned_start_time || "";
+        const bt = (b as any).planned_start_time || "";
+        if (at !== bt) {
+          if (!at) return 1;
+          if (!bt) return -1;
+          return at < bt ? -1 : 1;
+        }
+        const av = a.isVirtual ? 0 : 1;
+        const bv = b.isVirtual ? 0 : 1;
+        if (av !== bv) return av - bv;
+        return (a.name || "").localeCompare(b.name || "");
+      });
+      m.set(k, arr);
+    }
     return m;
   }, [routes]);
 
