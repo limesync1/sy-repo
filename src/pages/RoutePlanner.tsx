@@ -59,6 +59,7 @@ import { MoveRouteDateDialog, type MoveRouteScope } from "@/components/route-pla
 import { MergeRoutesDialog } from "@/components/route-planner/MergeRoutesDialog";
 import { supabase } from "@/integrations/supabase/client";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
+import { renameFreshSplitRoutes } from "@/components/route-planner/MoveStopsDialog";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
 import { AdminShell } from "@/components/admin/shared/AdminShell";
 import { useWeatherForecast, type WeatherDay } from "@/hooks/useWeather";
