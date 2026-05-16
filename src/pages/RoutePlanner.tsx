@@ -487,12 +487,26 @@ const Planner = () => {
       if (agreementsRes.error) throw agreementsRes.error;
       if (subsRes.error) throw subsRes.error;
       const subOrderById = new Map((subsRes.data || []).map((s: any) => [s.id, s.order_id as string | null]));
+      const agreementIds = (agreementsRes.data || []).map((a: any) => a.id).filter(Boolean);
+      const agreementItemIntervalById = new Map<string, string>();
+      if (agreementIds.length > 0) {
+        const { data: agreementItems } = await supabase
+          .from("agreement_items")
+          .select("agreement_id, details")
+          .in("agreement_id", agreementIds);
+        for (const item of agreementItems || []) {
+          const detailInterval = (item as any).details?.interval;
+          if (detailInterval && !agreementItemIntervalById.has((item as any).agreement_id)) {
+            agreementItemIntervalById.set((item as any).agreement_id, detailInterval);
+          }
+        }
+      }
       const agreementLegacySubIds = new Set(
         (agreementsRes.data || []).map((a: any) => a.legacy_subscription_id).filter(Boolean),
       );
       const fromAgreements = (agreementsRes.data || []).map((a: any) => ({
         id: `agr:${a.id}`,
-        interval: a.interval as string,
+        interval: (agreementItemIntervalById.get(a.id) || a.interval) as string,
         interval_days: (a.interval_days ?? null) as number | null,
         seed_date: a.start_date as string | null,
         preferred_route_id: a.preferred_route_id as string | null,
