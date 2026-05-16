@@ -368,8 +368,18 @@ const Planner = () => {
 
   /** Stops efter filter — bruges både til rute-bygger og kalender-kort. */
   const visibleCalendarStops = useMemo(() => {
-    if (!filtersActive) return calendarStops;
-    return calendarStops.filter((s: any) => {
+    // Udførte aftaler skal forsvinde fra ruten — de hører hjemme under
+    // "Udførte" på Aftaler-siden. Stoppet bliver i databasen (så historik
+    // og regnskab er intakt), men er ikke længere synligt i kalenderen.
+    // Vi tjekker BÅDE forekomst-status (kanonisk for gentagende aftaler)
+    // OG legacy stop-status, så engangs-stops også bliver filtreret væk.
+    const notCompleted = calendarStops.filter((s: any) => {
+      const occ = (s.occurrence_status as string | undefined) ?? null;
+      const eff = occ ?? s.status;
+      return eff !== "completed";
+    });
+    if (!filtersActive) return notCompleted;
+    return notCompleted.filter((s: any) => {
       if (filterAssigneeIds.length > 0) {
         const ids = (s.assignee_ids || []) as string[];
         if (!ids.some((id) => filterAssigneeIds.includes(id))) return false;
