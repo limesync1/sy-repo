@@ -35,6 +35,13 @@ describe("parseInterval", () => {
     expect(parseInterval("every_2_month")).toMatchObject({ n: 2, unit: "month" });
     expect(parseInterval("every_1_year")).toMatchObject({ n: 1, unit: "year" });
   });
+
+  it("parses flexible Danish interval keys and labels", () => {
+    expect(parseInterval("hver_8_uge")).toMatchObject({ n: 8, unit: "week" });
+    expect(parseInterval("Hver 2. uge")).toMatchObject({ n: 2, unit: "week" });
+    expect(parseInterval("Hver 7. måned")).toMatchObject({ n: 7, unit: "month" });
+    expect(parseInterval("Hvert 2. år")).toMatchObject({ n: 2, unit: "year" });
+  });
 });
 
 describe("formatInterval", () => {
