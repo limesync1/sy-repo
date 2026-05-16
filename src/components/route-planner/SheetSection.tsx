@@ -65,6 +65,7 @@ export const Section = ({
   required,
   children,
   className,
+  tone,
 }: {
   icon: React.ReactNode;
   title: string;
@@ -72,15 +73,31 @@ export const Section = ({
   required?: boolean;
   children: React.ReactNode;
   className?: string;
+  /**
+   * Valgfri farve-tone for header-ikonet (giver visuelt anker så man hurtigt
+   * kan scanne sektionerne). Bruges fx i StopDetailSheet hvor brugeren ellers
+   * havde svært ved at se hvor man først skulle kigge.
+   */
+  tone?: "primary" | "accent" | "amber" | "emerald" | "sky" | "muted";
 }) => (
   // Matcher kunde-detalje-sheetet (rounded-xl border-border bg-card, h4 uppercase
   // tracking-wider) så de to paneler ser ud som ét designsystem.
   <div className={cn("space-y-2", className)}>
     <div className="flex items-center gap-1.5">
-      <span className="text-muted-foreground inline-flex items-center justify-center h-3.5 w-3.5">
-        {icon}
+      <span
+        className={cn(
+          "inline-flex items-center justify-center h-5 w-5 rounded-md shrink-0",
+          tone === "primary"  && "bg-primary/10 text-primary",
+          tone === "accent"   && "bg-accent/15 text-accent",
+          tone === "amber"    && "bg-amber-500/15 text-amber-700 dark:text-amber-400",
+          tone === "emerald"  && "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
+          tone === "sky"      && "bg-sky-500/15 text-sky-700 dark:text-sky-400",
+          (!tone || tone === "muted") && "text-muted-foreground h-3.5 w-3.5 bg-transparent",
+        )}
+      >
+        <span className="[&>svg]:h-3 [&>svg]:w-3 inline-flex">{icon}</span>
       </span>
-      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+      <h4 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
         {title}
       </h4>
       {required && <span className="text-[10px] text-destructive">*</span>}
