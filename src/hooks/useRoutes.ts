@@ -815,40 +815,41 @@ export const useCreateRoute = () => {
     mutationFn: async ({
       business_id, route_date, name, color,
     }: { business_id: string; route_date: string; name?: string | null; color?: string | null }) => {
-      const { data: biz } = await supabase
-        .from("businesses")
-        .select("address, zip_code, city")
-        .eq("id", business_id)
-        .maybeSingle();
-      const startAddr = biz
-        ? [biz.address, [biz.zip_code, biz.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")
-        : null;
-
-      let startLat: number | null = null, startLng: number | null = null;
-      if (startAddr) {
-        try {
-          const { data: geo } = await supabase.functions.invoke("geocode-address", {
-            body: { address: biz?.address, zip_code: biz?.zip_code, city: biz?.city },
-          });
-          if (geo?.found) { startLat = geo.latitude; startLng = geo.longitude; }
-        } catch { /* non-fatal */ }
-      }
-
-      const { data, error } = await supabase
-        .from("routes")
-        .insert({
-          business_id,
-          route_date,
-          name: name || null,
-          color: color || "#14b8a6",
-          start_address: startAddr,
-          start_latitude: startLat,
-          start_longitude: startLng,
-        })
-        .select("*")
-        .single();
+      // Fast path: one RPC creates the route with start_address already filled in.
+      // Geocoding runs in the background and updates the row afterwards so the
+      // UI doesn't have to wait for the edge function round-trip.
+      const { data, error } = await supabase.rpc("create_route_fast" as any, {
+        _business_id: business_id,
+        _route_date: route_date,
+        _name: name || null,
+        _color: color || "#14b8a6",
+      });
       if (error) throw error;
-      return data as unknown as Route;
+      const route = data as unknown as Route;
+
+      // Fire-and-forget geocoding so the mutation resolves immediately.
+      (async () => {
+        try {
+          const { data: biz } = await supabase
+            .from("businesses")
+            .select("address, zip_code, city")
+            .eq("id", business_id)
+            .maybeSingle();
+          if (!biz?.address) return;
+          const { data: geo } = await supabase.functions.invoke("geocode-address", {
+            body: { address: biz.address, zip_code: biz.zip_code, city: biz.city },
+          });
+          if (geo?.found) {
+            await supabase
+              .from("routes")
+              .update({ start_latitude: geo.latitude, start_longitude: geo.longitude })
+              .eq("id", (route as any).id);
+            qc.invalidateQueries({ queryKey: ["routes"] });
+          }
+        } catch { /* non-fatal */ }
+      })();
+
+      return route;
     },
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ["routes", vars.business_id, vars.route_date] });
