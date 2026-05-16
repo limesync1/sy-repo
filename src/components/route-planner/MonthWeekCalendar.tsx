@@ -246,9 +246,15 @@ const DayCellInner = ({
         compact ? "min-h-[110px]" : "min-h-[160px]",
         !inMonth && "bg-secondary/10",
         isPast && "bg-muted/20",
-        // Når en aftale eller rute trækkes — gør dage subtilt mere indbydende
-        isDragActive && inMonth && !isOver && "ring-1 ring-accent/30 ring-inset",
-        // Når man hovrer over en dag — tydeligt highlight
+        // Når en aftale/rute trækkes:
+        //  - Gyldige drop-dage (i måneden, ikke fortid, ikke optaget) får
+        //    en subtil accent-ring så brugeren ser hvor der KAN droppes.
+        //  - Fortid/udenfor-måned dæmpes så de visuelt træder i baggrunden
+        //    og ikke konkurrerer om opmærksomheden under drag.
+        canReceiveDrop && !isOver && "ring-1 ring-accent/40 ring-inset",
+        isDragActive && isPast && "opacity-40",
+        isDragActive && !inMonth && "opacity-50",
+        // Når man hovrer over en gyldig dag — tydeligt highlight
         isOver && "bg-accent/15 ring-2 ring-accent ring-inset shadow-inner",
         busy && "opacity-90 cursor-wait",
       )}
