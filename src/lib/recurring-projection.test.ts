@@ -133,6 +133,18 @@ describe("expandRecurringRoutes", () => {
     expect(out.map((p) => p.date)).toEqual(["2026-05-10", "2026-05-24"]);
   });
 
+  it("uses route anchor date to project a 14-day route backwards inside the visible range", () => {
+    const out = expandRecurringRoutes({
+      rangeStart: "2026-05-01",
+      rangeEnd: "2026-05-31",
+      realRouteDates: new Set(["r14|2026-05-28"]),
+      sources: [
+        { id: "sub:s1", interval: "hver_14_dag", seed_date: "2026-05-28", anchor_date: "2026-05-28", preferred_route_id: "r14" },
+      ],
+    });
+    expect(out.map((p) => p.date)).toEqual(["2026-05-14"]);
+  });
+
   it("deduplicates when multiple agreements share route + date", () => {
     const out = expandRecurringRoutes({
       ...range,
