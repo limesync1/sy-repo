@@ -646,11 +646,18 @@ const Planner = () => {
       // Smart auto-navngivning: brug brugerens egen titel hvis sat, ellers
       // brug basisrutens navn hvis dette er en materialiseret forekomst,
       // ellers udled fra rutens egne medarbejdere/by, og fald til sidst
-      // tilbage til "Kørsel N".
+      // tilbage til et datobaseret navn "Rute (16. sep)".
+      const dateLabel = (() => {
+        try { return format(parseISO(r.route_date), "d. MMM", { locale: da }); }
+        catch { return r.route_date; }
+      })();
+      const dateFallback = dayIndex > 1
+        ? `Rute ${dayIndex} (${dateLabel})`
+        : `Rute (${dateLabel})`;
       const autoName = (() => {
         if (r.name && r.name.trim()) return r.name;
         if (baseInfo?.name) return baseInfo.name;
-        return computeAutoName(emps, stopsForRoute, `Kørsel ${dayIndex}`);
+        return computeAutoName(emps, stopsForRoute, dateFallback);
       })();
       const inheritedColor = baseInfo?.color && !r.color ? baseInfo.color : r.color;
       return {
