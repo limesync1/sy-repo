@@ -1936,7 +1936,7 @@ const AftaleTab = ({
                     {/* Ikon-badge */}
                     <div
                       className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground"
-                      title={primarySubcategory || primaryCategory || "Aftale"}
+                      title={primarySubcategory || primaryCategory || "Ukategoriseret"}
                     >
                       <span className="text-base leading-none">{categoryIcon}</span>
                     </div>
@@ -2667,7 +2667,9 @@ const AftaleTab = ({
           >
             <div className="flex items-center justify-between gap-1.5">
               <p className="text-xs font-semibold truncate text-foreground">
-                {activeDragOrder.customer_name || "Aftale"}
+                {activeDragOrder.customer_name
+                  || activeDragOrder.address
+                  || "Ukendt kunde"}
               </p>
               <span className="text-[10px] font-bold text-accent shrink-0 tabular-nums">
                 {Math.round(Number(activeDragOrder.total_amount || 0))} kr
