@@ -829,11 +829,15 @@ const Planner = () => {
     });
     return projections
       .map((p) => {
-        // Klip projektioner væk der ligger før basisrutens nuværende dato
-        // (fx efter en flytning frem i tiden). Forhindrer "spøgelses-ruter"
-        // i at dukke op på datoer mellem i dag og den nye rute-dato.
+        // Klip kun projektioner væk der ligger før basisrutens dato når kilden
+        // IKKE har en route-date som kalender-anker. For ankrede serier er
+        // datoer før basisruten legitime — fx d. 14 når basisruten er d. 28 og
+        // aftalen kører hver 14. dag.
         const baseMinDate = minDateByBaseRouteId.get(p.baseRouteId);
-        if (baseMinDate && p.date < baseMinDate) return null;
+        const hasAnchoredSource = p.sourceKeys.some((key) =>
+          recurringSources.some((src: any) => src.anchor_date && src.sourceKeys?.includes(key)),
+        );
+        if (baseMinDate && p.date < baseMinDate && !hasAnchoredSource) return null;
         // Filtrér source-keys der allerede er materialiseret som rigtige
         // stops på samme dato — så vi ikke får dubletter.
         const dateRealKeys = realSourceKeysByDate.get(p.date);
