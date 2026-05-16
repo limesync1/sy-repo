@@ -437,6 +437,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                 <Section
                   icon={<CalendarClock className="h-3.5 w-3.5" />}
                   title="Planlægning"
+                  tone="primary"
                   hint="Note til medarbejderen"
                 >
                   <PlanningSection
@@ -555,6 +556,7 @@ const TimeSpentSection = ({
       <Section
         icon={<TimerReset className="h-3.5 w-3.5" />}
         title="Faktisk tid brugt"
+        tone="muted"
         hint="Endnu ingen registrering"
       >
         <p className="text-xs text-muted-foreground italic">
@@ -574,6 +576,7 @@ const TimeSpentSection = ({
     <Section
       icon={<TimerReset className="h-3.5 w-3.5" />}
       title="Faktisk tid brugt"
+      tone="emerald"
       hint={teamMin != null ? `Team: ${fmtMinutes(teamMin)}` : `${inProgress.length} i gang`}
     >
       <div className="rounded-lg border divide-y bg-background">
