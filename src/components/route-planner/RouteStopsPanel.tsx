@@ -21,7 +21,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
-  GripVertical, MapPin, Clock, Trash2, Inbox, ExternalLink, Loader2,
+  GripVertical, MapPin, Trash2, Inbox, ExternalLink, Loader2,
   Crown, UserPlus, Check, PlayCircle,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
@@ -32,7 +32,6 @@ import {
   useReorderStops, useDeleteStop, useSetStopAssignees,
   type RouteStop, type Route,
 } from "@/hooks/useRoutes";
-import { formatDurationMin } from "@/lib/duration-format";
 import { IntervalBadge } from "./IntervalBadge";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
