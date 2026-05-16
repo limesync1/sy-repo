@@ -48,6 +48,7 @@ import { toast } from "sonner";
 import {
   DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
   pointerWithin, type DragEndEvent, type DragStartEvent,
+  MouseSensor, TouchSensor, KeyboardSensor,
 } from "@dnd-kit/core";
 import { UnassignedJobCard } from "@/components/route-planner/UnassignedJobCard";
 import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
