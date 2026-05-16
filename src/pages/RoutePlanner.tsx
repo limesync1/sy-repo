@@ -626,27 +626,10 @@ const Planner = () => {
         .filter(Boolean)
         .map((e: any) => ({ id: e.id, name: e.name, avatar_url: e.avatar_url, color: e.color }));
     };
-    // Hjælper: udled smart auto-navn ud fra dominerende by — bevidst UDEN
-    // medarbejdere, så tildeling af en medarbejder ikke ændrer rutens navn.
-    const computeAutoName = (_emps: any[], stops: any[], fallback: string) => {
-      const cityPart = (() => {
-        if (!stops || stops.length === 0) return "";
-        if (stops.length < 2) {
-          const c = (stops[0] as any)?.city?.trim();
-          return c || "";
-        }
-        const counts = new Map<string, number>();
-        for (const s of stops) {
-          const city = ((s as any).city || "").trim();
-          if (!city) continue;
-          counts.set(city, (counts.get(city) || 0) + 1);
-        }
-        let best = ""; let bestN = 0;
-        counts.forEach((n, c) => { if (n > bestN) { bestN = n; best = c; } });
-        return bestN / stops.length >= 0.6 ? best : "";
-      })();
-      return cityPart || fallback;
-    };
+    // BEMÆRK: tidligere udledte vi her et "smart" by-baseret navn — det
+    // er fjernet, fordi navnet ændrede sig når stops blev flyttet, hvilket
+    // brugeren oplevede som at en navngivet rute pludselig hed noget andet.
+    // Vi bruger nu kun eksplicit navn → basisrutens navn → dato-fallback.
     // Map til hurtig opslag på basis-rutens visningsnavn/farve, så
     // materialiserede gentagende ruter arver detaljer fra originalen.
     const baseInfoById = new Map<string, { name: string | null; color: string | null }>();
