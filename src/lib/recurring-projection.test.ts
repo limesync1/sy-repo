@@ -96,6 +96,32 @@ describe("expandRecurringRoutes", () => {
     expect(out.map((p) => p.date)).toEqual(["2026-05-02", "2026-05-12", "2026-05-22"]);
   });
 
+  it("custom 30-day storage projects as monthly calendar cadence, not drifting days", () => {
+    const out = expandRecurringRoutes({
+      rangeStart: "2026-01-01",
+      rangeEnd: "2026-06-30",
+      realRouteDates: new Set(),
+      sources: [
+        { id: "a1", interval: "custom", interval_days: 30, seed_date: "2026-01-31", preferred_route_id: "r3" },
+      ],
+    });
+    expect(out.map((p) => p.date)).toEqual([
+      "2026-01-31", "2026-02-28", "2026-03-31", "2026-04-30", "2026-05-31", "2026-06-30",
+    ]);
+  });
+
+  it("supports flexible service intervals such as every 8 weeks", () => {
+    const out = expandRecurringRoutes({
+      rangeStart: "2026-05-01",
+      rangeEnd: "2026-09-30",
+      realRouteDates: new Set(),
+      sources: [
+        { id: "a1", interval: "hver_8_uge", seed_date: "2026-05-04", preferred_route_id: "r8" },
+      ],
+    });
+    expect(out.map((p) => p.date)).toEqual(["2026-05-04", "2026-06-29", "2026-08-24"]);
+  });
+
   it("projects every 14 days from the agreement seed date", () => {
     const out = expandRecurringRoutes({
       ...range,
