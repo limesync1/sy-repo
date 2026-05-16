@@ -128,7 +128,6 @@ const Planner = () => {
    * invalideringen propagerer. Ryddes når mutationen har slået igennem i
    * route-cachen.
    */
-  const [routeColorOverride, setRouteColorOverride] = useState<Record<string, string>>({});
   /**
    * Når en projiceret rute åbnes (klik på virtuel pille i kalenderen) holder
    * vi fast i de aktive sourceKeys for netop den dato. Det bruges til at
