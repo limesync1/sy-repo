@@ -288,12 +288,20 @@ Deno.serve(async (req) => {
         reordered: 0,
         total_km: Number(route.total_distance_km ?? 0),
         total_minutes: Number(route.total_duration_minutes ?? 0),
+        before_km: Number(route.total_distance_km ?? 0),
+        before_minutes: Number(route.total_duration_minutes ?? 0),
+        saved_km: 0,
+        saved_minutes: 0,
         provider: "cached",
         unassigned: 0,
         soft_violations: 0,
         employees: employees.length,
       }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+
+    // Capture før-tilstand for delta-rapportering i toast.
+    const beforeKm = Number(route.total_distance_km ?? 0);
+    const beforeMinutes = Number(route.total_duration_minutes ?? 0);
 
     // === Kør VRP ===
     const { plan, provider, weather } = await solveVRP(employees, validStops, { routeDate: route.route_date });
@@ -388,6 +396,10 @@ Deno.serve(async (req) => {
       reordered: validStops.length,
       total_km: plan.total_km,
       total_minutes: plan.total_minutes,
+      before_km: beforeKm,
+      before_minutes: beforeMinutes,
+      saved_km: Math.max(0, beforeKm - plan.total_km),
+      saved_minutes: Math.max(0, beforeMinutes - plan.total_minutes),
       provider,
       weather,
       unassigned: plan.unassigned_stops.length,
