@@ -1200,17 +1200,12 @@ const AftaleTab = ({
     }
   };
 
-  // Slet en annulleret aftale permanent. Tilkalder en SECURITY DEFINER funktion
-  // der både validerer ejerskab + status og rydder relaterede rækker
-  // (rute-stops, abonnementer, faktura-links, notifikationer m.fl.).
+  // Slet en aftale permanent — uanset status. Tilkalder en SECURITY DEFINER
+  // funktion der validerer ejerskab og rydder alle relaterede rækker
+  // (rute-stops, forekomster, abonnementer, faktura-links, notifikationer m.fl.).
+  // Hvis aftalen ligger på en rute som ikke har andre stops tilbage, spørger
+  // vi først brugeren om ruten også skal slettes.
   const handleDeleteOrder = async (order: any) => {
-    if (order.status !== "cancelled") {
-      toast.error("Kun annullerede aftaler kan slettes");
-      return;
-    }
-    // Tjek om aftalen ligger på en rute — og om den er det sidste stop.
-    // I så fald håndteres bekræftelse + sletning i AlertDialog'en nedenfor,
-    // så brugeren ved præcis hvilken rute der også forsvinder.
     const stop = stopByOrder?.[order.id];
     if (stop?.route?.id) {
       const routeId = stop.route.id;
