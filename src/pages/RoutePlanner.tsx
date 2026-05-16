@@ -397,7 +397,19 @@ const Planner = () => {
     });
   }, [calendarStops, filterAssigneeIds, filterStatuses, filtersActive]);
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+  // ─── Drag-sensorer ───
+  // PointerSensor er flakey på Windows-pegefelter (uden mus) og på Android
+  // hvor små finger-bevægelser ofte konsumeres som klik i stedet for drag.
+  // Vi splitter derfor i dedikerede sensorer:
+  //  - Mus: lille distance (3px) så drag starter hurtigt og responsivt
+  //  - Touch: kort delay (120ms) + tolerance (8px) så tap stadig fungerer
+  //    som klik, mens hold-og-træk altid registreres pålideligt
+  //  - Keyboard: tilgængelighed (Space/Enter + piletaster)
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 3 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 8 } }),
+    useSensor(KeyboardSensor),
+  );
 
   /** Kundens ønskede dato — preferred_date primært, ellers next_service_date (abonnement). */
   const effectiveJobDate = (j: any): string | null => {
