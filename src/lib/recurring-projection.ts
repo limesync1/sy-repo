@@ -95,6 +95,8 @@ export const expandRecurringRoutes = (params: {
   horizonDays?: number;
   /** Sæt af `${routeId}|${yyyy-MM-dd}` der allerede har en rigtig rute — disse springes over. */
   realRouteDates: Set<string>;
+  /** Callback når en kilde IKKE kan projiceres — bruges til UI-advarsler så fejl ikke bare "forsvinder". */
+  onUnprojectable?: (source: RecurringSource, reason: "missing_route" | "missing_seed" | "invalid_interval") => void;
 }): ProjectedRoute[] => {
   // Projicerer pr. kilde (aftale) og samler datoer pr. rute, så samme dato
   // ikke duplikeres når flere aftaler falder sammen på samme rute/dag.
@@ -106,13 +108,14 @@ export const expandRecurringRoutes = (params: {
   const limit = parseISO(params.rangeEnd);
 
   for (const s of params.sources) {
-    if (!s.preferred_route_id || (!s.seed_date && !s.anchor_date)) continue;
+    if (!s.preferred_route_id) { params.onUnprojectable?.(s, "missing_route"); continue; }
+    if (!s.seed_date && !s.anchor_date) { params.onUnprojectable?.(s, "missing_seed"); continue; }
     // Parse intervallet til (n, unit) så vi bruger ægte kalender-aritmetik for
     // ALLE understøttede intervaller. Custom dagstal løftes til uge/måned/år
     // når de repræsenterer en klassisk cadence (fx 14 dage → 2 uger,
     // 30 dage → 1 måned), så projektioner ikke ender som "hver 31. dag".
     const cadence = intervalToCadence(s.interval, s.interval_days);
-    if (!cadence) continue;
+    if (!cadence) { params.onUnprojectable?.(s, "invalid_interval"); continue; }
     const { n } = cadence;
     const unit: IntervalUnit = cadence.unit;
     const advance = (d: Date, steps: number): Date => {
