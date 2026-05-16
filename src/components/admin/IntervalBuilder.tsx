@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -151,6 +151,50 @@ export const IntervalBuilder = ({ value, onChange }: IntervalBuilderProps) => {
   // til at blokere "Tilføj" når draften ikke kan beregnes korrekt.
   const validation = useMemo(() => validateServiceIntervals(value), [value]);
 
+  // Auto-rens: hvis listen indeholder ugyldige eller ikke-normaliserede
+  // intervaller (fx legacy-data hvor "hver 2. uge" var gemt som 14 dage,
+  // eller en duplicate), fjern dem eller erstat dem med den normaliserede
+  // form. Det sikrer at brugeren aldrig kan ende med en uberegnelig
+  // kombination — selv ikke ved at åbne en gammel service.
+  useEffect(() => {
+    const cleaned: string[] = [];
+    const seen = new Set<string>();
+    let changed = false;
+    for (const raw of value) {
+      if (raw === "engangskøb") {
+        if (!seen.has(raw)) {
+          seen.add(raw);
+          cleaned.push(raw);
+        } else {
+          changed = true;
+        }
+        continue;
+      }
+      const parsed = parseInterval(raw);
+      if (!parsed || parsed.once) {
+        changed = true; // dropper ukendte nøgler
+        continue;
+      }
+      // Normalisér + map tilbage til legacy-enum hvor muligt, så vi gemmer
+      // den pæneste/kanoniske repræsentation (fx 14 dage → hver_14_dag).
+      const key = buildKey(parsed.n, parsed.unit);
+      if (validateIntervalKey(key)) {
+        changed = true; // ugyldig (fx > grænserne) → fravælg automatisk
+        continue;
+      }
+      if (key !== raw) changed = true;
+      if (seen.has(key)) {
+        changed = true;
+        continue;
+      }
+      seen.add(key);
+      cleaned.push(key);
+    }
+    if (!changed) return;
+    onChange(cleaned.length > 0 ? cleaned : ["engangskøb"]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value.join("|")]);
+
   const add = (n?: number, unit?: IntervalUnit) => {
     const useN = Math.max(1, Math.min(999, n ?? (parseInt(draftN, 10) || 1)));
     const useUnit = unit ?? draftUnit;
@@ -185,7 +229,15 @@ export const IntervalBuilder = ({ value, onChange }: IntervalBuilderProps) => {
     const norm = normalizeInterval(n, draftUnit);
     const original = formatInterval(buildInterval(n, draftUnit));
     const normalized = formatInterval(buildInterval(norm.n, norm.unit));
-    return { original, normalized, changed: norm.n !== n || norm.unit !== draftUnit };
+    const normalizedKey = buildKey(norm.n, norm.unit);
+    const error = validateIntervalKey(normalizedKey);
+    return {
+      original,
+      normalized,
+      changed: norm.n !== n || norm.unit !== draftUnit,
+      error,
+      key: normalizedKey,
+    };
   }, [draftN, draftUnit]);
 
   return (
@@ -220,12 +272,20 @@ export const IntervalBuilder = ({ value, onChange }: IntervalBuilderProps) => {
           {QUICK_PICKS.map(({ n, unit }) => {
             const key = buildKey(n, unit);
             const active = items.includes(key);
+            const invalid = !!validateIntervalKey(key);
             return (
               <button
                 key={key}
                 type="button"
-                onClick={() => (active ? remove(key) : add(n, unit))}
+                disabled={invalid}
+                onClick={() => {
+                  if (invalid) return;
+                  active ? remove(key) : add(n, unit);
+                }}
                 className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                  invalid
+                    ? "cursor-not-allowed border-border bg-card text-muted-foreground/40 line-through"
+                    :
                   active
                     ? "border-accent bg-accent/15 text-foreground"
                     : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground"
@@ -310,15 +370,24 @@ export const IntervalBuilder = ({ value, onChange }: IntervalBuilderProps) => {
             size="sm"
             onClick={() => add()}
             className="h-9"
-            disabled={items.includes(
-              buildKey(Math.max(1, parseInt(draftN, 10) || 1), draftUnit),
-            )}
+            disabled={
+              !!draftPreview.error || items.includes(draftPreview.key)
+            }
           >
             <Plus className="mr-1 h-3.5 w-3.5" /> Tilføj
           </Button>
         </div>
-        <p className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-          {draftPreview.changed ? (
+        <p
+          className={`mt-2 flex items-center gap-1.5 text-[11px] ${
+            draftPreview.error ? "text-destructive" : "text-muted-foreground"
+          }`}
+        >
+          {draftPreview.error ? (
+            <>
+              <AlertCircle className="h-3 w-3" />
+              <span>{draftPreview.error}</span>
+            </>
+          ) : draftPreview.changed ? (
             <>
               <Sparkles className="h-3 w-3 text-accent" />
               <span>
