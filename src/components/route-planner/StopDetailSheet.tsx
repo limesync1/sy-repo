@@ -23,9 +23,10 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, addDays, addWeeks, addMonths, addYears } from "date-fns";
 import { da } from "date-fns/locale";
 import { INTERVAL_LABELS } from "@/types/service";
+import { intervalToCadence } from "@/lib/interval";
 import { Section, SheetFooterBar } from "./SheetSection";
 
 type Props = {
@@ -36,9 +37,11 @@ type Props = {
   sequenceLabel?: number;
   /** Når true vises kun read-only view (bruges når man åbner en aftale fra aftalepoolen). */
   readOnly?: boolean;
+  /** Effektiv dato for det viste stop — bruges til at beregne korrekt "Næste besøg" også for projicerede ruter. */
+  effectiveDate?: string | null;
 };
 
-export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequenceLabel, readOnly }: Props) => {
+export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequenceLabel, readOnly, effectiveDate }: Props) => {
   const { data: order, isLoading } = useOrderForStop(stop?.order_id);
   const updateStop = useUpdateStop();
   const deleteStop = useDeleteStop();
@@ -391,7 +394,27 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                         <>
                           <dt className="text-[11px] uppercase tracking-wider text-muted-foreground self-center">Næste besøg</dt>
                           <dd className="text-right font-medium">
-                            {format(parseISO((activeSub || pausedSub)!.next_service_date), "d. MMM yyyy", { locale: da })}
+                            {(() => {
+                              const sub = (activeSub || pausedSub)!;
+                              const cadence = intervalToCadence(sub.interval);
+                              const baseStr = effectiveDate
+                                || (stop as any)?.occurrence_date
+                                || sub.next_service_date;
+                              try {
+                                if (cadence && baseStr) {
+                                  const base = parseISO(String(baseStr).slice(0, 10));
+                                  const next =
+                                    cadence.unit === "day"   ? addDays(base, cadence.n) :
+                                    cadence.unit === "week"  ? addWeeks(base, cadence.n) :
+                                    cadence.unit === "month" ? addMonths(base, cadence.n) :
+                                                               addYears(base, cadence.n);
+                                  return format(next, "d. MMM yyyy", { locale: da });
+                                }
+                                return format(parseISO(sub.next_service_date), "d. MMM yyyy", { locale: da });
+                              } catch {
+                                return sub.next_service_date;
+                              }
+                            })()}
                           </dd>
                         </>
                       )}
