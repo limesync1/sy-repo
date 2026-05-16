@@ -57,11 +57,11 @@ export const MergeRoutesDialog = ({
           <AlertDialogDescription asChild>
             <div className="min-w-0 space-y-2 text-sm">
               <div className="grid min-w-0 gap-2 text-muted-foreground tabular-nums sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center">
-                <span className="min-w-0 overflow-wrap-anywhere rounded-md border border-border bg-secondary/30 px-2.5 py-2 text-left font-medium capitalize text-foreground sm:truncate">
+                <span className="min-w-0 [overflow-wrap:anywhere] rounded-md border border-border bg-secondary/30 px-2.5 py-2 text-left font-medium capitalize text-foreground sm:truncate">
                   {sourceName} <span className="text-muted-foreground">({fmt(sourceDate)})</span>
                 </span>
                 <ArrowRight className="mx-auto h-3 w-3 shrink-0 rotate-90 sm:rotate-0" />
-                <span className="min-w-0 overflow-wrap-anywhere rounded-md border border-border bg-secondary/30 px-2.5 py-2 text-left font-medium capitalize text-foreground sm:truncate">
+                <span className="min-w-0 [overflow-wrap:anywhere] rounded-md border border-border bg-secondary/30 px-2.5 py-2 text-left font-medium capitalize text-foreground sm:truncate">
                   {targetName} <span className="text-muted-foreground">({fmt(targetDate)})</span>
                 </span>
               </div>
