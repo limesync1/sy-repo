@@ -335,13 +335,15 @@ export const RouteEditSheet = ({
         (result as any).saved_minutes ?? (((result as any).before_minutes ?? result.total_minutes) - result.total_minutes),
       );
       const negligible = savedKm < 0.05 && savedMin < 1;
-      if ((result as any).already_optimal || negligible) {
-        toast.success("Ruten er allerede optimal");
-      } else {
+      if (!negligible) {
         const parts: string[] = [];
         if (savedKm >= 0.05) parts.push(`${savedKm.toFixed(1)} km`);
         if (savedMin >= 1) parts.push(`${Math.round(savedMin)} min`);
         toast.success(`Sparet ${parts.join(" · ")}`);
+      } else if ((result as any).order_changed) {
+        toast.success("Rækkefølgen er optimeret");
+      } else {
+        toast.info("Ingen bedre rækkefølge fundet");
       }
     } catch { /* */ }
   };
