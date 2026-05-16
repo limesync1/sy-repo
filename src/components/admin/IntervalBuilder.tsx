@@ -147,10 +147,16 @@ export const IntervalBuilder = ({ value, onChange }: IntervalBuilderProps) => {
     return toLegacyEnum(newKey) ?? newKey;
   };
 
+  // Validér hele listen — viser samlet fejl + per-interval fejl. Bruges også
+  // til at blokere "Tilføj" når draften ikke kan beregnes korrekt.
+  const validation = useMemo(() => validateServiceIntervals(value), [value]);
+
   const add = (n?: number, unit?: IntervalUnit) => {
     const useN = Math.max(1, Math.min(999, n ?? (parseInt(draftN, 10) || 1)));
     const useUnit = unit ?? draftUnit;
     const key = buildKey(useN, useUnit);
+    const err = validateIntervalKey(key);
+    if (err) return;
     if (items.includes(key)) return;
     commit([...items, key]);
     if (n === undefined) setDraftN("1");
@@ -243,7 +249,13 @@ export const IntervalBuilder = ({ value, onChange }: IntervalBuilderProps) => {
             <SortableContext items={items} strategy={verticalListSortingStrategy}>
               <ul className="space-y-1.5">
                 {items.map((iv) => (
-                  <SortableRow key={iv} id={iv} label={formatInterval(iv)} onRemove={() => remove(iv)} />
+                  <SortableRow
+                    key={iv}
+                    id={iv}
+                    label={formatInterval(iv)}
+                    error={validation.errors[iv] ?? null}
+                    onRemove={() => remove(iv)}
+                  />
                 ))}
               </ul>
             </SortableContext>
