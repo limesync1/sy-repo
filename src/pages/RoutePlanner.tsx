@@ -2581,7 +2581,23 @@ const Planner = () => {
 
               {/* Calendar */}
               <ResizablePanel defaultSize={80} className="overflow-hidden">
-                <div data-tour="routes-calendar" className="h-full">
+                <div data-tour="routes-calendar" className="h-full flex flex-col">
+                {projectionDiagnostics.unprojectable.length > 0 && (
+                  <Alert variant="destructive" className="m-2 mb-0 shrink-0">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>
+                      {projectionDiagnostics.unprojectable.length === 1
+                        ? "1 aftale kan ikke vises i kalenderen"
+                        : `${projectionDiagnostics.unprojectable.length} aftaler kan ikke vises i kalenderen`}
+                    </AlertTitle>
+                    <AlertDescription className="text-xs">
+                      Tjek aftalens interval og foretrukne rute. Aftaler uden et gyldigt
+                      gentagelses-interval eller uden en startdato kan ikke beregnes og
+                      bliver derfor sprunget over i kalender-projektionen.
+                    </AlertDescription>
+                  </Alert>
+                )}
+                <div className="flex-1 min-h-0">
                 <MonthWeekCalendar
                   view={view}
                   anchorDate={date}
