@@ -252,7 +252,9 @@ Deno.serve(async (req) => {
 
     // === INPUT-FINGERAFTRYK ===
     // Beregn en stabil hash over alt der kan påvirke optimerings-resultatet.
-    // Hvis denne hash matcher den vi gemte sidst → ruten er allerede optimal
+    // Hvis denne hash matcher den vi gemte sidst, kan en eksplicit cache-kørsel
+    // genbruge sidste resultat. Normal UI-kørsel bruger ikke cache, fordi
+    // manuel rækkefølge også skal måles korrekt.
     // for det aktuelle input, og vi skipper hele VRP-kørslen. Det betyder at
     // gentagne klik på "Optimér" uden ændringer ikke spilder tid eller giver
     // forskellige resultater.
@@ -307,7 +309,7 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({
         ok: true,
         already_optimal: true,
-        reasoning: "Ruten er allerede optimeret. Ingen ændringer detekteret siden sidste kørsel.",
+        reasoning: "Ingen bedre rækkefølge fundet for samme input.",
         summary: route.optimization_summary ?? null,
         suggestions: Array.isArray(existingSuggestions)
           ? existingSuggestions
