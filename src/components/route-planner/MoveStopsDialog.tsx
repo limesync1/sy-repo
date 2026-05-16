@@ -25,6 +25,61 @@ import { useQueryClient, useQuery } from "@tanstack/react-query";
 import type { Route, RouteStop } from "@/hooks/useRoutes";
 import { invalidateRouteSyncQueries } from "@/hooks/useRoutes";
 import { cn } from "@/lib/utils";
+import { ROUTE_COLORS, pickAvailableColor } from "./RouteEditSheet";
+
+const todayStr = () => format(new Date(), "yyyy-MM-dd");
+
+/**
+ * Efter et flyt der har oprettet split-ruter (med auto-navn "X — DD/MM"),
+ * omdøb dem efter den første flyttede aftales kunde + giv en tilfældig
+ * ledig farve. Sørger for at "Flyt aftaler" ikke ender med kloner af
+ * kildens navn.
+ */
+export const renameFreshSplitRoutes = async (movedStopIds: string[], targetDate: string) => {
+  if (movedStopIds.length === 0) return;
+  const { data } = await supabase
+    .from("route_stops")
+    .select("id, route_id, customer_name, sequence, routes!inner(id, name, route_date, business_id)")
+    .in("id", movedStopIds);
+  if (!data || data.length === 0) return;
+  const groups = new Map<string, { firstStopName: string; routeName: string; businessId: string; date: string }>();
+  for (const s of data as any[]) {
+    const r = s.routes;
+    if (!r || String(r.route_date).slice(0, 10) !== targetDate) continue;
+    const existing = groups.get(s.route_id);
+    if (!existing || (s.sequence ?? 999) < (existing as any).seq) {
+      groups.set(s.route_id, {
+        firstStopName: (s.customer_name || "Aftale").trim(),
+        routeName: r.name || "",
+        businessId: r.business_id,
+        date: String(r.route_date).slice(0, 10),
+        ...({ seq: s.sequence ?? 999 } as any),
+      });
+    }
+  }
+  // Hent eksisterende farver i brug samme dag — så vi ikke vælger duplikater.
+  const businessIds = Array.from(new Set(Array.from(groups.values()).map((g) => g.businessId)));
+  const usedByBiz = new Map<string, string[]>();
+  for (const bid of businessIds) {
+    const { data: dayRoutes } = await supabase
+      .from("routes")
+      .select("color")
+      .eq("business_id", bid)
+      .eq("route_date", targetDate);
+    usedByBiz.set(bid, (dayRoutes || []).map((r: any) => r.color).filter(Boolean));
+  }
+  for (const [routeId, info] of groups) {
+    // Kun omdøb hvis navnet ligner det auto-genererede split-navn.
+    if (!/ — \d{2}\/\d{2}$/.test(info.routeName) && info.routeName.trim() !== "") continue;
+    const used = usedByBiz.get(info.businessId) || [];
+    const color = pickAvailableColor(used);
+    used.push(color);
+    usedByBiz.set(info.businessId, used);
+    await supabase.from("routes")
+      .update({ name: info.firstStopName, color })
+      .eq("id", routeId);
+  }
+};
 
 type Props = {
   open: boolean;
@@ -96,6 +151,7 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
     if (mode === "date") {
       if (!targetDate) return false;
       if (targetDate === route.route_date) return false;
+      if (targetDate < todayStr()) return false;
       return true;
     }
     return !!targetRouteId;
@@ -109,6 +165,12 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
       let missingEmployee = 0;
       let successLabel = "";
       if (mode === "date") {
+        if (targetDate < todayStr()) {
+          toast.error("Kan ikke flytte aftaler bagud i tiden", {
+            description: "Vælg en dato fra i dag eller frem.",
+          });
+          return;
+        }
         const { data, error } = await supabase.rpc("move_stops_to_date", {
           _stop_ids: Array.from(selected),
           _target_date: targetDate,
@@ -124,6 +186,9 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
         movedCount = Number(row?.moved_count ?? 0);
         missingEmployee = Number(row?.missing_employee_count ?? 0);
         successLabel = format(parseISO(targetDate), "EEEE d. MMM", { locale: da });
+        if (movedCount > 0) {
+          try { await renameFreshSplitRoutes(Array.from(selected), targetDate); } catch (e) { console.warn("renameFreshSplitRoutes", e); }
+        }
 
       } else {
         const { data, error } = await supabase.rpc("move_stops_to_route", {
@@ -273,6 +338,7 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
             {mode === "date" ? (
               <>
                 <DatePickerField value={targetDate} onChange={setTargetDate} />
+                <DatePickerFieldMin />
                 {targetDate && route.route_date && targetDate !== route.route_date && (
                   <p className="mt-1.5 text-[11px] text-muted-foreground flex items-center gap-1">
                     <span className="capitalize">
