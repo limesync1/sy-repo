@@ -60,7 +60,22 @@ const queryClient = new QueryClient({
       staleTime: 60_000,           // 1 min — undgå unødige refetches mellem fane-skift
       gcTime: 10 * 60_000,         // 10 min cache i hukommelsen
       refetchOnWindowFocus: false, // forstyr ikke brugeren ved tab-skift
+      // Retry transient fejl (network / 5xx) op til 2 gange med eksponentiel
+      // backoff. Permanente fejl (4xx, valideringsfejl) faler øjeblikkeligt
+      // så UI ikke "hænger" på en hopeløs request.
+      retry: (failureCount, error: any) => {
+        if (failureCount >= 2) return false;
+        const status = error?.status ?? error?.statusCode;
+        if (status && status >= 400 && status < 500) return false;
+        return true;
+      },
+      retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 4000),
+    },
+    mutations: {
+      // Mutationer (drag/drop, redigeringer) bruger MutationQueue's egen
+      // retry-logik, så vi lader react-query selv kun prøve én ekstra gang.
       retry: 1,
+      retryDelay: 500,
     },
   },
 });
