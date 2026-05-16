@@ -1331,17 +1331,21 @@ const Planner = () => {
         return;
       }
       const performAddToRoute = async () => {
-        const { data: existingStops } = await supabase
-          .from("route_stops").select("id, order_id").eq("route_id", targetRouteId);
-        // Idempotens — undgå dubletter af samme aftale på samme rute.
-        if ((existingStops || []).some((s: any) => s.order_id === job.id)) {
+        // Klient-side dubletcheck mod allerede-cached stops — undgår en
+        // ekstra Supabase-roundtrip pr. drop. DB har stadig unique-constraint
+        // som sikkerhedsnet, og vi catcher fejlen længere nede.
+        const cachedDup = calendarStops.some(
+          (s: any) => s.route_id === targetRouteId && s.order_id === job.id,
+        );
+        if (cachedDup) {
           toast.info("Aftalen ligger allerede på denne rute");
           return;
         }
+        const sequence = calendarStops.filter((s: any) => s.route_id === targetRouteId).length;
         await addStop.mutateAsync({
           route_id: targetRouteId,
           order_id: job.id,
-          sequence: (existingStops || []).length,
+          sequence,
           customer_name: job.customer_name,
           customer_phone: job.customer_phone,
           address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
@@ -1352,10 +1356,10 @@ const Planner = () => {
           time_window_start: job.preferred_time_start || null,
           time_window_end: job.preferred_time_end || null,
         });
-        // Hvis aftalen er gentagende — knyt subscription'en til denne rute,
-        // så virtuelle uger/måneder kan projicere fremad i kalenderen.
-        await linkAgreementToRoute(job.id, targetRouteId);
+        // Vis success med det samme — koblingen til projektion sker i
+        // baggrunden så brugeren ikke mærker forsinkelse.
         toast.success("Aftale tilføjet til ruten");
+        void linkAgreementToRoute(job.id, targetRouteId);
       };
       // Klog tjek: matcher target-datoen aftalens opstartsdato?
       // Hvis ikke, beder vi brugeren om bekræftelse før vi flytter opstartsdatoen.
