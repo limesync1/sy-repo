@@ -122,6 +122,14 @@ const Planner = () => {
   const [newRouteJobSearch, setNewRouteJobSearch] = useState("");
   const [editingRoute, setEditingRoute] = useState<Route | null>(null);
   /**
+   * Optimistisk farve-override pr. rute-id. Sættes når brugeren klikker en
+   * ny farve i RouteEditSheet, så RouteStopsPanel (og andre sideløbende
+   * paneler) opdaterer samtidig — uden at vente på at mutationen og cache-
+   * invalideringen propagerer. Ryddes når mutationen har slået igennem i
+   * route-cachen.
+   */
+  const [routeColorOverride, setRouteColorOverride] = useState<Record<string, string>>({});
+  /**
    * Når en projiceret rute åbnes (klik på virtuel pille i kalenderen) holder
    * vi fast i de aktive sourceKeys for netop den dato. Det bruges til at
    * filtrere basis-rutens stops i edit-sheet/stops-panel, så kun de aftaler
