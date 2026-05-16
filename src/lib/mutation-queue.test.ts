@@ -116,4 +116,64 @@ describe("MutationQueue", () => {
     await Promise.all([p1, p2, p3]);
     expect(q.pending).toBe(0);
   });
+
+  it("retries transient network errors by default (3 attempts)", async () => {
+    const q = new MutationQueue();
+    let calls = 0;
+    const result = await q.run(
+      async () => {
+        calls++;
+        if (calls < 3) throw new Error("Failed to fetch");
+        return "ok";
+      },
+      { backoffMs: 1 },
+    );
+    expect(result).toBe("ok");
+    expect(calls).toBe(3);
+  });
+
+  it("does NOT retry permanent errors (e.g. validation)", async () => {
+    const q = new MutationQueue();
+    let calls = 0;
+    await expect(
+      q.run(
+        async () => {
+          calls++;
+          throw new Error("bad input");
+        },
+        { retries: 5, backoffMs: 1 },
+      ),
+    ).rejects.toThrow("bad input");
+    expect(calls).toBe(1);
+  });
+
+  it("gives up after exhausting retries and rejects with last error", async () => {
+    const q = new MutationQueue();
+    let calls = 0;
+    await expect(
+      q.run(
+        async () => {
+          calls++;
+          throw new Error("network timeout");
+        },
+        { retries: 3, backoffMs: 1 },
+      ),
+    ).rejects.toThrow("network timeout");
+    expect(calls).toBe(3);
+  });
+
+  it("preserves FIFO order even with retries in flight", async () => {
+    const q = new MutationQueue();
+    const order: string[] = [];
+    let aCalls = 0;
+    const a = q.run(async () => {
+      aCalls++;
+      if (aCalls < 2) throw new Error("network");
+      order.push("a");
+    }, { retries: 3, backoffMs: 1 });
+    const b = q.run(async () => { order.push("b"); }, { retries: 1 });
+    const c = q.run(async () => { order.push("c"); }, { retries: 1 });
+    await Promise.all([a, b, c]);
+    expect(order).toEqual(["a", "b", "c"]);
+  });
 });
