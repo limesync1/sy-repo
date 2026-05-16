@@ -257,11 +257,14 @@ Deno.serve(async (req) => {
     // gentagne klik på "Optimér" uden ændringer ikke spilder tid eller giver
     // forskellige resultater.
     const fingerprintPayload = {
+      algorithm: "route-order-v3",
       stops: validStops
         .map((s) => ({
           id: s.id,
+          seq: openStopsRaw.find((r) => r.id === s.id)?.sequence ?? null,
           lat: Number(s.latitude.toFixed(6)),
           lng: Number(s.longitude.toFixed(6)),
+          ck: s.cluster_key ?? null,
           dur: s.duration_minutes,
           hs: s.hard_start_min,
           he: s.hard_end_min,
@@ -299,7 +302,7 @@ Deno.serve(async (req) => {
       ? null
       : existingSuggestions?._input_fingerprint ?? null;
 
-    if (lastFingerprint === inputFingerprint && route.optimized_at) {
+    if (lastFingerprint === inputFingerprint && route.optimized_at && body?.allow_cached === true) {
       // Intet er ændret siden sidste optimering — returnér tidligere resultat
       return new Response(JSON.stringify({
         ok: true,
@@ -323,12 +326,14 @@ Deno.serve(async (req) => {
       }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Capture før-tilstand for delta-rapportering i toast.
-    const beforeKm = Number(route.total_distance_km ?? 0);
-    const beforeMinutes = Number(route.total_duration_minutes ?? 0);
-
     // === Kør VRP ===
-    const { plan, provider, weather } = await solveVRP(employees, validStops, { routeDate: route.route_date });
+    const { plan, provider, weather, current } = await solveVRP(employees, validStops, { routeDate: route.route_date });
+    // Mål før-tilstanden på den rækkefølge der faktisk ligger på stops lige nu.
+    // Det gør toast-besparelsen ægte, også efter drag/drop eller manuel ændring.
+    const beforeKm = current.feasible ? current.total_km : Number(route.total_distance_km ?? 0);
+    const beforeMinutes = current.feasible ? current.total_minutes : Number(route.total_duration_minutes ?? 0);
+    const plannedOrder = Array.from(plan.per_employee.values()).flat().map((s) => s.stop_id);
+    const orderChanged = plannedOrder.join("|") !== current.stop_order.join("|");
 
     // === Skriv plan tilbage til DB ===
     // 1) Opdater route_stops: sequence, planned_arrival/departure, distance/travel
@@ -432,6 +437,7 @@ Deno.serve(async (req) => {
       before_minutes: beforeMinutes,
       saved_km: Math.max(0, beforeKm - plan.total_km),
       saved_minutes: Math.max(0, beforeMinutes - plan.total_minutes),
+      order_changed: orderChanged,
       provider,
       weather,
       unassigned: plan.unassigned_stops.length,
