@@ -2,13 +2,15 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, GripVertical, Check, Sparkles } from "lucide-react";
+import { Plus, Trash2, GripVertical, Check, Sparkles, AlertCircle } from "lucide-react";
 import {
   buildInterval,
   formatInterval,
   INTERVAL_UNITS,
   normalizeInterval,
   parseInterval,
+  validateIntervalKey,
+  validateServiceIntervals,
   type IntervalUnit,
 } from "@/lib/interval";
 import { toLegacyEnum } from "@/lib/interval";
@@ -66,10 +68,12 @@ const QUICK_PICKS: { n: number; unit: IntervalUnit }[] = [
 const SortableRow = ({
   id,
   label,
+  error,
   onRemove,
 }: {
   id: string;
   label: string;
+  error?: string | null;
   onRemove: () => void;
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
@@ -83,7 +87,9 @@ const SortableRow = ({
     <li
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-2 rounded-lg border border-border bg-card px-2 py-2 shadow-sm"
+      className={`flex items-center gap-2 rounded-lg border bg-card px-2 py-2 shadow-sm ${
+        error ? "border-destructive/60 bg-destructive/5" : "border-border"
+      }`}
     >
       <button
         type="button"
@@ -94,7 +100,14 @@ const SortableRow = ({
       >
         <GripVertical className="h-4 w-4" />
       </button>
-      <span className="flex-1 text-sm font-medium text-foreground">{label}</span>
+      <span className="flex-1 text-sm font-medium text-foreground">
+        {label}
+        {error && (
+          <span className="ml-2 inline-flex items-center gap-1 text-[11px] font-normal text-destructive">
+            <AlertCircle className="h-3 w-3" /> {error}
+          </span>
+        )}
+      </span>
       <Button
         type="button"
         size="sm"
