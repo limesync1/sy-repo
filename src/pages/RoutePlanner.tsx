@@ -1379,6 +1379,24 @@ const Planner = () => {
 
     const activeData: any = active.data.current;
     const overData: any = over.data.current;
+    // ─── Hård spærring: aldrig drop på en dato før i dag ───
+    // Kalender-cellerne er allerede disabled som drop-target, men en
+    // eksplicit guard + toast sikrer at intet drop (rute, stop eller job)
+    // kan ramme bagud i tid — uanset hvilken vej dnd-kit routinger fyrer.
+    const targetDateForGuard: string | null =
+      overData?.type === "day" ? String(overData.date || "").slice(0, 10) :
+      overData?.type === "route"
+        ? (() => {
+            const tr = calendarRoutesRaw.find((r) => r.id === overData.routeId);
+            return tr?.route_date ? String(tr.route_date).slice(0, 10) : null;
+          })()
+        : null;
+    if (targetDateForGuard && targetDateForGuard < todayStr()) {
+      toast.error("Kan ikke flytte til en dato før i dag", {
+        description: "Ruter og aftaler kan kun planlægges fra dags dato og frem.",
+      });
+      return;
+    }
     if (activeData?.type === "route" && activeData?.route?.isVirtual) {
       await logRoutePlannerEvent({
         businessId,
