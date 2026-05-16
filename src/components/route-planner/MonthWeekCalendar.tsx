@@ -266,12 +266,29 @@ const DayCellInner = ({
         canReceiveDrop && !isOver && "ring-1 ring-accent/40 ring-inset",
         isDragActive && isPast && "opacity-40",
         isDragActive && !inMonth && "opacity-50",
+        // Eksplicit cursor-feedback: brugeren kan se INDEN drop om dagen
+        // accepterer slip eller ej. Sparer en mislykket drop-cyklus.
+        isDragActive && isPast && "cursor-not-allowed",
+        canReceiveDrop && "cursor-copy",
         // Når man hovrer over en gyldig dag — tydeligt highlight
-        isOver && "bg-accent/15 ring-2 ring-accent ring-inset shadow-inner",
+        isOver && canReceiveDrop && "bg-accent/20 ring-2 ring-accent ring-inset shadow-inner",
         busy && "opacity-90 cursor-wait",
       )}
       aria-busy={busy || undefined}
     >
+      {/* ─── Drop-target floating label ─── */}
+      {/* Vises kun mens brugeren hovrer over en gyldig drop-dag. Fortæller
+          eksplicit hvad der sker ved slip + præcis dato — så brugeren
+          aldrig er i tvivl om udfaldet før de slipper. */}
+      {dropVerb && (
+        <div
+          className="absolute top-1 right-1 z-30 pointer-events-none rounded-md bg-accent text-accent-foreground px-1.5 py-0.5 shadow-lg text-[10px] font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-150"
+          role="status"
+        >
+          <ArrowDown className="h-3 w-3" />
+          <span>{dropVerb}</span>
+        </div>
+      )}
       {busy && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/60 backdrop-blur-[1px] rounded-sm pointer-events-none">
           <Loader2 className="h-5 w-5 animate-spin text-accent" />
