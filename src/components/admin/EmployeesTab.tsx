@@ -31,6 +31,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PageHeader, PrimaryButton, FieldLabel, SectionCard, EmptyState, SearchInput } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 
@@ -599,17 +600,52 @@ const EmployeeRow = ({
             </div>
             {/* Farve / billede-styring */}
             <div className="mt-1.5 flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setPickerOpen((v) => !v)}
-                className="text-[10px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1 underline-offset-2 hover:underline"
-              >
-                <span
-                  className="inline-block h-2.5 w-2.5 rounded-full border"
-                  style={{ background: fallbackColor }}
-                />
-                Skift farve
-              </button>
+              <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="text-[10px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1 underline-offset-2 hover:underline"
+                  >
+                    <span
+                      className="inline-block h-2.5 w-2.5 rounded-full border"
+                      style={{ background: fallbackColor }}
+                    />
+                    Skift farve
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="start"
+                  side="bottom"
+                  className="w-72 p-3"
+                  onOpenAutoFocus={(e) => e.preventDefault()}
+                >
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="text-xs font-semibold text-foreground">Vælg farve</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {ROUTE_COLORS.find((c) => c.value === fallbackColor)?.name || "Brugerdefineret"}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-6 gap-2">
+                    {ROUTE_COLORS.map((c) => {
+                      const selected = fallbackColor === c.value;
+                      return (
+                        <button
+                          key={c.value}
+                          type="button"
+                          onClick={() => handlePickColor(c.value)}
+                          title={c.name}
+                          aria-label={c.name}
+                          className={cn(
+                            "h-8 w-8 rounded-md border border-border/60 transition-all hover:scale-110",
+                            selected && "ring-2 ring-offset-2 ring-foreground ring-offset-background",
+                          )}
+                          style={{ background: c.value }}
+                        />
+                      );
+                    })}
+                  </div>
+                </PopoverContent>
+              </Popover>
               {employee.avatar_url && (
                 <button
                   type="button"
@@ -620,24 +656,6 @@ const EmployeeRow = ({
                 </button>
               )}
             </div>
-            {pickerOpen && (
-              <div className="mt-2 grid grid-cols-12 gap-1 max-w-xs">
-                {ROUTE_COLORS.map((c) => (
-                  <button
-                    key={c.value}
-                    type="button"
-                    onClick={() => handlePickColor(c.value)}
-                    title={c.name}
-                    className={cn(
-                      "aspect-square rounded-md border transition-all hover:scale-110",
-                      fallbackColor === c.value && "ring-2 ring-foreground",
-                    )}
-                    style={{ background: c.value }}
-                    aria-label={c.name}
-                  />
-                ))}
-              </div>
-            )}
           </div>
         </div>
 
