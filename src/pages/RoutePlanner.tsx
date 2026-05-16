@@ -737,6 +737,11 @@ const Planner = () => {
       }
       return null;
     };
+    const anchoredSourceKeys = new Set<string>();
+    for (const src of recurringSources as any[]) {
+      if (!src.anchor_date) continue;
+      for (const key of src.sourceKeys || []) anchoredSourceKeys.add(key);
+    }
     // Slå basisrutens *færdige* visningsnavn og farve op fra det allerede
     // byggede calendarRoutes (samme logik som rigtige rute-kort bruger).
     // Det sikrer at projicerede forekomster altid arver præcis samme navn
@@ -831,9 +836,7 @@ const Planner = () => {
         // datoer før basisruten legitime — fx d. 14 når basisruten er d. 28 og
         // aftalen kører hver 14. dag.
         const baseMinDate = minDateByBaseRouteId.get(p.baseRouteId);
-        const hasAnchoredSource = p.sourceKeys.some((key) =>
-          recurringSources.some((src: any) => src.anchor_date && src.sourceKeys?.includes(key)),
-        );
+        const hasAnchoredSource = p.sourceKeys.some((key) => anchoredSourceKeys.has(key));
         if (baseMinDate && p.date < baseMinDate && !hasAnchoredSource) return null;
         // Filtrér source-keys der allerede er materialiseret som rigtige
         // stops på samme dato — så vi ikke får dubletter.
