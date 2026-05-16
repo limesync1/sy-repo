@@ -177,4 +177,3 @@ describe("MutationQueue", () => {
     expect(order).toEqual(["a", "b", "c"]);
   });
 });
-});
