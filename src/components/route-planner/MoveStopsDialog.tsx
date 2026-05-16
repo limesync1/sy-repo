@@ -337,8 +337,7 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
             </div>
             {mode === "date" ? (
               <>
-                <DatePickerField value={targetDate} onChange={setTargetDate} />
-                <DatePickerFieldMin />
+                <DatePickerField value={targetDate} onChange={setTargetDate} minDate={todayStr()} />
                 {targetDate && route.route_date && targetDate !== route.route_date && (
                   <p className="mt-1.5 text-[11px] text-muted-foreground flex items-center gap-1">
                     <span className="capitalize">
