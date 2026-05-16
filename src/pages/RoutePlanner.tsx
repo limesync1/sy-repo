@@ -533,7 +533,7 @@ const Planner = () => {
       const routes = (data || []) as any[];
       const { data: stopsData, error: stopsErr } = await supabase
         .from("route_stops")
-        .select("*, agreement_occurrences(agreement_id, legacy_order_id)")
+        .select("*, agreement_occurrences(agreement_id, legacy_order_id, agreements(interval))")
         .in("route_id", recurringRouteIds);
       if (stopsErr) throw stopsErr;
       // Berig stops med assignees fra junction-tabellen, så projicerede
@@ -561,6 +561,16 @@ const Planner = () => {
           ...s,
           assignee_ids: entry?.ids || (s.assigned_employee_id ? [s.assigned_employee_id] : []),
           lead_employee_id: entry?.lead ?? s.assigned_employee_id ?? null,
+          // Propagér aftaleintervallet til projicerede stops så kortet kan
+          // vise fx "Hver uge" i stedet for ingenting.
+          agreement_interval:
+            (s as any).agreement_occurrences?.agreements?.interval
+            ?? (s as any).agreement_interval
+            ?? null,
+          agreement_id:
+            (s as any).agreement_occurrences?.agreement_id
+            ?? (s as any).agreement_id
+            ?? null,
         };
         const arr = stopsByRoute.get(s.route_id) || [];
         arr.push(enriched);
