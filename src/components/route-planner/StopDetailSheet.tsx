@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { useOrderForStop, useUpdateStop, useDeleteStop, useSetStopAssignees, useStopTimeEntries, type RouteStop } from "@/hooks/useRoutes";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useMyBusiness } from "@/hooks/useDatabase";
@@ -16,7 +16,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  MapPin, Phone, Mail, Clock, Trash2, Save,
+  MapPin, Phone, Mail, Clock, Trash2, Check, Loader2,
   AlertCircle, Banknote, FileText, Repeat, PauseCircle,
   Timer, Hourglass, User, Package, CalendarClock, Users, Crown, X as XIcon,
   TimerReset,
@@ -61,6 +61,10 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
   const [leadId, setLeadId] = useState<string | null>(null);
+  // Autosave: track om der aktivt gemmes, og om alt er gemt for at vise diskret status.
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
+  const initializedForStopId = useRef<string | null>(null);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!stop) return;
@@ -73,6 +77,10 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
     setNotes(stop.notes || "");
     setAssigneeIds(stop.assignee_ids ?? (stop.assigned_employee_id ? [stop.assigned_employee_id] : []));
     setLeadId(stop.lead_employee_id ?? stop.assigned_employee_id ?? null);
+    // Markér at vi netop har hydreret state fra dette stop — næste effekt-run
+    // skal IKKE udløse autosave (det ville gemme ufærdige værdier).
+    initializedForStopId.current = stop.id;
+    setSaveState("idle");
   }, [stop?.id]);
 
   const items = useMemo(() => (order as any)?.order_items || [], [order]);
@@ -80,31 +88,52 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
   const subscriptions: any[] = (order as any)?.subscriptions || [];
   const business = (order as any)?.businesses;
 
-  if (!stop) return null;
-
-  const handleSave = async () => {
-    const totalMin = Math.max(5, durationHours * 60 + durationMinutes);
-    const [s, e] = timeSlot ? timeSlot.split("-") : [null, null];
-    await updateStop.mutateAsync({
-      id: stop.id,
-      duration_minutes: totalMin,
-      time_window_start: s || null,
-      time_window_end: e || null,
-      notes: notes || null,
-    } as any);
-    // Sync assignees hvis ændret
-    const currentIds = (stop.assignee_ids ?? []).slice().sort().join(",");
-    const newIds = assigneeIds.slice().sort().join(",");
-    const currentLead = stop.lead_employee_id ?? null;
-    if (currentIds !== newIds || currentLead !== leadId) {
-      await setAssignees.mutateAsync({
-        stop_id: stop.id,
-        employee_ids: assigneeIds,
-        lead_id: leadId,
-      });
+  // Autosave: debounce ændringer i varighed/tidsvindue/note/tildelte
+  // medarbejdere og skriv dem til DB efter 700 ms uden ny aktivitet.
+  useEffect(() => {
+    if (!stop || readOnly) return;
+    // Spring første run efter hydrering over — vi vil ikke gemme det vi
+    // lige har læst fra serveren.
+    if (initializedForStopId.current === stop.id) {
+      initializedForStopId.current = null;
+      return;
     }
-    toast.success("Ændringer gemt");
-  };
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    setSaveState("saving");
+    saveTimer.current = setTimeout(async () => {
+      try {
+        const totalMin = Math.max(5, durationHours * 60 + durationMinutes);
+        const [s, e] = timeSlot ? timeSlot.split("-") : [null, null];
+        await updateStop.mutateAsync({
+          id: stop.id,
+          duration_minutes: totalMin,
+          time_window_start: s || null,
+          time_window_end: e || null,
+          notes: notes || null,
+        } as any);
+        const currentIds = (stop.assignee_ids ?? []).slice().sort().join(",");
+        const newIds = assigneeIds.slice().sort().join(",");
+        const currentLead = stop.lead_employee_id ?? null;
+        if (currentIds !== newIds || currentLead !== leadId) {
+          await setAssignees.mutateAsync({
+            stop_id: stop.id,
+            employee_ids: assigneeIds,
+            lead_id: leadId,
+          });
+        }
+        setSaveState("saved");
+      } catch (err: any) {
+        setSaveState("idle");
+        toast.error(err?.message || "Kunne ikke gemme automatisk");
+      }
+    }, 700);
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [durationHours, durationMinutes, timeSlot, notes, assigneeIds, leadId]);
+
+  if (!stop) return null;
 
   const handleDeleteConfirmed = () => {
     deleteStop.mutate(stop.id, {
@@ -202,7 +231,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                 <Section
                   icon={<Users className="h-3.5 w-3.5" />}
                   title="Medarbejdere"
-                  tone="primary"
                   hint={
                     assigneeIds.length === 0
                       ? "Ingen tildelt"
@@ -224,7 +252,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
               )}
 
               {/* Customer */}
-              <Section icon={<User className="h-3.5 w-3.5" />} title="Kunde" tone="sky">
+              <Section icon={<User className="h-3.5 w-3.5" />} title="Kunde">
                 <div className="space-y-1.5 text-sm">
                   {fullAddress && (
                     <div className="flex items-start gap-2">
@@ -252,7 +280,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                 <Section
                   icon={<Package className="h-3.5 w-3.5" />}
                   title="Bestilte services"
-                  tone="emerald"
                   hint={`${items.length} ${items.length === 1 ? "service" : "services"}`}
                 >
                     <div className="rounded-lg border divide-y">
@@ -377,7 +404,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                 <Section
                   icon={<Repeat className="h-3.5 w-3.5" />}
                   title="Abonnement"
-                  tone="accent"
                   hint={pausedSub ? "På pause" : "Aktiv"}
                 >
                     <dl className={cn(
@@ -440,7 +466,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
 
               {/* Customer's notes from order */}
               {orderNotes && (
-                <Section icon={<FileText className="h-3.5 w-3.5" />} title="Note fra kunden" tone="amber">
+                <Section icon={<FileText className="h-3.5 w-3.5" />} title="Note fra kunden">
                   <p className="text-sm bg-secondary/40 rounded-md px-3 py-2 whitespace-pre-wrap">
                     {orderNotes}
                   </p>
@@ -459,9 +485,8 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
               {!readOnly && (
                 <Section
                   icon={<CalendarClock className="h-3.5 w-3.5" />}
-                  title="Planlægning"
-                  tone="primary"
-                  hint="Note til medarbejderen"
+                  title="Intern note"
+                  hint="Synlig for medarbejderen"
                 >
                   <PlanningSection
                     timeSlot={timeSlot}
@@ -483,25 +508,32 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
 
           {/* Footer actions */}
           {!readOnly && (
-          <SheetFooterBar>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                className="flex-1 text-destructive hover:text-destructive hover:bg-destructive/10"
+            <SheetFooterBar className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground min-w-0">
+                {saveState === "saving" ? (
+                  <>
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    <span>Gemmer ændringer…</span>
+                  </>
+                ) : saveState === "saved" ? (
+                  <>
+                    <Check className="h-3 w-3 text-emerald-600" />
+                    <span>Alle ændringer er gemt</span>
+                  </>
+                ) : (
+                  <span className="italic">Ændringer gemmes automatisk</span>
+                )}
+              </div>
+              <button
+                type="button"
                 onClick={() => setConfirmDelete(true)}
+                className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-destructive transition-colors px-2 py-1 rounded-md hover:bg-destructive/5"
+                title="Fjern stop fra rute"
               >
-                <Trash2 className="h-4 w-4 mr-1.5" />Fjern
-              </Button>
-              <Button
-                className="flex-1"
-                onClick={handleSave}
-                disabled={updateStop.isPending}
-              >
-                <Save className="h-4 w-4 mr-1.5" />
-                Gem
-              </Button>
-            </div>
-          </SheetFooterBar>
+                <Trash2 className="h-3 w-3" />
+                Fjern fra rute
+              </button>
+            </SheetFooterBar>
           )}
         </SheetContent>
       </Sheet>
