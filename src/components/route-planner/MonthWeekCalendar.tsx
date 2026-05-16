@@ -415,7 +415,10 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
   const { setNodeRef: setDropRef, isOver } = useDroppable({
     id: `route-drop:${route.id}`,
     data: { type: "route", routeId: route.id, date: route.route_date },
-    disabled: isVirtual || !!busy,
+    // Også fortids-ruter er låst som drop-target — RoutePlanner.handleDragEnd
+    // afviser dem alligevel med toast, men at deaktivere her sparer brugeren
+    // for at få fejlen og gør drop-zonen klart "ikke-tilgængelig".
+    disabled: isVirtual || !!busy || !!isPast,
   });
 
   // Combined ref
