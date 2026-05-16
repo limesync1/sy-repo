@@ -1,0 +1,1 @@
+DELETE FROM public.route_occurrence_exceptions WHERE replacement_route_id = base_route_id;
