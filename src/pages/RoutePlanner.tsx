@@ -681,6 +681,22 @@ const Planner = () => {
     for (const ex of routeOccurrenceExceptions) {
       realKeys.add(`${(ex as any).base_route_id}|${String((ex as any).occurrence_date).slice(0, 10)}`);
     }
+    // Robust dedup: hvis en aftale (agreement/subscription/order) allerede
+    // findes som rigtigt stop på en given dato, skal vi IKKE også vise
+    // den som projiceret rute på samme dato — uanset om stoppet ligger
+    // på basisruten eller en helt anden materialiseret rute. Uden dette
+    // ender den projicerede rute med at dukke op "bagved" den rigtige.
+    const realSourceKeysByDate = new Map<string, Set<string>>();
+    for (const s of visibleCalendarStops as any[]) {
+      const route = calendarRoutesRaw.find((r) => r.id === s.route_id);
+      if (!route) continue;
+      const d = String(route.route_date).slice(0, 10);
+      const keys = recurringSourceKeysForStop(s);
+      if (keys.length === 0) continue;
+      const set = realSourceKeysByDate.get(d) || new Set<string>();
+      keys.forEach((k) => set.add(k));
+      realSourceKeysByDate.set(d, set);
+    }
     // VIGTIGT: vi overskriver IKKE seed_date pr. kilde. Hver aftale har sit
     // eget interval (uge/14 dage/måned/...), og en universel override af alle
     // seeds til basisrutens dato ville kollapse alle aftalerne til én fælles
@@ -704,6 +720,14 @@ const Planner = () => {
     });
     return projections
       .map((p) => {
+        // Filtrér source-keys der allerede er materialiseret som rigtige
+        // stops på samme dato — så vi ikke får dubletter.
+        const dateRealKeys = realSourceKeysByDate.get(p.date);
+        if (dateRealKeys && dateRealKeys.size > 0) {
+          const remaining = p.sourceKeys.filter((k) => !dateRealKeys.has(k));
+          if (remaining.length === 0) return null;
+          p = { ...p, sourceKeys: remaining };
+        }
         const base = baseById.get(p.baseRouteId);
         if (!base) return null;
         const resolved = resolvedBaseById.get(p.baseRouteId);
