@@ -157,11 +157,22 @@ Deno.serve(async (req) => {
       } as EmployeeCtx;
     });
 
-    if (employees.length === 0) {
-      return new Response(JSON.stringify({
-        ok: false,
-        error: "Ingen medarbejdere tildelt opgaverne på ruten — tildel mindst én medarbejder pr. opgave før optimering",
-      }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    // Hvis ingen medarbejdere er tilknyttet stops'ne, optimerer vi alligevel
+    // rækkefølgen som en simpel TSP for én virtuel "kørsel" der starter på
+    // rutens start-adresse. Vi rører IKKE assignees (preserveAssignees=true
+    // pr. default) — vi ændrer kun sequence og tider.
+    const usingVirtualEmployee = employees.length === 0;
+    if (usingVirtualEmployee) {
+      employees.push({
+        id: "__virtual_optimizer__",
+        name: "Optimering",
+        start_lat: defaultStart.lat,
+        start_lng: defaultStart.lng,
+        end_lat: defaultStart.lat,
+        end_lng: defaultStart.lng,
+        work_start_min: planStartMin,
+        work_end_min: 24 * 60,
+      } as EmployeeCtx);
     }
 
     // Saml stops til VRP-format
@@ -181,7 +192,11 @@ Deno.serve(async (req) => {
         preferred_start_min: null,
         preferred_end_min: null,
         required_staff: Math.max(1, s.required_staff || 1),
-        pinned_assignees: respectPinned ? (assigneesByStop.get(s.id) || []) : [],
+        // Med virtuel medarbejder skal vi ignorere pins — ellers afviser
+        // VRP'en alle stops (deres assignee findes ikke i employees-listen).
+        pinned_assignees: usingVirtualEmployee
+          ? []
+          : (respectPinned ? (assigneesByStop.get(s.id) || []) : []),
       }));
 
     if (validStops.length === 0) {
