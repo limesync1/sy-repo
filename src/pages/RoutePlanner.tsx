@@ -810,14 +810,10 @@ const Planner = () => {
       keys.forEach((k) => set.add(k));
       realSourceKeysByDate.set(d, set);
     }
-    // VIGTIGT: vi overskriver IKKE seed_date pr. kilde. Hver aftale har sit
-    // eget interval (uge/14 dage/måned/...), og en universel override af alle
-    // seeds til basisrutens dato ville kollapse alle aftalerne til én fælles
-    // cyklus — så ruter med blandede intervaller kun ville vise nogle af
-    // forekomsterne. Spøgelses-projektioner ved flytning af basisruten
-    // håndteres allerede via `route_occurrence_exceptions` (se realKeys
-    // ovenfor) og af `useMoveRouteSeries`, som forskyder aftalernes egne
-    // start_date / next_service_date når brugeren vælger "Fremtidige også".
+    // Hver aftale beholder sit eget interval, men bruger basisrutens route_date
+    // som stabil kalender-anker når den findes. Det gør projektionen robust i
+    // begge retninger: en 14-dages aftale på en basisrute d. 28 viser også d.
+    // 14, mens månedlige/ugentlige aftaler stadig beregnes med deres egen cadence.
     const sourcesWithRouteSeed = recurringSources;
     const projections = expandRecurringRoutes({
       sources: sourcesWithRouteSeed,
