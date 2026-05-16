@@ -39,10 +39,17 @@ export const renameFreshSplitRoutes = async (movedStopIds: string[], targetDate:
   if (movedStopIds.length === 0) return;
   const { data } = await supabase
     .from("route_stops")
-    .select("id, route_id, customer_name, sequence, routes!inner(id, name, route_date, business_id)")
+    .select("id, route_id, customer_name, service_summary, address, sequence, routes!inner(id, name, route_date, business_id)")
     .in("id", movedStopIds);
   if (!data || data.length === 0) return;
-  const groups = new Map<string, { firstStopName: string; routeName: string; businessId: string; date: string }>();
+  const groups = new Map<string, {
+    firstStopName: string;
+    serviceSummary: string | null;
+    address: string | null;
+    routeName: string;
+    businessId: string;
+    date: string;
+  }>();
   for (const s of data as any[]) {
     const r = s.routes;
     if (!r || String(r.route_date).slice(0, 10) !== targetDate) continue;
@@ -50,6 +57,8 @@ export const renameFreshSplitRoutes = async (movedStopIds: string[], targetDate:
     if (!existing || (s.sequence ?? 999) < (existing as any).seq) {
       groups.set(s.route_id, {
         firstStopName: (s.customer_name || "Aftale").trim(),
+        serviceSummary: s.service_summary ?? null,
+        address: s.address ?? null,
         routeName: r.name || "",
         businessId: r.business_id,
         date: String(r.route_date).slice(0, 10),
@@ -75,8 +84,35 @@ export const renameFreshSplitRoutes = async (movedStopIds: string[], targetDate:
     const color = pickAvailableColor(used);
     used.push(color);
     usedByBiz.set(info.businessId, used);
+
+    // Hent et kort AI-genereret rutenavn baseret på aftalen. Falder tilbage
+    // til kundenavnet hvis AI'en svigter eller er for langsom.
+    let aiName = info.firstStopName;
+    try {
+      // Adskil by fra adresse hvis muligt (sidste komma-segment).
+      let city: string | undefined;
+      if (info.address) {
+        const parts = info.address.split(",").map((p) => p.trim()).filter(Boolean);
+        const last = parts[parts.length - 1] || "";
+        city = last.replace(/^\d{3,4}\s*/, "").trim() || undefined;
+      }
+      const { data: gen, error: genErr } = await supabase.functions.invoke("generate-route-name", {
+        body: {
+          customerName: info.firstStopName,
+          serviceSummary: info.serviceSummary,
+          city,
+          address: info.address,
+        },
+      });
+      if (!genErr && gen?.name && typeof gen.name === "string") {
+        aiName = gen.name.trim() || info.firstStopName;
+      }
+    } catch (e) {
+      console.warn("[MoveStops] AI-rutenavn fejlede — bruger kundenavn", e);
+    }
+
     await supabase.from("routes")
-      .update({ name: info.firstStopName, color })
+      .update({ name: aiName, color })
       .eq("id", routeId);
   }
 };
