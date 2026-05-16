@@ -59,14 +59,17 @@ const getSchedule = (d?: string | null) => {
   if (!d) return null;
   const date = parseISO(d);
   const diff = differenceInDays(date, new Date());
-  let relative: string;
+  let relative: string | null;
   if (isPast(date) && !isToday(date)) {
     const minsLate = Math.round((Date.now() - date.getTime()) / 60000);
     if (minsLate < 60) relative = `${minsLate} min forsinket`;
     else if (minsLate < 60 * 24) relative = `${Math.round(minsLate / 60)} t forsinket`;
     else relative = `${Math.abs(diff)} dage forsinket`;
+  } else if (isToday(date) || isTomorrow(date)) {
+    // dayLabel viser allerede "I dag" / "I morgen" — undgå "I dag · i dag".
+    relative = null;
   } else {
-    relative = relativeFromNow(date) || "i dag";
+    relative = relativeFromNow(date);
   }
 
   const dayLabel = isToday(date) ? "I dag"
