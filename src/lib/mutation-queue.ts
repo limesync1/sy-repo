@@ -15,6 +15,28 @@ type Task<T> = {
   fn: () => Promise<T>;
   resolve: (v: T) => void;
   reject: (e: unknown) => void;
+  retries: number;
+  backoffMs: number;
+  shouldRetry: (err: unknown, attempt: number) => boolean;
+};
+
+export type RunOptions = {
+  /** Total attempts incl. the first. Default 1 (no retry). */
+  retries?: number;
+  /** Base backoff in ms, doubled per attempt. Default 250. */
+  backoffMs?: number;
+  /** Decide if a thrown error is retryable. Default: network/5xx/timeout. */
+  shouldRetry?: (err: unknown, attempt: number) => boolean;
+};
+
+/** Heuristic: retry network / Supabase 5xx / abort / timeout. */
+const defaultShouldRetry = (err: unknown): boolean => {
+  const msg = (err as any)?.message?.toLowerCase?.() ?? "";
+  const code = (err as any)?.code;
+  const status = (err as any)?.status ?? (err as any)?.statusCode;
+  if (status && status >= 500 && status < 600) return true;
+  if (code === "ETIMEDOUT" || code === "ECONNRESET" || code === "ECONNREFUSED") return true;
+  return /network|failed to fetch|timeout|fetcherror|temporarily|503|504/.test(msg);
 };
 
 export class MutationQueue {
@@ -30,9 +52,16 @@ export class MutationQueue {
     return this.running;
   }
 
-  run<T>(fn: () => Promise<T>): Promise<T> {
+  run<T>(fn: () => Promise<T>, opts: RunOptions = {}): Promise<T> {
     return new Promise<T>((resolve, reject) => {
-      this.q.push({ fn, resolve, reject } as Task<unknown>);
+      this.q.push({
+        fn,
+        resolve,
+        reject,
+        retries: Math.max(1, opts.retries ?? 1),
+        backoffMs: opts.backoffMs ?? 250,
+        shouldRetry: opts.shouldRetry ?? defaultShouldRetry,
+      } as Task<unknown>);
       void this.drain();
     });
   }
@@ -51,12 +80,22 @@ export class MutationQueue {
     try {
       while (this.q.length > 0) {
         const task = this.q.shift()!;
-        try {
-          const result = await task.fn();
-          task.resolve(result);
-        } catch (e) {
-          task.reject(e);
+        let lastErr: unknown;
+        let succeeded = false;
+        for (let attempt = 1; attempt <= task.retries; attempt++) {
+          try {
+            const result = await task.fn();
+            task.resolve(result);
+            succeeded = true;
+            break;
+          } catch (e) {
+            lastErr = e;
+            if (attempt >= task.retries || !task.shouldRetry(e, attempt)) break;
+            const wait = task.backoffMs * 2 ** (attempt - 1);
+            await new Promise((r) => setTimeout(r, wait));
+          }
         }
+        if (!succeeded) task.reject(lastErr);
       }
     } finally {
       this.running = false;
