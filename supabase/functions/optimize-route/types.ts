@@ -24,6 +24,9 @@ export type Stop = {
   required_staff: number;
   /** Hvilke medarbejdere der allerede er tildelt manuelt (låses fast). */
   pinned_assignees: string[];
+  /** Normaliseret adresse-nøgle. Stops med samme cluster_key skal altid
+   *  køres lige efter hinanden (samme bygning / samme kunde-adresse). */
+  cluster_key?: string | null;
 };
 
 export type EmployeeCtx = {
