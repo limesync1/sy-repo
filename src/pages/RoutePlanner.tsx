@@ -651,10 +651,13 @@ const Planner = () => {
     // materialiserede gentagende ruter arver detaljer fra originalen.
     const baseInfoById = new Map<string, { name: string | null; color: string | null }>();
     for (const b of recurringBaseRoutes as any[]) {
-      const baseEmps = employeesForStops(b.stops || []);
       const explicit = (b.name && String(b.name).trim()) ? String(b.name).trim() : null;
-      const display = explicit || computeAutoName(baseEmps, b.stops || [], "");
-      baseInfoById.set(b.id, { name: display || null, color: b.color || null });
+      // KUN eksplicitte navne fra basisruten arves. Vi udleder ALDRIG et
+      // dynamisk by-baseret navn her — det fik tidligere navne til at
+      // "skifte af sig selv" når stops blev tilføjet/flyttet, hvilket
+      // brugeren oplevede som at deres navngivne rute automatisk blev
+      // omdøbt. Falder vi tilbage, sker det via dateFallback nedenfor.
+      baseInfoById.set(b.id, { name: explicit, color: b.color || null });
     }
     const built = calendarRoutesRaw.map((r) => {
       const stopsForRoute = stopsByRoute.get(r.id) || [];
@@ -663,10 +666,12 @@ const Planner = () => {
       // Materialiseret gentagende rute: arv navn + farve fra basisruten,
       // så alle forekomster i serien hedder/ser ens ud.
       const baseInfo = (r as any).base_route_id ? baseInfoById.get((r as any).base_route_id) : null;
-      // Smart auto-navngivning: brug brugerens egen titel hvis sat, ellers
-      // brug basisrutens navn hvis dette er en materialiseret forekomst,
-      // ellers udled fra rutens egne medarbejdere/by, og fald til sidst
-      // tilbage til et datobaseret navn "Rute (16. sep)".
+      // Stabil navngivning — i denne rækkefølge:
+      //   1) brugerens egen titel (r.name)
+      //   2) basisrutens eksplicitte titel (for materialiserede forekomster)
+      //   3) datobaseret fallback "Rute (16. sep)"
+      // Vi udleder ALDRIG navnet fra stops/by/medarbejdere længere —
+      // det skabte "fantom-omdøbninger" når data ændrede sig.
       const dateLabel = (() => {
         try { return format(parseISO(r.route_date), "d. MMM", { locale: da }); }
         catch { return r.route_date; }
@@ -677,7 +682,7 @@ const Planner = () => {
       const autoName = (() => {
         if (r.name && r.name.trim()) return r.name;
         if (baseInfo?.name) return baseInfo.name;
-        return computeAutoName(emps, stopsForRoute, dateFallback);
+        return dateFallback;
       })();
       const inheritedColor = baseInfo?.color && !r.color ? baseInfo.color : r.color;
       return {
