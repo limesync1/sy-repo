@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import {
   GripVertical, MapPin, CalendarClock, Clock, Phone,
-  StickyNote, ChevronDown, ChevronRight, User, Route as RouteIcon, Lock,
+  StickyNote, ChevronDown, ChevronRight, Route as RouteIcon, Lock,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format, parseISO, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
@@ -145,7 +145,7 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
       className={`group rounded-lg border bg-card hover:shadow-md transition-all overflow-hidden ${isPending ? "border-amber-300 bg-amber-50/40" : "hover:border-primary/60"}`}
     >
       {/* Top row: drag handle + clickable content */}
-      <div className="flex items-start gap-2 p-2.5">
+      <div className="flex items-start gap-2 p-3">
         {/* Kun grip-håndtaget initierer drag — så kortet selv kan klikkes */}
         <button
           type="button"
@@ -154,46 +154,46 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
           aria-label={isPending ? "Skal godkendes før den kan flyttes" : "Træk for at flytte"}
           title={isPending ? "Aftalen skal godkendes før den kan lægges på en rute" : "Træk for at flytte"}
           disabled={isPending}
-          className={`shrink-0 mt-0.5 ${isPending ? "text-amber-500 cursor-not-allowed" : "text-muted-foreground/50 hover:text-primary/70 cursor-grab active:cursor-grabbing"}`}
+          className={`shrink-0 mt-1 ${isPending ? "text-amber-500 cursor-not-allowed" : "text-muted-foreground/50 hover:text-primary/70 cursor-grab active:cursor-grabbing"}`}
         >
           {isPending ? <Lock className="h-3.5 w-3.5" /> : <GripVertical className="h-4 w-4" />}
         </button>
         <button
           type="button"
           onClick={onClick}
-          className="flex-1 min-w-0 space-y-1.5 text-left cursor-pointer"
+          className="flex-1 min-w-0 space-y-2 text-left cursor-pointer"
         >
-          {/* Header: name + price */}
+          {/* Header: navn + første ydelse som sub-label + pris. Ingen ikon foran
+              navnet — kortet er allerede tydeligt en kunde, og ikonet stjal plads. */}
           <div className="flex items-start justify-between gap-2">
-            <div className="flex items-center gap-1.5 min-w-0 flex-1">
-              <User className="h-3 w-3 text-muted-foreground shrink-0" />
-              <p className="text-sm font-semibold truncate">{job.customer_name}</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold leading-tight truncate text-foreground">
+                {job.customer_name}
+              </p>
+              {itemCount > 0 && (
+                <p className="text-[11px] text-muted-foreground truncate mt-0.5">
+                  {items[0].quantity > 1 && <span>{items[0].quantity}× </span>}
+                  {items[0].service_name}
+                  {itemCount > 1 && <span> · +{itemCount - 1} mere</span>}
+                </p>
+              )}
             </div>
-            <span className="text-xs font-bold text-primary shrink-0 tabular-nums">
+            <span className="text-sm font-bold text-foreground shrink-0 tabular-nums">
               {Math.round(Number(displayAmount || 0))} kr
             </span>
           </div>
 
           {/* Pending-banner — gør tydeligt hvorfor aftalen ikke kan trækkes */}
           {isPending && (
-            <div className="flex items-center gap-1.5 rounded-md border border-amber-300 bg-amber-100/60 px-2 py-1 text-[11px] font-medium text-amber-800">
+            <div className="flex items-center gap-1.5 rounded-md border border-amber-300 bg-amber-100/60 px-2 h-6 text-[11px] font-medium text-amber-800">
               <Lock className="h-3 w-3 shrink-0" />
               <span>Afventer godkendelse — kan ikke lægges på rute endnu</span>
             </div>
           )}
 
-          {/* First service inline */}
-          {itemCount > 0 && (
-            <p className="text-[11px] text-foreground/70 truncate">
-              {items[0].quantity > 1 && <span className="text-muted-foreground">{items[0].quantity}× </span>}
-              {items[0].service_name}
-              {itemCount > 1 && <span className="text-muted-foreground"> · +{itemCount - 1} mere</span>}
-            </p>
-          )}
-
-          {/* Address */}
+          {/* Adresse — emerald prik = vi har koordinater, orange = mangler */}
           {fullAddress && (
-            <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1">
+            <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1.5">
               <MapPin className={`h-3 w-3 shrink-0 ${hasGps ? "text-emerald-500" : "text-orange-400"}`} />
               <span className="truncate">{fullAddress}</span>
             </p>
@@ -202,7 +202,7 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
           {/* Tydeligt skema-banner — viser hvornår aftalen skal udføres næste gang.
               Hjælper ejeren med at se hvilken rute / dag aftalen hører hjemme på. */}
           {schedule && (
-            <div className={`flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] font-medium ${schedule.tone}`}>
+            <div className={`flex items-center gap-1.5 rounded-md border px-2 h-6 text-[11px] font-medium ${schedule.tone}`}>
               <CalendarClock className="h-3 w-3 shrink-0" />
               <span className="opacity-70 font-normal">
                 {hasRecurringInterval && !isFirstOccurrence ? "Næste:" : "Opstart:"}
@@ -223,21 +223,27 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
           {/* Foreslået rute — vises tydeligt så ejeren kan se hvilken rute aftalen
               normalt hører hjemme på (baseret på abonnementets preferred_route). */}
           {job.preferred_route_name && (
-            <div className="flex items-center gap-1.5 rounded-md border border-accent/40 bg-accent/5 px-2 py-1 text-[11px] font-medium text-accent">
+            <div className="flex items-center gap-1.5 rounded-md border border-accent/40 bg-accent/5 px-2 h-6 text-[11px] font-medium text-accent">
               <RouteIcon className="h-3 w-3 shrink-0" />
               <span>Foreslået rute:</span>
               <span className="font-semibold truncate">{job.preferred_route_name}</span>
             </div>
           )}
 
-          {/* Compact badge row — interval osv. */}
-          <div className="flex items-center gap-1 flex-wrap">
-            {/* Interval badge — delt komponent for ensartet styling overalt på Ruter-siden */}
-            <IntervalBadge interval={items.find((it: any) => it.details?.interval)?.details?.interval} />
-            {/* Tidsvindue vises kun her hvis der ikke er nogen schedule-banner ovenfor */}
+          {/* Konsistent badge-række: alle h-5, samme tekst-størrelse og padding.
+              Farver siger noget: primary = gentaget, neutral = engangs/tid. */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <IntervalBadge
+              interval={items.find((it: any) => it.details?.interval)?.details?.interval}
+              size="sm"
+            />
+            <Badge variant="outline" className="h-5 text-[11px] px-2 gap-1 border-border text-muted-foreground font-medium">
+              <Clock className="h-3 w-3" />
+              {formatDurationMin(estimatedMin)}
+            </Badge>
             {!schedule && job.preferred_time_start && (
-              <Badge variant="outline" className="h-4 text-[10px] px-1.5 gap-0.5 border-border text-muted-foreground">
-                <Clock className="h-2.5 w-2.5" />
+              <Badge variant="outline" className="h-5 text-[11px] px-2 gap-1 border-border text-muted-foreground font-medium">
+                <Clock className="h-3 w-3" />
                 {job.preferred_time_start.slice(0, 5)}
                 {job.preferred_time_end && `–${job.preferred_time_end.slice(0, 5)}`}
               </Badge>

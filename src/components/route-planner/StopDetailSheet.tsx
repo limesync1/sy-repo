@@ -1,9 +1,8 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { useOrderForStop, useUpdateStop, useDeleteStop, useSetStopAssignees, useStopTimeEntries, type RouteStop } from "@/hooks/useRoutes";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useMyBusiness } from "@/hooks/useDatabase";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -16,7 +15,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  MapPin, Phone, Mail, Clock, Trash2, Save,
+  MapPin, Phone, Mail, Clock, Trash2, Check, Loader2,
   AlertCircle, Banknote, FileText, Repeat, PauseCircle,
   Timer, Hourglass, User, Package, CalendarClock, Users, Crown, X as XIcon,
   TimerReset,
@@ -61,6 +60,10 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
   const [leadId, setLeadId] = useState<string | null>(null);
+  // Autosave: track om der aktivt gemmes, og om alt er gemt for at vise diskret status.
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
+  const initializedForStopId = useRef<string | null>(null);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!stop) return;
@@ -73,6 +76,10 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
     setNotes(stop.notes || "");
     setAssigneeIds(stop.assignee_ids ?? (stop.assigned_employee_id ? [stop.assigned_employee_id] : []));
     setLeadId(stop.lead_employee_id ?? stop.assigned_employee_id ?? null);
+    // Markér at vi netop har hydreret state fra dette stop — næste effekt-run
+    // skal IKKE udløse autosave (det ville gemme ufærdige værdier).
+    initializedForStopId.current = stop.id;
+    setSaveState("idle");
   }, [stop?.id]);
 
   const items = useMemo(() => (order as any)?.order_items || [], [order]);
@@ -80,31 +87,52 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
   const subscriptions: any[] = (order as any)?.subscriptions || [];
   const business = (order as any)?.businesses;
 
-  if (!stop) return null;
-
-  const handleSave = async () => {
-    const totalMin = Math.max(5, durationHours * 60 + durationMinutes);
-    const [s, e] = timeSlot ? timeSlot.split("-") : [null, null];
-    await updateStop.mutateAsync({
-      id: stop.id,
-      duration_minutes: totalMin,
-      time_window_start: s || null,
-      time_window_end: e || null,
-      notes: notes || null,
-    } as any);
-    // Sync assignees hvis ændret
-    const currentIds = (stop.assignee_ids ?? []).slice().sort().join(",");
-    const newIds = assigneeIds.slice().sort().join(",");
-    const currentLead = stop.lead_employee_id ?? null;
-    if (currentIds !== newIds || currentLead !== leadId) {
-      await setAssignees.mutateAsync({
-        stop_id: stop.id,
-        employee_ids: assigneeIds,
-        lead_id: leadId,
-      });
+  // Autosave: debounce ændringer i varighed/tidsvindue/note/tildelte
+  // medarbejdere og skriv dem til DB efter 700 ms uden ny aktivitet.
+  useEffect(() => {
+    if (!stop || readOnly) return;
+    // Spring første run efter hydrering over — vi vil ikke gemme det vi
+    // lige har læst fra serveren.
+    if (initializedForStopId.current === stop.id) {
+      initializedForStopId.current = null;
+      return;
     }
-    toast.success("Ændringer gemt");
-  };
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    setSaveState("saving");
+    saveTimer.current = setTimeout(async () => {
+      try {
+        const totalMin = Math.max(5, durationHours * 60 + durationMinutes);
+        const [s, e] = timeSlot ? timeSlot.split("-") : [null, null];
+        await updateStop.mutateAsync({
+          id: stop.id,
+          duration_minutes: totalMin,
+          time_window_start: s || null,
+          time_window_end: e || null,
+          notes: notes || null,
+        } as any);
+        const currentIds = (stop.assignee_ids ?? []).slice().sort().join(",");
+        const newIds = assigneeIds.slice().sort().join(",");
+        const currentLead = stop.lead_employee_id ?? null;
+        if (currentIds !== newIds || currentLead !== leadId) {
+          await setAssignees.mutateAsync({
+            stop_id: stop.id,
+            employee_ids: assigneeIds,
+            lead_id: leadId,
+          });
+        }
+        setSaveState("saved");
+      } catch (err: any) {
+        setSaveState("idle");
+        toast.error(err?.message || "Kunne ikke gemme automatisk");
+      }
+    }, 700);
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [durationHours, durationMinutes, timeSlot, notes, assigneeIds, leadId]);
+
+  if (!stop) return null;
 
   const handleDeleteConfirmed = () => {
     deleteStop.mutate(stop.id, {
@@ -202,7 +230,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                 <Section
                   icon={<Users className="h-3.5 w-3.5" />}
                   title="Medarbejdere"
-                  tone="primary"
                   hint={
                     assigneeIds.length === 0
                       ? "Ingen tildelt"
@@ -224,7 +251,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
               )}
 
               {/* Customer */}
-              <Section icon={<User className="h-3.5 w-3.5" />} title="Kunde" tone="sky">
+              <Section icon={<User className="h-3.5 w-3.5" />} title="Kunde">
                 <div className="space-y-1.5 text-sm">
                   {fullAddress && (
                     <div className="flex items-start gap-2">
@@ -252,7 +279,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                 <Section
                   icon={<Package className="h-3.5 w-3.5" />}
                   title="Bestilte services"
-                  tone="emerald"
                   hint={`${items.length} ${items.length === 1 ? "service" : "services"}`}
                 >
                     <div className="rounded-lg border divide-y">
@@ -377,7 +403,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                 <Section
                   icon={<Repeat className="h-3.5 w-3.5" />}
                   title="Abonnement"
-                  tone="accent"
                   hint={pausedSub ? "På pause" : "Aktiv"}
                 >
                     <dl className={cn(
@@ -440,7 +465,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
 
               {/* Customer's notes from order */}
               {orderNotes && (
-                <Section icon={<FileText className="h-3.5 w-3.5" />} title="Note fra kunden" tone="amber">
+                <Section icon={<FileText className="h-3.5 w-3.5" />} title="Note fra kunden">
                   <p className="text-sm bg-secondary/40 rounded-md px-3 py-2 whitespace-pre-wrap">
                     {orderNotes}
                   </p>
@@ -459,9 +484,8 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
               {!readOnly && (
                 <Section
                   icon={<CalendarClock className="h-3.5 w-3.5" />}
-                  title="Planlægning"
-                  tone="primary"
-                  hint="Note til medarbejderen"
+                  title="Intern note"
+                  hint="Synlig for medarbejderen"
                 >
                   <PlanningSection
                     timeSlot={timeSlot}
@@ -483,25 +507,32 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
 
           {/* Footer actions */}
           {!readOnly && (
-          <SheetFooterBar>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                className="flex-1 text-destructive hover:text-destructive hover:bg-destructive/10"
+            <SheetFooterBar className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground min-w-0">
+                {saveState === "saving" ? (
+                  <>
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    <span>Gemmer ændringer…</span>
+                  </>
+                ) : saveState === "saved" ? (
+                  <>
+                    <Check className="h-3 w-3 text-emerald-600" />
+                    <span>Alle ændringer er gemt</span>
+                  </>
+                ) : (
+                  <span className="italic">Ændringer gemmes automatisk</span>
+                )}
+              </div>
+              <button
+                type="button"
                 onClick={() => setConfirmDelete(true)}
+                className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-destructive transition-colors px-2 py-1 rounded-md hover:bg-destructive/5"
+                title="Fjern stop fra rute"
               >
-                <Trash2 className="h-4 w-4 mr-1.5" />Fjern
-              </Button>
-              <Button
-                className="flex-1"
-                onClick={handleSave}
-                disabled={updateStop.isPending}
-              >
-                <Save className="h-4 w-4 mr-1.5" />
-                Gem
-              </Button>
-            </div>
-          </SheetFooterBar>
+                <Trash2 className="h-3 w-3" />
+                Fjern fra rute
+              </button>
+            </SheetFooterBar>
           )}
         </SheetContent>
       </Sheet>
@@ -759,18 +790,31 @@ const AssigneePicker = ({
             const emp = employees.find((e) => e.id === id);
             if (!emp) return null;
             const isLead = id === leadId;
+            const initials = (emp.name || "?").trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
             return (
               <div
                 key={id}
                 className={cn(
-                  "inline-flex items-center gap-1 rounded-md border bg-card pl-1.5 pr-0.5 py-0.5 text-xs",
-                  isLead && "border-foreground/40",
+                  "inline-flex items-center gap-1.5 rounded-full border bg-card pl-0.5 pr-1 py-0.5 text-xs",
+                  isLead && "border-foreground/50 ring-1 ring-foreground/10",
                 )}
               >
-                <span
-                  className="h-2 w-2 rounded-full shrink-0"
-                  style={{ background: emp.color || "hsl(var(--muted-foreground))" }}
-                />
+                {emp.avatar_url ? (
+                  <img
+                    src={emp.avatar_url}
+                    alt={emp.name}
+                    className="h-6 w-6 rounded-full object-cover shrink-0 ring-1 ring-border"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ) : (
+                  <span
+                    className="h-6 w-6 rounded-full inline-flex items-center justify-center text-[10px] font-bold text-white shrink-0 ring-1 ring-border"
+                    style={{ background: emp.color || "hsl(220 13% 46%)" }}
+                  >
+                    {initials || "?"}
+                  </span>
+                )}
                 <span className="font-medium truncate max-w-[120px]">{emp.name}</span>
                 <button
                   type="button"
@@ -804,20 +848,35 @@ const AssigneePicker = ({
       <div className="flex flex-wrap gap-1.5">
         {employees
           .filter((e) => !assigneeIds.includes(e.id))
-          .map((emp) => (
-            <button
-              key={emp.id}
-              type="button"
-              onClick={() => toggle(emp.id)}
-              className="inline-flex items-center gap-1.5 rounded-md border border-dashed bg-background px-2 py-1 text-xs hover:border-foreground/40 hover:bg-accent/5 transition-colors"
-            >
-              <span
-                className="h-2 w-2 rounded-full"
-                style={{ background: emp.color || "hsl(var(--muted-foreground))" }}
-              />
-              <span className="font-medium">+ {emp.name}</span>
-            </button>
-          ))}
+          .map((emp) => {
+            const initials = (emp.name || "?").trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
+            return (
+              <button
+                key={emp.id}
+                type="button"
+                onClick={() => toggle(emp.id)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-dashed bg-background pl-0.5 pr-2 py-0.5 text-xs hover:border-foreground/40 hover:bg-accent/5 transition-colors"
+              >
+                {emp.avatar_url ? (
+                  <img
+                    src={emp.avatar_url}
+                    alt={emp.name}
+                    className="h-6 w-6 rounded-full object-cover ring-1 ring-border"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ) : (
+                  <span
+                    className="h-6 w-6 rounded-full inline-flex items-center justify-center text-[10px] font-bold text-white ring-1 ring-border"
+                    style={{ background: emp.color || "hsl(220 13% 46%)" }}
+                  >
+                    {initials || "?"}
+                  </span>
+                )}
+                <span className="font-medium">+ {emp.name}</span>
+              </button>
+            );
+          })}
       </div>
 
       {/* Info om provisionsdeling */}

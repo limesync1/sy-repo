@@ -21,7 +21,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
-  GripVertical, MapPin, Clock, Trash2, Inbox, ExternalLink, Loader2,
+  GripVertical, MapPin, Trash2, Inbox, ExternalLink, Loader2,
   Crown, UserPlus, Check, PlayCircle,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
@@ -32,7 +32,6 @@ import {
   useReorderStops, useDeleteStop, useSetStopAssignees,
   type RouteStop, type Route,
 } from "@/hooks/useRoutes";
-import { formatDurationMin } from "@/lib/duration-format";
 import { IntervalBadge } from "./IntervalBadge";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -262,35 +261,35 @@ const SortableStopRow = ({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group rounded-md border bg-card transition-shadow",
-        isDragging ? "shadow-lg opacity-80 ring-2 ring-accent" : "hover:shadow-sm",
+        "group rounded-lg border bg-card transition-shadow overflow-hidden",
+        isDragging ? "shadow-lg opacity-80 ring-2 ring-accent" : "hover:shadow-sm hover:border-foreground/20",
       )}
     >
-      <div className="flex items-stretch">
+      <div className="flex items-stretch min-h-[3.5rem]">
         {/* Drag handle — skjult på projicerede ruter (read-only) */}
         {!isProjection ? (
           <button
             type="button"
             {...attributes}
             {...listeners}
-            className="flex items-center justify-center px-1 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground rounded-l-md"
+            className="flex items-center justify-center px-1.5 cursor-grab active:cursor-grabbing text-muted-foreground/60 hover:text-foreground hover:bg-secondary/60"
             aria-label="Træk for at omrangere"
           >
-            <GripVertical className="h-3.5 w-3.5" />
+            <GripVertical className="h-4 w-4" />
           </button>
         ) : (
           <span
-            className="flex items-center justify-center px-1 text-muted-foreground/40"
+            className="flex items-center justify-center px-1.5 text-muted-foreground/40"
             aria-hidden
             title="Projiceret rute — låst rækkefølge"
           >
-            <GripVertical className="h-3.5 w-3.5" />
+            <GripVertical className="h-4 w-4" />
           </span>
         )}
 
-        {/* Sequence indicator */}
+        {/* Sekvens-nummer — rutens farve gør hvert stop nemt at koble til kalender/kort. */}
         <div
-          className="flex items-center justify-center w-7 text-[11px] font-bold text-white tabular-nums shrink-0"
+          className="flex items-center justify-center w-8 text-xs font-bold text-white tabular-nums shrink-0"
           style={{ background: color }}
         >
           {index}
@@ -300,50 +299,64 @@ const SortableStopRow = ({
         <button
           type="button"
           onClick={onSelect}
-          className="flex-1 text-left px-2.5 py-2 min-w-0 hover:bg-accent/5"
+          className="flex-1 text-left px-3 py-2.5 min-w-0 hover:bg-accent/5 space-y-1"
         >
+          {/* Header: kundenavn (primær) + medarbejder-avatars + åbn-pil */}
           <div className="flex items-center gap-1.5">
-            <p className="text-xs font-semibold truncate flex-1">
+            <p className="text-sm font-semibold truncate flex-1 text-foreground leading-tight">
               {stop.customer_name || "Ukendt kunde"}
             </p>
             {assigneeEmps.length > 0 && (
-              <EmployeeAvatars employees={assigneeEmps} size={16} max={3} />
+              <EmployeeAvatars employees={assigneeEmps} size={20} max={3} />
             )}
             <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 shrink-0" />
           </div>
+
+          {/* Ydelse — sekundær linje */}
           {stop.service_summary ? (
-            <p className="text-[10px] text-foreground/75 truncate mt-0.5 font-medium">
+            <p className="text-[11px] text-muted-foreground truncate">
               {stop.service_summary}
             </p>
           ) : (
-            <p className="text-[10px] text-muted-foreground/70 truncate mt-0.5 italic">
+            <p className="text-[11px] text-muted-foreground/60 truncate italic">
               Ingen ydelser angivet
             </p>
           )}
-          <div className="mt-1">
-            <IntervalBadge interval={stop.agreement_interval} />
-          </div>
+
+          {/* Adresse — tertiær */}
           {stop.address && (
-            <p className="text-[10px] text-muted-foreground truncate flex items-center gap-1 mt-0.5">
-              <MapPin className="h-2.5 w-2.5 shrink-0" />{stop.address}
+            <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1">
+              <MapPin className="h-3 w-3 shrink-0" />
+              {stop.address}
             </p>
           )}
-          {stop.status === "completed" && (
-            <p className="text-[10px] text-foreground/80 mt-0.5">✓ Færdig</p>
-          )}
-          {stop.is_first_occurrence && stop.start_date && stop.status !== "completed" && (
-            <Badge
-              variant="outline"
-              className="mt-1 h-4 text-[10px] px-1.5 gap-0.5 border-primary/40 text-primary bg-primary/5 font-medium"
-              title="Aftalen er ikke kørt endnu — dette er opstartsdatoen"
-            >
-              <PlayCircle className="h-2.5 w-2.5" />
-              Opstart {(() => {
-                try { return format(parseISO(stop.start_date), "d. MMM", { locale: da }); }
-                catch { return stop.start_date; }
-              })()}
-            </Badge>
-          )}
+
+          {/* Konsistent badge-række — alle h-5, samme padding og tekststørrelse. */}
+          <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+            <IntervalBadge interval={stop.agreement_interval} size="sm" />
+            {stop.status === "completed" && (
+              <Badge
+                variant="outline"
+                className="h-5 text-[11px] px-2 gap-1 border-emerald-300 text-emerald-700 bg-emerald-50 font-medium"
+              >
+                <Check className="h-3 w-3" />
+                Færdig
+              </Badge>
+            )}
+            {stop.is_first_occurrence && stop.start_date && stop.status !== "completed" && (
+              <Badge
+                variant="outline"
+                className="h-5 text-[11px] px-2 gap-1 border-primary/40 text-primary bg-primary/5 font-medium"
+                title="Aftalen er ikke kørt endnu — dette er opstartsdatoen"
+              >
+                <PlayCircle className="h-3 w-3" />
+                Opstart {(() => {
+                  try { return format(parseISO(stop.start_date), "d. MMM", { locale: da }); }
+                  catch { return stop.start_date; }
+                })()}
+              </Badge>
+            )}
+          </div>
         </button>
 
         {/* Right-side actions: assignee toggle + remove */}
