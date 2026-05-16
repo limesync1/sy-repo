@@ -9,7 +9,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Sparkles, Trash2, Check, CalendarRange, History, Award, Users as UsersIcon } from "lucide-react";
+import { Loader2, Sparkles, Trash2, Check, CalendarRange, History, Award } from "lucide-react";
 import { Palette, CalendarDays, Pencil, Gauge } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
