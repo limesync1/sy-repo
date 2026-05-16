@@ -370,15 +370,24 @@ export const IntervalBuilder = ({ value, onChange }: IntervalBuilderProps) => {
             size="sm"
             onClick={() => add()}
             className="h-9"
-            disabled={items.includes(
-              buildKey(Math.max(1, parseInt(draftN, 10) || 1), draftUnit),
-            )}
+            disabled={
+              !!draftPreview.error || items.includes(draftPreview.key)
+            }
           >
             <Plus className="mr-1 h-3.5 w-3.5" /> Tilføj
           </Button>
         </div>
-        <p className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-          {draftPreview.changed ? (
+        <p
+          className={`mt-2 flex items-center gap-1.5 text-[11px] ${
+            draftPreview.error ? "text-destructive" : "text-muted-foreground"
+          }`}
+        >
+          {draftPreview.error ? (
+            <>
+              <AlertCircle className="h-3 w-3" />
+              <span>{draftPreview.error}</span>
+            </>
+          ) : draftPreview.changed ? (
             <>
               <Sparkles className="h-3 w-3 text-accent" />
               <span>
