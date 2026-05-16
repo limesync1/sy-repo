@@ -1788,13 +1788,15 @@ const Planner = () => {
         (result as any).saved_minutes ?? (((result as any).before_minutes ?? result.total_minutes) - result.total_minutes),
       );
       const negligible = savedKm < 0.05 && savedMin < 1;
-      if ((result as any).already_optimal || negligible) {
-        toast.success(`${label}: allerede optimal`);
-      } else {
+      if (!negligible) {
         const parts: string[] = [];
         if (savedKm >= 0.05) parts.push(`${savedKm.toFixed(1)} km`);
         if (savedMin >= 1) parts.push(`${Math.round(savedMin)} min`);
         toast.success(`${label}: sparet ${parts.join(" · ")}`);
+      } else if ((result as any).order_changed) {
+        toast.success(`${label}: rækkefølgen er optimeret`);
+      } else {
+        toast.info(`${label}: ingen bedre rækkefølge fundet`);
       }
     } catch { /* error toast handled in hook */ }
     finally { setOptimizingRouteId(null); }

@@ -368,7 +368,12 @@ export async function solveVRP(
   employeesIn: EmployeeCtx[],
   stopsIn: Stop[],
   opts: { routeDate?: string | null } = {},
-): Promise<{ plan: RoutePlan; provider: "mapbox" | "osrm" | "haversine"; weather: { multiplier: number; summary: string | null } }> {
+): Promise<{
+  plan: RoutePlan;
+  provider: "mapbox" | "osrm" | "haversine";
+  weather: { multiplier: number; summary: string | null };
+  current: { total_km: number; total_minutes: number; feasible: boolean; stop_order: string[] };
+}> {
   // === DETERMINISME ===
   // Algoritmen er i sig selv deterministisk, men resultatet afhænger af
   // *rækkefølgen* på input (greedy insertion vælger første stop først, osv).
@@ -380,8 +385,21 @@ export async function solveVRP(
       ...s,
       // Sortér også pinned_assignees så input-hash er stabil
       pinned_assignees: [...s.pinned_assignees].sort(),
-    }))
-    .sort((a, b) => a.id.localeCompare(b.id));
+    }));
+  const clusterCounts = new Map<string, number>();
+  for (const stop of stops) {
+    const key = locationKey(stop);
+    clusterCounts.set(key, (clusterCounts.get(key) ?? 0) + 1);
+  }
+  stops.sort((a, b) => {
+    const ca = clusterCounts.get(locationKey(a)) ?? 1;
+    const cb = clusterCounts.get(locationKey(b)) ?? 1;
+    if (ca !== cb) return cb - ca;
+    const ka = locationKey(a);
+    const kb = locationKey(b);
+    if (ka !== kb) return ka.localeCompare(kb);
+    return a.id.localeCompare(b.id);
+  });
 
   const empStarts: LatLng[] = employees.map((e) => ({ lat: e.start_lat, lng: e.start_lng }));
   const empEnds: LatLng[] = employees.map((e) => ({ lat: e.end_lat, lng: e.end_lng }));
@@ -418,6 +436,54 @@ export async function solveVRP(
   const routes = new Map<string, IRoute>();
   employees.forEach((e) => routes.set(e.id, []));
 
+  // Baseline: mål den rækkefølge brugeren ser lige nu med samme trafik-/vejr-
+  // matrix som optimeringen. Tidligere brugte vi routes.total_* fra sidste
+  // optimering, så en manuelt ændret rækkefølge kunne give 0 i besparelse og
+  // fejlagtigt blive vist som "allerede optimal".
+  const currentRoutes = new Map<string, IRoute>();
+  employees.forEach((e) => currentRoutes.set(e.id, []));
+  const stopById = new Map(stops.map((s) => [s.id, s]));
+  for (const original of stopsIn) {
+    const stop = stopById.get(original.id);
+    if (!stop) continue;
+    let empIds = stop.pinned_assignees.filter((id) => currentRoutes.has(id));
+    if (empIds.length === 0) {
+      empIds = employees.slice(0, Math.max(1, Math.min(stop.required_staff, employees.length))).map((e) => e.id);
+    }
+    for (const empId of empIds) {
+      currentRoutes.get(empId)?.push({
+        stop_id: stop.id,
+        sequence: 0,
+        arrival_min: 0,
+        departure_min: 0,
+        assignees: empIds,
+        travel_min_to_next: null,
+        travel_km_to_next: null,
+      });
+    }
+  }
+
+  let currentKm = 0;
+  let currentMin = 0;
+  let currentFeasible = true;
+  for (const emp of employees) {
+    const route = currentRoutes.get(emp.id)!;
+    const meta = empMeta.get(emp.id)!;
+    const ev = scheduleRoute(emp, route, stops, travel, meta.startIdx, meta.endIdx, stopIdxOf);
+    if (!ev.feasible) {
+      currentFeasible = false;
+      continue;
+    }
+    currentKm += ev.km;
+    currentMin += ev.durMin;
+  }
+  const current = {
+    total_km: Number(currentKm.toFixed(2)),
+    total_minutes: currentMin,
+    feasible: currentFeasible,
+    stop_order: stopsIn.map((s) => s.id),
+  };
+
   // Først: placér pinned stops hos deres medarbejder (hvis required_staff matcher)
   const pinnedStops = stops.filter((s) => s.pinned_assignees.length > 0);
   for (const stop of pinnedStops) {
@@ -444,6 +510,12 @@ export async function solveVRP(
     const wa = (a.hard_end_min ?? 24 * 60) - (a.hard_start_min ?? 0);
     const wb = (b.hard_end_min ?? 24 * 60) - (b.hard_start_min ?? 0);
     if (wa !== wb) return wa - wb;
+    const ca = clusterCounts.get(locationKey(a)) ?? 1;
+    const cb = clusterCounts.get(locationKey(b)) ?? 1;
+    if (ca !== cb) return cb - ca;
+    const ka = locationKey(a);
+    const kb = locationKey(b);
+    if (ka !== kb) return ka.localeCompare(kb);
     return b.duration_minutes - a.duration_minutes;
   });
 
@@ -554,5 +626,6 @@ export async function solveVRP(
     },
     provider,
     weather,
+    current,
   };
 }

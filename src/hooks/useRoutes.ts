@@ -1459,8 +1459,11 @@ export const useOptimizeRoute = () => {
         unassigned?: number;
         soft_violations?: number;
         employees?: number;
-        // Sat til true af edge function når input er uændret siden sidste kørsel.
-        // UI bruger flaget til at vise "allerede optimeret" i stedet for spam.
+        before_km?: number;
+        before_minutes?: number;
+        saved_km?: number;
+        saved_minutes?: number;
+        order_changed?: boolean;
         already_optimal?: boolean;
       };
     },
@@ -1468,9 +1471,6 @@ export const useOptimizeRoute = () => {
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
       qc.invalidateQueries({ queryKey: ["routes"] });
       qc.invalidateQueries({ queryKey: ["routes-range"] });
-      if (data.already_optimal) {
-        toast.info("Ruten er allerede optimal — intet er ændret siden sidst.");
-      }
     },
     onError: (e: any) => toast.error(e.message || "Kunne ikke optimere ruten"),
   });
