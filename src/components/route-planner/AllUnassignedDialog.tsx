@@ -92,7 +92,9 @@ export const AllUnassignedDialog = ({
               return (
                 <div key={j.id} className="flex items-center gap-3 px-2 py-2.5">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{j.customer_name || "Aftale"}</p>
+                    <p className={`text-sm truncate ${j.customer_name ? "font-medium" : "font-medium text-muted-foreground italic"}`}>
+                      {j.customer_name || "Ukendt kunde"}
+                    </p>
                     <p className="text-[11px] text-muted-foreground">
                       {j.city || "—"} · {Math.round(j.total_amount || 0).toLocaleString("da-DK")} kr · ønsket {fmt(current)}
                     </p>
