@@ -148,24 +148,45 @@ const Planner = () => {
   useEffect(() => {
     if (!businessId) return;
     const filter = `business_id=eq.${businessId}`;
+    // Coalesce flere postgres_changes-events til ÉN invalidering pr. ~250 ms.
+    // Når en stor batch-mutation rammer (fx materialisering af 20 forekomster)
+    // undgår vi at React Query trigger 20 refetches lige efter hinanden — det
+    // var en tydelig kilde til lag og duplikerede karts i kalenderen.
+    let pending: { route: boolean; recurring: boolean } = { route: false, recurring: false };
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const flush = () => {
+      timer = null;
+      const flags = pending;
+      pending = { route: false, recurring: false };
+      if (flags.route) invalidateRouteSyncQueries(qc);
+      if (flags.recurring) qc.invalidateQueries({ queryKey: ["recurring-agreements-for-planner"] });
+    };
+    const schedule = (which: "route" | "recurring") => {
+      pending[which] = true;
+      if (timer) return;
+      timer = setTimeout(flush, 250);
+    };
     const channel = supabase
       .channel(`route-planner:${businessId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "routes", filter }, () => invalidateRouteSyncQueries(qc))
+      .on("postgres_changes", { event: "*", schema: "public", table: "routes", filter }, () => schedule("route"))
       .on("postgres_changes", { event: "*", schema: "public", table: "agreements", filter }, () => {
-        invalidateRouteSyncQueries(qc);
-        qc.invalidateQueries({ queryKey: ["recurring-agreements-for-planner"] });
+        schedule("route");
+        schedule("recurring");
       })
-      .on("postgres_changes", { event: "*", schema: "public", table: "agreement_occurrences" }, () => invalidateRouteSyncQueries(qc))
-      .on("postgres_changes", { event: "*", schema: "public", table: "route_stops" }, () => invalidateRouteSyncQueries(qc))
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders", filter }, () => invalidateRouteSyncQueries(qc))
+      .on("postgres_changes", { event: "*", schema: "public", table: "agreement_occurrences" }, () => schedule("route"))
+      .on("postgres_changes", { event: "*", schema: "public", table: "route_stops" }, () => schedule("route"))
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders", filter }, () => schedule("route"))
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      if (timer) clearTimeout(timer);
+      supabase.removeChannel(channel);
+    };
   }, [businessId, qc]);
 
   const { data: employees = [] } = useEmployees(businessId);
   const activeEmployees = useMemo(() => employees.filter((e: any) => e.is_active), [employees]);
 
-  const { data: unassigned = [] } = useUnassignedJobs(businessId);
+  const { data: unassigned = [], isLoading: loadingUnassigned } = useUnassignedJobs(businessId);
 
   // Range for kalender: hele måneden hvis month-view, ugen hvis week-view
   const calendarRange = useMemo(() => {
