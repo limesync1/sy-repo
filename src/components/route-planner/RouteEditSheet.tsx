@@ -409,7 +409,11 @@ export const RouteEditSheet = ({
                     <button
                       key={c.value}
                       type="button"
-                      onClick={() => { userEditedRef.current = true; setColor(c.value); }}
+                      onClick={() => {
+                        userEditedRef.current = true;
+                        setColor(c.value);
+                        onColorPreview?.(c.value);
+                      }}
                       title={c.name}
                       className={cn(
                         "relative aspect-square rounded-md transition-all hover:scale-110 ring-offset-1 ring-offset-background flex items-center justify-center",
