@@ -21,7 +21,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import {
   GripVertical, MapPin, Clock, Trash2, Inbox, ExternalLink, Loader2,
-  Crown, UserPlus, Check, PlayCircle, Repeat,
+  Crown, UserPlus, Check, PlayCircle,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
@@ -32,7 +32,7 @@ import {
   type RouteStop, type Route,
 } from "@/hooks/useRoutes";
 import { formatDurationMin } from "@/lib/duration-format";
-import { formatInterval } from "@/lib/interval";
+import { IntervalBadge } from "./IntervalBadge";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -303,16 +303,19 @@ const SortableStopRow = ({
             )}
             <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 shrink-0" />
           </div>
-          {stop.service_summary && (
+          {stop.service_summary ? (
             <p className="text-[10px] text-foreground/75 truncate mt-0.5 font-medium">
               {stop.service_summary}
             </p>
-          )}
-          {stop.agreement_interval && stop.agreement_interval !== "engangskøb" && (
-            <p className="text-[10px] text-muted-foreground truncate mt-0.5 flex items-center gap-1">
-              <Repeat className="h-2.5 w-2.5 shrink-0" />
-              {formatInterval(stop.agreement_interval)}
+          ) : (
+            <p className="text-[10px] text-muted-foreground/70 truncate mt-0.5 italic">
+              Ingen ydelser angivet
             </p>
+          )}
+          {stop.agreement_interval && (
+            <div className="mt-1">
+              <IntervalBadge interval={stop.agreement_interval} />
+            </div>
           )}
           {stop.address && (
             <p className="text-[10px] text-muted-foreground truncate flex items-center gap-1 mt-0.5">
