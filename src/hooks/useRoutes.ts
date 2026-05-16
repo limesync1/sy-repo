@@ -1781,6 +1781,32 @@ export const useRouteSeriesInfo = (
 export const useMoveRouteSeries = () => {
   const qc = useQueryClient();
   return useMutation({
+    // Optimistisk patch: opdater route_date i alle cache-nøgler øjeblikkeligt
+    // så ruten "lander" på den nye dato i kalenderen før server-roundtrippet
+    // er færdigt. Det fjerner det 3-4 sek glimt brugeren oplevede.
+    onMutate: async ({ routeId, newDate }) => {
+      await Promise.all([
+        qc.cancelQueries({ queryKey: ["route-calendar"] }),
+        qc.cancelQueries({ queryKey: ["routes"] }),
+        qc.cancelQueries({ queryKey: ["routes-range"] }),
+      ]);
+      const snapshots = [
+        ...qc.getQueriesData<any>({ queryKey: ["route-calendar"] }),
+        ...qc.getQueriesData<any>({ queryKey: ["routes"] }),
+        ...qc.getQueriesData<any>({ queryKey: ["routes-range"] }),
+      ];
+      const patchRoute = (r: any) => (r?.id === routeId ? { ...r, route_date: newDate } : r);
+      qc.setQueriesData({ queryKey: ["route-calendar"] }, (old: any) =>
+        old?.routes ? { ...old, routes: old.routes.map(patchRoute) } : old,
+      );
+      qc.setQueriesData({ queryKey: ["routes"] }, (old: any) =>
+        Array.isArray(old) ? old.map(patchRoute) : old,
+      );
+      qc.setQueriesData({ queryKey: ["routes-range"] }, (old: any) =>
+        Array.isArray(old) ? old.map(patchRoute) : old,
+      );
+      return { snapshots };
+    },
     mutationFn: ({
       routeId, newDate, scope, moveLinkedSubscriptions,
     }: {
@@ -1917,7 +1943,11 @@ export const useMoveRouteSeries = () => {
       qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
       qc.invalidateQueries({ queryKey: ["route-occurrence-exceptions"] });
     },
-    onError: (e: any) => toast.error(e.message || "Kunne ikke flytte rute"),
+    onError: (e: any, _vars, ctx: any) => {
+      // Rul optimistisk patch tilbage hvis serveren afviser.
+      ctx?.snapshots?.forEach(([key, data]: [any, any]) => qc.setQueryData(key, data));
+      toast.error(e.message || "Kunne ikke flytte rute");
+    },
   });
 };
 
