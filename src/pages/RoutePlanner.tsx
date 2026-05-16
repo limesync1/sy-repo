@@ -1454,8 +1454,8 @@ const Planner = () => {
           time_window_start: job.preferred_time_start || null,
           time_window_end: job.preferred_time_end || null,
         });
-        await linkAgreementToRoute(job.id, created.id);
         toast.success(`Ny rute oprettet på ${format(parseISO(newDate), "d. MMM", { locale: da })}`);
+        void linkAgreementToRoute(job.id, created.id);
       };
       if (!ensureStartDateMatches(
         job, newDate,
