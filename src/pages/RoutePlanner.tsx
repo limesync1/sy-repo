@@ -725,6 +725,19 @@ const Planner = () => {
     for (const ex of routeOccurrenceExceptions) {
       realKeys.add(`${(ex as any).base_route_id}|${String((ex as any).occurrence_date).slice(0, 10)}`);
     }
+    // Pr. basis-rute: den dato hvor den RIGTIGE rute-row faktisk ligger lige nu.
+    // Vi bruger den til at klippe projektioner væk der ellers ville dukke op
+    // FØR rutens nuværende dato — fx hvis brugeren har flyttet ruten frem i
+    // tiden og en aftale-cyklus (eller en anden aftale på samme rute) stadig
+    // ville projicere på den gamle/mellemliggende dato. En basisrute kan
+    // logisk set ikke "have forekomster" før basisruten selv eksisterer.
+    const minDateByBaseRouteId = new Map<string, string>();
+    for (const r of calendarRoutesRaw) {
+      const baseId = (r as any).base_route_id || r.id;
+      const d = String(r.route_date).slice(0, 10);
+      const existing = minDateByBaseRouteId.get(baseId);
+      if (!existing || d > existing) minDateByBaseRouteId.set(baseId, d);
+    }
     // Robust dedup: hvis en aftale (agreement/subscription/order) allerede
     // findes som rigtigt stop på en given dato, skal vi IKKE også vise
     // den som projiceret rute på samme dato — uanset om stoppet ligger
@@ -764,6 +777,11 @@ const Planner = () => {
     });
     return projections
       .map((p) => {
+        // Klip projektioner væk der ligger før basisrutens nuværende dato
+        // (fx efter en flytning frem i tiden). Forhindrer "spøgelses-ruter"
+        // i at dukke op på datoer mellem i dag og den nye rute-dato.
+        const baseMinDate = minDateByBaseRouteId.get(p.baseRouteId);
+        if (baseMinDate && p.date < baseMinDate) return null;
         // Filtrér source-keys der allerede er materialiseret som rigtige
         // stops på samme dato — så vi ikke får dubletter.
         const dateRealKeys = realSourceKeysByDate.get(p.date);
