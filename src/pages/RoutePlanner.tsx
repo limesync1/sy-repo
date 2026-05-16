@@ -2783,10 +2783,10 @@ const Planner = () => {
           onConfirm={(scope) => handleConfirmRouteMerge(scope)}
         />
 
-        <DragOverlay>
+        <DragOverlay dropAnimation={{ duration: 180, easing: "cubic-bezier(0.18, 0.67, 0.6, 1)" }}>
           {activeDragId && activeDragData?.type === "job" && (
             <div
-              className="rounded-md border border-accent bg-card px-2 py-1.5 shadow-xl w-[160px] cursor-grabbing"
+              className="rounded-lg border border-accent/70 bg-card px-2.5 py-2 shadow-2xl w-[200px] cursor-grabbing ring-2 ring-accent/20"
               style={{ transform: "rotate(-2deg)" }}
             >
               <div className="flex items-center justify-between gap-1.5">
@@ -2795,12 +2795,45 @@ const Planner = () => {
                   {Math.round(Number(activeDragData.job.total_amount || 0))} kr
                 </span>
               </div>
+              <p className="text-[10px] text-muted-foreground mt-1 leading-tight">
+                Slip på en dag eller rute
+              </p>
+              <p className="text-[9px] text-muted-foreground/70 mt-0.5 leading-tight">
+                ESC for at annullere
+              </p>
             </div>
           )}
           {activeDragId && activeDragData?.type === "stop" && (
-            <div className="rounded-md border bg-background p-2 shadow-lg w-[200px] opacity-90 border-l-4 border-l-primary">
+            <div
+              className="rounded-lg border bg-background p-2.5 shadow-2xl w-[220px] opacity-95 border-l-4 border-l-primary ring-2 ring-primary/10"
+              style={{ transform: "rotate(-1.5deg)" }}
+            >
               <p className="text-sm font-medium truncate">{activeDragData.stop.customer_name}</p>
-              <p className="text-[10px] text-muted-foreground">{activeDragData.stop.duration_minutes} min</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                {activeDragData.stop.duration_minutes} min · flyt til ny dag
+              </p>
+              <p className="text-[9px] text-muted-foreground/70 mt-1 leading-tight">
+                ESC for at annullere
+              </p>
+            </div>
+          )}
+          {activeDragId && activeDragData?.type === "route" && (
+            <div
+              className="rounded-lg border-l-[3px] border bg-card px-2.5 py-2 shadow-2xl w-[220px] ring-2 ring-accent/20"
+              style={{
+                transform: "rotate(-2deg)",
+                borderLeftColor: activeDragData.route?.color || "hsl(var(--accent))",
+              }}
+            >
+              <p className="text-xs font-semibold truncate">
+                {activeDragData.route?.name || "Rute"}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                Slip på en dag for at flytte
+              </p>
+              <p className="text-[9px] text-muted-foreground/70 mt-1 leading-tight">
+                ESC for at annullere
+              </p>
             </div>
           )}
         </DragOverlay>
