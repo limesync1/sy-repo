@@ -1213,7 +1213,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                         {nextOrder && (
                           <div className="mt-1 flex flex-wrap items-center gap-1.5">
                             <span className="truncate text-xs text-muted-foreground">
-                              {nextOrder.order_items?.[0]?.service_name || "Aftale"}
+                              {nextOrder.order_items?.[0]?.service_name || "Ingen ydelse angivet"}
                               {nextOrder.order_items?.length > 1 ? ` +${nextOrder.order_items.length - 1}` : ""}
                             </span>
                             <StatusBadge status={nextOrder.status} />
@@ -1247,7 +1247,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                           const serviceNames = (o.order_items || []).map(it => it.service_name).filter(Boolean);
                           const serviceLabel = serviceNames.length > 0
                             ? serviceNames.slice(0, 2).join(", ") + (serviceNames.length > 2 ? ` +${serviceNames.length - 2}` : "")
-                            : "Aftale";
+                            : "Ingen ydelse angivet";
                           return (
                             <div key={o.id} className="rounded-lg border border-border bg-card px-3 py-2">
                               <div className="flex items-start justify-between gap-3">
