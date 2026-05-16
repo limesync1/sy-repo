@@ -734,8 +734,23 @@ const Planner = () => {
         realKeys.add(`${(r as any).base_route_id}|${r.route_date}`);
       }
     }
+    // Exceptions må KUN undertrykke en projektion hvis de peger på en
+    // anden, reel rute (dvs. forekomsten er flyttet til en ny rute-row).
+    // Self-replacement (replacement_route_id == base_route_id) er
+    // stale data — typisk efterladt af tidligere flytte-operationer —
+    // og bør ikke skjule helt almindelige projicerede forekomster.
+    // Uden dette filter "forsvinder" projicerede ruter på datoer hvor
+    // brugeren tidligere har trykket "flyt"/"optimer" uden at det
+    // resulterede i en faktisk ny rute.
+    const realRouteIds = new Set(calendarRoutesRaw.map((r) => r.id));
     for (const ex of routeOccurrenceExceptions) {
-      realKeys.add(`${(ex as any).base_route_id}|${String((ex as any).occurrence_date).slice(0, 10)}`);
+      const baseId = (ex as any).base_route_id as string;
+      const replId = (ex as any).replacement_route_id as string | null;
+      const date = String((ex as any).occurrence_date).slice(0, 10);
+      // Behold kun exceptions der reelt peger på en anden materialiseret rute.
+      if (!replId || replId === baseId) continue;
+      if (!realRouteIds.has(replId)) continue;
+      realKeys.add(`${baseId}|${date}`);
     }
     // Pr. basis-rute: den dato hvor den RIGTIGE rute-row faktisk ligger lige nu.
     // Vi bruger den til at klippe projektioner væk der ellers ville dukke op
