@@ -199,6 +199,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                 <Section
                   icon={<Users className="h-3.5 w-3.5" />}
                   title="Medarbejdere"
+                  tone="primary"
                   hint={
                     assigneeIds.length === 0
                       ? "Ingen tildelt"
@@ -220,7 +221,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
               )}
 
               {/* Customer */}
-              <Section icon={<User className="h-3.5 w-3.5" />} title="Kunde">
+              <Section icon={<User className="h-3.5 w-3.5" />} title="Kunde" tone="sky">
                 <div className="space-y-1.5 text-sm">
                   {fullAddress && (
                     <div className="flex items-start gap-2">
@@ -248,6 +249,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                 <Section
                   icon={<Package className="h-3.5 w-3.5" />}
                   title="Bestilte services"
+                  tone="emerald"
                   hint={`${items.length} ${items.length === 1 ? "service" : "services"}`}
                 >
                     <div className="rounded-lg border divide-y">
@@ -372,50 +374,50 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                 <Section
                   icon={<Repeat className="h-3.5 w-3.5" />}
                   title="Abonnement"
+                  tone="accent"
                   hint={pausedSub ? "På pause" : "Aktiv"}
                 >
-                    <div className={`rounded-lg border px-3 py-2 text-sm space-y-1 ${pausedSub ? "bg-orange-50 border-orange-200" : "bg-secondary/40"}`}>
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Status</span>
-                        <span className="font-medium">{pausedSub ? "På pause" : "Aktiv"}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Interval</span>
-                        <span className="font-medium">
-                          {INTERVAL_LABELS[(activeSub || pausedSub)!.interval] || (activeSub || pausedSub)!.interval}
-                        </span>
-                      </div>
+                    <dl className={cn(
+                      "grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm",
+                      pausedSub && "text-amber-900 dark:text-amber-100",
+                    )}>
+                      <dt className="text-[11px] uppercase tracking-wider text-muted-foreground self-center">Status</dt>
+                      <dd className="text-right font-medium">{pausedSub ? "På pause" : "Aktiv"}</dd>
+                      <dt className="text-[11px] uppercase tracking-wider text-muted-foreground self-center">Interval</dt>
+                      <dd className="text-right font-medium">
+                        {INTERVAL_LABELS[(activeSub || pausedSub)!.interval] || (activeSub || pausedSub)!.interval}
+                      </dd>
                       {(activeSub || pausedSub)!.next_service_date && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground">Næste besøg</span>
-                          <span className="font-medium">
+                        <>
+                          <dt className="text-[11px] uppercase tracking-wider text-muted-foreground self-center">Næste besøg</dt>
+                          <dd className="text-right font-medium">
                             {format(parseISO((activeSub || pausedSub)!.next_service_date), "d. MMM yyyy", { locale: da })}
-                          </span>
-                        </div>
+                          </dd>
+                        </>
                       )}
                       {(activeSub || pausedSub)!.service_name && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground">Service</span>
-                          <span className="font-medium truncate ml-2">
+                        <>
+                          <dt className="text-[11px] uppercase tracking-wider text-muted-foreground self-center">Service</dt>
+                          <dd className="text-right font-medium truncate">
                             {(activeSub || pausedSub)!.service_name}
-                          </span>
-                        </div>
+                          </dd>
+                        </>
                       )}
                       {Number((activeSub || pausedSub)!.total_price) > 0 && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground">Pris pr. besøg</span>
-                          <span className="font-medium tabular-nums">
+                        <>
+                          <dt className="text-[11px] uppercase tracking-wider text-muted-foreground self-center">Pris pr. besøg</dt>
+                          <dd className="text-right font-medium tabular-nums">
                             {Math.round(Number((activeSub || pausedSub)!.total_price))} kr
-                          </span>
-                        </div>
+                          </dd>
+                        </>
                       )}
-                    </div>
+                    </dl>
                 </Section>
               )}
 
               {/* Customer's notes from order */}
               {orderNotes && (
-                <Section icon={<FileText className="h-3.5 w-3.5" />} title="Note fra kunden">
+                <Section icon={<FileText className="h-3.5 w-3.5" />} title="Note fra kunden" tone="amber">
                   <p className="text-sm bg-secondary/40 rounded-md px-3 py-2 whitespace-pre-wrap">
                     {orderNotes}
                   </p>
