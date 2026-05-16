@@ -1832,6 +1832,46 @@ export const useMoveRouteSeries = () => {
         .eq("id", routeId);
       if (e2) throw e2;
 
+      // Aftaler/forekomster der hænger PÅ denne rute skal ALTID følge med —
+      // ellers viser planner'en/medarbejder-appen en "spøgelses-aftale" på
+      // den gamle dato (filterStopsByOccurrenceDate dropper stops hvor
+      // occurrence_date ikke matcher route_date). Det gælder uanset om
+      // brugeren har valgt "kun denne gang" eller "fremover".
+      const dayDeltaMs = new Date(newDate).getTime() - new Date(fromDate).getTime();
+      const dayDelta = Math.round(dayDeltaMs / 86_400_000);
+      await supabase
+        .from("agreement_occurrences")
+        .update({ occurrence_date: newDate })
+        .eq("route_id", routeId);
+
+      // Forskyd også planned_arrival/planned_departure på rutens stops så
+      // dato-delen matcher den nye route_date. Vi bevarer klokkeslæt og
+      // shifter kun med antal dage — det giver det forventede visuelle
+      // resultat uden at flytte tider.
+      if (dayDelta !== 0) {
+        const { data: stopRows } = await supabase
+          .from("route_stops")
+          .select("id, planned_arrival, planned_departure")
+          .eq("route_id", routeId);
+        const shiftIsoDays = (iso: string | null) => {
+          if (!iso) return null;
+          const d = new Date(iso);
+          d.setDate(d.getDate() + dayDelta);
+          return d.toISOString();
+        };
+        await Promise.all(
+          (stopRows || []).map((s: any) =>
+            supabase
+              .from("route_stops")
+              .update({
+                planned_arrival: shiftIsoDays(s.planned_arrival),
+                planned_departure: shiftIsoDays(s.planned_departure),
+              })
+              .eq("id", s.id),
+          ),
+        );
+      }
+
       // Husk den oprindelige projekterede dato som erstattet/flyttet. Ellers
       // kan den gamle virtuelle forekomst dukke op igen som en dublet, især
       // når brugeren flytter "kun denne gang".
@@ -1851,8 +1891,7 @@ export const useMoveRouteSeries = () => {
       // bare har ruten som preferred_route_id (det er dem projektionen tegner).
       if (scope !== "future") return;
 
-      const deltaMs = new Date(newDate).getTime() - new Date(fromDate).getTime();
-      const deltaDays = Math.round(deltaMs / 86_400_000);
+      const deltaDays = dayDelta;
       if (deltaDays === 0) return;
 
       // 1) Subs/agreements knyttet via stops eller preferred_route_id.
