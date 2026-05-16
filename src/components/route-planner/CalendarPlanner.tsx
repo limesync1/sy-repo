@@ -735,8 +735,8 @@ const StopBlock = ({
         </div>
 
         {/* Service-summary — vises altid */}
-        <p className="text-[11px] text-foreground/75 truncate leading-tight">
-          {stop.service_summary || "Aftale"}
+        <p className={`text-[11px] truncate leading-tight ${stop.service_summary ? "text-foreground/75" : "text-muted-foreground italic"}`}>
+          {stop.service_summary || "Ingen ydelser angivet"}
         </p>
         {stop.agreement_interval && (
           <p className="text-[10px] text-muted-foreground truncate leading-tight">

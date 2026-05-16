@@ -235,8 +235,8 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
                   />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{s.customer_name}</p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {s.service_summary || "Aftale"}
+                    <p className={`text-xs truncate ${s.service_summary ? "text-muted-foreground" : "text-muted-foreground/70 italic"}`}>
+                      {s.service_summary || "Ingen ydelser angivet"}
                     </p>
                     {s.address && (
                       <p className="text-[11px] text-muted-foreground truncate">{s.address}</p>
