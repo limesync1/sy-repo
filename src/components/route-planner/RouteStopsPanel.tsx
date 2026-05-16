@@ -312,11 +312,9 @@ const SortableStopRow = ({
               Ingen ydelser angivet
             </p>
           )}
-          {stop.agreement_interval && (
-            <div className="mt-1">
-              <IntervalBadge interval={stop.agreement_interval} />
-            </div>
-          )}
+          <div className="mt-1">
+            <IntervalBadge interval={stop.agreement_interval} />
+          </div>
           {stop.address && (
             <p className="text-[10px] text-muted-foreground truncate flex items-center gap-1 mt-0.5">
               <MapPin className="h-2.5 w-2.5 shrink-0" />{stop.address}
