@@ -247,8 +247,8 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
               {items.length > 0 && (
                 <Section
                   icon={<Package className="h-3.5 w-3.5" />}
-                  title="Bestilte ydelser"
-                  hint={`${items.length} ${items.length === 1 ? "ydelse" : "ydelser"}`}
+                  title="Bestilte services"
+                  hint={`${items.length} ${items.length === 1 ? "service" : "services"}`}
                 >
                     <div className="rounded-lg border divide-y">
                       {items.map((item: any, i: number) => {
@@ -395,7 +395,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                       )}
                       {(activeSub || pausedSub)!.service_name && (
                         <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground">Ydelse</span>
+                          <span className="text-muted-foreground">Service</span>
                           <span className="font-medium truncate ml-2">
                             {(activeSub || pausedSub)!.service_name}
                           </span>
