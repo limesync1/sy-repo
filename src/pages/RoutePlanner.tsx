@@ -46,8 +46,9 @@ import { format, addDays, addWeeks, addMonths, parseISO, startOfWeek, endOfWeek,
 import { da } from "date-fns/locale";
 import { toast } from "sonner";
 import {
-  DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
+  DndContext, DragOverlay, useSensor, useSensors,
   pointerWithin, type DragEndEvent, type DragStartEvent,
+  MouseSensor, TouchSensor, KeyboardSensor,
 } from "@dnd-kit/core";
 import { UnassignedJobCard } from "@/components/route-planner/UnassignedJobCard";
 import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
@@ -396,7 +397,19 @@ const Planner = () => {
     });
   }, [calendarStops, filterAssigneeIds, filterStatuses, filtersActive]);
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+  // ─── Drag-sensorer ───
+  // PointerSensor er flakey på Windows-pegefelter (uden mus) og på Android
+  // hvor små finger-bevægelser ofte konsumeres som klik i stedet for drag.
+  // Vi splitter derfor i dedikerede sensorer:
+  //  - Mus: lille distance (3px) så drag starter hurtigt og responsivt
+  //  - Touch: kort delay (120ms) + tolerance (8px) så tap stadig fungerer
+  //    som klik, mens hold-og-træk altid registreres pålideligt
+  //  - Keyboard: tilgængelighed (Space/Enter + piletaster)
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 3 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 8 } }),
+    useSensor(KeyboardSensor),
+  );
 
   /** Kundens ønskede dato — preferred_date primært, ellers next_service_date (abonnement). */
   const effectiveJobDate = (j: any): string | null => {
@@ -1383,17 +1396,30 @@ const Planner = () => {
     // Kalender-cellerne er allerede disabled som drop-target, men en
     // eksplicit guard + toast sikrer at intet drop (rute, stop eller job)
     // kan ramme bagud i tid — uanset hvilken vej dnd-kit routinger fyrer.
-    const targetDateForGuard: string | null =
-      overData?.type === "day" ? String(overData.date || "").slice(0, 10) :
-      overData?.type === "route"
-        ? (() => {
-            const tr = calendarRoutesRaw.find((r) => r.id === overData.routeId);
-            return tr?.route_date ? String(tr.route_date).slice(0, 10) : null;
-          })()
-        : null;
-    if (targetDateForGuard && targetDateForGuard < todayStr()) {
+    //
+    // Sanity-check (tidszone- og månedsskift-sikker):
+    //  - Vi sammenligner KUN på yyyy-MM-dd i lokal tid (begge sider).
+    //  - Brugerens lokale "i dag" beregnes via `format(new Date(), ...)`,
+    //    som respekterer enhedens tidszone, så midnatsskift, sommertid
+    //    og månedsskift håndteres korrekt.
+    //  - Vi spærrer kun når targetDate < today (lex. sammenligning er
+    //    valid for yyyy-MM-dd) — samme dag og fremad er altid tilladt.
+    const targetDateForGuard: string | null = (() => {
+      const raw = overData?.type === "day"
+        ? overData.date
+        : overData?.type === "route"
+          ? calendarRoutesRaw.find((r) => r.id === overData.routeId)?.route_date
+          : null;
+      if (!raw) return null;
+      const s = String(raw).slice(0, 10);
+      // Valider formatet — afvis blot guarden hvis input er korrupt
+      // (lader resten af handleren håndtere fejlen normalt).
+      return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
+    })();
+    const todayLocal = todayStr();
+    if (targetDateForGuard && targetDateForGuard < todayLocal) {
       toast.error("Kan ikke flytte til en dato før i dag", {
-        description: "Ruter og aftaler kan kun planlægges fra dags dato og frem.",
+        description: `Dags dato er ${format(new Date(), "EEEE d. MMM yyyy", { locale: da })} — ruter og aftaler kan kun planlægges fra i dag og frem.`,
       });
       return;
     }

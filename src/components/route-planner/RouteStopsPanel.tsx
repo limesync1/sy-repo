@@ -14,6 +14,7 @@ import {
 import {
   DndContext, PointerSensor, useSensor, useSensors,
   closestCenter, type DragEndEvent,
+  MouseSensor, TouchSensor, KeyboardSensor,
 } from "@dnd-kit/core";
 import {
   SortableContext, verticalListSortingStrategy, useSortable, arrayMove,
@@ -75,7 +76,14 @@ export const RouteStopsPanel = ({
     setItems([...stops].sort((a, b) => a.sequence - b.sequence));
   }, [stops]);
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+  // Dedikerede sensorer pr. inputtype: mus reagerer hurtigt (3px distance),
+  // touch kræver kort hold (120ms / 8px tolerance) så tap stadig fungerer
+  // som klik på Windows-pegefelter og Android. Keyboard for tilgængelighed.
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 3 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 8 } }),
+    useSensor(KeyboardSensor),
+  );
 
   const handleDragEnd = async (e: DragEndEvent) => {
     if (isProjection) {
