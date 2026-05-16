@@ -448,9 +448,18 @@ export const RouteEditSheet = ({
             <Section
               icon={<CalendarDays className="h-3.5 w-3.5" />}
               title="Dato"
-              hint={(seriesInfo?.recurringAppointmentCount ?? 0) >= 1 ? "Del af fast rute" : "Træk i kalenderen for hurtigt skift"}
+              hint={isProjection ? "Projiceret forekomst — datoen kan ikke ændres" : ((seriesInfo?.recurringAppointmentCount ?? 0) >= 1 ? "Del af fast rute" : "Træk i kalenderen for hurtigt skift")}
             >
-              <DatePickerField value={date} onChange={handleDateChange} />
+              {isProjection ? (
+                <div className="h-9 px-3 inline-flex items-center gap-2 rounded-md border bg-muted/40 text-sm text-muted-foreground w-full">
+                  <CalendarDays className="h-3.5 w-3.5 shrink-0" />
+                  <span className="capitalize">
+                    {date ? format(parseISO(date), "EEEE d. MMMM yyyy", { locale: da }) : "—"}
+                  </span>
+                </div>
+              ) : (
+                <DatePickerField value={date} onChange={handleDateChange} />
+              )}
             </Section>
 
             {/* Rejsetid — kort og enkel: "Estimeret rejsetid: 34 min" */}
