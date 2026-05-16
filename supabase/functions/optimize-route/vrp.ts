@@ -385,8 +385,21 @@ export async function solveVRP(
       ...s,
       // Sortér også pinned_assignees så input-hash er stabil
       pinned_assignees: [...s.pinned_assignees].sort(),
-    }))
-    .sort((a, b) => a.id.localeCompare(b.id));
+    }));
+  const clusterCounts = new Map<string, number>();
+  for (const stop of stops) {
+    const key = locationKey(stop);
+    clusterCounts.set(key, (clusterCounts.get(key) ?? 0) + 1);
+  }
+  stops.sort((a, b) => {
+    const ca = clusterCounts.get(locationKey(a)) ?? 1;
+    const cb = clusterCounts.get(locationKey(b)) ?? 1;
+    if (ca !== cb) return cb - ca;
+    const ka = locationKey(a);
+    const kb = locationKey(b);
+    if (ka !== kb) return ka.localeCompare(kb);
+    return a.id.localeCompare(b.id);
+  });
 
   const empStarts: LatLng[] = employees.map((e) => ({ lat: e.start_lat, lng: e.start_lng }));
   const empEnds: LatLng[] = employees.map((e) => ({ lat: e.end_lat, lng: e.end_lng }));
@@ -497,6 +510,12 @@ export async function solveVRP(
     const wa = (a.hard_end_min ?? 24 * 60) - (a.hard_start_min ?? 0);
     const wb = (b.hard_end_min ?? 24 * 60) - (b.hard_start_min ?? 0);
     if (wa !== wb) return wa - wb;
+    const ca = clusterCounts.get(locationKey(a)) ?? 1;
+    const cb = clusterCounts.get(locationKey(b)) ?? 1;
+    if (ca !== cb) return cb - ca;
+    const ka = locationKey(a);
+    const kb = locationKey(b);
+    if (ka !== kb) return ka.localeCompare(kb);
     return b.duration_minutes - a.duration_minutes;
   });
 
