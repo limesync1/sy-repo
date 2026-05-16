@@ -1656,6 +1656,22 @@ const Planner = () => {
     if (!pendingRouteMerge) return;
     const { source, target } = pendingRouteMerge;
     setMergingRoute(true);
+    // Optimistisk: flyt stops til målruten og fjern kilderuten fra cachen
+    // med det samme, så UI'et reagerer øjeblikkeligt i stedet for at vente
+    // 3-4 sek på server-roundtrip + invalidate + refetch. Vi tager snapshots
+    // for at kunne rulle tilbage hvis serveren afviser.
+    const calSnapshots = qc.getQueriesData<any>({ queryKey: ["route-calendar"] });
+    qc.setQueriesData({ queryKey: ["route-calendar"] }, (old: any) => {
+      if (!old?.routes || !old?.stops) return old;
+      return {
+        ...old,
+        routes: old.routes.filter((r: any) => r.id !== source.id),
+        stops: old.stops.map((s: any) =>
+          s.route_id === source.id ? { ...s, route_id: target.id } : s,
+        ),
+      };
+    });
+    setPendingRouteMerge(null);
     try {
       const sourceStops = calendarStops.filter((s: any) => s.route_id === source.id);
       let moved = 0;
@@ -1749,8 +1765,9 @@ const Planner = () => {
       qc.invalidateQueries({ queryKey: ["recurring-agreements-for-planner"] });
       qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
       qc.invalidateQueries({ queryKey: ["route-series-info"] });
-      setPendingRouteMerge(null);
     } catch (err: any) {
+      // Rul optimistisk cache-patch tilbage hvis fletningen fejlede.
+      calSnapshots.forEach(([key, data]) => qc.setQueryData(key, data));
       toast.error(err.message || "Kunne ikke flette ruterne");
     } finally {
       setMergingRoute(false);
