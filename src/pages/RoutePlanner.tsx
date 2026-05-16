@@ -478,7 +478,7 @@ const Planner = () => {
           .not("preferred_route_id", "is", null),
         supabase
           .from("subscriptions")
-          .select("id, interval, next_service_date, created_at, preferred_route_id, status, order_id")
+          .select("id, interval, details, next_service_date, created_at, preferred_route_id, status, order_id")
           .eq("business_id", businessId!)
           .eq("status", "active")
           .neq("interval", "engangskøb")
@@ -506,7 +506,7 @@ const Planner = () => {
         .filter((s: any) => !agreementLegacySubIds.has(s.id))
         .map((s: any) => ({
           id: `sub:${s.id}`,
-          interval: s.interval as string,
+          interval: ((s.details as any)?.interval || s.interval) as string,
           interval_days: null,
           seed_date: (s.next_service_date as string | null) || (s.created_at as string | null),
           preferred_route_id: s.preferred_route_id as string | null,
