@@ -205,3 +205,64 @@ export function intervalBadgeClass(value: string | null | undefined): string {
     case "year":  return "bg-emerald-50 text-emerald-700 border-emerald-200";
   }
 }
+
+/**
+ * Validerer én interval-nøgle. Returnerer null hvis ok, ellers en
+ * brugervenlig dansk fejlbesked. Bruges af `validateServiceIntervals`
+ * og af UI-komponenter (IntervalBuilder) til at vise fejl med det samme.
+ */
+export function validateIntervalKey(value: string | null | undefined): string | null {
+  if (!value) return "Tomt interval";
+  const v = String(value).trim();
+  if (!v) return "Tomt interval";
+  if (v === "engangskøb" || v === "engangskob" || v === "once") return null;
+  const p = parseInterval(v);
+  if (!p) return `Ukendt interval "${v}" — kan ikke beregnes`;
+  if (p.once) return null;
+  if (!Number.isFinite(p.n) || p.n < 1) return "Antallet skal være mindst 1";
+  if (p.n > 999) return "Antallet er for stort (maks 999)";
+  if (!["day", "week", "month", "year"].includes(p.unit)) {
+    return `Ugyldig enhed "${p.unit}"`;
+  }
+  return null;
+}
+
+export type ServiceIntervalValidation = {
+  ok: boolean;
+  /** Fejl pr. interval (key → besked). */
+  errors: Record<string, string>;
+  /** Generel fejlbesked (hvis listen som helhed er ugyldig). */
+  message: string | null;
+};
+
+/**
+ * Validerer en services valgte intervaller. Reglerne:
+ *  - Mindst ét interval skal være valgt (engangskøb tæller med).
+ *  - Hvert interval skal være parseable og inden for fornuftige grænser.
+ *  - Ingen dubletter (samme key må ikke optræde to gange).
+ *  - Hvis kunden vil kunne booke abonnement, skal mindst ét tilbagevendende
+ *    interval (ikke engangskøb) være valgt.
+ */
+export function validateServiceIntervals(values: string[] | null | undefined): ServiceIntervalValidation {
+  const errors: Record<string, string> = {};
+  const list = Array.isArray(values) ? values : [];
+  if (list.length === 0) {
+    return { ok: false, errors, message: "Vælg mindst ét interval" };
+  }
+  const seen = new Set<string>();
+  for (const v of list) {
+    if (seen.has(v)) {
+      errors[v] = "Dette interval er valgt flere gange";
+      continue;
+    }
+    seen.add(v);
+    const err = validateIntervalKey(v);
+    if (err) errors[v] = err;
+  }
+  const ok = Object.keys(errors).length === 0;
+  return {
+    ok,
+    errors,
+    message: ok ? null : "Et eller flere intervaller kan ikke beregnes korrekt",
+  };
+}
