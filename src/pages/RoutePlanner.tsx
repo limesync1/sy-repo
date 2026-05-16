@@ -501,6 +501,19 @@ const Planner = () => {
           }
         }
       }
+      const preferredRouteIds = Array.from(new Set([
+        ...(agreementsRes.data || []).map((a: any) => a.preferred_route_id),
+        ...(subsRes.data || []).map((s: any) => s.preferred_route_id),
+      ].filter(Boolean) as string[]));
+      const routeDateById = new Map<string, string>();
+      if (preferredRouteIds.length > 0) {
+        const { data: routesData, error: routesErr } = await supabase
+          .from("routes")
+          .select("id, route_date")
+          .in("id", preferredRouteIds);
+        if (routesErr) throw routesErr;
+        for (const r of routesData || []) routeDateById.set((r as any).id, String((r as any).route_date).slice(0, 10));
+      }
       const agreementLegacySubIds = new Set(
         (agreementsRes.data || []).map((a: any) => a.legacy_subscription_id).filter(Boolean),
       );
@@ -509,6 +522,7 @@ const Planner = () => {
         interval: (agreementItemIntervalById.get(a.id) || a.interval) as string,
         interval_days: (a.interval_days ?? null) as number | null,
         seed_date: a.start_date as string | null,
+        anchor_date: routeDateById.get(a.preferred_route_id) ?? null,
         preferred_route_id: a.preferred_route_id as string | null,
         sourceKeys: [
           `agr:${a.id}`,
@@ -523,6 +537,7 @@ const Planner = () => {
           interval: ((s.details as any)?.interval || s.interval) as string,
           interval_days: null,
           seed_date: (s.next_service_date as string | null) || (s.created_at as string | null),
+          anchor_date: routeDateById.get(s.preferred_route_id) ?? null,
           preferred_route_id: s.preferred_route_id as string | null,
           sourceKeys: [
             `sub:${s.id}`,
@@ -722,6 +737,11 @@ const Planner = () => {
       }
       return null;
     };
+    const anchoredSourceKeys = new Set<string>();
+    for (const src of recurringSources as any[]) {
+      if (!src.anchor_date) continue;
+      for (const key of src.sourceKeys || []) anchoredSourceKeys.add(key);
+    }
     // Slå basisrutens *færdige* visningsnavn og farve op fra det allerede
     // byggede calendarRoutes (samme logik som rigtige rute-kort bruger).
     // Det sikrer at projicerede forekomster altid arver præcis samme navn
@@ -795,34 +815,29 @@ const Planner = () => {
       keys.forEach((k) => set.add(k));
       realSourceKeysByDate.set(d, set);
     }
-    // VIGTIGT: vi overskriver IKKE seed_date pr. kilde. Hver aftale har sit
-    // eget interval (uge/14 dage/måned/...), og en universel override af alle
-    // seeds til basisrutens dato ville kollapse alle aftalerne til én fælles
-    // cyklus — så ruter med blandede intervaller kun ville vise nogle af
-    // forekomsterne. Spøgelses-projektioner ved flytning af basisruten
-    // håndteres allerede via `route_occurrence_exceptions` (se realKeys
-    // ovenfor) og af `useMoveRouteSeries`, som forskyder aftalernes egne
-    // start_date / next_service_date når brugeren vælger "Fremtidige også".
+    // Hver aftale beholder sit eget interval, men bruger basisrutens route_date
+    // som stabil kalender-anker når den findes. Det gør projektionen robust i
+    // begge retninger: en 14-dages aftale på en basisrute d. 28 viser også d.
+    // 14, mens månedlige/ugentlige aftaler stadig beregnes med deres egen cadence.
     const sourcesWithRouteSeed = recurringSources;
     const projections = expandRecurringRoutes({
       sources: sourcesWithRouteSeed,
-      // Projicér ALDRIG i fortiden — selvom kalenderens visuelle range
-      // starter før i dag (fx månedens grid begynder mandag i forrige uge),
-      // skal projicerede ruter aldrig dukke op på datoer der er passeret.
-      rangeStart: (() => {
-        const todayStr = format(new Date(), "yyyy-MM-dd");
-        return calendarRange.start < todayStr ? todayStr : calendarRange.start;
-      })(),
+      // Brug hele det synlige kalenderinterval — også datoer tidligere i
+      // måneden. Ellers forsvinder fx d. 14 i en 14-dages serie, når man ser
+      // måneden efter d. 14 er passeret.
+      rangeStart: calendarRange.start,
       rangeEnd: calendarRange.end,
       realRouteDates: realKeys,
     });
     return projections
       .map((p) => {
-        // Klip projektioner væk der ligger før basisrutens nuværende dato
-        // (fx efter en flytning frem i tiden). Forhindrer "spøgelses-ruter"
-        // i at dukke op på datoer mellem i dag og den nye rute-dato.
+        // Klip kun projektioner væk der ligger før basisrutens dato når kilden
+        // IKKE har en route-date som kalender-anker. For ankrede serier er
+        // datoer før basisruten legitime — fx d. 14 når basisruten er d. 28 og
+        // aftalen kører hver 14. dag.
         const baseMinDate = minDateByBaseRouteId.get(p.baseRouteId);
-        if (baseMinDate && p.date < baseMinDate) return null;
+        const hasAnchoredSource = p.sourceKeys.some((key) => anchoredSourceKeys.has(key));
+        if (baseMinDate && p.date < baseMinDate && !hasAnchoredSource) return null;
         // Filtrér source-keys der allerede er materialiseret som rigtige
         // stops på samme dato — så vi ikke får dubletter.
         const dateRealKeys = realSourceKeysByDate.get(p.date);
