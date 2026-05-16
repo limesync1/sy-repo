@@ -8,7 +8,7 @@ import {
   addDays, addWeeks, addMonths, addYears,
   format, parseISO, isBefore, differenceInCalendarDays,
 } from "date-fns";
-import { intervalToDays as intervalToDaysCentral, parseInterval } from "@/lib/interval";
+import { intervalToDays as intervalToDaysCentral, intervalToCadence, type IntervalUnit } from "@/lib/interval";
 
 /**
  * Tynd indpakning omkring den centrale interval-lib — bevares som eksport
@@ -109,20 +109,14 @@ export const expandRecurringRoutes = (params: {
 
   for (const s of params.sources) {
     if (!s.preferred_route_id || !s.seed_date) continue;
-    // Parse intervallet til (n, unit) så vi kan bruge ægte kalender-aritmetik
-    // for måneder/år — ellers driver projektionen (30/365 dages tilnærmelse
-    // tager fx en månedlig 1. → 1. → 31. → 30. ... over et år).
-    let n = 0;
-    let unit: "day" | "week" | "month" | "year" = "day";
-    const parsed = parseInterval(s.interval);
-    if (parsed && !parsed.once) {
-      n = parsed.n;
-      unit = parsed.unit;
-    } else if (s.interval === "custom" && s.interval_days && s.interval_days > 0) {
-      n = s.interval_days;
-      unit = "day";
-    }
-    if (!n) continue;
+    // Parse intervallet til (n, unit) så vi bruger ægte kalender-aritmetik for
+    // ALLE understøttede intervaller. Custom dagstal løftes til uge/måned/år
+    // når de repræsenterer en klassisk cadence (fx 14 dage → 2 uger,
+    // 30 dage → 1 måned), så projektioner ikke ender som "hver 31. dag".
+    const cadence = intervalToCadence(s.interval, s.interval_days);
+    if (!cadence) continue;
+    const { n } = cadence;
+    const unit: IntervalUnit = cadence.unit;
     const advance = (d: Date, steps: number): Date => {
       switch (unit) {
         case "day":   return addDays(d, steps * n);

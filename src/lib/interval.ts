@@ -48,6 +48,15 @@ const LEGACY_MAP: Record<string, { n: number; unit: IntervalUnit }> = {
   årlig:         { n: 1,  unit: "year" },
 };
 
+const unitFromAnyLabel = (raw: string): IntervalUnit | null => {
+  const u = raw.toLowerCase().trim();
+  if (["day", "days", "dag", "dage"].includes(u)) return "day";
+  if (["week", "weeks", "uge", "uger"].includes(u)) return "week";
+  if (["month", "months", "måned", "maaned", "månedlig", "måneder", "maaneder"].includes(u)) return "month";
+  if (["year", "years", "år", "aar"].includes(u)) return "year";
+  return null;
+};
+
 /** Parser et hvilket som helst interval-string til en kanonisk form. */
 export function parseInterval(value: string | null | undefined): ParsedInterval | null {
   if (!value) return null;
@@ -64,6 +73,23 @@ export function parseInterval(value: string | null | undefined): ParsedInterval 
   }
   const legacy = LEGACY_MAP[v];
   if (legacy) return { n: legacy.n, unit: legacy.unit, once: false, raw: v };
+
+  // Defensive parser for older/handwritten Danish keys and labels that may
+  // already exist in service/order details, e.g. "hver_8_uge", "Hver 2. uge",
+  // "hvert 2. år" or "every-3-months". Projection must understand the
+  // cadence even if storage used a non-enum/custom representation.
+  const flexible = v
+    .toLowerCase()
+    .replace(/\./g, "")
+    .replace(/[_:-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const fm = flexible.match(/^(?:hver|hvert|every)\s+(\d+)\s+(day|days|dag|dage|week|weeks|uge|uger|month|months|måned|maaned|måneder|maaneder|year|years|år|aar)$/i);
+  if (fm) {
+    const n = Math.max(1, parseInt(fm[1], 10) || 1);
+    const unit = unitFromAnyLabel(fm[2]);
+    if (unit) return { n, unit, once: false, raw: v };
+  }
   return null;
 }
 
@@ -125,6 +151,28 @@ export function intervalToDays(value: string | null | undefined): number | null 
     case "month": return p.n * 30;   // tilnærmet — DB bruger interval_to_duration for præcision
     case "year":  return p.n * 365;
   }
+}
+
+/**
+ * Returnerer den præcise kalender-cadence for et interval. For legacy/custom
+ * values der kun gemmer `interval_days`, forsøger vi først at løfte klassiske
+ * dagstal tilbage til uge/måned/år, så projektioner ikke driver som 30/31 dage.
+ */
+export function intervalToCadence(
+  value: string | null | undefined,
+  intervalDays?: number | null,
+): { n: number; unit: IntervalUnit } | null {
+  const p = parseInterval(value);
+  if (p && !p.once) return { n: p.n, unit: p.unit };
+
+  const days = Number(intervalDays ?? 0);
+  if (!Number.isFinite(days) || days <= 0) return null;
+  const rounded = Math.round(days);
+  if (rounded === 365) return { n: 1, unit: "year" };
+  const dayToMonth: Record<number, number> = { 30: 1, 60: 2, 90: 3, 120: 4, 150: 5, 180: 6, 210: 7, 240: 8, 270: 9, 300: 10, 330: 11 };
+  if (dayToMonth[rounded]) return { n: dayToMonth[rounded], unit: "month" };
+  if (rounded % 7 === 0) return { n: rounded / 7, unit: "week" };
+  return { n: rounded, unit: "day" };
 }
 
 /**
