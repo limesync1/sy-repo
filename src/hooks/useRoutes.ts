@@ -1815,165 +1815,22 @@ export const useMoveRouteSeries = () => {
       scope: "single" | "future";
       moveLinkedSubscriptions: boolean;
     }) => routeMutationQueue.run(async () => {
-      const { data: route, error } = await supabase
-        .from("routes")
-        .select("id, business_id, route_date, base_route_id, route_template_id")
-        .eq("id", routeId)
-        .maybeSingle();
-      if (error || !route) throw new Error("Rute ikke fundet");
-      const fromDate = route.route_date as string;
-      if (fromDate === newDate) return;
-      const baseRouteId = (route as any).base_route_id || route.id;
-
-      // Flyt altid selve rute-instansen til den nye dato.
-      const { error: e2 } = await supabase
-        .from("routes")
-        .update({ route_date: newDate })
-        .eq("id", routeId);
-      if (e2) throw e2;
-
-      // Aftaler/forekomster der hænger PÅ denne rute skal ALTID følge med —
-      // ellers viser planner'en/medarbejder-appen en "spøgelses-aftale" på
-      // den gamle dato (filterStopsByOccurrenceDate dropper stops hvor
-      // occurrence_date ikke matcher route_date). Det gælder uanset om
-      // brugeren har valgt "kun denne gang" eller "fremover".
-      const dayDeltaMs = new Date(newDate).getTime() - new Date(fromDate).getTime();
-      const dayDelta = Math.round(dayDeltaMs / 86_400_000);
-      await supabase
-        .from("agreement_occurrences")
-        .update({ occurrence_date: newDate })
-        .eq("route_id", routeId);
-
-      // Forskyd også planned_arrival/planned_departure på rutens stops så
-      // dato-delen matcher den nye route_date. Vi bevarer klokkeslæt og
-      // shifter kun med antal dage — det giver det forventede visuelle
-      // resultat uden at flytte tider.
-      if (dayDelta !== 0) {
-        const { data: stopRows } = await supabase
-          .from("route_stops")
-          .select("id, planned_arrival, planned_departure")
-          .eq("route_id", routeId);
-        const shiftIsoDays = (iso: string | null) => {
-          if (!iso) return null;
-          const d = new Date(iso);
-          d.setDate(d.getDate() + dayDelta);
-          return d.toISOString();
-        };
-        await Promise.all(
-          (stopRows || []).map((s: any) =>
-            supabase
-              .from("route_stops")
-              .update({
-                planned_arrival: shiftIsoDays(s.planned_arrival),
-                planned_departure: shiftIsoDays(s.planned_departure),
-              })
-              .eq("id", s.id),
-          ),
-        );
-      }
-
-      // Husk den oprindelige projekterede dato som erstattet/flyttet. Ellers
-      // kan den gamle virtuelle forekomst dukke op igen som en dublet, især
-      // når brugeren flytter "kun denne gang".
-      await supabase.from("route_occurrence_exceptions" as any).upsert(
-        {
-          business_id: (route as any).business_id,
-          base_route_id: baseRouteId,
-          occurrence_date: fromDate,
-          replacement_route_id: routeId,
-          exception_type: "moved",
-        },
-        { onConflict: "base_route_id,occurrence_date" },
-      );
-
-      // "future" = forskyd også fremtidige forekomster af de tilbagevendende
-      // aftaler på ruten — både dem der ligger som stops PÅ ruten og dem der
-      // bare har ruten som preferred_route_id (det er dem projektionen tegner).
-      if (scope !== "future") return;
-
-      const deltaDays = dayDelta;
-      if (deltaDays === 0) return;
-
-      // 1) Subs/agreements knyttet via stops eller preferred_route_id.
-      const [stopsRes, subsByPrefRes, agrByPrefRes] = await Promise.all([
-        supabase
-          .from("route_stops")
-          .select("subscription_id")
-          .eq("route_id", routeId)
-          .not("subscription_id", "is", null),
-        supabase
-          .from("subscriptions")
-          .select("id, interval, status, next_service_date")
-          .eq("preferred_route_id", routeId)
-          .eq("status", "active")
-          .neq("interval", "engangskøb"),
-        supabase
-          .from("agreements")
-          .select("id, interval, status, start_date")
-          .eq("preferred_route_id", routeId)
-          .eq("status", "active")
-          .neq("interval", "engangskøb"),
-      ]);
-
-      const subIdsFromStops = Array.from(
-        new Set((stopsRes.data || []).map((s: any) => s.subscription_id).filter(Boolean)),
-      );
-
-      const subsFromStops = subIdsFromStops.length > 0
-        ? (await supabase
-            .from("subscriptions")
-            .select("id, interval, status, next_service_date")
-            .in("id", subIdsFromStops)).data || []
-        : [];
-
-      const allSubsMap = new Map<string, any>();
-      for (const s of subsFromStops) allSubsMap.set(s.id, s);
-      for (const s of (subsByPrefRes.data || [])) allSubsMap.set(s.id, s);
-
-      const recurringSubs = Array.from(allSubsMap.values()).filter(
-        (s: any) =>
-          s.status === "active" &&
-          s.interval &&
-          s.interval !== "engangskøb" &&
-          s.next_service_date,
-      );
-
-      const recurringAgrs = (agrByPrefRes.data || []).filter(
-        (a: any) =>
-          a.status === "active" &&
-          a.interval &&
-          a.interval !== "engangskøb" &&
-          a.start_date,
-      );
-
-      const shiftIso = (d: string) => {
-        const nd = new Date(d);
-        nd.setDate(nd.getDate() + deltaDays);
-        return nd.toISOString();
-      };
-      const shiftDate = (d: string) => {
-        const nd = new Date(d);
-        nd.setDate(nd.getDate() + deltaDays);
-        return nd.toISOString().slice(0, 10);
-      };
-
-      await Promise.all([
-        ...recurringSubs.map((s: any) =>
-          supabase
-            .from("subscriptions")
-            .update({ next_service_date: shiftIso(s.next_service_date as string) })
-            .eq("id", s.id),
-        ),
-        ...recurringAgrs.map((a: any) =>
-          supabase
-            .from("agreements")
-            .update({ start_date: shiftDate(a.start_date as string) })
-            .eq("id", a.id),
-        ),
-      ]);
-
-      // moveLinkedSubscriptions er nu altid implicit ved "future".
-      void moveLinkedSubscriptions;
+      // Én atomisk SQL-funktion håndterer hele flytningen i ét round-trip:
+      //  - rutens dato
+      //  - linkede agreement_occurrences
+      //  - planlagte tider på alle stops (shift med dag-delta)
+      //  - exception for den oprindelige dato (suppress af projektion)
+      //  - ved "future": tilbagevendende subscriptions/agreements
+      // Tidligere lavede vi op til 8 sekventielle round-trips + N per-stop
+      // updates, hvilket var den primære grund til at flytningen føltes
+      // langsom selv om UI'et patchede optimistisk.
+      void moveLinkedSubscriptions; // implicit ved "future"
+      const { error } = await supabase.rpc("move_route_to_date" as any, {
+        _route_id: routeId,
+        _new_date: newDate,
+        _scope: scope,
+      });
+      if (error) throw error;
     }),
     onSuccess: () => {
       invalidateRouteSyncQueries(qc);
