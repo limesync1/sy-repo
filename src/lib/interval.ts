@@ -154,6 +154,28 @@ export function intervalToDays(value: string | null | undefined): number | null 
 }
 
 /**
+ * Returnerer den præcise kalender-cadence for et interval. For legacy/custom
+ * values der kun gemmer `interval_days`, forsøger vi først at løfte klassiske
+ * dagstal tilbage til uge/måned/år, så projektioner ikke driver som 30/31 dage.
+ */
+export function intervalToCadence(
+  value: string | null | undefined,
+  intervalDays?: number | null,
+): { n: number; unit: IntervalUnit } | null {
+  const p = parseInterval(value);
+  if (p && !p.once) return { n: p.n, unit: p.unit };
+
+  const days = Number(intervalDays ?? 0);
+  if (!Number.isFinite(days) || days <= 0) return null;
+  const rounded = Math.round(days);
+  if (rounded === 365) return { n: 1, unit: "year" };
+  const dayToMonth: Record<number, number> = { 30: 1, 60: 2, 90: 3, 120: 4, 150: 5, 180: 6, 210: 7, 240: 8, 270: 9, 300: 10, 330: 11 };
+  if (dayToMonth[rounded]) return { n: dayToMonth[rounded], unit: "month" };
+  if (rounded % 7 === 0) return { n: rounded / 7, unit: "week" };
+  return { n: rounded, unit: "day" };
+}
+
+/**
  * Smart-normalisering: tager (antal, enhed) og returnerer den "pæneste"
  * ækvivalente repræsentation. Eksempler:
  *   - 7 dage   → 1 uge
