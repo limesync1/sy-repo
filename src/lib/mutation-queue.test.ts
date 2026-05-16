@@ -117,7 +117,7 @@ describe("MutationQueue", () => {
     expect(q.pending).toBe(0);
   });
 
-  it("retries transient network errors up to `retries` attempts", async () => {
+  it("retries transient network errors by default (3 attempts)", async () => {
     const q = new MutationQueue();
     let calls = 0;
     const result = await q.run(
@@ -126,7 +126,7 @@ describe("MutationQueue", () => {
         if (calls < 3) throw new Error("Failed to fetch");
         return "ok";
       },
-      { retries: 4, backoffMs: 1 },
+      { backoffMs: 1 },
     );
     expect(result).toBe("ok");
     expect(calls).toBe(3);
