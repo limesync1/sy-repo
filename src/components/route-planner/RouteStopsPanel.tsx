@@ -303,11 +303,14 @@ const SortableStopRow = ({
             )}
             <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 shrink-0" />
           </div>
-          <p className="text-[10px] text-foreground/75 truncate mt-0.5 font-medium">
-            {stop.service_summary || "Aftale"}
-          </p>
-          {stop.agreement_interval && (
-            <p className="text-[10px] text-muted-foreground truncate mt-0.5">
+          {stop.service_summary && (
+            <p className="text-[10px] text-foreground/75 truncate mt-0.5 font-medium">
+              {stop.service_summary}
+            </p>
+          )}
+          {stop.agreement_interval && stop.agreement_interval !== "engangskøb" && (
+            <p className="text-[10px] text-muted-foreground truncate mt-0.5 flex items-center gap-1">
+              <Repeat className="h-2.5 w-2.5 shrink-0" />
               {formatInterval(stop.agreement_interval)}
             </p>
           )}
