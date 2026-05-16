@@ -64,7 +64,7 @@ export const MoveRouteDateDialog = ({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-md">
+      <AlertDialogContent className="w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] sm:max-w-md overflow-x-hidden">
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
             <CalendarRange className="h-4 w-4 text-accent" />
