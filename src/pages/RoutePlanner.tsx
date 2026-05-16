@@ -46,7 +46,7 @@ import { format, addDays, addWeeks, addMonths, parseISO, startOfWeek, endOfWeek,
 import { da } from "date-fns/locale";
 import { toast } from "sonner";
 import {
-  DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
+  DndContext, DragOverlay, useSensor, useSensors,
   pointerWithin, type DragEndEvent, type DragStartEvent,
   MouseSensor, TouchSensor, KeyboardSensor,
 } from "@dnd-kit/core";
