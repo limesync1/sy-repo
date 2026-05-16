@@ -2135,12 +2135,10 @@ const AftaleTab = ({
                                 <XCircle className="h-3.5 w-3.5" /> Annuller
                               </Button>
                             )}
-                            {order.status === "cancelled" && (
-                              <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order); }}
-                                className="h-8 gap-1.5 rounded-md border-destructive/40 px-2.5 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
-                                <Trash2 className="h-3.5 w-3.5" /> Slet
-                              </Button>
-                            )}
+                            <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order); }}
+                              className="h-8 gap-1.5 rounded-md border-destructive/40 px-2.5 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
+                              <Trash2 className="h-3.5 w-3.5" /> Slet
+                            </Button>
                           </div>
                         </div>
                       ) : (
@@ -2631,13 +2629,13 @@ const AftaleTab = ({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Bekræft permanent sletning af en annulleret aftale. */}
+      {/* Bekræft permanent sletning af en aftale. */}
       <AlertDialog open={!!orderToDelete} onOpenChange={(o) => !o && !deletingOrder && setOrderToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Slet aftale permanent?</AlertDialogTitle>
             <AlertDialogDescription>
-              Den annullerede aftale fjernes permanent fra systemet. Dette kan ikke fortrydes.
+              Aftalen fjernes permanent fra systemet — inkl. eventuelle stop på ruter, kommende forekomster og faktura-links. Dette kan ikke fortrydes.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
