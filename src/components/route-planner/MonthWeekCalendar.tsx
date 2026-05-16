@@ -238,6 +238,18 @@ const DayCellInner = ({
   // gør det entydigt for brugeren hvor man faktisk kan slippe.
   const canReceiveDrop = isDragActive && inMonth && !isPast && !busy;
 
+  // ─── Kontekst-følsom drop-label ───
+  // Når brugeren hovrer over en dag mid-drag, fortæller vi præcis hvad
+  // der vil ske: "Flyt rute til torsdag d. 23. maj" eller "Tilføj
+  // aftale". Bruger samme dato-format som resten af planlæggeren.
+  const dropVerb = (() => {
+    if (!isOver || !canReceiveDrop) return null;
+    if (draggingType === "job") return emptyDay ? "Opret ny rute" : "Tilføj til rute";
+    if (draggingType === "stop") return "Flyt stop hertil";
+    if (draggingType === "route") return "Flyt rute hertil";
+    return null;
+  })();
+
   return (
     <div
       ref={setNodeRef}
