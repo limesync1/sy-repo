@@ -232,6 +232,11 @@ const DayCellInner = ({
   const isDragActive = !!draggingType;
   const isJobDragActive = draggingType === "job";
   const emptyDay = routes.length === 0;
+  // ─── Drop-affordance ───
+  // Dage før i dag kan ALDRIG modtage et drop (se `useDroppable.disabled`),
+  // så vi dæmper dem visuelt under drag og fjerner ring/hover-cues. Det
+  // gør det entydigt for brugeren hvor man faktisk kan slippe.
+  const canReceiveDrop = isDragActive && inMonth && !isPast && !busy;
 
   return (
     <div
