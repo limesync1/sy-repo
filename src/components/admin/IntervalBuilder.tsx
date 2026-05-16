@@ -263,6 +263,14 @@ export const IntervalBuilder = ({ value, onChange }: IntervalBuilderProps) => {
         </div>
       )}
 
+      {/* Samlet validerings-banner */}
+      {!validation.ok && validation.message && (
+        <div className="flex items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/5 px-3 py-2 text-xs text-destructive">
+          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <span>{validation.message}. Ret eller fjern de markerede intervaller.</span>
+        </div>
+      )}
+
       {/* Brugerdefineret interval */}
       <div className="rounded-xl border border-dashed border-border bg-secondary/30 p-3">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
