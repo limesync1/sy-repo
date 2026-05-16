@@ -1200,17 +1200,12 @@ const AftaleTab = ({
     }
   };
 
-  // Slet en annulleret aftale permanent. Tilkalder en SECURITY DEFINER funktion
-  // der både validerer ejerskab + status og rydder relaterede rækker
-  // (rute-stops, abonnementer, faktura-links, notifikationer m.fl.).
+  // Slet en aftale permanent — uanset status. Tilkalder en SECURITY DEFINER
+  // funktion der validerer ejerskab og rydder alle relaterede rækker
+  // (rute-stops, forekomster, abonnementer, faktura-links, notifikationer m.fl.).
+  // Hvis aftalen ligger på en rute som ikke har andre stops tilbage, spørger
+  // vi først brugeren om ruten også skal slettes.
   const handleDeleteOrder = async (order: any) => {
-    if (order.status !== "cancelled") {
-      toast.error("Kun annullerede aftaler kan slettes");
-      return;
-    }
-    // Tjek om aftalen ligger på en rute — og om den er det sidste stop.
-    // I så fald håndteres bekræftelse + sletning i AlertDialog'en nedenfor,
-    // så brugeren ved præcis hvilken rute der også forsvinder.
     const stop = stopByOrder?.[order.id];
     if (stop?.route?.id) {
       const routeId = stop.route.id;
@@ -2140,12 +2135,10 @@ const AftaleTab = ({
                                 <XCircle className="h-3.5 w-3.5" /> Annuller
                               </Button>
                             )}
-                            {order.status === "cancelled" && (
-                              <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order); }}
-                                className="h-8 gap-1.5 rounded-md border-destructive/40 px-2.5 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
-                                <Trash2 className="h-3.5 w-3.5" /> Slet
-                              </Button>
-                            )}
+                            <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order); }}
+                              className="h-8 gap-1.5 rounded-md border-destructive/40 px-2.5 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive">
+                              <Trash2 className="h-3.5 w-3.5" /> Slet
+                            </Button>
                           </div>
                         </div>
                       ) : (
@@ -2636,13 +2629,13 @@ const AftaleTab = ({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Bekræft permanent sletning af en annulleret aftale. */}
+      {/* Bekræft permanent sletning af en aftale. */}
       <AlertDialog open={!!orderToDelete} onOpenChange={(o) => !o && !deletingOrder && setOrderToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Slet aftale permanent?</AlertDialogTitle>
             <AlertDialogDescription>
-              Den annullerede aftale fjernes permanent fra systemet. Dette kan ikke fortrydes.
+              Aftalen fjernes permanent fra systemet — inkl. eventuelle stop på ruter, kommende forekomster og faktura-links. Dette kan ikke fortrydes.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
