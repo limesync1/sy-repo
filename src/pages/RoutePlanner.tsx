@@ -2637,6 +2637,7 @@ const Planner = () => {
                   busyTargets={busyTargets}
                 />
                 </div>
+                </div>
               </ResizablePanel>
             </ResizablePanelGroup>
         </div>
