@@ -2774,6 +2774,22 @@ const Planner = () => {
           })()}
           open={!!selectedStopId}
           onOpenChange={(o) => !o && setSelectedStopId(null)}
+          effectiveDate={(() => {
+            // Projicerede klik: brug forekomstens dato fra editingProjectedContext.
+            if (editingProjectedContext?.projectedDate) {
+              return editingProjectedContext.projectedDate;
+            }
+            // Ellers: brug datoen for stoppets rute så "Næste besøg" beregnes
+            // ud fra præcis den forekomst brugeren kigger på.
+            if (!selectedStopId) return null;
+            const direct = calendarStops.find((s) => s.id === selectedStopId);
+            const rid = direct?.route_id;
+            if (rid) {
+              const r = calendarRoutesRaw.find((x) => x.id === rid);
+              if (r?.route_date) return String(r.route_date).slice(0, 10);
+            }
+            return null;
+          })()}
         />
 
         {/* Klik på en aftale i aftalepoolen åbner samme detalje-sheet i read-only */}
