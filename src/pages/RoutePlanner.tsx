@@ -1779,14 +1779,23 @@ const Planner = () => {
     const label = routeName || "Rute";
     try {
       const result = await optimizeRoute.mutateAsync(routeId);
-      const empNote = result.employees && result.employees > 1
-        ? ` · ${result.employees} medarbejdere`
-        : "";
-      const unassignedNote = result.unassigned ? ` · ${result.unassigned} kunne ikke planlægges` : "";
-      toast.success(
-        `${label}: ${result.total_km.toFixed(1)} km · ${Math.floor(result.total_minutes / 60)}t ${result.total_minutes % 60}m${empNote}${unassignedNote}`,
-        { description: result.summary || result.reasoning },
+      const savedKm = Math.max(
+        0,
+        (result as any).saved_km ?? (((result as any).before_km ?? result.total_km) - result.total_km),
       );
+      const savedMin = Math.max(
+        0,
+        (result as any).saved_minutes ?? (((result as any).before_minutes ?? result.total_minutes) - result.total_minutes),
+      );
+      const negligible = savedKm < 0.05 && savedMin < 1;
+      if ((result as any).already_optimal || negligible) {
+        toast.success(`${label}: allerede optimal`);
+      } else {
+        const parts: string[] = [];
+        if (savedKm >= 0.05) parts.push(`${savedKm.toFixed(1)} km`);
+        if (savedMin >= 1) parts.push(`${Math.round(savedMin)} min`);
+        toast.success(`${label}: sparet ${parts.join(" · ")}`);
+      }
     } catch { /* error toast handled in hook */ }
     finally { setOptimizingRouteId(null); }
   };
