@@ -308,7 +308,8 @@ describe("expandRecurringRoutes — merge med blandede intervaller", () => {
     expect(dates).toContain("2026-05-25");
     // Månedlig serie (30 dages step) skal også være med
     expect(dates).toContain("2026-05-06");
-    expect(dates).toContain("2026-06-05");
+    // Månedlig stepper med ÆGTE kalender-måned, ikke 30 dage.
+    expect(dates).toContain("2026-06-06");
     // Alle på målruten
     expect(out.every((p) => p.baseRouteId === "target")).toBe(true);
   });
