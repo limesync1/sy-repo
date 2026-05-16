@@ -221,10 +221,12 @@ const DayCellInner = ({
   onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, optimizingRouteId, compact, draggingType, weather,
   loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds,
 }: DayCellProps) => {
+  const todayIso = format(new Date(), "yyyy-MM-dd");
+  const isPast = dateStr < todayIso;
   const { setNodeRef, isOver } = useDroppable({
     id: `day:${dateStr}`,
     data: { type: "day", date: dateStr },
-    disabled: !!busy,
+    disabled: !!busy || isPast,
   });
 
   const isDragActive = !!draggingType;
@@ -238,6 +240,7 @@ const DayCellInner = ({
         "border-r last:border-r-0 relative group flex flex-col gap-1 p-1.5 transition-colors",
         compact ? "min-h-[110px]" : "min-h-[160px]",
         !inMonth && "bg-secondary/10",
+        isPast && "bg-muted/20",
         // Når en aftale eller rute trækkes — gør dage subtilt mere indbydende
         isDragActive && inMonth && !isOver && "ring-1 ring-accent/30 ring-inset",
         // Når man hovrer over en dag — tydeligt highlight
@@ -327,6 +330,7 @@ const DayCellInner = ({
             compact={compact}
             jobDragActive={isJobDragActive}
             busy={!!busyRouteIds?.has(`route:${r.id}`)}
+            isPast={isPast}
           />
         ))}
 
