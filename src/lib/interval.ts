@@ -224,6 +224,27 @@ export function validateIntervalKey(value: string | null | undefined): string | 
   if (!["day", "week", "month", "year"].includes(p.unit)) {
     return `Ugyldig enhed "${p.unit}"`;
   }
+  // Strikse, meningsfulde grænser pr. enhed — undgår fx "hver 90. dag"
+  // (brug 3 måneder), "hver 60. uge" (brug år) eller andre kombinationer
+  // der ville give forvirrende projektioner og bør udtrykkes pænere.
+  const norm = normalizeInterval(p.n, p.unit);
+  if (norm.n !== p.n || norm.unit !== p.unit) {
+    return `Brug "${formatInterval(buildInterval(norm.n, norm.unit))}" i stedet`;
+  }
+  switch (p.unit) {
+    case "day":
+      if (p.n > 30) return "Brug uger eller måneder i stedet for mere end 30 dage";
+      break;
+    case "week":
+      if (p.n > 12) return "Brug måneder i stedet for mere end 12 uger";
+      break;
+    case "month":
+      if (p.n > 12) return "Brug år i stedet for mere end 12 måneder";
+      break;
+    case "year":
+      if (p.n > 10) return "Maks 10 år mellem forekomster";
+      break;
+  }
   return null;
 }
 
