@@ -2172,6 +2172,12 @@ const Planner = () => {
       collisionDetection={pointerWithin}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onDragCancel={() => {
+        // ESC eller pointer-loss midt i drag tæller som klik-fejl.
+        dragMetrics.end(false);
+        setActiveDragId(null);
+        setActiveDragData(null);
+      }}
     >
       <AdminShell
         business={business}
