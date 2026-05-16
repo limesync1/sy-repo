@@ -80,6 +80,8 @@ type RecurringSource = {
   interval_days?: number | null;
   /** First date of the series (yyyy-MM-dd or ISO timestamp). */
   seed_date: string | null;
+  /** Stabil kalender-anker-dato, typisk basisrutens route_date. Tillader projektion både før og efter ankeret. */
+  anchor_date?: string | null;
   preferred_route_id: string | null;
   /** Match-nøgler til stops: fx `agr:<id>`, `sub:<id>`, `order:<id>`. */
   sourceKeys?: string[];
@@ -98,17 +100,13 @@ export const expandRecurringRoutes = (params: {
   // ikke duplikeres når flere aftaler falder sammen på samme rute/dag.
   const byRouteDate = new Map<string, ProjectedRoute>(); // `${routeId}|${date}`
   const out: ProjectedRoute[] = [];
-  // Hård sikring: projicér ALDRIG i fortiden, uanset hvilken rangeStart
-  // kalderen sender ind. Bruges som defense-in-depth oven på UI-clamp.
-  const today = parseISO(format(new Date(), "yyyy-MM-dd"));
-  const requestedStart = parseISO(params.rangeStart);
-  const start = isBefore(requestedStart, today) ? today : requestedStart;
+  const start = parseISO(params.rangeStart);
   // Projicér så langt frem brugeren kigger — ingen kunstig horisont, så
   // gentagende ruter altid vises uanset hvilken måned/år kalenderen står på.
   const limit = parseISO(params.rangeEnd);
 
   for (const s of params.sources) {
-    if (!s.preferred_route_id || !s.seed_date) continue;
+    if (!s.preferred_route_id || (!s.seed_date && !s.anchor_date)) continue;
     // Parse intervallet til (n, unit) så vi bruger ægte kalender-aritmetik for
     // ALLE understøttede intervaller. Custom dagstal løftes til uge/måned/år
     // når de repræsenterer en klassisk cadence (fx 14 dage → 2 uger,
@@ -136,20 +134,22 @@ export const expandRecurringRoutes = (params: {
     }
     const routeId = s.preferred_route_id;
     let seed: Date;
+    const rawSeed = String((s.anchor_date || s.seed_date) ?? "").slice(0, 10);
     try {
-      seed = parseISO(String(s.seed_date).slice(0, 10));
+      seed = parseISO(rawSeed);
       if (Number.isNaN(seed.getTime())) continue;
     } catch {
       continue;
     }
-    // Spol cursor frem til første forekomst inden for det synlige interval.
-    // Sparer iterationer når seed ligger langt tilbage i tiden. Vi bruger
-    // dages-tilnærmelse til at *gætte* hvor mange steps der skal springes,
-    // og finder så den præcise position med kalender-aritmetik bagefter.
-    let stepIndex = 0;
+    // Spol cursor til første forekomst inden for det synlige interval.
+    // Uden anchor_date bevarer vi gammel semantik: seed_date er første mulige
+    // forekomst. Med anchor_date (basisrutens dato) behandler vi derimod ruten
+    // som et stabilt punkt i en uendelig kalender-serie, så fx en 14-dages
+    // aftale på en basisrute d. 28 også giver en forekomst d. 14.
+    let stepIndex = s.anchor_date ? Math.floor(differenceInCalendarDays(start, seed) / Math.max(1, stepDays)) - 1 : 0;
     if (isBefore(seed, start)) {
       const diff = differenceInCalendarDays(start, seed);
-      stepIndex = Math.max(0, Math.floor(diff / Math.max(1, stepDays)) - 1);
+      stepIndex = Math.max(stepIndex, Math.floor(diff / Math.max(1, stepDays)) - 1);
     }
     let cursor = advance(seed, stepIndex);
     while (isBefore(cursor, start)) {
