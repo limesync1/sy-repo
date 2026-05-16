@@ -900,126 +900,14 @@ export const useMaterializeVirtualRoute = () => {
   return useMutation({
     mutationFn: ({ baseRouteId, date }: { baseRouteId: string; date: string }) =>
       routeMutationQueue.run(async () => {
-      const { data: base, error: baseErr } = await supabase
-        .from("routes")
-        .select("*")
-        .eq("id", baseRouteId)
-        .maybeSingle();
-      if (baseErr) throw baseErr;
-      if (!base) throw new Error("Basisruten findes ikke længere");
-
-      // Hvis der allerede findes en override for denne dato, returnér den
-      const { data: existing } = await supabase
-        .from("routes")
-        .select("*")
-        .eq("base_route_id", baseRouteId)
-        .eq("route_date", date)
-        .maybeSingle();
-      if (existing) return existing as unknown as Route;
-
-      let created: any = null;
-      const { data: inserted, error: insErr } = await supabase
-        .from("routes")
-        .insert({
-          business_id: (base as any).business_id,
-          route_date: date,
-          name: (base as any).name,
-          color: (base as any).color,
-          start_address: (base as any).start_address,
-          start_latitude: (base as any).start_latitude,
-          start_longitude: (base as any).start_longitude,
-          planned_start_time: (base as any).planned_start_time,
-          start_from_home: (base as any).start_from_home ?? false,
-          notes: (base as any).notes,
-          base_route_id: baseRouteId,
-        })
-        .select("*")
-        .single();
-      if (insErr) {
-        const msg = String(insErr.message || "");
-        if (insErr.code === "23505" || /duplicate key|uniq_routes_base_route_date/i.test(msg)) {
-          const { data: raced, error: racedErr } = await supabase
-            .from("routes")
-            .select("*")
-            .eq("base_route_id", baseRouteId)
-            .eq("route_date", date)
-            .maybeSingle();
-          if (racedErr) throw racedErr;
-          if (raced) return raced as unknown as Route;
-        }
-        throw insErr;
-      }
-      created = inserted;
-
-      // Klon stops fra basisruten — uden ordre/abonnement/forekomst-FK'er,
-      // så de er rene planlægnings-stops på den nye rute. Brugeren kan
-      // redigere/slette/tildele dem frit.
-      const { data: baseStops } = await supabase
-        .from("route_stops")
-        .select("*")
-        .eq("route_id", baseRouteId)
-        .order("sequence", { ascending: true });
-
-      if (baseStops && baseStops.length > 0) {
-        const cloned = baseStops.map((s: any, i: number) => ({
-          route_id: created.id,
-          sequence: s.sequence ?? i,
-          status: "pending",
-          address: s.address,
-          latitude: s.latitude,
-          longitude: s.longitude,
-          customer_name: s.customer_name,
-          customer_phone: s.customer_phone,
-          service_summary: s.service_summary,
-          duration_minutes: s.duration_minutes ?? 30,
-          time_window_start: s.time_window_start,
-          time_window_end: s.time_window_end,
-          assigned_employee_id: s.assigned_employee_id,
-          required_staff: s.required_staff ?? 1,
-          notes: s.notes,
-        }));
-        const { data: insertedStops, error: stopsErr } = await supabase
-          .from("route_stops")
-          .insert(cloned)
-          .select("id");
-        if (stopsErr) throw stopsErr;
-
-        // Klon assignees (route_stop_assignees) — bevar medarbejdertilknytninger
-        try {
-          const { data: assignees } = await supabase
-            .from("route_stop_assignees")
-            .select("stop_id, employee_id")
-            .in("stop_id", baseStops.map((s: any) => s.id));
-          if (assignees && assignees.length && insertedStops) {
-            const idMap = new Map<string, string>();
-            baseStops.forEach((s: any, i: number) => {
-              idMap.set(s.id, insertedStops[i].id);
-            });
-            const newRows = assignees
-              .map((a: any) => ({
-                stop_id: idMap.get(a.stop_id),
-                employee_id: a.employee_id,
-              }))
-              .filter((r) => !!r.stop_id);
-            if (newRows.length) {
-              await supabase.from("route_stop_assignees").insert(newRows);
-            }
-          }
-        } catch { /* non-fatal */ }
-      }
-
-      await supabase.from("route_occurrence_exceptions" as any).upsert(
-        {
-          business_id: (base as any).business_id,
-          base_route_id: baseRouteId,
-          occurrence_date: date,
-          replacement_route_id: created.id,
-          exception_type: "moved",
-        },
-        { onConflict: "base_route_id,occurrence_date" },
-      );
-
-      return created as unknown as Route;
+      // Single RPC materializes the route + clones stops + clones assignees +
+      // writes the occurrence exception atomically on the server.
+      const { data, error } = await supabase.rpc("materialize_virtual_route" as any, {
+        _base_route_id: baseRouteId,
+        _date: date,
+      });
+      if (error) throw error;
+      return data as unknown as Route;
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["routes"] });
