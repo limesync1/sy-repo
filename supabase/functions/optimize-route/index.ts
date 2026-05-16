@@ -98,7 +98,16 @@ Deno.serve(async (req) => {
       .order("sequence", { ascending: true });
 
     const allStopsRaw = (rawStops || []) as any[];
-    const stopIds = allStopsRaw.map((s) => s.id);
+    // Færdige/sprungne stops må ALDRIG omrokkeres af optimeringen — de
+    // ligger fast i historikken på den sekvens de blev udført på. Vi
+    // beholder dem først i listen med deres oprindelige rækkefølge og
+    // optimerer kun de stops der stadig er pending/in_progress.
+    const lockedStops = allStopsRaw.filter((s) => {
+      const st = (s.status ?? "pending").toLowerCase();
+      return st === "completed" || st === "done" || st === "skipped" || st === "cancelled";
+    });
+    const openStopsRaw = allStopsRaw.filter((s) => !lockedStops.includes(s));
+    const stopIds = openStopsRaw.map((s) => s.id);
 
     const { data: assignees } = stopIds.length > 0
       ? await supabase
@@ -175,8 +184,22 @@ Deno.serve(async (req) => {
       } as EmployeeCtx);
     }
 
-    // Saml stops til VRP-format
-    const validStops: Stop[] = allStopsRaw
+    // Normaliser adresse til en cluster-nøgle: lowercased, trimmet, fjern
+    // dobbelt-mellemrum og komma — så "H.C. Andersens Gade 10" og
+    // "H. C. Andersens Gade 10," ender i samme klynge.
+    const normalizeAddress = (raw: string | null | undefined): string | null => {
+      if (!raw) return null;
+      return raw
+        .toLowerCase()
+        .normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[,.;]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    };
+
+    // Saml stops til VRP-format (kun ikke-låste stops optimeres)
+    const validStops: Stop[] = openStopsRaw
       .filter((s) => s.latitude != null && s.longitude != null)
       .map((s) => ({
         id: s.id,
@@ -197,6 +220,7 @@ Deno.serve(async (req) => {
         pinned_assignees: usingVirtualEmployee
           ? []
           : (respectPinned ? (assigneesByStop.get(s.id) || []) : []),
+        cluster_key: normalizeAddress(s.address),
       }));
 
     if (validStops.length === 0) {
@@ -207,7 +231,7 @@ Deno.serve(async (req) => {
     }
 
     // Hent preferred_time_* fra ordrer for soft-windows
-    const orderIds = Array.from(new Set(allStopsRaw.map((s) => s.order_id).filter(Boolean)));
+    const orderIds = Array.from(new Set(openStopsRaw.map((s) => s.order_id).filter(Boolean)));
     if (orderIds.length > 0) {
       const { data: orders } = await supabase
         .from("orders")
@@ -215,7 +239,7 @@ Deno.serve(async (req) => {
         .in("id", orderIds);
       const orderMap = new Map((orders || []).map((o: any) => [o.id, o]));
       for (const stop of validStops) {
-        const raw = allStopsRaw.find((r) => r.id === stop.id);
+        const raw = openStopsRaw.find((r) => r.id === stop.id);
         if (raw?.order_id) {
           const o = orderMap.get(raw.order_id);
           if (o) {
@@ -309,8 +333,16 @@ Deno.serve(async (req) => {
     // === Skriv plan tilbage til DB ===
     // 1) Opdater route_stops: sequence, planned_arrival/departure, distance/travel
     // 2) Synkronisér route_stop_assignees (kun hvis stoppet ikke var pinned)
+    // Reservér de første pladser til låste stops — de bevarer deres
+    // oprindelige indbyrdes rækkefølge.
     let globalSeq = 0;
     const writes: PromiseLike<any>[] = [];
+    const lockedSorted = [...lockedStops].sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0));
+    for (const s of lockedSorted) {
+      writes.push(
+        supabase.from("route_stops").update({ sequence: globalSeq++ }).eq("id", s.id),
+      );
+    }
 
     for (const [, scheduled] of plan.per_employee.entries()) {
       for (const sched of scheduled) {
@@ -347,7 +379,7 @@ Deno.serve(async (req) => {
     }
 
     // Stops uden GPS -> placeres til sidst med dummy tider
-    const noGpsStops = allStopsRaw.filter((s) => s.latitude == null || s.longitude == null);
+    const noGpsStops = openStopsRaw.filter((s) => s.latitude == null || s.longitude == null);
     for (const s of noGpsStops) {
       writes.push(
         supabase.from("route_stops").update({
