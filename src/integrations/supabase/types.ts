@@ -3445,6 +3445,44 @@ export type Database = {
       }
       cleanup_accounting_sync_log: { Args: never; Returns: undefined }
       cleanup_route_planner_idempotency: { Args: never; Returns: number }
+      create_route_fast: {
+        Args: {
+          _business_id: string
+          _color?: string
+          _name?: string
+          _route_date: string
+        }
+        Returns: {
+          base_route_id: string | null
+          business_id: string
+          color: string
+          created_at: string
+          employee_id: string | null
+          id: string
+          name: string | null
+          notes: string | null
+          optimization_suggestions: Json | null
+          optimization_summary: string | null
+          optimized_at: string | null
+          planned_start_time: string | null
+          route_date: string
+          route_template_id: string | null
+          start_address: string | null
+          start_from_home: boolean
+          start_latitude: number | null
+          start_longitude: number | null
+          status: string
+          total_distance_km: number | null
+          total_duration_minutes: number | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "routes"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       delete_cancelled_order: {
         Args: { _order_id: string }
         Returns: undefined
@@ -3550,6 +3588,39 @@ export type Database = {
         Args: { _business_id: string; _from: string; _to: string }
         Returns: undefined
       }
+      materialize_virtual_route: {
+        Args: { _base_route_id: string; _date: string }
+        Returns: {
+          base_route_id: string | null
+          business_id: string
+          color: string
+          created_at: string
+          employee_id: string | null
+          id: string
+          name: string | null
+          notes: string | null
+          optimization_suggestions: Json | null
+          optimization_summary: string | null
+          optimized_at: string | null
+          planned_start_time: string | null
+          route_date: string
+          route_template_id: string | null
+          start_address: string | null
+          start_from_home: boolean
+          start_latitude: number | null
+          start_longitude: number | null
+          status: string
+          total_distance_km: number | null
+          total_duration_minutes: number | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "routes"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       move_route_to_date: {
         Args: { _new_date: string; _route_id: string; _scope?: string }
         Returns: Json
@@ -3631,6 +3702,7 @@ export type Database = {
         }[]
       }
       recalc_route_totals: { Args: { _route_id: string }; Returns: undefined }
+      reorder_route_stops: { Args: { _updates: Json }; Returns: undefined }
       retry_dlq_job: { Args: { _dlq_id: string }; Returns: string }
     }
     Enums: {
