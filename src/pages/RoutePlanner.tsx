@@ -2730,11 +2730,27 @@ const Planner = () => {
               );
               const sourced = (baseFromCache?.stops || [])
                 .filter((s: any) => projectedStopMatchesSources(s, editingProjectedContext!.sourceKeys))
-                .map((s: any) => ({
-                  ...s,
-                  assignee_ids: s.assignee_ids || [],
-                  lead_employee_id: s.lead_employee_id ?? s.assigned_employee_id ?? null,
-                })) as RouteStop[];
+                .map((s: any) => {
+                  // Find aftalens interval via recurringSources (key→interval)
+                  // — basis-stop har ofte ikke selv et agreement_occurrence-
+                  // link, så uden dette viser detaljepanelet "Engangsaftale"
+                  // selv på en projiceret hver-14.-dag rute.
+                  let inheritedInterval: string | null = null;
+                  const keys = recurringSourceKeysForStop(s);
+                  for (const src of recurringSources) {
+                    if (!src.interval) continue;
+                    if (src.sourceKeys.some((k) => keys.includes(k))) {
+                      inheritedInterval = src.interval;
+                      break;
+                    }
+                  }
+                  return {
+                    ...s,
+                    assignee_ids: s.assignee_ids || [],
+                    lead_employee_id: s.lead_employee_id ?? s.assigned_employee_id ?? null,
+                    agreement_interval: s.agreement_interval ?? inheritedInterval,
+                  };
+                }) as RouteStop[];
               stopsForActive = sourced;
             } else {
               stopsForActive = calendarStops.filter((s) => s.route_id === activeEditingRoute.id);
