@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyBusiness } from "@/hooks/useDatabase";
@@ -61,6 +61,7 @@ import { MergeRoutesDialog } from "@/components/route-planner/MergeRoutesDialog"
 import { supabase } from "@/integrations/supabase/client";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
 import { renameFreshSplitRoutes } from "@/components/route-planner/MoveStopsDialog";
+import { dragMetrics } from "@/lib/drag-metrics";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
 import { AdminShell } from "@/components/admin/shared/AdminShell";
 import { useWeatherForecast, type WeatherDay } from "@/hooks/useWeather";
@@ -1221,6 +1222,15 @@ const Planner = () => {
   /* ─── DnD ─── */
   const handleDragStart = (e: DragStartEvent) => {
     const data: any = e.active.data.current;
+    // ─── Metrics: start måling af drag-to-drop latency ───
+    // Sporer hvor lang tid brugeren bruger fra drag begynder til drop
+    // gennemføres. Sammen med klik-fejlraten (drag uden drop) kan vi
+    // sammenligne perf på Windows/Android vs. macOS/iOS.
+    const metricType: "job" | "route" | "stop" | "unknown" =
+      data?.type === "job" || data?.type === "route" || data?.type === "stop"
+        ? data.type
+        : "unknown";
+    dragMetrics.start(metricType);
     if (data?.type === "route" && data?.route?.isVirtual) {
       setActiveDragId(null);
       setActiveDragData(null);
@@ -1239,6 +1249,45 @@ const Planner = () => {
     setActiveDragId(e.active.id as string);
     setActiveDragData(data);
   };
+
+  // ─── Stabile callbacks til MonthWeekCalendar ───
+  // Tidligere blev disse oprettet som nye funktioner på hver render af
+  // Planner. Det busted React.memo på DayCell og RoutePill, så hele
+  // kalenderens 42 celler re-renderede ved hvert lille state-skift
+  // (vejret, drag-state, busyTargets). useCallback giver dem stabil
+  // identitet og halverer reelt antallet af renders under drag — særligt
+  // mærkbart på Windows/Android hvor V8/Hermes er langsommere end JSC.
+  const handleCalendarSelectRoute = useCallback(async (r: any) => {
+    if (r.isVirtual) {
+      await openProjectedRoute(r);
+      return;
+    }
+    setEditingProjectedContext(null);
+    setEditingRoute(r);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const handleCalendarSelectStop = useCallback((s: any) => {
+    setSelectedStopId(s.id);
+  }, []);
+  const handleCalendarCreateRoute = useCallback((d: string) => {
+    setNewRouteDate(d);
+    setCreateOpen(true);
+  }, []);
+  const handleCalendarOptimizeRoute = useCallback((id: string) => {
+    const r = calendarRoutesRaw.find((x) => x.id === id);
+    handleOptimize(id, r?.name ?? null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [calendarRoutesRaw]);
+
+  // draggingType udledes fra activeDragData — memoiseret så samme
+  // primitivt resultat ikke får MonthWeekCalendar til at se en "ny"
+  // prop ved urelaterede re-renders.
+  const draggingTypeForCalendar = useMemo<"job" | "route" | "stop" | null>(() => {
+    if (activeDragData?.type === "job") return "job";
+    if (activeDragData?.type === "route") return "route";
+    if (activeDragData?.type === "stop") return "stop";
+    return null;
+  }, [activeDragData?.type]);
 
   /** Tjekker om en flytning af et stop til en ny dato vil overlappe
    *  med en assignees øvrige stops på den dato. Returnerer en kort
@@ -1287,6 +1336,12 @@ const Planner = () => {
     const { active, over } = e;
     setActiveDragId(null);
     setActiveDragData(null);
+    // ─── Metrics: registrér resultatet af denne drag ───
+    // `dropped=true` kun når brugeren faktisk slap på et target. Drags
+    // der ender uden over-target tæller som "klik-fejl" — typisk når
+    // browseren startede en drag pga. en lille touch-bevægelse, mens
+    // brugeren forsøgte at klikke (særligt Windows-touchpads/Android).
+    dragMetrics.end(!!over);
     if (!over || !businessId) return;
 
     // Knyt en ordres aktive, gentagende abonnement til en bestemt rute,
@@ -2156,6 +2211,12 @@ const Planner = () => {
       collisionDetection={pointerWithin}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onDragCancel={() => {
+        // ESC eller pointer-loss midt i drag tæller som klik-fejl.
+        dragMetrics.end(false);
+        setActiveDragId(null);
+        setActiveDragData(null);
+      }}
     >
       <AdminShell
         business={business}
@@ -2652,34 +2713,12 @@ const Planner = () => {
                   view={view}
                   anchorDate={date}
                   routes={calendarRoutesAll}
-                  onSelectRoute={async (r: any) => {
-                    // Projicerede (gentagende) ruter må IKKE duplikeres ved
-                    // simpelt klik. Åbn i stedet basisruten direkte, så
-                    // ændringer gælder hele serien. Materialisering sker først
-                    // når brugeren eksplicit flytter/redigerer en enkelt
-                    // forekomst (drag-and-drop til ny dato).
-                    if (r.isVirtual) {
-                      await openProjectedRoute(r);
-                      return;
-                    }
-                    // Almindelig (rigtig) rute: nulstil projektions-konteksten
-                    // så vi viser alle stops uden filter.
-                    setEditingProjectedContext(null);
-                    setEditingRoute(r);
-                  }}
-                  onSelectStop={(s) => setSelectedStopId(s.id)}
-                  onCreateRoute={(d) => { setNewRouteDate(d); setCreateOpen(true); }}
-                  onOptimizeRoute={(id) => {
-                    const r = calendarRoutesRaw.find((x) => x.id === id);
-                    handleOptimize(id, r?.name ?? null);
-                  }}
+                  onSelectRoute={handleCalendarSelectRoute}
+                  onSelectStop={handleCalendarSelectStop}
+                  onCreateRoute={handleCalendarCreateRoute}
+                  onOptimizeRoute={handleCalendarOptimizeRoute}
                   optimizingRouteId={optimizingRouteId}
-                  draggingType={
-                    activeDragData?.type === "job" ? "job"
-                      : activeDragData?.type === "route" ? "route"
-                      : activeDragData?.type === "stop" ? "stop"
-                      : null
-                  }
+                  draggingType={draggingTypeForCalendar}
                   weatherByDate={weatherByDate}
                   loadingRoutes={loadingCalendarRoutes || loadingCalendarStops}
                   loadingWeather={loadingWeather}
