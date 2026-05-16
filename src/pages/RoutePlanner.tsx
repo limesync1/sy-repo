@@ -906,6 +906,60 @@ const Planner = () => {
       .filter(Boolean) as CalendarRoute[];
   }, [recurringSources, recurringBaseRoutes, calendarRoutesRaw, routeOccurrenceExceptions, calendarRange.start, calendarRange.end, activeEmployees, calendarRoutes]);
 
+  /* ─── Projection sanity-check / diagnostik ───
+     Kører FØR projektionen bruges i UI'et, så vi:
+       1) Auto-fjerner inkonsistente `route_occurrence_exceptions`
+          (self-replacement eller pegende på slettede ruter) — disse
+          undertrykker ellers fuldkommen gyldige projektioner og var
+          årsagen til at fx "Aa" + hver-14-dag forsvandt fra kalenderen.
+       2) Samler en liste over aftaler der IKKE kan projiceres
+          (manglende interval/cadence, manglende rute/seed-dato) og
+          viser en advarsel i UI'et — så fejlen aldrig bare "forsvinder".
+     ──────────────────────────────────────────── */
+  const projectionDiagnostics = useMemo(() => {
+    const realRouteIds = new Set(calendarRoutesRaw.map((r) => r.id));
+    const staleExceptions: any[] = [];
+    for (const ex of routeOccurrenceExceptions as any[]) {
+      const baseId = ex.base_route_id as string;
+      const replId = ex.replacement_route_id as string | null;
+      if (!replId) continue;
+      // Self-replacement (samme rute) eller peger på en rute der ikke længere
+      // findes → stale data fra tidligere flyt/optimer-operationer.
+      if (replId === baseId || !realRouteIds.has(replId)) {
+        staleExceptions.push(ex);
+      }
+    }
+    const unprojectable: { source: any; reason: string }[] = [];
+    for (const s of recurringSources as any[]) {
+      if (!s.preferred_route_id) { unprojectable.push({ source: s, reason: "missing_route" }); continue; }
+      if (!s.seed_date && !s.anchor_date) { unprojectable.push({ source: s, reason: "missing_seed" }); continue; }
+      const cad = intervalToCadence(s.interval, s.interval_days);
+      if (!cad) unprojectable.push({ source: s, reason: "invalid_interval" });
+    }
+    return { staleExceptions, unprojectable };
+  }, [routeOccurrenceExceptions, calendarRoutesRaw, recurringSources]);
+
+  /* Auto-cleanup af stale exceptions — best-effort, kører i baggrunden. */
+  const cleanupAttemptedIdsRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    const stale = projectionDiagnostics.staleExceptions;
+    if (stale.length === 0) return;
+    const fresh = stale
+      .map((e: any) => e.id as string)
+      .filter((id) => !cleanupAttemptedIdsRef.current.has(id));
+    if (fresh.length === 0) return;
+    fresh.forEach((id) => cleanupAttemptedIdsRef.current.add(id));
+    (async () => {
+      const { error } = await supabase
+        .from("route_occurrence_exceptions")
+        .delete()
+        .in("id", fresh);
+      if (!error) {
+        qc.invalidateQueries({ queryKey: ["route-occurrence-exceptions"] });
+      }
+    })();
+  }, [projectionDiagnostics.staleExceptions, qc]);
+
   /* ─── Fallback-projektion fra agreement_occurrences ───
      Tilbagevendende aftaler genererer planlagte forekomster (`agreement_occurrences`)
      for op til 6 mdr. frem — også når aftalen endnu IKKE har en preferred_route_id.
