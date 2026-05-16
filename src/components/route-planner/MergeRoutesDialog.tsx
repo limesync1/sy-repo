@@ -48,20 +48,20 @@ export const MergeRoutesDialog = ({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] sm:max-w-md overflow-x-hidden">
-        <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-2">
+      <AlertDialogContent className="left-4 right-4 top-4 max-h-[calc(100svh-2rem)] w-auto max-w-none translate-x-0 translate-y-0 overflow-y-auto overflow-x-hidden p-4 sm:left-1/2 sm:right-auto sm:top-1/2 sm:w-[min(92vw,32rem)] sm:max-w-md sm:translate-x-[-50%] sm:translate-y-[-50%] sm:p-6">
+        <AlertDialogHeader className="min-w-0 text-left">
+          <AlertDialogTitle className="flex min-w-0 items-center gap-2">
             <Combine className="h-4 w-4 text-accent" />
             Flet ruter
           </AlertDialogTitle>
           <AlertDialogDescription asChild>
-            <div className="space-y-2 text-sm min-w-0">
-              <div className="flex items-center gap-2 text-muted-foreground tabular-nums min-w-0">
-                <span className="capitalize text-foreground font-medium truncate min-w-0 flex-1">
+            <div className="min-w-0 space-y-2 text-sm">
+              <div className="grid min-w-0 gap-2 text-muted-foreground tabular-nums sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center">
+                <span className="min-w-0 overflow-wrap-anywhere rounded-md border border-border bg-secondary/30 px-2.5 py-2 text-left font-medium capitalize text-foreground sm:truncate">
                   {sourceName} <span className="text-muted-foreground">({fmt(sourceDate)})</span>
                 </span>
-                <ArrowRight className="h-3 w-3 shrink-0" />
-                <span className="capitalize text-foreground font-medium truncate min-w-0 flex-1">
+                <ArrowRight className="mx-auto h-3 w-3 shrink-0 rotate-90 sm:rotate-0" />
+                <span className="min-w-0 overflow-wrap-anywhere rounded-md border border-border bg-secondary/30 px-2.5 py-2 text-left font-medium capitalize text-foreground sm:truncate">
                   {targetName} <span className="text-muted-foreground">({fmt(targetDate)})</span>
                 </span>
               </div>
@@ -94,7 +94,7 @@ export const MergeRoutesDialog = ({
           />
         </div>
 
-        <AlertDialogFooter>
+        <AlertDialogFooter className="pt-1">
           <AlertDialogCancel disabled={loading}>Annullér</AlertDialogCancel>
           <Button
             onClick={async () => { await onConfirm(scope); }}
