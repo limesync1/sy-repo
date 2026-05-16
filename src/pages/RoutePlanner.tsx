@@ -799,7 +799,7 @@ const Planner = () => {
           name:
             (resolved?.name && resolved.name.trim())
             || (base.name && String(base.name).trim())
-            || `Kørsel ${format(parseISO(p.date), "d/M")}`,
+            || `Rute (${format(parseISO(p.date), "d. MMM", { locale: da })})`,
           color: resolved?.color || base.color || null,
           stops: projectedStops,
           attachedEmployees: emps,
