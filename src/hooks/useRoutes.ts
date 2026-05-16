@@ -1110,13 +1110,16 @@ export const useReorderStops = () => {
   return useMutation({
     mutationFn: (updates: { id: string; sequence: number; route_id?: string }[]) =>
       routeMutationQueue.run(async () => {
-        const results = await Promise.all(updates.map((u) => {
-          const patch: any = { sequence: u.sequence };
-          if (u.route_id) patch.route_id = u.route_id;
-          return supabase.from("route_stops").update(patch).eq("id", u.id);
-        }));
-        const failed = results.find((result) => result.error);
-        if (failed?.error) throw failed.error;
+        if (updates.length === 0) return;
+        // Single round-trip bulk update instead of N parallel UPDATEs.
+        const { error } = await supabase.rpc("reorder_route_stops" as any, {
+          _updates: updates.map((u) => ({
+            id: u.id,
+            sequence: u.sequence,
+            route_id: u.route_id ?? null,
+          })) as any,
+        });
+        if (error) throw error;
       }),
     onMutate: async (updates) => {
       await qc.cancelQueries({ queryKey: ["route-stops-bulk"] });
