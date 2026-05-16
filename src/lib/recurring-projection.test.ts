@@ -594,7 +594,7 @@ describe("expandRecurringRoutes — overlap/suppression mod rigtige ruter", () =
     expect(out.map((p) => p.date)).toEqual(["2026-05-04"]);
   });
 
-  it("klamper aldrig projektionen ind i fortiden, selv når rangeStart er før i dag", () => {
+  it("projicerer hele det synlige range, også tidligere datoer i måneden", () => {
     // Systemtid er låst til 2025-12-31 (se beforeAll øverst i filen).
     // Selv hvis kalenderens rangeStart starter midt i december (fx fordi
     // måneds-griddet inkluderer forrige måneds dage), må vi aldrig projicere
@@ -605,10 +605,9 @@ describe("expandRecurringRoutes — overlap/suppression mod rigtige ruter", () =
       realRouteDates: new Set(),
       sources: [{ id: "a1", interval: "ugentlig", seed_date: "2025-12-01", preferred_route_id: "r1" }],
     });
-    // Alle datoer skal være >= "i dag" (2025-12-31).
-    for (const p of out) {
-      expect(p.date >= "2025-12-31").toBe(true);
-    }
+    expect(out.map((p) => p.date)).toEqual([
+      "2025-12-01", "2025-12-08", "2025-12-15", "2025-12-22", "2025-12-29", "2026-01-05", "2026-01-12",
+    ]);
   });
 
   it("multi-year horisont med ugentlig serie projicerer alle uger uden tab", () => {
