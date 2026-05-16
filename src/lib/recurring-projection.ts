@@ -4,8 +4,11 @@
 // Virtuelle ruter er read-only — de bliver til rigtige route_stops når
 // DB-jobbet `auto_recur_due_orders` materialiserer dem, eller når en bruger
 // dropper en aftale ind på en rute.
-import { addDays, format, parseISO, isBefore, differenceInCalendarDays } from "date-fns";
-import { intervalToDays as intervalToDaysCentral } from "@/lib/interval";
+import {
+  addDays, addWeeks, addMonths, addYears,
+  format, parseISO, isBefore, differenceInCalendarDays,
+} from "date-fns";
+import { intervalToDays as intervalToDaysCentral, parseInterval } from "@/lib/interval";
 
 /**
  * Tynd indpakning omkring den centrale interval-lib — bevares som eksport
@@ -106,29 +109,61 @@ export const expandRecurringRoutes = (params: {
 
   for (const s of params.sources) {
     if (!s.preferred_route_id || !s.seed_date) continue;
-    let days = intervalToDays(s.interval);
-    if (!days && s.interval === "custom" && s.interval_days && s.interval_days > 0) {
-      days = s.interval_days;
+    // Parse intervallet til (n, unit) så vi kan bruge ægte kalender-aritmetik
+    // for måneder/år — ellers driver projektionen (30/365 dages tilnærmelse
+    // tager fx en månedlig 1. → 1. → 31. → 30. ... over et år).
+    let n = 0;
+    let unit: "day" | "week" | "month" | "year" = "day";
+    const parsed = parseInterval(s.interval);
+    if (parsed && !parsed.once) {
+      n = parsed.n;
+      unit = parsed.unit;
+    } else if (s.interval === "custom" && s.interval_days && s.interval_days > 0) {
+      n = s.interval_days;
+      unit = "day";
     }
-    if (!days) continue;
+    if (!n) continue;
+    const advance = (d: Date, steps: number): Date => {
+      switch (unit) {
+        case "day":   return addDays(d, steps * n);
+        case "week":  return addWeeks(d, steps * n);
+        case "month": return addMonths(d, steps * n);
+        case "year":  return addYears(d, steps * n);
+      }
+    };
+    // Ved sammenligning/fast-forward er det fint at bruge en grov "dage pr. step"-tilnærmelse,
+    // fordi vi efterfølgende stepper med præcise kalender-enheder via `advance`.
+    let stepDays = 0;
+    switch (unit) {
+      case "day":   stepDays = n; break;
+      case "week":  stepDays = n * 7; break;
+      case "month": stepDays = n * 30; break;
+      case "year":  stepDays = n * 365; break;
+    }
     const routeId = s.preferred_route_id;
-    let cursor: Date;
+    let seed: Date;
     try {
-      cursor = parseISO(String(s.seed_date).slice(0, 10));
-      if (Number.isNaN(cursor.getTime())) continue;
+      seed = parseISO(String(s.seed_date).slice(0, 10));
+      if (Number.isNaN(seed.getTime())) continue;
     } catch {
       continue;
     }
     // Spol cursor frem til første forekomst inden for det synlige interval.
-    // Sparer iterationer når seed ligger langt tilbage i tiden (fx ugentlig
-    // aftale fra 2024 og vi viser maj 2026).
-    if (isBefore(cursor, start)) {
-      const diff = differenceInCalendarDays(start, cursor);
-      const stepsAhead = Math.floor(diff / days);
-      if (stepsAhead > 0) cursor = addDays(cursor, stepsAhead * days);
+    // Sparer iterationer når seed ligger langt tilbage i tiden. Vi bruger
+    // dages-tilnærmelse til at *gætte* hvor mange steps der skal springes,
+    // og finder så den præcise position med kalender-aritmetik bagefter.
+    let stepIndex = 0;
+    if (isBefore(seed, start)) {
+      const diff = differenceInCalendarDays(start, seed);
+      stepIndex = Math.max(0, Math.floor(diff / Math.max(1, stepDays)) - 1);
     }
-    // Safety-loft højt nok til daglige aftaler i flere års sigte uden at risikere
-    // uendelig løkke ved misformede data (fx negative interval_days).
+    let cursor = advance(seed, stepIndex);
+    while (isBefore(cursor, start)) {
+      stepIndex += 1;
+      cursor = advance(seed, stepIndex);
+    }
+    // Safety-loft højt nok til daglige aftaler i flere års sigte uden at
+    // risikere uendelig løkke ved misformede data.
     let safety = 0;
     while (!isBefore(limit, cursor) && safety++ < 4000) {
       const ds = format(cursor, "yyyy-MM-dd");
@@ -146,7 +181,8 @@ export const expandRecurringRoutes = (params: {
           out.push(projected);
         }
       }
-      cursor = addDays(cursor, days);
+      stepIndex += 1;
+      cursor = advance(seed, stepIndex);
     }
   }
   return out;
