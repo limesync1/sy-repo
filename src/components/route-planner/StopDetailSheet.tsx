@@ -791,18 +791,31 @@ const AssigneePicker = ({
             const emp = employees.find((e) => e.id === id);
             if (!emp) return null;
             const isLead = id === leadId;
+            const initials = (emp.name || "?").trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
             return (
               <div
                 key={id}
                 className={cn(
-                  "inline-flex items-center gap-1 rounded-md border bg-card pl-1.5 pr-0.5 py-0.5 text-xs",
-                  isLead && "border-foreground/40",
+                  "inline-flex items-center gap-1.5 rounded-full border bg-card pl-0.5 pr-1 py-0.5 text-xs",
+                  isLead && "border-foreground/50 ring-1 ring-foreground/10",
                 )}
               >
-                <span
-                  className="h-2 w-2 rounded-full shrink-0"
-                  style={{ background: emp.color || "hsl(var(--muted-foreground))" }}
-                />
+                {emp.avatar_url ? (
+                  <img
+                    src={emp.avatar_url}
+                    alt={emp.name}
+                    className="h-6 w-6 rounded-full object-cover shrink-0 ring-1 ring-border"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ) : (
+                  <span
+                    className="h-6 w-6 rounded-full inline-flex items-center justify-center text-[10px] font-bold text-white shrink-0 ring-1 ring-border"
+                    style={{ background: emp.color || "hsl(220 13% 46%)" }}
+                  >
+                    {initials || "?"}
+                  </span>
+                )}
                 <span className="font-medium truncate max-w-[120px]">{emp.name}</span>
                 <button
                   type="button"
@@ -836,20 +849,35 @@ const AssigneePicker = ({
       <div className="flex flex-wrap gap-1.5">
         {employees
           .filter((e) => !assigneeIds.includes(e.id))
-          .map((emp) => (
-            <button
-              key={emp.id}
-              type="button"
-              onClick={() => toggle(emp.id)}
-              className="inline-flex items-center gap-1.5 rounded-md border border-dashed bg-background px-2 py-1 text-xs hover:border-foreground/40 hover:bg-accent/5 transition-colors"
-            >
-              <span
-                className="h-2 w-2 rounded-full"
-                style={{ background: emp.color || "hsl(var(--muted-foreground))" }}
-              />
-              <span className="font-medium">+ {emp.name}</span>
-            </button>
-          ))}
+          .map((emp) => {
+            const initials = (emp.name || "?").trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
+            return (
+              <button
+                key={emp.id}
+                type="button"
+                onClick={() => toggle(emp.id)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-dashed bg-background pl-0.5 pr-2 py-0.5 text-xs hover:border-foreground/40 hover:bg-accent/5 transition-colors"
+              >
+                {emp.avatar_url ? (
+                  <img
+                    src={emp.avatar_url}
+                    alt={emp.name}
+                    className="h-6 w-6 rounded-full object-cover ring-1 ring-border"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ) : (
+                  <span
+                    className="h-6 w-6 rounded-full inline-flex items-center justify-center text-[10px] font-bold text-white ring-1 ring-border"
+                    style={{ background: emp.color || "hsl(220 13% 46%)" }}
+                  >
+                    {initials || "?"}
+                  </span>
+                )}
+                <span className="font-medium">+ {emp.name}</span>
+              </button>
+            );
+          })}
       </div>
 
       {/* Info om provisionsdeling */}
