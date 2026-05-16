@@ -598,3 +598,121 @@ export const RouteEditSheet = ({
     </>
   );
 };
+
+/* ─── CompletedRouteSummary ──────────────────────────────────────────
+ * Vises i RouteEditSheet for ruter hvis dato ligger bagud. Henter
+ * snapshots fra employee_completed_stops så vi kan vise hvem der
+ * kørte ruten, hvad de tjente og hvilke aftaler de udførte — selv hvis
+ * stoppet senere skulle blive slettet.
+ * ─────────────────────────────────────────────────────────────────── */
+const CompletedRouteSummary = ({ routeId }: { routeId: string }) => {
+  const { data: rows = [], isLoading } = useQuery({
+    queryKey: ["route-completed-snapshots", routeId],
+    enabled: !!routeId,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("employee_completed_stops")
+        .select("employee_id, earnings, order_amount, customer_name, service_summary, completed_at, duration_minutes")
+        .eq("route_id", routeId)
+        .order("completed_at", { ascending: true });
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+  });
+
+  const { data: empMap = new Map<string, any>() } = useQuery({
+    queryKey: ["route-completed-employees", routeId, rows.length],
+    enabled: rows.length > 0,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const ids = Array.from(new Set(rows.map((r) => r.employee_id))).filter(Boolean);
+      if (ids.length === 0) return new Map();
+      const { data } = await supabase.from("employees").select("id, name, avatar_url, color").in("id", ids);
+      const m = new Map<string, any>();
+      (data || []).forEach((e: any) => m.set(e.id, e));
+      return m;
+    },
+  });
+
+  const byEmployee = useMemo(() => {
+    const m = new Map<string, { stops: any[]; earnings: number; revenue: number }>();
+    for (const r of rows) {
+      const cur = m.get(r.employee_id) || { stops: [], earnings: 0, revenue: 0 };
+      cur.stops.push(r);
+      cur.earnings += Number(r.earnings || 0);
+      cur.revenue += Number(r.order_amount || 0);
+      m.set(r.employee_id, cur);
+    }
+    return Array.from(m.entries());
+  }, [rows]);
+
+  return (
+    <Section
+      icon={<Award className="h-3.5 w-3.5" />}
+      title="Kørt – opsummering"
+      hint={isLoading ? "Henter…" : rows.length > 0 ? `${rows.length} udført` : "Ingen registreret"}
+    >
+      {!isLoading && rows.length === 0 && (
+        <p className="text-xs text-muted-foreground italic">
+          Ingen udførte aftaler er registreret for denne rute.
+        </p>
+      )}
+      {byEmployee.length > 0 && (
+        <div className="space-y-2.5">
+          {byEmployee.map(([empId, info]) => {
+            const emp = (empMap as Map<string, any>).get(empId);
+            return (
+              <div key={empId} className="rounded-lg border bg-card overflow-hidden">
+                <div className="flex items-center gap-2 px-3 py-2 bg-secondary/40 border-b">
+                  {emp?.avatar_url ? (
+                    <img src={emp.avatar_url} alt={emp.name} className="h-6 w-6 rounded-full object-cover" />
+                  ) : (
+                    <span
+                      className="inline-flex h-6 w-6 rounded-full items-center justify-center text-[10px] font-bold text-white"
+                      style={{ background: emp?.color || "#64748b" }}
+                    >
+                      {(emp?.name || "?").slice(0, 1).toUpperCase()}
+                    </span>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate">{emp?.name || "Ukendt medarbejder"}</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {info.stops.length} {info.stops.length === 1 ? "aftale" : "aftaler"} udført
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-bold tabular-nums text-emerald-600">
+                      {Math.round(info.earnings).toLocaleString("da-DK")} kr
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">indtjening</p>
+                  </div>
+                </div>
+                <ul className="divide-y">
+                  {info.stops.map((s, i) => (
+                    <li key={i} className="px-3 py-1.5 flex items-start justify-between gap-2 text-xs">
+                      <div className="min-w-0">
+                        <p className="font-medium truncate">{s.customer_name || "Aftale"}</p>
+                        {s.service_summary && (
+                          <p className="text-[10px] text-muted-foreground truncate">{s.service_summary}</p>
+                        )}
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="font-semibold tabular-nums">
+                          {Math.round(Number(s.earnings || 0)).toLocaleString("da-DK")} kr
+                        </p>
+                        {s.duration_minutes ? (
+                          <p className="text-[10px] text-muted-foreground">{s.duration_minutes} min</p>
+                        ) : null}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </Section>
+  );
+};
