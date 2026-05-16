@@ -2674,34 +2674,12 @@ const Planner = () => {
                   view={view}
                   anchorDate={date}
                   routes={calendarRoutesAll}
-                  onSelectRoute={async (r: any) => {
-                    // Projicerede (gentagende) ruter må IKKE duplikeres ved
-                    // simpelt klik. Åbn i stedet basisruten direkte, så
-                    // ændringer gælder hele serien. Materialisering sker først
-                    // når brugeren eksplicit flytter/redigerer en enkelt
-                    // forekomst (drag-and-drop til ny dato).
-                    if (r.isVirtual) {
-                      await openProjectedRoute(r);
-                      return;
-                    }
-                    // Almindelig (rigtig) rute: nulstil projektions-konteksten
-                    // så vi viser alle stops uden filter.
-                    setEditingProjectedContext(null);
-                    setEditingRoute(r);
-                  }}
-                  onSelectStop={(s) => setSelectedStopId(s.id)}
-                  onCreateRoute={(d) => { setNewRouteDate(d); setCreateOpen(true); }}
-                  onOptimizeRoute={(id) => {
-                    const r = calendarRoutesRaw.find((x) => x.id === id);
-                    handleOptimize(id, r?.name ?? null);
-                  }}
+                  onSelectRoute={handleCalendarSelectRoute}
+                  onSelectStop={handleCalendarSelectStop}
+                  onCreateRoute={handleCalendarCreateRoute}
+                  onOptimizeRoute={handleCalendarOptimizeRoute}
                   optimizingRouteId={optimizingRouteId}
-                  draggingType={
-                    activeDragData?.type === "job" ? "job"
-                      : activeDragData?.type === "route" ? "route"
-                      : activeDragData?.type === "stop" ? "stop"
-                      : null
-                  }
+                  draggingType={draggingTypeForCalendar}
                   weatherByDate={weatherByDate}
                   loadingRoutes={loadingCalendarRoutes || loadingCalendarStops}
                   loadingWeather={loadingWeather}
