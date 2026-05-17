@@ -1861,33 +1861,6 @@ const SettingsTab = ({ business }: { business: any }) => {
                     onToggle={() => setLeadsEnabled((v) => !v)}
                   />
                   <FeatureRow
-                    icon={<UploadCloud />}
-                    title="Dataimport fra jeres nuværende system"
-                    badge={<span className="rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">Gratis</span>}
-                    description="Skifter I fra et andet system? Vi flytter jeres eksisterende kunder, services og abonnementer for jer — uden at I selv skal taste alt ind igen. Slå til, så ringer vores team for at aftale en flyttedato."
-                    active={!!plan?.data_import_requested}
-                    activeLabel="Anmodet — vores team kontakter jer snarest"
-                    inactiveLabel="Ikke anmodet — slå til for at få vores hjælp til flytningen"
-                    toggle={
-                      <ToggleSwitch
-                        checked={!!plan?.data_import_requested}
-                        onChange={() => {
-                          const next = !plan?.data_import_requested;
-                          updatePlan.mutate(
-                            { businessId: business.id, patch: { data_import_requested: next } },
-                            {
-                              onSuccess: () => {
-                                toast.success(next
-                                  ? "Dataimport anmodet — vi tager kontakt snarest."
-                                  : "Anmodning om dataimport fjernet.");
-                              },
-                            },
-                          );
-                        }}
-                      />
-                    }
-                  />
-                  <FeatureRow
                     icon={<MessageCircle />}
                     title="Livechat på virksomhedssiden"
                     badge={<span className="rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">Gratis</span>}
