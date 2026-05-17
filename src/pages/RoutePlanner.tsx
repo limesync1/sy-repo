@@ -92,7 +92,7 @@ const RoutePlanner = () => {
 };
 
 const Planner = () => {
-  const { data: business } = useMyBusiness();
+  const { data: business, isLoading: loadingBusiness } = useMyBusiness();
   const qc = useQueryClient();
   const [date, setDate] = useState<string>(todayStr());
   const [view, setView] = useState<"month" | "week">("month");
@@ -1214,6 +1214,10 @@ const Planner = () => {
     if (activeDragData?.type === "stop") return "stop";
     return null;
   }, [activeDragData?.type]);
+
+  if (loadingBusiness) {
+    return <ShellSkeleton />;
+  }
 
   if (!business) {
     return (
