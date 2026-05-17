@@ -1,26 +1,16 @@
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  useMyBusiness, useServices, useOrders, useCreateBusiness, useCreateService,
-  useUpdateService, useDeleteService, useUpdateBusiness,
-  useUpsertCalculatorSteps, useReviews,
+  useMyBusiness, useServices, useOrders, useCreateBusiness,
+  useReviews,
 } from "@/hooks/useDatabase";
-import { useEmployees } from "@/hooks/useEmployees";
 import { Navigate, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useEffect, useState, lazy, Suspense } from "react";
-import {
-  Plus, Trash2,
-  Sparkles, Calculator, Wrench, Wand2, Loader2, Check,
-  ArrowUp, ArrowDown, Copy, Tag, FolderTree, Receipt, BookOpen, Repeat,
-} from "lucide-react";
-import ImageUpload from "@/components/business/ImageUpload";
-import { supabase } from "@/integrations/supabase/client";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Sparkles } from "lucide-react";
 // Lazy load tunge tabs så hver fane først downloades når brugeren åbner den
 const DashboardTab = lazy(() => import("@/components/admin/DashboardTab"));
 const ReviewsTab = lazy(() => import("@/components/admin/ReviewsTab"));
@@ -31,11 +21,11 @@ const SettingsTab = lazy(() => import("@/components/admin/SettingsTab"));
 const LeadsTab = lazy(() => import("@/components/admin/LeadsTab"));
 const BusinessLiveChatTab = lazy(() => import("@/components/admin/BusinessLiveChatTab"));
 const AccountingTab = lazy(() => import("@/components/admin/AccountingTab"));
+// ServicesTab er ~1700 linjer (formular, prisberegner, regnskab) — split ud
+// så det kun loades når brugeren faktisk åbner Services-fanen.
+const ServicesTab = lazy(() => import("@/components/admin/ServicesTab"));
 import BusinessOnboarding from "@/components/admin/BusinessOnboarding";
 import OnboardingHub from "@/components/admin/onboarding/OnboardingHub";
-import { IntervalBuilder } from "@/components/admin/IntervalBuilder";
-import { formatInterval } from "@/lib/interval";
-import { PageHeader, PrimaryButton, SectionCard, FieldLabel, EmptyState } from "@/components/admin/shared/AdminUI";
 import { AdminShell, type AdminTabKey } from "@/components/admin/shared/AdminShell";
 import { ShellSkeleton, ListCardSkeleton, StatGridSkeleton, PageSkeleton, FormSkeleton, FilterBarSkeleton, PageHeaderSkeleton, ChartSkeleton } from "@/components/admin/shared/Skeletons";
 import { TabErrorBoundary } from "@/components/admin/shared/TabErrorBoundary";
@@ -45,11 +35,6 @@ import ReactivateDialog from "@/components/admin/ReactivateDialog";
 import { useBusinessPlan } from "@/hooks/useBusinessPlan";
 import {
   INDUSTRY_GROUPS,
-  ALL_INDUSTRIES,
-  findIndustry,
-  industryIcon,
-  subcategoriesForIndustries,
-  stepTemplatesForIndustries,
 } from "@/lib/service-taxonomy";
 
 /* ─── Constants ─── */
