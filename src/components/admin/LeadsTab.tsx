@@ -402,7 +402,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                           if (t.closest('button, a, input, [role="checkbox"]')) return;
                           setOpenId(l.id);
                         }}
-                        className={`surface-admin overflow-hidden rounded-xl border-border/80 shadow-sm transition-all hover:border-foreground/20 hover:shadow-md cursor-pointer ${
+                        className={`surface-admin overflow-hidden rounded-xl border-border/80 shadow-sm transition-all hover:border-foreground/20 hover:shadow-md cursor-pointer [content-visibility:auto] [contain-intrinsic-size:1px_220px] ${
                           isSelected ? "ring-2 ring-foreground/30" : isDue ? "ring-1 ring-destructive/40" : ""
                         }`}
                       >

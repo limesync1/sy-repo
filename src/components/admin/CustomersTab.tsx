@@ -919,7 +919,8 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                   <div
                     key={c.email}
                     className="group grid w-full gap-3 px-4 py-3 transition-colors hover:bg-secondary/60 sm:px-5
-                               sm:grid-cols-[auto_minmax(0,1fr)_auto_auto_auto] sm:items-center"
+                               sm:grid-cols-[auto_minmax(0,1fr)_auto_auto_auto] sm:items-center
+                               [content-visibility:auto] [contain-intrinsic-size:1px_72px]"
                   >
                     {/* Checkbox — fast plads også når tom, så rækker linjer ud */}
                     <div className="shrink-0 w-4 flex items-center justify-center">
