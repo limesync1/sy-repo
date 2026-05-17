@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import {
   Plus, Trash2,
   Sparkles, Calculator, Wrench, Wand2, Loader2, Check,
-  ArrowUp, ArrowDown, Copy, Tag, FolderTree, Receipt, BookOpen, Repeat,
+  ArrowUp, ArrowDown, Copy, Tag, Receipt, BookOpen, Repeat,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
