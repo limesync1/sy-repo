@@ -1105,7 +1105,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         <GroupHeader icon={<Building2 />} title="Profil" hint="Hvordan I præsenterer jer for kunderne" />
 
         {/* Generelt — kun navn + beskrivelse */}
-        <div id="settings-general" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
+        <div id="settings-general" className="scroll-mt-[120px] lg:scroll-mt-[68px] [content-visibility:auto] [contain-intrinsic-size:1px_900px]">
           <SectionCard title="Om virksomheden" icon={<Building2 />} description="Navnet og den korte tekst, der står øverst på jeres profilside — det første kunderne ser.">
             <div className="space-y-4">
               <div data-tour="field-company-name">
@@ -1136,7 +1136,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Brancher — egen sektion med kategorier underneden */}
-        <div id="settings-industries" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
+        <div id="settings-industries" className="scroll-mt-[120px] lg:scroll-mt-[68px] [content-visibility:auto] [contain-intrinsic-size:1px_900px]">
           <SectionCard
             title="Brancher & kategorier"
             icon={<Sparkles />}
@@ -1172,7 +1172,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Kontakt */}
-        <div id="settings-contact" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
+        <div id="settings-contact" className="scroll-mt-[120px] lg:scroll-mt-[68px] [content-visibility:auto] [contain-intrinsic-size:1px_900px]">
           <SectionCard title="Kontakt og adresse" icon={<Contact />} description="Sådan får kunderne fat i jer — og adressen vi bruger til afstandsberegning og fakturaer.">
             <div className="space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -1224,7 +1224,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Branding */}
-        <div id="settings-branding" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
+        <div id="settings-branding" className="scroll-mt-[120px] lg:scroll-mt-[68px] [content-visibility:auto] [contain-intrinsic-size:1px_900px]">
           <SectionCard title="Profil og webadresse" icon={<ImageIcon />} description="Det visuelle udtryk og linket til jeres profil — logo, forsidebillede, og det kunderne ser i adresselinjen.">
             {/* ── Visuelle elementer: logo + cover side om side i én visuel ramme ── */}
             <div>
@@ -1456,7 +1456,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Åbningstider */}
-        <div id="settings-hours" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
+        <div id="settings-hours" className="scroll-mt-[120px] lg:scroll-mt-[68px] [content-visibility:auto] [contain-intrinsic-size:1px_900px]">
           <SectionCard
             title="Åbningstider"
             icon={<Clock />}
@@ -1470,7 +1470,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         <GroupHeader icon={<Bell />} title="Beskeder" hint="Hvad I og jeres kunder modtager besked om" />
 
         {/* Notifikationer */}
-        <div id="settings-notifications" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
+        <div id="settings-notifications" className="scroll-mt-[120px] lg:scroll-mt-[68px] [content-visibility:auto] [contain-intrinsic-size:1px_900px]">
           <SectionCard
             title="E-mail-beskeder til jer"
             icon={<Bell />}
@@ -1517,7 +1517,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Kunde-notifikationer */}
-        <div id="settings-customer-notifications" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
+        <div id="settings-customer-notifications" className="scroll-mt-[120px] lg:scroll-mt-[68px] [content-visibility:auto] [contain-intrinsic-size:1px_900px]">
           <SectionCard
             title="Beskeder til jeres kunder"
             icon={<MessageCircle />}
@@ -1537,7 +1537,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         <GroupHeader icon={<CreditCard />} title="Konto" hint="Pris, betaling og ekstra funktioner" />
 
         {/* Fakturering */}
-        <div id="settings-billing" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
+        <div id="settings-billing" className="scroll-mt-[120px] lg:scroll-mt-[68px] [content-visibility:auto] [contain-intrinsic-size:1px_900px]">
           <SectionCard
             title="Pris og betaling"
             icon={<CreditCard />}
@@ -1822,7 +1822,7 @@ const SettingsTab = ({ business }: { business: any }) => {
         </div>
 
         {/* Avanceret */}
-        <div id="settings-advanced" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
+        <div id="settings-advanced" className="scroll-mt-[120px] lg:scroll-mt-[68px] [content-visibility:auto] [contain-intrinsic-size:1px_900px]">
           <SectionCard title="Tilvalg og ekstra funktioner" icon={<Settings />} description="Aktivér moduler som ruteplanlægger, livechat eller dataimport. Prisen opdateres automatisk under ”Pris og betaling” ovenfor.">
             {/* To-grupper: betalte tilvalg + gratis funktioner — luftigt og overskueligt */}
             <div className="space-y-6">

@@ -1908,7 +1908,7 @@ const AftaleTab = ({
               <Card
                 key={order.id}
                 id={`order-${order.id}`}
-                className={`surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden transition-shadow hover:shadow-md ${
+                className={`surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden transition-shadow hover:shadow-md [content-visibility:auto] [contain-intrinsic-size:1px_180px] ${
                   draggingOrderId === order.id ? "opacity-60" : ""
                 } ${isExpanded ? "ring-1 ring-accent/30 border-accent/30" : ""}`}
               >
