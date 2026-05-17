@@ -17,6 +17,11 @@
     <link rel="alternate" hreflang="da-DK" href="https://serviceydere.dk/" />
     <link rel="alternate" hreflang="x-default" href="https://serviceydere.dk/" />
 
+    <!-- Preconnect til backend så første API-kald sparer ~150ms på TLS-handshake.
+         crossorigin er nødvendig for fetch() requests med credentials. -->
+    <link rel="preconnect" href="https://gkectsellkpltrxvusot.supabase.co" crossorigin />
+    <link rel="dns-prefetch" href="https://gkectsellkpltrxvusot.supabase.co" />
+
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Serviceydere" />
     <meta property="og:locale" content="da_DK" />
