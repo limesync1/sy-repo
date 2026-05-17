@@ -198,6 +198,25 @@ export const AdminShell = ({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { data: plan } = useBusinessPlan(business.id);
 
+  // Idle-prefetch — varm de mest brugte faner op i baggrunden så snart
+  // browseren har et roligt øjeblik. Det betyder at det første klik på
+  // fx "Aftaler" eller "Kunder" føles instant uden Suspense-skeleton.
+  useEffect(() => {
+    const keys: AdminTabKey[] = [
+      "dashboard", "services", "orders", "customers",
+      "employees", "reviews", "settings",
+    ];
+    const ric = (window as any).requestIdleCallback as
+      | ((cb: () => void, opts?: { timeout: number }) => number)
+      | undefined;
+    const trigger = () => keys.forEach((k) => prefetchTab(k));
+    const id = ric ? ric(trigger, { timeout: 2500 }) : window.setTimeout(trigger, 1800);
+    return () => {
+      if (ric && (window as any).cancelIdleCallback) (window as any).cancelIdleCallback(id);
+      else window.clearTimeout(id as number);
+    };
+  }, []);
+
   const routePlanningEnabled = !!(business.settings as any)?.route_planning_enabled;
   const leadsEnabled = !!(business.settings as any)?.leads_enabled;
   const livechatEnabled = !!(business.settings as any)?.livechat_enabled;
