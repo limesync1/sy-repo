@@ -36,9 +36,10 @@ export const useAllBusinesses = (
   category?: string,
   search?: string,
   sort: SortOption = "relevance",
+  options?: { limit?: number },
 ) => {
   return useQuery({
-    queryKey: ["businesses", category, search, sort],
+    queryKey: ["businesses", category, search, sort, options?.limit ?? null],
     queryFn: async () => {
       // Pull businesses with their services + reviews in one go so we can:
       //  - search across name/description/city/zip/address/categories AND service names
@@ -49,6 +50,7 @@ export const useAllBusinesses = (
         .eq("is_active", true);
 
       if (category) query = query.contains("categories", [category]);
+      if (options?.limit) query = query.limit(options.limit);
 
       const { data, error } = await query;
       if (error) throw error;
@@ -164,15 +166,20 @@ export const useServices = (businessId: string | undefined) => {
 };
 
 // Fetch orders for a business
-export const useOrders = (businessId: string | undefined) => {
+export const useOrders = (
+  businessId: string | undefined,
+  options?: { limit?: number },
+) => {
   return useQuery({
-    queryKey: ["orders", businessId],
+    queryKey: ["orders", businessId, options?.limit ?? null],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("orders")
         .select("*, order_items(*)")
         .eq("business_id", businessId!)
         .order("created_at", { ascending: false });
+      if (options?.limit) query = query.limit(options.limit);
+      const { data, error } = await query;
       if (error) throw error;
       return data;
     },
