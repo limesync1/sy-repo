@@ -9,6 +9,8 @@ import { CartProvider } from "@/contexts/CartContext";
 import { LocationProvider } from "@/contexts/LocationContext";
 import ScrollToTop from "@/components/ScrollToTop";
 import CookieConsent from "@/components/CookieConsent";
+import ChunkErrorBoundary from "@/components/ChunkErrorBoundary";
+import { startVersionCheck, isStaleDeploy } from "@/lib/version-check";
 
 // Forsiden + Login indlæses ivrigt — alt andet er code-splittet via React.lazy
 // så det første sidebesøg ikke trækker hele admin/medarbejder/ruteplanlægger
@@ -145,6 +147,23 @@ const IdlePrefetcher = () => {
   return null;
 };
 
+/** Starter periodisk version-check og reloader stille ved næste rute-skift
+ *  hvis en ny deploy bliver opdaget. */
+const DeployVersionWatcher = () => {
+  useEffect(() => startVersionCheck(), []);
+  useEffect(() => {
+    // Når brugeren navigerer (popstate eller programmatisk push), og vi har
+    // registreret en ny deploy, så reload — det er det mindst forstyrrende
+    // tidspunkt at hente den nye bundle på.
+    const maybeReload = () => {
+      if (isStaleDeploy()) window.location.reload();
+    };
+    window.addEventListener("popstate", maybeReload);
+    return () => window.removeEventListener("popstate", maybeReload);
+  }, []);
+  return null;
+};
+
 // Helper to preserve query strings on redirect
 const RedirectWithQuery = ({ to }: { to: string }) => {
   const search = typeof window !== "undefined" ? window.location.search : "";
@@ -172,6 +191,8 @@ const App = () => (
             {/* Cookie-banner — vises kun første gang valget træffes. */}
             <CookieConsent />
             <IdlePrefetcher />
+            <DeployVersionWatcher />
+            <ChunkErrorBoundary>
             <Suspense fallback={<PageFallback />}>
             <Routes>
               <Route path="/" element={<Index />} />
@@ -214,6 +235,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             </Suspense>
+            </ChunkErrorBoundary>
             </TooltipProvider>
           </CartProvider>
         </BrowserRouter>
