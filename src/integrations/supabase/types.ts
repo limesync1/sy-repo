@@ -407,6 +407,36 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_impersonation_codes: {
+        Row: {
+          admin_user_id: string
+          business_id: string
+          code: string
+          created_at: string
+          expires_at: string
+          id: string
+          used_at: string | null
+        }
+        Insert: {
+          admin_user_id: string
+          business_id: string
+          code: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          used_at?: string | null
+        }
+        Update: {
+          admin_user_id?: string
+          business_id?: string
+          code?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          used_at?: string | null
+        }
+        Relationships: []
+      }
       agreement_items: {
         Row: {
           agreement_id: string
@@ -3394,6 +3424,10 @@ export type Database = {
           total_revenue: number
         }[]
       }
+      admin_create_impersonation_code: {
+        Args: { p_business_id: string }
+        Returns: string
+      }
       admin_list_users: {
         Args: never
         Returns: {
@@ -3408,6 +3442,10 @@ export type Database = {
           roles: string[]
           user_id: string
         }[]
+      }
+      admin_redeem_impersonation_code: {
+        Args: { p_code: string }
+        Returns: string
       }
       admin_set_user_role: {
         Args: {
