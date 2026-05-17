@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Loader2, Mail, MessageSquare, Bell, CheckCircle2, RotateCcw, Phone, Plus, AlarmClock, CalendarDays } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -503,7 +504,22 @@ export function CustomerNotificationsSettings({
   }, [drafts, smsDrafts, savedSnapshot]);
 
   if (isLoading) {
-    return <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+    return (
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[260px_1fr] animate-fade-in">
+        <div className="space-y-2">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-10 w-full rounded-md" />
+          ))}
+        </div>
+        <div className="space-y-3">
+          <Skeleton className="h-6 w-1/3" />
+          <Skeleton className="h-3 w-2/3" />
+          <Skeleton className="h-32 w-full rounded-md" />
+          <Skeleton className="h-10 w-full rounded-md" />
+          <Skeleton className="h-24 w-full rounded-md" />
+        </div>
+      </div>
+    );
   }
 
   return (

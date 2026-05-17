@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileText, Upload, Trash2, Loader2, Download, FileSignature } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 
 interface Doc {
@@ -178,7 +179,17 @@ const CustomerDocumentsSection = ({ businessId, businessCustomerId, customerEmai
 
       {/* List */}
       {loading ? (
-        <p className="text-xs text-muted-foreground">Indlæser…</p>
+        <div className="space-y-1.5 animate-fade-in">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-2 rounded-md border bg-background p-2">
+              <Skeleton className="h-4 w-4 rounded-sm shrink-0" />
+              <div className="min-w-0 flex-1 space-y-1.5">
+                <Skeleton className="h-3 w-1/2" />
+                <Skeleton className="h-2.5 w-1/3" />
+              </div>
+            </div>
+          ))}
+        </div>
       ) : docs.length === 0 ? (
         <p className="text-[11px] text-muted-foreground">Ingen dokumenter endnu.</p>
       ) : (

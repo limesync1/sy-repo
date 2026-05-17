@@ -134,7 +134,18 @@ export const TrafficOverridesSection = ({ businessId }: { businessId: string }) 
       </div>
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Indlæser...</p>
+        <div className="space-y-2 animate-fade-in">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3 rounded-lg border border-border bg-background p-3">
+              <div className="h-8 w-8 rounded-md bg-muted/70 animate-pulse" />
+              <div className="flex-1 space-y-2">
+                <div className="h-3.5 w-1/3 rounded bg-muted/70 animate-pulse" />
+                <div className="h-3 w-1/2 rounded bg-muted/70 animate-pulse" />
+              </div>
+              <div className="h-7 w-16 rounded bg-muted/70 animate-pulse" />
+            </div>
+          ))}
+        </div>
       ) : overrides.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border p-6 text-center">
           <MapPin className="mx-auto h-6 w-6 text-muted-foreground/60" />

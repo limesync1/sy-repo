@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Plus, Trash2, Mail, Phone, Loader2, Users } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 
 export interface CustomerContactRow {
@@ -112,7 +113,19 @@ const CustomerContactsSection = ({ businessCustomerId }: Props) => {
         </Button>
       </div>
 
-      {loading && <p className="text-xs text-muted-foreground">Indlæser…</p>}
+      {loading && (
+        <div className="space-y-2 animate-fade-in">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <div key={i} className="rounded-md border bg-background p-2.5 space-y-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+              </div>
+              <Skeleton className="h-3 w-1/3" />
+            </div>
+          ))}
+        </div>
+      )}
 
       {rows.length === 0 && !loading && (
         <p className="text-[11px] text-muted-foreground">
