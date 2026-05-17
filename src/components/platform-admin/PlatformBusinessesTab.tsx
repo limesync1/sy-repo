@@ -424,7 +424,7 @@ const PlatformBusinessesTab = () => {
               <KeyRound className="h-5 w-5" /> Log ind som {impersonate?.business.name}
             </DialogTitle>
             <DialogDescription>
-              Indtast den 5-cifrede kode nedenfor for at åbne virksomhedens panel. Koden er gyldig i 15 minutter og kan kun bruges én gang. Virksomheden får ikke besked.
+              Vi sender en 5-cifret engangskode til din admin-e-mail. Indtast koden for at åbne virksomhedens panel. Koden er gyldig i 15 minutter og kan kun bruges én gang. Virksomheden får ikke besked.
             </DialogDescription>
           </DialogHeader>
 
