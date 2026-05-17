@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CheckCircle2, XCircle, ExternalLink, Trash2, MapPin, Mail, BadgeCheck, Download, ChevronDown, CreditCard, Clock, AlertTriangle, Building2, UploadCloud, LogIn, Copy, KeyRound, Loader2 } from "lucide-react";
+import { CheckCircle2, XCircle, ExternalLink, Trash2, MapPin, Mail, BadgeCheck, Download, ChevronDown, CreditCard, Clock, AlertTriangle, Building2, UploadCloud, LogIn, KeyRound, Loader2, MailCheck } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
@@ -36,21 +36,51 @@ const PlatformBusinessesTab = () => {
   // Dialog til 5-cifret impersonation-kode
   const [impersonate, setImpersonate] = useState<{
     business: { id: string; name: string };
-    code: string | null;
+    sentTo: string | null;
     inputCode: string;
     loading: boolean;
     redeeming: boolean;
   } | null>(null);
 
   const openImpersonate = async (b: { id: string; name: string }) => {
-    setImpersonate({ business: b, code: null, inputCode: "", loading: true, redeeming: false });
-    const { data, error } = await supabase.rpc("admin_create_impersonation_code", { p_business_id: b.id });
-    if (error) {
-      toast.error("Kunne ikke generere kode: " + error.message);
+    setImpersonate({ business: b, sentTo: null, inputCode: "", loading: true, redeeming: false });
+    const { data: code, error } = await supabase.rpc("admin_create_impersonation_code", { p_business_id: b.id });
+    if (error || !code) {
+      toast.error("Kunne ikke generere kode: " + (error?.message ?? "ukendt fejl"));
       setImpersonate(null);
       return;
     }
-    setImpersonate({ business: b, code: data as string, inputCode: "", loading: false, redeeming: false });
+    const { data: userData } = await supabase.auth.getUser();
+    const adminEmail = userData?.user?.email;
+    if (!adminEmail) {
+      toast.error("Kunne ikke finde din admin-email");
+      setImpersonate(null);
+      return;
+    }
+    const adminName =
+      (userData?.user?.user_metadata as any)?.full_name ||
+      (userData?.user?.user_metadata as any)?.name ||
+      adminEmail.split("@")[0];
+    const { error: mailErr } = await supabase.functions.invoke("send-transactional-email", {
+      body: {
+        templateName: "admin-impersonation-code",
+        recipientEmail: adminEmail,
+        idempotencyKey: `admin-impersonation-${b.id}-${code}`,
+        templateData: {
+          businessName: b.name,
+          code: code as string,
+          expiresInMinutes: 15,
+          adminName,
+        },
+      },
+    });
+    if (mailErr) {
+      toast.error("Kunne ikke sende kode på e-mail: " + mailErr.message);
+      setImpersonate(null);
+      return;
+    }
+    toast.success(`Kode sendt til ${adminEmail}`);
+    setImpersonate({ business: b, sentTo: adminEmail, inputCode: "", loading: false, redeeming: false });
   };
 
   const redeemImpersonate = async () => {
@@ -394,34 +424,26 @@ const PlatformBusinessesTab = () => {
               <KeyRound className="h-5 w-5" /> Log ind som {impersonate?.business.name}
             </DialogTitle>
             <DialogDescription>
-              Indtast den 5-cifrede kode nedenfor for at åbne virksomhedens panel. Koden er gyldig i 15 minutter og kan kun bruges én gang. Virksomheden får ikke besked.
+              Vi sender en 5-cifret engangskode til din admin-e-mail. Indtast koden for at åbne virksomhedens panel. Koden er gyldig i 15 minutter og kan kun bruges én gang. Virksomheden får ikke besked.
             </DialogDescription>
           </DialogHeader>
 
           {impersonate?.loading ? (
             <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Genererer kode…
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Genererer og sender kode…
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="rounded-xl border border-border bg-secondary/40 p-4 text-center">
-                <p className="text-xs uppercase tracking-wider text-muted-foreground">Din adgangskode</p>
-                <p className="mt-2 font-mono text-4xl font-bold tracking-[0.4em] tabular-nums">
-                  {impersonate?.code}
-                </p>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="mt-2 h-8 gap-1.5"
-                  onClick={() => {
-                    if (impersonate?.code) {
-                      navigator.clipboard.writeText(impersonate.code).catch(() => {});
-                      toast.success("Kode kopieret");
-                    }
-                  }}
-                >
-                  <Copy className="h-3.5 w-3.5" /> Kopiér
-                </Button>
+              <div className="rounded-xl border border-border bg-secondary/40 p-4">
+                <div className="flex items-start gap-3">
+                  <MailCheck className="h-5 w-5 mt-0.5 text-emerald-600 shrink-0" />
+                  <div className="text-sm">
+                    <p className="font-medium text-foreground">Kode sendt på e-mail</p>
+                    <p className="text-muted-foreground">
+                      Vi har sendt en 5-cifret engangskode til <span className="font-medium text-foreground">{impersonate?.sentTo}</span>. Koden er gyldig i 15 minutter.
+                    </p>
+                  </div>
+                </div>
               </div>
 
               <div>
