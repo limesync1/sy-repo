@@ -134,13 +134,15 @@ export const useAllBusinesses = (
 export const useMyBusiness = () => {
   const { user } = useAuth();
   return useQuery({
-    queryKey: ["my-business", user?.id],
+    queryKey: ["my-business", user?.id, getImpersonatedBusinessId()],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("businesses")
-        .select("*")
-        .eq("owner_id", user!.id)
-        .maybeSingle();
+      // Hvis en platform-admin har indløst en impersonation-kode, så indlæs
+      // den valgte virksomhed i stedet for admins egen (hvis nogen).
+      const impersonateId = getImpersonatedBusinessId();
+      const query = supabase.from("businesses").select("*");
+      const { data, error } = await (impersonateId
+        ? query.eq("id", impersonateId).maybeSingle()
+        : query.eq("owner_id", user!.id).maybeSingle());
       if (error) throw error;
       return data;
     },
