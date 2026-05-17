@@ -147,6 +147,24 @@ const IdlePrefetcher = () => {
   return null;
 };
 
+/** Mounter children først når browseren er idle (eller efter 2.5s fallback).
+ *  Bruges til ikke-kritiske widgets som livechat, så de ikke blokerer FCP. */
+const IdleMount = ({ children }: { children: React.ReactNode }) => {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const ric = (window as any).requestIdleCallback as
+      | ((cb: () => void, opts?: { timeout: number }) => number)
+      | undefined;
+    const trigger = () => setReady(true);
+    const id = ric ? ric(trigger, { timeout: 2500 }) : window.setTimeout(trigger, 2500);
+    return () => {
+      if (ric && (window as any).cancelIdleCallback) (window as any).cancelIdleCallback(id);
+      else window.clearTimeout(id as number);
+    };
+  }, []);
+  return ready ? <>{children}</> : null;
+};
+
 /** Starter periodisk version-check og reloader stille ved næste rute-skift
  *  hvis en ny deploy bliver opdaget. */
 const DeployVersionWatcher = () => {
@@ -186,7 +204,9 @@ const App = () => (
             <Suspense fallback={null}>
               <CartSheet />
               <CartFab />
-              <LiveChatWidget />
+              <IdleMount>
+                <LiveChatWidget />
+              </IdleMount>
             </Suspense>
             {/* Cookie-banner — vises kun første gang valget træffes. */}
             <CookieConsent />
