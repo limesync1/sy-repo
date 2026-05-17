@@ -20,7 +20,7 @@ import { useBusinessPlan } from "@/hooks/useBusinessPlan";
 
 export type AdminTabKey =
   | "dashboard" | "services" | "orders" | "customers"
-  | "routes" | "employees" | "reviews" | "leads" | "livechat" | "accounting" | "dataimport" | "settings";
+  | "routes" | "employees" | "reviews" | "leads" | "livechat" | "accounting" | "settings";
 
 /**
  * Animeret sidebar-item: collapser stille ind/ud når en feature toggles
@@ -128,7 +128,6 @@ const TAB_PREFETCH: Partial<Record<AdminTabKey, () => Promise<unknown>>> = {
   routes:    () => import("@/pages/RoutePlanner"),
   accounting: () => import("@/components/admin/AccountingTab"),
 };
-TAB_PREFETCH.dataimport = () => import("@/components/admin/DataImportTab");
 const prefetched = new Set<AdminTabKey>();
 const prefetchTab = (key: AdminTabKey) => {
   if (prefetched.has(key)) return;
@@ -145,7 +144,6 @@ type NavItem = {
   requiresLeads?: boolean;
   requiresLivechat?: boolean;
   requiresAccounting?: boolean;
-  requiresDataImport?: boolean;
 };
 
 const NAV_ITEMS: NavItem[] = [
@@ -159,7 +157,6 @@ const NAV_ITEMS: NavItem[] = [
   { value: "reviews", label: "Anmeldelser", icon: Star },
   { value: "livechat", label: "Livechat", icon: MessageCircle, requiresLivechat: true },
   { value: "accounting", label: "Regnskab", icon: Calculator, requiresAccounting: true },
-  { value: "dataimport", label: "Dataimport", icon: Upload, requiresDataImport: true },
   { value: "settings", label: "Indstillinger", icon: Settings },
 ];
 
@@ -197,6 +194,7 @@ export const AdminShell = ({
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { data: plan } = useBusinessPlan(business.id);
+  void plan;
 
   // Idle-prefetch — kun den AKTUELLE fanes nabo-faner (dashboard + orders) i
   // stedet for alle 8. Tidligere prefetch af AftaleTab (122KB) + SettingsTab
@@ -222,13 +220,11 @@ export const AdminShell = ({
   const leadsEnabled = !!(business.settings as any)?.leads_enabled;
   const livechatEnabled = !!(business.settings as any)?.livechat_enabled;
   const accountingEnabled = !!(business.settings as any)?.accounting_integration_enabled;
-  const dataImportEnabled = !!plan?.data_import_requested;
   const visibleNav = NAV_ITEMS.filter((n) => {
     if (n.requiresRoutePlanning && !routePlanningEnabled) return false;
     if (n.requiresLeads && !leadsEnabled) return false;
     if (n.requiresLivechat && !livechatEnabled) return false;
     if (n.requiresAccounting && !accountingEnabled) return false;
-    if ((n as any).requiresDataImport && !dataImportEnabled) return false;
     return true;
   });
   const currentNav = visibleNav.find((n) => n.value === activeTab) ?? NAV_ITEMS.find((n) => n.value === activeTab);
@@ -316,8 +312,7 @@ export const AdminShell = ({
               !(item.requiresRoutePlanning && !routePlanningEnabled) &&
               !(item.requiresLeads && !leadsEnabled) &&
               !(item.requiresLivechat && !livechatEnabled) &&
-              !(item.requiresAccounting && !accountingEnabled) &&
-              !((item as any).requiresDataImport && !dataImportEnabled);
+              !(item.requiresAccounting && !accountingEnabled);
             return (
               <AnimatedNavItem
                 key={item.value}
@@ -395,6 +390,7 @@ export const AdminShell = ({
             contentClassName,
           )}
         >
+          <ImpersonationBanner />
           {children}
         </main>
       </div>
@@ -403,3 +399,32 @@ export const AdminShell = ({
 };
 
 export default AdminShell;
+
+/* ImpersonationBanner — vises kun når en platform-admin har indløst en
+   5-cifret kode og browser-fanen kører i "log ind som virksomhed"-tilstand.
+   Klik på "Stop" fjerner sessionen og genindlæser panelet med admins egen
+   virksomhed (eller forsiden hvis admin ikke selv har en virksomhed). */
+const ImpersonationBanner = () => {
+  if (typeof window === "undefined") return null;
+  // Læses ved hvert render — sessionStorage er en ren synkron getter
+  const id = (() => { try { return window.sessionStorage.getItem("sy.impersonate.business_id"); } catch { return null; } })();
+  if (!id) return null;
+  return (
+    <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm text-amber-900">
+      <div className="flex items-center gap-2">
+        <span className="inline-flex h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+        <span><strong>Platform-admin</strong> · Du ser denne virksomheds panel via en impersonation-kode.</span>
+      </div>
+      <button
+        type="button"
+        className="rounded-md bg-foreground/90 px-3 py-1.5 text-xs font-semibold text-background hover:bg-foreground"
+        onClick={() => {
+          try { window.sessionStorage.removeItem("sy.impersonate.business_id"); } catch { /* noop */ }
+          window.location.href = "/admin";
+        }}
+      >
+        Stop og gå tilbage
+      </button>
+    </div>
+  );
+};

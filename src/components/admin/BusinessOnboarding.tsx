@@ -41,7 +41,7 @@ type Pricing = {
   trial_days: number;
 };
 
-type FeatureKey = "route_planning" | "accounting_integration" | "data_import" | "leads" | "livechat";
+type FeatureKey = "route_planning" | "accounting_integration" | "leads" | "livechat";
 type BillingPeriod = "monthly" | "quarterly" | "yearly";
 
 const FEATURES: { key: FeatureKey; icon: typeof Route; title: string; description: string }[] = [
@@ -50,12 +50,6 @@ const FEATURES: { key: FeatureKey; icon: typeof Route; title: string; descriptio
     icon: Calculator,
     title: "Regnskabsintegration",
     description: "Synkronisér automatisk fakturaer og betalinger med fx e-conomic eller Dinero. Helt gratis — inkluderet i din pakke.",
-  },
-  {
-    key: "data_import",
-    icon: UploadCloud,
-    title: "Dataimport fra dit nuværende system",
-    description: "Vi flytter eksisterende kunder, services og abonnementer fra dit gamle system, så du slipper for manuelt arbejde.",
   },
   {
     key: "leads",
@@ -132,7 +126,6 @@ const BusinessOnboarding = () => {
   const [features, setFeatures] = useState<Record<FeatureKey, boolean>>({
     route_planning: true,
     accounting_integration: false,
-    data_import: false,
     leads: true,
     livechat: true,
   });
@@ -155,8 +148,6 @@ const BusinessOnboarding = () => {
       lines.push({ label: "Ruteplanlægning", amount: pricing.price_route_planning_dkk });
     if (features.accounting_integration)
       lines.push({ label: "Regnskabsintegration", amount: pricing.price_accounting_integration_dkk });
-    if (features.data_import && pricing.price_data_import_dkk > 0)
-      lines.push({ label: "Dataimport", amount: pricing.price_data_import_dkk });
     if (extraLogins > 0)
       lines.push({
         label: `${extraLogins} ekstra medarbejderlogin${extraLogins === 1 ? "" : "s"}`,
@@ -243,7 +234,6 @@ const BusinessOnboarding = () => {
             livechat_enabled: features.livechat,
             onboarding: {
               completed_at: new Date().toISOString(),
-              data_import_requested: features.data_import,
             },
           },
         })
@@ -258,7 +248,6 @@ const BusinessOnboarding = () => {
         business_id: bizData.id,
         route_planning_enabled: features.route_planning,
         accounting_integration_enabled: features.accounting_integration,
-        data_import_requested: features.data_import,
         extra_employee_logins: extraLogins,
         billing_period: billing,
         monthly_price_dkk: breakdown.monthlyAfterDiscount,
@@ -380,8 +369,7 @@ const BusinessOnboarding = () => {
                   const price = isFree
                     ? 0
                     : key === "route_planning" ? pricing?.price_route_planning_dkk
-                    : key === "accounting_integration" ? pricing?.price_accounting_integration_dkk
-                    : pricing?.price_data_import_dkk;
+                    : pricing?.price_accounting_integration_dkk;
                   return (
                     <button
                       key={key}
