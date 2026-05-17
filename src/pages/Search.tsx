@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { useAllBusinesses, type SortOption } from "@/hooks/useDatabase";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,6 @@ import {
   Phone,
   ArrowRight,
 } from "lucide-react";
-import { lazy, Suspense } from "react";
 // Mapbox er tung (~120KB gzipped) — load kun når brugeren faktisk skifter til kort-view.
 const ResultsMap = lazy(() => import("@/components/search/ResultsMap"));
 import SiteNav from "@/components/SiteNav";
