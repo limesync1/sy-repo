@@ -110,9 +110,6 @@ const TabFallback = ({ tab }: { tab: string }) => {
           <ListCardSkeleton rows={5} />
         </div>
       );
-          </div>
-        </div>
-      );
     case "routes":
       return (
         <div className="space-y-4 animate-fade-in">
