@@ -390,6 +390,7 @@ export const AdminShell = ({
             contentClassName,
           )}
         >
+          <ImpersonationBanner />
           {children}
         </main>
       </div>
@@ -398,3 +399,32 @@ export const AdminShell = ({
 };
 
 export default AdminShell;
+
+/* ImpersonationBanner — vises kun når en platform-admin har indløst en
+   5-cifret kode og browser-fanen kører i "log ind som virksomhed"-tilstand.
+   Klik på "Stop" fjerner sessionen og genindlæser panelet med admins egen
+   virksomhed (eller forsiden hvis admin ikke selv har en virksomhed). */
+const ImpersonationBanner = () => {
+  if (typeof window === "undefined") return null;
+  // Læses ved hvert render — sessionStorage er en ren synkron getter
+  const id = (() => { try { return window.sessionStorage.getItem("sy.impersonate.business_id"); } catch { return null; } })();
+  if (!id) return null;
+  return (
+    <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm text-amber-900">
+      <div className="flex items-center gap-2">
+        <span className="inline-flex h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+        <span><strong>Platform-admin</strong> · Du ser denne virksomheds panel via en impersonation-kode.</span>
+      </div>
+      <button
+        type="button"
+        className="rounded-md bg-foreground/90 px-3 py-1.5 text-xs font-semibold text-background hover:bg-foreground"
+        onClick={() => {
+          try { window.sessionStorage.removeItem("sy.impersonate.business_id"); } catch { /* noop */ }
+          window.location.href = "/admin";
+        }}
+      >
+        Stop og gå tilbage
+      </button>
+    </div>
+  );
+};
