@@ -3,12 +3,12 @@ import HeroSection from "@/components/landing/HeroSection";
 import SEO from "@/components/SEO";
 import Reveal from "@/components/landing/Reveal";
 import SiteNav from "@/components/SiteNav";
-
-// Hero indlæses ivrigt (above-the-fold). Resten af sektionerne code-splittes
-// så initial JS-bundle på forsiden bliver markant mindre — brugeren scroller
-// alligevel ikke før Hero er malet.
-const Stats             = lazy(() => import("@/components/landing/Stats"));
-const RecentBusinesses  = lazy(() => import("@/components/landing/RecentBusinesses"));
+// Hero + de to nærmeste below-fold sektioner indlæses ivrigt, så brugeren
+// ikke ser en kort Suspense-flash når de scroller (det føltes som om
+// forsiden "loadede igen"). De tungere sektioner længere nede code-splittes
+// stadig så initial JS-bundle bliver markant mindre.
+import Stats from "@/components/landing/Stats";
+import RecentBusinesses from "@/components/landing/RecentBusinesses";
 const HowItWorks        = lazy(() => import("@/components/landing/HowItWorks"));
 const GetQuotes         = lazy(() => import("@/components/landing/GetQuotes"));
 const Testimonials      = lazy(() => import("@/components/landing/Testimonials"));
