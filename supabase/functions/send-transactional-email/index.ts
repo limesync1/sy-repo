@@ -145,8 +145,16 @@ Deno.serve(async (req) => {
     )
   }
 
+  // Security/admin-only templates bypass the suppression list. These emails
+  // go to the requesting platform-admin themselves (not to end users) and
+  // must always be deliverable — e.g. one-time impersonation codes.
+  const BYPASS_SUPPRESSION = new Set<string>(['admin-impersonation-code'])
+  const skipSuppression = BYPASS_SUPPRESSION.has(templateName)
+
   // 2. Check suppression list (fail-closed: if we can't verify, don't send)
-  const { data: suppressed, error: suppressionError } = await supabase
+  const { data: suppressed, error: suppressionError } = skipSuppression
+    ? { data: null, error: null as any }
+    : await supabase
     .from('suppressed_emails')
     .select('id')
     .eq('email', effectiveRecipient.toLowerCase())
