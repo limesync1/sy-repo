@@ -198,7 +198,9 @@ Deno.serve(async (req) => {
   let unsubscribeToken: string
 
   // Check for existing token for this email
-  const { data: existingToken, error: tokenLookupError } = await supabase
+  const { data: existingToken, error: tokenLookupError } = skipSuppression
+    ? { data: null, error: null as any }
+    : await supabase
     .from('email_unsubscribe_tokens')
     .select('token, used_at')
     .eq('email', normalizedEmail)
@@ -228,9 +230,13 @@ Deno.serve(async (req) => {
   if (existingToken && !existingToken.used_at) {
     // Reuse existing unused token
     unsubscribeToken = existingToken.token
-  } else if (!existingToken) {
+  } else if (!existingToken || skipSuppression) {
     // Create new token — upsert handles concurrent inserts gracefully
     unsubscribeToken = generateToken()
+    if (skipSuppression) {
+      // Admin-only emails don't need a persisted unsubscribe token.
+      // Use a throwaway value so rendering proceeds.
+    } else {
     const { error: tokenError } = await supabase
       .from('email_unsubscribe_tokens')
       .upsert(
@@ -287,6 +293,7 @@ Deno.serve(async (req) => {
       )
     }
     unsubscribeToken = storedToken.token
+    }
   } else {
     // Token exists but is already used — email should have been caught by suppression check above.
     // This is a safety fallback; log and skip sending.
