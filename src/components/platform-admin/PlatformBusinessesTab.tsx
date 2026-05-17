@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CheckCircle2, XCircle, ExternalLink, Trash2, MapPin, Mail, BadgeCheck, Download, ChevronDown, CreditCard, Clock, AlertTriangle, Building2 } from "lucide-react";
+import { CheckCircle2, XCircle, ExternalLink, Trash2, MapPin, Mail, BadgeCheck, Download, ChevronDown, CreditCard, Clock, AlertTriangle, Building2, UploadCloud, LogIn, Copy, KeyRound, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
@@ -12,14 +12,66 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { exportCsv } from "./lib/csv";
 import { PageHeader, SearchInput, EmptyState } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { lazy, Suspense } from "react";
+import { useNavigate } from "react-router-dom";
+import { setImpersonatedBusinessId } from "@/lib/admin-impersonation";
+
+const DataImportTab = lazy(() => import("@/components/admin/DataImportTab"));
 
 const fmtKr = (n: number) => `${Math.round(n).toLocaleString("da-DK")} kr`;
 
 const PlatformBusinessesTab = () => {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<"all" | "verified" | "unverified" | "active" | "inactive">("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  // Sheet til at køre dataimport for en specifik virksomhed
+  const [importFor, setImportFor] = useState<{ id: string; name: string } | null>(null);
+
+  // Dialog til 5-cifret impersonation-kode
+  const [impersonate, setImpersonate] = useState<{
+    business: { id: string; name: string };
+    code: string | null;
+    inputCode: string;
+    loading: boolean;
+    redeeming: boolean;
+  } | null>(null);
+
+  const openImpersonate = async (b: { id: string; name: string }) => {
+    setImpersonate({ business: b, code: null, inputCode: "", loading: true, redeeming: false });
+    const { data, error } = await supabase.rpc("admin_create_impersonation_code", { p_business_id: b.id });
+    if (error) {
+      toast.error("Kunne ikke generere kode: " + error.message);
+      setImpersonate(null);
+      return;
+    }
+    setImpersonate({ business: b, code: data as string, inputCode: "", loading: false, redeeming: false });
+  };
+
+  const redeemImpersonate = async () => {
+    if (!impersonate) return;
+    const code = impersonate.inputCode.trim();
+    if (code.length !== 5) {
+      toast.error("Koden skal være 5 cifre");
+      return;
+    }
+    setImpersonate({ ...impersonate, redeeming: true });
+    const { data, error } = await supabase.rpc("admin_redeem_impersonation_code", { p_code: code });
+    if (error || !data) {
+      toast.error("Ugyldig eller udløbet kode");
+      setImpersonate({ ...impersonate, redeeming: false });
+      return;
+    }
+    setImpersonatedBusinessId(data as string);
+    toast.success(`Logget ind som ${impersonate.business.name}`);
+    setImpersonate(null);
+    navigate("/virksomhed");
+  };
 
   const { data: businesses, isLoading } = useQuery({
     queryKey: ["admin-businesses"],
@@ -280,6 +332,26 @@ const PlatformBusinessesTab = () => {
                       onClick={() => updateBiz.mutate({ ids: [b.id], patch: { is_active: !b.is_active } })}>
                       {b.is_active ? "Deaktivér" : "Aktivér"}
                     </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 gap-1.5"
+                      onClick={() => setImportFor({ id: b.id, name: b.name })}
+                      title="Importér data for denne virksomhed"
+                    >
+                      <UploadCloud className="h-3.5 w-3.5" />
+                      <span className="hidden sm:inline">Importér data</span>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 gap-1.5"
+                      onClick={() => openImpersonate({ id: b.id, name: b.name })}
+                      title="Log ind på denne virksomheds panel"
+                    >
+                      <LogIn className="h-3.5 w-3.5" />
+                      <span className="hidden sm:inline">Log ind som</span>
+                    </Button>
                     <Link to={`/b/${b.slug}`} target="_blank" rel="noopener noreferrer">
                       <Button size="sm" variant="ghost" className="h-8 w-8 p-0" aria-label="Åbn"><ExternalLink className="h-3.5 w-3.5" /></Button>
                     </Link>
@@ -295,6 +367,92 @@ const PlatformBusinessesTab = () => {
           </div>
         </Card>
       )}
+
+      {/* Dataimport sheet — kører DataImportTab i kontekst af den valgte virksomhed */}
+      <Sheet open={!!importFor} onOpenChange={(open) => { if (!open) setImportFor(null); }}>
+        <SheetContent side="right" className="w-full sm:max-w-5xl overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <UploadCloud className="h-5 w-5" /> Dataimport · {importFor?.name}
+            </SheetTitle>
+          </SheetHeader>
+          <div className="mt-4">
+            {importFor && (
+              <Suspense fallback={<div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Indlæser dataimport…</div>}>
+                <DataImportTab businessId={importFor.id} businessName={importFor.name} />
+              </Suspense>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Impersonation dialog — viser 5-cifret kode + felt til at indløse */}
+      <Dialog open={!!impersonate} onOpenChange={(open) => { if (!open) setImpersonate(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <KeyRound className="h-5 w-5" /> Log ind som {impersonate?.business.name}
+            </DialogTitle>
+            <DialogDescription>
+              Indtast den 5-cifrede kode nedenfor for at åbne virksomhedens panel. Koden er gyldig i 15 minutter og kan kun bruges én gang. Virksomheden får ikke besked.
+            </DialogDescription>
+          </DialogHeader>
+
+          {impersonate?.loading ? (
+            <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Genererer kode…
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="rounded-xl border border-border bg-secondary/40 p-4 text-center">
+                <p className="text-xs uppercase tracking-wider text-muted-foreground">Din adgangskode</p>
+                <p className="mt-2 font-mono text-4xl font-bold tracking-[0.4em] tabular-nums">
+                  {impersonate?.code}
+                </p>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="mt-2 h-8 gap-1.5"
+                  onClick={() => {
+                    if (impersonate?.code) {
+                      navigator.clipboard.writeText(impersonate.code).catch(() => {});
+                      toast.success("Kode kopieret");
+                    }
+                  }}
+                >
+                  <Copy className="h-3.5 w-3.5" /> Kopiér
+                </Button>
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">Indtast kode for at fortsætte</label>
+                <Input
+                  inputMode="numeric"
+                  maxLength={5}
+                  placeholder="•••••"
+                  className="mt-1 text-center font-mono text-2xl tracking-[0.4em] tabular-nums h-12"
+                  value={impersonate?.inputCode ?? ""}
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/\D/g, "").slice(0, 5);
+                    setImpersonate((p) => (p ? { ...p, inputCode: v } : p));
+                  }}
+                  onKeyDown={(e) => { if (e.key === "Enter") redeemImpersonate(); }}
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setImpersonate(null)}>Annullér</Button>
+            <Button
+              onClick={redeemImpersonate}
+              disabled={!impersonate || impersonate.loading || impersonate.redeeming || (impersonate.inputCode ?? "").length !== 5}
+            >
+              {impersonate?.redeeming ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Logger ind…</> : "Åbn virksomhedens panel"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
