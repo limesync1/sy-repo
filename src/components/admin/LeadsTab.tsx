@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -76,8 +77,26 @@ const StatCard = ({ label, value, sub, icon, tone }: {
 };
 
 const LeadsTab = ({ businessId }: { businessId: string }) => {
-  const [leads, setLeads] = useState<Lead[] | null>(null);
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
+  const leadsKey = ["leads", businessId] as const;
+  const { data: leads, isLoading: loading } = useQuery({
+    queryKey: leadsKey,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("quote_request_matches")
+        .select("id, match_score, reason, estimated_price, distance_km, status, business_note, ai_draft, ai_draft_generated_at, follow_up_at, created_at, viewed_at, responded_at, quote_request:quote_requests(id, customer_name, customer_email, customer_phone, category, description, city, zip_code, share_contact, created_at)")
+        .eq("business_id", businessId)
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      return (data as any) as Lead[];
+    },
+    enabled: !!businessId,
+    staleTime: 30_000,
+  });
+  const setLeads = (updater: (prev: Lead[] | null) => Lead[] | null) => {
+    qc.setQueryData<Lead[]>(leadsKey, (prev) => updater(prev ?? null) ?? []);
+  };
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<string>("active");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
@@ -85,26 +104,6 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
   const [sortBy, setSortBy] = useState<string>("smart");
   const [openId, setOpenId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-
-  const load = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("quote_request_matches")
-      .select("id, match_score, reason, estimated_price, distance_km, status, business_note, ai_draft, ai_draft_generated_at, follow_up_at, created_at, viewed_at, responded_at, quote_request:quote_requests(id, customer_name, customer_email, customer_phone, category, description, city, zip_code, share_contact, created_at)")
-      .eq("business_id", businessId)
-      .order("created_at", { ascending: false })
-      .limit(100);
-    if (error) {
-      console.error(error);
-      toast.error("Kunne ikke hente leads");
-      setLeads([]);
-    } else {
-      setLeads((data as any) || []);
-    }
-    setLoading(false);
-  };
-
-  useEffect(() => { load(); }, [businessId]);
 
   // Auto-mark "new" leads as "viewed"
   useEffect(() => {
