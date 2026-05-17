@@ -117,7 +117,7 @@ const AnimatedNavItem = ({
  */
 const TAB_PREFETCH: Partial<Record<AdminTabKey, () => Promise<unknown>>> = {
   dashboard: () => import("@/components/admin/DashboardTab"),
-  services:  () => import("@/pages/Admin"),
+  services:  () => import("@/components/admin/ServicesTab"),
   orders:    () => import("@/components/admin/AftaleTab"),
   customers: () => import("@/components/admin/CustomersTab"),
   employees: () => import("@/components/admin/EmployeesTab"),
