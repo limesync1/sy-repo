@@ -39,6 +39,8 @@ import { formatInterval } from "@/lib/interval";
 import { PageHeader, PrimaryButton, SectionCard, FieldLabel, EmptyState } from "@/components/admin/shared/AdminUI";
 import { AdminShell, type AdminTabKey } from "@/components/admin/shared/AdminShell";
 import { ShellSkeleton, ListCardSkeleton, StatGridSkeleton, PageSkeleton, FormSkeleton, FilterBarSkeleton, PageHeaderSkeleton, ChartSkeleton } from "@/components/admin/shared/Skeletons";
+import { TabErrorBoundary } from "@/components/admin/shared/TabErrorBoundary";
+import { TabPerfTracker } from "@/components/admin/shared/usePerfMark";
 import TrialBanner from "@/components/admin/TrialBanner";
 import ReactivateDialog from "@/components/admin/ReactivateDialog";
 import { useBusinessPlan } from "@/hooks/useBusinessPlan";
@@ -99,6 +101,35 @@ const TabFallback = ({ tab }: { tab: string }) => {
         <div className="space-y-5 animate-fade-in">
           <PageHeaderSkeleton />
           <FormSkeleton fields={6} />
+        </div>
+      );
+    case "services":
+      return (
+        <div className="space-y-4 animate-fade-in">
+          <PageHeaderSkeleton />
+          <FilterBarSkeleton chips={2} withAction />
+          <ListCardSkeleton rows={5} />
+        </div>
+      );
+    case "dataimport":
+      return (
+        <div className="space-y-5 animate-fade-in">
+          <PageHeaderSkeleton />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <FormSkeleton fields={3} />
+            <FormSkeleton fields={3} />
+          </div>
+        </div>
+      );
+    case "routes":
+      return (
+        <div className="space-y-4 animate-fade-in">
+          <PageHeaderSkeleton withAction />
+          <FilterBarSkeleton chips={3} />
+          <div className="grid gap-3 lg:grid-cols-[360px_1fr]">
+            <ListCardSkeleton rows={4} />
+            <div className="rounded-xl border border-border/80 bg-card h-[60vh] animate-pulse" />
+          </div>
         </div>
       );
     default:
@@ -316,14 +347,17 @@ const AdminDashboard = () => {
       {/* Onboarding-hub: velkomst-wizard ved første login + persistent
           checkliste i toppen indtil alle kerne-trin er gjort. */}
       <OnboardingHub business={business} />
-      <Suspense fallback={<TabFallback tab={effectiveTab} />}>
-        {/* Én enkelt, blød fade-in pr. fane-skift. key sikrer at animationen
-            kun kører når faner faktisk skifter — ikke når interne state-
-            opdateringer (filtre, dialoger) re-renderer indholdet. */}
-        <div key={effectiveTab} className="animate-fade-in-soft">
-          {renderContent()}
-        </div>
-      </Suspense>
+      <TabErrorBoundary resetKey={effectiveTab} label={effectiveTab}>
+        <Suspense fallback={<TabFallback tab={effectiveTab} />}>
+          {/* Én enkelt, blød fade-in pr. fane-skift. key sikrer at animationen
+              kun kører når faner faktisk skifter — ikke når interne state-
+              opdateringer (filtre, dialoger) re-renderer indholdet. */}
+          <div key={effectiveTab} className="animate-fade-in-soft">
+            <TabPerfTracker tab={effectiveTab} />
+            {renderContent()}
+          </div>
+        </Suspense>
+      </TabErrorBoundary>
 
       {/* Hvis prøven er udløbet og der ikke er noget kort → blokér panelet
           indtil brugeren har genaktiveret med kortoplysninger. */}

@@ -11,7 +11,9 @@ import { cn } from "@/lib/utils";
 import { AdminFiltersProvider } from "@/components/platform-admin/lib/AdminFiltersContext";
 import RangePicker from "@/components/platform-admin/RangePicker";
 import { PageTransition } from "@/components/admin/shared/PageTransition";
-import { PageSkeleton, ShellSkeleton } from "@/components/admin/shared/Skeletons";
+import { PageSkeleton, ShellSkeleton, StatGridSkeleton, ChartSkeleton, ListCardSkeleton, PageHeaderSkeleton, FilterBarSkeleton, FormSkeleton } from "@/components/admin/shared/Skeletons";
+import { TabErrorBoundary } from "@/components/admin/shared/TabErrorBoundary";
+import { TabPerfTracker } from "@/components/admin/shared/usePerfMark";
 
 // Lazy-load alle tabs så hver fane først downloades når brugeren rent faktisk
 // åbner den. Det matcher mønstret i virksomhedspanelet (Admin.tsx) og holder
@@ -57,6 +59,60 @@ const prefetchTab = (key: string) => {
   if (prefetched.has(key)) return;
   prefetched.add(key);
   TAB_PREFETCH[key]?.().catch(() => prefetched.delete(key));
+};
+
+/** Per-tab loading-skeletons så hver fane viser et matchende layout. */
+const PlatformTabFallback = ({ tab }: { tab: string }) => {
+  switch (tab) {
+    case "overview":
+      return (
+        <div className="space-y-4 animate-fade-in">
+          <PageHeaderSkeleton withAction={false} />
+          <StatGridSkeleton count={4} />
+          <div className="grid gap-4 lg:grid-cols-2">
+            <ChartSkeleton height={220} />
+            <ChartSkeleton height={220} />
+          </div>
+        </div>
+      );
+    case "businesses":
+    case "users":
+    case "orders":
+    case "subscriptions":
+      return <PageSkeleton statsCount={4} rows={6} withFilters />;
+    case "reviews":
+      return (
+        <div className="space-y-4 animate-fade-in">
+          <PageHeaderSkeleton withAction={false} />
+          <StatGridSkeleton count={3} cols="sm:grid-cols-3" />
+          <FilterBarSkeleton chips={1} withAction={false} />
+          <ListCardSkeleton rows={5} />
+        </div>
+      );
+    case "livechat":
+      return (
+        <div className="grid h-[calc(100vh-180px)] gap-4 lg:grid-cols-[320px_1fr] animate-fade-in">
+          <ListCardSkeleton rows={6} />
+          <ListCardSkeleton rows={8} />
+        </div>
+      );
+    case "domains":
+      return (
+        <div className="space-y-4 animate-fade-in">
+          <PageHeaderSkeleton />
+          <ListCardSkeleton rows={4} />
+        </div>
+      );
+    case "settings":
+      return (
+        <div className="space-y-4 animate-fade-in">
+          <PageHeaderSkeleton />
+          <FormSkeleton fields={6} />
+        </div>
+      );
+    default:
+      return <PageSkeleton statsCount={4} rows={6} withFilters />;
+  }
 };
 
 const PlatformAdmin = () => {
@@ -190,17 +246,20 @@ const PlatformAdmin = () => {
             {/* PageTransition fader nyt indhold ind når tab skifter,
                 Suspense viser ensartet skeleton-loading på første åbning. */}
             <PageTransition transitionKey={tab}>
-              <Suspense fallback={<PageSkeleton statsCount={4} rows={6} withFilters />}>
-                {tab === "overview" && <PlatformOverviewTab />}
-                {tab === "businesses" && <PlatformBusinessesTab />}
-                {tab === "users" && <PlatformUsersTab />}
-                {tab === "orders" && <PlatformOrdersTab />}
-                {tab === "subscriptions" && <PlatformSubscriptionsTab />}
-                {tab === "reviews" && <PlatformReviewsTab />}
-                {tab === "livechat" && <PlatformLiveChatTab />}
-                {tab === "domains" && <PlatformDomainsTab />}
-                {tab === "settings" && <PlatformSettingsTab />}
-              </Suspense>
+              <TabErrorBoundary resetKey={tab} label={current?.label}>
+                <Suspense fallback={<PlatformTabFallback tab={tab} />}>
+                  <TabPerfTracker tab={`platform:${tab}`} />
+                  {tab === "overview" && <PlatformOverviewTab />}
+                  {tab === "businesses" && <PlatformBusinessesTab />}
+                  {tab === "users" && <PlatformUsersTab />}
+                  {tab === "orders" && <PlatformOrdersTab />}
+                  {tab === "subscriptions" && <PlatformSubscriptionsTab />}
+                  {tab === "reviews" && <PlatformReviewsTab />}
+                  {tab === "livechat" && <PlatformLiveChatTab />}
+                  {tab === "domains" && <PlatformDomainsTab />}
+                  {tab === "settings" && <PlatformSettingsTab />}
+                </Suspense>
+              </TabErrorBoundary>
             </PageTransition>
           </main>
         </div>
