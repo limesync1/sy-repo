@@ -23,9 +23,45 @@ import ResetPassword from "./pages/ResetPassword";
 // at føles instant uden at trække alt med ned i den initielle bundle.
 import { registerLazyRoute } from "@/lib/route-prefetch";
 
+// Wrap dynamic imports so we recover gracefully when a deploy invalidates the
+// chunk hash the user's cached index.js refers to ("Failed to fetch
+// dynamically imported module"). We retry once, then force a single hard
+// reload so the browser fetches the fresh manifest.
+const RELOAD_FLAG = "__lovable_chunk_reloaded__";
+const isChunkLoadError = (err: any) => {
+  const msg = String(err?.message || err || "");
+  return (
+    msg.includes("Failed to fetch dynamically imported module") ||
+    msg.includes("error loading dynamically imported module") ||
+    msg.includes("Importing a module script failed")
+  );
+};
+const retryImport = <T,>(loader: () => Promise<T>): Promise<T> =>
+  loader().catch((err) => {
+    if (!isChunkLoadError(err)) throw err;
+    // One in-memory retry first (covers transient network blips)
+    return new Promise<T>((resolve, reject) => {
+      setTimeout(() => {
+        loader().then(resolve).catch((err2) => {
+          if (!isChunkLoadError(err2)) return reject(err2);
+          // Stale deploy — reload once to pick up the new manifest
+          try {
+            if (typeof window !== "undefined" && !sessionStorage.getItem(RELOAD_FLAG)) {
+              sessionStorage.setItem(RELOAD_FLAG, "1");
+              window.location.reload();
+              return;
+            }
+          } catch {}
+          reject(err2);
+        });
+      }, 400);
+    });
+  });
+
 const lazyRoute = <T,>(key: string, loader: () => Promise<T>) => {
-  registerLazyRoute(key, loader as any);
-  return lazy(loader as any);
+  const safeLoader = () => retryImport(loader);
+  registerLazyRoute(key, safeLoader as any);
+  return lazy(safeLoader as any);
 };
 
 const CartSheet              = lazyRoute("cart-sheet", () => import("@/components/business/CartSheet"));
