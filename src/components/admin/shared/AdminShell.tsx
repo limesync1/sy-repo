@@ -198,24 +198,25 @@ export const AdminShell = ({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { data: plan } = useBusinessPlan(business.id);
 
-  // Idle-prefetch — varm de mest brugte faner op i baggrunden så snart
-  // browseren har et roligt øjeblik. Det betyder at det første klik på
-  // fx "Aftaler" eller "Kunder" føles instant uden Suspense-skeleton.
+  // Idle-prefetch — kun den AKTUELLE fanes nabo-faner (dashboard + orders) i
+  // stedet for alle 8. Tidligere prefetch af AftaleTab (122KB) + SettingsTab
+  // (110KB) trak ~250KB ned ved hver mount og blokerede main-thread. Resten
+  // hentes on-hover via AnimatedNavItem's onPrefetch.
   useEffect(() => {
-    const keys: AdminTabKey[] = [
-      "dashboard", "services", "orders", "customers",
-      "employees", "reviews", "settings",
-    ];
+    const neighbours: AdminTabKey[] =
+      activeTab === "dashboard" ? ["orders", "customers"]
+      : activeTab === "orders" ? ["dashboard", "customers"]
+      : ["dashboard", "orders"];
     const ric = (window as any).requestIdleCallback as
       | ((cb: () => void, opts?: { timeout: number }) => number)
       | undefined;
-    const trigger = () => keys.forEach((k) => prefetchTab(k));
-    const id = ric ? ric(trigger, { timeout: 2500 }) : window.setTimeout(trigger, 1800);
+    const trigger = () => neighbours.forEach((k) => prefetchTab(k));
+    const id = ric ? ric(trigger, { timeout: 3000 }) : window.setTimeout(trigger, 2500);
     return () => {
       if (ric && (window as any).cancelIdleCallback) (window as any).cancelIdleCallback(id);
       else window.clearTimeout(id as number);
     };
-  }, []);
+  }, [activeTab]);
 
   const routePlanningEnabled = !!(business.settings as any)?.route_planning_enabled;
   const leadsEnabled = !!(business.settings as any)?.leads_enabled;

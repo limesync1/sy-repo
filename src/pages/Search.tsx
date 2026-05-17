@@ -21,7 +21,9 @@ import {
   Phone,
   ArrowRight,
 } from "lucide-react";
-import ResultsMap from "@/components/search/ResultsMap";
+import { lazy, Suspense } from "react";
+// Mapbox er tung (~120KB gzipped) — load kun når brugeren faktisk skifter til kort-view.
+const ResultsMap = lazy(() => import("@/components/search/ResultsMap"));
 import SiteNav from "@/components/SiteNav";
 import PageHero from "@/components/landing/PageHero";
 import Footer from "@/components/landing/Footer";
@@ -408,13 +410,15 @@ const SearchPage = () => {
           <CardGridSkeleton count={8} />
         ) : rankedBusinesses && rankedBusinesses.length > 0 ? (
           view === "map" ? (
-            <ResultsMap
-              businesses={rankedBusinesses}
-              userPoint={userPoint}
-              radiusKm={radiusKm}
-              highlightedId={highlightedId}
-              onMarkerHover={setHighlightedId}
-            />
+            <Suspense fallback={<CardGridSkeleton count={4} />}>
+              <ResultsMap
+                businesses={rankedBusinesses}
+                userPoint={userPoint}
+                radiusKm={radiusKm}
+                highlightedId={highlightedId}
+                onMarkerHover={setHighlightedId}
+              />
+            </Suspense>
           ) : (
             <div className="grid gap-x-5 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {rankedBusinesses.map((biz: any, i: number) => (
