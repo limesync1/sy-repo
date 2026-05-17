@@ -20,7 +20,7 @@ import { useBusinessPlan } from "@/hooks/useBusinessPlan";
 
 export type AdminTabKey =
   | "dashboard" | "services" | "orders" | "customers"
-  | "routes" | "employees" | "reviews" | "leads" | "livechat" | "accounting" | "dataimport" | "settings";
+  | "routes" | "employees" | "reviews" | "leads" | "livechat" | "accounting" | "settings";
 
 /**
  * Animeret sidebar-item: collapser stille ind/ud når en feature toggles
@@ -128,7 +128,6 @@ const TAB_PREFETCH: Partial<Record<AdminTabKey, () => Promise<unknown>>> = {
   routes:    () => import("@/pages/RoutePlanner"),
   accounting: () => import("@/components/admin/AccountingTab"),
 };
-TAB_PREFETCH.dataimport = () => import("@/components/admin/DataImportTab");
 const prefetched = new Set<AdminTabKey>();
 const prefetchTab = (key: AdminTabKey) => {
   if (prefetched.has(key)) return;
@@ -145,7 +144,6 @@ type NavItem = {
   requiresLeads?: boolean;
   requiresLivechat?: boolean;
   requiresAccounting?: boolean;
-  requiresDataImport?: boolean;
 };
 
 const NAV_ITEMS: NavItem[] = [
@@ -159,7 +157,6 @@ const NAV_ITEMS: NavItem[] = [
   { value: "reviews", label: "Anmeldelser", icon: Star },
   { value: "livechat", label: "Livechat", icon: MessageCircle, requiresLivechat: true },
   { value: "accounting", label: "Regnskab", icon: Calculator, requiresAccounting: true },
-  { value: "dataimport", label: "Dataimport", icon: Upload, requiresDataImport: true },
   { value: "settings", label: "Indstillinger", icon: Settings },
 ];
 
@@ -197,6 +194,7 @@ export const AdminShell = ({
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { data: plan } = useBusinessPlan(business.id);
+  void plan;
 
   // Idle-prefetch — kun den AKTUELLE fanes nabo-faner (dashboard + orders) i
   // stedet for alle 8. Tidligere prefetch af AftaleTab (122KB) + SettingsTab
@@ -222,13 +220,11 @@ export const AdminShell = ({
   const leadsEnabled = !!(business.settings as any)?.leads_enabled;
   const livechatEnabled = !!(business.settings as any)?.livechat_enabled;
   const accountingEnabled = !!(business.settings as any)?.accounting_integration_enabled;
-  const dataImportEnabled = !!plan?.data_import_requested;
   const visibleNav = NAV_ITEMS.filter((n) => {
     if (n.requiresRoutePlanning && !routePlanningEnabled) return false;
     if (n.requiresLeads && !leadsEnabled) return false;
     if (n.requiresLivechat && !livechatEnabled) return false;
     if (n.requiresAccounting && !accountingEnabled) return false;
-    if ((n as any).requiresDataImport && !dataImportEnabled) return false;
     return true;
   });
   const currentNav = visibleNav.find((n) => n.value === activeTab) ?? NAV_ITEMS.find((n) => n.value === activeTab);
@@ -316,8 +312,7 @@ export const AdminShell = ({
               !(item.requiresRoutePlanning && !routePlanningEnabled) &&
               !(item.requiresLeads && !leadsEnabled) &&
               !(item.requiresLivechat && !livechatEnabled) &&
-              !(item.requiresAccounting && !accountingEnabled) &&
-              !((item as any).requiresDataImport && !dataImportEnabled);
+              !(item.requiresAccounting && !accountingEnabled);
             return (
               <AnimatedNavItem
                 key={item.value}
