@@ -370,9 +370,16 @@ const AdminDashboard = () => {
 
 /* ─── Dashboard Wrapper ─── */
 const DashboardWrapper = ({ business, onNavigate }: { business: any; onNavigate: (tab: string) => void }) => {
-  const { data: orders } = useOrders(business.id);
-  const { data: services } = useServices(business.id);
-  const { data: reviews } = useReviews(business.id);
+  const { data: orders, isLoading: loadingOrders } = useOrders(business.id);
+  const { data: services, isLoading: loadingServices } = useServices(business.id);
+  const { data: reviews, isLoading: loadingReviews } = useReviews(business.id);
+
+  // Vis skeleton mens første hit på overblik henter data — ellers blinkede
+  // tomme tal (0 kr, 0 anmeldelser) frem i et splitsekund og blev så udskiftet
+  // med rigtige værdier, hvilket føltes som om siden loadede to gange.
+  if (loadingOrders || loadingServices || loadingReviews) {
+    return <TabFallback tab="dashboard" />;
+  }
 
   const revenue = orders?.reduce((sum, o) => sum + (o.total_amount || 0), 0) || 0;
   const pendingOrders = orders?.filter((o) => o.status === "pending").length || 0;
