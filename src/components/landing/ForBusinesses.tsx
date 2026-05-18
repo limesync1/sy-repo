@@ -36,7 +36,7 @@ const features = [
 
 const ForBusinesses = () => {
   return (
-    <section className="bg-background py-16 md:py-24">
+    <section className="bg-secondary py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-col gap-4 md:mb-10 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
