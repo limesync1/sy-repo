@@ -91,7 +91,7 @@ const stopIcon = (n: number, state: "next" | "done" | "future", color: string, h
 };
 
 /**
- * Serviceydere-stil navigation puck (teal accent).
+ * Serviceydere-stil navigation puck (blå accent).
  *
  * Vigtig detalje: vi opretter divIcon'et ÉN gang (stabil reference) — al
  * heading-rotation sker derefter via en CSS-transform på et indre element
@@ -778,7 +778,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const completedCount = sortedStops.filter((s) => s.status === "completed").length;
   const allDone = sortedStops.length > 0 && completedCount === sortedStops.length;
   const progress = sortedStops.length > 0 ? (completedCount / sortedStops.length) * 100 : 0;
-  // Brug Serviceydere accent (teal) som primær handlings-farve i kort-UI'et.
+  // Brug Serviceydere accent (dark-blue) som primær handlings-farve i kort-UI'et.
   // route.color beholdes til badges/rute-identifikation i kalenderen.
   const themeColor = "hsl(206 99% 30%)";
   const routeBadgeColor = route?.color || "hsl(206 99% 30%)";
