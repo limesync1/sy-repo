@@ -22,6 +22,7 @@ import {
   Clock, AlertTriangle, CheckCircle2, MessageSquare, FileText,
   Bell, Mail, Shield, KeyRound, Heart, Building2, MapPin, Trash2,
   FileSignature, Receipt, Download, History,
+  Camera, Loader2, Edit3, Save,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import SEO from "@/components/SEO";
@@ -115,7 +116,7 @@ const EmptyPanel = ({
 
 const CustomerDashboard = () => {
   const { user, loading } = useAuth();
-  const [tab, setTab] = useState<"orders" | "onetime" | "subscriptions" | "favorites" | "profile">("orders");
+  const [tab, setTab] = useState<"orders" | "onetime" | "subscriptions" | "favorites" | "reviews" | "profile">("orders");
   const { data: orders } = useMyOrders();
   const proposalCount = (orders || []).filter(
     (o: any) => o.business_response === "adjusted" && !o.customer_response,
@@ -136,6 +137,7 @@ const CustomerDashboard = () => {
     { key: "onetime", label: "Engangskøb", icon: Receipt },
     { key: "subscriptions", label: "Abonnementer", icon: Package },
     { key: "favorites", label: "Favoritter", icon: Heart },
+    { key: "reviews", label: "Anmeldelser", icon: Star },
     { key: "profile", label: "Min profil", icon: Settings },
   ];
 
@@ -144,6 +146,7 @@ const CustomerDashboard = () => {
     onetime: { title: "Engangskøb", description: "Dine bestillinger der kun udføres én gang — uden tilbagevendende interval." },
     subscriptions: { title: "Abonnementer", description: "Administrer dine tilbagevendende services." },
     favorites: { title: "Favoritter", description: "Hurtig adgang til de virksomheder du har gemt." },
+    reviews: { title: "Anmeldelser", description: "Anmeldelser du har skrevet — rediger eller slet dem her." },
     profile: { title: "Min profil", description: "Opdater dine kontaktoplysninger og notifikationer." },
   };
 
@@ -166,6 +169,7 @@ const CustomerDashboard = () => {
           {tab === "onetime" && <OrdersView mode="onetime" />}
           {tab === "subscriptions" && <SubscriptionsView />}
           {tab === "favorites" && <FavoritesView />}
+          {tab === "reviews" && <MyReviewsView />}
           {tab === "profile" && <ProfileView />}
         </div>
       </CustomerShell>
@@ -1348,9 +1352,10 @@ const ProfileView = () => {
   const updateProfile = useUpdateProfile();
   const [displayName, setDisplayName] = useState("");
   const [phone, setPhone] = useState("");
-  const [settingsTab, setSettingsTab] = useState<"profile" | "notifications" | "account">("profile");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [notifSettings, setNotifSettings] = useState<Record<string, boolean>>({
-    email_order_status: true,
+    email_agreement_status: true,
     email_proposal: true,
     email_subscription: true,
     email_upcoming_service: false,
@@ -1363,20 +1368,28 @@ const ProfileView = () => {
     if (!profile) return;
     setDisplayName(profile.display_name || "");
     setPhone(profile.phone || "");
+    setAvatarUrl((profile as any).avatar_url || null);
     const saved = (profile as any).notification_settings as Record<string, boolean> | null;
     if (saved && typeof saved === "object") {
-      setNotifSettings(prev => ({ ...prev, ...saved }));
+      // Backwards-compat: gammelt nøgle email_order_status → email_agreement_status
+      const migrated = { ...saved };
+      if ("email_order_status" in migrated && !("email_agreement_status" in migrated)) {
+        migrated.email_agreement_status = migrated.email_order_status;
+        delete migrated.email_order_status;
+      }
+      setNotifSettings(prev => ({ ...prev, ...migrated }));
     }
   }, [profile]);
 
   if (isLoading) return <Skeleton className="h-40 rounded-2xl" />;
 
-  const handleSave = () => {
+  const handleSave = (extra?: Partial<{ avatar_url: string | null }>) => {
     if (!user) return;
     updateProfile.mutate({
       userId: user.id,
       display_name: displayName.trim() || null,
       phone: phone.trim() || null,
+      avatar_url: extra?.avatar_url !== undefined ? extra.avatar_url : avatarUrl,
       notification_settings: notifSettings,
     } as any, {
       onSuccess: () => toast.success("Indstillinger gemt!"),
@@ -1384,204 +1397,370 @@ const ProfileView = () => {
     });
   };
 
-  const settingsTabs = [
-    { key: "profile" as const, label: "Profil", icon: User },
-    { key: "notifications" as const, label: "Notifikationer", icon: Bell },
-    { key: "account" as const, label: "Konto", icon: Shield },
-  ];
-
   const NOTIF_OPTIONS = [
-    { key: "email_order_status", label: "Ordrestatus", desc: "Få besked når din ordre ændrer status (godkendt, i gang, udført)", icon: ShoppingCart },
+    { key: "email_agreement_status", label: "Aftale-status", desc: "Få besked når din aftale ændrer status (godkendt, i gang, udført)", icon: ShoppingCart },
     { key: "email_proposal", label: "Forslag fra virksomheder", desc: "Få besked når en virksomhed sender et tilpasset prisforslag", icon: MessageSquare },
     { key: "email_subscription", label: "Abonnementsændringer", desc: "Bekræftelse når du ændrer, pauser eller opsiger et abonnement", icon: Package },
     { key: "email_upcoming_service", label: "Kommende services", desc: "Påmindelse inden en planlagt service skal udføres", icon: CalendarClock },
     { key: "email_marketing", label: "Nyheder & tilbud", desc: "Hold dig opdateret med nyheder, tips og tilbud fra Serviceydere", icon: Mail },
   ];
 
+  // Upload avatar: gemmes i `avatars/{user.id}/{filename}` (storage RLS
+  // tjekker første path-segment = auth.uid()). Gemmes med det samme på
+  // profilen så vi viser det med det samme uden at brugeren skal trykke "Gem".
+  const handleAvatarUpload = async (file: File) => {
+    if (!user) return;
+    if (file.size > 4 * 1024 * 1024) {
+      toast.error("Billede må maks. være 4 MB");
+      return;
+    }
+    setUploadingAvatar(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, {
+        contentType: file.type,
+        upsert: true,
+      });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+      const newUrl = pub.publicUrl;
+      setAvatarUrl(newUrl);
+      // Gem direkte så det også opdaterer fremtidige anmeldelser
+      handleSave({ avatar_url: newUrl });
+    } catch (e: any) {
+      toast.error(e.message || "Kunne ikke uploade billede");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const handleAvatarRemove = () => {
+    setAvatarUrl(null);
+    handleSave({ avatar_url: null });
+  };
+
+  const initial = (displayName || user?.email || "?").trim().charAt(0).toUpperCase();
+
   return (
-    <div className="space-y-6">
-      {/* Settings tabs */}
-      <div className="flex gap-2 border-b border-border overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-        {settingsTabs.map(({ key, label, icon: Icon }) => (
-          <button key={key} onClick={() => setSettingsTab(key)}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap border-b-2 -mb-px ${
-              settingsTab === key
-                ? "text-foreground border-foreground"
-                : "text-muted-foreground border-transparent hover:text-foreground hover:border-border"
-            }`}>
-            <Icon className="h-4 w-4" />
-            {label}
-          </button>
-        ))}
-      </div>
+    <div className="max-w-3xl space-y-6">
+      {/* ─── Profil-card med avatar + felter ─── */}
+      <Card className="rounded-2xl border-border shadow-sm">
+        <CardContent className="p-6 sm:p-7 space-y-6">
+          <div className="flex items-center gap-2">
+            <User className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Profilindstillinger</h3>
+          </div>
 
-      {/* Profile tab */}
-      {settingsTab === "profile" && (
-        <div className="max-w-2xl space-y-6">
-          <Card className="rounded-2xl border-border shadow-sm">
-            <CardContent className="p-6 sm:p-7 space-y-6">
-              {/* Identitet */}
-              <div className="flex flex-wrap items-center gap-4">
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-foreground text-background text-xl font-bold shadow-sm">
-                  {(displayName || user?.email || "?").trim().charAt(0).toUpperCase()}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-lg font-semibold text-foreground truncate">
-                    {displayName.trim() || user?.email?.split("@")[0] || "Bruger"}
-                  </h3>
-                  <p className="text-sm text-muted-foreground truncate">{user?.email}</p>
-                </div>
+          {/* Avatar + identitet */}
+          <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center">
+            <div className="relative">
+              <div className="h-24 w-24 overflow-hidden rounded-full border-2 border-border bg-secondary shadow-sm">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Profilbillede" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-foreground text-3xl font-bold text-background">
+                    {initial}
+                  </div>
+                )}
               </div>
+              <label
+                htmlFor="avatar-upload"
+                className="absolute -bottom-1 -right-1 inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-foreground text-background shadow-md transition hover:bg-foreground/90"
+                title="Skift profilbillede"
+              >
+                {uploadingAvatar ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+                <input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="sr-only"
+                  disabled={uploadingAvatar}
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAvatarUpload(f); e.currentTarget.value = ""; }}
+                />
+              </label>
+            </div>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-xl font-semibold text-foreground truncate">
+                {displayName.trim() || user?.email?.split("@")[0] || "Bruger"}
+              </h2>
+              <p className="text-sm text-muted-foreground truncate">{user?.email}</p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Dit billede vises også i anmeldelser, du skriver.
+              </p>
+              {avatarUrl && (
+                <button onClick={handleAvatarRemove} type="button" className="mt-2 text-xs text-destructive underline-offset-2 hover:underline">
+                  Fjern billede
+                </button>
+              )}
+            </div>
+          </div>
 
-              <Separator />
+          <Separator />
 
-              {/* Felter */}
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="sm:col-span-2">
-                  <label htmlFor="profile-displayname" className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Visningsnavn
-                  </label>
-                  <Input
-                    id="profile-displayname"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="Fx Anna Hansen"
-                    className="bg-card"
-                    autoComplete="name"
-                  />
-                  <p className="mt-1.5 text-xs text-muted-foreground">
-                    Vises når du sender beskeder eller skriver anmeldelser.
+          {/* Felter */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <label htmlFor="profile-displayname" className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                Visningsnavn
+              </label>
+              <Input
+                id="profile-displayname"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Fx Anna Hansen"
+                className="bg-card"
+                autoComplete="name"
+              />
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                Vises når du sender beskeder eller skriver anmeldelser.
+              </p>
+            </div>
+            <div>
+              <label htmlFor="profile-phone" className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                Telefon
+              </label>
+              <Input
+                id="profile-phone"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="12 34 56 78"
+                className="bg-card"
+                type="tel"
+                autoComplete="tel"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                Email
+              </label>
+              <Input value={user?.email || ""} readOnly disabled className="bg-secondary/40 cursor-not-allowed" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ─── Notifikationer ─── */}
+      <Card className="rounded-2xl border-border shadow-sm">
+        <CardContent className="p-6 sm:p-7 space-y-5">
+          <div className="flex items-center gap-2">
+            <Bell className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Email-notifikationer</h3>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Vælg hvilke emails du vil modtage fra Serviceydere. Indstillinger gemmes når du trykker "Gem".
+          </p>
+          <div className="space-y-3">
+            {NOTIF_OPTIONS.map(({ key, label, desc, icon: Icon }) => (
+              <div key={key} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-card p-3.5">
+                <div className="flex gap-3">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary mt-0.5">
+                    <Icon className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{label}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setNotifSettings(prev => ({ ...prev, [key]: !prev[key] }))}
+                  aria-pressed={!!notifSettings[key]}
+                  className={`relative mt-1 inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors ${
+                    notifSettings[key] ? "bg-accent" : "bg-border"
+                  }`}>
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-background shadow-sm transition-transform mt-0.5 ${
+                    notifSettings[key] ? "translate-x-4 ml-0.5" : "translate-x-0.5"
+                  }`} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ─── Kontooplysninger ─── */}
+      <Card className="rounded-2xl border-border shadow-sm">
+        <CardContent className="p-6 sm:p-7 space-y-5">
+          <div className="flex items-center gap-2">
+            <Shield className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Kontooplysninger</h3>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-xl border border-border bg-card p-4">
+              <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Email</label>
+              <p className="mt-1 text-sm font-medium text-foreground truncate">{user?.email}</p>
+              <p className="mt-1 text-xs text-muted-foreground">Bruges til login og kommunikation.</p>
+            </div>
+            <div className="rounded-xl border border-border bg-card p-4">
+              <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Adgangskode</label>
+              <p className="mt-1 text-xs text-muted-foreground">Nulstil din kode via email.</p>
+              <Button variant="outline" size="sm" className="mt-2 rounded-xl text-xs"
+                onClick={async () => {
+                  if (!user?.email) return;
+                  const { error } = await supabase.auth.resetPasswordForEmail(user.email);
+                  if (error) toast.error(error.message);
+                  else toast.success("Vi har sendt dig en email til at nulstille din adgangskode.");
+                }}>
+                <KeyRound className="h-3.5 w-3.5 mr-1.5" /> Nulstil adgangskode
+              </Button>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4">
+            <h4 className="text-sm font-semibold text-destructive">Farezone</h4>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Når du logger ud, kan du altid logge ind igen med din email og adgangskode.
+            </p>
+            <Button variant="outline" size="sm" onClick={signOut}
+              className="mt-3 rounded-xl text-xs text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/30">
+              <LogOut className="h-3.5 w-3.5 mr-1.5" /> Log ud
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Sticky gem-knap */}
+      <div className="sticky bottom-4 z-10 flex justify-end">
+        <Button onClick={() => handleSave()} disabled={updateProfile.isPending}
+          className="gap-1.5 rounded-xl bg-foreground px-6 text-background shadow-lg hover:bg-foreground/90">
+          <Save className="h-4 w-4" />
+          {updateProfile.isPending ? "Gemmer..." : "Gem ændringer"}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+/* ════════════════════════════════════════════════ */
+/*  My Reviews View — list/edit/delete own reviews  */
+/* ════════════════════════════════════════════════ */
+const MyReviewsView = () => {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const [reviews, setReviews] = useState<any[] | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editRating, setEditRating] = useState(5);
+  const [editComment, setEditComment] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    let active = true;
+    (async () => {
+      const { data, error } = await supabase
+        .from("reviews")
+        .select("*, businesses:business_id(name, slug, logo_url)")
+        .eq("customer_id", user.id)
+        .order("created_at", { ascending: false });
+      if (active) setReviews(error ? [] : (data || []));
+    })();
+    return () => { active = false; };
+  }, [user?.id]);
+
+  if (reviews === null) {
+    return <div className="grid gap-3 sm:grid-cols-2">{[1,2].map(i => <Skeleton key={i} className="h-32 rounded-2xl" />)}</div>;
+  }
+
+  if (reviews.length === 0) {
+    return (
+      <EmptyPanel
+        icon={<Star className="h-7 w-7" />}
+        title="Du har ikke skrevet anmeldelser endnu"
+        description="Når du har brugt en service, kan du dele din oplevelse — det hjælper både virksomheden og andre kunder."
+        primary={{ to: "/virksomheder", label: "Find virksomheder", icon: <Store className="h-4 w-4" /> }}
+      />
+    );
+  }
+
+  const startEdit = (r: any) => {
+    setEditingId(r.id);
+    setEditRating(r.rating);
+    setEditComment(r.comment || "");
+  };
+
+  const saveEdit = async (id: string) => {
+    setSaving(true);
+    const { error } = await supabase.from("reviews").update({
+      rating: editRating,
+      comment: editComment.trim() || null,
+    }).eq("id", id);
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    setReviews(prev => prev?.map(r => r.id === id ? { ...r, rating: editRating, comment: editComment.trim() || null } : r) || null);
+    setEditingId(null);
+    qc.invalidateQueries({ queryKey: ["reviews"] });
+    toast.success("Anmeldelse opdateret");
+  };
+
+  const deleteReview = async (id: string) => {
+    if (!confirm("Slet denne anmeldelse?")) return;
+    const { error } = await supabase.from("reviews").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    setReviews(prev => prev?.filter(r => r.id !== id) || null);
+    qc.invalidateQueries({ queryKey: ["reviews"] });
+    toast.success("Anmeldelse slettet");
+  };
+
+  return (
+    <div className="space-y-4">
+      {reviews.map((r) => {
+        const biz = r.businesses || {};
+        const isEditing = editingId === r.id;
+        return (
+          <Card key={r.id} className="rounded-2xl border-border">
+            <CardContent className="p-5 space-y-3">
+              <div className="flex items-start gap-3">
+                {biz.logo_url ? (
+                  <img src={biz.logo_url} alt="" className="h-10 w-10 rounded-xl border border-border bg-card object-contain p-0.5" />
+                ) : (
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary"><Store className="h-5 w-5 text-muted-foreground" /></div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <Link to={biz.slug ? `/b/${biz.slug}` : "#"} className="text-sm font-semibold text-foreground hover:underline">
+                    {biz.name || "Virksomhed"}
+                  </Link>
+                  <p className="text-[11px] text-muted-foreground">
+                    {new Date(r.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
                   </p>
                 </div>
-                <div>
-                  <label htmlFor="profile-phone" className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Telefon
-                  </label>
-                  <Input
-                    id="profile-phone"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="12 34 56 78"
-                    className="bg-card"
-                    type="tel"
-                    autoComplete="tel"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Email
-                  </label>
-                  <Input
-                    value={user?.email || ""}
-                    readOnly
-                    disabled
-                    className="bg-secondary/40 cursor-not-allowed"
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center justify-end gap-2 pt-2">
-                <Button onClick={handleSave} disabled={updateProfile.isPending}
-                  className="rounded-xl bg-foreground px-6 text-background hover:bg-foreground/90">
-                  {updateProfile.isPending ? "Gemmer..." : "Gem ændringer"}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Notifications tab */}
-      {settingsTab === "notifications" && (
-        <div className="max-w-lg space-y-6">
-          <Card className="rounded-2xl border-border shadow-sm">
-            <CardContent className="p-6 space-y-5">
-              <div>
-                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  Email-notifikationer
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1">Vælg hvilke emails du vil modtage fra Serviceydere.</p>
-              </div>
-              <div className="space-y-3">
-                {NOTIF_OPTIONS.map(({ key, label, desc, icon: Icon }) => (
-                  <div key={key} className="flex items-start justify-between gap-4 rounded-xl border border-border bg-card p-3.5">
-                    <div className="flex gap-3">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary mt-0.5">
-                        <Icon className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{label}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setNotifSettings(prev => ({ ...prev, [key]: !prev[key] }))}
-                      className={`relative mt-1 inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors ${
-                        notifSettings[key] ? "bg-accent" : "bg-border"
-                      }`}>
-                      <span className={`inline-block h-4 w-4 transform rounded-full bg-background shadow-sm transition-transform mt-0.5 ${
-                        notifSettings[key] ? "translate-x-4 ml-0.5" : "translate-x-0.5"
-                      }`} />
-                    </button>
+                {!isEditing && (
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => startEdit(r)} aria-label="Rediger"><Edit3 className="h-3.5 w-3.5" /></Button>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive hover:text-destructive" onClick={() => deleteReview(r.id)} aria-label="Slet"><Trash2 className="h-3.5 w-3.5" /></Button>
                   </div>
-                ))}
+                )}
               </div>
-              <Button onClick={handleSave} disabled={updateProfile.isPending}
-                className="w-full rounded-xl bg-foreground text-background hover:bg-foreground/90">
-                {updateProfile.isPending ? "Gemmer..." : "Gem notifikationsindstillinger"}
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      )}
 
-      {/* Account tab */}
-      {settingsTab === "account" && (
-        <div className="max-w-lg space-y-6">
-          <Card className="rounded-2xl border-border shadow-sm">
-            <CardContent className="p-6 space-y-5">
-              <div>
-                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <KeyRound className="h-4 w-4 text-muted-foreground" />
-                  Kontooplysninger
-                </h3>
-              </div>
-              <div className="space-y-4">
-                <div className="rounded-xl border border-border bg-card p-4 space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</label>
-                  <p className="text-sm font-medium text-foreground">{user?.email}</p>
-                  <p className="text-xs text-muted-foreground">Din email bruges til login og kommunikation.</p>
+              {isEditing ? (
+                <div className="space-y-3">
+                  <div className="flex gap-1">
+                    {[1,2,3,4,5].map(i => (
+                      <button key={i} type="button" onClick={() => setEditRating(i)} className="transition-transform hover:scale-110">
+                        <Star className={`h-6 w-6 ${i <= editRating ? "fill-accent text-accent" : "text-border"}`} />
+                      </button>
+                    ))}
+                  </div>
+                  <Textarea value={editComment} onChange={(e) => setEditComment(e.target.value)} rows={3} className="bg-card" />
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={() => saveEdit(r.id)} disabled={saving} className="rounded-xl bg-accent text-accent-foreground hover:bg-accent/90">{saving ? "Gemmer…" : "Gem"}</Button>
+                    <Button size="sm" variant="outline" onClick={() => setEditingId(null)} className="rounded-xl">Annuller</Button>
+                  </div>
                 </div>
-                <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Adgangskode</label>
-                  <p className="text-xs text-muted-foreground">Du kan nulstille din adgangskode via email.</p>
-                  <Button variant="outline" size="sm" className="rounded-xl text-xs"
-                    onClick={async () => {
-                      if (!user?.email) return;
-                      const { error } = await supabase.auth.resetPasswordForEmail(user.email);
-                      if (error) toast.error(error.message);
-                      else toast.success("Vi har sendt dig en email til at nulstille din adgangskode.");
-                    }}>
-                    <KeyRound className="h-3.5 w-3.5 mr-1.5" /> Nulstil adgangskode
-                  </Button>
-                </div>
-              </div>
-              <Separator />
-              <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 space-y-3">
-                <h4 className="text-sm font-semibold text-destructive">Farezone</h4>
-                <p className="text-xs text-muted-foreground">
-                  Når du logger ud, kan du altid logge ind igen med din email og adgangskode.
-                </p>
-                <Button variant="outline" size="sm" onClick={signOut}
-                  className="rounded-xl text-xs text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/30">
-                  <LogOut className="h-3.5 w-3.5 mr-1.5" /> Log ud
-                </Button>
-              </div>
+              ) : (
+                <>
+                  <div className="flex gap-0.5">
+                    {[1,2,3,4,5].map(i => (
+                      <Star key={i} className={`h-4 w-4 ${i <= r.rating ? "fill-accent text-accent" : "text-border"}`} />
+                    ))}
+                  </div>
+                  {r.comment && <p className="text-sm text-foreground/85 leading-relaxed">{r.comment}</p>}
+                </>
+              )}
             </CardContent>
           </Card>
-        </div>
-      )}
+        );
+      })}
     </div>
   );
 };
