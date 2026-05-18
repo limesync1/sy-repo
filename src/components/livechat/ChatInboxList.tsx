@@ -10,7 +10,7 @@ type Props = {
 
 const ChatAvatar = ({ chat }: { chat: RegisteredChat }) => {
   if (chat.scope === "platform") {
-    return <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-9 w-9 rounded-full object-cover" />;
+    return <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-11 w-11 rounded-full object-cover" />;
   }
 
   return (

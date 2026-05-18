@@ -206,7 +206,7 @@ const Auth = () => {
             <img
               src="/serviceydere-logo.webp"
               alt="Serviceydere"
-              className="h-8 w-auto"
+              className="h-11 w-auto"
               width={1920}
               height={539}
               decoding="async"
@@ -269,7 +269,7 @@ const Auth = () => {
               <img
                 src="/serviceydere-logo-dark.webp"
                 alt="Serviceydere"
-                className="h-6 w-auto"
+                className="h-9 w-auto"
                 width={1920}
                 height={539}
                 decoding="async"

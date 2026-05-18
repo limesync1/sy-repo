@@ -263,7 +263,7 @@ export const AdminShell = ({
             <img
               src="/serviceydere-logo-dark.webp"
               alt="Serviceydere"
-              className="h-7 w-auto"
+              className="h-10 w-auto"
               width={1920}
               height={539}
               decoding="async"
@@ -371,7 +371,7 @@ export const AdminShell = ({
                   src="/serviceydere-ikon.webp"
                   alt=""
                   aria-hidden="true"
-                  className="h-5 w-5 rounded-full object-cover"
+                  className="h-7 w-7 rounded-full object-cover"
                 />
                 <span className="absolute -right-0.5 -top-0.5 flex h-2 w-2">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70 opacity-75"></span>

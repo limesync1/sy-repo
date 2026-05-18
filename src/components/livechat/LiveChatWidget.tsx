@@ -634,7 +634,7 @@ const LiveChatWidget = () => {
               src="/serviceydere-ikon.webp"
               alt=""
               aria-hidden="true"
-              className="h-5 w-5 rounded-full object-cover"
+              className="h-7 w-7 rounded-full object-cover"
             />
             <span className="absolute -right-0.5 -top-0.5 flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70 opacity-75"></span>
@@ -670,7 +670,7 @@ const LiveChatWidget = () => {
                     <img
                       src="/serviceydere-ikon.webp"
                       alt="Serviceydere"
-                      className="h-10 w-10 rounded-full object-cover"
+                      className="h-12 w-12 rounded-full object-cover"
                     />
                     <span className={`absolute -bottom-0.5 -right-0.5 z-10 flex h-3 w-3 items-center justify-center rounded-full ring-2 ring-foreground ${closed ? "bg-muted-foreground" : "bg-success"}`}>
                       {!closed && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-background" />}
@@ -884,7 +884,7 @@ const LiveChatWidget = () => {
                         {!mine && (
                           <div className="w-7 flex-shrink-0">
                             {showAvatar && (
-                              <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-7 w-7 rounded-full object-cover" />
+                              <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-9 w-9 rounded-full object-cover" />
                             )}
                           </div>
                         )}
