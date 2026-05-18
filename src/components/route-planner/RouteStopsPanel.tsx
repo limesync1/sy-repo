@@ -3,6 +3,7 @@
 // Vises ved siden af RouteEditSheet.
 
 import { useEffect, useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
 } from "@/components/ui/sheet";
@@ -123,20 +124,30 @@ export const RouteStopsPanel = ({
     setConfirmDelete(null);
   };
 
+  // På mobil/tablet (< lg) viser vi panelet som en bunden modal sheet med
+  // overlay og close-knap — så brugeren altid kan lukke den. På desktop
+  // pinner vi det ved siden af RouteEditSheet (non-modal, ingen overlay).
+  const isMobile = useIsMobile();
+
   if (!route) return null;
 
   return (
     <>
-      <Sheet open={open} onOpenChange={onOpenChange} modal={false}>
+      <Sheet open={open} onOpenChange={onOpenChange} modal={isMobile}>
         <SheetContent
-          side="right"
-          className="w-full sm:max-w-sm flex flex-col p-0 sm:right-[28rem] shadow-xl"
-          hideOverlay
-          hideCloseButton
+          side={isMobile ? "bottom" : "right"}
+          className={cn(
+            "flex flex-col p-0 shadow-xl",
+            isMobile
+              ? "h-[85vh] max-h-[85vh] rounded-t-xl"
+              : "w-full sm:max-w-sm lg:right-[28rem]",
+          )}
+          hideOverlay={!isMobile}
+          hideCloseButton={!isMobile}
           // Vis ved siden af RouteEditSheet (som er sm:max-w-md ≈ 28rem bred)
           onOpenAutoFocus={(e) => e.preventDefault()}
-          onPointerDownOutside={(e) => e.preventDefault()}
-          onInteractOutside={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => { if (!isMobile) e.preventDefault(); }}
+          onInteractOutside={(e) => { if (!isMobile) e.preventDefault(); }}
         >
           <SheetHeader className="px-4 py-3 border-b shrink-0">
             <SheetTitle className="flex items-center gap-2 text-base">
