@@ -20,6 +20,7 @@ type Conversation = {
   unread_admin_count: number;
   user_id: string | null;
   created_at: string;
+  needs_human?: boolean;
 };
 
 type Message = {
@@ -136,6 +137,16 @@ const PlatformLiveChatTab = () => {
                 const old = prev.find((p) => p.id === c.id);
                 if (!old || c.unread_admin_count > old.unread_admin_count) {
                   if (c.id !== activeId) chatSounds.incoming();
+                  break;
+                }
+              }
+              // Sound: detect when an AI conversation just escalated to "needs human"
+              for (const c of data as Conversation[]) {
+                const old = prev.find((p) => p.id === c.id);
+                if (c.needs_human && (!old || !old.needs_human)) {
+                  chatSounds.incoming();
+                  // ekstra "ding" så det skiller sig ud fra almindelige beskeder
+                  setTimeout(() => chatSounds.incoming(), 220);
                   break;
                 }
               }
@@ -540,6 +551,11 @@ const PlatformLiveChatTab = () => {
                   <p className="mt-0.5 truncate text-[11.5px] text-muted-foreground">{c.subject || c.visitor_email}</p>
                   <div className="mt-1 flex items-center gap-1.5">
                     {c.user_id && <span className="rounded bg-success/10 px-1.5 py-0.5 text-[9px] font-medium text-success">Logget ind</span>}
+                    {c.needs_human && (
+                      <span className="rounded bg-accent px-1.5 py-0.5 text-[9px] font-bold text-accent-foreground">
+                        🙋 Vil tale med menneske
+                      </span>
+                    )}
                     {c.status === "closed" && (
                       <span className="flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-[9px] text-muted-foreground">
                         <CheckCircle2 className="h-2.5 w-2.5" /> Lukket

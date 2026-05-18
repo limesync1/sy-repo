@@ -448,6 +448,9 @@ const LiveChatWidget = () => {
       setSubject("");
       chatSounds.outgoing();
 
+      // Bed AI om at svare på den indledende besked.
+      supabase.functions.invoke("livechat-ai-reply", { body: { conversation_id: conv.id } }).catch(() => {});
+
       supabase.functions
         .invoke("send-transactional-email", {
           body: {
@@ -495,6 +498,11 @@ const LiveChatWidget = () => {
     if (!mErr) {
       if (override === undefined) { setDraft(""); clearPendingImage(); }
       chatSounds.outgoing();
+      // Bed AI om at svare (edge function springer over hvis samtalen allerede
+      // er eskaleret til menneske eller hører til en virksomhed).
+      supabase.functions
+        .invoke("livechat-ai-reply", { body: { conversation_id: conversation.id } })
+        .catch(() => {});
     }
   }, [conversation, sending, draft, pendingImage]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -696,7 +704,7 @@ const LiveChatWidget = () => {
                     <img
                       src="/serviceydere-ikon.webp"
                       alt="Serviceydere"
-                      className="h-12 w-12 rounded-full object-cover"
+                      className="h-11 w-11 object-contain"
                     />
                     <span className={`absolute -bottom-0.5 -right-0.5 z-10 flex h-3 w-3 items-center justify-center rounded-full ring-2 ring-foreground ${closed ? "bg-muted-foreground" : "bg-success"}`}>
                       {!closed && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-background" />}
@@ -705,7 +713,7 @@ const LiveChatWidget = () => {
                   <div className="min-w-0">
                     <p className="text-[15px] font-semibold leading-tight">Serviceydere support</p>
                     <p className="mt-0.5 text-[11px] text-background/65">
-                      {closed ? "Samtalen er afsluttet" : "Online · svar inden for få minutter"}
+                      {closed ? "Samtalen er afsluttet" : "Online · Vi svarer hurtigt"}
                     </p>
                   </div>
                 </div>
