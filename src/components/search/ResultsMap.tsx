@@ -41,7 +41,7 @@ const buildPin = (highlighted = false) =>
     className: "",
     html: `<div style="
       width: ${highlighted ? 34 : 28}px; height: ${highlighted ? 34 : 28}px;
-      background: ${highlighted ? "hsl(222 47% 11%)" : "hsl(184 90% 42%)"};
+      background: ${highlighted ? "hsl(222 47% 11%)" : "hsl(206 99% 30%)"};
       border: 3px solid white;
       border-radius: 50% 50% 50% 0;
       transform: rotate(-45deg);
@@ -60,7 +60,7 @@ const userIcon = L.divIcon({
     background: hsl(222 47% 11%);
     border: 3px solid white;
     border-radius: 50%;
-    box-shadow: 0 0 0 4px hsl(184 90% 42% / 0.25);
+    box-shadow: 0 0 0 4px hsl(206 99% 30% / 0.25);
   "></div>`,
   iconSize: [18, 18],
   iconAnchor: [9, 9],
@@ -89,7 +89,7 @@ const clusterIconCreator = (cluster: any) => {
     html: `<div style="
       display:flex;align-items:center;justify-content:center;
       width:${size}px;height:${size}px;
-      background: hsl(184 90% 42%);
+      background: hsl(206 99% 30%);
       color: white;
       border: 3px solid white;
       border-radius: 50%;
@@ -186,13 +186,13 @@ const ClusterLayer = ({
         : `<span style="font-size:11px;color:hsl(215 16% 47%);font-weight:500;">Ny på platformen</span>`;
 
       const distHtml = typeof b._distanceKm === "number"
-        ? `<span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:hsl(184 90% 30%);background:hsl(184 90% 42% / 0.1);padding:2px 8px;border-radius:999px;font-weight:600;">
+        ? `<span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:hsl(206 99% 22%);background:hsl(206 99% 30% / 0.1);padding:2px 8px;border-radius:999px;font-weight:600;">
              ${b._distanceKm < 1 ? "<1" : Math.round(b._distanceKm)} km væk
            </span>`
         : "";
 
       const catHtml = primaryCat
-        ? `<span style="display:inline-block;background:hsl(184 90% 42% / 0.1);color:hsl(184 90% 30%);padding:2px 8px;border-radius:6px;font-size:10px;font-weight:600;margin-right:4px;">${primaryCat}</span>`
+        ? `<span style="display:inline-block;background:hsl(206 99% 30% / 0.1);color:hsl(206 99% 22%);padding:2px 8px;border-radius:6px;font-size:10px;font-weight:600;margin-right:4px;">${primaryCat}</span>`
         : "";
 
       const phoneBtn = b.phone
@@ -332,8 +332,8 @@ const ResultsMap = ({ businesses, userPoint, radiusKm, highlightedId, onMarkerHo
             center={[userPoint.lat, userPoint.lng]}
             radius={radiusKm * 1000}
             pathOptions={{
-              color: "hsl(184 90% 42%)",
-              fillColor: "hsl(184 90% 42%)",
+              color: "hsl(206 99% 30%)",
+              fillColor: "hsl(206 99% 30%)",
               fillOpacity: 0.08,
               weight: 1.5,
             }}
