@@ -131,7 +131,7 @@ export const MonthWeekCalendar = ({
   return (
     <Card className="overflow-hidden flex flex-col h-full">
       {/* Weekday header */}
-      <div className="grid border-b bg-secondary/30 shrink-0" style={{ gridTemplateColumns: "48px repeat(7, 1fr)" }}>
+      <div className="grid border-b bg-secondary/30 shrink-0" style={{ gridTemplateColumns: "48px repeat(7, minmax(0, 1fr))" }}>
         <div className="border-r p-2 text-[10px] uppercase text-muted-foreground font-semibold flex items-center justify-center">
           Uge
         </div>
@@ -149,7 +149,7 @@ export const MonthWeekCalendar = ({
             <div
               key={wi}
               className="grid border-b last:border-b-0"
-              style={{ gridTemplateColumns: "48px repeat(7, 1fr)" }}
+              style={{ gridTemplateColumns: "48px repeat(7, minmax(0, 1fr))" }}
             >
               {/* Ugenummer */}
               <div className="border-r bg-secondary/20 flex items-start justify-center pt-2 text-xs font-bold text-muted-foreground tabular-nums">
