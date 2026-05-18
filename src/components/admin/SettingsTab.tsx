@@ -310,6 +310,8 @@ const SettingsTab = ({ business }: { business: any }) => {
   const removeCard = useRemovePaymentMethod();
   const updatePlan = useUpdateBusinessPlan();
   const { data: pricing } = usePlatformPricing();
+  const { data: employees = [] } = useEmployees(business.id);
+  const activeEmployeesCount = employees.filter((e: any) => e.is_active !== false).length;
 
   // Stripe Embedded Checkout-dialog samt loading-state for "Administrér kort".
   const [showCheckout, setShowCheckout] = useState(false);
