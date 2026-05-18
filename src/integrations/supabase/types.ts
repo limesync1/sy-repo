@@ -1104,6 +1104,7 @@ export type Database = {
           first_admin_reply_at: string | null
           id: string
           last_message_at: string
+          needs_human: boolean
           session_token: string
           status: string
           subject: string | null
@@ -1122,6 +1123,7 @@ export type Database = {
           first_admin_reply_at?: string | null
           id?: string
           last_message_at?: string
+          needs_human?: boolean
           session_token: string
           status?: string
           subject?: string | null
@@ -1140,6 +1142,7 @@ export type Database = {
           first_admin_reply_at?: string | null
           id?: string
           last_message_at?: string
+          needs_human?: boolean
           session_token?: string
           status?: string
           subject?: string | null
