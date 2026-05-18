@@ -2227,7 +2227,7 @@ const Planner = () => {
         contentPadding={false}
         contentClassName="flex flex-col overflow-hidden"
         topbarRight={
-          <div className="flex items-center gap-1.5 flex-wrap justify-end">
+          <div className="hidden md:flex items-center gap-1.5 flex-wrap justify-end">
             {/* Hurtig periode-statistik — gør det øjeblikkeligt klart hvor
                 meget arbejde der ligger i den viste måned/uge. */}
             {periodSummary.routeCount > 0 && (
@@ -2780,11 +2780,145 @@ const Planner = () => {
                 </ResizablePanelGroup>
               </div>
 
-              {/* Mobil/tablet (<lg): kalender fuld bredde + sheet-drawer
-                  for aftaler uden rute, så drag-and-drop og overblik virker
-                  uden at sidebar æder pladsen. */}
+              {/* Mobil/tablet (<lg): dedikeret toolbar + kalender fuld bredde.
+                  Handlingsknapper ligger samlet under dato-navigationen, så
+                  topbaren ikke bliver presset eller får knapper tilfældige steder. */}
               <div className="flex h-full flex-col gap-2 lg:hidden">
-                <div className="shrink-0">
+                <div className="shrink-0 space-y-2 rounded-lg border bg-card p-2 shadow-sm">
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-9 w-9 shrink-0"
+                      onClick={() =>
+                        setDate(format(view === "week" ? addWeeks(parseISO(date), -1) : addMonths(parseISO(date), -1), "yyyy-MM-dd"))
+                      }
+                      aria-label={view === "week" ? "Forrige uge" : "Forrige måned"}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <div className="min-w-0 flex-1 text-center">
+                      <p className="truncate text-sm font-semibold capitalize tabular-nums text-foreground">
+                        {view === "week"
+                          ? `Uge ${format(parseISO(date), "I", { locale: da })} · ${format(parseISO(date), "MMM yyyy", { locale: da })}`
+                          : format(parseISO(date), "MMMM yyyy", { locale: da })}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground tabular-nums">
+                        {periodSummary.routeCount} {periodSummary.routeCount === 1 ? "rute" : "ruter"} · {periodSummary.stopCount} stop
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-9 w-9 shrink-0"
+                      onClick={() =>
+                        setDate(format(view === "week" ? addWeeks(parseISO(date), 1) : addMonths(parseISO(date), 1), "yyyy-MM-dd"))
+                      }
+                      aria-label={view === "week" ? "Næste uge" : "Næste måned"}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-[1fr_auto_auto] items-center gap-1.5">
+                    <Tabs value={view} onValueChange={(v) => setView(v as any)}>
+                      <TabsList className="grid h-9 w-full grid-cols-2">
+                        <TabsTrigger value="month" className="h-7 text-xs">Måned</TabsTrigger>
+                        <TabsTrigger value="week" className="h-7 text-xs">Uge</TabsTrigger>
+                      </TabsList>
+                    </Tabs>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={filtersActive ? "default" : "outline"}
+                          size="icon"
+                          className="h-9 w-9 shrink-0"
+                          aria-label="Filtre"
+                        >
+                          <Filter className="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent align="end" className="w-[calc(100vw-1rem)] max-w-80 p-3 space-y-3">
+                        <div>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <Label className="text-xs font-semibold">Medarbejdere</Label>
+                            {filterAssigneeIds.length > 0 && (
+                              <button type="button" onClick={() => setFilterAssigneeIds([])} className="text-[10px] text-muted-foreground hover:text-foreground">
+                                Ryd
+                              </button>
+                            )}
+                          </div>
+                          <div className="max-h-48 overflow-y-auto space-y-1 rounded border p-1.5">
+                            {activeEmployees.length === 0 && <p className="text-[11px] text-muted-foreground px-1.5 py-1">Ingen medarbejdere</p>}
+                            {activeEmployees.map((emp: any) => {
+                              const checked = filterAssigneeIds.includes(emp.id);
+                              return (
+                                <label key={emp.id} className="flex items-center gap-2 px-1.5 py-1 rounded hover:bg-secondary cursor-pointer text-xs">
+                                  <Checkbox
+                                    checked={checked}
+                                    onCheckedChange={(v) =>
+                                      setFilterAssigneeIds((prev) =>
+                                        v ? [...prev, emp.id] : prev.filter((id) => id !== emp.id),
+                                      )
+                                    }
+                                  />
+                                  <span className="truncate">{emp.name}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <Label className="text-xs font-semibold">Status</Label>
+                            {filterStatuses.length > 0 && (
+                              <button type="button" onClick={() => setFilterStatuses([])} className="text-[10px] text-muted-foreground hover:text-foreground">
+                                Ryd
+                              </button>
+                            )}
+                          </div>
+                          <div className="space-y-1 rounded border p-1.5">
+                            {STATUS_OPTIONS.map((opt) => {
+                              const checked = filterStatuses.includes(opt.value);
+                              return (
+                                <label key={opt.value} className="flex items-center gap-2 px-1.5 py-1 rounded hover:bg-secondary cursor-pointer text-xs">
+                                  <Checkbox
+                                    checked={checked}
+                                    onCheckedChange={(v) =>
+                                      setFilterStatuses((prev) =>
+                                        v ? [...prev, opt.value] : prev.filter((s) => s !== opt.value),
+                                      )
+                                    }
+                                  />
+                                  <span>{opt.label}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        {filtersActive && (
+                          <Button variant="ghost" size="sm" className="w-full h-8 text-xs" onClick={() => { setFilterAssigneeIds([]); setFilterStatuses([]); }}>
+                            Nulstil alle filtre
+                          </Button>
+                        )}
+                      </PopoverContent>
+                    </Popover>
+                    <Button variant="outline" size="sm" className="h-9 px-3 text-xs" onClick={() => setDate(todayStr())}>
+                      I dag
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <Button className="h-9 gap-1.5 text-xs" onClick={() => setCreateOpen(true)}>
+                      <Plus className="h-4 w-4" />
+                      Opret rute
+                    </Button>
+                    <Button variant="outline" className="h-9 gap-1.5 text-xs" onClick={() => setCreateOrderOpen(true)}>
+                      <ShoppingBag className="h-4 w-4" />
+                      Bestilling
+                    </Button>
+                  </div>
+
                   <Sheet>
                     <SheetTrigger asChild>
                       <Button variant="outline" size="sm" className="h-9 w-full justify-between">
