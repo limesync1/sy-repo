@@ -792,13 +792,13 @@ const LiveChatWidget = () => {
             {!conversation ? (
               <div className="flex flex-1 flex-col gap-3.5 overflow-y-auto px-5 py-5">
                 {/* Pretty empty-state */}
-                <div className="rounded-2xl border border-border bg-gradient-to-br from-secondary/60 to-secondary/20 p-4">
+                <div className="rounded-2xl border border-border bg-secondary/45 p-4">
                   <div className="mb-2 flex items-center gap-2">
-                    <Sparkles className="h-3.5 w-3.5 text-accent" />
-                    <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Vi sidder klar</span>
+                    <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-5 w-5 object-contain" />
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Serviceydere support</span>
                   </div>
                   <p className="text-[13px] leading-relaxed text-foreground">
-                    👋 Hej! Vi hjælper med priser, bestilling og spørgsmål om Serviceydere. Vælg et emne — så kommer du hurtigt videre.
+                    👋 Hej! Vi hjælper med at finde serviceydere, indhente 3 tilbud og komme i gang som udbyder.
                   </p>
                 </div>
                 <div>
