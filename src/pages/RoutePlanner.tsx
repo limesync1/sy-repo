@@ -2252,12 +2252,15 @@ const Planner = () => {
       sensors={sensors}
       collisionDetection={pointerWithin}
       onDragStart={handleDragStart}
+      onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
       onDragCancel={() => {
         // ESC eller pointer-loss midt i drag tæller som klik-fejl.
         dragMetrics.end(false);
         setActiveDragId(null);
         setActiveDragData(null);
+        setActiveRouteDragPoint(null);
+        activeRouteDragOriginRef.current = null;
       }}
     >
       <AdminShell
@@ -3073,9 +3076,12 @@ const Planner = () => {
           )}
           {activeDragId && activeDragData?.type === "route" && (
             <div
-              className="rounded-md border-l-[3px] border bg-card px-2 py-1 shadow-xl w-[160px]"
+              className="rounded-md border-l-[3px] border bg-card px-2 py-1 shadow-xl w-[160px] pointer-events-none"
               style={{
-                transform: "rotate(-2deg)",
+                position: activeRouteDragPoint ? "fixed" : undefined,
+                left: activeRouteDragPoint?.x ?? undefined,
+                top: activeRouteDragPoint?.y ?? undefined,
+                transform: activeRouteDragPoint ? "translate(-50%, -50%) rotate(-2deg)" : "rotate(-2deg)",
                 borderLeftColor: activeDragData.route?.color || "hsl(var(--accent))",
               }}
             >
