@@ -2861,26 +2861,65 @@ const Planner = () => {
                         <TabsTrigger value="week" className="h-6 text-xs px-2">Uge</TabsTrigger>
                       </TabsList>
                     </Tabs>
-                    <Button
-                      variant={filtersActive ? "default" : "outline"}
-                      size="sm"
-                      className="h-8 gap-1.5 text-xs"
-                      onClick={() => {
-                        // Genbrug topbar-filterets popover ved at scrolle til toppen — simplest UX
-                        // er bare at åbne via samme popover-knap, men vi lader brugeren bruge filteret
-                        // i mobil-toolbaren under <lg. For lg/xl er filteret tilgængeligt via aftalepool-headeren.
-                      }}
-                      aria-label="Filtre"
-                      title="Filtre håndteres i aftalepoolen til venstre"
-                    >
-                      <Filter className="h-3.5 w-3.5" />
-                      Filtre
-                      {filtersActive && (
-                        <Badge variant="secondary" className="h-4 px-1 text-[10px] tabular-nums">
-                          {filterAssigneeIds.length + filterStatuses.length}
-                        </Badge>
-                      )}
-                    </Button>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant={filtersActive ? "default" : "outline"} size="sm" className="h-8 gap-1.5 text-xs">
+                          <Filter className="h-3.5 w-3.5" />
+                          Filtre
+                          {filtersActive && (
+                            <Badge variant="secondary" className="h-4 px-1 text-[10px] tabular-nums">
+                              {filterAssigneeIds.length + filterStatuses.length}
+                            </Badge>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent align="start" className="w-72 p-3 space-y-3">
+                        <div>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <Label className="text-xs font-semibold">Medarbejdere</Label>
+                            {filterAssigneeIds.length > 0 && (
+                              <button type="button" onClick={() => setFilterAssigneeIds([])} className="text-[10px] text-muted-foreground hover:text-foreground">Ryd</button>
+                            )}
+                          </div>
+                          <div className="max-h-48 overflow-y-auto space-y-1 rounded border p-1.5">
+                            {activeEmployees.length === 0 && <p className="text-[11px] text-muted-foreground px-1.5 py-1">Ingen medarbejdere</p>}
+                            {activeEmployees.map((emp: any) => {
+                              const checked = filterAssigneeIds.includes(emp.id);
+                              return (
+                                <label key={emp.id} className="flex items-center gap-2 px-1.5 py-1 rounded hover:bg-secondary cursor-pointer text-xs">
+                                  <Checkbox checked={checked} onCheckedChange={(v) => setFilterAssigneeIds((prev) => v ? [...prev, emp.id] : prev.filter((id) => id !== emp.id))} />
+                                  <span className="truncate">{emp.name}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <Label className="text-xs font-semibold">Status</Label>
+                            {filterStatuses.length > 0 && (
+                              <button type="button" onClick={() => setFilterStatuses([])} className="text-[10px] text-muted-foreground hover:text-foreground">Ryd</button>
+                            )}
+                          </div>
+                          <div className="space-y-1 rounded border p-1.5">
+                            {STATUS_OPTIONS.map((opt) => {
+                              const checked = filterStatuses.includes(opt.value);
+                              return (
+                                <label key={opt.value} className="flex items-center gap-2 px-1.5 py-1 rounded hover:bg-secondary cursor-pointer text-xs">
+                                  <Checkbox checked={checked} onCheckedChange={(v) => setFilterStatuses((prev) => v ? [...prev, opt.value] : prev.filter((s) => s !== opt.value))} />
+                                  <span>{opt.label}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        {filtersActive && (
+                          <Button variant="ghost" size="sm" className="w-full h-7 text-xs" onClick={() => { setFilterAssigneeIds([]); setFilterStatuses([]); }}>
+                            Nulstil alle filtre
+                          </Button>
+                        )}
+                      </PopoverContent>
+                    </Popover>
                     <div className="ml-auto flex items-center gap-1.5">
                       <Button data-tour="routes-create-button" size="sm" className="h-8 gap-1 text-xs" onClick={() => setCreateOpen(true)}>
                         <Plus className="h-3.5 w-3.5" /> Opret rute
