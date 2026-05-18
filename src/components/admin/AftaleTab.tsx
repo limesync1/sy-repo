@@ -1573,6 +1573,8 @@ const AftaleTab = ({
         }
       />
 
+      <AftaleStatsStrip orders={(orders || []) as any} />
+
       {/* Stats — kompakt: kun det der kræver opmærksomhed vises som kort.
           Aktive/kommende totaler står i header-beskrivelsen ovenfor. */}
       {(() => {
