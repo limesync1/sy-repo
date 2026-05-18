@@ -48,7 +48,7 @@ import { da } from "date-fns/locale";
 import { toast } from "sonner";
 import {
   DndContext, DragOverlay, useSensor, useSensors,
-  pointerWithin, type DragEndEvent, type DragStartEvent,
+  pointerWithin, type DragEndEvent, type DragMoveEvent, type DragStartEvent,
   MouseSensor, TouchSensor, KeyboardSensor,
 } from "@dnd-kit/core";
 import { createPortal } from "react-dom";
@@ -81,6 +81,19 @@ import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
+type DragPoint = { x: number; y: number };
+
+const getDragPoint = (event: Event | null): DragPoint | null => {
+  if (!event) return null;
+  if ("clientX" in event && typeof (event as MouseEvent).clientX === "number") {
+    const { clientX, clientY } = event as MouseEvent;
+    return { x: clientX, y: clientY };
+  }
+  const touchEvent = event as TouchEvent;
+  const touch = touchEvent.touches?.[0] ?? touchEvent.changedTouches?.[0];
+  return touch ? { x: touch.clientX, y: touch.clientY } : null;
+};
+
 /** Konverterer "HH:MM[:SS]" til minutter siden midnat (eller null). */
 const toMin = (t: string | null | undefined): number | null => {
   if (!t) return null;
@@ -108,6 +121,8 @@ const Planner = () => {
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragData, setActiveDragData] = useState<any>(null);
+  const [activeRouteDragPoint, setActiveRouteDragPoint] = useState<DragPoint | null>(null);
+  const activeRouteDragOriginRef = useRef<DragPoint | null>(null);
   // Beskytter mod dobbelt-drop på samme kilde+mål — undgår dubletruter og
   // "uniq_route_stops_route_order" race conditions.
   const inFlightDropsRef = useRef<Set<string>>(new Set());
@@ -1263,6 +1278,8 @@ const Planner = () => {
     if (data?.type === "route" && data?.route?.isVirtual) {
       setActiveDragId(null);
       setActiveDragData(null);
+      setActiveRouteDragPoint(null);
+      activeRouteDragOriginRef.current = null;
       if (businessId) {
         void logRoutePlannerEvent({
           businessId,
@@ -1277,6 +1294,21 @@ const Planner = () => {
     }
     setActiveDragId(e.active.id as string);
     setActiveDragData(data);
+    if (data?.type === "route") {
+      const origin = getDragPoint(e.activatorEvent);
+      activeRouteDragOriginRef.current = origin;
+      setActiveRouteDragPoint(origin);
+    } else {
+      activeRouteDragOriginRef.current = null;
+      setActiveRouteDragPoint(null);
+    }
+  };
+
+  const handleDragMove = (e: DragMoveEvent) => {
+    if (e.active.data.current?.type !== "route") return;
+    const origin = activeRouteDragOriginRef.current;
+    if (!origin) return;
+    setActiveRouteDragPoint({ x: origin.x + e.delta.x, y: origin.y + e.delta.y });
   };
 
   // De øvrige kalender-callbacks afhænger af `openProjectedRoute` /
@@ -1344,6 +1376,8 @@ const Planner = () => {
     const { active, over } = e;
     setActiveDragId(null);
     setActiveDragData(null);
+    setActiveRouteDragPoint(null);
+    activeRouteDragOriginRef.current = null;
     // ─── Metrics: registrér resultatet af denne drag ───
     // `dropped=true` kun når brugeren faktisk slap på et target. Drags
     // der ender uden over-target tæller som "klik-fejl" — typisk når
@@ -2218,12 +2252,15 @@ const Planner = () => {
       sensors={sensors}
       collisionDetection={pointerWithin}
       onDragStart={handleDragStart}
+      onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
       onDragCancel={() => {
         // ESC eller pointer-loss midt i drag tæller som klik-fejl.
         dragMetrics.end(false);
         setActiveDragId(null);
         setActiveDragData(null);
+        setActiveRouteDragPoint(null);
+        activeRouteDragOriginRef.current = null;
       }}
     >
       <AdminShell
@@ -3012,7 +3049,18 @@ const Planner = () => {
         />
 
         {createPortal(
-        <DragOverlay dropAnimation={{ duration: 180, easing: "cubic-bezier(0.18, 0.67, 0.6, 1)" }}>
+        <DragOverlay
+          dropAnimation={{ duration: 180, easing: "cubic-bezier(0.18, 0.67, 0.6, 1)" }}
+          style={activeDragData?.type === "route" && activeRouteDragPoint ? {
+            top: 0,
+            left: 0,
+            width: 0,
+            height: 0,
+            transform: "none",
+            pointerEvents: "none",
+            overflow: "visible",
+          } : undefined}
+        >
           {activeDragId && activeDragData?.type === "job" && (
             <div
               className="rounded-md border border-accent/70 bg-card px-2 py-1 shadow-xl w-[140px] cursor-grabbing"
@@ -3039,9 +3087,12 @@ const Planner = () => {
           )}
           {activeDragId && activeDragData?.type === "route" && (
             <div
-              className="rounded-md border-l-[3px] border bg-card px-2 py-1 shadow-xl w-[160px]"
+              className="rounded-md border-l-[3px] border bg-card px-2 py-1 shadow-xl w-[160px] pointer-events-none"
               style={{
-                transform: "rotate(-2deg)",
+                position: activeRouteDragPoint ? "fixed" : undefined,
+                left: activeRouteDragPoint?.x ?? undefined,
+                top: activeRouteDragPoint?.y ?? undefined,
+                transform: activeRouteDragPoint ? "translate(-50%, -50%) rotate(-2deg)" : "rotate(-2deg)",
                 borderLeftColor: activeDragData.route?.color || "hsl(var(--accent))",
               }}
             >
