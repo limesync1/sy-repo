@@ -2296,6 +2296,7 @@ const Planner = () => {
       sensors={sensors}
       collisionDetection={routePlannerCollisionDetection}
       onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
       onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
       onDragCancel={() => {
