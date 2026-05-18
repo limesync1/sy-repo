@@ -22,6 +22,7 @@ import {
   Clock, AlertTriangle, CheckCircle2, MessageSquare, FileText,
   Bell, Mail, Shield, KeyRound, Heart, Building2, MapPin, Trash2,
   FileSignature, Receipt, Download, History,
+  Camera, Loader2, Edit3, Save,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import SEO from "@/components/SEO";
@@ -115,7 +116,7 @@ const EmptyPanel = ({
 
 const CustomerDashboard = () => {
   const { user, loading } = useAuth();
-  const [tab, setTab] = useState<"orders" | "onetime" | "subscriptions" | "favorites" | "profile">("orders");
+  const [tab, setTab] = useState<"orders" | "onetime" | "subscriptions" | "favorites" | "reviews" | "profile">("orders");
   const { data: orders } = useMyOrders();
   const proposalCount = (orders || []).filter(
     (o: any) => o.business_response === "adjusted" && !o.customer_response,
@@ -136,6 +137,7 @@ const CustomerDashboard = () => {
     { key: "onetime", label: "Engangskøb", icon: Receipt },
     { key: "subscriptions", label: "Abonnementer", icon: Package },
     { key: "favorites", label: "Favoritter", icon: Heart },
+    { key: "reviews", label: "Anmeldelser", icon: Star },
     { key: "profile", label: "Min profil", icon: Settings },
   ];
 
@@ -144,6 +146,7 @@ const CustomerDashboard = () => {
     onetime: { title: "Engangskøb", description: "Dine bestillinger der kun udføres én gang — uden tilbagevendende interval." },
     subscriptions: { title: "Abonnementer", description: "Administrer dine tilbagevendende services." },
     favorites: { title: "Favoritter", description: "Hurtig adgang til de virksomheder du har gemt." },
+    reviews: { title: "Anmeldelser", description: "Anmeldelser du har skrevet — rediger eller slet dem her." },
     profile: { title: "Min profil", description: "Opdater dine kontaktoplysninger og notifikationer." },
   };
 
@@ -166,6 +169,7 @@ const CustomerDashboard = () => {
           {tab === "onetime" && <OrdersView mode="onetime" />}
           {tab === "subscriptions" && <SubscriptionsView />}
           {tab === "favorites" && <FavoritesView />}
+          {tab === "reviews" && <MyReviewsView />}
           {tab === "profile" && <ProfileView />}
         </div>
       </CustomerShell>
