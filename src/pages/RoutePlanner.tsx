@@ -2227,17 +2227,14 @@ const Planner = () => {
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={pointerWithin}
+      collisionDetection={routePlannerCollisionDetection}
       onDragStart={handleDragStart}
-      onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
       onDragCancel={() => {
         // ESC eller pointer-loss midt i drag tæller som klik-fejl.
         dragMetrics.end(false);
         setActiveDragId(null);
         setActiveDragData(null);
-        setActiveRouteDragPoint(null);
-        activeRouteDragOriginRef.current = null;
       }}
     >
       <AdminShell
