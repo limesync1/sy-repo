@@ -667,18 +667,49 @@ type ChecklistCardProps = {
   onJumpToStep: (s: Step) => void;
 };
 
+const PHASE_META: Record<NonNullable<Step["phase"]>, { label: string; tone: string }> = {
+  profil:   { label: "Profil",   tone: "bg-blue-500/10 text-blue-700 dark:text-blue-300" },
+  services: { label: "Services", tone: "bg-violet-500/10 text-violet-700 dark:text-violet-300" },
+  team:     { label: "Team",     tone: "bg-amber-500/10 text-amber-700 dark:text-amber-300" },
+  vækst:   { label: "Vækst",     tone: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" },
+};
+
 const ChecklistCard = ({
   steps, activeStep, isDone, doneCount, total, pct, onCta, onSkip, onMarkDone, onJumpToStep,
 }: ChecklistCardProps) => {
   const [expanded, setExpanded] = useState(false);
   const ActiveIcon = activeStep.icon;
+  const phaseMeta = activeStep.phase ? PHASE_META[activeStep.phase] : null;
+
+  // Cirkulær progress-ring i venstre side af hero-card.
+  const ringSize = 56;
+  const ringStroke = 5;
+  const ringR = (ringSize - ringStroke) / 2;
+  const ringC = 2 * Math.PI * ringR;
+  const ringOffset = ringC - (pct / 100) * ringC;
 
   return (
-    <div className="mb-4 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+    <div className="mb-4 overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-card to-card/60 shadow-sm">
       {/* Top: anbefalet næste trin */}
       <div className="flex items-start gap-4 p-4 sm:p-5">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-foreground text-background">
-          <ActiveIcon className="h-5 w-5" />
+        {/* Progress ring med ikon i midten */}
+        <div className="relative flex h-14 w-14 shrink-0 items-center justify-center">
+          <svg width={ringSize} height={ringSize} className="absolute inset-0 -rotate-90">
+            <circle
+              cx={ringSize / 2} cy={ringSize / 2} r={ringR}
+              stroke="hsl(var(--border))" strokeWidth={ringStroke} fill="none"
+            />
+            <circle
+              cx={ringSize / 2} cy={ringSize / 2} r={ringR}
+              stroke="hsl(var(--accent))" strokeWidth={ringStroke} fill="none"
+              strokeDasharray={ringC} strokeDashoffset={ringOffset}
+              strokeLinecap="round"
+              className="transition-[stroke-dashoffset] duration-700 ease-out"
+            />
+          </svg>
+          <div className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-foreground text-background">
+            <ActiveIcon className="h-4.5 w-4.5" />
+          </div>
         </div>
 
         <div className="min-w-0 flex-1">
@@ -686,8 +717,21 @@ const ChecklistCard = ({
             <span className="inline-flex h-5 items-center rounded-full bg-accent/10 px-2 text-[10px] font-semibold uppercase tracking-wide text-accent">
               Næste trin
             </span>
+            {phaseMeta && (
+              <span className={cn(
+                "inline-flex h-5 items-center rounded-full px-2 text-[10px] font-semibold uppercase tracking-wide",
+                phaseMeta.tone,
+              )}>
+                {phaseMeta.label}
+              </span>
+            )}
+            {activeStep.etaMin && (
+              <span className="inline-flex h-5 items-center gap-1 rounded-full bg-secondary px-2 text-[10px] font-medium text-muted-foreground">
+                <Clock className="h-3 w-3" /> ≈ {activeStep.etaMin} min
+              </span>
+            )}
             <span className="text-xs font-medium text-muted-foreground tabular-nums">
-              {doneCount} af {total} færdige
+              · {pct}% færdig
             </span>
           </div>
           <h3 className="mt-1 text-sm font-semibold text-foreground sm:text-base">
@@ -730,9 +774,12 @@ const ChecklistCard = ({
         </button>
       </div>
 
-      {/* Progress-bar */}
-      <div className="px-4 pb-3 sm:px-5">
-        <Progress value={pct} className="h-1" />
+      {/* Progress-bar + opsummering */}
+      <div className="flex items-center justify-between gap-3 px-4 pb-3 sm:px-5">
+        <Progress value={pct} className="h-1 flex-1" />
+        <span className="shrink-0 text-[11px] font-medium text-muted-foreground tabular-nums">
+          {doneCount} / {total}
+        </span>
       </div>
 
       {/* Mobile toggle */}
