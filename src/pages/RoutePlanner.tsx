@@ -108,8 +108,6 @@ const Planner = () => {
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragData, setActiveDragData] = useState<any>(null);
-  const [activeRouteDragPoint, setActiveRouteDragPoint] = useState<DragPoint | null>(null);
-  const activeRouteDragOriginRef = useRef<DragPoint | null>(null);
   // Beskytter mod dobbelt-drop på samme kilde+mål — undgår dubletruter og
   // "uniq_route_stops_route_order" race conditions.
   const inFlightDropsRef = useRef<Set<string>>(new Set());
@@ -419,6 +417,17 @@ const Planner = () => {
     useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 8 } }),
     useSensor(KeyboardSensor),
   );
+  const routePlannerCollisionDetection = useCallback<CollisionDetection>((args) => {
+    const pointerCollisions = pointerWithin(args);
+    if (pointerCollisions.length > 0) return pointerCollisions;
+
+    // Route-drag kan nogle gange miste pointer-hit på desktop, især når den
+    // trukne rute ligger over små kalenderceller. Fallback til overlap gør
+    // drop stabilt uden at ændre job/stop-drop adfærd.
+    return args.active.data.current?.type === "route"
+      ? rectIntersection(args)
+      : pointerCollisions;
+  }, []);
 
   /** Kundens ønskede dato — preferred_date primært, ellers next_service_date (abonnement). */
   const effectiveJobDate = (j: any): string | null => {
