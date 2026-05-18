@@ -82,6 +82,18 @@ import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
 type DragPoint = { x: number; y: number };
+type RouteDropPointTarget =
+  | { type: "route"; routeId: string; date?: string | null }
+  | { type: "day"; date: string };
+
+type RouteDndDebugState = {
+  activeLabel: string;
+  pointLabel: string;
+  dndLabel: string;
+  domLabel: string;
+  resultLabel: string;
+  sourceLabel: string;
+};
 
 const getDragPoint = (event: Event | null): DragPoint | null => {
   if (!event) return null;
@@ -121,6 +133,8 @@ const Planner = () => {
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragData, setActiveDragData] = useState<any>(null);
+  const [routeDragPoint, setRouteDragPoint] = useState<DragPoint | null>(null);
+  const [routeDndDebug, setRouteDndDebug] = useState<RouteDndDebugState | null>(null);
   const activeRouteDragPointRef = useRef<DragPoint | null>(null);
   const activeRouteDragOriginRef = useRef<DragPoint | null>(null);
   const lastRouteDropTargetRef = useRef<any | null>(null);
