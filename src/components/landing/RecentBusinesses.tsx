@@ -136,15 +136,15 @@ const RecentBusinesses = () => {
   if (!businesses || businesses.length === 0) return null;
 
   return (
-    <section className="bg-background py-16 md:py-24">
+    <section className="bg-background py-20 md:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 flex flex-col gap-4 md:mb-10 md:flex-row md:items-end md:justify-between">
+        <div className="mb-12 flex flex-col gap-4 md:mb-14 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+            <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+              <span className="h-px w-6 bg-foreground/30" />
               Virksomheder
             </span>
-            <h2 className="mt-4 text-[1.75rem] font-semibold leading-[1.1] tracking-tight text-foreground md:text-[2.25rem]">Udvalgte virksomheder</h2>
+            <h2 className="mt-5 text-[2rem] font-semibold leading-[1.05] tracking-[-0.02em] text-foreground md:text-[2.75rem]">Udvalgte virksomheder</h2>
           </div>
           <Link to="/virksomheder" className="group inline-flex items-center gap-2 self-start rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5 hover:shadow-sm md:self-auto">
             Vis alle

@@ -35,21 +35,21 @@ const Stats = () => {
   ];
 
   return (
-    <section className="bg-background pb-6 pt-10 md:pb-10 md:pt-16">
+    <section className="bg-background pb-8 pt-12 md:pb-12 md:pt-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden rounded-[28px] border border-border bg-card px-5 py-7 shadow-sm md:px-10 md:py-9">
+        <div className="relative overflow-hidden rounded-[28px] border border-border/70 bg-card px-6 py-8 shadow-[0_1px_2px_rgba(0,0,0,0.04)] md:px-12 md:py-11">
           {/* Diskret accent-glow bag tallene */}
-          <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-accent/10 blur-3xl" />
-          <div className="relative grid grid-cols-2 gap-y-6 md:grid-cols-4 md:gap-2">
+          <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-accent/[0.06] blur-3xl" />
+          <div className="relative grid grid-cols-2 gap-y-8 md:grid-cols-4 md:gap-2">
             {stats.map((s, i) => (
               <div
                 key={s.label}
-                className={`text-center md:text-left ${i > 0 ? "md:border-l md:border-border md:pl-8" : ""}`}
+                className={`text-center md:text-left ${i > 0 ? "md:border-l md:border-border/60 md:pl-10" : ""}`}
               >
-                <div className="text-[2rem] font-semibold leading-none tracking-tight text-foreground tabular-nums md:text-[2.5rem]">
+                <div className="text-[2.25rem] font-semibold leading-none tracking-[-0.02em] text-foreground tabular-nums md:text-[2.75rem]">
                   {s.value}
                 </div>
-                <div className="mt-2 text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground md:text-xs">
+                <div className="mt-3 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
                   {s.label}
                 </div>
               </div>
