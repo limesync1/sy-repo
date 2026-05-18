@@ -94,6 +94,14 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
       toast.error("Navn og email er påkrævet");
       return;
     }
+    if (atLoginsLimit) {
+      toast.error(
+        loginsLimit === 0
+          ? "Du har ingen medarbejderlogins. Tilkøb mindst ét under Indstillinger → Tilvalg og ekstra funktioner."
+          : `Du har brugt alle ${loginsLimit} medarbejderlogins. Opskalér dit abonnement for at tilføje flere.`
+      );
+      return;
+    }
     const pctNum = commissionPct.trim() === "" ? 0 : Number(commissionPct.replace(",", "."));
     if (Number.isNaN(pctNum) || pctNum < 0 || pctNum > 100) {
       toast.error("Provision skal være et tal mellem 0 og 100");
