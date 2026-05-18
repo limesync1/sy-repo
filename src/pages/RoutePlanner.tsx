@@ -487,10 +487,11 @@ const Planner = () => {
       // route→route merge fejlagtigt fortolket som route→day move (fordi
       // pointerWithin nogle gange returnerer dag-cellen først).
       if (args.active.data.current?.type === "route") {
+        const sourceRouteId = routeIdFromDndId(args.active.id);
         const routeHit = pointerCollisions.find((c) => {
           const container = args.droppableContainers.find((d) => d.id === c.id);
           return container?.data.current?.type === "route"
-            && container?.data.current?.routeId !== args.active.id?.toString().replace(/^route:/, "");
+            && container?.data.current?.routeId !== sourceRouteId;
         });
         if (routeHit) return [routeHit];
       }
@@ -499,14 +500,15 @@ const Planner = () => {
 
     const routeDragPoint = args.active.data.current?.type === "route" ? activeRouteDragPointRef.current : null;
     if (routeDragPoint) {
-      const routePointerCollision = args.droppableContainers.find((container) => {
-        const rect = container.rect.current;
-        return rect &&
-          routeDragPoint.x >= rect.left &&
-          routeDragPoint.x <= rect.right &&
-          routeDragPoint.y >= rect.top &&
-          routeDragPoint.y <= rect.bottom;
-      });
+      const pointTarget = getRouteDropPointTarget(routeDragPoint, routeIdFromDndId(args.active.id));
+      const targetId = pointTarget?.type === "route"
+        ? `route-drop:${pointTarget.routeId}`
+        : pointTarget?.type === "day"
+          ? `day:${pointTarget.date}`
+          : null;
+      const routePointerCollision = targetId
+        ? args.droppableContainers.find((container) => container.id === targetId)
+        : null;
       if (routePointerCollision) return [{ id: routePointerCollision.id }];
     }
 
