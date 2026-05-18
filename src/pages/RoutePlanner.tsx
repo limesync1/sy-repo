@@ -48,7 +48,7 @@ import { da } from "date-fns/locale";
 import { toast } from "sonner";
 import {
   DndContext, DragOverlay, useSensor, useSensors,
-  pointerWithin, rectIntersection, type CollisionDetection, type DragEndEvent, type DragMoveEvent, type DragStartEvent,
+  pointerWithin, rectIntersection, type CollisionDetection, type DragEndEvent, type DragMoveEvent, type DragOverEvent, type DragStartEvent,
   MouseSensor, TouchSensor, KeyboardSensor,
 } from "@dnd-kit/core";
 import { createPortal } from "react-dom";
@@ -123,6 +123,7 @@ const Planner = () => {
   const [activeDragData, setActiveDragData] = useState<any>(null);
   const activeRouteDragPointRef = useRef<DragPoint | null>(null);
   const activeRouteDragOriginRef = useRef<DragPoint | null>(null);
+  const lastRouteDropTargetRef = useRef<any | null>(null);
   // Beskytter mod dobbelt-drop på samme kilde+mål — undgår dubletruter og
   // "uniq_route_stops_route_order" race conditions.
   const inFlightDropsRef = useRef<Set<string>>(new Set());
