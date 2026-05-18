@@ -2819,23 +2819,132 @@ const Planner = () => {
 
           return (
             <div className="flex-1 overflow-hidden p-2 sm:p-3" style={{ height: "calc(100vh - 56px)" }}>
-              {/* Desktop (lg+): resizable side-by-side */}
-              <div className="hidden h-full 2xl:block">
-                <ResizablePanelGroup direction="horizontal" className="h-full rounded-lg">
-                  <ResizablePanel defaultSize={20} minSize={14} maxSize={36} className="overflow-hidden">
-                    {unassignedCard}
-                  </ResizablePanel>
-                  <ResizableHandle withHandle className="bg-transparent w-2 hover:bg-primary/20 transition-colors" />
-                  <ResizablePanel defaultSize={80} className="overflow-hidden">
-                    {calendarBlock}
-                  </ResizablePanel>
-                </ResizablePanelGroup>
+              {/* Desktop (lg+): resizable side-by-side med aftalepool venstre + kalender højre.
+                  Topbaren har ikke plads til alle handlinger før 2xl, så vi viser en kompakt
+                  toolbar oven på split-layoutet ved lg/xl. */}
+              <div className="hidden h-full lg:flex lg:flex-col lg:gap-2">
+                <div className="shrink-0 rounded-lg border bg-card p-2 shadow-sm 2xl:hidden">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 shrink-0"
+                      onClick={() =>
+                        setDate(format(view === "week" ? addWeeks(parseISO(date), -1) : addMonths(parseISO(date), -1), "yyyy-MM-dd"))
+                      }
+                      aria-label={view === "week" ? "Forrige uge" : "Forrige måned"}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <span className="text-xs font-medium capitalize min-w-[140px] text-center tabular-nums">
+                      {view === "week"
+                        ? `Uge ${format(parseISO(date), "I", { locale: da })} · ${format(parseISO(date), "MMM yyyy", { locale: da })}`
+                        : format(parseISO(date), "MMMM yyyy", { locale: da })}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 shrink-0"
+                      onClick={() =>
+                        setDate(format(view === "week" ? addWeeks(parseISO(date), 1) : addMonths(parseISO(date), 1), "yyyy-MM-dd"))
+                      }
+                      aria-label={view === "week" ? "Næste uge" : "Næste måned"}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs" onClick={() => setDate(todayStr())}>
+                      I dag
+                    </Button>
+                    <Tabs value={view} onValueChange={(v) => setView(v as any)}>
+                      <TabsList className="h-8">
+                        <TabsTrigger value="month" className="h-6 text-xs px-2">Måned</TabsTrigger>
+                        <TabsTrigger value="week" className="h-6 text-xs px-2">Uge</TabsTrigger>
+                      </TabsList>
+                    </Tabs>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant={filtersActive ? "default" : "outline"} size="sm" className="h-8 gap-1.5 text-xs">
+                          <Filter className="h-3.5 w-3.5" />
+                          Filtre
+                          {filtersActive && (
+                            <Badge variant="secondary" className="h-4 px-1 text-[10px] tabular-nums">
+                              {filterAssigneeIds.length + filterStatuses.length}
+                            </Badge>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent align="start" className="w-72 p-3 space-y-3">
+                        <div>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <Label className="text-xs font-semibold">Medarbejdere</Label>
+                            {filterAssigneeIds.length > 0 && (
+                              <button type="button" onClick={() => setFilterAssigneeIds([])} className="text-[10px] text-muted-foreground hover:text-foreground">Ryd</button>
+                            )}
+                          </div>
+                          <div className="max-h-48 overflow-y-auto space-y-1 rounded border p-1.5">
+                            {activeEmployees.length === 0 && <p className="text-[11px] text-muted-foreground px-1.5 py-1">Ingen medarbejdere</p>}
+                            {activeEmployees.map((emp: any) => {
+                              const checked = filterAssigneeIds.includes(emp.id);
+                              return (
+                                <label key={emp.id} className="flex items-center gap-2 px-1.5 py-1 rounded hover:bg-secondary cursor-pointer text-xs">
+                                  <Checkbox checked={checked} onCheckedChange={(v) => setFilterAssigneeIds((prev) => v ? [...prev, emp.id] : prev.filter((id) => id !== emp.id))} />
+                                  <span className="truncate">{emp.name}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <Label className="text-xs font-semibold">Status</Label>
+                            {filterStatuses.length > 0 && (
+                              <button type="button" onClick={() => setFilterStatuses([])} className="text-[10px] text-muted-foreground hover:text-foreground">Ryd</button>
+                            )}
+                          </div>
+                          <div className="space-y-1 rounded border p-1.5">
+                            {STATUS_OPTIONS.map((opt) => {
+                              const checked = filterStatuses.includes(opt.value);
+                              return (
+                                <label key={opt.value} className="flex items-center gap-2 px-1.5 py-1 rounded hover:bg-secondary cursor-pointer text-xs">
+                                  <Checkbox checked={checked} onCheckedChange={(v) => setFilterStatuses((prev) => v ? [...prev, opt.value] : prev.filter((s) => s !== opt.value))} />
+                                  <span>{opt.label}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        {filtersActive && (
+                          <Button variant="ghost" size="sm" className="w-full h-7 text-xs" onClick={() => { setFilterAssigneeIds([]); setFilterStatuses([]); }}>
+                            Nulstil alle filtre
+                          </Button>
+                        )}
+                      </PopoverContent>
+                    </Popover>
+                    <div className="ml-auto flex items-center gap-1.5">
+                      <Button data-tour="routes-create-button" size="sm" className="h-8 gap-1 text-xs" onClick={() => setCreateOpen(true)}>
+                        <Plus className="h-3.5 w-3.5" /> Opret rute
+                      </Button>
+                      <Button variant="outline" size="sm" className="h-8 gap-1 text-xs" onClick={() => setCreateOrderOpen(true)}>
+                        <ShoppingBag className="h-3.5 w-3.5" /> Bestilling
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex-1 min-h-0">
+                  <ResizablePanelGroup direction="horizontal" className="h-full rounded-lg">
+                    <ResizablePanel defaultSize={22} minSize={16} maxSize={36} className="overflow-hidden">
+                      {unassignedCard}
+                    </ResizablePanel>
+                    <ResizableHandle withHandle className="bg-transparent w-2 hover:bg-primary/20 transition-colors" />
+                    <ResizablePanel defaultSize={78} className="overflow-hidden">
+                      {calendarBlock}
+                    </ResizablePanel>
+                  </ResizablePanelGroup>
+                </div>
               </div>
 
-              {/* Mobil/tablet (<lg): dedikeret toolbar + kalender fuld bredde.
-                  Handlingsknapper ligger samlet under dato-navigationen, så
-                  topbaren ikke bliver presset eller får knapper tilfældige steder. */}
-              <div className="flex h-full flex-col gap-2 2xl:hidden">
+              {/* Mobil (<lg): dedikeret toolbar + agenda-kalender fuld bredde. */}
+              <div className="flex h-full flex-col gap-2 lg:hidden">
                 <div className="shrink-0 space-y-2 rounded-lg border bg-card p-2 shadow-sm">
                   <div className="flex items-center gap-1.5">
                     <Button
