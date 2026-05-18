@@ -11,6 +11,7 @@ import { Loader2, Mail, MessageSquare, Bell, CheckCircle2, RotateCcw, Phone, Plu
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { TimePickerPopover } from "@/components/shared/TimePickerPopover";
 
 interface Props {
   businessId: string;
@@ -180,11 +181,11 @@ function SchedulePicker({
               </button>
             );
           })}
-          <Input
-            type="time"
+          <TimePickerPopover
             value={time}
-            onChange={(e) => onChange({ days, time: e.target.value || "09:00" })}
-            className="h-8 w-[110px] tabular-nums"
+            onChange={(v) => onChange({ days, time: v || "09:00" })}
+            label="Vælg klokkeslæt"
+            className="h-8 px-2.5 text-[12px]"
           />
         </div>
       </div>
@@ -505,7 +506,7 @@ export function CustomerNotificationsSettings({
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[260px_1fr] animate-fade-in">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[260px_1fr] animate-fade-in">
         <div className="space-y-2">
           {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="h-10 w-full rounded-md" />
@@ -525,7 +526,7 @@ export function CustomerNotificationsSettings({
   return (
     <div className="space-y-6">
       {/* ───── List + editor ───── */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[260px_1fr]">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[260px_1fr]">
         {/* Left list */}
         <nav className="space-y-2">
           <p className="px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Beskeder til kunder</p>
@@ -649,7 +650,7 @@ export function CustomerNotificationsSettings({
 
           {/* Content */}
           {channelTab === "email" ? (
-            <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-0 xl:grid-cols-2">
               {/* Editor */}
               <div className="space-y-4 p-4 sm:p-5">
                 <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3 hover:bg-muted/50 transition-colors">
@@ -708,13 +709,13 @@ export function CustomerNotificationsSettings({
               </div>
 
               {/* Preview */}
-              <div className="border-t border-border bg-muted/20 p-4 sm:p-5 lg:border-l lg:border-t-0">
+              <div className="border-t border-border bg-muted/20 p-4 sm:p-5 xl:border-l xl:border-t-0">
                 <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Sådan ser kunden den</p>
                 <EmailPreview subject={drafts[activeEvent].subject} body={drafts[activeEvent].body} businessName={exampleBizName} />
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-0 xl:grid-cols-2">
               <div className="space-y-4 p-4 sm:p-5">
                 <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3 hover:bg-muted/50 transition-colors">
                   <div>
@@ -769,7 +770,7 @@ export function CustomerNotificationsSettings({
                 </div>
               </div>
 
-              <div className="border-t border-border bg-muted/20 p-4 sm:p-5 lg:border-l lg:border-t-0">
+              <div className="border-t border-border bg-muted/20 p-4 sm:p-5 xl:border-l xl:border-t-0">
                 <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Sådan ser kunden den</p>
                 <SmsPreview body={smsDrafts[activeEvent].body} businessName={exampleBizName} businessPhone={exampleBizPhone} />
               </div>
