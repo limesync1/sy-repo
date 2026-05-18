@@ -1575,8 +1575,8 @@ const AftaleTab = ({
 
       <AftaleStatsStrip orders={(orders || []) as any} />
 
-      {/* Stats — kompakt: kun det der kræver opmærksomhed vises som kort.
-          Aktive/kommende totaler står i header-beskrivelsen ovenfor. */}
+      {/* Action-strip — kun det der kræver opmærksomhed vises som en
+          kompakt vandret række der matcher AftaleStatsStrip ovenfor. */}
       {(() => {
         const upcomingThisWeek = upcomingSubs.filter(s =>
           new Date(s.next_service_date!).getTime() <= oneWeekFromNow
@@ -1592,36 +1592,36 @@ const AftaleTab = ({
         });
         if (upcomingThisWeek > 0) cards.push({
           key: "upcoming", label: "Kommende denne uge", value: upcomingThisWeek,
-          sub: upcomingSubs.length > upcomingThisWeek ? `${upcomingSubs.length} i alt fremad` : "Næste 7 dage",
+          sub: upcomingSubs.length > upcomingThisWeek
+            ? `${upcomingSubs.length} i alt fremad`
+            : undefined,
           tone: "neutral",
         });
         if (cards.length === 0) return null;
         return (
-          <div className={`grid gap-3 sm:grid-cols-2 ${cards.length >= 3 ? "lg:grid-cols-3" : ""}`}>
+          <div className="flex flex-wrap items-center gap-2">
             {cards.map(c => {
               const isClickable = !!c.onClick;
               const toneCls =
-                c.tone === "danger" ? "border-destructive/30 bg-destructive/5"
-                : c.tone === "warning" ? "border-amber-300/60 bg-amber-50"
-                : "border-border/80";
-              const valueCls =
-                c.tone === "danger" ? "text-destructive"
-                : c.tone === "warning" ? "text-amber-900"
-                : "text-foreground";
+                c.tone === "danger"
+                  ? "border-destructive/30 bg-destructive/5 text-destructive"
+                  : c.tone === "warning"
+                  ? "border-amber-300/60 bg-amber-50 text-amber-900"
+                  : "border-border bg-card text-foreground";
               return (
-                <Card
+                <button
                   key={c.key}
-                  className={`surface-admin rounded-xl shadow-sm transition-colors ${toneCls} ${isClickable ? "cursor-pointer hover:bg-secondary/40" : ""}`}
+                  type="button"
                   onClick={c.onClick}
+                  disabled={!isClickable}
+                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium shadow-sm transition-colors ${toneCls} ${isClickable ? "hover:bg-secondary/60 cursor-pointer" : "cursor-default"}`}
                 >
-                  <CardContent className="p-3">
-                    <div className="flex items-baseline justify-between gap-3">
-                      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{c.label}</p>
-                      <p className={`text-xl font-semibold tabular-nums ${valueCls}`}>{c.value}</p>
-                    </div>
-                    {c.sub && <p className="mt-0.5 text-[11px] text-muted-foreground">{c.sub}</p>}
-                  </CardContent>
-                </Card>
+                  <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-foreground/10 px-1.5 text-[11px] font-semibold tabular-nums">
+                    {c.value}
+                  </span>
+                  <span>{c.label}</span>
+                  {c.sub && <span className="text-muted-foreground font-normal">· {c.sub}</span>}
+                </button>
               );
             })}
           </div>
