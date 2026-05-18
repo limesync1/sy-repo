@@ -77,7 +77,7 @@ const GetQuotes = () => {
               {matches.map((m) => (
                 <div
                   key={m.name}
-                  className="flex items-center gap-3 rounded-2xl border border-border bg-background p-3 transition-shadow hover:shadow-sm"
+                  className="flex items-center gap-3 rounded-2xl border border-border bg-background p-3 transition-shadow"
                 >
                   <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-xs font-bold tracking-tight ${m.avatar}`}>
                     {m.logo}

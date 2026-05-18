@@ -41,7 +41,7 @@ const HowItWorks = () => {
           {steps.map((step, i) => (
             <div
               key={step.title}
-              className="group relative flex flex-col rounded-[28px] border border-border/70 bg-card p-8 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border hover:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.12)]"
+              className="group relative flex flex-col rounded-[28px] border border-border/70 bg-card p-8 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border"
             >
               <div className="flex items-center justify-between">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-foreground text-background">

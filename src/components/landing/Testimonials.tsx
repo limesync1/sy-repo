@@ -45,7 +45,7 @@ const Testimonials = () => {
 
         <HorizontalScroller>
           {reviews.map((r) => (
-            <article key={r.id} className="relative flex w-[300px] shrink-0 flex-col rounded-[24px] border border-border/70 bg-card p-7 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border hover:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.12)] sm:w-[360px]">
+            <article key={r.id} className="relative flex w-[300px] shrink-0 flex-col rounded-[24px] border border-border/70 bg-card p-7 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border sm:w-[360px]">
               <Quote aria-hidden className="absolute right-5 top-5 h-7 w-7 rotate-180 text-foreground/5" />
               <div className="mb-4 flex items-center gap-1">
                 {Array.from({ length: 5 }).map((_, idx) => (

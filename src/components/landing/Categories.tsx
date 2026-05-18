@@ -45,7 +45,7 @@ const Categories = () => {
           </div>
           <Link
             to="/virksomheder"
-            className="group inline-flex items-center gap-2 self-start rounded-full border border-border/70 bg-card px-4 py-2 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5 hover:border-border hover:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.12)] md:self-auto"
+            className="group inline-flex items-center gap-2 self-start rounded-full border border-border/70 bg-card px-4 py-2 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5 hover:border-border md:self-auto"
           >
             Se alle brancher
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
@@ -58,7 +58,7 @@ const Categories = () => {
             <Link
               key={cat.key}
               to={`/search?category=${encodeURIComponent(cat.key)}`}
-              className={`group relative flex min-h-[190px] flex-col justify-between overflow-hidden rounded-[28px] border border-border/60 p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_50px_-18px_rgba(0,0,0,0.18)] ${cat.tone}`}
+              className={`group relative flex min-h-[190px] flex-col justify-between overflow-hidden rounded-[28px] border border-border/60 p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 ${cat.tone}`}
             >
               {/* Subtil glow ved hover */}
               <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-background/30 opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100" />
