@@ -3,7 +3,7 @@
 // Vises ved siden af RouteEditSheet.
 
 import { useEffect, useState } from "react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsBelowBreakpoint, useIsMobile } from "@/hooks/use-mobile";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
 } from "@/components/ui/sheet";
@@ -128,6 +128,7 @@ export const RouteStopsPanel = ({
   // overlay og close-knap — så brugeren altid kan lukke den. På desktop
   // pinner vi det ved siden af RouteEditSheet (non-modal, ingen overlay).
   const isMobile = useIsMobile();
+  const isCompact = useIsBelowBreakpoint(1024);
 
   if (!route) return null;
 
@@ -135,32 +136,32 @@ export const RouteStopsPanel = ({
     <>
       <Sheet open={open} onOpenChange={onOpenChange} modal={isMobile}>
         <SheetContent
-          side={isMobile ? "bottom" : "right"}
+          side={isCompact ? "bottom" : "right"}
           className={cn(
             "flex flex-col p-0 shadow-xl",
-            isMobile
-              ? "h-[85vh] max-h-[85vh] rounded-t-xl"
+            isCompact
+              ? "h-[82vh] max-h-[82vh] rounded-t-xl"
               : "w-full sm:max-w-sm lg:right-[28rem]",
           )}
-          hideOverlay={!isMobile}
-          hideCloseButton={!isMobile}
+          hideOverlay={!isCompact}
+          hideCloseButton={!isCompact}
           // Vis ved siden af RouteEditSheet (som er sm:max-w-md ≈ 28rem bred)
           onOpenAutoFocus={(e) => e.preventDefault()}
-          onPointerDownOutside={(e) => { if (!isMobile) e.preventDefault(); }}
-          onInteractOutside={(e) => { if (!isMobile) e.preventDefault(); }}
+          onPointerDownOutside={(e) => { if (!isCompact) e.preventDefault(); }}
+          onInteractOutside={(e) => { if (!isCompact) e.preventDefault(); }}
         >
-          <SheetHeader className="px-4 py-3 pr-12 border-b shrink-0">
-            <SheetTitle className="flex items-center gap-2 text-base pr-2">
+          <SheetHeader className="px-4 py-3 pr-14 border-b shrink-0 text-left">
+            <SheetTitle className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 text-base leading-tight">
               <span
                 className="inline-block h-2.5 w-2.5 rounded-full"
                 style={{ background: route.color }}
               />
-              <span className="truncate">Stops på ruten</span>
-              <span className="ml-auto shrink-0 inline-flex items-center justify-center rounded-md bg-secondary text-secondary-foreground px-2 py-0.5 text-xs font-semibold tabular-nums">
+              <span className="min-w-0 truncate">Stops på ruten</span>
+              <span className="shrink-0 inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-secondary text-secondary-foreground px-2 text-xs font-semibold tabular-nums">
                 {items.length}
               </span>
             </SheetTitle>
-            <SheetDescription className="text-xs pr-2">
+            <SheetDescription className="text-xs leading-snug">
               {isProjection
                 ? "Projiceret forekomst · rediger originalruten for at omrangere eller fjerne aftaler"
                 : "Træk for at omrangere · Klik for detaljer"}
