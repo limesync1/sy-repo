@@ -351,7 +351,7 @@ export const RouteEditSheet = ({
       if (!negligible) {
         const parts: string[] = [];
         if (savedKm >= 0.05) parts.push(`${savedKm.toFixed(1)} km`);
-        if (savedMin >= 1) parts.push(`${Math.round(savedMin)} min`);
+        if (savedMin >= 1) parts.push(formatTravelTime(Math.round(savedMin) * 60));
         toast.success(`Sparet ${parts.join(" · ")}`);
       } else if ((result as any).order_changed) {
         toast.success("Rækkefølgen er optimeret");
