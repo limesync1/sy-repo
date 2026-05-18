@@ -673,20 +673,19 @@ const LiveChatWidget = () => {
             className={
               isMobile
                 ? "relative flex h-[100dvh] w-full flex-col overflow-hidden bg-card"
-                : "relative flex h-[min(640px,calc(100vh-3rem))] flex-col overflow-hidden rounded-[20px] border border-border bg-card shadow-[0_30px_80px_-20px_hsl(var(--foreground)/0.35)]"
+                : "relative flex h-[min(660px,calc(100vh-3rem))] flex-col overflow-hidden rounded-[22px] border border-border bg-card shadow-[0_30px_80px_-28px_hsl(var(--foreground)/0.34)]"
             }
           >
             {/* Header */}
-            <div className="relative overflow-hidden bg-foreground px-5 pb-5 pt-4 text-background">
-              <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-accent/30 blur-3xl" />
-              <div className="pointer-events-none absolute -bottom-16 -left-10 h-32 w-32 rounded-full bg-accent/15 blur-3xl" />
+            <div className="relative overflow-hidden bg-foreground px-5 pb-4 pt-4 text-background">
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-background/10" />
               <div className="relative flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3">
-                  <div className="relative">
+                  <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-visible rounded-2xl bg-background/10 ring-1 ring-background/10">
                     <img
                       src="/serviceydere-ikon.webp"
                       alt="Serviceydere"
-                      className="h-11 w-11 object-contain"
+                      className="h-10 w-10 object-contain"
                     />
                     <span className={`absolute -bottom-0.5 -right-0.5 z-10 flex h-3 w-3 items-center justify-center rounded-full ring-2 ring-foreground ${closed ? "bg-muted-foreground" : "bg-success"}`}>
                       {!closed && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-background" />}
