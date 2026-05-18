@@ -14,24 +14,24 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
 
-const SYSTEM_PROMPT = `Du er "Serviceydere AI" — en hjælpsom, varm og meget kortfattet kundeservice-assistent for Serviceydere.dk.
+const SYSTEM_PROMPT = `Du er "Serviceydere AI" — en præcis, ærlig og meget kortfattet kundeservice-assistent for Serviceydere.dk.
 
-OM SERVICEYDERE.DK (brug KUN disse fakta — opfind aldrig features eller priser):
-- Serviceydere.dk er en dansk marketplace + SaaS-platform der kobler private og virksomheder sammen med lokale, verificerede serviceudbydere i hele Danmark.
-- Kategorier inkluderer rengøring, håndværker, flyttehjælp, haveservice, maler, VVS, elektriker, tømrer og sikkerhed.
-- Sådan finder kunder en udbyder: søg på forsiden eller på /virksomheder, filtrér efter kategori og by, se priser, anmeldelser og åbningstider, og book direkte fra udbyderens profilside.
-- Sådan får kunder tilbud: gå til /tilbud, beskriv opgaven, og modtag op til 3 gratis, uforpligtende tilbud fra relevante udbydere. (Det er et tilbuds-flow, ikke en "formular" — kald det "tilbudssiden" eller /tilbud.)
-- Det er gratis for kunder at bruge platformen, finde udbydere og indhente tilbud.
-- Sådan bliver man udbyder: gå til "Bliv udbyder"-onboardingen — virksomheder får en profilside med online booking, ruteplanlægger, fakturering, CRM, anmeldelser, livechat og medarbejder-app.
-- Priser for udbydere afhænger af abonnement; jeg kender ikke konkrete tal og må ikke gætte.
-- Betaling sker via Stripe gennem platformen.
+FAKTA OM SERVICEYDERE.DK (brug KUN dette — opfind aldrig features, priser, svartider eller garantier):
+- Serviceydere.dk er en dansk platform for serviceydere: kunder kan finde, sammenligne og booke lokale udbydere, og virksomheder kan drive deres serviceforretning fra et panel.
+- Find services: kunden søger på forsiden eller /virksomheder, kan filtrere efter kategori og by, se udbyderprofiler, priser hvor udbyderen har lagt dem ind, anmeldelser og åbningstider, og derefter booke direkte fra udbyderens profilside.
+- Få tilbud: på /tilbud vælger kunden lokation, kategori, beskriver opgaven og skriver kontaktoplysninger. AI matcher opgaven med op til 3 relevante udbydere. Det er gratis og uforpligtende for kunden.
+- Serviceydere er ikke part i aftalen mellem kunde og udbyder. Pris, kvalitet, udførelse, opstartstid, garanti, ændring, afbestilling og betaling for den konkrete service afhænger af den enkelte udbyder.
+- Kategorier omfatter bl.a. rengøring, vinduespudsning, flyttehjælp, haveservice, håndværker, maler, VVS, elektriker, tømrer og sikkerhed.
+- Bliv udbyder: virksomheder kan oprette sig via "Bliv udbyder" og får adgang til profilside, services/priser, online booking, kunde-/ordreoverblik, leads fra "Indhent 3 tilbud", ruteplanlægger, fakturering, anmeldelser, livechat og medarbejder-app.
+- Jeg kender ikke konkrete abonnementspriser, bindingsvilkår eller individuelle aftaler. Hvis nogen spørger om det, skal en medarbejder overtage.
 
 REGLER:
-- Svar ALTID på dansk, kort (1-3 sætninger), venligt og handlingsorienteret.
-- Brug KUN fakta fra listen ovenfor. Hvis brugeren spørger om noget der ikke er dækket — fx konkrete priser, tidsangivelser fra specifikke udbydere, kontooplysninger, fakturaer, klager, refunderinger, juridiske spørgsmål, eller noget jeg er i tvivl om — så MÅ jeg IKKE gætte. Sæt "escalate": true.
-- Lov ALDRIG noget på vegne af en konkret udbyder (priser, starttider, dækning, garantier).
-- Hvis brugeren beder om en rigtig person, medarbejder, "et menneske", "snakke med nogen", eller virker frustreret over botten → sæt "escalate": true.
-- Henvis aldrig til "vores formular" — det hedder tilbudssiden (/tilbud).
+- Svar ALTID på dansk, kort (maks. 2 sætninger), konkret og uden marketingfyld.
+- Hvis svaret kræver viden uden for fakta ovenfor, eller du er bare lidt i tvivl, så sæt "escalate": true.
+- Eskalér altid ved spørgsmål om: menneskelig support, telefon/opkald, konkrete udbyderpriser, opstartstid, dækning i specifik adresse, abonnementstal, binding, faktura, konto/login, betaling/refusion, klage, jura, partnerskabsaftaler eller fejl på siden.
+- Lov aldrig noget på vegne af en konkret udbyder.
+- Skriv aldrig "formular". Brug "tilbudssiden", "/tilbud" eller "tilbudsflowet".
+- Foreslå kun næste skridt når det er helt sikkert relevant: /virksomheder for at finde udbydere, /tilbud for op til 3 tilbud, eller "Bliv udbyder" for virksomheder.
 
 OUTPUT: Du skal ALTID returnere GYLDIG JSON i præcis dette format og intet andet:
 {"escalate": boolean, "message": string}
@@ -49,6 +49,11 @@ const tryParseJson = (text: string): { escalate: boolean; message: string } | nu
     return null;
   }
 };
+
+const HUMAN_INTENT = /\b(menneske|rigtig person|medarbejder|person|ring|ringe|telefon|opkald|supporter|kundeservice|ikke en bot|ikke robot|snakke med nogen|tale med nogen)\b/i;
+const HIGH_RISK = /\b(klage|klager|refundering|refusion|tilbagebetaling|faktura|juridisk|advokat|fejl på siden|login|konto|abonnement|binding|konkret pris|hvad koster jeres|adresse|dækker i|hvornår kan|opstart|garanti|utilfreds|frustreret)\b/i;
+
+const shouldForceEscalate = (text: string) => HUMAN_INTENT.test(text) || HIGH_RISK.test(text);
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -97,6 +102,33 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ skipped: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    const lastText = last.content ?? "";
+    if (shouldForceEscalate(lastText)) {
+      await admin
+        .from("chat_conversations")
+        .update({ needs_human: true })
+        .eq("id", conversation_id);
+
+      await admin.from("chat_messages").insert({
+        conversation_id,
+        sender_type: "admin",
+        sender_name: "Serviceydere AI",
+        content: "Jeg henter en rigtig medarbejder fra Serviceydere, så du får et sikkert svar. De vender tilbage her i chatten.",
+      });
+
+      await admin.from("chat_messages").insert({
+        conversation_id,
+        sender_type: "admin",
+        sender_name: "System",
+        content: "🙋 Besøgende skal have hjælp fra en rigtig medarbejder.",
+        is_system: true,
+      });
+
+      return new Response(JSON.stringify({ ok: true, escalated: true, forced: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -114,15 +146,23 @@ Deno.serve(async (req) => {
     if (!aiRes.ok) {
       const t = await aiRes.text();
       console.error("AI error", aiRes.status, t);
-      return new Response(JSON.stringify({ error: "ai_failed", status: aiRes.status }), {
-        status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      await admin.from("chat_conversations").update({ needs_human: true }).eq("id", conversation_id);
+      await admin.from("chat_messages").insert({
+        conversation_id,
+        sender_type: "admin",
+        sender_name: "System",
+        content: "⚠️ AI kunne ikke svare sikkert. En medarbejder skal overtage samtalen.",
+        is_system: true,
+      });
+      return new Response(JSON.stringify({ ok: true, escalated: true, reason: "ai_failed" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     const aiData = await aiRes.json();
     const raw = aiData?.choices?.[0]?.message?.content ?? "";
     const parsed = tryParseJson(raw) ?? {
-      escalate: false,
-      message: "Tak for din besked — vi vender tilbage hurtigst muligt.",
+      escalate: true,
+      message: "Jeg er ikke helt sikker på svaret, så jeg henter en rigtig medarbejder fra Serviceydere. De vender tilbage her i chatten.",
     };
 
     if (parsed.escalate) {

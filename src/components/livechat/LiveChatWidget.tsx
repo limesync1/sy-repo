@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import {
   MessageCircle, Send, Loader2, ChevronDown, CheckCheck, Paperclip, X as XIcon,
-  ImageIcon, Volume2, VolumeX, Sparkles, MoreVertical, MessagesSquare, ArrowLeft, Trash2,
+  ImageIcon, Volume2, VolumeX, MoreVertical, MessagesSquare, ArrowLeft, Trash2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -68,10 +68,10 @@ const HIDDEN_EXACT: string[] = [];
 const HIDE_TRIGGER_PREFIXES = ["/virksomhed"];
 
 const QUICK_TOPICS = [
-  { label: "💸 Pris og pakker", subject: "Pris og pakker", suggest: "Hej, jeg vil gerne høre mere om jeres priser og hvilke pakker I tilbyder." },
-  { label: "🛒 Hjælp med bestilling", subject: "Hjælp med bestilling", suggest: "Hej, jeg har brug for hjælp til at oprette en bestilling." },
-  { label: "🏢 Bliv virksomhed", subject: "Bliv virksomhed på Serviceydere", suggest: "Hej, jeg vil gerne høre mere om at komme på Serviceydere som virksomhed." },
-  { label: "💬 Andet spørgsmål", subject: "", suggest: "" },
+  { label: "Find service", subject: "Find serviceyder", suggest: "Hej, jeg vil gerne finde en serviceyder i mit område. Hvordan fungerer det?" },
+  { label: "Få 3 tilbud", subject: "Indhent 3 tilbud", suggest: "Hej, jeg vil gerne indhente op til 3 tilbud. Hvordan foregår det?" },
+  { label: "Bliv udbyder", subject: "Bliv udbyder på Serviceydere", suggest: "Hej, jeg vil gerne høre hvordan min virksomhed kan blive udbyder på Serviceydere." },
+  { label: "Kundeservice", subject: "Kundeservice", suggest: "Hej, jeg har brug for hjælp fra Serviceydere support." },
 ];
 
 // Topic-based dynamic recommended replies. Keys are matched against the
@@ -81,49 +81,43 @@ const QUICK_TOPICS = [
 // ikke giver mening i konteksten.
 const TOPIC_REPLIES: { keywords: string[]; replies: string[] }[] = [
   {
-    keywords: ["pris", "koste", "billig", "tilbud", "pakke", "abonnement"],
+    keywords: ["pris", "koste", "gratis", "tilbud", "pakke", "abonnement", "betaling"],
     replies: [
-      "Hvordan får jeg tilbud fra udbyderne?",
       "Koster det noget at bruge platformen som kunde?",
-      "Hvad koster det at være udbyder?",
-      "Er der binding på abonnementet?",
+      "Hvordan får jeg op til 3 tilbud?",
+      "Hvad indeholder udbyderplatformen?",
     ],
   },
   {
-    keywords: ["bestil", "ordre", "booking", "book", "kurv"],
+    keywords: ["bestil", "ordre", "booking", "book", "kurv", "profil", "anmeldelser"],
     replies: [
-      "Hvordan booker jeg en service?",
-      "Hvordan betaler jeg?",
-      "Får jeg en bekræftelse på mail?",
-      "Kan jeg ændre eller afbestille?",
+      "Hvordan finder jeg en udbyder nær mig?",
+      "Kan jeg sammenligne priser og anmeldelser?",
+      "Kan jeg booke direkte hos en udbyder?",
     ],
   },
   {
-    keywords: ["virksomhed", "firma", "tilmeld", "opret", "cvr", "udbyder", "partner"],
+    keywords: ["virksomhed", "firma", "tilmeld", "opret", "cvr", "udbyder", "partner", "leads"],
     replies: [
-      "Hvordan bliver jeg udbyder?",
-      "Hvad koster det at være på platformen?",
+      "Hvordan opretter jeg min virksomhed?",
       "Hvilke funktioner får jeg som udbyder?",
-      "Hvordan kommer jeg i gang?",
+      "Hvordan modtager jeg leads?",
     ],
   },
   {
-    keywords: ["rengør", "vinduespuds", "havemand", "have", "flytte", "håndværk", "maler", "vvs", "elektriker"],
+    keywords: ["rengør", "vinduespuds", "havemand", "have", "flytte", "håndværk", "maler", "vvs", "elektriker", "tømrer", "sikkerhed", "kategori"],
     replies: [
-      "Findes der udbydere i mit område?",
+      "Hvilke kategorier kan jeg søge i?",
       "Hvordan finder jeg den rette udbyder?",
-      "Kan jeg se anmeldelser?",
-      "Kan jeg sammenligne flere udbydere?",
+      "Kan jeg filtrere efter by?",
     ],
   },
-  {
-    keywords: ["ring", "telefon", "menneske", "person", "medarbejder", "support"],
-    replies: [
-      "Jeg vil gerne tale med en rigtig medarbejder",
-      "Kan I ringe mig op?",
-      "Hvornår er supporten åben?",
-    ],
-  },
+];
+
+const UNSAFE_SUGGESTION_TERMS = [
+  "menneske", "rigtig person", "medarbejder", "ring", "telefon", "frustreret",
+  "klage", "refund", "refusion", "faktura", "juridisk", "ved ikke", "ikke sikker",
+  "henter en rigtig", "vender tilbage", "som hurtigst muligt",
 ];
 
 const getDynamicReplies = (msgs: { sender_type: string; content?: string | null; is_system?: boolean }[]): string[] => {
@@ -135,6 +129,7 @@ const getDynamicReplies = (msgs: { sender_type: string; content?: string | null;
     .map((m) => (m.content || "").toLowerCase())
     .join(" ");
   if (!recent) return [];
+  if (UNSAFE_SUGGESTION_TERMS.some((term) => recent.includes(term))) return [];
 
   const matched = new Map<string, number>();
   for (const topic of TOPIC_REPLIES) {
@@ -648,14 +643,14 @@ const LiveChatWidget = () => {
           type="button"
           onClick={handleOpen}
           aria-label="Åbn livechat"
-          className={`fixed z-40 flex items-center gap-2 rounded-full bg-foreground py-2 pl-2 pr-3.5 text-xs font-semibold text-background shadow-[0_14px_32px_-14px_hsl(var(--foreground)/0.55)] transition-all hover:bg-foreground/90 hover:shadow-[0_18px_40px_-14px_hsl(var(--foreground)/0.6)] active:scale-95 ${fabBottomClass} ${fabPositionClass}`}
+          className={`fixed z-40 flex items-center gap-2 rounded-full border border-background/10 bg-foreground py-2 pl-2.5 pr-4 text-xs font-semibold text-background shadow-[0_18px_44px_-22px_hsl(var(--foreground)/0.55)] transition-colors hover:bg-foreground/90 active:scale-[0.98] ${fabBottomClass} ${fabPositionClass}`}
         >
-          <span className="relative flex h-6 w-6 items-center justify-center">
+          <span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-visible">
             <img
               src="/serviceydere-ikon.webp"
               alt=""
               aria-hidden="true"
-              className="h-6 w-6 object-contain"
+              className="h-8 w-8 object-contain"
             />
             <span className="absolute -right-1 -top-1 flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70 opacity-75"></span>
@@ -678,20 +673,19 @@ const LiveChatWidget = () => {
             className={
               isMobile
                 ? "relative flex h-[100dvh] w-full flex-col overflow-hidden bg-card"
-                : "relative flex h-[min(640px,calc(100vh-3rem))] flex-col overflow-hidden rounded-[20px] border border-border bg-card shadow-[0_30px_80px_-20px_hsl(var(--foreground)/0.35)]"
+                : "relative flex h-[min(660px,calc(100vh-3rem))] flex-col overflow-hidden rounded-[22px] border border-border bg-card shadow-[0_30px_80px_-28px_hsl(var(--foreground)/0.34)]"
             }
           >
             {/* Header */}
-            <div className="relative overflow-hidden bg-foreground px-5 pb-5 pt-4 text-background">
-              <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-accent/30 blur-3xl" />
-              <div className="pointer-events-none absolute -bottom-16 -left-10 h-32 w-32 rounded-full bg-accent/15 blur-3xl" />
+            <div className="relative overflow-hidden bg-foreground px-5 pb-4 pt-4 text-background">
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-background/10" />
               <div className="relative flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3">
-                  <div className="relative">
+                  <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-visible rounded-2xl bg-background/10 ring-1 ring-background/10">
                     <img
                       src="/serviceydere-ikon.webp"
                       alt="Serviceydere"
-                      className="h-11 w-11 object-contain"
+                      className="h-10 w-10 object-contain"
                     />
                     <span className={`absolute -bottom-0.5 -right-0.5 z-10 flex h-3 w-3 items-center justify-center rounded-full ring-2 ring-foreground ${closed ? "bg-muted-foreground" : "bg-success"}`}>
                       {!closed && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-background" />}
@@ -798,13 +792,13 @@ const LiveChatWidget = () => {
             {!conversation ? (
               <div className="flex flex-1 flex-col gap-3.5 overflow-y-auto px-5 py-5">
                 {/* Pretty empty-state */}
-                <div className="rounded-2xl border border-border bg-gradient-to-br from-secondary/60 to-secondary/20 p-4">
+                <div className="rounded-2xl border border-border bg-secondary/45 p-4">
                   <div className="mb-2 flex items-center gap-2">
-                    <Sparkles className="h-3.5 w-3.5 text-accent" />
-                    <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Vi sidder klar</span>
+                    <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-5 w-5 object-contain" />
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Serviceydere support</span>
                   </div>
                   <p className="text-[13px] leading-relaxed text-foreground">
-                    👋 Hej! Vi hjælper med priser, bestilling og spørgsmål om Serviceydere. Vælg et emne — så kommer du hurtigt videre.
+                    👋 Hej! Vi hjælper med at finde serviceydere, indhente 3 tilbud og komme i gang som udbyder.
                   </p>
                 </div>
                 <div>
@@ -818,9 +812,9 @@ const LiveChatWidget = () => {
                           setSubject(t.subject);
                           if (t.suggest && !firstMessage) setFirstMessage(t.suggest);
                         }}
-                        className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+                    className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
                           subject === t.subject
-                            ? "border-foreground bg-foreground text-background scale-[1.02]"
+                            ? "border-foreground bg-foreground text-background"
                             : "border-border bg-card text-foreground hover:border-foreground/40 hover:bg-secondary/40"
                         }`}
                       >
@@ -870,8 +864,8 @@ const LiveChatWidget = () => {
               </div>
             ) : (
               <>
-                <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto bg-secondary/30 px-4 py-4 scroll-smooth">
-                  <div className="mx-auto max-w-[85%] rounded-full bg-card px-3 py-1 text-center text-[10px] text-muted-foreground shadow-sm">
+              <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto bg-secondary/25 px-4 py-4 scroll-smooth">
+                  <div className="mx-auto max-w-[85%] rounded-full border border-border bg-card px-3 py-1 text-center text-[10px] text-muted-foreground">
                     Samtale startet · {formatTime(messages[0]?.created_at || new Date().toISOString())}
                   </div>
 
@@ -886,7 +880,7 @@ const LiveChatWidget = () => {
                     if (m.is_system) {
                       return (
                         <div key={m.id} className="flex justify-center animate-in fade-in duration-200">
-                          <span className="rounded-full bg-card px-3 py-1 text-[10px] text-muted-foreground shadow-sm">
+                          <span className="rounded-full border border-border bg-card px-3 py-1 text-[10px] text-muted-foreground">
                             {m.content} · {formatTime(m.created_at)}
                           </span>
                         </div>
@@ -905,16 +899,18 @@ const LiveChatWidget = () => {
                         {!mine && (
                           <div className="w-7 flex-shrink-0">
                             {showAvatar && (
-                              <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-9 w-9 rounded-full object-cover" />
+                              <span className="flex h-9 w-9 items-center justify-center overflow-visible rounded-2xl bg-card ring-1 ring-border">
+                                <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-7 w-7 object-contain" />
+                              </span>
                             )}
                           </div>
                         )}
                         <div className={`flex max-w-[78%] flex-col ${mine ? "items-end" : "items-start"}`}>
                           <div
-                            className={`overflow-hidden rounded-2xl text-[13.5px] leading-snug shadow-sm ${
+                            className={`overflow-hidden rounded-2xl text-[13.5px] leading-snug ${
                               mine
                                 ? "rounded-br-sm bg-foreground text-background"
-                                : "rounded-bl-sm border border-border bg-card text-foreground"
+                                : "rounded-bl-sm text-foreground"
                             }`}
                           >
                             {m.image_url && (
@@ -953,10 +949,10 @@ const LiveChatWidget = () => {
                 ) : (
                   <>
                     {showRecommended && dynamicReplies.length > 0 && !draft && !pendingImage && (
-                      <div className="border-t border-border bg-card/60 px-3 py-2">
+                      <div className="border-t border-border bg-card px-3 py-2.5">
                         <div className="mb-1 flex items-center gap-1.5">
-                          <Sparkles className="h-3 w-3 text-accent" />
-                          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Anbefalede svar</span>
+                          <MessageCircle className="h-3 w-3 text-accent" />
+                          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Relevante opfølgninger</span>
                         </div>
                         <div className="flex flex-wrap gap-1.5">
                           {dynamicReplies.map((r) => (
