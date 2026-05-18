@@ -1725,7 +1725,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                           <button
                             type="button"
                             onClick={() => handleEmployeeLoginsChange(planExtraLogins - 1)}
-                            disabled={updatePlan.isPending || planExtraLogins <= activeEmployeesCount}
+                            disabled={updatePlan.isPending || (planExtraLogins + 1) <= activeEmployeesCount}
                             className="flex h-10 w-10 items-center justify-center text-lg font-semibold text-foreground transition-colors hover:bg-secondary disabled:opacity-40 disabled:hover:bg-transparent"
                             aria-label="Færre medarbejderlogins"
                           >
@@ -1745,11 +1745,11 @@ const SettingsTab = ({ business }: { business: any }) => {
                           </button>
                         </div>
                       </div>
-                      {planExtraLogins > 0 && planExtraLogins <= activeEmployeesCount && (
+                      {(planExtraLogins + 1) <= activeEmployeesCount && (
                         <p className="mt-3 flex items-start gap-1.5 rounded-md bg-secondary/40 px-2.5 py-2 text-[11.5px] text-muted-foreground">
                           <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                           <span>
-                            I bruger lige nu {activeEmployeesCount} af {planExtraLogins} medarbejderlogins.
+                            I bruger lige nu {activeEmployeesCount} af {planExtraLogins + 1} medarbejderlogins (inkl. ejer-login).
                             Deaktivér en medarbejder under <span className="font-medium text-foreground">Medarbejdere</span>, før I kan reducere antallet.
                           </span>
                         </p>

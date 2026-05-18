@@ -146,7 +146,8 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
   // (business_plans.extra_employee_logins). Når grænsen er nået, kan ejeren
   // ikke oprette eller genaktivere flere — vi spejler reglen i UI'et så
   // knappen er deaktiveret før vi rammer trigger-fejlen serverside.
-  const loginsLimit = plan?.extra_employee_logins ?? 0;
+  // Ejer-loginnet er altid inkluderet gratis (+1 plads ud over de købte ekstra logins).
+  const loginsLimit = (plan?.extra_employee_logins ?? 0) + 1;
   const loginsUsed = activeEmployees.length;
   const loginsRemaining = Math.max(0, loginsLimit - loginsUsed);
   const atLoginsLimit = loginsUsed >= loginsLimit;
