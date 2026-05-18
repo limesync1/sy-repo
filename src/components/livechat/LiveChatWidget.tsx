@@ -661,16 +661,16 @@ const LiveChatWidget = () => {
           type="button"
           onClick={handleOpen}
           aria-label="Åbn livechat"
-          className={`fixed z-40 flex items-center gap-1.5 rounded-full bg-foreground px-3 py-2 text-xs font-semibold text-background shadow-[0_14px_32px_-14px_hsl(var(--foreground)/0.55)] transition-all hover:bg-foreground/90 hover:shadow-[0_18px_40px_-14px_hsl(var(--foreground)/0.6)] active:scale-95 ${fabBottomClass} ${fabPositionClass}`}
+          className={`fixed z-40 flex items-center gap-2 rounded-full bg-foreground py-2 pl-2 pr-3.5 text-xs font-semibold text-background shadow-[0_14px_32px_-14px_hsl(var(--foreground)/0.55)] transition-all hover:bg-foreground/90 hover:shadow-[0_18px_40px_-14px_hsl(var(--foreground)/0.6)] active:scale-95 ${fabBottomClass} ${fabPositionClass}`}
         >
-          <span className="relative flex h-5 w-5 items-center justify-center">
+          <span className="relative flex h-6 w-6 items-center justify-center">
             <img
               src="/serviceydere-ikon.webp"
               alt=""
               aria-hidden="true"
-              className="h-7 w-7 rounded-full object-cover"
+              className="h-6 w-6 object-contain"
             />
-            <span className="absolute -right-0.5 -top-0.5 flex h-2 w-2">
+            <span className="absolute -right-1 -top-1 flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70 opacity-75"></span>
               <span className="relative inline-flex h-2 w-2 rounded-full bg-success ring-2 ring-foreground"></span>
             </span>
