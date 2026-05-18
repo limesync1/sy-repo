@@ -42,7 +42,9 @@ const DEFAULT_CATEGORIES = ["Velkomst", "Pris", "Support", "Opfølgning", "Afslu
 
 const DEFAULT_CANNED: CannedResponse[] = [
   { id: "greeting", title: "Velkomst", category: "Velkomst", body: "Hej {name} 👋\n\nTusind tak for din henvendelse! Hvordan kan jeg hjælpe dig?" },
-  { id: "pricing", title: "Priser", category: "Pris", body: "Hej {name},\n\nVores priser starter ved 199 kr./md. og afhænger af hvilke moduler I vælger. Du kan se en fuld oversigt på serviceydere.dk/priser eller jeg sender gerne et tilbud — hvor mange medarbejdere har I?" },
+  { id: "find-services", title: "Find serviceyder", category: "Support", body: "Hej {name},\n\nDu kan finde udbydere via Find services, filtrere efter kategori og by og derefter se profil, priser hvor udbyderen har lagt dem ind, anmeldelser og åbningstider." },
+  { id: "quote-flow", title: "Indhent 3 tilbud", category: "Support", body: "Hej {name},\n\nPå /tilbud vælger du lokation og kategori, beskriver opgaven og kan blive matchet med op til 3 relevante udbydere. Det er gratis og uforpligtende." },
+  { id: "provider", title: "Bliv udbyder", category: "Pris", body: "Hej {name},\n\nSom udbyder får I profilside, services/priser, booking, kunde- og ordreoverblik, leads, ruteplanlægger, fakturering, anmeldelser, livechat og medarbejder-app. Priser afhænger af aftale og moduler, så vi tager gerne dialogen direkte." },
   { id: "callback", title: "Ring tilbage", category: "Support", body: "Hej {name},\n\nJeg vil meget gerne ringe dig op. Hvilket tidspunkt passer dig bedst i dag?" },
   { id: "thanks-close", title: "Tak & afslut", category: "Afslutning", body: "Tak for snakken {name}! Skriv endelig igen hvis du har flere spørgsmål. God dag 🌿" },
 ];
