@@ -2395,6 +2395,16 @@ const Planner = () => {
               <Button data-tour="routes-today" variant="outline" size="sm" className="h-7" onClick={() => setDate(todayStr())}>I dag</Button>
             </div>
 
+            <PlanningPanel
+              businessId={businessId}
+              anchorDate={date}
+              stops={calendarStops as any}
+              routes={calendarRoutesRaw as any}
+              employees={activeEmployees as any}
+              filterAssigneeIds={filterAssigneeIds}
+              onFilterAssigneeIds={setFilterAssigneeIds}
+            />
+
             <div className="flex items-center gap-1.5">
               <Dialog open={createOpen} onOpenChange={setCreateOpen}>
                 <DialogTrigger asChild>
