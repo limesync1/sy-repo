@@ -2411,8 +2411,10 @@ const Planner = () => {
       onDragCancel={() => {
         // ESC eller pointer-loss midt i drag tæller som klik-fejl.
         dragMetrics.end(false);
+        updateRouteDndDebug(activeDragData, activeRouteDragPointRef.current, null, null, null, "Annulleret");
         setActiveDragId(null);
         setActiveDragData(null);
+        setRouteDragPoint(null);
         activeRouteDragPointRef.current = null;
         activeRouteDragOriginRef.current = null;
       }}
