@@ -46,7 +46,12 @@ const AddressAutocomplete = ({ value, onChange, onSelect, placeholder = "Vejnavn
   const [activeIdx, setActiveIdx] = useState(-1);
   const debounceRef = useRef<number | null>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const ignoreNextFetchRef = useRef(false);
+  // userTypedRef sikrer at vi KUN åbner dropdown og henter forslag når
+  // brugeren rent faktisk har skrevet i feltet siden mount/sidste pick.
+  // Tidligere åbnede `useEffect` på `value` dropdown ved enhver re-render
+  // hvor `value` var ikke-tom — fx når parent-komponenten genrenderede
+  // under scroll/auto-save.
+  const userTypedRef = useRef(false);
 
   // Luk dropdown ved klik udenfor
   useEffect(() => {
@@ -57,21 +62,19 @@ const AddressAutocomplete = ({ value, onChange, onSelect, placeholder = "Vejnavn
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
-  // Debounced fetch
-  useEffect(() => {
-    if (ignoreNextFetchRef.current) {
-      ignoreNextFetchRef.current = false;
-      return;
-    }
+  // Debounced fetch — triggeres nu KUN fra onChange (eksplicit brugerinput),
+  // ikke fra value-prop-ændringer der kommer fra parent re-renders.
+  const triggerSearch = (q: string) => {
     if (debounceRef.current) window.clearTimeout(debounceRef.current);
-    if (!value || value.length < 2) {
+    if (!q || q.length < 2) {
       setSuggestions([]);
+      setOpen(false);
       return;
     }
     debounceRef.current = window.setTimeout(async () => {
       setLoading(true);
       try {
-        const url = `https://api.dataforsyningen.dk/autocomplete?type=adresse&q=${encodeURIComponent(value)}&per_side=8&fuzzy=`;
+        const url = `https://api.dataforsyningen.dk/autocomplete?type=adresse&q=${encodeURIComponent(q)}&per_side=8&fuzzy=`;
         const res = await fetch(url);
         if (res.ok) {
           const data = (await res.json()) as Suggestion[];
@@ -85,13 +88,16 @@ const AddressAutocomplete = ({ value, onChange, onSelect, placeholder = "Vejnavn
         setLoading(false);
       }
     }, 200);
+  };
+
+  useEffect(() => {
     return () => {
       if (debounceRef.current) window.clearTimeout(debounceRef.current);
     };
-  }, [value]);
+  }, []);
 
   const pick = async (s: Suggestion) => {
-    ignoreNextFetchRef.current = true;
+    userTypedRef.current = false;
     setOpen(false);
     setSuggestions([]);
     const d = s.data || {};
@@ -149,8 +155,17 @@ const AddressAutocomplete = ({ value, onChange, onSelect, placeholder = "Vejnavn
         <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           value={value}
-          onChange={(e) => { onChange(e.target.value); if (e.target.value.length >= 2) setOpen(true); }}
-          onFocus={() => suggestions.length > 0 && setOpen(true)}
+          onChange={(e) => {
+            const next = e.target.value;
+            userTypedRef.current = true;
+            onChange(next);
+            triggerSearch(next);
+          }}
+          onFocus={() => {
+            // Åbn KUN hvis brugeren faktisk har skrevet siden sidste pick —
+            // ikke fordi et re-render fokuserer feltet ved scroll/auto-save.
+            if (userTypedRef.current && suggestions.length > 0) setOpen(true);
+          }}
           onKeyDown={onKey}
           placeholder={placeholder}
           className="bg-card h-10 rounded-lg pl-9 pr-9"
