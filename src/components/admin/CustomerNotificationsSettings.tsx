@@ -11,6 +11,7 @@ import { Loader2, Mail, MessageSquare, Bell, CheckCircle2, RotateCcw, Phone, Plu
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { TimePickerPopover } from "@/components/shared/TimePickerPopover";
 
 interface Props {
   businessId: string;
@@ -180,11 +181,11 @@ function SchedulePicker({
               </button>
             );
           })}
-          <Input
-            type="time"
+          <TimePickerPopover
             value={time}
-            onChange={(e) => onChange({ days, time: e.target.value || "09:00" })}
-            className="h-8 w-[110px] tabular-nums"
+            onChange={(v) => onChange({ days, time: v || "09:00" })}
+            label="Vælg klokkeslæt"
+            className="h-8 px-2.5 text-[12px]"
           />
         </div>
       </div>
