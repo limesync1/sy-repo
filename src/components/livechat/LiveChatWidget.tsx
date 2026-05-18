@@ -649,6 +649,7 @@ const LiveChatWidget = () => {
     <>
       {!open && !hideTrigger && (
         <button
+          ref={fabRef}
           type="button"
           onClick={handleOpen}
           aria-label="Åbn livechat"
