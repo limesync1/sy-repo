@@ -2227,7 +2227,7 @@ const Planner = () => {
         contentPadding={false}
         contentClassName="flex flex-col overflow-hidden"
         topbarRight={
-          <div className="hidden lg:flex items-center gap-1.5 flex-wrap justify-end">
+          <div className="hidden xl:flex items-center gap-1.5 flex-wrap justify-end">
             {/* Hurtig periode-statistik — gør det øjeblikkeligt klart hvor
                 meget arbejde der ligger i den viste måned/uge. */}
             {periodSummary.routeCount > 0 && (
@@ -2768,7 +2768,7 @@ const Planner = () => {
           return (
             <div className="flex-1 overflow-hidden p-2 sm:p-3" style={{ height: "calc(100vh - 56px)" }}>
               {/* Desktop (lg+): resizable side-by-side */}
-              <div className="hidden h-full lg:block">
+              <div className="hidden h-full xl:block">
                 <ResizablePanelGroup direction="horizontal" className="h-full rounded-lg">
                   <ResizablePanel defaultSize={20} minSize={14} maxSize={36} className="overflow-hidden">
                     {unassignedCard}
@@ -2783,7 +2783,7 @@ const Planner = () => {
               {/* Mobil/tablet (<lg): dedikeret toolbar + kalender fuld bredde.
                   Handlingsknapper ligger samlet under dato-navigationen, så
                   topbaren ikke bliver presset eller får knapper tilfældige steder. */}
-              <div className="flex h-full flex-col gap-2 lg:hidden">
+              <div className="flex h-full flex-col gap-2 xl:hidden">
                 <div className="shrink-0 space-y-2 rounded-lg border bg-card p-2 shadow-sm">
                   <div className="flex items-center gap-1.5">
                     <Button
