@@ -54,7 +54,7 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
           </div>
         </div>
 
-        <div className="relative space-y-3 p-4 pt-7">
+        <div className="relative space-y-3 p-5 pt-8">
           {/* Logo overlay — løftes op over coveret så virksomheden står tydeligt frem */}
           <div className="absolute -top-7 left-4 flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border-2 border-card bg-card shadow-md">
             {biz.logo_url ? (
@@ -144,7 +144,7 @@ const RecentBusinesses = () => {
               <span className="h-px w-6 bg-foreground/30" />
               Virksomheder
             </span>
-            <h2 className="mt-5 text-[2rem] font-semibold leading-[1.05] tracking-[-0.02em] text-foreground md:text-[2.75rem]">Udvalgte virksomheder</h2>
+            <h2 className="mt-5 text-[2rem] font-semibold leading-[1.04] tracking-[-0.025em] text-foreground md:text-[2.75rem] lg:text-[3.25rem]">Udvalgte virksomheder</h2>
           </div>
           <Link to="/virksomheder" className="group inline-flex items-center gap-2 self-start rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5 hover:shadow-sm md:self-auto">
             Vis alle
