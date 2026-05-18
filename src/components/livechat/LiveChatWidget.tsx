@@ -952,7 +952,7 @@ const LiveChatWidget = () => {
                   </div>
                 ) : (
                   <>
-                    {showRecommended && !draft && !pendingImage && (
+                    {showRecommended && dynamicReplies.length > 0 && !draft && !pendingImage && (
                       <div className="border-t border-border bg-card/60 px-3 py-2">
                         <div className="mb-1 flex items-center gap-1.5">
                           <Sparkles className="h-3 w-3 text-accent" />
