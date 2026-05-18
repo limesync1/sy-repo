@@ -42,6 +42,7 @@ import {
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { format, addDays, addWeeks, addMonths, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { da } from "date-fns/locale";
 import { toast } from "sonner";
@@ -2579,10 +2580,10 @@ const Planner = () => {
           </div>
         }
       >
-        <div className="flex-1 overflow-hidden p-3" style={{ height: "calc(100vh - 56px)" }}>
-            <ResizablePanelGroup direction="horizontal" className="h-full rounded-lg">
-              {/* Sidebar: Aftaler uden rute */}
-              <ResizablePanel defaultSize={20} minSize={14} maxSize={36} className="overflow-hidden">
+        {(() => {
+          // Sidebar: Aftaler uden rute — genbruges i lg+ ResizablePanel og i
+          // mobil/tablet Sheet-drawer, så drag-and-drop fungerer på alle enheder.
+          const unassignedCard = (
                 <Card data-tour="routes-unassigned" className="flex flex-col h-full overflow-hidden">
                   <div className="p-3 border-b bg-secondary/30 space-y-2">
                     <div className="flex items-center justify-between">
@@ -2687,12 +2688,9 @@ const Planner = () => {
                     ))}
                   </div>
                 </Card>
-              </ResizablePanel>
+          );
 
-              <ResizableHandle withHandle className="bg-transparent w-2 hover:bg-primary/20 transition-colors" />
-
-              {/* Calendar */}
-              <ResizablePanel defaultSize={80} className="overflow-hidden">
+          const calendarBlock = (
                 <div data-tour="routes-calendar" className="h-full flex flex-col">
                 {projectionDiagnostics.unprojectable.length > 0 && (
                   <Alert variant="destructive" className="m-2 mb-0 shrink-0">
@@ -2728,9 +2726,52 @@ const Planner = () => {
                 />
                 </div>
                 </div>
-              </ResizablePanel>
-            </ResizablePanelGroup>
-        </div>
+          );
+
+          return (
+            <div className="flex-1 overflow-hidden p-3" style={{ height: "calc(100vh - 56px)" }}>
+              {/* Desktop (lg+): resizable side-by-side */}
+              <div className="hidden h-full lg:block">
+                <ResizablePanelGroup direction="horizontal" className="h-full rounded-lg">
+                  <ResizablePanel defaultSize={20} minSize={14} maxSize={36} className="overflow-hidden">
+                    {unassignedCard}
+                  </ResizablePanel>
+                  <ResizableHandle withHandle className="bg-transparent w-2 hover:bg-primary/20 transition-colors" />
+                  <ResizablePanel defaultSize={80} className="overflow-hidden">
+                    {calendarBlock}
+                  </ResizablePanel>
+                </ResizablePanelGroup>
+              </div>
+
+              {/* Mobil/tablet (<lg): kalender fuld bredde + sheet-drawer
+                  for aftaler uden rute, så drag-and-drop og overblik virker
+                  uden at sidebar æder pladsen. */}
+              <div className="flex h-full flex-col gap-2 lg:hidden">
+                <div className="shrink-0">
+                  <Sheet>
+                    <SheetTrigger asChild>
+                      <Button variant="outline" size="sm" className="h-9 w-full justify-between">
+                        <span className="inline-flex items-center gap-2">
+                          <Inbox className="h-4 w-4" />
+                          Aftaler uden rute
+                        </span>
+                        <Badge variant="secondary" className="tabular-nums">{filteredUnassigned.length}</Badge>
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="left" className="w-[88vw] max-w-sm p-0 flex flex-col">
+                      <div className="flex-1 min-h-0">
+                        {unassignedCard}
+                      </div>
+                    </SheetContent>
+                  </Sheet>
+                </div>
+                <div className="flex-1 min-h-0">
+                  {calendarBlock}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Manuel ordre-oprettelse — kunde modtager mail med godkendelseslink */}
         {businessId && (

@@ -1264,24 +1264,28 @@ const SettingsTab = ({ business }: { business: any }) => {
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     Adressen kunderne åbner, når de besøger jeres profil. Skriv firmanavnet med små bogstaver og bindestreger i stedet for mellemrum (fx <span className="font-mono">nord-rengoering</span>). <strong className="text-foreground">Vær varsom med at ændre det senere</strong> — har I delt linket, holder det gamle op med at virke.
                   </p>
-                  <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-                    <div className="flex h-10 items-center rounded-l-lg border border-r-0 border-border bg-muted px-3 text-xs text-muted-foreground">
-                      serviceydere.dk/v/
+                  {/* Mobile: stilfuld stak med inline-prefix indeni en
+                      delt ramme. sm+: joined pill med prefix + input + knap. */}
+                  <div className="mt-3 space-y-2 sm:flex sm:space-y-0 sm:gap-0">
+                    <div className="flex w-full items-stretch overflow-hidden rounded-lg border border-border bg-card sm:flex-1">
+                      <div className="flex shrink-0 items-center bg-muted px-3 text-xs font-medium text-muted-foreground">
+                        serviceydere.dk/v/
+                      </div>
+                      <Input
+                        placeholder="min-virksomhed"
+                        value={slug}
+                        onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+                        className="h-10 flex-1 rounded-none border-0 bg-transparent font-mono text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
+                        maxLength={60}
+                        autoComplete="off"
+                        spellCheck={false}
+                      />
                     </div>
-                    <Input
-                      placeholder="min-virksomhed"
-                      value={slug}
-                      onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-                      className="h-10 flex-1 rounded-l-none rounded-r-lg bg-card font-mono text-sm sm:-ml-2"
-                      maxLength={60}
-                      autoComplete="off"
-                      spellCheck={false}
-                    />
                     <Button
                       type="button"
                       onClick={handleSaveSlug}
                       disabled={!slugChanged || slugStatus === "checking" || slugStatus === "taken" || slugStatus === "invalid"}
-                      className="h-10 rounded-lg"
+                      className="h-10 w-full rounded-lg sm:ml-2 sm:w-auto"
                     >
                       Gem link
                     </Button>
@@ -1338,19 +1342,21 @@ const SettingsTab = ({ business }: { business: any }) => {
                     Har I allerede købt et webnavn (fx <span className="font-mono">mitfirma.dk</span>)? Så kan I bruge det i stedet for{" "}
                     <span className="font-mono">serviceydere.dk/v/{business.slug}</span>. Det ser mere professionelt ud i Google og når I deler links. Det kræver lidt teknisk opsætning hos den, hvor I har købt webnavnet — vi guider jer trin for trin.
                   </p>
-                  <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-                    <div className="flex h-10 items-center rounded-l-lg border border-r-0 border-border bg-muted px-3 text-xs text-muted-foreground">
-                      https://
+                  <div className="mt-3 space-y-2 sm:flex sm:space-y-0 sm:gap-0">
+                    <div className="flex w-full items-stretch overflow-hidden rounded-lg border border-border bg-card sm:flex-1">
+                      <div className="flex shrink-0 items-center bg-muted px-3 text-xs font-medium text-muted-foreground">
+                        https://
+                      </div>
+                      <Input
+                        placeholder="mitfirma.dk"
+                        value={customDomain}
+                        onChange={(e) => setCustomDomain(e.target.value)}
+                        className="h-10 flex-1 rounded-none border-0 bg-transparent font-mono text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
+                        autoComplete="off"
+                        spellCheck={false}
+                      />
                     </div>
-                    <Input
-                      placeholder="mitfirma.dk"
-                      value={customDomain}
-                      onChange={(e) => setCustomDomain(e.target.value)}
-                      className="h-10 flex-1 rounded-l-none rounded-r-lg bg-card font-mono text-sm sm:-ml-2"
-                      autoComplete="off"
-                      spellCheck={false}
-                    />
-                    <Button type="button" onClick={handleVerifyDomain} disabled={domainVerifying || !customDomain.trim()} className="h-10 rounded-lg">
+                    <Button type="button" onClick={handleVerifyDomain} disabled={domainVerifying || !customDomain.trim()} className="h-10 w-full rounded-lg sm:ml-2 sm:w-auto">
                       {domainVerifying ? <Loader2 className="h-4 w-4 animate-spin" /> : "Tjek nu"}
                     </Button>
                   </div>
