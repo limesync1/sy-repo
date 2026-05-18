@@ -2820,7 +2820,7 @@ const Planner = () => {
           return (
             <div className="flex-1 overflow-hidden p-2 sm:p-3" style={{ height: "calc(100vh - 56px)" }}>
               {/* Desktop (lg+): resizable side-by-side */}
-              <div className="hidden h-full xl:block">
+              <div className="hidden h-full 2xl:block">
                 <ResizablePanelGroup direction="horizontal" className="h-full rounded-lg">
                   <ResizablePanel defaultSize={20} minSize={14} maxSize={36} className="overflow-hidden">
                     {unassignedCard}
