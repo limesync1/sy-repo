@@ -35,15 +35,6 @@ const HeroSection = () => {
       {/* Indhold */}
       <div className="relative mx-auto max-w-7xl px-4 pb-20 pt-12 sm:px-6 sm:pb-24 sm:pt-16 lg:px-8 lg:pb-32 lg:pt-24">
         <div className="max-w-2xl">
-          {/* Live-badge — diskret pulserende prik signalerer aktivitet på platformen. */}
-          <div className="animate-fade-in mb-5 inline-flex items-center gap-2 rounded-full border border-background/25 bg-background/10 px-3 py-1 text-xs font-medium text-background backdrop-blur-md">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
-            </span>
-            Klar til at hjælpe dig i dag
-          </div>
-
           <h1 className="animate-fade-in text-[2rem] font-semibold leading-[1.06] tracking-tight text-background sm:text-[3.25rem] lg:text-[3.75rem]">
             Find den rette{" "}
             <span className="bg-[linear-gradient(110deg,hsl(187_100%_49%)_0%,hsl(187_100%_75%)_50%,hsl(187_100%_49%)_100%)] bg-[length:200%_100%] bg-clip-text text-transparent animate-gradient-pan">
