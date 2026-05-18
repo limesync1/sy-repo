@@ -1500,20 +1500,34 @@ const Planner = () => {
 
   const handleDragEnd = async (e: DragEndEvent) => {
     const { active, over } = e;
-    const fallbackRouteTarget = !over && active.data.current?.type === "route"
-      ? (() => {
-          const point = activeRouteDragPointRef.current;
-          const el = point ? document.elementFromPoint(point.x, point.y)?.closest<HTMLElement>("[data-route-drop-route-id],[data-route-drop-date]") : null;
-          const routeId = el?.dataset.routeDropRouteId;
-          const date = el?.dataset.routeDropDate;
-          if (routeId) return { type: "route", routeId, date };
-          if (date) return { type: "day", date };
-          return lastRouteDropTargetRef.current;
-        })()
+    const activeDataAtDrop: any = active.data.current;
+    const pointAtDrop = activeRouteDragPointRef.current;
+    const domRouteTarget = activeDataAtDrop?.type === "route"
+      ? getRouteDropPointTarget(pointAtDrop, activeDataAtDrop.route?.id)
       : null;
-    const hasDropTarget = !!over || !!fallbackRouteTarget;
+    const dndRouteTarget = over?.data.current ?? null;
+    const fallbackRouteTarget = activeDataAtDrop?.type === "route"
+      ? domRouteTarget ?? lastRouteDropTargetRef.current
+      : null;
+    const preferredRouteTarget = activeDataAtDrop?.type === "route"
+      ? dndRouteTarget?.type === "route"
+        ? dndRouteTarget
+        : domRouteTarget?.type === "route"
+          ? domRouteTarget
+          : dndRouteTarget ?? fallbackRouteTarget
+      : null;
+    const hasDropTarget = activeDataAtDrop?.type === "route" ? !!preferredRouteTarget : !!over;
+    updateRouteDndDebug(
+      activeDataAtDrop,
+      pointAtDrop,
+      dndRouteTarget,
+      domRouteTarget,
+      preferredRouteTarget,
+      "Drop",
+    );
     setActiveDragId(null);
     setActiveDragData(null);
+    setRouteDragPoint(null);
     activeRouteDragPointRef.current = null;
     activeRouteDragOriginRef.current = null;
     lastRouteDropTargetRef.current = null;
@@ -1626,8 +1640,8 @@ const Planner = () => {
       return false;
     };
 
-    const activeData: any = active.data.current;
-    const overData: any = over?.data.current ?? fallbackRouteTarget;
+    const activeData: any = activeDataAtDrop;
+    const overData: any = activeData?.type === "route" ? preferredRouteTarget : over?.data.current;
     // ─── Hård spærring: aldrig drop på en dato før i dag ───
     // Kalender-cellerne er allerede disabled som drop-target, men en
     // eksplicit guard + toast sikrer at intet drop (rute, stop eller job)
