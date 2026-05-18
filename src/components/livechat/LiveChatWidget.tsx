@@ -608,6 +608,31 @@ const LiveChatWidget = () => {
   const panelBottomClass = fabBottomClass;
   const panelPositionClass = fabPositionClass;
 
+  // Publicér FAB'ens bredde som CSS-variabel, så CartFab kan sidde lige til
+  // venstre for livechat-knappen på desktop uden at overlappe.
+  const fabRef = useRef<HTMLButtonElement | null>(null);
+  useEffect(() => {
+    const el = fabRef.current;
+    const root = document.documentElement;
+    if (!el || open || hidden || hideTrigger) {
+      root.style.setProperty("--livechat-fab-width", "0px");
+      return;
+    }
+    const update = () => {
+      const w = el.getBoundingClientRect().width;
+      root.style.setProperty("--livechat-fab-width", `${Math.ceil(w)}px`);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    window.addEventListener("resize", update);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", update);
+      root.style.setProperty("--livechat-fab-width", "0px");
+    };
+  }, [open, hidden, hideTrigger]);
+
   const lastAdminMsg = [...messages].reverse().find((m) => m.sender_type === "admin" && !m.is_system);
   const lastVisitorMsg = [...messages].reverse().find((m) => m.sender_type === "visitor" && !m.is_system);
   const showRecommended =
