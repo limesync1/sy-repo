@@ -62,7 +62,7 @@ const HeroSection = () => {
       {/* Indhold — asymmetrisk 60/40 grid */}
       <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 pb-20 pt-12 sm:px-6 sm:pb-24 sm:pt-16 lg:grid-cols-[60%_40%] lg:gap-20 lg:px-8 lg:pb-32 lg:pt-24">
         <div className="max-w-2xl">
-          <h1 className="animate-fade-in text-[2.25rem] font-semibold leading-[1.04] tracking-[-0.03em] text-background sm:text-[3.5rem] lg:text-[4.5rem]">
+          <h1 className="animate-fade-in text-[1.9rem] font-semibold leading-[1.05] tracking-[-0.03em] text-background sm:text-[2.75rem] lg:text-[3.5rem]">
             Find den rette{" "}
             <span className="bg-[linear-gradient(110deg,hsl(var(--hero-cyan))_0%,hsl(var(--hero-cyan-bright))_50%,hsl(var(--hero-cyan))_100%)] bg-[length:200%_100%] bg-clip-text text-transparent animate-gradient-pan">
               serviceyder
