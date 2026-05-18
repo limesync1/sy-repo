@@ -48,7 +48,7 @@ import { da } from "date-fns/locale";
 import { toast } from "sonner";
 import {
   DndContext, DragOverlay, useSensor, useSensors,
-  pointerWithin, rectIntersection, type CollisionDetection, type DragEndEvent, type DragStartEvent,
+  pointerWithin, rectIntersection, type CollisionDetection, type DragEndEvent, type DragMoveEvent, type DragStartEvent,
   MouseSensor, TouchSensor, KeyboardSensor,
 } from "@dnd-kit/core";
 import { createPortal } from "react-dom";
@@ -80,6 +80,19 @@ import { cn } from "@/lib/utils";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
+
+type DragPoint = { x: number; y: number };
+
+const getDragPoint = (event: Event | null): DragPoint | null => {
+  if (!event) return null;
+  if ("clientX" in event && typeof (event as MouseEvent).clientX === "number") {
+    const { clientX, clientY } = event as MouseEvent;
+    return { x: clientX, y: clientY };
+  }
+  const touchEvent = event as TouchEvent;
+  const touch = touchEvent.touches?.[0] ?? touchEvent.changedTouches?.[0];
+  return touch ? { x: touch.clientX, y: touch.clientY } : null;
+};
 
 /** Konverterer "HH:MM[:SS]" til minutter siden midnat (eller null). */
 const toMin = (t: string | null | undefined): number | null => {
