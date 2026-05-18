@@ -106,6 +106,38 @@ const getDragPoint = (event: Event | null): DragPoint | null => {
   return touch ? { x: touch.clientX, y: touch.clientY } : null;
 };
 
+const routeIdFromDndId = (id: unknown) => String(id ?? "").replace(/^route:/, "");
+
+const getRouteDropPointTarget = (point: DragPoint | null, sourceRouteId?: string | null): RouteDropPointTarget | null => {
+  if (!point || typeof document === "undefined") return null;
+  const elements = typeof document.elementsFromPoint === "function"
+    ? document.elementsFromPoint(point.x, point.y)
+    : [document.elementFromPoint(point.x, point.y)].filter(Boolean) as Element[];
+
+  for (const element of elements) {
+    const routeEl = element.closest<HTMLElement>("[data-route-drop-route-id]");
+    const routeId = routeEl?.dataset.routeDropRouteId;
+    if (routeId && routeId !== sourceRouteId) {
+      return { type: "route", routeId, date: routeEl.dataset.routeDropDate ?? null };
+    }
+  }
+
+  for (const element of elements) {
+    const dayEl = element.closest<HTMLElement>("[data-route-drop-date]");
+    const date = dayEl?.dataset.routeDropDate;
+    if (date) return { type: "day", date };
+  }
+
+  return null;
+};
+
+const routeDropTargetLabel = (target: any) => {
+  if (!target) return "Ingen target";
+  if (target.type === "route") return `Merge → rute ${String(target.routeId ?? "?").slice(0, 8)}`;
+  if (target.type === "day") return `Flyt → ${target.date}`;
+  return `Ukendt → ${target.type ?? "?"}`;
+};
+
 /** Konverterer "HH:MM[:SS]" til minutter siden midnat (eller null). */
 const toMin = (t: string | null | undefined): number | null => {
   if (!t) return null;
