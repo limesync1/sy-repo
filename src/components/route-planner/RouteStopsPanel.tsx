@@ -277,7 +277,7 @@ const SortableStopRow = ({
         isDragging ? "shadow-lg opacity-80 ring-2 ring-accent" : "hover:shadow-sm hover:border-foreground/20",
       )}
     >
-      <div className="flex items-stretch min-h-[3.5rem]">
+      <div className="grid min-h-[3.5rem] grid-cols-[1.75rem_2.75rem_minmax(0,1fr)] sm:grid-cols-[1.75rem_2.75rem_minmax(0,1fr)_auto]">
         {/* Drag handle — skjult på projicerede ruter (read-only) */}
         {!isProjection ? (
           <button
@@ -311,7 +311,7 @@ const SortableStopRow = ({
         <button
           type="button"
           onClick={onSelect}
-          className="flex-1 text-left px-3 py-2.5 min-w-0 hover:bg-accent/5 space-y-1"
+          className="min-w-0 text-left px-3 py-2.5 hover:bg-accent/5 space-y-1"
         >
           {/* Header: kundenavn (primær) + medarbejder-avatars + åbn-pil */}
           <div className="flex items-center gap-1.5">
@@ -372,7 +372,7 @@ const SortableStopRow = ({
         </button>
 
         {/* Right-side actions: assignee toggle + remove */}
-        <div className="flex items-stretch border-l border-border/50">
+        <div className="col-span-3 flex items-stretch justify-end border-t border-border/50 bg-secondary/20 sm:col-span-1 sm:border-l sm:border-t-0 sm:bg-transparent">
           <AssigneeToggle
             employees={employees}
             selectedIds={assigneeIds}
@@ -383,7 +383,7 @@ const SortableStopRow = ({
             <button
               type="button"
               onClick={onRemove}
-              className="flex items-center justify-center w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/5 rounded-r-md opacity-0 group-hover:opacity-100"
+              className="flex h-10 w-10 items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/5 rounded-r-md sm:h-auto sm:w-8 sm:opacity-0 sm:group-hover:opacity-100"
               aria-label="Fjern stop"
               title="Fjern stop fra rute"
             >
