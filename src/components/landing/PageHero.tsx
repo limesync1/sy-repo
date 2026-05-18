@@ -38,35 +38,57 @@ const PageHero = ({
       : "pb-10 pt-8 sm:pb-12 sm:pt-10 lg:pb-16 lg:pt-12";
 
   return (
-    <section className="relative isolate overflow-hidden bg-foreground text-background">
+    <section
+      className="relative isolate overflow-hidden text-background"
+      style={{ backgroundColor: "hsl(var(--hero-bg))" }}
+    >
       {backgroundImage && (
         <img
           src={backgroundImage}
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 -z-10 h-full w-full object-cover opacity-60"
+          className="absolute inset-0 -z-20 h-full w-full object-cover opacity-30"
           loading="eager"
         />
       )}
-      {/* Layered overlays — match the home hero treatment so text always reads. */}
-      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-foreground/90 via-foreground/70 to-foreground/40" />
-      <div className="absolute inset-0 -z-10 bg-gradient-to-t from-foreground/70 via-transparent to-transparent" />
-      {/* Subtle accent glow in the corner for depth. */}
-      <div className="absolute -right-32 top-0 -z-10 h-[420px] w-[420px] rounded-full bg-accent/15 blur-3xl" />
+      {/* Marine gradient — sikrer kontrast og premium farveindtryk. */}
+      <div
+        aria-hidden
+        className="absolute inset-0 -z-10"
+        style={{
+          backgroundImage:
+            "linear-gradient(90deg, hsl(var(--hero-bg)) 0%, hsl(var(--hero-bg) / 0.9) 50%, hsl(var(--hero-bg) / 0.55) 100%)",
+        }}
+      />
+      {/* Ambient cyan/mid-blue glows — samme sprog som forsidens hero. */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+        <div
+          className="absolute -top-32 right-[-8%] h-[28rem] w-[28rem] rounded-full blur-[110px] opacity-30"
+          style={{ backgroundColor: "hsl(var(--hero-mid))" }}
+        />
+        <div
+          className="absolute -bottom-32 -left-24 h-[22rem] w-[22rem] rounded-full blur-[100px] opacity-20"
+          style={{ backgroundColor: "hsl(var(--hero-cyan))" }}
+        />
+        <div className="absolute inset-0 bg-noise opacity-[0.05] mix-blend-overlay" />
+      </div>
 
       <div className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 ${padding}`}>
         <div className="max-w-2xl">
           {eyebrow && (
             <span className="inline-flex items-center gap-2 rounded-full border border-background/25 bg-background/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-background/85 backdrop-blur sm:text-xs">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+              <span
+                className="h-1.5 w-1.5 rounded-full"
+                style={{ backgroundColor: "hsl(var(--hero-cyan-bright))" }}
+              />
               {eyebrow}
             </span>
           )}
-          <h1 className="mt-3 text-[1.85rem] font-semibold leading-[1.1] text-background sm:text-[2.4rem] lg:text-[2.85rem]">
+          <h1 className="mt-3 text-[1.85rem] font-semibold leading-[1.08] tracking-[-0.025em] text-background sm:text-[2.4rem] lg:text-[2.85rem]">
             {title}
           </h1>
           {subtitle && (
-            <p className="mt-3 max-w-xl text-sm leading-6 text-background/85 sm:text-[15px]">
+            <p className="mt-3 max-w-xl text-sm leading-6 text-background/80 sm:text-[15px]">
               {subtitle}
             </p>
           )}
