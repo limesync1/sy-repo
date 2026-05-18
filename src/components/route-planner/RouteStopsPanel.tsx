@@ -427,7 +427,7 @@ const AssigneeToggle = ({
         <button
           type="button"
           className={cn(
-            "flex items-center justify-center w-8 text-muted-foreground hover:text-foreground hover:bg-accent/10",
+            "flex h-10 w-10 items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent/10 sm:h-auto sm:w-8",
             selectedIds.length > 0 && "text-foreground",
           )}
           aria-label="Tildel medarbejdere"
