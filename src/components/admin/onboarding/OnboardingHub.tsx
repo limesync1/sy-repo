@@ -40,6 +40,10 @@ type Step = {
   cta: string;
   href: string;
   icon: LucideIcon;
+  /** Estimeret tid for at gennemføre trinet, så ejeren kan planlægge. */
+  etaMin?: number;
+  /** Fase-gruppering — vises som lille farvet chip. */
+  phase?: "profil" | "services" | "team" | "vækst";
   /** Returnerer true hvis dette step bør tælle som færdigt baseret på data. */
   isDone: (ctx: Ctx) => boolean;
   /** Optional: skjul trin hvis ikke relevant for denne virksomhed. */
