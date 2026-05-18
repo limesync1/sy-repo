@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/landing/Footer";
 import SEO from "@/components/SEO";
+import PageHero from "@/components/landing/PageHero";
 import { translateAuthError } from "@/lib/auth-errors";
 
 /* ──────────────────────────────────────────────────────────────────────────
