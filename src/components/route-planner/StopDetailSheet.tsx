@@ -27,6 +27,7 @@ import { da } from "date-fns/locale";
 import { INTERVAL_LABELS } from "@/types/service";
 import { intervalToCadence } from "@/lib/interval";
 import { Section, SheetFooterBar } from "./SheetSection";
+import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 
 type Props = {
   stop: RouteStop | null;
@@ -41,6 +42,7 @@ type Props = {
 };
 
 export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequenceLabel, readOnly, effectiveDate }: Props) => {
+  const isCompact = useIsBelowBreakpoint(1024);
   const { data: order, isLoading } = useOrderForStop(stop?.order_id);
   const updateStop = useUpdateStop();
   const deleteStop = useDeleteStop();
@@ -178,14 +180,20 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent className="sm:max-w-2xl w-full p-0 flex flex-col">
+        <SheetContent
+          side={isCompact ? "bottom" : "right"}
+          className={cn(
+            "w-full p-0 flex flex-col",
+            isCompact ? "h-[88vh] max-h-[88vh] rounded-t-xl" : "sm:max-w-2xl",
+          )}
+        >
           {/* Header — samme look som "Se detaljer" på kunder-siden:
               kompakt titel, lille beskrivelse og en række diskrete status-pills. */}
-          <SheetHeader className="border-b border-border p-5 shrink-0 space-y-0">
+          <SheetHeader className="border-b border-border p-4 pr-14 shrink-0 space-y-0 text-left">
             <SheetTitle className="text-left">
               <div className="flex items-start gap-3">
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-lg font-bold text-foreground truncate flex items-center gap-2">
+                  <h3 className="text-base font-bold text-foreground truncate flex items-center gap-2 sm:text-lg">
                     {routeColor && (
                       <span
                         className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
