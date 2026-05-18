@@ -100,6 +100,29 @@ Deno.serve(async (req) => {
         continue;
       }
 
+      // Tjek modtagerens egne notifikations-præferencer (profiles.notification_settings).
+      // Mapper event_type → præference-nøgle. Hvis modtageren har slået den fra,
+      // annulleres jobbet uden afsendelse.
+      const EVENT_TO_PREF: Record<string, string> = {
+        service_upcoming: "email_upcoming_service",
+        service_completed: "email_agreement_status",
+      };
+      const prefKey = EVENT_TO_PREF[job.event_type];
+      const recipientEmail = job.recipient_email ?? order.customer_email ?? null;
+      if (prefKey && recipientEmail) {
+        const { data: allowed } = await admin.rpc("get_customer_notification_pref", {
+          p_email: recipientEmail,
+          p_key: prefKey,
+        });
+        if (allowed === false) {
+          await admin.from("customer_notification_queue").update({
+            status: "cancelled",
+            last_error: "Slået fra af modtageren",
+          }).eq("id", job.id);
+          continue;
+        }
+      }
+
       // Find skabelon
       const channel: "email" | "sms" = (job.channel as any) ?? "email";
       const { data: tpl } = await admin
