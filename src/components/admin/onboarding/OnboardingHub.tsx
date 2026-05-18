@@ -87,6 +87,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
   const all: Step[] = [
     {
       id: "company-info",
+      etaMin: 3,
+      phase: "profil",
       title: "Udfyld virksomhedsoplysninger",
       description: "Skriv en kort beskrivelse, telefon og adresse — så kunderne ved hvem I er, og leads kan finde jer.",
       cta: "Udfyld nu",
@@ -98,6 +100,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "categories",
+      etaMin: 1,
+      phase: "profil",
       title: "Vælg brancher og kategorier",
       description: "Kryds af hvad I tilbyder — det bestemmer hvilke kunder der finder jer på Serviceydere.",
       cta: "Vælg brancher",
@@ -111,6 +115,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "opening-hours",
+      etaMin: 2,
+      phase: "profil",
       title: "Tilføj åbningstider",
       description: "Lad kunderne vide hvornår I tager telefonen — så I ikke mister henvendelser uden for åbningstid.",
       cta: "Sæt tider",
@@ -125,6 +131,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "branding",
+      etaMin: 2,
+      phase: "profil",
       title: "Tilføj jeres logo",
       description: "Et logo gør jer langt mere troværdige. Det vises øverst på jeres profil og overalt I dukker op.",
       cta: "Upload logo",
@@ -135,6 +143,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "cover-image",
+      etaMin: 2,
+      phase: "profil",
       title: "Tilføj et forsidebillede",
       description: "Et stort billede øverst på profilen viser kunderne jeres arbejde, hold eller butik. Profiler med forsidebillede får markant flere henvendelser.",
       cta: "Upload forsidebillede",
@@ -148,6 +158,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "good-description",
+      etaMin: 3,
+      phase: "profil",
       title: "Gør jeres beskrivelse stærkere",
       description: "Jeres beskrivelse er lidt kort. 2-4 sætninger om hvad I gør, hvor I gør det, og hvorfor I er gode, øger kundernes tillid mærkbart.",
       cta: "Skriv mere",
@@ -160,6 +172,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "contact-email",
+      etaMin: 1,
+      phase: "profil",
       title: "Tilføj en kontakt-e-mail",
       description: "E-mail bruges når kunder ikke kan ringe — og når vi sender jer kvitteringer og notifikationer. Manglende e-mail koster jer typisk 1 ud af 5 leads.",
       cta: "Tilføj e-mail",
@@ -171,6 +185,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "share-link",
+      etaMin: 1,
+      phase: "profil",
       title: "Tjek og gem jeres link",
       description: "Vælg en kort, læsevenlig webadresse til jeres profil (fx /v/nord-rengoering). Den deler I på Facebook, visitkort og e-mail-signaturer.",
       cta: "Gennemgå link",
@@ -187,6 +203,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "services",
+      etaMin: 5,
+      phase: "services",
       title: "Opret jeres første service",
       description: "Uden services kan kunderne ikke booke. Vælg fast pris, timepris eller en prisberegner.",
       cta: "Opret service",
@@ -198,6 +216,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "more-services",
+      etaMin: 5,
+      phase: "services",
       title: "Tilføj flere services",
       description: "I har én service oprettet — kunderne booker oftere når de kan se 3+ services. Tilføj fx en standard- og en premium-pakke.",
       cta: "Tilføj service",
@@ -210,6 +230,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "employees",
+      etaMin: 2,
+      phase: "team",
       title: "Inviter jeres medarbejdere",
       description: "Giv teamet adgang til medarbejder-appen, så I kan tildele opgaver og se hvem der har gjort hvad.",
       cta: "Tilføj medarbejder",
@@ -221,6 +243,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "route-planning",
+      etaMin: 5,
+      phase: "team",
       title: "Planlæg jeres første rute",
       description: "Træk dagens aftaler ind i kalenderen og tildel dem til jeres team — så ved alle hvad de skal hvornår.",
       cta: "Åbn ruteplanlægger",
@@ -235,6 +259,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "enable-livechat",
+      etaMin: 1,
+      phase: "vækst",
       title: "Slå livechat til",
       description: "Med livechat kan besøgende stille spørgsmål direkte fra jeres profil — det forvandler nysgerrige besøgende til kunder. Slås til under Ekstra funktioner.",
       cta: "Aktivér livechat",
@@ -249,6 +275,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "enable-leads",
+      etaMin: 1,
+      phase: "vækst",
       title: "Aktivér gratis leads",
       description: "Modtag forespørgsler fra ”Indhent 3 tilbud” der matcher jeres brancher og område. Helt gratis — I vælger selv hvilke I byder på.",
       cta: "Aktivér leads",
@@ -261,6 +289,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "reserve-accounting",
+      etaMin: 1,
+      phase: "vækst",
       title: "Reservér plads til regnskabsintegration",
       description: "Send automatisk fakturaer videre til e-conomic eller Dinero når funktionen åbner. Reservation er gratis og uden binding.",
       cta: "Reservér plads",
@@ -273,6 +303,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "add-payment-method",
+      etaMin: 3,
+      phase: "vækst",
       title: "Tilføj betalingskort",
       description: "Når prøveperioden udløber trækkes abonnementet automatisk. Tilføj kort nu, så I undgår afbrydelse i panelet.",
       cta: "Gå til betaling",
@@ -287,6 +319,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "set-phone-format",
+      etaMin: 1,
+      phase: "profil",
       title: "Tjek jeres telefonnummer",
       description: "Telefonnummeret bør være på 8 cifre (med eller uden landekode). Det her er det vigtigste kontaktpunkt for nye kunder.",
       cta: "Ret telefonnummer",
@@ -305,6 +339,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     /* ───────── Vækst-trin: aktiveres når basis er på plads ───────── */
     {
       id: "promote-profile",
+      etaMin: 3,
+      phase: "vækst",
       title: "Del jeres profil for første gang",
       description: "Profilen er klar — men kunderne finder den først når I deler linket. Læg det på jeres hjemmeside, Facebook eller e-mail-signatur.",
       cta: "Sådan deler I",
@@ -319,6 +355,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "respond-to-reviews",
+      etaMin: 3,
+      phase: "vækst",
       title: "Svar på jeres anmeldelser",
       description: "Når I svarer på anmeldelser viser I nye kunder at I tager feedback alvorligt. Det øger tilliden markant — også ved kritiske anmeldelser.",
       cta: "Gå til anmeldelser",
@@ -331,6 +369,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "answer-pending",
+      etaMin: 5,
+      phase: "services",
       title: "Svar på jeres afventende bestillinger",
       description: "I har bestillinger der venter på svar. Kunder der ikke får svar inden for 2 timer går ofte videre til en konkurrent.",
       cta: "Gennemgå bestillinger",
@@ -342,6 +382,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "reactivate",
+      etaMin: 5,
+      phase: "vækst",
       title: "Få gang i bestillingerne igen",
       description: "I har ikke fået nye bestillinger i over 14 dage. Del jeres profil eller tilføj en ny pakke — det plejer at sætte gang i tingene.",
       cta: "Se hvad I kan gøre",
