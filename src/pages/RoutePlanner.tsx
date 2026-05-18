@@ -435,7 +435,21 @@ const Planner = () => {
   );
   const routePlannerCollisionDetection = useCallback<CollisionDetection>((args) => {
     const pointerCollisions = pointerWithin(args);
-    if (pointerCollisions.length > 0) return pointerCollisions;
+    if (pointerCollisions.length > 0) {
+      // Ved rute-drag foretrækker vi altid en rute-droppable hvis pointeren
+      // er over både en dag-celle OG en rute i den celle — ellers bliver
+      // route→route merge fejlagtigt fortolket som route→day move (fordi
+      // pointerWithin nogle gange returnerer dag-cellen først).
+      if (args.active.data.current?.type === "route") {
+        const routeHit = pointerCollisions.find((c) => {
+          const container = args.droppableContainers.find((d) => d.id === c.id);
+          return container?.data.current?.type === "route"
+            && container?.data.current?.routeId !== args.active.id?.toString().replace(/^route:/, "");
+        });
+        if (routeHit) return [routeHit];
+      }
+      return pointerCollisions;
+    }
 
     const routeDragPoint = args.active.data.current?.type === "route" ? activeRouteDragPointRef.current : null;
     if (routeDragPoint) {
