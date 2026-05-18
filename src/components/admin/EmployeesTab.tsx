@@ -192,11 +192,59 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
         title="Medarbejdere"
         description="Tilføj medarbejdere — der oprettes automatisk en konto, og de modtager login-oplysninger på email."
         action={!showForm ? (
-          <PrimaryButton data-tour="employees-create-button" onClick={() => setShowForm(true)} icon={<UserPlus />}>
+          <PrimaryButton
+            data-tour="employees-create-button"
+            onClick={() => setShowForm(true)}
+            icon={<UserPlus />}
+            disabled={atLoginsLimit}
+            title={atLoginsLimit
+              ? (loginsLimit === 0
+                  ? "Du har ingen medarbejderlogins i dit abonnement"
+                  : `Du har brugt alle ${loginsLimit} medarbejderlogins`)
+              : undefined}
+          >
             Tilføj medarbejder
           </PrimaryButton>
         ) : null}
       />
+
+      {/* ─── Brug af medarbejderlogins ───
+          Viser hvor mange af de betalte logins, der er taget i brug. Når
+          grænsen er nået, peger vi ejeren videre til Indstillinger så de
+          kan opskalere abonnementet. */}
+      <div
+        className={`flex flex-col gap-2 rounded-xl border p-3.5 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-4 ${
+          atLoginsLimit
+            ? "border-destructive/30 bg-destructive/5"
+            : loginsLimit > 0 && loginsRemaining <= 1
+              ? "border-accent/30 bg-accent/5"
+              : "border-border bg-card"
+        }`}
+      >
+        <div className="flex items-start gap-2 min-w-0">
+          <Users className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-foreground">
+              {loginsUsed} af {loginsLimit} medarbejderlogins brugt
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {atLoginsLimit
+                ? (loginsLimit === 0
+                    ? "Dit abonnement indeholder ingen medarbejderlogins endnu. Tilkøb mindst ét for at oprette medarbejdere."
+                    : "Du har nået grænsen. Opskalér dit abonnement for at tilføje eller genaktivere flere.")
+                : `Du kan tilføje ${loginsRemaining} ${loginsRemaining === 1 ? "medarbejder mere" : "medarbejdere mere"} inden for dit nuværende abonnement.`}
+            </p>
+          </div>
+        </div>
+        {atLoginsLimit && (
+          <Link
+            to="/virksomhed/indstillinger#settings-billing"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-foreground/15 bg-foreground px-3 py-1.5 text-xs font-semibold text-background transition-colors hover:bg-foreground/90"
+          >
+            Opskalér abonnement
+          </Link>
+        )}
+      </div>
 
       {/* Stats + filter — samme layout som Kunder/Aftaler */}
       <div data-tour="employees-stats" className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
