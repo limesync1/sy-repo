@@ -8,7 +8,7 @@ import {
   Check, ChevronRight, ChevronLeft, Sparkles, X, ArrowRight,
   PartyPopper, Building2, Wrench, Users, Route as RouteIcon,
   Image as ImageIcon, Rocket, Tag, Clock, MessageCircle, Link2,
-  FileText, Phone, Mail, Star, Share2, Megaphone, type LucideIcon,
+  FileText, Phone, Mail, Star, Share2, Megaphone, CreditCard, Calculator, type LucideIcon,
 } from "lucide-react";
 import {
   useOnboardingProgress, useUpdateOnboardingProgress, useCompleteOnboardingStep,
@@ -242,6 +242,44 @@ const buildSteps = (ctx: Ctx): Step[] => {
       isDone: () => !!settings.livechat_enabled,
       impact: 40,
       dependsOn: ["company-info"],
+    },
+    {
+      id: "enable-leads",
+      title: "Aktivér gratis leads",
+      description: "Modtag forespørgsler fra ”Indhent 3 tilbud” der matcher jeres brancher og område. Helt gratis — I vælger selv hvilke I byder på.",
+      cta: "Aktivér leads",
+      href: `${settingsHref}#settings-advanced`,
+      icon: Sparkles,
+      isRelevant: () => !settings.leads_enabled && hasCategories,
+      isDone: () => !!settings.leads_enabled,
+      impact: 70,
+      dependsOn: ["categories"],
+    },
+    {
+      id: "reserve-accounting",
+      title: "Reservér plads til regnskabsintegration",
+      description: "Send automatisk fakturaer videre til e-conomic eller Dinero når funktionen åbner. Reservation er gratis og uden binding.",
+      cta: "Reservér plads",
+      href: `${settingsHref}#settings-advanced`,
+      icon: Calculator,
+      isRelevant: () => !settings.accounting_integration_enabled && ctx.servicesCount > 0,
+      isDone: () => !!settings.accounting_integration_enabled,
+      impact: 30,
+      dependsOn: ["services"],
+    },
+    {
+      id: "add-payment-method",
+      title: "Tilføj betalingskort",
+      description: "Når prøveperioden udløber trækkes abonnementet automatisk. Tilføj kort nu, så I undgår afbrydelse i panelet.",
+      cta: "Gå til betaling",
+      href: `${settingsHref}#settings-billing`,
+      icon: CreditCard,
+      // Kun relevant når basis er på plads — vi vil ikke jagte betaling før profilen er klar.
+      isRelevant: () => hasCoreContact && ctx.servicesCount > 0,
+      // Markeres færdig manuelt (vi har ikke et flag for "kort tilføjet" i ctx).
+      isDone: () => false,
+      impact: 60,
+      dependsOn: ["services", "company-info"],
     },
     {
       id: "set-phone-format",
