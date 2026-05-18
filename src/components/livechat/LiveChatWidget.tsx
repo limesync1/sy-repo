@@ -74,93 +74,80 @@ const QUICK_TOPICS = [
   { label: "💬 Andet spørgsmål", subject: "", suggest: "" },
 ];
 
-// Smart follow-up suggestions shown to the visitor after the agent answers
-const RECOMMENDED_REPLIES = [
-  "Tak — kan du sende et tilbud?",
-  "Hvor hurtigt kan I starte?",
-  "Hvad koster det per måned?",
-  "Kan I ringe mig op?",
-];
-
 // Topic-based dynamic recommended replies. Keys are matched against the
 // visitor's recent message content (case-insensitive keyword match).
+// Vi viser KUN forslag hvis vi har et tydeligt emne-match — generiske
+// fallback-forslag fjerner vi bevidst, så vi aldrig foreslår noget der
+// ikke giver mening i konteksten.
 const TOPIC_REPLIES: { keywords: string[]; replies: string[] }[] = [
   {
     keywords: ["pris", "koste", "billig", "tilbud", "pakke", "abonnement"],
     replies: [
-      "Kan I sende et skriftligt tilbud?",
-      "Er der rabat ved længere binding?",
-      "Hvad er inkluderet i prisen?",
-      "Findes der en gratis prøveperiode?",
+      "Hvordan får jeg tilbud fra udbyderne?",
+      "Koster det noget at bruge platformen som kunde?",
+      "Hvad koster det at være udbyder?",
+      "Er der binding på abonnementet?",
     ],
   },
   {
     keywords: ["bestil", "ordre", "booking", "book", "kurv"],
     replies: [
-      "Hvor hurtigt kan I starte?",
-      "Kan jeg ændre min bestilling senere?",
+      "Hvordan booker jeg en service?",
       "Hvordan betaler jeg?",
       "Får jeg en bekræftelse på mail?",
+      "Kan jeg ændre eller afbestille?",
     ],
   },
   {
-    keywords: ["virksomhed", "firma", "tilmeld", "opret", "cvr", "bliv partner"],
+    keywords: ["virksomhed", "firma", "tilmeld", "opret", "cvr", "udbyder", "partner"],
     replies: [
+      "Hvordan bliver jeg udbyder?",
       "Hvad koster det at være på platformen?",
+      "Hvilke funktioner får jeg som udbyder?",
       "Hvordan kommer jeg i gang?",
-      "Hvilke dokumenter skal jeg bruge?",
-      "Kan I hjælpe med opsætningen?",
     ],
   },
   {
-    keywords: ["rengør", "vinduespuds", "havemand", "flytte", "håndværk", "service"],
+    keywords: ["rengør", "vinduespuds", "havemand", "have", "flytte", "håndværk", "maler", "vvs", "elektriker"],
     replies: [
-      "Dækker I mit område?",
-      "Hvor lang tid tager opgaven typisk?",
-      "Kan jeg få fast aftale?",
-      "Har I forsikring?",
+      "Findes der udbydere i mit område?",
+      "Hvordan finder jeg den rette udbyder?",
+      "Kan jeg se anmeldelser?",
+      "Kan jeg sammenligne flere udbydere?",
     ],
   },
   {
-    keywords: ["ring", "telefon", "kontakt", "mail", "email"],
+    keywords: ["ring", "telefon", "menneske", "person", "medarbejder", "support"],
     replies: [
-      "Kan I ringe mig op i dag?",
-      "Hvornår er I åbne?",
-      "Send venligst på min mail.",
-      "Jeg foretrækker SMS.",
-    ],
-  },
-  {
-    keywords: ["problem", "fejl", "virker ikke", "klage", "fortryd", "annul"],
-    replies: [
-      "Kan I hjælpe mig med det samme?",
-      "Hvordan opsiger jeg?",
-      "Jeg vil gerne tale med en ansvarlig.",
-      "Hvad er jeres svartid?",
+      "Jeg vil gerne tale med en rigtig medarbejder",
+      "Kan I ringe mig op?",
+      "Hvornår er supporten åben?",
     ],
   },
 ];
 
 const getDynamicReplies = (msgs: { sender_type: string; content?: string | null; is_system?: boolean }[]): string[] => {
-  // Look at visitor's most recent messages (last 3) for topic detection
-  const recentVisitor = msgs
-    .filter((m) => m.sender_type === "visitor" && !m.is_system && m.content)
-    .slice(-3)
+  // Kig på de seneste beskeder fra både besøgende og support — så forslagene
+  // matcher det aktuelle emne, ikke kun hvad brugeren selv har skrevet.
+  const recent = msgs
+    .filter((m) => !m.is_system && m.content)
+    .slice(-4)
     .map((m) => (m.content || "").toLowerCase())
     .join(" ");
-  if (!recentVisitor) return RECOMMENDED_REPLIES;
+  if (!recent) return [];
 
   const matched = new Map<string, number>();
   for (const topic of TOPIC_REPLIES) {
-    const hits = topic.keywords.reduce((n, k) => (recentVisitor.includes(k) ? n + 1 : n), 0);
+    const hits = topic.keywords.reduce((n, k) => (recent.includes(k) ? n + 1 : n), 0);
     if (hits > 0) {
       for (const r of topic.replies) matched.set(r, (matched.get(r) || 0) + hits);
     }
   }
-  if (matched.size === 0) return RECOMMENDED_REPLIES;
+  // Ingen klar emne-match → vis ingen forslag i stedet for at gætte.
+  if (matched.size === 0) return [];
   return Array.from(matched.entries())
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 4)
+    .slice(0, 3)
     .map(([r]) => r);
 };
 
