@@ -21,6 +21,7 @@ import ImageUpload from "@/components/business/ImageUpload";
 import { PageHeader, SectionCard, FieldLabel } from "@/components/admin/shared/AdminUI";
 import AddressAutocomplete from "@/components/admin/AddressAutocomplete";
 import { useUpdateBusiness } from "@/hooks/useDatabase";
+import { useEmployees } from "@/hooks/useEmployees";
 import { CustomerNotificationsSettings } from "@/components/admin/CustomerNotificationsSettings";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -309,6 +310,8 @@ const SettingsTab = ({ business }: { business: any }) => {
   const removeCard = useRemovePaymentMethod();
   const updatePlan = useUpdateBusinessPlan();
   const { data: pricing } = usePlatformPricing();
+  const { data: employees = [] } = useEmployees(business.id);
+  const activeEmployeesCount = employees.filter((e: any) => e.is_active !== false).length;
 
   // Stripe Embedded Checkout-dialog samt loading-state for "Administrér kort".
   const [showCheckout, setShowCheckout] = useState(false);
@@ -368,6 +371,25 @@ const SettingsTab = ({ business }: { business: any }) => {
       );
     } catch (e: any) {
       toast.error(e?.message || "Kunne ikke skifte interval");
+    }
+  };
+
+  // Antal ekstra medarbejderlogins — gemmes på business_plans og bruges af
+  // databasen til at blokere oprettelse af flere medarbejdere end betalt for.
+  const handleEmployeeLoginsChange = async (next: number) => {
+    if (!plan?.id) return;
+    const clamped = Math.max(0, Math.min(99, next));
+    if (clamped === planExtraLogins) return;
+    try {
+      await updatePlan.mutateAsync({
+        businessId: business.id,
+        patch: { extra_employee_logins: clamped },
+      });
+      const diff = clamped - planExtraLogins;
+      if (diff > 0) toast.success(`Tilføjet ${diff} medarbejderlogin${diff === 1 ? "" : "s"}`);
+      else if (diff < 0) toast.success(`Fjernet ${Math.abs(diff)} medarbejderlogin${Math.abs(diff) === 1 ? "" : "s"}`);
+    } catch (e: any) {
+      toast.error(e?.message || "Kunne ikke opdatere antal medarbejderlogins");
     }
   };
 
@@ -1675,6 +1697,63 @@ const SettingsTab = ({ business }: { business: any }) => {
                           </button>
                         );
                       })}
+                    </div>
+
+                    {/* Antal ekstra medarbejderlogins — styrer hvor mange medarbejdere
+                        virksomheden kan oprette. Ejer-loginnet er altid inkluderet. */}
+                    <div className="rounded-xl border border-border bg-card p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Medarbejderlogins</p>
+                          <p className="mt-1 text-sm text-foreground">
+                            Hvor mange medarbejdere skal kunne logge ind på mobilen?
+                          </p>
+                          <p className="mt-1 text-[11.5px] text-muted-foreground">
+                            Ejer-loginnet er allerede inkluderet gratis.{" "}
+                            {pricing && (
+                              <span>
+                                Hvert ekstra login koster{" "}
+                                <span className="font-medium text-foreground">
+                                  {Math.round(pricing.price_per_employee_login_dkk).toLocaleString("da-DK")} kr/md
+                                </span>
+                                .
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                        <div className="flex items-center rounded-xl border border-border bg-background">
+                          <button
+                            type="button"
+                            onClick={() => handleEmployeeLoginsChange(planExtraLogins - 1)}
+                            disabled={updatePlan.isPending || planExtraLogins <= activeEmployeesCount}
+                            className="flex h-10 w-10 items-center justify-center text-lg font-semibold text-foreground transition-colors hover:bg-secondary disabled:opacity-40 disabled:hover:bg-transparent"
+                            aria-label="Færre medarbejderlogins"
+                          >
+                            −
+                          </button>
+                          <span className="min-w-[2.75rem] text-center text-sm font-semibold tabular-nums text-foreground">
+                            {planExtraLogins}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleEmployeeLoginsChange(planExtraLogins + 1)}
+                            disabled={updatePlan.isPending || planExtraLogins >= 99}
+                            className="flex h-10 w-10 items-center justify-center text-lg font-semibold text-foreground transition-colors hover:bg-secondary disabled:opacity-40 disabled:hover:bg-transparent"
+                            aria-label="Flere medarbejderlogins"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                      {planExtraLogins > 0 && planExtraLogins <= activeEmployeesCount && (
+                        <p className="mt-3 flex items-start gap-1.5 rounded-md bg-secondary/40 px-2.5 py-2 text-[11.5px] text-muted-foreground">
+                          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                          <span>
+                            I bruger lige nu {activeEmployeesCount} af {planExtraLogins} medarbejderlogins.
+                            Deaktivér en medarbejder under <span className="font-medium text-foreground">Medarbejdere</span>, før I kan reducere antallet.
+                          </span>
+                        </p>
+                      )}
                     </div>
 
                     <div className="rounded-xl border border-border bg-secondary/20 p-4">
