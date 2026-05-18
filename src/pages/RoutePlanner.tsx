@@ -1291,6 +1291,7 @@ const Planner = () => {
   /* ─── DnD ─── */
   const handleDragStart = (e: DragStartEvent) => {
     const data: any = e.active.data.current;
+    lastRouteDropTargetRef.current = null;
     // ─── Metrics: start måling af drag-to-drop latency ───
     // Sporer hvor lang tid brugeren bruger fra drag begynder til drop
     // gennemføres. Sammen med klik-fejlraten (drag uden drop) kan vi
