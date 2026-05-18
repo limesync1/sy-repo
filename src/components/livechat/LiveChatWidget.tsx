@@ -448,6 +448,9 @@ const LiveChatWidget = () => {
       setSubject("");
       chatSounds.outgoing();
 
+      // Bed AI om at svare på den indledende besked.
+      supabase.functions.invoke("livechat-ai-reply", { body: { conversation_id: conv.id } }).catch(() => {});
+
       supabase.functions
         .invoke("send-transactional-email", {
           body: {
@@ -495,6 +498,11 @@ const LiveChatWidget = () => {
     if (!mErr) {
       if (override === undefined) { setDraft(""); clearPendingImage(); }
       chatSounds.outgoing();
+      // Bed AI om at svare (edge function springer over hvis samtalen allerede
+      // er eskaleret til menneske eller hører til en virksomhed).
+      supabase.functions
+        .invoke("livechat-ai-reply", { body: { conversation_id: conversation.id } })
+        .catch(() => {});
     }
   }, [conversation, sending, draft, pendingImage]); // eslint-disable-line react-hooks/exhaustive-deps
 
