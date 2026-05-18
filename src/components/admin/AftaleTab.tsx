@@ -1927,7 +1927,7 @@ const AftaleTab = ({
                       setExpandedOrder(isExpanded ? null : order.id);
                     }
                   }}
-                  className={`flex items-start gap-3 p-3 sm:p-3.5 cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${isExpanded ? "bg-secondary/40" : "hover:bg-secondary/30"}`}
+                  className={`flex items-start gap-3 px-3 py-2.5 sm:px-3.5 cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${isExpanded ? "bg-secondary/40" : "hover:bg-secondary/30"}`}
                 >
                     {/* Drag-håndtag */}
                     {canDragToRoute && <div className="pt-1"><OrderDragHandle orderId={order.id} order={order} /></div>}
@@ -2212,7 +2212,7 @@ const AftaleTab = ({
                       </div>
                     )}
 
-                    <div className="px-3 py-3 space-y-2.5">
+                    <div className="px-3 py-2.5 space-y-2">
                     {!isResponding && <NextStepCard order={order as any} />}
                     {!isResponding && <ProposalStatusBanner order={order} />}
                     {order.business_message && !isResponding && (

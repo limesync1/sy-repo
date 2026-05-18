@@ -1648,7 +1648,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
             {/* Pris-oversigt — viser hvad brugeren betaler ud fra valgte funktioner */}
             {priceBreakdown && (
-              <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
+              <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
                 {/* Hovedkort: faktureringsinterval + linje-specifikation */}
                 <div className="overflow-hidden rounded-xl border border-border bg-card">
                   <div className="flex items-center justify-between gap-3 border-b border-border bg-secondary/30 px-5 py-3">
@@ -1662,7 +1662,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                       </span>
                     )}
                   </div>
-                  <div className="p-4 space-y-5">
+                  <div className="p-3 sm:p-4 space-y-4">
                     <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                       {([
                         { key: "monthly", label: "Hver måned", desc: "Mest fleksibelt", hint: "" },
@@ -1676,7 +1676,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                             type="button"
                             onClick={() => handleBillingPeriodChange(opt.key)}
                             disabled={updatePlan.isPending}
-                            className={`relative flex flex-col items-start rounded-xl border p-3.5 text-left transition-all ${
+                            className={`relative flex flex-col items-start rounded-xl border p-3 text-left transition-all ${
                               isOn
                                 ? "border-foreground bg-foreground/[0.04] shadow-sm ring-1 ring-foreground/10"
                                 : "border-border bg-card hover:border-foreground/30 hover:bg-muted/30"
@@ -1701,7 +1701,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
                     {/* Antal ekstra medarbejderlogins — styrer hvor mange medarbejdere
                         virksomheden kan oprette. Ejer-loginnet er altid inkluderet. */}
-                    <div className="rounded-xl border border-border bg-card p-4">
+                    <div className="rounded-xl border border-border bg-card p-3 sm:p-4">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0">
                           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Medarbejderlogins</p>
@@ -1756,7 +1756,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                       )}
                     </div>
 
-                    <div className="rounded-xl border border-border bg-secondary/20 p-4">
+                    <div className="rounded-xl border border-border bg-secondary/20 p-3 sm:p-4">
                       <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Hvad du betaler for</p>
                       <ul className="mt-2.5 divide-y divide-border/60">
                         {priceBreakdown.lines.map((l) => (

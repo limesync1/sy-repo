@@ -902,7 +902,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
               <div className="hidden sm:flex items-center gap-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                 <span className="w-20 text-right">Aftaler</span>
                 <span className="w-24 text-right">Omsætning</span>
-                <span className="w-[136px] text-right pr-2">Handlinger</span>
+                 <span className="w-[120px] text-right pr-2">Handlinger</span>
               </div>
             </div>
 
@@ -918,9 +918,9 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                 return (
                   <div
                     key={c.email}
-                    className="group grid w-full gap-3 px-4 py-3 transition-colors hover:bg-secondary/60 sm:px-5
+                    className="group grid w-full gap-3 px-4 py-2 transition-colors hover:bg-secondary/60 sm:px-5
                                sm:grid-cols-[auto_minmax(0,1fr)_auto_auto_auto] sm:items-center
-                               [content-visibility:auto] [contain-intrinsic-size:1px_72px]"
+                               [content-visibility:auto] [contain-intrinsic-size:1px_56px]"
                   >
                     {/* Checkbox — fast plads også når tom, så rækker linjer ud */}
                     <div className="shrink-0 w-4 flex items-center justify-center">
@@ -939,14 +939,14 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                     >
                       <div className="flex items-center gap-2 flex-wrap">
                         {/* Avatar/logo — falder tilbage til ikon hvis intet billede */}
-                        {c.avatar_url ? (
-                          <img
-                            src={c.avatar_url}
-                            alt=""
-                            className="h-7 w-7 rounded-full object-cover border border-border shrink-0"
-                           loading="lazy" decoding="async"/>
-                        ) : (
-                          <div className="h-7 w-7 rounded-full bg-secondary border border-border flex items-center justify-center shrink-0">
+                         {c.avatar_url ? (
+                           <img
+                             src={c.avatar_url}
+                             alt=""
+                             className="h-6 w-6 rounded-full object-cover border border-border shrink-0"
+                            loading="lazy" decoding="async"/>
+                         ) : (
+                           <div className="h-6 w-6 rounded-full bg-secondary border border-border flex items-center justify-center shrink-0">
                             {c.type === "business"
                               ? <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
                               : <User className="h-3.5 w-3.5 text-muted-foreground" />}
@@ -988,13 +988,13 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                     {/* Handlinger */}
                     {/* Inline handlings-knapper — synlige for hver kunde, så ingen
                         dropdown er nødvendig. Tooltips forklarer hver handling. */}
-                    <div className="flex items-center justify-end gap-0.5 shrink-0 sm:w-[136px]" onClick={(e) => e.stopPropagation()}>
+                     <div className="flex items-center justify-end gap-0.5 shrink-0 sm:w-[120px]" onClick={(e) => e.stopPropagation()}>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            onClick={() => setSelectedEmail(c.email)}
-                            className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                       <button
+                             type="button"
+                             onClick={() => setSelectedEmail(c.email)}
+                             className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
                             aria-label="Se detaljer"
                           >
                             <ExternalLink className="h-4 w-4" />
@@ -1004,10 +1004,10 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                       </Tooltip>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            onClick={() => openCreateOrderForCustomer(c)}
-                            className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                           <button
+                             type="button"
+                             onClick={() => openCreateOrderForCustomer(c)}
+                             className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
                             aria-label="Opret aftale"
                           >
                             <ShoppingBag className="h-4 w-4" />
@@ -1017,10 +1017,10 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                       </Tooltip>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            onClick={() => openEditDialog(c)}
-                            className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                           <button
+                             type="button"
+                             onClick={() => openEditDialog(c)}
+                             className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
                             aria-label="Rediger kunde"
                           >
                             <Pencil className="h-4 w-4" />
@@ -1030,10 +1030,10 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                       </Tooltip>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            onClick={() => setConfirmDelete({ open: true, targets: [c] })}
-                            className="rounded-md p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                           <button
+                             type="button"
+                             onClick={() => setConfirmDelete({ open: true, targets: [c] })}
+                             className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
                             aria-label="Slet kunde"
                           >
                             <Trash2 className="h-4 w-4" />
