@@ -25,8 +25,8 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
 
   return (
     <Link to={`/v/${biz.slug}`} className="group flex w-[270px] shrink-0 flex-col gap-3 sm:w-[292px]">
-      <article className="rounded-[24px] border border-border bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
-        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-[24px] bg-secondary">
+      <article className="overflow-hidden rounded-[28px] border border-border/70 bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border hover:shadow-[0_18px_50px_-18px_rgba(0,0,0,0.18)]">
+        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-[28px] bg-secondary">
           {biz.cover_image_url ? (
             <img
               src={biz.cover_image_url}
@@ -43,9 +43,9 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
             </div>
           )}
 
-          <div className="absolute inset-x-0 top-0 flex items-start justify-between p-3">
+          <div className="absolute inset-x-0 top-0 flex items-start justify-between p-3.5">
             {biz.is_verified ? (
-              <div className="inline-flex items-center gap-1 rounded-full bg-card px-2.5 py-1 text-[11px] font-semibold text-foreground shadow-sm">
+              <div className="inline-flex items-center gap-1 rounded-full bg-card/95 px-2.5 py-1 text-[11px] font-semibold text-foreground shadow-[0_2px_8px_rgba(0,0,0,0.08)] backdrop-blur">
                 <ShieldCheck className="h-3 w-3 text-accent" />
                 Verificeret
               </div>
@@ -54,7 +54,7 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
           </div>
         </div>
 
-        <div className="relative space-y-3 p-4 pt-7">
+        <div className="relative space-y-3 p-5 pt-8">
           {/* Logo overlay — løftes op over coveret så virksomheden står tydeligt frem */}
           <div className="absolute -top-7 left-4 flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border-2 border-card bg-card shadow-md">
             {biz.logo_url ? (
@@ -144,7 +144,7 @@ const RecentBusinesses = () => {
               <span className="h-px w-6 bg-foreground/30" />
               Virksomheder
             </span>
-            <h2 className="mt-5 text-[2rem] font-semibold leading-[1.05] tracking-[-0.02em] text-foreground md:text-[2.75rem]">Udvalgte virksomheder</h2>
+            <h2 className="mt-5 text-[2rem] font-semibold leading-[1.04] tracking-[-0.025em] text-foreground md:text-[2.75rem] lg:text-[3.25rem]">Udvalgte virksomheder</h2>
           </div>
           <Link to="/virksomheder" className="group inline-flex items-center gap-2 self-start rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5 hover:shadow-sm md:self-auto">
             Vis alle

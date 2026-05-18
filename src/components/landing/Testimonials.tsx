@@ -39,7 +39,7 @@ const Testimonials = () => {
             <span className="h-px w-6 bg-foreground/30" />
             Anmeldelser
           </span>
-          <h2 className="mt-5 text-[2rem] font-semibold leading-[1.05] tracking-[-0.02em] text-foreground md:text-[2.75rem]">Kundeoplevelser</h2>
+          <h2 className="mt-5 text-[2rem] font-semibold leading-[1.04] tracking-[-0.025em] text-foreground md:text-[2.75rem] lg:text-[3.25rem]">Kundeoplevelser</h2>
           <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground md:text-base">Ægte erfaringer, uden unødig støj.</p>
         </div>
 
