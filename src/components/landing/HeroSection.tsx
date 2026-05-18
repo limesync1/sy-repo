@@ -8,30 +8,30 @@ import heroImage from "@/assets/hero-window-cleaning.webp";
 const HeroSection = () => {
   return (
     <header
-      className="relative z-30 isolate overflow-hidden text-background"
+      className="relative z-30 isolate text-background"
       style={{ backgroundColor: "hsl(var(--hero-bg))" }}
     >
-      {/* Baggrundsbillede — ligger nederst i stakken og blendes ned så de
-          ambient cyan-glows og dybe marineblå tone stadig dominerer. */}
-      <img
-        src={heroImage}
-        alt=""
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-20 h-full w-full object-cover opacity-35"
-        loading="eager"
-      />
-      {/* Mørk gradient over billedet — sikrer kontrast til teksten og lader
-          de premium farver gennemtrænge billedet. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10"
-        style={{
-          backgroundImage:
-            "linear-gradient(90deg, hsl(var(--hero-bg)) 0%, hsl(var(--hero-bg) / 0.92) 45%, hsl(var(--hero-bg) / 0.55) 100%)",
-        }}
-      />
-      {/* Ambient cyan glows — giver dybde uden støj. */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+      {/* Baggrundslag samlet i én overflow-hidden wrapper, så søge-dropdownen
+          kan trække ud over hero-kanten uden at blive klippet. */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        {/* Baggrundsbillede — blendet ned så de premium glows dominerer,
+            men stadig synligt for tekstur og kontekst. */}
+        <img
+          src={heroImage}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full object-cover opacity-50"
+          loading="eager"
+        />
+        {/* Mørk gradient over billedet — sikrer kontrast til teksten. */}
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              "linear-gradient(90deg, hsl(var(--hero-bg) / 0.95) 0%, hsl(var(--hero-bg) / 0.85) 45%, hsl(var(--hero-bg) / 0.5) 100%)",
+          }}
+        />
+        {/* Ambient cyan glows — giver dybde uden støj. */}
         {/* Stor central cyan-glow, langsomt pulserende */}
         <div
           className="absolute left-1/2 top-1/2 h-[40rem] w-[40rem] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[120px] opacity-25 animate-blob-slow"
