@@ -45,6 +45,12 @@
     --sidebar-accent-foreground: 0 0% 13%;
     --sidebar-border: 0 0% 87%;
     --sidebar-ring: 0 0% 13%;
+
+    /* Premium hero palette — deep marine navy with cyan glow */
+    --hero-bg: 204 96% 13%;          /* #012941 */
+    --hero-mid: 201 99% 33%;         /* #016EA4 */
+    --hero-cyan: 189 100% 45%;       /* #00C0E3 */
+    --hero-cyan-bright: 188 100% 49%;/* #00DCFA */
   }
 
   .dark {
