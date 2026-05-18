@@ -81,7 +81,7 @@ export const ROUTE_COLORS = [
   { name: "Grøn",         value: "#22c55e" },
   { name: "Sky",          value: "#0ea5e9" },
   { name: "Rose",         value: "#f43f5e" },
-  { name: "Mørk teal",    value: "#0f766e" },
+  { name: "Mørk blå",     value: "#015c96" },
   { name: "Mørk blå",     value: "#1d4ed8" },
   { name: "Mørk lilla",   value: "#7c3aed" },
   { name: "Mørk grøn",    value: "#15803d" },
