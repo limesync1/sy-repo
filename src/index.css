@@ -286,3 +286,42 @@ img[loading="lazy"].is-error {
 .leaflet-layer.map-tile-fade {
   transition: opacity 320ms ease;
 }
+
+/* ─── Premium polish utilities ─────────────────────────────────
+   Diskrete kvalitetsløft brugt på landing-sektioner. Holdes som
+   utility-klasser så vi kan strø dem målrettet ud uden at røre
+   designsystemet. */
+
+/* Fin film-grain / noise — bryder bløde gradienter så de ikke
+   ser "udvasket" ud. Bruges som overlay med mix-blend-overlay. */
+.bg-noise {
+  background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.45 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-size: 180px 180px;
+}
+
+/* Premium-skygge med blød accent-tone — undgår "død" sort skygge. */
+.shadow-premium {
+  box-shadow:
+    0 1px 2px hsl(var(--foreground) / 0.04),
+    0 12px 32px -16px hsl(var(--foreground) / 0.18),
+    0 24px 64px -32px hsl(var(--accent) / 0.18);
+}
+.shadow-premium-hover {
+  transition: box-shadow 320ms ease, transform 320ms ease;
+}
+.shadow-premium-hover:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 2px 4px hsl(var(--foreground) / 0.06),
+    0 20px 48px -20px hsl(var(--foreground) / 0.22),
+    0 40px 96px -40px hsl(var(--accent) / 0.28);
+}
+
+/* Aurora-baggrund: blød, langsomt-driftende farveskyer.
+   Bruges bag hero/CTA for at give dybde uden støj. */
+.bg-aurora {
+  background:
+    radial-gradient(60% 80% at 20% 10%, hsl(var(--accent) / 0.22) 0%, transparent 60%),
+    radial-gradient(50% 70% at 85% 30%, hsl(var(--accent) / 0.14) 0%, transparent 65%),
+    radial-gradient(70% 90% at 50% 110%, hsl(var(--accent) / 0.18) 0%, transparent 60%);
+}
