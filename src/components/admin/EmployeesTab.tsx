@@ -5,6 +5,8 @@ import {
   useUpdateEmployee, useDeleteEmployee, useResetEmployeePassword,
 } from "@/hooks/useEmployees";
 import { useEmployeeEarnings } from "@/hooks/useEmployeeEarnings";
+import { useBusinessPlan } from "@/hooks/useBusinessPlan";
+import { Link } from "react-router-dom";
 import { formatKr } from "@/lib/commission";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -43,6 +45,7 @@ interface Props {
 
 const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
   const { data: employees, isLoading } = useEmployees(businessId);
+  const { data: plan } = useBusinessPlan(businessId);
   const create = useCreateEmployee();
   const update = useUpdateEmployee();
   const remove = useDeleteEmployee();
@@ -129,6 +132,16 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
   const inactiveEmployees = all.filter((e) => !e.is_active);
   const linkedCount = all.filter((e) => !!e.user_id).length;
   const pendingCount = all.filter((e) => !e.user_id).length;
+
+  // ─── Plan-grænse for antal medarbejderlogins ───
+  // Virksomheden betaler for et bestemt antal medarbejderlogins
+  // (business_plans.extra_employee_logins). Når grænsen er nået, kan ejeren
+  // ikke oprette eller genaktivere flere — vi spejler reglen i UI'et så
+  // knappen er deaktiveret før vi rammer trigger-fejlen serverside.
+  const loginsLimit = plan?.extra_employee_logins ?? 0;
+  const loginsUsed = activeEmployees.length;
+  const loginsRemaining = Math.max(0, loginsLimit - loginsUsed);
+  const atLoginsLimit = loginsUsed >= loginsLimit;
 
   const filtered = useMemo(() => {
     let list = employees || [];
