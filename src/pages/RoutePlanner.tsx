@@ -2276,12 +2276,15 @@ const Planner = () => {
       sensors={sensors}
       collisionDetection={routePlannerCollisionDetection}
       onDragStart={handleDragStart}
+      onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
       onDragCancel={() => {
         // ESC eller pointer-loss midt i drag tæller som klik-fejl.
         dragMetrics.end(false);
         setActiveDragId(null);
         setActiveDragData(null);
+        activeRouteDragPointRef.current = null;
+        activeRouteDragOriginRef.current = null;
       }}
     >
       <AdminShell
