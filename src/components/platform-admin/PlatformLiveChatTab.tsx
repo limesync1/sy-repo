@@ -36,7 +36,7 @@ type Message = {
 
 type CannedResponse = { id: string; title: string; body: string; category: string };
 
-const CANNED_KEY = "serviceydere_admin_canned_v2";
+const CANNED_KEY = "serviceydere_admin_canned_v3";
 
 const DEFAULT_CATEGORIES = ["Velkomst", "Pris", "Support", "Opfølgning", "Afslutning"];
 
