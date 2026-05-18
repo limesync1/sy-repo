@@ -1326,7 +1326,13 @@ const Planner = () => {
     } else {
       activeRouteDragOriginRef.current = null;
       activeRouteDragPointRef.current = null;
+      lastRouteDropTargetRef.current = null;
     }
+  };
+
+  const handleDragOver = (e: DragOverEvent) => {
+    if (e.active.data.current?.type !== "route") return;
+    if (e.over?.data.current) lastRouteDropTargetRef.current = e.over.data.current;
   };
 
   const handleDragMove = (e: DragMoveEvent) => {
@@ -1399,17 +1405,30 @@ const Planner = () => {
 
   const handleDragEnd = async (e: DragEndEvent) => {
     const { active, over } = e;
+    const fallbackRouteTarget = !over && active.data.current?.type === "route"
+      ? (() => {
+          const point = activeRouteDragPointRef.current;
+          const el = point ? document.elementFromPoint(point.x, point.y)?.closest<HTMLElement>("[data-route-drop-route-id],[data-route-drop-date]") : null;
+          const routeId = el?.dataset.routeDropRouteId;
+          const date = el?.dataset.routeDropDate;
+          if (routeId) return { type: "route", routeId, date };
+          if (date) return { type: "day", date };
+          return lastRouteDropTargetRef.current;
+        })()
+      : null;
+    const hasDropTarget = !!over || !!fallbackRouteTarget;
     setActiveDragId(null);
     setActiveDragData(null);
     activeRouteDragPointRef.current = null;
     activeRouteDragOriginRef.current = null;
+    lastRouteDropTargetRef.current = null;
     // ─── Metrics: registrér resultatet af denne drag ───
     // `dropped=true` kun når brugeren faktisk slap på et target. Drags
     // der ender uden over-target tæller som "klik-fejl" — typisk når
     // browseren startede en drag pga. en lille touch-bevægelse, mens
     // brugeren forsøgte at klikke (særligt Windows-touchpads/Android).
-    dragMetrics.end(!!over);
-    if (!over || !businessId) return;
+    dragMetrics.end(hasDropTarget);
+    if (!hasDropTarget || !businessId) return;
 
     // Knyt en ordres aktive, gentagende abonnement til en bestemt rute,
     // så ruteplanlæggeren kan projicere fremtidige forekomster (uger/måneder)
@@ -1513,7 +1532,7 @@ const Planner = () => {
     };
 
     const activeData: any = active.data.current;
-    const overData: any = over.data.current;
+    const overData: any = over?.data.current ?? fallbackRouteTarget;
     // ─── Hård spærring: aldrig drop på en dato før i dag ───
     // Kalender-cellerne er allerede disabled som drop-target, men en
     // eksplicit guard + toast sikrer at intet drop (rute, stop eller job)
