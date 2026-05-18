@@ -5,6 +5,8 @@ import {
   useUpdateEmployee, useDeleteEmployee, useResetEmployeePassword,
 } from "@/hooks/useEmployees";
 import { useEmployeeEarnings } from "@/hooks/useEmployeeEarnings";
+import { useBusinessPlan } from "@/hooks/useBusinessPlan";
+import { Link } from "react-router-dom";
 import { formatKr } from "@/lib/commission";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -43,6 +45,7 @@ interface Props {
 
 const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
   const { data: employees, isLoading } = useEmployees(businessId);
+  const { data: plan } = useBusinessPlan(businessId);
   const create = useCreateEmployee();
   const update = useUpdateEmployee();
   const remove = useDeleteEmployee();
@@ -91,6 +94,14 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
       toast.error("Navn og email er påkrævet");
       return;
     }
+    if (atLoginsLimit) {
+      toast.error(
+        loginsLimit === 0
+          ? "Du har ingen medarbejderlogins. Tilkøb mindst ét under Indstillinger → Tilvalg og ekstra funktioner."
+          : `Du har brugt alle ${loginsLimit} medarbejderlogins. Opskalér dit abonnement for at tilføje flere.`
+      );
+      return;
+    }
     const pctNum = commissionPct.trim() === "" ? 0 : Number(commissionPct.replace(",", "."));
     if (Number.isNaN(pctNum) || pctNum < 0 || pctNum > 100) {
       toast.error("Provision skal være et tal mellem 0 og 100");
@@ -129,6 +140,16 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
   const inactiveEmployees = all.filter((e) => !e.is_active);
   const linkedCount = all.filter((e) => !!e.user_id).length;
   const pendingCount = all.filter((e) => !e.user_id).length;
+
+  // ─── Plan-grænse for antal medarbejderlogins ───
+  // Virksomheden betaler for et bestemt antal medarbejderlogins
+  // (business_plans.extra_employee_logins). Når grænsen er nået, kan ejeren
+  // ikke oprette eller genaktivere flere — vi spejler reglen i UI'et så
+  // knappen er deaktiveret før vi rammer trigger-fejlen serverside.
+  const loginsLimit = plan?.extra_employee_logins ?? 0;
+  const loginsUsed = activeEmployees.length;
+  const loginsRemaining = Math.max(0, loginsLimit - loginsUsed);
+  const atLoginsLimit = loginsUsed >= loginsLimit;
 
   const filtered = useMemo(() => {
     let list = employees || [];
@@ -171,11 +192,59 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
         title="Medarbejdere"
         description="Tilføj medarbejdere — der oprettes automatisk en konto, og de modtager login-oplysninger på email."
         action={!showForm ? (
-          <PrimaryButton data-tour="employees-create-button" onClick={() => setShowForm(true)} icon={<UserPlus />}>
+          <PrimaryButton
+            data-tour="employees-create-button"
+            onClick={() => setShowForm(true)}
+            icon={<UserPlus />}
+            disabled={atLoginsLimit}
+            title={atLoginsLimit
+              ? (loginsLimit === 0
+                  ? "Du har ingen medarbejderlogins i dit abonnement"
+                  : `Du har brugt alle ${loginsLimit} medarbejderlogins`)
+              : undefined}
+          >
             Tilføj medarbejder
           </PrimaryButton>
         ) : null}
       />
+
+      {/* ─── Brug af medarbejderlogins ───
+          Viser hvor mange af de betalte logins, der er taget i brug. Når
+          grænsen er nået, peger vi ejeren videre til Indstillinger så de
+          kan opskalere abonnementet. */}
+      <div
+        className={`flex flex-col gap-2 rounded-xl border p-3.5 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-4 ${
+          atLoginsLimit
+            ? "border-destructive/30 bg-destructive/5"
+            : loginsLimit > 0 && loginsRemaining <= 1
+              ? "border-accent/30 bg-accent/5"
+              : "border-border bg-card"
+        }`}
+      >
+        <div className="flex items-start gap-2 min-w-0">
+          <Users className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-foreground">
+              {loginsUsed} af {loginsLimit} medarbejderlogins brugt
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {atLoginsLimit
+                ? (loginsLimit === 0
+                    ? "Dit abonnement indeholder ingen medarbejderlogins endnu. Tilkøb mindst ét for at oprette medarbejdere."
+                    : "Du har nået grænsen. Opskalér dit abonnement for at tilføje eller genaktivere flere.")
+                : `Du kan tilføje ${loginsRemaining} ${loginsRemaining === 1 ? "medarbejder mere" : "medarbejdere mere"} inden for dit nuværende abonnement.`}
+            </p>
+          </div>
+        </div>
+        {atLoginsLimit && (
+          <Link
+            to="/virksomhed?tab=settings#settings-billing"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-foreground/15 bg-foreground px-3 py-1.5 text-xs font-semibold text-background transition-colors hover:bg-foreground/90"
+          >
+            Opskalér abonnement
+          </Link>
+        )}
+      </div>
 
       {/* Stats + filter — samme layout som Kunder/Aftaler */}
       <div data-tour="employees-stats" className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
