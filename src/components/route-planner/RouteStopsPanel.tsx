@@ -149,18 +149,18 @@ export const RouteStopsPanel = ({
           onPointerDownOutside={(e) => { if (!isMobile) e.preventDefault(); }}
           onInteractOutside={(e) => { if (!isMobile) e.preventDefault(); }}
         >
-          <SheetHeader className="px-4 py-3 border-b shrink-0">
-            <SheetTitle className="flex items-center gap-2 text-base">
+          <SheetHeader className="px-4 py-3 pr-12 border-b shrink-0">
+            <SheetTitle className="flex items-center gap-2 text-base pr-2">
               <span
                 className="inline-block h-2.5 w-2.5 rounded-full"
                 style={{ background: route.color }}
               />
-              Stops på ruten
-              <span className="ml-auto inline-flex items-center justify-center rounded-md bg-secondary text-secondary-foreground px-2 py-0.5 text-xs font-semibold tabular-nums">
+              <span className="truncate">Stops på ruten</span>
+              <span className="ml-auto shrink-0 inline-flex items-center justify-center rounded-md bg-secondary text-secondary-foreground px-2 py-0.5 text-xs font-semibold tabular-nums">
                 {items.length}
               </span>
             </SheetTitle>
-            <SheetDescription className="text-xs">
+            <SheetDescription className="text-xs pr-2">
               {isProjection
                 ? "Projiceret forekomst · rediger originalruten for at omrangere eller fjerne aftaler"
                 : "Træk for at omrangere · Klik for detaljer"}
