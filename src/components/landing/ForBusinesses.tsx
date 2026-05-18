@@ -53,7 +53,7 @@ const ForBusinesses = () => {
           </div>
           <SmartLink
             to="/opret-virksomhed"
-            className="group inline-flex items-center gap-2 self-start rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md md:self-auto"
+            className="group inline-flex items-center gap-2 self-start rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background shadow-sm transition-all hover:-translate-y-0.5 md:self-auto"
           >
             <Sparkles className="h-4 w-4" />
             Opret din virksomhed
@@ -65,7 +65,7 @@ const ForBusinesses = () => {
           {features.map((f) => (
             <article
               key={f.title}
-              className="group flex h-full flex-col gap-5 rounded-[24px] border border-border/70 bg-card p-7 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border hover:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.12)]"
+              className="group flex h-full flex-col gap-5 rounded-[24px] border border-border/70 bg-card p-7 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border"
             >
               <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${f.tone}`}>
                 <f.icon className="h-5 w-5" />

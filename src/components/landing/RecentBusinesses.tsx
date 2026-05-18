@@ -25,7 +25,7 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
 
   return (
     <Link to={`/v/${biz.slug}`} className="group flex w-[270px] shrink-0 flex-col gap-3 sm:w-[292px]">
-      <article className="overflow-hidden rounded-[28px] border border-border/70 bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border hover:shadow-[0_18px_50px_-18px_rgba(0,0,0,0.18)]">
+      <article className="overflow-hidden rounded-[28px] border border-border/70 bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border">
         <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-[28px] bg-secondary">
           {biz.cover_image_url ? (
             <img
@@ -146,7 +146,7 @@ const RecentBusinesses = () => {
             </span>
             <h2 className="mt-5 text-[2rem] font-semibold leading-[1.04] tracking-[-0.025em] text-foreground md:text-[2.75rem] lg:text-[3.25rem]">Udvalgte virksomheder</h2>
           </div>
-          <Link to="/virksomheder" className="group inline-flex items-center gap-2 self-start rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5 hover:shadow-sm md:self-auto">
+          <Link to="/virksomheder" className="group inline-flex items-center gap-2 self-start rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5 md:self-auto">
             Vis alle
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </Link>

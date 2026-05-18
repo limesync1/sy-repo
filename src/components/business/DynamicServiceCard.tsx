@@ -178,7 +178,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
   const showIntervals = intervals.length > 1 || (intervals.length === 1 && intervals[0] !== "engangskøb");
 
   return (
-    <Card className="group flex h-full flex-col overflow-hidden rounded-[1.75rem] border-border/80 bg-card transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/25 hover:shadow-[0_24px_55px_-34px_hsl(var(--foreground)/0.24)]">
+    <Card className="group flex h-full flex-col overflow-hidden rounded-[1.75rem] border-border/80 bg-card transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/25">
       {/* Image or placeholder */}
       {service.image_url ? (
         <div className="relative h-36 w-full overflow-hidden bg-secondary sm:h-40">
@@ -317,7 +317,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
             className={`h-12 w-full gap-2 rounded-xl text-sm font-semibold transition-all ${
               justAdded
                 ? "bg-accent/80 text-accent-foreground"
-                : "bg-accent text-accent-foreground shadow-lg shadow-accent/25 hover:bg-accent/90 hover:shadow-xl hover:shadow-accent/35 active:scale-[0.98]"
+                : "bg-accent text-accent-foreground shadow-lg shadow-accent/25 hover:bg-accent/90 active:scale-[0.98]"
             }`}
           >
             {justAdded ? (

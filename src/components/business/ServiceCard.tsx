@@ -258,7 +258,7 @@ const ServiceCard = ({ service }: { service: Service }) => {
     : "Beregn pris";
 
   return (
-    <Card className="overflow-hidden border-border/60 shadow-sm transition-all hover:shadow-md">
+    <Card className="overflow-hidden border-border/60 shadow-sm transition-all">
       {/* Color bar */}
       <div className="h-2 bg-gradient-to-r from-accent to-accent/60" />
       <CardHeader>
