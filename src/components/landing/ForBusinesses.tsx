@@ -1,5 +1,5 @@
 import SmartLink from "@/components/SmartLink";
-import { ArrowRight, Building2, Users, Route, Calculator, Sparkles, ShieldCheck } from "lucide-react";
+import { ArrowRight, Users, Route, Calculator, Sparkles, ShieldCheck } from "lucide-react";
 
 /**
  * Forretningsrettet sektion på forsiden — erstatter den tidligere
@@ -36,18 +36,18 @@ const features = [
 
 const ForBusinesses = () => {
   return (
-    <section className="bg-secondary py-16 md:py-24">
+    <section className="bg-secondary py-20 md:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 flex flex-col gap-4 md:mb-10 md:flex-row md:items-end md:justify-between">
+        <div className="mb-12 flex flex-col gap-6 md:mb-14 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              <Building2 className="h-3 w-3 text-accent" />
+            <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+              <span className="h-px w-6 bg-foreground/30" />
               For virksomheder
             </span>
-            <h2 className="mt-4 text-[1.75rem] font-semibold leading-[1.1] tracking-tight text-foreground md:text-[2.25rem]">
+            <h2 className="mt-5 text-[2rem] font-semibold leading-[1.05] tracking-[-0.02em] text-foreground md:text-[2.75rem]">
               Drevet til at vækste din serviceforretning.
             </h2>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground md:text-base">
+            <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground md:text-base">
               Få kunder, planlæg ruter og opkræv betaling fra ét samlet dashboard — og brug mindre tid på papirarbejde.
             </p>
           </div>
@@ -65,14 +65,14 @@ const ForBusinesses = () => {
           {features.map((f) => (
             <article
               key={f.title}
-              className="group flex h-full flex-col gap-4 rounded-[22px] border border-border/60 bg-card p-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
+              className="group flex h-full flex-col gap-5 rounded-[24px] border border-border/70 bg-card p-7 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border hover:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.12)]"
             >
-              <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${f.tone}`}>
+              <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${f.tone}`}>
                 <f.icon className="h-5 w-5" />
               </div>
               <div>
                 <h3 className="text-[15px] font-semibold leading-tight text-foreground">{f.title}</h3>
-                <p className="mt-1.5 text-sm leading-6 text-muted-foreground">{f.text}</p>
+                <p className="mt-2 text-[14px] leading-6 text-muted-foreground">{f.text}</p>
               </div>
             </article>
           ))}

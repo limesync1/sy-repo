@@ -1,4 +1,4 @@
-import { ShieldCheck, ArrowRight, Quote, Clock, Sparkles } from "lucide-react";
+import { ShieldCheck, ArrowRight, Clock, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SmartLink from "@/components/SmartLink";
 
@@ -10,39 +10,39 @@ const GetQuotes = () => {
   ];
 
   return (
-    <section className="bg-background py-16 md:py-24">
+    <section className="bg-background py-20 md:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+        <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
           {/* Venstre: tekst + CTA */}
           <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              <Quote className="h-3 w-3 text-accent" />
+            <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+              <span className="h-px w-6 bg-foreground/30" />
               Indhent 3 tilbud
             </span>
-            <h2 className="mt-4 text-[1.75rem] font-semibold leading-[1.1] tracking-tight text-foreground md:text-[2.25rem]">
+            <h2 className="mt-5 text-[2rem] font-semibold leading-[1.05] tracking-[-0.02em] text-foreground md:text-[2.75rem]">
               Få relevante tilbud uden ekstra støj.
             </h2>
-            <p className="mt-3 max-w-lg text-sm leading-6 text-muted-foreground md:text-base">
+            <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground md:text-base">
               Beskriv opgaven én gang og sammenlign svarene roligt — du vælger,
               hvem du vil tale videre med.
             </p>
 
-            <ul className="mt-6 space-y-3 text-sm text-foreground">
+            <ul className="mt-8 space-y-4 text-[15px] text-foreground">
               <li className="flex items-start gap-3">
-                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-foreground text-background text-[11px] font-bold">1</span>
+                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border bg-card text-[11px] font-semibold text-foreground">1</span>
                 Beskriv opgaven på under et minut.
               </li>
               <li className="flex items-start gap-3">
-                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-foreground text-background text-[11px] font-bold">2</span>
+                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border bg-card text-[11px] font-semibold text-foreground">2</span>
                 Modtag op til 3 tilbud fra verificerede serviceydere.
               </li>
               <li className="flex items-start gap-3">
-                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-foreground text-background text-[11px] font-bold">3</span>
+                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border bg-card text-[11px] font-semibold text-foreground">3</span>
                 Sammenlign pris, anmeldelser og svartid samme sted.
               </li>
             </ul>
 
-            <div className="mt-7 flex flex-wrap items-center gap-3">
+            <div className="mt-9 flex flex-wrap items-center gap-3">
               <SmartLink to="/tilbud">
                 <Button size="lg" className="h-11 gap-2 rounded-full bg-foreground px-6 text-sm font-semibold text-background hover:bg-foreground/90">
                   Start gratis
@@ -56,7 +56,7 @@ const GetQuotes = () => {
           </div>
 
           {/* Højre: live preview card */}
-          <div className="relative rounded-[28px] border border-border bg-card p-5 shadow-sm sm:p-6">
+          <div className="relative rounded-[28px] border border-border/70 bg-card p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_20px_60px_-20px_rgba(0,0,0,0.12)] sm:p-7">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="relative flex h-2 w-2">

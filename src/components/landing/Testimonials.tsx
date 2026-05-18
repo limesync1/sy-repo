@@ -32,20 +32,20 @@ const Testimonials = () => {
   if (!reviews || reviews.length === 0) return null;
 
   return (
-    <section className="bg-secondary py-16 md:py-24">
+    <section className="bg-secondary py-20 md:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-10 max-w-2xl">
-          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-            <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+        <div className="mb-14 max-w-2xl md:mb-16">
+          <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+            <span className="h-px w-6 bg-foreground/30" />
             Anmeldelser
           </span>
-          <h2 className="mt-4 text-[1.75rem] font-semibold leading-[1.1] tracking-tight text-foreground md:text-[2.25rem]">Kundeoplevelser</h2>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground md:text-base">Ægte erfaringer, uden unødig støj.</p>
+          <h2 className="mt-5 text-[2rem] font-semibold leading-[1.05] tracking-[-0.02em] text-foreground md:text-[2.75rem]">Kundeoplevelser</h2>
+          <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground md:text-base">Ægte erfaringer, uden unødig støj.</p>
         </div>
 
         <HorizontalScroller>
           {reviews.map((r) => (
-            <article key={r.id} className="relative flex w-[300px] shrink-0 flex-col rounded-[24px] border border-border bg-card p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md sm:w-[360px]">
+            <article key={r.id} className="relative flex w-[300px] shrink-0 flex-col rounded-[24px] border border-border/70 bg-card p-7 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border hover:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.12)] sm:w-[360px]">
               <Quote aria-hidden className="absolute right-5 top-5 h-7 w-7 rotate-180 text-foreground/5" />
               <div className="mb-4 flex items-center gap-1">
                 {Array.from({ length: 5 }).map((_, idx) => (
