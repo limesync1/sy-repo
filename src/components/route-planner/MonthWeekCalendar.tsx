@@ -253,6 +253,7 @@ const DayCellInner = ({
   return (
     <div
       ref={setNodeRef}
+      data-route-drop-date={canReceiveDrop ? dateStr : undefined}
       className={cn(
         "border-r last:border-r-0 relative group flex flex-col gap-1 p-1.5 transition-colors",
         compact ? "min-h-[110px]" : "min-h-[160px]",
@@ -467,6 +468,8 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
   return (
     <div
       ref={setRefs}
+      data-route-drop-route-id={!isVirtual && !isPast ? route.id : undefined}
+      data-route-drop-date={!isVirtual && !isPast ? route.route_date : undefined}
       onClick={(e) => { e.stopPropagation(); if (!isDragging) onSelect(); }}
       className={cn(
         "relative rounded-md border-l-[3px] cursor-pointer transition-all overflow-hidden bg-card hover:shadow-sm",
