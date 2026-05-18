@@ -51,6 +51,7 @@ import {
   pointerWithin, type DragEndEvent, type DragStartEvent,
   MouseSensor, TouchSensor, KeyboardSensor,
 } from "@dnd-kit/core";
+import { createPortal } from "react-dom";
 import { UnassignedJobCard } from "@/components/route-planner/UnassignedJobCard";
 import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
 import { MonthWeekCalendar, type CalendarRoute } from "@/components/route-planner/MonthWeekCalendar";
@@ -3010,6 +3011,7 @@ const Planner = () => {
           onConfirm={(scope) => handleConfirmRouteMerge(scope)}
         />
 
+        {createPortal(
         <DragOverlay dropAnimation={{ duration: 180, easing: "cubic-bezier(0.18, 0.67, 0.6, 1)" }}>
           {activeDragId && activeDragData?.type === "job" && (
             <div
@@ -3048,7 +3050,8 @@ const Planner = () => {
               </p>
             </div>
           )}
-        </DragOverlay>
+        </DragOverlay>,
+        document.body)}
 
         <StopDetailSheet
           readOnly={
