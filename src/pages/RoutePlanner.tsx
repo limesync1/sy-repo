@@ -1278,6 +1278,8 @@ const Planner = () => {
     if (data?.type === "route" && data?.route?.isVirtual) {
       setActiveDragId(null);
       setActiveDragData(null);
+      setActiveRouteDragPoint(null);
+      activeRouteDragOriginRef.current = null;
       if (businessId) {
         void logRoutePlannerEvent({
           businessId,
@@ -1292,6 +1294,21 @@ const Planner = () => {
     }
     setActiveDragId(e.active.id as string);
     setActiveDragData(data);
+    if (data?.type === "route") {
+      const origin = getDragPoint(e.activatorEvent);
+      activeRouteDragOriginRef.current = origin;
+      setActiveRouteDragPoint(origin);
+    } else {
+      activeRouteDragOriginRef.current = null;
+      setActiveRouteDragPoint(null);
+    }
+  };
+
+  const handleDragMove = (e: DragMoveEvent) => {
+    if (e.active.data.current?.type !== "route") return;
+    const origin = activeRouteDragOriginRef.current;
+    if (!origin) return;
+    setActiveRouteDragPoint({ x: origin.x + e.delta.x, y: origin.y + e.delta.y });
   };
 
   // De øvrige kalender-callbacks afhænger af `openProjectedRoute` /
@@ -1359,6 +1376,8 @@ const Planner = () => {
     const { active, over } = e;
     setActiveDragId(null);
     setActiveDragData(null);
+    setActiveRouteDragPoint(null);
+    activeRouteDragOriginRef.current = null;
     // ─── Metrics: registrér resultatet af denne drag ───
     // `dropped=true` kun når brugeren faktisk slap på et target. Drags
     // der ender uden over-target tæller som "klik-fejl" — typisk når
