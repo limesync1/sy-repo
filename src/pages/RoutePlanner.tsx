@@ -121,6 +121,8 @@ const Planner = () => {
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragData, setActiveDragData] = useState<any>(null);
+  const activeRouteDragPointRef = useRef<DragPoint | null>(null);
+  const activeRouteDragOriginRef = useRef<DragPoint | null>(null);
   // Beskytter mod dobbelt-drop på samme kilde+mål — undgår dubletruter og
   // "uniq_route_stops_route_order" race conditions.
   const inFlightDropsRef = useRef<Set<string>>(new Set());
@@ -433,6 +435,19 @@ const Planner = () => {
   const routePlannerCollisionDetection = useCallback<CollisionDetection>((args) => {
     const pointerCollisions = pointerWithin(args);
     if (pointerCollisions.length > 0) return pointerCollisions;
+
+    const routeDragPoint = args.active.data.current?.type === "route" ? activeRouteDragPointRef.current : null;
+    if (routeDragPoint) {
+      const routePointerCollision = args.droppableContainers.find((container) => {
+        const rect = container.rect.current;
+        return rect &&
+          routeDragPoint.x >= rect.left &&
+          routeDragPoint.x <= rect.right &&
+          routeDragPoint.y >= rect.top &&
+          routeDragPoint.y <= rect.bottom;
+      });
+      if (routePointerCollision) return [{ id: routePointerCollision.id }];
+    }
 
     // Route-drag kan nogle gange miste pointer-hit på desktop, især når den
     // trukne rute ligger over små kalenderceller. Fallback til overlap gør
