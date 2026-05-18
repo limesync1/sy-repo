@@ -57,6 +57,7 @@ import InvoiceActionsMenu from "@/components/admin/InvoiceActionsMenu";
 import OrderTimeline from "@/components/admin/OrderTimeline";
 import NextStepCard from "@/components/admin/NextStepCard";
 import { AccountingStatusRow, type OrderForStatus } from "@/components/shared/OrderStatusBadges";
+import AftaleStatsStrip from "@/components/admin/AftaleStatsStrip";
 
 /* ─── Types ─── */
 type BusinessService = Service & { calculator_steps?: CalculatorStep[] };
@@ -1571,6 +1572,8 @@ const AftaleTab = ({
           </PrimaryButton>
         }
       />
+
+      <AftaleStatsStrip orders={(orders || []) as any} />
 
       {/* Stats — kompakt: kun det der kræver opmærksomhed vises som kort.
           Aktive/kommende totaler står i header-beskrivelsen ovenfor. */}

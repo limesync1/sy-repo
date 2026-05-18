@@ -8,7 +8,8 @@ import {
   Check, ChevronRight, ChevronLeft, Sparkles, X, ArrowRight,
   PartyPopper, Building2, Wrench, Users, Route as RouteIcon,
   Image as ImageIcon, Rocket, Tag, Clock, MessageCircle, Link2,
-  FileText, Phone, Mail, Star, Share2, Megaphone, CreditCard, Calculator, type LucideIcon,
+  FileText, Phone, Mail, Star, Share2, Megaphone, CreditCard, Calculator,
+  Trophy, Zap, type LucideIcon,
 } from "lucide-react";
 import {
   useOnboardingProgress, useUpdateOnboardingProgress, useCompleteOnboardingStep,
@@ -40,6 +41,10 @@ type Step = {
   cta: string;
   href: string;
   icon: LucideIcon;
+  /** Estimeret tid for at gennemføre trinet, så ejeren kan planlægge. */
+  etaMin?: number;
+  /** Fase-gruppering — vises som lille farvet chip. */
+  phase?: "profil" | "services" | "team" | "vækst";
   /** Returnerer true hvis dette step bør tælle som færdigt baseret på data. */
   isDone: (ctx: Ctx) => boolean;
   /** Optional: skjul trin hvis ikke relevant for denne virksomhed. */
@@ -83,6 +88,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
   const all: Step[] = [
     {
       id: "company-info",
+      etaMin: 3,
+      phase: "profil",
       title: "Udfyld virksomhedsoplysninger",
       description: "Skriv en kort beskrivelse, telefon og adresse — så kunderne ved hvem I er, og leads kan finde jer.",
       cta: "Udfyld nu",
@@ -94,6 +101,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "categories",
+      etaMin: 1,
+      phase: "profil",
       title: "Vælg brancher og kategorier",
       description: "Kryds af hvad I tilbyder — det bestemmer hvilke kunder der finder jer på Serviceydere.",
       cta: "Vælg brancher",
@@ -107,6 +116,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "opening-hours",
+      etaMin: 2,
+      phase: "profil",
       title: "Tilføj åbningstider",
       description: "Lad kunderne vide hvornår I tager telefonen — så I ikke mister henvendelser uden for åbningstid.",
       cta: "Sæt tider",
@@ -121,6 +132,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "branding",
+      etaMin: 2,
+      phase: "profil",
       title: "Tilføj jeres logo",
       description: "Et logo gør jer langt mere troværdige. Det vises øverst på jeres profil og overalt I dukker op.",
       cta: "Upload logo",
@@ -131,6 +144,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "cover-image",
+      etaMin: 2,
+      phase: "profil",
       title: "Tilføj et forsidebillede",
       description: "Et stort billede øverst på profilen viser kunderne jeres arbejde, hold eller butik. Profiler med forsidebillede får markant flere henvendelser.",
       cta: "Upload forsidebillede",
@@ -144,6 +159,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "good-description",
+      etaMin: 3,
+      phase: "profil",
       title: "Gør jeres beskrivelse stærkere",
       description: "Jeres beskrivelse er lidt kort. 2-4 sætninger om hvad I gør, hvor I gør det, og hvorfor I er gode, øger kundernes tillid mærkbart.",
       cta: "Skriv mere",
@@ -156,6 +173,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "contact-email",
+      etaMin: 1,
+      phase: "profil",
       title: "Tilføj en kontakt-e-mail",
       description: "E-mail bruges når kunder ikke kan ringe — og når vi sender jer kvitteringer og notifikationer. Manglende e-mail koster jer typisk 1 ud af 5 leads.",
       cta: "Tilføj e-mail",
@@ -167,6 +186,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "share-link",
+      etaMin: 1,
+      phase: "profil",
       title: "Tjek og gem jeres link",
       description: "Vælg en kort, læsevenlig webadresse til jeres profil (fx /v/nord-rengoering). Den deler I på Facebook, visitkort og e-mail-signaturer.",
       cta: "Gennemgå link",
@@ -183,6 +204,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "services",
+      etaMin: 5,
+      phase: "services",
       title: "Opret jeres første service",
       description: "Uden services kan kunderne ikke booke. Vælg fast pris, timepris eller en prisberegner.",
       cta: "Opret service",
@@ -194,6 +217,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "more-services",
+      etaMin: 5,
+      phase: "services",
       title: "Tilføj flere services",
       description: "I har én service oprettet — kunderne booker oftere når de kan se 3+ services. Tilføj fx en standard- og en premium-pakke.",
       cta: "Tilføj service",
@@ -206,6 +231,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "employees",
+      etaMin: 2,
+      phase: "team",
       title: "Inviter jeres medarbejdere",
       description: "Giv teamet adgang til medarbejder-appen, så I kan tildele opgaver og se hvem der har gjort hvad.",
       cta: "Tilføj medarbejder",
@@ -217,6 +244,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "route-planning",
+      etaMin: 5,
+      phase: "team",
       title: "Planlæg jeres første rute",
       description: "Træk dagens aftaler ind i kalenderen og tildel dem til jeres team — så ved alle hvad de skal hvornår.",
       cta: "Åbn ruteplanlægger",
@@ -231,6 +260,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "enable-livechat",
+      etaMin: 1,
+      phase: "vækst",
       title: "Slå livechat til",
       description: "Med livechat kan besøgende stille spørgsmål direkte fra jeres profil — det forvandler nysgerrige besøgende til kunder. Slås til under Ekstra funktioner.",
       cta: "Aktivér livechat",
@@ -245,6 +276,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "enable-leads",
+      etaMin: 1,
+      phase: "vækst",
       title: "Aktivér gratis leads",
       description: "Modtag forespørgsler fra ”Indhent 3 tilbud” der matcher jeres brancher og område. Helt gratis — I vælger selv hvilke I byder på.",
       cta: "Aktivér leads",
@@ -257,6 +290,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "reserve-accounting",
+      etaMin: 1,
+      phase: "vækst",
       title: "Reservér plads til regnskabsintegration",
       description: "Send automatisk fakturaer videre til e-conomic eller Dinero når funktionen åbner. Reservation er gratis og uden binding.",
       cta: "Reservér plads",
@@ -269,6 +304,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "add-payment-method",
+      etaMin: 3,
+      phase: "vækst",
       title: "Tilføj betalingskort",
       description: "Når prøveperioden udløber trækkes abonnementet automatisk. Tilføj kort nu, så I undgår afbrydelse i panelet.",
       cta: "Gå til betaling",
@@ -283,6 +320,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "set-phone-format",
+      etaMin: 1,
+      phase: "profil",
       title: "Tjek jeres telefonnummer",
       description: "Telefonnummeret bør være på 8 cifre (med eller uden landekode). Det her er det vigtigste kontaktpunkt for nye kunder.",
       cta: "Ret telefonnummer",
@@ -301,6 +340,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     /* ───────── Vækst-trin: aktiveres når basis er på plads ───────── */
     {
       id: "promote-profile",
+      etaMin: 3,
+      phase: "vækst",
       title: "Del jeres profil for første gang",
       description: "Profilen er klar — men kunderne finder den først når I deler linket. Læg det på jeres hjemmeside, Facebook eller e-mail-signatur.",
       cta: "Sådan deler I",
@@ -315,6 +356,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "respond-to-reviews",
+      etaMin: 3,
+      phase: "vækst",
       title: "Svar på jeres anmeldelser",
       description: "Når I svarer på anmeldelser viser I nye kunder at I tager feedback alvorligt. Det øger tilliden markant — også ved kritiske anmeldelser.",
       cta: "Gå til anmeldelser",
@@ -327,6 +370,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "answer-pending",
+      etaMin: 5,
+      phase: "services",
       title: "Svar på jeres afventende bestillinger",
       description: "I har bestillinger der venter på svar. Kunder der ikke får svar inden for 2 timer går ofte videre til en konkurrent.",
       cta: "Gennemgå bestillinger",
@@ -338,6 +383,8 @@ const buildSteps = (ctx: Ctx): Step[] => {
     },
     {
       id: "reactivate",
+      etaMin: 5,
+      phase: "vækst",
       title: "Få gang i bestillingerne igen",
       description: "I har ikke fået nye bestillinger i over 14 dage. Del jeres profil eller tilføj en ny pakke — det plejer at sætte gang i tingene.",
       cta: "Se hvad I kan gøre",
@@ -620,18 +667,49 @@ type ChecklistCardProps = {
   onJumpToStep: (s: Step) => void;
 };
 
+const PHASE_META: Record<NonNullable<Step["phase"]>, { label: string; tone: string }> = {
+  profil:   { label: "Profil",   tone: "bg-blue-500/10 text-blue-700 dark:text-blue-300" },
+  services: { label: "Services", tone: "bg-violet-500/10 text-violet-700 dark:text-violet-300" },
+  team:     { label: "Team",     tone: "bg-amber-500/10 text-amber-700 dark:text-amber-300" },
+  vækst:   { label: "Vækst",     tone: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" },
+};
+
 const ChecklistCard = ({
   steps, activeStep, isDone, doneCount, total, pct, onCta, onSkip, onMarkDone, onJumpToStep,
 }: ChecklistCardProps) => {
   const [expanded, setExpanded] = useState(false);
   const ActiveIcon = activeStep.icon;
+  const phaseMeta = activeStep.phase ? PHASE_META[activeStep.phase] : null;
+
+  // Cirkulær progress-ring i venstre side af hero-card.
+  const ringSize = 56;
+  const ringStroke = 5;
+  const ringR = (ringSize - ringStroke) / 2;
+  const ringC = 2 * Math.PI * ringR;
+  const ringOffset = ringC - (pct / 100) * ringC;
 
   return (
-    <div className="mb-4 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+    <div className="mb-4 overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-card to-card/60 shadow-sm">
       {/* Top: anbefalet næste trin */}
       <div className="flex items-start gap-4 p-4 sm:p-5">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-foreground text-background">
-          <ActiveIcon className="h-5 w-5" />
+        {/* Progress ring med ikon i midten */}
+        <div className="relative flex h-14 w-14 shrink-0 items-center justify-center">
+          <svg width={ringSize} height={ringSize} className="absolute inset-0 -rotate-90">
+            <circle
+              cx={ringSize / 2} cy={ringSize / 2} r={ringR}
+              stroke="hsl(var(--border))" strokeWidth={ringStroke} fill="none"
+            />
+            <circle
+              cx={ringSize / 2} cy={ringSize / 2} r={ringR}
+              stroke="hsl(var(--accent))" strokeWidth={ringStroke} fill="none"
+              strokeDasharray={ringC} strokeDashoffset={ringOffset}
+              strokeLinecap="round"
+              className="transition-[stroke-dashoffset] duration-700 ease-out"
+            />
+          </svg>
+          <div className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-foreground text-background">
+            <ActiveIcon className="h-5 w-5" />
+          </div>
         </div>
 
         <div className="min-w-0 flex-1">
@@ -639,8 +717,21 @@ const ChecklistCard = ({
             <span className="inline-flex h-5 items-center rounded-full bg-accent/10 px-2 text-[10px] font-semibold uppercase tracking-wide text-accent">
               Næste trin
             </span>
+            {phaseMeta && (
+              <span className={cn(
+                "inline-flex h-5 items-center rounded-full px-2 text-[10px] font-semibold uppercase tracking-wide",
+                phaseMeta.tone,
+              )}>
+                {phaseMeta.label}
+              </span>
+            )}
+            {activeStep.etaMin && (
+              <span className="inline-flex h-5 items-center gap-1 rounded-full bg-secondary px-2 text-[10px] font-medium text-muted-foreground">
+                <Clock className="h-3 w-3" /> ≈ {activeStep.etaMin} min
+              </span>
+            )}
             <span className="text-xs font-medium text-muted-foreground tabular-nums">
-              {doneCount} af {total} færdige
+              · {pct}% færdig
             </span>
           </div>
           <h3 className="mt-1 text-sm font-semibold text-foreground sm:text-base">
@@ -683,9 +774,12 @@ const ChecklistCard = ({
         </button>
       </div>
 
-      {/* Progress-bar */}
-      <div className="px-4 pb-3 sm:px-5">
-        <Progress value={pct} className="h-1" />
+      {/* Progress-bar + opsummering */}
+      <div className="flex items-center justify-between gap-3 px-4 pb-3 sm:px-5">
+        <Progress value={pct} className="h-1 flex-1" />
+        <span className="shrink-0 text-[11px] font-medium text-muted-foreground tabular-nums">
+          {doneCount} / {total}
+        </span>
       </div>
 
       {/* Mobile toggle */}
@@ -730,6 +824,19 @@ const ChecklistCard = ({
                   )}>
                     {s.title}
                   </span>
+                  {!done && s.phase && (
+                    <span className={cn(
+                      "hidden sm:inline-flex h-5 items-center rounded-full px-2 text-[10px] font-semibold uppercase tracking-wide",
+                      PHASE_META[s.phase].tone,
+                    )}>
+                      {PHASE_META[s.phase].label}
+                    </span>
+                  )}
+                  {!done && s.etaMin && (
+                    <span className="hidden sm:inline-flex h-5 items-center gap-1 rounded-full bg-secondary px-2 text-[10px] font-medium text-muted-foreground tabular-nums">
+                      <Clock className="h-3 w-3" /> {s.etaMin}m
+                    </span>
+                  )}
                   <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
                 </button>
               </li>

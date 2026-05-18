@@ -56,6 +56,7 @@ import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
 import { MonthWeekCalendar, type CalendarRoute } from "@/components/route-planner/MonthWeekCalendar";
 import { AgendaCalendar } from "@/components/route-planner/AgendaCalendar";
 import { RouteEditSheet, ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor } from "@/components/route-planner/RouteEditSheet";
+import PlanningPanel from "@/components/route-planner/PlanningPanel";
 import { DatePickerField } from "@/components/route-planner/DatePickerField";
 import { RouteStopsPanel } from "@/components/route-planner/RouteStopsPanel";
 import { MoveRouteDateDialog, type MoveRouteScope } from "@/components/route-planner/MoveRouteDateDialog";
@@ -2393,6 +2394,16 @@ const Planner = () => {
               </Button>
               <Button data-tour="routes-today" variant="outline" size="sm" className="h-7" onClick={() => setDate(todayStr())}>I dag</Button>
             </div>
+
+            <PlanningPanel
+              businessId={businessId}
+              anchorDate={date}
+              stops={calendarStops as any}
+              routes={calendarRoutesRaw as any}
+              employees={activeEmployees as any}
+              filterAssigneeIds={filterAssigneeIds}
+              onFilterAssigneeIds={setFilterAssigneeIds}
+            />
 
             <div className="flex items-center gap-1.5">
               <Dialog open={createOpen} onOpenChange={setCreateOpen}>
