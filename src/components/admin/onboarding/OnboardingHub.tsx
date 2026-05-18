@@ -8,7 +8,8 @@ import {
   Check, ChevronRight, ChevronLeft, Sparkles, X, ArrowRight,
   PartyPopper, Building2, Wrench, Users, Route as RouteIcon,
   Image as ImageIcon, Rocket, Tag, Clock, MessageCircle, Link2,
-  FileText, Phone, Mail, Star, Share2, Megaphone, CreditCard, Calculator, type LucideIcon,
+  FileText, Phone, Mail, Star, Share2, Megaphone, CreditCard, Calculator,
+  Trophy, Zap, type LucideIcon,
 } from "lucide-react";
 import {
   useOnboardingProgress, useUpdateOnboardingProgress, useCompleteOnboardingStep,
