@@ -388,7 +388,7 @@ export const RouteEditSheet = ({
           onPointerDownOutside={(e) => e.preventDefault()}
           onInteractOutside={(e) => e.preventDefault()}
         >
-          <SheetHeader className="px-5 py-4 border-b shrink-0 space-y-0">
+          <SheetHeader className="px-5 py-4 pr-12 border-b shrink-0 space-y-0">
             <SheetHeaderBlock
               icon={<Pencil className="h-4 w-4" />}
               accent={color}
