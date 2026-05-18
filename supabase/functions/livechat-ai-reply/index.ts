@@ -50,6 +50,11 @@ const tryParseJson = (text: string): { escalate: boolean; message: string } | nu
   }
 };
 
+const HUMAN_INTENT = /\b(menneske|rigtig person|medarbejder|person|ring|ringe|telefon|opkald|supporter|kundeservice|ikke en bot|ikke robot|snakke med nogen|tale med nogen)\b/i;
+const HIGH_RISK = /\b(klage|klager|refundering|refusion|tilbagebetaling|faktura|juridisk|advokat|fejl på siden|login|konto|abonnement|binding|konkret pris|hvad koster jeres|adresse|dækker i|hvornår kan|opstart|garanti|utilfreds|frustreret)\b/i;
+
+const shouldForceEscalate = (text: string) => HUMAN_INTENT.test(text) || HIGH_RISK.test(text);
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
@@ -95,6 +100,33 @@ Deno.serve(async (req) => {
     const last = (msgs ?? []).filter((m) => !m.is_system).at(-1);
     if (!last || last.sender_type !== "visitor") {
       return new Response(JSON.stringify({ skipped: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    const lastText = last.content ?? "";
+    if (shouldForceEscalate(lastText)) {
+      await admin
+        .from("chat_conversations")
+        .update({ needs_human: true })
+        .eq("id", conversation_id);
+
+      await admin.from("chat_messages").insert({
+        conversation_id,
+        sender_type: "admin",
+        sender_name: "Serviceydere AI",
+        content: "Jeg henter en rigtig medarbejder fra Serviceydere, så du får et sikkert svar. De vender tilbage her i chatten.",
+      });
+
+      await admin.from("chat_messages").insert({
+        conversation_id,
+        sender_type: "admin",
+        sender_name: "System",
+        content: "🙋 Besøgende skal have hjælp fra en rigtig medarbejder.",
+        is_system: true,
+      });
+
+      return new Response(JSON.stringify({ ok: true, escalated: true, forced: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
