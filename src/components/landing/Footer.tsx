@@ -65,7 +65,7 @@ const Footer = () => {
            <img
             src="/serviceydere-logo.webp"
             alt="Serviceydere"
-            className="h-6 w-auto opacity-90"
+            className="h-9 w-auto opacity-90"
             width={1920}
             height={539}
             decoding="async"

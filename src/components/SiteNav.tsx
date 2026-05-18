@@ -132,7 +132,7 @@ const SiteNav = ({ active, right }: Props) => {
             <img
               src="/serviceydere-logo-dark.webp"
               alt="Serviceydere"
-              className="h-8 sm:h-9 md:h-10 w-auto"
+              className="h-10 sm:h-12 md:h-14 w-auto"
               width={1920}
               height={539}
               decoding="async"

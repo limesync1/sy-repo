@@ -26,7 +26,7 @@ const NotFound = () => {
             <img
               src="/serviceydere-logo-dark.webp"
               alt="Serviceydere"
-              className="h-7 w-auto"
+              className="h-10 w-auto"
               width={1920}
               height={539}
               decoding="async"
