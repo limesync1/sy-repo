@@ -667,12 +667,49 @@ type ChecklistCardProps = {
   onJumpToStep: (s: Step) => void;
 };
 
-const PHASE_META: Record<NonNullable<Step["phase"]>, { label: string; tone: string }> = {
-  profil:   { label: "Profil",   tone: "bg-blue-500/10 text-blue-700 dark:text-blue-300" },
-  services: { label: "Services", tone: "bg-violet-500/10 text-violet-700 dark:text-violet-300" },
-  team:     { label: "Team",     tone: "bg-amber-500/10 text-amber-700 dark:text-amber-300" },
-  vækst:   { label: "Vækst",     tone: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" },
+type PhaseKey = NonNullable<Step["phase"]>;
+const PHASE_META: Record<
+  PhaseKey,
+  { label: string; tone: string; icon: LucideIcon; ring: string; dot: string; stripe: string; header: string }
+> = {
+  profil: {
+    label: "Profil",
+    tone: "bg-blue-500/10 text-blue-700 dark:text-blue-300",
+    icon: Building2,
+    ring: "ring-blue-500/30",
+    dot: "bg-blue-500",
+    stripe: "before:bg-blue-500/70",
+    header: "bg-blue-500/[0.06] text-blue-700 dark:text-blue-300",
+  },
+  services: {
+    label: "Services",
+    tone: "bg-violet-500/10 text-violet-700 dark:text-violet-300",
+    icon: Wrench,
+    ring: "ring-violet-500/30",
+    dot: "bg-violet-500",
+    stripe: "before:bg-violet-500/70",
+    header: "bg-violet-500/[0.06] text-violet-700 dark:text-violet-300",
+  },
+  team: {
+    label: "Team",
+    tone: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
+    icon: Users,
+    ring: "ring-amber-500/30",
+    dot: "bg-amber-500",
+    stripe: "before:bg-amber-500/70",
+    header: "bg-amber-500/[0.06] text-amber-700 dark:text-amber-300",
+  },
+  vækst: {
+    label: "Vækst",
+    tone: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+    icon: Rocket,
+    ring: "ring-emerald-500/30",
+    dot: "bg-emerald-500",
+    stripe: "before:bg-emerald-500/70",
+    header: "bg-emerald-500/[0.06] text-emerald-700 dark:text-emerald-300",
+  },
 };
+const PHASE_ORDER: PhaseKey[] = ["profil", "services", "team", "vækst"];
 
 const ChecklistCard = ({
   steps, activeStep, isDone, doneCount, total, pct, onCta, onSkip, onMarkDone, onJumpToStep,
@@ -793,56 +830,84 @@ const ChecklistCard = ({
 
       {/* Hele checklisten — kollapset som default */}
       {expanded && (
-        <ol className="border-t border-border bg-secondary/30 py-1">
-          {steps.map((s, i) => {
-            const done = isDone(s);
-            const active = s.id === activeStep.id;
-            const StepIcon = s.icon;
+        <div className="border-t border-border bg-secondary/30">
+          {PHASE_ORDER.map((phaseKey) => {
+            const inPhase = steps.filter((s) => (s.phase ?? "profil") === phaseKey);
+            if (inPhase.length === 0) return null;
+            const meta = PHASE_META[phaseKey];
+            const PhaseIcon = meta.icon;
+            const doneInPhase = inPhase.filter(isDone).length;
+            const allPhaseDone = doneInPhase === inPhase.length;
+
             return (
-              <li key={s.id}>
-                <button
-                  onClick={() => onJumpToStep(s)}
-                  className={cn(
-                    "flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors sm:px-5",
-                    "hover:bg-background",
-                  )}
-                >
-                  <span className={cn(
-                    "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold transition-colors",
-                    done
-                      ? "border-accent bg-accent text-accent-foreground"
-                      : active
-                        ? "border-foreground bg-foreground text-background"
-                        : "border-border bg-background text-muted-foreground",
-                  )}>
-                    {done ? <Check className="h-3.5 w-3.5" /> : i + 1}
+              <section key={phaseKey} className="border-b border-border/60 last:border-b-0">
+                {/* Fase-header — farvet bånd så faserne er tydeligt adskilt. */}
+                <div className={cn("flex items-center gap-2.5 px-4 py-2 sm:px-5", meta.header)}>
+                  <span className={cn("flex h-6 w-6 items-center justify-center rounded-lg ring-1", meta.tone, meta.ring)}>
+                    <PhaseIcon className="h-3.5 w-3.5" />
                   </span>
-                  <StepIcon className={cn("h-4 w-4 shrink-0", done ? "text-muted-foreground" : "text-foreground")} />
-                  <span className={cn(
-                    "flex-1 truncate text-sm",
-                    done ? "text-muted-foreground line-through" : "text-foreground font-medium",
-                  )}>
-                    {s.title}
+                  <span className="text-[11px] font-bold uppercase tracking-[0.14em]">
+                    {meta.label}
                   </span>
-                  {!done && s.phase && (
-                    <span className={cn(
-                      "hidden sm:inline-flex h-5 items-center rounded-full px-2 text-[10px] font-semibold uppercase tracking-wide",
-                      PHASE_META[s.phase].tone,
-                    )}>
-                      {PHASE_META[s.phase].label}
-                    </span>
-                  )}
-                  {!done && s.etaMin && (
-                    <span className="hidden sm:inline-flex h-5 items-center gap-1 rounded-full bg-secondary px-2 text-[10px] font-medium text-muted-foreground tabular-nums">
-                      <Clock className="h-3 w-3" /> {s.etaMin}m
-                    </span>
-                  )}
-                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                </button>
-              </li>
+                  <span className="ml-auto inline-flex items-center gap-1 text-[11px] font-semibold tabular-nums opacity-70">
+                    {allPhaseDone && <Check className="h-3 w-3" />}
+                    {doneInPhase} / {inPhase.length}
+                  </span>
+                </div>
+
+                <ol className="py-1">
+                  {inPhase.map((s) => {
+                    const done = isDone(s);
+                    const active = s.id === activeStep.id;
+                    const StepIcon = s.icon;
+                    const idx = steps.findIndex((x) => x.id === s.id);
+                    return (
+                      <li key={s.id}>
+                        <button
+                          onClick={() => onJumpToStep(s)}
+                          className={cn(
+                            "relative flex w-full items-center gap-3 py-2.5 pl-5 pr-4 text-left transition-colors hover:bg-background sm:pl-6 sm:pr-5",
+                            "before:absolute before:left-0 before:top-1 before:bottom-1 before:w-[3px] before:rounded-r-full",
+                            meta.stripe,
+                            !active && "before:opacity-40",
+                          )}
+                        >
+                          <span
+                            className={cn(
+                              "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold transition-colors",
+                              done
+                                ? "border-accent bg-accent text-accent-foreground"
+                                : active
+                                  ? "border-foreground bg-foreground text-background"
+                                  : "border-border bg-background text-muted-foreground",
+                            )}
+                          >
+                            {done ? <Check className="h-3.5 w-3.5" /> : idx + 1}
+                          </span>
+                          <StepIcon className={cn("h-4 w-4 shrink-0", done ? "text-muted-foreground" : "text-foreground")} />
+                          <span
+                            className={cn(
+                              "flex-1 truncate text-sm",
+                              done ? "text-muted-foreground line-through" : "text-foreground font-medium",
+                            )}
+                          >
+                            {s.title}
+                          </span>
+                          {!done && s.etaMin && (
+                            <span className="hidden sm:inline-flex h-5 items-center gap-1 rounded-full bg-secondary px-2 text-[10px] font-medium text-muted-foreground tabular-nums">
+                              <Clock className="h-3 w-3" /> {s.etaMin}m
+                            </span>
+                          )}
+                          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </section>
             );
           })}
-        </ol>
+        </div>
       )}
     </div>
   );
