@@ -16,9 +16,9 @@
     --secondary-foreground: 0 0% 13%;
     --muted: 0 0% 97%;
     --muted-foreground: 0 0% 45%;
-    --accent: 184 90% 32%;
+    --accent: 206 99% 30%;
     --accent-foreground: 0 0% 100%;
-    --accent-soft: 184 70% 95%;
+    --accent-soft: 187 100% 95%;
     --feature-cool: 196 85% 94%;
     --feature-cool-foreground: 195 70% 26%;
     --feature-warm: 42 100% 93%;
@@ -39,7 +39,7 @@
     --radius: 0.75rem;
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 0 0% 13%;
-    --sidebar-primary: 184 90% 32%;
+    --sidebar-primary: 206 99% 30%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 0 0% 97%;
     --sidebar-accent-foreground: 0 0% 13%;

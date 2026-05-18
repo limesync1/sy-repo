@@ -13,7 +13,7 @@ const mutedColor = '#737373'      // labels
 const subtle = '#a3a3a3'     // footer
 const line = '#ececec'       // borders / dividers
 const surface = '#fafafa'    // very subtle surfaces
-const teal = '#0e9396'       // accent (matches site --accent)
+const teal = '#015c96'       // accent (matches site --accent, dark-blue)
 
 export const main = {
   backgroundColor: '#ffffff',

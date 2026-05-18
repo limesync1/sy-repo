@@ -780,8 +780,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const progress = sortedStops.length > 0 ? (completedCount / sortedStops.length) * 100 : 0;
   // Brug Serviceydere accent (teal) som primær handlings-farve i kort-UI'et.
   // route.color beholdes til badges/rute-identifikation i kalenderen.
-  const themeColor = "hsl(184 90% 32%)";
-  const routeBadgeColor = route?.color || "hsl(184 90% 32%)";
+  const themeColor = "hsl(206 99% 30%)";
+  const routeBadgeColor = route?.color || "hsl(206 99% 30%)";
 
   /* Fanfare ved dagsfærdig */
   useEffect(() => {
