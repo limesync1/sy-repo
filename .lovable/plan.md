@@ -1,48 +1,45 @@
-# Plan: 5 opgaver
+## Plan — 7 opgaver
 
-## 1. Vis medarbejder-avatars overalt hvor man til-/frakobler medarbejdere
+### 1. Adresse-dropdown åbner ved scroll (virksomhedsindstillinger)
+Bug: `AddressAutocomplete` (admin-versionen) genåbner dropdown via `useEffect` på `value` selv når brugeren ikke har interageret. Fix: kun fetch/åbn forslag når `value` ændres via brugerinput (track `hasFocus` / `userTypingRef`), ikke når feltet seedes/re-renderes ved scroll.
 
-Brug eksisterende `EmployeeAvatars`-komponent (eller `Avatar` med billede + initial-fallback) i alle steder hvor man tilkobler/frakobler medarbejdere fra/til en aftale, inkl. valg af standard-medarbejder ved oprettelse/redigering af services.
+### 2. Kundepanel → Abonnementer: empty-state matcher Bestillinger/Engangskøb
+Ensret empty-state-blokken i Abonnementer-fanen til samme `EmptyPanel`-komponent som de andre faner allerede bruger (ikon, titel, beskrivelse, CTA).
 
-Steder der skal opdateres:
-- Multi-select for medarbejdere på aftaler (RouteStopsPanel, StopDetailSheet, CalendarPlanner, AftaleTab)
-- Dropdown/multi-select i service-oprettelse/redigering ("standard-medarbejder")
-- Ordre-/aftale-redigering i admin
+### 3. Kundepanel → Min profil: én samlet side + profilbillede
+- Fjern fane-tabs (profilindstillinger / notifikationer / kontooplysninger)
+- Saml alt på én scrollbar side med tydelige sektionskort
+- Tilføj profilbillede-upload (Supabase Storage bucket `avatars`, public)
+- Brug profilbilledet i anmeldelser (`reviews.customer_avatar_url` eller via join til `profiles.avatar_url`)
+- Migration: tilføj `avatar_url` til `profiles` hvis ikke findes; bucket + RLS
 
-Tjek først hvilke komponenter bruges, og udvid dem så de viser `avatar_url` + farvet fallback med initialer foran medarbejdernavnet.
+### 4. Ny fane "Anmeldelser" i kundepanel
+Tilføj `reviews` til `CustomerShell`-tabs. Viser alle anmeldelser brugeren har skrevet (forretning, dato, stjerner, tekst). Mulighed for at redigere/slette egen anmeldelse.
 
-## 2. Forbedret "Optimér rækkefølge"
+### 5. Notifikationsindstillinger der faktisk virker
+- Sikr at `customer_notification_preferences` (eller felter på `profiles`) faktisk læses/skrives
+- Ændre label "Ordrestatus" → "Aftale-status"
+- Test at edge-functions (`customer-notifications-dispatch`) respekterer indstillingerne for hver kanal/type
+- Gennemtest alle toggles ved at simulere events
 
-Justér `optimize-route` edge function så den:
-- Kun skifter rækkefølge (ikke bemanding) — allerede default via `preserve_assignees`
-- Bruger trafik-faktoreret rejsetid: skift OSRM/Mapbox kald til Mapbox Directions med `driving-traffic` profilen når Mapbox token er sat (giver faktiske trafikforhold på tidspunktet).
-- Tager vejr i betragtning: hent prognose for rute-dato + start-koordinat (via eksisterende `useWeather`-mønster eller direkte open-meteo) og påfør en hastigheds-multiplier ved regn/sne/dårlig sigt (~1.10–1.25x rejsetid).
-- AI-summary nævner trafik/vejr-justeringer.
+### 6. Test pause/opsigelse af abonnementer
+Verificér at `useUpdateSubscription` rent faktisk opdaterer `subscriptions.status` til `paused`/`cancelled`, at UI re-renderer, og at virksomheden ser den korrekte status. Fix evt. manglende `paused_at`/`cancelled_at` timestamps og RLS.
 
-Ingen UI-ændring; samme knap, bedre resultat.
+### 7. Forside: endnu mere premium-feel
+Højn polish-niveau på alle sektioner:
+- Større typografi-hierarki, finere `tracking`/`leading`
+- Subtile gradient-baggrunde og glow-effekter i hero/CTA
+- Bløde skygger med farve-tone (ikke ren sort)
+- Mere generøs luft mellem sektioner
+- Mikro-interaktioner ved hover på kort
+- Eventuel introduktion af noise-texture/aurora i hero baggrund
 
-## 3. Fjern "Optimér rækkefølge", "Flyt aftaler", "Slet" på projicerede ruter
+### Tekniske detaljer
+- Migration nødvendig for #3 (avatar_url + storage bucket) og evt. #5 (notification prefs schema check)
+- Ingen breaking changes til eksisterende komponenter udenfor scope
+- Genbruger eksisterende `EmptyPanel`, `PageHeader`, `STATUS_BADGE_CLASS`
 
-I `RouteEditSheet`: tilføj `isProjection`-prop til typedefinition, og skjul de tre footer-knapper når `isProjection === true`. Pro­pen sendes allerede fra `RoutePlanner.tsx` (linje 2573).
+### Rækkefølge
+1+2+4 (UI-only, hurtige) → 3 (migration + UI) → 5 (notif-logik) → 6 (test/fix abonnement) → 7 (premium polish)
 
-## 4. Send faktura når aftale er markeret som udført
-
-Når en `agreement_occurrences.status` skifter til `completed` (fra Aftaler-siden eller medarbejder-app):
-- DB-trigger på `agreement_occurrences` køer `accounting_sync_queue` med `entity_type='occurrence_invoice'`, `operation='create_invoice'` ved overgang til completed (kun hvis ikke allerede faktureret).
-- `accounting-sync` edge function håndterer ny operation: opretter faktura hos kundens regnskabsprogram (e-conomic/Dinero/Billy via eksisterende `_shared/accounting/` adapters), gemmer `invoice_external_id` + `invoiced_at` på occurrence.
-
-## 5. Opret ordre i regnskabsprogram når aftale oprettes
-
-Når en `agreement_occurrences` række oprettes (manuelt eller via projection-materialisering):
-- DB-trigger køer `accounting_sync_queue` med `entity_type='occurrence_order'`, `operation='create_order'`.
-- `accounting-sync` edge function understøtter operationen og opretter "ordre"/"tilbud"-entitet i regnskabsprogrammet. Linker via `accounting_order_links.agreement_occurrence_id` (kolonnen findes allerede).
-- Skip hvis virksomheden ikke har aktiv `accounting_integrations`-række.
-
-## Tekniske detaljer
-
-- Migration: 2 nye DB-triggers på `agreement_occurrences` (insert → opret ordre, update completed → opret faktura). Begge gated på at virksomheden har aktiv accounting integration.
-- `accounting-sync` udvides med to nye operationer; genbrug eksisterende `_shared/accounting` provider-grænseflade (skal udvides hvis `createOrder`/`createInvoiceFromOccurrence` ikke findes).
-- Avatars: forventer `avatar_url`-felt på `employees` (er allerede tilgængelig — bruges af `EmployeeAvatars`).
-- `optimize-route`: vejr fra open-meteo (gratis, ingen nøgle); trafik kræver Mapbox token (allerede konfigureret).
-
-Rækkefølge for implementering: 3 (hurtigt) → 1 (UI-mellem) → 2 (edge function) → 5 + 4 (DB + accounting integration).
+Skal jeg gå i gang med alle 7, eller vil du prioritere/spalte op?
