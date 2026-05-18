@@ -3,6 +3,7 @@ import SmartLink from "@/components/SmartLink";
 import { Button } from "@/components/ui/button";
 import SearchSuggest from "./SearchSuggest";
 import LocationChip from "@/components/LocationChip";
+import heroImage from "@/assets/hero-window-cleaning.webp";
 
 const HeroSection = () => {
   return (
@@ -10,6 +11,25 @@ const HeroSection = () => {
       className="relative z-30 isolate overflow-hidden text-background"
       style={{ backgroundColor: "hsl(var(--hero-bg))" }}
     >
+      {/* Baggrundsbillede — ligger nederst i stakken og blendes ned så de
+          ambient cyan-glows og dybe marineblå tone stadig dominerer. */}
+      <img
+        src={heroImage}
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-20 h-full w-full object-cover opacity-35"
+        loading="eager"
+      />
+      {/* Mørk gradient over billedet — sikrer kontrast til teksten og lader
+          de premium farver gennemtrænge billedet. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10"
+        style={{
+          backgroundImage:
+            "linear-gradient(90deg, hsl(var(--hero-bg)) 0%, hsl(var(--hero-bg) / 0.92) 45%, hsl(var(--hero-bg) / 0.55) 100%)",
+        }}
+      />
       {/* Ambient cyan glows — giver dybde uden støj. */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         {/* Stor central cyan-glow, langsomt pulserende */}

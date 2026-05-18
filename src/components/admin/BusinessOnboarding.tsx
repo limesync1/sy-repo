@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/landing/Footer";
 import SEO from "@/components/SEO";
+import PageHero from "@/components/landing/PageHero";
 import { translateAuthError } from "@/lib/auth-errors";
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -278,31 +279,21 @@ const BusinessOnboarding = () => {
           ser 100% identisk ud og ikke "hopper" når man navigerer hertil. */}
       <SiteNav />
 
+      <PageHero
+        eyebrow={`${pricing?.trial_days ?? 14} dages gratis prøve · Intet kort kræves`}
+        title="Bliv udbyder på Serviceydere"
+        subtitle="Få din virksomhed online på under 2 minutter. Indtast dit CVR — vi henter automatisk dine oplysninger. Vælg dine funktioner og se prisen med det samme."
+      >
+        <ul className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-background/85">
+          <li className="flex items-center gap-1.5"><Check className="h-4 w-4" style={{ color: "hsl(var(--hero-cyan-bright))" }} /> Ingen binding</li>
+          <li className="flex items-center gap-1.5"><Check className="h-4 w-4" style={{ color: "hsl(var(--hero-cyan-bright))" }} /> Opsig når som helst</li>
+          <li className="flex items-center gap-1.5"><Check className="h-4 w-4" style={{ color: "hsl(var(--hero-cyan-bright))" }} /> Dansk support</li>
+        </ul>
+      </PageHero>
+
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-        {/* Header */}
-        <div className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
-            <Sparkles className="h-3.5 w-3.5" />
-            {pricing ? `${pricing.trial_days} dages gratis prøve` : "14 dages gratis prøve"} · Intet kort kræves
-          </div>
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-            Bliv udbyder på Serviceydere
-          </h1>
-          <p className="mt-3 max-w-2xl text-[15px] leading-7 text-muted-foreground sm:text-base">
-            Få din virksomhed online på under 2 minutter. Indtast dit CVR — vi henter
-            automatisk dine oplysninger. Vælg dine funktioner og se prisen med det samme.
-          </p>
-
-          {/* Trust-bånd så brugeren straks ser hvad der er inkluderet */}
-          <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
-            <li className="flex items-center gap-1.5"><Check className="h-4 w-4 text-accent" /> Ingen binding</li>
-            <li className="flex items-center gap-1.5"><Check className="h-4 w-4 text-accent" /> Opsig når som helst</li>
-            <li className="flex items-center gap-1.5"><Check className="h-4 w-4 text-accent" /> Dansk support</li>
-          </ul>
-        </div>
-
         {/* Layout: form til venstre, sticky pris-summary til højre */}
-        <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_400px]">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_400px]">
           {/* ─── VENSTRE: form-sektioner ─── */}
           <div className="space-y-6">
             {/* 1. CVR */}
