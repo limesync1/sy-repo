@@ -134,7 +134,7 @@ export const RouteStopsPanel = ({
 
   return (
     <>
-      <Sheet open={open} onOpenChange={onOpenChange} modal={isMobile}>
+      <Sheet open={open} onOpenChange={onOpenChange} modal={isCompact}>
         <SheetContent
           side={isCompact ? "bottom" : "right"}
           className={cn(
