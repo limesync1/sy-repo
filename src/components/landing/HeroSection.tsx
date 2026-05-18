@@ -1,53 +1,55 @@
 import { ArrowRight } from "lucide-react";
 import SmartLink from "@/components/SmartLink";
-import heroImage from "@/assets/hero-window-cleaning.webp";
 import { Button } from "@/components/ui/button";
 import SearchSuggest from "./SearchSuggest";
 import LocationChip from "@/components/LocationChip";
 
 const HeroSection = () => {
   return (
-    <header className="relative z-30 isolate bg-foreground text-background">
-      {/* Baggrundsbillede med blid Ken Burns-zoom — giver liv uden støj. */}
-      <div className="absolute inset-0 -z-10 overflow-hidden">
-        <img
-          src={heroImage}
-          alt="Professionel vinduespudser i gang med arbejdet"
-          className="absolute inset-0 h-full w-full scale-110 object-cover animate-ken-burns will-change-transform"
-          width={1280}
-          height={960}
-          loading="eager"
-          decoding="async"
-          fetchPriority="high"
+    <header
+      className="relative z-30 isolate overflow-hidden text-background"
+      style={{ backgroundColor: "hsl(var(--hero-bg))" }}
+    >
+      {/* Ambient cyan glows — giver dybde uden støj. */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+        {/* Stor central cyan-glow, langsomt pulserende */}
+        <div
+          className="absolute left-1/2 top-1/2 h-[40rem] w-[40rem] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[120px] opacity-25 animate-blob-slow"
+          style={{ backgroundColor: "hsl(var(--hero-cyan))" }}
         />
-        {/* Læsbarhedslag — venstre→højre gradient holder tekst-kolonnen mørk
-            mens højre side bevarer billedets dybde. */}
-        <div className="absolute inset-0 bg-gradient-to-r from-foreground/85 via-foreground/60 to-foreground/20" />
-        <div className="absolute inset-0 bg-gradient-to-t from-foreground/40 via-transparent to-transparent" />
-
-        {/* Én enkelt, blød accent-glow der pulserer langsomt i baggrunden.
-            Pointer-events fra så input forbliver fuldt klikbart. */}
-        <div aria-hidden className="pointer-events-none absolute inset-0">
-          <div className="absolute -bottom-40 -left-32 h-[36rem] w-[36rem] rounded-full bg-accent/20 blur-3xl mix-blend-screen animate-blob-slow" />
-          <div className="absolute -top-32 right-[-10%] h-[40rem] w-[40rem] rounded-full bg-accent/10 blur-3xl mix-blend-screen" />
-        </div>
-
-        {/* Diskret film-grain — bryder gradienterne så de føles
-            analoge i stedet for "udvasket digitalt". Lav opacity. */}
-        <div aria-hidden className="pointer-events-none absolute inset-0 bg-noise opacity-[0.07] mix-blend-overlay" />
+        {/* Mid-blå glow øverst højre */}
+        <div
+          className="absolute -top-32 right-[-8%] h-[36rem] w-[36rem] rounded-full blur-[110px] opacity-30"
+          style={{ backgroundColor: "hsl(var(--hero-mid))" }}
+        />
+        {/* Lille cyan accent nederst venstre */}
+        <div
+          className="absolute -bottom-40 -left-32 h-[28rem] w-[28rem] rounded-full blur-[100px] opacity-15"
+          style={{ backgroundColor: "hsl(var(--hero-cyan-bright))" }}
+        />
+        {/* Subtil radial gradient overlay for ekstra dybde */}
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              "radial-gradient(ellipse 80% 60% at 70% 50%, hsl(var(--hero-mid) / 0.25), transparent 60%)",
+          }}
+        />
+        {/* Film-grain — analog tekstur */}
+        <div className="absolute inset-0 bg-noise opacity-[0.06] mix-blend-overlay" />
       </div>
 
-      {/* Indhold */}
-      <div className="relative mx-auto max-w-7xl px-4 pb-20 pt-12 sm:px-6 sm:pb-24 sm:pt-16 lg:px-8 lg:pb-32 lg:pt-24">
+      {/* Indhold — asymmetrisk 60/40 grid */}
+      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 pb-20 pt-12 sm:px-6 sm:pb-24 sm:pt-16 lg:grid-cols-[60%_40%] lg:gap-20 lg:px-8 lg:pb-32 lg:pt-24">
         <div className="max-w-2xl">
-          <h1 className="animate-fade-in text-[2.25rem] font-semibold leading-[1.04] tracking-[-0.03em] text-background sm:text-[3.5rem] lg:text-[4.25rem]">
+          <h1 className="animate-fade-in text-[2.25rem] font-semibold leading-[1.04] tracking-[-0.03em] text-background sm:text-[3.5rem] lg:text-[4.5rem]">
             Find den rette{" "}
-            <span className="bg-[linear-gradient(110deg,hsl(187_100%_49%)_0%,hsl(187_100%_75%)_50%,hsl(187_100%_49%)_100%)] bg-[length:200%_100%] bg-clip-text text-transparent animate-gradient-pan">
+            <span className="bg-[linear-gradient(110deg,hsl(var(--hero-cyan))_0%,hsl(var(--hero-cyan-bright))_50%,hsl(var(--hero-cyan))_100%)] bg-[length:200%_100%] bg-clip-text text-transparent animate-gradient-pan">
               serviceyder
             </span>{" "}
             til opgaven.
           </h1>
-          <p className="animate-fade-in [animation-delay:120ms] mt-5 max-w-xl text-[15px] leading-7 text-background/85 sm:text-[17px] sm:leading-[1.6]">
+          <p className="animate-fade-in [animation-delay:120ms] mt-6 max-w-xl text-[15px] leading-7 text-background/80 sm:text-[18px] sm:leading-[1.6]">
             Sammenlign lokale udbydere, se priser og book direkte — alt samlet ét sted.
           </p>
 
@@ -77,6 +79,9 @@ const HeroSection = () => {
             </SmartLink>
           </div>
         </div>
+
+        {/* Højre 40% — bevidst tom, så de ambient glows får luft og giver premium-feel. */}
+        <div aria-hidden className="hidden lg:block" />
       </div>
     </header>
   );
