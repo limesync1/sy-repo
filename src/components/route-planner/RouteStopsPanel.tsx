@@ -124,12 +124,12 @@ export const RouteStopsPanel = ({
     setConfirmDelete(null);
   };
 
-  if (!route) return null;
-
   // På mobil/tablet (< lg) viser vi panelet som en bunden modal sheet med
   // overlay og close-knap — så brugeren altid kan lukke den. På desktop
   // pinner vi det ved siden af RouteEditSheet (non-modal, ingen overlay).
   const isMobile = useIsMobile();
+
+  if (!route) return null;
 
   return (
     <>
