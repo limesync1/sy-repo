@@ -57,6 +57,7 @@ import InvoiceActionsMenu from "@/components/admin/InvoiceActionsMenu";
 import OrderTimeline from "@/components/admin/OrderTimeline";
 import NextStepCard from "@/components/admin/NextStepCard";
 import { AccountingStatusRow, type OrderForStatus } from "@/components/shared/OrderStatusBadges";
+import AftaleStatsStrip from "@/components/admin/AftaleStatsStrip";
 
 /* ─── Types ─── */
 type BusinessService = Service & { calculator_steps?: CalculatorStep[] };
