@@ -3011,6 +3011,7 @@ const Planner = () => {
           onConfirm={(scope) => handleConfirmRouteMerge(scope)}
         />
 
+        {createPortal(
         <DragOverlay dropAnimation={{ duration: 180, easing: "cubic-bezier(0.18, 0.67, 0.6, 1)" }}>
           {activeDragId && activeDragData?.type === "job" && (
             <div
@@ -3049,7 +3050,8 @@ const Planner = () => {
               </p>
             </div>
           )}
-        </DragOverlay>
+        </DragOverlay>,
+        document.body)}
 
         <StopDetailSheet
           readOnly={
