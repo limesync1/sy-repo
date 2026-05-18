@@ -146,15 +146,23 @@ Deno.serve(async (req) => {
     if (!aiRes.ok) {
       const t = await aiRes.text();
       console.error("AI error", aiRes.status, t);
-      return new Response(JSON.stringify({ error: "ai_failed", status: aiRes.status }), {
-        status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      await admin.from("chat_conversations").update({ needs_human: true }).eq("id", conversation_id);
+      await admin.from("chat_messages").insert({
+        conversation_id,
+        sender_type: "admin",
+        sender_name: "System",
+        content: "⚠️ AI kunne ikke svare sikkert. En medarbejder skal overtage samtalen.",
+        is_system: true,
+      });
+      return new Response(JSON.stringify({ ok: true, escalated: true, reason: "ai_failed" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     const aiData = await aiRes.json();
     const raw = aiData?.choices?.[0]?.message?.content ?? "";
     const parsed = tryParseJson(raw) ?? {
-      escalate: false,
-      message: "Tak for din besked — vi vender tilbage hurtigst muligt.",
+      escalate: true,
+      message: "Jeg er ikke helt sikker på svaret, så jeg henter en rigtig medarbejder fra Serviceydere. De vender tilbage her i chatten.",
     };
 
     if (parsed.escalate) {
