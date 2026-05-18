@@ -708,7 +708,7 @@ const ChecklistCard = ({
             />
           </svg>
           <div className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-foreground text-background">
-            <ActiveIcon className="h-4.5 w-4.5" />
+            <ActiveIcon className="h-5 w-5" />
           </div>
         </div>
 
