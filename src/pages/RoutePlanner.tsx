@@ -3049,7 +3049,18 @@ const Planner = () => {
         />
 
         {createPortal(
-        <DragOverlay dropAnimation={{ duration: 180, easing: "cubic-bezier(0.18, 0.67, 0.6, 1)" }}>
+        <DragOverlay
+          dropAnimation={{ duration: 180, easing: "cubic-bezier(0.18, 0.67, 0.6, 1)" }}
+          style={activeDragData?.type === "route" && activeRouteDragPoint ? {
+            top: 0,
+            left: 0,
+            width: 0,
+            height: 0,
+            transform: "none",
+            pointerEvents: "none",
+            overflow: "visible",
+          } : undefined}
+        >
           {activeDragId && activeDragData?.type === "job" && (
             <div
               className="rounded-md border border-accent/70 bg-card px-2 py-1 shadow-xl w-[140px] cursor-grabbing"
