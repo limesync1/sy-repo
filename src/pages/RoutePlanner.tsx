@@ -48,7 +48,7 @@ import { da } from "date-fns/locale";
 import { toast } from "sonner";
 import {
   DndContext, DragOverlay, useSensor, useSensors,
-  pointerWithin, type DragEndEvent, type DragMoveEvent, type DragStartEvent,
+  pointerWithin, rectIntersection, type CollisionDetection, type DragEndEvent, type DragMoveEvent, type DragOverEvent, type DragStartEvent,
   MouseSensor, TouchSensor, KeyboardSensor,
 } from "@dnd-kit/core";
 import { createPortal } from "react-dom";
@@ -121,8 +121,9 @@ const Planner = () => {
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragData, setActiveDragData] = useState<any>(null);
-  const [activeRouteDragPoint, setActiveRouteDragPoint] = useState<DragPoint | null>(null);
+  const activeRouteDragPointRef = useRef<DragPoint | null>(null);
   const activeRouteDragOriginRef = useRef<DragPoint | null>(null);
+  const lastRouteDropTargetRef = useRef<any | null>(null);
   // Beskytter mod dobbelt-drop på samme kilde+mål — undgår dubletruter og
   // "uniq_route_stops_route_order" race conditions.
   const inFlightDropsRef = useRef<Set<string>>(new Set());
@@ -432,6 +433,30 @@ const Planner = () => {
     useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 8 } }),
     useSensor(KeyboardSensor),
   );
+  const routePlannerCollisionDetection = useCallback<CollisionDetection>((args) => {
+    const pointerCollisions = pointerWithin(args);
+    if (pointerCollisions.length > 0) return pointerCollisions;
+
+    const routeDragPoint = args.active.data.current?.type === "route" ? activeRouteDragPointRef.current : null;
+    if (routeDragPoint) {
+      const routePointerCollision = args.droppableContainers.find((container) => {
+        const rect = container.rect.current;
+        return rect &&
+          routeDragPoint.x >= rect.left &&
+          routeDragPoint.x <= rect.right &&
+          routeDragPoint.y >= rect.top &&
+          routeDragPoint.y <= rect.bottom;
+      });
+      if (routePointerCollision) return [{ id: routePointerCollision.id }];
+    }
+
+    // Route-drag kan nogle gange miste pointer-hit på desktop, især når den
+    // trukne rute ligger over små kalenderceller. Fallback til overlap gør
+    // drop stabilt uden at ændre job/stop-drop adfærd.
+    return args.active.data.current?.type === "route"
+      ? rectIntersection(args)
+      : pointerCollisions;
+  }, []);
 
   /** Kundens ønskede dato — preferred_date primært, ellers next_service_date (abonnement). */
   const effectiveJobDate = (j: any): string | null => {
@@ -1266,6 +1291,7 @@ const Planner = () => {
   /* ─── DnD ─── */
   const handleDragStart = (e: DragStartEvent) => {
     const data: any = e.active.data.current;
+    lastRouteDropTargetRef.current = null;
     // ─── Metrics: start måling af drag-to-drop latency ───
     // Sporer hvor lang tid brugeren bruger fra drag begynder til drop
     // gennemføres. Sammen med klik-fejlraten (drag uden drop) kan vi
@@ -1278,7 +1304,7 @@ const Planner = () => {
     if (data?.type === "route" && data?.route?.isVirtual) {
       setActiveDragId(null);
       setActiveDragData(null);
-      setActiveRouteDragPoint(null);
+      activeRouteDragPointRef.current = null;
       activeRouteDragOriginRef.current = null;
       if (businessId) {
         void logRoutePlannerEvent({
@@ -1297,18 +1323,24 @@ const Planner = () => {
     if (data?.type === "route") {
       const origin = getDragPoint(e.activatorEvent);
       activeRouteDragOriginRef.current = origin;
-      setActiveRouteDragPoint(origin);
+      activeRouteDragPointRef.current = origin;
     } else {
       activeRouteDragOriginRef.current = null;
-      setActiveRouteDragPoint(null);
+      activeRouteDragPointRef.current = null;
+      lastRouteDropTargetRef.current = null;
     }
+  };
+
+  const handleDragOver = (e: DragOverEvent) => {
+    if (e.active.data.current?.type !== "route") return;
+    if (e.over?.data.current) lastRouteDropTargetRef.current = e.over.data.current;
   };
 
   const handleDragMove = (e: DragMoveEvent) => {
     if (e.active.data.current?.type !== "route") return;
     const origin = activeRouteDragOriginRef.current;
     if (!origin) return;
-    setActiveRouteDragPoint({ x: origin.x + e.delta.x, y: origin.y + e.delta.y });
+    activeRouteDragPointRef.current = { x: origin.x + e.delta.x, y: origin.y + e.delta.y };
   };
 
   // De øvrige kalender-callbacks afhænger af `openProjectedRoute` /
@@ -1374,17 +1406,30 @@ const Planner = () => {
 
   const handleDragEnd = async (e: DragEndEvent) => {
     const { active, over } = e;
+    const fallbackRouteTarget = !over && active.data.current?.type === "route"
+      ? (() => {
+          const point = activeRouteDragPointRef.current;
+          const el = point ? document.elementFromPoint(point.x, point.y)?.closest<HTMLElement>("[data-route-drop-route-id],[data-route-drop-date]") : null;
+          const routeId = el?.dataset.routeDropRouteId;
+          const date = el?.dataset.routeDropDate;
+          if (routeId) return { type: "route", routeId, date };
+          if (date) return { type: "day", date };
+          return lastRouteDropTargetRef.current;
+        })()
+      : null;
+    const hasDropTarget = !!over || !!fallbackRouteTarget;
     setActiveDragId(null);
     setActiveDragData(null);
-    setActiveRouteDragPoint(null);
+    activeRouteDragPointRef.current = null;
     activeRouteDragOriginRef.current = null;
+    lastRouteDropTargetRef.current = null;
     // ─── Metrics: registrér resultatet af denne drag ───
     // `dropped=true` kun når brugeren faktisk slap på et target. Drags
     // der ender uden over-target tæller som "klik-fejl" — typisk når
     // browseren startede en drag pga. en lille touch-bevægelse, mens
     // brugeren forsøgte at klikke (særligt Windows-touchpads/Android).
-    dragMetrics.end(!!over);
-    if (!over || !businessId) return;
+    dragMetrics.end(hasDropTarget);
+    if (!hasDropTarget || !businessId) return;
 
     // Knyt en ordres aktive, gentagende abonnement til en bestemt rute,
     // så ruteplanlæggeren kan projicere fremtidige forekomster (uger/måneder)
@@ -1488,7 +1533,7 @@ const Planner = () => {
     };
 
     const activeData: any = active.data.current;
-    const overData: any = over.data.current;
+    const overData: any = over?.data.current ?? fallbackRouteTarget;
     // ─── Hård spærring: aldrig drop på en dato før i dag ───
     // Kalender-cellerne er allerede disabled som drop-target, men en
     // eksplicit guard + toast sikrer at intet drop (rute, stop eller job)
@@ -2250,8 +2295,9 @@ const Planner = () => {
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={pointerWithin}
+      collisionDetection={routePlannerCollisionDetection}
       onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
       onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
       onDragCancel={() => {
@@ -2259,7 +2305,7 @@ const Planner = () => {
         dragMetrics.end(false);
         setActiveDragId(null);
         setActiveDragData(null);
-        setActiveRouteDragPoint(null);
+        activeRouteDragPointRef.current = null;
         activeRouteDragOriginRef.current = null;
       }}
     >
