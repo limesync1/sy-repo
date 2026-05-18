@@ -129,6 +129,7 @@ const getDynamicReplies = (msgs: { sender_type: string; content?: string | null;
     .map((m) => (m.content || "").toLowerCase())
     .join(" ");
   if (!recent) return [];
+  if (UNSAFE_SUGGESTION_TERMS.some((term) => recent.includes(term))) return [];
 
   const matched = new Map<string, number>();
   for (const topic of TOPIC_REPLIES) {
