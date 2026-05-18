@@ -3160,15 +3160,6 @@ const Planner = () => {
         {createPortal(
         <DragOverlay
           dropAnimation={{ duration: 180, easing: "cubic-bezier(0.18, 0.67, 0.6, 1)" }}
-          style={activeDragData?.type === "route" && activeRouteDragPoint ? {
-            top: 0,
-            left: 0,
-            width: 0,
-            height: 0,
-            transform: "none",
-            pointerEvents: "none",
-            overflow: "visible",
-          } : undefined}
         >
           {activeDragId && activeDragData?.type === "job" && (
             <div
@@ -3198,10 +3189,7 @@ const Planner = () => {
             <div
               className="rounded-md border-l-[3px] border bg-card px-2 py-1 shadow-xl w-[160px] pointer-events-none"
               style={{
-                position: activeRouteDragPoint ? "fixed" : undefined,
-                left: activeRouteDragPoint?.x ?? undefined,
-                top: activeRouteDragPoint?.y ?? undefined,
-                transform: activeRouteDragPoint ? "translate(-50%, -50%) rotate(-2deg)" : "rotate(-2deg)",
+                transform: "rotate(-2deg)",
                 borderLeftColor: activeDragData.route?.color || "hsl(var(--accent))",
               }}
             >
