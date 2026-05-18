@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Star } from "lucide-react";
+import { Star, Quote } from "lucide-react";
 import { Link } from "react-router-dom";
 import HorizontalScroller from "./HorizontalScroller";
 
@@ -32,29 +32,39 @@ const Testimonials = () => {
   if (!reviews || reviews.length === 0) return null;
 
   return (
-    <section className="bg-secondary py-12 md:py-14">
+    <section className="bg-secondary py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-6 max-w-2xl">
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">Kundeoplevelser</h2>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground md:text-base">Ægte erfaringer, uden unødig støj.</p>
+        <div className="mb-10 max-w-2xl">
+          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+            Anmeldelser
+          </span>
+          <h2 className="mt-4 text-[1.75rem] font-semibold leading-[1.1] tracking-tight text-foreground md:text-[2.25rem]">Kundeoplevelser</h2>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground md:text-base">Ægte erfaringer, uden unødig støj.</p>
         </div>
 
         <HorizontalScroller>
           {reviews.map((r) => (
-            <article key={r.id} className="flex w-[300px] shrink-0 flex-col rounded-[24px] border border-border bg-card p-5 shadow-sm sm:w-[340px]">
-              <div className="mb-3 flex items-center gap-1">
+            <article key={r.id} className="relative flex w-[300px] shrink-0 flex-col rounded-[24px] border border-border bg-card p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md sm:w-[360px]">
+              <Quote aria-hidden className="absolute right-5 top-5 h-7 w-7 rotate-180 text-foreground/5" />
+              <div className="mb-4 flex items-center gap-1">
                 {Array.from({ length: 5 }).map((_, idx) => (
                   <Star key={idx} className={`h-3.5 w-3.5 ${idx < r.rating ? "fill-foreground text-foreground" : "text-muted-foreground/20"}`} />
                 ))}
               </div>
-              <p className="mb-5 line-clamp-4 flex-1 text-[15px] leading-7 text-foreground">“{r.comment}”</p>
-              <div className="border-t border-border pt-4">
-                <div className="text-sm font-semibold text-foreground">{r.reviewer_name}</div>
+              <p className="mb-6 line-clamp-4 flex-1 text-[15px] leading-7 text-foreground">“{r.comment}”</p>
+              <div className="flex items-center gap-3 border-t border-border pt-4">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground text-background text-xs font-semibold">
+                  {r.reviewer_name.charAt(0).toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-semibold text-foreground">{r.reviewer_name}</div>
                 {r.businesses && (
-                  <Link to={`/v/${r.businesses.slug}`} className="mt-1 inline-block text-xs text-muted-foreground hover:text-foreground hover:underline">
+                  <Link to={`/v/${r.businesses.slug}`} className="block truncate text-xs text-muted-foreground hover:text-foreground hover:underline">
                     om {r.businesses.name}
                   </Link>
                 )}
+                </div>
               </div>
             </article>
           ))}

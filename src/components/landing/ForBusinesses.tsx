@@ -36,7 +36,7 @@ const features = [
 
 const ForBusinesses = () => {
   return (
-    <section className="bg-secondary py-14 md:py-20">
+    <section className="bg-background py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-col gap-4 md:mb-10 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
@@ -44,10 +44,10 @@ const ForBusinesses = () => {
               <Building2 className="h-3 w-3 text-accent" />
               For virksomheder
             </span>
-            <h2 className="mt-3 text-[1.75rem] font-semibold tracking-tight text-foreground md:text-[2.25rem]">
+            <h2 className="mt-4 text-[1.75rem] font-semibold leading-[1.1] tracking-tight text-foreground md:text-[2.25rem]">
               Drevet til at vækste din serviceforretning.
             </h2>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground md:text-base">
+            <p className="mt-3 text-sm leading-6 text-muted-foreground md:text-base">
               Få kunder, planlæg ruter og opkræv betaling fra ét samlet dashboard — og brug mindre tid på papirarbejde.
             </p>
           </div>
