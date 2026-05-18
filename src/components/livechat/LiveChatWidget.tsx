@@ -81,49 +81,43 @@ const QUICK_TOPICS = [
 // ikke giver mening i konteksten.
 const TOPIC_REPLIES: { keywords: string[]; replies: string[] }[] = [
   {
-    keywords: ["pris", "koste", "billig", "tilbud", "pakke", "abonnement"],
+    keywords: ["pris", "koste", "gratis", "tilbud", "pakke", "abonnement", "betaling"],
     replies: [
-      "Hvordan får jeg tilbud fra udbyderne?",
       "Koster det noget at bruge platformen som kunde?",
-      "Hvad koster det at være udbyder?",
-      "Er der binding på abonnementet?",
+      "Hvordan får jeg op til 3 tilbud?",
+      "Hvad indeholder udbyderplatformen?",
     ],
   },
   {
-    keywords: ["bestil", "ordre", "booking", "book", "kurv"],
+    keywords: ["bestil", "ordre", "booking", "book", "kurv", "profil", "anmeldelser"],
     replies: [
-      "Hvordan booker jeg en service?",
-      "Hvordan betaler jeg?",
-      "Får jeg en bekræftelse på mail?",
-      "Kan jeg ændre eller afbestille?",
+      "Hvordan finder jeg en udbyder nær mig?",
+      "Kan jeg sammenligne priser og anmeldelser?",
+      "Kan jeg booke direkte hos en udbyder?",
     ],
   },
   {
-    keywords: ["virksomhed", "firma", "tilmeld", "opret", "cvr", "udbyder", "partner"],
+    keywords: ["virksomhed", "firma", "tilmeld", "opret", "cvr", "udbyder", "partner", "leads"],
     replies: [
-      "Hvordan bliver jeg udbyder?",
-      "Hvad koster det at være på platformen?",
+      "Hvordan opretter jeg min virksomhed?",
       "Hvilke funktioner får jeg som udbyder?",
-      "Hvordan kommer jeg i gang?",
+      "Hvordan modtager jeg leads?",
     ],
   },
   {
-    keywords: ["rengør", "vinduespuds", "havemand", "have", "flytte", "håndværk", "maler", "vvs", "elektriker"],
+    keywords: ["rengør", "vinduespuds", "havemand", "have", "flytte", "håndværk", "maler", "vvs", "elektriker", "tømrer", "sikkerhed", "kategori"],
     replies: [
-      "Findes der udbydere i mit område?",
+      "Hvilke kategorier kan jeg søge i?",
       "Hvordan finder jeg den rette udbyder?",
-      "Kan jeg se anmeldelser?",
-      "Kan jeg sammenligne flere udbydere?",
+      "Kan jeg filtrere efter by?",
     ],
   },
-  {
-    keywords: ["ring", "telefon", "menneske", "person", "medarbejder", "support"],
-    replies: [
-      "Jeg vil gerne tale med en rigtig medarbejder",
-      "Kan I ringe mig op?",
-      "Hvornår er supporten åben?",
-    ],
-  },
+];
+
+const UNSAFE_SUGGESTION_TERMS = [
+  "menneske", "rigtig person", "medarbejder", "ring", "telefon", "frustreret",
+  "klage", "refund", "refusion", "faktura", "juridisk", "ved ikke", "ikke sikker",
+  "henter en rigtig", "vender tilbage", "som hurtigst muligt",
 ];
 
 const getDynamicReplies = (msgs: { sender_type: string; content?: string | null; is_system?: boolean }[]): string[] => {
