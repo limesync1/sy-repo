@@ -902,7 +902,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
               <div className="hidden sm:flex items-center gap-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                 <span className="w-20 text-right">Aftaler</span>
                 <span className="w-24 text-right">Omsætning</span>
-                <span className="w-[136px] text-right pr-2">Handlinger</span>
+                 <span className="w-[120px] text-right pr-2">Handlinger</span>
               </div>
             </div>
 
@@ -988,7 +988,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                     {/* Handlinger */}
                     {/* Inline handlings-knapper — synlige for hver kunde, så ingen
                         dropdown er nødvendig. Tooltips forklarer hver handling. */}
-                    <div className="flex items-center justify-end gap-0.5 shrink-0 sm:w-[136px]" onClick={(e) => e.stopPropagation()}>
+                     <div className="flex items-center justify-end gap-0.5 shrink-0 sm:w-[120px]" onClick={(e) => e.stopPropagation()}>
                       <Tooltip>
                         <TooltipTrigger asChild>
                        <button
