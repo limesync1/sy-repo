@@ -812,9 +812,9 @@ const LiveChatWidget = () => {
                           setSubject(t.subject);
                           if (t.suggest && !firstMessage) setFirstMessage(t.suggest);
                         }}
-                        className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+                    className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
                           subject === t.subject
-                            ? "border-foreground bg-foreground text-background scale-[1.02]"
+                            ? "border-foreground bg-foreground text-background"
                             : "border-border bg-card text-foreground hover:border-foreground/40 hover:bg-secondary/40"
                         }`}
                       >
@@ -864,8 +864,8 @@ const LiveChatWidget = () => {
               </div>
             ) : (
               <>
-                <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto bg-secondary/30 px-4 py-4 scroll-smooth">
-                  <div className="mx-auto max-w-[85%] rounded-full bg-card px-3 py-1 text-center text-[10px] text-muted-foreground shadow-sm">
+              <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto bg-secondary/25 px-4 py-4 scroll-smooth">
+                  <div className="mx-auto max-w-[85%] rounded-full border border-border bg-card px-3 py-1 text-center text-[10px] text-muted-foreground">
                     Samtale startet · {formatTime(messages[0]?.created_at || new Date().toISOString())}
                   </div>
 
@@ -880,7 +880,7 @@ const LiveChatWidget = () => {
                     if (m.is_system) {
                       return (
                         <div key={m.id} className="flex justify-center animate-in fade-in duration-200">
-                          <span className="rounded-full bg-card px-3 py-1 text-[10px] text-muted-foreground shadow-sm">
+                          <span className="rounded-full border border-border bg-card px-3 py-1 text-[10px] text-muted-foreground">
                             {m.content} · {formatTime(m.created_at)}
                           </span>
                         </div>
@@ -899,16 +899,18 @@ const LiveChatWidget = () => {
                         {!mine && (
                           <div className="w-7 flex-shrink-0">
                             {showAvatar && (
-                              <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-9 w-9 rounded-full object-cover" />
+                              <span className="flex h-9 w-9 items-center justify-center overflow-visible rounded-2xl bg-card ring-1 ring-border">
+                                <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-7 w-7 object-contain" />
+                              </span>
                             )}
                           </div>
                         )}
                         <div className={`flex max-w-[78%] flex-col ${mine ? "items-end" : "items-start"}`}>
                           <div
-                            className={`overflow-hidden rounded-2xl text-[13.5px] leading-snug shadow-sm ${
+                            className={`overflow-hidden rounded-2xl text-[13.5px] leading-snug ${
                               mine
                                 ? "rounded-br-sm bg-foreground text-background"
-                                : "rounded-bl-sm border border-border bg-card text-foreground"
+                                : "rounded-bl-sm text-foreground"
                             }`}
                           >
                             {m.image_url && (
