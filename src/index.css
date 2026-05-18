@@ -116,8 +116,9 @@
   h4,
   h5,
   h6 {
-    font-family: "SF Pro Display", "SF Pro", -apple-system, BlinkMacSystemFont, ui-sans-serif, system-ui, "Segoe UI", Inter, sans-serif;
-    letter-spacing: -0.01em;
+    font-family: "Nunito", -apple-system, BlinkMacSystemFont, ui-sans-serif, system-ui, "Segoe UI", Inter, sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.015em;
   }
 }
 
