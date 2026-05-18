@@ -75,6 +75,7 @@ import { intervalToCadence } from "@/lib/interval";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { invalidateRouteSyncQueries } from "@/hooks/useRoutes";
 import { cn } from "@/lib/utils";
+import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -95,6 +96,7 @@ const RoutePlanner = () => {
 
 const Planner = () => {
   const { data: business, isLoading: loadingBusiness } = useMyBusiness();
+  const isCompactRouteLayout = useIsBelowBreakpoint(1024);
   const qc = useQueryClient();
   const [date, setDate] = useState<string>(todayStr());
   const [view, setView] = useState<"month" | "week">("month");
@@ -1280,6 +1282,7 @@ const Planner = () => {
   // (uden useCallback). MonthWeekCalendar-memoen accepterer det — kun de
   // mest brugte callbacks (select stop / create route) skal være stabile.
   const handleCalendarSelectRoute = async (r: any) => {
+    setSelectedStopId(null);
     if (r.isVirtual) {
       await openProjectedRoute(r);
       return;
@@ -3181,12 +3184,13 @@ const Planner = () => {
           const closeAll = () => {
             setEditingRoute(null);
             setEditingProjectedContext(null);
+            setSelectedStopId(null);
           };
           return (
             <>
               <RouteEditSheet
                 route={activeEditingRoute}
-                open={!!activeEditingRoute}
+                open={!!activeEditingRoute && !isCompactRouteLayout}
                 onOpenChange={(o) => !o && closeAll()}
                 stopCount={stopsForActive.length}
                 stops={stopsForActive}

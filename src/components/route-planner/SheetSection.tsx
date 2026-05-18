@@ -143,7 +143,7 @@ export const CollapsibleSection = ({
         <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           {title}
         </h4>
-        {hint && <span className="ml-auto text-[10px] text-muted-foreground">{hint}</span>}
+        {hint && <span className="ml-auto min-w-0 truncate text-right text-[10px] text-muted-foreground">{hint}</span>}
         <ChevronDown
           className={cn(
             "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",

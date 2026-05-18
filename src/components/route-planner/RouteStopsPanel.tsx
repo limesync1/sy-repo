@@ -3,7 +3,7 @@
 // Vises ved siden af RouteEditSheet.
 
 import { useEffect, useState } from "react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsBelowBreakpoint, useIsMobile } from "@/hooks/use-mobile";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
 } from "@/components/ui/sheet";
@@ -128,39 +128,40 @@ export const RouteStopsPanel = ({
   // overlay og close-knap — så brugeren altid kan lukke den. På desktop
   // pinner vi det ved siden af RouteEditSheet (non-modal, ingen overlay).
   const isMobile = useIsMobile();
+  const isCompact = useIsBelowBreakpoint(1024);
 
   if (!route) return null;
 
   return (
     <>
-      <Sheet open={open} onOpenChange={onOpenChange} modal={isMobile}>
+      <Sheet open={open} onOpenChange={onOpenChange} modal={isCompact}>
         <SheetContent
-          side={isMobile ? "bottom" : "right"}
+          side={isCompact ? "bottom" : "right"}
           className={cn(
             "flex flex-col p-0 shadow-xl",
-            isMobile
-              ? "h-[85vh] max-h-[85vh] rounded-t-xl"
+            isCompact
+              ? "h-[82vh] max-h-[82vh] rounded-t-xl"
               : "w-full sm:max-w-sm lg:right-[28rem]",
           )}
-          hideOverlay={!isMobile}
-          hideCloseButton={!isMobile}
+          hideOverlay={!isCompact}
+          hideCloseButton={!isCompact}
           // Vis ved siden af RouteEditSheet (som er sm:max-w-md ≈ 28rem bred)
           onOpenAutoFocus={(e) => e.preventDefault()}
-          onPointerDownOutside={(e) => { if (!isMobile) e.preventDefault(); }}
-          onInteractOutside={(e) => { if (!isMobile) e.preventDefault(); }}
+          onPointerDownOutside={(e) => { if (!isCompact) e.preventDefault(); }}
+          onInteractOutside={(e) => { if (!isCompact) e.preventDefault(); }}
         >
-          <SheetHeader className="px-4 py-3 pr-12 border-b shrink-0">
-            <SheetTitle className="flex items-center gap-2 text-base pr-2">
+          <SheetHeader className="px-4 py-3 pr-14 border-b shrink-0 text-left">
+            <SheetTitle className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 text-base leading-tight">
               <span
                 className="inline-block h-2.5 w-2.5 rounded-full"
                 style={{ background: route.color }}
               />
-              <span className="truncate">Stops på ruten</span>
-              <span className="ml-auto shrink-0 inline-flex items-center justify-center rounded-md bg-secondary text-secondary-foreground px-2 py-0.5 text-xs font-semibold tabular-nums">
+              <span className="min-w-0 truncate">Stops på ruten</span>
+              <span className="shrink-0 inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-secondary text-secondary-foreground px-2 text-xs font-semibold tabular-nums">
                 {items.length}
               </span>
             </SheetTitle>
-            <SheetDescription className="text-xs pr-2">
+            <SheetDescription className="text-xs leading-snug">
               {isProjection
                 ? "Projiceret forekomst · rediger originalruten for at omrangere eller fjerne aftaler"
                 : "Træk for at omrangere · Klik for detaljer"}
@@ -276,7 +277,7 @@ const SortableStopRow = ({
         isDragging ? "shadow-lg opacity-80 ring-2 ring-accent" : "hover:shadow-sm hover:border-foreground/20",
       )}
     >
-      <div className="flex items-stretch min-h-[3.5rem]">
+      <div className="grid min-h-[3.5rem] grid-cols-[1.75rem_2.75rem_minmax(0,1fr)] sm:grid-cols-[1.75rem_2.75rem_minmax(0,1fr)_auto]">
         {/* Drag handle — skjult på projicerede ruter (read-only) */}
         {!isProjection ? (
           <button
@@ -310,7 +311,7 @@ const SortableStopRow = ({
         <button
           type="button"
           onClick={onSelect}
-          className="flex-1 text-left px-3 py-2.5 min-w-0 hover:bg-accent/5 space-y-1"
+          className="min-w-0 text-left px-3 py-2.5 hover:bg-accent/5 space-y-1"
         >
           {/* Header: kundenavn (primær) + medarbejder-avatars + åbn-pil */}
           <div className="flex items-center gap-1.5">
@@ -371,7 +372,7 @@ const SortableStopRow = ({
         </button>
 
         {/* Right-side actions: assignee toggle + remove */}
-        <div className="flex items-stretch border-l border-border/50">
+        <div className="col-span-3 flex items-stretch justify-end border-t border-border/50 bg-secondary/20 sm:col-span-1 sm:border-l sm:border-t-0 sm:bg-transparent">
           <AssigneeToggle
             employees={employees}
             selectedIds={assigneeIds}
@@ -382,7 +383,7 @@ const SortableStopRow = ({
             <button
               type="button"
               onClick={onRemove}
-              className="flex items-center justify-center w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/5 rounded-r-md opacity-0 group-hover:opacity-100"
+              className="flex h-10 w-10 items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/5 rounded-r-md sm:h-auto sm:w-8 sm:opacity-0 sm:group-hover:opacity-100"
               aria-label="Fjern stop"
               title="Fjern stop fra rute"
             >
@@ -426,7 +427,7 @@ const AssigneeToggle = ({
         <button
           type="button"
           className={cn(
-            "flex items-center justify-center w-8 text-muted-foreground hover:text-foreground hover:bg-accent/10",
+            "flex h-10 w-10 items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent/10 sm:h-auto sm:w-8",
             selectedIds.length > 0 && "text-foreground",
           )}
           aria-label="Tildel medarbejdere"
