@@ -29,7 +29,8 @@ const benefits = [
 
 const WhyUs = () => {
   return (
-    <section className="bg-background py-20 md:py-32">
+    <section className="relative bg-background py-24 md:py-40">
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-14 max-w-2xl md:mb-16">
           <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
@@ -44,12 +45,12 @@ const WhyUs = () => {
           {benefits.map((b) => (
             <div
               key={b.title}
-              className="group relative flex flex-col rounded-[24px] border border-border/70 bg-card p-7 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border hover:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.12)]"
+              className="group relative flex flex-col rounded-[24px] border border-border/70 bg-card p-7 shadow-premium shadow-premium-hover hover:border-border"
             >
               <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${b.tone}`}>
                 <b.icon className="h-5 w-5" />
               </div>
-              <h3 className="mt-6 text-[15px] font-semibold leading-tight text-foreground">{b.title}</h3>
+              <h3 className="mt-6 text-[15px] font-semibold leading-tight tracking-tight text-foreground">{b.title}</h3>
               <p className="mt-2 text-[14px] leading-6 text-muted-foreground">{b.description}</p>
             </div>
           ))}

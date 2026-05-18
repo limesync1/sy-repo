@@ -29,20 +29,25 @@ const HeroSection = () => {
             Pointer-events fra så input forbliver fuldt klikbart. */}
         <div aria-hidden className="pointer-events-none absolute inset-0">
           <div className="absolute -bottom-40 -left-32 h-[36rem] w-[36rem] rounded-full bg-accent/20 blur-3xl mix-blend-screen animate-blob-slow" />
+          <div className="absolute -top-32 right-[-10%] h-[40rem] w-[40rem] rounded-full bg-accent/10 blur-3xl mix-blend-screen" />
         </div>
+
+        {/* Diskret film-grain — bryder gradienterne så de føles
+            analoge i stedet for "udvasket digitalt". Lav opacity. */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-noise opacity-[0.07] mix-blend-overlay" />
       </div>
 
       {/* Indhold */}
       <div className="relative mx-auto max-w-7xl px-4 pb-20 pt-12 sm:px-6 sm:pb-24 sm:pt-16 lg:px-8 lg:pb-32 lg:pt-24">
         <div className="max-w-2xl">
-          <h1 className="animate-fade-in text-[2rem] font-semibold leading-[1.06] tracking-tight text-background sm:text-[3.25rem] lg:text-[3.75rem]">
+          <h1 className="animate-fade-in text-[2.25rem] font-semibold leading-[1.04] tracking-[-0.03em] text-background sm:text-[3.5rem] lg:text-[4.25rem]">
             Find den rette{" "}
             <span className="bg-[linear-gradient(110deg,hsl(187_100%_49%)_0%,hsl(187_100%_75%)_50%,hsl(187_100%_49%)_100%)] bg-[length:200%_100%] bg-clip-text text-transparent animate-gradient-pan">
               serviceyder
             </span>{" "}
             til opgaven.
           </h1>
-          <p className="animate-fade-in [animation-delay:120ms] mt-4 max-w-xl text-[15px] leading-7 text-background/85 sm:text-base">
+          <p className="animate-fade-in [animation-delay:120ms] mt-5 max-w-xl text-[15px] leading-7 text-background/85 sm:text-[17px] sm:leading-[1.6]">
             Sammenlign lokale udbydere, se priser og book direkte — alt samlet ét sted.
           </p>
 
