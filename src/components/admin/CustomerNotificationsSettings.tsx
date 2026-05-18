@@ -770,7 +770,7 @@ export function CustomerNotificationsSettings({
                 </div>
               </div>
 
-              <div className="border-t border-border bg-muted/20 p-4 sm:p-5 lg:border-l lg:border-t-0">
+              <div className="border-t border-border bg-muted/20 p-4 sm:p-5 xl:border-l xl:border-t-0">
                 <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Sådan ser kunden den</p>
                 <SmsPreview body={smsDrafts[activeEvent].body} businessName={exampleBizName} businessPhone={exampleBizPhone} />
               </div>
