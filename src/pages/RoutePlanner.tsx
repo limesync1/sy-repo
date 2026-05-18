@@ -2729,8 +2729,44 @@ const Planner = () => {
                 </div>
           );
 
+          const mobileCalendarBlock = (
+            <div data-tour="routes-calendar" className="h-full flex flex-col">
+              {projectionDiagnostics.unprojectable.length > 0 && (
+                <Alert variant="destructive" className="m-2 mb-0 shrink-0">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle className="text-sm">
+                    {projectionDiagnostics.unprojectable.length === 1
+                      ? "1 aftale kan ikke vises"
+                      : `${projectionDiagnostics.unprojectable.length} aftaler kan ikke vises`}
+                  </AlertTitle>
+                  <AlertDescription className="text-xs">
+                    Tjek aftalens interval og startdato.
+                  </AlertDescription>
+                </Alert>
+              )}
+              <div className="flex-1 min-h-0">
+                <AgendaCalendar
+                  view={view}
+                  anchorDate={date}
+                  routes={calendarRoutesAll}
+                  onSelectRoute={handleCalendarSelectRoute}
+                  onSelectStop={handleCalendarSelectStop}
+                  onCreateRoute={handleCalendarCreateRoute}
+                  onOptimizeRoute={handleCalendarOptimizeRoute}
+                  optimizingRouteId={optimizingRouteId}
+                  draggingType={draggingTypeForCalendar}
+                  weatherByDate={weatherByDate}
+                  loadingRoutes={loadingCalendarRoutes || loadingCalendarStops}
+                  loadingWeather={loadingWeather}
+                  weatherError={weatherError}
+                  busyTargets={busyTargets}
+                />
+              </div>
+            </div>
+          );
+
           return (
-            <div className="flex-1 overflow-hidden p-3" style={{ height: "calc(100vh - 56px)" }}>
+            <div className="flex-1 overflow-hidden p-2 sm:p-3" style={{ height: "calc(100vh - 56px)" }}>
               {/* Desktop (lg+): resizable side-by-side */}
               <div className="hidden h-full lg:block">
                 <ResizablePanelGroup direction="horizontal" className="h-full rounded-lg">
@@ -2767,7 +2803,7 @@ const Planner = () => {
                   </Sheet>
                 </div>
                 <div className="flex-1 min-h-0">
-                  {calendarBlock}
+                  {mobileCalendarBlock}
                 </div>
               </div>
             </div>
