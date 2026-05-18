@@ -372,6 +372,25 @@ const SettingsTab = ({ business }: { business: any }) => {
     }
   };
 
+  // Antal ekstra medarbejderlogins — gemmes på business_plans og bruges af
+  // databasen til at blokere oprettelse af flere medarbejdere end betalt for.
+  const handleEmployeeLoginsChange = async (next: number) => {
+    if (!plan?.id) return;
+    const clamped = Math.max(0, Math.min(99, next));
+    if (clamped === planExtraLogins) return;
+    try {
+      await updatePlan.mutateAsync({
+        businessId: business.id,
+        patch: { extra_employee_logins: clamped },
+      });
+      const diff = clamped - planExtraLogins;
+      if (diff > 0) toast.success(`Tilføjet ${diff} medarbejderlogin${diff === 1 ? "" : "s"}`);
+      else if (diff < 0) toast.success(`Fjernet ${Math.abs(diff)} medarbejderlogin${Math.abs(diff) === 1 ? "" : "s"}`);
+    } catch (e: any) {
+      toast.error(e?.message || "Kunne ikke opdatere antal medarbejderlogins");
+    }
+  };
+
   const handleRemoveCard = async () => {
     if (!confirm("Er du sikker på at du vil fjerne dit betalingskort? Hvis prøveperioden er udløbet bliver din virksomhed deaktiveret.")) return;
     try {
