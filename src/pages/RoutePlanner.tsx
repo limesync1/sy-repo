@@ -3341,21 +3341,42 @@ const Planner = () => {
               </p>
             </div>
           )}
-          {activeDragId && activeDragData?.type === "route" && (
-            <div
-              className="rounded-md border-l-[3px] border bg-card px-2 py-1 shadow-xl w-[160px] pointer-events-none"
-              style={{
-                transform: "rotate(-2deg)",
-                borderLeftColor: activeDragData.route?.color || "hsl(var(--accent))",
-              }}
-            >
-              <p className="text-[11px] font-semibold truncate">
-                {activeDragData.route?.name || "Rute"}
-              </p>
-            </div>
-          )}
         </DragOverlay>,
         document.body)}
+
+        {activeDragId && activeDragData?.type === "route" && routeDragPoint && createPortal(
+          <div
+            className="fixed z-[1000] w-[160px] pointer-events-none rounded-md border-l-[3px] border bg-card px-2 py-1 shadow-xl"
+            style={{
+              left: routeDragPoint.x,
+              top: routeDragPoint.y,
+              transform: "translate(-50%, -50%) rotate(-2deg)",
+              borderLeftColor: activeDragData.route?.color || "hsl(var(--accent))",
+            }}
+          >
+            <p className="text-[11px] font-semibold truncate">
+              {activeDragData.route?.name || "Rute"}
+            </p>
+          </div>,
+          document.body,
+        )}
+
+        {routeDndDebug && createPortal(
+          <div className="fixed bottom-3 right-3 z-[1001] w-[min(360px,calc(100vw-1.5rem))] rounded-md border bg-card/95 p-3 text-xs shadow-xl backdrop-blur">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <p className="font-semibold text-foreground">DnD-diagnose</p>
+              <Badge variant="secondary" className="h-5 text-[10px]">{routeDndDebug.sourceLabel}</Badge>
+            </div>
+            <div className="grid grid-cols-[88px_1fr] gap-x-2 gap-y-1 text-[11px] leading-tight">
+              <span className="text-muted-foreground">Aktiv</span><span className="truncate font-medium text-foreground">{routeDndDebug.activeLabel}</span>
+              <span className="text-muted-foreground">Pointer</span><span className="tabular-nums text-foreground">{routeDndDebug.pointLabel}</span>
+              <span className="text-muted-foreground">DnD target</span><span className="truncate text-foreground">{routeDndDebug.dndLabel}</span>
+              <span className="text-muted-foreground">DOM target</span><span className="truncate text-foreground">{routeDndDebug.domLabel}</span>
+              <span className="text-muted-foreground">Fortolkning</span><span className="truncate font-semibold text-foreground">{routeDndDebug.resultLabel}</span>
+            </div>
+          </div>,
+          document.body,
+        )}
 
         <StopDetailSheet
           readOnly={
