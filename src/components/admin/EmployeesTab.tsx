@@ -238,7 +238,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
         </div>
         {atLoginsLimit && (
           <Link
-            to="/virksomhed/indstillinger#settings-billing"
+            to="/virksomhed?tab=settings#settings-billing"
             className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-foreground/15 bg-foreground px-3 py-1.5 text-xs font-semibold text-background transition-colors hover:bg-foreground/90"
           >
             Opskalér abonnement
