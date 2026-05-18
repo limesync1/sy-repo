@@ -46,7 +46,7 @@ const HeroSection = () => {
 
           <h1 className="animate-fade-in text-[2rem] font-semibold leading-[1.06] tracking-tight text-background sm:text-[3.25rem] lg:text-[3.75rem]">
             Find den rette{" "}
-            <span className="bg-[linear-gradient(110deg,hsl(var(--background))_0%,hsl(184_90%_72%)_50%,hsl(var(--background))_100%)] bg-[length:200%_100%] bg-clip-text text-transparent animate-gradient-pan">
+            <span className="bg-[linear-gradient(110deg,hsl(var(--background))_0%,hsl(187_100%_65%)_50%,hsl(var(--background))_100%)] bg-[length:200%_100%] bg-clip-text text-transparent animate-gradient-pan">
               serviceyder
             </span>{" "}
             til opgaven.
