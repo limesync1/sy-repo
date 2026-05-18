@@ -48,7 +48,7 @@ import { da } from "date-fns/locale";
 import { toast } from "sonner";
 import {
   DndContext, DragOverlay, useSensor, useSensors,
-  pointerWithin, type DragEndEvent, type DragStartEvent,
+  pointerWithin, type DragEndEvent, type DragMoveEvent, type DragStartEvent,
   MouseSensor, TouchSensor, KeyboardSensor,
 } from "@dnd-kit/core";
 import { createPortal } from "react-dom";
@@ -81,6 +81,19 @@ import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
+type DragPoint = { x: number; y: number };
+
+const getDragPoint = (event: Event | null): DragPoint | null => {
+  if (!event) return null;
+  if ("clientX" in event && typeof (event as MouseEvent).clientX === "number") {
+    const { clientX, clientY } = event as MouseEvent;
+    return { x: clientX, y: clientY };
+  }
+  const touchEvent = event as TouchEvent;
+  const touch = touchEvent.touches?.[0] ?? touchEvent.changedTouches?.[0];
+  return touch ? { x: touch.clientX, y: touch.clientY } : null;
+};
+
 /** Konverterer "HH:MM[:SS]" til minutter siden midnat (eller null). */
 const toMin = (t: string | null | undefined): number | null => {
   if (!t) return null;
@@ -108,6 +121,8 @@ const Planner = () => {
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragData, setActiveDragData] = useState<any>(null);
+  const [activeRouteDragPoint, setActiveRouteDragPoint] = useState<DragPoint | null>(null);
+  const activeRouteDragOriginRef = useRef<DragPoint | null>(null);
   // Beskytter mod dobbelt-drop på samme kilde+mål — undgår dubletruter og
   // "uniq_route_stops_route_order" race conditions.
   const inFlightDropsRef = useRef<Set<string>>(new Set());
