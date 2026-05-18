@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>DragOverlay portal fixture</title>
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; font-family: system-ui, sans-serif; }
+    /* Forfader med transform → bliver containing block for position:fixed
+       i Chromium/WebKit/Firefox (W3C CSS Containing Block §4). */
+    .transformed-parent {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform: translate3d(0, 0, 0);
+      will-change: transform;
+      overflow: hidden;
+      background: #f5f5f5;
+    }
+    .handle {
+      position: absolute;
+      top: 200px;
+      left: 200px;
+      width: 80px;
+      height: 80px;
+      background: #2dd4a8;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+    }
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 80px;
+      height: 80px;
+      background: #4f46e5;
+      border-radius: 8px;
+      pointer-events: none;
+      opacity: 0.9;
+      will-change: transform;
+    }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <!-- Stand-in for RoutePlanner's transformed shell (sidebar/sheet med transform). -->
+  <div class="transformed-parent" id="parent">
+    <div class="handle" id="handle" data-testid="handle">drag</div>
+    <!-- "Buggy" overlay: barn af .transformed-parent — fixed bliver relativ til forælderen. -->
+    <div class="overlay hidden" id="overlay-bug" data-testid="overlay-bug"></div>
+  </div>
+
+  <!-- "Fixed" overlay: direkte barn af <body> via portal — fixed bliver relativ til viewport. -->
+  <div class="overlay hidden" id="overlay-portal" data-testid="overlay-portal"></div>
+
+  <script>
+    // Minimal pointer-tracking der efterligner dnd-kit's DragOverlay:
+    // sætter transform = translate3d(pointerX, pointerY, 0) på begge overlays.
+    // Det portalerede overlay skal lande præcis under cursoren; det
+    // ikke-portalerede overlay vil afvige hvis forælderen er offset.
+    const handle = document.getElementById('handle');
+    const bug = document.getElementById('overlay-bug');
+    const portal = document.getElementById('overlay-portal');
+    let dragging = false;
+    const half = 40;
+
+    const move = (x, y) => {
+      const tx = `translate3d(${x - half}px, ${y - half}px, 0)`;
+      bug.style.transform = tx;
+      portal.style.transform = tx;
+    };
+
+    const start = (x, y) => {
+      dragging = true;
+      bug.classList.remove('hidden');
+      portal.classList.remove('hidden');
+      move(x, y);
+    };
+    const end = () => {
+      dragging = false;
+      bug.classList.add('hidden');
+      portal.classList.add('hidden');
+    };
+
+    handle.addEventListener('pointerdown', (e) => {
+      handle.setPointerCapture(e.pointerId);
+      start(e.clientX, e.clientY);
+    });
+    window.addEventListener('pointermove', (e) => {
+      if (dragging) move(e.clientX, e.clientY);
+    });
+    window.addEventListener('pointerup', end);
+    window.addEventListener('pointercancel', end);
+  </script>
+</body>
+</html>
