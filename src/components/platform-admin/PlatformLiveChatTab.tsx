@@ -20,6 +20,7 @@ type Conversation = {
   unread_admin_count: number;
   user_id: string | null;
   created_at: string;
+  needs_human?: boolean;
 };
 
 type Message = {
@@ -136,6 +137,16 @@ const PlatformLiveChatTab = () => {
                 const old = prev.find((p) => p.id === c.id);
                 if (!old || c.unread_admin_count > old.unread_admin_count) {
                   if (c.id !== activeId) chatSounds.incoming();
+                  break;
+                }
+              }
+              // Sound: detect when an AI conversation just escalated to "needs human"
+              for (const c of data as Conversation[]) {
+                const old = prev.find((p) => p.id === c.id);
+                if (c.needs_human && (!old || !old.needs_human)) {
+                  chatSounds.incoming();
+                  // ekstra "ding" så det skiller sig ud fra almindelige beskeder
+                  setTimeout(() => chatSounds.incoming(), 220);
                   break;
                 }
               }
