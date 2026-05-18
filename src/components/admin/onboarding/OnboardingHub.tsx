@@ -824,6 +824,19 @@ const ChecklistCard = ({
                   )}>
                     {s.title}
                   </span>
+                  {!done && s.phase && (
+                    <span className={cn(
+                      "hidden sm:inline-flex h-5 items-center rounded-full px-2 text-[10px] font-semibold uppercase tracking-wide",
+                      PHASE_META[s.phase].tone,
+                    )}>
+                      {PHASE_META[s.phase].label}
+                    </span>
+                  )}
+                  {!done && s.etaMin && (
+                    <span className="hidden sm:inline-flex h-5 items-center gap-1 rounded-full bg-secondary px-2 text-[10px] font-medium text-muted-foreground tabular-nums">
+                      <Clock className="h-3 w-3" /> {s.etaMin}m
+                    </span>
+                  )}
                   <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
                 </button>
               </li>
