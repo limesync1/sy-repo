@@ -2227,7 +2227,7 @@ const Planner = () => {
         contentPadding={false}
         contentClassName="flex flex-col overflow-hidden"
         topbarRight={
-          <div className="hidden md:flex items-center gap-1.5 flex-wrap justify-end">
+          <div className="hidden lg:flex items-center gap-1.5 flex-wrap justify-end">
             {/* Hurtig periode-statistik — gør det øjeblikkeligt klart hvor
                 meget arbejde der ligger i den viste måned/uge. */}
             {periodSummary.routeCount > 0 && (
