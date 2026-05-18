@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription,
 } from "@/components/ui/sheet";
@@ -27,14 +29,13 @@ import { formatDurationMin } from "@/lib/duration-format";
 export type PlanningPanelStop = {
   id: string;
   route_id: string;
+  order_id?: string | null;
   duration_minutes?: number | null;
   travel_time_to_next_min?: number | null;
 };
 export type PlanningPanelRoute = {
   id: string;
   route_date: string;
-  total_amount?: number | null;
-  assignedEmployeeIds?: string[];
 };
 export type PlanningPanelEmployee = {
   id: string;
@@ -46,6 +47,7 @@ const fmtKr = (n: number) =>
   `${Math.round(n).toLocaleString("da-DK")} kr`;
 
 interface Props {
+  businessId?: string;
   anchorDate: string; // yyyy-MM-dd
   stops: PlanningPanelStop[];
   routes: PlanningPanelRoute[];
@@ -55,10 +57,39 @@ interface Props {
 }
 
 export const PlanningPanel = ({
-  anchorDate, stops, routes, employees, filterAssigneeIds, onFilterAssigneeIds,
+  businessId, anchorDate, stops, routes, employees, filterAssigneeIds, onFilterAssigneeIds,
 }: Props) => {
   const [open, setOpen] = useState(false);
   const [explanationsOpen, setExplanationsOpen] = useState(false);
+
+  // Hent total_amount for de ordrer der ligger som stops i det viste vindue.
+  // Lazy: kun når panelet er åbnet første gang. Resultatet cacher pr.
+  // (businessId + sorterede order-id'er).
+  const orderIds = useMemo(
+    () => Array.from(new Set(stops.map((s) => s.order_id).filter(Boolean))) as string[],
+    [stops],
+  );
+  const { data: amountByOrder } = useQuery({
+    queryKey: ["planning-panel-amounts", businessId, [...orderIds].sort().join(",")],
+    enabled: open && !!businessId && orderIds.length > 0,
+    staleTime: 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("orders")
+        .select("id, total_amount, adjusted_amount, customer_response, status")
+        .in("id", orderIds);
+      if (error) throw error;
+      const map = new Map<string, number>();
+      for (const o of (data || []) as any[]) {
+        if (["cancelled", "rejected"].includes(o.status)) continue;
+        const amt = o.customer_response === "accepted" && o.adjusted_amount != null
+          ? Number(o.adjusted_amount)
+          : Number(o.total_amount);
+        map.set(o.id, amt || 0);
+      }
+      return map;
+    },
+  });
 
   const stats = useMemo(() => {
     const now = parseISO(anchorDate);
@@ -71,13 +102,6 @@ export const PlanningPanel = ({
     const stopsByDate = new Map<string, PlanningPanelStop[]>();
 
     let weekRevenue = 0, monthRevenue = 0;
-    for (const r of routes) {
-      if (!r.route_date) continue;
-      const d = parseISO(r.route_date.slice(0, 10));
-      const amt = Number(r.total_amount) || 0;
-      if (isWithinInterval(d, { start: wStart, end: wEnd })) weekRevenue += amt;
-      if (isWithinInterval(d, { start: mStart, end: mEnd })) monthRevenue += amt;
-    }
     for (const s of stops) {
       const r = routesById.get(s.route_id);
       if (!r?.route_date) continue;
@@ -85,6 +109,10 @@ export const PlanningPanel = ({
       const arr = stopsByDate.get(dateKey) || [];
       arr.push(s);
       stopsByDate.set(dateKey, arr);
+      const amt = s.order_id ? (amountByOrder?.get(s.order_id) || 0) : 0;
+      const d = parseISO(dateKey);
+      if (isWithinInterval(d, { start: wStart, end: wEnd })) weekRevenue += amt;
+      if (isWithinInterval(d, { start: mStart, end: mEnd })) monthRevenue += amt;
     }
 
     // Kørselstid pr. ugedag i den viste uge
@@ -106,7 +134,7 @@ export const PlanningPanel = ({
     const weekDriveTotal = drivePerDay.reduce((acc, d) => acc + d.driveMin, 0);
 
     return { weekRevenue, monthRevenue, drivePerDay, weekDriveTotal };
-  }, [anchorDate, routes, stops]);
+  }, [anchorDate, routes, stops, amountByOrder]);
 
   const toggleEmployee = (id: string) => {
     if (filterAssigneeIds.includes(id)) {
