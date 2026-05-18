@@ -3563,6 +3563,10 @@ export type Database = {
         }
         Returns: string
       }
+      get_customer_notification_pref: {
+        Args: { p_email: string; p_key: string }
+        Returns: boolean
+      }
       get_platform_pricing: {
         Args: never
         Returns: {
