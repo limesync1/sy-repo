@@ -1,4 +1,4 @@
-import { ShieldCheck, ArrowRight, Quote, Clock, Sparkles } from "lucide-react";
+import { ShieldCheck, ArrowRight, Clock, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SmartLink from "@/components/SmartLink";
 

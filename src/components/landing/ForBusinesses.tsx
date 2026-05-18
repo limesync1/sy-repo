@@ -1,5 +1,5 @@
 import SmartLink from "@/components/SmartLink";
-import { ArrowRight, Building2, Users, Route, Calculator, Sparkles, ShieldCheck } from "lucide-react";
+import { ArrowRight, Users, Route, Calculator, Sparkles, ShieldCheck } from "lucide-react";
 
 /**
  * Forretningsrettet sektion på forsiden — erstatter den tidligere
