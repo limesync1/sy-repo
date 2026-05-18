@@ -10,19 +10,19 @@ const GetQuotes = () => {
   ];
 
   return (
-    <section className="bg-secondary py-14 md:py-20">
+    <section className="bg-background py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
+        <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
           {/* Venstre: tekst + CTA */}
           <div>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold text-foreground">
+            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               <Quote className="h-3 w-3 text-accent" />
               Indhent 3 tilbud
             </span>
-            <h2 className="mt-4 text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
+            <h2 className="mt-4 text-[1.75rem] font-semibold leading-[1.1] tracking-tight text-foreground md:text-[2.25rem]">
               Få relevante tilbud uden ekstra støj.
             </h2>
-            <p className="mt-2 max-w-lg text-sm leading-6 text-muted-foreground md:text-base">
+            <p className="mt-3 max-w-lg text-sm leading-6 text-muted-foreground md:text-base">
               Beskriv opgaven én gang og sammenlign svarene roligt — du vælger,
               hvem du vil tale videre med.
             </p>

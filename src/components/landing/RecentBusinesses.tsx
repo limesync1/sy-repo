@@ -136,15 +136,19 @@ const RecentBusinesses = () => {
   if (!businesses || businesses.length === 0) return null;
 
   return (
-    <section className="bg-background py-12 md:py-14">
+    <section className="bg-background py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div className="mb-8 flex flex-col gap-4 md:mb-10 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
-            <h2 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">Udvalgte virksomheder</h2>
+            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+              Virksomheder
+            </span>
+            <h2 className="mt-4 text-[1.75rem] font-semibold leading-[1.1] tracking-tight text-foreground md:text-[2.25rem]">Udvalgte virksomheder</h2>
           </div>
-          <Link to="/virksomheder" className="inline-flex items-center gap-2 text-sm font-semibold text-foreground hover:opacity-70">
+          <Link to="/virksomheder" className="group inline-flex items-center gap-2 self-start rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5 hover:shadow-sm md:self-auto">
             Vis alle
-            <ArrowRight className="h-4 w-4" />
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
         </div>
 
