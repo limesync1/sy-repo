@@ -26,8 +26,9 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
   return (
     <article className="group relative flex w-[270px] shrink-0 flex-col overflow-hidden rounded-[28px] border border-border/70 bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border sm:w-[292px]">
       {/* Favorit-knappen ligger uden for linket — så vi undgår ulovlig
-          nested <button> i <a> (skærmlæser-fjendtligt og ugyldig HTML). */}
-      <div className="absolute right-3.5 top-3.5 z-20">
+          nested <button> i <a> (skærmlæser-fjendtligt og ugyldig HTML).
+          FavoriteButton positionerer sig selv absolut top-right. */}
+      <div className="z-20">
         <FavoriteButton businessId={biz.id} />
       </div>
       <Link
