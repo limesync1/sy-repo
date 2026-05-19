@@ -494,6 +494,11 @@ const Planner = () => {
             && container?.data.current?.routeId !== sourceRouteId;
         });
         if (routeHit) return [routeHit];
+        const nonSourceHits = pointerCollisions.filter((c) => {
+          const container = args.droppableContainers.find((d) => d.id === c.id);
+          return !(container?.data.current?.type === "route" && container?.data.current?.routeId === sourceRouteId);
+        });
+        if (nonSourceHits.length > 0) return nonSourceHits;
       }
       return pointerCollisions;
     }
