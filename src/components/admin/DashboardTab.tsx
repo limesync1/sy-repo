@@ -646,7 +646,7 @@ const SmartStatCard = ({
 /** OrdersListSection — seneste bestillinger med status-filter + søgning. */
 const OrdersListSection = ({
   recentOrders, servicesCount, completeness, orderFilter, setOrderFilter,
-  orderSearch, setOrderSearch, onNavigate, copyLink, hasShareUrl,
+  orderSearch, setOrderSearch, orderSort, setOrderSort, onNavigate, copyLink, hasShareUrl,
   statusLabels, statusColors,
 }: {
   recentOrders: any[];
@@ -656,6 +656,8 @@ const OrdersListSection = ({
   setOrderFilter: (v: any) => void;
   orderSearch: string;
   setOrderSearch: (v: string) => void;
+  orderSort: "newest" | "oldest" | "amount_desc" | "amount_asc" | "status";
+  setOrderSort: (v: any) => void;
   onNavigate?: (tab: string) => void;
   copyLink: () => void;
   hasShareUrl: boolean;
@@ -670,7 +672,7 @@ const OrdersListSection = ({
 
   const filtered = useMemo(() => {
     const q = orderSearch.trim().toLowerCase();
-    return recentOrders.filter((o: any) => {
+    const list = recentOrders.filter((o: any) => {
       if (orderFilter !== "all" && o.status !== orderFilter) return false;
       if (!q) return true;
       return (
@@ -680,7 +682,37 @@ const OrdersListSection = ({
         String(o.total_amount || "").includes(q)
       );
     });
-  }, [recentOrders, orderFilter, orderSearch]);
+    const statusRank: Record<string, number> = {
+      pending: 0, confirmed: 1, in_progress: 2, completed: 3, cancelled: 4,
+    };
+    const sorted = [...list];
+    switch (orderSort) {
+      case "oldest":
+        sorted.sort((a, b) => +new Date(a.created_at) - +new Date(b.created_at)); break;
+      case "amount_desc":
+        sorted.sort((a, b) => (Number(b.total_amount) || 0) - (Number(a.total_amount) || 0)); break;
+      case "amount_asc":
+        sorted.sort((a, b) => (Number(a.total_amount) || 0) - (Number(b.total_amount) || 0)); break;
+      case "status":
+        sorted.sort((a, b) => (statusRank[a.status] ?? 99) - (statusRank[b.status] ?? 99)
+          || +new Date(b.created_at) - +new Date(a.created_at)); break;
+      case "newest":
+      default:
+        sorted.sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at));
+    }
+    return sorted;
+  }, [recentOrders, orderFilter, orderSearch, orderSort]);
+
+  const sortOptions: { value: typeof orderSort; label: string }[] = [
+    { value: "newest", label: "Nyeste først" },
+    { value: "oldest", label: "Ældste først" },
+    { value: "amount_desc", label: "Højeste beløb" },
+    { value: "amount_asc", label: "Laveste beløb" },
+    { value: "status", label: "Status (afventer først)" },
+  ];
+  const activeFilterLabel = chipsLookup(orderFilter);
+  const hasActiveFilters = orderFilter !== "all" || orderSearch.trim().length > 0;
+  const clearAll = () => { setOrderFilter("all"); setOrderSearch(""); };
 
   const chips: { key: typeof orderFilter; label: string }[] = [
     { key: "all", label: "Alle" },
@@ -775,6 +807,20 @@ const OrdersListSection = ({
               </button>
             )}
           </div>
+          <div className="relative">
+            <ArrowUpDown className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <select
+              value={orderSort}
+              onChange={(e) => setOrderSort(e.target.value)}
+              aria-label="Sortér bestillinger"
+              className="h-9 w-full appearance-none rounded-lg border border-input bg-background pl-8 pr-7 text-sm font-medium text-foreground transition-colors hover:border-foreground/30 focus:outline-none focus:ring-2 focus:ring-ring sm:w-[210px]"
+            >
+              {sortOptions.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+            <ChevronRight className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 rotate-90 text-muted-foreground" />
+          </div>
         </div>
 
         <div className="mt-2 -mx-1 flex flex-nowrap items-center gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -845,18 +891,54 @@ const OrdersListSection = ({
           <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-secondary">
             <Search className="h-4 w-4 text-muted-foreground" />
           </div>
-          <p className="mt-3 text-sm font-medium text-foreground">Ingen match</p>
+          <p className="mt-3 text-sm font-medium text-foreground">Ingen bestillinger matcher</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Prøv en anden status eller ryd søgningen.
+            {hasActiveFilters
+              ? "Justér eller fjern et af de aktive filtre nedenfor."
+              : "Der er ingen bestillinger at vise her endnu."}
           </p>
-          <Button size="sm" variant="outline" className="mt-3 h-8 rounded-lg" onClick={() => { setOrderSearch(""); setOrderFilter("all"); }}>
-            Ryd filtre
-          </Button>
+          {hasActiveFilters && (
+            <div className="mx-auto mt-4 flex max-w-md flex-wrap items-center justify-center gap-1.5">
+              {orderFilter !== "all" && (
+                <button
+                  type="button"
+                  onClick={() => setOrderFilter("all")}
+                  className="group inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:border-foreground/40"
+                  aria-label={`Fjern statusfilter ${activeFilterLabel}`}
+                >
+                  <span className="text-muted-foreground">Status:</span> {activeFilterLabel}
+                  <X className="h-3 w-3 text-muted-foreground transition-colors group-hover:text-foreground" />
+                </button>
+              )}
+              {orderSearch.trim() && (
+                <button
+                  type="button"
+                  onClick={() => setOrderSearch("")}
+                  className="group inline-flex max-w-[220px] items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:border-foreground/40"
+                  aria-label="Ryd søgning"
+                >
+                  <span className="text-muted-foreground">Søgning:</span>
+                  <span className="truncate">“{orderSearch.trim()}”</span>
+                  <X className="h-3 w-3 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
+                </button>
+              )}
+            </div>
+          )}
+          {hasActiveFilters && (
+            <Button size="sm" variant="outline" className="mt-3 h-8 rounded-lg" onClick={clearAll}>
+              <X className="mr-1 h-3.5 w-3.5" /> Nulstil alle filtre
+            </Button>
+          )}
         </div>
       )}
     </>
   );
 };
+
+const chipsLookup = (k: string) => ({
+  all: "Alle", pending: "Afventer", confirmed: "Bekræftet",
+  in_progress: "I gang", completed: "Afsluttet", cancelled: "Annulleret",
+}[k] || k);
 
 /* ─────────────────────────────────────────────────────────────────────── */
 
