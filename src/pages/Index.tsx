@@ -108,9 +108,9 @@ const Index = () => {
           via dens egen min-height/transition. */}
       <Suspense fallback={null}>
         <Reveal><Stats /></Reveal>
-        <Reveal><RecentBusinesses /></Reveal>
         <Reveal><HowItWorks /></Reveal>
         <Reveal><GetQuotes /></Reveal>
+        <Reveal><RecentBusinesses /></Reveal>
         <Reveal><Testimonials /></Reveal>
         <Reveal><WhyUs /></Reveal>
         <Reveal><ForBusinesses /></Reveal>
