@@ -28,10 +28,10 @@ const HowItWorks = () => {
             Sådan virker det
           </span>
           <h2 className="mt-5 text-[2rem] font-semibold leading-[1.04] tracking-[-0.025em] text-foreground md:text-[2.75rem] lg:text-[3.25rem]">
-            Sådan fungerer det
+            Fra søgning til booking på 5 minutter
           </h2>
           <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground md:text-base">
-            Et enkelt flow fra søgning til bestilling — typisk på under 5 minutter.
+            Tre enkle trin — uden registrering, uden ventetid.
           </p>
         </div>
 
