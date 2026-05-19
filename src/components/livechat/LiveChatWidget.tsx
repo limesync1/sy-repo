@@ -701,7 +701,7 @@ const LiveChatWidget = () => {
                     <div className="flex items-center gap-1.5">
                       <p className="text-[15px] font-semibold leading-tight">Serviceydere support</p>
                       <span className="inline-flex items-center gap-0.5 rounded-full bg-accent/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-accent">
-                        <Sparkles className="h-2 w-2" /> AI
+                        <Bot className="h-2 w-2" /> AI
                       </span>
                     </div>
                     <p className="mt-0.5 text-[11px] text-background/65">
@@ -808,33 +808,12 @@ const LiveChatWidget = () => {
                     <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-5 w-5 object-contain" />
                     <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Serviceydere support</span>
                     <span className="inline-flex items-center gap-0.5 rounded-full bg-accent/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-accent">
-                      <Sparkles className="h-2 w-2" /> AI
+                      <Bot className="h-2 w-2" /> AI
                     </span>
                   </div>
                   <p className="text-[13px] leading-relaxed text-foreground">
                     👋 Hej! Vores AI-assistent svarer med det samme og kan finde en udbyder tæt på dig. Skal noget afklares af en rigtig person, henter vi straks en fra kundeservice.
                   </p>
-                </div>
-                <div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {QUICK_TOPICS.map((t) => (
-                      <button
-                        key={t.label}
-                        type="button"
-                        onClick={() => {
-                          setSubject(t.subject);
-                          if (t.suggest && !firstMessage) setFirstMessage(t.suggest);
-                        }}
-                    className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-                          subject === t.subject
-                            ? "border-foreground bg-foreground text-background"
-                            : "border-border bg-card text-foreground hover:border-foreground/40 hover:bg-secondary/40"
-                        }`}
-                      >
-                        {t.label}
-                      </button>
-                    ))}
-                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <label className="text-[11px] font-medium text-muted-foreground">
@@ -926,7 +905,7 @@ const LiveChatWidget = () => {
                                 <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-7 w-7 object-contain" />
                                 {isAi && (
                                   <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-accent text-accent-foreground ring-2 ring-card">
-                                    <Sparkles className="h-2 w-2" />
+                                    <Bot className="h-2 w-2" />
                                   </span>
                                 )}
                               </span>
@@ -939,7 +918,7 @@ const LiveChatWidget = () => {
                               <span className="text-foreground/80">{m.sender_name || "Serviceydere"}</span>
                               {isAi && (
                                 <span className="inline-flex items-center gap-0.5 rounded-full bg-accent/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-accent">
-                                  <Sparkles className="h-2 w-2" /> AI
+                                  <Bot className="h-2 w-2" /> AI
                                 </span>
                               )}
                             </div>
