@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import {
   MessageCircle, Send, Loader2, ChevronDown, CheckCheck, Paperclip, X as XIcon,
-  ImageIcon, Volume2, VolumeX, MoreVertical, MessagesSquare, ArrowLeft, Trash2, Sparkles,
+  ImageIcon, Volume2, VolumeX, MoreVertical, MessagesSquare, ArrowLeft, Trash2, Bot,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -69,13 +69,6 @@ const HIDDEN_EXACT: string[] = [];
 // i topbjælken), men den flydende kundeservice-knap skjules så den ikke overlapper
 // andre knapper i fx ruteplanlæggeren eller på "Aftaler"-siden.
 const HIDE_TRIGGER_PREFIXES = ["/virksomhed"];
-
-const QUICK_TOPICS = [
-  { label: "Find service", subject: "Find serviceyder", suggest: "Hej, jeg vil gerne finde en serviceyder i mit område. Hvordan fungerer det?" },
-  { label: "Få 3 tilbud", subject: "Indhent 3 tilbud", suggest: "Hej, jeg vil gerne indhente op til 3 tilbud. Hvordan foregår det?" },
-  { label: "Bliv udbyder", subject: "Bliv udbyder på Serviceydere", suggest: "Hej, jeg vil gerne høre hvordan min virksomhed kan blive udbyder på Serviceydere." },
-  { label: "Kundeservice", subject: "Kundeservice", suggest: "Hej, jeg har brug for hjælp fra Serviceydere support." },
-];
 
 // Topic-based dynamic recommended replies. Keys are matched against the
 // visitor's recent message content (case-insensitive keyword match).
