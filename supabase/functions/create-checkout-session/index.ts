@@ -181,7 +181,8 @@ Deno.serve(async (req) => {
 
     const trialEndIsFuture = !!trialEnd && trialEnd > nowSec + 60;
 
-    const session = await stripe.checkout.sessions.create({
+    // Bygg sessionPayload eksplicit så vi kan logge & validere før kald til Stripe.
+    const sessionPayload: Record<string, unknown> = {
       ui_mode: "embedded",
       mode: "subscription",
       line_items: lineItems,
@@ -195,22 +196,46 @@ Deno.serve(async (req) => {
         metadata,
         ...(trialEndIsFuture ? { trial_end: trialEnd } : {}),
       },
-      ...(includeStartupFee
-        ? {
-            add_invoice_items: [
-              {
-                quantity: 1,
-                price_data: {
-                  currency: "dkk",
-                  unit_amount: startupFeeDkk * 100,
-                  product_data: { name: "Opstartsgebyr (engangsbeløb)" },
-                },
-              },
-            ],
-          }
-        : {}),
       allow_promotion_codes: true,
-    });
+    };
+
+    // Opstartsgebyr på FØRSTE faktura. `add_invoice_items` understøttes kun på
+    // subscription-mode sessioner og MÅ KUN sættes på top-level (ikke under
+    // subscription_data — det vil give "Received unknown parameter").
+    if (includeStartupFee) {
+      sessionPayload.add_invoice_items = [
+        {
+          quantity: 1,
+          price_data: {
+            currency: "dkk",
+            unit_amount: startupFeeDkk * 100,
+            product_data: { name: "Opstartsgebyr (engangsbeløb)" },
+          },
+        },
+      ];
+    }
+
+    // Defensiv validering: hvis nogen ved en fejl placerer add_invoice_items
+    // inde i subscription_data, fjerner vi det og logger en advarsel, så vi
+    // aldrig sender det forkerte niveau til Stripe.
+    const subData = sessionPayload.subscription_data as Record<string, unknown> | undefined;
+    if (subData && "add_invoice_items" in subData) {
+      console.warn("[create-checkout-session] removed add_invoice_items from subscription_data");
+      delete (subData as Record<string, unknown>).add_invoice_items;
+    }
+
+    console.log("[create-checkout-session] stripe payload:", JSON.stringify(sessionPayload));
+
+    let session;
+    try {
+      session = await stripe.checkout.sessions.create(sessionPayload as any);
+    } catch (stripeErr) {
+      console.error("[create-checkout-session] stripe rejected payload:", {
+        message: (stripeErr as Error)?.message,
+        payload: sessionPayload,
+      });
+      throw stripeErr;
+    }
 
     return new Response(JSON.stringify({ clientSecret: session.client_secret }), {
       status: 200,
