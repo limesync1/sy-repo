@@ -150,10 +150,15 @@ const Planner = () => {
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragData, setActiveDragData] = useState<any>(null);
   const [routeDragPoint, setRouteDragPoint] = useState<DragPoint | null>(null);
-  const [routeDndDebug, setRouteDndDebug] = useState<RouteDndDebugState | null>(null);
   const activeRouteDragPointRef = useRef<DragPoint | null>(null);
   const activeRouteDragOriginRef = useRef<DragPoint | null>(null);
-  const lastRouteDropTargetRef = useRef<any | null>(null);
+  const routeOverlayRef = useRef<HTMLDivElement | null>(null);
+  const applyRouteOverlayPosition = (point: DragPoint | null) => {
+    const el = routeOverlayRef.current;
+    if (!el || !point) return;
+    el.style.left = `${point.x}px`;
+    el.style.top = `${point.y}px`;
+  };
   // Beskytter mod dobbelt-drop på samme kilde+mål — undgår dubletruter og
   // "uniq_route_stops_route_order" race conditions.
   const inFlightDropsRef = useRef<Set<string>>(new Set());
