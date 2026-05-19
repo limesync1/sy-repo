@@ -23,6 +23,7 @@ import AddressAutocomplete from "@/components/admin/AddressAutocomplete";
 import { useUpdateBusiness } from "@/hooks/useDatabase";
 import { useEmployees } from "@/hooks/useEmployees";
 import { CustomerNotificationsSettings } from "@/components/admin/CustomerNotificationsSettings";
+import { DangerZoneCard } from "@/components/admin/DangerZoneCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -1954,6 +1955,15 @@ const SettingsTab = ({ business }: { business: any }) => {
               </div>
             </div>
           </SectionCard>
+        </div>
+
+        {/* Farezone — opsig og slet virksomheden */}
+        <div id="settings-danger" className="scroll-mt-[120px] lg:scroll-mt-[68px]">
+          <DangerZoneCard
+            businessId={business.id}
+            businessName={business.name}
+            ownerEmail={user?.email || business.email || null}
+          />
         </div>
       </div>
         </div>

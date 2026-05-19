@@ -3548,6 +3548,10 @@ export type Database = {
       }
       cleanup_accounting_sync_log: { Args: never; Returns: undefined }
       cleanup_route_planner_idempotency: { Args: never; Returns: number }
+      confirm_business_deletion: {
+        Args: { p_business_id: string; p_code: string }
+        Returns: boolean
+      }
       create_route_fast: {
         Args: {
           _business_id: string
@@ -3811,6 +3815,10 @@ export type Database = {
       }
       recalc_route_totals: { Args: { _route_id: string }; Returns: undefined }
       reorder_route_stops: { Args: { _updates: Json }; Returns: undefined }
+      request_business_deletion_code: {
+        Args: { p_business_id: string }
+        Returns: string
+      }
       retry_dlq_job: { Args: { _dlq_id: string }; Returns: string }
     }
     Enums: {

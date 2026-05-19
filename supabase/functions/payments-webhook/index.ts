@@ -93,11 +93,16 @@ async function handleSubscriptionDeleted(subscription: any, env: StripeEnv) {
 
 async function handleInvoicePaid(invoice: any, env: StripeEnv) {
   if (!invoice.customer) return;
+  // Hvis en linje på fakturaen er opstartsgebyret, marker det som betalt.
+  const hasStartupFee = Array.isArray(invoice.lines?.data) && invoice.lines.data.some(
+    (l: any) => typeof l.description === "string" && /opstartsgebyr/i.test(l.description),
+  );
   await tbl("business_plans")
     .update({
       last_payment_at: new Date().toISOString(),
       stripe_environment: env,
       updated_at: new Date().toISOString(),
+      ...(hasStartupFee ? { startup_fee_charged: true } : {}),
     })
     .eq("stripe_customer_id", invoice.customer);
 }

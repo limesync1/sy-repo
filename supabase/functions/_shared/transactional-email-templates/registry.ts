@@ -24,6 +24,7 @@ import { template as newChatMessage } from './new-chat-message.tsx'
 import { template as customerNotification } from './customer-notification.tsx'
 import { template as customerWelcome } from './customer-welcome.tsx'
 import { template as adminImpersonationCode } from './admin-impersonation-code.tsx'
+import { template as businessDeletionCode } from './business-deletion-code.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'welcome': welcome,
@@ -41,4 +42,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'customer-notification': customerNotification,
   'customer-welcome': customerWelcome,
   'admin-impersonation-code': adminImpersonationCode,
+  'business-deletion-code': businessDeletionCode,
 }

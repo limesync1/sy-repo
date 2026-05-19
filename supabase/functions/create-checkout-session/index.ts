@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
     // Hent eksisterende plan for at finde Stripe customer hvis den findes
     const { data: existingPlan } = await supabase
       .from("business_plans")
-      .select("stripe_customer_id, trial_ends_at, created_at")
+      .select("stripe_customer_id, trial_ends_at, created_at, startup_fee_charged")
       .eq("business_id", body.businessId)
       .maybeSingle();
 
@@ -106,12 +106,26 @@ Deno.serve(async (req) => {
       lineItems.push({ price: employeePrice.id, quantity: body.extraEmployeeLogins });
     }
 
+    // Opstartsgebyr — engangsbeløb der lægges på den FØRSTE rigtige faktura
+    // (efter prøveperioden). Bruger `add_invoice_items` på subscription_data,
+    // så Stripe automatisk tilføjer linjen til den første faktura uden at
+    // opkræve nu. Springes over hvis virksomheden allerede har betalt det.
+    const { data: pricingRow } = await supabase
+      .from("platform_settings")
+      .select("startup_fee_dkk")
+      .eq("id", 1)
+      .maybeSingle();
+    const startupFeeDkk = Math.max(0, Number((pricingRow as any)?.startup_fee_dkk) || 0);
+    const includeStartupFee = startupFeeDkk > 0 && !existingPlan?.startup_fee_charged;
+
     const metadata = {
       businessId: body.businessId,
       ownerId: user.id,
       basePriceId: body.basePriceId,
       addonPriceIds: body.addonPriceIds.join(",") || "",
       extraEmployeeLogins: String(body.extraEmployeeLogins),
+      includeStartupFee: includeStartupFee ? "true" : "false",
+      startupFeeDkk: String(startupFeeDkk),
     };
 
     // Prøveperiode: Stripe må først trække første betaling når trial er udløbet.
@@ -163,6 +177,20 @@ Deno.serve(async (req) => {
       subscription_data: {
         metadata,
         ...(trialEndIsFuture ? { trial_end: trialEnd } : {}),
+        ...(includeStartupFee
+          ? {
+              add_invoice_items: [
+                {
+                  quantity: 1,
+                  price_data: {
+                    currency: "dkk",
+                    unit_amount: startupFeeDkk * 100,
+                    product_data: { name: "Opstartsgebyr (engangsbeløb)" },
+                  },
+                },
+              ],
+            }
+          : {}),
       },
       allow_promotion_codes: true,
     });
