@@ -2,7 +2,7 @@
 // Serviceydere support-AI. Kan svare, eskalere, eller anbefale en konkret
 // virksomhed (med kort) baseret på besøgendes behov og lokation.
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { lookupDkZip, haversineKm } from "../match-quotes/dk-postcodes.ts";
+import { lookupDkZip, haversineKm } from "./dk-postcodes.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
