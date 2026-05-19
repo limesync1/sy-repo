@@ -29,6 +29,7 @@ const AccountingTab = lazy(() => import("@/components/admin/AccountingTab"));
 const ServicesTab = lazy(() => import("@/components/admin/ServicesTab"));
 import BusinessOnboarding from "@/components/admin/BusinessOnboarding";
 import OnboardingHub from "@/components/admin/onboarding/OnboardingHub";
+import SEO from "@/components/SEO";
 import { AdminShell, type AdminTabKey } from "@/components/admin/shared/AdminShell";
 import { ShellSkeleton, ListCardSkeleton, StatGridSkeleton, PageSkeleton, FormSkeleton, FilterBarSkeleton, PageHeaderSkeleton, ChartSkeleton } from "@/components/admin/shared/Skeletons";
 import { TabErrorBoundary } from "@/components/admin/shared/TabErrorBoundary";
@@ -210,6 +211,11 @@ const AdminDashboard = () => {
 
   return (
     <AdminShell business={business} activeTab={effectiveTab} onTabChange={handleTabChange}>
+      <SEO
+        title="Virksomhedspanel – Serviceydere"
+        description="Administrer din virksomhed, aftaler, services og medarbejdere på Serviceydere."
+        noIndex
+      />
       {/* Vises altid i toppen af panelet, undtagen når brugeren allerede er
           inde på Indstillinger-fanen — så ville knappen "Tilføj kort" pege
           på samme side. */}

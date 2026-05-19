@@ -292,7 +292,15 @@ const SearchPage = () => {
       <SEO
         title={seoTitle}
         description={seoDesc}
-        canonicalPath="/virksomheder"
+        canonicalPath={(() => {
+          // Dynamisk canonical så filtrerede søgeresultater (kategori/query)
+          // kan indekseres som egne sider i Google.
+          const params = new URLSearchParams();
+          if (selectedCategory) params.set("category", selectedCategory);
+          if (debouncedQuery) params.set("q", debouncedQuery);
+          const qs = params.toString();
+          return qs ? `/virksomheder?${qs}` : "/virksomheder";
+        })()}
         keywords={`serviceydere, ${selectedCategory || "find services"}, danmark, sammenlign, book online`}
       />
       {/* Header — matches landing */}
