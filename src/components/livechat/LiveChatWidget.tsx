@@ -264,7 +264,7 @@ const LiveChatWidget = () => {
     upsertChat({
       key: platformKey(),
       scope: "platform",
-      label: "Serviceydere support",
+      label: "Serviceydere Kundeservice",
     });
   }, [conversation]);
 
@@ -431,7 +431,7 @@ const LiveChatWidget = () => {
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ token }));
       setConversation(conv as Conversation);
-      upsertChat({ key: platformKey(), scope: "platform", label: "Serviceydere support" });
+      upsertChat({ key: platformKey(), scope: "platform", label: "Serviceydere Kundeservice" });
       setFirstMessage("");
       setSubject("");
       chatSounds.outgoing();
@@ -700,7 +700,7 @@ const LiveChatWidget = () => {
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <p className="text-[15px] font-semibold leading-tight">Serviceydere support</p>
+                      <p className="text-[15px] font-semibold leading-tight">Serviceydere Kundeservice</p>
                       <span className="inline-flex items-center gap-0.5 rounded-full bg-accent/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-accent">
                         <Bot className="h-2 w-2" /> AI
                       </span>
@@ -807,7 +807,7 @@ const LiveChatWidget = () => {
                 <div className="rounded-2xl border border-border bg-gradient-to-br from-secondary/60 to-secondary/20 p-4">
                   <div className="mb-2 flex items-center gap-2">
                     <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-5 w-5 object-contain" />
-                    <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Serviceydere support</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Serviceydere Kundeservice</span>
                     <span className="inline-flex items-center gap-0.5 rounded-full bg-accent/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-accent">
                       <Bot className="h-2 w-2" /> AI
                     </span>
