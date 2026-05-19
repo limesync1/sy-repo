@@ -3,8 +3,10 @@
 export const SITE_NAME = 'Serviceydere'
 export const SITE_URL = 'https://serviceydere.dk'
 export const SUPPORT_EMAIL = 'kontakt@serviceydere.dk'
+// Cache-bust v2 — sikrer at e-mail-klienter henter det opdaterede logo
+// efter ny upload til storage. Bump versionen hvis logoet udskiftes igen.
 export const LOGO_URL =
-  'https://gkectsellkpltrxvusot.supabase.co/storage/v1/object/public/email-assets/serviceydere-logo-dark.png'
+  'https://gkectsellkpltrxvusot.supabase.co/storage/v1/object/public/email-assets/serviceydere-logo-dark.png?v=2'
 
 // Palette
 const ink = '#212121'        // foreground (matches site --foreground 0 0% 13%)

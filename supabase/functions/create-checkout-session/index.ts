@@ -31,6 +31,63 @@ function parseBody(raw: any) {
   return { businessId, basePriceId, addonPriceIds, extraEmployeeLogins, extraEmployeePriceId, returnUrl, environment } as const;
 }
 
+// Ren funktion til at bygge Stripe Checkout-payloaden. Eksporteret så
+// vi kan unit-teste den uden at ramme rigtige Stripe/Supabase-kald.
+// Sikrer specifikt at `add_invoice_items` ALDRIG havner under
+// `subscription_data` (som ville give Stripe 400 "unknown parameter").
+export interface BuildPayloadInput {
+  lineItems: Array<{ price: string; quantity: number }>;
+  returnUrl: string;
+  customerId?: string | null;
+  customerEmail?: string | null;
+  metadata: Record<string, string>;
+  trialEnd: number | null; // unix sek; null = ingen trial
+  includeStartupFee: boolean;
+  startupFeeDkk: number;
+}
+
+export function buildSessionPayload(input: BuildPayloadInput): Record<string, unknown> {
+  const nowSec = Math.floor(Date.now() / 1000);
+  const trialEndIsFuture = !!input.trialEnd && input.trialEnd > nowSec + 60;
+
+  const payload: Record<string, unknown> = {
+    ui_mode: "embedded",
+    mode: "subscription",
+    line_items: input.lineItems,
+    return_url: input.returnUrl,
+    payment_method_types: ["card"],
+    ...(input.customerId
+      ? { customer: input.customerId }
+      : { customer_email: input.customerEmail || undefined }),
+    metadata: input.metadata,
+    subscription_data: {
+      metadata: input.metadata,
+      ...(trialEndIsFuture ? { trial_end: input.trialEnd } : {}),
+    },
+    allow_promotion_codes: true,
+  };
+
+  if (input.includeStartupFee && input.startupFeeDkk > 0) {
+    payload.add_invoice_items = [
+      {
+        quantity: 1,
+        price_data: {
+          currency: "dkk",
+          unit_amount: input.startupFeeDkk * 100,
+          product_data: { name: "Opstartsgebyr (engangsbeløb)" },
+        },
+      },
+    ];
+  }
+
+  // Defensiv: må aldrig ende under subscription_data.
+  const subData = payload.subscription_data as Record<string, unknown>;
+  if (subData && "add_invoice_items" in subData) {
+    delete subData.add_invoice_items;
+  }
+  return payload;
+}
+
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
@@ -179,50 +236,16 @@ Deno.serve(async (req) => {
       }
     }
 
-    const trialEndIsFuture = !!trialEnd && trialEnd > nowSec + 60;
-
-    // Bygg sessionPayload eksplicit så vi kan logge & validere før kald til Stripe.
-    const sessionPayload: Record<string, unknown> = {
-      ui_mode: "embedded",
-      mode: "subscription",
-      line_items: lineItems,
-      return_url: body.returnUrl,
-      payment_method_types: ["card"],
-      ...(existingPlan?.stripe_customer_id
-        ? { customer: existingPlan.stripe_customer_id }
-        : { customer_email: biz.email || user.email || undefined }),
+    const sessionPayload = buildSessionPayload({
+      lineItems,
+      returnUrl: body.returnUrl,
+      customerId: existingPlan?.stripe_customer_id ?? null,
+      customerEmail: biz.email || user.email || null,
       metadata,
-      subscription_data: {
-        metadata,
-        ...(trialEndIsFuture ? { trial_end: trialEnd } : {}),
-      },
-      allow_promotion_codes: true,
-    };
-
-    // Opstartsgebyr på FØRSTE faktura. `add_invoice_items` understøttes kun på
-    // subscription-mode sessioner og MÅ KUN sættes på top-level (ikke under
-    // subscription_data — det vil give "Received unknown parameter").
-    if (includeStartupFee) {
-      sessionPayload.add_invoice_items = [
-        {
-          quantity: 1,
-          price_data: {
-            currency: "dkk",
-            unit_amount: startupFeeDkk * 100,
-            product_data: { name: "Opstartsgebyr (engangsbeløb)" },
-          },
-        },
-      ];
-    }
-
-    // Defensiv validering: hvis nogen ved en fejl placerer add_invoice_items
-    // inde i subscription_data, fjerner vi det og logger en advarsel, så vi
-    // aldrig sender det forkerte niveau til Stripe.
-    const subData = sessionPayload.subscription_data as Record<string, unknown> | undefined;
-    if (subData && "add_invoice_items" in subData) {
-      console.warn("[create-checkout-session] removed add_invoice_items from subscription_data");
-      delete (subData as Record<string, unknown>).add_invoice_items;
-    }
+      trialEnd,
+      includeStartupFee,
+      startupFeeDkk,
+    });
 
     console.log("[create-checkout-session] stripe payload:", JSON.stringify(sessionPayload));
 
