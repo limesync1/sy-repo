@@ -5,6 +5,9 @@ import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
   Handshake, DollarSign, Star, Briefcase, TrendingUp,
   ArrowRight, AlertCircle, ChevronRight, Sparkles,
   ArrowUpRight, ArrowDownRight, Minus, CheckCircle2,
