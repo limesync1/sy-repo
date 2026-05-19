@@ -385,7 +385,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                   <span>Vælg alle synlige ({visible.length})</span>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {visible.map((l) => {
                     const qr = l.quote_request;
                     const status = STATUS_LABELS[l.status] ?? STATUS_LABELS.new;
