@@ -843,7 +843,8 @@ const LiveChatWidget = () => {
               <div className="flex flex-1 flex-col gap-4 overflow-y-auto bg-gradient-to-b from-secondary/30 via-background to-background px-5 py-5">
                 {/* Pretty empty-state */}
                 <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-sm">
-                  <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-accent/10 blur-2xl" />
+                  <div aria-hidden className="pointer-events-none absolute -right-10 -top-12 h-32 w-32 rounded-full blur-2xl" style={{ backgroundColor: "hsl(var(--hero-cyan) / 0.18)" }} />
+                  <div aria-hidden className="pointer-events-none absolute -left-8 -bottom-10 h-24 w-24 rounded-full blur-2xl" style={{ backgroundColor: "hsl(var(--hero-mid) / 0.12)" }} />
                   <div className="relative mb-2 flex items-center gap-2">
                     <span className="inline-flex items-center gap-1 rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent">
                       <Bot className="h-2.5 w-2.5" /> AI svarer nu
