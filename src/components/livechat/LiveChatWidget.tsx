@@ -956,9 +956,7 @@ const LiveChatWidget = () => {
                             className={`overflow-hidden rounded-2xl text-[13.5px] leading-snug shadow-[0_2px_6px_-2px_hsl(var(--foreground)/0.08)] ${
                               mine
                                 ? "rounded-br-md bg-foreground text-background"
-                                : isAi
-                                  ? "rounded-bl-md border border-accent/25 bg-gradient-to-br from-card to-accent/[0.04] text-foreground"
-                                  : "rounded-bl-md border border-border bg-card text-foreground"
+                                : "rounded-bl-md border border-border bg-card text-foreground"
                             }`}
                           >
                             {m.image_url && (
