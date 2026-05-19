@@ -318,6 +318,7 @@ const DashboardTab = ({
               icon={<DollarSign />}
               trend={revTrend}
               sparkline={stats.buckets14.map((b) => b.rev)}
+              onClick={() => setOpenStat("revenue")}
             />
             <SmartStatCard
               label="Bestillinger · 7 dage"
@@ -326,6 +327,7 @@ const DashboardTab = ({
               icon={<Handshake />}
               trend={ordTrend}
               sparkline={stats.buckets14.map((b) => b.count)}
+              onClick={() => setOpenStat("orders")}
             />
           </div>
 
