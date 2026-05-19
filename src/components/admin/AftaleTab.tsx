@@ -755,6 +755,8 @@ const AftaleTab = ({
   // mindst én aftale skal vælges, så ruten ikke oprettes tom.
   const [newRouteJobIds, setNewRouteJobIds] = useState<string[]>([]);
   const [newRouteJobSearch, setNewRouteJobSearch] = useState("");
+  // Kommende-aftaler-strip: kollapset som standard for ikke at stjæle plads.
+  const [upcomingExpanded, setUpcomingExpanded] = useState(false);
 
   // ─── Drag & drop til rute-pool ───
   // Vi tracker hvilken aftale der pt. trækkes (for visuel feedback) og hvilken
