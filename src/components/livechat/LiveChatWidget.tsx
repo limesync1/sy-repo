@@ -683,7 +683,8 @@ const LiveChatWidget = () => {
             }
           >
             {/* Header */}
-            <div className="relative overflow-hidden bg-foreground px-5 pb-4 pt-4 text-background">
+            <div className="relative overflow-hidden bg-foreground px-5 pb-5 pt-4 text-background">
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(var(--accent)/0.18),transparent_55%)]" />
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-background/10" />
               <div className="relative flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3">
