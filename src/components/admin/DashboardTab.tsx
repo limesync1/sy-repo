@@ -810,20 +810,20 @@ const OrdersListSection = ({
               </button>
             )}
           </div>
-          <div className="relative">
-            <ArrowUpDown className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-            <select
-              value={orderSort}
-              onChange={(e) => setOrderSort(e.target.value)}
-              aria-label="Sortér bestillinger"
-              className="h-9 w-full appearance-none rounded-lg border border-input bg-background pl-8 pr-7 text-sm font-medium text-foreground transition-colors hover:border-foreground/30 focus:outline-none focus:ring-2 focus:ring-ring sm:w-[210px]"
+          <Select value={orderSort} onValueChange={(v) => setOrderSort(v as typeof orderSort)}>
+            <SelectTrigger
+              aria-label="Sortér aftaler"
+              className="h-9 w-full gap-2 rounded-lg border-border bg-card text-sm font-medium hover:bg-secondary sm:w-[210px]"
             >
+              <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="end">
               {sortOptions.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
               ))}
-            </select>
-            <ChevronRight className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 rotate-90 text-muted-foreground" />
-          </div>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="mt-2 -mx-1 flex flex-nowrap items-center gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
