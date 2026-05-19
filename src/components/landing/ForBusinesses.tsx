@@ -30,14 +30,14 @@ const features = [
   },
   {
     icon: Calculator,
-    title: "Prisberegner på din profil",
-    text: "Lad kunderne udfylde m², timer eller antal og se prisen med det samme — så de booker i stedet for at bede om tilbud.",
+    title: "Indbygget prisberegner",
+    text: "Tilføj en prisberegner til dine ydelser, så kunden selv kan udfylde m², timer eller antal og se prisen før de booker.",
     tone: "bg-feature-lilac text-feature-lilac-foreground",
   },
   {
     icon: ShieldCheck,
     title: "Verificeret CVR-stempel",
-    text: "Vi tjekker dit CVR og dine kontaktoplysninger, så nye kunder kan se at I er en rigtig, registreret virksomhed.",
+    text: "Vi tjekker dit CVR og kontaktoplysninger, så kunderne ser at I er en rigtig, registreret virksomhed.",
     tone: "bg-accent-soft text-accent",
   },
 ];
@@ -69,11 +69,11 @@ const ForBusinesses = () => {
           </SmartLink>
         </div>
 
-        {/* Bento: stor mørk premium-tile + 4 features. */}
-        <div className="grid gap-4 lg:grid-cols-3">
+        {/* Bento: stor mørk premium-tile (2×2) + 4 features (2×2) — fylder pænt uden tomme huller. */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {/* Hero-tile — fylder 2 kolonner på desktop, fuld bredde på mobil. */}
           <article
-            className="relative isolate overflow-hidden rounded-[28px] p-8 sm:p-10 lg:col-span-2 lg:row-span-2 text-background"
+            className="relative isolate overflow-hidden rounded-[28px] p-8 sm:p-10 sm:col-span-2 lg:row-span-2 text-background"
             style={{ backgroundColor: "hsl(var(--hero-bg))" }}
           >
             {/* Ambient glows for premium-følelse */}
