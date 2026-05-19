@@ -1471,31 +1471,19 @@ const Planner = () => {
       ? getRouteDropPointTarget(pointAtDrop, activeDataAtDrop.route?.id)
       : null;
     const dndRouteTarget = over?.data.current ?? null;
-    const fallbackRouteTarget = activeDataAtDrop?.type === "route"
-      ? domRouteTarget ?? lastRouteDropTargetRef.current
-      : null;
     const preferredRouteTarget = activeDataAtDrop?.type === "route"
       ? dndRouteTarget?.type === "route"
         ? dndRouteTarget
         : domRouteTarget?.type === "route"
           ? domRouteTarget
-          : dndRouteTarget ?? fallbackRouteTarget
+          : dndRouteTarget ?? domRouteTarget
       : null;
     const hasDropTarget = activeDataAtDrop?.type === "route" ? !!preferredRouteTarget : !!over;
-    updateRouteDndDebug(
-      activeDataAtDrop,
-      pointAtDrop,
-      dndRouteTarget,
-      domRouteTarget,
-      preferredRouteTarget,
-      "Drop",
-    );
     setActiveDragId(null);
     setActiveDragData(null);
     setRouteDragPoint(null);
     activeRouteDragPointRef.current = null;
     activeRouteDragOriginRef.current = null;
-    lastRouteDropTargetRef.current = null;
     // ─── Metrics: registrér resultatet af denne drag ───
     // `dropped=true` kun når brugeren faktisk slap på et target. Drags
     // der ender uden over-target tæller som "klik-fejl" — typisk når
