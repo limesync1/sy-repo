@@ -660,23 +660,13 @@ const LiveChatWidget = () => {
           type="button"
           onClick={handleOpen}
           aria-label="Åbn livechat"
-          className={`group fixed z-40 flex items-center gap-2 overflow-hidden rounded-full border border-background/10 py-2 pl-2.5 pr-4 text-xs font-semibold text-background shadow-[0_20px_50px_-22px_hsl(204_96%_13%/0.7)] transition-all hover:scale-[1.03] active:scale-[0.97] ${fabBottomClass} ${fabPositionClass}`}
+          className={`group fixed z-40 flex items-center gap-2 rounded-full py-2.5 pl-3 pr-4 text-sm font-semibold text-background shadow-[0_18px_40px_-18px_hsl(204_96%_13%/0.6)] transition-all hover:scale-[1.03] active:scale-[0.97] ${fabBottomClass} ${fabPositionClass}`}
           style={{ backgroundColor: "hsl(var(--hero-bg))" }}
         >
-          <span aria-hidden className="pointer-events-none absolute inset-0 opacity-80" style={{ backgroundImage: "radial-gradient(circle at 15% 50%, hsl(var(--hero-cyan) / 0.35), transparent 60%)" }} />
-          <span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-visible">
-            <img
-              src="/serviceydere-ikon.webp"
-              alt=""
-              aria-hidden="true"
-              className="h-8 w-8 object-contain"
-            />
-            <span className="absolute -right-1 -top-1 flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70 opacity-75"></span>
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-success ring-2" style={{ boxShadow: "0 0 0 2px hsl(var(--hero-bg))" }}></span>
-            </span>
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-background/10">
+            <Bot className="h-5 w-5 text-background" />
           </span>
-          <span className="relative">Kundeservice</span>
+          <span>Kundeservice</span>
         </button>
       )}
 
@@ -720,18 +710,8 @@ const LiveChatWidget = () => {
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-background/10" />
               <div className="relative flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3">
-                  <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-visible rounded-2xl bg-background/[0.08] ring-1 ring-background/15 backdrop-blur-sm">
-                    <img
-                      src="/serviceydere-ikon.webp"
-                      alt="Serviceydere"
-                      className="h-10 w-10 object-contain"
-                    />
-                    <span
-                      className={`absolute -bottom-0.5 -right-0.5 z-10 flex h-3 w-3 items-center justify-center rounded-full ring-2 ${closed ? "bg-muted-foreground" : "bg-success"}`}
-                      style={{ boxShadow: "0 0 0 2px hsl(var(--hero-bg))" }}
-                    >
-                      {!closed && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-background" />}
-                    </span>
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-background/[0.1] backdrop-blur-sm">
+                    <Bot className="h-6 w-6 text-background" />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
@@ -743,7 +723,8 @@ const LiveChatWidget = () => {
                         <Bot className="h-2 w-2" /> AI
                       </span>
                     </div>
-                    <p className="mt-0.5 text-[11px] text-background/65">
+                    <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-background/65">
+                      <span className={`h-1.5 w-1.5 rounded-full ${closed ? "bg-muted-foreground" : "animate-pulse bg-success"}`} />
                       {closed ? "Samtalen er afsluttet" : "AI svarer med det samme · menneske ved behov"}
                     </p>
                   </div>
@@ -946,16 +927,17 @@ const LiveChatWidget = () => {
                     return (
                       <div key={m.id} className={`flex items-end gap-2 animate-in fade-in slide-in-from-bottom-1 duration-200 ${mine ? "justify-end" : "justify-start"}`}>
                         {!mine && (
-                          <div className="w-7 flex-shrink-0">
+                          <div className="w-9 flex-shrink-0">
                             {showAvatar && (
-                              <span className={`relative flex h-9 w-9 items-center justify-center overflow-visible rounded-2xl bg-card ring-1 ${isAi ? "ring-accent/40 shadow-[0_0_0_3px_hsl(var(--accent)/0.08)]" : "ring-border"}`}>
-                                <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-7 w-7 object-contain" />
-                                {isAi && (
-                                  <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-accent text-accent-foreground ring-2 ring-card">
-                                    <Bot className="h-2 w-2" />
-                                  </span>
-                                )}
-                              </span>
+                              isAi ? (
+                                <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-foreground text-background">
+                                  <Bot className="h-5 w-5" />
+                                </span>
+                              ) : (
+                                <span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-border bg-card">
+                                  <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-6 w-6 object-contain" />
+                                </span>
+                              )
                             )}
                           </div>
                         )}
@@ -974,9 +956,7 @@ const LiveChatWidget = () => {
                             className={`overflow-hidden rounded-2xl text-[13.5px] leading-snug shadow-[0_2px_6px_-2px_hsl(var(--foreground)/0.08)] ${
                               mine
                                 ? "rounded-br-md bg-foreground text-background"
-                                : isAi
-                                  ? "rounded-bl-md border border-accent/25 bg-gradient-to-br from-card to-accent/[0.04] text-foreground"
-                                  : "rounded-bl-md border border-border bg-card text-foreground"
+                                : "rounded-bl-md border border-border bg-card text-foreground"
                             }`}
                           >
                             {m.image_url && (
@@ -1002,12 +982,9 @@ const LiveChatWidget = () => {
                     if (!lastReal || lastReal.sender_type !== "visitor" || closed) return null;
                     return (
                       <div className="flex items-end gap-2 animate-in fade-in slide-in-from-bottom-1 duration-200">
-                        <div className="w-7 flex-shrink-0">
-                          <span className="relative flex h-9 w-9 items-center justify-center overflow-visible rounded-2xl bg-card ring-1 ring-accent/40 shadow-[0_0_0_3px_hsl(var(--accent)/0.08)]">
-                            <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-7 w-7 object-contain" />
-                            <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-accent text-accent-foreground ring-2 ring-card">
-                              <Bot className="h-2 w-2" />
-                            </span>
+                        <div className="w-9 flex-shrink-0">
+                          <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-foreground text-background">
+                            <Bot className="h-5 w-5" />
                           </span>
                         </div>
                         <div className="flex max-w-[78%] flex-col items-start">
@@ -1017,7 +994,7 @@ const LiveChatWidget = () => {
                               <Bot className="h-2 w-2" /> AI
                             </span>
                           </div>
-                          <div className="rounded-2xl rounded-bl-md border border-accent/25 bg-gradient-to-br from-card to-accent/[0.04] px-4 py-3 shadow-[0_2px_6px_-2px_hsl(var(--foreground)/0.08)]">
+                          <div className="rounded-2xl rounded-bl-md border border-border bg-card px-4 py-3 shadow-[0_2px_6px_-2px_hsl(var(--foreground)/0.08)]">
                             <div className="flex items-center gap-1">
                               <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70 [animation-delay:-0.3s]" />
                               <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70 [animation-delay:-0.15s]" />
