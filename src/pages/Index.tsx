@@ -101,6 +101,7 @@ const Index = () => {
       />
       <SiteNav />
       <HeroSection />
+      <main id="main">
       {/* Hver sektion fader blødt ind når den scrolles i syne. Det giver
           forsiden en rolig, sammenhængende rytme på alle enheder uden at
           skubbe layout — IntersectionObserver er praktisk talt gratis.
@@ -116,6 +117,7 @@ const Index = () => {
         <Reveal><ForBusinesses /></Reveal>
         <Footer />
       </Suspense>
+      </main>
     </div>
   );
 };
