@@ -909,7 +909,8 @@ const LiveChatWidget = () => {
                     }
                     const mine = m.sender_type === "visitor";
                     const prev = messages[i - 1];
-                    const showAvatar = !mine && (!prev || prev.sender_type !== m.sender_type || prev.is_system);
+                    const showAvatar = !mine && (!prev || prev.sender_type !== m.sender_type || prev.is_system || prev.sender_name !== m.sender_name);
+                    const isAi = !mine && (m.sender_name || "").toLowerCase().includes("ai");
                     let lastVisitorIdx = -1;
                     for (let j = messages.length - 1; j >= 0; j--) {
                       if (messages[j].sender_type === "visitor" && !messages[j].is_system) { lastVisitorIdx = j; break; }
@@ -920,18 +921,35 @@ const LiveChatWidget = () => {
                         {!mine && (
                           <div className="w-7 flex-shrink-0">
                             {showAvatar && (
-                              <span className="flex h-9 w-9 items-center justify-center overflow-visible rounded-2xl bg-card ring-1 ring-border">
+                              <span className={`relative flex h-9 w-9 items-center justify-center overflow-visible rounded-2xl bg-card ring-1 ${isAi ? "ring-accent/40 shadow-[0_0_0_3px_hsl(var(--accent)/0.08)]" : "ring-border"}`}>
                                 <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-7 w-7 object-contain" />
+                                {isAi && (
+                                  <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-accent text-accent-foreground ring-2 ring-card">
+                                    <Sparkles className="h-2 w-2" />
+                                  </span>
+                                )}
                               </span>
                             )}
                           </div>
                         )}
                         <div className={`flex max-w-[78%] flex-col ${mine ? "items-end" : "items-start"}`}>
+                          {!mine && showAvatar && (
+                            <div className="mb-1 flex items-center gap-1.5 px-1 text-[10px] font-semibold text-muted-foreground">
+                              <span className="text-foreground/80">{m.sender_name || "Serviceydere"}</span>
+                              {isAi && (
+                                <span className="inline-flex items-center gap-0.5 rounded-full bg-accent/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-accent">
+                                  <Sparkles className="h-2 w-2" /> AI
+                                </span>
+                              )}
+                            </div>
+                          )}
                           <div
                             className={`overflow-hidden rounded-2xl text-[13.5px] leading-snug ${
                               mine
                                 ? "rounded-br-sm bg-foreground text-background"
-                                : "rounded-bl-sm text-foreground"
+                                : isAi
+                                  ? "rounded-bl-sm border border-accent/20 bg-card text-foreground shadow-sm"
+                                  : "rounded-bl-sm border border-border bg-card text-foreground shadow-sm"
                             }`}
                           >
                             {m.image_url && (
