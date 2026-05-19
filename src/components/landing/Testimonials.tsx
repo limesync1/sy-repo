@@ -1,8 +1,9 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Star, Quote, Building2 } from "lucide-react";
+import { Star, Quote, Building2, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import SmartLink from "@/components/SmartLink";
 import HorizontalScroller from "./HorizontalScroller";
 
 type Review = {
@@ -62,13 +63,26 @@ const Testimonials = () => {
   return (
     <section className="bg-secondary py-20 md:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-14 max-w-2xl md:mb-16">
-          <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-            <span className="h-px w-6 bg-foreground/30" />
-            Anmeldelser
-          </span>
-          <h2 className="mt-5 text-[2rem] font-semibold leading-[1.04] tracking-[-0.025em] text-foreground md:text-[2.75rem] lg:text-[3.25rem]">Kundeoplevelser</h2>
-          <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground md:text-base">Ægte erfaringer fra rigtige kunder, uden unødig støj.</p>
+        <div className="mb-12 flex flex-col gap-6 md:mb-14 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-2xl">
+            <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+              <span className="h-px w-6 bg-foreground/30" />
+              Anmeldelser
+            </span>
+            <h2 className="mt-5 text-[2rem] font-semibold leading-[1.04] tracking-[-0.025em] text-foreground md:text-[2.75rem] lg:text-[3.25rem]">
+              Det siger kunderne om udbyderne
+            </h2>
+            <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground md:text-base">
+              Verificerede anmeldelser fra rigtige opgaver — så du ved hvad du går ind til, før du booker.
+            </p>
+          </div>
+          <SmartLink
+            to="/virksomheder"
+            className="group inline-flex items-center gap-2 self-start rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5 md:self-auto"
+          >
+            Find virksomheder
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          </SmartLink>
         </div>
 
         <HorizontalScroller>
