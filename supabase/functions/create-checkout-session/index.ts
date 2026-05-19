@@ -64,17 +64,33 @@ Deno.serve(async (req) => {
     // Hent eksisterende plan for at finde Stripe customer hvis den findes
     const { data: existingPlan } = await supabase
       .from("business_plans")
-      .select("stripe_customer_id, trial_ends_at, created_at, startup_fee_charged")
+      .select("stripe_customer_id, trial_ends_at, created_at, startup_fee_charged, locked_at, locked_extra_employee_logins, locked_accounting_integration, accounting_integration_enabled, extra_employee_logins")
       .eq("business_id", body.businessId)
       .maybeSingle();
 
     const stripe = createStripeClient(body.environment as StripeEnv);
 
+    // Hvis planen er låst (3 dage før fakturering), tvinger vi brugen af de
+    // låste værdier i stedet for dem klienten sendte med. Det forhindrer
+    // virksomheder i at nedjustere tilvalg lige før fornyelse.
+    let effectiveAddonPriceIds = body.addonPriceIds;
+    let effectiveExtraEmployeeLogins = body.extraEmployeeLogins;
+    if (existingPlan?.locked_at) {
+      const accLocked = !!existingPlan.locked_accounting_integration;
+      const ACC_LOOKUP = "accounting_integration_monthly";
+      effectiveAddonPriceIds = body.addonPriceIds.filter((id: string) => id !== ACC_LOOKUP);
+      if (accLocked) effectiveAddonPriceIds.push(ACC_LOOKUP);
+      const lockedLogins = Math.max(0, Number(existingPlan.locked_extra_employee_logins) || 0);
+      // Tillad altid OPjustering (kunden må gerne købe mere midt i perioden),
+      // men ikke nedjustering under låst antal.
+      effectiveExtraEmployeeLogins = Math.max(lockedLogins, body.extraEmployeeLogins);
+    }
+
     // Find Stripe-priser via lookup_keys
     const lookupKeys = [
       body.basePriceId,
-      ...body.addonPriceIds,
-      ...(body.extraEmployeeLogins > 0 && body.extraEmployeePriceId
+      ...effectiveAddonPriceIds,
+      ...(effectiveExtraEmployeeLogins > 0 && body.extraEmployeePriceId
         ? [body.extraEmployeePriceId]
         : []),
     ];
@@ -94,16 +110,16 @@ Deno.serve(async (req) => {
     if (!basePrice) throw new Error(`Base price not found: ${body.basePriceId}`);
     lineItems.push({ price: basePrice.id, quantity: 1 });
 
-    for (const addonId of body.addonPriceIds) {
+    for (const addonId of effectiveAddonPriceIds) {
       const addon = priceMap.get(addonId);
       if (!addon) throw new Error(`Addon price not found: ${addonId}`);
       lineItems.push({ price: addon.id, quantity: 1 });
     }
 
-    if (body.extraEmployeeLogins > 0 && body.extraEmployeePriceId) {
+    if (effectiveExtraEmployeeLogins > 0 && body.extraEmployeePriceId) {
       const employeePrice = priceMap.get(body.extraEmployeePriceId);
       if (!employeePrice) throw new Error(`Employee price not found: ${body.extraEmployeePriceId}`);
-      lineItems.push({ price: employeePrice.id, quantity: body.extraEmployeeLogins });
+      lineItems.push({ price: employeePrice.id, quantity: effectiveExtraEmployeeLogins });
     }
 
     // Opstartsgebyr — engangsbeløb der lægges på den FØRSTE rigtige faktura
@@ -122,8 +138,9 @@ Deno.serve(async (req) => {
       businessId: body.businessId,
       ownerId: user.id,
       basePriceId: body.basePriceId,
-      addonPriceIds: body.addonPriceIds.join(",") || "",
-      extraEmployeeLogins: String(body.extraEmployeeLogins),
+      addonPriceIds: effectiveAddonPriceIds.join(",") || "",
+      extraEmployeeLogins: String(effectiveExtraEmployeeLogins),
+      planLocked: existingPlan?.locked_at ? "true" : "false",
       includeStartupFee: includeStartupFee ? "true" : "false",
       startupFeeDkk: String(startupFeeDkk),
     };
