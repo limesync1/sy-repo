@@ -898,6 +898,15 @@ const LiveChatWidget = () => {
                         </div>
                       );
                     }
+                    if (m.metadata?.kind === "business_recommendation" && m.metadata?.business) {
+                      return (
+                        <BusinessRecommendationCard
+                          key={m.id}
+                          metadata={m.metadata}
+                          createdAt={m.created_at}
+                        />
+                      );
+                    }
                     const mine = m.sender_type === "visitor";
                     const prev = messages[i - 1];
                     const showAvatar = !mine && (!prev || prev.sender_type !== m.sender_type || prev.is_system);
