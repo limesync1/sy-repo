@@ -385,7 +385,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                   <span>Vælg alle synlige ({visible.length})</span>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {visible.map((l) => {
                     const qr = l.quote_request;
                     const status = STATUS_LABELS[l.status] ?? STATUS_LABELS.new;
@@ -402,20 +402,20 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                           if (t.closest('button, a, input, [role="checkbox"]')) return;
                           setOpenId(l.id);
                         }}
-                        className={`surface-admin overflow-hidden rounded-xl border-border/80 shadow-sm transition-all hover:border-foreground/20 hover:shadow-md cursor-pointer [content-visibility:auto] [contain-intrinsic-size:1px_220px] ${
+                        className={`surface-admin overflow-hidden rounded-xl border-border/80 shadow-sm transition-all hover:border-foreground/20 hover:shadow-md cursor-pointer [content-visibility:auto] [contain-intrinsic-size:1px_140px] ${
                           isSelected ? "ring-2 ring-foreground/30" : isDue ? "ring-1 ring-destructive/40" : ""
                         }`}
                       >
                         <CardContent className="p-0">
                           {/* Top accent banners */}
                           {isDue && (
-                            <div className="flex items-center gap-2 bg-destructive/10 px-5 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-destructive">
+                            <div className="flex items-center gap-2 bg-destructive/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-destructive">
                               <BellRing className="h-3 w-3" /> Opfølgning forfalden — {formatDistanceToNow(new Date(l.follow_up_at!), { addSuffix: true, locale: da })}
                             </div>
                           )}
-                          <div className="flex gap-3 p-5">
+                          <div className="flex gap-2.5 p-3 sm:p-4">
                             {/* Selection checkbox */}
-                            <div className="pt-1">
+                            <div className="pt-0.5">
                               <Checkbox
                                 checked={isSelected}
                                 onCheckedChange={() => toggleSelect(l.id)}
@@ -424,114 +424,110 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                               />
                             </div>
 
-                            <div className="flex flex-1 flex-wrap items-start justify-between gap-4">
+                            <div className="flex flex-1 flex-wrap items-start justify-between gap-3">
                               <div className="min-w-0 flex-1">
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <Badge className={`${status.className} border rounded-md pointer-events-none`}>{status.label}</Badge>
-
-                                  {qr?.category && <Badge variant="secondary" className="rounded-md pointer-events-none">{qr.category}</Badge>}
-
+                                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                  <h3 className="text-sm font-semibold text-foreground">{qr?.customer_name || "Anonym kunde"}</h3>
+                                  <Badge className={`${status.className} border rounded-md pointer-events-none text-[10px] px-1.5 py-0 h-5`}>{status.label}</Badge>
+                                  {qr?.category && <Badge variant="secondary" className="rounded-md pointer-events-none text-[10px] px-1.5 py-0 h-5">{qr.category}</Badge>}
                                   {l.follow_up_at && !isDue && (
                                     <Tooltip>
                                       <TooltipTrigger asChild>
-                                        <Badge variant="outline" className="gap-1 rounded-md cursor-help">
+                                        <Badge variant="outline" className="gap-1 rounded-md cursor-help text-[10px] px-1.5 py-0 h-5">
                                           <Bell className="h-3 w-3" /> {formatDistanceToNow(new Date(l.follow_up_at), { addSuffix: true, locale: da })}
                                         </Badge>
                                       </TooltipTrigger>
                                       <TooltipContent><p className="text-xs">Opfølgning sat: {new Date(l.follow_up_at).toLocaleString("da-DK")}</p></TooltipContent>
                                     </Tooltip>
                                   )}
-
+                                </div>
+                                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
                                   {(qr?.zip_code || qr?.city) && (
-                                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                                    <span className="inline-flex items-center gap-1">
                                       <MapPin className="h-3 w-3" /> {[qr.zip_code, qr.city].filter(Boolean).join(" ")}
                                       {typeof l.distance_km === "number" && ` • ~${Math.round(l.distance_km)} km`}
                                     </span>
                                   )}
-
                                   <Tooltip>
                                     <TooltipTrigger asChild>
-                                      <span className="inline-flex items-center gap-1 text-xs text-muted-foreground cursor-help">
+                                      <span className="inline-flex items-center gap-1 cursor-help">
                                         <Calendar className="h-3 w-3" />
                                         {formatDistanceToNow(new Date(l.created_at), { addSuffix: true, locale: da })}
                                       </span>
                                     </TooltipTrigger>
                                     <TooltipContent><p className="text-xs">{new Date(l.created_at).toLocaleString("da-DK")}</p></TooltipContent>
                                   </Tooltip>
+                                  {l.estimated_price && (
+                                    <span>Estimat: <span className="font-semibold text-foreground">{l.estimated_price}</span></span>
+                                  )}
                                 </div>
-
-                                <h3 className="mt-2.5 text-base font-semibold text-foreground">{qr?.customer_name || "Anonym kunde"}</h3>
                                 {qr?.description && (
-                                  <p className="mt-1 line-clamp-2 whitespace-pre-wrap text-sm text-foreground/80">{qr.description}</p>
-                                )}
-                                {l.estimated_price && (
-                                  <p className="mt-2 text-sm">
-                                    <span className="text-muted-foreground">Estimat: </span>
-                                    <span className="font-semibold text-foreground">{l.estimated_price}</span>
-                                  </p>
+                                  <p className="mt-1.5 line-clamp-2 whitespace-pre-wrap text-[13px] leading-snug text-foreground/80">{qr.description}</p>
                                 )}
                                 {l.business_note && (
-                                  <div className="mt-2 flex items-start gap-2 rounded-md border border-border bg-secondary/40 p-2 text-xs">
-                                    <StickyNote className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                                    <p className="line-clamp-2 text-foreground/80">{l.business_note}</p>
+                                  <div className="mt-1.5 flex items-start gap-1.5 rounded-md border border-border bg-secondary/40 px-2 py-1 text-[11px]">
+                                    <StickyNote className="mt-0.5 h-3 w-3 shrink-0 text-muted-foreground" />
+                                    <p className="line-clamp-1 text-foreground/80">{l.business_note}</p>
                                   </div>
                                 )}
                                 {share && qr && (
-                                  <div className="mt-3 flex flex-wrap gap-2 text-sm">
+                                  <div className="mt-2 flex flex-wrap gap-1.5">
                                     <a
                                       href={`mailto:${qr.customer_email}`}
                                       onClick={(e) => e.stopPropagation()}
-                                      className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1 text-xs text-foreground transition-colors hover:border-foreground/20 hover:bg-secondary"
+                                      className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-0.5 text-[11px] text-foreground transition-colors hover:border-foreground/20 hover:bg-secondary"
                                     >
-                                      <Mail className="h-3.5 w-3.5" /> {qr.customer_email}
+                                      <Mail className="h-3 w-3" /> {qr.customer_email}
                                     </a>
                                     {qr.customer_phone && (
                                       <a
                                         href={`tel:${qr.customer_phone}`}
                                         onClick={(e) => e.stopPropagation()}
-                                        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1 text-xs text-foreground transition-colors hover:border-foreground/20 hover:bg-secondary"
+                                        className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-0.5 text-[11px] text-foreground transition-colors hover:border-foreground/20 hover:bg-secondary"
                                       >
-                                        <Phone className="h-3.5 w-3.5" /> {qr.customer_phone}
+                                        <Phone className="h-3 w-3" /> {qr.customer_phone}
                                       </a>
                                     )}
                                   </div>
                                 )}
                                 {!share && (
-                                  <p className="mt-3 text-xs text-muted-foreground">
+                                  <p className="mt-2 text-[11px] text-muted-foreground">
                                     Kunden har ikke delt direkte kontaktinfo — svar via platformen.
                                   </p>
                                 )}
                               </div>
 
                               {/* Action column */}
-                              <div className="flex shrink-0 flex-col gap-2 sm:w-48" onClick={(e) => e.stopPropagation()}>
+                              <div className="flex shrink-0 flex-col gap-1.5 sm:w-40" onClick={(e) => e.stopPropagation()}>
                                 <Button
                                   size="sm"
                                   onClick={() => setOpenId(l.id)}
-                                  className="h-9 gap-1.5"
+                                  className="h-8 gap-1.5 text-xs"
                                 >
-                                  <MessageSquare className="h-4 w-4" /> Åbn & svar
+                                  <MessageSquare className="h-3.5 w-3.5" /> Åbn & svar
                                 </Button>
-                                {l.status !== "won" && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => updateStatus(l.id, "won")}
-                                    className="h-8 gap-1.5"
-                                  >
-                                    <Trophy className="h-3.5 w-3.5" /> Vundet
-                                  </Button>
-                                )}
-                                {l.status !== "declined" && (
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => updateStatus(l.id, "declined")}
-                                    className="h-8 gap-1.5 text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                                  >
-                                    <XCircle className="h-3.5 w-3.5" /> Afvis
-                                  </Button>
-                                )}
+                                <div className="flex gap-1">
+                                  {l.status !== "won" && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => updateStatus(l.id, "won")}
+                                      className="h-7 flex-1 gap-1 text-[11px]"
+                                    >
+                                      <Trophy className="h-3 w-3" /> Vundet
+                                    </Button>
+                                  )}
+                                  {l.status !== "declined" && (
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => updateStatus(l.id, "declined")}
+                                      className="h-7 flex-1 gap-1 text-[11px] text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                                    >
+                                      <XCircle className="h-3 w-3" /> Afvis
+                                    </Button>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>

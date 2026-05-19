@@ -5,6 +5,9 @@ import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
   Handshake, DollarSign, Star, Briefcase, TrendingUp,
   ArrowRight, AlertCircle, ChevronRight, Sparkles,
   ArrowUpRight, ArrowDownRight, Minus, CheckCircle2,
@@ -807,20 +810,20 @@ const OrdersListSection = ({
               </button>
             )}
           </div>
-          <div className="relative">
-            <ArrowUpDown className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-            <select
-              value={orderSort}
-              onChange={(e) => setOrderSort(e.target.value)}
-              aria-label="Sortér bestillinger"
-              className="h-9 w-full appearance-none rounded-lg border border-input bg-background pl-8 pr-7 text-sm font-medium text-foreground transition-colors hover:border-foreground/30 focus:outline-none focus:ring-2 focus:ring-ring sm:w-[210px]"
+          <Select value={orderSort} onValueChange={(v) => setOrderSort(v as typeof orderSort)}>
+            <SelectTrigger
+              aria-label="Sortér aftaler"
+              className="h-9 w-full gap-2 rounded-lg border-border bg-card text-sm font-medium hover:bg-secondary sm:w-[210px]"
             >
+              <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="end">
               {sortOptions.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
               ))}
-            </select>
-            <ChevronRight className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 rotate-90 text-muted-foreground" />
-          </div>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="mt-2 -mx-1 flex flex-nowrap items-center gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -1127,16 +1130,19 @@ const StatDetailSheet = ({
                       </button>
                     ))}
                   </div>
-                  <select
-                    value={rangeDays}
-                    onChange={(e) => setRangeDays(Number(e.target.value))}
-                    aria-label="Vælg interval"
-                    className="h-7 appearance-none rounded-md border border-border bg-background px-2 text-[11px] font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                  >
-                    {rangeOptions.filter((o) => granularity === "day" ? true : o.value >= 14).map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                  </select>
+                  <Select value={String(rangeDays)} onValueChange={(v) => setRangeDays(Number(v))}>
+                    <SelectTrigger
+                      aria-label="Vælg interval"
+                      className="h-7 w-auto gap-1.5 rounded-md border-border bg-card px-2 text-[11px] font-semibold text-foreground hover:bg-secondary"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent align="end">
+                      {rangeOptions.filter((o) => granularity === "day" ? true : o.value >= 14).map((o) => (
+                        <SelectItem key={o.value} value={String(o.value)}>{o.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div className="mt-4 flex h-32 items-end gap-2">
