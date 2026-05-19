@@ -700,21 +700,13 @@ const LiveChatWidget = () => {
               <div className="relative flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3">
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-background/[0.1] backdrop-blur-sm">
-                    <Bot className="h-6 w-6 text-background" />
+                    <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-7 w-7 object-contain" />
                   </div>
                   <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <p className="text-[15px] font-semibold leading-tight">Serviceydere Kundeservice</p>
-                      <span
-                        className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-background"
-                        style={{ backgroundColor: "hsl(var(--hero-cyan) / 0.22)", color: "hsl(var(--hero-cyan-bright))" }}
-                      >
-                        <Bot className="h-2 w-2" /> AI
-                      </span>
-                    </div>
+                    <p className="text-[15px] font-semibold leading-tight">Serviceydere Kundeservice</p>
                     <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-background/65">
                       <span className={`h-1.5 w-1.5 rounded-full ${closed ? "bg-muted-foreground" : "animate-pulse bg-success"}`} />
-                      {closed ? "Samtalen er afsluttet" : "AI svarer med det samme · menneske ved behov"}
+                      {closed ? "Samtalen er afsluttet" : "Vi svarer typisk inden for kort tid"}
                     </p>
                   </div>
                 </div>
