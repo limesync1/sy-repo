@@ -107,13 +107,15 @@ const Index = () => {
           Suspense-fallback er null fordi Reveal allerede holder pladsen
           via dens egen min-height/transition. */}
       <Suspense fallback={null}>
-        <Reveal><Stats /></Reveal>
-        <Reveal><HowItWorks /></Reveal>
-        <Reveal><GetQuotes /></Reveal>
-        <Reveal><RecentBusinesses /></Reveal>
-        <Reveal><Testimonials /></Reveal>
-        <Reveal><WhyUs /></Reveal>
-        <Reveal><ForBusinesses /></Reveal>
+        <main id="main">
+          <Reveal><Stats /></Reveal>
+          <Reveal><HowItWorks /></Reveal>
+          <Reveal><GetQuotes /></Reveal>
+          <Reveal><RecentBusinesses /></Reveal>
+          <Reveal><Testimonials /></Reveal>
+          <Reveal><WhyUs /></Reveal>
+          <Reveal><ForBusinesses /></Reveal>
+        </main>
         <Footer />
       </Suspense>
     </div>

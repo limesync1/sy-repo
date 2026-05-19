@@ -97,7 +97,7 @@ const ForBusinesses = () => {
                     fra ét sted.
                   </span>
                 </h3>
-                <p className="mt-3 text-sm leading-6 text-background/75 sm:text-[15px]">
+                <p className="mt-3 text-sm leading-6 text-background/85 sm:text-[15px]">
                   Kundekartotek, bookingkalender, ruteplanlægning, fakturering og medarbejderlogins — i ét panel, så du slipper for at hoppe mellem fem forskellige systemer.
                 </p>
 
@@ -123,23 +123,23 @@ const ForBusinesses = () => {
               {/* Mini "stats"-panel — illuderer panelet i virkeligheden. */}
               <div className="w-full max-w-xs shrink-0 rounded-2xl border border-background/15 bg-background/[0.04] p-5 backdrop-blur">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-background/60">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-background/75">
                     Denne uge
                   </span>
                   <TrendingUp className="h-4 w-4" style={{ color: "hsl(var(--hero-cyan-bright))" }} />
                 </div>
                 <div className="mt-3">
                   <div className="text-3xl font-semibold tabular-nums">42.180 kr</div>
-                  <div className="mt-1 text-xs text-background/65">Planlagt omsætning</div>
+                  <div className="mt-1 text-xs text-background/80">Planlagt omsætning</div>
                 </div>
                 <div className="mt-5 grid grid-cols-2 gap-3 border-t border-background/10 pt-4 text-left">
                   <div>
                     <div className="text-lg font-semibold tabular-nums">18</div>
-                    <div className="text-[11px] text-background/60">Aftaler</div>
+                    <div className="text-[11px] text-background/75">Aftaler</div>
                   </div>
                   <div>
                     <div className="text-lg font-semibold tabular-nums">4 t 20 m</div>
-                    <div className="text-[11px] text-background/60">Kørsel</div>
+                    <div className="text-[11px] text-background/75">Kørsel</div>
                   </div>
                 </div>
               </div>
@@ -153,7 +153,7 @@ const ForBusinesses = () => {
                 Kom i gang gratis
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </SmartLink>
-              <span className="text-xs text-background/60">14 dages prøveperiode · ingen binding.</span>
+              <span className="text-xs text-background/80">14 dages prøveperiode · ingen binding.</span>
             </div>
           </article>
 

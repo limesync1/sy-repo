@@ -4,9 +4,11 @@ import { ReactNode, useEffect, useRef, useState } from "react";
 interface HorizontalScrollerProps {
   children: ReactNode;
   className?: string;
+  /** Tilgængelig label til scroll-regionen — læses op af skærmlæsere. */
+  ariaLabel?: string;
 }
 
-const HorizontalScroller = ({ children, className = "" }: HorizontalScrollerProps) => {
+const HorizontalScroller = ({ children, className = "", ariaLabel = "Vandret liste — brug piletaster eller swipe" }: HorizontalScrollerProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(false);
@@ -61,7 +63,10 @@ const HorizontalScroller = ({ children, className = "" }: HorizontalScrollerProp
 
       <div
         ref={ref}
-        className="scrollbar-none flex gap-4 overflow-x-auto scroll-smooth pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        role="region"
+        aria-label={ariaLabel}
+        tabIndex={0}
+        className="scrollbar-none flex gap-4 overflow-x-auto scroll-smooth pb-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-[28px] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
       >
         {children}
       </div>
