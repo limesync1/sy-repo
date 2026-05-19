@@ -1,4 +1,5 @@
-export const LOGO_URL = 'https://serviceydere.dk/serviceydere-logo-dark.png'
+// Cache-bust v2 — bump query versionen hvis logoet udskiftes igen.
+export const LOGO_URL = 'https://serviceydere.dk/serviceydere-logo-dark.png?v=2'
 
 // Swiss Clean — refined, professional, matches serviceydere.dk
 
