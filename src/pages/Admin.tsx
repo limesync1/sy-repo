@@ -13,6 +13,9 @@ import { useEffect, useState, lazy, Suspense } from "react";
 import { Sparkles } from "lucide-react";
 // Lazy load tunge tabs så hver fane først downloades når brugeren åbner den
 const DashboardTab = lazy(() => import("@/components/admin/DashboardTab"));
+const DashboardSkeleton = lazy(() =>
+  import("@/components/admin/DashboardTab").then((m) => ({ default: m.DashboardSkeleton }))
+);
 const ReviewsTab = lazy(() => import("@/components/admin/ReviewsTab"));
 const AftaleTab = lazy(() => import("@/components/admin/AftaleTab"));
 const EmployeesTab = lazy(() => import("@/components/admin/EmployeesTab"));
@@ -249,7 +252,7 @@ const DashboardWrapper = ({ business, onNavigate }: { business: any; onNavigate:
   // tomme tal (0 kr, 0 anmeldelser) frem i et splitsekund og blev så udskiftet
   // med rigtige værdier, hvilket føltes som om siden loadede to gange.
   if (loadingOrders || loadingServices || loadingReviews) {
-    return <TabFallback tab="dashboard" />;
+    return <DashboardSkeleton />;
   }
 
   const revenue = orders?.reduce((sum, o) => sum + (o.total_amount || 0), 0) || 0;

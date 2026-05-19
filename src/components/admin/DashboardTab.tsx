@@ -10,7 +10,7 @@ import {
   ArrowUpRight, ArrowDownRight, Minus, CheckCircle2,
   Share2, Eye, Calendar, MessageSquare, Link2, Check,
   Zap, Target, Settings as SettingsIcon, Users,
-  Search, X, Inbox, Rocket, PartyPopper,
+  Search, X, Inbox, Rocket, PartyPopper, ArrowUpDown,
 } from "lucide-react";
 import type { Business } from "@/hooks/useDatabase";
 import { useMemo, useState } from "react";
@@ -62,6 +62,7 @@ const DashboardTab = ({
   // Filtre på "Seneste bestillinger" — status-pille + søgetekst.
   const [orderFilter, setOrderFilter] = useState<"all" | "pending" | "confirmed" | "in_progress" | "completed" | "cancelled">("all");
   const [orderSearch, setOrderSearch] = useState("");
+  const [orderSort, setOrderSort] = useState<"newest" | "oldest" | "amount_desc" | "amount_asc" | "status">("newest");
 
   // ── Periode-aggregat: dag/uge/30-dage + sparkline-data ───────────────
   const stats = useMemo(() => {
@@ -341,6 +342,8 @@ const DashboardTab = ({
               setOrderFilter={setOrderFilter}
               orderSearch={orderSearch}
               setOrderSearch={setOrderSearch}
+              orderSort={orderSort}
+              setOrderSort={setOrderSort}
               onNavigate={onNavigate}
               copyLink={copyLink}
               hasShareUrl={!!shareUrl}
@@ -643,7 +646,7 @@ const SmartStatCard = ({
 /** OrdersListSection — seneste bestillinger med status-filter + søgning. */
 const OrdersListSection = ({
   recentOrders, servicesCount, completeness, orderFilter, setOrderFilter,
-  orderSearch, setOrderSearch, onNavigate, copyLink, hasShareUrl,
+  orderSearch, setOrderSearch, orderSort, setOrderSort, onNavigate, copyLink, hasShareUrl,
   statusLabels, statusColors,
 }: {
   recentOrders: any[];
@@ -653,6 +656,8 @@ const OrdersListSection = ({
   setOrderFilter: (v: any) => void;
   orderSearch: string;
   setOrderSearch: (v: string) => void;
+  orderSort: "newest" | "oldest" | "amount_desc" | "amount_asc" | "status";
+  setOrderSort: (v: any) => void;
   onNavigate?: (tab: string) => void;
   copyLink: () => void;
   hasShareUrl: boolean;
@@ -667,7 +672,7 @@ const OrdersListSection = ({
 
   const filtered = useMemo(() => {
     const q = orderSearch.trim().toLowerCase();
-    return recentOrders.filter((o: any) => {
+    const list = recentOrders.filter((o: any) => {
       if (orderFilter !== "all" && o.status !== orderFilter) return false;
       if (!q) return true;
       return (
@@ -677,7 +682,37 @@ const OrdersListSection = ({
         String(o.total_amount || "").includes(q)
       );
     });
-  }, [recentOrders, orderFilter, orderSearch]);
+    const statusRank: Record<string, number> = {
+      pending: 0, confirmed: 1, in_progress: 2, completed: 3, cancelled: 4,
+    };
+    const sorted = [...list];
+    switch (orderSort) {
+      case "oldest":
+        sorted.sort((a, b) => +new Date(a.created_at) - +new Date(b.created_at)); break;
+      case "amount_desc":
+        sorted.sort((a, b) => (Number(b.total_amount) || 0) - (Number(a.total_amount) || 0)); break;
+      case "amount_asc":
+        sorted.sort((a, b) => (Number(a.total_amount) || 0) - (Number(b.total_amount) || 0)); break;
+      case "status":
+        sorted.sort((a, b) => (statusRank[a.status] ?? 99) - (statusRank[b.status] ?? 99)
+          || +new Date(b.created_at) - +new Date(a.created_at)); break;
+      case "newest":
+      default:
+        sorted.sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at));
+    }
+    return sorted;
+  }, [recentOrders, orderFilter, orderSearch, orderSort]);
+
+  const sortOptions: { value: typeof orderSort; label: string }[] = [
+    { value: "newest", label: "Nyeste først" },
+    { value: "oldest", label: "Ældste først" },
+    { value: "amount_desc", label: "Højeste beløb" },
+    { value: "amount_asc", label: "Laveste beløb" },
+    { value: "status", label: "Status (afventer først)" },
+  ];
+  const activeFilterLabel = chipsLookup(orderFilter);
+  const hasActiveFilters = orderFilter !== "all" || orderSearch.trim().length > 0;
+  const clearAll = () => { setOrderFilter("all"); setOrderSearch(""); };
 
   const chips: { key: typeof orderFilter; label: string }[] = [
     { key: "all", label: "Alle" },
@@ -772,6 +807,20 @@ const OrdersListSection = ({
               </button>
             )}
           </div>
+          <div className="relative">
+            <ArrowUpDown className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <select
+              value={orderSort}
+              onChange={(e) => setOrderSort(e.target.value)}
+              aria-label="Sortér bestillinger"
+              className="h-9 w-full appearance-none rounded-lg border border-input bg-background pl-8 pr-7 text-sm font-medium text-foreground transition-colors hover:border-foreground/30 focus:outline-none focus:ring-2 focus:ring-ring sm:w-[210px]"
+            >
+              {sortOptions.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+            <ChevronRight className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 rotate-90 text-muted-foreground" />
+          </div>
         </div>
 
         <div className="mt-2 -mx-1 flex flex-nowrap items-center gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -842,18 +891,54 @@ const OrdersListSection = ({
           <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-secondary">
             <Search className="h-4 w-4 text-muted-foreground" />
           </div>
-          <p className="mt-3 text-sm font-medium text-foreground">Ingen match</p>
+          <p className="mt-3 text-sm font-medium text-foreground">Ingen bestillinger matcher</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Prøv en anden status eller ryd søgningen.
+            {hasActiveFilters
+              ? "Justér eller fjern et af de aktive filtre nedenfor."
+              : "Der er ingen bestillinger at vise her endnu."}
           </p>
-          <Button size="sm" variant="outline" className="mt-3 h-8 rounded-lg" onClick={() => { setOrderSearch(""); setOrderFilter("all"); }}>
-            Ryd filtre
-          </Button>
+          {hasActiveFilters && (
+            <div className="mx-auto mt-4 flex max-w-md flex-wrap items-center justify-center gap-1.5">
+              {orderFilter !== "all" && (
+                <button
+                  type="button"
+                  onClick={() => setOrderFilter("all")}
+                  className="group inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:border-foreground/40"
+                  aria-label={`Fjern statusfilter ${activeFilterLabel}`}
+                >
+                  <span className="text-muted-foreground">Status:</span> {activeFilterLabel}
+                  <X className="h-3 w-3 text-muted-foreground transition-colors group-hover:text-foreground" />
+                </button>
+              )}
+              {orderSearch.trim() && (
+                <button
+                  type="button"
+                  onClick={() => setOrderSearch("")}
+                  className="group inline-flex max-w-[220px] items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:border-foreground/40"
+                  aria-label="Ryd søgning"
+                >
+                  <span className="text-muted-foreground">Søgning:</span>
+                  <span className="truncate">“{orderSearch.trim()}”</span>
+                  <X className="h-3 w-3 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
+                </button>
+              )}
+            </div>
+          )}
+          {hasActiveFilters && (
+            <Button size="sm" variant="outline" className="mt-3 h-8 rounded-lg" onClick={clearAll}>
+              <X className="mr-1 h-3.5 w-3.5" /> Nulstil alle filtre
+            </Button>
+          )}
         </div>
       )}
     </>
   );
 };
+
+const chipsLookup = (k: string) => ({
+  all: "Alle", pending: "Afventer", confirmed: "Bekræftet",
+  in_progress: "I gang", completed: "Afsluttet", cancelled: "Annulleret",
+}[k] || k);
 
 /* ─────────────────────────────────────────────────────────────────────── */
 
@@ -869,31 +954,43 @@ const StatDetailSheet = ({
   statusColors: Record<string, string>;
   onNavigate?: (tab: string) => void;
 }) => {
+  const [granularity, setGranularity] = useState<"day" | "week">("day");
+  const [rangeDays, setRangeDays] = useState<number>(7);
+
+  // Når kuffen åbnes på "today" giver kun 1-dag mening — ellers default 7.
+  useMemo(() => {
+    if (openStat === "today") { setGranularity("day"); setRangeDays(1); }
+    else if (openStat === "revenue" || openStat === "orders") { setRangeDays(7); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openStat]);
+
   const config = useMemo(() => {
     const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
     const tomorrow = +todayStart + DAY_MS;
-    const week = +todayStart - 6 * DAY_MS;
+    const rangeStart = +todayStart - (rangeDays - 1) * DAY_MS;
 
     switch (openStat) {
       case "revenue":
         return {
-          title: "Omsætning · sidste 7 dage",
-          subtitle: "Klikbar opdeling pr. dag",
+          title: `Omsætning · seneste ${rangeDays === 1 ? "dag" : `${rangeDays} dage`}`,
+          subtitle: "Skift mellem dag- og ugevisning herunder",
           mode: "revenue" as const,
           orders: recentOrders.filter((o: any) => {
             const t = +new Date(o.created_at);
-            return t >= week && t < tomorrow && o.status !== "cancelled";
+            return t >= rangeStart && t < tomorrow && o.status !== "cancelled";
           }),
+          showChart: true,
         };
       case "orders":
         return {
-          title: "Bestillinger · sidste 7 dage",
-          subtitle: "Alle indkomne aftaler",
+          title: `Bestillinger · seneste ${rangeDays === 1 ? "dag" : `${rangeDays} dage`}`,
+          subtitle: "Skift mellem dag- og ugevisning herunder",
           mode: "count" as const,
           orders: recentOrders.filter((o: any) => {
             const t = +new Date(o.created_at);
-            return t >= week && t < tomorrow;
+            return t >= rangeStart && t < tomorrow;
           }),
+          showChart: true,
         };
       case "today":
         return {
@@ -904,6 +1001,7 @@ const StatDetailSheet = ({
             const t = +new Date(o.created_at);
             return t >= +todayStart && t < tomorrow;
           }),
+          showChart: false,
         };
       case "pending":
         return {
@@ -911,11 +1009,12 @@ const StatDetailSheet = ({
           subtitle: "Svar hurtigt — hver time tæller for konverteringen",
           mode: "count" as const,
           orders: recentOrders.filter((o: any) => o.status === "pending"),
+          showChart: false,
         };
       default:
         return null;
     }
-  }, [openStat, recentOrders]);
+  }, [openStat, recentOrders, rangeDays]);
 
   const open = openStat !== null && !!config;
   if (!config) {
@@ -926,10 +1025,53 @@ const StatDetailSheet = ({
     );
   }
 
-  const max = Math.max(1, ...buckets14.slice(7).map((b) => (config.mode === "revenue" ? b.rev : b.count)));
   const totalValue = config.mode === "revenue"
     ? config.orders.reduce((s, o) => s + (Number(o.total_amount) || 0), 0)
     : config.orders.length;
+
+  // Byg dag- eller uge-bins ud fra de filtrerede ordrer for det valgte interval.
+  const chartBins = (() => {
+    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+    if (granularity === "day") {
+      const days = rangeDays;
+      const bins = Array.from({ length: days }, (_, i) => {
+        const d = new Date(todayStart);
+        d.setDate(d.getDate() - (days - 1 - i));
+        return { date: d, label: d.toLocaleDateString("da-DK", { weekday: "short" }).slice(0, 2), value: 0 };
+      });
+      config.orders.forEach((o: any) => {
+        const t = new Date(o.created_at); t.setHours(0, 0, 0, 0);
+        const idx = bins.findIndex((b) => +b.date === +t);
+        if (idx >= 0) bins[idx].value += config.mode === "revenue" ? Number(o.total_amount || 0) : 1;
+      });
+      return bins;
+    }
+    // Uge-visning — del intervallet op i 7-dages buckets, nyeste til sidst.
+    const weeks = Math.max(1, Math.ceil(rangeDays / 7));
+    const bins = Array.from({ length: weeks }, (_, i) => {
+      const end = new Date(todayStart); end.setDate(end.getDate() - (weeks - 1 - i) * 7);
+      const start = new Date(end); start.setDate(start.getDate() - 6);
+      return { date: end, label: `${start.getDate()}/${start.getMonth() + 1}`, value: 0 };
+    });
+    config.orders.forEach((o: any) => {
+      const t = new Date(o.created_at); t.setHours(0, 0, 0, 0);
+      for (let i = bins.length - 1; i >= 0; i--) {
+        const end = bins[i].date;
+        const start = new Date(end); start.setDate(start.getDate() - 6);
+        if (+t >= +start && +t <= +end) {
+          bins[i].value += config.mode === "revenue" ? Number(o.total_amount || 0) : 1;
+          break;
+        }
+      }
+    });
+    return bins;
+  })();
+  const chartMax = Math.max(1, ...chartBins.map((b) => b.value));
+  const rangeOptions = [
+    { value: 7, label: "7 dage" },
+    { value: 14, label: "14 dage" },
+    { value: 30, label: "30 dage" },
+  ];
 
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
@@ -940,44 +1082,82 @@ const StatDetailSheet = ({
         </SheetHeader>
 
         <div className="space-y-5 p-5">
-          {/* Total */}
+          {/* Total for valgt interval */}
           <div className="rounded-xl border border-border bg-card p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-              {config.mode === "revenue" ? "Total omsætning" : "Antal"}
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                {config.mode === "revenue" ? "Total omsætning" : "Antal bestillinger"}
+              </p>
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                {rangeDays === 1 ? "I dag" : `Seneste ${rangeDays} dage`}
+              </span>
+            </div>
             <p className="mt-1 text-3xl font-semibold tabular-nums text-foreground">
               {config.mode === "revenue" ? fmtKr(totalValue) : totalValue}
             </p>
+            {config.orders.length > 0 && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                {config.mode === "revenue"
+                  ? `${config.orders.length} bestillinger · gennemsnit ${fmtKr(totalValue / Math.max(1, config.orders.length))}`
+                  : `Ud af ${recentOrders.length} bestillinger i alt`}
+              </p>
+            )}
           </div>
 
-          {/* 7-dages dag-for-dag graf */}
-          {openStat !== "pending" && (
+          {/* Graf med dag/uge-toggle */}
+          {config.showChart && (
             <div className="rounded-xl border border-border bg-card p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                Dag for dag
-              </p>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  {granularity === "day" ? "Dag for dag" : "Uge for uge"}
+                </p>
+                <div className="flex items-center gap-2">
+                  <div className="inline-flex rounded-lg border border-border bg-secondary/40 p-0.5">
+                    {(["day", "week"] as const).map((g) => (
+                      <button
+                        key={g}
+                        type="button"
+                        onClick={() => { setGranularity(g); if (g === "week" && rangeDays < 14) setRangeDays(14); }}
+                        className={cn(
+                          "rounded-md px-2.5 py-1 text-[11px] font-semibold transition-colors",
+                          granularity === g ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+                        )}
+                      >
+                        {g === "day" ? "Dag" : "Uge"}
+                      </button>
+                    ))}
+                  </div>
+                  <select
+                    value={rangeDays}
+                    onChange={(e) => setRangeDays(Number(e.target.value))}
+                    aria-label="Vælg interval"
+                    className="h-7 appearance-none rounded-md border border-border bg-background px-2 text-[11px] font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    {rangeOptions.filter((o) => granularity === "day" ? true : o.value >= 14).map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
               <div className="mt-4 flex h-32 items-end gap-2">
-                {buckets14.slice(7).map((b, i) => {
-                  const v = config.mode === "revenue" ? b.rev : b.count;
-                  const h = Math.max(6, Math.round((v / max) * 100));
-                  const date = new Date(); date.setHours(0, 0, 0, 0);
-                  date.setDate(date.getDate() - (6 - i));
-                  const isToday = i === 6;
+                {chartBins.map((b, i) => {
+                  const h = Math.max(6, Math.round((b.value / chartMax) * 100));
+                  const isLast = i === chartBins.length - 1;
                   return (
-                    <div key={i} className="flex flex-1 flex-col items-center gap-1.5">
+                    <div key={i} className="flex flex-1 flex-col items-center gap-1.5 min-w-0">
                       <span className="text-[10px] font-semibold tabular-nums text-muted-foreground">
-                        {v > 0 ? (config.mode === "revenue" ? fmtKrShort(v) : v) : ""}
+                        {b.value > 0 ? (config.mode === "revenue" ? fmtKrShort(b.value) : b.value) : ""}
                       </span>
                       <div
                         className={cn(
                           "w-full rounded-md transition-colors",
-                          isToday ? "bg-foreground" : v > 0 ? "bg-foreground/40" : "bg-foreground/10",
+                          isLast ? "bg-foreground" : b.value > 0 ? "bg-foreground/40" : "bg-foreground/10",
                         )}
                         style={{ height: `${h}%` }}
-                        aria-label={`${date.toLocaleDateString("da-DK", { weekday: "short", day: "numeric" })}: ${v}`}
+                        aria-label={`${b.label}: ${b.value}`}
                       />
-                      <span className="text-[10px] font-medium uppercase text-muted-foreground">
-                        {date.toLocaleDateString("da-DK", { weekday: "short" }).slice(0, 2)}
+                      <span className="truncate text-[10px] font-medium uppercase text-muted-foreground">
+                        {b.label}
                       </span>
                     </div>
                   );
@@ -1038,3 +1218,119 @@ const StatDetailSheet = ({
 };
 
 export default DashboardTab;
+
+/* ─────────────────────────────────────────────────────────────────────── */
+
+/** DashboardSkeleton — vises mens overblikkets data hentes første gang. */
+export const DashboardSkeleton = () => {
+  const Shimmer = ({ className }: { className?: string }) => (
+    <div className={cn("animate-pulse rounded-md bg-secondary/70", className)} />
+  );
+  return (
+    <div className="space-y-5" aria-busy="true" aria-live="polite">
+      {/* Hero */}
+      <section
+        className="relative isolate overflow-hidden rounded-2xl px-5 py-6 sm:px-8 sm:py-8"
+        style={{ backgroundColor: "hsl(var(--hero-bg))" }}
+      >
+        <div className="space-y-3">
+          <div className="h-3 w-48 animate-pulse rounded bg-background/15" />
+          <div className="h-8 w-72 max-w-full animate-pulse rounded bg-background/20" />
+          <div className="h-4 w-2/3 animate-pulse rounded bg-background/15" />
+        </div>
+        <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="rounded-xl border border-background/10 bg-background/[0.06] p-3">
+              <div className="h-2.5 w-14 animate-pulse rounded bg-background/20" />
+              <div className="mt-2 h-5 w-12 animate-pulse rounded bg-background/25" />
+              <div className="mt-1 h-2.5 w-20 animate-pulse rounded bg-background/15" />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)]">
+        <section className="space-y-4">
+          {/* Stat cards */}
+          <div className="grid gap-3 sm:grid-cols-2">
+            {Array.from({ length: 2 }).map((_, i) => (
+              <Card key={i} className="surface-admin rounded-xl border-border/80 shadow-sm">
+                <CardContent className="p-4 sm:p-5">
+                  <div className="flex items-start justify-between">
+                    <Shimmer className="h-3 w-24" />
+                    <Shimmer className="h-7 w-7 rounded-lg" />
+                  </div>
+                  <Shimmer className="mt-3 h-8 w-32" />
+                  <div className="mt-3 flex h-8 items-end gap-[3px]">
+                    {Array.from({ length: 14 }).map((_, j) => (
+                      <div
+                        key={j}
+                        className="w-1.5 animate-pulse rounded-sm bg-secondary/70"
+                        style={{ height: `${20 + ((j * 13) % 70)}%` }}
+                      />
+                    ))}
+                  </div>
+                  <Shimmer className="mt-3 h-3 w-40" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Recent orders skeleton */}
+          <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
+            <div className="border-b border-border px-4 py-3 sm:px-5">
+              <Shimmer className="h-4 w-40" />
+              <Shimmer className="mt-2 h-3 w-64 max-w-full" />
+              <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto] sm:items-center">
+                <Shimmer className="h-9 w-full rounded-lg" />
+                <Shimmer className="h-9 w-full rounded-lg sm:w-[210px]" />
+              </div>
+              <div className="mt-2 flex gap-1.5">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Shimmer key={i} className="h-6 w-20 rounded-full" />
+                ))}
+              </div>
+            </div>
+            <div className="divide-y divide-border">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="grid gap-3 px-4 py-3 sm:grid-cols-[minmax(0,1.1fr)_auto_auto] sm:items-center sm:px-5">
+                  <div className="space-y-2">
+                    <Shimmer className="h-4 w-40" />
+                    <Shimmer className="h-3 w-24" />
+                  </div>
+                  <Shimmer className="h-5 w-20 rounded-full" />
+                  <div className="flex items-center justify-end gap-2">
+                    <Shimmer className="h-4 w-16" />
+                    <Shimmer className="h-4 w-4 rounded" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </section>
+
+        <section className="space-y-4">
+          <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
+            <div className="border-b border-border px-4 py-3 sm:px-5">
+              <Shimmer className="h-4 w-36" />
+              <Shimmer className="mt-2 h-3 w-48 max-w-full" />
+            </div>
+            <div className="space-y-2 p-3 sm:p-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
+                  <Shimmer className="h-9 w-9 rounded-lg" />
+                  <div className="flex-1 space-y-2">
+                    <Shimmer className="h-4 w-3/4" />
+                    <Shimmer className="h-3 w-1/2" />
+                  </div>
+                  <Shimmer className="h-4 w-4 rounded" />
+                </div>
+              ))}
+            </div>
+          </Card>
+        </section>
+      </div>
+      <span className="sr-only">Henter dit overblik…</span>
+    </div>
+  );
+};
