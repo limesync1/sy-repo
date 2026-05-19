@@ -1119,6 +1119,32 @@ const LiveChatWidget = () => {
           </div>
         </div>
       )}
+
+      <AlertDialog open={!!confirmDelete} onOpenChange={(o) => { if (!o) setConfirmDelete(null); }}>
+        <AlertDialogContent className="z-[100]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Slet samtale?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Samtalen fjernes fra dine samtaler. Du kan altid starte en ny henvendelse igen.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annullér</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                const c = confirmDelete;
+                setConfirmDelete(null);
+                if (!c) return;
+                if (c.kind === "current") performDeleteCurrent();
+                else performDeleteChat(c.chat);
+              }}
+            >
+              Slet samtale
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
