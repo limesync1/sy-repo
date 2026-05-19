@@ -660,10 +660,8 @@ const LiveChatWidget = () => {
           type="button"
           onClick={handleOpen}
           aria-label="Åbn livechat"
-          className={`group fixed z-40 flex items-center gap-2 overflow-hidden rounded-full border border-background/10 py-2 pl-2.5 pr-4 text-xs font-semibold text-background shadow-[0_20px_50px_-22px_hsl(204_96%_13%/0.7)] transition-all hover:scale-[1.03] active:scale-[0.97] ${fabBottomClass} ${fabPositionClass}`}
-          style={{ backgroundColor: "hsl(var(--hero-bg))" }}
+          className={`group fixed z-40 flex items-center gap-2 overflow-hidden rounded-full bg-foreground py-2 pl-2.5 pr-4 text-xs font-semibold text-background shadow-[0_20px_50px_-22px_hsl(var(--foreground)/0.6)] transition-all hover:scale-[1.03] active:scale-[0.97] ${fabBottomClass} ${fabPositionClass}`}
         >
-          <span aria-hidden className="pointer-events-none absolute inset-0 opacity-80" style={{ backgroundImage: "radial-gradient(circle at 15% 50%, hsl(var(--hero-cyan) / 0.35), transparent 60%)" }} />
           <span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-visible">
             <img
               src="/serviceydere-ikon.webp"
@@ -673,7 +671,7 @@ const LiveChatWidget = () => {
             />
             <span className="absolute -right-1 -top-1 flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70 opacity-75"></span>
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-success ring-2" style={{ boxShadow: "0 0 0 2px hsl(var(--hero-bg))" }}></span>
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-success ring-2 ring-foreground"></span>
             </span>
           </span>
           <span className="relative">Kundeservice</span>
