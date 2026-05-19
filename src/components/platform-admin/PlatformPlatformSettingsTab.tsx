@@ -35,6 +35,7 @@ const PlatformSettingsTab = () => {
       price_accounting_integration_dkk: Number(s.price_accounting_integration_dkk) || 0,
       price_data_import_dkk: Number(s.price_data_import_dkk) || 0,
       price_per_employee_login_dkk: Number(s.price_per_employee_login_dkk) || 0,
+      startup_fee_dkk: Number(s.startup_fee_dkk) || 0,
       discount_quarterly_pct: Number(s.discount_quarterly_pct) || 0,
       discount_yearly_pct: Number(s.discount_yearly_pct) || 0,
       trial_days: Number(s.trial_days) || 0,
@@ -99,6 +100,7 @@ const PlatformSettingsTab = () => {
           <NumField label="Regnskabsintegration" v={s.price_accounting_integration_dkk} on={(v) => set("price_accounting_integration_dkk", v)} hint="Gratis (sat til 0)" />
           <NumField label="Dataimport" v={s.price_data_import_dkk} on={(v) => set("price_data_import_dkk", v)} hint="Engangs / add-on" />
           <NumField label="Per ekstra medarbejderlogin" v={s.price_per_employee_login_dkk} on={(v) => set("price_per_employee_login_dkk", v)} hint="Pris pr. ekstra login" />
+          <NumField label="Opstartspris (engangsbeløb)" v={s.startup_fee_dkk} on={(v) => set("startup_fee_dkk", v)} hint="Tillægges 1. faktura efter prøve (standard 2.269 kr)" />
           <NumField label="Prøveperiode (dage)" v={s.trial_days} on={(v) => set("trial_days", v)} hint="Gratis dage før første betaling" />
           <NumField label="Kvartalsrabat (%)" v={s.discount_quarterly_pct} on={(v) => set("discount_quarterly_pct", v)} hint="Ved kvartalsbetaling" />
           <NumField label="Årsrabat (%)" v={s.discount_yearly_pct} on={(v) => set("discount_yearly_pct", v)} hint="Ved årlig betaling" />

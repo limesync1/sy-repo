@@ -37,12 +37,13 @@ type Pricing = {
   price_accounting_integration_dkk: number;
   price_data_import_dkk: number;
   price_per_employee_login_dkk: number;
+  startup_fee_dkk: number;
   discount_quarterly_pct: number;
   discount_yearly_pct: number;
   trial_days: number;
 };
 
-type FeatureKey = "route_planning" | "accounting_integration" | "leads" | "livechat";
+type FeatureKey = "accounting_integration" | "leads" | "livechat";
 type BillingPeriod = "monthly" | "quarterly" | "yearly";
 
 const FEATURES: { key: FeatureKey; icon: typeof Route; title: string; description: string }[] = [
@@ -50,7 +51,7 @@ const FEATURES: { key: FeatureKey; icon: typeof Route; title: string; descriptio
     key: "accounting_integration",
     icon: Calculator,
     title: "Regnskabsintegration",
-    description: "Synkronisér automatisk fakturaer og betalinger med fx e-conomic eller Dinero. Helt gratis — inkluderet i din pakke.",
+    description: "Send automatisk fakturaer til e-conomic eller Dinero, så du slipper for dobbelt indtastning. Kan slås til/fra når som helst.",
   },
   {
     key: "leads",
@@ -125,7 +126,6 @@ const BusinessOnboarding = () => {
 
   // ─── Form state ───
   const [features, setFeatures] = useState<Record<FeatureKey, boolean>>({
-    route_planning: true,
     accounting_integration: false,
     leads: true,
     livechat: true,
@@ -143,10 +143,8 @@ const BusinessOnboarding = () => {
   const breakdown = useMemo(() => {
     if (!pricing) return null;
     const lines: { label: string; amount: number }[] = [
-      { label: "Basis (virksomhedsprofil + bestillinger)", amount: pricing.base_price_dkk },
+      { label: "Basis (panel + ruteplanlægning + bestillinger)", amount: pricing.base_price_dkk },
     ];
-    if (features.route_planning)
-      lines.push({ label: "Ruteplanlægning", amount: pricing.price_route_planning_dkk });
     if (features.accounting_integration)
       lines.push({ label: "Regnskabsintegration", amount: pricing.price_accounting_integration_dkk });
     if (extraLogins > 0)
@@ -163,6 +161,8 @@ const BusinessOnboarding = () => {
     const monthlyAfterDiscount = monthlySubtotal * (1 - discountPct / 100);
     const months = BILLING_OPTIONS.find((o) => o.value === billing)!.months;
     const periodTotal = monthlyAfterDiscount * months;
+    const startupFee = pricing.startup_fee_dkk || 0;
+    const firstInvoiceTotal = periodTotal + startupFee;
 
     return {
       lines,
@@ -171,6 +171,8 @@ const BusinessOnboarding = () => {
       monthlyAfterDiscount,
       periodTotal,
       months,
+      startupFee,
+      firstInvoiceTotal,
     };
   }, [pricing, features, extraLogins, billing]);
 
@@ -229,7 +231,7 @@ const BusinessOnboarding = () => {
           settings: {
             cvr: cleanCvr,
             industry_text: cvrData.industry,
-            route_planning_enabled: features.route_planning,
+            route_planning_enabled: true,
             accounting_integration_enabled: features.accounting_integration,
             leads_enabled: features.leads,
             livechat_enabled: features.livechat,
@@ -247,7 +249,7 @@ const BusinessOnboarding = () => {
       trialEnd.setDate(trialEnd.getDate() + pricing.trial_days);
       await supabase.from("business_plans").insert({
         business_id: bizData.id,
-        route_planning_enabled: features.route_planning,
+        route_planning_enabled: true,
         accounting_integration_enabled: features.accounting_integration,
         extra_employee_logins: extraLogins,
         billing_period: billing,
@@ -352,14 +354,24 @@ const BusinessOnboarding = () => {
             </Section>
 
             {/* 2. Funktioner */}
-            <Section number={2} title="Vælg dine funktioner" subtitle="Tilkøb kun det du har brug for — alt kan til- eller fravælges senere under Indstillinger">
+            <Section number={2} title="Vælg dine funktioner" subtitle="Ruteplanlægning er altid med. Vælg om du vil tilkøbe regnskabsintegration eller slå de gratis funktioner til.">
+              <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-700">
+                  Inkluderet i basis
+                </p>
+                <ul className="mt-2 grid gap-1.5 text-sm text-emerald-900 sm:grid-cols-2">
+                  <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-700" /> Virksomhedsprofil med søgesynlighed</li>
+                  <li className="flex items-center gap-2"><Route className="h-4 w-4 text-emerald-700" /> Ruteplanlægning til medarbejdere</li>
+                  <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-700" /> Bestillinger, kalender, fakturering</li>
+                  <li className="flex items-center gap-2"><Users className="h-4 w-4 text-emerald-700" /> 1 ejer-login</li>
+                </ul>
+              </div>
               <div className="grid gap-3">
                 {FEATURES.map(({ key, icon: Icon, title, description }) => {
                   const active = features[key];
                   const isFree = key === "leads" || key === "livechat";
                   const price = isFree
                     ? 0
-                    : key === "route_planning" ? pricing?.price_route_planning_dkk
                     : pricing?.price_accounting_integration_dkk;
                   return (
                     <button
@@ -559,11 +571,26 @@ const BusinessOnboarding = () => {
                     )}
                   </div>
 
+                  {breakdown.startupFee > 0 && (
+                    <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                      <div className="flex items-baseline justify-between gap-3 text-sm">
+                        <span className="font-semibold text-amber-900">Opstartspris (engangsbeløb)</span>
+                        <span className="tabular-nums font-semibold text-amber-900">
+                          {formatDkk(breakdown.startupFee)} kr
+                        </span>
+                      </div>
+                      <p className="mt-1 text-[11px] leading-5 text-amber-800">
+                        Tilføjes til <span className="font-semibold">første faktura</span> efter prøveperiodens udløb. Dækker oprettelse,
+                        opsætning og 1-til-1 onboarding. Betales kun én gang.
+                      </p>
+                    </div>
+                  )}
+
                   <div className="mt-4 flex items-start gap-2 rounded-lg bg-accent/10 p-3">
                     <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
                     <p className="text-xs leading-5 text-foreground">
                       <span className="font-semibold">{pricing.trial_days} dages gratis prøve.</span>{" "}
-                      Du tilføjer betalingskort senere under indstillinger.
+                      I dag betaler du <span className="font-semibold">0 kr</span>. Du tilføjer betalingskort senere under indstillinger.
                       Ingen binding — opsig når som helst.
                     </p>
                   </div>

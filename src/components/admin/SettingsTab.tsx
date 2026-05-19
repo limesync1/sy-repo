@@ -1918,15 +1918,10 @@ const SettingsTab = ({ business }: { business: any }) => {
                     icon={<Calculator />}
                     title="Integration med regnskabsprogram"
                     priceLabel={pricing ? `+${Math.round(pricing.price_accounting_integration_dkk).toLocaleString("da-DK")} kr/md` : undefined}
-                    badge={
-                      <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                        Kommer snart
-                      </span>
-                    }
-                    description="Send automatisk fakturaer og betalinger over i jeres regnskabsprogram (fx e-conomic eller Dinero), så I slipper for dobbelt indtastning. Funktionen er på vej — reservér jeres plads nu, så aktiverer vi den for jer, når den er klar."
+                    description="Send automatisk fakturaer og betalinger over i jeres regnskabsprogram (fx e-conomic eller Dinero), så I slipper for dobbelt indtastning. Kan slås til/fra når som helst — prisen tillægges ved næste fakturering."
                     active={accountingIntegrationEnabled}
-                    activeLabel="Reserveret — I får besked, så snart integrationen åbner"
-                    inactiveLabel="Ikke reserveret — slå til for at få plads i køen"
+                    activeLabel="Aktivt — fakturaer sendes automatisk til jeres regnskabsprogram"
+                    inactiveLabel="Ikke aktivt — slå til for at sende fakturaer videre automatisk"
                     onToggle={() => setAccountingIntegrationEnabled((v) => !v)}
                   />
                 </div>

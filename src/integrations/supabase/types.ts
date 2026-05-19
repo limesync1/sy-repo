@@ -831,6 +831,41 @@ export type Database = {
           },
         ]
       }
+      business_deletion_codes: {
+        Row: {
+          business_id: string
+          code_hash: string
+          consumed_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+        }
+        Insert: {
+          business_id: string
+          code_hash: string
+          consumed_at?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+        }
+        Update: {
+          business_id?: string
+          code_hash?: string
+          consumed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_deletion_codes_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_onboarding_progress: {
         Row: {
           business_id: string
@@ -876,12 +911,17 @@ export type Database = {
           created_at: string
           current_period_end: string | null
           data_import_requested: boolean
+          deletion_requested_at: string | null
           extra_employee_logins: number
           id: string
           last_payment_at: string | null
           last_payment_failed_at: string | null
+          locked_accounting_integration: boolean | null
+          locked_at: string | null
+          locked_extra_employee_logins: number | null
           monthly_price_dkk: number
           route_planning_enabled: boolean
+          startup_fee_charged: boolean
           status: string
           stripe_customer_id: string | null
           stripe_environment: string
@@ -900,12 +940,17 @@ export type Database = {
           created_at?: string
           current_period_end?: string | null
           data_import_requested?: boolean
+          deletion_requested_at?: string | null
           extra_employee_logins?: number
           id?: string
           last_payment_at?: string | null
           last_payment_failed_at?: string | null
+          locked_accounting_integration?: boolean | null
+          locked_at?: string | null
+          locked_extra_employee_logins?: number | null
           monthly_price_dkk?: number
           route_planning_enabled?: boolean
+          startup_fee_charged?: boolean
           status?: string
           stripe_customer_id?: string | null
           stripe_environment?: string
@@ -924,12 +969,17 @@ export type Database = {
           created_at?: string
           current_period_end?: string | null
           data_import_requested?: boolean
+          deletion_requested_at?: string | null
           extra_employee_logins?: number
           id?: string
           last_payment_at?: string | null
           last_payment_failed_at?: string | null
+          locked_accounting_integration?: boolean | null
+          locked_at?: string | null
+          locked_extra_employee_logins?: number | null
           monthly_price_dkk?: number
           route_planning_enabled?: boolean
+          startup_fee_charged?: boolean
           status?: string
           stripe_customer_id?: string | null
           stripe_environment?: string
@@ -976,6 +1026,7 @@ export type Database = {
           city: string | null
           cover_image_url: string | null
           created_at: string
+          deleted_at: string | null
           description: string | null
           email: string | null
           id: string
@@ -999,6 +1050,7 @@ export type Database = {
           city?: string | null
           cover_image_url?: string | null
           created_at?: string
+          deleted_at?: string | null
           description?: string | null
           email?: string | null
           id?: string
@@ -1022,6 +1074,7 @@ export type Database = {
           city?: string | null
           cover_image_url?: string | null
           created_at?: string
+          deleted_at?: string | null
           description?: string | null
           email?: string | null
           id?: string
@@ -2146,6 +2199,7 @@ export type Database = {
           price_data_import_dkk: number
           price_per_employee_login_dkk: number
           price_route_planning_dkk: number
+          startup_fee_dkk: number
           stripe_publishable_key: string | null
           stripe_secret_key: string | null
           stripe_webhook_secret: string | null
@@ -2162,6 +2216,7 @@ export type Database = {
           price_data_import_dkk?: number
           price_per_employee_login_dkk?: number
           price_route_planning_dkk?: number
+          startup_fee_dkk?: number
           stripe_publishable_key?: string | null
           stripe_secret_key?: string | null
           stripe_webhook_secret?: string | null
@@ -2178,6 +2233,7 @@ export type Database = {
           price_data_import_dkk?: number
           price_per_employee_login_dkk?: number
           price_route_planning_dkk?: number
+          startup_fee_dkk?: number
           stripe_publishable_key?: string | null
           stripe_secret_key?: string | null
           stripe_webhook_secret?: string | null
@@ -3586,6 +3642,7 @@ export type Database = {
           price_data_import_dkk: number
           price_per_employee_login_dkk: number
           price_route_planning_dkk: number
+          startup_fee_dkk: number
           stripe_publishable_key: string
           trial_days: number
         }[]
