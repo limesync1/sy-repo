@@ -280,7 +280,7 @@ const LiveChatWidget = () => {
     initialLoadRef.current = true;
     supabase
       .from("chat_messages")
-      .select("id, conversation_id, sender_type, sender_name, content, image_url, is_system, created_at")
+      .select("id, conversation_id, sender_type, sender_name, content, image_url, is_system, metadata, created_at")
       .eq("conversation_id", conversation.id)
       .order("created_at", { ascending: true })
       .then(({ data }) => {
@@ -443,7 +443,7 @@ const LiveChatWidget = () => {
       chatSounds.outgoing();
 
       // Bed AI om at svare på den indledende besked.
-      supabase.functions.invoke("livechat-ai-reply", { body: { conversation_id: conv.id } }).catch(() => {});
+      supabase.functions.invoke("livechat-ai-reply", { body: aiInvokeBody(conv.id) }).catch(() => {});
 
       supabase.functions
         .invoke("send-transactional-email", {
@@ -495,7 +495,7 @@ const LiveChatWidget = () => {
       // Bed AI om at svare (edge function springer over hvis samtalen allerede
       // er eskaleret til menneske eller hører til en virksomhed).
       supabase.functions
-        .invoke("livechat-ai-reply", { body: { conversation_id: conversation.id } })
+        .invoke("livechat-ai-reply", { body: aiInvokeBody(conversation.id) })
         .catch(() => {});
     }
   }, [conversation, sending, draft, pendingImage]); // eslint-disable-line react-hooks/exhaustive-deps
