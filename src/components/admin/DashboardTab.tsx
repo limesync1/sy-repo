@@ -57,6 +57,11 @@ const DashboardTab = ({
   pendingOrders, recentOrders, reviews, services, onNavigate,
 }: Props) => {
   const [copied, setCopied] = useState(false);
+  // Stat-detalje-panel — hvilken metric vi har åbnet, hvis nogen.
+  const [openStat, setOpenStat] = useState<null | "revenue" | "orders" | "today" | "pending" | "rating">(null);
+  // Filtre på "Seneste bestillinger" — status-pille + søgetekst.
+  const [orderFilter, setOrderFilter] = useState<"all" | "pending" | "confirmed" | "in_progress" | "completed" | "cancelled">("all");
+  const [orderSearch, setOrderSearch] = useState("");
 
   // ── Periode-aggregat: dag/uge/30-dage + sparkline-data ───────────────
   const stats = useMemo(() => {
