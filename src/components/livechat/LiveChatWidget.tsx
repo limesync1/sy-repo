@@ -11,6 +11,7 @@ import { useUserLocation } from "@/contexts/LocationContext";
 import { z } from "zod";
 import chatSounds from "./chatSounds";
 import ChatInboxList from "./ChatInboxList";
+import BusinessRecommendationCard from "./BusinessRecommendationCard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   DropdownMenu,
