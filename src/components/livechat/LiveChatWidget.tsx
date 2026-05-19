@@ -7,6 +7,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
+import { useUserLocation } from "@/contexts/LocationContext";
 import { z } from "zod";
 import chatSounds from "./chatSounds";
 import ChatInboxList from "./ChatInboxList";
@@ -34,6 +35,7 @@ type ChatMessage = {
   content: string | null;
   image_url?: string | null;
   is_system?: boolean;
+  metadata?: Record<string, any> | null;
   created_at: string;
 };
 
@@ -157,6 +159,16 @@ const LiveChatWidget = () => {
   const { pathname } = useLocation();
   const { user } = useAuth();
   const { count: cartCount, sheetOpen: cartSheetOpen } = useCart();
+  const { location: visitorLocation } = useUserLocation();
+  const visitorLocationRef = useRef(visitorLocation);
+  useEffect(() => { visitorLocationRef.current = visitorLocation; }, [visitorLocation]);
+  const aiInvokeBody = useCallback((conversation_id: string) => ({
+    conversation_id,
+    visitor_location: {
+      city: visitorLocationRef.current?.city ?? null,
+      zip: visitorLocationRef.current?.zip ?? null,
+    },
+  }), []);
 
   const [open, setOpenState] = useState<boolean>(() => {
     try { return sessionStorage.getItem("serviceydere_chat_open") === "1"; } catch { return false; }
