@@ -903,7 +903,7 @@ const LiveChatWidget = () => {
                       return (
                         <BusinessRecommendationCard
                           key={m.id}
-                          metadata={m.metadata}
+                          metadata={m.metadata as any}
                           createdAt={m.created_at}
                         />
                       );
