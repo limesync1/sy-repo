@@ -24,8 +24,17 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
   const primaryCat = cats[0];
 
   return (
-    <Link to={`/v/${biz.slug}`} className="group flex w-[270px] shrink-0 flex-col gap-3 sm:w-[292px]">
-      <article className="overflow-hidden rounded-[28px] border border-border/70 bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border">
+    <article className="group relative flex w-[270px] shrink-0 flex-col overflow-hidden rounded-[28px] border border-border/70 bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border sm:w-[292px]">
+      {/* Favorit-knappen ligger uden for linket — så vi undgår ulovlig
+          nested <button> i <a> (skærmlæser-fjendtligt og ugyldig HTML). */}
+      <div className="absolute right-3.5 top-3.5 z-20">
+        <FavoriteButton businessId={biz.id} />
+      </div>
+      <Link
+        to={`/v/${biz.slug}`}
+        aria-label={`${biz.name}${biz.city ? `, ${biz.city}` : ""} — se virksomhed`}
+        className="flex flex-col gap-3"
+      >
         <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-[28px] bg-secondary">
           {biz.cover_image_url ? (
             <img
@@ -43,15 +52,14 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
             </div>
           )}
 
-          <div className="absolute inset-x-0 top-0 flex items-start justify-between p-3.5">
-            {biz.is_verified ? (
+          {biz.is_verified && (
+            <div className="absolute left-3.5 top-3.5">
               <div className="inline-flex items-center gap-1 rounded-full bg-card/95 px-2.5 py-1 text-[11px] font-semibold text-foreground shadow-[0_2px_8px_rgba(0,0,0,0.08)] backdrop-blur">
                 <ShieldCheck className="h-3 w-3 text-accent" />
                 Verificeret
               </div>
-            ) : <span />}
-            <FavoriteButton businessId={biz.id} />
-          </div>
+            </div>
+          )}
         </div>
 
         <div className="relative space-y-3 p-5 pt-8">
@@ -95,8 +103,8 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
             </span>
           </div>
         </div>
-      </article>
-    </Link>
+      </Link>
+    </article>
   );
 };
 
