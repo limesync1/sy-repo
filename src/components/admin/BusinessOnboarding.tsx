@@ -37,12 +37,13 @@ type Pricing = {
   price_accounting_integration_dkk: number;
   price_data_import_dkk: number;
   price_per_employee_login_dkk: number;
+  startup_fee_dkk: number;
   discount_quarterly_pct: number;
   discount_yearly_pct: number;
   trial_days: number;
 };
 
-type FeatureKey = "route_planning" | "accounting_integration" | "leads" | "livechat";
+type FeatureKey = "accounting_integration" | "leads" | "livechat";
 type BillingPeriod = "monthly" | "quarterly" | "yearly";
 
 const FEATURES: { key: FeatureKey; icon: typeof Route; title: string; description: string }[] = [
@@ -50,7 +51,7 @@ const FEATURES: { key: FeatureKey; icon: typeof Route; title: string; descriptio
     key: "accounting_integration",
     icon: Calculator,
     title: "Regnskabsintegration",
-    description: "Synkronisér automatisk fakturaer og betalinger med fx e-conomic eller Dinero. Helt gratis — inkluderet i din pakke.",
+    description: "Send automatisk fakturaer til e-conomic eller Dinero, så du slipper for dobbelt indtastning. Kan slås til/fra når som helst.",
   },
   {
     key: "leads",
@@ -125,7 +126,6 @@ const BusinessOnboarding = () => {
 
   // ─── Form state ───
   const [features, setFeatures] = useState<Record<FeatureKey, boolean>>({
-    route_planning: true,
     accounting_integration: false,
     leads: true,
     livechat: true,
@@ -143,10 +143,8 @@ const BusinessOnboarding = () => {
   const breakdown = useMemo(() => {
     if (!pricing) return null;
     const lines: { label: string; amount: number }[] = [
-      { label: "Basis (virksomhedsprofil + bestillinger)", amount: pricing.base_price_dkk },
+      { label: "Basis (panel + ruteplanlægning + bestillinger)", amount: pricing.base_price_dkk },
     ];
-    if (features.route_planning)
-      lines.push({ label: "Ruteplanlægning", amount: pricing.price_route_planning_dkk });
     if (features.accounting_integration)
       lines.push({ label: "Regnskabsintegration", amount: pricing.price_accounting_integration_dkk });
     if (extraLogins > 0)
@@ -163,6 +161,8 @@ const BusinessOnboarding = () => {
     const monthlyAfterDiscount = monthlySubtotal * (1 - discountPct / 100);
     const months = BILLING_OPTIONS.find((o) => o.value === billing)!.months;
     const periodTotal = monthlyAfterDiscount * months;
+    const startupFee = pricing.startup_fee_dkk || 0;
+    const firstInvoiceTotal = periodTotal + startupFee;
 
     return {
       lines,
@@ -171,6 +171,8 @@ const BusinessOnboarding = () => {
       monthlyAfterDiscount,
       periodTotal,
       months,
+      startupFee,
+      firstInvoiceTotal,
     };
   }, [pricing, features, extraLogins, billing]);
 
@@ -229,7 +231,7 @@ const BusinessOnboarding = () => {
           settings: {
             cvr: cleanCvr,
             industry_text: cvrData.industry,
-            route_planning_enabled: features.route_planning,
+            route_planning_enabled: true,
             accounting_integration_enabled: features.accounting_integration,
             leads_enabled: features.leads,
             livechat_enabled: features.livechat,
@@ -247,7 +249,7 @@ const BusinessOnboarding = () => {
       trialEnd.setDate(trialEnd.getDate() + pricing.trial_days);
       await supabase.from("business_plans").insert({
         business_id: bizData.id,
-        route_planning_enabled: features.route_planning,
+        route_planning_enabled: true,
         accounting_integration_enabled: features.accounting_integration,
         extra_employee_logins: extraLogins,
         billing_period: billing,
