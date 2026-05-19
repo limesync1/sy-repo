@@ -303,3 +303,29 @@ const LegendBadge = ({ symbol, label }: { symbol: string; label: string }) => (
 );
 
 export default PlanningPanel;
+
+/** Avatar-chip til medarbejder-filter. Bruger profilbillede hvis sat,
+ *  ellers initialer på medarbejderens farve som fallback. */
+const EmployeeAvatarChip = ({ employee }: { employee: PlanningPanelEmployee }) => {
+  const name = employee.name || "?";
+  const initials = name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
+  if (employee.avatar_url) {
+    return (
+      <img
+        src={employee.avatar_url}
+        alt={name}
+        loading="lazy"
+        className="h-5 w-5 rounded-full object-cover ring-1 ring-border"
+      />
+    );
+  }
+  return (
+    <span
+      className="inline-flex h-5 w-5 items-center justify-center rounded-full ring-1 ring-border text-white text-[9px] font-semibold"
+      style={{ background: employee.color || "hsl(220 13% 46%)" }}
+      aria-hidden
+    >
+      {initials}
+    </span>
+  );
+};
