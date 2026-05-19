@@ -1,7 +1,7 @@
 // DangerZoneCard — opsig og slet virksomheden permanent.
 // Anmoder først om en 5-cifret kode pr. e-mail, og bekræfter sletning
 // kun når koden indtastes. Soft-sletter virksomheden og annullerer planen.
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -23,8 +23,19 @@ export const DangerZoneCard = ({ businessId, businessName, ownerEmail }: Props) 
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  // Cooldown — forhindrer at brugeren spammer "Send ny kode" (og dermed
+  // også vores transactional-email kvote). 60 sek. mellem hvert kald.
+  const COOLDOWN_SECONDS = 60;
+  const [cooldown, setCooldown] = useState(0);
+  const cooldownRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    cooldownRef.current = window.setTimeout(() => setCooldown((s) => s - 1), 1000);
+    return () => { if (cooldownRef.current) window.clearTimeout(cooldownRef.current); };
+  }, [cooldown]);
 
   const requestCode = async () => {
+    if (cooldown > 0 || sending) return;
     setSending(true);
     try {
       const { data: codeValue, error } = await supabase.rpc("request_business_deletion_code", {
@@ -44,6 +55,7 @@ export const DangerZoneCard = ({ businessId, businessName, ownerEmail }: Props) 
       if (mailErr) throw mailErr;
       setSentTo(email);
       setStep("code");
+      setCooldown(COOLDOWN_SECONDS);
       toast.success(`Kode sendt til ${email}`);
     } catch (err: any) {
       toast.error(err?.message || "Noget gik galt");
@@ -137,10 +149,10 @@ export const DangerZoneCard = ({ businessId, businessName, ownerEmail }: Props) 
                 <button
                   type="button"
                   onClick={requestCode}
-                  disabled={sending}
-                  className="font-medium text-foreground underline-offset-2 hover:underline"
+                  disabled={sending || cooldown > 0}
+                  className="font-medium text-foreground underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:text-muted-foreground disabled:no-underline"
                 >
-                  Send ny kode
+                  {cooldown > 0 ? `Send ny kode om ${cooldown}s` : "Send ny kode"}
                 </button>
               </p>
             </div>
