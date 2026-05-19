@@ -1,20 +1,21 @@
-import { Search, BarChart3, CalendarCheck } from "lucide-react";
+import { Search, BarChart3, CalendarCheck, ArrowRight } from "lucide-react";
+import SmartLink from "@/components/SmartLink";
 
 const steps = [
   {
     icon: Search,
-    title: "Søg",
-    description: "Fortæl kort hvad du skal have hjælp til.",
+    title: "Søg efter en service",
+    description: "Skriv hvad du har brug for — fx 'rengøring i Aarhus' eller 'flyttehjælp København'.",
   },
   {
     icon: BarChart3,
-    title: "Sammenlign",
-    description: "Få overblik over de stærkeste muligheder.",
+    title: "Sammenlign udbydere",
+    description: "Se priser, anmeldelser og afstand side om side, så du kan vælge den rigtige.",
   },
   {
     icon: CalendarCheck,
-    title: "Book",
-    description: "Vælg det tilbud eller den profil, der passer bedst.",
+    title: "Book eller hent tilbud",
+    description: "Book direkte på virksomhedens profil — eller indhent op til 3 gratis tilbud.",
   },
 ];
 
@@ -55,6 +56,23 @@ const HowItWorks = () => {
               <p className="mt-2 text-[14px] leading-6 text-muted-foreground">{step.description}</p>
             </div>
           ))}
+        </div>
+
+        <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+          <SmartLink
+            to="/virksomheder"
+            className="group inline-flex items-center justify-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-all hover:-translate-y-0.5"
+          >
+            Find virksomheder
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          </SmartLink>
+          <SmartLink
+            to="/tilbud"
+            className="group inline-flex items-center justify-center gap-2 rounded-full border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5"
+          >
+            Indhent 3 gratis tilbud
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          </SmartLink>
         </div>
       </div>
     </section>
