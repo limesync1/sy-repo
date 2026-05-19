@@ -3637,3 +3637,30 @@ const Planner = () => {
 };
 
 export default RoutePlanner;
+
+/** Lille avatar til medarbejder-filter-popoveren. Viser profilbillede når
+ *  det findes — falder ellers tilbage til initialer på medarbejderens
+ *  farve, så listen altid har et visuelt anker. */
+const FilterEmpAvatar = ({ emp }: { emp: { name?: string | null; color?: string | null; avatar_url?: string | null } }) => {
+  const name = emp?.name || "?";
+  if (emp?.avatar_url) {
+    return (
+      <img
+        src={emp.avatar_url}
+        alt={name}
+        loading="lazy"
+        className="h-4 w-4 rounded-full object-cover ring-1 ring-border shrink-0"
+      />
+    );
+  }
+  const initials = name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
+  return (
+    <span
+      className="inline-flex h-4 w-4 items-center justify-center rounded-full ring-1 ring-border text-white text-[8px] font-semibold shrink-0"
+      style={{ background: emp?.color || "hsl(220 13% 46%)" }}
+      aria-hidden
+    >
+      {initials}
+    </span>
+  );
+};
