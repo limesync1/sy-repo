@@ -2,12 +2,11 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import {
   MessageCircle, Send, Loader2, ChevronDown, CheckCheck, Paperclip, X as XIcon,
-  ImageIcon, Volume2, VolumeX, MoreVertical, MessagesSquare, ArrowLeft, Trash2, Bot,
+  ImageIcon, Volume2, VolumeX, MoreVertical, MessagesSquare, ArrowLeft, Trash2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
-import { useUserLocation } from "@/contexts/LocationContext";
 import { z } from "zod";
 import chatSounds from "./chatSounds";
 import ChatInboxList from "./ChatInboxList";
@@ -163,16 +162,6 @@ const LiveChatWidget = () => {
   const { pathname } = useLocation();
   const { user } = useAuth();
   const { count: cartCount, sheetOpen: cartSheetOpen } = useCart();
-  const { location: visitorLocation } = useUserLocation();
-  const visitorLocationRef = useRef(visitorLocation);
-  useEffect(() => { visitorLocationRef.current = visitorLocation; }, [visitorLocation]);
-  const aiInvokeBody = useCallback((conversation_id: string) => ({
-    conversation_id,
-    visitor_location: {
-      city: visitorLocationRef.current?.city ?? null,
-      zip: visitorLocationRef.current?.zip ?? null,
-    },
-  }), []);
 
   const [open, setOpenState] = useState<boolean>(() => {
     try { return sessionStorage.getItem("serviceydere_chat_open") === "1"; } catch { return false; }
@@ -447,9 +436,6 @@ const LiveChatWidget = () => {
       setSubject("");
       chatSounds.outgoing();
 
-      // Bed AI om at svare på den indledende besked.
-      supabase.functions.invoke("livechat-ai-reply", { body: aiInvokeBody(conv.id) }).catch(() => {});
-
       supabase.functions
         .invoke("send-transactional-email", {
           body: {
@@ -497,11 +483,6 @@ const LiveChatWidget = () => {
     if (!mErr) {
       if (override === undefined) { setDraft(""); clearPendingImage(); }
       chatSounds.outgoing();
-      // Bed AI om at svare (edge function springer over hvis samtalen allerede
-      // er eskaleret til menneske eller hører til en virksomhed).
-      supabase.functions
-        .invoke("livechat-ai-reply", { body: aiInvokeBody(conversation.id) })
-        .catch(() => {});
     }
   }, [conversation, sending, draft, pendingImage]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -719,21 +700,13 @@ const LiveChatWidget = () => {
               <div className="relative flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3">
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-background/[0.1] backdrop-blur-sm">
-                    <Bot className="h-6 w-6 text-background" />
+                    <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-7 w-7 object-contain" />
                   </div>
                   <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <p className="text-[15px] font-semibold leading-tight">Serviceydere Kundeservice</p>
-                      <span
-                        className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-background"
-                        style={{ backgroundColor: "hsl(var(--hero-cyan) / 0.22)", color: "hsl(var(--hero-cyan-bright))" }}
-                      >
-                        <Bot className="h-2 w-2" /> AI
-                      </span>
-                    </div>
+                    <p className="text-[15px] font-semibold leading-tight">Serviceydere Kundeservice</p>
                     <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-background/65">
                       <span className={`h-1.5 w-1.5 rounded-full ${closed ? "bg-muted-foreground" : "animate-pulse bg-success"}`} />
-                      {closed ? "Samtalen er afsluttet" : "AI svarer med det samme · menneske ved behov"}
+                      {closed ? "Samtalen er afsluttet" : "Vi svarer typisk inden for kort tid"}
                     </p>
                   </div>
                 </div>
@@ -835,19 +808,16 @@ const LiveChatWidget = () => {
                   <div aria-hidden className="pointer-events-none absolute -right-10 -top-12 h-32 w-32 rounded-full blur-2xl" style={{ backgroundColor: "hsl(var(--hero-cyan) / 0.18)" }} />
                   <div aria-hidden className="pointer-events-none absolute -left-8 -bottom-10 h-24 w-24 rounded-full blur-2xl" style={{ backgroundColor: "hsl(var(--hero-mid) / 0.12)" }} />
                   <div className="relative mb-2 flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent">
-                      <Bot className="h-2.5 w-2.5" /> AI svarer nu
-                    </span>
                     <span className="inline-flex items-center gap-1 text-[10px] font-medium text-muted-foreground">
                       <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-success" />
-                      Online
+                      Vi er online
                     </span>
                   </div>
                   <p className="relative text-[15px] font-semibold leading-snug text-foreground">
                     Hej 👋 Hvad kan vi hjælpe med?
                   </p>
                   <p className="relative mt-1 text-[12.5px] leading-relaxed text-muted-foreground">
-                    Vores AI finder den rette udbyder tæt på dig og svarer med det samme. Skal noget afklares af en rigtig person, henter vi straks én fra kundeservice.
+                    Vores kundeservice svarer typisk hurtigt. Skriv din henvendelse, så vender vi tilbage til dig.
                   </p>
                 </div>
 
@@ -892,7 +862,7 @@ const LiveChatWidget = () => {
                 </button>
 
                 <div className="flex items-center justify-center gap-3 text-[10px] text-muted-foreground">
-                  <span className="inline-flex items-center gap-1"><span className="h-1 w-1 rounded-full bg-success" /> Svar med det samme</span>
+                  <span className="inline-flex items-center gap-1"><span className="h-1 w-1 rounded-full bg-success" /> Vi vender hurtigt tilbage</span>
                   <span className="h-3 w-px bg-border" />
                   <span>Vi bruger kun din email til at svare</span>
                 </div>
@@ -926,7 +896,6 @@ const LiveChatWidget = () => {
                     const mine = m.sender_type === "visitor";
                     const prev = messages[i - 1];
                     const showAvatar = !mine && (!prev || prev.sender_type !== m.sender_type || prev.is_system || prev.sender_name !== m.sender_name);
-                    const isAi = !mine && (m.sender_name || "").toLowerCase().includes("ai");
                     let lastVisitorIdx = -1;
                     for (let j = messages.length - 1; j >= 0; j--) {
                       if (messages[j].sender_type === "visitor" && !messages[j].is_system) { lastVisitorIdx = j; break; }
@@ -937,15 +906,9 @@ const LiveChatWidget = () => {
                         {!mine && (
                           <div className="w-9 flex-shrink-0">
                             {showAvatar && (
-                              isAi ? (
-                                <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-foreground text-background">
-                                  <Bot className="h-5 w-5" />
-                                </span>
-                              ) : (
-                                <span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-border bg-card">
-                                  <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-6 w-6 object-contain" />
-                                </span>
-                              )
+                              <span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-border bg-card">
+                                <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-6 w-6 object-contain" />
+                              </span>
                             )}
                           </div>
                         )}
@@ -953,11 +916,6 @@ const LiveChatWidget = () => {
                           {!mine && showAvatar && (
                             <div className="mb-1 flex items-center gap-1.5 px-1 text-[10px] font-semibold text-muted-foreground">
                               <span className="text-foreground/80">{m.sender_name || "Serviceydere"}</span>
-                              {isAi && (
-                                <span className="inline-flex items-center gap-0.5 rounded-full bg-accent/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-accent">
-                                  <Bot className="h-2 w-2" /> AI
-                                </span>
-                              )}
                             </div>
                           )}
                           <div
@@ -984,35 +942,6 @@ const LiveChatWidget = () => {
                       </div>
                     );
                   })}
-                  {/* AI typing indicator — vises kun når sidste besked er fra besøgende og samtalen ikke er lukket */}
-                  {(() => {
-                    const lastReal = [...messages].reverse().find((m) => !m.is_system);
-                    if (!lastReal || lastReal.sender_type !== "visitor" || closed) return null;
-                    return (
-                      <div className="flex items-end gap-2 animate-in fade-in slide-in-from-bottom-1 duration-200">
-                        <div className="w-9 flex-shrink-0">
-                          <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-foreground text-background">
-                            <Bot className="h-5 w-5" />
-                          </span>
-                        </div>
-                        <div className="flex max-w-[78%] flex-col items-start">
-                          <div className="mb-1 flex items-center gap-1.5 px-1 text-[10px] font-semibold text-muted-foreground">
-                            <span className="text-foreground/80">Serviceydere AI</span>
-                            <span className="inline-flex items-center gap-0.5 rounded-full bg-accent/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-accent">
-                              <Bot className="h-2 w-2" /> AI
-                            </span>
-                          </div>
-                          <div className="rounded-2xl rounded-bl-md border border-border bg-card px-4 py-3 shadow-[0_2px_6px_-2px_hsl(var(--foreground)/0.08)]">
-                            <div className="flex items-center gap-1">
-                              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70 [animation-delay:-0.3s]" />
-                              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70 [animation-delay:-0.15s]" />
-                              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70" />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
                 </div>
 
                 {closed ? (
@@ -1035,7 +964,6 @@ const LiveChatWidget = () => {
                     {showRecommended && dynamicReplies.length > 0 && !draft && !pendingImage && (
                       <div className="border-t border-border bg-card px-3 py-2.5">
                         <div className="mb-1.5 flex items-center gap-1.5">
-                          <Bot className="h-3 w-3 text-accent" />
                           <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Foreslåede svar</span>
                         </div>
                         <div className="flex flex-wrap gap-1.5">
