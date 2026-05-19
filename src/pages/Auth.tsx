@@ -12,6 +12,7 @@ import SEO from "@/components/SEO";
 import { translateAuthError } from "@/lib/auth-errors";
 import { detectUserRole, ROLE_HOME } from "@/lib/detect-user-role";
 import { supabase } from "@/integrations/supabase/client";
+import testimonialPatrick from "@/assets/testimonial-patrick.png";
 
 /** Almindelige tastefejl i e-mail-domæner — vi tilbyder en venlig "mente du …?". */
 const EMAIL_DOMAIN_TYPOS: Record<string, string> = {
@@ -189,16 +190,33 @@ const Auth = () => {
         noIndex
       />
 
-      {/* ── Left: Branding panel (desktop only) ── */}
-      <div className="surface-dark-panel relative hidden overflow-hidden lg:flex lg:min-h-screen lg:flex-col lg:justify-between px-12 py-10">
-        {/* Layered ambient glows */}
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -left-24 -top-24 h-96 w-96 rounded-full bg-accent/15 blur-[120px]" />
-          <div className="absolute -bottom-32 -right-20 h-[28rem] w-[28rem] rounded-full bg-accent/10 blur-[140px]" />
-          <div className="absolute inset-0 opacity-[0.04]" style={{
-            backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
-            backgroundSize: "24px 24px",
-          }} />
+      {/* ── Left: Branding panel (desktop only) — matcher forsidens hero ── */}
+      <div
+        className="relative isolate hidden overflow-hidden text-background lg:flex lg:min-h-screen lg:flex-col lg:justify-between px-12 py-10"
+        style={{ backgroundColor: "hsl(var(--hero-bg))" }}
+      >
+        {/* Ambient hero-glows — samme palet som forsidens hero */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+          <div
+            className="absolute left-1/2 top-1/2 h-[40rem] w-[40rem] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[120px] opacity-25 animate-blob-slow"
+            style={{ backgroundColor: "hsl(var(--hero-cyan))" }}
+          />
+          <div
+            className="absolute -top-32 right-[-8%] h-[36rem] w-[36rem] rounded-full blur-[110px] opacity-30"
+            style={{ backgroundColor: "hsl(var(--hero-mid))" }}
+          />
+          <div
+            className="absolute -bottom-40 -left-32 h-[28rem] w-[28rem] rounded-full blur-[100px] opacity-15"
+            style={{ backgroundColor: "hsl(var(--hero-cyan-bright))" }}
+          />
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage:
+                "radial-gradient(ellipse 80% 60% at 70% 50%, hsl(var(--hero-mid) / 0.25), transparent 60%)",
+            }}
+          />
+          <div className="absolute inset-0 bg-noise opacity-[0.06] mix-blend-overlay" />
         </div>
 
         <div className="relative z-10">
@@ -216,11 +234,14 @@ const Auth = () => {
         </div>
 
         <div className="relative z-10 max-w-lg">
-          <h2 className="text-4xl font-bold leading-[1.1] tracking-tight text-white xl:text-5xl">
+          <h2 className="text-4xl font-semibold leading-[1.05] tracking-[-0.03em] text-background xl:text-5xl">
             Saml booking, kunder<br />
-            og drift <span className="text-accent">ét sted.</span>
+            og drift{" "}
+            <span className="bg-[linear-gradient(110deg,hsl(var(--hero-cyan))_0%,hsl(var(--hero-cyan-bright))_50%,hsl(var(--hero-cyan))_100%)] bg-[length:200%_100%] bg-clip-text text-transparent animate-gradient-pan">
+              ét sted.
+            </span>
           </h2>
-          <p className="mt-5 text-base leading-relaxed text-white/65">
+          <p className="mt-5 text-base leading-relaxed text-background/75">
             Hele Danmarks platform for serviceydere. Find kunder, planlæg ruter og hold styr på din forretning — alt sammen i ét værktøj.
           </p>
 
@@ -231,32 +252,36 @@ const Auth = () => {
               { value: "4,9★", label: "Tilfredshed" },
               { value: "24/7", label: "Support" },
             ].map((s) => (
-              <div key={s.label} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-sm">
-                <p className="text-2xl font-bold text-white">{s.value}</p>
-                <p className="mt-1 text-xs text-white/55">{s.label}</p>
+              <div key={s.label} className="rounded-2xl border border-background/10 bg-background/[0.04] p-4 backdrop-blur-sm">
+                <p className="text-2xl font-semibold text-background">{s.value}</p>
+                <p className="mt-1 text-xs text-background/60">{s.label}</p>
               </div>
             ))}
           </div>
 
           {/* Testimonial */}
-          <div className="mt-8 rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-md">
-            <Quote className="h-5 w-5 text-accent/80" />
-            <p className="mt-3 text-sm leading-6 text-white/80">
+          <div className="mt-8 rounded-2xl border border-background/10 bg-background/[0.05] p-5 backdrop-blur-md">
+            <Quote className="h-5 w-5" style={{ color: "hsl(var(--hero-cyan-bright))" }} />
+            <p className="mt-3 text-sm leading-6 text-background/85">
               "Serviceydere har samlet hele vores drift. Vi sparer timer hver uge på planlægning og fakturering."
             </p>
             <div className="mt-4 flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/20 text-sm font-bold text-accent">
-                MK
-              </div>
+              <img
+                src={testimonialPatrick}
+                alt="Patrick Nissen"
+                className="h-10 w-10 shrink-0 rounded-full object-cover ring-1 ring-background/15"
+                loading="lazy"
+                decoding="async"
+              />
               <div>
-                <p className="text-sm font-semibold text-white">Mikkel K.</p>
-                <p className="text-xs text-white/50">Ejer, Nord Rengøring</p>
+                <p className="text-sm font-semibold text-background">Patrick Nissen</p>
+                <p className="text-xs text-background/55">Vinduespudser hos DK Renfyn</p>
               </div>
             </div>
           </div>
         </div>
 
-        <p className="relative z-10 text-xs text-white/30">© {new Date().getFullYear()} Serviceydere</p>
+        <p className="relative z-10 text-xs text-background/40">© {new Date().getFullYear()} Serviceydere</p>
       </div>
 
       {/* ── Right: Auth form ── */}
