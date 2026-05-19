@@ -361,7 +361,6 @@ const BusinessOnboarding = () => {
                   const isFree = key === "leads" || key === "livechat";
                   const price = isFree
                     ? 0
-                    : key === "route_planning" ? pricing?.price_route_planning_dkk
                     : pricing?.price_accounting_integration_dkk;
                   return (
                     <button
