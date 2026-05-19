@@ -26,6 +26,11 @@ export interface BusinessPlanInfo {
   accounting_integration_enabled: boolean;
   data_import_requested: boolean;
   extra_employee_logins: number;
+  startup_fee_charged: boolean;
+  locked_extra_employee_logins: number | null;
+  locked_accounting_integration: boolean | null;
+  locked_at: string | null;
+  deletion_requested_at: string | null;
 }
 
 export const useBusinessPlan = (businessId: string | null | undefined) => {
@@ -46,6 +51,9 @@ export const useBusinessPlan = (businessId: string | null | undefined) => {
           payment_brand: null, payment_last4: null, billing_period: "monthly",
           route_planning_enabled: false, accounting_integration_enabled: false,
           data_import_requested: false, extra_employee_logins: 0,
+          startup_fee_charged: false,
+          locked_extra_employee_logins: null, locked_accounting_integration: null,
+          locked_at: null, deletion_requested_at: null,
         };
       }
       const hasCard = !!data.stripe_payment_method_last4;
@@ -78,10 +86,15 @@ export const useBusinessPlan = (businessId: string | null | undefined) => {
         payment_brand: data.stripe_payment_method_brand,
         payment_last4: data.stripe_payment_method_last4,
         billing_period: data.billing_period || "monthly",
-        route_planning_enabled: !!data.route_planning_enabled,
+        route_planning_enabled: true, // altid inkluderet
         accounting_integration_enabled: !!data.accounting_integration_enabled,
         data_import_requested: !!data.data_import_requested,
         extra_employee_logins: Number(data.extra_employee_logins) || 0,
+        startup_fee_charged: !!(data as any).startup_fee_charged,
+        locked_extra_employee_logins: (data as any).locked_extra_employee_logins ?? null,
+        locked_accounting_integration: (data as any).locked_accounting_integration ?? null,
+        locked_at: (data as any).locked_at ?? null,
+        deletion_requested_at: (data as any).deletion_requested_at ?? null,
       };
     },
   });
@@ -98,6 +111,7 @@ export interface PlatformPricing {
   price_accounting_integration_dkk: number;
   price_data_import_dkk: number;
   price_per_employee_login_dkk: number;
+  startup_fee_dkk: number;
   discount_quarterly_pct: number;
   discount_yearly_pct: number;
   trial_days: number;
@@ -117,6 +131,7 @@ export const usePlatformPricing = () => {
         price_accounting_integration_dkk: Number(row.price_accounting_integration_dkk) || 0,
         price_data_import_dkk: Number(row.price_data_import_dkk) || 0,
         price_per_employee_login_dkk: Number(row.price_per_employee_login_dkk) || 0,
+        startup_fee_dkk: Number((row as any).startup_fee_dkk) || 2269,
         discount_quarterly_pct: Number(row.discount_quarterly_pct) || 0,
         discount_yearly_pct: Number(row.discount_yearly_pct) || 0,
         trial_days: Number(row.trial_days) || 14,
