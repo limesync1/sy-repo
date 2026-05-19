@@ -173,6 +173,87 @@ const ForBusinesses = () => {
             </article>
           ))}
         </div>
+
+        {/* Gennemsigtig prismodel — vist tydeligt så virksomheder ved præcis hvad de betaler. */}
+        <div className="mt-16 rounded-[28px] border border-border/70 bg-card p-8 sm:p-10">
+          <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                <span className="h-px w-6 bg-foreground/30" />
+                Prismodel
+              </span>
+              <h3 className="mt-3 text-[1.6rem] font-semibold leading-tight tracking-[-0.02em] text-foreground sm:text-[2rem]">
+                Én fast pris. Ingen skjulte gebyrer.
+              </h3>
+              <p className="mt-2 max-w-xl text-[14.5px] leading-6 text-muted-foreground">
+                14 dages gratis prøveperiode uden binding. Opstartsgebyret betales først på første faktura efter prøveperioden.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* Basis */}
+            <div className="rounded-2xl border-2 border-foreground/90 bg-background p-6">
+              <div className="flex items-baseline justify-between">
+                <h4 className="text-base font-semibold text-foreground">Basis</h4>
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Påkrævet</span>
+              </div>
+              <div className="mt-3 flex items-baseline gap-1">
+                <span className="text-4xl font-semibold tabular-nums text-foreground">289</span>
+                <span className="text-sm text-muted-foreground">kr/md</span>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">Engangs opstartsgebyr: 2.269 kr (på første faktura)</p>
+              <ul className="mt-5 space-y-2 text-[13.5px] text-foreground">
+                {[
+                  "Virksomhedsprofil med søgesynlighed",
+                  "Ruteplanlægning + medarbejder-app",
+                  "Kundekartotek og bookingkalender",
+                  "Leads og livechat — gratis at slå til/fra",
+                  "1 medarbejderlogin inkluderet",
+                ].map((t) => (
+                  <li key={t} className="flex items-start gap-2">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-foreground" />
+                    {t}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Tilvalg */}
+            <div className="rounded-2xl border border-border bg-background p-6">
+              <h4 className="text-base font-semibold text-foreground">Tilvalg — kun det du bruger</h4>
+              <p className="mt-1 text-xs text-muted-foreground">Slå til/fra når som helst i panelet.</p>
+
+              <div className="mt-5 space-y-4">
+                <div className="flex items-start justify-between gap-4 border-b border-border/60 pb-4">
+                  <div>
+                    <div className="text-sm font-medium text-foreground">Regnskabsintegration</div>
+                    <div className="mt-0.5 text-xs text-muted-foreground">Automatiske fakturaer til e-conomic eller Dinero.</div>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <div className="text-base font-semibold tabular-nums text-foreground">+269 kr</div>
+                    <div className="text-[11px] text-muted-foreground">/md</div>
+                  </div>
+                </div>
+
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="text-sm font-medium text-foreground">Ekstra medarbejderlogin</div>
+                    <div className="mt-0.5 text-xs text-muted-foreground">Pris pr. ekstra medarbejder ud over den ene inkluderede.</div>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <div className="text-base font-semibold tabular-nums text-foreground">+59 kr</div>
+                    <div className="text-[11px] text-muted-foreground">/md pr. stk</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 rounded-xl bg-muted/60 p-3 text-[12.5px] leading-5 text-muted-foreground">
+                Nedjusteringer (færre logins eller deaktivering af regnskab) låses 3 dage før fakturering og træder i kraft fra næste periode — så du betaler altid for det du faktisk har brugt.
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );
