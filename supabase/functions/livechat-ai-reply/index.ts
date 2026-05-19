@@ -135,13 +135,13 @@ Deno.serve(async (req) => {
         conversation_id,
         sender_type: "admin",
         sender_name: "Serviceydere AI",
-        content: "Jeg henter en rigtig medarbejder fra Serviceydere, så du får et sikkert svar. De vender tilbage her i chatten.",
+        content: "Jeg henter lige en rigtig medarbejder fra Serviceydere, så du får et sikkert svar..",
       });
       await admin.from("chat_messages").insert({
         conversation_id,
         sender_type: "admin",
         sender_name: "System",
-        content: "🙋 Besøgende skal have hjælp fra en rigtig medarbejder.",
+        content: "Vi henter en person fra kundeservice.",
         is_system: true,
       });
       return new Response(JSON.stringify({ ok: true, escalated: true, forced: true }), {
@@ -253,7 +253,7 @@ ${candidateSummary}`;
     const raw = aiData?.choices?.[0]?.message?.content ?? "";
     const parsed = tryParseJson(raw) ?? {
       action: "escalate",
-      message: "Jeg er ikke helt sikker på svaret, så jeg henter en rigtig medarbejder fra Serviceydere. De vender tilbage her i chatten.",
+      message: "Jeg henter lige en rigtig medarbejder fra Serviceydere, så du får et sikkert svar..",
     };
 
     if (parsed.action === "escalate") {
@@ -268,7 +268,7 @@ ${candidateSummary}`;
         conversation_id,
         sender_type: "admin",
         sender_name: "System",
-        content: "🙋 Besøgende har bedt om at tale med en rigtig medarbejder.",
+        content: "Vi henter en person fra kundeservice.",
         is_system: true,
       });
       return new Response(JSON.stringify({ ok: true, escalated: true }), {
