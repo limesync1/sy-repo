@@ -333,51 +333,20 @@ const DashboardTab = ({
 
           {/* Seneste bestillinger */}
           <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-5">
-              <div>
-                <h3 className="text-sm font-semibold text-foreground">Seneste bestillinger</h3>
-                <p className="mt-0.5 text-xs text-muted-foreground">Hurtigt overblik over de nyeste aftaler og deres status.</p>
-              </div>
-              {recentOrders.length > 0 && (
-                <button onClick={() => onNavigate?.("orders")} className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
-                  Se alle <ArrowRight className="h-3 w-3" />
-                </button>
-              )}
-            </div>
-
-            {recentOrders.length > 0 ? (
-              <div className="divide-y divide-border">
-                {recentOrders.slice(0, 5).map((order) => (
-                  <button
-                    key={order.id}
-                    type="button"
-                    onClick={() => onNavigate?.("orders")}
-                    className="grid w-full gap-3 px-4 py-3 text-left transition-colors hover:bg-secondary/60 sm:grid-cols-[minmax(0,1.1fr)_auto_auto] sm:items-center sm:px-5"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-foreground">{order.customer_name}</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        {new Date(order.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className={`${statusColors[order.status] || ""} w-fit border px-2 py-0.5 text-xs font-medium`}>
-                        {statusLabels[order.status] || order.status}
-                      </Badge>
-                      {order.status === "pending" && <AlertCircle className="h-3.5 w-3.5 text-amber-600" />}
-                    </div>
-                    <div className="flex items-center justify-between gap-3 sm:justify-end">
-                      <span className="text-sm font-semibold tabular-nums text-foreground whitespace-nowrap">{order.total_amount} kr</span>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="p-4 sm:p-5">
-                <EmptyState icon={<TrendingUp />} title="Ingen bestillinger endnu" description="Bestillinger vil vises her, så snart de kommer ind." />
-              </div>
-            )}
+            <OrdersListSection
+              recentOrders={recentOrders}
+              servicesCount={servicesCount}
+              completeness={completeness.pct}
+              orderFilter={orderFilter}
+              setOrderFilter={setOrderFilter}
+              orderSearch={orderSearch}
+              setOrderSearch={setOrderSearch}
+              onNavigate={onNavigate}
+              copyLink={copyLink}
+              hasShareUrl={!!shareUrl}
+              statusLabels={statusLabels}
+              statusColors={statusColors}
+            />
           </Card>
 
           {/* Top services */}
