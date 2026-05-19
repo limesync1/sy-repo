@@ -10,7 +10,7 @@ import {
   ArrowUpRight, ArrowDownRight, Minus, CheckCircle2,
   Share2, Eye, Calendar, MessageSquare, Link2, Check,
   Zap, Target, Settings as SettingsIcon, Users,
-  Search, X, Inbox, Rocket, PartyPopper,
+  Search, X, Inbox, Rocket, PartyPopper, ArrowUpDown,
 } from "lucide-react";
 import type { Business } from "@/hooks/useDatabase";
 import { useMemo, useState } from "react";
@@ -62,6 +62,7 @@ const DashboardTab = ({
   // Filtre på "Seneste bestillinger" — status-pille + søgetekst.
   const [orderFilter, setOrderFilter] = useState<"all" | "pending" | "confirmed" | "in_progress" | "completed" | "cancelled">("all");
   const [orderSearch, setOrderSearch] = useState("");
+  const [orderSort, setOrderSort] = useState<"newest" | "oldest" | "amount_desc" | "amount_asc" | "status">("newest");
 
   // ── Periode-aggregat: dag/uge/30-dage + sparkline-data ───────────────
   const stats = useMemo(() => {
@@ -341,6 +342,8 @@ const DashboardTab = ({
               setOrderFilter={setOrderFilter}
               orderSearch={orderSearch}
               setOrderSearch={setOrderSearch}
+              orderSort={orderSort}
+              setOrderSort={setOrderSort}
               onNavigate={onNavigate}
               copyLink={copyLink}
               hasShareUrl={!!shareUrl}
