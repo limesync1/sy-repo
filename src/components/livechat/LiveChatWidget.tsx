@@ -957,6 +957,38 @@ const LiveChatWidget = () => {
                       </div>
                     );
                   })}
+                  {/* AI typing indicator — vises kun når sidste besked er fra besøgende og samtalen ikke er lukket */}
+                  {(() => {
+                    const lastReal = [...messages].reverse().find((m) => !m.is_system);
+                    if (!lastReal || lastReal.sender_type !== "visitor" || closed) return null;
+                    return (
+                      <div className="flex items-end gap-2 animate-in fade-in slide-in-from-bottom-1 duration-200">
+                        <div className="w-7 flex-shrink-0">
+                          <span className="relative flex h-9 w-9 items-center justify-center overflow-visible rounded-2xl bg-card ring-1 ring-accent/40 shadow-[0_0_0_3px_hsl(var(--accent)/0.08)]">
+                            <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-7 w-7 object-contain" />
+                            <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-accent text-accent-foreground ring-2 ring-card">
+                              <Bot className="h-2 w-2" />
+                            </span>
+                          </span>
+                        </div>
+                        <div className="flex max-w-[78%] flex-col items-start">
+                          <div className="mb-1 flex items-center gap-1.5 px-1 text-[10px] font-semibold text-muted-foreground">
+                            <span className="text-foreground/80">Serviceydere AI</span>
+                            <span className="inline-flex items-center gap-0.5 rounded-full bg-accent/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-accent">
+                              <Bot className="h-2 w-2" /> AI
+                            </span>
+                          </div>
+                          <div className="rounded-2xl rounded-bl-md border border-accent/25 bg-gradient-to-br from-card to-accent/[0.04] px-4 py-3 shadow-[0_2px_6px_-2px_hsl(var(--foreground)/0.08)]">
+                            <div className="flex items-center gap-1">
+                              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70 [animation-delay:-0.3s]" />
+                              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70 [animation-delay:-0.15s]" />
+                              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {closed ? (
