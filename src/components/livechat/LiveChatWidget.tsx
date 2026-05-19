@@ -710,18 +710,8 @@ const LiveChatWidget = () => {
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-background/10" />
               <div className="relative flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3">
-                  <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-visible rounded-2xl bg-background/[0.08] ring-1 ring-background/15 backdrop-blur-sm">
-                    <img
-                      src="/serviceydere-ikon.webp"
-                      alt="Serviceydere"
-                      className="h-10 w-10 object-contain"
-                    />
-                    <span
-                      className={`absolute -bottom-0.5 -right-0.5 z-10 flex h-3 w-3 items-center justify-center rounded-full ring-2 ${closed ? "bg-muted-foreground" : "bg-success"}`}
-                      style={{ boxShadow: "0 0 0 2px hsl(var(--hero-bg))" }}
-                    >
-                      {!closed && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-background" />}
-                    </span>
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-background/[0.1] backdrop-blur-sm">
+                    <Bot className="h-6 w-6 text-background" />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
@@ -733,7 +723,8 @@ const LiveChatWidget = () => {
                         <Bot className="h-2 w-2" /> AI
                       </span>
                     </div>
-                    <p className="mt-0.5 text-[11px] text-background/65">
+                    <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-background/65">
+                      <span className={`h-1.5 w-1.5 rounded-full ${closed ? "bg-muted-foreground" : "animate-pulse bg-success"}`} />
                       {closed ? "Samtalen er afsluttet" : "AI svarer med det samme · menneske ved behov"}
                     </p>
                   </div>
