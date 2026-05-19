@@ -927,16 +927,17 @@ const LiveChatWidget = () => {
                     return (
                       <div key={m.id} className={`flex items-end gap-2 animate-in fade-in slide-in-from-bottom-1 duration-200 ${mine ? "justify-end" : "justify-start"}`}>
                         {!mine && (
-                          <div className="w-7 flex-shrink-0">
+                          <div className="w-9 flex-shrink-0">
                             {showAvatar && (
-                              <span className={`relative flex h-9 w-9 items-center justify-center overflow-visible rounded-2xl bg-card ring-1 ${isAi ? "ring-accent/40 shadow-[0_0_0_3px_hsl(var(--accent)/0.08)]" : "ring-border"}`}>
-                                <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-7 w-7 object-contain" />
-                                {isAi && (
-                                  <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-accent text-accent-foreground ring-2 ring-card">
-                                    <Bot className="h-2 w-2" />
-                                  </span>
-                                )}
-                              </span>
+                              isAi ? (
+                                <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-foreground text-background">
+                                  <Bot className="h-5 w-5" />
+                                </span>
+                              ) : (
+                                <span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-border bg-card">
+                                  <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-6 w-6 object-contain" />
+                                </span>
+                              )
                             )}
                           </div>
                         )}
