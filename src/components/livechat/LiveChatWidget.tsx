@@ -706,7 +706,7 @@ const LiveChatWidget = () => {
                     <p className="text-[15px] font-semibold leading-tight">Serviceydere Kundeservice</p>
                     <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-background/65">
                       <span className={`h-1.5 w-1.5 rounded-full ${closed ? "bg-muted-foreground" : "animate-pulse bg-success"}`} />
-                      {closed ? "Samtalen er afsluttet" : "Vi svarer typisk inden for kort tid"}
+                      {closed ? "Samtalen er afsluttet" : "Vi svarer typisk inden 5 minutter."}
                     </p>
                   </div>
                 </div>
