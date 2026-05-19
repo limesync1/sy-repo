@@ -148,7 +148,7 @@ Deno.serve(async (req) => {
   // Security/admin-only templates bypass the suppression list. These emails
   // go to the requesting platform-admin themselves (not to end users) and
   // must always be deliverable — e.g. one-time impersonation codes.
-  const BYPASS_SUPPRESSION = new Set<string>(['admin-impersonation-code'])
+  const BYPASS_SUPPRESSION = new Set<string>(['admin-impersonation-code', 'business-deletion-code'])
   const skipSuppression = BYPASS_SUPPRESSION.has(templateName)
 
   // 2. Check suppression list (fail-closed: if we can't verify, don't send)
