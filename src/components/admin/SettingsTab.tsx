@@ -439,7 +439,9 @@ const SettingsTab = ({ business }: { business: any }) => {
   // (og låses 3 dage før fakturering af `lock-business-plans`-cron'en), så
   // virksomheder ikke kan skrue ned dagen før betaling. Vi læser den
   // effektive værdi fra abonnementet — locked_* vinder hvis sat.
-  // Værdien beregnes længere nede når `plan` er tilgængelig.
+  // Værdien er afledt af abonnementet — locked_* vinder hvis sat.
+  const accountingIntegrationEnabled =
+    plan?.locked_accounting_integration ?? plan?.accounting_integration_enabled ?? false;
   // Leads-fanen er en gratis valgfri funktion. Skjult som standard så ikke
   // alle virksomheder får en ekstra fane i navigationen — kan slås til her
   // under Avanceret når man vil modtage lead-anmodninger fra "Indhent 3 tilbud".
