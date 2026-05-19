@@ -439,6 +439,7 @@ const SettingsTab = ({ business }: { business: any }) => {
   // (og låses 3 dage før fakturering af `lock-business-plans`-cron'en), så
   // virksomheder ikke kan skrue ned dagen før betaling. Vi læser den
   // effektive værdi fra abonnementet — locked_* vinder hvis sat.
+  // Værdien beregnes længere nede når `plan` er tilgængelig.
   // Leads-fanen er en gratis valgfri funktion. Skjult som standard så ikke
   // alle virksomheder får en ekstra fane i navigationen — kan slås til her
   // under Avanceret når man vil modtage lead-anmodninger fra "Indhent 3 tilbud".
@@ -672,6 +673,8 @@ const SettingsTab = ({ business }: { business: any }) => {
   const origCategories = (business.categories as string[]) || (business.category ? [business.category] : []);
   const origNotif = business.notification_settings as Record<string, boolean> || {};
   const origRoutePlanning = !!(business.settings as any)?.route_planning_enabled;
+  // Behold for kompatibilitet — bruges ikke længere som "ændret"-signal da
+  // accounting-toggle er fjernet fra UI'et.
   const origAccountingIntegration = !!(business.settings as any)?.accounting_integration_enabled;
   const origLeadsEnabled = !!(business.settings as any)?.leads_enabled;
   const origLivechatEnabled = !!(business.settings as any)?.livechat_enabled;
