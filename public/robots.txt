@@ -6,6 +6,7 @@ Disallow: /virksomhed
 Disallow: /min-konto
 Disallow: /medarbejder
 Disallow: /log-ind
+Disallow: /reset-password
 Disallow: /afmeld
 Disallow: /godkend-bestilling
 # Legacy redirect-stier
