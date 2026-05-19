@@ -705,9 +705,14 @@ const LiveChatWidget = () => {
                     </span>
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[15px] font-semibold leading-tight">Serviceydere support</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-[15px] font-semibold leading-tight">Serviceydere support</p>
+                      <span className="inline-flex items-center gap-0.5 rounded-full bg-accent/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-accent">
+                        <Sparkles className="h-2 w-2" /> AI
+                      </span>
+                    </div>
                     <p className="mt-0.5 text-[11px] text-background/65">
-                      {closed ? "Samtalen er afsluttet" : "Online · Vi svarer hurtigt"}
+                      {closed ? "Samtalen er afsluttet" : "AI svarer med det samme · menneske ved behov"}
                     </p>
                   </div>
                 </div>
@@ -805,13 +810,16 @@ const LiveChatWidget = () => {
             {!conversation ? (
               <div className="flex flex-1 flex-col gap-3.5 overflow-y-auto px-5 py-5">
                 {/* Pretty empty-state */}
-                <div className="rounded-2xl border border-border bg-secondary/45 p-4">
+                <div className="rounded-2xl border border-border bg-gradient-to-br from-secondary/60 to-secondary/20 p-4">
                   <div className="mb-2 flex items-center gap-2">
                     <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-5 w-5 object-contain" />
                     <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Serviceydere support</span>
+                    <span className="inline-flex items-center gap-0.5 rounded-full bg-accent/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-accent">
+                      <Sparkles className="h-2 w-2" /> AI
+                    </span>
                   </div>
                   <p className="text-[13px] leading-relaxed text-foreground">
-                    👋 Hej! Vi hjælper med at finde serviceydere, indhente 3 tilbud og komme i gang som udbyder.
+                    👋 Hej! Vores AI-assistent svarer med det samme og kan finde en udbyder tæt på dig. Skal noget afklares af en rigtig person, henter vi straks en fra kundeservice.
                   </p>
                 </div>
                 <div>
