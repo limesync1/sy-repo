@@ -1345,28 +1345,8 @@ const Planner = () => {
   }
 
   /* ─── DnD ─── */
-  const updateRouteDndDebug = (
-    data: any,
-    point: DragPoint | null,
-    dndTarget: any,
-    domTarget: RouteDropPointTarget | null,
-    resultTarget: any,
-    sourceLabel: string,
-  ) => {
-    if (data?.type !== "route") return;
-    setRouteDndDebug({
-      activeLabel: data.route?.name || "Rute",
-      pointLabel: point ? `${Math.round(point.x)}, ${Math.round(point.y)}` : "Ingen pointer",
-      dndLabel: routeDropTargetLabel(dndTarget),
-      domLabel: routeDropTargetLabel(domTarget),
-      resultLabel: routeDropTargetLabel(resultTarget),
-      sourceLabel,
-    });
-  };
-
   const handleDragStart = (e: DragStartEvent) => {
     const data: any = e.active.data.current;
-    lastRouteDropTargetRef.current = null;
     // ─── Metrics: start måling af drag-to-drop latency ───
     // Sporer hvor lang tid brugeren bruger fra drag begynder til drop
     // gennemføres. Sammen med klik-fejlraten (drag uden drop) kan vi
@@ -1401,22 +1381,16 @@ const Planner = () => {
       activeRouteDragOriginRef.current = origin;
       activeRouteDragPointRef.current = origin;
       setRouteDragPoint(origin);
-      updateRouteDndDebug(data, origin, null, getRouteDropPointTarget(origin, data.route?.id), null, "Drag startet");
+      applyRouteOverlayPosition(origin);
     } else {
       activeRouteDragOriginRef.current = null;
       activeRouteDragPointRef.current = null;
-      lastRouteDropTargetRef.current = null;
       setRouteDragPoint(null);
     }
   };
 
   const handleDragOver = (e: DragOverEvent) => {
     if (e.active.data.current?.type !== "route") return;
-    if (e.over?.data.current) lastRouteDropTargetRef.current = e.over.data.current;
-    const point = activeRouteDragPointRef.current;
-    const domTarget = getRouteDropPointTarget(point, e.active.data.current?.route?.id);
-    const resultTarget = e.over?.data.current ?? domTarget ?? lastRouteDropTargetRef.current;
-    updateRouteDndDebug(e.active.data.current, point, e.over?.data.current, domTarget, resultTarget, "Hover");
   };
 
   const handleDragMove = (e: DragMoveEvent) => {
@@ -1425,10 +1399,7 @@ const Planner = () => {
     if (!origin) return;
     const point = { x: origin.x + e.delta.x, y: origin.y + e.delta.y };
     activeRouteDragPointRef.current = point;
-    setRouteDragPoint(point);
-    const domTarget = getRouteDropPointTarget(point, e.active.data.current?.route?.id);
-    const resultTarget = domTarget ?? lastRouteDropTargetRef.current;
-    updateRouteDndDebug(e.active.data.current, point, lastRouteDropTargetRef.current, domTarget, resultTarget, "Flytter");
+    applyRouteOverlayPosition(point);
   };
 
   // De øvrige kalender-callbacks afhænger af `openProjectedRoute` /
