@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import {
   MessageCircle, Send, Loader2, ChevronDown, CheckCheck, Paperclip, X as XIcon,
-  ImageIcon, Volume2, VolumeX, MoreVertical, MessagesSquare, ArrowLeft, Trash2,
+  ImageIcon, Volume2, VolumeX, MoreVertical, MessagesSquare, ArrowLeft, Trash2, Sparkles,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -815,7 +815,6 @@ const LiveChatWidget = () => {
                   </p>
                 </div>
                 <div>
-                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Vælg et emne</p>
                   <div className="flex flex-wrap gap-1.5">
                     {QUICK_TOPICS.map((t) => (
                       <button
