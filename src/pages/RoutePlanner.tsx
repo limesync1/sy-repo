@@ -86,15 +86,6 @@ type RouteDropPointTarget =
   | { type: "route"; routeId: string; date?: string | null }
   | { type: "day"; date: string };
 
-type RouteDndDebugState = {
-  activeLabel: string;
-  pointLabel: string;
-  dndLabel: string;
-  domLabel: string;
-  resultLabel: string;
-  sourceLabel: string;
-};
-
 const getDragPoint = (event: Event | null): DragPoint | null => {
   if (!event) return null;
   if ("clientX" in event && typeof (event as MouseEvent).clientX === "number") {
@@ -131,13 +122,6 @@ const getRouteDropPointTarget = (point: DragPoint | null, sourceRouteId?: string
   return null;
 };
 
-const routeDropTargetLabel = (target: any) => {
-  if (!target) return "Ingen target";
-  if (target.type === "route") return `Merge → rute ${String(target.routeId ?? "?").slice(0, 8)}`;
-  if (target.type === "day") return `Flyt → ${target.date}`;
-  return `Ukendt → ${target.type ?? "?"}`;
-};
-
 /** Konverterer "HH:MM[:SS]" til minutter siden midnat (eller null). */
 const toMin = (t: string | null | undefined): number | null => {
   if (!t) return null;
@@ -166,10 +150,15 @@ const Planner = () => {
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragData, setActiveDragData] = useState<any>(null);
   const [routeDragPoint, setRouteDragPoint] = useState<DragPoint | null>(null);
-  const [routeDndDebug, setRouteDndDebug] = useState<RouteDndDebugState | null>(null);
   const activeRouteDragPointRef = useRef<DragPoint | null>(null);
   const activeRouteDragOriginRef = useRef<DragPoint | null>(null);
-  const lastRouteDropTargetRef = useRef<any | null>(null);
+  const routeOverlayRef = useRef<HTMLDivElement | null>(null);
+  const applyRouteOverlayPosition = (point: DragPoint | null) => {
+    const el = routeOverlayRef.current;
+    if (!el || !point) return;
+    el.style.left = `${point.x}px`;
+    el.style.top = `${point.y}px`;
+  };
   // Beskytter mod dobbelt-drop på samme kilde+mål — undgår dubletruter og
   // "uniq_route_stops_route_order" race conditions.
   const inFlightDropsRef = useRef<Set<string>>(new Set());
@@ -1356,28 +1345,8 @@ const Planner = () => {
   }
 
   /* ─── DnD ─── */
-  const updateRouteDndDebug = (
-    data: any,
-    point: DragPoint | null,
-    dndTarget: any,
-    domTarget: RouteDropPointTarget | null,
-    resultTarget: any,
-    sourceLabel: string,
-  ) => {
-    if (data?.type !== "route") return;
-    setRouteDndDebug({
-      activeLabel: data.route?.name || "Rute",
-      pointLabel: point ? `${Math.round(point.x)}, ${Math.round(point.y)}` : "Ingen pointer",
-      dndLabel: routeDropTargetLabel(dndTarget),
-      domLabel: routeDropTargetLabel(domTarget),
-      resultLabel: routeDropTargetLabel(resultTarget),
-      sourceLabel,
-    });
-  };
-
   const handleDragStart = (e: DragStartEvent) => {
     const data: any = e.active.data.current;
-    lastRouteDropTargetRef.current = null;
     // ─── Metrics: start måling af drag-to-drop latency ───
     // Sporer hvor lang tid brugeren bruger fra drag begynder til drop
     // gennemføres. Sammen med klik-fejlraten (drag uden drop) kan vi
@@ -1412,22 +1381,16 @@ const Planner = () => {
       activeRouteDragOriginRef.current = origin;
       activeRouteDragPointRef.current = origin;
       setRouteDragPoint(origin);
-      updateRouteDndDebug(data, origin, null, getRouteDropPointTarget(origin, data.route?.id), null, "Drag startet");
+      applyRouteOverlayPosition(origin);
     } else {
       activeRouteDragOriginRef.current = null;
       activeRouteDragPointRef.current = null;
-      lastRouteDropTargetRef.current = null;
       setRouteDragPoint(null);
     }
   };
 
   const handleDragOver = (e: DragOverEvent) => {
     if (e.active.data.current?.type !== "route") return;
-    if (e.over?.data.current) lastRouteDropTargetRef.current = e.over.data.current;
-    const point = activeRouteDragPointRef.current;
-    const domTarget = getRouteDropPointTarget(point, e.active.data.current?.route?.id);
-    const resultTarget = e.over?.data.current ?? domTarget ?? lastRouteDropTargetRef.current;
-    updateRouteDndDebug(e.active.data.current, point, e.over?.data.current, domTarget, resultTarget, "Hover");
   };
 
   const handleDragMove = (e: DragMoveEvent) => {
@@ -1436,10 +1399,7 @@ const Planner = () => {
     if (!origin) return;
     const point = { x: origin.x + e.delta.x, y: origin.y + e.delta.y };
     activeRouteDragPointRef.current = point;
-    setRouteDragPoint(point);
-    const domTarget = getRouteDropPointTarget(point, e.active.data.current?.route?.id);
-    const resultTarget = domTarget ?? lastRouteDropTargetRef.current;
-    updateRouteDndDebug(e.active.data.current, point, lastRouteDropTargetRef.current, domTarget, resultTarget, "Flytter");
+    applyRouteOverlayPosition(point);
   };
 
   // De øvrige kalender-callbacks afhænger af `openProjectedRoute` /
@@ -1511,31 +1471,19 @@ const Planner = () => {
       ? getRouteDropPointTarget(pointAtDrop, activeDataAtDrop.route?.id)
       : null;
     const dndRouteTarget = over?.data.current ?? null;
-    const fallbackRouteTarget = activeDataAtDrop?.type === "route"
-      ? domRouteTarget ?? lastRouteDropTargetRef.current
-      : null;
     const preferredRouteTarget = activeDataAtDrop?.type === "route"
       ? dndRouteTarget?.type === "route"
         ? dndRouteTarget
         : domRouteTarget?.type === "route"
           ? domRouteTarget
-          : dndRouteTarget ?? fallbackRouteTarget
+          : dndRouteTarget ?? domRouteTarget
       : null;
     const hasDropTarget = activeDataAtDrop?.type === "route" ? !!preferredRouteTarget : !!over;
-    updateRouteDndDebug(
-      activeDataAtDrop,
-      pointAtDrop,
-      dndRouteTarget,
-      domRouteTarget,
-      preferredRouteTarget,
-      "Drop",
-    );
     setActiveDragId(null);
     setActiveDragData(null);
     setRouteDragPoint(null);
     activeRouteDragPointRef.current = null;
     activeRouteDragOriginRef.current = null;
-    lastRouteDropTargetRef.current = null;
     // ─── Metrics: registrér resultatet af denne drag ───
     // `dropped=true` kun når brugeren faktisk slap på et target. Drags
     // der ender uden over-target tæller som "klik-fejl" — typisk når
@@ -2416,7 +2364,6 @@ const Planner = () => {
       onDragCancel={() => {
         // ESC eller pointer-loss midt i drag tæller som klik-fejl.
         dragMetrics.end(false);
-        updateRouteDndDebug(activeDragData, activeRouteDragPointRef.current, null, null, null, "Annulleret");
         setActiveDragId(null);
         setActiveDragData(null);
         setRouteDragPoint(null);
@@ -3351,6 +3298,7 @@ const Planner = () => {
 
         {activeDragId && activeDragData?.type === "route" && routeDragPoint && createPortal(
           <div
+            ref={routeOverlayRef}
             className="fixed z-[1000] w-[160px] pointer-events-none rounded-md border-l-[3px] border bg-card px-2 py-1 shadow-xl"
             style={{
               left: routeDragPoint.x,
@@ -3362,23 +3310,6 @@ const Planner = () => {
             <p className="text-[11px] font-semibold truncate">
               {activeDragData.route?.name || "Rute"}
             </p>
-          </div>,
-          document.body,
-        )}
-
-        {routeDndDebug && createPortal(
-          <div className="fixed bottom-3 right-3 z-[1001] w-[min(360px,calc(100vw-1.5rem))] rounded-md border bg-card/95 p-3 text-xs shadow-xl backdrop-blur">
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <p className="font-semibold text-foreground">DnD-diagnose</p>
-              <Badge variant="secondary" className="h-5 text-[10px]">{routeDndDebug.sourceLabel}</Badge>
-            </div>
-            <div className="grid grid-cols-[88px_1fr] gap-x-2 gap-y-1 text-[11px] leading-tight">
-              <span className="text-muted-foreground">Aktiv</span><span className="truncate font-medium text-foreground">{routeDndDebug.activeLabel}</span>
-              <span className="text-muted-foreground">Pointer</span><span className="tabular-nums text-foreground">{routeDndDebug.pointLabel}</span>
-              <span className="text-muted-foreground">DnD target</span><span className="truncate text-foreground">{routeDndDebug.dndLabel}</span>
-              <span className="text-muted-foreground">DOM target</span><span className="truncate text-foreground">{routeDndDebug.domLabel}</span>
-              <span className="text-muted-foreground">Fortolkning</span><span className="truncate font-semibold text-foreground">{routeDndDebug.resultLabel}</span>
-            </div>
           </div>,
           document.body,
         )}
