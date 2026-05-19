@@ -194,21 +194,21 @@ Deno.serve(async (req) => {
       subscription_data: {
         metadata,
         ...(trialEndIsFuture ? { trial_end: trialEnd } : {}),
-        ...(includeStartupFee
-          ? {
-              add_invoice_items: [
-                {
-                  quantity: 1,
-                  price_data: {
-                    currency: "dkk",
-                    unit_amount: startupFeeDkk * 100,
-                    product_data: { name: "Opstartsgebyr (engangsbeløb)" },
-                  },
-                },
-              ],
-            }
-          : {}),
       },
+      ...(includeStartupFee
+        ? {
+            add_invoice_items: [
+              {
+                quantity: 1,
+                price_data: {
+                  currency: "dkk",
+                  unit_amount: startupFeeDkk * 100,
+                  product_data: { name: "Opstartsgebyr (engangsbeløb)" },
+                },
+              },
+            ],
+          }
+        : {}),
       allow_promotion_codes: true,
     });
 
