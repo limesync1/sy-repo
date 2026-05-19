@@ -36,10 +36,11 @@ interface Props {
 }
 
 const fmtKr = (n: number) => `${Math.round(n).toLocaleString("da-DK")} kr`;
+// Dansk: vis altid fuldt tal med tusindtals-punktum (3.700) — ingen "k"-forkortelse,
+// da det ikke giver mening på dansk. For meget store beløb (>= 1 mio) bruger vi
+// "mio" som dansk forkortelse for million.
 const fmtKrShort = (n: number) => {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(".", ",")} mio`;
-  if (n >= 10_000) return `${Math.round(n / 1000)}k`;
-  if (n >= 1000) return `${(n / 1000).toFixed(1).replace(".", ",")}k`;
   return Math.round(n).toLocaleString("da-DK");
 };
 
@@ -875,7 +876,7 @@ const OrdersListSection = ({
                 {order.status === "pending" && <AlertCircle className="h-3.5 w-3.5 text-amber-600" />}
               </div>
               <div className="flex items-center justify-between gap-3 sm:justify-end">
-                <span className="text-sm font-semibold tabular-nums text-foreground whitespace-nowrap">{order.total_amount} kr</span>
+                <span className="text-sm font-semibold tabular-nums text-foreground whitespace-nowrap">{fmtKr(Number(order.total_amount) || 0)}</span>
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </div>
             </button>
@@ -1200,7 +1201,7 @@ const StatDetailSheet = ({
                         </div>
                       </div>
                       <div className="flex items-center gap-2 sm:justify-end">
-                        <span className="text-sm font-semibold tabular-nums text-foreground">{order.total_amount} kr</span>
+                        <span className="text-sm font-semibold tabular-nums text-foreground">{fmtKr(Number(order.total_amount) || 0)}</span>
                         <ChevronRight className="h-4 w-4 text-muted-foreground" />
                       </div>
                     </button>
