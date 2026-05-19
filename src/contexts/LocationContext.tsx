@@ -107,8 +107,9 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
     setRadiusKmState(km);
     writeStoredRadius(km);
   }, []);
-  // We re-run IP detection whenever we don't yet have a confirmed city/zip,
-  // regardless of source — this lets us recover from earlier failed lookups.
+  // We re-run detection whenever we don't yet have a confirmed city/zip.
+  // Manual + precise sources are considered final; "ip" sources are upgraded
+  // to "precise" silently in a separate effect below if the browser allows it.
   const needsDetection = !stored || (!stored.city && !stored.zip);
   const [detecting, setDetecting] = useState<boolean>(needsDetection);
   const [detected, setDetected] = useState<boolean>(!needsDetection);
@@ -208,8 +209,8 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
           try {
             const position = await new Promise<GeolocationPosition>((resolve, reject) => {
               navigator.geolocation.getCurrentPosition(resolve, reject, {
-                enableHighAccuracy: false,
-                timeout: 7000,
+                enableHighAccuracy: true,
+                timeout: 8000,
                 maximumAge: 1000 * 60 * 60,
               });
             });
@@ -262,6 +263,46 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [applyDetectedLocation, fetchJSON, location.city, location.source, location.zip]);
+
+  // Upgrade IP-based locations to precise when the browser will grant it
+  // silently (i.e. the user has previously approved geolocation for this
+  // origin). We never trigger a permission prompt here — only run when the
+  // Permissions API reports "granted" so the UI stays calm.
+  useEffect(() => {
+    if (location.source !== "ip") return;
+    if (typeof navigator === "undefined" || !navigator.geolocation) return;
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const perms: any = (navigator as any).permissions;
+        if (perms?.query) {
+          const status = await perms.query({ name: "geolocation" as PermissionName });
+          if (status.state !== "granted") return;
+        } else {
+          return;
+        }
+
+        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 8000,
+            maximumAge: 1000 * 60 * 10,
+          });
+        });
+        const precise = await reverseGeocodeCoords(position.coords.latitude, position.coords.longitude);
+        if (!cancelled && precise) {
+          await applyDetectedLocation(precise.city, precise.zip, precise.region, "precise");
+        }
+      } catch {
+        // ignore — keep IP fallback
+      }
+    })();
+
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.source]);
 
   useEffect(() => {
     if (!location.zip) return;
