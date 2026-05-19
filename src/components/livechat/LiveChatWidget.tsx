@@ -203,6 +203,7 @@ const LiveChatWidget = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [chats, setChats] = useState<RegisteredChat[]>(() => listChats());
   useEffect(() => subscribeToRegistry(() => setChats(listChats())), []);
+  const [confirmDelete, setConfirmDelete] = useState<null | { kind: "current" } | { kind: "chat"; chat: RegisteredChat }>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -520,9 +521,8 @@ const LiveChatWidget = () => {
     setConversation((prev) => (prev ? { ...prev, status: "closed" } : prev));
   };
 
-  const deleteCurrentConversation = async () => {
+  const performDeleteCurrent = async () => {
     if (!conversation) return;
-    if (!confirm("Vil du slette samtalen fra dine samtaler?")) return;
     if (conversation.status !== "closed") {
       await supabase.from("chat_messages").insert({
         conversation_id: conversation.id,
@@ -541,6 +541,7 @@ const LiveChatWidget = () => {
     clearPendingImage();
     chatSounds.system();
   };
+  const deleteCurrentConversation = () => setConfirmDelete({ kind: "current" });
 
   const startNewConversation = () => {
     // Tøm lokal state og fjern session-token, så brugeren får start-formularen igen.
@@ -579,8 +580,7 @@ const LiveChatWidget = () => {
     }
   };
 
-  const deleteChat = (chat: RegisteredChat) => {
-    if (!confirm("Vil du slette samtalen fra dine samtaler?")) return;
+  const performDeleteChat = (chat: RegisteredChat) => {
     if (chat.key === platformKey()) {
       try { localStorage.removeItem(STORAGE_KEY); } catch {}
       if (conversation) {
@@ -594,6 +594,7 @@ const LiveChatWidget = () => {
     removeChat(chat.key);
     setChats(listChats());
   };
+  const deleteChat = (chat: RegisteredChat) => setConfirmDelete({ kind: "chat", chat });
 
   // Adaptive positioning so we never overlap CartFab on mobile or desktop
   const cartFabVisible =
