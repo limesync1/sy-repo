@@ -2,7 +2,7 @@
 // brugeren har på enheden — på tværs af platform-support og forskellige
 // virksomheders egne livechats. Bruges af widgeterne til at vise en samlet
 // "Mine samtaler"-liste, så brugeren nemt kan skifte mellem fx samtale med
-// Serviceydere support og samtale med en konkret virksomhed.
+// Serviceydere Kundeservice og samtale med en konkret virksomhed.
 //
 // Vi gemmer KUN session-token + lidt kontekst (navn, billede, scope) i
 // localStorage. Selve beskederne hentes altid fra databasen via tokenet.
@@ -15,7 +15,7 @@ export type RegisteredChat = {
   scope: ChatScope;
   /** business_id når scope === "business" */
   businessId?: string;
-  /** Visningsnavn (fx "Serviceydere support" eller virksomhedsnavn) */
+  /** Visningsnavn (fx "Serviceydere Kundeservice" eller virksomhedsnavn) */
   label: string;
   /** Logo-url for virksomhed (valgfrit) */
   logoUrl?: string | null;

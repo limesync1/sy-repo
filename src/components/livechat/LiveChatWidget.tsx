@@ -264,7 +264,7 @@ const LiveChatWidget = () => {
     upsertChat({
       key: platformKey(),
       scope: "platform",
-      label: "Serviceydere support",
+      label: "Serviceydere Kundeservice",
     });
   }, [conversation]);
 
@@ -431,7 +431,7 @@ const LiveChatWidget = () => {
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ token }));
       setConversation(conv as Conversation);
-      upsertChat({ key: platformKey(), scope: "platform", label: "Serviceydere support" });
+      upsertChat({ key: platformKey(), scope: "platform", label: "Serviceydere Kundeservice" });
       setFirstMessage("");
       setSubject("");
       chatSounds.outgoing();
@@ -700,7 +700,7 @@ const LiveChatWidget = () => {
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <p className="text-[15px] font-semibold leading-tight">Serviceydere support</p>
+                      <p className="text-[15px] font-semibold leading-tight">Serviceydere Kundeservice</p>
                       <span className="inline-flex items-center gap-0.5 rounded-full bg-accent/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-accent">
                         <Bot className="h-2 w-2" /> AI
                       </span>
@@ -802,58 +802,72 @@ const LiveChatWidget = () => {
             )}
 
             {!conversation ? (
-              <div className="flex flex-1 flex-col gap-3.5 overflow-y-auto px-5 py-5">
+              <div className="flex flex-1 flex-col gap-4 overflow-y-auto bg-gradient-to-b from-secondary/30 via-background to-background px-5 py-5">
                 {/* Pretty empty-state */}
-                <div className="rounded-2xl border border-border bg-gradient-to-br from-secondary/60 to-secondary/20 p-4">
-                  <div className="mb-2 flex items-center gap-2">
-                    <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-5 w-5 object-contain" />
-                    <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Serviceydere support</span>
-                    <span className="inline-flex items-center gap-0.5 rounded-full bg-accent/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-accent">
-                      <Bot className="h-2 w-2" /> AI
+                <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-sm">
+                  <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-accent/10 blur-2xl" />
+                  <div className="relative mb-2 flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent">
+                      <Bot className="h-2.5 w-2.5" /> AI svarer nu
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-[10px] font-medium text-muted-foreground">
+                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-success" />
+                      Online
                     </span>
                   </div>
-                  <p className="text-[13px] leading-relaxed text-foreground">
-                    👋 Hej! Vores AI-assistent svarer med det samme og kan finde en udbyder tæt på dig. Skal noget afklares af en rigtig person, henter vi straks en fra kundeservice.
+                  <p className="relative text-[15px] font-semibold leading-snug text-foreground">
+                    Hej 👋 Hvad kan vi hjælpe med?
+                  </p>
+                  <p className="relative mt-1 text-[12.5px] leading-relaxed text-muted-foreground">
+                    Vores AI finder den rette udbyder tæt på dig og svarer med det samme. Skal noget afklares af en rigtig person, henter vi straks én fra kundeservice.
                   </p>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <label className="text-[11px] font-medium text-muted-foreground">
-                    Navn
-                    <input
-                      type="text" value={name} onChange={(e) => setName(e.target.value)} maxLength={80}
-                      className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition-colors focus:border-foreground"
-                      placeholder="Dit navn"
-                    />
-                  </label>
-                  <label className="text-[11px] font-medium text-muted-foreground">
-                    Email
-                    <input
-                      type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={160}
-                      className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition-colors focus:border-foreground"
-                      placeholder="dig@eksempel.dk"
+
+                <div className="space-y-2.5">
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="block">
+                      <span className="mb-1 block text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">Navn</span>
+                      <input
+                        type="text" value={name} onChange={(e) => setName(e.target.value)} maxLength={80}
+                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none transition-all focus:border-foreground focus:ring-2 focus:ring-foreground/10"
+                        placeholder="Dit navn"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="mb-1 block text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">Email</span>
+                      <input
+                        type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={160}
+                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none transition-all focus:border-foreground focus:ring-2 focus:ring-foreground/10"
+                        placeholder="dig@eksempel.dk"
+                      />
+                    </label>
+                  </div>
+                  <label className="block">
+                    <span className="mb-1 block text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">Din besked</span>
+                    <textarea
+                      value={firstMessage} onChange={(e) => setFirstMessage(e.target.value)} maxLength={2000} rows={4}
+                      onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); startConversation(); } }}
+                      className="w-full resize-none rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none transition-all focus:border-foreground focus:ring-2 focus:ring-foreground/10"
+                      placeholder="Fx: Jeg skal bruge vinduespudsning i Aarhus…"
                     />
                   </label>
                 </div>
-                <label className="text-[11px] font-medium text-muted-foreground">
-                  Din besked
-                  <textarea
-                    value={firstMessage} onChange={(e) => setFirstMessage(e.target.value)} maxLength={2000} rows={4}
-                    onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); startConversation(); } }}
-                    className="mt-1 w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition-colors focus:border-foreground"
-                    placeholder="Skriv din besked…"
-                  />
-                </label>
+
                 {error && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">{error}</p>}
+
                 <button
                   onClick={startConversation} disabled={starting}
-                  className="mt-1 inline-flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-4 py-3 text-sm font-semibold text-background transition-all hover:bg-foreground/90 disabled:opacity-60"
+                  className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-4 py-3 text-sm font-semibold text-background shadow-[0_10px_26px_-12px_hsl(var(--foreground)/0.55)] transition-all hover:bg-foreground/90 hover:shadow-[0_14px_30px_-12px_hsl(var(--foreground)/0.7)] disabled:opacity-60 disabled:shadow-none"
                 >
-                  {starting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                  {starting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />}
                   Start samtale
                 </button>
-                <p className="text-center text-[10px] text-muted-foreground">
-                  Vi bruger kun din email til at svare på din henvendelse.
-                </p>
+
+                <div className="flex items-center justify-center gap-3 text-[10px] text-muted-foreground">
+                  <span className="inline-flex items-center gap-1"><span className="h-1 w-1 rounded-full bg-success" /> Svar med det samme</span>
+                  <span className="h-3 w-px bg-border" />
+                  <span>Vi bruger kun din email til at svare</span>
+                </div>
               </div>
             ) : (
               <>
@@ -861,13 +875,6 @@ const LiveChatWidget = () => {
                   <div className="mx-auto w-fit rounded-full border border-border/70 bg-card/80 px-3 py-1 text-center text-[10px] font-medium text-muted-foreground backdrop-blur-sm">
                     Samtale startet · {formatTime(messages[0]?.created_at || new Date().toISOString())}
                   </div>
-
-                  {messages.length === 1 && messages[0].sender_type === "visitor" && (
-                    <div className="mx-auto max-w-[85%] rounded-2xl border border-dashed border-border bg-card/60 p-3 text-center">
-                      <Loader2 className="mx-auto mb-1.5 h-3.5 w-3.5 animate-spin text-muted-foreground" />
-                      <p className="text-[11px] text-muted-foreground">Venter på svar fra teamet…</p>
-                    </div>
-                  )}
 
                   {messages.map((m, i) => {
                     if (m.is_system) {
@@ -950,19 +957,52 @@ const LiveChatWidget = () => {
                       </div>
                     );
                   })}
+                  {/* AI typing indicator — vises kun når sidste besked er fra besøgende og samtalen ikke er lukket */}
+                  {(() => {
+                    const lastReal = [...messages].reverse().find((m) => !m.is_system);
+                    if (!lastReal || lastReal.sender_type !== "visitor" || closed) return null;
+                    return (
+                      <div className="flex items-end gap-2 animate-in fade-in slide-in-from-bottom-1 duration-200">
+                        <div className="w-7 flex-shrink-0">
+                          <span className="relative flex h-9 w-9 items-center justify-center overflow-visible rounded-2xl bg-card ring-1 ring-accent/40 shadow-[0_0_0_3px_hsl(var(--accent)/0.08)]">
+                            <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-7 w-7 object-contain" />
+                            <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-accent text-accent-foreground ring-2 ring-card">
+                              <Bot className="h-2 w-2" />
+                            </span>
+                          </span>
+                        </div>
+                        <div className="flex max-w-[78%] flex-col items-start">
+                          <div className="mb-1 flex items-center gap-1.5 px-1 text-[10px] font-semibold text-muted-foreground">
+                            <span className="text-foreground/80">Serviceydere AI</span>
+                            <span className="inline-flex items-center gap-0.5 rounded-full bg-accent/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-accent">
+                              <Bot className="h-2 w-2" /> AI
+                            </span>
+                          </div>
+                          <div className="rounded-2xl rounded-bl-md border border-accent/25 bg-gradient-to-br from-card to-accent/[0.04] px-4 py-3 shadow-[0_2px_6px_-2px_hsl(var(--foreground)/0.08)]">
+                            <div className="flex items-center gap-1">
+                              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70 [animation-delay:-0.3s]" />
+                              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70 [animation-delay:-0.15s]" />
+                              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground/70" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {closed ? (
-                  <div className="border-t border-border bg-card p-4 text-center">
-                    <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-                      <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground" />
-                      Samtalen er afsluttet
+                  <div className="border-t border-border bg-gradient-to-b from-card to-secondary/30 p-5 text-center">
+                    <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+                      <CheckCheck className="h-5 w-5 text-muted-foreground" />
                     </div>
-                    <p className="text-[11px] text-muted-foreground">Du kan altid starte en ny henvendelse herunder.</p>
+                    <p className="text-[13px] font-semibold text-foreground">Samtalen er afsluttet</p>
+                    <p className="mt-1 text-[11px] text-muted-foreground">Tak fordi du skrev til os. Du kan altid starte en ny samtale.</p>
                     <button
                       onClick={startNewConversation}
-                      className="mt-3 inline-flex items-center justify-center rounded-full bg-foreground px-4 py-2 text-xs font-semibold text-background transition-all hover:bg-foreground/90"
+                      className="mt-3 inline-flex items-center justify-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-xs font-semibold text-background shadow-[0_8px_22px_-12px_hsl(var(--foreground)/0.6)] transition-all hover:bg-foreground/90"
                     >
+                      <MessageCircle className="h-3.5 w-3.5" />
                       Start en ny samtale
                     </button>
                   </div>
@@ -970,9 +1010,9 @@ const LiveChatWidget = () => {
                   <>
                     {showRecommended && dynamicReplies.length > 0 && !draft && !pendingImage && (
                       <div className="border-t border-border bg-card px-3 py-2.5">
-                        <div className="mb-1 flex items-center gap-1.5">
-                          <MessageCircle className="h-3 w-3 text-accent" />
-                          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Relevante opfølgninger</span>
+                        <div className="mb-1.5 flex items-center gap-1.5">
+                          <Bot className="h-3 w-3 text-accent" />
+                          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Foreslåede svar</span>
                         </div>
                         <div className="flex flex-wrap gap-1.5">
                           {dynamicReplies.map((r) => (
@@ -980,7 +1020,7 @@ const LiveChatWidget = () => {
                               key={r}
                               type="button"
                               onClick={() => sendMessage(r)}
-                              className="rounded-full border border-border bg-secondary px-2.5 py-1 text-[11px] font-medium text-foreground transition-all hover:scale-[1.02] hover:border-foreground/40 hover:bg-card"
+                              className="rounded-full border border-border bg-secondary/60 px-3 py-1.5 text-[11px] font-medium text-foreground transition-all hover:-translate-y-px hover:border-accent/40 hover:bg-card hover:text-accent"
                             >
                               {r}
                             </button>
