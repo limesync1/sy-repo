@@ -954,31 +954,43 @@ const StatDetailSheet = ({
   statusColors: Record<string, string>;
   onNavigate?: (tab: string) => void;
 }) => {
+  const [granularity, setGranularity] = useState<"day" | "week">("day");
+  const [rangeDays, setRangeDays] = useState<number>(7);
+
+  // Når kuffen åbnes på "today" giver kun 1-dag mening — ellers default 7.
+  useMemo(() => {
+    if (openStat === "today") { setGranularity("day"); setRangeDays(1); }
+    else if (openStat === "revenue" || openStat === "orders") { setRangeDays(7); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openStat]);
+
   const config = useMemo(() => {
     const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
     const tomorrow = +todayStart + DAY_MS;
-    const week = +todayStart - 6 * DAY_MS;
+    const rangeStart = +todayStart - (rangeDays - 1) * DAY_MS;
 
     switch (openStat) {
       case "revenue":
         return {
-          title: "Omsætning · sidste 7 dage",
-          subtitle: "Klikbar opdeling pr. dag",
+          title: `Omsætning · seneste ${rangeDays === 1 ? "dag" : `${rangeDays} dage`}`,
+          subtitle: "Skift mellem dag- og ugevisning herunder",
           mode: "revenue" as const,
           orders: recentOrders.filter((o: any) => {
             const t = +new Date(o.created_at);
-            return t >= week && t < tomorrow && o.status !== "cancelled";
+            return t >= rangeStart && t < tomorrow && o.status !== "cancelled";
           }),
+          showChart: true,
         };
       case "orders":
         return {
-          title: "Bestillinger · sidste 7 dage",
-          subtitle: "Alle indkomne aftaler",
+          title: `Bestillinger · seneste ${rangeDays === 1 ? "dag" : `${rangeDays} dage`}`,
+          subtitle: "Skift mellem dag- og ugevisning herunder",
           mode: "count" as const,
           orders: recentOrders.filter((o: any) => {
             const t = +new Date(o.created_at);
-            return t >= week && t < tomorrow;
+            return t >= rangeStart && t < tomorrow;
           }),
+          showChart: true,
         };
       case "today":
         return {
@@ -989,6 +1001,7 @@ const StatDetailSheet = ({
             const t = +new Date(o.created_at);
             return t >= +todayStart && t < tomorrow;
           }),
+          showChart: false,
         };
       case "pending":
         return {
@@ -996,11 +1009,12 @@ const StatDetailSheet = ({
           subtitle: "Svar hurtigt — hver time tæller for konverteringen",
           mode: "count" as const,
           orders: recentOrders.filter((o: any) => o.status === "pending"),
+          showChart: false,
         };
       default:
         return null;
     }
-  }, [openStat, recentOrders]);
+  }, [openStat, recentOrders, rangeDays]);
 
   const open = openStat !== null && !!config;
   if (!config) {
@@ -1011,10 +1025,53 @@ const StatDetailSheet = ({
     );
   }
 
-  const max = Math.max(1, ...buckets14.slice(7).map((b) => (config.mode === "revenue" ? b.rev : b.count)));
   const totalValue = config.mode === "revenue"
     ? config.orders.reduce((s, o) => s + (Number(o.total_amount) || 0), 0)
     : config.orders.length;
+
+  // Byg dag- eller uge-bins ud fra de filtrerede ordrer for det valgte interval.
+  const chartBins = (() => {
+    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+    if (granularity === "day") {
+      const days = rangeDays;
+      const bins = Array.from({ length: days }, (_, i) => {
+        const d = new Date(todayStart);
+        d.setDate(d.getDate() - (days - 1 - i));
+        return { date: d, label: d.toLocaleDateString("da-DK", { weekday: "short" }).slice(0, 2), value: 0 };
+      });
+      config.orders.forEach((o: any) => {
+        const t = new Date(o.created_at); t.setHours(0, 0, 0, 0);
+        const idx = bins.findIndex((b) => +b.date === +t);
+        if (idx >= 0) bins[idx].value += config.mode === "revenue" ? Number(o.total_amount || 0) : 1;
+      });
+      return bins;
+    }
+    // Uge-visning — del intervallet op i 7-dages buckets, nyeste til sidst.
+    const weeks = Math.max(1, Math.ceil(rangeDays / 7));
+    const bins = Array.from({ length: weeks }, (_, i) => {
+      const end = new Date(todayStart); end.setDate(end.getDate() - (weeks - 1 - i) * 7);
+      const start = new Date(end); start.setDate(start.getDate() - 6);
+      return { date: end, label: `${start.getDate()}/${start.getMonth() + 1}`, value: 0 };
+    });
+    config.orders.forEach((o: any) => {
+      const t = new Date(o.created_at); t.setHours(0, 0, 0, 0);
+      for (let i = bins.length - 1; i >= 0; i--) {
+        const end = bins[i].date;
+        const start = new Date(end); start.setDate(start.getDate() - 6);
+        if (+t >= +start && +t <= +end) {
+          bins[i].value += config.mode === "revenue" ? Number(o.total_amount || 0) : 1;
+          break;
+        }
+      }
+    });
+    return bins;
+  })();
+  const chartMax = Math.max(1, ...chartBins.map((b) => b.value));
+  const rangeOptions = [
+    { value: 7, label: "7 dage" },
+    { value: 14, label: "14 dage" },
+    { value: 30, label: "30 dage" },
+  ];
 
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
@@ -1025,44 +1082,82 @@ const StatDetailSheet = ({
         </SheetHeader>
 
         <div className="space-y-5 p-5">
-          {/* Total */}
+          {/* Total for valgt interval */}
           <div className="rounded-xl border border-border bg-card p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-              {config.mode === "revenue" ? "Total omsætning" : "Antal"}
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                {config.mode === "revenue" ? "Total omsætning" : "Antal bestillinger"}
+              </p>
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                {rangeDays === 1 ? "I dag" : `Seneste ${rangeDays} dage`}
+              </span>
+            </div>
             <p className="mt-1 text-3xl font-semibold tabular-nums text-foreground">
               {config.mode === "revenue" ? fmtKr(totalValue) : totalValue}
             </p>
+            {config.orders.length > 0 && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                {config.mode === "revenue"
+                  ? `${config.orders.length} bestillinger · gennemsnit ${fmtKr(totalValue / Math.max(1, config.orders.length))}`
+                  : `Ud af ${recentOrders.length} bestillinger i alt`}
+              </p>
+            )}
           </div>
 
-          {/* 7-dages dag-for-dag graf */}
-          {openStat !== "pending" && (
+          {/* Graf med dag/uge-toggle */}
+          {config.showChart && (
             <div className="rounded-xl border border-border bg-card p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                Dag for dag
-              </p>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  {granularity === "day" ? "Dag for dag" : "Uge for uge"}
+                </p>
+                <div className="flex items-center gap-2">
+                  <div className="inline-flex rounded-lg border border-border bg-secondary/40 p-0.5">
+                    {(["day", "week"] as const).map((g) => (
+                      <button
+                        key={g}
+                        type="button"
+                        onClick={() => { setGranularity(g); if (g === "week" && rangeDays < 14) setRangeDays(14); }}
+                        className={cn(
+                          "rounded-md px-2.5 py-1 text-[11px] font-semibold transition-colors",
+                          granularity === g ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+                        )}
+                      >
+                        {g === "day" ? "Dag" : "Uge"}
+                      </button>
+                    ))}
+                  </div>
+                  <select
+                    value={rangeDays}
+                    onChange={(e) => setRangeDays(Number(e.target.value))}
+                    aria-label="Vælg interval"
+                    className="h-7 appearance-none rounded-md border border-border bg-background px-2 text-[11px] font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    {rangeOptions.filter((o) => granularity === "day" ? true : o.value >= 14).map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
               <div className="mt-4 flex h-32 items-end gap-2">
-                {buckets14.slice(7).map((b, i) => {
-                  const v = config.mode === "revenue" ? b.rev : b.count;
-                  const h = Math.max(6, Math.round((v / max) * 100));
-                  const date = new Date(); date.setHours(0, 0, 0, 0);
-                  date.setDate(date.getDate() - (6 - i));
-                  const isToday = i === 6;
+                {chartBins.map((b, i) => {
+                  const h = Math.max(6, Math.round((b.value / chartMax) * 100));
+                  const isLast = i === chartBins.length - 1;
                   return (
-                    <div key={i} className="flex flex-1 flex-col items-center gap-1.5">
+                    <div key={i} className="flex flex-1 flex-col items-center gap-1.5 min-w-0">
                       <span className="text-[10px] font-semibold tabular-nums text-muted-foreground">
-                        {v > 0 ? (config.mode === "revenue" ? fmtKrShort(v) : v) : ""}
+                        {b.value > 0 ? (config.mode === "revenue" ? fmtKrShort(b.value) : b.value) : ""}
                       </span>
                       <div
                         className={cn(
                           "w-full rounded-md transition-colors",
-                          isToday ? "bg-foreground" : v > 0 ? "bg-foreground/40" : "bg-foreground/10",
+                          isLast ? "bg-foreground" : b.value > 0 ? "bg-foreground/40" : "bg-foreground/10",
                         )}
                         style={{ height: `${h}%` }}
-                        aria-label={`${date.toLocaleDateString("da-DK", { weekday: "short", day: "numeric" })}: ${v}`}
+                        aria-label={`${b.label}: ${b.value}`}
                       />
-                      <span className="text-[10px] font-medium uppercase text-muted-foreground">
-                        {date.toLocaleDateString("da-DK", { weekday: "short" }).slice(0, 2)}
+                      <span className="truncate text-[10px] font-medium uppercase text-muted-foreground">
+                        {b.label}
                       </span>
                     </div>
                   );
