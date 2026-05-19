@@ -434,11 +434,14 @@ const SettingsTab = ({ business }: { business: any }) => {
   });
   // Ruteplanlægning er nu altid aktiveret for alle virksomheder — toggle vises ikke længere.
   const routePlanningEnabled = true;
-  // Regnskabsprogram-integration — feature-flag som virksomheden selv kan slå
-  // til/fra. Selve integrationen bygges senere; vi gemmer kun præferencen.
-  const [accountingIntegrationEnabled, setAccountingIntegrationEnabled] = useState<boolean>(
-    !!(business.settings as any)?.accounting_integration_enabled
-  );
+  // Regnskabsprogram-integration kan IKKE deaktiveres eller slås til fra
+  // virksomhedsindstillingerne. Den styres udelukkende fra checkout/opstart
+  // (og låses 3 dage før fakturering af `lock-business-plans`-cron'en), så
+  // virksomheder ikke kan skrue ned dagen før betaling. Vi læser den
+  // effektive værdi fra abonnementet — locked_* vinder hvis sat.
+  // Værdien er afledt af abonnementet — locked_* vinder hvis sat.
+  const accountingIntegrationEnabled =
+    plan?.locked_accounting_integration ?? plan?.accounting_integration_enabled ?? false;
   // Leads-fanen er en gratis valgfri funktion. Skjult som standard så ikke
   // alle virksomheder får en ekstra fane i navigationen — kan slås til her
   // under Avanceret når man vil modtage lead-anmodninger fra "Indhent 3 tilbud".
@@ -672,6 +675,8 @@ const SettingsTab = ({ business }: { business: any }) => {
   const origCategories = (business.categories as string[]) || (business.category ? [business.category] : []);
   const origNotif = business.notification_settings as Record<string, boolean> || {};
   const origRoutePlanning = !!(business.settings as any)?.route_planning_enabled;
+  // Behold for kompatibilitet — bruges ikke længere som "ændret"-signal da
+  // accounting-toggle er fjernet fra UI'et.
   const origAccountingIntegration = !!(business.settings as any)?.accounting_integration_enabled;
   const origLeadsEnabled = !!(business.settings as any)?.leads_enabled;
   const origLivechatEnabled = !!(business.settings as any)?.livechat_enabled;
@@ -1909,25 +1914,8 @@ const SettingsTab = ({ business }: { business: any }) => {
 
         {/* Avanceret */}
         <div id="settings-advanced" className="scroll-mt-[120px] lg:scroll-mt-[68px] [content-visibility:auto] [contain-intrinsic-size:1px_900px]">
-          <SectionCard title="Tilvalg og ekstra funktioner" icon={<Settings />} description="Aktivér moduler som ruteplanlægger, livechat eller dataimport. Prisen opdateres automatisk under ”Pris og betaling” ovenfor.">
-            {/* To-grupper: betalte tilvalg + gratis funktioner — luftigt og overskueligt */}
+          <SectionCard title="Gratis tilvalg" icon={<Settings />} description="Slå gratis funktioner til eller fra. Betalte tilvalg som regnskabsintegration styres fra ”Pris og betaling” ovenfor og kan ikke deaktiveres her — det forhindrer utilsigtede nedjusteringer lige før fakturering.">
             <div className="space-y-6">
-              <div>
-                <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Betalte tilvalg</p>
-                <div className="space-y-2.5">
-                  <FeatureRow
-                    icon={<Calculator />}
-                    title="Integration med regnskabsprogram"
-                    priceLabel={pricing ? `+${Math.round(pricing.price_accounting_integration_dkk).toLocaleString("da-DK")} kr/md` : undefined}
-                    description="Send automatisk fakturaer og betalinger over i jeres regnskabsprogram (fx e-conomic eller Dinero), så I slipper for dobbelt indtastning. Kan slås til/fra når som helst — prisen tillægges ved næste fakturering."
-                    active={accountingIntegrationEnabled}
-                    activeLabel="Aktivt — fakturaer sendes automatisk til jeres regnskabsprogram"
-                    inactiveLabel="Ikke aktivt — slå til for at sende fakturaer videre automatisk"
-                    onToggle={() => setAccountingIntegrationEnabled((v) => !v)}
-                  />
-                </div>
-              </div>
-
               <div>
                 <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Gratis funktioner</p>
                 <div className="space-y-2.5">

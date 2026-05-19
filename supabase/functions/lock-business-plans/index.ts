@@ -10,7 +10,60 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
 );
 
-const LOCK_WINDOW_DAYS = 3;
+export const LOCK_WINDOW_DAYS = 3;
+
+export interface LockCandidate {
+  id: string;
+  extra_employee_logins: number | null;
+  accounting_integration_enabled: boolean | null;
+  trial_ends_at: string | null;
+  current_period_end: string | null;
+  locked_at: string | null;
+}
+
+export interface LockDecision {
+  shouldLock: boolean;
+  reason: "no_period_end" | "period_passed" | "outside_window" | "already_locked_this_cycle" | "lock";
+  patch?: {
+    locked_extra_employee_logins: number;
+    locked_accounting_integration: boolean;
+    locked_at: string;
+  };
+}
+
+/**
+ * Ren funktion der afgør om en plan skal låses nu. Adskilt fra DB-koden
+ * så vi kan unit-teste at:
+ *  1) Vi låser indenfor de 3 dage før period_end
+ *  2) Vi IKKE låser når period_end er passeret
+ *  3) Vi IKKE låser hvis allerede låst i samme cyklus (locked_at indenfor
+ *     30 dage før period_end)
+ *  4) Vi IKKE låser når period_end ligger udenfor vinduet
+ */
+export function decideLock(plan: LockCandidate, now: Date): LockDecision {
+  const periodEnd = plan.current_period_end || plan.trial_ends_at;
+  if (!periodEnd) return { shouldLock: false, reason: "no_period_end" };
+  const periodEndMs = new Date(periodEnd).getTime();
+  const nowMs = now.getTime();
+  if (periodEndMs < nowMs) return { shouldLock: false, reason: "period_passed" };
+  const lockThresholdMs = nowMs + LOCK_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+  if (periodEndMs > lockThresholdMs) return { shouldLock: false, reason: "outside_window" };
+  if (plan.locked_at) {
+    const lockedMs = new Date(plan.locked_at).getTime();
+    if (lockedMs > periodEndMs - 30 * 24 * 60 * 60 * 1000) {
+      return { shouldLock: false, reason: "already_locked_this_cycle" };
+    }
+  }
+  return {
+    shouldLock: true,
+    reason: "lock",
+    patch: {
+      locked_extra_employee_logins: plan.extra_employee_logins ?? 0,
+      locked_accounting_integration: !!plan.accounting_integration_enabled,
+      locked_at: now.toISOString(),
+    },
+  };
+}
 
 Deno.serve(async (req) => {
   try {
@@ -27,27 +80,13 @@ Deno.serve(async (req) => {
     if (error) throw error;
 
     let locked = 0;
+    const nowDate = new Date(now);
     for (const p of (plans || []) as any[]) {
-      const periodEnd = p.current_period_end || p.trial_ends_at;
-      if (!periodEnd) continue;
-      const periodEndMs = new Date(periodEnd).getTime();
-      if (periodEndMs < now) continue; // allerede passeret
-
-      // Spring over hvis allerede låst for denne periode (locked_at efter
-      // forrige period_start, dvs. inden for samme cyklus). Simpel heuristik:
-      // hvis locked_at er nyere end (periodEnd - 30 dage), antag samme periode.
-      if (p.locked_at) {
-        const lockedMs = new Date(p.locked_at).getTime();
-        if (lockedMs > periodEndMs - 30 * 24 * 60 * 60 * 1000) continue;
-      }
-
+      const decision = decideLock(p as LockCandidate, nowDate);
+      if (!decision.shouldLock || !decision.patch) continue;
       const { error: upErr } = await supabase
         .from("business_plans")
-        .update({
-          locked_extra_employee_logins: p.extra_employee_logins ?? 0,
-          locked_accounting_integration: !!p.accounting_integration_enabled,
-          locked_at: new Date().toISOString(),
-        })
+        .update(decision.patch)
         .eq("id", p.id);
       if (!upErr) locked++;
     }
