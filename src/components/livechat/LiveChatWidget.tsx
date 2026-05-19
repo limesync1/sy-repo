@@ -2,12 +2,11 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import {
   MessageCircle, Send, Loader2, ChevronDown, CheckCheck, Paperclip, X as XIcon,
-  ImageIcon, Volume2, VolumeX, MoreVertical, MessagesSquare, ArrowLeft, Trash2, Bot,
+  ImageIcon, Volume2, VolumeX, MoreVertical, MessagesSquare, ArrowLeft, Trash2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
-import { useUserLocation } from "@/contexts/LocationContext";
 import { z } from "zod";
 import chatSounds from "./chatSounds";
 import ChatInboxList from "./ChatInboxList";
@@ -163,16 +162,6 @@ const LiveChatWidget = () => {
   const { pathname } = useLocation();
   const { user } = useAuth();
   const { count: cartCount, sheetOpen: cartSheetOpen } = useCart();
-  const { location: visitorLocation } = useUserLocation();
-  const visitorLocationRef = useRef(visitorLocation);
-  useEffect(() => { visitorLocationRef.current = visitorLocation; }, [visitorLocation]);
-  const aiInvokeBody = useCallback((conversation_id: string) => ({
-    conversation_id,
-    visitor_location: {
-      city: visitorLocationRef.current?.city ?? null,
-      zip: visitorLocationRef.current?.zip ?? null,
-    },
-  }), []);
 
   const [open, setOpenState] = useState<boolean>(() => {
     try { return sessionStorage.getItem("serviceydere_chat_open") === "1"; } catch { return false; }
