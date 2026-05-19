@@ -86,15 +86,6 @@ type RouteDropPointTarget =
   | { type: "route"; routeId: string; date?: string | null }
   | { type: "day"; date: string };
 
-type RouteDndDebugState = {
-  activeLabel: string;
-  pointLabel: string;
-  dndLabel: string;
-  domLabel: string;
-  resultLabel: string;
-  sourceLabel: string;
-};
-
 const getDragPoint = (event: Event | null): DragPoint | null => {
   if (!event) return null;
   if ("clientX" in event && typeof (event as MouseEvent).clientX === "number") {
@@ -129,13 +120,6 @@ const getRouteDropPointTarget = (point: DragPoint | null, sourceRouteId?: string
   }
 
   return null;
-};
-
-const routeDropTargetLabel = (target: any) => {
-  if (!target) return "Ingen target";
-  if (target.type === "route") return `Merge → rute ${String(target.routeId ?? "?").slice(0, 8)}`;
-  if (target.type === "day") return `Flyt → ${target.date}`;
-  return `Ukendt → ${target.type ?? "?"}`;
 };
 
 /** Konverterer "HH:MM[:SS]" til minutter siden midnat (eller null). */
