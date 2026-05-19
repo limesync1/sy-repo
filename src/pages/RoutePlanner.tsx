@@ -2997,6 +2997,7 @@ const Planner = () => {
                               return (
                                 <label key={emp.id} className="flex items-center gap-2 px-1.5 py-1 rounded hover:bg-secondary cursor-pointer text-xs">
                                   <Checkbox checked={checked} onCheckedChange={(v) => setFilterAssigneeIds((prev) => v ? [...prev, emp.id] : prev.filter((id) => id !== emp.id))} />
+                                  <FilterEmpAvatar emp={emp} />
                                   <span className="truncate">{emp.name}</span>
                                 </label>
                               );
