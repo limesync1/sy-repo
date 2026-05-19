@@ -20,6 +20,10 @@ const HeroSection = () => {
           src={heroImage}
           alt=""
           aria-hidden="true"
+          width={1280}
+          height={960}
+          fetchPriority="high"
+          decoding="async"
           className="absolute inset-0 h-full w-full object-cover opacity-50"
           loading="eager"
         />
