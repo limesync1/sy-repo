@@ -992,16 +992,17 @@ const LiveChatWidget = () => {
                 </div>
 
                 {closed ? (
-                  <div className="border-t border-border bg-card p-4 text-center">
-                    <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-                      <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground" />
-                      Samtalen er afsluttet
+                  <div className="border-t border-border bg-gradient-to-b from-card to-secondary/30 p-5 text-center">
+                    <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+                      <CheckCheck className="h-5 w-5 text-muted-foreground" />
                     </div>
-                    <p className="text-[11px] text-muted-foreground">Du kan altid starte en ny henvendelse herunder.</p>
+                    <p className="text-[13px] font-semibold text-foreground">Samtalen er afsluttet</p>
+                    <p className="mt-1 text-[11px] text-muted-foreground">Tak fordi du skrev til os. Du kan altid starte en ny samtale.</p>
                     <button
                       onClick={startNewConversation}
-                      className="mt-3 inline-flex items-center justify-center rounded-full bg-foreground px-4 py-2 text-xs font-semibold text-background transition-all hover:bg-foreground/90"
+                      className="mt-3 inline-flex items-center justify-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-xs font-semibold text-background shadow-[0_8px_22px_-12px_hsl(var(--foreground)/0.6)] transition-all hover:bg-foreground/90"
                     >
+                      <MessageCircle className="h-3.5 w-3.5" />
                       Start en ny samtale
                     </button>
                   </div>
@@ -1009,9 +1010,9 @@ const LiveChatWidget = () => {
                   <>
                     {showRecommended && dynamicReplies.length > 0 && !draft && !pendingImage && (
                       <div className="border-t border-border bg-card px-3 py-2.5">
-                        <div className="mb-1 flex items-center gap-1.5">
-                          <MessageCircle className="h-3 w-3 text-accent" />
-                          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Relevante opfølgninger</span>
+                        <div className="mb-1.5 flex items-center gap-1.5">
+                          <Bot className="h-3 w-3 text-accent" />
+                          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Foreslåede svar</span>
                         </div>
                         <div className="flex flex-wrap gap-1.5">
                           {dynamicReplies.map((r) => (
@@ -1019,7 +1020,7 @@ const LiveChatWidget = () => {
                               key={r}
                               type="button"
                               onClick={() => sendMessage(r)}
-                              className="rounded-full border border-border bg-secondary px-2.5 py-1 text-[11px] font-medium text-foreground transition-all hover:scale-[1.02] hover:border-foreground/40 hover:bg-card"
+                              className="rounded-full border border-border bg-secondary/60 px-3 py-1.5 text-[11px] font-medium text-foreground transition-all hover:-translate-y-px hover:border-accent/40 hover:bg-card hover:text-accent"
                             >
                               {r}
                             </button>
