@@ -2,12 +2,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import {
   Handshake, DollarSign, Star, Briefcase, TrendingUp,
   ArrowRight, AlertCircle, ChevronRight, Sparkles,
   ArrowUpRight, ArrowDownRight, Minus, CheckCircle2,
-  Share2, Eye, Calendar, MessageSquare, Link2, Copy, Check,
+  Share2, Eye, Calendar, MessageSquare, Link2, Check,
   Zap, Target, Settings as SettingsIcon, Users,
+  Search, X, Inbox, Rocket, PartyPopper,
 } from "lucide-react";
 import type { Business } from "@/hooks/useDatabase";
 import { useMemo, useState } from "react";
