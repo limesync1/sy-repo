@@ -54,7 +54,11 @@ Deno.serve(async (req) => {
     }
 
     const integration = await loadIntegration(admin, business_id);
-    if (!integration) return json({ error: "No active integration" }, 404);
+    if (!integration) {
+      // Ingen aktiv integration → ikke en fejl. Returnér 200 så klient-
+      // kald (fx fra kalkulator-/Services-fanen) ikke smider toast-fejl.
+      return json({ ok: true, skipped: "no_integration" });
+    }
 
     // Health-tjek: respekter midlertidig pause sat af DB-trigger
     // (auto_pause_failing_integration). Hvis udbyderen har spammet fejl,
