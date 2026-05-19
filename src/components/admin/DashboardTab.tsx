@@ -876,7 +876,7 @@ const OrdersListSection = ({
                 {order.status === "pending" && <AlertCircle className="h-3.5 w-3.5 text-amber-600" />}
               </div>
               <div className="flex items-center justify-between gap-3 sm:justify-end">
-                <span className="text-sm font-semibold tabular-nums text-foreground whitespace-nowrap">{order.total_amount} kr</span>
+                <span className="text-sm font-semibold tabular-nums text-foreground whitespace-nowrap">{fmtKr(Number(order.total_amount) || 0)}</span>
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </div>
             </button>
@@ -1201,7 +1201,7 @@ const StatDetailSheet = ({
                         </div>
                       </div>
                       <div className="flex items-center gap-2 sm:justify-end">
-                        <span className="text-sm font-semibold tabular-nums text-foreground">{order.total_amount} kr</span>
+                        <span className="text-sm font-semibold tabular-nums text-foreground">{fmtKr(Number(order.total_amount) || 0)}</span>
                         <ChevronRight className="h-4 w-4 text-muted-foreground" />
                       </div>
                     </button>
