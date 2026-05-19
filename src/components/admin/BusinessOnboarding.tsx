@@ -560,11 +560,26 @@ const BusinessOnboarding = () => {
                     )}
                   </div>
 
+                  {breakdown.startupFee > 0 && (
+                    <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                      <div className="flex items-baseline justify-between gap-3 text-sm">
+                        <span className="font-semibold text-amber-900">Opstartspris (engangsbeløb)</span>
+                        <span className="tabular-nums font-semibold text-amber-900">
+                          {formatDkk(breakdown.startupFee)} kr
+                        </span>
+                      </div>
+                      <p className="mt-1 text-[11px] leading-5 text-amber-800">
+                        Tilføjes til <span className="font-semibold">første faktura</span> efter prøveperiodens udløb. Dækker oprettelse,
+                        opsætning og 1-til-1 onboarding. Betales kun én gang.
+                      </p>
+                    </div>
+                  )}
+
                   <div className="mt-4 flex items-start gap-2 rounded-lg bg-accent/10 p-3">
                     <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
                     <p className="text-xs leading-5 text-foreground">
                       <span className="font-semibold">{pricing.trial_days} dages gratis prøve.</span>{" "}
-                      Du tilføjer betalingskort senere under indstillinger.
+                      I dag betaler du <span className="font-semibold">0 kr</span>. Du tilføjer betalingskort senere under indstillinger.
                       Ingen binding — opsig når som helst.
                     </p>
                   </div>
