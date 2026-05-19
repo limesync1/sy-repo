@@ -2,12 +2,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import {
   Handshake, DollarSign, Star, Briefcase, TrendingUp,
   ArrowRight, AlertCircle, ChevronRight, Sparkles,
   ArrowUpRight, ArrowDownRight, Minus, CheckCircle2,
-  Share2, Eye, Calendar, MessageSquare, Link2, Copy, Check,
+  Share2, Eye, Calendar, MessageSquare, Link2, Check,
   Zap, Target, Settings as SettingsIcon, Users,
+  Search, X, Inbox, Rocket, PartyPopper,
 } from "lucide-react";
 import type { Business } from "@/hooks/useDatabase";
 import { useMemo, useState } from "react";
@@ -54,6 +57,11 @@ const DashboardTab = ({
   pendingOrders, recentOrders, reviews, services, onNavigate,
 }: Props) => {
   const [copied, setCopied] = useState(false);
+  // Stat-detalje-panel — hvilken metric vi har åbnet, hvis nogen.
+  const [openStat, setOpenStat] = useState<null | "revenue" | "orders" | "today" | "pending" | "rating">(null);
+  // Filtre på "Seneste bestillinger" — status-pille + søgetekst.
+  const [orderFilter, setOrderFilter] = useState<"all" | "pending" | "confirmed" | "in_progress" | "completed" | "cancelled">("all");
+  const [orderSearch, setOrderSearch] = useState("");
 
   // ── Periode-aggregat: dag/uge/30-dage + sparkline-data ───────────────
   const stats = useMemo(() => {
@@ -292,10 +300,10 @@ const DashboardTab = ({
 
         {/* Snapshot-pille: i dag */}
         <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <SnapshotPill label="I dag" value={String(stats.todayCount)} sub={`${fmtKrShort(stats.todayRevenue)} kr`} />
-          <SnapshotPill label="Denne uge" value={String(stats.orders7)} sub={`${fmtKrShort(stats.revenue7)} kr`} />
-          <SnapshotPill label="Afventer" value={String(pendingOrders)} sub={pendingOrders > 0 ? "Skal besvares" : "Alt besvaret"} accent={pendingOrders > 0} />
-          <SnapshotPill label="Bedømmelse" value={reviewsCount > 0 ? `${averageRating.toFixed(1)}★` : "–"} sub={`${reviewsCount} ${reviewsCount === 1 ? "anmeldelse" : "anmeldelser"}`} />
+          <SnapshotPill label="I dag" value={String(stats.todayCount)} sub={`${fmtKrShort(stats.todayRevenue)} kr`} onClick={() => setOpenStat("today")} />
+          <SnapshotPill label="Denne uge" value={String(stats.orders7)} sub={`${fmtKrShort(stats.revenue7)} kr`} onClick={() => setOpenStat("orders")} />
+          <SnapshotPill label="Afventer" value={String(pendingOrders)} sub={pendingOrders > 0 ? "Skal besvares" : "Alt besvaret"} accent={pendingOrders > 0} onClick={() => setOpenStat("pending")} />
+          <SnapshotPill label="Bedømmelse" value={reviewsCount > 0 ? `${averageRating.toFixed(1)}★` : "–"} sub={`${reviewsCount} ${reviewsCount === 1 ? "anmeldelse" : "anmeldelser"}`} onClick={reviewsCount > 0 ? () => onNavigate?.("reviews") : undefined} />
         </div>
       </section>
 
@@ -310,6 +318,7 @@ const DashboardTab = ({
               icon={<DollarSign />}
               trend={revTrend}
               sparkline={stats.buckets14.map((b) => b.rev)}
+              onClick={() => setOpenStat("revenue")}
             />
             <SmartStatCard
               label="Bestillinger · 7 dage"
@@ -318,56 +327,26 @@ const DashboardTab = ({
               icon={<Handshake />}
               trend={ordTrend}
               sparkline={stats.buckets14.map((b) => b.count)}
+              onClick={() => setOpenStat("orders")}
             />
           </div>
 
           {/* Seneste bestillinger */}
           <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-5">
-              <div>
-                <h3 className="text-sm font-semibold text-foreground">Seneste bestillinger</h3>
-                <p className="mt-0.5 text-xs text-muted-foreground">Hurtigt overblik over de nyeste aftaler og deres status.</p>
-              </div>
-              {recentOrders.length > 0 && (
-                <button onClick={() => onNavigate?.("orders")} className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
-                  Se alle <ArrowRight className="h-3 w-3" />
-                </button>
-              )}
-            </div>
-
-            {recentOrders.length > 0 ? (
-              <div className="divide-y divide-border">
-                {recentOrders.slice(0, 5).map((order) => (
-                  <button
-                    key={order.id}
-                    type="button"
-                    onClick={() => onNavigate?.("orders")}
-                    className="grid w-full gap-3 px-4 py-3 text-left transition-colors hover:bg-secondary/60 sm:grid-cols-[minmax(0,1.1fr)_auto_auto] sm:items-center sm:px-5"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-foreground">{order.customer_name}</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        {new Date(order.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className={`${statusColors[order.status] || ""} w-fit border px-2 py-0.5 text-xs font-medium`}>
-                        {statusLabels[order.status] || order.status}
-                      </Badge>
-                      {order.status === "pending" && <AlertCircle className="h-3.5 w-3.5 text-amber-600" />}
-                    </div>
-                    <div className="flex items-center justify-between gap-3 sm:justify-end">
-                      <span className="text-sm font-semibold tabular-nums text-foreground whitespace-nowrap">{order.total_amount} kr</span>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="p-4 sm:p-5">
-                <EmptyState icon={<TrendingUp />} title="Ingen bestillinger endnu" description="Bestillinger vil vises her, så snart de kommer ind." />
-              </div>
-            )}
+            <OrdersListSection
+              recentOrders={recentOrders}
+              servicesCount={servicesCount}
+              completeness={completeness.pct}
+              orderFilter={orderFilter}
+              setOrderFilter={setOrderFilter}
+              orderSearch={orderSearch}
+              setOrderSearch={setOrderSearch}
+              onNavigate={onNavigate}
+              copyLink={copyLink}
+              hasShareUrl={!!shareUrl}
+              statusLabels={statusLabels}
+              statusColors={statusColors}
+            />
           </Card>
 
           {/* Top services */}
@@ -530,23 +509,42 @@ const DashboardTab = ({
           )}
         </section>
       </div>
+
+      {/* Stat-detalje-panel — åbnes når et stat-kort/pille klikkes */}
+      <StatDetailSheet
+        openStat={openStat}
+        onClose={() => setOpenStat(null)}
+        buckets14={stats.buckets14}
+        recentOrders={recentOrders}
+        statusLabels={statusLabels}
+        statusColors={statusColors}
+        onNavigate={onNavigate}
+      />
     </div>
   );
 };
 
 /* ─────────────────────────────────────────────────────────────────────── */
 
-/** Lille pille i hero-stripen — kompakt KPI med label/værdi/sub. */
-const SnapshotPill = ({ label, value, sub, accent }: { label: string; value: string; sub: string; accent?: boolean }) => (
-  <div className={cn(
-    "rounded-xl border px-3 py-2.5 backdrop-blur-sm",
+/** Lille pille i hero-stripen — kompakt KPI med label/værdi/sub. Klikbar når onClick er sat. */
+const SnapshotPill = ({ label, value, sub, accent, onClick }: { label: string; value: string; sub: string; accent?: boolean; onClick?: () => void }) => {
+  const className = cn(
+    "rounded-xl border px-3 py-2.5 text-left backdrop-blur-sm transition-all",
     accent ? "border-amber-300/40 bg-amber-400/[0.10]" : "border-background/10 bg-background/[0.05]",
-  )}>
-    <p className="text-[10px] font-medium uppercase tracking-wider text-background/60">{label}</p>
-    <p className="mt-1 text-lg font-semibold tabular-nums text-background sm:text-xl">{value}</p>
-    <p className="mt-0.5 truncate text-[11px] text-background/65">{sub}</p>
-  </div>
-);
+    onClick && "hover:-translate-y-0.5 hover:border-background/25 hover:bg-background/[0.10]",
+  );
+  const content = (
+    <>
+      <p className="text-[10px] font-medium uppercase tracking-wider text-background/60">{label}</p>
+      <p className="mt-1 text-lg font-semibold tabular-nums text-background sm:text-xl">{value}</p>
+      <p className="mt-0.5 truncate text-[11px] text-background/65">{sub}</p>
+    </>
+  );
+  if (onClick) {
+    return <button type="button" onClick={onClick} className={className}>{content}</button>;
+  }
+  return <div className={className}>{content}</div>;
+};
 
 /** Sparkline — 14 dages mini-søjler. Sidste søjle (i dag) fremhæves. */
 const Sparkline = ({ data }: { data: number[] }) => {
@@ -574,7 +572,7 @@ const Sparkline = ({ data }: { data: number[] }) => {
 
 /** SmartStatCard — stat med trend-pille og sparkline. */
 const SmartStatCard = ({
-  label, value, hint, icon, trend, sparkline,
+  label, value, hint, icon, trend, sparkline, onClick,
 }: {
   label: string;
   value: React.ReactNode;
@@ -582,13 +580,21 @@ const SmartStatCard = ({
   icon: React.ReactNode;
   trend?: { pct: number; dir: "up" | "down" | "flat" };
   sparkline?: number[];
+  onClick?: () => void;
 }) => {
-  return (
-    <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+  const cardClass = cn(
+    "surface-admin block w-full rounded-xl border-border/80 shadow-sm",
+    onClick && "group cursor-pointer text-left transition-all hover:-translate-y-0.5 hover:border-foreground/30 hover:shadow-md",
+  );
+  const body = (
+    <Card className={cardClass}>
       <CardContent className="p-4 sm:p-5">
         <div className="flex items-start justify-between gap-2">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground [&_svg]:h-3.5 [&_svg]:w-3.5">
+          <div className={cn(
+            "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground transition-colors [&_svg]:h-3.5 [&_svg]:w-3.5",
+            onClick && "group-hover:bg-foreground group-hover:text-background",
+          )}>
             {icon}
           </div>
         </div>
@@ -611,9 +617,423 @@ const SmartStatCard = ({
         {sparkline && sparkline.some((v) => v > 0) && (
           <div className="mt-3"><Sparkline data={sparkline} /></div>
         )}
-        {hint && <p className="mt-2 text-xs text-muted-foreground">{hint}</p>}
+        <div className="mt-2 flex items-center justify-between gap-2">
+          {hint ? <p className="truncate text-xs text-muted-foreground">{hint}</p> : <span />}
+          {onClick && (
+            <span className="inline-flex shrink-0 items-center gap-0.5 text-[11px] font-medium text-muted-foreground transition-colors group-hover:text-foreground">
+              Detaljer <ChevronRight className="h-3 w-3" />
+            </span>
+          )}
+        </div>
       </CardContent>
     </Card>
+  );
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} aria-label={`${label} — vis detaljer`} className="block w-full text-left">
+        {body}
+      </button>
+    );
+  }
+  return body;
+};
+
+/* ─────────────────────────────────────────────────────────────────────── */
+
+/** OrdersListSection — seneste bestillinger med status-filter + søgning. */
+const OrdersListSection = ({
+  recentOrders, servicesCount, completeness, orderFilter, setOrderFilter,
+  orderSearch, setOrderSearch, onNavigate, copyLink, hasShareUrl,
+  statusLabels, statusColors,
+}: {
+  recentOrders: any[];
+  servicesCount: number;
+  completeness: number;
+  orderFilter: "all" | "pending" | "confirmed" | "in_progress" | "completed" | "cancelled";
+  setOrderFilter: (v: any) => void;
+  orderSearch: string;
+  setOrderSearch: (v: string) => void;
+  onNavigate?: (tab: string) => void;
+  copyLink: () => void;
+  hasShareUrl: boolean;
+  statusLabels: Record<string, string>;
+  statusColors: Record<string, string>;
+}) => {
+  const counts = useMemo(() => {
+    const c: Record<string, number> = { all: recentOrders.length };
+    recentOrders.forEach((o: any) => { c[o.status] = (c[o.status] || 0) + 1; });
+    return c;
+  }, [recentOrders]);
+
+  const filtered = useMemo(() => {
+    const q = orderSearch.trim().toLowerCase();
+    return recentOrders.filter((o: any) => {
+      if (orderFilter !== "all" && o.status !== orderFilter) return false;
+      if (!q) return true;
+      return (
+        (o.customer_name || "").toLowerCase().includes(q) ||
+        (o.customer_email || "").toLowerCase().includes(q) ||
+        (o.customer_phone || "").toLowerCase().includes(q) ||
+        String(o.total_amount || "").includes(q)
+      );
+    });
+  }, [recentOrders, orderFilter, orderSearch]);
+
+  const chips: { key: typeof orderFilter; label: string }[] = [
+    { key: "all", label: "Alle" },
+    { key: "pending", label: "Afventer" },
+    { key: "confirmed", label: "Bekræftet" },
+    { key: "in_progress", label: "I gang" },
+    { key: "completed", label: "Afsluttet" },
+    { key: "cancelled", label: "Annulleret" },
+  ];
+
+  // ── Tom-tilstande, opdelt så vi giver brugeren konkret handling ────
+  if (recentOrders.length === 0) {
+    return (
+      <>
+        <div className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-5">
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">Seneste bestillinger</h3>
+            <p className="mt-0.5 text-xs text-muted-foreground">Bestillinger fra kunder lander her, så snart de booker.</p>
+          </div>
+        </div>
+        <div className="p-5 sm:p-7">
+          <div className="rounded-2xl border border-dashed border-border bg-secondary/30 p-6 text-center sm:p-8">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-card shadow-sm">
+              <Inbox className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <h4 className="mt-4 text-base font-semibold text-foreground">Ingen bestillinger endnu</h4>
+            <p className="mx-auto mt-1.5 max-w-md text-sm text-muted-foreground">
+              {servicesCount === 0
+                ? "Først tilføj en service — derefter kan kunder finde og booke jer."
+                : completeness < 80
+                  ? "Profilen er næsten klar. Færdiggør den, så I rangerer højere i søgningen."
+                  : "Profilen er klar. Del jeres link på Facebook eller jeres hjemmeside for at få de første bestillinger."}
+            </p>
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+              {servicesCount === 0 ? (
+                <Button size="sm" className="h-9 rounded-lg" onClick={() => onNavigate?.("services")}>
+                  <Briefcase className="mr-1.5 h-4 w-4" /> Tilføj din første service
+                </Button>
+              ) : completeness < 80 ? (
+                <Button size="sm" className="h-9 rounded-lg" onClick={() => onNavigate?.("settings")}>
+                  <Target className="mr-1.5 h-4 w-4" /> Fuldfør profil
+                </Button>
+              ) : (
+                hasShareUrl && (
+                  <Button size="sm" className="h-9 rounded-lg" onClick={copyLink}>
+                    <Share2 className="mr-1.5 h-4 w-4" /> Del jeres profil-link
+                  </Button>
+                )
+              )}
+              {servicesCount > 0 && (
+                <Button size="sm" variant="outline" className="h-9 rounded-lg" onClick={() => onNavigate?.("services")}>
+                  Tilføj endnu en service
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <div className="border-b border-border px-4 py-3 sm:px-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className="text-sm font-semibold text-foreground">Seneste bestillinger</h3>
+            <p className="mt-0.5 text-xs text-muted-foreground">Filtrér efter status eller søg på kunde, e-mail eller beløb.</p>
+          </div>
+          <button onClick={() => onNavigate?.("orders")} className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
+            Se alle <ArrowRight className="h-3 w-3" />
+          </button>
+        </div>
+
+        <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto] sm:items-center">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={orderSearch}
+              onChange={(e) => setOrderSearch(e.target.value)}
+              placeholder="Søg på kunde, e-mail eller beløb…"
+              className="h-9 rounded-lg pl-8 pr-8 text-sm"
+            />
+            {orderSearch && (
+              <button
+                type="button"
+                onClick={() => setOrderSearch("")}
+                aria-label="Ryd søgning"
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-2 -mx-1 flex flex-nowrap items-center gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {chips.map((chip) => {
+            const active = orderFilter === chip.key;
+            const n = counts[chip.key] || 0;
+            return (
+              <button
+                key={chip.key}
+                type="button"
+                onClick={() => setOrderFilter(chip.key)}
+                className={cn(
+                  "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
+                  active
+                    ? "border-foreground bg-foreground text-background"
+                    : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground",
+                )}
+              >
+                {chip.label}
+                <span className={cn(
+                  "rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums",
+                  active ? "bg-background/15 text-background" : "bg-secondary text-muted-foreground",
+                )}>{n}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {filtered.length > 0 ? (
+        <div className="divide-y divide-border">
+          {filtered.slice(0, 6).map((order: any) => (
+            <button
+              key={order.id}
+              type="button"
+              onClick={() => onNavigate?.("orders")}
+              className="grid w-full gap-3 px-4 py-3 text-left transition-colors hover:bg-secondary/60 sm:grid-cols-[minmax(0,1.1fr)_auto_auto] sm:items-center sm:px-5"
+            >
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-foreground">{order.customer_name}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {new Date(order.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge className={`${statusColors[order.status] || ""} w-fit border px-2 py-0.5 text-xs font-medium`}>
+                  {statusLabels[order.status] || order.status}
+                </Badge>
+                {order.status === "pending" && <AlertCircle className="h-3.5 w-3.5 text-amber-600" />}
+              </div>
+              <div className="flex items-center justify-between gap-3 sm:justify-end">
+                <span className="text-sm font-semibold tabular-nums text-foreground whitespace-nowrap">{order.total_amount} kr</span>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </button>
+          ))}
+          {filtered.length > 6 && (
+            <button
+              onClick={() => onNavigate?.("orders")}
+              className="flex w-full items-center justify-center gap-1.5 bg-secondary/40 px-4 py-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            >
+              Se alle {filtered.length} matchende bestillinger <ArrowRight className="h-3 w-3" />
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="p-6 text-center">
+          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-secondary">
+            <Search className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <p className="mt-3 text-sm font-medium text-foreground">Ingen match</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Prøv en anden status eller ryd søgningen.
+          </p>
+          <Button size="sm" variant="outline" className="mt-3 h-8 rounded-lg" onClick={() => { setOrderSearch(""); setOrderFilter("all"); }}>
+            Ryd filtre
+          </Button>
+        </div>
+      )}
+    </>
+  );
+};
+
+/* ─────────────────────────────────────────────────────────────────────── */
+
+/** StatDetailSheet — drawer med 14-dages graf + relevant bestillingsliste. */
+const StatDetailSheet = ({
+  openStat, onClose, buckets14, recentOrders, statusLabels, statusColors, onNavigate,
+}: {
+  openStat: null | "revenue" | "orders" | "today" | "pending" | "rating";
+  onClose: () => void;
+  buckets14: { rev: number; count: number }[];
+  recentOrders: any[];
+  statusLabels: Record<string, string>;
+  statusColors: Record<string, string>;
+  onNavigate?: (tab: string) => void;
+}) => {
+  const config = useMemo(() => {
+    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+    const tomorrow = +todayStart + DAY_MS;
+    const week = +todayStart - 6 * DAY_MS;
+
+    switch (openStat) {
+      case "revenue":
+        return {
+          title: "Omsætning · sidste 7 dage",
+          subtitle: "Klikbar opdeling pr. dag",
+          mode: "revenue" as const,
+          orders: recentOrders.filter((o: any) => {
+            const t = +new Date(o.created_at);
+            return t >= week && t < tomorrow && o.status !== "cancelled";
+          }),
+        };
+      case "orders":
+        return {
+          title: "Bestillinger · sidste 7 dage",
+          subtitle: "Alle indkomne aftaler",
+          mode: "count" as const,
+          orders: recentOrders.filter((o: any) => {
+            const t = +new Date(o.created_at);
+            return t >= week && t < tomorrow;
+          }),
+        };
+      case "today":
+        return {
+          title: "Aktivitet i dag",
+          subtitle: new Date().toLocaleDateString("da-DK", { weekday: "long", day: "numeric", month: "long" }),
+          mode: "count" as const,
+          orders: recentOrders.filter((o: any) => {
+            const t = +new Date(o.created_at);
+            return t >= +todayStart && t < tomorrow;
+          }),
+        };
+      case "pending":
+        return {
+          title: "Afventende bestillinger",
+          subtitle: "Svar hurtigt — hver time tæller for konverteringen",
+          mode: "count" as const,
+          orders: recentOrders.filter((o: any) => o.status === "pending"),
+        };
+      default:
+        return null;
+    }
+  }, [openStat, recentOrders]);
+
+  const open = openStat !== null && !!config;
+  if (!config) {
+    return (
+      <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
+        <SheetContent side="right" className="w-full sm:max-w-md" />
+      </Sheet>
+    );
+  }
+
+  const max = Math.max(1, ...buckets14.slice(7).map((b) => (config.mode === "revenue" ? b.rev : b.count)));
+  const totalValue = config.mode === "revenue"
+    ? config.orders.reduce((s, o) => s + (Number(o.total_amount) || 0), 0)
+    : config.orders.length;
+
+  return (
+    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
+      <SheetContent side="right" className="w-full overflow-y-auto p-0 sm:max-w-lg">
+        <SheetHeader className="border-b border-border bg-secondary/40 px-5 py-4 text-left">
+          <SheetTitle className="text-base font-semibold text-foreground">{config.title}</SheetTitle>
+          <SheetDescription className="text-xs text-muted-foreground">{config.subtitle}</SheetDescription>
+        </SheetHeader>
+
+        <div className="space-y-5 p-5">
+          {/* Total */}
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              {config.mode === "revenue" ? "Total omsætning" : "Antal"}
+            </p>
+            <p className="mt-1 text-3xl font-semibold tabular-nums text-foreground">
+              {config.mode === "revenue" ? fmtKr(totalValue) : totalValue}
+            </p>
+          </div>
+
+          {/* 7-dages dag-for-dag graf */}
+          {openStat !== "pending" && (
+            <div className="rounded-xl border border-border bg-card p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Dag for dag
+              </p>
+              <div className="mt-4 flex h-32 items-end gap-2">
+                {buckets14.slice(7).map((b, i) => {
+                  const v = config.mode === "revenue" ? b.rev : b.count;
+                  const h = Math.max(6, Math.round((v / max) * 100));
+                  const date = new Date(); date.setHours(0, 0, 0, 0);
+                  date.setDate(date.getDate() - (6 - i));
+                  const isToday = i === 6;
+                  return (
+                    <div key={i} className="flex flex-1 flex-col items-center gap-1.5">
+                      <span className="text-[10px] font-semibold tabular-nums text-muted-foreground">
+                        {v > 0 ? (config.mode === "revenue" ? fmtKrShort(v) : v) : ""}
+                      </span>
+                      <div
+                        className={cn(
+                          "w-full rounded-md transition-colors",
+                          isToday ? "bg-foreground" : v > 0 ? "bg-foreground/40" : "bg-foreground/10",
+                        )}
+                        style={{ height: `${h}%` }}
+                        aria-label={`${date.toLocaleDateString("da-DK", { weekday: "short", day: "numeric" })}: ${v}`}
+                      />
+                      <span className="text-[10px] font-medium uppercase text-muted-foreground">
+                        {date.toLocaleDateString("da-DK", { weekday: "short" }).slice(0, 2)}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Bestillingsliste */}
+          <div className="rounded-xl border border-border bg-card overflow-hidden">
+            <div className="border-b border-border bg-secondary/40 px-4 py-2.5">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Relevante bestillinger ({config.orders.length})
+              </p>
+            </div>
+            {config.orders.length > 0 ? (
+              <div className="divide-y divide-border">
+                {config.orders.slice(0, 12).map((order: any) => (
+                  <SheetClose asChild key={order.id}>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate?.("orders")}
+                      className="grid w-full gap-2 px-4 py-3 text-left transition-colors hover:bg-secondary/60 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-foreground">{order.customer_name}</p>
+                        <div className="mt-1 flex items-center gap-2">
+                          <Badge className={`${statusColors[order.status] || ""} border px-1.5 py-0.5 text-[10px] font-medium`}>
+                            {statusLabels[order.status] || order.status}
+                          </Badge>
+                          <span className="text-[11px] text-muted-foreground">
+                            {new Date(order.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 sm:justify-end">
+                        <span className="text-sm font-semibold tabular-nums text-foreground">{order.total_amount} kr</span>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    </button>
+                  </SheetClose>
+                ))}
+              </div>
+            ) : (
+              <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+                Ingen bestillinger i denne periode.
+              </div>
+            )}
+          </div>
+
+          <Button variant="outline" className="w-full" onClick={() => { onClose(); onNavigate?.("orders"); }}>
+            Åbn fuld bestillingsliste <ArrowRight className="ml-1.5 h-4 w-4" />
+          </Button>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 };
 
