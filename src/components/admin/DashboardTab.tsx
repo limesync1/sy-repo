@@ -1130,16 +1130,19 @@ const StatDetailSheet = ({
                       </button>
                     ))}
                   </div>
-                  <select
-                    value={rangeDays}
-                    onChange={(e) => setRangeDays(Number(e.target.value))}
-                    aria-label="Vælg interval"
-                    className="h-7 appearance-none rounded-md border border-border bg-background px-2 text-[11px] font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                  >
-                    {rangeOptions.filter((o) => granularity === "day" ? true : o.value >= 14).map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                  </select>
+                  <Select value={String(rangeDays)} onValueChange={(v) => setRangeDays(Number(v))}>
+                    <SelectTrigger
+                      aria-label="Vælg interval"
+                      className="h-7 w-auto gap-1.5 rounded-md border-border bg-card px-2 text-[11px] font-semibold text-foreground hover:bg-secondary"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent align="end">
+                      {rangeOptions.filter((o) => granularity === "day" ? true : o.value >= 14).map((o) => (
+                        <SelectItem key={o.value} value={String(o.value)}>{o.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div className="mt-4 flex h-32 items-end gap-2">
