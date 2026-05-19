@@ -101,23 +101,23 @@ const Index = () => {
       />
       <SiteNav />
       <HeroSection />
-      <main id="main">
       {/* Hver sektion fader blødt ind når den scrolles i syne. Det giver
           forsiden en rolig, sammenhængende rytme på alle enheder uden at
           skubbe layout — IntersectionObserver er praktisk talt gratis.
           Suspense-fallback er null fordi Reveal allerede holder pladsen
           via dens egen min-height/transition. */}
       <Suspense fallback={null}>
-        <Reveal><Stats /></Reveal>
-        <Reveal><HowItWorks /></Reveal>
-        <Reveal><GetQuotes /></Reveal>
-        <Reveal><RecentBusinesses /></Reveal>
-        <Reveal><Testimonials /></Reveal>
-        <Reveal><WhyUs /></Reveal>
-        <Reveal><ForBusinesses /></Reveal>
+        <main id="main">
+          <Reveal><Stats /></Reveal>
+          <Reveal><HowItWorks /></Reveal>
+          <Reveal><GetQuotes /></Reveal>
+          <Reveal><RecentBusinesses /></Reveal>
+          <Reveal><Testimonials /></Reveal>
+          <Reveal><WhyUs /></Reveal>
+          <Reveal><ForBusinesses /></Reveal>
+        </main>
         <Footer />
       </Suspense>
-      </main>
     </div>
   );
 };
