@@ -683,36 +683,61 @@ const LiveChatWidget = () => {
           className={
             isMobile
               ? "fixed inset-0 z-50 animate-in fade-in slide-in-from-bottom-4 duration-200"
-              : `fixed z-50 w-[calc(100vw-3rem)] max-w-[400px] md:w-[400px] animate-in fade-in slide-in-from-bottom-4 duration-200 ${panelBottomClass} ${panelPositionClass}`
+              : `fixed z-50 w-[calc(100vw-3rem)] max-w-[420px] md:w-[420px] animate-in fade-in slide-in-from-bottom-4 duration-200 ${panelBottomClass} ${panelPositionClass}`
           }
         >
           <div
             className={
               isMobile
                 ? "relative flex h-[100dvh] w-full flex-col overflow-hidden bg-card"
-                : "relative flex h-[min(660px,calc(100vh-3rem))] flex-col overflow-hidden rounded-[22px] border border-border bg-card shadow-[0_30px_80px_-28px_hsl(var(--foreground)/0.34)]"
+                : "relative flex h-[min(680px,calc(100vh-3rem))] flex-col overflow-hidden rounded-[24px] border border-border bg-card shadow-[0_40px_100px_-30px_hsl(204_96%_13%/0.45)] ring-1 ring-black/[0.04]"
             }
           >
-            {/* Header */}
-            <div className="relative overflow-hidden bg-foreground px-5 pb-5 pt-4 text-background">
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(var(--accent)/0.18),transparent_55%)]" />
+            {/* Header — matcher Serviceydere hero (mørk navy + cyan glows) */}
+            <div
+              className="relative overflow-hidden px-5 pb-5 pt-4 text-background"
+              style={{ backgroundColor: "hsl(var(--hero-bg))" }}
+            >
+              <div aria-hidden className="pointer-events-none absolute inset-0">
+                <div
+                  className="absolute -right-16 -top-20 h-56 w-56 rounded-full opacity-40 blur-[60px]"
+                  style={{ backgroundColor: "hsl(var(--hero-mid))" }}
+                />
+                <div
+                  className="absolute -left-12 -bottom-16 h-44 w-44 rounded-full opacity-25 blur-[55px]"
+                  style={{ backgroundColor: "hsl(var(--hero-cyan))" }}
+                />
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    backgroundImage:
+                      "radial-gradient(ellipse 90% 70% at 90% 0%, hsl(var(--hero-cyan-bright) / 0.18), transparent 60%)",
+                  }}
+                />
+              </div>
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-background/10" />
               <div className="relative flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3">
-                  <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-visible rounded-2xl bg-background/10 ring-1 ring-background/10">
+                  <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-visible rounded-2xl bg-background/[0.08] ring-1 ring-background/15 backdrop-blur-sm">
                     <img
                       src="/serviceydere-ikon.webp"
                       alt="Serviceydere"
                       className="h-10 w-10 object-contain"
                     />
-                    <span className={`absolute -bottom-0.5 -right-0.5 z-10 flex h-3 w-3 items-center justify-center rounded-full ring-2 ring-foreground ${closed ? "bg-muted-foreground" : "bg-success"}`}>
+                    <span
+                      className={`absolute -bottom-0.5 -right-0.5 z-10 flex h-3 w-3 items-center justify-center rounded-full ring-2 ${closed ? "bg-muted-foreground" : "bg-success"}`}
+                      style={{ boxShadow: "0 0 0 2px hsl(var(--hero-bg))" }}
+                    >
                       {!closed && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-background" />}
                     </span>
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
                       <p className="text-[15px] font-semibold leading-tight">Serviceydere Kundeservice</p>
-                      <span className="inline-flex items-center gap-0.5 rounded-full bg-accent/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-accent">
+                      <span
+                        className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-background"
+                        style={{ backgroundColor: "hsl(var(--hero-cyan) / 0.22)", color: "hsl(var(--hero-cyan-bright))" }}
+                      >
                         <Bot className="h-2 w-2" /> AI
                       </span>
                     </div>
