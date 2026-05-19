@@ -1171,6 +1171,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_system: boolean
+          metadata: Json | null
           read_at: string | null
           sender_name: string
           sender_type: string
@@ -1182,6 +1183,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_system?: boolean
+          metadata?: Json | null
           read_at?: string | null
           sender_name: string
           sender_type: string
@@ -1193,6 +1195,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_system?: boolean
+          metadata?: Json | null
           read_at?: string | null
           sender_name?: string
           sender_type?: string
