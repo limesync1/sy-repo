@@ -20,6 +20,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   upsertChat,
   removeChat,
   listChats,
@@ -193,6 +203,7 @@ const LiveChatWidget = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [chats, setChats] = useState<RegisteredChat[]>(() => listChats());
   useEffect(() => subscribeToRegistry(() => setChats(listChats())), []);
+  const [confirmDelete, setConfirmDelete] = useState<null | { kind: "current" } | { kind: "chat"; chat: RegisteredChat }>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -510,9 +521,8 @@ const LiveChatWidget = () => {
     setConversation((prev) => (prev ? { ...prev, status: "closed" } : prev));
   };
 
-  const deleteCurrentConversation = async () => {
+  const performDeleteCurrent = async () => {
     if (!conversation) return;
-    if (!confirm("Vil du slette samtalen fra dine samtaler?")) return;
     if (conversation.status !== "closed") {
       await supabase.from("chat_messages").insert({
         conversation_id: conversation.id,
@@ -531,6 +541,7 @@ const LiveChatWidget = () => {
     clearPendingImage();
     chatSounds.system();
   };
+  const deleteCurrentConversation = () => setConfirmDelete({ kind: "current" });
 
   const startNewConversation = () => {
     // Tøm lokal state og fjern session-token, så brugeren får start-formularen igen.
@@ -569,8 +580,7 @@ const LiveChatWidget = () => {
     }
   };
 
-  const deleteChat = (chat: RegisteredChat) => {
-    if (!confirm("Vil du slette samtalen fra dine samtaler?")) return;
+  const performDeleteChat = (chat: RegisteredChat) => {
     if (chat.key === platformKey()) {
       try { localStorage.removeItem(STORAGE_KEY); } catch {}
       if (conversation) {
@@ -584,6 +594,7 @@ const LiveChatWidget = () => {
     removeChat(chat.key);
     setChats(listChats());
   };
+  const deleteChat = (chat: RegisteredChat) => setConfirmDelete({ kind: "chat", chat });
 
   // Adaptive positioning so we never overlap CartFab on mobile or desktop
   const cartFabVisible =
@@ -649,8 +660,10 @@ const LiveChatWidget = () => {
           type="button"
           onClick={handleOpen}
           aria-label="Åbn livechat"
-          className={`fixed z-40 flex items-center gap-2 rounded-full border border-background/10 bg-foreground py-2 pl-2.5 pr-4 text-xs font-semibold text-background shadow-[0_18px_44px_-22px_hsl(var(--foreground)/0.55)] transition-colors hover:bg-foreground/90 active:scale-[0.98] ${fabBottomClass} ${fabPositionClass}`}
+          className={`group fixed z-40 flex items-center gap-2 overflow-hidden rounded-full border border-background/10 py-2 pl-2.5 pr-4 text-xs font-semibold text-background shadow-[0_20px_50px_-22px_hsl(204_96%_13%/0.7)] transition-all hover:scale-[1.03] active:scale-[0.97] ${fabBottomClass} ${fabPositionClass}`}
+          style={{ backgroundColor: "hsl(var(--hero-bg))" }}
         >
+          <span aria-hidden className="pointer-events-none absolute inset-0 opacity-80" style={{ backgroundImage: "radial-gradient(circle at 15% 50%, hsl(var(--hero-cyan) / 0.35), transparent 60%)" }} />
           <span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-visible">
             <img
               src="/serviceydere-ikon.webp"
@@ -660,10 +673,10 @@ const LiveChatWidget = () => {
             />
             <span className="absolute -right-1 -top-1 flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/70 opacity-75"></span>
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-success ring-2 ring-foreground"></span>
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-success ring-2" style={{ boxShadow: "0 0 0 2px hsl(var(--hero-bg))" }}></span>
             </span>
           </span>
-          <span>Kundeservice</span>
+          <span className="relative">Kundeservice</span>
         </button>
       )}
 
@@ -672,36 +685,61 @@ const LiveChatWidget = () => {
           className={
             isMobile
               ? "fixed inset-0 z-50 animate-in fade-in slide-in-from-bottom-4 duration-200"
-              : `fixed z-50 w-[calc(100vw-3rem)] max-w-[400px] md:w-[400px] animate-in fade-in slide-in-from-bottom-4 duration-200 ${panelBottomClass} ${panelPositionClass}`
+              : `fixed z-50 w-[calc(100vw-3rem)] max-w-[420px] md:w-[420px] animate-in fade-in slide-in-from-bottom-4 duration-200 ${panelBottomClass} ${panelPositionClass}`
           }
         >
           <div
             className={
               isMobile
                 ? "relative flex h-[100dvh] w-full flex-col overflow-hidden bg-card"
-                : "relative flex h-[min(660px,calc(100vh-3rem))] flex-col overflow-hidden rounded-[22px] border border-border bg-card shadow-[0_30px_80px_-28px_hsl(var(--foreground)/0.34)]"
+                : "relative flex h-[min(680px,calc(100vh-3rem))] flex-col overflow-hidden rounded-[24px] border border-border bg-card shadow-[0_40px_100px_-30px_hsl(204_96%_13%/0.45)] ring-1 ring-black/[0.04]"
             }
           >
-            {/* Header */}
-            <div className="relative overflow-hidden bg-foreground px-5 pb-5 pt-4 text-background">
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(var(--accent)/0.18),transparent_55%)]" />
+            {/* Header — matcher Serviceydere hero (mørk navy + cyan glows) */}
+            <div
+              className="relative overflow-hidden px-5 pb-5 pt-4 text-background"
+              style={{ backgroundColor: "hsl(var(--hero-bg))" }}
+            >
+              <div aria-hidden className="pointer-events-none absolute inset-0">
+                <div
+                  className="absolute -right-16 -top-20 h-56 w-56 rounded-full opacity-40 blur-[60px]"
+                  style={{ backgroundColor: "hsl(var(--hero-mid))" }}
+                />
+                <div
+                  className="absolute -left-12 -bottom-16 h-44 w-44 rounded-full opacity-25 blur-[55px]"
+                  style={{ backgroundColor: "hsl(var(--hero-cyan))" }}
+                />
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    backgroundImage:
+                      "radial-gradient(ellipse 90% 70% at 90% 0%, hsl(var(--hero-cyan-bright) / 0.18), transparent 60%)",
+                  }}
+                />
+              </div>
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-background/10" />
               <div className="relative flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3">
-                  <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-visible rounded-2xl bg-background/10 ring-1 ring-background/10">
+                  <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-visible rounded-2xl bg-background/[0.08] ring-1 ring-background/15 backdrop-blur-sm">
                     <img
                       src="/serviceydere-ikon.webp"
                       alt="Serviceydere"
                       className="h-10 w-10 object-contain"
                     />
-                    <span className={`absolute -bottom-0.5 -right-0.5 z-10 flex h-3 w-3 items-center justify-center rounded-full ring-2 ring-foreground ${closed ? "bg-muted-foreground" : "bg-success"}`}>
+                    <span
+                      className={`absolute -bottom-0.5 -right-0.5 z-10 flex h-3 w-3 items-center justify-center rounded-full ring-2 ${closed ? "bg-muted-foreground" : "bg-success"}`}
+                      style={{ boxShadow: "0 0 0 2px hsl(var(--hero-bg))" }}
+                    >
                       {!closed && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-background" />}
                     </span>
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
                       <p className="text-[15px] font-semibold leading-tight">Serviceydere Kundeservice</p>
-                      <span className="inline-flex items-center gap-0.5 rounded-full bg-accent/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-accent">
+                      <span
+                        className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-background"
+                        style={{ backgroundColor: "hsl(var(--hero-cyan) / 0.22)", color: "hsl(var(--hero-cyan-bright))" }}
+                      >
                         <Bot className="h-2 w-2" /> AI
                       </span>
                     </div>
@@ -805,7 +843,8 @@ const LiveChatWidget = () => {
               <div className="flex flex-1 flex-col gap-4 overflow-y-auto bg-gradient-to-b from-secondary/30 via-background to-background px-5 py-5">
                 {/* Pretty empty-state */}
                 <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-sm">
-                  <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-accent/10 blur-2xl" />
+                  <div aria-hidden className="pointer-events-none absolute -right-10 -top-12 h-32 w-32 rounded-full blur-2xl" style={{ backgroundColor: "hsl(var(--hero-cyan) / 0.18)" }} />
+                  <div aria-hidden className="pointer-events-none absolute -left-8 -bottom-10 h-24 w-24 rounded-full blur-2xl" style={{ backgroundColor: "hsl(var(--hero-mid) / 0.12)" }} />
                   <div className="relative mb-2 flex items-center gap-2">
                     <span className="inline-flex items-center gap-1 rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent">
                       <Bot className="h-2.5 w-2.5" /> AI svarer nu
@@ -1080,6 +1119,32 @@ const LiveChatWidget = () => {
           </div>
         </div>
       )}
+
+      <AlertDialog open={!!confirmDelete} onOpenChange={(o) => { if (!o) setConfirmDelete(null); }}>
+        <AlertDialogContent className="z-[100]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Slet samtale?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Samtalen fjernes fra dine samtaler. Du kan altid starte en ny henvendelse igen.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annullér</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                const c = confirmDelete;
+                setConfirmDelete(null);
+                if (!c) return;
+                if (c.kind === "current") performDeleteCurrent();
+                else performDeleteChat(c.chat);
+              }}
+            >
+              Slet samtale
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
