@@ -584,7 +584,7 @@ const Sparkline = ({ data }: { data: number[] }) => {
 
 /** SmartStatCard — stat med trend-pille og sparkline. */
 const SmartStatCard = ({
-  label, value, hint, icon, trend, sparkline,
+  label, value, hint, icon, trend, sparkline, onClick,
 }: {
   label: string;
   value: React.ReactNode;
@@ -592,13 +592,25 @@ const SmartStatCard = ({
   icon: React.ReactNode;
   trend?: { pct: number; dir: "up" | "down" | "flat" };
   sparkline?: number[];
+  onClick?: () => void;
 }) => {
+  const Wrapper: any = onClick ? "button" : "div";
   return (
-    <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+    <Card
+      asChild={!!onClick}
+      className={cn(
+        "surface-admin rounded-xl border-border/80 shadow-sm",
+        onClick && "group cursor-pointer text-left transition-all hover:-translate-y-0.5 hover:border-foreground/30 hover:shadow-md",
+      )}
+    >
+      <Wrapper {...(onClick ? { type: "button", onClick, "aria-label": `${label} — vis detaljer` } : {})}>
       <CardContent className="p-4 sm:p-5">
         <div className="flex items-start justify-between gap-2">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground [&_svg]:h-3.5 [&_svg]:w-3.5">
+          <div className={cn(
+            "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground transition-colors [&_svg]:h-3.5 [&_svg]:w-3.5",
+            onClick && "group-hover:bg-foreground group-hover:text-background",
+          )}>
             {icon}
           </div>
         </div>
@@ -621,8 +633,16 @@ const SmartStatCard = ({
         {sparkline && sparkline.some((v) => v > 0) && (
           <div className="mt-3"><Sparkline data={sparkline} /></div>
         )}
-        {hint && <p className="mt-2 text-xs text-muted-foreground">{hint}</p>}
+        <div className="mt-2 flex items-center justify-between gap-2">
+          {hint ? <p className="truncate text-xs text-muted-foreground">{hint}</p> : <span />}
+          {onClick && (
+            <span className="inline-flex shrink-0 items-center gap-0.5 text-[11px] font-medium text-muted-foreground transition-colors group-hover:text-foreground">
+              Detaljer <ChevronRight className="h-3 w-3" />
+            </span>
+          )}
+        </div>
       </CardContent>
+      </Wrapper>
     </Card>
   );
 };
