@@ -835,26 +835,29 @@ export type Database = {
         Row: {
           business_id: string
           code_hash: string
-          consumed_at: string | null
           created_at: string
           expires_at: string
           id: string
+          redeemed_at: string | null
+          requested_by_user_id: string | null
         }
         Insert: {
           business_id: string
           code_hash: string
-          consumed_at?: string | null
           created_at?: string
-          expires_at: string
+          expires_at?: string
           id?: string
+          redeemed_at?: string | null
+          requested_by_user_id?: string | null
         }
         Update: {
           business_id?: string
           code_hash?: string
-          consumed_at?: string | null
           created_at?: string
           expires_at?: string
           id?: string
+          redeemed_at?: string | null
+          requested_by_user_id?: string | null
         }
         Relationships: [
           {
