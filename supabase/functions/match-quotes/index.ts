@@ -171,7 +171,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.5-flash-lite",
         messages: [
           {
             role: "system",
@@ -184,7 +184,7 @@ Din opgave:
 For hver match returner:
 - business_id
 - match_score (1-100)
-- reason (2-3 sætninger dansk)
+- reason (1-2 korte sætninger, max 240 tegn, dansk, skrevet direkte til kunden i 2. person ("du/dig/din"). Omtal virksomheden ved navn i 3. person ("de/deres"). Nævn konkret hvorfor matchet er relevant for kunden — fx afstand fra dig, by, branche, services der passer. Ingen klichéer, ingen "vi", ingen markedsføringssprog. Eksempel: "NavnetHer ligger under 1 km fra dig i Haderup og tilbyder vinduespudsning. Deres prisberegner dækker primært hovedrengøring, men de har lokal erfaring med opgaven.")
 - estimated_price (prisinterval baseret på beregnede priser)
 - service_prefills: array af { service_id, hours (kun for timepris), step_values: array af { step_id, value } }
 
