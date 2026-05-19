@@ -82,6 +82,18 @@ import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
 type DragPoint = { x: number; y: number };
+type RouteDropPointTarget =
+  | { type: "route"; routeId: string; date?: string | null }
+  | { type: "day"; date: string };
+
+type RouteDndDebugState = {
+  activeLabel: string;
+  pointLabel: string;
+  dndLabel: string;
+  domLabel: string;
+  resultLabel: string;
+  sourceLabel: string;
+};
 
 const getDragPoint = (event: Event | null): DragPoint | null => {
   if (!event) return null;
@@ -92,6 +104,38 @@ const getDragPoint = (event: Event | null): DragPoint | null => {
   const touchEvent = event as TouchEvent;
   const touch = touchEvent.touches?.[0] ?? touchEvent.changedTouches?.[0];
   return touch ? { x: touch.clientX, y: touch.clientY } : null;
+};
+
+const routeIdFromDndId = (id: unknown) => String(id ?? "").replace(/^route:/, "");
+
+const getRouteDropPointTarget = (point: DragPoint | null, sourceRouteId?: string | null): RouteDropPointTarget | null => {
+  if (!point || typeof document === "undefined") return null;
+  const elements = typeof document.elementsFromPoint === "function"
+    ? document.elementsFromPoint(point.x, point.y)
+    : [document.elementFromPoint(point.x, point.y)].filter(Boolean) as Element[];
+
+  for (const element of elements) {
+    const routeEl = element.closest<HTMLElement>("[data-route-drop-route-id]");
+    const routeId = routeEl?.dataset.routeDropRouteId;
+    if (routeId && routeId !== sourceRouteId) {
+      return { type: "route", routeId, date: routeEl.dataset.routeDropDate ?? null };
+    }
+  }
+
+  for (const element of elements) {
+    const dayEl = element.closest<HTMLElement>("[data-route-drop-date]");
+    const date = dayEl?.dataset.routeDropDate;
+    if (date) return { type: "day", date };
+  }
+
+  return null;
+};
+
+const routeDropTargetLabel = (target: any) => {
+  if (!target) return "Ingen target";
+  if (target.type === "route") return `Merge → rute ${String(target.routeId ?? "?").slice(0, 8)}`;
+  if (target.type === "day") return `Flyt → ${target.date}`;
+  return `Ukendt → ${target.type ?? "?"}`;
 };
 
 /** Konverterer "HH:MM[:SS]" til minutter siden midnat (eller null). */
@@ -121,6 +165,8 @@ const Planner = () => {
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragData, setActiveDragData] = useState<any>(null);
+  const [routeDragPoint, setRouteDragPoint] = useState<DragPoint | null>(null);
+  const [routeDndDebug, setRouteDndDebug] = useState<RouteDndDebugState | null>(null);
   const activeRouteDragPointRef = useRef<DragPoint | null>(null);
   const activeRouteDragOriginRef = useRef<DragPoint | null>(null);
   const lastRouteDropTargetRef = useRef<any | null>(null);
@@ -441,26 +487,33 @@ const Planner = () => {
       // route→route merge fejlagtigt fortolket som route→day move (fordi
       // pointerWithin nogle gange returnerer dag-cellen først).
       if (args.active.data.current?.type === "route") {
+        const sourceRouteId = routeIdFromDndId(args.active.id);
         const routeHit = pointerCollisions.find((c) => {
           const container = args.droppableContainers.find((d) => d.id === c.id);
           return container?.data.current?.type === "route"
-            && container?.data.current?.routeId !== args.active.id?.toString().replace(/^route:/, "");
+            && container?.data.current?.routeId !== sourceRouteId;
         });
         if (routeHit) return [routeHit];
+        const nonSourceHits = pointerCollisions.filter((c) => {
+          const container = args.droppableContainers.find((d) => d.id === c.id);
+          return !(container?.data.current?.type === "route" && container?.data.current?.routeId === sourceRouteId);
+        });
+        if (nonSourceHits.length > 0) return nonSourceHits;
       }
       return pointerCollisions;
     }
 
     const routeDragPoint = args.active.data.current?.type === "route" ? activeRouteDragPointRef.current : null;
     if (routeDragPoint) {
-      const routePointerCollision = args.droppableContainers.find((container) => {
-        const rect = container.rect.current;
-        return rect &&
-          routeDragPoint.x >= rect.left &&
-          routeDragPoint.x <= rect.right &&
-          routeDragPoint.y >= rect.top &&
-          routeDragPoint.y <= rect.bottom;
-      });
+      const pointTarget = getRouteDropPointTarget(routeDragPoint, routeIdFromDndId(args.active.id));
+      const targetId = pointTarget?.type === "route"
+        ? `route-drop:${pointTarget.routeId}`
+        : pointTarget?.type === "day"
+          ? `day:${pointTarget.date}`
+          : null;
+      const routePointerCollision = targetId
+        ? args.droppableContainers.find((container) => container.id === targetId)
+        : null;
       if (routePointerCollision) return [{ id: routePointerCollision.id }];
     }
 
@@ -1303,6 +1356,25 @@ const Planner = () => {
   }
 
   /* ─── DnD ─── */
+  const updateRouteDndDebug = (
+    data: any,
+    point: DragPoint | null,
+    dndTarget: any,
+    domTarget: RouteDropPointTarget | null,
+    resultTarget: any,
+    sourceLabel: string,
+  ) => {
+    if (data?.type !== "route") return;
+    setRouteDndDebug({
+      activeLabel: data.route?.name || "Rute",
+      pointLabel: point ? `${Math.round(point.x)}, ${Math.round(point.y)}` : "Ingen pointer",
+      dndLabel: routeDropTargetLabel(dndTarget),
+      domLabel: routeDropTargetLabel(domTarget),
+      resultLabel: routeDropTargetLabel(resultTarget),
+      sourceLabel,
+    });
+  };
+
   const handleDragStart = (e: DragStartEvent) => {
     const data: any = e.active.data.current;
     lastRouteDropTargetRef.current = null;
@@ -1318,6 +1390,7 @@ const Planner = () => {
     if (data?.type === "route" && data?.route?.isVirtual) {
       setActiveDragId(null);
       setActiveDragData(null);
+      setRouteDragPoint(null);
       activeRouteDragPointRef.current = null;
       activeRouteDragOriginRef.current = null;
       if (businessId) {
@@ -1338,23 +1411,35 @@ const Planner = () => {
       const origin = getDragPoint(e.activatorEvent);
       activeRouteDragOriginRef.current = origin;
       activeRouteDragPointRef.current = origin;
+      setRouteDragPoint(origin);
+      updateRouteDndDebug(data, origin, null, getRouteDropPointTarget(origin, data.route?.id), null, "Drag startet");
     } else {
       activeRouteDragOriginRef.current = null;
       activeRouteDragPointRef.current = null;
       lastRouteDropTargetRef.current = null;
+      setRouteDragPoint(null);
     }
   };
 
   const handleDragOver = (e: DragOverEvent) => {
     if (e.active.data.current?.type !== "route") return;
     if (e.over?.data.current) lastRouteDropTargetRef.current = e.over.data.current;
+    const point = activeRouteDragPointRef.current;
+    const domTarget = getRouteDropPointTarget(point, e.active.data.current?.route?.id);
+    const resultTarget = e.over?.data.current ?? domTarget ?? lastRouteDropTargetRef.current;
+    updateRouteDndDebug(e.active.data.current, point, e.over?.data.current, domTarget, resultTarget, "Hover");
   };
 
   const handleDragMove = (e: DragMoveEvent) => {
     if (e.active.data.current?.type !== "route") return;
     const origin = activeRouteDragOriginRef.current;
     if (!origin) return;
-    activeRouteDragPointRef.current = { x: origin.x + e.delta.x, y: origin.y + e.delta.y };
+    const point = { x: origin.x + e.delta.x, y: origin.y + e.delta.y };
+    activeRouteDragPointRef.current = point;
+    setRouteDragPoint(point);
+    const domTarget = getRouteDropPointTarget(point, e.active.data.current?.route?.id);
+    const resultTarget = domTarget ?? lastRouteDropTargetRef.current;
+    updateRouteDndDebug(e.active.data.current, point, lastRouteDropTargetRef.current, domTarget, resultTarget, "Flytter");
   };
 
   // De øvrige kalender-callbacks afhænger af `openProjectedRoute` /
@@ -1420,20 +1505,34 @@ const Planner = () => {
 
   const handleDragEnd = async (e: DragEndEvent) => {
     const { active, over } = e;
-    const fallbackRouteTarget = !over && active.data.current?.type === "route"
-      ? (() => {
-          const point = activeRouteDragPointRef.current;
-          const el = point ? document.elementFromPoint(point.x, point.y)?.closest<HTMLElement>("[data-route-drop-route-id],[data-route-drop-date]") : null;
-          const routeId = el?.dataset.routeDropRouteId;
-          const date = el?.dataset.routeDropDate;
-          if (routeId) return { type: "route", routeId, date };
-          if (date) return { type: "day", date };
-          return lastRouteDropTargetRef.current;
-        })()
+    const activeDataAtDrop: any = active.data.current;
+    const pointAtDrop = activeRouteDragPointRef.current;
+    const domRouteTarget = activeDataAtDrop?.type === "route"
+      ? getRouteDropPointTarget(pointAtDrop, activeDataAtDrop.route?.id)
       : null;
-    const hasDropTarget = !!over || !!fallbackRouteTarget;
+    const dndRouteTarget = over?.data.current ?? null;
+    const fallbackRouteTarget = activeDataAtDrop?.type === "route"
+      ? domRouteTarget ?? lastRouteDropTargetRef.current
+      : null;
+    const preferredRouteTarget = activeDataAtDrop?.type === "route"
+      ? dndRouteTarget?.type === "route"
+        ? dndRouteTarget
+        : domRouteTarget?.type === "route"
+          ? domRouteTarget
+          : dndRouteTarget ?? fallbackRouteTarget
+      : null;
+    const hasDropTarget = activeDataAtDrop?.type === "route" ? !!preferredRouteTarget : !!over;
+    updateRouteDndDebug(
+      activeDataAtDrop,
+      pointAtDrop,
+      dndRouteTarget,
+      domRouteTarget,
+      preferredRouteTarget,
+      "Drop",
+    );
     setActiveDragId(null);
     setActiveDragData(null);
+    setRouteDragPoint(null);
     activeRouteDragPointRef.current = null;
     activeRouteDragOriginRef.current = null;
     lastRouteDropTargetRef.current = null;
@@ -1546,8 +1645,8 @@ const Planner = () => {
       return false;
     };
 
-    const activeData: any = active.data.current;
-    const overData: any = over?.data.current ?? fallbackRouteTarget;
+    const activeData: any = activeDataAtDrop;
+    const overData: any = activeData?.type === "route" ? preferredRouteTarget : over?.data.current;
     // ─── Hård spærring: aldrig drop på en dato før i dag ───
     // Kalender-cellerne er allerede disabled som drop-target, men en
     // eksplicit guard + toast sikrer at intet drop (rute, stop eller job)
@@ -2317,8 +2416,10 @@ const Planner = () => {
       onDragCancel={() => {
         // ESC eller pointer-loss midt i drag tæller som klik-fejl.
         dragMetrics.end(false);
+        updateRouteDndDebug(activeDragData, activeRouteDragPointRef.current, null, null, null, "Annulleret");
         setActiveDragId(null);
         setActiveDragData(null);
+        setRouteDragPoint(null);
         activeRouteDragPointRef.current = null;
         activeRouteDragOriginRef.current = null;
       }}
@@ -3245,21 +3346,42 @@ const Planner = () => {
               </p>
             </div>
           )}
-          {activeDragId && activeDragData?.type === "route" && (
-            <div
-              className="rounded-md border-l-[3px] border bg-card px-2 py-1 shadow-xl w-[160px] pointer-events-none"
-              style={{
-                transform: "rotate(-2deg)",
-                borderLeftColor: activeDragData.route?.color || "hsl(var(--accent))",
-              }}
-            >
-              <p className="text-[11px] font-semibold truncate">
-                {activeDragData.route?.name || "Rute"}
-              </p>
-            </div>
-          )}
         </DragOverlay>,
         document.body)}
+
+        {activeDragId && activeDragData?.type === "route" && routeDragPoint && createPortal(
+          <div
+            className="fixed z-[1000] w-[160px] pointer-events-none rounded-md border-l-[3px] border bg-card px-2 py-1 shadow-xl"
+            style={{
+              left: routeDragPoint.x,
+              top: routeDragPoint.y,
+              transform: "translate(-50%, -50%) rotate(-2deg)",
+              borderLeftColor: activeDragData.route?.color || "hsl(var(--accent))",
+            }}
+          >
+            <p className="text-[11px] font-semibold truncate">
+              {activeDragData.route?.name || "Rute"}
+            </p>
+          </div>,
+          document.body,
+        )}
+
+        {routeDndDebug && createPortal(
+          <div className="fixed bottom-3 right-3 z-[1001] w-[min(360px,calc(100vw-1.5rem))] rounded-md border bg-card/95 p-3 text-xs shadow-xl backdrop-blur">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <p className="font-semibold text-foreground">DnD-diagnose</p>
+              <Badge variant="secondary" className="h-5 text-[10px]">{routeDndDebug.sourceLabel}</Badge>
+            </div>
+            <div className="grid grid-cols-[88px_1fr] gap-x-2 gap-y-1 text-[11px] leading-tight">
+              <span className="text-muted-foreground">Aktiv</span><span className="truncate font-medium text-foreground">{routeDndDebug.activeLabel}</span>
+              <span className="text-muted-foreground">Pointer</span><span className="tabular-nums text-foreground">{routeDndDebug.pointLabel}</span>
+              <span className="text-muted-foreground">DnD target</span><span className="truncate text-foreground">{routeDndDebug.dndLabel}</span>
+              <span className="text-muted-foreground">DOM target</span><span className="truncate text-foreground">{routeDndDebug.domLabel}</span>
+              <span className="text-muted-foreground">Fortolkning</span><span className="truncate font-semibold text-foreground">{routeDndDebug.resultLabel}</span>
+            </div>
+          </div>,
+          document.body,
+        )}
 
         <StopDetailSheet
           readOnly={

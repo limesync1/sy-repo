@@ -198,6 +198,7 @@ const DayRowInner = ({
   return (
     <li
       ref={setNodeRef}
+      data-route-drop-date={canReceiveDrop ? dateStr : undefined}
       className={cn(
         "relative px-3 py-2.5 transition-colors",
         isPast && "bg-muted/20",
@@ -360,6 +361,8 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, optimizing, jobDrag
   return (
     <div
       ref={setRefs}
+      data-route-drop-route-id={!isVirtual && !isPast ? route.id : undefined}
+      data-route-drop-date={!isVirtual && !isPast ? route.route_date : undefined}
       onClick={(e) => { e.stopPropagation(); if (!isDragging) onSelect(); }}
       className={cn(
         "relative flex items-center gap-2 rounded-md border bg-card px-2.5 py-2 cursor-pointer transition-all overflow-hidden",
