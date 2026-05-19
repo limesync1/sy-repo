@@ -825,6 +825,22 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     return eta.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
   }, [directions?.duration_s]);
 
+  /**
+   * Forsinkelse vs. planlagt ankomst — sammenligner aktuel ETA med
+   * nextStop.planned_arrival. Vi opdaterer hvert minut (via etaLabel der
+   * allerede genberegnes når directions ændrer sig). Returnerer antal
+   * minutter (positiv = forsinket, negativ = i god tid). null hvis vi
+   * ikke har data nok.
+   */
+  const delayMinutes: number | null = useMemo(() => {
+    if (!directions?.duration_s || !nextStop?.planned_arrival) return null;
+    const etaMs = Date.now() + directions.duration_s * 1000;
+    const plannedMs = new Date(nextStop.planned_arrival).getTime();
+    if (!Number.isFinite(plannedMs)) return null;
+    return Math.round((etaMs - plannedMs) / 60000);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [directions?.duration_s, nextStop?.planned_arrival, nextStop?.id]);
+
   /* ── Rute-totals: samlet distance/varighed for resterende stop.
    * Vises i pre-start oversigt og i header-pillen så medarbejderen
    * altid kan se hvad der venter på dagen. */
@@ -1761,9 +1777,18 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     <p className="text-sm font-semibold text-foreground tabular-nums leading-tight">
                       {formatKm(distanceToNextM)}
                     </p>
-                    <p className="text-[10px] text-muted-foreground leading-tight">
-                      til næste
-                    </p>
+                    {/* Forsinkelses-chip — viser kun når planlagt ankomst er kendt
+                        og vi enten er forsinket > 5 min eller godt i tid > 5 min.
+                        Holder muted-foreground i normale tilfælde. */}
+                    {delayMinutes != null && Math.abs(delayMinutes) > 5 ? (
+                      <p className={`text-[10px] leading-tight font-semibold tabular-nums ${delayMinutes > 0 ? "text-amber-600" : "text-emerald-600"}`}>
+                        {delayMinutes > 0 ? `+${delayMinutes} min` : `${delayMinutes} min`}
+                      </p>
+                    ) : (
+                      <p className="text-[10px] text-muted-foreground leading-tight">
+                        til næste
+                      </p>
+                    )}
                   </div>
                 ) : null}
                 <span className="ml-1 text-muted-foreground/70 group-hover:text-foreground transition-colors">
