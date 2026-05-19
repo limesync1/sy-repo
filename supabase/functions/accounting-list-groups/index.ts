@@ -32,7 +32,19 @@ Deno.serve(async (req) => {
     );
     const { data: integ } = await admin.from("accounting_integrations")
       .select("*").eq("business_id", business_id).eq("is_active", true).maybeSingle();
-    if (!integ) return json({ error: "No active integration" }, 404);
+    if (!integ) {
+      // Returnér tomt resultat i stedet for fejl, så UI'er der "altid"
+      // henter regnskabs-grupper (services-fanen, kunde-dialog mv.) virker
+      // også når brugeren endnu ikke har koblet et regnskabsprogram på.
+      return json({
+        ok: true,
+        skipped: "no_integration",
+        customer_groups: [],
+        product_groups: [],
+        income_accounts: [],
+        labels: {},
+      });
+    }
 
     const adapter = makeAdapter(integ.provider, integ as any, integ.settings ?? {});
     const groups = await adapter.listGroups().catch((e) => {

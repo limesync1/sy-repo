@@ -41,6 +41,7 @@ export type PlanningPanelEmployee = {
   id: string;
   name?: string | null;
   color?: string | null;
+  avatar_url?: string | null;
 };
 
 const fmtKr = (n: number) =>
@@ -60,7 +61,9 @@ export const PlanningPanel = ({
   businessId, anchorDate, stops, routes, employees, filterAssigneeIds, onFilterAssigneeIds,
 }: Props) => {
   const [open, setOpen] = useState(false);
-  const [explanationsOpen, setExplanationsOpen] = useState(false);
+  // Forklaringer er åbnet by-default — brugeren skal kunne se farve-
+  // legenden uden et ekstra klik hver gang planlægningspanelet åbnes.
+  const [explanationsOpen, setExplanationsOpen] = useState(true);
 
   // Hent total_amount for de ordrer der ligger som stops i det viste vindue.
   // Lazy: kun når panelet er åbnet første gang. Resultatet cacher pr.
@@ -211,13 +214,7 @@ export const PlanningPanel = ({
                           checked={checked}
                           onCheckedChange={() => toggleEmployee(e.id)}
                         />
-                        {e.color && (
-                          <span
-                            className="h-2.5 w-2.5 rounded-full ring-1 ring-border"
-                            style={{ background: e.color }}
-                            aria-hidden
-                          />
-                        )}
+                        <EmployeeAvatarChip employee={e} />
                         <span className="truncate">{e.name || "Uden navn"}</span>
                       </label>
                     </li>
@@ -258,11 +255,6 @@ export const PlanningPanel = ({
                   <LegendDot color="hsl(43 96% 56%)" label="I gang" />
                   <LegendDot color="hsl(142 71% 45%)" label="Afsluttet" />
                   <LegendDot color="hsl(0 84% 60%)" label="Annulleret" />
-                </LegendGroup>
-                <LegendGroup title="Ordretype">
-                  <LegendBadge symbol="A" label="Abonnement / gentagende" />
-                  <LegendBadge symbol="O" label="Online bestilling" />
-                  <LegendBadge symbol="M" label="Manuel oprettet" />
                 </LegendGroup>
               </div>
             )}
@@ -311,3 +303,29 @@ const LegendBadge = ({ symbol, label }: { symbol: string; label: string }) => (
 );
 
 export default PlanningPanel;
+
+/** Avatar-chip til medarbejder-filter. Bruger profilbillede hvis sat,
+ *  ellers initialer på medarbejderens farve som fallback. */
+const EmployeeAvatarChip = ({ employee }: { employee: PlanningPanelEmployee }) => {
+  const name = employee.name || "?";
+  const initials = name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
+  if (employee.avatar_url) {
+    return (
+      <img
+        src={employee.avatar_url}
+        alt={name}
+        loading="lazy"
+        className="h-5 w-5 rounded-full object-cover ring-1 ring-border"
+      />
+    );
+  }
+  return (
+    <span
+      className="inline-flex h-5 w-5 items-center justify-center rounded-full ring-1 ring-border text-white text-[9px] font-semibold"
+      style={{ background: employee.color || "hsl(220 13% 46%)" }}
+      aria-hidden
+    >
+      {initials}
+    </span>
+  );
+};
