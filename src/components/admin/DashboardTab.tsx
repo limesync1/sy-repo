@@ -509,6 +509,17 @@ const DashboardTab = ({
           )}
         </section>
       </div>
+
+      {/* Stat-detalje-panel — åbnes når et stat-kort/pille klikkes */}
+      <StatDetailSheet
+        openStat={openStat}
+        onClose={() => setOpenStat(null)}
+        buckets14={stats.buckets14}
+        recentOrders={recentOrders}
+        statusLabels={statusLabels}
+        statusColors={statusColors}
+        onNavigate={onNavigate}
+      />
     </div>
   );
 };
