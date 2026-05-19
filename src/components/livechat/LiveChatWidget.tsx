@@ -876,13 +876,6 @@ const LiveChatWidget = () => {
                     Samtale startet · {formatTime(messages[0]?.created_at || new Date().toISOString())}
                   </div>
 
-                  {messages.length === 1 && messages[0].sender_type === "visitor" && (
-                    <div className="mx-auto max-w-[85%] rounded-2xl border border-dashed border-border bg-card/60 p-3 text-center">
-                      <Loader2 className="mx-auto mb-1.5 h-3.5 w-3.5 animate-spin text-muted-foreground" />
-                      <p className="text-[11px] text-muted-foreground">Venter på svar fra teamet…</p>
-                    </div>
-                  )}
-
                   {messages.map((m, i) => {
                     if (m.is_system) {
                       return (
