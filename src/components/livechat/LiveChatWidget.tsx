@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import {
   MessageCircle, Send, Loader2, ChevronDown, CheckCheck, Paperclip, X as XIcon,
-  ImageIcon, Volume2, VolumeX, MoreVertical, MessagesSquare, ArrowLeft, Trash2, Sparkles,
+  ImageIcon, Volume2, VolumeX, MoreVertical, MessagesSquare, ArrowLeft, Trash2, Bot,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -69,13 +69,6 @@ const HIDDEN_EXACT: string[] = [];
 // i topbjælken), men den flydende kundeservice-knap skjules så den ikke overlapper
 // andre knapper i fx ruteplanlæggeren eller på "Aftaler"-siden.
 const HIDE_TRIGGER_PREFIXES = ["/virksomhed"];
-
-const QUICK_TOPICS = [
-  { label: "Find service", subject: "Find serviceyder", suggest: "Hej, jeg vil gerne finde en serviceyder i mit område. Hvordan fungerer det?" },
-  { label: "Få 3 tilbud", subject: "Indhent 3 tilbud", suggest: "Hej, jeg vil gerne indhente op til 3 tilbud. Hvordan foregår det?" },
-  { label: "Bliv udbyder", subject: "Bliv udbyder på Serviceydere", suggest: "Hej, jeg vil gerne høre hvordan min virksomhed kan blive udbyder på Serviceydere." },
-  { label: "Kundeservice", subject: "Kundeservice", suggest: "Hej, jeg har brug for hjælp fra Serviceydere support." },
-];
 
 // Topic-based dynamic recommended replies. Keys are matched against the
 // visitor's recent message content (case-insensitive keyword match).
@@ -690,7 +683,8 @@ const LiveChatWidget = () => {
             }
           >
             {/* Header */}
-            <div className="relative overflow-hidden bg-foreground px-5 pb-4 pt-4 text-background">
+            <div className="relative overflow-hidden bg-foreground px-5 pb-5 pt-4 text-background">
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(var(--accent)/0.18),transparent_55%)]" />
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-background/10" />
               <div className="relative flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3">
@@ -708,7 +702,7 @@ const LiveChatWidget = () => {
                     <div className="flex items-center gap-1.5">
                       <p className="text-[15px] font-semibold leading-tight">Serviceydere support</p>
                       <span className="inline-flex items-center gap-0.5 rounded-full bg-accent/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-accent">
-                        <Sparkles className="h-2 w-2" /> AI
+                        <Bot className="h-2 w-2" /> AI
                       </span>
                     </div>
                     <p className="mt-0.5 text-[11px] text-background/65">
@@ -815,33 +809,12 @@ const LiveChatWidget = () => {
                     <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-5 w-5 object-contain" />
                     <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Serviceydere support</span>
                     <span className="inline-flex items-center gap-0.5 rounded-full bg-accent/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-accent">
-                      <Sparkles className="h-2 w-2" /> AI
+                      <Bot className="h-2 w-2" /> AI
                     </span>
                   </div>
                   <p className="text-[13px] leading-relaxed text-foreground">
                     👋 Hej! Vores AI-assistent svarer med det samme og kan finde en udbyder tæt på dig. Skal noget afklares af en rigtig person, henter vi straks en fra kundeservice.
                   </p>
-                </div>
-                <div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {QUICK_TOPICS.map((t) => (
-                      <button
-                        key={t.label}
-                        type="button"
-                        onClick={() => {
-                          setSubject(t.subject);
-                          if (t.suggest && !firstMessage) setFirstMessage(t.suggest);
-                        }}
-                    className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-                          subject === t.subject
-                            ? "border-foreground bg-foreground text-background"
-                            : "border-border bg-card text-foreground hover:border-foreground/40 hover:bg-secondary/40"
-                        }`}
-                      >
-                        {t.label}
-                      </button>
-                    ))}
-                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <label className="text-[11px] font-medium text-muted-foreground">
@@ -884,8 +857,8 @@ const LiveChatWidget = () => {
               </div>
             ) : (
               <>
-              <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto bg-secondary/25 px-4 py-4 scroll-smooth">
-                  <div className="mx-auto max-w-[85%] rounded-full border border-border bg-card px-3 py-1 text-center text-[10px] text-muted-foreground">
+              <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto bg-gradient-to-b from-secondary/40 via-background to-background px-4 py-5 scroll-smooth">
+                  <div className="mx-auto w-fit rounded-full border border-border/70 bg-card/80 px-3 py-1 text-center text-[10px] font-medium text-muted-foreground backdrop-blur-sm">
                     Samtale startet · {formatTime(messages[0]?.created_at || new Date().toISOString())}
                   </div>
 
@@ -933,7 +906,7 @@ const LiveChatWidget = () => {
                                 <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-7 w-7 object-contain" />
                                 {isAi && (
                                   <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-accent text-accent-foreground ring-2 ring-card">
-                                    <Sparkles className="h-2 w-2" />
+                                    <Bot className="h-2 w-2" />
                                   </span>
                                 )}
                               </span>
@@ -946,18 +919,18 @@ const LiveChatWidget = () => {
                               <span className="text-foreground/80">{m.sender_name || "Serviceydere"}</span>
                               {isAi && (
                                 <span className="inline-flex items-center gap-0.5 rounded-full bg-accent/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-accent">
-                                  <Sparkles className="h-2 w-2" /> AI
+                                  <Bot className="h-2 w-2" /> AI
                                 </span>
                               )}
                             </div>
                           )}
                           <div
-                            className={`overflow-hidden rounded-2xl text-[13.5px] leading-snug ${
+                            className={`overflow-hidden rounded-2xl text-[13.5px] leading-snug shadow-[0_2px_6px_-2px_hsl(var(--foreground)/0.08)] ${
                               mine
-                                ? "rounded-br-sm bg-foreground text-background"
+                                ? "rounded-br-md bg-foreground text-background"
                                 : isAi
-                                  ? "rounded-bl-sm border border-accent/20 bg-card text-foreground shadow-sm"
-                                  : "rounded-bl-sm border border-border bg-card text-foreground shadow-sm"
+                                  ? "rounded-bl-md border border-accent/25 bg-gradient-to-br from-card to-accent/[0.04] text-foreground"
+                                  : "rounded-bl-md border border-border bg-card text-foreground"
                             }`}
                           >
                             {m.image_url && (
@@ -1015,7 +988,7 @@ const LiveChatWidget = () => {
                         </div>
                       </div>
                     )}
-                    <div className="border-t border-border bg-card px-3 py-2.5">
+                    <div className="border-t border-border bg-card/95 px-3 py-3 backdrop-blur-sm">
                       {pendingImagePreview && (
                         <div className="mb-2 flex items-center gap-2 rounded-lg border border-border bg-secondary/40 p-2">
                           <img src={pendingImagePreview} alt="Forhåndsvisning" className="h-12 w-12 rounded object-cover" />
@@ -1035,22 +1008,22 @@ const LiveChatWidget = () => {
                         />
                         <button
                           onClick={() => fileInputRef.current?.click()}
-                          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground"
+                          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:border-foreground/40 hover:bg-secondary/40 hover:text-foreground"
                           aria-label="Vedhæft billede"
                         >
-                          <Paperclip className="h-3.5 w-3.5" />
+                          <Paperclip className="h-4 w-4" />
                         </button>
                         <textarea
                           ref={textareaRef} value={draft} onChange={(e) => setDraft(e.target.value)}
                           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
                           maxLength={2000} rows={1} placeholder="Skriv en besked…"
-                          className="flex-1 resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition-colors focus:border-foreground"
+                          className="flex-1 resize-none rounded-2xl border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-foreground focus:ring-2 focus:ring-foreground/10"
                         />
                         <button
                           onClick={() => sendMessage()} disabled={sending || (!draft.trim() && !pendingImage)} aria-label="Send"
-                          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-all hover:bg-foreground/90 disabled:opacity-50"
+                          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-foreground text-background shadow-[0_6px_18px_-8px_hsl(var(--foreground)/0.6)] transition-all hover:bg-foreground/90 hover:shadow-[0_8px_22px_-8px_hsl(var(--foreground)/0.7)] disabled:opacity-50 disabled:shadow-none"
                         >
-                          {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                          {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                         </button>
                       </div>
                       <div className="mt-2 flex items-center justify-between px-1">
