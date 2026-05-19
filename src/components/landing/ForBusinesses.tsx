@@ -18,26 +18,26 @@ import {
 const features = [
   {
     icon: Users,
-    title: "Flere kunder, mindre admin",
-    text: "Bliv synlig for kunder der allerede leder efter dine ydelser i dit område.",
+    title: "Flere kunder i dit område",
+    text: "Bliv vist for private og virksomheder der søger efter præcis dine ydelser lokalt — uden at betale for klik.",
     tone: "bg-feature-cool text-feature-cool-foreground",
   },
   {
     icon: Route,
-    title: "Indbygget ruteplanlægning",
-    text: "Optimér daglige ruter for medarbejdere og spar tid hver eneste uge.",
+    title: "Ruteplanlægning til medarbejdere",
+    text: "Planlæg dagens stop, optimer kørerækkefølgen automatisk og send ruten direkte til medarbejderens telefon.",
     tone: "bg-feature-warm text-feature-warm-foreground",
   },
   {
     icon: Calculator,
-    title: "Smart prisberegner",
-    text: "Lad kunder selv beregne prisen og bestille — uden tilbudsrunder.",
+    title: "Prisberegner på din profil",
+    text: "Lad kunderne udfylde m², timer eller antal og se prisen med det samme — så de booker i stedet for at bede om tilbud.",
     tone: "bg-feature-lilac text-feature-lilac-foreground",
   },
   {
     icon: ShieldCheck,
-    title: "Verificeret profil",
-    text: "CVR-tjek og verifikation styrker tilliden hos nye kunder fra dag ét.",
+    title: "Verificeret CVR-stempel",
+    text: "Vi tjekker dit CVR og dine kontaktoplysninger, så nye kunder kan se at I er en rigtig, registreret virksomhed.",
     tone: "bg-accent-soft text-accent",
   },
 ];
@@ -56,7 +56,7 @@ const ForBusinesses = () => {
               Drevet til at vækste din serviceforretning.
             </h2>
             <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground md:text-base">
-              Få kunder, planlæg ruter og opkræv betaling fra ét samlet dashboard — og brug mindre tid på papirarbejde.
+              Find nye kunder, planlæg dagens ruter og send fakturaer — fra ét samlet panel, så du bruger tiden på opgaverne i stedet for papirarbejdet.
             </p>
           </div>
           <SmartLink
@@ -105,14 +105,14 @@ const ForBusinesses = () => {
                   </span>
                 </h3>
                 <p className="mt-3 text-sm leading-6 text-background/75 sm:text-[15px]">
-                  Kunder, aftaler, ruter, fakturaer og medarbejdere — uden at hoppe mellem fem værktøjer.
+                  Kundekartotek, bookingkalender, ruteplanlægning, fakturering og medarbejderlogins — i ét panel, så du slipper for at hoppe mellem fem forskellige systemer.
                 </p>
 
                 <ul className="mt-6 space-y-2.5 text-sm text-background/90">
                   {[
-                    "Profil der scorer i søgning",
-                    "Live kalender og ruteplan",
-                    "Automatisk fakturering",
+                    "Egen virksomhedsprofil med søgesynlighed på Google",
+                    "Bookingkalender og ruteplanlægning til medarbejdere",
+                    "Automatisk fakturering med e-conomic & Dinero",
                   ].map((t) => (
                     <li key={t} className="flex items-center gap-2.5">
                       <span
