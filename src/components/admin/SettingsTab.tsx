@@ -434,11 +434,11 @@ const SettingsTab = ({ business }: { business: any }) => {
   });
   // Ruteplanlægning er nu altid aktiveret for alle virksomheder — toggle vises ikke længere.
   const routePlanningEnabled = true;
-  // Regnskabsprogram-integration — feature-flag som virksomheden selv kan slå
-  // til/fra. Selve integrationen bygges senere; vi gemmer kun præferencen.
-  const [accountingIntegrationEnabled, setAccountingIntegrationEnabled] = useState<boolean>(
-    !!(business.settings as any)?.accounting_integration_enabled
-  );
+  // Regnskabsprogram-integration kan IKKE deaktiveres eller slås til fra
+  // virksomhedsindstillingerne. Den styres udelukkende fra checkout/opstart
+  // (og låses 3 dage før fakturering af `lock-business-plans`-cron'en), så
+  // virksomheder ikke kan skrue ned dagen før betaling. Vi læser den
+  // effektive værdi fra abonnementet — locked_* vinder hvis sat.
   // Leads-fanen er en gratis valgfri funktion. Skjult som standard så ikke
   // alle virksomheder får en ekstra fane i navigationen — kan slås til her
   // under Avanceret når man vil modtage lead-anmodninger fra "Indhent 3 tilbud".
