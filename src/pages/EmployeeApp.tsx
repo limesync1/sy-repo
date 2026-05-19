@@ -21,6 +21,7 @@ import { MapContainer, TileLayer, Marker, Polyline } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { EmployeeShell } from "@/components/employee/EmployeeShell";
+import SEO from "@/components/SEO";
 import { PageTransition } from "@/components/admin/shared/PageTransition";
 import { PageHeader, StatCard } from "@/components/admin/shared/AdminUI";
 import { cn } from "@/lib/utils";
@@ -250,6 +251,11 @@ const EmployeeApp = () => {
 
   return (
     <EmployeeShell activeTab="today" title="Min dag">
+      <SEO
+        title="Min dag – Medarbejder | Serviceydere"
+        description="Se dagens ruter, stop og opgaver som medarbejder på Serviceydere."
+        noIndex
+      />
       {/* PageTransition fader indholdet ind når brugeren skifter dag,
           så det føles som en blød navigation frem for et hårdt re-render. */}
       <PageTransition transitionKey={date} className="w-full space-y-4 pb-24 sm:pb-20">

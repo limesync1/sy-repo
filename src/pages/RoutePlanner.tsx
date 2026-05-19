@@ -58,6 +58,7 @@ import { MonthWeekCalendar, type CalendarRoute } from "@/components/route-planne
 import { AgendaCalendar } from "@/components/route-planner/AgendaCalendar";
 import { RouteEditSheet, ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor } from "@/components/route-planner/RouteEditSheet";
 import PlanningPanel from "@/components/route-planner/PlanningPanel";
+import SEO from "@/components/SEO";
 import { DatePickerField } from "@/components/route-planner/DatePickerField";
 import { RouteStopsPanel } from "@/components/route-planner/RouteStopsPanel";
 import { MoveRouteDateDialog, type MoveRouteScope } from "@/components/route-planner/MoveRouteDateDialog";
@@ -2371,6 +2372,11 @@ const Planner = () => {
         activeRouteDragOriginRef.current = null;
       }}
     >
+      <SEO
+        title="Ruteplanlægger – Serviceydere"
+        description="Planlæg og optimer dine medarbejderes ruter og stop på Serviceydere."
+        noIndex
+      />
       <AdminShell
         business={business}
         activeTab="routes"
