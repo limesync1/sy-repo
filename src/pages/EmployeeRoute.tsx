@@ -1777,9 +1777,18 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     <p className="text-sm font-semibold text-foreground tabular-nums leading-tight">
                       {formatKm(distanceToNextM)}
                     </p>
-                    <p className="text-[10px] text-muted-foreground leading-tight">
-                      til næste
-                    </p>
+                    {/* Forsinkelses-chip — viser kun når planlagt ankomst er kendt
+                        og vi enten er forsinket > 5 min eller godt i tid > 5 min.
+                        Holder muted-foreground i normale tilfælde. */}
+                    {delayMinutes != null && Math.abs(delayMinutes) > 5 ? (
+                      <p className={`text-[10px] leading-tight font-semibold tabular-nums ${delayMinutes > 0 ? "text-amber-600" : "text-emerald-600"}`}>
+                        {delayMinutes > 0 ? `+${delayMinutes} min` : `${delayMinutes} min`}
+                      </p>
+                    ) : (
+                      <p className="text-[10px] text-muted-foreground leading-tight">
+                        til næste
+                      </p>
+                    )}
                   </div>
                 ) : null}
                 <span className="ml-1 text-muted-foreground/70 group-hover:text-foreground transition-colors">
