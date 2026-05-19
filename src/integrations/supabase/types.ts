@@ -2140,6 +2140,7 @@ export type Database = {
           base_price_dkk: number
           discount_quarterly_pct: number
           discount_yearly_pct: number
+          featured_business_ids: string[]
           id: number
           price_accounting_integration_dkk: number
           price_data_import_dkk: number
@@ -2155,6 +2156,7 @@ export type Database = {
           base_price_dkk?: number
           discount_quarterly_pct?: number
           discount_yearly_pct?: number
+          featured_business_ids?: string[]
           id?: number
           price_accounting_integration_dkk?: number
           price_data_import_dkk?: number
@@ -2170,6 +2172,7 @@ export type Database = {
           base_price_dkk?: number
           discount_quarterly_pct?: number
           discount_yearly_pct?: number
+          featured_business_ids?: string[]
           id?: number
           price_accounting_integration_dkk?: number
           price_data_import_dkk?: number
