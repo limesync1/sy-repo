@@ -3133,6 +3133,7 @@ const Planner = () => {
                                       )
                                     }
                                   />
+                                  <FilterEmpAvatar emp={emp} />
                                   <span className="truncate">{emp.name}</span>
                                 </label>
                               );
