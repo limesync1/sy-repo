@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, MessageSquare } from "lucide-react";
+import { Star } from "lucide-react";
 import { PageHeader, EmptyState, SearchInput } from "@/components/admin/shared/AdminUI";
 import { StatGridSkeleton, ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 
