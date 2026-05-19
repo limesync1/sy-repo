@@ -546,17 +546,25 @@ const DashboardTab = ({
 
 /* ─────────────────────────────────────────────────────────────────────── */
 
-/** Lille pille i hero-stripen — kompakt KPI med label/værdi/sub. */
-const SnapshotPill = ({ label, value, sub, accent }: { label: string; value: string; sub: string; accent?: boolean }) => (
-  <div className={cn(
-    "rounded-xl border px-3 py-2.5 backdrop-blur-sm",
+/** Lille pille i hero-stripen — kompakt KPI med label/værdi/sub. Klikbar når onClick er sat. */
+const SnapshotPill = ({ label, value, sub, accent, onClick }: { label: string; value: string; sub: string; accent?: boolean; onClick?: () => void }) => {
+  const className = cn(
+    "rounded-xl border px-3 py-2.5 text-left backdrop-blur-sm transition-all",
     accent ? "border-amber-300/40 bg-amber-400/[0.10]" : "border-background/10 bg-background/[0.05]",
-  )}>
-    <p className="text-[10px] font-medium uppercase tracking-wider text-background/60">{label}</p>
-    <p className="mt-1 text-lg font-semibold tabular-nums text-background sm:text-xl">{value}</p>
-    <p className="mt-0.5 truncate text-[11px] text-background/65">{sub}</p>
-  </div>
-);
+    onClick && "hover:-translate-y-0.5 hover:border-background/25 hover:bg-background/[0.10]",
+  );
+  const content = (
+    <>
+      <p className="text-[10px] font-medium uppercase tracking-wider text-background/60">{label}</p>
+      <p className="mt-1 text-lg font-semibold tabular-nums text-background sm:text-xl">{value}</p>
+      <p className="mt-0.5 truncate text-[11px] text-background/65">{sub}</p>
+    </>
+  );
+  if (onClick) {
+    return <button type="button" onClick={onClick} className={className}>{content}</button>;
+  }
+  return <div className={className}>{content}</div>;
+};
 
 /** Sparkline — 14 dages mini-søjler. Sidste søjle (i dag) fremhæves. */
 const Sparkline = ({ data }: { data: number[] }) => {
