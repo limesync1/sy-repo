@@ -857,8 +857,8 @@ const LiveChatWidget = () => {
               </div>
             ) : (
               <>
-              <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto bg-secondary/25 px-4 py-4 scroll-smooth">
-                  <div className="mx-auto max-w-[85%] rounded-full border border-border bg-card px-3 py-1 text-center text-[10px] text-muted-foreground">
+              <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto bg-gradient-to-b from-secondary/40 via-background to-background px-4 py-5 scroll-smooth">
+                  <div className="mx-auto w-fit rounded-full border border-border/70 bg-card/80 px-3 py-1 text-center text-[10px] font-medium text-muted-foreground backdrop-blur-sm">
                     Samtale startet · {formatTime(messages[0]?.created_at || new Date().toISOString())}
                   </div>
 
