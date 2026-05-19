@@ -1914,25 +1914,8 @@ const SettingsTab = ({ business }: { business: any }) => {
 
         {/* Avanceret */}
         <div id="settings-advanced" className="scroll-mt-[120px] lg:scroll-mt-[68px] [content-visibility:auto] [contain-intrinsic-size:1px_900px]">
-          <SectionCard title="Tilvalg og ekstra funktioner" icon={<Settings />} description="Aktivér moduler som ruteplanlægger, livechat eller dataimport. Prisen opdateres automatisk under ”Pris og betaling” ovenfor.">
-            {/* To-grupper: betalte tilvalg + gratis funktioner — luftigt og overskueligt */}
+          <SectionCard title="Gratis tilvalg" icon={<Settings />} description="Slå gratis funktioner til eller fra. Betalte tilvalg som regnskabsintegration styres fra ”Pris og betaling” ovenfor og kan ikke deaktiveres her — det forhindrer utilsigtede nedjusteringer lige før fakturering.">
             <div className="space-y-6">
-              <div>
-                <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Betalte tilvalg</p>
-                <div className="space-y-2.5">
-                  <FeatureRow
-                    icon={<Calculator />}
-                    title="Integration med regnskabsprogram"
-                    priceLabel={pricing ? `+${Math.round(pricing.price_accounting_integration_dkk).toLocaleString("da-DK")} kr/md` : undefined}
-                    description="Send automatisk fakturaer og betalinger over i jeres regnskabsprogram (fx e-conomic eller Dinero), så I slipper for dobbelt indtastning. Kan slås til/fra når som helst — prisen tillægges ved næste fakturering."
-                    active={accountingIntegrationEnabled}
-                    activeLabel="Aktivt — fakturaer sendes automatisk til jeres regnskabsprogram"
-                    inactiveLabel="Ikke aktivt — slå til for at sende fakturaer videre automatisk"
-                    onToggle={() => setAccountingIntegrationEnabled((v) => !v)}
-                  />
-                </div>
-              </div>
-
               <div>
                 <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Gratis funktioner</p>
                 <div className="space-y-2.5">
