@@ -594,16 +594,12 @@ const SmartStatCard = ({
   sparkline?: number[];
   onClick?: () => void;
 }) => {
-  const Wrapper: any = onClick ? "button" : "div";
-  return (
-    <Card
-      asChild={!!onClick}
-      className={cn(
-        "surface-admin rounded-xl border-border/80 shadow-sm",
-        onClick && "group cursor-pointer text-left transition-all hover:-translate-y-0.5 hover:border-foreground/30 hover:shadow-md",
-      )}
-    >
-      <Wrapper {...(onClick ? { type: "button", onClick, "aria-label": `${label} — vis detaljer` } : {})}>
+  const cardClass = cn(
+    "surface-admin block w-full rounded-xl border-border/80 shadow-sm",
+    onClick && "group cursor-pointer text-left transition-all hover:-translate-y-0.5 hover:border-foreground/30 hover:shadow-md",
+  );
+  const body = (
+    <Card className={cardClass}>
       <CardContent className="p-4 sm:p-5">
         <div className="flex items-start justify-between gap-2">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
@@ -642,9 +638,16 @@ const SmartStatCard = ({
           )}
         </div>
       </CardContent>
-      </Wrapper>
     </Card>
   );
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} aria-label={`${label} — vis detaljer`} className="block w-full text-left">
+        {body}
+      </button>
+    );
+  }
+  return body;
 };
 
 export default DashboardTab;
