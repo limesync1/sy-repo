@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
     // Hent eksisterende plan for at finde Stripe customer hvis den findes
     const { data: existingPlan } = await supabase
       .from("business_plans")
-      .select("stripe_customer_id, trial_ends_at")
+      .select("stripe_customer_id, trial_ends_at, created_at")
       .eq("business_id", body.businessId)
       .maybeSingle();
 
@@ -116,8 +116,12 @@ Deno.serve(async (req) => {
 
     // Prøveperiode: Stripe må først trække første betaling når trial er udløbet.
     // 1) Hvis virksomheden allerede har en `trial_ends_at` i fremtiden, brug den.
-    // 2) Ellers fald tilbage på platform-indstillingens `trial_days` for nye virksomheder
-    //    der endnu ikke har en plan-record (eller hvis trial mangler).
+    // 2) Ellers, hvis planen har et `created_at`, beregn trial som
+    //    created_at + platform_settings.trial_days — det samme fallback som
+    //    `useBusinessPlan` bruger til banneret, så Stripe-checkout viser
+    //    præcis samme resterende prøveperiode som banneret.
+    // 3) Først hvis virksomheden slet ikke har en plan-record falder vi
+    //    tilbage på `nowSec + trial_days` (helt ny virksomhed).
     const nowSec = Math.floor(Date.now() / 1000);
     let trialEnd: number | null = existingPlan?.trial_ends_at
       ? Math.floor(new Date(existingPlan.trial_ends_at).getTime() / 1000)
@@ -131,8 +135,16 @@ Deno.serve(async (req) => {
         .maybeSingle();
       const trialDays = Math.max(0, Number(pricing?.trial_days) || 0);
       if (trialDays > 0 && !existingPlan?.stripe_customer_id) {
-        // Kun nye virksomheder (uden eksisterende Stripe customer) får default trial.
-        trialEnd = nowSec + trialDays * 24 * 60 * 60;
+        if (existingPlan?.created_at) {
+          // Beregn ud fra hvornår prøveperioden faktisk startede, så
+          // Stripe viser "X dage tilbage" og ikke nulstiller perioden.
+          const createdSec = Math.floor(new Date(existingPlan.created_at).getTime() / 1000);
+          const candidate = createdSec + trialDays * 24 * 60 * 60;
+          if (candidate > nowSec + 60) trialEnd = candidate;
+        } else {
+          // Helt ny virksomhed uden plan-record — start trial fra nu.
+          trialEnd = nowSec + trialDays * 24 * 60 * 60;
+        }
       }
     }
 
