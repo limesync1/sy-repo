@@ -1733,18 +1733,36 @@ const AftaleTab = ({
           status og rute/stop-info så man straks kan se hvor det står. */}
       {upcomingSubs.length > 0 && (
         <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-          <CardContent className="p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <CalendarClock className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-semibold text-foreground">Kommende aftaler</span>
-            </div>
-            {upcomingSubs.length > 4 && (
-              <span className="text-xs text-muted-foreground">{upcomingSubs.length} i alt</span>
-            )}
-          </div>
-          <div className="space-y-2">
-            {upcomingSubs.slice(0, 4).map(sub => {
+          <CardContent className="p-0">
+          {(() => {
+            const visibleCount = upcomingExpanded ? upcomingSubs.length : Math.min(3, upcomingSubs.length);
+            const next = upcomingSubs[0];
+            const nextDate = next ? new Date(next.next_service_date!) : null;
+            const nextRel = nextDate ? relativeFromNow(nextDate, { short: true }) : "";
+            return (
+              <button
+                type="button"
+                onClick={() => setUpcomingExpanded(v => !v)}
+                className="flex w-full items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-secondary/50"
+                aria-expanded={upcomingExpanded}
+              >
+                <CalendarClock className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-xs font-semibold text-foreground">Kommende aftaler</span>
+                <span className="rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-foreground/70">
+                  {upcomingSubs.length}
+                </span>
+                {!upcomingExpanded && nextDate && (
+                  <span className="ml-1 hidden truncate text-[11px] text-muted-foreground sm:inline">
+                    · næste {nextRel} · {nextDate.toLocaleDateString("da-DK", { day: "numeric", month: "short" })} kl. {nextDate.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                )}
+                <ChevronDown className={`ml-auto h-3.5 w-3.5 text-muted-foreground transition-transform ${upcomingExpanded ? "rotate-180" : ""}`} />
+              </button>
+            );
+          })()}
+          {upcomingExpanded && (
+          <div className="grid gap-1.5 border-t border-border p-2 sm:grid-cols-2 xl:grid-cols-3">
+            {upcomingSubs.map(sub => {
               const nextDate = new Date(sub.next_service_date!);
               const mins = Math.round((nextDate.getTime() - Date.now()) / 60000);
               const isUrgent = mins <= 60 * 24; // ≤ 24 timer
@@ -1761,8 +1779,6 @@ const AftaleTab = ({
               const stop = linkedOrder ? stopByOrder[linkedOrder.id] : null;
               const routeName = stop?.route ? routeDisplayName(stop.route) : undefined;
               const routeColor = (stop?.route?.color as string | undefined) || "#64748b";
-              const stopSeq = stop?.sequence;
-              const stopStatus = formatStopStatus(stop?.status);
               const isClickable = !!linkedOrder;
               return (
                 <button
@@ -1778,63 +1794,42 @@ const AftaleTab = ({
                     });
                   }}
                   disabled={!isClickable}
-                  className={`w-full rounded-lg border border-border bg-card px-3 py-2.5 text-left text-sm transition-colors ${
-                    isClickable ? "hover:bg-secondary/60 cursor-pointer" : "cursor-default"
+                  className={`group flex items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-1.5 text-left text-xs transition-colors ${
+                    isClickable ? "hover:border-foreground/20 hover:bg-secondary/60 cursor-pointer" : "cursor-default"
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex min-w-0 flex-1 items-start gap-2">
-                      <span className={`mt-0.5 inline-flex h-5 min-w-[36px] items-center justify-center rounded-full px-2 text-[10px] font-bold tabular-nums ${
-                        isUrgent ? "bg-destructive/10 text-destructive" : "bg-secondary text-foreground"
-                      }`}>{badgeLabel}</span>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                          <span className="font-medium text-foreground truncate">{customerName}</span>
-                          {statusCfg && (
-                            <span className="inline-flex items-center gap-1 rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-foreground">
-                              <span className={`h-1.5 w-1.5 rounded-full ${statusCfg.dot}`} />
-                              {statusCfg.label}
-                            </span>
-                          )}
-                        </div>
-                        <div className="mt-0.5 truncate text-xs text-muted-foreground">
-                          {sub.service_name}
-                        </div>
-                        {routeName && (
-                          <div className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                            <RouteIcon className="h-3 w-3" />
-                            <span
-                              className="inline-block h-2 w-2 rounded-full"
-                              style={{ backgroundColor: routeColor }}
-                              aria-hidden
-                            />
-                            <span className="truncate">
-                              {routeName}
-                              {typeof stopSeq === "number" ? ` · stop #${stopSeq + 1}` : ""}
-                              {stopStatus ? ` · ${stopStatus}` : ""}
-                            </span>
-                          </div>
-                        )}
-                        {!routeName && routePlanningEnabled && linkedOrder && (
-                          <div className="mt-1 text-[11px] text-amber-600">
-                            Ikke tildelt en rute endnu
-                          </div>
-                        )}
-                      </div>
+                  <span className={`shrink-0 inline-flex h-5 min-w-[34px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold tabular-nums ${
+                    isUrgent ? "bg-destructive/10 text-destructive" : "bg-secondary text-foreground"
+                  }`}>{badgeLabel}</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="truncate text-xs font-medium text-foreground">{customerName}</span>
+                      {statusCfg && (
+                        <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${statusCfg.dot}`} aria-label={statusCfg.label} />
+                      )}
+                      {routeName && (
+                        <span
+                          className="inline-block h-1.5 w-1.5 shrink-0 rounded-full"
+                          style={{ backgroundColor: routeColor }}
+                          aria-label={`Rute: ${routeName}`}
+                        />
+                      )}
                     </div>
-                    <div className="shrink-0 text-right">
-                      <div className="text-xs font-medium text-foreground">
-                        {nextDate.toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
-                      </div>
-                      <div className="text-[10px] text-muted-foreground">
-                        {nextDate.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}
-                      </div>
+                    <div className="truncate text-[10px] text-muted-foreground">{sub.service_name}</div>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <div className="text-[11px] font-medium tabular-nums text-foreground">
+                      {nextDate.toLocaleDateString("da-DK", { day: "numeric", month: "short" })}
+                    </div>
+                    <div className="text-[10px] tabular-nums text-muted-foreground">
+                      {nextDate.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}
                     </div>
                   </div>
                 </button>
               );
             })}
           </div>
+          )}
           </CardContent>
         </Card>
       )}
