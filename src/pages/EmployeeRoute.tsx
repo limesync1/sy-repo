@@ -825,6 +825,22 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     return eta.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
   }, [directions?.duration_s]);
 
+  /**
+   * Forsinkelse vs. planlagt ankomst — sammenligner aktuel ETA med
+   * nextStop.planned_arrival. Vi opdaterer hvert minut (via etaLabel der
+   * allerede genberegnes når directions ændrer sig). Returnerer antal
+   * minutter (positiv = forsinket, negativ = i god tid). null hvis vi
+   * ikke har data nok.
+   */
+  const delayMinutes: number | null = useMemo(() => {
+    if (!directions?.duration_s || !nextStop?.planned_arrival) return null;
+    const etaMs = Date.now() + directions.duration_s * 1000;
+    const plannedMs = new Date(nextStop.planned_arrival).getTime();
+    if (!Number.isFinite(plannedMs)) return null;
+    return Math.round((etaMs - plannedMs) / 60000);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [directions?.duration_s, nextStop?.planned_arrival, nextStop?.id]);
+
   /* ── Rute-totals: samlet distance/varighed for resterende stop.
    * Vises i pre-start oversigt og i header-pillen så medarbejderen
    * altid kan se hvad der venter på dagen. */
