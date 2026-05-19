@@ -354,7 +354,18 @@ const BusinessOnboarding = () => {
             </Section>
 
             {/* 2. Funktioner */}
-            <Section number={2} title="Vælg dine funktioner" subtitle="Tilkøb kun det du har brug for — alt kan til- eller fravælges senere under Indstillinger">
+            <Section number={2} title="Vælg dine funktioner" subtitle="Ruteplanlægning er altid med. Vælg om du vil tilkøbe regnskabsintegration eller slå de gratis funktioner til.">
+              <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-700">
+                  Inkluderet i basis
+                </p>
+                <ul className="mt-2 grid gap-1.5 text-sm text-emerald-900 sm:grid-cols-2">
+                  <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-700" /> Virksomhedsprofil med søgesynlighed</li>
+                  <li className="flex items-center gap-2"><Route className="h-4 w-4 text-emerald-700" /> Ruteplanlægning til medarbejdere</li>
+                  <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-700" /> Bestillinger, kalender, fakturering</li>
+                  <li className="flex items-center gap-2"><Users className="h-4 w-4 text-emerald-700" /> 1 ejer-login</li>
+                </ul>
+              </div>
               <div className="grid gap-3">
                 {FEATURES.map(({ key, icon: Icon, title, description }) => {
                   const active = features[key];
