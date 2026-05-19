@@ -988,7 +988,7 @@ const LiveChatWidget = () => {
                         </div>
                       </div>
                     )}
-                    <div className="border-t border-border bg-card px-3 py-2.5">
+                    <div className="border-t border-border bg-card/95 px-3 py-3 backdrop-blur-sm">
                       {pendingImagePreview && (
                         <div className="mb-2 flex items-center gap-2 rounded-lg border border-border bg-secondary/40 p-2">
                           <img src={pendingImagePreview} alt="Forhåndsvisning" className="h-12 w-12 rounded object-cover" />
@@ -1008,22 +1008,22 @@ const LiveChatWidget = () => {
                         />
                         <button
                           onClick={() => fileInputRef.current?.click()}
-                          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground"
+                          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:border-foreground/40 hover:bg-secondary/40 hover:text-foreground"
                           aria-label="Vedhæft billede"
                         >
-                          <Paperclip className="h-3.5 w-3.5" />
+                          <Paperclip className="h-4 w-4" />
                         </button>
                         <textarea
                           ref={textareaRef} value={draft} onChange={(e) => setDraft(e.target.value)}
                           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
                           maxLength={2000} rows={1} placeholder="Skriv en besked…"
-                          className="flex-1 resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition-colors focus:border-foreground"
+                          className="flex-1 resize-none rounded-2xl border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-foreground focus:ring-2 focus:ring-foreground/10"
                         />
                         <button
                           onClick={() => sendMessage()} disabled={sending || (!draft.trim() && !pendingImage)} aria-label="Send"
-                          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-all hover:bg-foreground/90 disabled:opacity-50"
+                          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-foreground text-background shadow-[0_6px_18px_-8px_hsl(var(--foreground)/0.6)] transition-all hover:bg-foreground/90 hover:shadow-[0_8px_22px_-8px_hsl(var(--foreground)/0.7)] disabled:opacity-50 disabled:shadow-none"
                         >
-                          {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                          {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                         </button>
                       </div>
                       <div className="mt-2 flex items-center justify-between px-1">
