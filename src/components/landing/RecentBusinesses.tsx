@@ -28,9 +28,7 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
       {/* Favorit-knappen ligger uden for linket — så vi undgår ulovlig
           nested <button> i <a> (skærmlæser-fjendtligt og ugyldig HTML).
           FavoriteButton positionerer sig selv absolut top-right. */}
-      <div className="z-20">
-        <FavoriteButton businessId={biz.id} />
-      </div>
+      <FavoriteButton businessId={biz.id} className="z-20" />
       <Link
         to={`/v/${biz.slug}`}
         aria-label={`${biz.name}${biz.city ? `, ${biz.city}` : ""} — se virksomhed`}
