@@ -410,3 +410,9 @@ Sig "ja" → jeg starter på **Trin 6** (Platform-overblik). Vil du have en ande
 - `livechat/ChatComposer.tsx`: hurtige-svar-bjælke + AI-forslag-knap + billede-vedhæftning + textarea/send.
 - `livechat/DetailsPanel.tsx`: højre info-panel (gæst/registreret, email, emne, startet, beskeder).
 - `PlatformLiveChatTab` skrumpet fra 936 → 576 linjer — kun state, queries, realtime og handler-orkestrering tilbage.
+
+## Trin 26j — PlatformOrdersTab, UsersTab og ReviewsTab split ✅
+- `orders/shared.ts`, `OrderRow`, `OrdersFilters`, `OrdersBulkBar` → tab fra 359 → 223 linjer.
+- `users/shared.ts`, `UserRow`, `UsersFilters` → tab fra 314 → 178 linjer.
+- `reviews/shared.ts`, `ReviewRow`, `ReviewsInsights`, `FlagDialog` → tab fra 329 → 202 linjer.
+- Resterende store filer: PlatformHealthTab (406), PlatformPlatformSettingsTab (426), PlatformDomainsTab (356) — næste trin.
