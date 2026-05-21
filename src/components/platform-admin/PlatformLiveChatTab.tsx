@@ -3,12 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   MessageCircle, Send, Loader2, CheckCircle2, Search, Zap, User, Mail, Clock,
-  Plus, Trash2, X, CheckCheck, Inbox, Archive, Paperclip, Image as ImageIcon,
-  X as XIcon, Volume2, VolumeX, ArrowUpDown, Eye, Tag,
+  CheckCheck, Inbox, Archive, Paperclip, Image as ImageIcon,
+  X as XIcon, Volume2, VolumeX, ArrowUpDown, BellOff, Bell, Download, Sparkles,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { da } from "date-fns/locale";
 import chatSounds from "@/components/livechat/chatSounds";
+import CannedResponsesManager, { type CannedResponse } from "./livechat/CannedResponsesManager";
+import { snoozeUntil, unsnooze, getActiveSnoozes, subscribeToSnoozes } from "./livechat/snooze";
+import { downloadTranscript } from "./livechat/exportConversation";
 
 type Conversation = {
   id: string;
@@ -34,8 +37,6 @@ type Message = {
   created_at: string;
 };
 
-type CannedResponse = { id: string; title: string; body: string; category: string };
-
 const CANNED_KEY = "serviceydere_admin_canned_v3";
 
 const DEFAULT_CATEGORIES = ["Velkomst", "Pris", "Support", "Opfølgning", "Afslutning"];
@@ -59,7 +60,7 @@ const formatTime = (iso: string) => {
 const initials = (name: string) =>
   name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase() || "").join("") || "?";
 
-type Filter = "all" | "open" | "unread" | "closed";
+type Filter = "all" | "open" | "unread" | "closed" | "snoozed";
 type SortMode = "recent" | "unread_first" | "oldest";
 
 const PlatformLiveChatTab = () => {
@@ -87,6 +88,9 @@ const PlatformLiveChatTab = () => {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [muted, setMuted] = useState<boolean>(chatSounds.isMuted());
   const [allMessagesIndex, setAllMessagesIndex] = useState<Record<string, string>>({}); // conversation_id -> last message snippet
+  const [snoozes, setSnoozes] = useState<Record<string, string>>(() => getActiveSnoozes());
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -237,6 +241,13 @@ const PlatformLiveChatTab = () => {
 
   const filtered = useMemo(() => {
     let list = conversations.filter((c) => {
+      const isSnoozed = !!snoozes[c.id];
+      if (filter === "snoozed") {
+        if (!isSnoozed) return false;
+      } else if (isSnoozed) {
+        // skjul snoozed samtaler i alle andre views (medmindre ulæst)
+        if (c.unread_admin_count <= 0) return false;
+      }
       if (filter === "open" && c.status !== "open") return false;
       if (filter === "closed" && c.status !== "closed") return false;
       if (filter === "unread" && c.unread_admin_count <= 0) return false;
@@ -264,9 +275,22 @@ const PlatformLiveChatTab = () => {
       });
     }
     return list;
-  }, [conversations, filter, search, sortMode, allMessagesIndex]);
+  }, [conversations, filter, search, sortMode, allMessagesIndex, snoozes]);
+
+  // Hold snooze-state synkroniseret + auto-refresh hvert minut så samtaler
+  // dukker op igen automatisk når deres deadline udløber.
+  useEffect(() => {
+    const refresh = () => setSnoozes(getActiveSnoozes());
+    const unsub = subscribeToSnoozes(refresh);
+    const interval = setInterval(refresh, 60_000);
+    return () => { unsub(); clearInterval(interval); };
+  }, []);
 
   const totalUnread = conversations.reduce((sum, c) => sum + (c.unread_admin_count || 0), 0);
+  const snoozedCount = useMemo(
+    () => conversations.filter((c) => snoozes[c.id]).length,
+    [conversations, snoozes],
+  );
 
   // Build searchable index across messages on demand when user types in search
   useEffect(() => {
@@ -365,6 +389,42 @@ const PlatformLiveChatTab = () => {
     chatSounds.tick();
   };
 
+  const handleSnooze = (id: string, hours: number) => {
+    snoozeUntil(id, hours);
+    setSnoozes(getActiveSnoozes());
+    chatSounds.tick();
+    if (id === activeId) setActiveId(null);
+  };
+  const handleUnsnooze = (id: string) => {
+    unsnooze(id);
+    setSnoozes(getActiveSnoozes());
+  };
+
+  const handleExport = () => {
+    if (!active) return;
+    downloadTranscript(active, messages);
+  };
+
+  const handleAiSuggest = async () => {
+    if (!active || aiBusy) return;
+    setAiBusy(true);
+    setAiError(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-chat-suggest-reply", {
+        body: { conversation_id: active.id },
+      });
+      if (error) throw new Error(error.message || "Kunne ikke hente forslag");
+      const suggestion = (data as { suggestion?: string; error?: string })?.suggestion;
+      if (!suggestion) throw new Error((data as { error?: string })?.error || "Tomt svar fra AI");
+      setDraft((prev) => (prev ? prev + "\n\n" + suggestion : suggestion));
+      textareaRef.current?.focus();
+    } catch (e) {
+      setAiError(e instanceof Error ? e.message : "Ukendt fejl");
+    } finally {
+      setAiBusy(false);
+    }
+  };
+
   const upsertCanned = () => {
     if (!newCannedTitle.trim() || !newCannedBody.trim()) return;
     if (editingCanned) {
@@ -395,23 +455,6 @@ const PlatformLiveChatTab = () => {
     setEditingCanned(null); setNewCannedTitle(""); setNewCannedBody("");
   };
   const deleteCanned = (id: string) => setCanned((prev) => prev.filter((c) => c.id !== id));
-
-  const cannedCategories = useMemo(() => {
-    const set = new Set<string>(DEFAULT_CATEGORIES);
-    canned.forEach((c) => c.category && set.add(c.category));
-    return ["Alle", ...Array.from(set)];
-  }, [canned]);
-
-  const cannedVisible = useMemo(
-    () => canned.filter((c) => cannedFilter === "Alle" || c.category === cannedFilter),
-    [canned, cannedFilter],
-  );
-
-  const previewBody = useMemo(() => {
-    if (!previewCanned) return "";
-    const firstName = active ? (active.visitor_name.split(" ")[0] || active.visitor_name) : "Kunde";
-    return previewCanned.body.split("{name}").join(firstName);
-  }, [previewCanned, active]);
 
   const toggleMute = () => {
     const next = !muted;
