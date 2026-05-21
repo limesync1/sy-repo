@@ -320,3 +320,8 @@ Sig "ja" → jeg starter på **Trin 6** (Platform-overblik). Vil du have en ande
 - Watch-user: stjerne pr. række gemmer admin-email i localStorage; "Watch (N)"-toggle filtrerer.
 - Diff-visning: når details indeholder before/after objekter, vises 3-kolonne diff med highlight på ændrede felter.
 - Gemte filtre i localStorage med navn, anvend/slet chips.
+
+## Trin 23 — Sundhed: DB, cron, storage, fuld kontrol ✅
+- Ny RPC admin_health_extended (security definer, admin-only) returnerer top 10 tabeller med bytes/rækker, pg_cron-jobs med sidste kørsel/status, og storage-buckets med antal filer + bytes.
+- Tre nye sektioner i PlatformHealthTab: størrelses-bar pr. tabel, cron-liste med status-badge, bucket-grid.
+- "Kør fuld kontrol"-knap genhenter både core- og extended-statistik samtidigt med toast-feedback.
