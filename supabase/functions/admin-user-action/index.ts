@@ -62,9 +62,9 @@ Deno.serve(async (req) => {
     });
     if (linkErr) throw linkErr;
 
-    // Log handling (best-effort)
+    // Log handling (best-effort) — kald som brugeren så auth.uid() = admin
     try {
-      await admin.rpc("_admin_log", {
+      await userClient.rpc("_admin_log", {
         p_action: action,
         p_target_type: "user",
         p_target_id: userId,
