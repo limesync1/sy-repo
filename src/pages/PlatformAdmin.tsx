@@ -187,17 +187,19 @@ const PlatformAdmin = () => {
 
         {/* Sidebar — samme look som virksomhedspanelet */}
         <aside
+          style={{ width: `${sidebarPx}px` }}
           className={cn(
-            "fixed inset-y-0 left-0 z-50 flex w-[248px] flex-col border-r border-border bg-background transition-transform duration-200 lg:sticky lg:top-0 lg:h-dvh lg:translate-x-0",
+            "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-border bg-background transition-[transform,width] duration-200 lg:sticky lg:top-0 lg:h-dvh lg:translate-x-0",
             sidebarOpen ? "translate-x-0" : "-translate-x-full",
           )}
+          aria-label="Hovednavigation"
         >
-          <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
-            <Link to="/" className="flex items-center gap-2">
+          <div className={cn("flex h-14 shrink-0 items-center justify-between border-b border-border", collapsed ? "px-2" : "px-4")}>
+            <Link to="/" className="flex items-center gap-2 overflow-hidden" aria-label="Forside">
               <img
                 src="/serviceydere-logo-dark.webp"
                 alt="Serviceydere"
-                className="h-10 w-auto"
+                className={cn("w-auto", collapsed ? "h-9" : "h-10")}
                 width={1920}
                 height={539}
                 decoding="async"
@@ -214,66 +216,52 @@ const PlatformAdmin = () => {
           </div>
 
           {/* Admin-info kort — matcher virksomhedspanelets info-blok */}
-          <div className="mx-3 mt-3 mb-3 shrink-0 rounded-xl border border-border bg-card px-3 py-3 shadow-sm">
+          <div
+            className={cn(
+              "mt-3 mb-3 shrink-0 rounded-xl border border-border bg-card shadow-sm",
+              collapsed ? "mx-2 px-2 py-2" : "mx-3 px-3 py-3",
+            )}
+            title={collapsed ? `Platform Admin · ${user.email}` : undefined}
+          >
             <div className="flex items-center gap-2">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground text-background font-bold text-sm">
                 {(user.email || "?").charAt(0).toUpperCase()}
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-foreground">Platform Admin</p>
-                <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-              </div>
+              {!collapsed && (
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-foreground">Platform Admin</p>
+                  <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+                </div>
+              )}
             </div>
           </div>
 
-          <nav className="flex-1 space-y-1 overflow-y-auto px-3 pt-1 pb-2">
+          <nav className={cn("flex-1 space-y-1 overflow-y-auto pb-2 pt-1", collapsed ? "px-2" : "px-3")}>
             {NAV_GROUPS.map((group, gi) => (
-              <div key={group.label} className={cn(gi > 0 && "pt-3")}>
-                <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
-                  {group.label}
-                </p>
-                {group.items.map((item) => {
-                  const active = tab === item.value;
-                  return (
-                    <button
-                      key={item.value}
-                      onClick={() => { setTab(item.value); setSidebarOpen(false); }}
-                      onMouseEnter={() => prefetchTab(item.value)}
-                      onFocus={() => prefetchTab(item.value)}
-                      onTouchStart={() => prefetchTab(item.value)}
-                      aria-current={active ? "page" : undefined}
-                      className={cn(
-                        "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-left transition-colors duration-150",
-                        active
-                          ? "bg-secondary text-foreground shadow-sm ring-1 ring-border"
-                          : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground",
-                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30",
-                      )}
-                    >
-                      <item.icon className="h-4 w-4 shrink-0" />
-                      <span>{item.label}</span>
-                    </button>
-                  );
-                })}
+              <div key={group.label} className="space-y-0.5">
+                <SidebarGroupLabel collapsed={collapsed}>{group.label}</SidebarGroupLabel>
+                {group.items.map((item) => (
+                  <SidebarNavButton
+                    key={item.value}
+                    icon={item.icon}
+                    label={item.label}
+                    active={tab === item.value}
+                    collapsed={collapsed}
+                    onClick={() => { setTab(item.value); setSidebarOpen(false); }}
+                    onMouseEnter={() => prefetchTab(item.value)}
+                    onFocus={() => prefetchTab(item.value)}
+                    onTouchStart={() => prefetchTab(item.value)}
+                    shortcut={`g ${item.value.charAt(0)}`}
+                  />
+                ))}
               </div>
             ))}
           </nav>
 
-          <div className="shrink-0 space-y-1 border-t border-border px-3 py-3">
-            <Link
-              to="/"
-              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-            >
-              <ExternalLink className="h-4 w-4 shrink-0" />
-              Se forside
-            </Link>
-            <button
-              onClick={signOut}
-              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-            >
-              <LogOut className="h-4 w-4 shrink-0" />
-              Log ud
-            </button>
+          <div className={cn("shrink-0 space-y-1 border-t border-border py-3", collapsed ? "px-2" : "px-3")}>
+            <SidebarFooterItem icon={ExternalLink} label="Se forside" href="/" collapsed={collapsed} />
+            <SidebarFooterItem icon={LogOut} label="Log ud" onClick={signOut} collapsed={collapsed} danger />
+            <div className="pt-1"><SidebarCollapseToggle collapsed={collapsed} onToggle={toggleCollapsed} /></div>
           </div>
         </aside>
 
