@@ -1,9 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CheckCircle2, XCircle, ExternalLink, Trash2, MapPin, Mail, BadgeCheck, Download, ChevronDown, CreditCard, Clock, AlertTriangle, Building2, UploadCloud, LogIn, KeyRound, Loader2, MailCheck, Settings2, Plus } from "lucide-react";
+import { CheckCircle2, XCircle, ExternalLink, Trash2, MapPin, Mail, BadgeCheck, Download, ChevronDown, CreditCard, Clock, AlertTriangle, Building2, UploadCloud, LogIn, KeyRound, Loader2, MailCheck, Settings2, Plus, Star, ChevronLeft, ChevronRight, ArrowUpDown, LogIn as LoginIcon, Activity } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
