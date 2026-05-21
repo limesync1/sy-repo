@@ -264,18 +264,41 @@ const PlatformBusinessesTab = () => {
         }
       />
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="space-y-2">
         <SearchInput value={q} onChange={setQ} placeholder="Søg navn, by, kategori..." />
-        <Select value={filter} onValueChange={(v: any) => setFilter(v)}>
-          <SelectTrigger className="w-[180px] h-9"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Alle</SelectItem>
-            <SelectItem value="verified">Verificeret</SelectItem>
-            <SelectItem value="unverified">Ikke verificeret</SelectItem>
-            <SelectItem value="active">Aktive</SelectItem>
-            <SelectItem value="inactive">Inaktive</SelectItem>
-          </SelectContent>
-        </Select>
+        {/* Chip-filtre med tællere — gør status synlig uden ekstra klik */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          {([
+            { v: "all", label: "Alle", count: counts.all, tone: "default" },
+            { v: "active_paying", label: "Aktive (betalende)", count: counts.active_paying, tone: "success" },
+            { v: "trial", label: "På prøve", count: counts.trial, tone: "default" },
+            { v: "trial_expiring", label: "Prøve udløber ≤3d", count: counts.trial_expiring, tone: "warning" },
+            { v: "expired_no_card", label: "Prøve udløbet · intet kort", count: counts.expired_no_card, tone: "danger" },
+            { v: "inactive", label: "Inaktive", count: counts.inactive, tone: "default" },
+            { v: "unverified", label: "Ikke verificeret", count: counts.unverified, tone: "default" },
+          ] as const).map((c) => {
+            const active = filter === c.v;
+            const toneCls =
+              active
+                ? c.tone === "success" ? "bg-emerald-600 text-white border-emerald-600"
+                : c.tone === "warning" ? "bg-amber-600 text-white border-amber-600"
+                : c.tone === "danger"  ? "bg-destructive text-destructive-foreground border-destructive"
+                : "bg-foreground text-background border-foreground"
+                : "bg-background text-muted-foreground border-border hover:bg-secondary hover:text-foreground";
+            return (
+              <button
+                key={c.v}
+                onClick={() => setFilter(c.v as any)}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${toneCls}`}
+              >
+                {c.label}
+                <span className={`tabular-nums text-[10px] rounded-full px-1.5 py-0.5 ${active ? "bg-background/20" : "bg-secondary text-muted-foreground"}`}>
+                  {c.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {someSelected && (
