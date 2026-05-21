@@ -286,6 +286,19 @@ const DashboardTab = ({
 
           {business.slug && (
             <div className="flex flex-wrap items-center gap-2 lg:shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  const url = new URL(window.location.href);
+                  url.searchParams.set("guide", "1");
+                  window.history.pushState({}, "", url.toString());
+                  // Notify listeners (OnboardingHub læser location.search)
+                  window.dispatchEvent(new PopStateEvent("popstate"));
+                }}
+                className="inline-flex items-center gap-1.5 rounded-full border border-background/20 bg-background/10 px-3.5 py-2 text-xs font-semibold text-background backdrop-blur-sm transition-colors hover:bg-background/15"
+              >
+                <HelpCircle className="h-3.5 w-3.5" /> Se guide til panelet
+              </button>
               <a
                 href={`/v/${business.slug}`} target="_blank" rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 rounded-full border border-background/20 bg-background/10 px-3.5 py-2 text-xs font-semibold text-background backdrop-blur-sm transition-colors hover:bg-background/15"
