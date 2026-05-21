@@ -178,120 +178,14 @@ export default function BusinessDetailSheet({ businessId, onClose }: Props) {
           </TabsContent>
 
           {/* ====== PLAN ====== */}
-          <TabsContent value="plan" className="space-y-3 mt-4">
-            {/* Trial */}
-            <Card className="p-4 space-y-3">
-              <h3 className="text-sm font-semibold flex items-center gap-2"><CalendarClock className="h-4 w-4" />Prøveperiode</h3>
-              <div className="text-xs text-muted-foreground">
-                Slutter: <span className="font-medium text-foreground">{fmtDate(plan?.trial_ends_at)}</span>
-                {daysLeft !== null && <> · {daysLeft} dage tilbage</>}
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {[7, 14, 30].map((d) => (
-                  <Button key={d} size="sm" variant="outline"
-                    onClick={() => rpc.mutate({ fn: "admin_extend_trial", args: { p_business_id: businessId, p_days: d }, successMsg: `Prøveperiode forlænget med ${d} dage` })}>
-                    +{d} dage
-                  </Button>
-                ))}
-                <div className="flex gap-1.5 items-center">
-                  <Input className="h-9 w-20" type="number" value={extendDays} onChange={(e) => setExtendDays(e.target.value)} />
-                  <Button size="sm" variant="outline"
-                    onClick={() => {
-                      const d = parseInt(extendDays, 10);
-                      if (isNaN(d)) return toast.error("Ugyldigt tal");
-                      rpc.mutate({ fn: "admin_extend_trial", args: { p_business_id: businessId, p_days: d }, successMsg: `Forlænget med ${d} dage` });
-                    }}>Forlæng</Button>
-                </div>
-                <Button size="sm" variant="outline"
-                  onClick={() => rpc.mutate({ fn: "admin_reset_trial", args: { p_business_id: businessId, p_days: 14 }, successMsg: "Prøveperiode nulstillet til 14 dage" })}>
-                  <RefreshCw className="h-3.5 w-3.5 mr-1.5" />Nulstil (14d)
-                </Button>
-                <Button size="sm" variant="outline" className="text-amber-700 hover:text-amber-800"
-                  onClick={() => {
-                    if (!confirm("Afslut prøveperioden NU? Virksomheden vil straks blive bedt om at tilføje kort.")) return;
-                    rpc.mutate({ fn: "admin_end_trial_now", args: { p_business_id: businessId }, successMsg: "Prøveperiode afsluttet" });
-                  }}>
-                  <Zap className="h-3.5 w-3.5 mr-1.5" />Afslut nu
-                </Button>
-              </div>
-            </Card>
-
-            {/* Betaling */}
-            <Card className="p-4 space-y-3">
-              <h3 className="text-sm font-semibold flex items-center gap-2"><CreditCard className="h-4 w-4" />Betaling</h3>
-              <div className="text-sm">
-                {hasCard ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200">
-                    <CreditCard className="h-3.5 w-3.5" />
-                    {plan?.stripe_payment_method_brand || "Kort"} •••• {plan?.stripe_payment_method_last4}
-                  </span>
-                ) : (
-                  <span className="text-xs text-muted-foreground">Intet kort på fil</span>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <Stat label="Månedspris" value={fmtKr(Number(plan?.monthly_price_dkk) || 0)} />
-                <Stat label="Periode" value={plan?.billing_period || "—"} />
-                <Stat label="Rute-planlægning" value={plan?.route_planning_enabled ? "Ja" : "Nej"} />
-                <Stat label="Regnskab" value={plan?.accounting_integration_enabled ? "Ja" : "Nej"} />
-                <Stat label="Ekstra logins" value={`${plan?.extra_employee_logins || 0}`} />
-                <Stat label="Stripe sub" value={plan?.stripe_subscription_id ? "Aktiv" : "—"} />
-              </div>
-              <div className="flex flex-wrap gap-2 pt-1">
-                <Textarea
-                  placeholder="Note (fx 'kulance — kunde havde tekniske problemer')"
-                  className="text-xs min-h-[60px]"
-                  value={forceNote}
-                  onChange={(e) => setForceNote(e.target.value)}
-                />
-              </div>
-              <Button size="sm" variant="outline" className="w-full"
-                onClick={() => {
-                  if (!confirm("Markér virksomheden som BETALENDE manuelt (uden Stripe-kort)?")) return;
-                  rpc.mutate({ fn: "admin_force_active", args: { p_business_id: businessId, p_note: forceNote || null }, successMsg: "Virksomhed markeret som aktiv" });
-                }}>
-                <ShieldCheck className="h-3.5 w-3.5 mr-1.5" />Markér som betalende (kulance)
-              </Button>
-              {hasCard && (
-                <Button size="sm" variant="outline" className="w-full text-amber-700"
-                  onClick={async () => {
-                    if (!confirm("Fjern det gemte kort fra Lovable-databasen? Stripe-abonnementet annulleres IKKE automatisk.")) return;
-                    const { error } = await supabase.from("business_plans").update({
-                      stripe_payment_method_last4: null,
-                      stripe_payment_method_brand: null,
-                      status: 'trialing',
-                    }).eq("business_id", businessId!);
-                    if (error) toast.error(error.message); else { toast.success("Kort fjernet"); invalidateAll(); }
-                  }}>
-                  Fjern gemt kort
-                </Button>
-              )}
-            </Card>
-
-            {/* Ejer */}
-            <Card className="p-4 space-y-3">
-              <h3 className="text-sm font-semibold flex items-center gap-2"><UserCog className="h-4 w-4" />Ejer</h3>
-              <div className="text-xs text-muted-foreground">
-                Nuværende: <span className="font-medium text-foreground">{owner?.email || "—"}</span>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs">Overdrag til (e-mail på eksisterende bruger)</Label>
-                <div className="flex gap-2">
-                  <Input type="email" placeholder="ny.ejer@eksempel.dk" value={transferEmail} onChange={(e) => setTransferEmail(e.target.value)} className="h-9" />
-                  <Button size="sm" variant="outline"
-                    disabled={!transferEmail.includes("@")}
-                    onClick={() => {
-                      if (!confirm(`Overdrag "${business?.name}" til ${transferEmail}?`)) return;
-                      rpc.mutate({
-                        fn: "admin_transfer_business_owner",
-                        args: { p_business_id: businessId, p_new_owner_email: transferEmail },
-                        successMsg: "Ejer opdateret",
-                      });
-                      setTransferEmail("");
-                    }}>Overdrag</Button>
-                </div>
-              </div>
-            </Card>
+          <TabsContent value="plan">
+            <PlanPanel
+              businessId={businessId!}
+              plan={plan}
+              ownerEmail={owner?.email}
+              daysLeft={daysLeft}
+              onInvalidate={invalidateAll}
+            />
           </TabsContent>
 
           {/* ====== BRUGERE ====== */}
