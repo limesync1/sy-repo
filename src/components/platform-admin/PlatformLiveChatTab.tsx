@@ -671,6 +671,42 @@ const PlatformLiveChatTab = () => {
                 >
                   {showInfo ? "Skjul info" : "Vis info"}
                 </button>
+                <button
+                  onClick={handleExport}
+                  className="rounded-lg border border-border px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground hover:bg-secondary"
+                  title="Eksportér samtale som .txt"
+                >
+                  <Download className="mr-1 inline h-3 w-3" /> Eksport
+                </button>
+                {snoozes[active.id] ? (
+                  <button
+                    onClick={() => handleUnsnooze(active.id)}
+                    className="rounded-lg border border-border px-2.5 py-1.5 text-[11px] font-medium text-foreground hover:bg-secondary"
+                    title="Fjern snooze"
+                  >
+                    <Bell className="mr-1 inline h-3 w-3" /> Unsnooze
+                  </button>
+                ) : active.status !== "closed" ? (
+                  <div className="relative group">
+                    <button
+                      className="rounded-lg border border-border px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground hover:bg-secondary"
+                      title="Snooze samtalen"
+                    >
+                      <BellOff className="mr-1 inline h-3 w-3" /> Snooze
+                    </button>
+                    <div className="invisible absolute right-0 top-full z-10 mt-1 flex flex-col rounded-lg border border-border bg-card shadow-lg opacity-0 transition-all group-hover:visible group-hover:opacity-100">
+                      {[1, 2, 4, 8, 24].map((h) => (
+                        <button
+                          key={h}
+                          onClick={() => handleSnooze(active.id, h)}
+                          className="whitespace-nowrap px-3 py-1.5 text-left text-[11px] text-foreground hover:bg-secondary"
+                        >
+                          {h < 24 ? `${h} time${h > 1 ? "r" : ""}` : "1 dag"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
                 {active.status !== "closed" ? (
                   <button onClick={() => closeConversation(active.id)} className="rounded-lg border border-border px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground hover:bg-secondary">
                     <Archive className="mr-1 inline h-3 w-3" /> Afslut
