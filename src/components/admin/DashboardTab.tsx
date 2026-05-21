@@ -14,6 +14,7 @@ import {
   Share2, Eye, Calendar, MessageSquare, Link2, Check,
   Zap, Target, Settings as SettingsIcon, Users,
   Search, X, Inbox, Rocket, PartyPopper, ArrowUpDown,
+  HelpCircle,
 } from "lucide-react";
 import type { Business } from "@/hooks/useDatabase";
 import { useMemo, useState } from "react";
