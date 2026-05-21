@@ -18,9 +18,6 @@ interface Props {
   onClose: () => void;
 }
 
-const fmtDate = (s: string | null | undefined) =>
-  s ? new Date(s).toLocaleDateString("da-DK", { day: "2-digit", month: "short", year: "numeric" }) : "—";
-
 export default function BusinessDetailSheet({ businessId, onClose }: Props) {
   const qc = useQueryClient();
 
