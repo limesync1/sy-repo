@@ -457,21 +457,18 @@ const Planner = () => {
   }, [calendarStops, filterAssigneeIds, filterStatuses, filtersActive]);
 
   // ─── Drag-sensorer ───
-  // På Windows-bærbare med precision-touchpads (og pen/stylus) udsender
-  // browseren `pointerevents` med pointerType=mouse, men ikke altid de
-  // klassiske `mouseup`-events på samme target — det betød at drop ikke
-  // blev registreret ("dragger men dropper ikke"). PointerSensor lytter
-  // direkte på pointer-events og fungerer derfor pålideligt på tværs af
-  // mus, touchpad, pen og hybrid-enheder. TouchSensor bevares som dedikeret
-  // sti for ægte finger-touch så tap stadig fungerer som klik.
-  //  - Pointer: lille distance (3px) → hurtig responsiv aktivering
-  //  - Touch:   kort delay (120ms) + tolerance (8px) → hold-og-træk
-  //  - Keyboard: tilgængelighed (Space/Enter + piletaster)
-  // MouseSensor importeres stadig (bagudkompatibilitet med ældre kald),
-  // men er bevidst ikke aktiv — PointerSensor dækker alle muse-scenarier.
-  void MouseSensor;
+  // Bruger MouseSensor + TouchSensor + (fallback) PointerSensor.
+  //  - MouseSensor: klassisk mouseup på window — virker pålideligt
+  //    på desktops inkl. Windows-touchpads, hvor PointerSensor kunne
+  //    miste drop-targets pga. pointer-capture på drag-handlen.
+  //  - TouchSensor: dedikeret sti for finger-touch så tap stadig
+  //    fungerer som klik på mobil/tablet.
+  //  - KeyboardSensor: tilgængelighed (Space/Enter + piletaster).
+  // PointerSensor importeres stadig (bagudkompatibilitet), men er
+  // bevidst ikke aktiv — Mouse/Touch dækker alle scenarier stabilt.
+  void PointerSensor;
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 3 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 4 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 8 } }),
     useSensor(KeyboardSensor),
   );
@@ -3053,12 +3050,16 @@ const Planner = () => {
                   </div>
                 </div>
                 <div className="flex-1 min-h-0">
-                  <ResizablePanelGroup direction="horizontal" className="h-full rounded-lg">
-                    <ResizablePanel defaultSize={22} minSize={16} maxSize={36} className="overflow-hidden">
+                  <ResizablePanelGroup
+                    direction="horizontal"
+                    className="h-full rounded-lg"
+                    autoSaveId="route-planner:unassigned-split"
+                  >
+                    <ResizablePanel id="unassigned" order={1} defaultSize={22} minSize={16} maxSize={36} className="overflow-hidden">
                       {unassignedCard}
                     </ResizablePanel>
                     <ResizableHandle withHandle className="bg-transparent w-2 hover:bg-primary/20 transition-colors" />
-                    <ResizablePanel defaultSize={78} className="overflow-hidden">
+                    <ResizablePanel id="calendar" order={2} defaultSize={78} className="overflow-hidden">
                       {calendarBlock}
                     </ResizablePanel>
                   </ResizablePanelGroup>
