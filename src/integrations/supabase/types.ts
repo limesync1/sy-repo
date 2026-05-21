@@ -3542,6 +3542,31 @@ export type Database = {
         Args: { p_business_id: string }
         Returns: string
       }
+      admin_email_distinct_templates: {
+        Args: never
+        Returns: {
+          n: number
+          template_name: string
+        }[]
+      }
+      admin_email_send_log: {
+        Args: {
+          p_limit?: number
+          p_search?: string
+          p_since?: string
+          p_status?: string
+          p_template?: string
+        }
+        Returns: {
+          created_at: string
+          error_message: string
+          message_id: string
+          metadata: Json
+          recipient_email: string
+          status: string
+          template_name: string
+        }[]
+      }
       admin_end_trial_now: {
         Args: { p_business_id: string }
         Returns: undefined
@@ -3597,6 +3622,16 @@ export type Database = {
       admin_soft_delete_business: {
         Args: { p_business_id: string }
         Returns: undefined
+      }
+      admin_suppressed_emails: {
+        Args: { p_limit?: number }
+        Returns: {
+          created_at: string
+          email: string
+          id: string
+          metadata: Json
+          reason: string
+        }[]
       }
       admin_transfer_business_owner: {
         Args: { p_business_id: string; p_new_owner_email: string }
