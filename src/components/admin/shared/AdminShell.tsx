@@ -196,6 +196,17 @@ export const AdminShell = ({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { data: plan } = useBusinessPlan(business.id);
   void plan;
+  // Genvej til medarbejder-appen: Vises kun når virksomheden har præcis
+  // én medarbejder OG den medarbejder er den indloggede ejer selv. Så kan
+  // ejeren med ét klik hoppe fra ruteplanlægning over i medarbejder-appen
+  // og udføre opgaverne uden at gå via det globale panel-switcher-menupunkt.
+  const { data: employees } = useEmployees(business.id);
+  const { data: myEmployee } = useMyEmployee();
+  const isSoloOwnerEmployee =
+    !!myEmployee &&
+    Array.isArray(employees) &&
+    employees.length === 1 &&
+    employees[0]?.id === myEmployee.id;
   const collapsed = false;
   const sidebarPx = SIDEBAR_WIDTH_EXPANDED;
 
