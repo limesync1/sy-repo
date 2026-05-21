@@ -315,3 +315,8 @@ Kategorier · Byer · Top virksomheder · Top kunder — som ét kort med tabs i
 ## Næste skridt
 
 Sig "ja" → jeg starter på **Trin 6** (Platform-overblik). Vil du have en anden rækkefølge, sig fx "tag trin 11 først".
+## Trin 22 — Aktivitetslog: paging, watch, diff, gemte filtre ✅
+- Server-side paging via useInfiniteQuery (PAGE_SIZE=100, cursor på created_at).
+- Watch-user: stjerne pr. række gemmer admin-email i localStorage; "Watch (N)"-toggle filtrerer.
+- Diff-visning: når details indeholder before/after objekter, vises 3-kolonne diff med highlight på ændrede felter.
+- Gemte filtre i localStorage med navn, anvend/slet chips.
