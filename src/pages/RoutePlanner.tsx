@@ -49,7 +49,7 @@ import { toast } from "sonner";
 import {
   DndContext, DragOverlay, useSensor, useSensors,
   pointerWithin, rectIntersection, type CollisionDetection, type DragEndEvent, type DragMoveEvent, type DragOverEvent, type DragStartEvent,
-  MouseSensor, TouchSensor, KeyboardSensor,
+  PointerSensor, MouseSensor, TouchSensor, KeyboardSensor,
 } from "@dnd-kit/core";
 import { createPortal } from "react-dom";
 import { UnassignedJobCard } from "@/components/route-planner/UnassignedJobCard";
@@ -457,15 +457,21 @@ const Planner = () => {
   }, [calendarStops, filterAssigneeIds, filterStatuses, filtersActive]);
 
   // ─── Drag-sensorer ───
-  // PointerSensor er flakey på Windows-pegefelter (uden mus) og på Android
-  // hvor små finger-bevægelser ofte konsumeres som klik i stedet for drag.
-  // Vi splitter derfor i dedikerede sensorer:
-  //  - Mus: lille distance (3px) så drag starter hurtigt og responsivt
-  //  - Touch: kort delay (120ms) + tolerance (8px) så tap stadig fungerer
-  //    som klik, mens hold-og-træk altid registreres pålideligt
+  // På Windows-bærbare med precision-touchpads (og pen/stylus) udsender
+  // browseren `pointerevents` med pointerType=mouse, men ikke altid de
+  // klassiske `mouseup`-events på samme target — det betød at drop ikke
+  // blev registreret ("dragger men dropper ikke"). PointerSensor lytter
+  // direkte på pointer-events og fungerer derfor pålideligt på tværs af
+  // mus, touchpad, pen og hybrid-enheder. TouchSensor bevares som dedikeret
+  // sti for ægte finger-touch så tap stadig fungerer som klik.
+  //  - Pointer: lille distance (3px) → hurtig responsiv aktivering
+  //  - Touch:   kort delay (120ms) + tolerance (8px) → hold-og-træk
   //  - Keyboard: tilgængelighed (Space/Enter + piletaster)
+  // MouseSensor importeres stadig (bagudkompatibilitet med ældre kald),
+  // men er bevidst ikke aktiv — PointerSensor dækker alle muse-scenarier.
+  void MouseSensor;
   const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 3 } }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 3 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 8 } }),
     useSensor(KeyboardSensor),
   );
