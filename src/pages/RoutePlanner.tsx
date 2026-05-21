@@ -3050,12 +3050,16 @@ const Planner = () => {
                   </div>
                 </div>
                 <div className="flex-1 min-h-0">
-                  <ResizablePanelGroup direction="horizontal" className="h-full rounded-lg">
-                    <ResizablePanel defaultSize={22} minSize={16} maxSize={36} className="overflow-hidden">
+                  <ResizablePanelGroup
+                    direction="horizontal"
+                    className="h-full rounded-lg"
+                    autoSaveId="route-planner:unassigned-split"
+                  >
+                    <ResizablePanel id="unassigned" order={1} defaultSize={22} minSize={16} maxSize={36} className="overflow-hidden">
                       {unassignedCard}
                     </ResizablePanel>
                     <ResizableHandle withHandle className="bg-transparent w-2 hover:bg-primary/20 transition-colors" />
-                    <ResizablePanel defaultSize={78} className="overflow-hidden">
+                    <ResizablePanel id="calendar" order={2} defaultSize={78} className="overflow-hidden">
                       {calendarBlock}
                     </ResizablePanel>
                   </ResizablePanelGroup>
