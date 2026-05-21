@@ -23,15 +23,45 @@ const BusinessDetailSheet = lazy(() => import("./BusinessDetailSheet"));
 const CreateBusinessWizard = lazy(() => import("./CreateBusinessWizard"));
 
 const fmtKr = (n: number) => `${Math.round(n).toLocaleString("da-DK")} kr`;
+const PAGE_SIZE = 50;
+
+type FilterKey =
+  | "all" | "active_paying" | "trial" | "trial_expiring"
+  | "expired_no_card" | "inactive" | "unverified" | "no_orders" | "no_login";
+type SortKey =
+  | "created_desc" | "created_asc" | "revenue_desc" | "orders_desc"
+  | "last_order_desc" | "last_login_desc" | "name_asc";
+
+type SavedView = { id: string; name: string; q: string; filter: FilterKey; sort: SortKey };
+const SAVED_VIEWS_KEY = "admin.businesses.savedViews.v1";
+const loadViews = (): SavedView[] => {
+  try { return JSON.parse(localStorage.getItem(SAVED_VIEWS_KEY) || "[]"); } catch { return []; }
+};
+const saveViews = (v: SavedView[]) => localStorage.setItem(SAVED_VIEWS_KEY, JSON.stringify(v));
+
+const fmtRelDate = (iso: string | null | undefined) => {
+  if (!iso) return "—";
+  const d = new Date(iso).getTime();
+  const diff = Date.now() - d;
+  const day = 86400000;
+  if (diff < day) return "i dag";
+  if (diff < 2 * day) return "i går";
+  if (diff < 30 * day) return `${Math.floor(diff / day)}d siden`;
+  if (diff < 365 * day) return `${Math.floor(diff / (30 * day))}m siden`;
+  return `${Math.floor(diff / (365 * day))}å siden`;
+};
 
 const PlatformBusinessesTab = () => {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [q, setQ] = useState("");
-  const [filter, setFilter] = useState<
-    "all" | "active_paying" | "trial" | "trial_expiring" | "expired_no_card" | "inactive" | "unverified"
-  >("all");
+  const [filter, setFilter] = useState<FilterKey>("all");
+  const [sort, setSort] = useState<SortKey>("created_desc");
+  const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [views, setViews] = useState<SavedView[]>(() => loadViews());
+
+  useEffect(() => { setPage(0); }, [q, filter, sort]);
 
   // Sheet til at køre dataimport for en specifik virksomhed
   const [importFor, setImportFor] = useState<{ id: string; name: string } | null>(null);
