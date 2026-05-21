@@ -1,97 +1,87 @@
+# Platform-admin: Opret-virksomhed wizard + admin-panel forbedring
 
-# Platform Admin — Omfattende opgradering
+## Del 1 — Opret-virksomhed wizard (hovedfokus)
 
-Målet: gøre platform-admin til et reelt kontrolcenter hvor du fuldt ud kan styre virksomheder, prøveperioder, abonnementer, brugere, betalinger og support — ikke kun se data, men handle på det.
+Erstatter den nuværende simple `CreateBusinessDialog` med et flerstegs wizard-flow, der svarer 1:1 til "Bliv udbyder"-siden (`src/components/admin/BusinessOnboarding.tsx`), men tilpasset admin-konteksten.
 
-## Hvad jeg foreslår at bygge (prioriteret)
+**Ny komponent:** `src/components/platform-admin/CreateBusinessWizard.tsx` (Sheet eller stor Dialog, 4 trin med progress-bar).
 
-### 1. Virksomheder — fuld kontrol (vigtigste)
-Ny **detalje-sheet** ved klik på en virksomhed med følgende handlinger samlet ét sted:
+### Trin 1 — Find virksomhed (CVR)
+- CVR-input + opslag via eksisterende `cvr-lookup` edge function
+- Auto-udfyld: navn, adresse, postnr, by, telefon, mail, branche
+- Admin kan også vælge "Spring CVR over — opret manuelt" (for udenlandske / private)
+- Branche → mappes til vores `service-taxonomy.ts` kategorier (foreslår automatisk 1-3 kategorier ud fra branchetekst, admin kan justere via multi-select med rigtige Serviceydere-kategorier i stedet for fri tekst)
 
-- **Prøveperiode**
-  - Forlæng prøveperiode (+7 / +14 / +30 dage eller custom dato)
-  - Nulstil prøveperiode (start forfra)
-  - Afslut prøveperiode nu (tving til betaling)
-- **Abonnement**
-  - Skift plan (månedlig/kvartal/årlig)
-  - Tænd/sluk tilkøb (rute, regnskab, ekstra-logins)
-  - Marker som "betalende" manuelt (kulance)
-  - Fjern gemt kort
-  - Åbn Stripe Billing Portal som virksomheden
-  - Send re-aktiverings-mail
-- **Virksomhedsdrift**
-  - Aktivér / deaktivér
-  - Verificér / fjern verifikation
-  - Soft-delete (markér slettet, 30 dages grace)
-  - Hard-delete (permanent — kræver bekræftelse med navn)
-  - Skift ejer (overdrag til anden bruger)
-  - Tilføj/fjern medarbejdere
-  - Log ind som (eksisterer — flyttes ind i panelet)
+### Trin 2 — Funktioner & plan
+- Samme funktionskort som onboarding: Regnskabsintegration (betalt), Leads (gratis), Livechat (gratis)
+- Ekstra medarbejderlogins (stepper 0-20)
+- Faktureringsperiode: Månedlig / Kvartal / Årlig (med rabat fra `platform_settings`)
+- Prøveperiode-længde i dage (admin-only felt, default fra platform-settings)
+- Live pris-breakdown vises i sidepanel
 
-### 2. Opret virksomhed manuelt
-Ny knap **"+ Opret virksomhed"** → wizard:
-1. Virksomhedsinfo (navn, CVR-opslag, kategori, by)
-2. Ejer (eksisterende bruger via e-mail eller opret ny)
-3. Plan (prøveperiode længde, evt. tilkøb, evt. spring prøve over)
-4. Bekræft → opret + send velkomst-mail
+### Trin 3 — Ejer-bruger
+- Email (required)
+- Vis live: "Findes denne bruger allerede?" (lookup via admin RPC) → enten "Eksisterende bruger bliver tildelt" eller "Ny bruger oprettes"
+- Valg: Generér engangskodeord automatisk / Sæt selv
+- Checkbox: Send velkomstmail med login + magic link
 
-### 3. Brugere — manglende handlinger
-- Send password-reset
-- Skift e-mail
-- Tildel/fjern roller (admin, business owner)
-- Suspendér bruger
-- Slet bruger (med konsekvens-visning: "ejer 2 virksomheder")
-- Opret bruger manuelt
+### Trin 4 — Gennemse & opret
+- Resumé af alt
+- Admin-only valg:
+  - "Marker som betalende med det samme (spring trial over)"
+  - "Tilføj note til audit log"
+- Knap "Opret virksomhed" → kalder udvidet `admin-create-business` edge function
+- Success-skærm: viser slug, login-URL, evt. engangskodeord (kopierbart), knap "Åbn virksomhedspanel som ejer" (impersonation)
 
-### 4. Abonnementer-tab forbedring
-- Filtrer på status (trial, trial_ending, expired, active, past_due, canceled)
-- Dunning-liste (kort fejlede)
-- MRR-graf + churn
-- Manuel handling: forlæng, refunder, annullér
+### Backend-ændringer
+Udvid `supabase/functions/admin-create-business/index.ts`:
+- Tag imod alle felter (features, billing, extraLogins, trialDays, forceActive, categories, customAddress)
+- Skriv komplet `businesses.settings` med samme struktur som onboarding (leads_enabled, livechat_enabled, etc.)
+- Skriv `business_plans` med alle felter inkl. billing_period og monthly_price_dkk
+- Hvis `forceActive=true`, sæt status='active' i stedet for 'trialing'
+- Returnér `slug`, `businessId`, `temporaryPassword`, `userExisted`, `loginUrl`
 
-### 5. Nye anbefalede tabs
-- **Mails & beskeder** — kø, fejlede, suppression-liste, send test-mail
-- **Aktivitetslog** — audit-trail af admin-handlinger (hvem gjorde hvad hvornår)
-- **Systemstatus** — edge-functions sundhed, cron-jobs, fejlrater
-- **Refunderinger & disputes** — Stripe disputes overblik
-- **Onboarding-pipeline** — virksomheder under oprettelse (drop-off tracking)
+## Del 2 — Admin-panel forbedringer
 
-### 6. Småfixes på tværs
-- Konsistent dansk talformat ("3.700 kr") overalt
-- Bedre tom-tilstande
-- Bekræftelsesdialoger for destruktive handlinger (ikke `confirm()`)
-- Søgning der dækker e-mail/CVR/slug/by samtidig
-- Bulk-handlinger udvides (send mail, eksportér, forlæng prøve)
+### A) Forbedret `PlatformBusinessesTab` (tabel)
+- Tilføj kolonner: Plan-status badge (trial/aktiv/forfalden/annulleret), MRR, dage tilbage af trial, sidste login
+- Quick-filters i toolbar: Status (alle/trial/aktiv/forfalden/slettet), Plan-type, Region
+- Sortering på kolonner (klik header)
+- Bulk-actions: vælg flere → "Forlæng trial med X dage", "Eksportér CSV", "Send mail"
+- Søgning rammer også CVR, ejer-email, slug
+- Row-action "Log ind som" → impersonation kode (bruger eksisterende `admin_impersonation_codes`)
 
----
+### B) Udvidet `BusinessDetailSheet`
+Nye sektioner (tabs):
+- **Aktivitet** — kombineret feed: ordrer, mails sendt, login-historik, plan-ændringer
+- **Økonomi** — viser MRR-bidrag, Stripe-fakturaer (fra `payments-webhook`-data), ubetalte fakturaer
+- **Brugere** — ejer + medarbejdere med roller, "promote til ejer", "fjern medarbejder"
+- **Indstillinger** — toggle is_active, is_verified, kategorier, slug-redigering med history-tracking
 
-## Teknisk
+### C) Ny `UserDetailSheet` (åbnes fra `PlatformUsersTab`)
+- Bruger-info, oprettelsesdato, sidste login
+- Liste over: virksomheder bruger ejer, virksomheder bruger er medarbejder hos, ordrer som kunde
+- Actions: Reset password, Skift e-mail, Send magic link, Suspender (logout + bloker), Slet bruger, Tildel/fjern admin-rolle
 
-**Database/migrationer der skal til:**
-- `admin_audit_log` tabel (admin_id, action, target_type, target_id, details, created_at)
-- `business_plans.deletion_requested_at` allerede der → soft-delete cron
-- RPC'er: `admin_extend_trial`, `admin_reset_trial`, `admin_end_trial`, `admin_force_active`, `admin_transfer_business_owner`, `admin_soft_delete_business`, `admin_hard_delete_business`, `admin_create_business`, `admin_suspend_user`
-- Alle RPC'er logger til audit_log + tjekker `has_role(auth.uid(), 'admin')`
+### D) Forbedret `PlatformAdmin` layout
+- Sticky topbar med global søgning (cmd+K) — søg på tværs af virksomheder/brugere/ordrer
+- "Hurtige handlinger"-knap i topbaren: Opret virksomhed, Opret bruger, Find ordre
+- Notifikations-badge i nav når der er nye uløste ting (chats, refund-anmodninger, fejlede betalinger)
 
-**Edge functions:**
-- `admin-create-business` (orkestrerer user + business + plan + invite-mail)
-- `admin-stripe-action` (refund, cancel, portal-as-business)
+### E) Nye platform-admin tabs
+- **Sundhed** — system status: edge function fejl-rate (sidste 24t), email-kø backlog, webhook-fejl, DB query times
+- **Mails** — log over alle udsendte mails fra platformen (filterbar), genudsend, se template-preview
 
-**Frontend:**
-- Ny `BusinessDetailSheet.tsx` med tabs (Oversigt / Plan / Brugere / Fakturering / Fare-zone)
-- Ny `CreateBusinessDialog.tsx` (multi-step)
-- Ny `UserDetailSheet.tsx`
-- Ny `ActivityLogTab.tsx`
-- Ny `EmailsTab.tsx`
-- Refaktor `PlatformBusinessesTab` så rækken kun viser oversigt + åbner sheet
+## Tekniske noter
+- Wizard bruger `Sheet` (side-panel, max-w-3xl) for bedre plads end Dialog
+- Step-state holdes lokalt, ingen ekstra DB-state nødvendig
+- Genbrug `CvrLookupField`, `service-taxonomy.ts` mapping, `formatDkk`
+- Audit log skriver hver wizard-oprettelse med fuldt payload-snapshot
+- Edge function valideres med zod (følger projektets `_shared` pattern hvis det findes — ellers inline)
 
----
+## Anbefalet rækkefølge
+1. **Nu:** Del 1 (wizard) + udvidelse af `admin-create-business` — det er det konkrete du beder om
+2. **Næste runde:** Del 2A (tabel-forbedringer) + 2B (detail-sheet udvidelse)
+3. **Senere:** 2C (user-sheet), 2D (global søgning), 2E (sundhed/mails-tabs)
 
-## Omfang
-
-Det her er stort — realistisk 8-12 commits hvis vi laver det hele. Jeg foreslår at vi starter med **fase 1 + 2 + 3** (virksomheds-detalje, opret virksomhed, bruger-handlinger) som er det vigtigste i din besked, og så tager resten i efterfølgende runder.
-
-**Bekræft venligst:**
-1. Skal jeg starte med fase 1+2+3 nu? Eller vil du have alt i én omgang?
-2. Soft-delete vs hard-delete — vil du have 30-dages grace, eller bare hard-delete med bekræftelse?
-3. Skal "Opret virksomhed" sende velkomst-mail med login-link automatisk, eller bare oprette stille?
+Skal jeg starte med Del 1 nu (wizard + edge function), eller vil du have en anden rækkefølge? Sig også til hvis der er ting fra Del 2 du vil have prioriteret op.
