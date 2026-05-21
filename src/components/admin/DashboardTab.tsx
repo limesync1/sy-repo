@@ -63,6 +63,13 @@ const DashboardTab = ({
   pendingOrders, recentOrders, reviews, services, onNavigate,
 }: Props) => {
   const [copied, setCopied] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const openGuide = () => {
+    const params = new URLSearchParams(location.search);
+    params.set("guide", "1");
+    navigate({ pathname: location.pathname, search: `?${params.toString()}` }, { replace: true });
+  };
   // Stat-detalje-panel — hvilken metric vi har åbnet, hvis nogen.
   const [openStat, setOpenStat] = useState<null | "revenue" | "orders" | "today" | "pending" | "rating">(null);
   // Filtre på "Seneste bestillinger" — status-pille + søgetekst.
