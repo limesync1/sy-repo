@@ -89,11 +89,10 @@ export const OnboardingHub = ({ business }: { business: any }) => {
   }, [open]);
 
   const close = () => {
-    const url = new URL(window.location.href);
-    url.searchParams.delete("guide");
-    window.history.replaceState({}, "", url.toString());
-    // Trigg en navigation så location-effekter også opdaterer
-    navigate(url.pathname + url.search, { replace: true });
+    const params = new URLSearchParams(location.search);
+    params.delete("guide");
+    const search = params.toString();
+    navigate({ pathname: location.pathname, search: search ? `?${search}` : "" }, { replace: true });
   };
 
   const slides = useMemo(() => buildSlides(business?.name), [business?.name]);
