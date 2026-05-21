@@ -49,7 +49,7 @@ import { toast } from "sonner";
 import {
   DndContext, DragOverlay, useSensor, useSensors,
   pointerWithin, rectIntersection, type CollisionDetection, type DragEndEvent, type DragMoveEvent, type DragOverEvent, type DragStartEvent,
-  MouseSensor, TouchSensor, KeyboardSensor,
+  PointerSensor, MouseSensor, TouchSensor, KeyboardSensor,
 } from "@dnd-kit/core";
 import { createPortal } from "react-dom";
 import { UnassignedJobCard } from "@/components/route-planner/UnassignedJobCard";
