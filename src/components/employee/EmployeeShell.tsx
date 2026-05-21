@@ -15,10 +15,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import {
-  SidebarNavButton, SidebarCollapseToggle, SidebarFooterItem,
-  SIDEBAR_WIDTH_COLLAPSED, SIDEBAR_WIDTH_EXPANDED,
+  SidebarNavButton, SidebarFooterItem,
+  SIDEBAR_WIDTH_EXPANDED,
 } from "@/components/shared/sidebar/SidebarParts";
-import { useSidebarCollapsed } from "@/components/shared/sidebar/useSidebarCollapsed";
 
 export type EmployeeTabKey = "today" | "stats" | "livechat";
 
@@ -73,7 +72,7 @@ export const EmployeeShell = ({
   const { data: employee } = useMyEmployee();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { collapsed, toggle: toggleCollapsed } = useSidebarCollapsed("sy.sidebar.collapsed.employee");
+  const collapsed = false;
 
   // ESC lukker mobil-sidebar — matcher admin-paneler.
   useEffect(() => {
@@ -121,7 +120,7 @@ export const EmployeeShell = ({
     .map((p) => p.charAt(0).toUpperCase())
     .join("") || "M";
   const accentColor = employee?.color || "hsl(var(--foreground))";
-  const sidebarPx = collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH_EXPANDED;
+  const sidebarPx = SIDEBAR_WIDTH_EXPANDED;
 
   return (
     <div className="isolate flex min-h-dvh bg-secondary/50">
@@ -206,7 +205,6 @@ export const EmployeeShell = ({
 
         <div className={cn("shrink-0 space-y-1 border-t border-border py-3", collapsed ? "px-2" : "px-3")}>
           <SidebarFooterItem icon={LogOut} label="Log ud" onClick={signOut} collapsed={collapsed} danger />
-          <div className="pt-1"><SidebarCollapseToggle collapsed={collapsed} onToggle={toggleCollapsed} /></div>
         </div>
       </aside>
 
