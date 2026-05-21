@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CheckCircle2, XCircle, ExternalLink, Trash2, MapPin, Mail, BadgeCheck, Download, ChevronDown, CreditCard, Clock, AlertTriangle, Building2, UploadCloud, LogIn, KeyRound, Loader2, MailCheck } from "lucide-react";
+import { CheckCircle2, XCircle, ExternalLink, Trash2, MapPin, Mail, BadgeCheck, Download, ChevronDown, CreditCard, Clock, AlertTriangle, Building2, UploadCloud, LogIn, KeyRound, Loader2, MailCheck, Settings2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
@@ -20,6 +20,7 @@ import { useNavigate } from "react-router-dom";
 import { setImpersonatedBusinessId } from "@/lib/admin-impersonation";
 
 const DataImportTab = lazy(() => import("@/components/admin/DataImportTab"));
+const BusinessDetailSheet = lazy(() => import("./BusinessDetailSheet"));
 
 const fmtKr = (n: number) => `${Math.round(n).toLocaleString("da-DK")} kr`;
 
@@ -32,6 +33,9 @@ const PlatformBusinessesTab = () => {
 
   // Sheet til at køre dataimport for en specifik virksomhed
   const [importFor, setImportFor] = useState<{ id: string; name: string } | null>(null);
+
+  // Sheet til komplet virksomheds-kontrolpanel (trial, plan, slet osv.)
+  const [detailFor, setDetailFor] = useState<string | null>(null);
 
   // Dialog til 5-cifret impersonation-kode
   const [impersonate, setImpersonate] = useState<{
@@ -358,9 +362,11 @@ const PlatformBusinessesTab = () => {
                       {b.is_verified ? <XCircle className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
                       <span className="hidden sm:inline">{b.is_verified ? "Fjern verif." : "Verificér"}</span>
                     </Button>
-                    <Button size="sm" variant="outline" className="h-8"
-                      onClick={() => updateBiz.mutate({ ids: [b.id], patch: { is_active: !b.is_active } })}>
-                      {b.is_active ? "Deaktivér" : "Aktivér"}
+                    <Button size="sm" variant="default" className="h-8 gap-1.5"
+                      onClick={() => setDetailFor(b.id)}
+                      title="Åbn fuldt kontrolpanel: prøveperiode, plan, ejer, slet">
+                      <Settings2 className="h-3.5 w-3.5" />
+                      <span className="hidden sm:inline">Administrér</span>
                     </Button>
                     <Button
                       size="sm"
@@ -385,11 +391,6 @@ const PlatformBusinessesTab = () => {
                     <Link to={`/b/${b.slug}`} target="_blank" rel="noopener noreferrer">
                       <Button size="sm" variant="ghost" className="h-8 w-8 p-0" aria-label="Åbn"><ExternalLink className="h-3.5 w-3.5" /></Button>
                     </Link>
-                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                      aria-label="Slet"
-                      onClick={() => { if (confirm(`Slet "${b.name}"? Sletter også services. Kan ikke fortrydes.`)) deleteBiz.mutate([b.id]); }}>
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
                   </div>
                 </div>
               );
@@ -397,6 +398,11 @@ const PlatformBusinessesTab = () => {
           </div>
         </Card>
       )}
+
+      {/* Detalje-sheet: alle admin-handlinger for én virksomhed samlet */}
+      <Suspense fallback={null}>
+        <BusinessDetailSheet businessId={detailFor} onClose={() => setDetailFor(null)} />
+      </Suspense>
 
       {/* Dataimport sheet — kører DataImportTab i kontekst af den valgte virksomhed */}
       <Sheet open={!!importFor} onOpenChange={(open) => { if (!open) setImportFor(null); }}>

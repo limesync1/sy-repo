@@ -407,6 +407,42 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_audit_log: {
+        Row: {
+          action: string
+          admin_email: string | null
+          admin_id: string
+          created_at: string
+          details: Json
+          id: string
+          target_id: string | null
+          target_label: string | null
+          target_type: string
+        }
+        Insert: {
+          action: string
+          admin_email?: string | null
+          admin_id: string
+          created_at?: string
+          details?: Json
+          id?: string
+          target_id?: string | null
+          target_label?: string | null
+          target_type: string
+        }
+        Update: {
+          action?: string
+          admin_email?: string | null
+          admin_id?: string
+          created_at?: string
+          details?: Json
+          id?: string
+          target_id?: string | null
+          target_label?: string | null
+          target_type?: string
+        }
+        Relationships: []
+      }
       admin_impersonation_codes: {
         Row: {
           admin_user_id: string
@@ -3473,6 +3509,16 @@ export type Database = {
       }
     }
     Functions: {
+      _admin_log: {
+        Args: {
+          p_action: string
+          p_details?: Json
+          p_target_id: string
+          p_target_label: string
+          p_target_type: string
+        }
+        Returns: undefined
+      }
       _generate_occurrences_for_agreement: {
         Args: { _agreement_id: string; _until_date: string }
         Returns: number
@@ -3496,6 +3542,22 @@ export type Database = {
         Args: { p_business_id: string }
         Returns: string
       }
+      admin_end_trial_now: {
+        Args: { p_business_id: string }
+        Returns: undefined
+      }
+      admin_extend_trial: {
+        Args: { p_business_id: string; p_days: number }
+        Returns: string
+      }
+      admin_force_active: {
+        Args: { p_business_id: string; p_note?: string }
+        Returns: undefined
+      }
+      admin_hard_delete_business: {
+        Args: { p_business_id: string; p_confirm_name: string }
+        Returns: undefined
+      }
       admin_list_users: {
         Args: never
         Returns: {
@@ -3515,6 +3577,14 @@ export type Database = {
         Args: { p_code: string }
         Returns: string
       }
+      admin_reset_trial: {
+        Args: { p_business_id: string; p_days?: number }
+        Returns: string
+      }
+      admin_restore_business: {
+        Args: { p_business_id: string }
+        Returns: undefined
+      }
       admin_set_user_role: {
         Args: {
           _grant: boolean
@@ -3522,6 +3592,14 @@ export type Database = {
           _user_id: string
         }
         Returns: undefined
+      }
+      admin_soft_delete_business: {
+        Args: { p_business_id: string }
+        Returns: undefined
+      }
+      admin_transfer_business_owner: {
+        Args: { p_business_id: string; p_new_owner_email: string }
+        Returns: string
       }
       agreement_interval_days: {
         Args: {

@@ -1,80 +1,97 @@
-# Plan: Overblik-format, medarbejder-redesign, rutekørsel omtænkning
 
-## 1. Overblik (virksomhedspanelet) — tal-format
+# Platform Admin — Omfattende opgradering
 
-**Filer:** `src/components/admin/DashboardTab.tsx`
+Målet: gøre platform-admin til et reelt kontrolcenter hvor du fuldt ud kan styre virksomheder, prøveperioder, abonnementer, brugere, betalinger og support — ikke kun se data, men handle på det.
 
-- Erstat `fmtKrShort` med fuld dansk formatering: `3.700 kr` i stedet for `3,7k kr`.
-- Standardisér ALLE beløb til at bruge `fmtKr` (tusindtals-punktum, ingen forkortelser).
-- Sweep øvrige steder hvor `{order.total_amount} kr` mangler tusindtals-formatering — sørg for at `3500` vises som `3.500 kr` ikke `3500 kr`.
-- Check sparkline-bar-labels (linje 1155) — vis fuld tal.
-- Gennemgå hele Overblik-siden (hilsen, snapshot-pille, stat-kort, ordre-liste, lister) for danske formuleringer der virker forkerte.
+## Hvad jeg foreslår at bygge (prioriteret)
 
-## 2. Medarbejder-design — Forside + Statistik
+### 1. Virksomheder — fuld kontrol (vigtigste)
+Ny **detalje-sheet** ved klik på en virksomhed med følgende handlinger samlet ét sted:
 
-**Mål:** Samme designsprog som Overblik: lyse `SectionCard`, `StatCard`, `PageHeader`, mørk hero-top på relevante steder, rolig typografi, accent-sparsomt.
+- **Prøveperiode**
+  - Forlæng prøveperiode (+7 / +14 / +30 dage eller custom dato)
+  - Nulstil prøveperiode (start forfra)
+  - Afslut prøveperiode nu (tving til betaling)
+- **Abonnement**
+  - Skift plan (månedlig/kvartal/årlig)
+  - Tænd/sluk tilkøb (rute, regnskab, ekstra-logins)
+  - Marker som "betalende" manuelt (kulance)
+  - Fjern gemt kort
+  - Åbn Stripe Billing Portal som virksomheden
+  - Send re-aktiverings-mail
+- **Virksomhedsdrift**
+  - Aktivér / deaktivér
+  - Verificér / fjern verifikation
+  - Soft-delete (markér slettet, 30 dages grace)
+  - Hard-delete (permanent — kræver bekræftelse med navn)
+  - Skift ejer (overdrag til anden bruger)
+  - Tilføj/fjern medarbejdere
+  - Log ind som (eksisterer — flyttes ind i panelet)
 
-**Filer:** `src/pages/EmployeeApp.tsx`, `src/pages/EmployeeStats.tsx`
+### 2. Opret virksomhed manuelt
+Ny knap **"+ Opret virksomhed"** → wizard:
+1. Virksomhedsinfo (navn, CVR-opslag, kategori, by)
+2. Ejer (eksisterende bruger via e-mail eller opret ny)
+3. Plan (prøveperiode længde, evt. tilkøb, evt. spring prøve over)
+4. Bekræft → opret + send velkomst-mail
 
-### Forside (EmployeeApp)
-- Mørk velkomst-hero i top med "God morgen, [navn]" + dagens nøgletal-pille (stops i dag, kørte km, indtjent).
-- Snapshot-grid (4 kolonner): I dag · Næste stop · Færdig · Optjent.
-- "Næste stop"-kort som primær handling med adresse, kunde, ETA, CTA "Start kørsel" / "Marker færdig".
-- Liste over dagens stops i `SectionCard` med ren typografi, status-chips.
-- Genbrug `AdminUI` komponenter (PageHeader, StatCard, SectionCard, PrimaryButton).
+### 3. Brugere — manglende handlinger
+- Send password-reset
+- Skift e-mail
+- Tildel/fjern roller (admin, business owner)
+- Suspendér bruger
+- Slet bruger (med konsekvens-visning: "ejer 2 virksomheder")
+- Opret bruger manuelt
 
-### Statistik (EmployeeStats)
-- `PageHeader` i top med periode-vælger som action.
-- 4 `StatCard`'er (indtjening, stops, timer, snit-bedømmelse) med sparklines.
-- `SectionCard` med chart (uge/måned) og top-services/kunder.
-- Samme tonepalette som Overblik (emerald/blue/violet/amber).
+### 4. Abonnementer-tab forbedring
+- Filtrer på status (trial, trial_ending, expired, active, past_due, canceled)
+- Dunning-liste (kort fejlede)
+- MRR-graf + churn
+- Manuel handling: forlæng, refunder, annullér
 
-## 3. Rutekørsel — fuld omtænkning
+### 5. Nye anbefalede tabs
+- **Mails & beskeder** — kø, fejlede, suppression-liste, send test-mail
+- **Aktivitetslog** — audit-trail af admin-handlinger (hvem gjorde hvad hvornår)
+- **Systemstatus** — edge-functions sundhed, cron-jobs, fejlrater
+- **Refunderinger & disputes** — Stripe disputes overblik
+- **Onboarding-pipeline** — virksomheder under oprettelse (drop-off tracking)
 
-**Fil:** `src/pages/EmployeeRoute.tsx` (2233 linjer — refaktor til mindre dele).
+### 6. Småfixes på tværs
+- Konsistent dansk talformat ("3.700 kr") overalt
+- Bedre tom-tilstande
+- Bekræftelsesdialoger for destruktive handlinger (ikke `confirm()`)
+- Søgning der dækker e-mail/CVR/slug/by samtidig
+- Bulk-handlinger udvides (send mail, eksportér, forlæng prøve)
 
-**Ny IA:**
-```text
-┌──────────────────────────────────────┐
-│ Mørk kompakt header                  │
-│ "Rute · 7 stops · ETA 14:22"   [✕]   │
-├──────────────────────────────────────┤
-│                                      │
-│        KORT (60% af skærm)           │
-│   live position + rute-polyline      │
-│   næste-stop markør fremhævet        │
-│                                      │
-├──────────────────────────────────────┤
-│ NÆSTE-STOP BANNER (sticky)           │
-│ "Næste: Hr. Hansen · 4 min · 1,2 km" │
-│ [Naviger] [Ring] [Færdig]            │
-├──────────────────────────────────────┤
-│ SWIPE-STOPS rail (horisontal)        │
-│ Stop 1 ✓ │ Stop 2 ▶ │ Stop 3 │ ...  │
-└──────────────────────────────────────┘
-```
+---
 
-- **Næste-stop banner**: kontekstuelle handlinger (Naviger i Google/Apple Maps, Ring til kunde, Marker færdig, Spring over).
-- **Swipe-rail nederst**: horisontal scroll med stop-kort. Aktivt stop highlighted. Tryk → bottom-sheet med stop-detaljer.
-- **Smart logik**:
-  - Live ETA opdateres fra GPS-position.
-  - Advarsel-chip i header hvis forsinket > 10 min ift. planlagt.
-  - Auto-avancér til næste stop når et stop markeres færdigt.
-  - "Omdiriger"-knap hvis trafik kræver ny rækkefølge (eksisterende `apply-route-suggestion` edge function).
-- **Visuelt**: samme accent-teal sparsomt, foreground til ikoner, mørk header som forsiden, `SectionCard` til detaljer-sheet, store touch-targets (44px+).
-- Behold al eksisterende GPS/navigation/smoothing-logik fra `useGpsFilter`, `useSmoothPosition`, `useCurrentManeuver`.
+## Teknisk
 
-## Rækkefølge / leverancer
+**Database/migrationer der skal til:**
+- `admin_audit_log` tabel (admin_id, action, target_type, target_id, details, created_at)
+- `business_plans.deletion_requested_at` allerede der → soft-delete cron
+- RPC'er: `admin_extend_trial`, `admin_reset_trial`, `admin_end_trial`, `admin_force_active`, `admin_transfer_business_owner`, `admin_soft_delete_business`, `admin_hard_delete_business`, `admin_create_business`, `admin_suspend_user`
+- Alle RPC'er logger til audit_log + tjekker `has_role(auth.uid(), 'admin')`
 
-1. **Overblik tal-format** (lille, hurtigt — første commit).
-2. **EmployeeApp forside** redesign.
-3. **EmployeeStats** redesign.
-4. **EmployeeRoute** fuld omtænkning — opdel i ny komponent-struktur (`RouteHeader`, `NextStopBanner`, `StopsRail`, `StopDetailSheet`) i `src/components/employee-route/`.
+**Edge functions:**
+- `admin-create-business` (orkestrerer user + business + plan + invite-mail)
+- `admin-stripe-action` (refund, cancel, portal-as-business)
 
-## Tekniske noter (for dev)
+**Frontend:**
+- Ny `BusinessDetailSheet.tsx` med tabs (Oversigt / Plan / Brugere / Fakturering / Fare-zone)
+- Ny `CreateBusinessDialog.tsx` (multi-step)
+- Ny `UserDetailSheet.tsx`
+- Ny `ActivityLogTab.tsx`
+- Ny `EmailsTab.tsx`
+- Refaktor `PlatformBusinessesTab` så rækken kun viser oversigt + åbner sheet
 
-- Behold alle hooks i `src/components/employee-route/`.
-- Bruger `AdminUI`-komponenter for konsistens.
-- Ingen ændring af backend / edge functions / database.
-- Ingen ændring af eksisterende GPS-pipeline — kun præsentation.
-- Cart-style horizontal scroll: brug eksisterende `HorizontalScroller` mønster fra landing.
+---
+
+## Omfang
+
+Det her er stort — realistisk 8-12 commits hvis vi laver det hele. Jeg foreslår at vi starter med **fase 1 + 2 + 3** (virksomheds-detalje, opret virksomhed, bruger-handlinger) som er det vigtigste i din besked, og så tager resten i efterfølgende runder.
+
+**Bekræft venligst:**
+1. Skal jeg starte med fase 1+2+3 nu? Eller vil du have alt i én omgang?
+2. Soft-delete vs hard-delete — vil du have 30-dages grace, eller bare hard-delete med bekræftelse?
+3. Skal "Opret virksomhed" sende velkomst-mail med login-link automatisk, eller bare oprette stille?
