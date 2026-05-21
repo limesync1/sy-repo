@@ -535,17 +535,25 @@ const PlatformLiveChatTab = () => {
               className="w-full rounded-lg border border-border bg-background py-1.5 pl-8 pr-2.5 text-xs text-foreground outline-none focus:border-foreground"
             />
           </div>
-          <div className="mt-2 flex gap-1">
-            {(["all", "unread", "open", "closed"] as Filter[]).map((f) => (
-              <button
-                key={f} onClick={() => setFilter(f)}
-                className={`flex-1 rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${
-                  filter === f ? "bg-foreground text-background" : "bg-secondary text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {f === "all" ? "Alle" : f === "unread" ? "Ulæst" : f === "open" ? "Åbne" : "Lukket"}
-              </button>
-            ))}
+          <div className="mt-2 flex flex-wrap gap-1">
+            {(["all", "unread", "open", "closed", "snoozed"] as Filter[]).map((f) => {
+              const label =
+                f === "all" ? "Alle" :
+                f === "unread" ? "Ulæst" :
+                f === "open" ? "Åbne" :
+                f === "closed" ? "Lukket" :
+                `Snoozed${snoozedCount ? ` (${snoozedCount})` : ""}`;
+              return (
+                <button
+                  key={f} onClick={() => setFilter(f)}
+                  className={`flex-1 rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${
+                    filter === f ? "bg-foreground text-background" : "bg-secondary text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
           </div>
           <div className="mt-2 flex items-center gap-1.5">
             <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
