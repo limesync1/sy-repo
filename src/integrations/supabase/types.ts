@@ -3635,6 +3635,17 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_list_users_v2: {
+        Args: {
+          p_activity_filter?: string
+          p_limit?: number
+          p_offset?: number
+          p_role_filter?: string
+          p_search?: string
+          p_sort?: string
+        }
+        Returns: Json
+      }
       admin_mark_notifications_seen: { Args: never; Returns: string }
       admin_notification_feed: {
         Args: { p_limit?: number }
@@ -3691,6 +3702,16 @@ export type Database = {
       admin_transfer_business_owner: {
         Args: { p_business_id: string; p_new_owner_email: string }
         Returns: string
+      }
+      admin_user_activity_timeline: {
+        Args: { p_limit?: number; p_user_id: string }
+        Returns: {
+          detail: string
+          event_at: string
+          kind: string
+          ref_id: string
+          title: string
+        }[]
       }
       agreement_interval_days: {
         Args: {

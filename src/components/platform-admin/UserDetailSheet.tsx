@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import {
-  Mail, KeyRound, Send, Lock, Building2, ShoppingBag, Shield, ExternalLink, Clock, UserCheck,
+  Mail, KeyRound, Send, Lock, Building2, ShoppingBag, Shield, ExternalLink, Clock, UserCheck, Activity, FileText,
 } from "lucide-react";
 
 export interface UserDetailUser {
@@ -80,6 +80,17 @@ export default function UserDetailSheet({ user, onClose }: Props) {
     },
   });
 
+  // Aktivitetstidslinje: ordrer, virksomheder, admin-audit-events
+  const { data: timeline } = useQuery({
+    queryKey: ["admin-user-timeline", userId],
+    enabled: open && !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("admin_user_activity_timeline", { p_user_id: userId!, p_limit: 50 });
+      if (error) throw error;
+      return (data || []) as Array<{ event_at: string; kind: string; title: string; detail: string; ref_id: string }>;
+    },
+  });
+
   const runAction = async (kind: "reset" | "magic") => {
     if (!user?.email) {
       toast.error("Brugeren har ingen email");
@@ -137,8 +148,9 @@ export default function UserDetailSheet({ user, onClose }: Props) {
 
         {user && (
           <Tabs defaultValue="profile" className="mt-4">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="profile">Profil</TabsTrigger>
+              <TabsTrigger value="timeline">Aktivitet ({timeline?.length ?? 0})</TabsTrigger>
               <TabsTrigger value="businesses">Virksomheder ({businesses?.length ?? 0})</TabsTrigger>
               <TabsTrigger value="orders">Ordrer ({orders?.length ?? 0})</TabsTrigger>
             </TabsList>
@@ -212,6 +224,29 @@ export default function UserDetailSheet({ user, onClose }: Props) {
                   Impersonation åbner et engangs-magic-link der logger dig ind som brugeren. Åbn i inkognito så din admin-session bevares. Handlingen logges i audit-loggen. Suspendér/slet kommer i et senere trin.
                 </p>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="timeline" className="pt-4">
+              {(timeline?.length ?? 0) === 0 ? (
+                <p className="text-sm text-muted-foreground">Ingen aktivitet endnu.</p>
+              ) : (
+                <Card className="divide-y divide-border">
+                  {timeline!.map((ev, i) => {
+                    const Icon = ev.kind === "order" ? ShoppingBag : ev.kind === "business" ? Building2 : ev.kind === "audit" ? Shield : Activity;
+                    const tone = ev.kind === "audit" ? "text-accent" : ev.kind === "order" ? "text-emerald-600" : "text-violet-600";
+                    return (
+                      <div key={i} className="flex items-start gap-3 p-3 text-sm">
+                        <Icon className={`h-4 w-4 mt-0.5 shrink-0 ${tone}`} />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-medium text-foreground">{ev.title}</p>
+                          {ev.detail && <p className="truncate text-xs text-muted-foreground">{ev.detail}</p>}
+                        </div>
+                        <span className="text-[11px] text-muted-foreground whitespace-nowrap">{fmtDate(ev.event_at)}</span>
+                      </div>
+                    );
+                  })}
+                </Card>
+              )}
             </TabsContent>
 
             <TabsContent value="businesses" className="pt-4">
