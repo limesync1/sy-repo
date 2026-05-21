@@ -986,7 +986,6 @@ const ServiceForm = ({
   };
   const startFromScratch = () => {
     setSteps([blankStep(0)]);
-    setAutoSuggestionApplied(true);
   };
   const updateStep = (i: number, field: string, value: any) => {
     const updated = [...steps];
