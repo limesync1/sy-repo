@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { CheckCircle2, ExternalLink, Globe, Copy, Loader2, Rocket, Lock, RefreshCw, Search } from "lucide-react";
 import { PageHeader, EmptyState } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
-import { DomainRow, STATUS_LABEL, LOVABLE_PROJECT_DOMAINS_URL, renderSslBadge } from "./domains/shared";
+import { DomainRow, SslInfo, STATUS_LABEL, LOVABLE_PROJECT_DOMAINS_URL, renderSslBadge } from "./domains/shared";
 
 const PlatformDomainsTab = () => {
   const qc = useQueryClient();
