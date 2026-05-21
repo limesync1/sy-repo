@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import {
   Building2, CalendarClock, RefreshCw, Zap, ShieldCheck, UserCog,
   Trash2, AlertTriangle, ExternalLink, CreditCard, Clock,
-  Mail, MapPin, CheckCircle2, XCircle, Archive, Users, KeyRound,
+  Mail, MapPin, CheckCircle2, XCircle, Archive, Users, KeyRound, UserCheck,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -37,6 +37,7 @@ export default function BusinessDetailSheet({ businessId, onClose }: Props) {
   const [transferEmail, setTransferEmail] = useState("");
   const [confirmHardDelete, setConfirmHardDelete] = useState(false);
   const [hardDeleteName, setHardDeleteName] = useState("");
+  const [impersonating, setImpersonating] = useState(false);
 
   const { data: business } = useQuery({
     queryKey: ["admin-business-detail", businessId],
