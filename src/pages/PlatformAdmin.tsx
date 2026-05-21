@@ -4,7 +4,7 @@ import { Navigate, Link } from "react-router-dom";
 import { useState, lazy, Suspense } from "react";
 import {
   LayoutDashboard, Building2, Users, ShoppingCart, Star,
-  LogOut, Menu, X, Repeat, Settings, MessageCircle, ExternalLink, Globe,
+  LogOut, Menu, X, Repeat, Settings, MessageCircle, ExternalLink, Globe, History,
 } from "lucide-react";
 import SEO from "@/components/SEO";
 import { cn } from "@/lib/utils";
@@ -27,6 +27,7 @@ const PlatformReviewsTab = lazy(() => import("@/components/platform-admin/Platfo
 const PlatformSettingsTab = lazy(() => import("@/components/platform-admin/PlatformPlatformSettingsTab"));
 const PlatformLiveChatTab = lazy(() => import("@/components/platform-admin/PlatformLiveChatTab"));
 const PlatformDomainsTab = lazy(() => import("@/components/platform-admin/PlatformDomainsTab"));
+const PlatformAuditLogTab = lazy(() => import("@/components/platform-admin/PlatformAuditLogTab"));
 
 const NAV = [
   { value: "overview", label: "Overblik", icon: LayoutDashboard, hasRange: true },
@@ -37,6 +38,7 @@ const NAV = [
   { value: "reviews", label: "Anmeldelser", icon: Star, hasRange: false },
   { value: "livechat", label: "Livechat", icon: MessageCircle, hasRange: false },
   { value: "domains", label: "Domæner", icon: Globe, hasRange: false },
+  { value: "audit", label: "Aktivitetslog", icon: History, hasRange: false },
   { value: "settings", label: "Platform", icon: Settings, hasRange: false },
 ];
 
@@ -52,6 +54,7 @@ const TAB_PREFETCH: Record<string, () => Promise<unknown>> = {
   reviews: () => import("@/components/platform-admin/PlatformReviewsTab"),
   livechat: () => import("@/components/platform-admin/PlatformLiveChatTab"),
   domains: () => import("@/components/platform-admin/PlatformDomainsTab"),
+  audit: () => import("@/components/platform-admin/PlatformAuditLogTab"),
   settings: () => import("@/components/platform-admin/PlatformPlatformSettingsTab"),
 };
 const prefetched = new Set<string>();
@@ -257,6 +260,7 @@ const PlatformAdmin = () => {
                   {tab === "reviews" && <PlatformReviewsTab />}
                   {tab === "livechat" && <PlatformLiveChatTab />}
                   {tab === "domains" && <PlatformDomainsTab />}
+                  {tab === "audit" && <PlatformAuditLogTab />}
                   {tab === "settings" && <PlatformSettingsTab />}
                 </Suspense>
               </TabErrorBoundary>
