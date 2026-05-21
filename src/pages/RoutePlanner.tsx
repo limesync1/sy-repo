@@ -1492,21 +1492,23 @@ const Planner = () => {
   const handleDragEnd = async (e: DragEndEvent) => {
     const { active, over } = e;
     const activeDataAtDrop: any = active.data.current;
-    const pointAtDrop = activeRouteDragPointRef.current;
-    const domRouteTarget = activeDataAtDrop?.type === "route"
-      ? getRouteDropPointTarget(pointAtDrop, activeDataAtDrop.route?.id)
+    const pointAtDrop = activeDataAtDrop?.type === "route" ? activeRouteDragPointRef.current : activeDragPointRef.current;
+    const domRouteTarget = activeDataAtDrop?.type === "route" || activeDataAtDrop?.type === "job"
+      ? getRouteDropPointTarget(pointAtDrop, activeDataAtDrop?.type === "route" ? activeDataAtDrop.route?.id : null)
       : null;
     const dndRouteTarget = over?.data.current ?? null;
-    const preferredRouteTarget = activeDataAtDrop?.type === "route"
+    const preferredRouteTarget = activeDataAtDrop?.type === "route" || activeDataAtDrop?.type === "job"
       ? dndRouteTarget?.type === "route"
         ? dndRouteTarget
         : domRouteTarget?.type === "route"
           ? domRouteTarget
           : dndRouteTarget ?? domRouteTarget
       : null;
-    const hasDropTarget = activeDataAtDrop?.type === "route" ? !!preferredRouteTarget : !!over;
+    const hasDropTarget = activeDataAtDrop?.type === "route" || activeDataAtDrop?.type === "job" ? !!preferredRouteTarget : !!over;
     setActiveDragId(null);
     setActiveDragData(null);
+    activeDragPointRef.current = null;
+    activeDragOriginRef.current = null;
     setRouteDragPoint(null);
     activeRouteDragPointRef.current = null;
     activeRouteDragOriginRef.current = null;
@@ -1620,7 +1622,7 @@ const Planner = () => {
     };
 
     const activeData: any = activeDataAtDrop;
-    const overData: any = activeData?.type === "route" ? preferredRouteTarget : over?.data.current;
+    const overData: any = activeData?.type === "route" || activeData?.type === "job" ? preferredRouteTarget : over?.data.current;
     // ─── Hård spærring: aldrig drop på en dato før i dag ───
     // Kalender-cellerne er allerede disabled som drop-target, men en
     // eksplicit guard + toast sikrer at intet drop (rute, stop eller job)
