@@ -140,38 +140,27 @@ const PlatformBusinessesTab = () => {
     navigate("/virksomhed");
   };
 
-  const { data: businesses, isLoading } = useQuery({
-    queryKey: ["admin-businesses"],
+  // Server-side paged RPC — skalerer over 1.000 rækker.
+  const { data: listData, isLoading, isFetching } = useQuery({
+    queryKey: ["admin-businesses-rpc", q, filter, sort, page],
     queryFn: async () => {
-      const { data, error } = await supabase.from("businesses").select("*").order("created_at", { ascending: false });
+      const { data, error } = await supabase.rpc("admin_list_businesses", {
+        p_search: q.trim() || null,
+        p_filter: filter,
+        p_sort: sort,
+        p_limit: PAGE_SIZE,
+        p_offset: page * PAGE_SIZE,
+      });
       if (error) throw error;
-      return data || [];
+      return data as unknown as { total: number; rows: any[]; counts: Record<string, number> };
     },
+    placeholderData: (prev) => prev,
   });
 
-  const { data: stats } = useQuery({
-    queryKey: ["admin-business-stats"],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("admin_business_stats");
-      if (error) throw error;
-      const map = new Map<string, any>();
-      (data || []).forEach((s: any) => map.set(s.business_id, s));
-      return map;
-    },
-  });
-
-  // Henter abonnements-/plan-info for alle virksomheder, så vi kan vise
-  // prøvedage tilbage, månedspris og om der er et aktivt betalingskort.
-  const { data: plans } = useQuery({
-    queryKey: ["admin-business-plans-map"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("business_plans").select("*");
-      if (error) throw error;
-      const map = new Map<string, any>();
-      (data || []).forEach((p: any) => map.set(p.business_id, p));
-      return map;
-    },
-  });
+  const rows: any[] = listData?.rows ?? [];
+  const total = listData?.total ?? 0;
+  const counts = (listData?.counts ?? {}) as Record<string, number>;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const updateBiz = useMutation({
     mutationFn: async ({ ids, patch }: { ids: string[]; patch: any }) => {
