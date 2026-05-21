@@ -131,6 +131,33 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
       updated_at: new Date().toISOString(),
     })
     .eq("business_id", businessId);
+
+  // Checkout Sessions accepterer ikke `add_invoice_items`. Hvis kunden har
+  // tilføjet kort mens der stadig er trial, opretter vi derfor opstartsgebyret
+  // som et pending invoice item efter checkout, så det kommer med på første
+  // rigtige faktura efter prøveperioden.
+  const startupFeeDkk = Math.max(0, Number(session.metadata?.startupFeeDkk) || 0);
+  if (session.metadata?.includeStartupFee === "true" && startupFeeDkk > 0 && session.subscription) {
+    try {
+      const stripe = createStripeClient(env);
+      const subscription = await stripe.subscriptions.retrieve(String(session.subscription));
+      const item = subscription.items?.data?.[0];
+      const periodEnd = item?.current_period_end ?? subscription.current_period_end;
+      if (subscription.status === "trialing" && periodEnd) {
+        await stripe.invoiceItems.create({
+          customer: String(session.customer),
+          subscription: String(session.subscription),
+          currency: "dkk",
+          amount: startupFeeDkk * 100,
+          description: "Opstartsgebyr (engangsbeløb)",
+          period: { start: periodEnd, end: periodEnd },
+          metadata: { businessId, type: "startup_fee" },
+        });
+      }
+    } catch (e) {
+      console.error("Failed to create deferred startup fee invoice item", e);
+    }
+  }
 }
 
 async function handleEvent(event: { type: string; data: { object: any } }, env: StripeEnv) {
