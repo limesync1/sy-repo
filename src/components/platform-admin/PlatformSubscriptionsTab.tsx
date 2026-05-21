@@ -1,9 +1,9 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Repeat, Download, DollarSign, PauseCircle, XCircle, Calendar, AlertCircle, CreditCard, Clock, TrendingUp, AlertTriangle, Flame, ExternalLink } from "lucide-react";
+import { Repeat, Download, DollarSign, PauseCircle, XCircle, Calendar, AlertCircle, CreditCard, Clock, TrendingUp, AlertTriangle, Flame, ExternalLink, RefreshCw, History } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,6 +14,7 @@ import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 import { INTERVAL_LABELS } from "@/types/service";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const fmtKr = (n: number) => `${Number(n).toLocaleString("da-DK")} kr`;
 const fmtDate = (s: string | null | undefined) =>
@@ -145,6 +146,34 @@ const BusinessPlansView = () => {
     })));
   };
 
+  // MRR-vandfald: ny / churn / netto for sidste 30 dage til regnskab.
+  const handleExportMrrWaterfall = () => {
+    const monthly = (p: any) => p.billing_period === "yearly"
+      ? Number(p.monthly_price_dkk || 0) / 12
+      : Number(p.monthly_price_dkk || 0);
+    const thirtyDaysAgo = Date.now() - 30 * 86400000;
+    const rows: any[] = [];
+    let newMrr = 0, churnedMrr = 0, activeMrr = 0;
+    asArray<any>(data).forEach((p: any) => {
+      const m = monthly(p);
+      if (p.status === "active") activeMrr += m;
+      const created = new Date(p.created_at).getTime();
+      if (p.status === "active" && created >= thirtyDaysAgo) {
+        newMrr += m;
+        rows.push({ type: "new", virksomhed: p.businesses?.name || "", dato: new Date(p.created_at).toLocaleDateString("da-DK"), mrr_dkk: Math.round(m) });
+      }
+      if ((p.status === "canceled" || p.status === "cancelled") && p.updated_at && new Date(p.updated_at).getTime() >= thirtyDaysAgo) {
+        churnedMrr += m;
+        rows.push({ type: "churn", virksomhed: p.businesses?.name || "", dato: new Date(p.updated_at).toLocaleDateString("da-DK"), mrr_dkk: -Math.round(m) });
+      }
+    });
+    rows.push({ type: "TOTAL_AKTIV_MRR", virksomhed: "", dato: "", mrr_dkk: Math.round(activeMrr) });
+    rows.push({ type: "NY_MRR_30D", virksomhed: "", dato: "", mrr_dkk: Math.round(newMrr) });
+    rows.push({ type: "CHURN_MRR_30D", virksomhed: "", dato: "", mrr_dkk: -Math.round(churnedMrr) });
+    rows.push({ type: "NETTO_30D", virksomhed: "", dato: "", mrr_dkk: Math.round(newMrr - churnedMrr) });
+    exportCsv("mrr-vandfald-30d", rows);
+  };
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
@@ -183,9 +212,14 @@ const BusinessPlansView = () => {
             <SelectItem value="canceled">Opsagt</SelectItem>
           </SelectContent>
         </Select>
-        <Button size="sm" variant="outline" onClick={handleExport} className="h-9 gap-1.5 ml-auto">
-          <Download className="h-3.5 w-3.5" /> CSV
-        </Button>
+        <div className="ml-auto flex gap-2">
+          <Button size="sm" variant="outline" onClick={handleExportMrrWaterfall} className="h-9 gap-1.5">
+            <Download className="h-3.5 w-3.5" /> MRR-vandfald
+          </Button>
+          <Button size="sm" variant="outline" onClick={handleExport} className="h-9 gap-1.5">
+            <Download className="h-3.5 w-3.5" /> CSV
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -277,11 +311,44 @@ const PlanRow = ({ p, onOpen }: { p: any; onOpen: () => void }) => {
  * direkte link til virksomhed/profil, og hurtighandlinger.
  */
 const PlanDetailDialog = ({ plan, onClose }: { plan: any | null; onClose: () => void }) => {
+  const qc = useQueryClient();
+  const syncMut = useMutation({
+    mutationFn: async (businessId: string) => {
+      const { data, error } = await supabase.functions.invoke("admin-sync-business-plan", {
+        body: { business_id: businessId },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Synkroniseret med Stripe");
+      qc.invalidateQueries({ queryKey: ["admin-business-plans-list"] });
+    },
+    onError: (e: any) => toast.error(e?.message || "Kunne ikke synkronisere"),
+  });
+
+  const { data: history } = useQuery({
+    queryKey: ["plan-history", plan?.business_id],
+    enabled: !!plan?.business_id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("admin_audit_log")
+        .select("*")
+        .eq("target_type", "business_plan")
+        .eq("target_label", plan.business_id)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   if (!plan) return null;
   const risk = churnRiskScore(plan);
   return (
     <Dialog open={!!plan} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {plan.businesses?.name || "Plan"}
@@ -321,6 +388,18 @@ const PlanDetailDialog = ({ plan, onClose }: { plan: any | null; onClose: () => 
           </dl>
 
           <div className="flex flex-wrap gap-2">
+            {plan.stripe_subscription_id && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5"
+                disabled={syncMut.isPending}
+                onClick={() => syncMut.mutate(plan.business_id)}
+              >
+                <RefreshCw className={cn("h-3.5 w-3.5", syncMut.isPending && "animate-spin")} />
+                {syncMut.isPending ? "Synkroniserer..." : "Synkronisér Stripe"}
+              </Button>
+            )}
             {plan.businesses?.slug && (
               <Button asChild size="sm" variant="outline" className="gap-1.5">
                 <Link to={`/${plan.businesses.slug}`} target="_blank" rel="noopener noreferrer">
@@ -338,6 +417,32 @@ const PlanDetailDialog = ({ plan, onClose }: { plan: any | null; onClose: () => 
                   <ExternalLink className="h-3.5 w-3.5" /> Åbn i Stripe
                 </a>
               </Button>
+            )}
+          </div>
+
+          <div>
+            <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+              <History className="h-3 w-3" /> Plan-historik
+            </div>
+            {!history || history.length === 0 ? (
+              <p className="text-xs text-muted-foreground italic">Ingen registrerede ændringer endnu.</p>
+            ) : (
+              <ul className="space-y-1.5 rounded-lg border border-border bg-secondary/30 p-2 max-h-60 overflow-y-auto">
+                {history.map((h: any) => (
+                  <li key={h.id} className="text-xs flex items-start gap-2">
+                    <span className="text-muted-foreground tabular-nums shrink-0 w-28">{fmtDateTime(h.created_at)}</span>
+                    <span className="flex-1">
+                      <span className="font-medium text-foreground">{h.action.replace(/^.*\./, "")}</span>
+                      {h.admin_email && <span className="text-muted-foreground"> · {h.admin_email}</span>}
+                      {h.details && Object.keys(h.details).length > 0 && (
+                        <span className="block text-[10px] text-muted-foreground font-mono mt-0.5">
+                          {JSON.stringify(h.details)}
+                        </span>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
         </div>
