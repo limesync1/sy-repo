@@ -114,10 +114,10 @@ const PlatformUsersTab = () => {
       <div className="flex flex-wrap items-center gap-2">
         <SearchInput value={q} onChange={setQ} placeholder="Søg navn, email, telefon..." />
         <Select value={roleFilter} onValueChange={(v: any) => setRoleFilter(v)}>
-          <SelectTrigger className="w-[180px] h-10"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[180px] h-9"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Alle roller</SelectItem>
-            <SelectItem value="admin">Admin</SelectItem>
+            <SelectItem value="admin">Admin (kun visning)</SelectItem>
             <SelectItem value="business_owner">Virksomhedsejer</SelectItem>
             <SelectItem value="user">Kunde</SelectItem>
           </SelectContent>
