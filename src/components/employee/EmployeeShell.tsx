@@ -7,9 +7,10 @@
 //   </EmployeeShell>
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState, type ReactNode } from "react";
-import { LogOut, Menu, X, Calendar as CalendarIcon, BarChart3, MessageCircle } from "lucide-react";
+import { LogOut, Menu, X, Calendar as CalendarIcon, BarChart3, MessageCircle, Briefcase } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyEmployee } from "@/hooks/useMyEmployee";
+import { useMyBusiness } from "@/hooks/useDatabase";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -70,6 +71,11 @@ export const EmployeeShell = ({
 }: EmployeeShellProps) => {
   const { user, signOut } = useAuth();
   const { data: employee } = useMyEmployee();
+  // Hvis den indloggede medarbejder også ejer en virksomhed (typisk solo-
+  // ejeren der har oprettet sig selv som medarbejder), så viser vi en
+  // "Skift til virksomhedspanel"-knap i sidebar-footeren — symmetrisk med
+  // "Skift til medarbejder" i AdminShell.
+  const { data: myBusiness } = useMyBusiness();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const collapsed = false;
@@ -204,6 +210,14 @@ export const EmployeeShell = ({
         </nav>
 
         <div className={cn("shrink-0 space-y-1 border-t border-border py-3", collapsed ? "px-2" : "px-3")}>
+          {myBusiness && (
+            <SidebarFooterItem
+              icon={Briefcase}
+              label="Skift til virksomhedspanel"
+              onClick={() => navigate("/virksomhed")}
+              collapsed={collapsed}
+            />
+          )}
           <SidebarFooterItem icon={LogOut} label="Log ud" onClick={signOut} collapsed={collapsed} danger />
         </div>
       </aside>
