@@ -356,3 +356,8 @@ Sig "ja" → jeg starter på **Trin 6** (Platform-overblik). Vil du have en ande
 - `create-business/Step4Review.tsx`: resumé + admin-options (force active, audit-note).
 - `create-business/SuccessView.tsx`: success-skærm med copy-rows og "Opret en til".
 - CreateBusinessWizard skrumpet fra 673 → 294 linjer (kun state, mutation og step-orkestrering tilbage).
+
+## Trin 26c — Vitest-dækning på admin-infrastruktur ✅
+- `lib/csv.test.ts`: 7 tests for `exportCsv` (BOM, semikolon-separator, quoting af `"`, `;` og `\n`, null/undefined → tom celle, custom headers + filendelse).
+- `lib/useAdminMutation.test.tsx`: 7 tests for `callRpc` (success/error mapping) og `useAdminMutation` (success-toast + invalidateKeys + onDone, suppression via `successMessage:false`/`errorMessage:false`, default + custom fejl-tekst). Bruger `@testing-library/react` + `QueryClientProvider`.
+- Mock på `sonner` så toast-kald kan verificeres uden DOM-feedback.
