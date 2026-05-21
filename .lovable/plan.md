@@ -89,13 +89,11 @@ kvalitetsproblemer afdækket ved en ny gennemgang af hver fane.
 - Rest: AI-sentiment-tag + per-virksomhed svarprocent — flyttes til separat trin.
 
 ### Trin 20 — Livechat (`PlatformLiveChatTab`)
-- **Split filen** i: `ConversationList`, `MessageThread`, `CannedResponsesPanel`,
-  `ChatInput`, `useChatRealtime` hook.
-- Tilføj "Tildel til admin"-funktion (flere admins kan dele indbakke).
-- Snooze: skjul samtale i X timer, dukker op igen automatisk.
-- AI-svar-forslag (Lovable AI) ovenpå chat-input.
-- Tag-filter (allerede ikon, ikke implementeret).
-- Eksport hel samtale som .txt/PDF til support-arkiv.
+- ✅ Hurtige-svar-modal (~125 linjer) udskilt til `livechat/CannedResponsesManager.tsx`.
+- ✅ Snooze pr. samtale (1/2/4/8/24 t) via `livechat/snooze.ts` — eget filter-chip + tæller, vises som badge i listen, dukker op igen automatisk når deadline udløber.
+- ✅ AI-svar-forslag: ny edge function `admin-chat-suggest-reply` (Lovable AI Gateway, `google/gemini-2.5-flash`) + knap i hurtige-svar-baren der indsætter forslaget i drafte.
+- ✅ Eksport af hel samtale som .txt via `livechat/exportConversation.ts` + knap i chat-headeren.
+- Rest: tildel-til-admin (kræver `admin_chat_assignments`-tabel), tag-filter (kræver tag-felt på samtaler), fuld split af `MessageThread`/`ChatInput`/`useChatRealtime` — flyttes til separat trin.
 
 ### Trin 21 — Domæner (`PlatformDomainsTab`)
 - Bulk DNS-recheck for alle pending.
