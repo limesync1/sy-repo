@@ -79,12 +79,14 @@ kvalitetsproblemer afdækket ved en ny gennemgang af hver fane.
 - ✅ Churn-risk score + filter-toggle (allerede på plads).
 - Rest: realtime past_due-banner + "send rykker"-bulk — flyttes til separat trin.
 
-### Trin 19 — Anmeldelser (`PlatformReviewsTab`)
-- Admin-svar direkte fra listen (i dag kun "se anmeldelse").
-- Flag-system: "spam", "krænkende", "fake" — skjul fra offentligt visning.
-- Sentiment-tag pr. anmeldelse (Lovable AI, batch nightly).
-- Filter: "Mangler svar", "Lav rating", "Flagget".
-- Per-virksomhed-aggregat: gennemsnit + svarprocent.
+### Trin 19 — Anmeldelser (`PlatformReviewsTab`) ✅
+- ✅ Migration: nye felter `flagged_at/_reason/_by`, `hidden_at/_by`, `admin_note` på `reviews`.
+- ✅ Flag-dialog med årsag (spam/krænkende/fake/off-topic/andet) + valgfri intern note.
+- ✅ Skjul/vis-toggle som filtrerer anmeldelser væk fra offentlige views (landing, profil-side, stats, GetQuotes, RecentBusinesses).
+- ✅ Filter-chips: "Alle / Lav rating / Flagget / Skjult" med live-tæller.
+- ✅ Visuelle markeringer i listen: amber-baggrund for flag, dimmet for skjult + chip-badges.
+- ✅ CSV-eksport inkluderer flag-årsag + skjult-status.
+- Rest: AI-sentiment-tag + per-virksomhed svarprocent — flyttes til separat trin.
 
 ### Trin 20 — Livechat (`PlatformLiveChatTab`)
 - **Split filen** i: `ConversationList`, `MessageThread`, `CannedResponsesPanel`,
