@@ -59,7 +59,8 @@ const GetQuotes = () => {
       const { data: revs } = await supabase
         .from("reviews")
         .select("business_id, rating")
-        .in("business_id", bIds);
+        .in("business_id", bIds)
+        .is("hidden_at", null);
       const stats: Record<string, { sum: number; n: number }> = {};
       (revs ?? []).forEach((r) => {
         if (!stats[r.business_id]) stats[r.business_id] = { sum: 0, n: 0 };

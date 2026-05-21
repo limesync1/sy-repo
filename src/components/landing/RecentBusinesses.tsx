@@ -122,7 +122,7 @@ const RecentBusinesses = () => {
       if (!bizList?.length) return [] as Biz[];
 
       const ids = bizList.map((b) => b.id);
-      const { data: revs } = await supabase.from("reviews").select("business_id, rating").in("business_id", ids);
+      const { data: revs } = await supabase.from("reviews").select("business_id, rating").in("business_id", ids).is("hidden_at", null);
 
       const stats: Record<string, { sum: number; n: number }> = {};
       (revs ?? []).forEach((r) => {

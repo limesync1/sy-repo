@@ -7,7 +7,7 @@ const Stats = () => {
     queryFn: async () => {
       const [biz, rev, cit] = await Promise.all([
         supabase.from("businesses").select("*", { count: "exact", head: true }).eq("is_active", true),
-        supabase.from("reviews").select("rating"),
+        supabase.from("reviews").select("rating").is("hidden_at", null),
         supabase.from("businesses").select("city").eq("is_active", true).not("city", "is", null),
       ]);
       const ratings = rev.data ?? [];

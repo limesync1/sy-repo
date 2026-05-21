@@ -26,6 +26,7 @@ const Testimonials = () => {
         .select("id, rating, comment, reviewer_name, customer_id, created_at, businesses(name, slug, logo_url)")
         .gte("rating", 4)
         .not("comment", "is", null)
+        .is("hidden_at", null)
         .order("created_at", { ascending: false })
         .limit(40);
       const rows = ((data as unknown as Review[]) ?? []).filter(
