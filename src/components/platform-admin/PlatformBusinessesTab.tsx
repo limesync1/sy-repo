@@ -21,7 +21,7 @@ import { setImpersonatedBusinessId } from "@/lib/admin-impersonation";
 
 const DataImportTab = lazy(() => import("@/components/admin/DataImportTab"));
 const BusinessDetailSheet = lazy(() => import("./BusinessDetailSheet"));
-const CreateBusinessDialog = lazy(() => import("./CreateBusinessDialog"));
+const CreateBusinessWizard = lazy(() => import("./CreateBusinessWizard"));
 
 const fmtKr = (n: number) => `${Math.round(n).toLocaleString("da-DK")} kr`;
 
@@ -409,7 +409,7 @@ const PlatformBusinessesTab = () => {
       {/* Detalje-sheet: alle admin-handlinger for én virksomhed samlet */}
       <Suspense fallback={null}>
         <BusinessDetailSheet businessId={detailFor} onClose={() => setDetailFor(null)} />
-        <CreateBusinessDialog open={createOpen} onOpenChange={setCreateOpen} />
+        <CreateBusinessWizard open={createOpen} onOpenChange={setCreateOpen} />
       </Suspense>
 
       {/* Dataimport sheet — kører DataImportTab i kontekst af den valgte virksomhed */}
