@@ -96,10 +96,11 @@ kvalitetsproblemer afdækket ved en ny gennemgang af hver fane.
 - Rest: tildel-til-admin (kræver `admin_chat_assignments`-tabel), tag-filter (kræver tag-felt på samtaler), fuld split af `MessageThread`/`ChatInput`/`useChatRealtime` — flyttes til separat trin.
 
 ### Trin 21 — Domæner (`PlatformDomainsTab`)
-- Bulk DNS-recheck for alle pending.
-- SSL-status pr. domæne (eksp.dato, udsteder).
-- Whois-snapshot-link.
-- Notifikation 14 dage før et SSL-cert udløber.
+- ✅ Bulk re-tjek-knap: kører DNS + SSL sekventielt over alle rækker i den valgte kategori med progress-counter.
+- ✅ SSL-status pr. domæne via ny edge function `check-domain-ssl` (crt.sh CT-log → udsteder + udløb). Badge skifter farve: grøn >14d, amber ≤14d, rød ved udløb.
+- ✅ Whois-link pr. domæne (åbner whois.com).
+- ✅ "SSL"-knap pr. række til enkelt-tjek.
+- Rest: cron-job der dagligt tjekker alle aktive domæner og sender admin-notifikation 14 dage før cert udløber — flyttes til separat trin (kræver cron + dispatch til `admin_notifications`).
 
 ### Trin 22 — Aktivitetslog (`PlatformAuditLogTab`)
 - Server-side paging — i dag hentes 500 rækker pr. filtrering.
