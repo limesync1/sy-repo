@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/command";
 import {
   Building2, Users, ShoppingCart, Star, MessageCircle, Globe,
-  History, Settings, LayoutDashboard, Repeat, ExternalLink,
+  History, Settings, LayoutDashboard, Repeat, ExternalLink, HeartPulse,
 } from "lucide-react";
 
 type Props = {
@@ -29,6 +29,7 @@ const TABS = [
   { value: "livechat", label: "Gå til Livechat", icon: MessageCircle },
   { value: "domains", label: "Gå til Domæner", icon: Globe },
   { value: "audit", label: "Gå til Aktivitetslog", icon: History },
+  { value: "health", label: "Gå til Sundhed", icon: HeartPulse },
   { value: "settings", label: "Gå til Platform-indstillinger", icon: Settings },
 ];
 

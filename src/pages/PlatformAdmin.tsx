@@ -4,7 +4,7 @@ import { Navigate, Link } from "react-router-dom";
 import { useState, lazy, Suspense, useEffect } from "react";
 import {
   LayoutDashboard, Building2, Users, ShoppingCart, Star,
-  LogOut, Menu, X, Repeat, Settings, MessageCircle, ExternalLink, Globe, History, Search,
+  LogOut, Menu, X, Repeat, Settings, MessageCircle, ExternalLink, Globe, History, Search, HeartPulse,
 } from "lucide-react";
 import SEO from "@/components/SEO";
 import { cn } from "@/lib/utils";
@@ -29,6 +29,7 @@ const PlatformSettingsTab = lazy(() => import("@/components/platform-admin/Platf
 const PlatformLiveChatTab = lazy(() => import("@/components/platform-admin/PlatformLiveChatTab"));
 const PlatformDomainsTab = lazy(() => import("@/components/platform-admin/PlatformDomainsTab"));
 const PlatformAuditLogTab = lazy(() => import("@/components/platform-admin/PlatformAuditLogTab"));
+const PlatformHealthTab = lazy(() => import("@/components/platform-admin/PlatformHealthTab"));
 
 // Sidebar er nu delt i to logiske grupper. Det reducerer kognitiv belastning
 // når man scanner 10+ menupunkter, og gør "drift"-flowet (det man bruger dagligt)
@@ -51,6 +52,7 @@ const NAV_GROUPS: { label: string; items: { value: string; label: string; icon: 
       { value: "livechat", label: "Livechat", icon: MessageCircle },
       { value: "domains", label: "Domæner", icon: Globe },
       { value: "audit", label: "Aktivitetslog", icon: History },
+      { value: "health", label: "Sundhed", icon: HeartPulse },
       { value: "settings", label: "Platform", icon: Settings },
     ],
   },
@@ -70,6 +72,7 @@ const TAB_PREFETCH: Record<string, () => Promise<unknown>> = {
   livechat: () => import("@/components/platform-admin/PlatformLiveChatTab"),
   domains: () => import("@/components/platform-admin/PlatformDomainsTab"),
   audit: () => import("@/components/platform-admin/PlatformAuditLogTab"),
+  health: () => import("@/components/platform-admin/PlatformHealthTab"),
   settings: () => import("@/components/platform-admin/PlatformPlatformSettingsTab"),
 };
 const prefetched = new Set<string>();
@@ -303,6 +306,7 @@ const PlatformAdmin = () => {
                   {tab === "livechat" && <PlatformLiveChatTab />}
                   {tab === "domains" && <PlatformDomainsTab />}
                   {tab === "audit" && <PlatformAuditLogTab />}
+                  {tab === "health" && <PlatformHealthTab />}
                   {tab === "settings" && <PlatformSettingsTab />}
                 </Suspense>
               </TabErrorBoundary>
