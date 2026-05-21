@@ -1005,7 +1005,6 @@ const ServiceForm = ({
   // 2-5 trin specifikt tilpasset denne service (kategori + underkategori
   // + beskrivelse). Resultatet erstatter de nuværende trin.
   const [aiTemplateLoading, setAiTemplateLoading] = useState(false);
-  const [autoSuggestionApplied, setAutoSuggestionApplied] = useState(false);
   const generateAiTemplate = async (opts?: { silent?: boolean }) => {
     if (!name.trim()) {
       toast.error("Skriv først et servicenavn");
