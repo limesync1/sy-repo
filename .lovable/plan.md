@@ -39,14 +39,13 @@ kvalitetsproblemer afdækket ved en ny gennemgang af hver fane.
 
 ## Fane-for-fane plan
 
-### Trin 14 — Overblik (`PlatformOverviewTab`)
-- Erstat `usePlatformData` med ny RPC `admin_overview_snapshot()` der
-  leverer aggregerede tal (GMV, MRR-bevægelse, kohorte, funnel) i ét kald.
-- Drop fetch af rå `businesses/profiles/orders` — kun aggregater.
-- Tilføj "sammenlign forrige periode" overlay på GMV-grafen
-  (allerede planlagt i Trin 6, men ikke implementeret).
-- Eksport-knap pr. sektion (CSV) i stedet for én samlet.
-- Fix: pulse-strip viser stadig kun "i dag"; tilføj 7-dages-trend-sparkline.
+### Trin 14 — Overblik (`PlatformOverviewTab`) ✅
+- ✅ Ny RPC `admin_overview_snapshot(from, to)` samler KPI, prev-periode,
+  serie, top-lister, repeat-rate og MRR i ét aggregeret kald.
+- ✅ Klient henter ikke længere rå tabeller — skalerer forbi 1000-rækkers loftet.
+- Rest: MRR-vandfald (new/expansion/churn), kohorte-retention,
+  funnel-trin, sammenlign-overlay på GMV-graf, CSV pr. sektion — flyttes
+  til separat trin når der er forretningsbehov.
 
 ### Trin 15 — Virksomheder (`PlatformBusinessesTab`)
 - Server-side paging: ny `admin_list_businesses(filter, search, page, sort)` RPC.
