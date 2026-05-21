@@ -760,7 +760,7 @@ const PlatformLiveChatTab = () => {
                         </button>
                       ))}
                       <button onClick={() => setShowCannedManager(true)} className="flex-shrink-0 rounded-full border border-dashed border-border px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground" title="Administrér">
-                        <Plus className="inline h-3 w-3" />
+                        +
                       </button>
                     </div>
                   </div>
