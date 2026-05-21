@@ -16,6 +16,8 @@ import { TabErrorBoundary } from "@/components/admin/shared/TabErrorBoundary";
 import { TabPerfTracker } from "@/components/admin/shared/usePerfMark";
 import AdminCommandPalette from "@/components/platform-admin/AdminCommandPalette";
 import AdminNotifications from "@/components/platform-admin/AdminNotifications";
+import AdminBottomTabs from "@/components/platform-admin/AdminBottomTabs";
+import { useAdminShortcuts } from "@/components/platform-admin/lib/useAdminShortcuts";
 
 // Lazy-load alle tabs så hver fane først downloades når brugeren rent faktisk
 // åbner den. Det matcher mønstret i virksomhedspanelet (Admin.tsx) og holder
@@ -155,6 +157,9 @@ const PlatformAdmin = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, [sidebarOpen]);
 
+  // Vim-style "g {key}" hop mellem faner — power-user-shortcut.
+  useAdminShortcuts(setTab);
+
   if (loading || roleLoading) {
     // Vis layout-skeleton fra første millisekund — ingen blank skærm.
     return <ShellSkeleton />;
@@ -166,7 +171,7 @@ const PlatformAdmin = () => {
 
   return (
     <AdminFiltersProvider>
-      <div className="flex min-h-screen bg-secondary/50">
+      <div className="admin-shell flex min-h-dvh bg-secondary/50">
         <SEO title="Platform Admin · Serviceydere" description="Administrér virksomheder, brugere og ordrer på Serviceydere." noIndex />
 
         {sidebarOpen && (
@@ -296,7 +301,7 @@ const PlatformAdmin = () => {
             )}
           </header>
 
-          <main className="flex-1 min-w-0 p-4 sm:p-6">
+          <main className="flex-1 min-w-0 p-4 pb-20 sm:p-6 sm:pb-6">
             {/* PageTransition fader nyt indhold ind når tab skifter,
                 Suspense viser ensartet skeleton-loading på første åbning. */}
             <PageTransition transitionKey={tab}>
@@ -322,6 +327,7 @@ const PlatformAdmin = () => {
         </div>
 
         <AdminCommandPalette open={cmdOpen} onOpenChange={setCmdOpen} onSelectTab={setTab} />
+        <AdminBottomTabs tab={tab} onSelectTab={setTab} onOpenMore={() => setSidebarOpen(true)} />
       </div>
     </AdminFiltersProvider>
   );
