@@ -234,11 +234,13 @@ const PlatformAdmin = () => {
                       onMouseEnter={() => prefetchTab(item.value)}
                       onFocus={() => prefetchTab(item.value)}
                       onTouchStart={() => prefetchTab(item.value)}
+                      aria-current={active ? "page" : undefined}
                       className={cn(
                         "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-left transition-colors duration-150",
                         active
                           ? "bg-secondary text-foreground shadow-sm ring-1 ring-border"
                           : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30",
                       )}
                     >
                       <item.icon className="h-4 w-4 shrink-0" />
