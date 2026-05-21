@@ -609,6 +609,11 @@ const PlatformLiveChatTab = () => {
                         🙋 Vil tale med menneske
                       </span>
                     )}
+                    {snoozes[c.id] && (
+                      <span className="flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-[9px] text-muted-foreground" title={`Snoozed indtil ${new Date(snoozes[c.id]).toLocaleString("da-DK")}`}>
+                        <BellOff className="h-2.5 w-2.5" /> Snoozed
+                      </span>
+                    )}
                     {c.status === "closed" && (
                       <span className="flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-[9px] text-muted-foreground">
                         <CheckCircle2 className="h-2.5 w-2.5" /> Lukket
