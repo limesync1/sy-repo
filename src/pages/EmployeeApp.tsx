@@ -561,7 +561,17 @@ const EmployeeApp = () => {
             const rs = stopsByRoute.get(rt.id) || [];
             return rs.some((s) => s.status !== "completed");
           })?.id ?? null;
-          const isLocked = !allDone && firstActiveId !== null && r.id !== firstActiveId && total > 0;
+          // Lås ruten hvis (a) en tidligere rute samme dag ikke er færdig
+          // ELLER (b) brugeren endnu ikke har trykket "Start dag".
+          // Vi tillader stadig start hvis dagen er afsluttet (efter-arbejde).
+          const needsStartDay = isCurrentDay && !dayStarted && !dayEnded;
+          const isLocked = total > 0 && (
+            (!allDone && firstActiveId !== null && r.id !== firstActiveId)
+            || needsStartDay
+          );
+          const lockReason = needsStartDay
+            ? "Tryk \"Start dag\" øverst før du kan starte en rute"
+            : "Tilgængelig efter forrige rute er gennemført";
           const progress = total > 0 ? Math.round((done / total) * 100) : 0;
           const color = r.color || "hsl(var(--accent))";
           const startCoord: [number, number] | null =
@@ -820,10 +830,10 @@ const EmployeeApp = () => {
                     size="lg"
                     className="h-11 flex-1 gap-2 rounded-lg bg-foreground font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
                     disabled={total === 0 || isLocked}
-                    title={isLocked ? "Tilgængelig efter forrige rute er gennemført" : undefined}
+                    title={isLocked ? lockReason : undefined}
                   >
                     {isLocked ? (
-                      <><LockIcon className="h-5 w-5" /> Låst — afslut forrige først</>
+                      <><LockIcon className="h-5 w-5" /> {needsStartDay ? "Start dag først" : "Låst — afslut forrige først"}</>
                     ) : total > 0 ? (
                       <Link to={`/medarbejder/rute/${r.id}`}>
                         {done > 0 ? (
