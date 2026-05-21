@@ -1,6 +1,6 @@
 # Admin panel — resterende arbejde + nyt Platform-overblik
 
-Trin 1–12 er færdige. Næste op: Trin 13 (mobil + tilgængelighed + sidste polering).
+Trin 1–13 er færdige. Admin-panel-overhalingen er færdig.
 
 ---
 
