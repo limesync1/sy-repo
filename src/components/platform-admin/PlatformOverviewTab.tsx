@@ -20,24 +20,38 @@ import { StatGridSkeleton, ChartSkeleton, ListCardSkeleton } from "@/components/
 const fmt = (n: number) => n.toLocaleString("da-DK");
 const fmtKr = (n: number) => `${Math.round(n).toLocaleString("da-DK")} kr`;
 
-const usePlatformData = () =>
+/**
+ * Henter et komplet overblik som ét aggregeret snapshot fra serveren.
+ * Erstatter de tidligere 5 fulde tabel-hent — så det skalerer forbi
+ * Supabase's 1000-rækkers loft og holder bundle-størrelsen lille.
+ */
+type OverviewSnapshot = {
+  range: { from: string; to: string; days: number; prev_from: string; prev_to: string };
+  kpis: { gmv: number; gmv_completed: number; orders: number; avg_order: number };
+  prev: { gmv: number; orders: number; users: number; businesses: number };
+  period_counts: { new_users: number; new_businesses: number };
+  totals: { businesses_total: number; profiles_total: number; reviews_total: number; reviews_avg: number; mrr: number; active_subs: number };
+  series: { date: string; orders: number; gmv: number; users: number; businesses: number }[];
+  dow: { dow: number; count: number }[];
+  top_categories: { label: string; value: number }[];
+  top_cities: { label: string; value: number }[];
+  top_businesses: { id: string; name: string; revenue: number }[];
+  top_customers: { name: string; spend: number }[];
+  repeat: { unique_customers: number; repeat_customers: number };
+};
+
+const useOverviewSnapshot = (from: Date, to: Date) =>
   useQuery({
-    queryKey: ["platform-stats-raw"],
+    queryKey: ["admin-overview-snapshot", from.toISOString(), to.toISOString()],
     queryFn: async () => {
-      const [b, p, o, r, s] = await Promise.all([
-        supabase.from("businesses").select("id, created_at, is_active, category, city, name"),
-        supabase.from("profiles").select("id, created_at"),
-        supabase.from("orders").select("id, created_at, total_amount, status, business_id, customer_email"),
-        supabase.from("reviews").select("id, rating, created_at"),
-        supabase.from("subscriptions").select("id, created_at, status, total_price, interval"),
-      ]);
-      if (b.error) throw b.error;
-      if (p.error) throw p.error;
-      if (o.error) throw o.error;
-      if (r.error) throw r.error;
-      if (s.error) throw s.error;
-      return { businesses: b.data || [], profiles: p.data || [], orders: o.data || [], reviews: r.data || [], subs: s.data || [] };
+      const { data, error } = await supabase.rpc("admin_overview_snapshot", {
+        p_from: from.toISOString(),
+        p_to: to.toISOString(),
+      });
+      if (error) throw error;
+      return data as unknown as OverviewSnapshot;
     },
+    staleTime: 30_000,
   });
 
 // Live operationelle tællinger — refetch hvert 30. sek for "puls"-fornemmelse.
@@ -214,9 +228,9 @@ const ActionCard = ({
 interface OverviewProps { onNavigate?: (tab: string) => void }
 
 const PlatformOverviewTab = ({ onNavigate }: OverviewProps) => {
-  const { data, isLoading } = usePlatformData();
+  const { from, to, rangeLabel } = useAdminFilters();
+  const { data, isLoading } = useOverviewSnapshot(from, to);
   const { data: pulse } = useOperationalPulse();
-  const { from, to, inRange, inPrevRange, rangeLabel } = useAdminFilters();
 
   if (isLoading || !data) {
     return (
@@ -231,87 +245,26 @@ const PlatformOverviewTab = ({ onNavigate }: OverviewProps) => {
     );
   }
 
-  const ordersInRange = data.orders.filter((o) => inRange(o.created_at));
-  const ordersPrev = data.orders.filter((o) => inPrevRange(o.created_at));
-  const usersInRange = data.profiles.filter((p) => inRange(p.created_at));
-  const usersPrev = data.profiles.filter((p) => inPrevRange(p.created_at));
-  const bizInRange = data.businesses.filter((b) => inRange(b.created_at));
-  const bizPrev = data.businesses.filter((b) => inPrevRange(b.created_at));
-
-  const gmv = ordersInRange.reduce((s, x) => s + (Number(x.total_amount) || 0), 0);
-  const gmvPrev = ordersPrev.reduce((s, x) => s + (Number(x.total_amount) || 0), 0);
-  const completedGmv = ordersInRange.filter((o) => o.status === "completed").reduce((s, x) => s + (Number(x.total_amount) || 0), 0);
-  const avgOrder = ordersInRange.length ? gmv / ordersInRange.length : 0;
-  const activeSubs = data.subs.filter((s) => s.status === "active");
-  const mrr = activeSubs.reduce((s, x) => s + (Number(x.total_price) || 0), 0);
-
-  // Repeat customers
-  const customerOrders: Record<string, number> = {};
-  ordersInRange.forEach((o) => {
-    if (o.customer_email) customerOrders[o.customer_email] = (customerOrders[o.customer_email] || 0) + 1;
-  });
-  const uniqueCustomers = Object.keys(customerOrders).length;
-  const repeatCustomers = Object.values(customerOrders).filter((c) => c > 1).length;
-  const repeatRate = uniqueCustomers ? (repeatCustomers / uniqueCustomers) * 100 : 0;
-
-  // Daily series for whole range
-  const dayKeys: string[] = [];
-  const cursor = new Date(from);
-  while (cursor <= to) {
-    dayKeys.push(cursor.toISOString().slice(0, 10));
-    cursor.setDate(cursor.getDate() + 1);
-  }
-  const days = dayKeys.map((k) => ({ date: k, orders: 0, users: 0, businesses: 0, gmv: 0 }));
-  const idx: Record<string, number> = {};
-  days.forEach((d, i) => (idx[d.date] = i));
-  ordersInRange.forEach((o) => {
-    const k = (o.created_at || "").slice(0, 10);
-    if (k in idx) { days[idx[k]].orders += 1; days[idx[k]].gmv += Number(o.total_amount) || 0; }
-  });
-  usersInRange.forEach((p) => { const k = (p.created_at || "").slice(0, 10); if (k in idx) days[idx[k]].users += 1; });
-  bizInRange.forEach((b) => { const k = (b.created_at || "").slice(0, 10); if (k in idx) days[idx[k]].businesses += 1; });
-
+  // Alle aggregater kommer nu fra serveren — kun let formattering tilbage.
+  const { kpis, prev, period_counts, totals, series, dow, top_categories, top_cities, top_businesses, top_customers, repeat } = data;
+  const days = series;
   const sparkOrders = days.map((d) => ({ v: d.orders }));
   const sparkUsers = days.map((d) => ({ v: d.users }));
   const sparkGmv = days.map((d) => ({ v: d.gmv }));
   const sparkBiz = days.map((d) => ({ v: d.businesses }));
 
-  // Best weekday
   const dayOfWeek = ["Søn", "Man", "Tir", "Ons", "Tor", "Fre", "Lør"];
   const orderByDow = [0, 0, 0, 0, 0, 0, 0];
-  ordersInRange.forEach((o) => {
-    const d = new Date(o.created_at).getDay();
-    orderByDow[d] += 1;
-  });
+  dow.forEach((d) => { orderByDow[d.dow] = Number(d.count) || 0; });
   const bestDow = orderByDow.indexOf(Math.max(...orderByDow));
 
-  // Top categories/cities/businesses (whole platform — not range filtered, since they're identity)
-  const catCounts: Record<string, number> = {};
-  data.businesses.forEach((b) => { if (b.category) catCounts[b.category] = (catCounts[b.category] || 0) + 1; });
-  const topCategories = Object.entries(catCounts).sort((a, b) => b[1] - a[1]).slice(0, 6);
-
-  const cityCounts: Record<string, number> = {};
-  data.businesses.forEach((b) => { if (b.city) cityCounts[b.city] = (cityCounts[b.city] || 0) + 1; });
-  const topCities = Object.entries(cityCounts).sort((a, b) => b[1] - a[1]).slice(0, 6);
-
-  const revByBiz: Record<string, number> = {};
-  ordersInRange.forEach((o) => { if (o.business_id) revByBiz[o.business_id] = (revByBiz[o.business_id] || 0) + (Number(o.total_amount) || 0); });
-  const bizMap = new Map(data.businesses.map((b: any) => [b.id, b]));
-  const topBusinesses = Object.entries(revByBiz).sort((a, b) => b[1] - a[1]).slice(0, 5)
-    .map(([id, rev]) => ({ business: bizMap.get(id) as any, revenue: rev }));
+  const repeatRate = repeat.unique_customers ? (repeat.repeat_customers / repeat.unique_customers) * 100 : 0;
+  const topBusinesses = top_businesses.map((b) => ({ business: { id: b.id, name: b.name }, revenue: Number(b.revenue) || 0 }));
+  const topCustomers = top_customers.map((c) => ({ name: c.name, spend: Number(c.spend) || 0 }));
 
   const handleExport = () => {
     exportCsv(`platform-oversigt-${rangeLabel.replace(/\s/g, "-")}`, days, ["date", "orders", "users", "businesses", "gmv"]);
   };
-
-  const topCustomersMap: Record<string, { name: string; spend: number }> = {};
-  ordersInRange.forEach((o) => {
-    if (!o.customer_email) return;
-    const key = o.customer_email;
-    if (!topCustomersMap[key]) topCustomersMap[key] = { name: key, spend: 0 };
-    topCustomersMap[key].spend += Number(o.total_amount) || 0;
-  });
-  const topCustomers = Object.values(topCustomersMap).sort((a, b) => b.spend - a.spend).slice(0, 6);
 
   return (
     <div className="space-y-5">
@@ -384,22 +337,22 @@ const PlatformOverviewTab = ({ onNavigate }: OverviewProps) => {
       </SectionCard>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <KpiCard label="GMV" value={fmtKr(gmv)} icon={DollarSign} tone="emerald"
-          sub={`${fmtKr(completedGmv)} afsluttet`} trend={trendPct(gmv, gmvPrev)} spark={sparkGmv} />
-        <KpiCard label="Ordrer" value={fmt(ordersInRange.length)} icon={ShoppingCart} tone="blue"
-          sub={`Snit ${fmtKr(avgOrder)}`} trend={trendPct(ordersInRange.length, ordersPrev.length)} spark={sparkOrders} />
-        <KpiCard label="Nye virksomheder" value={fmt(bizInRange.length)} icon={Building2} tone="violet"
-          sub={`${data.businesses.length} i alt`} trend={trendPct(bizInRange.length, bizPrev.length)} spark={sparkBiz} />
-        <KpiCard label="Nye brugere" value={fmt(usersInRange.length)} icon={Users} tone="amber"
-          sub={`${data.profiles.length} i alt`} trend={trendPct(usersInRange.length, usersPrev.length)} spark={sparkUsers} />
+        <KpiCard label="GMV" value={fmtKr(Number(kpis.gmv))} icon={DollarSign} tone="emerald"
+          sub={`${fmtKr(Number(kpis.gmv_completed))} afsluttet`} trend={trendPct(Number(kpis.gmv), Number(prev.gmv))} spark={sparkGmv} />
+        <KpiCard label="Ordrer" value={fmt(Number(kpis.orders))} icon={ShoppingCart} tone="blue"
+          sub={`Snit ${fmtKr(Number(kpis.avg_order))}`} trend={trendPct(Number(kpis.orders), Number(prev.orders))} spark={sparkOrders} />
+        <KpiCard label="Nye virksomheder" value={fmt(period_counts.new_businesses)} icon={Building2} tone="violet"
+          sub={`${totals.businesses_total} i alt`} trend={trendPct(period_counts.new_businesses, Number(prev.businesses))} spark={sparkBiz} />
+        <KpiCard label="Nye brugere" value={fmt(period_counts.new_users)} icon={Users} tone="amber"
+          sub={`${totals.profiles_total} i alt`} trend={trendPct(period_counts.new_users, Number(prev.users))} spark={sparkUsers} />
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="MRR (cyklisk)" value={fmtKr(mrr)} icon={<DollarSign />} tone="emerald" hint={`${activeSubs.length} aktive abonnementer`} />
-        <StatCard label="Genkøbsrate" value={`${repeatRate.toFixed(0)}%`} icon={<Users />} tone="blue" hint={`${repeatCustomers} af ${uniqueCustomers} kunder`} />
+        <StatCard label="MRR (cyklisk)" value={fmtKr(Number(totals.mrr))} icon={<DollarSign />} tone="emerald" hint={`${totals.active_subs} aktive abonnementer`} />
+        <StatCard label="Genkøbsrate" value={`${repeatRate.toFixed(0)}%`} icon={<Users />} tone="blue" hint={`${repeat.repeat_customers} af ${repeat.unique_customers} kunder`} />
         <StatCard label="Bedste ugedag" value={orderByDow[bestDow] > 0 ? dayOfWeek[bestDow] : "—"} icon={<TrendingUp />} tone="violet" hint={`${orderByDow[bestDow]} ordrer`} />
-        <StatCard label="Anmeldelser" value={String(data.reviews.length)} icon={<Star />} tone="amber"
-          hint={data.reviews.length ? `${(data.reviews.reduce((s, r) => s + (r.rating || 0), 0) / data.reviews.length).toFixed(1)} ★ snit` : "Ingen endnu"} />
+        <StatCard label="Anmeldelser" value={String(totals.reviews_total)} icon={<Star />} tone="amber"
+          hint={totals.reviews_total ? `${Number(totals.reviews_avg).toFixed(1)} ★ snit` : "Ingen endnu"} />
       </div>
 
       <SectionCard
@@ -443,10 +396,10 @@ const PlatformOverviewTab = ({ onNavigate }: OverviewProps) => {
           </TabsList>
 
           <TabsContent value="categories" className="mt-4">
-            <BarList items={topCategories.map(([k, v]) => ({ label: k, value: v }))} tone="accent" empty="Ingen data endnu" />
+            <BarList items={top_categories.map((c) => ({ label: c.label, value: Number(c.value) }))} tone="accent" empty="Ingen data endnu" />
           </TabsContent>
           <TabsContent value="cities" className="mt-4">
-            <BarList items={topCities.map(([k, v]) => ({ label: k, value: v }))} tone="foreground" empty="Ingen data endnu" />
+            <BarList items={top_cities.map((c) => ({ label: c.label, value: Number(c.value) }))} tone="foreground" empty="Ingen data endnu" />
           </TabsContent>
           <TabsContent value="businesses" className="mt-4">
             {topBusinesses.length === 0 ? (
