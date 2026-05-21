@@ -418,19 +418,26 @@ const PlatformBusinessesTab = () => {
                     <p className="truncate text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
                       {b.category && <span>{b.category}</span>}
                       {b.city && <span className="flex items-center gap-0.5"><MapPin className="h-3 w-3" />{b.city}</span>}
-                      {(s?.owner_email || b.email) && <span className="flex items-center gap-0.5"><Mail className="h-3 w-3" />{s?.owner_email || b.email}</span>}
+                      {(b.owner_email || b.email) && <span className="flex items-center gap-0.5"><Mail className="h-3 w-3" />{b.owner_email || b.email}</span>}
                     </p>
                     <p className="text-[11px] text-muted-foreground/80">
-                      Oprettet {new Date(b.created_at).toLocaleDateString("da-DK")} ·
-                      {s ? ` ${Number(s.orders_count)} ordrer · ${fmtKr(Number(s.total_revenue || 0))}` : " Indlæser..."}
-                      {s && Number(s.pending_count) > 0 && <span className="text-amber-700"> · {Number(s.pending_count)} afventer</span>}
+                      Oprettet {new Date(b.created_at).toLocaleDateString("da-DK")} ·{` ${Number(b.orders_count || 0)} ordrer · ${fmtKr(Number(b.total_revenue || 0))}`}
+                      {Number(b.pending_count || 0) > 0 && <span className="text-amber-700"> · {Number(b.pending_count)} afventer</span>}
                     </p>
-                    {p && (
+                    <p className="text-[11px] text-muted-foreground/80 flex items-center gap-3 mt-0.5">
+                      <span className="inline-flex items-center gap-1" title="Sidste login (ejer)">
+                        <LoginIcon className="h-3 w-3" /> {b.owner_last_login ? fmtRelDate(b.owner_last_login) : "aldrig"}
+                      </span>
+                      <span className="inline-flex items-center gap-1" title="Sidste ordre">
+                        <Activity className="h-3 w-3" /> {b.last_order_at ? fmtRelDate(b.last_order_at) : "ingen"}
+                      </span>
+                    </p>
+                    {(b.plan_status || hasCard || daysLeft !== null) && (
                       <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px]">
                         {hasCard ? (
                           <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 font-medium text-emerald-700 ring-1 ring-inset ring-emerald-200">
                             <CreditCard className="h-3 w-3" />
-                            {p.stripe_payment_method_brand || "Kort"} •••• {p.stripe_payment_method_last4}
+                            {b.stripe_payment_method_brand || "Kort"} •••• {b.stripe_payment_method_last4}
                           </span>
                         ) : isExpired ? (
                           <span className="inline-flex items-center gap-1 rounded-md bg-destructive/10 px-1.5 py-0.5 font-medium text-destructive ring-1 ring-inset ring-destructive/20">
@@ -446,7 +453,7 @@ const PlatformBusinessesTab = () => {
                           </span>
                         ) : null}
                         <span className="inline-flex items-center rounded-md bg-secondary px-1.5 py-0.5 font-medium text-muted-foreground ring-1 ring-inset ring-border">
-                          {fmtKr(Number(p.monthly_price_dkk) || 0)}/md
+                          {fmtKr(Number(b.monthly_price_dkk) || 0)}/md
                         </span>
                       </div>
                     )}
