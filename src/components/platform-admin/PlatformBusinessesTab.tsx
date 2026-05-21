@@ -168,7 +168,7 @@ const PlatformBusinessesTab = () => {
       if (error) throw error;
     },
     onSuccess: (_d, v) => {
-      qc.invalidateQueries({ queryKey: ["admin-businesses"] });
+      qc.invalidateQueries({ queryKey: ["admin-businesses-rpc"] });
       toast.success(`Opdateret (${v.ids.length})`);
       setSelected(new Set());
     },
@@ -181,90 +181,63 @@ const PlatformBusinessesTab = () => {
       if (error) throw error;
     },
     onSuccess: (_d, ids) => {
-      qc.invalidateQueries({ queryKey: ["admin-businesses"] });
-      qc.invalidateQueries({ queryKey: ["admin-business-stats"] });
+      qc.invalidateQueries({ queryKey: ["admin-businesses-rpc"] });
       toast.success(`${ids.length} virksomheder slettet`);
       setSelected(new Set());
     },
     onError: (e: any) => toast.error(e.message),
   });
 
-  const filtered = useMemo(() => {
-    const now = Date.now();
-    return (businesses || []).filter((b) => {
-      const p = plans?.get(b.id);
-      const hasCard = !!p?.stripe_payment_method_last4;
-      const trialEnd = p?.trial_ends_at ? new Date(p.trial_ends_at).getTime() : null;
-      const daysLeft = trialEnd !== null ? Math.ceil((trialEnd - now) / 86400000) : null;
-      const isExpired = !hasCard && daysLeft !== null && daysLeft <= 0;
-      const isTrial = !hasCard && daysLeft !== null && daysLeft > 0;
-      const isExpiringSoon = isTrial && daysLeft! <= 3;
-
-      if (filter === "active_paying" && !(hasCard && b.is_active)) return false;
-      if (filter === "trial" && !isTrial) return false;
-      if (filter === "trial_expiring" && !isExpiringSoon) return false;
-      if (filter === "expired_no_card" && !isExpired) return false;
-      if (filter === "inactive" && b.is_active) return false;
-      if (filter === "unverified" && b.is_verified) return false;
-      if (!q.trim()) return true;
-      const s = q.toLowerCase();
-      return (
-        b.name?.toLowerCase().includes(s) ||
-        b.city?.toLowerCase().includes(s) ||
-        b.email?.toLowerCase().includes(s) ||
-        b.category?.toLowerCase().includes(s)
-      );
-    });
-  }, [businesses, plans, q, filter]);
-
-  // Tæller pr. chip — admin kan med ét øjekast se hvor mange virksomheder
-  // der har behov for opmærksomhed (forfaldne, snart-udløbende prøver).
-  const counts = useMemo(() => {
-    const now = Date.now();
-    const list = businesses || [];
-    let active_paying = 0, trial = 0, trial_expiring = 0, expired_no_card = 0, inactive = 0, unverified = 0;
-    for (const b of list) {
-      const p = plans?.get(b.id);
-      const hasCard = !!p?.stripe_payment_method_last4;
-      const trialEnd = p?.trial_ends_at ? new Date(p.trial_ends_at).getTime() : null;
-      const daysLeft = trialEnd !== null ? Math.ceil((trialEnd - now) / 86400000) : null;
-      if (hasCard && b.is_active) active_paying++;
-      if (!hasCard && daysLeft !== null && daysLeft > 0) { trial++; if (daysLeft <= 3) trial_expiring++; }
-      if (!hasCard && daysLeft !== null && daysLeft <= 0) expired_no_card++;
-      if (!b.is_active) inactive++;
-      if (!b.is_verified) unverified++;
-    }
-    return { all: list.length, active_paying, trial, trial_expiring, expired_no_card, inactive, unverified };
-  }, [businesses, plans]);
-
-  const allSelected = filtered.length > 0 && filtered.every((b) => selected.has(b.id));
+  const allSelected = rows.length > 0 && rows.every((b) => selected.has(b.id));
   const someSelected = selected.size > 0;
-  const toggleAll = () => allSelected ? setSelected(new Set()) : setSelected(new Set(filtered.map((b) => b.id)));
+  const toggleAll = () => allSelected ? setSelected(new Set()) : setSelected(new Set(rows.map((b) => b.id)));
   const toggleOne = (id: string, c: boolean) => {
     const n = new Set(selected);
     if (c) n.add(id); else n.delete(id);
     setSelected(n);
   };
 
-  const handleExport = () => {
-    exportCsv("virksomheder", filtered.map((b: any) => {
-      const s = stats?.get(b.id);
-      const p = plans?.get(b.id);
-      const trialEnd = p?.trial_ends_at ? new Date(p.trial_ends_at) : null;
-      const daysLeft = trialEnd ? Math.ceil((trialEnd.getTime() - Date.now()) / 86400000) : null;
-      return {
-        navn: b.name, slug: b.slug, kategori: b.category || "",
-        by: b.city || "", email: b.email || "", telefon: b.phone || "",
-        verificeret: b.is_verified ? "ja" : "nej", aktiv: b.is_active ? "ja" : "nej",
-        oprettet: new Date(b.created_at).toLocaleDateString("da-DK"),
-        ordrer: s?.orders_count || 0, omsaetning: s?.total_revenue || 0,
-        plan_status: p?.status || "—",
-        proeve_dage_tilbage: daysLeft ?? "—",
-        maanedspris: p?.monthly_price_dkk || 0,
-        kort: p?.stripe_payment_method_last4 ? `${p.stripe_payment_method_brand} •••• ${p.stripe_payment_method_last4}` : "ingen",
-      };
-    }));
+  const handleExport = async () => {
+    toast.message("Eksporterer alle matchende rækker…");
+    const all: any[] = [];
+    let offset = 0;
+    while (true) {
+      const { data, error } = await supabase.rpc("admin_list_businesses", {
+        p_search: q.trim() || null, p_filter: filter, p_sort: sort,
+        p_limit: 200, p_offset: offset,
+      });
+      if (error) { toast.error(error.message); return; }
+      const d = data as unknown as { total: number; rows: any[] };
+      all.push(...d.rows);
+      if (all.length >= d.total || d.rows.length === 0) break;
+      offset += 200;
+      if (offset > 5000) break;
+    }
+    exportCsv("virksomheder", all.map((b: any) => ({
+      navn: b.name, slug: b.slug, kategori: b.category || "",
+      by: b.city || "", email: b.email || "", telefon: b.phone || "",
+      verificeret: b.is_verified ? "ja" : "nej", aktiv: b.is_active ? "ja" : "nej",
+      oprettet: new Date(b.created_at).toLocaleDateString("da-DK"),
+      ordrer: b.orders_count || 0, omsaetning: b.total_revenue || 0,
+      plan_status: b.plan_status || "—",
+      proeve_dage_tilbage: b.days_left ?? "—",
+      maanedspris: b.monthly_price_dkk || 0,
+      kort: b.stripe_payment_method_last4 ? `${b.stripe_payment_method_brand} •••• ${b.stripe_payment_method_last4}` : "ingen",
+      sidste_login: b.owner_last_login ? new Date(b.owner_last_login).toLocaleDateString("da-DK") : "aldrig",
+      sidste_ordre: b.last_order_at ? new Date(b.last_order_at).toLocaleDateString("da-DK") : "ingen",
+    })));
   };
+
+  const saveCurrentView = () => {
+    const name = prompt("Navngiv visning (fx 'Forfaldne prøver')");
+    if (!name) return;
+    const v: SavedView = { id: crypto.randomUUID(), name, q, filter, sort };
+    const next = [...views, v];
+    setViews(next); saveViews(next);
+    toast.success(`Visning '${name}' gemt`);
+  };
+  const applyView = (v: SavedView) => { setQ(v.q); setFilter(v.filter); setSort(v.sort); };
+  const deleteView = (id: string) => { const next = views.filter(v => v.id !== id); setViews(next); saveViews(next); };
 
   return (
     <div className="space-y-4">
