@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import {
-  Mail, KeyRound, Send, Lock, Building2, ShoppingBag, Shield, ExternalLink, Clock,
+  Mail, KeyRound, Send, Lock, Building2, ShoppingBag, Shield, ExternalLink, Clock, UserCheck,
 } from "lucide-react";
 
 export interface UserDetailUser {
@@ -47,6 +47,7 @@ export default function UserDetailSheet({ user, onClose }: Props) {
   const open = !!user;
   const userId = user?.user_id ?? null;
   const [sending, setSending] = useState<"reset" | "magic" | null>(null);
+  const [impersonating, setImpersonating] = useState(false);
 
   // Virksomheder hvor brugeren er ejer
   const { data: businesses } = useQuery({
@@ -95,6 +96,27 @@ export default function UserDetailSheet({ user, onClose }: Props) {
       toast.error(e?.message || "Kunne ikke sende");
     } finally {
       setSending(null);
+    }
+  };
+
+  const impersonate = async () => {
+    if (!user?.user_id) return;
+    if (!confirm("Log ind som denne bruger?\n\nDu bør åbne linket i et inkognito-vindue så din admin-session ikke overskrives. Handlingen logges i audit-loggen.")) return;
+    setImpersonating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-user-action", {
+        body: { action: "impersonate", user_id: user.user_id, redirect_to: `${window.location.origin}/business-portal` },
+      });
+      if (error) throw error;
+      const link = (data as any)?.action_link;
+      if (!link) throw new Error("Ingen link returneret");
+      await navigator.clipboard.writeText(link).catch(() => {});
+      window.open(link, "_blank", "noopener,noreferrer");
+      toast.success("Impersonations-link åbnet + kopieret. Brug helst inkognito.");
+    } catch (e: any) {
+      toast.error(e?.message || "Kunne ikke impersonere");
+    } finally {
+      setImpersonating(false);
     }
   };
 
@@ -175,9 +197,19 @@ export default function UserDetailSheet({ user, onClose }: Props) {
                     <Send className="h-3.5 w-3.5" />
                     {sending === "magic" ? "Sender..." : "Send magic-link"}
                   </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5 border-amber-500/30 text-amber-700 hover:bg-amber-500/10 hover:text-amber-800"
+                    onClick={impersonate}
+                    disabled={impersonating || !user.email}
+                  >
+                    <UserCheck className="h-3.5 w-3.5" />
+                    {impersonating ? "Henter link…" : "Log ind som bruger"}
+                  </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Suspendér og slet konto kræver dobbeltbekræftelse og kommer i et senere trin.
+                  Impersonation åbner et engangs-magic-link der logger dig ind som brugeren. Åbn i inkognito så din admin-session bevares. Handlingen logges i audit-loggen. Suspendér/slet kommer i et senere trin.
                 </p>
               </Card>
             </TabsContent>
