@@ -1,6 +1,6 @@
 // Mock-baseret unit-test for buildSessionPayload. Verificerer at
-// add_invoice_items KUN ender på top-level og aldrig under
-// subscription_data — uanset trial/non-trial/locked_* kombinationer.
+// add_invoice_items ALDRIG sendes til Checkout Sessions — uanset
+// trial/non-trial/locked_* kombinationer.
 // Kør: deno test supabase/functions/create-checkout-session/payload_test.ts
 import { assertEquals, assert, assertFalse } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { buildSessionPayload } from "./index.ts";
@@ -24,13 +24,13 @@ Deno.test("non-trial uden startup fee — ingen add_invoice_items", () => {
   assertFalse("trial_end" in sub);
 });
 
-Deno.test("non-trial med startup fee — add_invoice_items på top-level", () => {
+Deno.test("non-trial med startup fee — gebyr lægges som line_item", () => {
   const p = buildSessionPayload({ ...baseInput, includeStartupFee: true, startupFeeDkk: 499 });
-  assert(Array.isArray(p.add_invoice_items));
-  const items = p.add_invoice_items as any[];
-  assertEquals(items.length, 1);
-  assertEquals(items[0].price_data.unit_amount, 49900);
-  // KRITISK: må aldrig være under subscription_data.
+  assertFalse("add_invoice_items" in p);
+  const items = p.line_items as any[];
+  assertEquals(items.length, 2);
+  assertEquals(items[1].price_data.unit_amount, 49900);
+  assertEquals(items[1].price_data.product_data.name, "Opstartsgebyr (engangsbeløb)");
   const sub = p.subscription_data as Record<string, unknown>;
   assertFalse("add_invoice_items" in sub);
 });
@@ -46,7 +46,8 @@ Deno.test("trial-flow — trial_end på subscription_data, fee stadig top-level"
   const sub = p.subscription_data as Record<string, unknown>;
   assertEquals(sub.trial_end, future);
   assertFalse("add_invoice_items" in sub);
-  assert("add_invoice_items" in p);
+  assertFalse("add_invoice_items" in p);
+  assertEquals((p.line_items as any[]).length, 1);
 });
 
 Deno.test("trial i fortiden ignoreres", () => {
@@ -77,7 +78,7 @@ Deno.test("payload har ingen ukendte top-level felter (kun whitelist)", () => {
   const allowed = new Set([
     "ui_mode", "mode", "line_items", "return_url", "payment_method_types",
     "customer", "customer_email", "metadata", "subscription_data",
-    "allow_promotion_codes", "add_invoice_items",
+    "allow_promotion_codes",
   ]);
   for (const k of Object.keys(p)) {
     assert(allowed.has(k), `uventet top-level felt: ${k}`);
