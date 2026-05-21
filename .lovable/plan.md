@@ -106,4 +106,4 @@ Anbefalinger til reelt nyttige tilføjelser (ikke "fluff"):
 
 ## Næste skridt
 
-Bekræft planen, så starter jeg på **Trin 1** (lås admin-rollen). Sig også til hvis du vil omprioritere — fx tage Trin 4 (virksomheder) før Trin 2 (UI-oprydning).
+Trin 1–5 er udført. Tilbage: **Trin 6** (Sundhed, Mails, Notifikationer, Impersonation, udvidet aktivitetslog) — samt opfølgning på trin 5: suspendér/slet konto med dobbeltbekræftelse.
