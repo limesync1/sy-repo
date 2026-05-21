@@ -2,26 +2,17 @@ import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Star, Trash2, Download, TrendingUp, MessageSquare, Flag, EyeOff, Eye, AlertTriangle } from "lucide-react";
+import { Star, Download, TrendingUp, MessageSquare, Flag } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
 import { exportCsv } from "./lib/csv";
-import { PageHeader, SearchInput, EmptyState, StatCard, SectionCard } from "@/components/admin/shared/AdminUI";
+import { PageHeader, SearchInput, EmptyState, StatCard } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
-
-type ReviewFilter = "all" | "low" | "flagged" | "hidden";
-
-const FLAG_REASONS = [
-  { value: "spam", label: "Spam" },
-  { value: "abusive", label: "Krænkende" },
-  { value: "fake", label: "Fake/falsk" },
-  { value: "off_topic", label: "Off-topic" },
-  { value: "other", label: "Andet" },
-];
+import { ReviewFilter, computeInsights } from "./reviews/shared";
+import ReviewRow from "./reviews/ReviewRow";
+import ReviewsInsights from "./reviews/ReviewsInsights";
+import FlagDialog from "./reviews/FlagDialog";
 
 const PlatformReviewsTab = () => {
   const qc = useQueryClient();
@@ -116,22 +107,7 @@ const PlatformReviewsTab = () => {
   }, [data, q, ratingFilter, stateFilter]);
 
   const avgRating = filtered.length ? filtered.reduce((s: number, r: any) => s + (r.rating || 0), 0) / filtered.length : 0;
-
-  // Aggregeret indsigt — fordeling pr. stjerner + nye anmeldelser sidste 7 dage.
-  // Hjælper admin med at spotte mønstre uden at scrolle hele listen.
-  const insights = useMemo(() => {
-    const list = data || [];
-    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-    const distribution: Record<number, number> = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-    list.forEach((r: any) => { if (r.rating >= 1 && r.rating <= 5) distribution[r.rating] += 1; });
-    const total = list.length;
-    const avg = total ? list.reduce((s: number, r: any) => s + (r.rating || 0), 0) / total : 0;
-    const newWeek = list.filter((r: any) => new Date(r.created_at).getTime() > sevenDaysAgo).length;
-    const lowCount = (distribution[1] || 0) + (distribution[2] || 0);
-    const flaggedCount = list.filter((r: any) => r.flagged_at).length;
-    const hiddenCount = list.filter((r: any) => r.hidden_at).length;
-    return { distribution, total, avg, newWeek, lowCount, flaggedCount, hiddenCount };
-  }, [data]);
+  const insights = useMemo(() => computeInsights(data || []), [data]);
 
   const handleExport = () => {
     exportCsv("anmeldelser", filtered.map((r: any) => ({
@@ -166,27 +142,7 @@ const PlatformReviewsTab = () => {
           hint={insights.lowCount > 0 ? `${insights.lowCount} har 1–2 ★` : "Ingen klager"} />
       </div>
 
-      {insights.total > 0 && (
-        <SectionCard title="Fordeling" icon={<Star />} description="Hvordan stjerneratings fordeler sig samlet på platformen">
-          <ul className="space-y-1.5">
-            {[5, 4, 3, 2, 1].map((n) => {
-              const count = insights.distribution[n] || 0;
-              const pct = insights.total ? (count / insights.total) * 100 : 0;
-              return (
-                <li key={n} className="flex items-center gap-3 text-xs">
-                  <span className="flex w-10 items-center gap-0.5 text-foreground">
-                    {n} <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                  </span>
-                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-secondary">
-                    <div className="h-full bg-amber-400 transition-all" style={{ width: `${pct}%` }} />
-                  </div>
-                  <span className="w-20 text-right tabular-nums text-muted-foreground">{count} · {pct.toFixed(0)}%</span>
-                </li>
-              );
-            })}
-          </ul>
-        </SectionCard>
-      )}
+      <ReviewsInsights insights={insights} />
 
       <div className="flex flex-wrap items-center gap-2">
         <SearchInput value={q} onChange={setQ} placeholder="Søg navn, kommentar, virksomhed..." />
@@ -204,13 +160,8 @@ const PlatformReviewsTab = () => {
             { v: "flagged", l: `Flagget (${insights.flaggedCount})` },
             { v: "hidden", l: `Skjult (${insights.hiddenCount})` },
           ] as { v: ReviewFilter; l: string }[]).map((c) => (
-            <Button
-              key={c.v}
-              size="sm"
-              variant={stateFilter === c.v ? "default" : "outline"}
-              className="h-9 text-xs"
-              onClick={() => setStateFilter(c.v)}
-            >
+            <Button key={c.v} size="sm" variant={stateFilter === c.v ? "default" : "outline"}
+              className="h-9 text-xs" onClick={() => setStateFilter(c.v)}>
               {c.l}
             </Button>
           ))}
@@ -220,108 +171,31 @@ const PlatformReviewsTab = () => {
       {isLoading ? (
         <ListCardSkeleton rows={5} />
       ) : filtered.length === 0 ? (
-        <EmptyState
-          icon={<Star />}
-          title="Ingen anmeldelser fundet"
-          description="Prøv andre søgeord eller skift rating-filter."
-        />
+        <EmptyState icon={<Star />} title="Ingen anmeldelser fundet" description="Prøv andre søgeord eller skift rating-filter." />
       ) : (
         <Card className="rounded-xl border-border shadow-sm overflow-hidden">
           <div className="divide-y divide-border">
             {filtered.map((r: any) => (
-              <div key={r.id} className={cn(
-                "flex items-start gap-3 px-4 py-3 hover:bg-secondary/30",
-                r.flagged_at && "bg-amber-500/5",
-                r.hidden_at && "opacity-60",
-              )}>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold text-foreground">{r.reviewer_name}</p>
-                    <span className="text-xs text-muted-foreground">→ {r.businesses?.name || "—"}</span>
-                    {r.flagged_at && (
-                      <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
-                        <Flag className="h-2.5 w-2.5" /> {r.flagged_reason || "flagget"}
-                      </span>
-                    )}
-                    {r.hidden_at && (
-                      <span className="inline-flex items-center gap-1 rounded-md bg-slate-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-slate-700">
-                        <EyeOff className="h-2.5 w-2.5" /> skjult
-                      </span>
-                    )}
-                  </div>
-                  <div className="mt-0.5 flex items-center gap-1">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} className={`h-3 w-3 ${i < r.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`} />
-                    ))}
-                    <span className="ml-1 text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString("da-DK")}</span>
-                  </div>
-                  {r.comment && <p className="mt-1 text-sm text-foreground/80">{r.comment}</p>}
-                  {r.admin_note && (
-                    <p className="mt-1 text-xs text-muted-foreground italic flex items-start gap-1">
-                      <AlertTriangle className="h-3 w-3 mt-0.5 shrink-0" /> Admin-note: {r.admin_note}
-                    </p>
-                  )}
-                </div>
-                <div className="flex items-center gap-0.5 shrink-0">
-                  {r.flagged_at ? (
-                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0" title="Fjern flag"
-                      onClick={() => unflag.mutate(r.id)}>
-                      <Flag className="h-3.5 w-3.5 text-amber-600" />
-                    </Button>
-                  ) : (
-                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0" title="Flag som problem"
-                      onClick={() => setFlagDialog(r)}>
-                      <Flag className="h-3.5 w-3.5" />
-                    </Button>
-                  )}
-                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0"
-                    title={r.hidden_at ? "Vis igen" : "Skjul fra offentlig"}
-                    onClick={() => toggleHide.mutate({ id: r.id, hide: !r.hidden_at })}>
-                    {r.hidden_at ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-                  </Button>
-                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                    onClick={() => { if (confirm("Slet anmeldelse?")) del.mutate(r.id); }}>
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              </div>
+              <ReviewRow
+                key={r.id} review={r}
+                onFlag={setFlagDialog}
+                onUnflag={(id) => unflag.mutate(id)}
+                onToggleHide={(id, hide) => toggleHide.mutate({ id, hide })}
+                onDelete={(id) => del.mutate(id)}
+              />
             ))}
           </div>
         </Card>
       )}
 
-      <Dialog open={!!flagDialog} onOpenChange={(o) => !o && setFlagDialog(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Flag anmeldelse</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div className="rounded-lg border border-border bg-secondary/40 p-3 text-xs">
-              <p className="font-medium text-foreground">{flagDialog?.reviewer_name} → {flagDialog?.businesses?.name}</p>
-              {flagDialog?.comment && <p className="mt-1 text-muted-foreground italic">"{flagDialog.comment}"</p>}
-            </div>
-            <div>
-              <label className="text-xs font-medium text-foreground">Årsag</label>
-              <Select value={flagReason} onValueChange={setFlagReason}>
-                <SelectTrigger className="h-9 mt-1"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {FLAG_REASONS.map((r) => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-foreground">Intern note (valgfri)</label>
-              <Textarea value={flagNote} onChange={(e) => setFlagNote(e.target.value)} rows={3} className="mt-1 text-sm" placeholder="Kontekst for andre admins..." />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setFlagDialog(null)}>Annullér</Button>
-            <Button onClick={() => flag.mutate({ id: flagDialog.id, reason: flagReason, note: flagNote })} disabled={flag.isPending}>
-              {flag.isPending ? "Flagger..." : "Flag anmeldelse"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <FlagDialog
+        open={!!flagDialog} review={flagDialog}
+        reason={flagReason} setReason={setFlagReason}
+        note={flagNote} setNote={setFlagNote}
+        onClose={() => setFlagDialog(null)}
+        onSubmit={() => flag.mutate({ id: flagDialog.id, reason: flagReason, note: flagNote })}
+        isPending={flag.isPending}
+      />
     </div>
   );
 };
