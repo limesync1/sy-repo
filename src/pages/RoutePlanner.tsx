@@ -457,15 +457,22 @@ const Planner = () => {
   }, [calendarStops, filterAssigneeIds, filterStatuses, filtersActive]);
 
   // ─── Drag-sensorer ───
-  // PointerSensor er dnd-kit's anbefalede default og dækker mus, touchpad,
-  // pen og hybridenheder via Pointer Events. MouseSensor brugte vi tidligere,
-  // men kombinationen Mouse+Touch fik drop-targets til at fejle i nogle
-  // browsere fordi pointer-coordinates ikke blev rapporteret til
-  // `pointerWithin`-collision-detection. PointerSensor + TouchSensor (med
-  // delay så tap stadig fungerer som klik) er den stabile kombination.
-  void MouseSensor;
+  // Mouse + Touch er den kombination der har vist sig mest pålidelig på
+  // tværs af alle enheder vi har testet — desktop, Windows-touchpads,
+  // tablets og mobil. PointerSensor virkede i teorien men fejlede at
+  // detektere drop-targets i `Aftaler uden rute`-flowet, fordi nogle
+  // browsere ikke lod pointer-koordinaterne lække igennem til
+  // `pointerWithin` når aktivatoren brugte pointer-capture.
+  //  - MouseSensor: lille distance (4px) → hurtig responsiv aktivering
+  //    og klassisk `mouseup` på window som collision-detection kan stole på.
+  //  - TouchSensor: kort delay (120 ms) + tolerance (8 px) — så et tap
+  //    stadig fungerer som klik på mobil/tablet.
+  //  - KeyboardSensor: tilgængelighed (Space/Enter + piletaster).
+  // PointerSensor importeres for bagudkompatibilitet men er bevidst ikke
+  // aktiv — Mouse/Touch dækker alle scenarier stabilt.
+  void PointerSensor;
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 4 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 8 } }),
     useSensor(KeyboardSensor),
   );
