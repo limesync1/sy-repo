@@ -422,3 +422,11 @@ Sig "ja" → jeg starter på **Trin 6** (Platform-overblik). Vil du have en ande
 - `settings/shared.tsx` (Zod-skema, `Field`, `NumField`, `detectStripeMode`), `PaymentTab`, `PricingTab` (med `PriceExample`), `FeaturedPicker` → tab fra 426 → 117 linjer.
 - `domains/shared.tsx` (typer, `STATUS_LABEL`, `LOVABLE_PROJECT_DOMAINS_URL`, `renderSslBadge`) — PlatformDomainsTab fra 356 → 289 linjer.
 - Resterende: BusinessDetailSheet Header/OrdersPanel + a11y-revision.
+
+## Trin 26l — BusinessDetailSheet split ✅
+- `business-detail/SheetHeader.tsx`: titel + meta (kategori, by, ejer-mail, slug-link).
+- `business-detail/OverviewPanel.tsx`: Status-grid + verificér/aktivér-handlinger.
+- `business-detail/UsersPanel.tsx`: ejer + impersonate-knap + medarbejder-liste.
+- `business-detail/AuditPanel.tsx`: seneste admin-handlinger med JSON-details.
+- BusinessDetailSheet skrumpet fra 330 → 148 linjer — kun queries, invalidering og tab-orkestrering tilbage.
+- Tilbage: a11y-revision af nye komponenter fra Trin 14–26.
