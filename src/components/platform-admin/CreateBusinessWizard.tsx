@@ -7,47 +7,16 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import {
-  Loader2, Building2, Search, Check, ArrowRight, ArrowLeft, Copy,
-  Calculator, Inbox, MessageCircle, Users, Sparkles, Zap, ShieldCheck,
-  Mail, KeyRound, AlertCircle, CheckCircle2,
-} from "lucide-react";
+import { Loader2, Building2, ArrowRight, ArrowLeft, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ALL_INDUSTRIES, INDUSTRY_GROUPS } from "@/lib/service-taxonomy";
-
-type Pricing = {
-  base_price_dkk: number;
-  price_accounting_integration_dkk: number;
-  price_per_employee_login_dkk: number;
-  startup_fee_dkk: number;
-  discount_quarterly_pct: number;
-  discount_yearly_pct: number;
-  trial_days: number;
-};
-
-type BillingPeriod = "monthly" | "quarterly" | "yearly";
-type FeatureKey = "accounting_integration" | "leads" | "livechat";
-
-const BILLING_OPTIONS: { value: BillingPeriod; label: string; months: number }[] = [
-  { value: "monthly", label: "Månedlig", months: 1 },
-  { value: "quarterly", label: "Kvartal (rabat)", months: 3 },
-  { value: "yearly", label: "Årlig (bedste pris)", months: 12 },
-];
-
-const FEATURES: { key: FeatureKey; icon: typeof Calculator; title: string; free: boolean; description: string }[] = [
-  { key: "accounting_integration", icon: Calculator, free: false, title: "Regnskabsintegration", description: "e-conomic / Dinero — auto-fakturering." },
-  { key: "leads", icon: Inbox, free: true, title: "Leads (Indhent 3 tilbud)", description: "Modtag kundehenvendelser." },
-  { key: "livechat", icon: MessageCircle, free: true, title: "Livechat på virksomhedssiden", description: "Lad besøgende skrive direkte." },
-];
-
-const formatDkk = (n: number) =>
-  new Intl.NumberFormat("da-DK", { maximumFractionDigits: 0 }).format(Math.round(n));
+import { ALL_INDUSTRIES } from "@/lib/service-taxonomy";
+import Step1Cvr from "./create-business/Step1Cvr";
+import Step2Plan from "./create-business/Step2Plan";
+import Step3Owner from "./create-business/Step3Owner";
+import Step4Review from "./create-business/Step4Review";
+import SuccessView from "./create-business/SuccessView";
+import type { Pricing, BillingPeriod, FeatureKey } from "./create-business/shared";
 
 /** Foreslå kategorier ud fra branche-tekst fra CVR. */
 const suggestCategories = (industryText: string | null | undefined): string[] => {
