@@ -1,6 +1,6 @@
 # Admin panel — resterende arbejde + nyt Platform-overblik
 
-Trin 1–5 er færdige (admin-lås, UI-oprydning, sidebar+Cmd+K, virksomhedsfanen, UserDetailSheet). Herunder er den fulde plan for det resterende — 8 trin, hvert afgrænset og kan reviewes for sig.
+Trin 1–9 + 11 er færdige (admin-lås, UI-oprydning, sidebar+Cmd+K, virksomhedsfanen, UserDetailSheet, overblik-redesign, ordrer-sheet+chips, abonnementer-split, impersonation, sundhed+audit). Næste op: Trin 10 (mails), Trin 12 (notifikationer), Trin 13 (polering).
 
 ---
 
