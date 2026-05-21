@@ -397,7 +397,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                   <Percent className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
                 </div>
                 <p className="mt-1 text-[11px] text-muted-foreground">
-                  Andel af omsætningen for udførte opgaver. Lad være tom for 0 %.
+                  Andel af omsætningen for udførte aftaler. Lad være tom for 0 %.
                 </p>
               </div>
               <div>
@@ -989,7 +989,7 @@ const EmployeeRow = ({
                 Aflønning
               </h4>
               <div className="rounded-xl border border-border bg-card p-4">
-                <FieldLabel>Provision af udførte opgaver</FieldLabel>
+                <FieldLabel>Provision af udførte aftaler</FieldLabel>
                 <div className="flex items-center gap-3">
                   <div className="relative flex-1">
                     <Input
@@ -1007,7 +1007,7 @@ const EmployeeRow = ({
                   <span className="text-xs text-muted-foreground whitespace-nowrap">af omsætningen</span>
                 </div>
                 <p className="mt-2 text-[11px] text-muted-foreground">
-                  Sæt til <strong className="font-semibold text-foreground">0</strong> hvis medarbejderen er på fast løn. Eksempel: 15 betyder at medarbejderen optjener 15 % af omsætningen for de opgaver de udfører.
+                  Sæt til <strong className="font-semibold text-foreground">0</strong> hvis medarbejderen er på fast løn. Eksempel: 15 betyder at medarbejderen optjener 15 % af omsætningen for de aftaler de udfører.
                 </p>
               </div>
             </section>
