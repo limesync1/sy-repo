@@ -316,86 +316,16 @@ export default function BusinessDetailSheet({ businessId, onClose }: Props) {
 
           {/* ====== FARE-ZONE ====== */}
           <TabsContent value="danger" className="space-y-3 mt-4">
-            <Card className="p-4 space-y-3 border-destructive/30 bg-destructive/5">
-              <h3 className="text-sm font-semibold flex items-center gap-2 text-destructive">
-                <AlertTriangle className="h-4 w-4" />Destruktive handlinger
-              </h3>
-              <p className="text-xs text-muted-foreground">
-                Soft-delete arkiverer virksomheden (skjult fra alt, kan gendannes). Hard-delete fjerner permanent inkl. alle services, ordrer, kunder.
-              </p>
-
-              {!isDeleted ? (
-                <Button size="sm" variant="outline" className="w-full"
-                  onClick={() => {
-                    if (!confirm(`Soft-delete "${business?.name}"? Kan gendannes.`)) return;
-                    rpc.mutate({ fn: "admin_soft_delete_business", args: { p_business_id: businessId }, successMsg: "Virksomhed arkiveret" });
-                  }}>
-                  <Archive className="h-3.5 w-3.5 mr-1.5" />Soft-delete (kan fortrydes)
-                </Button>
-              ) : (
-                <Button size="sm" variant="outline" className="w-full"
-                  onClick={() => rpc.mutate({ fn: "admin_restore_business", args: { p_business_id: businessId }, successMsg: "Virksomhed gendannet" })}>
-                  <RefreshCw className="h-3.5 w-3.5 mr-1.5" />Gendan
-                </Button>
-              )}
-
-              <Button size="sm" variant="destructive" className="w-full"
-                onClick={() => setConfirmHardDelete(true)}>
-                <Trash2 className="h-3.5 w-3.5 mr-1.5" />Hard-delete permanent
-              </Button>
-            </Card>
+            <DangerZone
+              businessId={businessId!}
+              businessName={business?.name || ""}
+              isDeleted={isDeleted}
+              onInvalidate={invalidateAll}
+              onAfterHardDelete={onClose}
+            />
           </TabsContent>
         </Tabs>
-
-        <AlertDialog open={confirmHardDelete} onOpenChange={setConfirmHardDelete}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle className="flex items-center gap-2 text-destructive">
-                <AlertTriangle className="h-5 w-5" />Permanent sletning
-              </AlertDialogTitle>
-              <AlertDialogDescription asChild>
-                <div className="space-y-2 text-sm">
-                  <p>Dette sletter <span className="font-semibold text-foreground">{business?.name}</span> permanent inkl. alle services, ordrer, kunder, ruter og medarbejdere. <span className="font-semibold">Kan ikke fortrydes.</span></p>
-                  <p>Skriv virksomhedens fulde navn for at bekræfte:</p>
-                  <Input value={hardDeleteName} onChange={(e) => setHardDeleteName(e.target.value)} placeholder={business?.name} autoFocus />
-                </div>
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => { setConfirmHardDelete(false); setHardDeleteName(""); }}>Annullér</AlertDialogCancel>
-              <AlertDialogAction
-                disabled={hardDeleteName !== business?.name}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                onClick={async () => {
-                  try {
-                    const { error } = await supabase.rpc("admin_hard_delete_business" as any, {
-                      p_business_id: businessId, p_confirm_name: hardDeleteName,
-                    });
-                    if (error) throw error;
-                    toast.success("Virksomhed slettet permanent");
-                    setConfirmHardDelete(false);
-                    setHardDeleteName("");
-                    invalidateAll();
-                    onClose();
-                  } catch (e: any) {
-                    toast.error(e.message || "Sletning fejlede");
-                  }
-                }}>
-                Slet permanent
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </SheetContent>
     </Sheet>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-md bg-secondary/40 px-2 py-1.5">
-      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className="text-sm font-medium text-foreground truncate">{value}</p>
-    </div>
   );
 }
