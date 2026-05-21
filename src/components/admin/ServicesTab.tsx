@@ -1041,33 +1041,9 @@ const ServiceForm = ({
     }
   };
 
-  // ── Smart auto-anvend ────────────────────────────────────────────────
-  // Når brugeren skifter til prisberegner og endnu ikke har trin:
-  //   1) Hvis vi har en stærk skabelon-match (score ≥ 5) → anvend lydløst.
-  //   2) Hvis match er svagt og navnet er udfyldt → kald AI automatisk.
-  // Kører kun én gang pr. ny service-form (resettes når man gemmer/lukker).
-  useEffect(() => {
-    if (existingService) return; // ved redigering: bevar eksisterende trin
-    if (pricingType !== "prisberegner") return;
-    if (steps.length > 0) return;
-    if (autoSuggestionApplied) return;
-    if (!name.trim() || name.trim().length < 3) return;
-
-    if (isStrongMatch && bestTemplate) {
-      setSteps(bestTemplate.steps.map((s, i) => ({ ...s, sort_order: i })));
-      setAutoSuggestionApplied(true);
-      toast.success(`Skabelon "${bestTemplate.label}" anvendt automatisk`, {
-        description: "Vi fandt en perfekt skabelon — du kan altid skifte nedenfor.",
-      });
-      return;
-    }
-    // Svagt eller intet match → lad AI bygge en skræddersyet skabelon
-    if (bestScore < 3 && !aiTemplateLoading) {
-      setAutoSuggestionApplied(true);
-      void generateAiTemplate({ silent: true });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pricingType, name, subcategory, serviceCategory, isStrongMatch, bestScore]);
+  // Auto-anvendelse er bevidst fjernet: brugeren skal selv vælge mellem
+  // skabelon, AI-genereret skabelon eller "byg fra bunden" — vi tager
+  // ingen beslutninger på vegne af dem.
 
   const canGoNext = () => {
     if (currentStep === 1) return !!serviceCategory;
