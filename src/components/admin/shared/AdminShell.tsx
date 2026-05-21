@@ -12,11 +12,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   LogOut, LayoutDashboard, Wrench, ShoppingCart, Star, Settings,
-  Menu, X, ExternalLink, Users, Route as RouteIcon, Contact, Sparkles, MessageCircle, Calculator, Upload, LifeBuoy,
+  Menu, X, ExternalLink, Users, Route as RouteIcon, Contact, Sparkles, MessageCircle, Calculator, Upload, LifeBuoy, Truck,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { useBusinessPlan } from "@/hooks/useBusinessPlan";
+import { useEmployees } from "@/hooks/useEmployees";
+import { useMyEmployee } from "@/hooks/useMyEmployee";
 import {
   SidebarNavButton, SidebarFooterItem,
   SIDEBAR_WIDTH_EXPANDED,
@@ -194,6 +196,17 @@ export const AdminShell = ({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { data: plan } = useBusinessPlan(business.id);
   void plan;
+  // Genvej til medarbejder-appen: Vises kun når virksomheden har præcis
+  // én medarbejder OG den medarbejder er den indloggede ejer selv. Så kan
+  // ejeren med ét klik hoppe fra ruteplanlægning over i medarbejder-appen
+  // og udføre opgaverne uden at gå via det globale panel-switcher-menupunkt.
+  const { data: employees } = useEmployees(business.id);
+  const { data: myEmployee } = useMyEmployee();
+  const isSoloOwnerEmployee =
+    !!myEmployee &&
+    Array.isArray(employees) &&
+    employees.length === 1 &&
+    employees[0]?.id === myEmployee.id;
   const collapsed = false;
   const sidebarPx = SIDEBAR_WIDTH_EXPANDED;
 
@@ -347,6 +360,14 @@ export const AdminShell = ({
         </nav>
 
         <div className={cn("shrink-0 space-y-1 border-t border-border py-3", collapsed ? "px-2" : "px-3")}>
+          {isSoloOwnerEmployee && (
+            <SidebarFooterItem
+              icon={Truck}
+              label="Skift til medarbejder"
+              onClick={() => navigate("/medarbejder")}
+              collapsed={collapsed}
+            />
+          )}
           <SidebarFooterItem icon={ExternalLink} label="Se din side" href={`/v/${business.slug}`} collapsed={collapsed} />
           <SidebarFooterItem icon={LogOut} label="Log ud" onClick={signOut} collapsed={collapsed} danger />
         </div>

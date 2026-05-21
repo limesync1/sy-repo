@@ -4,6 +4,7 @@ import SmartLink from "@/components/SmartLink";
 import { Menu, X, LogOut, ChevronDown, User, Briefcase, ShieldCheck, Truck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyBusiness } from "@/hooks/useDatabase";
+import { useMyEmployee } from "@/hooks/useMyEmployee";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -37,6 +38,10 @@ const SiteNav = ({ active, right }: Props) => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { data: business } = useMyBusiness();
+  // Fallback: hvis user_roles endnu ikke er opdateret efter at virksomheds-
+  // ejeren har oprettet sig selv som første medarbejder, kan vi stadig
+  // detektere medarbejder-adgangen via employees-tabellen.
+  const { data: myEmployee } = useMyEmployee();
 
   const { data: userRoles = [] } = useQuery({
     queryKey: ["user-roles", user?.id],
@@ -69,13 +74,13 @@ const SiteNav = ({ active, right }: Props) => {
     if (userRoles.includes("business_owner") || business) {
       items.push({ label: "Virksomhedspanel", to: "/virksomhed", icon: Briefcase, current: pathname.startsWith("/virksomhed") });
     }
-    if (userRoles.includes("employee")) {
+    if (userRoles.includes("employee") || myEmployee) {
       items.push({ label: "Medarbejder-app", to: "/medarbejder", icon: Truck, current: pathname.startsWith("/medarbejder") });
     }
     items.push({ label: "Kundepanel", to: "/min-konto", icon: User, current: pathname.startsWith("/min-konto") });
 
     return items;
-  }, [business, pathname, user, userRoles]);
+  }, [business, myEmployee, pathname, user, userRoles]);
 
   const showSwitcher = roles.length > 1;
   // Højest-magt panel er altid det første i listen (admin > business > employee > kunde).
