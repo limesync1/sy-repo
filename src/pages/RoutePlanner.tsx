@@ -150,6 +150,8 @@ const Planner = () => {
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragData, setActiveDragData] = useState<any>(null);
+  const activeDragPointRef = useRef<DragPoint | null>(null);
+  const activeDragOriginRef = useRef<DragPoint | null>(null);
   const [routeDragPoint, setRouteDragPoint] = useState<DragPoint | null>(null);
   const activeRouteDragPointRef = useRef<DragPoint | null>(null);
   const activeRouteDragOriginRef = useRef<DragPoint | null>(null);
@@ -477,13 +479,25 @@ const Planner = () => {
     useSensor(KeyboardSensor),
   );
   const routePlannerCollisionDetection = useCallback<CollisionDetection>((args) => {
+    const activeType = args.active.data.current?.type;
     const pointerCollisions = pointerWithin(args);
     if (pointerCollisions.length > 0) {
+      // Når en aftale trækkes hen over en rute, kan dnd-kit nogle gange
+      // rapportere dag-cellen først (fordi den ligger som større parent).
+      // DOM-hit-testen afgør derfor rute-pillen eksplicit, så aftalen ender
+      // på den konkrete rute og ikke fejlagtigt som "ny rute på dagen".
+      if (activeType === "job") {
+        const pointTarget = getRouteDropPointTarget(activeDragPointRef.current, null);
+        if (pointTarget?.type === "route") {
+          const routeHit = args.droppableContainers.find((container) => container.id === `route-drop:${pointTarget.routeId}`);
+          if (routeHit) return [{ id: routeHit.id }];
+        }
+      }
       // Ved rute-drag foretrækker vi altid en rute-droppable hvis pointeren
       // er over både en dag-celle OG en rute i den celle — ellers bliver
       // route→route merge fejlagtigt fortolket som route→day move (fordi
       // pointerWithin nogle gange returnerer dag-cellen først).
-      if (args.active.data.current?.type === "route") {
+      if (activeType === "route") {
         const sourceRouteId = routeIdFromDndId(args.active.id);
         const routeHit = pointerCollisions.find((c) => {
           const container = args.droppableContainers.find((d) => d.id === c.id);
@@ -500,9 +514,9 @@ const Planner = () => {
       return pointerCollisions;
     }
 
-    const routeDragPoint = args.active.data.current?.type === "route" ? activeRouteDragPointRef.current : null;
-    if (routeDragPoint) {
-      const pointTarget = getRouteDropPointTarget(routeDragPoint, routeIdFromDndId(args.active.id));
+    const dragPoint = activeType === "route" ? activeRouteDragPointRef.current : activeDragPointRef.current;
+    if (dragPoint && (activeType === "route" || activeType === "job")) {
+      const pointTarget = getRouteDropPointTarget(dragPoint, activeType === "route" ? routeIdFromDndId(args.active.id) : null);
       const targetId = pointTarget?.type === "route"
         ? `route-drop:${pointTarget.routeId}`
         : pointTarget?.type === "day"
@@ -517,7 +531,7 @@ const Planner = () => {
     // Route-drag kan nogle gange miste pointer-hit på desktop, især når den
     // trukne rute ligger over små kalenderceller. Fallback til overlap gør
     // drop stabilt uden at ændre job/stop-drop adfærd.
-    return args.active.data.current?.type === "route"
+    return activeType === "route"
       ? rectIntersection(args)
       : pointerCollisions;
   }, []);
@@ -1384,8 +1398,10 @@ const Planner = () => {
     }
     setActiveDragId(e.active.id as string);
     setActiveDragData(data);
+    const origin = getDragPoint(e.activatorEvent);
+    activeDragOriginRef.current = origin;
+    activeDragPointRef.current = origin;
     if (data?.type === "route") {
-      const origin = getDragPoint(e.activatorEvent);
       activeRouteDragOriginRef.current = origin;
       activeRouteDragPointRef.current = origin;
       setRouteDragPoint(origin);
@@ -1402,12 +1418,14 @@ const Planner = () => {
   };
 
   const handleDragMove = (e: DragMoveEvent) => {
-    if (e.active.data.current?.type !== "route") return;
-    const origin = activeRouteDragOriginRef.current;
+    const origin = activeDragOriginRef.current;
     if (!origin) return;
     const point = { x: origin.x + e.delta.x, y: origin.y + e.delta.y };
-    activeRouteDragPointRef.current = point;
-    applyRouteOverlayPosition(point);
+    activeDragPointRef.current = point;
+    if (e.active.data.current?.type === "route") {
+      activeRouteDragPointRef.current = point;
+      applyRouteOverlayPosition(point);
+    }
   };
 
   // De øvrige kalender-callbacks afhænger af `openProjectedRoute` /
