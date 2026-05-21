@@ -339,3 +339,11 @@ Sig "ja" → jeg starter på **Trin 6** (Platform-overblik). Vil du have en ande
 - Zod-skema (SettingsSchema) med per-felt fejl: regex på sk_/pk_/whsec_ samt min/max-grænser på priser, rabatter og prøvedage.
 - Ny edge function verify-stripe-key (admin-only) kalder Stripe /v1/account → returnerer business-name, country, charges/payouts-status og mode (test/live). Bruges af "Verificér nøgle"-knap.
 - DB-trigger _log_platform_settings_changes på platform_settings logger ændringer af stripe_publishable_key / secret_key / webhook_secret til admin_audit_log med action update_stripe_keys (kun feltnavne og mode, aldrig værdier).
+
+## Trin 26 — Delte komponenter & infrastruktur (1. iteration) ✅
+- Ny `lib/useAdminMutation.ts` wrapper: standardiseret useMutation med toast (success/error), invalidateKeys, onDone og success/error-undertrykkelse. Erstatter den duplikerede onSuccess/onError-boilerplate på tværs af admin-faner.
+- `lib/Stat.tsx`: udskilt nøgle/værdi-celle som flere sheets bruger.
+- `business-detail/DangerZone.tsx`: soft/hard-delete med bekræftelses-dialog flyttet ud af BusinessDetailSheet — inkl. brugen af useAdminMutation.
+- `business-detail/PlanPanel.tsx`: hele Plan-tabben (prøveperiode, betaling, ejer-overdragelse) udskilt — 158 linjer i egen fil.
+- BusinessDetailSheet skrumpet fra 527 → 330 linjer.
+- Rest: CreateBusinessWizard-split, Header/OrdersPanel-udskillelse, vitest-dækning, fuld a11y-revision — flyttes til separate trin.
