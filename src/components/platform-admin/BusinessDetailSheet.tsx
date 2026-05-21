@@ -3,23 +3,21 @@
 // soft/hard-delete. Bruger admin_* RPC'er fra migrationen, som logger
 // til admin_audit_log og kun kan kaldes af admins (has_role).
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import {
-  Building2, CalendarClock, RefreshCw, Zap, ShieldCheck, UserCog,
-  Trash2, AlertTriangle, ExternalLink, CreditCard, Clock,
-  Mail, MapPin, CheckCircle2, XCircle, Archive, Users, KeyRound, UserCheck,
+  Building2, ShieldCheck, UserCog,
+  ExternalLink, Mail, MapPin, CheckCircle2, XCircle, Users, KeyRound, UserCheck,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Stat } from "./lib/Stat";
+import DangerZone from "./business-detail/DangerZone";
+import PlanPanel from "./business-detail/PlanPanel";
 
 interface Props {
   businessId: string | null;
@@ -32,11 +30,6 @@ const fmtDate = (s: string | null | undefined) =>
 
 export default function BusinessDetailSheet({ businessId, onClose }: Props) {
   const qc = useQueryClient();
-  const [extendDays, setExtendDays] = useState("14");
-  const [forceNote, setForceNote] = useState("");
-  const [transferEmail, setTransferEmail] = useState("");
-  const [confirmHardDelete, setConfirmHardDelete] = useState(false);
-  const [hardDeleteName, setHardDeleteName] = useState("");
   const [impersonating, setImpersonating] = useState(false);
 
   const { data: business } = useQuery({
@@ -111,22 +104,8 @@ export default function BusinessDetailSheet({ businessId, onClose }: Props) {
     qc.invalidateQueries({ queryKey: ["admin-business-plans"] });
   };
 
-  const rpc = useMutation({
-    mutationFn: async ({ fn, args, successMsg }: { fn: string; args: any; successMsg: string }) => {
-      const { data, error } = await supabase.rpc(fn as any, args);
-      if (error) throw error;
-      return { data, successMsg };
-    },
-    onSuccess: (r) => {
-      toast.success(r.successMsg);
-      invalidateAll();
-    },
-    onError: (e: any) => toast.error(e.message || "Handlingen fejlede"),
-  });
-
   const trialEnd = plan?.trial_ends_at ? new Date(plan.trial_ends_at) : null;
   const daysLeft = trialEnd ? Math.ceil((trialEnd.getTime() - Date.now()) / 86400000) : null;
-  const hasCard = !!plan?.stripe_payment_method_last4;
   const isDeleted = !!business?.deleted_at;
 
   return (
