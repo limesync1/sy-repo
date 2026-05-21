@@ -986,7 +986,6 @@ const ServiceForm = ({
   };
   const startFromScratch = () => {
     setSteps([blankStep(0)]);
-    setAutoSuggestionApplied(true);
   };
   const updateStep = (i: number, field: string, value: any) => {
     const updated = [...steps];
@@ -1005,7 +1004,6 @@ const ServiceForm = ({
   // 2-5 trin specifikt tilpasset denne service (kategori + underkategori
   // + beskrivelse). Resultatet erstatter de nuværende trin.
   const [aiTemplateLoading, setAiTemplateLoading] = useState(false);
-  const [autoSuggestionApplied, setAutoSuggestionApplied] = useState(false);
   const generateAiTemplate = async (opts?: { silent?: boolean }) => {
     if (!name.trim()) {
       toast.error("Skriv først et servicenavn");
@@ -1041,33 +1039,9 @@ const ServiceForm = ({
     }
   };
 
-  // ── Smart auto-anvend ────────────────────────────────────────────────
-  // Når brugeren skifter til prisberegner og endnu ikke har trin:
-  //   1) Hvis vi har en stærk skabelon-match (score ≥ 5) → anvend lydløst.
-  //   2) Hvis match er svagt og navnet er udfyldt → kald AI automatisk.
-  // Kører kun én gang pr. ny service-form (resettes når man gemmer/lukker).
-  useEffect(() => {
-    if (existingService) return; // ved redigering: bevar eksisterende trin
-    if (pricingType !== "prisberegner") return;
-    if (steps.length > 0) return;
-    if (autoSuggestionApplied) return;
-    if (!name.trim() || name.trim().length < 3) return;
-
-    if (isStrongMatch && bestTemplate) {
-      setSteps(bestTemplate.steps.map((s, i) => ({ ...s, sort_order: i })));
-      setAutoSuggestionApplied(true);
-      toast.success(`Skabelon "${bestTemplate.label}" anvendt automatisk`, {
-        description: "Vi fandt en perfekt skabelon — du kan altid skifte nedenfor.",
-      });
-      return;
-    }
-    // Svagt eller intet match → lad AI bygge en skræddersyet skabelon
-    if (bestScore < 3 && !aiTemplateLoading) {
-      setAutoSuggestionApplied(true);
-      void generateAiTemplate({ silent: true });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pricingType, name, subcategory, serviceCategory, isStrongMatch, bestScore]);
+  // Auto-anvendelse er bevidst fjernet: brugeren skal selv vælge mellem
+  // skabelon, AI-genereret skabelon eller "byg fra bunden" — vi tager
+  // ingen beslutninger på vegne af dem.
 
   const canGoNext = () => {
     if (currentStep === 1) return !!serviceCategory;
@@ -1321,7 +1295,15 @@ const ServiceForm = ({
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium text-foreground">Beskrivelse</label>
-            <Textarea placeholder="Hvad inkluderer denne service? Hvad kan kunden forvente?" value={description} onChange={(e) => setDescription(e.target.value)} className="bg-card" rows={3} />
+            <Textarea
+              placeholder={aiLoading ? "AI skriver et forslag baseret på servicenavnet…" : "Hvad inkluderer denne service? Hvad kan kunden forvente?"}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="bg-card disabled:opacity-70 disabled:cursor-wait"
+              rows={3}
+              disabled={aiLoading}
+              readOnly={aiLoading}
+            />
             <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
               <button
                 type="button"
@@ -1391,9 +1373,47 @@ const ServiceForm = ({
               <div>
                 <h4 className="text-base font-semibold text-foreground">Opsæt prisberegner</h4>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Vælg en skabelon der passer til din service — eller byg trinnene manuelt.
+                  Du bestemmer: vælg en skabelon, lad AI bygge en til dig — eller byg trinnene manuelt fra bunden.
                 </p>
               </div>
+
+              {steps.length === 0 && (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={() => generateAiTemplate()}
+                    disabled={aiTemplateLoading || !name.trim()}
+                    className="flex items-start gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:border-foreground/40 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary">
+                      {aiTemplateLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground">
+                        {aiTemplateLoading ? "AI bygger din beregner…" : "Lad AI bygge prisberegneren"}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        Skræddersyet til {subcategory || serviceCategory || "din service"} på få sekunder.
+                      </p>
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={startFromScratch}
+                    className="flex items-start gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:border-foreground/40 hover:shadow-sm"
+                  >
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary">
+                      <Plus className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground">Byg fra bunden</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        Start med ét tomt trin og tilpas alt selv.
+                      </p>
+                    </div>
+                  </button>
+                </div>
+              )}
 
               {rankedTemplates.length > 0 && (
                 <div className="space-y-3">
