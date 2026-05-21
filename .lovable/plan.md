@@ -1,87 +1,109 @@
-# Platform-admin: Opret-virksomhed wizard + admin-panel forbedring
+# Admin panel — oprydning & forbedringer
 
-## Del 1 — Opret-virksomhed wizard (hovedfokus)
+Målet er to ting:
+1. **Sikkerhed**: Kun `william@adely.dk` er admin. Ingen — heller ikke andre admins — kan oprette/fjerne admin-rollen via UI eller RPC.
+2. **Kvalitet**: Fjern designfejl, dobbelte luk-knapper, forkert størrelse på knapper, hover-bugs, irrelevante funktioner, og fyld manglende huller ud.
 
-Erstatter den nuværende simple `CreateBusinessDialog` med et flerstegs wizard-flow, der svarer 1:1 til "Bliv udbyder"-siden (`src/components/admin/BusinessOnboarding.tsx`), men tilpasset admin-konteksten.
+Vi udfører det i 6 trin — hvert trin er afgrænset, kan reviewes, og bryder ikke det øvrige panel.
 
-**Ny komponent:** `src/components/platform-admin/CreateBusinessWizard.tsx` (Sheet eller stor Dialog, 4 trin med progress-bar).
+---
 
-### Trin 1 — Find virksomhed (CVR)
-- CVR-input + opslag via eksisterende `cvr-lookup` edge function
-- Auto-udfyld: navn, adresse, postnr, by, telefon, mail, branche
-- Admin kan også vælge "Spring CVR over — opret manuelt" (for udenlandske / private)
-- Branche → mappes til vores `service-taxonomy.ts` kategorier (foreslår automatisk 1-3 kategorier ud fra branchetekst, admin kan justere via multi-select med rigtige Serviceydere-kategorier i stedet for fri tekst)
+## Trin 1 — Lås admin-rollen til William (sikkerhed først)
 
-### Trin 2 — Funktioner & plan
-- Samme funktionskort som onboarding: Regnskabsintegration (betalt), Leads (gratis), Livechat (gratis)
-- Ekstra medarbejderlogins (stepper 0-20)
-- Faktureringsperiode: Månedlig / Kvartal / Årlig (med rabat fra `platform_settings`)
-- Prøveperiode-længde i dage (admin-only felt, default fra platform-settings)
-- Live pris-breakdown vises i sidepanel
+**Backend**
+- Database-trigger på `user_roles`: blokér enhver `INSERT/UPDATE/DELETE` der involverer `role = 'admin'`, medmindre det er `william@adely.dk` der allerede er admin. Trigger er den eneste pålidelige måde — RLS kan omgås af security definer-funktioner.
+- Opdatér `admin_set_user_role` RPC: returnér fejl hvis `_role = 'admin'`. Funktionen må stadig bruges til at give/fjerne `business_owner`.
+- Seed: sikr at `william@adely.dk` har admin-rollen (idempotent insert).
 
-### Trin 3 — Ejer-bruger
-- Email (required)
-- Vis live: "Findes denne bruger allerede?" (lookup via admin RPC) → enten "Eksisterende bruger bliver tildelt" eller "Ny bruger oprettes"
-- Valg: Generér engangskodeord automatisk / Sæt selv
-- Checkbox: Send velkomstmail med login + magic link
+**Frontend (`PlatformUsersTab`)**
+- Fjern "Gør admin / Fjern admin"-knappen helt. Erstat med en låst badge "Admin (låst)" når brugeren er admin.
+- Behold rollefilter, men fjern "admin" som mulighed at *tildele* — den findes kun til visning.
 
-### Trin 4 — Gennemse & opret
-- Resumé af alt
-- Admin-only valg:
-  - "Marker som betalende med det samme (spring trial over)"
-  - "Tilføj note til audit log"
-- Knap "Opret virksomhed" → kalder udvidet `admin-create-business` edge function
-- Success-skærm: viser slug, login-URL, evt. engangskodeord (kopierbart), knap "Åbn virksomhedspanel som ejer" (impersonation)
+---
 
-### Backend-ændringer
-Udvid `supabase/functions/admin-create-business/index.ts`:
-- Tag imod alle felter (features, billing, extraLogins, trialDays, forceActive, categories, customAddress)
-- Skriv komplet `businesses.settings` med samme struktur som onboarding (leads_enabled, livechat_enabled, etc.)
-- Skriv `business_plans` med alle felter inkl. billing_period og monthly_price_dkk
-- Hvis `forceActive=true`, sæt status='active' i stedet for 'trialing'
-- Returnér `slug`, `businessId`, `temporaryPassword`, `userExisted`, `loginUrl`
+## Trin 2 — Globale UI-fejl (knapper, hover, dobbelte X)
 
-## Del 2 — Admin-panel forbedringer
+Gennemgang af alle sheets/dialogs i `src/components/platform-admin/`:
 
-### A) Forbedret `PlatformBusinessesTab` (tabel)
-- Tilføj kolonner: Plan-status badge (trial/aktiv/forfalden/annulleret), MRR, dage tilbage af trial, sidste login
-- Quick-filters i toolbar: Status (alle/trial/aktiv/forfalden/slettet), Plan-type, Region
-- Sortering på kolonner (klik header)
-- Bulk-actions: vælg flere → "Forlæng trial med X dage", "Eksportér CSV", "Send mail"
-- Søgning rammer også CVR, ejer-email, slug
-- Row-action "Log ind som" → impersonation kode (bruger eksisterende `admin_impersonation_codes`)
+- **Dobbelte luk-knapper**: shadcn `Sheet`/`Dialog` har indbygget X i `SheetContent`/`DialogContent`. Fjern manuelle X-knapper i `BusinessDetailSheet`, `CreateBusinessWizard`, `CreateBusinessDialog` (slettes — erstattes 100% af wizard).
+- **Inkonsistente knap-størrelser**: standardisér til `size="sm"` (h-9) i tabeller/lister, `size="default"` i sheets/forms. Fjern hardcoded `h-8`/`h-10` der bryder rytmen.
+- **Hover-states**: ikon-knapper uden `aria-label` og uden `Button`-wrapper får ikke korrekt hover. Konvertér rå `<a>`/`<button>` med ikoner til `<Button variant="ghost" size="icon">` med `aria-label`.
+- **Ikon-only knapper på mobil**: tilføj `min-h-11 min-w-11` på primære tap-targets.
+- **Tomme `title=` på ikoner**: erstat med `aria-label` + tooltip via shadcn `Tooltip`.
 
-### B) Udvidet `BusinessDetailSheet`
-Nye sektioner (tabs):
-- **Aktivitet** — kombineret feed: ordrer, mails sendt, login-historik, plan-ændringer
-- **Økonomi** — viser MRR-bidrag, Stripe-fakturaer (fra `payments-webhook`-data), ubetalte fakturaer
-- **Brugere** — ejer + medarbejdere med roller, "promote til ejer", "fjern medarbejder"
-- **Indstillinger** — toggle is_active, is_verified, kategorier, slug-redigering med history-tracking
+---
 
-### C) Ny `UserDetailSheet` (åbnes fra `PlatformUsersTab`)
-- Bruger-info, oprettelsesdato, sidste login
-- Liste over: virksomheder bruger ejer, virksomheder bruger er medarbejder hos, ordrer som kunde
-- Actions: Reset password, Skift e-mail, Send magic link, Suspender (logout + bloker), Slet bruger, Tildel/fjern admin-rolle
+## Trin 3 — Ryd op i sidemenu & topbar
 
-### D) Forbedret `PlatformAdmin` layout
-- Sticky topbar med global søgning (cmd+K) — søg på tværs af virksomheder/brugere/ordrer
-- "Hurtige handlinger"-knap i topbaren: Opret virksomhed, Opret bruger, Find ordre
-- Notifikations-badge i nav når der er nye uløste ting (chats, refund-anmodninger, fejlede betalinger)
+- Konsolidér `CreateBusinessDialog` → slettes (wizarden afløser den).
+- Topbar: tilføj global Cmd+K søgning (springer til virksomhed/bruger/ordre). Fjern den brødkrumme-overskrift der duplikerer sidebar-label.
+- Sidebar: del NAV i to grupper — "Drift" (Overblik, Virksomheder, Brugere, Ordrer, Abonnementer) og "Indhold & system" (Anmeldelser, Livechat, Domæner, Aktivitetslog, Platform). Visuelt cleaner ved 10 items.
+- Mobil: sidebar overlay får i dag ingen swipe-luk — tilføj swipe + ESC.
 
-### E) Nye platform-admin tabs
-- **Sundhed** — system status: edge function fejl-rate (sidste 24t), email-kø backlog, webhook-fejl, DB query times
-- **Mails** — log over alle udsendte mails fra platformen (filterbar), genudsend, se template-preview
+---
 
-## Tekniske noter
-- Wizard bruger `Sheet` (side-panel, max-w-3xl) for bedre plads end Dialog
-- Step-state holdes lokalt, ingen ekstra DB-state nødvendig
-- Genbrug `CvrLookupField`, `service-taxonomy.ts` mapping, `formatDkk`
-- Audit log skriver hver wizard-oprettelse med fuldt payload-snapshot
-- Edge function valideres med zod (følger projektets `_shared` pattern hvis det findes — ellers inline)
+## Trin 4 — Virksomheder-fanen + DetailSheet (kerneflow)
 
-## Anbefalet rækkefølge
-1. **Nu:** Del 1 (wizard) + udvidelse af `admin-create-business` — det er det konkrete du beder om
-2. **Næste runde:** Del 2A (tabel-forbedringer) + 2B (detail-sheet udvidelse)
-3. **Senere:** 2C (user-sheet), 2D (global søgning), 2E (sundhed/mails-tabs)
+`PlatformBusinessesTab`:
+- Tilføj kolonner: **Plan-status** (Trial X dage tilbage / Aktiv / Forfalden), **MRR**, **Sidste login (ejer)**, **Antal brugere**.
+- Quick filters som chips: Aktive · Trial · Forfaldne · Pauserede.
+- Bulk-handlinger (checkboxes): Forlæng trial · Sæt på pause · Send mail.
+- Rækkens "..." menu: Åbn detail · Impersonate · Forlæng trial · Slet (med dobbeltbekræftelse).
 
-Skal jeg starte med Del 1 nu (wizard + edge function), eller vil du have en anden rækkefølge? Sig også til hvis der er ting fra Del 2 du vil have prioriteret op.
+`BusinessDetailSheet` — udvid til tabs:
+- **Overblik** — kontaktinfo, plan, trial, branche
+- **Aktivitet** — login-historik, sidste handling, audit-log filtreret på virksomhed
+- **Økonomi** — fakturaer, MRR, kommende fornyelse, manuelle credits
+- **Brugere** — alle medarbejdere + ejer, mulighed for at sende password-reset
+- **Indstillinger** — slug, custom domæne, suspendér, slet
+
+---
+
+## Trin 5 — Brugere-fanen + nyt UserDetailSheet
+
+Nyt `UserDetailSheet.tsx`:
+- Profil (navn, email, telefon, oprettet, sidste login)
+- Roller (read-only for admin — se trin 1)
+- Tilknyttede virksomheder (med link)
+- Ordrer (sidste 10 + link)
+- Handlinger: Send password-reset · Send magic-link · Suspendér konto · Slet konto (dobbeltbekræftelse + audit)
+
+Klik på en bruger-række åbner sheet i stedet for kun email-link.
+
+---
+
+## Trin 6 — Manglende funktioner & nye faner
+
+Anbefalinger til reelt nyttige tilføjelser (ikke "fluff"):
+
+- **Sundhed-fane**: edge function-status, sidste fejl, DB-størrelse, queue (hvis vi tilføjer en), seneste mail-bounces.
+- **Mails-fane**: send/genindsend transaktionsmails (velkomst, faktura, password-reset), se template-preview.
+- **Notifikationer i topbar**: nye virksomheder, forfaldne trials, fejlede betalinger, nye chat-beskeder uden svar.
+- **Impersonation**: "Log ind som ejer"-knap der genererer engangs-magic-link til support.
+- **Aktivitetslog**: udvid filtre (handling, admin, virksomhed, dato-range) + eksport CSV.
+
+---
+
+## Tekniske detaljer
+
+**Trin 1 SQL (skitse)**
+```text
+- Trigger på user_roles BEFORE INSERT/UPDATE/DELETE WHERE role = 'admin'
+  → RAISE EXCEPTION undtagen for william@adely.dk's eksisterende række
+- admin_set_user_role: raise 'admin role is locked' hvis _role = 'admin'
+- Seed: insert william's admin-rolle hvis den ikke findes
+```
+
+**Komponenter der berøres**
+- Slet: `CreateBusinessDialog.tsx`
+- Stort refactor: `PlatformBusinessesTab.tsx`, `BusinessDetailSheet.tsx`, `PlatformUsersTab.tsx`, `PlatformAdmin.tsx`
+- Nyt: `UserDetailSheet.tsx`, `PlatformHealthTab.tsx`, `PlatformMailsTab.tsx`, `AdminCommandPalette.tsx`
+- Nye edge functions: `admin-impersonate-user`, `admin-resend-mail`
+
+**Migration-rækkefølge**: Trin 1 først (sikkerhed). Resten kan tages i hvilken som helst rækkefølge, men anbefalet 2 → 3 → 4 → 5 → 6.
+
+---
+
+## Næste skridt
+
+Bekræft planen, så starter jeg på **Trin 1** (lås admin-rollen). Sig også til hvis du vil omprioritere — fx tage Trin 4 (virksomheder) før Trin 2 (UI-oprydning).

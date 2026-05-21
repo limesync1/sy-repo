@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, ShieldOff, Mail, Download, Users, UserCheck, Building2, Shield, Clock } from "lucide-react";
+import { Mail, Download, Users, UserCheck, Building2, Shield, Clock, Lock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -42,14 +42,9 @@ const PlatformUsersTab = () => {
     },
   });
 
-  const setRole = useMutation({
-    mutationFn: async ({ userId, role, grant }: { userId: string; role: "admin" | "business_owner" | "user"; grant: boolean }) => {
-      const { error } = await supabase.rpc("admin_set_user_role", { _user_id: userId, _role: role, _grant: grant });
-      if (error) throw error;
-    },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-users-rich"] }); toast.success("Rolle opdateret"); },
-    onError: (e: any) => toast.error(e.message),
-  });
+  // Admin-rollen er låst på databaseniveau til william@adely.dk — derfor ingen
+  // grant/revoke-mutation for admin. setRole bruges fortsat hvis vi senere skal
+  // håndtere business_owner-rollen, men er bevidst udeladt indtil et reelt behov.
 
   const filtered = useMemo(() => {
     return (data || []).filter((u) => {
@@ -119,10 +114,10 @@ const PlatformUsersTab = () => {
       <div className="flex flex-wrap items-center gap-2">
         <SearchInput value={q} onChange={setQ} placeholder="Søg navn, email, telefon..." />
         <Select value={roleFilter} onValueChange={(v: any) => setRoleFilter(v)}>
-          <SelectTrigger className="w-[180px] h-10"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[180px] h-9"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Alle roller</SelectItem>
-            <SelectItem value="admin">Admin</SelectItem>
+            <SelectItem value="admin">Admin (kun visning)</SelectItem>
             <SelectItem value="business_owner">Virksomhedsejer</SelectItem>
             <SelectItem value="user">Kunde</SelectItem>
           </SelectContent>
@@ -174,17 +169,17 @@ const PlatformUsersTab = () => {
                       Tilmeldt {new Date(u.auth_created_at).toLocaleDateString("da-DK")} · {Number(u.orders_count)} ordrer · {Number(u.businesses_count)} virksomheder
                     </p>
                   </div>
-                  <div className="flex gap-1.5">
-                    {u.email && (
-                      <a href={`mailto:${u.email}`} className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground" title="Email">
-                        <Mail className="h-3.5 w-3.5" />
-                      </a>
+                  <div className="flex items-center gap-1.5">
+                    {isAdmin && (
+                      <span className="inline-flex items-center gap-1 rounded-md border border-border bg-secondary px-2 py-1 text-[11px] font-medium text-muted-foreground">
+                        <Lock className="h-3 w-3" /> Admin (låst)
+                      </span>
                     )}
-                    <Button size="sm" variant="outline" className="h-8 gap-1.5"
-                      onClick={() => setRole.mutate({ userId: u.user_id, role: "admin", grant: !isAdmin })}>
-                      {isAdmin ? <ShieldOff className="h-3.5 w-3.5" /> : <ShieldCheck className="h-3.5 w-3.5" />}
-                      <span className="hidden sm:inline">{isAdmin ? "Fjern admin" : "Gør admin"}</span>
-                    </Button>
+                    {u.email && (
+                      <Button asChild size="icon" variant="ghost" className="h-9 w-9" aria-label={`Email ${u.email}`}>
+                        <a href={`mailto:${u.email}`}><Mail className="h-4 w-4" /></a>
+                      </Button>
+                    )}
                   </div>
                 </div>
               );
