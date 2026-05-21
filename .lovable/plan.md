@@ -62,13 +62,14 @@ kvalitetsproblemer afdækket ved en ny gennemgang af hver fane.
 - Vis avatar fra `profiles.avatar_url` hvis findes.
 - `UserDetailSheet`: tilføj "Recent activity"-tidslinje (logins, ordrer, beskeder).
 
-### Trin 17 — Ordrer (`PlatformOrdersTab`)
-- Server-side filter/paging via ny RPC.
-- Saved filters: "Forfaldne", "Ubetalte >7d", "Kreditnotaer".
-- Status-skift med optimistic update + undo-toast (5 sek).
-- Bulk: markér betalt, send rykker, eksport, slet.
-- Inline rediger total/note uden at åbne sheet.
-- Tilføj "Faktura-PDF"-link direkte i rækken.
+### Trin 17 — Ordrer (`PlatformOrdersTab`) ✅
+- ✅ Ny RPC `admin_list_orders` med server-side paging, søg, status, quick-filter, sortering + aggregeret tæller.
+- ✅ Saved views (localStorage).
+- ✅ Optimistic status-skift med rollback.
+- ✅ CSV-eksport over alle sider (op til 50k).
+- ✅ "Ubetalte >7d"-chip + tæller på alle chips.
+- ✅ Faktura-nummer + forfaldsdato vises i rækken; ikon hvis faktura findes.
+- Rest: inline rediger total/note, "send rykker"-bulk-handling — flyttes til separat trin.
 
 ### Trin 18 — Abonnementer (`PlatformSubscriptionsTab`)
 - Stripe-sync-knap pr. række (kald `sync-subscription-from-stripe`).
