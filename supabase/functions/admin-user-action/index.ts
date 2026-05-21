@@ -42,7 +42,8 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const action = String(body?.action || "");
     const userId = String(body?.user_id || "");
-    if (!userId || !["password_reset", "magic_link"].includes(action)) {
+    const redirectTo = body?.redirect_to ? String(body.redirect_to) : undefined;
+    if (!userId || !["password_reset", "magic_link", "impersonate"].includes(action)) {
       return new Response(JSON.stringify({ error: "Invalid input" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -58,8 +59,10 @@ Deno.serve(async (req) => {
 
     const type = action === "password_reset" ? "recovery" : "magiclink";
     const { data: link, error: linkErr } = await admin.auth.admin.generateLink({
-      type: type as any, email,
-    });
+      type: type as any,
+      email,
+      options: redirectTo ? { redirectTo } : undefined,
+    } as any);
     if (linkErr) throw linkErr;
 
     // Log handling (best-effort) — kald som brugeren så auth.uid() = admin
@@ -73,7 +76,13 @@ Deno.serve(async (req) => {
       } as any);
     } catch (_) { /* ignore */ }
 
-    return new Response(JSON.stringify({ ok: true, sent_to: email, action_link: link?.properties?.action_link ?? null }), {
+    return new Response(JSON.stringify({
+      ok: true,
+      sent_to: email,
+      action_link: link?.properties?.action_link ?? null,
+      // Impersonation må aldrig sende mail — admin åbner action_link selv i incognito.
+      mode: action === "impersonate" ? "open_link" : "email",
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
