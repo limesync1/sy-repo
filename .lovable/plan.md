@@ -401,3 +401,12 @@ Sig "ja" → jeg starter på **Trin 6** (Platform-overblik). Vil du have en ande
 - `auditlog/AuditRow.tsx`: enkelt række inkl. star/watch-toggle, ekspander-detaljer og before/after-diff.
 - `auditlog/FilterBar.tsx`: `FilterBar` (søg/handling/admin/range/gruppering/watch) + `SavedFiltersBar` (anvend/slet/navngiv).
 - `PlatformAuditLogTab` skrumpet fra 368 → ~180 linjer — orkestrering, infinite query, gruppering og CSV.
+
+## Trin 26i — PlatformLiveChatTab split ✅
+- `livechat/shared.ts`: typer (`Conversation`, `Message`, `Filter`, `SortMode`), konstanter (`CANNED_KEY`, `DEFAULT_CATEGORIES`), `formatTime`/`initials`.
+- `livechat/InboxList.tsx`: venstre indbakke-panel med søg/filter/sort/mute + listevisning af samtaler med badges (logget ind, needs human, snoozed, lukket, ulæst-tæller).
+- `livechat/ChatHeader.tsx`: chat-header med status-pille, eksport, snooze-dropdown, afslut/genåbn.
+- `livechat/MessageList.tsx`: scrollende beskedliste med boble-tråd, avatarer kun ved ny afsender, "set"-checkmark på sidste admin-besked. `forwardRef` så orkestratoren styrer auto-scroll.
+- `livechat/ChatComposer.tsx`: hurtige-svar-bjælke + AI-forslag-knap + billede-vedhæftning + textarea/send.
+- `livechat/DetailsPanel.tsx`: højre info-panel (gæst/registreret, email, emne, startet, beskeder).
+- `PlatformLiveChatTab` skrumpet fra 936 → 576 linjer — kun state, queries, realtime og handler-orkestrering tilbage.
