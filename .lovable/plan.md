@@ -325,3 +325,10 @@ Sig "ja" → jeg starter på **Trin 6** (Platform-overblik). Vil du have en ande
 - Ny RPC admin_health_extended (security definer, admin-only) returnerer top 10 tabeller med bytes/rækker, pg_cron-jobs med sidste kørsel/status, og storage-buckets med antal filer + bytes.
 - Tre nye sektioner i PlatformHealthTab: størrelses-bar pr. tabel, cron-liste med status-badge, bucket-grid.
 - "Kør fuld kontrol"-knap genhenter både core- og extended-statistik samtidigt med toast-feedback.
+
+## Trin 24 — Mails: gen-send, afblokér, default test-modtager ✅
+- Ny RPC admin_unsuppress_email (admin-only, logges i audit-log) fjerner en post fra suppression-listen.
+- Send-log: hver række har RotateCw-knap der gen-sender samme skabelon til samme modtager via send-transactional-email med ny idempotency-key (templateData hentes fra metadata hvis tilgængelig).
+- Skabeloner: test-modtager pre-udfyldes med aktuel admins email via supabase.auth.getUser().
+- Blokerede: hver række har "Afblokér"-knap med bekræftelse → kalder RPC, invaliderer cache, toast.
+- Editor + batch-send + udsæt udskudt til senere (kræver større arkitektur).

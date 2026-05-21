@@ -3735,6 +3735,7 @@ export type Database = {
         Args: { p_business_id: string; p_new_owner_email: string }
         Returns: string
       }
+      admin_unsuppress_email: { Args: { p_id: string }; Returns: undefined }
       admin_user_activity_timeline: {
         Args: { p_limit?: number; p_user_id: string }
         Returns: {

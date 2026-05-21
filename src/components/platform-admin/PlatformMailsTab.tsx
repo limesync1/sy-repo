@@ -2,8 +2,8 @@
 // Tre sektioner: Send-log (deduplikeret pr. besked), Skabeloner (live HTML-preview
 // + mulighed for at sende test-mail) og Blokerede modtagere (suppression-listen).
 // Henter alle data via SECURITY DEFINER RPC'er + admin-preview-template edge function.
-import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useMemo, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { PageHeader, SearchInput, EmptyState } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton, StatGridSkeleton } from "@/components/admin/shared/Skeletons";
-import { Mail, MailX, Ban, Send, Eye, RefreshCw, FileText, AlertCircle } from "lucide-react";
+import { Mail, MailX, Ban, Send, Eye, RefreshCw, FileText, AlertCircle, RotateCw, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -54,6 +54,7 @@ function SendLogView() {
   const [status, setStatus] = useState<string>("all");
   const [range, setRange] = useState<string>("7d");
   const [openRow, setOpenRow] = useState<any | null>(null);
+  const [resendingId, setResendingId] = useState<string | null>(null);
 
   const sinceIso = useMemo(() => {
     const r = RANGES.find((x) => x.value === range);
@@ -84,6 +85,30 @@ function SendLogView() {
       return (data || []) as { template_name: string; n: number }[];
     },
   });
+
+  const resend = async (row: any) => {
+    if (!row?.recipient_email || !row?.template_name) return;
+    if (!confirm(`Send "${row.template_name}" igen til ${row.recipient_email}?`)) return;
+    setResendingId(row.message_id);
+    try {
+      const templateData = row.metadata?.templateData ?? row.metadata?.template_data ?? {};
+      const { error } = await supabase.functions.invoke("send-transactional-email", {
+        body: {
+          templateName: row.template_name,
+          recipientEmail: row.recipient_email,
+          idempotencyKey: `admin-resend-${row.message_id}-${Date.now()}`,
+          templateData,
+        },
+      });
+      if (error) throw error;
+      toast.success(`Gen-sendt til ${row.recipient_email}`);
+      refetch();
+    } catch (e: any) {
+      toast.error("Kunne ikke gen-sende", { description: e.message });
+    } finally {
+      setResendingId(null);
+    }
+  };
 
   const counts = useMemo(() => {
     const c: Record<string, number> = { total: 0, sent: 0, failed: 0, suppressed: 0 };
@@ -167,24 +192,32 @@ function SendLogView() {
         <Card className="rounded-xl border-border shadow-sm overflow-hidden">
           <div className="divide-y divide-border">
             {rows.map((r) => (
-              <button
-                key={r.message_id}
-                onClick={() => setOpenRow(r)}
-                className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-secondary/30"
-              >
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
-                  <Mail className="h-4 w-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-foreground">{r.recipient_email}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    <span className="font-mono">{r.template_name}</span>
-                    {r.error_message && <span className="text-destructive"> · {r.error_message}</span>}
-                  </p>
-                </div>
-                <Badge variant="outline" className={STATUS_TONE[r.status] || ""}>{STATUS_LABEL[r.status] || r.status}</Badge>
-                <span className="shrink-0 text-xs tabular-nums text-muted-foreground w-24 text-right">{fmtTime(r.created_at)}</span>
-              </button>
+              <div key={r.message_id} className="flex w-full items-start gap-3 px-4 py-3 transition-colors hover:bg-secondary/30">
+                <button onClick={() => setOpenRow(r)} className="flex flex-1 items-start gap-3 text-left min-w-0">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
+                    <Mail className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-foreground">{r.recipient_email}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      <span className="font-mono">{r.template_name}</span>
+                      {r.error_message && <span className="text-destructive"> · {r.error_message}</span>}
+                    </p>
+                  </div>
+                  <Badge variant="outline" className={STATUS_TONE[r.status] || ""}>{STATUS_LABEL[r.status] || r.status}</Badge>
+                  <span className="shrink-0 text-xs tabular-nums text-muted-foreground w-24 text-right">{fmtTime(r.created_at)}</span>
+                </button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="shrink-0"
+                  onClick={() => resend(r)}
+                  disabled={resendingId === r.message_id}
+                  title="Gen-send denne e-mail"
+                >
+                  <RotateCw className={cn("h-3.5 w-3.5", resendingId === r.message_id && "animate-spin")} />
+                </Button>
+              </div>
             ))}
           </div>
         </Card>
@@ -236,6 +269,14 @@ function TemplatesView() {
   const [sendOpen, setSendOpen] = useState(false);
   const [sendEmail, setSendEmail] = useState("");
   const [sending, setSending] = useState(false);
+
+  // Default test-recipient = current admin email
+  useEffect(() => {
+    if (sendEmail) return;
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user?.email) setSendEmail(data.user.email);
+    });
+  }, [sendEmail]);
 
   const { data: list, isLoading: listLoading } = useQuery({
     queryKey: ["admin-template-list"],
@@ -378,6 +419,7 @@ function TemplatesView() {
 
 /* --------------------------- Blokerede mails -------------------------- */
 function SuppressedView() {
+  const qc = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ["admin-suppressed-emails"],
     queryFn: async () => {
@@ -385,6 +427,19 @@ function SuppressedView() {
       if (error) throw error;
       return (data || []) as { id: string; email: string; reason: string; created_at: string; metadata: any }[];
     },
+  });
+
+  const unblock = useMutation({
+    mutationFn: async (row: { id: string; email: string }) => {
+      const { error } = await supabase.rpc("admin_unsuppress_email" as any, { p_id: row.id });
+      if (error) throw error;
+      return row;
+    },
+    onSuccess: (row) => {
+      toast.success(`${row.email} er afblokeret`);
+      qc.invalidateQueries({ queryKey: ["admin-suppressed-emails"] });
+    },
+    onError: (e: any) => toast.error("Kunne ikke afblokere", { description: e.message }),
   });
 
   return isLoading ? (
@@ -404,6 +459,19 @@ function SuppressedView() {
               <p className="text-xs text-muted-foreground">Årsag: {s.reason}</p>
             </div>
             <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{fmtTime(s.created_at)}</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (confirm(`Afblokér ${s.email}? Mails vil derefter blive sendt til denne adresse igen.`)) {
+                  unblock.mutate({ id: s.id, email: s.email });
+                }
+              }}
+              disabled={unblock.isPending}
+            >
+              <ShieldCheck className="h-3.5 w-3.5 mr-1.5" />
+              Afblokér
+            </Button>
           </div>
         ))}
       </div>
