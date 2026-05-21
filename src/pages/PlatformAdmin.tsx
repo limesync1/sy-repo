@@ -215,27 +215,6 @@ const PlatformAdmin = () => {
             </button>
           </div>
 
-          {/* Admin-info kort — matcher virksomhedspanelets info-blok */}
-          <div
-            className={cn(
-              "mt-3 mb-3 shrink-0 rounded-xl border border-border bg-card shadow-sm",
-              collapsed ? "mx-2 px-2 py-2" : "mx-3 px-3 py-3",
-            )}
-            title={collapsed ? `Platform Admin · ${user.email}` : undefined}
-          >
-            <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground text-background font-bold text-sm">
-                {(user.email || "?").charAt(0).toUpperCase()}
-              </div>
-              {!collapsed && (
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-foreground">Platform Admin</p>
-                  <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-                </div>
-              )}
-            </div>
-          </div>
-
           <nav className={cn("flex-1 space-y-1 overflow-y-auto pb-2 pt-1", collapsed ? "px-2" : "px-3")}>
             {NAV_GROUPS.map((group, gi) => (
               <div key={group.label} className="space-y-0.5">
