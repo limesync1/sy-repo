@@ -1,6 +1,153 @@
-# Admin panel — resterende arbejde + nyt Platform-overblik
+# Admin panel — runde 2: kvalitet, skala & dybde
 
-Trin 1–13 er færdige. Admin-panel-overhalingen er færdig.
+Trin 1–13 (struktur, overblik, detaljesheets, audit, sundhed, mails,
+notifikationer, mobil/a11y) er på plads. Denne runde fokuserer på
+kvalitetsproblemer afdækket ved en ny gennemgang af hver fane.
+
+---
+
+## Tværgående fund (gælder flere faner)
+
+1. **Skala-problem: client-side fetch + filter.**
+   `PlatformOverviewTab`, `PlatformBusinessesTab`, `PlatformOrdersTab`,
+   `PlatformReviewsTab`, `PlatformSubscriptionsTab` henter hele tabeller
+   (op til 1000 rækker, Supabase-loftet) og filtrerer i hukommelse.
+   Bryder lydløst ved 1000+ rækker — vi ser kun en del af data.
+   Skal flyttes til server-side RPC'er med paging, sortering og filtre.
+
+2. **`any`-typer & manglende validering.**
+   `PlatformPlatformSettingsTab` bruger `useState<any>`; numeriske felter
+   gemmes uden range-check; secrets vises i klar-tekst input uden
+   "masker/vis"-toggle. Skal have zod-skema + maskerede secret-felter.
+
+3. **Store komponenter.**
+   `PlatformLiveChatTab` (934 linjer), `CreateBusinessWizard` (673),
+   `PlatformBusinessesTab` (551), `BusinessDetailSheet` (527),
+   `PlatformOverviewTab` (507). Brydes op i mindre, testbare dele
+   (én fil = ét ansvar) — letter både vedligehold og lazy-load.
+
+4. **Tomme/fejl-states inkonsistente.**
+   Nogle faner bruger `EmptyState`, andre returnerer `null` eller
+   en grå tekst. Standardisér via `EmptyState` + `ErrorState` overalt.
+
+5. **Optimistic updates mangler.**
+   Status-skift på ordrer, sletning af anmeldelser, suspendering af
+   brugere venter alle på round-trip før UI opdateres. Tilføj
+   `onMutate` optimistic-updates med rollback.
+
+---
+
+## Fane-for-fane plan
+
+### Trin 14 — Overblik (`PlatformOverviewTab`)
+- Erstat `usePlatformData` med ny RPC `admin_overview_snapshot()` der
+  leverer aggregerede tal (GMV, MRR-bevægelse, kohorte, funnel) i ét kald.
+- Drop fetch af rå `businesses/profiles/orders` — kun aggregater.
+- Tilføj "sammenlign forrige periode" overlay på GMV-grafen
+  (allerede planlagt i Trin 6, men ikke implementeret).
+- Eksport-knap pr. sektion (CSV) i stedet for én samlet.
+- Fix: pulse-strip viser stadig kun "i dag"; tilføj 7-dages-trend-sparkline.
+
+### Trin 15 — Virksomheder (`PlatformBusinessesTab`)
+- Server-side paging: ny `admin_list_businesses(filter, search, page, sort)` RPC.
+- Saved views: gem filter-kombinationer ("Mine trial-leads", "Forfaldne").
+- Bulk-handlinger: aktiver/deaktiver, send mail, eksportér valgte
+  (Trash mangler nu — kun en checkbox uden handling).
+- Split fil: `BusinessesTable`, `BusinessesFilters`, `ImpersonationDialog`.
+- "Sidste login" og "Sidste ordre"-kolonner (kræver join i RPC).
+
+### Trin 16 — Brugere (`PlatformUsersTab`)
+- Paging + søg på server (`admin_list_users` returnerer alt i dag).
+- Tilføj filter: "Aldrig logget ind", "Inaktiv >30d", "Har businesses uden ordrer".
+- Bulk: send password-reset, mass-mail, eksport.
+- Vis avatar fra `profiles.avatar_url` hvis findes.
+- `UserDetailSheet`: tilføj "Recent activity"-tidslinje (logins, ordrer, beskeder).
+
+### Trin 17 — Ordrer (`PlatformOrdersTab`)
+- Server-side filter/paging via ny RPC.
+- Saved filters: "Forfaldne", "Ubetalte >7d", "Kreditnotaer".
+- Status-skift med optimistic update + undo-toast (5 sek).
+- Bulk: markér betalt, send rykker, eksport, slet.
+- Inline rediger total/note uden at åbne sheet.
+- Tilføj "Faktura-PDF"-link direkte i rækken.
+
+### Trin 18 — Abonnementer (`PlatformSubscriptionsTab`)
+- Stripe-sync-knap pr. række (kald `sync-subscription-from-stripe`).
+- Failed-payment-rækker fremhævet rødt + retry-knap.
+- "Churn risk"-score baseret på inaktivitet + past_due + lav brug.
+- Plan-skift-historik i `SubscriptionDetailSheet` (ny komponent — mangler).
+- Eksport: MRR-vandfald som CSV til regnskab.
+
+### Trin 19 — Anmeldelser (`PlatformReviewsTab`)
+- Admin-svar direkte fra listen (i dag kun "se anmeldelse").
+- Flag-system: "spam", "krænkende", "fake" — skjul fra offentligt visning.
+- Sentiment-tag pr. anmeldelse (Lovable AI, batch nightly).
+- Filter: "Mangler svar", "Lav rating", "Flagget".
+- Per-virksomhed-aggregat: gennemsnit + svarprocent.
+
+### Trin 20 — Livechat (`PlatformLiveChatTab`)
+- **Split filen** i: `ConversationList`, `MessageThread`, `CannedResponsesPanel`,
+  `ChatInput`, `useChatRealtime` hook.
+- Tilføj "Tildel til admin"-funktion (flere admins kan dele indbakke).
+- Snooze: skjul samtale i X timer, dukker op igen automatisk.
+- AI-svar-forslag (Lovable AI) ovenpå chat-input.
+- Tag-filter (allerede ikon, ikke implementeret).
+- Eksport hel samtale som .txt/PDF til support-arkiv.
+
+### Trin 21 — Domæner (`PlatformDomainsTab`)
+- Bulk DNS-recheck for alle pending.
+- SSL-status pr. domæne (eksp.dato, udsteder).
+- Whois-snapshot-link.
+- Notifikation 14 dage før et SSL-cert udløber.
+
+### Trin 22 — Aktivitetslog (`PlatformAuditLogTab`)
+- Server-side paging — i dag hentes 500 rækker pr. filtrering.
+- "Watch this user"-knap → realtime notifikation når en specifik admin handler.
+- Diff-visning: hvis `details` har `before/after`, vis side-om-side diff.
+- Saved filters + delbart link (URL state).
+
+### Trin 23 — Sundhed (`PlatformHealthTab`)
+- Tilføj graf: edge function-fejl pr. time (sidste 24t).
+- DB: top 10 store tabeller med trend-pil.
+- Cron-status: liste over `pg_cron`-jobs med sidste/næste kørsel.
+- Storage-buckets: bytes + filer pr. bucket.
+- "Run health check now"-knap (kalder alle RPC'er sekventielt).
+
+### Trin 24 — Mails (`PlatformMailsTab`)
+- Send test-mail UI-fejl: "send test" knap mangler valg af modtager-email
+  (default = aktuel admin, men bør være redigerbar).
+- Skabelon-editor (live preview er der, men ingen redigering — kun read-only).
+- Batch-send med dobbelt-bekræftelse + "udsæt til xx:xx".
+- Re-send fra send-log med ét klik.
+- Blokerede mails: "afblokér"-handling (sletter suppression).
+
+### Trin 25 — Platform-indstillinger (`PlatformPlatformSettingsTab`)
+- **Sikkerhed**: maskér Stripe-secret som password-input + "Vis/skjul"-toggle.
+- Zod-validering + per-felt fejl i stedet for ét toast.
+- Test-knap: "Verificér Stripe-nøgle" (kalder Stripe `account.retrieve`).
+- Audit-log entry når Stripe-secret ændres (vis hvem + hvornår sidst).
+- Splittet i tabs: "Betaling", "Priser", "Email", "Branding" — i dag én lang form.
+
+### Trin 26 — Delte komponenter & infrastruktur
+- `BusinessDetailSheet` (527 linjer) → splittes i `Header`, `PlanPanel`,
+  `OrdersPanel`, `DangerZone`.
+- `CreateBusinessWizard` (673 linjer) → ét trin pr. fil, delt state-hook.
+- Standardisér mutations: lille `useAdminMutation`-wrapper med
+  toast + optimistic + audit-log-hint.
+- Test-dækning: vitest for de 5 mest brugte RPC-wrappers.
+- A11y-revision af nye komponenter fra Trin 14–25.
+
+---
+
+## Rækkefølge (anbefalet)
+
+1. **Trin 14–17** (skala-problemerne på de mest brugte faner) — størst gevinst.
+2. **Trin 25** (sikkerhed på Stripe-secret) — risiko, lille indsats.
+3. **Trin 20** (livechat-refaktor) — størst kode-pukkel.
+4. **Trin 18–19, 22** (forretningsdybde).
+5. **Trin 21, 23, 24, 26** (drift & polering).
+
+Sig "**start trin 14**" (eller andet trin) → jeg går i gang.
 
 ---
 
