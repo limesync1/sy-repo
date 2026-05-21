@@ -105,7 +105,7 @@ export default function OrderDetailSheet({ orderId, onClose }: Props) {
     if (order.invoiced_at) items.push({ icon: Receipt, label: `Faktureret${order.invoice_external_number ? ` (#${order.invoice_external_number})` : ""}`, ts: order.invoiced_at });
     if (order.paid_at) items.push({ icon: CreditCard, label: `Betalt — ${fmtKr(order.paid_amount)}`, ts: order.paid_at, tone: "text-emerald-700" });
     if (order.last_reminder_at) items.push({ icon: AlertCircle, label: `Rykker sendt${order.last_reminder_type ? ` (${order.last_reminder_type})` : ""}`, ts: order.last_reminder_at, tone: "text-amber-700" });
-    if (order.completed_at) items.push({ icon: CheckCircle2, label: "Afsluttet", ts: order.completed_at, tone: "text-emerald-700" });
+    if (order.status === "completed") items.push({ icon: CheckCircle2, label: "Afsluttet", ts: order.updated_at, tone: "text-emerald-700" });
     if (order.credited_at) items.push({ icon: Receipt, label: "Krediteret", ts: order.credited_at, tone: "text-violet-700" });
     if (order.voided_at) items.push({ icon: XCircle, label: "Annulleret", ts: order.voided_at, tone: "text-red-700" });
     return items.sort((a, b) => new Date(a.ts || 0).getTime() - new Date(b.ts || 0).getTime());
