@@ -197,9 +197,19 @@ export default function UserDetailSheet({ user, onClose }: Props) {
                     <Send className="h-3.5 w-3.5" />
                     {sending === "magic" ? "Sender..." : "Send magic-link"}
                   </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5 border-amber-500/30 text-amber-700 hover:bg-amber-500/10 hover:text-amber-800"
+                    onClick={impersonate}
+                    disabled={impersonating || !user.email}
+                  >
+                    <UserCheck className="h-3.5 w-3.5" />
+                    {impersonating ? "Henter link…" : "Log ind som bruger"}
+                  </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Suspendér og slet konto kræver dobbeltbekræftelse og kommer i et senere trin.
+                  Impersonation åbner et engangs-magic-link der logger dig ind som brugeren. Åbn i inkognito så din admin-session bevares. Handlingen logges i audit-loggen. Suspendér/slet kommer i et senere trin.
                 </p>
               </Card>
             </TabsContent>
