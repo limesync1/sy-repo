@@ -3640,6 +3640,10 @@ export type Database = {
         }[]
       }
       admin_notifications_last_seen: { Args: never; Returns: string }
+      admin_overview_snapshot: {
+        Args: { p_from: string; p_to: string }
+        Returns: Json
+      }
       admin_redeem_impersonation_code: {
         Args: { p_code: string }
         Returns: string
