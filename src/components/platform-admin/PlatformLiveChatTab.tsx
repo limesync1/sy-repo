@@ -803,7 +803,17 @@ const PlatformLiveChatTab = () => {
                       <button onClick={() => setShowCannedManager(true)} className="flex-shrink-0 rounded-full border border-dashed border-border px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground" title="Administrér">
                         +
                       </button>
+                      <button
+                        onClick={handleAiSuggest}
+                        disabled={aiBusy}
+                        className="ml-auto flex flex-shrink-0 items-center gap-1 rounded-full border border-accent/40 bg-accent/10 px-2.5 py-1 text-[11px] font-medium text-accent transition-colors hover:bg-accent/20 disabled:opacity-50"
+                        title="Lad AI foreslå et svar baseret på samtalen"
+                      >
+                        {aiBusy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                        AI-forslag
+                      </button>
                     </div>
+                    {aiError && <p className="mt-1 text-[10px] text-destructive">{aiError}</p>}
                   </div>
                 )}
 
