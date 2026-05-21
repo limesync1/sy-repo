@@ -183,10 +183,10 @@ Deno.serve(async (req) => {
       lineItems.push({ price: employeePrice.id, quantity: effectiveExtraEmployeeLogins });
     }
 
-    // Opstartsgebyr — engangsbeløb der lægges på den FØRSTE rigtige faktura
-    // (efter prøveperioden). Bruger `add_invoice_items` på subscription_data,
-    // så Stripe automatisk tilføjer linjen til den første faktura uden at
-    // opkræve nu. Springes over hvis virksomheden allerede har betalt det.
+    // Opstartsgebyr — engangsbeløb der opkræves på første betalte faktura.
+    // Checkout Sessions understøtter ikke `add_invoice_items`, så gebyret
+    // lægges direkte i checkout når der ikke er aktiv trial. Hvis der stadig
+    // er trial, oprettes invoice item i webhooken til næste faktura.
     const { data: pricingRow } = await supabase
       .from("platform_settings")
       .select("startup_fee_dkk")
