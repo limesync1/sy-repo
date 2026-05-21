@@ -243,9 +243,50 @@ const PlatformBusinessesTab = () => {
     <div className="space-y-4">
       <PageHeader
         title="Virksomheder"
-        description={`${filtered.length} ${filtered.length === 1 ? "virksomhed" : "virksomheder"} matcher`}
+        description={`${total} ${total === 1 ? "virksomhed" : "virksomheder"} matcher · side ${page + 1}/${totalPages}`}
         action={
           <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline" className="h-9 gap-1.5">
+                  <ArrowUpDown className="h-3.5 w-3.5" /> Sortér
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {([
+                  ["created_desc","Nyeste først"],
+                  ["created_asc","Ældste først"],
+                  ["revenue_desc","Højeste omsætning"],
+                  ["orders_desc","Flest ordrer"],
+                  ["last_order_desc","Senest aktive (ordre)"],
+                  ["last_login_desc","Senest logget ind"],
+                  ["name_asc","Navn A→Z"],
+                ] as const).map(([k,l]) => (
+                  <DropdownMenuItem key={k} onClick={() => setSort(k as SortKey)}>
+                    {sort === k ? "✓ " : ""}{l}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline" className="h-9 gap-1.5">
+                  <Star className="h-3.5 w-3.5" /> Visninger
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-64">
+                <DropdownMenuItem onClick={saveCurrentView}>+ Gem nuværende visning</DropdownMenuItem>
+                {views.length === 0 && (
+                  <div className="px-2 py-1.5 text-xs text-muted-foreground">Ingen gemte visninger</div>
+                )}
+                {views.map(v => (
+                  <DropdownMenuItem key={v.id} onClick={() => applyView(v)} className="justify-between gap-2">
+                    <span className="truncate">{v.name}</span>
+                    <button onClick={(e) => { e.stopPropagation(); deleteView(v.id); }} className="text-muted-foreground hover:text-destructive text-xs">×</button>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button size="sm" variant="outline" onClick={handleExport} className="h-9 gap-1.5">
               <Download className="h-3.5 w-3.5" /> CSV
             </Button>
@@ -257,17 +298,19 @@ const PlatformBusinessesTab = () => {
       />
 
       <div className="space-y-2">
-        <SearchInput value={q} onChange={setQ} placeholder="Søg navn, by, kategori..." />
+        <SearchInput value={q} onChange={setQ} placeholder="Søg navn, by, kategori, e-mail..." />
         {/* Chip-filtre med tællere — gør status synlig uden ekstra klik */}
         <div className="flex flex-wrap items-center gap-1.5">
           {([
-            { v: "all", label: "Alle", count: counts.all, tone: "default" },
-            { v: "active_paying", label: "Aktive (betalende)", count: counts.active_paying, tone: "success" },
-            { v: "trial", label: "På prøve", count: counts.trial, tone: "default" },
-            { v: "trial_expiring", label: "Prøve udløber ≤3d", count: counts.trial_expiring, tone: "warning" },
-            { v: "expired_no_card", label: "Prøve udløbet · intet kort", count: counts.expired_no_card, tone: "danger" },
-            { v: "inactive", label: "Inaktive", count: counts.inactive, tone: "default" },
-            { v: "unverified", label: "Ikke verificeret", count: counts.unverified, tone: "default" },
+            { v: "all", label: "Alle", count: counts.all_n ?? 0, tone: "default" },
+            { v: "active_paying", label: "Aktive (betalende)", count: counts.active_paying ?? 0, tone: "success" },
+            { v: "trial", label: "På prøve", count: counts.trial ?? 0, tone: "default" },
+            { v: "trial_expiring", label: "Prøve udløber ≤3d", count: counts.trial_expiring ?? 0, tone: "warning" },
+            { v: "expired_no_card", label: "Prøve udløbet · intet kort", count: counts.expired_no_card ?? 0, tone: "danger" },
+            { v: "inactive", label: "Inaktive", count: counts.inactive ?? 0, tone: "default" },
+            { v: "unverified", label: "Ikke verificeret", count: counts.unverified ?? 0, tone: "default" },
+            { v: "no_orders", label: "Ingen ordrer", count: counts.no_orders ?? 0, tone: "default" },
+            { v: "no_login", label: "Aldrig logget ind", count: counts.no_login ?? 0, tone: "warning" },
           ] as const).map((c) => {
             const active = filter === c.v;
             const toneCls =
@@ -319,7 +362,7 @@ const PlatformBusinessesTab = () => {
 
       {isLoading ? (
         <ListCardSkeleton rows={5} />
-      ) : filtered.length === 0 ? (
+      ) : rows.length === 0 ? (
         <EmptyState
           icon={<Building2 />}
           title="Ingen virksomheder fundet"
@@ -329,15 +372,13 @@ const PlatformBusinessesTab = () => {
         <Card className="rounded-xl border-border shadow-sm overflow-hidden">
           <div className="flex items-center gap-3 border-b border-border bg-secondary/30 px-4 py-2 text-xs font-medium text-muted-foreground">
             <Checkbox checked={allSelected} onCheckedChange={toggleAll} />
-            <span>Vælg alle ({filtered.length})</span>
+            <span>Vælg alle på siden ({rows.length})</span>
+            {isFetching && <Loader2 className="h-3 w-3 animate-spin ml-2" />}
           </div>
           <div className="divide-y divide-border">
-            {filtered.map((b) => {
-              const s = stats?.get(b.id);
-              const p = plans?.get(b.id);
-              const hasCard = !!p?.stripe_payment_method_last4;
-              const trialEnd = p?.trial_ends_at ? new Date(p.trial_ends_at) : null;
-              const daysLeft = trialEnd ? Math.ceil((trialEnd.getTime() - Date.now()) / 86400000) : null;
+            {rows.map((b: any) => {
+              const hasCard = !!b.stripe_payment_method_last4;
+              const daysLeft: number | null = b.days_left ?? null;
               const isExpired = !hasCard && daysLeft !== null && daysLeft <= 0;
               const isWarning = !hasCard && daysLeft !== null && daysLeft > 0 && daysLeft <= 3;
               return (
