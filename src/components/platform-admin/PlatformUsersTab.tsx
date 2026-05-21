@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { exportCsv } from "./lib/csv";
 import { PageHeader, SearchInput, EmptyState, StatCard } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
+import UserDetailSheet, { type UserDetailUser } from "./UserDetailSheet";
 
 interface AdminUser {
   user_id: string;
@@ -32,6 +33,7 @@ const PlatformUsersTab = () => {
   const qc = useQueryClient();
   const [q, setQ] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | "admin" | "business_owner" | "user">("all");
+  const [selected, setSelected] = useState<UserDetailUser | null>(null);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["admin-users-rich"],
@@ -141,7 +143,12 @@ const PlatformUsersTab = () => {
               const isAdmin = u.roles.includes("admin");
               const ls = loginStatus(u.last_sign_in_at);
               return (
-                <div key={u.user_id} className="flex flex-wrap items-center gap-3 px-4 py-3 hover:bg-secondary/30">
+                <button
+                  key={u.user_id}
+                  type="button"
+                  onClick={() => setSelected(u)}
+                  className="w-full flex flex-wrap items-center gap-3 px-4 py-3 text-left hover:bg-secondary/30 focus-visible:bg-secondary/40 focus-visible:outline-none"
+                >
                   <div className="h-9 w-9 shrink-0 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold text-foreground">
                     {(u.display_name || u.email || "?").charAt(0).toUpperCase()}
                   </div>
@@ -176,17 +183,25 @@ const PlatformUsersTab = () => {
                       </span>
                     )}
                     {u.email && (
-                      <Button asChild size="icon" variant="ghost" className="h-9 w-9" aria-label={`Email ${u.email}`}>
+                      <Button
+                        asChild
+                        size="icon"
+                        variant="ghost"
+                        className="h-9 w-9"
+                        aria-label={`Email ${u.email}`}
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <a href={`mailto:${u.email}`}><Mail className="h-4 w-4" /></a>
                       </Button>
                     )}
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
         </Card>
       )}
+      <UserDetailSheet user={selected} onClose={() => setSelected(null)} />
     </div>
   );
 };
