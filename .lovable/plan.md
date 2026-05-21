@@ -347,3 +347,12 @@ Sig "ja" → jeg starter på **Trin 6** (Platform-overblik). Vil du have en ande
 - `business-detail/PlanPanel.tsx`: hele Plan-tabben (prøveperiode, betaling, ejer-overdragelse) udskilt — 158 linjer i egen fil.
 - BusinessDetailSheet skrumpet fra 527 → 330 linjer.
 - Rest: CreateBusinessWizard-split, Header/OrdersPanel-udskillelse, vitest-dækning, fuld a11y-revision — flyttes til separate trin.
+
+## Trin 26b — CreateBusinessWizard split ✅
+- `create-business/shared.tsx`: delte typer (Pricing, BillingPeriod, FeatureKey), konstanter (FEATURES, BILLING_OPTIONS), formatDkk + Field/CopyRow.
+- `create-business/Step1Cvr.tsx`: CVR-opslag + virksomhedsdata + kategori-valg.
+- `create-business/Step2Plan.tsx`: funktioner + ekstra logins + trial + faktureringsperiode + live pris-sidebar.
+- `create-business/Step3Owner.tsx`: ejer-email + adgangskode-mode + velkomstmail-toggle.
+- `create-business/Step4Review.tsx`: resumé + admin-options (force active, audit-note).
+- `create-business/SuccessView.tsx`: success-skærm med copy-rows og "Opret en til".
+- CreateBusinessWizard skrumpet fra 673 → 294 linjer (kun state, mutation og step-orkestrering tilbage).
