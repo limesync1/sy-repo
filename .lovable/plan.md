@@ -380,3 +380,11 @@ Sig "ja" → jeg starter på **Trin 6** (Platform-overblik). Vil du have en ande
 - `businesses/BusinessRow.tsx`: én listerække inkl. plan-badges, sidste login/ordre og handlinger.
 - Mutations konverteret til `useAdminMutation` (samme toast/invalidering, mindre boilerplate).
 - `PlatformBusinessesTab` skrumpet fra 607 → 255 linjer — kun state, query, mutations og layout tilbage.
+
+## Trin 26f — PlatformSubscriptionsTab split ✅
+- `subscriptions/shared.ts`: typer/formattere (`fmtKr`, `fmtDate`, `fmtDateTime`), `asArray`, `churnRiskScore`, `monthlyAmount`, `statusColor` + `planStatusColor`.
+- `subscriptions/PlanRow.tsx`: en SaaS-plan-række med trial-, cancel-, fejlet-betalings- og risk-badges.
+- `subscriptions/PlanDetailDialog.tsx`: detalje-dialog med Stripe-sync, Stripe-dashboard-link, plan-historik fra audit-log + `Field`-helper.
+- `subscriptions/BusinessPlansView.tsx`: KPI-grid, filtre, CSV + MRR-vandfald-eksport, plan-liste.
+- `subscriptions/CustomerSubscriptionsView.tsx`: kunde-abonnementer (recurring services) inkl. `SubscriptionRow` med "snart"/"overskredet"-pille.
+- `PlatformSubscriptionsTab` skrumpet fra 605 → 24 linjer — kun `Tabs`-orkestrering tilbage.
