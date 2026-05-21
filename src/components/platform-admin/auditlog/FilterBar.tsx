@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchInput } from "@/components/admin/shared/AdminUI";
-import { Bookmark, Filter, Save, Star, Trash2 } from "lucide-react";
+import { Bookmark, Filter, Save, Star, Trash2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ACTION_LABELS, DATE_RANGES, type GroupMode, type SavedFilter } from "./shared";
 
@@ -15,11 +15,13 @@ export function FilterBar(props: {
   watchOnly: boolean; setWatchOnly: (v: boolean) => void;
   admins: string[];
   watch: string[];
+  removeWatch?: (email: string) => void;
 }) {
   const { q, setQ, actionFilter, setActionFilter, adminFilter, setAdminFilter,
     rangeFilter, setRangeFilter, groupMode, setGroupMode, watchOnly, setWatchOnly,
-    admins, watch } = props;
+    admins, watch, removeWatch } = props;
   return (
+    <div className="space-y-2">
     <div className="flex flex-wrap items-center gap-2">
       <SearchInput value={q} onChange={setQ} placeholder="Søg admin, virksomhed eller handling..." />
       <Select value={actionFilter} onValueChange={setActionFilter}>
@@ -61,11 +63,34 @@ export function FilterBar(props: {
         size="sm"
         onClick={() => setWatchOnly(!watchOnly)}
         disabled={watch.length === 0}
-        title={watch.length === 0 ? "Tilføj admins til watch via stjernen på rækker" : ""}
+        title={watch.length === 0 ? "Tilføj admins til watch via stjernen på rækker" : `Vis kun handlinger fra ${watch.length} watched admin${watch.length === 1 ? "" : "s"}`}
       >
         <Star className={cn("h-3.5 w-3.5 mr-1.5", watchOnly && "fill-current")} />
         Watch ({watch.length})
       </Button>
+    </div>
+    {watch.length > 0 && (
+      <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-dashed border-border bg-secondary/40 px-2.5 py-1.5">
+        <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Watch-liste:</span>
+        {watch.map((email) => (
+          <span key={email} className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-0.5 text-[11px] font-medium text-foreground">
+            {email}
+            {removeWatch && (
+              <button
+                type="button"
+                onClick={() => removeWatch(email)}
+                className="text-muted-foreground transition-colors hover:text-destructive"
+                aria-label={`Fjern ${email} fra watch`}
+              >
+                <X className="h-3 w-3" aria-hidden="true" />
+              </button>
+            )}
+          </span>
+        ))}
+        <span className="ml-auto text-[10px] text-muted-foreground">Brug stjernen på rækker for at tilføje flere</span>
+      </div>
+    )}
     </div>
   );
 }
