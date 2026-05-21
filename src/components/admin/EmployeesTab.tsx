@@ -765,7 +765,7 @@ const EmployeeRow = ({
                   {formatKr(earning?.earnings ?? 0)}
                 </p>
                 <p className="mt-0.5 text-[10px] text-muted-foreground">
-                  {earning?.stopsCompleted ?? 0} {earning?.stopsCompleted === 1 ? "opgave" : "opgaver"}
+                  {earning?.stopsCompleted ?? 0} {earning?.stopsCompleted === 1 ? "aftale" : "aftaler"}
                 </p>
               </div>
             </TooltipTrigger>
@@ -792,7 +792,7 @@ const EmployeeRow = ({
             className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
           >
             <ListChecks className="h-4 w-4" />
-          </button></TooltipTrigger><TooltipContent>Se opgaver</TooltipContent></Tooltip>
+          </button></TooltipTrigger><TooltipContent>Se aftaler</TooltipContent></Tooltip>
           <Tooltip><TooltipTrigger asChild><button
             onClick={() => {
               setEditName(employee.name || "");
@@ -1149,6 +1149,7 @@ const EmployeeRow = ({
         onOpenChange={setTasksOpen}
         employeeId={employee.id}
         employeeName={employee.name}
+        commissionPct={Number(employee.commission_pct || 0)}
       />
     </div>
     </TooltipProvider>
