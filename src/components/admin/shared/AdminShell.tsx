@@ -94,9 +94,10 @@ const AnimatedNavItem = ({
           onMouseEnter={onPrefetch}
           onFocus={onPrefetch}
           onTouchStart={onPrefetch}
+          aria-current={isActive ? "page" : undefined}
           className={cn(
             "flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-left",
-            "transition-colors duration-150 ease-out",
+            "transition-colors duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30",
             isActive
               ? "bg-secondary text-foreground shadow-sm ring-1 ring-border"
               : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground",
@@ -196,6 +197,14 @@ export const AdminShell = ({
   const { data: plan } = useBusinessPlan(business.id);
   void plan;
 
+  // ESC lukker mobil-sidebar — letter tastatur-navigation.
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setSidebarOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [sidebarOpen]);
+
   // Idle-prefetch — kun den AKTUELLE fanes nabo-faner (dashboard + orders) i
   // stedet for alle 8. Tidligere prefetch af AftaleTab (122KB) + SettingsTab
   // (110KB) trak ~250KB ned ved hver mount og blokerede main-thread. Resten
@@ -246,7 +255,7 @@ export const AdminShell = ({
   };
 
   return (
-    <div className="flex min-h-screen bg-secondary/50">
+    <div className="flex min-h-dvh bg-secondary/50">
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-foreground/40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
@@ -254,9 +263,10 @@ export const AdminShell = ({
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-[248px] flex-col border-r border-border bg-background transition-transform duration-200 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex w-[248px] flex-col border-r border-border bg-background transition-transform duration-200 lg:sticky lg:top-0 lg:h-dvh lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full",
         )}
+        aria-label="Hovednavigation"
       >
         <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
           <Link to="/" className="flex items-center gap-2">

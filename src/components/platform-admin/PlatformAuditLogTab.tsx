@@ -143,6 +143,7 @@ export default function PlatformAuditLogTab() {
         groupMode={groupMode} setGroupMode={setGroupMode}
         watchOnly={watchOnly} setWatchOnly={setWatchOnly}
         admins={admins} watch={watch}
+        removeWatch={(email) => setWatch((prev) => prev.filter((e) => e !== email))}
       />
 
       <SavedFiltersBar

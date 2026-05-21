@@ -6,7 +6,7 @@
 //     <indhold />
 //   </EmployeeShell>
 import { Link, useNavigate } from "react-router-dom";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { LogOut, Menu, X, Calendar as CalendarIcon, BarChart3, MessageCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyEmployee } from "@/hooks/useMyEmployee";
@@ -69,6 +69,14 @@ export const EmployeeShell = ({
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // ESC lukker mobil-sidebar — matcher admin-paneler.
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setSidebarOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [sidebarOpen]);
+
   // Hent virksomhedens egen livechat-indstilling — medarbejderen må kun se
   // livechat-fanen hvis BÅDE virksomheden har funktionen aktiveret OG
   // medarbejderen har fået adgang individuelt.
@@ -109,7 +117,7 @@ export const EmployeeShell = ({
   const accentColor = employee?.color || "hsl(var(--foreground))";
 
   return (
-    <div className="isolate flex min-h-screen bg-secondary/50">
+    <div className="isolate flex min-h-dvh bg-secondary/50">
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-foreground/40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
@@ -117,9 +125,10 @@ export const EmployeeShell = ({
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-[248px] flex-col border-r border-border bg-background transition-transform duration-200 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex w-[248px] flex-col border-r border-border bg-background transition-transform duration-200 lg:sticky lg:top-0 lg:h-dvh lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full",
         )}
+        aria-label="Hovednavigation"
       >
         <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
           <Link to="/" className="flex items-center gap-2">
@@ -179,6 +188,7 @@ export const EmployeeShell = ({
                 onMouseEnter={() => prefetchTab(item.value)}
                 onFocus={() => prefetchTab(item.value)}
                 onTouchStart={() => prefetchTab(item.value)}
+                aria-current={isActive ? "page" : undefined}
                 className={baseClasses}
               >
                 <item.icon className="h-4 w-4 shrink-0" />

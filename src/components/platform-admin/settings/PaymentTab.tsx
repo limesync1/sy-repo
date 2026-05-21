@@ -94,6 +94,11 @@ export default function PaymentTab({ s, set, errors }: Props) {
         </div>
       )}
 
+      <div className="rounded-lg border border-dashed border-border bg-secondary/40 px-3 py-2.5 text-[12px] text-muted-foreground">
+        <p className="mb-1 font-semibold text-foreground">Andre integrationer</p>
+        <p>Lovable AI Gateway, Resend (mails), Google Maps, Mapbox og CVR-opslag administreres via <strong>Connectors</strong> i sidemenuen — nøglerne ligger sikkert på serveren og behøver ikke indtastes her. Stripe-nøglerne ovenfor er kun for kundernes abonnements­betalinger.</p>
+      </div>
+
       {pubMode?.mode === "Test" || secMode?.mode === "Test" ? (
         <p className="flex items-center gap-1.5 rounded-lg bg-amber-500/10 px-3 py-2 text-xs text-amber-700">
           <AlertCircle className="h-3.5 w-3.5 shrink-0" />
