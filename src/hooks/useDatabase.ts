@@ -201,6 +201,7 @@ export const useReviews = (businessId: string | undefined) => {
         .from("reviews")
         .select("*")
         .eq("business_id", businessId!)
+        .is("hidden_at", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;

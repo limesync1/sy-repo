@@ -2596,10 +2596,16 @@ export type Database = {
       }
       reviews: {
         Row: {
+          admin_note: string | null
           business_id: string
           comment: string | null
           created_at: string
           customer_id: string | null
+          flagged_at: string | null
+          flagged_by: string | null
+          flagged_reason: string | null
+          hidden_at: string | null
+          hidden_by: string | null
           id: string
           is_verified: boolean | null
           rating: number
@@ -2607,10 +2613,16 @@ export type Database = {
           subscription_id: string | null
         }
         Insert: {
+          admin_note?: string | null
           business_id: string
           comment?: string | null
           created_at?: string
           customer_id?: string | null
+          flagged_at?: string | null
+          flagged_by?: string | null
+          flagged_reason?: string | null
+          hidden_at?: string | null
+          hidden_by?: string | null
           id?: string
           is_verified?: boolean | null
           rating: number
@@ -2618,10 +2630,16 @@ export type Database = {
           subscription_id?: string | null
         }
         Update: {
+          admin_note?: string | null
           business_id?: string
           comment?: string | null
           created_at?: string
           customer_id?: string | null
+          flagged_at?: string | null
+          flagged_by?: string | null
+          flagged_reason?: string | null
+          hidden_at?: string | null
+          hidden_by?: string | null
           id?: string
           is_verified?: boolean | null
           rating?: number
