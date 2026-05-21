@@ -133,7 +133,7 @@ const PlatformBusinessesTab = () => {
   // Henter abonnements-/plan-info for alle virksomheder, så vi kan vise
   // prøvedage tilbage, månedspris og om der er et aktivt betalingskort.
   const { data: plans } = useQuery({
-    queryKey: ["admin-business-plans"],
+    queryKey: ["admin-business-plans-map"],
     queryFn: async () => {
       const { data, error } = await supabase.from("business_plans").select("*");
       if (error) throw error;
