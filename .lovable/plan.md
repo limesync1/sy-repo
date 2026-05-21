@@ -332,3 +332,10 @@ Sig "ja" → jeg starter på **Trin 6** (Platform-overblik). Vil du have en ande
 - Skabeloner: test-modtager pre-udfyldes med aktuel admins email via supabase.auth.getUser().
 - Blokerede: hver række har "Afblokér"-knap med bekræftelse → kalder RPC, invaliderer cache, toast.
 - Editor + batch-send + udsæt udskudt til senere (kræver større arkitektur).
+
+## Trin 25 — Platform-indstillinger: tabs, sikkerhed, Zod, verifikation ✅
+- Splittet i 3 tabs: Betaling, Priser, Forside (Email/Branding udskudt — ingen felter i datamodel endnu).
+- Vis/skjul-toggle på Stripe secret + webhook (Eye/EyeOff), value gemmes som password som default.
+- Zod-skema (SettingsSchema) med per-felt fejl: regex på sk_/pk_/whsec_ samt min/max-grænser på priser, rabatter og prøvedage.
+- Ny edge function verify-stripe-key (admin-only) kalder Stripe /v1/account → returnerer business-name, country, charges/payouts-status og mode (test/live). Bruges af "Verificér nøgle"-knap.
+- DB-trigger _log_platform_settings_changes på platform_settings logger ændringer af stripe_publishable_key / secret_key / webhook_secret til admin_audit_log med action update_stripe_keys (kun feltnavne og mode, aldrig værdier).
