@@ -1,7 +1,7 @@
 import { RefObject } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { da } from "date-fns/locale";
-import { Inbox, Search, Volume2, VolumeX, ArrowUpDown, MessageCircle, BellOff, CheckCircle2 } from "lucide-react";
+import { Inbox, Search, Volume2, VolumeX, ArrowUpDown, MessageCircle, BellOff, CheckCircle2, Mail } from "lucide-react";
 import type { Conversation, Filter, SortMode } from "./shared";
 import { initials } from "./shared";
 
@@ -136,9 +136,9 @@ export default function InboxList({
                 <p className="mt-0.5 truncate text-[11.5px] text-muted-foreground">{c.subject || c.visitor_email}</p>
                 <div className="mt-1 flex items-center gap-1.5">
                   {c.user_id && <span className="rounded bg-success/10 px-1.5 py-0.5 text-[9px] font-medium text-success">Logget ind</span>}
-                  {c.needs_human && (
-                    <span className="rounded bg-accent px-1.5 py-0.5 text-[9px] font-bold text-accent-foreground">
-                      🙋 Vil tale med menneske
+                  {!c.user_id && c.visitor_email && (
+                    <span className="inline-flex items-center gap-0.5 rounded bg-muted px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground" title={c.visitor_email}>
+                      <Mail className="h-2.5 w-2.5" /> Gæst
                     </span>
                   )}
                   {snoozes[c.id] && (
