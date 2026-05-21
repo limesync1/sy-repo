@@ -3627,6 +3627,7 @@ export type Database = {
         Args: { p_business_id: string; p_confirm_name: string }
         Returns: undefined
       }
+      admin_health_extended: { Args: never; Returns: Json }
       admin_health_stats: { Args: never; Returns: Json }
       admin_list_businesses: {
         Args: {
