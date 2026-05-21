@@ -199,20 +199,21 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
             </p>
           )}
 
-          {/* Tydeligt skema-banner — viser hvornår aftalen skal udføres næste gang.
-              Hjælper ejeren med at se hvilken rute / dag aftalen hører hjemme på. */}
+          {/* Tydeligt skema-banner — viser hvornår aftalen skal udføres næste
+              gang. Bruger flex-wrap + min-w-0 så indholdet aldrig overlapper
+              når sidebaren er smal (Aftaler uden rute har min 16% bredde). */}
           {schedule && (
-            <div className={`flex items-center gap-1.5 rounded-md border px-2 h-6 text-[11px] font-medium ${schedule.tone}`}>
+            <div className={`flex flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-md border px-2 py-1 text-[11px] font-medium min-w-0 ${schedule.tone}`}>
               <CalendarClock className="h-3 w-3 shrink-0" />
               <span className="opacity-70 font-normal">
                 {hasRecurringInterval && !isFirstOccurrence ? "Næste:" : "Opstart:"}
               </span>
-              <span className="font-semibold">{schedule.dayLabel}</span>
+              <span className="font-semibold truncate min-w-0">{schedule.dayLabel}</span>
               {schedule.relative && (
-                <span className="opacity-80">· {schedule.relative}</span>
+                <span className="opacity-80 truncate min-w-0">· {schedule.relative}</span>
               )}
               {job.preferred_time_start && (
-                <span className="opacity-80 ml-auto">
+                <span className="opacity-80 ml-auto tabular-nums shrink-0">
                   {job.preferred_time_start.slice(0, 5)}
                   {job.preferred_time_end && `–${job.preferred_time_end.slice(0, 5)}`}
                 </span>
@@ -220,13 +221,13 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
             </div>
           )}
 
-          {/* Foreslået rute — vises tydeligt så ejeren kan se hvilken rute aftalen
-              normalt hører hjemme på (baseret på abonnementets preferred_route). */}
+          {/* Foreslået rute — flex-wrap + truncate så lange rutenavne ikke
+              skubber andre felter ud af kortet i smal layout. */}
           {job.preferred_route_name && (
-            <div className="flex items-center gap-1.5 rounded-md border border-accent/40 bg-accent/5 px-2 h-6 text-[11px] font-medium text-accent">
+            <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-md border border-accent/40 bg-accent/5 px-2 py-1 text-[11px] font-medium text-accent min-w-0">
               <RouteIcon className="h-3 w-3 shrink-0" />
-              <span>Foreslået rute:</span>
-              <span className="font-semibold truncate">{job.preferred_route_name}</span>
+              <span className="opacity-80 font-normal">Foreslået rute:</span>
+              <span className="font-semibold truncate min-w-0">{job.preferred_route_name}</span>
             </div>
           )}
 
