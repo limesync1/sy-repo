@@ -395,9 +395,9 @@ const PlatformBusinessesTab = () => {
                       <LogIn className="h-3.5 w-3.5" />
                       <span className="hidden sm:inline">Log ind som</span>
                     </Button>
-                    <Link to={`/b/${b.slug}`} target="_blank" rel="noopener noreferrer">
-                      <Button size="sm" variant="ghost" className="h-9 w-9 p-0" aria-label="Åbn"><ExternalLink className="h-3.5 w-3.5" /></Button>
-                    </Link>
+                    <Button asChild size="sm" variant="ghost" className="h-9 w-9 p-0" aria-label="Åbn virksomhedens side">
+                      <Link to={`/b/${b.slug}`} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5" /></Link>
+                    </Button>
                   </div>
                 </div>
               );
