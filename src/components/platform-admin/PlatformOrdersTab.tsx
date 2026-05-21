@@ -3,10 +3,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Mail, Phone, Calendar, Download, Trash2, ChevronDown, ShoppingCart } from "lucide-react";
+import { Mail, Download, Trash2, ChevronDown, ShoppingCart } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -14,6 +13,7 @@ import { useAdminFilters } from "./lib/AdminFiltersContext";
 import { exportCsv } from "./lib/csv";
 import { PageHeader, SearchInput, EmptyState } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
+import OrderDetailSheet from "./OrderDetailSheet";
 
 const STATUS_OPTIONS = [
   { value: "pending", label: "Afventer" },
@@ -37,6 +37,7 @@ const PlatformOrdersTab = () => {
   const qc = useQueryClient();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<string>("all");
+  const [quickFilter, setQuickFilter] = useState<string>("all");
   const [openId, setOpenId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const { inRange, rangeLabel } = useAdminFilters();
@@ -81,9 +82,23 @@ const PlatformOrdersTab = () => {
   });
 
   const filtered = useMemo(() => {
+    const now = Date.now();
+    const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
     return (data || []).filter((o: any) => {
       if (!inRange(o.created_at)) return false;
       if (status !== "all" && o.status !== status) return false;
+      if (quickFilter === "today") {
+        const d = new Date(o.created_at); const t = new Date();
+        if (d.toDateString() !== t.toDateString()) return false;
+      } else if (quickFilter === "week") {
+        if (new Date(o.created_at).getTime() < weekAgo) return false;
+      } else if (quickFilter === "overdue") {
+        if (!(o.due_date && new Date(o.due_date).getTime() < now && o.payment_status !== "paid")) return false;
+      } else if (quickFilter === "unpaid") {
+        if (o.payment_status === "paid" || o.payment_status === "credited" || o.payment_status === "void") return false;
+      } else if (quickFilter === "credited") {
+        if (o.payment_status !== "credited") return false;
+      }
       if (!q.trim()) return true;
       const s = q.toLowerCase();
       return (
@@ -92,14 +107,13 @@ const PlatformOrdersTab = () => {
         o.businesses?.name?.toLowerCase().includes(s)
       );
     });
-  }, [data, q, status, inRange]);
+  }, [data, q, status, quickFilter, inRange]);
 
   const totals = filtered.reduce(
     (acc, o: any) => { acc.gmv += Number(o.total_amount || 0); acc.count += 1; return acc; },
     { gmv: 0, count: 0 }
   );
 
-  const open = data?.find((o: any) => o.id === openId) as any;
   const allSelected = filtered.length > 0 && filtered.every((o: any) => selected.has(o.id));
   const someSelected = selected.size > 0;
 
@@ -147,6 +161,26 @@ const PlatformOrdersTab = () => {
             {STATUS_OPTIONS.map((s) => (<SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>))}
           </SelectContent>
         </Select>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5">
+        {[
+          { v: "all", label: "Alle" },
+          { v: "today", label: "I dag" },
+          { v: "week", label: "Denne uge" },
+          { v: "overdue", label: "Forfaldne" },
+          { v: "unpaid", label: "Ubetalte" },
+          { v: "credited", label: "Kreditnota" },
+        ].map((c) => (
+          <button key={c.v} onClick={() => setQuickFilter(c.v)}
+            className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+              quickFilter === c.v
+                ? "border-foreground bg-foreground text-background"
+                : "border-border bg-background text-muted-foreground hover:text-foreground hover:bg-secondary"
+            }`}>
+            {c.label}
+          </button>
+        ))}
       </div>
 
       {someSelected && (
@@ -219,70 +253,7 @@ const PlatformOrdersTab = () => {
         </Card>
       )}
 
-      <Dialog open={!!openId} onOpenChange={(v) => !v && setOpenId(null)}>
-        <DialogContent className="max-w-lg">
-          {open && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="flex items-center justify-between gap-3">
-                  <span>Ordre #{String(open.id).slice(0, 8)}</span>
-                  <Badge className={`${statusColors[open.status] || ""} border`}>
-                    {STATUS_OPTIONS.find((s) => s.value === open.status)?.label || open.status}
-                  </Badge>
-                </DialogTitle>
-              </DialogHeader>
-
-              <div className="space-y-4 text-sm">
-                <div className="rounded-lg border border-border p-3 space-y-1">
-                  <p className="font-semibold text-foreground">{open.customer_name}</p>
-                  <p className="flex items-center gap-1.5 text-muted-foreground"><Mail className="h-3 w-3" />{open.customer_email}</p>
-                  {open.customer_phone && <p className="flex items-center gap-1.5 text-muted-foreground"><Phone className="h-3 w-3" />{open.customer_phone}</p>}
-                  <p className="flex items-center gap-1.5 text-muted-foreground"><Calendar className="h-3 w-3" />{new Date(open.created_at).toLocaleString("da-DK")}</p>
-                  <p className="text-muted-foreground">Virksomhed: <span className="text-foreground">{open.businesses?.name || "—"}</span></p>
-                </div>
-
-                {open.order_items?.length > 0 && (
-                  <div>
-                    <p className="mb-1.5 text-xs font-semibold uppercase text-muted-foreground tracking-wider">Linjer</p>
-                    <div className="rounded-lg border border-border divide-y divide-border">
-                      {open.order_items.map((it: any) => (
-                        <div key={it.id} className="flex justify-between px-3 py-2 text-sm">
-                          <span className="text-foreground">{it.service_name} <span className="text-muted-foreground">× {it.quantity}</span></span>
-                          <span className="tabular-nums font-medium">{fmtKr(it.total_price)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {open.notes && (
-                  <div className="rounded-lg bg-secondary/50 p-3 text-xs text-muted-foreground">
-                    <p className="font-semibold mb-1 text-foreground">Noter</p>{open.notes}
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between border-t border-border pt-3">
-                  <span className="text-sm font-semibold">Total</span>
-                  <span className="text-lg font-bold tabular-nums">{fmtKr(open.total_amount)}</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Skift status:</span>
-                  <Select value={open.status} onValueChange={(v) => updateStatus.mutate({ ids: [open.id], newStatus: v })}>
-                    <SelectTrigger className="w-[160px] h-9"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {STATUS_OPTIONS.map((s) => (<SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>))}
-                    </SelectContent>
-                  </Select>
-                  <a href={`mailto:${open.customer_email}`} className="ml-auto">
-                    <Button size="sm" variant="outline" className="h-9 gap-1.5"><Mail className="h-3.5 w-3.5" /> Email</Button>
-                  </a>
-                </div>
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+      <OrderDetailSheet orderId={openId} onClose={() => setOpenId(null)} />
     </div>
   );
 };
