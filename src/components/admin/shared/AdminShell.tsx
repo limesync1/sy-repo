@@ -360,6 +360,14 @@ export const AdminShell = ({
         </nav>
 
         <div className={cn("shrink-0 space-y-1 border-t border-border py-3", collapsed ? "px-2" : "px-3")}>
+          {isSoloOwnerEmployee && (
+            <SidebarFooterItem
+              icon={Truck}
+              label="Skift til medarbejder"
+              onClick={() => navigate("/medarbejder")}
+              collapsed={collapsed}
+            />
+          )}
           <SidebarFooterItem icon={ExternalLink} label="Se din side" href={`/v/${business.slug}`} collapsed={collapsed} />
           <SidebarFooterItem icon={LogOut} label="Log ud" onClick={signOut} collapsed={collapsed} danger />
         </div>
