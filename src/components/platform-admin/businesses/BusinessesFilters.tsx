@@ -1,90 +1,9 @@
 import { ArrowUpDown, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { SearchInput } from "@/components/admin/shared/AdminUI";
-import {
-  SORT_OPTIONS, buildChips,
-  type FilterKey, type SortKey, type SavedView,
-} from "./types";
+import { SORT_OPTIONS, buildChips, type FilterKey, type SortKey, type SavedView } from "./types";
 
-interface Props {
-  q: string;
-  onQChange: (v: string) => void;
-  filter: FilterKey;
-  onFilterChange: (v: FilterKey) => void;
-  sort: SortKey;
-  onSortChange: (v: SortKey) => void;
-  counts: Record<string, number>;
-  views: SavedView[];
-  onSaveView: () => void;
-  onApplyView: (v: SavedView) => void;
-  onDeleteView: (id: string) => void;
-}
-
-/** Toolbar (sort + saved views) samt søgefelt og chip-filtre med tællere. */
-export const BusinessesFilters = ({
-  q, onQChange, filter, onFilterChange, sort, onSortChange,
-  counts, views, onSaveView, onApplyView, onDeleteView,
-}: Props) => {
-  const chips = buildChips(counts);
-  return (
-    <>
-      <div className="hidden">
-        {/* SortMenu + ViewsMenu mountes inde i header'en — kept here for context only */}
-      </div>
-      <div className="space-y-2">
-        <SearchInput value={q} onChange={onQChange} placeholder="Søg navn, by, kategori, e-mail..." />
-        <div className="flex flex-wrap items-center gap-1.5">
-          {chips.map((c) => {
-            const active = filter === c.v;
-            const toneCls = active
-              ? c.tone === "success" ? "bg-emerald-600 text-white border-emerald-600"
-              : c.tone === "warning" ? "bg-amber-600 text-white border-amber-600"
-              : c.tone === "danger"  ? "bg-destructive text-destructive-foreground border-destructive"
-              : "bg-foreground text-background border-foreground"
-              : "bg-background text-muted-foreground border-border hover:bg-secondary hover:text-foreground";
-            return (
-              <button
-                key={c.v}
-                onClick={() => onFilterChange(c.v)}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${toneCls}`}
-              >
-                {c.label}
-                <span className={`tabular-nums text-[10px] rounded-full px-1.5 py-0.5 ${active ? "bg-background/20" : "bg-secondary text-muted-foreground"}`}>
-                  {c.count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-      <SortAndViewsMenus
-        sort={sort}
-        onSortChange={onSortChange}
-        views={views}
-        onSaveView={onSaveView}
-        onApplyView={onApplyView}
-        onDeleteView={onDeleteView}
-      />
-    </>
-  );
-};
-
-/** Sort + Visninger dropdowns — bruges i PageHeader-action af orchestratoren. */
-export const SortAndViewsMenus = ({
-  sort, onSortChange, views, onSaveView, onApplyView, onDeleteView,
-}: {
-  sort: SortKey;
-  onSortChange: (v: SortKey) => void;
-  views: SavedView[];
-  onSaveView: () => void;
-  onApplyView: (v: SavedView) => void;
-  onDeleteView: (id: string) => void;
-}) => (
-  <div className="hidden" aria-hidden />
-);
-
-/** Eksporter render-funktioner direkte til brug i header. */
+/** Sort-dropdown til toolbar. */
 export const SortMenu = ({ sort, onSortChange }: { sort: SortKey; onSortChange: (v: SortKey) => void }) => (
   <DropdownMenu>
     <DropdownMenuTrigger asChild>
@@ -133,3 +52,39 @@ export const ViewsMenu = ({
     </DropdownMenuContent>
   </DropdownMenu>
 );
+
+/** Chip-filtre med tællere — én knap pr. status. */
+export const BusinessChips = ({
+  filter, onFilterChange, counts,
+}: {
+  filter: FilterKey;
+  onFilterChange: (v: FilterKey) => void;
+  counts: Record<string, number>;
+}) => {
+  const chips = buildChips(counts);
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {chips.map((c) => {
+        const active = filter === c.v;
+        const toneCls = active
+          ? c.tone === "success" ? "bg-emerald-600 text-white border-emerald-600"
+          : c.tone === "warning" ? "bg-amber-600 text-white border-amber-600"
+          : c.tone === "danger"  ? "bg-destructive text-destructive-foreground border-destructive"
+          : "bg-foreground text-background border-foreground"
+          : "bg-background text-muted-foreground border-border hover:bg-secondary hover:text-foreground";
+        return (
+          <button
+            key={c.v}
+            onClick={() => onFilterChange(c.v)}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${toneCls}`}
+          >
+            {c.label}
+            <span className={`tabular-nums text-[10px] rounded-full px-1.5 py-0.5 ${active ? "bg-background/20" : "bg-secondary text-muted-foreground"}`}>
+              {c.count}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+};
