@@ -9,6 +9,7 @@ import { CheckCircle2, ExternalLink, Globe, Copy, Loader2, Rocket, Lock, Refresh
 import { PageHeader, EmptyState } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 import { DomainRow, SslInfo, STATUS_LABEL, LOVABLE_PROJECT_DOMAINS_URL, renderSslBadge } from "./domains/shared";
+import DomainGuide from "./domains/DomainGuide";
 
 const PlatformDomainsTab = () => {
   const qc = useQueryClient();
@@ -157,6 +158,8 @@ const PlatformDomainsTab = () => {
         title="Custom domæner"
         description="Kø af kunders egne domæner. DNS verificeres automatisk — du markerer manuelt når domænet er tilføjet på hosting-platformen og SSL er udstedt."
       />
+
+      <DomainGuide />
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap gap-2">
