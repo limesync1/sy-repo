@@ -17,6 +17,11 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { useBusinessPlan } from "@/hooks/useBusinessPlan";
+import {
+  SidebarNavButton, SidebarCollapseToggle, SidebarFooterItem,
+  SIDEBAR_WIDTH_COLLAPSED, SIDEBAR_WIDTH_EXPANDED,
+} from "@/components/shared/sidebar/SidebarParts";
+import { useSidebarCollapsed } from "@/components/shared/sidebar/useSidebarCollapsed";
 
 export type AdminTabKey =
   | "dashboard" | "services" | "orders" | "customers"
@@ -29,13 +34,14 @@ export type AdminTabKey =
  * det signalerede "noget vigtigt skete" hver gang en menu blev hentet.
  */
 const AnimatedNavItem = ({
-  visible, isActive, item, onClick, onPrefetch,
+  visible, isActive, item, onClick, onPrefetch, collapsed,
 }: {
   visible: boolean;
   isActive: boolean;
   item: NavItem;
   onClick: () => void;
   onPrefetch: () => void;
+  collapsed: boolean;
 }) => {
   const [shouldRender, setShouldRender] = useState(visible);
   const [open, setOpen] = useState(visible);
@@ -89,23 +95,16 @@ const AnimatedNavItem = ({
       )}
     >
       <div className={cn(open ? "overflow-visible" : "overflow-hidden")}>
-        <button
+        <SidebarNavButton
+          icon={item.icon}
+          label={item.label}
+          active={isActive}
+          collapsed={collapsed}
           onClick={onClick}
           onMouseEnter={onPrefetch}
           onFocus={onPrefetch}
           onTouchStart={onPrefetch}
-          aria-current={isActive ? "page" : undefined}
-          className={cn(
-            "flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-left",
-            "transition-colors duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30",
-            isActive
-              ? "bg-secondary text-foreground shadow-sm ring-1 ring-border"
-              : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground",
-          )}
-        >
-          <item.icon className="h-4 w-4 shrink-0" />
-          <span>{item.label}</span>
-        </button>
+        />
       </div>
     </div>
   );
@@ -196,6 +195,8 @@ export const AdminShell = ({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { data: plan } = useBusinessPlan(business.id);
   void plan;
+  const { collapsed, toggle: toggleCollapsed } = useSidebarCollapsed("sy.sidebar.collapsed.business");
+  const sidebarPx = collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH_EXPANDED;
 
   // ESC lukker mobil-sidebar — letter tastatur-navigation.
   useEffect(() => {
@@ -262,18 +263,19 @@ export const AdminShell = ({
 
       {/* Sidebar */}
       <aside
+        style={{ width: `${sidebarPx}px` }}
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-[248px] flex-col border-r border-border bg-background transition-transform duration-200 lg:sticky lg:top-0 lg:h-dvh lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-border bg-background transition-[transform,width] duration-200 lg:sticky lg:top-0 lg:h-dvh lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full",
         )}
         aria-label="Hovednavigation"
       >
-        <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
-          <Link to="/" className="flex items-center gap-2">
+        <div className={cn("flex h-14 shrink-0 items-center justify-between border-b border-border", collapsed ? "px-2" : "px-4")}>
+          <Link to="/" className="flex items-center gap-2 overflow-hidden" aria-label="Forside">
             <img
               src="/serviceydere-logo-dark.webp"
               alt="Serviceydere"
-              className="h-9 w-auto"
+              className={cn("w-auto", collapsed ? "h-8" : "h-9")}
               width={1920}
               height={539}
               decoding="async"
@@ -290,7 +292,13 @@ export const AdminShell = ({
         </div>
 
         {/* Business info */}
-        <div className="mx-3 mt-3 mb-3 shrink-0 rounded-xl border border-border bg-card px-3 py-3 shadow-sm">
+        <div
+          className={cn(
+            "mt-3 mb-3 shrink-0 rounded-xl border border-border bg-card shadow-sm",
+            collapsed ? "mx-2 px-2 py-2" : "mx-3 px-3 py-3",
+          )}
+          title={collapsed ? business.name : undefined}
+        >
           <div className="flex items-center gap-2">
             {business.logo_url ? (
               <img
@@ -307,16 +315,18 @@ export const AdminShell = ({
                 {business.name.charAt(0)}
               </div>
             )}
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-foreground">{business.name}</p>
-              {business.categories && business.categories.length > 0 && (
-                <p className="truncate text-xs text-muted-foreground">{(business.categories as string[]).join(", ")}</p>
-              )}
-            </div>
+            {!collapsed && (
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-foreground">{business.name}</p>
+                {business.categories && business.categories.length > 0 && (
+                  <p className="truncate text-xs text-muted-foreground">{(business.categories as string[]).join(", ")}</p>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
-        <nav className="flex-1 px-3 pt-1 pb-2 overflow-y-auto">
+        <nav className={cn("flex-1 pt-1 pb-2 overflow-y-auto", collapsed ? "px-2" : "px-3")}>
           {NAV_ITEMS.map((item) => {
             const visible =
               !(item.requiresRoutePlanning && !routePlanningEnabled) &&
@@ -331,26 +341,16 @@ export const AdminShell = ({
                 item={item}
                 onClick={() => handleNavClick(item)}
                 onPrefetch={() => prefetchTab(item.value)}
+                collapsed={collapsed}
               />
             );
           })}
         </nav>
 
-        <div className="shrink-0 border-t border-border px-3 py-3 space-y-1">
-          <Link
-            to={`/v/${business.slug}`}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-          >
-            <ExternalLink className="h-4 w-4 shrink-0" />
-            Se din side
-          </Link>
-          <button
-            onClick={signOut}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-          >
-            <LogOut className="h-4 w-4 shrink-0" />
-            Log ud
-          </button>
+        <div className={cn("shrink-0 space-y-1 border-t border-border py-3", collapsed ? "px-2" : "px-3")}>
+          <SidebarFooterItem icon={ExternalLink} label="Se din side" href={`/v/${business.slug}`} collapsed={collapsed} />
+          <SidebarFooterItem icon={LogOut} label="Log ud" onClick={signOut} collapsed={collapsed} danger />
+          <div className="pt-1"><SidebarCollapseToggle collapsed={collapsed} onToggle={toggleCollapsed} /></div>
         </div>
       </aside>
 
