@@ -1375,9 +1375,47 @@ const ServiceForm = ({
               <div>
                 <h4 className="text-base font-semibold text-foreground">Opsæt prisberegner</h4>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Vælg en skabelon der passer til din service — eller byg trinnene manuelt.
+                  Du bestemmer: vælg en skabelon, lad AI bygge en til dig — eller byg trinnene manuelt fra bunden.
                 </p>
               </div>
+
+              {steps.length === 0 && (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={() => generateAiTemplate()}
+                    disabled={aiTemplateLoading || !name.trim()}
+                    className="flex items-start gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:border-foreground/40 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary">
+                      {aiTemplateLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground">
+                        {aiTemplateLoading ? "AI bygger din beregner…" : "Lad AI bygge prisberegneren"}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        Skræddersyet til {subcategory || serviceCategory || "din service"} på få sekunder.
+                      </p>
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={startFromScratch}
+                    className="flex items-start gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:border-foreground/40 hover:shadow-sm"
+                  >
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary">
+                      <Plus className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground">Byg fra bunden</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        Start med ét tomt trin og tilpas alt selv.
+                      </p>
+                    </div>
+                  </button>
+                </div>
+              )}
 
               {rankedTemplates.length > 0 && (
                 <div className="space-y-3">
