@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import {
-  Mail, KeyRound, Send, Lock, Building2, ShoppingBag, Shield, ExternalLink, Clock,
+  Mail, KeyRound, Send, Lock, Building2, ShoppingBag, Shield, ExternalLink, Clock, UserCheck,
 } from "lucide-react";
 
 export interface UserDetailUser {
@@ -47,6 +47,7 @@ export default function UserDetailSheet({ user, onClose }: Props) {
   const open = !!user;
   const userId = user?.user_id ?? null;
   const [sending, setSending] = useState<"reset" | "magic" | null>(null);
+  const [impersonating, setImpersonating] = useState(false);
 
   // Virksomheder hvor brugeren er ejer
   const { data: businesses } = useQuery({
@@ -95,6 +96,27 @@ export default function UserDetailSheet({ user, onClose }: Props) {
       toast.error(e?.message || "Kunne ikke sende");
     } finally {
       setSending(null);
+    }
+  };
+
+  const impersonate = async () => {
+    if (!user?.user_id) return;
+    if (!confirm("Log ind som denne bruger?\n\nDu bør åbne linket i et inkognito-vindue så din admin-session ikke overskrives. Handlingen logges i audit-loggen.")) return;
+    setImpersonating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-user-action", {
+        body: { action: "impersonate", user_id: user.user_id, redirect_to: `${window.location.origin}/business-portal` },
+      });
+      if (error) throw error;
+      const link = (data as any)?.action_link;
+      if (!link) throw new Error("Ingen link returneret");
+      await navigator.clipboard.writeText(link).catch(() => {});
+      window.open(link, "_blank", "noopener,noreferrer");
+      toast.success("Impersonations-link åbnet + kopieret. Brug helst inkognito.");
+    } catch (e: any) {
+      toast.error(e?.message || "Kunne ikke impersonere");
+    } finally {
+      setImpersonating(false);
     }
   };
 
