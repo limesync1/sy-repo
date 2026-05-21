@@ -71,12 +71,13 @@ kvalitetsproblemer afdækket ved en ny gennemgang af hver fane.
 - ✅ Faktura-nummer + forfaldsdato vises i rækken; ikon hvis faktura findes.
 - Rest: inline rediger total/note, "send rykker"-bulk-handling — flyttes til separat trin.
 
-### Trin 18 — Abonnementer (`PlatformSubscriptionsTab`)
-- Stripe-sync-knap pr. række (kald `sync-subscription-from-stripe`).
-- Failed-payment-rækker fremhævet rødt + retry-knap.
-- "Churn risk"-score baseret på inaktivitet + past_due + lav brug.
-- Plan-skift-historik i `SubscriptionDetailSheet` (ny komponent — mangler).
-- Eksport: MRR-vandfald som CSV til regnskab.
+### Trin 18 — Abonnementer (`PlatformSubscriptionsTab`) ✅
+- ✅ Ny edge function `admin-sync-business-plan` henter live status fra Stripe og opdaterer rækken (+ audit-log).
+- ✅ "Synkronisér Stripe"-knap i `PlanDetailDialog` med spinner.
+- ✅ Plan-historik vises i dialogen (læser `admin_audit_log` filtreret pr. business_plan).
+- ✅ "MRR-vandfald (30d)" CSV-eksport: ny / churn / netto pr. virksomhed til regnskab.
+- ✅ Churn-risk score + filter-toggle (allerede på plads).
+- Rest: realtime past_due-banner + "send rykker"-bulk — flyttes til separat trin.
 
 ### Trin 19 — Anmeldelser (`PlatformReviewsTab`)
 - Admin-svar direkte fra listen (i dag kun "se anmeldelse").
