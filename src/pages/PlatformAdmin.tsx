@@ -1,10 +1,10 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { Navigate, Link } from "react-router-dom";
-import { useState, lazy, Suspense } from "react";
+import { useState, lazy, Suspense, useEffect } from "react";
 import {
   LayoutDashboard, Building2, Users, ShoppingCart, Star,
-  LogOut, Menu, X, Repeat, Settings, MessageCircle, ExternalLink, Globe, History,
+  LogOut, Menu, X, Repeat, Settings, MessageCircle, ExternalLink, Globe, History, Search,
 } from "lucide-react";
 import SEO from "@/components/SEO";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,7 @@ import { PageTransition } from "@/components/admin/shared/PageTransition";
 import { PageSkeleton, ShellSkeleton, StatGridSkeleton, ChartSkeleton, ListCardSkeleton, PageHeaderSkeleton, FilterBarSkeleton, FormSkeleton } from "@/components/admin/shared/Skeletons";
 import { TabErrorBoundary } from "@/components/admin/shared/TabErrorBoundary";
 import { TabPerfTracker } from "@/components/admin/shared/usePerfMark";
+import AdminCommandPalette from "@/components/platform-admin/AdminCommandPalette";
 
 // Lazy-load alle tabs så hver fane først downloades når brugeren rent faktisk
 // åbner den. Det matcher mønstret i virksomhedspanelet (Admin.tsx) og holder
@@ -29,18 +30,32 @@ const PlatformLiveChatTab = lazy(() => import("@/components/platform-admin/Platf
 const PlatformDomainsTab = lazy(() => import("@/components/platform-admin/PlatformDomainsTab"));
 const PlatformAuditLogTab = lazy(() => import("@/components/platform-admin/PlatformAuditLogTab"));
 
-const NAV = [
-  { value: "overview", label: "Overblik", icon: LayoutDashboard, hasRange: true },
-  { value: "businesses", label: "Virksomheder", icon: Building2, hasRange: false },
-  { value: "users", label: "Brugere", icon: Users, hasRange: false },
-  { value: "orders", label: "Ordrer", icon: ShoppingCart, hasRange: true },
-  { value: "subscriptions", label: "Abonnementer", icon: Repeat, hasRange: false },
-  { value: "reviews", label: "Anmeldelser", icon: Star, hasRange: false },
-  { value: "livechat", label: "Livechat", icon: MessageCircle, hasRange: false },
-  { value: "domains", label: "Domæner", icon: Globe, hasRange: false },
-  { value: "audit", label: "Aktivitetslog", icon: History, hasRange: false },
-  { value: "settings", label: "Platform", icon: Settings, hasRange: false },
+// Sidebar er nu delt i to logiske grupper. Det reducerer kognitiv belastning
+// når man scanner 10+ menupunkter, og gør "drift"-flowet (det man bruger dagligt)
+// visuelt adskilt fra "system"-fanerne (som åbnes sjældnere).
+const NAV_GROUPS: { label: string; items: { value: string; label: string; icon: any; hasRange?: boolean }[] }[] = [
+  {
+    label: "Drift",
+    items: [
+      { value: "overview", label: "Overblik", icon: LayoutDashboard, hasRange: true },
+      { value: "businesses", label: "Virksomheder", icon: Building2 },
+      { value: "users", label: "Brugere", icon: Users },
+      { value: "orders", label: "Ordrer", icon: ShoppingCart, hasRange: true },
+      { value: "subscriptions", label: "Abonnementer", icon: Repeat },
+    ],
+  },
+  {
+    label: "Indhold & system",
+    items: [
+      { value: "reviews", label: "Anmeldelser", icon: Star },
+      { value: "livechat", label: "Livechat", icon: MessageCircle },
+      { value: "domains", label: "Domæner", icon: Globe },
+      { value: "audit", label: "Aktivitetslog", icon: History },
+      { value: "settings", label: "Platform", icon: Settings },
+    ],
+  },
 ];
+const NAV = NAV_GROUPS.flatMap((g) => g.items);
 
 // Prefetch — start download af en tab så snart musen rammer dens nav-knap.
 // Når brugeren rent faktisk klikker er bundle (og ofte data) klar, og fane-skift
@@ -123,6 +138,15 @@ const PlatformAdmin = () => {
   const { data: isAdmin, isLoading: roleLoading } = useIsAdmin();
   const [tab, setTab] = useState("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [cmdOpen, setCmdOpen] = useState(false);
+
+  // ESC lukker mobil-sidebar — manglede tidligere.
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setSidebarOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [sidebarOpen]);
 
   if (loading || roleLoading) {
     // Vis layout-skeleton fra første millisekund — ingen blank skærm.
@@ -184,27 +208,34 @@ const PlatformAdmin = () => {
           </div>
 
           <nav className="flex-1 space-y-1 overflow-y-auto px-3 pt-1 pb-2">
-            {NAV.map((item) => {
-              const active = tab === item.value;
-              return (
-                <button
-                  key={item.value}
-                  onClick={() => { setTab(item.value); setSidebarOpen(false); }}
-                  onMouseEnter={() => prefetchTab(item.value)}
-                  onFocus={() => prefetchTab(item.value)}
-                  onTouchStart={() => prefetchTab(item.value)}
-                  className={cn(
-                    "flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-left transition-colors duration-150",
-                    active
-                      ? "bg-secondary text-foreground shadow-sm ring-1 ring-border"
-                      : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground",
-                  )}
-                >
-                  <item.icon className="h-4 w-4 shrink-0" />
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
+            {NAV_GROUPS.map((group, gi) => (
+              <div key={group.label} className={cn(gi > 0 && "pt-3")}>
+                <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+                  {group.label}
+                </p>
+                {group.items.map((item) => {
+                  const active = tab === item.value;
+                  return (
+                    <button
+                      key={item.value}
+                      onClick={() => { setTab(item.value); setSidebarOpen(false); }}
+                      onMouseEnter={() => prefetchTab(item.value)}
+                      onFocus={() => prefetchTab(item.value)}
+                      onTouchStart={() => prefetchTab(item.value)}
+                      className={cn(
+                        "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-left transition-colors duration-150",
+                        active
+                          ? "bg-secondary text-foreground shadow-sm ring-1 ring-border"
+                          : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground",
+                      )}
+                    >
+                      <item.icon className="h-4 w-4 shrink-0" />
+                      <span>{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
           </nav>
 
           <div className="shrink-0 space-y-1 border-t border-border px-3 py-3">
@@ -234,12 +265,23 @@ const PlatformAdmin = () => {
             >
               <Menu className="h-5 w-5" />
             </button>
-            <h1 className="truncate text-sm font-medium text-muted-foreground">
-              Platform <span className="text-foreground/40">/</span>{" "}
-              <span className="text-foreground">{current?.label}</span>
+            <h1 className="truncate text-sm font-semibold text-foreground">
+              {current?.label}
             </h1>
+
+            {/* Cmd+K søgning — hurtig adgang til virksomheder og faner */}
+            <button
+              onClick={() => setCmdOpen(true)}
+              className="ml-auto inline-flex items-center gap-2 rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              aria-label="Søg (Cmd+K)"
+            >
+              <Search className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Søg…</span>
+              <kbd className="hidden sm:inline-flex h-5 items-center rounded border border-border bg-secondary px-1.5 font-mono text-[10px] font-semibold text-muted-foreground">⌘K</kbd>
+            </button>
+
             {current?.hasRange && (
-              <div className="ml-auto flex items-center gap-2 min-w-0">
+              <div className="flex items-center gap-2 min-w-0">
                 <RangePicker />
               </div>
             )}
@@ -267,6 +309,8 @@ const PlatformAdmin = () => {
             </PageTransition>
           </main>
         </div>
+
+        <AdminCommandPalette open={cmdOpen} onOpenChange={setCmdOpen} onSelectTab={setTab} />
       </div>
     </AdminFiltersProvider>
   );
