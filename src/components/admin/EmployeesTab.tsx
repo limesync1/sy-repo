@@ -7,7 +7,7 @@ import {
 import { useEmployeeEarnings } from "@/hooks/useEmployeeEarnings";
 import { useBusinessPlan } from "@/hooks/useBusinessPlan";
 import { Link } from "react-router-dom";
-import { formatKr } from "@/lib/commission";
+import { formatKr, calcEmployeeShare } from "@/lib/commission";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
