@@ -24,7 +24,6 @@ interface Props {
   onClose: () => void;
 }
 
-const fmtKr = (n: number) => `${Math.round(n).toLocaleString("da-DK")} kr`;
 const fmtDate = (s: string | null | undefined) =>
   s ? new Date(s).toLocaleDateString("da-DK", { day: "2-digit", month: "short", year: "numeric" }) : "—";
 
