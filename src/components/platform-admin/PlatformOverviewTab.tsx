@@ -9,6 +9,8 @@ import { OverviewPulse } from "./overview/OverviewPulse";
 import { OverviewKpis } from "./overview/OverviewKpis";
 import { OverviewGrowthChart } from "./overview/OverviewGrowthChart";
 import { OverviewTopLists } from "./overview/OverviewTopLists";
+import { OverviewInsights } from "./overview/OverviewInsights";
+import { OverviewFunnel } from "./overview/OverviewFunnel";
 
 interface OverviewProps { onNavigate?: (tab: string) => void }
 
@@ -53,9 +55,13 @@ const PlatformOverviewTab = ({ onNavigate }: OverviewProps) => {
           </Button>
         }
       />
+      <OverviewInsights snapshot={data} pulse={pulse} />
       <OverviewPulse pulse={pulse} onNavigate={onNavigate} />
       <OverviewKpis snapshot={data} />
-      <OverviewGrowthChart series={data.series} rangeLabel={rangeLabel} />
+      <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
+        <OverviewGrowthChart series={data.series} rangeLabel={rangeLabel} />
+        <OverviewFunnel snapshot={data} />
+      </div>
       <OverviewTopLists snapshot={data} rangeLabel={rangeLabel} />
     </div>
   );
