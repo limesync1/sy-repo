@@ -63,6 +63,14 @@ export const useCreateEmployee = () => {
     },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["employees", vars.business_id] });
+      // Når en virksomhedsejer opretter sig selv som første medarbejder,
+      // får deres auth-user pludselig 'employee'-rollen. Tving både rolle-
+      // cachen og "min medarbejder"-cachen til at refetche, så panel-
+      // switcheren ("Skift panel") og sidebar-genvejen ("Skift til
+      // medarbejder") med det samme viser medarbejderpanelet uden at
+      // brugeren skal reloade siden.
+      qc.invalidateQueries({ queryKey: ["user-roles"] });
+      qc.invalidateQueries({ queryKey: ["my-employee"] });
     },
   });
 };
