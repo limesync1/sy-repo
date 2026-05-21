@@ -14,9 +14,11 @@ import {
   Share2, Eye, Calendar, MessageSquare, Link2, Check,
   Zap, Target, Settings as SettingsIcon, Users,
   Search, X, Inbox, Rocket, PartyPopper, ArrowUpDown,
+  HelpCircle,
 } from "lucide-react";
 import type { Business } from "@/hooks/useDatabase";
 import { useMemo, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { EmptyState } from "@/components/admin/shared/AdminUI";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -61,6 +63,13 @@ const DashboardTab = ({
   pendingOrders, recentOrders, reviews, services, onNavigate,
 }: Props) => {
   const [copied, setCopied] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const openGuide = () => {
+    const params = new URLSearchParams(location.search);
+    params.set("guide", "1");
+    navigate({ pathname: location.pathname, search: `?${params.toString()}` }, { replace: true });
+  };
   // Stat-detalje-panel — hvilken metric vi har åbnet, hvis nogen.
   const [openStat, setOpenStat] = useState<null | "revenue" | "orders" | "today" | "pending" | "rating">(null);
   // Filtre på "Seneste bestillinger" — status-pille + søgetekst.
@@ -285,6 +294,13 @@ const DashboardTab = ({
 
           {business.slug && (
             <div className="flex flex-wrap items-center gap-2 lg:shrink-0">
+              <button
+                type="button"
+                onClick={openGuide}
+                className="inline-flex items-center gap-1.5 rounded-full border border-background/20 bg-background/10 px-3.5 py-2 text-xs font-semibold text-background backdrop-blur-sm transition-colors hover:bg-background/15"
+              >
+                <HelpCircle className="h-3.5 w-3.5" /> Se guide til panelet
+              </button>
               <a
                 href={`/v/${business.slug}`} target="_blank" rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 rounded-full border border-background/20 bg-background/10 px-3.5 py-2 text-xs font-semibold text-background backdrop-blur-sm transition-colors hover:bg-background/15"
