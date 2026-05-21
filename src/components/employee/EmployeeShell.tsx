@@ -14,6 +14,11 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import {
+  SidebarNavButton, SidebarCollapseToggle, SidebarFooterItem,
+  SIDEBAR_WIDTH_COLLAPSED, SIDEBAR_WIDTH_EXPANDED,
+} from "@/components/shared/sidebar/SidebarParts";
+import { useSidebarCollapsed } from "@/components/shared/sidebar/useSidebarCollapsed";
 
 export type EmployeeTabKey = "today" | "stats" | "livechat";
 
@@ -68,6 +73,7 @@ export const EmployeeShell = ({
   const { data: employee } = useMyEmployee();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { collapsed, toggle: toggleCollapsed } = useSidebarCollapsed("sy.sidebar.collapsed.employee");
 
   // ESC lukker mobil-sidebar — matcher admin-paneler.
   useEffect(() => {
@@ -115,6 +121,7 @@ export const EmployeeShell = ({
     .map((p) => p.charAt(0).toUpperCase())
     .join("") || "M";
   const accentColor = employee?.color || "hsl(var(--foreground))";
+  const sidebarPx = collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH_EXPANDED;
 
   return (
     <div className="isolate flex min-h-dvh bg-secondary/50">
@@ -124,18 +131,19 @@ export const EmployeeShell = ({
 
       {/* Sidebar */}
       <aside
+        style={{ width: `${sidebarPx}px` }}
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-[248px] flex-col border-r border-border bg-background transition-transform duration-200 lg:sticky lg:top-0 lg:h-dvh lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-border bg-background transition-[transform,width] duration-200 lg:sticky lg:top-0 lg:h-dvh lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full",
         )}
         aria-label="Hovednavigation"
       >
-        <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
-          <Link to="/" className="flex items-center gap-2">
+        <div className={cn("flex h-14 shrink-0 items-center justify-between border-b border-border", collapsed ? "px-2" : "px-4")}>
+          <Link to="/" className="flex items-center gap-2 overflow-hidden" aria-label="Forside">
             <img
               src="/serviceydere-logo-dark.webp"
               alt="Serviceydere"
-              className="h-9 w-auto"
+              className={cn("w-auto", collapsed ? "h-8" : "h-9")}
               width={1920}
               height={539}
               decoding="async"
@@ -152,7 +160,13 @@ export const EmployeeShell = ({
         </div>
 
         {/* User info — matcher AdminShells "business info" card */}
-        <div className="mx-3 mt-3 mb-3 shrink-0 rounded-xl border border-border bg-card px-3 py-3 shadow-sm">
+        <div
+          className={cn(
+            "mt-3 mb-3 shrink-0 rounded-xl border border-border bg-card shadow-sm",
+            collapsed ? "mx-2 px-2 py-2" : "mx-3 px-3 py-3",
+          )}
+          title={collapsed ? `${displayName} · ${subLabel}` : undefined}
+        >
           <div className="flex items-center gap-2">
             <Avatar className="h-10 w-10 shrink-0 rounded-lg ring-2 ring-border" style={{ background: accentColor }}>
               {employee?.avatar_url ? (
@@ -165,47 +179,34 @@ export const EmployeeShell = ({
                 {initials}
               </AvatarFallback>
             </Avatar>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-foreground">{displayName}</p>
-              <p className="truncate text-xs text-muted-foreground">{subLabel}</p>
-            </div>
+            {!collapsed && (
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-foreground">{displayName}</p>
+                <p className="truncate text-xs text-muted-foreground">{subLabel}</p>
+              </div>
+            )}
           </div>
         </div>
 
-        <nav className="flex-1 space-y-1 px-3 pt-1 pb-2 overflow-y-auto">
-          {visibleNav.map((item) => {
-            const isActive = activeTab === item.value;
-            const baseClasses = cn(
-              "flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors text-left",
-              isActive
-                ? "bg-secondary text-foreground shadow-sm ring-1 ring-border"
-                : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground",
-            );
-            return (
-              <button
-                key={item.value}
-                onClick={() => { setSidebarOpen(false); navigate(item.href); }}
-                onMouseEnter={() => prefetchTab(item.value)}
-                onFocus={() => prefetchTab(item.value)}
-                onTouchStart={() => prefetchTab(item.value)}
-                aria-current={isActive ? "page" : undefined}
-                className={baseClasses}
-              >
-                <item.icon className="h-4 w-4 shrink-0" />
-                {item.label}
-              </button>
-            );
-          })}
+        <nav className={cn("flex-1 space-y-1 pt-1 pb-2 overflow-y-auto", collapsed ? "px-2" : "px-3")}>
+          {visibleNav.map((item) => (
+            <SidebarNavButton
+              key={item.value}
+              icon={item.icon}
+              label={item.label}
+              active={activeTab === item.value}
+              collapsed={collapsed}
+              onClick={() => { setSidebarOpen(false); navigate(item.href); }}
+              onMouseEnter={() => prefetchTab(item.value)}
+              onFocus={() => prefetchTab(item.value)}
+              onTouchStart={() => prefetchTab(item.value)}
+            />
+          ))}
         </nav>
 
-        <div className="shrink-0 border-t border-border px-3 py-3">
-          <button
-            onClick={signOut}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-          >
-            <LogOut className="h-4 w-4 shrink-0" />
-            Log ud
-          </button>
+        <div className={cn("shrink-0 space-y-1 border-t border-border py-3", collapsed ? "px-2" : "px-3")}>
+          <SidebarFooterItem icon={LogOut} label="Log ud" onClick={signOut} collapsed={collapsed} danger />
+          <div className="pt-1"><SidebarCollapseToggle collapsed={collapsed} onToggle={toggleCollapsed} /></div>
         </div>
       </aside>
 
