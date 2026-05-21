@@ -498,6 +498,22 @@ const PlatformBusinessesTab = () => {
               );
             })}
           </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between gap-2 border-t border-border bg-secondary/20 px-4 py-2 text-xs">
+              <span className="text-muted-foreground">
+                Viser {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} af {total}
+              </span>
+              <div className="flex items-center gap-1">
+                <Button size="sm" variant="ghost" className="h-8 gap-1" disabled={page === 0} onClick={() => setPage(p => Math.max(0, p - 1))}>
+                  <ChevronLeft className="h-3.5 w-3.5" /> Forrige
+                </Button>
+                <span className="px-2 tabular-nums">{page + 1} / {totalPages}</span>
+                <Button size="sm" variant="ghost" className="h-8 gap-1" disabled={page + 1 >= totalPages} onClick={() => setPage(p => p + 1)}>
+                  Næste <ChevronRight className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+          )}
         </Card>
       )}
 
