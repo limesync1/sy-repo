@@ -327,12 +327,39 @@ export default function BusinessDetailSheet({ businessId, onClose }: Props) {
                     <p className="truncate text-sm font-medium text-foreground">{owner.email}</p>
                     <p className="text-xs text-muted-foreground">Virksomhedsejer</p>
                   </div>
-                  <Button
-                    asChild size="sm" variant="outline"
-                    aria-label={`Send mail til ${owner.email}`}
-                  >
-                    <a href={`mailto:${owner.email}`}><Mail className="h-3.5 w-3.5 mr-1.5" />Mail</a>
-                  </Button>
+                  <div className="flex gap-2 shrink-0">
+                    <Button asChild size="sm" variant="outline" aria-label={`Send mail til ${owner.email}`}>
+                      <a href={`mailto:${owner.email}`}><Mail className="h-3.5 w-3.5 mr-1.5" />Mail</a>
+                    </Button>
+                    <Button
+                      size="sm" variant="outline"
+                      className="border-amber-500/30 text-amber-700 hover:bg-amber-500/10 hover:text-amber-800"
+                      disabled={impersonating || !business?.owner_id}
+                      onClick={async () => {
+                        if (!business?.owner_id) return;
+                        if (!confirm("Log ind som ejeren?\n\nBrug helst inkognito så din admin-session bevares. Handlingen logges i audit-loggen.")) return;
+                        setImpersonating(true);
+                        try {
+                          const { data, error } = await supabase.functions.invoke("admin-user-action", {
+                            body: { action: "impersonate", user_id: business.owner_id, redirect_to: `${window.location.origin}/business-portal` },
+                          });
+                          if (error) throw error;
+                          const link = (data as any)?.action_link;
+                          if (!link) throw new Error("Ingen link returneret");
+                          await navigator.clipboard.writeText(link).catch(() => {});
+                          window.open(link, "_blank", "noopener,noreferrer");
+                          toast.success("Link åbnet + kopieret. Brug inkognito.");
+                        } catch (e: any) {
+                          toast.error(e?.message || "Kunne ikke impersonere");
+                        } finally {
+                          setImpersonating(false);
+                        }
+                      }}
+                    >
+                      <UserCheck className="h-3.5 w-3.5 mr-1.5" />
+                      {impersonating ? "Henter…" : "Log ind som ejer"}
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <p className="text-xs text-muted-foreground">Ingen ejer fundet.</p>
