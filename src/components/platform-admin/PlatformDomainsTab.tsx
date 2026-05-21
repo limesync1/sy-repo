@@ -4,9 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { CheckCircle2, Clock, AlertCircle, ExternalLink, Globe, Copy, Loader2, Rocket } from "lucide-react";
+import { CheckCircle2, Clock, AlertCircle, ExternalLink, Globe, Copy, Loader2, Rocket, Lock, RefreshCw, Search } from "lucide-react";
 import { PageHeader, EmptyState } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 
@@ -26,7 +25,16 @@ type DomainRow = {
   activated_at: string | null;
   last_checked_at: string | null;
   email: string | null;
+  ssl: SslInfo | null;
   settings: Record<string, unknown>;
+};
+
+type SslInfo = {
+  checked_at: string;
+  status: "ok" | "not_found" | string;
+  issuer?: string;
+  not_before?: string;
+  not_after?: string;
 };
 
 const STATUS_LABEL: Record<DomainRow["status"], { label: string; className: string; Icon: typeof CheckCircle2 }> = {
@@ -41,6 +49,8 @@ const STATUS_LABEL: Record<DomainRow["status"], { label: string; className: stri
 const PlatformDomainsTab = () => {
   const qc = useQueryClient();
   const [filter, setFilter] = useState<"all" | "pending_activation" | "active" | "issues">("pending_activation");
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number } | null>(null);
 
   const { data: rows, isLoading } = useQuery({
     queryKey: ["admin-domains"],
@@ -65,6 +75,7 @@ const PlatformDomainsTab = () => {
             dns_verified_at: (s.custom_domain_dns_verified_at as string) || null,
             activated_at: (s.custom_domain_verified_at as string) || null,
             last_checked_at: (s.custom_domain_last_checked_at as string) || null,
+            ssl: (s.custom_domain_ssl as SslInfo) || null,
             settings: s,
           } as DomainRow;
         })
@@ -130,6 +141,83 @@ const PlatformDomainsTab = () => {
     onError: (e: any) => toast.error(e.message || "Kunne ikke tjekke DNS"),
   });
 
+  const checkSsl = useMutation({
+    mutationFn: async (row: DomainRow) => {
+      const { error } = await supabase.functions.invoke("check-domain-ssl", {
+        body: { business_id: row.id, domain: row.domain },
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("SSL gen-tjekket");
+      qc.invalidateQueries({ queryKey: ["admin-domains"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Kunne ikke tjekke SSL"),
+  });
+
+  // Bulk-recheck: kører DNS + SSL sekventielt for alle ikke-aktive
+  // domæner (eller alle, hvis "Alle"-filter er valgt). Vi kører dem
+  // sekventielt med 200ms pause for ikke at hamre crt.sh.
+  const runBulkRecheck = async () => {
+    if (!rows || bulkBusy) return;
+    const targets = filter === "active"
+      ? rows.filter((r) => r.status === "active")
+      : filter === "all"
+        ? rows
+        : rows.filter((r) => r.status !== "active");
+    if (targets.length === 0) { toast.info("Ingen domæner at tjekke i denne kategori"); return; }
+    setBulkBusy(true);
+    setBulkProgress({ done: 0, total: targets.length });
+    let fails = 0;
+    for (let i = 0; i < targets.length; i++) {
+      const row = targets[i];
+      try {
+        await supabase.functions.invoke("verify-custom-domain", { body: { business_id: row.id, domain: row.domain } });
+        await supabase.functions.invoke("check-domain-ssl", { body: { business_id: row.id, domain: row.domain } });
+      } catch {
+        fails++;
+      }
+      setBulkProgress({ done: i + 1, total: targets.length });
+      await new Promise((r) => setTimeout(r, 200));
+    }
+    setBulkBusy(false);
+    setBulkProgress(null);
+    if (fails === 0) toast.success(`Tjekkede ${targets.length} domæner`);
+    else toast.warning(`${targets.length - fails} OK, ${fails} fejlede`);
+    qc.invalidateQueries({ queryKey: ["admin-domains"] });
+  };
+
+  // SSL-info → badge-tekst + farve baseret på dage til udløb.
+  const renderSslBadge = (ssl: SslInfo | null) => {
+    if (!ssl) {
+      return <Badge variant="outline" className="bg-muted text-muted-foreground border-border"><Lock className="mr-1 h-3 w-3" /> SSL ikke tjekket</Badge>;
+    }
+    if (ssl.status !== "ok" || !ssl.not_after) {
+      return <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30"><Lock className="mr-1 h-3 w-3" /> Intet cert fundet</Badge>;
+    }
+    const days = Math.floor((new Date(ssl.not_after).getTime() - Date.now()) / 86_400_000);
+    const isExpired = days < 0;
+    const isCritical = days >= 0 && days <= 14;
+    const cls = isExpired
+      ? "bg-destructive/10 text-destructive border-destructive/30"
+      : isCritical
+        ? "bg-amber-500/10 text-amber-600 border-amber-500/30"
+        : "bg-success/10 text-success border-success/30";
+    const label = isExpired
+      ? "Udløbet"
+      : days === 0 ? "Udløber i dag"
+      : `Udløber om ${days} d`;
+    return (
+      <Badge
+        variant="outline"
+        className={cls}
+        title={`Udsteder: ${ssl.issuer || "?"}\nGyldig til: ${new Date(ssl.not_after).toLocaleString("da-DK")}\nTjekket: ${new Date(ssl.checked_at).toLocaleString("da-DK")}`}
+      >
+        <Lock className="mr-1 h-3 w-3" /> {label}
+      </Badge>
+    );
+  };
+
   return (
     <div className="space-y-4">
       <PageHeader
@@ -137,22 +225,37 @@ const PlatformDomainsTab = () => {
         description="Kø af kunders egne domæner. DNS verificeres automatisk — du markerer manuelt når domænet er tilføjet på hosting-platformen og SSL er udstedt."
       />
 
-      <div className="flex flex-wrap gap-2">
-        {[
-          { key: "pending_activation" as const, label: `Kø til aktivering (${counts.pending_activation})` },
-          { key: "active" as const, label: `Live (${counts.active})` },
-          { key: "issues" as const, label: `DNS-problemer (${counts.issues})` },
-          { key: "all" as const, label: `Alle (${counts.all})` },
-        ].map((f) => (
-          <Button
-            key={f.key}
-            variant={filter === f.key ? "default" : "outline"}
-            size="sm"
-            onClick={() => setFilter(f.key)}
-          >
-            {f.label}
-          </Button>
-        ))}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap gap-2">
+          {[
+            { key: "pending_activation" as const, label: `Kø til aktivering (${counts.pending_activation})` },
+            { key: "active" as const, label: `Live (${counts.active})` },
+            { key: "issues" as const, label: `DNS-problemer (${counts.issues})` },
+            { key: "all" as const, label: `Alle (${counts.all})` },
+          ].map((f) => (
+            <Button
+              key={f.key}
+              variant={filter === f.key ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilter(f.key)}
+            >
+              {f.label}
+            </Button>
+          ))}
+        </div>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={runBulkRecheck}
+          disabled={bulkBusy || !rows || rows.length === 0}
+          title="Kør DNS + SSL-tjek på alle domæner i den valgte kategori"
+        >
+          {bulkBusy ? (
+            <><Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> Tjekker {bulkProgress?.done}/{bulkProgress?.total}…</>
+          ) : (
+            <><RefreshCw className="mr-1 h-3.5 w-3.5" /> Bulk re-tjek (DNS + SSL)</>
+          )}
+        </Button>
       </div>
 
       {isLoading ? (
@@ -172,6 +275,7 @@ const PlatformDomainsTab = () => {
                       <Badge variant="outline" className={meta.className}>
                         <meta.Icon className="mr-1 h-3 w-3" /> {meta.label}
                       </Badge>
+                      {renderSslBadge(row.ssl)}
                     </div>
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       {row.name} · <span className="font-mono">/v/{row.slug}</span>
@@ -197,6 +301,18 @@ const PlatformDomainsTab = () => {
                     <Button size="sm" variant="outline" onClick={() => recheck.mutate(row)} disabled={recheck.isPending}>
                       {recheck.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Re-tjek DNS"}
                     </Button>
+                    <Button size="sm" variant="outline" onClick={() => checkSsl.mutate(row)} disabled={checkSsl.isPending}>
+                      {checkSsl.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><Lock className="mr-1 h-3.5 w-3.5" /> SSL</>}
+                    </Button>
+                    <a
+                      href={`https://www.whois.com/whois/${row.domain}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex h-8 items-center gap-1 rounded-md border border-border px-2 text-xs hover:bg-muted"
+                      title="Slå op i Whois (registrant, registrar, oprettet)"
+                    >
+                      <Search className="h-3 w-3" /> Whois
+                    </a>
                     {row.status === "active" ? (
                       <Button size="sm" variant="outline" onClick={() => setActive.mutate({ row, active: false })} disabled={setActive.isPending}>
                         Deaktiver
