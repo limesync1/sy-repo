@@ -1,109 +1,168 @@
-# Admin panel — oprydning & forbedringer
+# Admin panel — resterende arbejde + nyt Platform-overblik
 
-Målet er to ting:
-1. **Sikkerhed**: Kun `william@adely.dk` er admin. Ingen — heller ikke andre admins — kan oprette/fjerne admin-rollen via UI eller RPC.
-2. **Kvalitet**: Fjern designfejl, dobbelte luk-knapper, forkert størrelse på knapper, hover-bugs, irrelevante funktioner, og fyld manglende huller ud.
-
-Vi udfører det i 6 trin — hvert trin er afgrænset, kan reviewes, og bryder ikke det øvrige panel.
+Trin 1–5 er færdige (admin-lås, UI-oprydning, sidebar+Cmd+K, virksomhedsfanen, UserDetailSheet). Herunder er den fulde plan for det resterende — 8 trin, hvert afgrænset og kan reviewes for sig.
 
 ---
 
-## Trin 1 — Lås admin-rollen til William (sikkerhed først)
+## Trin 6 — Redesign af Platform-overblik (prioritet 1)
 
-**Backend**
-- Database-trigger på `user_roles`: blokér enhver `INSERT/UPDATE/DELETE` der involverer `role = 'admin'`, medmindre det er `william@adely.dk` der allerede er admin. Trigger er den eneste pålidelige måde — RLS kan omgås af security definer-funktioner.
-- Opdatér `admin_set_user_role` RPC: returnér fejl hvis `_role = 'admin'`. Funktionen må stadig bruges til at give/fjerne `business_owner`.
-- Seed: sikr at `william@adely.dk` har admin-rollen (idempotent insert).
+Det nuværende overblik er en lang stak af KPI-rækker. Det mangler hierarki, handling og live-puls. Nyt layout:
 
-**Frontend (`PlatformUsersTab`)**
-- Fjern "Gør admin / Fjern admin"-knappen helt. Erstat med en låst badge "Admin (låst)" når brugeren er admin.
-- Behold rollefilter, men fjern "admin" som mulighed at *tildele* — den findes kun til visning.
+**Øverst — "Pulse strip" (live-tal, opdateres hvert 30. sek)**
+- Aktive sessioner lige nu (auth + livechat)
+- Ordrer i dag · GMV i dag · Nye signups i dag
+- Lille grøn/rød prik pr. tal hvis det er over/under 7-dages-snit
 
----
+**Sektion A — Forretningshelhed (3 store kort)**
+- **GMV-graf** med periode + sammenligning forrige periode (overlejret stiplet linje), toggle: dag/uge/måned
+- **MRR + ARR + Net-MRR-movement** (new / expansion / churn / reactivation) — vandfaldsdiagram
+- **Kohorte-tabel** — retention pr. signup-måned (måned 0, 1, 2, 3…)
 
-## Trin 2 — Globale UI-fejl (knapper, hover, dobbelte X)
+**Sektion B — Funnel + Konvertering**
+- Besøg → Signup → Aktiv virksomhed → Betalende → Churn — som vandret funnel-diagram med drop-off-procent mellem hvert trin
+- "Time to first order" gennemsnit pr. ny virksomhed
+- Trial→Paid conversion rate (sidste 30/60/90 dage)
 
-Gennemgang af alle sheets/dialogs i `src/components/platform-admin/`:
+**Sektion C — Operationel sundhed (handleskort)**
+- 🔴 Trial udløber inden for 3 dage (klik → filtreret virksomhedsliste)
+- 🟠 Forfaldne betalinger
+- 🟡 Ubesvarede chat-beskeder >2t
+- 🟡 Nye anmeldelser uden svar
+- 🔵 Nye virksomheder afventer godkendelse
+Hvert kort viser antal + knap "Gå til" — overblikket bliver en arbejdskø, ikke kun en rapport.
 
-- **Dobbelte luk-knapper**: shadcn `Sheet`/`Dialog` har indbygget X i `SheetContent`/`DialogContent`. Fjern manuelle X-knapper i `BusinessDetailSheet`, `CreateBusinessWizard`, `CreateBusinessDialog` (slettes — erstattes 100% af wizard).
-- **Inkonsistente knap-størrelser**: standardisér til `size="sm"` (h-9) i tabeller/lister, `size="default"` i sheets/forms. Fjern hardcoded `h-8`/`h-10` der bryder rytmen.
-- **Hover-states**: ikon-knapper uden `aria-label` og uden `Button`-wrapper får ikke korrekt hover. Konvertér rå `<a>`/`<button>` med ikoner til `<Button variant="ghost" size="icon">` med `aria-label`.
-- **Ikon-only knapper på mobil**: tilføj `min-h-11 min-w-11` på primære tap-targets.
-- **Tomme `title=` på ikoner**: erstat med `aria-label` + tooltip via shadcn `Tooltip`.
+**Sektion D — Top-lister** (beholdes, men i kompakte tabs)
+Kategorier · Byer · Top virksomheder · Top kunder — som ét kort med tabs i stedet for tre separate kort.
 
----
-
-## Trin 3 — Ryd op i sidemenu & topbar
-
-- Konsolidér `CreateBusinessDialog` → slettes (wizarden afløser den).
-- Topbar: tilføj global Cmd+K søgning (springer til virksomhed/bruger/ordre). Fjern den brødkrumme-overskrift der duplikerer sidebar-label.
-- Sidebar: del NAV i to grupper — "Drift" (Overblik, Virksomheder, Brugere, Ordrer, Abonnementer) og "Indhold & system" (Anmeldelser, Livechat, Domæner, Aktivitetslog, Platform). Visuelt cleaner ved 10 items.
-- Mobil: sidebar overlay får i dag ingen swipe-luk — tilføj swipe + ESC.
-
----
-
-## Trin 4 — Virksomheder-fanen + DetailSheet (kerneflow)
-
-`PlatformBusinessesTab`:
-- Tilføj kolonner: **Plan-status** (Trial X dage tilbage / Aktiv / Forfalden), **MRR**, **Sidste login (ejer)**, **Antal brugere**.
-- Quick filters som chips: Aktive · Trial · Forfaldne · Pauserede.
-- Bulk-handlinger (checkboxes): Forlæng trial · Sæt på pause · Send mail.
-- Rækkens "..." menu: Åbn detail · Impersonate · Forlæng trial · Slet (med dobbeltbekræftelse).
-
-`BusinessDetailSheet` — udvid til tabs:
-- **Overblik** — kontaktinfo, plan, trial, branche
-- **Aktivitet** — login-historik, sidste handling, audit-log filtreret på virksomhed
-- **Økonomi** — fakturaer, MRR, kommende fornyelse, manuelle credits
-- **Brugere** — alle medarbejdere + ejer, mulighed for at sende password-reset
-- **Indstillinger** — slug, custom domæne, suspendér, slet
+**Sektion E — System-puls** (kompakt strip i bund)
+- Edge functions: sidste fejl, p95 latency
+- DB-størrelse, antal aktive forbindelser
+- Cron jobs: sidste kørsel + status
+- Mail-bounces sidste 24t
 
 ---
 
-## Trin 5 — Brugere-fanen + nyt UserDetailSheet
+## Trin 7 — Ordrer-fanen (oprydning + dyb-link)
 
-Nyt `UserDetailSheet.tsx`:
-- Profil (navn, email, telefon, oprettet, sidste login)
-- Roller (read-only for admin — se trin 1)
-- Tilknyttede virksomheder (med link)
-- Ordrer (sidste 10 + link)
-- Handlinger: Send password-reset · Send magic-link · Suspendér konto · Slet konto (dobbeltbekræftelse + audit)
-
-Klik på en bruger-række åbner sheet i stedet for kun email-link.
+`PlatformOrdersTab` mangler i dag:
+- Klik på række → `OrderDetailSheet` (lignende BusinessDetailSheet) med kunde, virksomhed, status-tidslinje, betalingsstatus, fakturalink
+- Filter-chips: I dag · Denne uge · Forfaldne · Ubetalte · Kreditnota
+- Bulk: Markér som betalt · Send rykker · Eksportér valgte
+- Kolonne "Virksomhed" linker direkte til BusinessDetailSheet
+- Kolonne "Kunde" linker til UserDetailSheet
 
 ---
 
-## Trin 6 — Manglende funktioner & nye faner
+## Trin 8 — Abonnementer-fanen (forretningskritisk)
 
-Anbefalinger til reelt nyttige tilføjelser (ikke "fluff"):
-
-- **Sundhed-fane**: edge function-status, sidste fejl, DB-størrelse, queue (hvis vi tilføjer en), seneste mail-bounces.
-- **Mails-fane**: send/genindsend transaktionsmails (velkomst, faktura, password-reset), se template-preview.
-- **Notifikationer i topbar**: nye virksomheder, forfaldne trials, fejlede betalinger, nye chat-beskeder uden svar.
-- **Impersonation**: "Log ind som ejer"-knap der genererer engangs-magic-link til support.
-- **Aktivitetslog**: udvid filtre (handling, admin, virksomhed, dato-range) + eksport CSV.
+`PlatformSubscriptionsTab`:
+- KPI-strip øverst: MRR, ARR, Active, Trialing, Past due, Cancelled (sidste 30 dage)
+- Liste med plan-badge (Free/Basic/Pro), næste fornyelse, beløb, status
+- Filtre: status-chips + plan + interval (måned/år)
+- Klik → SubscriptionDetailSheet: historik, faktura-linje, mulighed for at "udskift plan", "udsæt fornyelse 30 dage", "stop ved næste fornyelse", "credit-justering"
+- "Risk"-flag: Past due + trial-expiring-soon med tydelig farve
 
 ---
 
-## Tekniske detaljer
+## Trin 9 — Aktivitetslog & sundhed (`PlatformAuditLogTab` + ny `PlatformHealthTab`)
 
-**Trin 1 SQL (skitse)**
+**Audit-log:**
+- Filtre: handling, admin, mål-type, dato-range (allerede delvis)
+- Tilføj: indlejret JSON-detail-visning ved klik (i dag vises kun rå)
+- Group-by-toggle: pr. dag · pr. admin · pr. virksomhed
+- CSV-eksport af filtreret resultat
+
+**Ny fane "Sundhed":**
+- Edge functions: liste m. status, sidste 24t kald, fejlrate, p95
+- Database: tabel-størrelser top 10, slow queries (hvis tilgængeligt), aktive forbindelser
+- Cron/scheduled tasks: liste med "sidste kørsel", "næste kørsel", success/fail-badge
+- Mail: bounces, complaints, leverede sidste 7 dage
+- Storage-buckets: forbrug pr. bucket
+
+---
+
+## Trin 10 — Mails & kommunikation (ny `PlatformMailsTab`)
+
+- Template-bibliotek: velkomst, faktura, password-reset, ordre-bekræftelse, trial-udløb — med live preview
+- Send/genindsend transaktionsmail til specifik bruger (logges i audit)
+- Massemail til segment (alle trial-virksomheder, alle aktive ejere) — med dobbeltbekræftelse
+- Send-log: sidste 100 mails sendt, status, modtager, link til template
+- Bounce/complaint-håndtering: brugere markeret som problematiske
+
+---
+
+## Trin 11 — Impersonation + UserDetailSheet udvidelse
+
+**Impersonation (ny edge function `admin-impersonate`):**
+- Genererer engangs-magic-link gyldig 5 min for support
+- Audit-logges altid
+- I UI: knap "Log ind som ejer" i BusinessDetailSheet og UserDetailSheet
+- Banner i appen når man er impersoneret: "Du er logget ind som X — vend tilbage"
+
+**UserDetailSheet — handlinger der mangler:**
+- Suspendér konto (dobbeltbekræftelse + årsag)
+- Slet konto (skriv email for at bekræfte + soft-delete først, hard-delete efter 30 dage)
+- Skift email (med verifikations-mail)
+- Manuel rolle (kun business_owner, aldrig admin)
+
+---
+
+## Trin 12 — Notifikationscenter i topbar
+
+- Klokke-ikon i topbar med badge (antal uløste)
+- Dropdown med kategorier: Nye virksomheder · Trial udløber · Forfaldne betalinger · Nye chat-beskeder · Fejlede mails
+- "Markér alle som læst", filter pr. type
+- Realtime-update via Supabase channels (vi har allerede mønstret)
+- Persisteres pr. admin i ny tabel `admin_notifications`
+
+---
+
+## Trin 13 — Mobil + tilgængelighed + sidste polering
+
+- Mobil: sidebar swipe-luk (ESC virker allerede), sticky topbar, bottom-tab på <640px
+- Tabeller: horizontal scroll med fade-edge i stedet for at brække layout
+- Alle ikon-knapper får `aria-label` + tooltip
+- Fokus-ring synlig overalt (`focus-visible:ring-2 ring-accent ring-offset-2`)
+- Kontrast-check på badges/chips i lyst og mørkt tema
+- Tastatur: Cmd+K søg · `g o` → overblik · `g v` → virksomheder · `g u` → brugere (vim-style)
+- Loading-states: erstat resterende `null` med `Skeletons.tsx`
+
+---
+
+## Tekniske noter
+
+**Nye komponenter**
+- `PlatformOverviewTab.tsx` (refactor — splittes i `OverviewPulse`, `OverviewBusiness`, `OverviewFunnel`, `OverviewActionQueue`, `OverviewSystem`)
+- `OrderDetailSheet.tsx`, `SubscriptionDetailSheet.tsx`
+- `PlatformHealthTab.tsx`, `PlatformMailsTab.tsx`
+- `AdminNotifications.tsx` (topbar dropdown)
+- `ImpersonationBanner.tsx`
+
+**Nye edge functions**
+- `admin-impersonate` — magic-link + audit
+- `admin-send-mail` — template-render + send + log
+- `admin-suspend-user`, `admin-delete-user` (soft/hard)
+
+**Nye RPCs / tabeller (skitse)**
 ```text
-- Trigger på user_roles BEFORE INSERT/UPDATE/DELETE WHERE role = 'admin'
-  → RAISE EXCEPTION undtagen for william@adely.dk's eksisterende række
-- admin_set_user_role: raise 'admin role is locked' hvis _role = 'admin'
-- Seed: insert william's admin-rolle hvis den ikke findes
+- admin_notifications  (id, admin_id, type, payload, read_at, created_at)
+- admin_mail_log       (id, template, to_user, to_email, status, error, sent_by, created_at)
+- admin_impersonation_codes (findes allerede)
+- admin_funnel_stats() RPC — leverer trin-tal i ét kald
+- admin_mrr_movement(from, to) RPC — new/expansion/churn/reactivation
+- admin_cohort_retention() RPC
 ```
 
-**Komponenter der berøres**
-- Slet: `CreateBusinessDialog.tsx`
-- Stort refactor: `PlatformBusinessesTab.tsx`, `BusinessDetailSheet.tsx`, `PlatformUsersTab.tsx`, `PlatformAdmin.tsx`
-- Nyt: `UserDetailSheet.tsx`, `PlatformHealthTab.tsx`, `PlatformMailsTab.tsx`, `AdminCommandPalette.tsx`
-- Nye edge functions: `admin-impersonate-user`, `admin-resend-mail`
-
-**Migration-rækkefølge**: Trin 1 først (sikkerhed). Resten kan tages i hvilken som helst rækkefølge, men anbefalet 2 → 3 → 4 → 5 → 6.
+**Rækkefølge-anbefaling**
+1. **Trin 6** først — overblikket er admins startside, størst gevinst.
+2. **Trin 7 + 8** dernæst — kerneforretning (ordrer + abonnementer).
+3. **Trin 11** (impersonation) — kritisk for support, lille kodebase-fodaftryk.
+4. **Trin 9 + 10** (sundhed + mails) — drift.
+5. **Trin 12** (notifikationer) — kræver realtime + ny tabel.
+6. **Trin 13** (polering) — løbende eller til sidst.
 
 ---
 
 ## Næste skridt
 
-Trin 1–5 er udført. Tilbage: **Trin 6** (Sundhed, Mails, Notifikationer, Impersonation, udvidet aktivitetslog) — samt opfølgning på trin 5: suspendér/slet konto med dobbeltbekræftelse.
+Sig "ja" → jeg starter på **Trin 6** (Platform-overblik). Vil du have en anden rækkefølge, sig fx "tag trin 11 først".
