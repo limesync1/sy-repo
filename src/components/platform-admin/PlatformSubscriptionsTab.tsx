@@ -311,11 +311,44 @@ const PlanRow = ({ p, onOpen }: { p: any; onOpen: () => void }) => {
  * direkte link til virksomhed/profil, og hurtighandlinger.
  */
 const PlanDetailDialog = ({ plan, onClose }: { plan: any | null; onClose: () => void }) => {
+  const qc = useQueryClient();
+  const syncMut = useMutation({
+    mutationFn: async (businessId: string) => {
+      const { data, error } = await supabase.functions.invoke("admin-sync-business-plan", {
+        body: { business_id: businessId },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Synkroniseret med Stripe");
+      qc.invalidateQueries({ queryKey: ["admin-business-plans-list"] });
+    },
+    onError: (e: any) => toast.error(e?.message || "Kunne ikke synkronisere"),
+  });
+
+  const { data: history } = useQuery({
+    queryKey: ["plan-history", plan?.business_id],
+    enabled: !!plan?.business_id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("admin_audit_log")
+        .select("*")
+        .eq("target_type", "business_plan")
+        .eq("target_label", plan.business_id)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   if (!plan) return null;
   const risk = churnRiskScore(plan);
   return (
     <Dialog open={!!plan} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {plan.businesses?.name || "Plan"}
@@ -355,6 +388,18 @@ const PlanDetailDialog = ({ plan, onClose }: { plan: any | null; onClose: () => 
           </dl>
 
           <div className="flex flex-wrap gap-2">
+            {plan.stripe_subscription_id && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5"
+                disabled={syncMut.isPending}
+                onClick={() => syncMut.mutate(plan.business_id)}
+              >
+                <RefreshCw className={cn("h-3.5 w-3.5", syncMut.isPending && "animate-spin")} />
+                {syncMut.isPending ? "Synkroniserer..." : "Synkronisér Stripe"}
+              </Button>
+            )}
             {plan.businesses?.slug && (
               <Button asChild size="sm" variant="outline" className="gap-1.5">
                 <Link to={`/${plan.businesses.slug}`} target="_blank" rel="noopener noreferrer">
@@ -372,6 +417,32 @@ const PlanDetailDialog = ({ plan, onClose }: { plan: any | null; onClose: () => 
                   <ExternalLink className="h-3.5 w-3.5" /> Åbn i Stripe
                 </a>
               </Button>
+            )}
+          </div>
+
+          <div>
+            <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+              <History className="h-3 w-3" /> Plan-historik
+            </div>
+            {!history || history.length === 0 ? (
+              <p className="text-xs text-muted-foreground italic">Ingen registrerede ændringer endnu.</p>
+            ) : (
+              <ul className="space-y-1.5 rounded-lg border border-border bg-secondary/30 p-2 max-h-60 overflow-y-auto">
+                {history.map((h: any) => (
+                  <li key={h.id} className="text-xs flex items-start gap-2">
+                    <span className="text-muted-foreground tabular-nums shrink-0 w-28">{fmtDateTime(h.created_at)}</span>
+                    <span className="flex-1">
+                      <span className="font-medium text-foreground">{h.action.replace(/^.*\./, "")}</span>
+                      {h.admin_email && <span className="text-muted-foreground"> · {h.admin_email}</span>}
+                      {h.details && Object.keys(h.details).length > 0 && (
+                        <span className="block text-[10px] text-muted-foreground font-mono mt-0.5">
+                          {JSON.stringify(h.details)}
+                        </span>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
         </div>
