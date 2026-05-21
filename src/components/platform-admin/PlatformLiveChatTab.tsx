@@ -1,45 +1,20 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  MessageCircle, Send, Loader2, CheckCircle2, Search, Zap, User, Mail, Clock,
-  CheckCheck, Inbox, Archive, Paperclip, Image as ImageIcon,
-  X as XIcon, Volume2, VolumeX, ArrowUpDown, BellOff, Bell, Download, Sparkles,
-} from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { da } from "date-fns/locale";
+import { MessageCircle } from "lucide-react";
 import chatSounds from "@/components/livechat/chatSounds";
 import CannedResponsesManager, { type CannedResponse } from "./livechat/CannedResponsesManager";
 import { snoozeUntil, unsnooze, getActiveSnoozes, subscribeToSnoozes } from "./livechat/snooze";
 import { downloadTranscript } from "./livechat/exportConversation";
-
-type Conversation = {
-  id: string;
-  visitor_name: string;
-  visitor_email: string;
-  subject: string | null;
-  status: string;
-  last_message_at: string;
-  unread_admin_count: number;
-  user_id: string | null;
-  created_at: string;
-  needs_human?: boolean;
-};
-
-type Message = {
-  id: string;
-  conversation_id: string;
-  sender_type: "visitor" | "admin";
-  sender_name: string;
-  content: string | null;
-  image_url?: string | null;
-  is_system?: boolean;
-  created_at: string;
-};
-
-const CANNED_KEY = "serviceydere_admin_canned_v3";
-
-const DEFAULT_CATEGORIES = ["Velkomst", "Pris", "Support", "Opfølgning", "Afslutning"];
+import InboxList from "./livechat/InboxList";
+import ChatHeader from "./livechat/ChatHeader";
+import MessageList from "./livechat/MessageList";
+import ChatComposer from "./livechat/ChatComposer";
+import DetailsPanel from "./livechat/DetailsPanel";
+import {
+  type Conversation, type Message, type Filter, type SortMode,
+  CANNED_KEY, DEFAULT_CATEGORIES,
+} from "./livechat/shared";
 
 const DEFAULT_CANNED: CannedResponse[] = [
   { id: "greeting", title: "Velkomst", category: "Velkomst", body: "Hej {name} 👋\n\nTusind tak for din henvendelse! Hvordan kan jeg hjælpe dig?" },
@@ -49,19 +24,6 @@ const DEFAULT_CANNED: CannedResponse[] = [
   { id: "callback", title: "Ring tilbage", category: "Support", body: "Hej {name},\n\nJeg vil meget gerne ringe dig op. Hvilket tidspunkt passer dig bedst i dag?" },
   { id: "thanks-close", title: "Tak & afslut", category: "Afslutning", body: "Tak for snakken {name}! Skriv endelig igen hvis du har flere spørgsmål. God dag 🌿" },
 ];
-
-const formatTime = (iso: string) => {
-  const d = new Date(iso);
-  const sameDay = d.toDateString() === new Date().toDateString();
-  if (sameDay) return d.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
-  return d.toLocaleDateString("da-DK", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
-};
-
-const initials = (name: string) =>
-  name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase() || "").join("") || "?";
-
-type Filter = "all" | "open" | "unread" | "closed" | "snoozed";
-type SortMode = "recent" | "unread_first" | "oldest";
 
 const PlatformLiveChatTab = () => {
   const { user } = useAuth();
