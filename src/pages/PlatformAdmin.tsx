@@ -15,6 +15,7 @@ import { PageSkeleton, ShellSkeleton, StatGridSkeleton, ChartSkeleton, ListCardS
 import { TabErrorBoundary } from "@/components/admin/shared/TabErrorBoundary";
 import { TabPerfTracker } from "@/components/admin/shared/usePerfMark";
 import AdminCommandPalette from "@/components/platform-admin/AdminCommandPalette";
+import AdminNotifications from "@/components/platform-admin/AdminNotifications";
 
 // Lazy-load alle tabs så hver fane først downloades når brugeren rent faktisk
 // åbner den. Det matcher mønstret i virksomhedspanelet (Admin.tsx) og holder
@@ -285,6 +286,8 @@ const PlatformAdmin = () => {
               <span className="hidden sm:inline">Søg…</span>
               <kbd className="hidden sm:inline-flex h-5 items-center rounded border border-border bg-secondary px-1.5 font-mono text-[10px] font-semibold text-muted-foreground">⌘K</kbd>
             </button>
+
+            <AdminNotifications onSelectTab={setTab} />
 
             {current?.hasRange && (
               <div className="flex items-center gap-2 min-w-0">

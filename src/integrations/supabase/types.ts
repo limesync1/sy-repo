@@ -473,6 +473,32 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_notification_state: {
+        Row: {
+          last_seen_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          last_seen_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          last_seen_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_notification_state_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "admin_users_overview"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       agreement_items: {
         Row: {
           agreement_id: string
@@ -3599,6 +3625,21 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_mark_notifications_seen: { Args: never; Returns: string }
+      admin_notification_feed: {
+        Args: { p_limit?: number }
+        Returns: {
+          category: string
+          created_at: string
+          id: string
+          link_id: string
+          link_tab: string
+          severity: string
+          subtitle: string
+          title: string
+        }[]
+      }
+      admin_notifications_last_seen: { Args: never; Returns: string }
       admin_redeem_impersonation_code: {
         Args: { p_code: string }
         Returns: string
