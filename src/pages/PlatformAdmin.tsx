@@ -18,6 +18,11 @@ import AdminCommandPalette from "@/components/platform-admin/AdminCommandPalette
 import AdminNotifications from "@/components/platform-admin/AdminNotifications";
 import AdminBottomTabs from "@/components/platform-admin/AdminBottomTabs";
 import { useAdminShortcuts } from "@/components/platform-admin/lib/useAdminShortcuts";
+import {
+  SidebarNavButton, SidebarGroupLabel, SidebarCollapseToggle, SidebarFooterItem,
+  SIDEBAR_WIDTH_COLLAPSED, SIDEBAR_WIDTH_EXPANDED,
+} from "@/components/shared/sidebar/SidebarParts";
+import { useSidebarCollapsed } from "@/components/shared/sidebar/useSidebarCollapsed";
 
 // Lazy-load alle tabs så hver fane først downloades når brugeren rent faktisk
 // åbner den. Det matcher mønstret i virksomhedspanelet (Admin.tsx) og holder
@@ -148,6 +153,7 @@ const PlatformAdmin = () => {
   const [tab, setTab] = useState("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [cmdOpen, setCmdOpen] = useState(false);
+  const { collapsed, toggle: toggleCollapsed } = useSidebarCollapsed("sy.sidebar.collapsed.platform");
 
   // ESC lukker mobil-sidebar — manglede tidligere.
   useEffect(() => {
@@ -168,6 +174,7 @@ const PlatformAdmin = () => {
   if (!isAdmin) return <Navigate to="/" replace />;
 
   const current = NAV.find((n) => n.value === tab);
+  const sidebarPx = collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH_EXPANDED;
 
   return (
     <AdminFiltersProvider>
