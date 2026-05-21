@@ -139,8 +139,9 @@ Deno.serve(async (req) => {
     ownerId = created.user.id;
   }
 
-  // 2) Generér unik slug
-  let slug = slugify(name);
+  // 2) Generér unik slug (inkluderer sidste 4 cifre af CVR hvis tilgængeligt)
+  const slugForCvr = cvr ? `-${cvr.slice(-4)}` : "";
+  let slug = slugify(name) + slugForCvr;
   for (let i = 0; i < 100; i++) {
     const candidate = i === 0 ? slug : `${slug}-${i + 1}`;
     const { data: existing } = await admin
@@ -149,16 +150,6 @@ Deno.serve(async (req) => {
   }
 
   // 3) Opret virksomhed
-  const slugForCvr = cvr ? `-${cvr.slice(-4)}` : "";
-  const slugCandidate = slugify(name) + slugForCvr;
-  slug = slugCandidate;
-  for (let i = 0; i < 100; i++) {
-    const candidate = i === 0 ? slug : `${slug}-${i + 1}`;
-    const { data: existing } = await admin
-      .from("businesses").select("id").eq("slug", candidate).maybeSingle();
-    if (!existing) { slug = candidate; break; }
-  }
-
   const { data: biz, error: bizErr } = await admin
     .from("businesses")
     .insert({
