@@ -18,10 +18,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { useBusinessPlan } from "@/hooks/useBusinessPlan";
 import {
-  SidebarNavButton, SidebarCollapseToggle, SidebarFooterItem,
-  SIDEBAR_WIDTH_COLLAPSED, SIDEBAR_WIDTH_EXPANDED,
+  SidebarNavButton, SidebarFooterItem,
+  SIDEBAR_WIDTH_EXPANDED,
 } from "@/components/shared/sidebar/SidebarParts";
-import { useSidebarCollapsed } from "@/components/shared/sidebar/useSidebarCollapsed";
 
 export type AdminTabKey =
   | "dashboard" | "services" | "orders" | "customers"
@@ -195,8 +194,8 @@ export const AdminShell = ({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { data: plan } = useBusinessPlan(business.id);
   void plan;
-  const { collapsed, toggle: toggleCollapsed } = useSidebarCollapsed("sy.sidebar.collapsed.business");
-  const sidebarPx = collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH_EXPANDED;
+  const collapsed = false;
+  const sidebarPx = SIDEBAR_WIDTH_EXPANDED;
 
   // ESC lukker mobil-sidebar — letter tastatur-navigation.
   useEffect(() => {
@@ -350,7 +349,6 @@ export const AdminShell = ({
         <div className={cn("shrink-0 space-y-1 border-t border-border py-3", collapsed ? "px-2" : "px-3")}>
           <SidebarFooterItem icon={ExternalLink} label="Se din side" href={`/v/${business.slug}`} collapsed={collapsed} />
           <SidebarFooterItem icon={LogOut} label="Log ud" onClick={signOut} collapsed={collapsed} danger />
-          <div className="pt-1"><SidebarCollapseToggle collapsed={collapsed} onToggle={toggleCollapsed} /></div>
         </div>
       </aside>
 
