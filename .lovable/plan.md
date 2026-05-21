@@ -361,3 +361,12 @@ Sig "ja" → jeg starter på **Trin 6** (Platform-overblik). Vil du have en ande
 - `lib/csv.test.ts`: 7 tests for `exportCsv` (BOM, semikolon-separator, quoting af `"`, `;` og `\n`, null/undefined → tom celle, custom headers + filendelse).
 - `lib/useAdminMutation.test.tsx`: 7 tests for `callRpc` (success/error mapping) og `useAdminMutation` (success-toast + invalidateKeys + onDone, suppression via `successMessage:false`/`errorMessage:false`, default + custom fejl-tekst). Bruger `@testing-library/react` + `QueryClientProvider`.
 - Mock på `sonner` så toast-kald kan verificeres uden DOM-feedback.
+
+## Trin 26d — PlatformOverviewTab split ✅
+- `overview/shared.ts`: typer (`OverviewSnapshot`, `OperationalPulse`), formattere (`fmt`, `fmtKr`, `trendPct`) og de to query-hooks (`useOverviewSnapshot`, `useOperationalPulse`).
+- `overview/Cards.tsx`: små UI-byggesten (`TrendBadge`, `KpiCard`, `PulseCard`, `ActionCard`, `BarList`).
+- `overview/OverviewPulse.tsx`: live puls-strip + "Kræver handling"-arbejdskø med navigation.
+- `overview/OverviewKpis.tsx`: KPI-række + sekundære stats (MRR, genkøb, bedste ugedag, anmeldelser).
+- `overview/OverviewGrowthChart.tsx`: stacked area-chart for ordrer/brugere/virksomheder.
+- `overview/OverviewTopLists.tsx`: tab-baseret top-liste for kategorier/byer/virksomheder/kunder.
+- `PlatformOverviewTab` skrumpet fra 460 → 63 linjer — kun orkestrering, loading-state og CSV-eksport tilbage.
