@@ -1321,7 +1321,15 @@ const ServiceForm = ({
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium text-foreground">Beskrivelse</label>
-            <Textarea placeholder="Hvad inkluderer denne service? Hvad kan kunden forvente?" value={description} onChange={(e) => setDescription(e.target.value)} className="bg-card" rows={3} />
+            <Textarea
+              placeholder={aiLoading ? "AI skriver et forslag baseret på servicenavnet…" : "Hvad inkluderer denne service? Hvad kan kunden forvente?"}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="bg-card disabled:opacity-70 disabled:cursor-wait"
+              rows={3}
+              disabled={aiLoading}
+              readOnly={aiLoading}
+            />
             <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
               <button
                 type="button"
