@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import {
   Loader2, Building2, Search, Check, ArrowRight, ArrowLeft, Copy,
   Calculator, Inbox, MessageCircle, Users, Sparkles, Zap, ShieldCheck,
-  Mail, KeyRound, AlertCircle, CheckCircle2, X,
+  Mail, KeyRound, AlertCircle, CheckCircle2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ALL_INDUSTRIES, INDUSTRY_GROUPS } from "@/lib/service-taxonomy";
@@ -237,21 +237,17 @@ export default function CreateBusinessWizard({ open, onOpenChange }: Props) {
       <SheetContent className="w-full sm:max-w-3xl p-0 flex flex-col">
         {/* Header med progress */}
         <div className="border-b border-border px-5 py-4 sm:px-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground text-background">
-                <Building2 className="h-4 w-4" />
-              </div>
-              <div>
-                <h2 className="text-base font-semibold">Opret virksomhed</h2>
-                <p className="text-xs text-muted-foreground">
-                  {result ? "Færdig" : `Trin ${step + 1} af ${STEPS.length} · ${STEPS[step]}`}
-                </p>
-              </div>
+          {/* Lukkeknap leveres af SheetContent — undgå dobbelt X. */}
+          <div className="flex items-center gap-2 pr-8">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground text-background">
+              <Building2 className="h-4 w-4" />
             </div>
-            <button onClick={() => handleClose(false)} className="text-muted-foreground hover:text-foreground">
-              <X className="h-4 w-4" />
-            </button>
+            <div>
+              <h2 className="text-base font-semibold">Opret virksomhed</h2>
+              <p className="text-xs text-muted-foreground">
+                {result ? "Færdig" : `Trin ${step + 1} af ${STEPS.length} · ${STEPS[step]}`}
+              </p>
+            </div>
           </div>
           {!result && (
             <div className="mt-4 flex items-center gap-1.5">
