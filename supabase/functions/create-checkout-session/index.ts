@@ -33,10 +33,10 @@ function parseBody(raw: any) {
 
 // Ren funktion til at bygge Stripe Checkout-payloaden. Eksporteret så
 // vi kan unit-teste den uden at ramme rigtige Stripe/Supabase-kald.
-// Sikrer specifikt at `add_invoice_items` ALDRIG havner under
-// `subscription_data` (som ville give Stripe 400 "unknown parameter").
+// Sikrer specifikt at `add_invoice_items` ALDRIG bruges i Checkout Sessions
+// (Stripe afviser feltet med 400 "unknown parameter").
 export interface BuildPayloadInput {
-  lineItems: Array<{ price: string; quantity: number }>;
+  lineItems: Array<Record<string, unknown> & { quantity: number }>;
   returnUrl: string;
   customerId?: string | null;
   customerEmail?: string | null;
@@ -49,11 +49,27 @@ export interface BuildPayloadInput {
 export function buildSessionPayload(input: BuildPayloadInput): Record<string, unknown> {
   const nowSec = Math.floor(Date.now() / 1000);
   const trialEndIsFuture = !!input.trialEnd && input.trialEnd > nowSec + 60;
+  const lineItems = [...input.lineItems];
+
+  // Stripe Checkout Sessions understøtter ikke `add_invoice_items`. Ved
+  // reaktivering uden aktiv trial lægges opstartsgebyret derfor ind som et
+  // one-time line item på første Checkout-faktura. Hvis der stadig er trial,
+  // håndterer webhooken gebyret som deferred invoice item på næste faktura.
+  if (!trialEndIsFuture && input.includeStartupFee && input.startupFeeDkk > 0) {
+    lineItems.push({
+      quantity: 1,
+      price_data: {
+        currency: "dkk",
+        unit_amount: input.startupFeeDkk * 100,
+        product_data: { name: "Opstartsgebyr (engangsbeløb)" },
+      },
+    });
+  }
 
   const payload: Record<string, unknown> = {
     ui_mode: "embedded",
     mode: "subscription",
-    line_items: input.lineItems,
+    line_items: lineItems,
     return_url: input.returnUrl,
     payment_method_types: ["card"],
     ...(input.customerId
@@ -67,20 +83,8 @@ export function buildSessionPayload(input: BuildPayloadInput): Record<string, un
     allow_promotion_codes: true,
   };
 
-  if (input.includeStartupFee && input.startupFeeDkk > 0) {
-    payload.add_invoice_items = [
-      {
-        quantity: 1,
-        price_data: {
-          currency: "dkk",
-          unit_amount: input.startupFeeDkk * 100,
-          product_data: { name: "Opstartsgebyr (engangsbeløb)" },
-        },
-      },
-    ];
-  }
-
-  // Defensiv: må aldrig ende under subscription_data.
+  // Defensiv: må aldrig sendes til Stripe Checkout Sessions.
+  delete payload.add_invoice_items;
   const subData = payload.subscription_data as Record<string, unknown>;
   if (subData && "add_invoice_items" in subData) {
     delete subData.add_invoice_items;
