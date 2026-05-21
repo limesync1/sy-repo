@@ -12,11 +12,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   LogOut, LayoutDashboard, Wrench, ShoppingCart, Star, Settings,
-  Menu, X, ExternalLink, Users, Route as RouteIcon, Contact, Sparkles, MessageCircle, Calculator, Upload, LifeBuoy,
+  Menu, X, ExternalLink, Users, Route as RouteIcon, Contact, Sparkles, MessageCircle, Calculator, Upload, LifeBuoy, Truck,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { useBusinessPlan } from "@/hooks/useBusinessPlan";
+import { useEmployees } from "@/hooks/useEmployees";
+import { useMyEmployee } from "@/hooks/useMyEmployee";
 import {
   SidebarNavButton, SidebarFooterItem,
   SIDEBAR_WIDTH_EXPANDED,
