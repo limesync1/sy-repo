@@ -416,3 +416,9 @@ Sig "ja" → jeg starter på **Trin 6** (Platform-overblik). Vil du have en ande
 - `users/shared.ts`, `UserRow`, `UsersFilters` → tab fra 314 → 178 linjer.
 - `reviews/shared.ts`, `ReviewRow`, `ReviewsInsights`, `FlagDialog` → tab fra 329 → 202 linjer.
 - Resterende store filer: PlatformHealthTab (406), PlatformPlatformSettingsTab (426), PlatformDomainsTab (356) — næste trin.
+
+## Trin 26k — Health, Settings og Domains split ✅
+- `health/shared.tsx` (typer, `HealthStatCard`, `formatBytes`, `sumStatus`, `STATUS_LABEL`), `EmailHealthSection`, `QueuesSection`, `TopActionsSection`, `InfrastructureSections` → tab fra 407 → 90 linjer.
+- `settings/shared.tsx` (Zod-skema, `Field`, `NumField`, `detectStripeMode`), `PaymentTab`, `PricingTab` (med `PriceExample`), `FeaturedPicker` → tab fra 426 → 117 linjer.
+- `domains/shared.tsx` (typer, `STATUS_LABEL`, `LOVABLE_PROJECT_DOMAINS_URL`, `renderSslBadge`) — PlatformDomainsTab fra 356 → 289 linjer.
+- Resterende: BusinessDetailSheet Header/OrdersPanel + a11y-revision.
