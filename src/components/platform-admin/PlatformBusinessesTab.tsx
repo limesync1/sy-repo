@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CheckCircle2, XCircle, ExternalLink, Trash2, MapPin, Mail, BadgeCheck, Download, ChevronDown, CreditCard, Clock, AlertTriangle, Building2, UploadCloud, LogIn, KeyRound, Loader2, MailCheck, Settings2 } from "lucide-react";
+import { CheckCircle2, XCircle, ExternalLink, Trash2, MapPin, Mail, BadgeCheck, Download, ChevronDown, CreditCard, Clock, AlertTriangle, Building2, UploadCloud, LogIn, KeyRound, Loader2, MailCheck, Settings2, Plus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
@@ -21,6 +21,7 @@ import { setImpersonatedBusinessId } from "@/lib/admin-impersonation";
 
 const DataImportTab = lazy(() => import("@/components/admin/DataImportTab"));
 const BusinessDetailSheet = lazy(() => import("./BusinessDetailSheet"));
+const CreateBusinessDialog = lazy(() => import("./CreateBusinessDialog"));
 
 const fmtKr = (n: number) => `${Math.round(n).toLocaleString("da-DK")} kr`;
 
@@ -36,6 +37,7 @@ const PlatformBusinessesTab = () => {
 
   // Sheet til komplet virksomheds-kontrolpanel (trial, plan, slet osv.)
   const [detailFor, setDetailFor] = useState<string | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
 
   // Dialog til 5-cifret impersonation-kode
   const [impersonate, setImpersonate] = useState<{
@@ -219,9 +221,14 @@ const PlatformBusinessesTab = () => {
         title="Virksomheder"
         description={`${filtered.length} ${filtered.length === 1 ? "virksomhed" : "virksomheder"} matcher`}
         action={
-          <Button size="sm" variant="outline" onClick={handleExport} className="h-9 gap-1.5">
-            <Download className="h-3.5 w-3.5" /> CSV
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" onClick={handleExport} className="h-9 gap-1.5">
+              <Download className="h-3.5 w-3.5" /> CSV
+            </Button>
+            <Button size="sm" onClick={() => setCreateOpen(true)} className="h-9 gap-1.5">
+              <Plus className="h-3.5 w-3.5" /> Opret virksomhed
+            </Button>
+          </div>
         }
       />
 
@@ -402,6 +409,7 @@ const PlatformBusinessesTab = () => {
       {/* Detalje-sheet: alle admin-handlinger for én virksomhed samlet */}
       <Suspense fallback={null}>
         <BusinessDetailSheet businessId={detailFor} onClose={() => setDetailFor(null)} />
+        <CreateBusinessDialog open={createOpen} onOpenChange={setCreateOpen} />
       </Suspense>
 
       {/* Dataimport sheet — kører DataImportTab i kontekst af den valgte virksomhed */}
