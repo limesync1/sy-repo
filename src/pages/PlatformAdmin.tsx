@@ -294,7 +294,7 @@ const PlatformAdmin = () => {
               <TabErrorBoundary resetKey={tab} label={current?.label}>
                 <Suspense fallback={<PlatformTabFallback tab={tab} />}>
                   <TabPerfTracker tab={`platform:${tab}`} />
-                  {tab === "overview" && <PlatformOverviewTab />}
+                  {tab === "overview" && <PlatformOverviewTab onNavigate={setTab} />}
                   {tab === "businesses" && <PlatformBusinessesTab />}
                   {tab === "users" && <PlatformUsersTab />}
                   {tab === "orders" && <PlatformOrdersTab />}
