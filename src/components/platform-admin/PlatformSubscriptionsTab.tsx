@@ -1,9 +1,9 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Repeat, Download, DollarSign, PauseCircle, XCircle, Calendar, AlertCircle, CreditCard, Clock, TrendingUp, AlertTriangle, Flame, ExternalLink } from "lucide-react";
+import { Repeat, Download, DollarSign, PauseCircle, XCircle, Calendar, AlertCircle, CreditCard, Clock, TrendingUp, AlertTriangle, Flame, ExternalLink, RefreshCw, History } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,6 +14,7 @@ import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 import { INTERVAL_LABELS } from "@/types/service";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const fmtKr = (n: number) => `${Number(n).toLocaleString("da-DK")} kr`;
 const fmtDate = (s: string | null | undefined) =>
@@ -145,6 +146,34 @@ const BusinessPlansView = () => {
     })));
   };
 
+  // MRR-vandfald: ny / churn / netto for sidste 30 dage til regnskab.
+  const handleExportMrrWaterfall = () => {
+    const monthly = (p: any) => p.billing_period === "yearly"
+      ? Number(p.monthly_price_dkk || 0) / 12
+      : Number(p.monthly_price_dkk || 0);
+    const thirtyDaysAgo = Date.now() - 30 * 86400000;
+    const rows: any[] = [];
+    let newMrr = 0, churnedMrr = 0, activeMrr = 0;
+    asArray<any>(data).forEach((p: any) => {
+      const m = monthly(p);
+      if (p.status === "active") activeMrr += m;
+      const created = new Date(p.created_at).getTime();
+      if (p.status === "active" && created >= thirtyDaysAgo) {
+        newMrr += m;
+        rows.push({ type: "new", virksomhed: p.businesses?.name || "", dato: new Date(p.created_at).toLocaleDateString("da-DK"), mrr_dkk: Math.round(m) });
+      }
+      if ((p.status === "canceled" || p.status === "cancelled") && p.updated_at && new Date(p.updated_at).getTime() >= thirtyDaysAgo) {
+        churnedMrr += m;
+        rows.push({ type: "churn", virksomhed: p.businesses?.name || "", dato: new Date(p.updated_at).toLocaleDateString("da-DK"), mrr_dkk: -Math.round(m) });
+      }
+    });
+    rows.push({ type: "TOTAL_AKTIV_MRR", virksomhed: "", dato: "", mrr_dkk: Math.round(activeMrr) });
+    rows.push({ type: "NY_MRR_30D", virksomhed: "", dato: "", mrr_dkk: Math.round(newMrr) });
+    rows.push({ type: "CHURN_MRR_30D", virksomhed: "", dato: "", mrr_dkk: -Math.round(churnedMrr) });
+    rows.push({ type: "NETTO_30D", virksomhed: "", dato: "", mrr_dkk: Math.round(newMrr - churnedMrr) });
+    exportCsv("mrr-vandfald-30d", rows);
+  };
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
@@ -183,9 +212,14 @@ const BusinessPlansView = () => {
             <SelectItem value="canceled">Opsagt</SelectItem>
           </SelectContent>
         </Select>
-        <Button size="sm" variant="outline" onClick={handleExport} className="h-9 gap-1.5 ml-auto">
-          <Download className="h-3.5 w-3.5" /> CSV
-        </Button>
+        <div className="ml-auto flex gap-2">
+          <Button size="sm" variant="outline" onClick={handleExportMrrWaterfall} className="h-9 gap-1.5">
+            <Download className="h-3.5 w-3.5" /> MRR-vandfald
+          </Button>
+          <Button size="sm" variant="outline" onClick={handleExport} className="h-9 gap-1.5">
+            <Download className="h-3.5 w-3.5" /> CSV
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
