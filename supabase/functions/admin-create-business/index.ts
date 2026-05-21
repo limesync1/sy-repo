@@ -67,9 +67,34 @@ Deno.serve(async (req) => {
 
   const name = String(body.name || "").trim();
   const ownerEmail = String(body.ownerEmail || "").trim().toLowerCase();
-  const category = body.category ? String(body.category).trim() : null;
+  const categoriesIn: string[] = Array.isArray(body.categories)
+    ? body.categories.map((c: any) => String(c).trim()).filter(Boolean)
+    : (body.category ? [String(body.category).trim()] : []);
+  const primaryCategory = categoriesIn[0] || null;
   const city = body.city ? String(body.city).trim() : null;
+  const address = body.address ? String(body.address).trim() : null;
+  const zipCode = body.zipCode ? String(body.zipCode).trim() : null;
   const phone = body.phone ? String(body.phone).trim() : null;
+  const businessEmail = body.businessEmail ? String(body.businessEmail).trim().toLowerCase() : null;
+  const cvr = body.cvr ? String(body.cvr).replace(/\D/g, "").slice(0, 8) : null;
+  const industryText = body.industryText ? String(body.industryText) : null;
+  const description = body.description ? String(body.description) : null;
+
+  const features = body.features || {};
+  const accountingIntegration = !!features.accounting_integration;
+  const leadsEnabled = features.leads !== false;
+  const livechatEnabled = features.livechat !== false;
+
+  const extraLogins = Math.max(0, Math.min(50, Number(body.extraLogins ?? 0)));
+  const billingPeriod: "monthly" | "quarterly" | "yearly" =
+    body.billingPeriod === "quarterly" || body.billingPeriod === "yearly"
+      ? body.billingPeriod : "monthly";
+  const monthlyPrice = Math.max(0, Number(body.monthlyPriceDkk ?? 0));
+  const forceActive = body.forceActive === true;
+  const adminNote = body.adminNote ? String(body.adminNote).slice(0, 500) : null;
+  const customPassword = typeof body.customPassword === "string" && body.customPassword.length >= 8
+    ? body.customPassword : null;
+
   const trialDays = Math.max(0, Math.min(365, Number(body.trialDays ?? 14)));
   const sendWelcome = body.sendWelcome !== false;
 
@@ -99,7 +124,7 @@ Deno.serve(async (req) => {
   } catch (_e) {}
 
   if (!ownerId) {
-    createdPassword = generatePassword();
+    createdPassword = customPassword || generatePassword();
     const { data: created, error: createErr } = await admin.auth.admin.createUser({
       email: ownerEmail,
       password: createdPassword,
@@ -124,11 +149,43 @@ Deno.serve(async (req) => {
   }
 
   // 3) Opret virksomhed
+  const slugForCvr = cvr ? `-${cvr.slice(-4)}` : "";
+  const slugCandidate = slugify(name) + slugForCvr;
+  slug = slugCandidate;
+  for (let i = 0; i < 100; i++) {
+    const candidate = i === 0 ? slug : `${slug}-${i + 1}`;
+    const { data: existing } = await admin
+      .from("businesses").select("id").eq("slug", candidate).maybeSingle();
+    if (!existing) { slug = candidate; break; }
+  }
+
   const { data: biz, error: bizErr } = await admin
     .from("businesses")
     .insert({
-      owner_id: ownerId, name, slug, category, city, phone,
-      email: ownerEmail, is_active: true, is_verified: false,
+      owner_id: ownerId,
+      name,
+      slug,
+      category: primaryCategory,
+      categories: categoriesIn,
+      city,
+      address,
+      zip_code: zipCode,
+      phone,
+      email: businessEmail || ownerEmail,
+      description,
+      is_active: true,
+      is_verified: false,
+      settings: {
+        cvr,
+        industry_text: industryText,
+        route_planning_enabled: true,
+        accounting_integration_enabled: accountingIntegration,
+        leads_enabled: leadsEnabled,
+        livechat_enabled: livechatEnabled,
+        created_by_admin: true,
+        created_by_admin_id: caller.id,
+        admin_note: adminNote,
+      },
     })
     .select("id, slug, name")
     .single();
@@ -138,12 +195,20 @@ Deno.serve(async (req) => {
     });
   }
 
-  // 4) Opret plan-række med prøveperiode
-  const trialEnd = trialDays > 0 ? new Date(Date.now() + trialDays * 86400000).toISOString() : null;
+  // 4) Opret plan-række med prøveperiode (eller force-active)
+  const trialEnd =
+    !forceActive && trialDays > 0
+      ? new Date(Date.now() + trialDays * 86400000).toISOString()
+      : null;
   await admin.from("business_plans").insert({
     business_id: biz.id,
-    status: trialDays > 0 ? "trialing" : "active",
+    status: forceActive ? "active" : (trialDays > 0 ? "trialing" : "active"),
     trial_ends_at: trialEnd,
+    route_planning_enabled: true,
+    accounting_integration_enabled: accountingIntegration,
+    extra_employee_logins: extraLogins,
+    billing_period: billingPeriod,
+    monthly_price_dkk: monthlyPrice,
   });
 
   // 5) Audit-log
@@ -154,7 +219,19 @@ Deno.serve(async (req) => {
     target_type: "business",
     target_id: biz.id,
     target_label: biz.name,
-    details: { owner_email: ownerEmail, user_existed: userExisted, trial_days: trialDays },
+    details: {
+      owner_email: ownerEmail,
+      user_existed: userExisted,
+      trial_days: trialDays,
+      force_active: forceActive,
+      billing_period: billingPeriod,
+      monthly_price_dkk: monthlyPrice,
+      extra_logins: extraLogins,
+      features: { accounting_integration: accountingIntegration, leads: leadsEnabled, livechat: livechatEnabled },
+      categories: categoriesIn,
+      cvr,
+      admin_note: adminNote,
+    },
   });
 
   // 6) Velkomstmail (fire-and-forget)
@@ -177,8 +254,12 @@ Deno.serve(async (req) => {
   }
 
   return new Response(JSON.stringify({
-    businessId: biz.id, slug: biz.slug, ownerId, userExisted,
+    businessId: biz.id,
+    slug: biz.slug,
+    ownerId,
+    userExisted,
     temporaryPassword: createdPassword,
+    loginUrl: `${req.headers.get("origin") || "https://serviceydere.dk"}/log-ind`,
   }), {
     status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
