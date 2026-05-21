@@ -3620,6 +3620,19 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_list_orders: {
+        Args: {
+          p_filter?: string
+          p_from?: string
+          p_limit?: number
+          p_offset?: number
+          p_search?: string
+          p_sort?: string
+          p_status?: string
+          p_to?: string
+        }
+        Returns: Json
+      }
       admin_list_users: {
         Args: never
         Returns: {
