@@ -105,7 +105,7 @@ export default function PlatformHealthTab() {
             ? `Opdateret ${new Date(data.generated_at).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}`
             : "Drift- og leverance-status for platformen"
         }
-        actions={
+        action={
           <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
             <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${isFetching ? "animate-spin" : ""}`} />
             Opdatér
