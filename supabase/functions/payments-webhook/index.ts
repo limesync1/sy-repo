@@ -152,6 +152,8 @@ async function handleCheckoutCompleted(session: any, env: StripeEnv) {
           description: "Opstartsgebyr (engangsbeløb)",
           period: { start: periodEnd, end: periodEnd },
           metadata: { businessId, type: "startup_fee" },
+        }, {
+          idempotencyKey: `startup_fee_${env}_${businessId}_${session.subscription}`,
         });
       }
     } catch (e) {
