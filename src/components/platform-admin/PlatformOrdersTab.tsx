@@ -141,7 +141,7 @@ const PlatformOrdersTab = () => {
       <div className="flex flex-wrap items-center gap-2">
         <SearchInput value={q} onChange={setQ} placeholder="Søg kunde, email, virksomhed..." />
         <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger className="w-[180px] h-10"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[180px] h-9"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Alle statusser</SelectItem>
             {STATUS_OPTIONS.map((s) => (<SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>))}

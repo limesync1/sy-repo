@@ -60,7 +60,7 @@ export default function PlatformAuditLogTab() {
       <div className="flex flex-wrap items-center gap-2">
         <SearchInput value={q} onChange={setQ} placeholder="Søg admin, virksomhed eller handling..." />
         <Select value={actionFilter} onValueChange={setActionFilter}>
-          <SelectTrigger className="w-[220px] h-10">
+          <SelectTrigger className="w-[220px] h-9">
             <Filter className="h-3.5 w-3.5 mr-1.5" /><SelectValue />
           </SelectTrigger>
           <SelectContent>

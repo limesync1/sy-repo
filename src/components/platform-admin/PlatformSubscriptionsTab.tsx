@@ -99,7 +99,7 @@ const PlatformSubscriptionsTab = () => {
       <div className="flex flex-wrap items-center gap-2">
         <SearchInput value={q} onChange={setQ} placeholder="Søg service, virksomhed..." />
         <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger className="w-[180px] h-10"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[180px] h-9"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Alle</SelectItem>
             <SelectItem value="active">Aktive</SelectItem>
