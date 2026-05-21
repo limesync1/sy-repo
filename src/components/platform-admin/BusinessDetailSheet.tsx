@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import {
   Building2, CalendarClock, RefreshCw, Zap, ShieldCheck, UserCog,
   Trash2, AlertTriangle, ExternalLink, CreditCard, Clock,
-  Mail, MapPin, CheckCircle2, XCircle, Archive,
+  Mail, MapPin, CheckCircle2, XCircle, Archive, Users, KeyRound,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -86,6 +86,22 @@ export default function BusinessDetailSheet({ businessId, onClose }: Props) {
     },
   });
 
+  // Medarbejdere på virksomheden — vises i Brugere-fanen så admin nemt kan
+  // se hvem der har adgang og fx sende password-reset.
+  const { data: employees } = useQuery({
+    queryKey: ["admin-business-employees", businessId],
+    enabled: !!businessId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("employees")
+        .select("id,name,email,phone,title,is_active,user_id,livechat_enabled,created_at")
+        .eq("business_id", businessId!)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   const invalidateAll = () => {
     qc.invalidateQueries({ queryKey: ["admin-business-detail", businessId] });
     qc.invalidateQueries({ queryKey: ["admin-business-plan-detail", businessId] });
@@ -138,9 +154,10 @@ export default function BusinessDetailSheet({ businessId, onClose }: Props) {
         </SheetHeader>
 
         <Tabs defaultValue="overview" className="mt-4">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Oversigt</TabsTrigger>
             <TabsTrigger value="plan">Plan</TabsTrigger>
+            <TabsTrigger value="users">Brugere</TabsTrigger>
             <TabsTrigger value="audit">Log</TabsTrigger>
             <TabsTrigger value="danger" className="text-destructive data-[state=active]:text-destructive">Fare</TabsTrigger>
           </TabsList>
@@ -294,6 +311,76 @@ export default function BusinessDetailSheet({ businessId, onClose }: Props) {
                     }}>Overdrag</Button>
                 </div>
               </div>
+            </Card>
+          </TabsContent>
+
+          {/* ====== BRUGERE ====== */}
+          <TabsContent value="users" className="space-y-3 mt-4">
+            <Card className="p-4 space-y-3">
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                <UserCog className="h-4 w-4" /> Ejer
+              </h3>
+              {owner?.email ? (
+                <div className="flex items-center justify-between gap-2 rounded-md border border-border bg-secondary/30 px-3 py-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-foreground">{owner.email}</p>
+                    <p className="text-xs text-muted-foreground">Virksomhedsejer</p>
+                  </div>
+                  <Button
+                    asChild size="sm" variant="outline"
+                    aria-label={`Send mail til ${owner.email}`}
+                  >
+                    <a href={`mailto:${owner.email}`}><Mail className="h-3.5 w-3.5 mr-1.5" />Mail</a>
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">Ingen ejer fundet.</p>
+              )}
+            </Card>
+
+            <Card className="p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold flex items-center gap-2">
+                  <Users className="h-4 w-4" /> Medarbejdere
+                  <span className="text-xs font-normal text-muted-foreground">({employees?.length ?? 0})</span>
+                </h3>
+              </div>
+              {!employees?.length ? (
+                <p className="text-xs text-muted-foreground">Ingen medarbejdere oprettet.</p>
+              ) : (
+                <ul className="divide-y divide-border">
+                  {employees.map((e: any) => (
+                    <li key={e.id} className="flex items-center justify-between gap-2 py-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="truncate text-sm font-medium text-foreground">{e.name || "Uden navn"}</p>
+                          {!e.is_active && (
+                            <span className="rounded bg-destructive/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-destructive">Inaktiv</span>
+                          )}
+                          {e.user_id && (
+                            <span className="rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">Login</span>
+                          )}
+                          {e.livechat_enabled && (
+                            <span className="rounded bg-accent/10 px-1.5 py-0.5 text-[10px] font-medium text-accent">Livechat</span>
+                          )}
+                        </div>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {[e.title, e.email, e.phone].filter(Boolean).join(" · ") || "—"}
+                        </p>
+                      </div>
+                      {e.email && (
+                        <Button asChild size="sm" variant="ghost" className="h-9 w-9 p-0" aria-label={`Mail ${e.email}`}>
+                          <a href={`mailto:${e.email}`}><Mail className="h-3.5 w-3.5" /></a>
+                        </Button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <p className="text-[11px] text-muted-foreground/80">
+                <KeyRound className="inline h-3 w-3 mr-1" />
+                Adgangskode-reset og suspendering kommer i næste opdatering — brug indtil videre admin-impersonation.
+              </p>
             </Card>
           </TabsContent>
 

@@ -7,7 +7,6 @@ import { CheckCircle2, XCircle, ExternalLink, Trash2, MapPin, Mail, BadgeCheck, 
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { exportCsv } from "./lib/csv";
 import { PageHeader, SearchInput, EmptyState } from "@/components/admin/shared/AdminUI";
@@ -29,7 +28,9 @@ const PlatformBusinessesTab = () => {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [q, setQ] = useState("");
-  const [filter, setFilter] = useState<"all" | "verified" | "unverified" | "active" | "inactive">("all");
+  const [filter, setFilter] = useState<
+    "all" | "active_paying" | "trial" | "trial_expiring" | "expired_no_card" | "inactive" | "unverified"
+  >("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   // Sheet til at køre dataimport for en specifik virksomhed
@@ -170,11 +171,22 @@ const PlatformBusinessesTab = () => {
   });
 
   const filtered = useMemo(() => {
+    const now = Date.now();
     return (businesses || []).filter((b) => {
-      if (filter === "verified" && !b.is_verified) return false;
-      if (filter === "unverified" && b.is_verified) return false;
-      if (filter === "active" && !b.is_active) return false;
+      const p = plans?.get(b.id);
+      const hasCard = !!p?.stripe_payment_method_last4;
+      const trialEnd = p?.trial_ends_at ? new Date(p.trial_ends_at).getTime() : null;
+      const daysLeft = trialEnd !== null ? Math.ceil((trialEnd - now) / 86400000) : null;
+      const isExpired = !hasCard && daysLeft !== null && daysLeft <= 0;
+      const isTrial = !hasCard && daysLeft !== null && daysLeft > 0;
+      const isExpiringSoon = isTrial && daysLeft! <= 3;
+
+      if (filter === "active_paying" && !(hasCard && b.is_active)) return false;
+      if (filter === "trial" && !isTrial) return false;
+      if (filter === "trial_expiring" && !isExpiringSoon) return false;
+      if (filter === "expired_no_card" && !isExpired) return false;
       if (filter === "inactive" && b.is_active) return false;
+      if (filter === "unverified" && b.is_verified) return false;
       if (!q.trim()) return true;
       const s = q.toLowerCase();
       return (
@@ -184,7 +196,27 @@ const PlatformBusinessesTab = () => {
         b.category?.toLowerCase().includes(s)
       );
     });
-  }, [businesses, q, filter]);
+  }, [businesses, plans, q, filter]);
+
+  // Tæller pr. chip — admin kan med ét øjekast se hvor mange virksomheder
+  // der har behov for opmærksomhed (forfaldne, snart-udløbende prøver).
+  const counts = useMemo(() => {
+    const now = Date.now();
+    const list = businesses || [];
+    let active_paying = 0, trial = 0, trial_expiring = 0, expired_no_card = 0, inactive = 0, unverified = 0;
+    for (const b of list) {
+      const p = plans?.get(b.id);
+      const hasCard = !!p?.stripe_payment_method_last4;
+      const trialEnd = p?.trial_ends_at ? new Date(p.trial_ends_at).getTime() : null;
+      const daysLeft = trialEnd !== null ? Math.ceil((trialEnd - now) / 86400000) : null;
+      if (hasCard && b.is_active) active_paying++;
+      if (!hasCard && daysLeft !== null && daysLeft > 0) { trial++; if (daysLeft <= 3) trial_expiring++; }
+      if (!hasCard && daysLeft !== null && daysLeft <= 0) expired_no_card++;
+      if (!b.is_active) inactive++;
+      if (!b.is_verified) unverified++;
+    }
+    return { all: list.length, active_paying, trial, trial_expiring, expired_no_card, inactive, unverified };
+  }, [businesses, plans]);
 
   const allSelected = filtered.length > 0 && filtered.every((b) => selected.has(b.id));
   const someSelected = selected.size > 0;
@@ -232,18 +264,41 @@ const PlatformBusinessesTab = () => {
         }
       />
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="space-y-2">
         <SearchInput value={q} onChange={setQ} placeholder="Søg navn, by, kategori..." />
-        <Select value={filter} onValueChange={(v: any) => setFilter(v)}>
-          <SelectTrigger className="w-[180px] h-9"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Alle</SelectItem>
-            <SelectItem value="verified">Verificeret</SelectItem>
-            <SelectItem value="unverified">Ikke verificeret</SelectItem>
-            <SelectItem value="active">Aktive</SelectItem>
-            <SelectItem value="inactive">Inaktive</SelectItem>
-          </SelectContent>
-        </Select>
+        {/* Chip-filtre med tællere — gør status synlig uden ekstra klik */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          {([
+            { v: "all", label: "Alle", count: counts.all, tone: "default" },
+            { v: "active_paying", label: "Aktive (betalende)", count: counts.active_paying, tone: "success" },
+            { v: "trial", label: "På prøve", count: counts.trial, tone: "default" },
+            { v: "trial_expiring", label: "Prøve udløber ≤3d", count: counts.trial_expiring, tone: "warning" },
+            { v: "expired_no_card", label: "Prøve udløbet · intet kort", count: counts.expired_no_card, tone: "danger" },
+            { v: "inactive", label: "Inaktive", count: counts.inactive, tone: "default" },
+            { v: "unverified", label: "Ikke verificeret", count: counts.unverified, tone: "default" },
+          ] as const).map((c) => {
+            const active = filter === c.v;
+            const toneCls =
+              active
+                ? c.tone === "success" ? "bg-emerald-600 text-white border-emerald-600"
+                : c.tone === "warning" ? "bg-amber-600 text-white border-amber-600"
+                : c.tone === "danger"  ? "bg-destructive text-destructive-foreground border-destructive"
+                : "bg-foreground text-background border-foreground"
+                : "bg-background text-muted-foreground border-border hover:bg-secondary hover:text-foreground";
+            return (
+              <button
+                key={c.v}
+                onClick={() => setFilter(c.v as any)}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${toneCls}`}
+              >
+                {c.label}
+                <span className={`tabular-nums text-[10px] rounded-full px-1.5 py-0.5 ${active ? "bg-background/20" : "bg-secondary text-muted-foreground"}`}>
+                  {c.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {someSelected && (
