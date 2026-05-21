@@ -388,3 +388,16 @@ Sig "ja" → jeg starter på **Trin 6** (Platform-overblik). Vil du have en ande
 - `subscriptions/BusinessPlansView.tsx`: KPI-grid, filtre, CSV + MRR-vandfald-eksport, plan-liste.
 - `subscriptions/CustomerSubscriptionsView.tsx`: kunde-abonnementer (recurring services) inkl. `SubscriptionRow` med "snart"/"overskredet"-pille.
 - `PlatformSubscriptionsTab` skrumpet fra 605 → 24 linjer — kun `Tabs`-orkestrering tilbage.
+
+## Trin 26g — PlatformMailsTab split ✅
+- `mails/shared.ts`: `STATUS_LABEL`, `STATUS_TONE`, `RANGES`, `fmtTime`.
+- `mails/SendLogView.tsx`: KPI-grid, filtre (skabelon/status/range), gen-send pr. række, detalje-dialog.
+- `mails/TemplatesView.tsx`: skabelon-liste, live HTML-preview i iframe, send-test-dialog med default admin-email.
+- `mails/SuppressedView.tsx`: liste over blokerede modtagere + afblokér-knap.
+- `PlatformMailsTab` skrumpet fra 499 → 24 linjer.
+
+## Trin 26h — PlatformAuditLogTab split ✅
+- `auditlog/shared.tsx`: `ACTION_LABELS`, `DATE_RANGES`, `GroupMode`, `SavedFilter`, `loadWatch`/`loadSaved`, `toCsv`, `renderDiff`.
+- `auditlog/AuditRow.tsx`: enkelt række inkl. star/watch-toggle, ekspander-detaljer og before/after-diff.
+- `auditlog/FilterBar.tsx`: `FilterBar` (søg/handling/admin/range/gruppering/watch) + `SavedFiltersBar` (anvend/slet/navngiv).
+- `PlatformAuditLogTab` skrumpet fra 368 → ~180 linjer — orkestrering, infinite query, gruppering og CSV.
