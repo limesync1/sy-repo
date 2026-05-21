@@ -2394,6 +2394,8 @@ const Planner = () => {
         dragMetrics.end(false);
         setActiveDragId(null);
         setActiveDragData(null);
+        activeDragPointRef.current = null;
+        activeDragOriginRef.current = null;
         setRouteDragPoint(null);
         activeRouteDragPointRef.current = null;
         activeRouteDragOriginRef.current = null;
