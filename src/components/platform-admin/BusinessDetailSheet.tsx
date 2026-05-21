@@ -3,40 +3,32 @@
 // soft/hard-delete. Bruger admin_* RPC'er fra migrationen, som logger
 // til admin_audit_log og kun kan kaldes af admins (has_role).
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import {
-  Building2, CalendarClock, RefreshCw, Zap, ShieldCheck, UserCog,
-  Trash2, AlertTriangle, ExternalLink, CreditCard, Clock,
-  Mail, MapPin, CheckCircle2, XCircle, Archive, Users, KeyRound, UserCheck,
+  Building2, ShieldCheck, UserCog,
+  ExternalLink, Mail, MapPin, CheckCircle2, XCircle, Users, KeyRound, UserCheck,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Stat } from "./lib/Stat";
+import DangerZone from "./business-detail/DangerZone";
+import PlanPanel from "./business-detail/PlanPanel";
 
 interface Props {
   businessId: string | null;
   onClose: () => void;
 }
 
-const fmtKr = (n: number) => `${Math.round(n).toLocaleString("da-DK")} kr`;
 const fmtDate = (s: string | null | undefined) =>
   s ? new Date(s).toLocaleDateString("da-DK", { day: "2-digit", month: "short", year: "numeric" }) : "—";
 
 export default function BusinessDetailSheet({ businessId, onClose }: Props) {
   const qc = useQueryClient();
-  const [extendDays, setExtendDays] = useState("14");
-  const [forceNote, setForceNote] = useState("");
-  const [transferEmail, setTransferEmail] = useState("");
-  const [confirmHardDelete, setConfirmHardDelete] = useState(false);
-  const [hardDeleteName, setHardDeleteName] = useState("");
   const [impersonating, setImpersonating] = useState(false);
 
   const { data: business } = useQuery({
@@ -111,22 +103,8 @@ export default function BusinessDetailSheet({ businessId, onClose }: Props) {
     qc.invalidateQueries({ queryKey: ["admin-business-plans"] });
   };
 
-  const rpc = useMutation({
-    mutationFn: async ({ fn, args, successMsg }: { fn: string; args: any; successMsg: string }) => {
-      const { data, error } = await supabase.rpc(fn as any, args);
-      if (error) throw error;
-      return { data, successMsg };
-    },
-    onSuccess: (r) => {
-      toast.success(r.successMsg);
-      invalidateAll();
-    },
-    onError: (e: any) => toast.error(e.message || "Handlingen fejlede"),
-  });
-
   const trialEnd = plan?.trial_ends_at ? new Date(plan.trial_ends_at) : null;
   const daysLeft = trialEnd ? Math.ceil((trialEnd.getTime() - Date.now()) / 86400000) : null;
-  const hasCard = !!plan?.stripe_payment_method_last4;
   const isDeleted = !!business?.deleted_at;
 
   return (
@@ -199,120 +177,14 @@ export default function BusinessDetailSheet({ businessId, onClose }: Props) {
           </TabsContent>
 
           {/* ====== PLAN ====== */}
-          <TabsContent value="plan" className="space-y-3 mt-4">
-            {/* Trial */}
-            <Card className="p-4 space-y-3">
-              <h3 className="text-sm font-semibold flex items-center gap-2"><CalendarClock className="h-4 w-4" />Prøveperiode</h3>
-              <div className="text-xs text-muted-foreground">
-                Slutter: <span className="font-medium text-foreground">{fmtDate(plan?.trial_ends_at)}</span>
-                {daysLeft !== null && <> · {daysLeft} dage tilbage</>}
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {[7, 14, 30].map((d) => (
-                  <Button key={d} size="sm" variant="outline"
-                    onClick={() => rpc.mutate({ fn: "admin_extend_trial", args: { p_business_id: businessId, p_days: d }, successMsg: `Prøveperiode forlænget med ${d} dage` })}>
-                    +{d} dage
-                  </Button>
-                ))}
-                <div className="flex gap-1.5 items-center">
-                  <Input className="h-9 w-20" type="number" value={extendDays} onChange={(e) => setExtendDays(e.target.value)} />
-                  <Button size="sm" variant="outline"
-                    onClick={() => {
-                      const d = parseInt(extendDays, 10);
-                      if (isNaN(d)) return toast.error("Ugyldigt tal");
-                      rpc.mutate({ fn: "admin_extend_trial", args: { p_business_id: businessId, p_days: d }, successMsg: `Forlænget med ${d} dage` });
-                    }}>Forlæng</Button>
-                </div>
-                <Button size="sm" variant="outline"
-                  onClick={() => rpc.mutate({ fn: "admin_reset_trial", args: { p_business_id: businessId, p_days: 14 }, successMsg: "Prøveperiode nulstillet til 14 dage" })}>
-                  <RefreshCw className="h-3.5 w-3.5 mr-1.5" />Nulstil (14d)
-                </Button>
-                <Button size="sm" variant="outline" className="text-amber-700 hover:text-amber-800"
-                  onClick={() => {
-                    if (!confirm("Afslut prøveperioden NU? Virksomheden vil straks blive bedt om at tilføje kort.")) return;
-                    rpc.mutate({ fn: "admin_end_trial_now", args: { p_business_id: businessId }, successMsg: "Prøveperiode afsluttet" });
-                  }}>
-                  <Zap className="h-3.5 w-3.5 mr-1.5" />Afslut nu
-                </Button>
-              </div>
-            </Card>
-
-            {/* Betaling */}
-            <Card className="p-4 space-y-3">
-              <h3 className="text-sm font-semibold flex items-center gap-2"><CreditCard className="h-4 w-4" />Betaling</h3>
-              <div className="text-sm">
-                {hasCard ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200">
-                    <CreditCard className="h-3.5 w-3.5" />
-                    {plan?.stripe_payment_method_brand || "Kort"} •••• {plan?.stripe_payment_method_last4}
-                  </span>
-                ) : (
-                  <span className="text-xs text-muted-foreground">Intet kort på fil</span>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <Stat label="Månedspris" value={fmtKr(Number(plan?.monthly_price_dkk) || 0)} />
-                <Stat label="Periode" value={plan?.billing_period || "—"} />
-                <Stat label="Rute-planlægning" value={plan?.route_planning_enabled ? "Ja" : "Nej"} />
-                <Stat label="Regnskab" value={plan?.accounting_integration_enabled ? "Ja" : "Nej"} />
-                <Stat label="Ekstra logins" value={`${plan?.extra_employee_logins || 0}`} />
-                <Stat label="Stripe sub" value={plan?.stripe_subscription_id ? "Aktiv" : "—"} />
-              </div>
-              <div className="flex flex-wrap gap-2 pt-1">
-                <Textarea
-                  placeholder="Note (fx 'kulance — kunde havde tekniske problemer')"
-                  className="text-xs min-h-[60px]"
-                  value={forceNote}
-                  onChange={(e) => setForceNote(e.target.value)}
-                />
-              </div>
-              <Button size="sm" variant="outline" className="w-full"
-                onClick={() => {
-                  if (!confirm("Markér virksomheden som BETALENDE manuelt (uden Stripe-kort)?")) return;
-                  rpc.mutate({ fn: "admin_force_active", args: { p_business_id: businessId, p_note: forceNote || null }, successMsg: "Virksomhed markeret som aktiv" });
-                }}>
-                <ShieldCheck className="h-3.5 w-3.5 mr-1.5" />Markér som betalende (kulance)
-              </Button>
-              {hasCard && (
-                <Button size="sm" variant="outline" className="w-full text-amber-700"
-                  onClick={async () => {
-                    if (!confirm("Fjern det gemte kort fra Lovable-databasen? Stripe-abonnementet annulleres IKKE automatisk.")) return;
-                    const { error } = await supabase.from("business_plans").update({
-                      stripe_payment_method_last4: null,
-                      stripe_payment_method_brand: null,
-                      status: 'trialing',
-                    }).eq("business_id", businessId!);
-                    if (error) toast.error(error.message); else { toast.success("Kort fjernet"); invalidateAll(); }
-                  }}>
-                  Fjern gemt kort
-                </Button>
-              )}
-            </Card>
-
-            {/* Ejer */}
-            <Card className="p-4 space-y-3">
-              <h3 className="text-sm font-semibold flex items-center gap-2"><UserCog className="h-4 w-4" />Ejer</h3>
-              <div className="text-xs text-muted-foreground">
-                Nuværende: <span className="font-medium text-foreground">{owner?.email || "—"}</span>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs">Overdrag til (e-mail på eksisterende bruger)</Label>
-                <div className="flex gap-2">
-                  <Input type="email" placeholder="ny.ejer@eksempel.dk" value={transferEmail} onChange={(e) => setTransferEmail(e.target.value)} className="h-9" />
-                  <Button size="sm" variant="outline"
-                    disabled={!transferEmail.includes("@")}
-                    onClick={() => {
-                      if (!confirm(`Overdrag "${business?.name}" til ${transferEmail}?`)) return;
-                      rpc.mutate({
-                        fn: "admin_transfer_business_owner",
-                        args: { p_business_id: businessId, p_new_owner_email: transferEmail },
-                        successMsg: "Ejer opdateret",
-                      });
-                      setTransferEmail("");
-                    }}>Overdrag</Button>
-                </div>
-              </div>
-            </Card>
+          <TabsContent value="plan">
+            <PlanPanel
+              businessId={businessId!}
+              plan={plan}
+              ownerEmail={owner?.email}
+              daysLeft={daysLeft}
+              onInvalidate={invalidateAll}
+            />
           </TabsContent>
 
           {/* ====== BRUGERE ====== */}
@@ -443,86 +315,16 @@ export default function BusinessDetailSheet({ businessId, onClose }: Props) {
 
           {/* ====== FARE-ZONE ====== */}
           <TabsContent value="danger" className="space-y-3 mt-4">
-            <Card className="p-4 space-y-3 border-destructive/30 bg-destructive/5">
-              <h3 className="text-sm font-semibold flex items-center gap-2 text-destructive">
-                <AlertTriangle className="h-4 w-4" />Destruktive handlinger
-              </h3>
-              <p className="text-xs text-muted-foreground">
-                Soft-delete arkiverer virksomheden (skjult fra alt, kan gendannes). Hard-delete fjerner permanent inkl. alle services, ordrer, kunder.
-              </p>
-
-              {!isDeleted ? (
-                <Button size="sm" variant="outline" className="w-full"
-                  onClick={() => {
-                    if (!confirm(`Soft-delete "${business?.name}"? Kan gendannes.`)) return;
-                    rpc.mutate({ fn: "admin_soft_delete_business", args: { p_business_id: businessId }, successMsg: "Virksomhed arkiveret" });
-                  }}>
-                  <Archive className="h-3.5 w-3.5 mr-1.5" />Soft-delete (kan fortrydes)
-                </Button>
-              ) : (
-                <Button size="sm" variant="outline" className="w-full"
-                  onClick={() => rpc.mutate({ fn: "admin_restore_business", args: { p_business_id: businessId }, successMsg: "Virksomhed gendannet" })}>
-                  <RefreshCw className="h-3.5 w-3.5 mr-1.5" />Gendan
-                </Button>
-              )}
-
-              <Button size="sm" variant="destructive" className="w-full"
-                onClick={() => setConfirmHardDelete(true)}>
-                <Trash2 className="h-3.5 w-3.5 mr-1.5" />Hard-delete permanent
-              </Button>
-            </Card>
+            <DangerZone
+              businessId={businessId!}
+              businessName={business?.name || ""}
+              isDeleted={isDeleted}
+              onInvalidate={invalidateAll}
+              onAfterHardDelete={onClose}
+            />
           </TabsContent>
         </Tabs>
-
-        <AlertDialog open={confirmHardDelete} onOpenChange={setConfirmHardDelete}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle className="flex items-center gap-2 text-destructive">
-                <AlertTriangle className="h-5 w-5" />Permanent sletning
-              </AlertDialogTitle>
-              <AlertDialogDescription asChild>
-                <div className="space-y-2 text-sm">
-                  <p>Dette sletter <span className="font-semibold text-foreground">{business?.name}</span> permanent inkl. alle services, ordrer, kunder, ruter og medarbejdere. <span className="font-semibold">Kan ikke fortrydes.</span></p>
-                  <p>Skriv virksomhedens fulde navn for at bekræfte:</p>
-                  <Input value={hardDeleteName} onChange={(e) => setHardDeleteName(e.target.value)} placeholder={business?.name} autoFocus />
-                </div>
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => { setConfirmHardDelete(false); setHardDeleteName(""); }}>Annullér</AlertDialogCancel>
-              <AlertDialogAction
-                disabled={hardDeleteName !== business?.name}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                onClick={async () => {
-                  try {
-                    const { error } = await supabase.rpc("admin_hard_delete_business" as any, {
-                      p_business_id: businessId, p_confirm_name: hardDeleteName,
-                    });
-                    if (error) throw error;
-                    toast.success("Virksomhed slettet permanent");
-                    setConfirmHardDelete(false);
-                    setHardDeleteName("");
-                    invalidateAll();
-                    onClose();
-                  } catch (e: any) {
-                    toast.error(e.message || "Sletning fejlede");
-                  }
-                }}>
-                Slet permanent
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </SheetContent>
     </Sheet>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-md bg-secondary/40 px-2 py-1.5">
-      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className="text-sm font-medium text-foreground truncate">{value}</p>
-    </div>
   );
 }
