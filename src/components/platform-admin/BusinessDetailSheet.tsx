@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import {
   Building2, CalendarClock, RefreshCw, Zap, ShieldCheck, UserCog,
   Trash2, AlertTriangle, ExternalLink, CreditCard, Clock,
-  Mail, MapPin, CheckCircle2, XCircle, Archive,
+  Mail, MapPin, CheckCircle2, XCircle, Archive, Users, KeyRound,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -86,6 +86,22 @@ export default function BusinessDetailSheet({ businessId, onClose }: Props) {
     },
   });
 
+  // Medarbejdere på virksomheden — vises i Brugere-fanen så admin nemt kan
+  // se hvem der har adgang og fx sende password-reset.
+  const { data: employees } = useQuery({
+    queryKey: ["admin-business-employees", businessId],
+    enabled: !!businessId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("employees")
+        .select("id,name,email,phone,title,is_active,user_id,livechat_enabled,created_at")
+        .eq("business_id", businessId!)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   const invalidateAll = () => {
     qc.invalidateQueries({ queryKey: ["admin-business-detail", businessId] });
     qc.invalidateQueries({ queryKey: ["admin-business-plan-detail", businessId] });
@@ -138,9 +154,10 @@ export default function BusinessDetailSheet({ businessId, onClose }: Props) {
         </SheetHeader>
 
         <Tabs defaultValue="overview" className="mt-4">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Oversigt</TabsTrigger>
             <TabsTrigger value="plan">Plan</TabsTrigger>
+            <TabsTrigger value="users">Brugere</TabsTrigger>
             <TabsTrigger value="audit">Log</TabsTrigger>
             <TabsTrigger value="danger" className="text-destructive data-[state=active]:text-destructive">Fare</TabsTrigger>
           </TabsList>
