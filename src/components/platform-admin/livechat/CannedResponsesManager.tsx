@@ -56,7 +56,7 @@ const CannedResponsesManager = (props: Props) => {
       <div className="flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-border px-5 py-3">
           <div className="flex items-center gap-2"><Zap className="h-4 w-4 text-accent" /><h3 className="text-sm font-semibold text-foreground">Hurtige svar — administrer</h3></div>
-          <button onClick={onClose} className="rounded-md p-1 text-muted-foreground hover:bg-secondary hover:text-foreground"><X className="h-4 w-4" /></button>
+          <button onClick={onClose} className="rounded-md p-1 text-muted-foreground hover:bg-secondary hover:text-foreground" aria-label="Luk"><X className="h-4 w-4" aria-hidden="true" /></button>
         </div>
 
         <div className="grid flex-1 grid-cols-1 overflow-hidden md:grid-cols-[1fr_320px]">
@@ -95,14 +95,14 @@ const CannedResponsesManager = (props: Props) => {
                     <p className="mt-0.5 line-clamp-2 whitespace-pre-wrap text-[11px] text-muted-foreground">{c.body}</p>
                   </div>
                   <div className="flex flex-shrink-0 flex-col gap-1 opacity-60 transition-opacity group-hover:opacity-100">
-                    <button onClick={() => setPreviewCanned(c)} className="rounded-md p-1.5 text-muted-foreground hover:bg-card hover:text-foreground" title="Forhåndsvis">
-                      <Eye className="h-3.5 w-3.5" />
+                    <button onClick={() => setPreviewCanned(c)} className="rounded-md p-1.5 text-muted-foreground hover:bg-card hover:text-foreground" title="Forhåndsvis" aria-label={`Forhåndsvis ${c.title}`}>
+                      <Eye className="h-3.5 w-3.5" aria-hidden="true" />
                     </button>
-                    <button onClick={() => onStartEdit(c)} className="rounded-md p-1.5 text-muted-foreground hover:bg-card hover:text-foreground" title="Rediger">
+                    <button onClick={() => onStartEdit(c)} className="rounded-md p-1.5 text-muted-foreground hover:bg-card hover:text-foreground" title="Rediger" aria-label={`Rediger ${c.title}`}>
                       ✎
                     </button>
-                    <button onClick={() => onDelete(c.id)} className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive" title="Slet">
-                      <Trash2 className="h-3.5 w-3.5" />
+                    <button onClick={() => onDelete(c.id)} className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive" title="Slet" aria-label={`Slet ${c.title}`}>
+                      <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                     </button>
                   </div>
                 </div>

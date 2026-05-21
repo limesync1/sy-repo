@@ -79,8 +79,8 @@ export default function ChatComposer({
             <span className="flex-1 truncate text-[11px] text-muted-foreground">
               <ImageIcon className="mr-1 inline h-3 w-3" />{pendingImage?.name}
             </span>
-            <button onClick={onClearImage} className="rounded-md p-1 text-muted-foreground hover:bg-card hover:text-foreground">
-              <XIcon className="h-3.5 w-3.5" />
+            <button onClick={onClearImage} className="rounded-md p-1 text-muted-foreground hover:bg-card hover:text-foreground" aria-label="Fjern vedhæftet billede">
+              <XIcon className="h-3.5 w-3.5" aria-hidden="true" />
             </button>
           </div>
         )}
@@ -100,6 +100,7 @@ export default function ChatComposer({
             className="flex-1 resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-foreground"
           />
           <button onClick={onSend} disabled={sending || (!draft.trim() && !pendingImage)}
+            aria-label="Send besked"
             className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-all hover:bg-foreground/90 disabled:opacity-50">
             {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
           </button>

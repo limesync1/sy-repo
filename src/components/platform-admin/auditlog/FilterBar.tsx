@@ -86,8 +86,8 @@ export function SavedFiltersBar(props: {
       {saved.map((s) => (
         <span key={s.name} className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/40 px-2 py-0.5 text-xs">
           <button type="button" onClick={() => applySaved(s)} className="font-medium hover:text-primary">{s.name}</button>
-          <button type="button" onClick={() => deleteSaved(s.name)} className="text-muted-foreground hover:text-destructive">
-            <Trash2 className="h-3 w-3" />
+          <button type="button" onClick={() => deleteSaved(s.name)} className="text-muted-foreground hover:text-destructive" aria-label={`Slet gemt filter ${s.name}`}>
+            <Trash2 className="h-3 w-3" aria-hidden="true" />
           </button>
         </span>
       ))}

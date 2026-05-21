@@ -430,3 +430,8 @@ Sig "ja" → jeg starter på **Trin 6** (Platform-overblik). Vil du have en ande
 - `business-detail/AuditPanel.tsx`: seneste admin-handlinger med JSON-details.
 - BusinessDetailSheet skrumpet fra 330 → 148 linjer — kun queries, invalidering og tab-orkestrering tilbage.
 - Tilbage: a11y-revision af nye komponenter fra Trin 14–26.
+
+## Trin 26m — a11y-revision ✅
+- Tilføjet `aria-label` på icon-only knapper i `livechat/ChatComposer` (fjern billede, send), `livechat/CannedResponsesManager` (luk, forhåndsvis, rediger, slet), `auditlog/FilterBar` (slet gemt filter). Markerede lucide-ikoner som `aria-hidden`.
+- `PlatformAdmin` sidebar bruger nu `lg:h-dvh` i stedet for `lg:h-screen` så den følger mobil-viewport korrekt.
+- Resterende kendte icon-only knapper (`UserRow`, `UserDetailSheet`, `BusinessRow`, `AdminBottomTabs`, `AdminNotifications`, `business-detail/UsersPanel`, `settings/PaymentTab`, `settings/FeaturedPicker`, `orders/OrdersFilters`, `livechat/ChatComposer` vedhæft) har allerede `aria-label`.
