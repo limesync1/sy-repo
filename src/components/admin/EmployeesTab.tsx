@@ -1158,19 +1158,21 @@ const EmployeeRow = ({
 
 export default EmployeesTab;
 
-/* ─── Opgaveoverblik pr. medarbejder ─────────────────────────────── */
+/* ─── Aftaleoverblik pr. medarbejder ─────────────────────────────── */
 const EmployeeTasksDialog = ({
-  open, onOpenChange, employeeId, employeeName,
+  open, onOpenChange, employeeId, employeeName, commissionPct,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   employeeId: string;
   employeeName: string;
+  /** Medarbejderens provisionssats i hele procent (fx 15 = 15 %). */
+  commissionPct: number;
 }) => {
   const [tab, setTab] = useState<"upcoming" | "completed">("upcoming");
 
   const { data: stops, isLoading } = useQuery({
-    queryKey: ["employee-tasks", employeeId],
+    queryKey: ["employee-tasks", employeeId, commissionPct],
     enabled: open,
     queryFn: async () => {
       // Hent alle stops hvor medarbejderen er tildelt — enten via assigned_employee_id
@@ -1179,7 +1181,7 @@ const EmployeeTasksDialog = ({
         supabase
           .from("route_stops")
           .select(`
-            id, status, planned_arrival, completed_at, address,
+            id, status, planned_arrival, completed_at, address, order_id,
             customer_name, service_summary, duration_minutes, sequence,
             routes ( id, name, route_date )
           `)
@@ -1191,7 +1193,7 @@ const EmployeeTasksDialog = ({
           .select(`
             stop_id, is_lead,
             route_stops (
-              id, status, planned_arrival, completed_at, address,
+              id, status, planned_arrival, completed_at, address, order_id,
               customer_name, service_summary, duration_minutes, sequence,
               routes ( id, name, route_date )
             )
@@ -1200,7 +1202,7 @@ const EmployeeTasksDialog = ({
           .limit(200),
         supabase
           .from("employee_completed_stops")
-          .select("id, stop_id, completed_at, customer_name, service_summary, address, duration_minutes, route_name, route_date")
+          .select("id, stop_id, completed_at, customer_name, service_summary, address, duration_minutes, route_name, route_date, earnings, order_amount")
           .eq("employee_id", employeeId)
           .order("completed_at", { ascending: false })
           .limit(500),
@@ -1214,25 +1216,79 @@ const EmployeeTasksDialog = ({
         const s = row.route_stops;
         if (s && !map.has(s.id)) map.set(s.id, s);
       });
-      // Tilføj snapshots for udførte opgaver (også hvis stop/rute er slettet).
+      // Tilføj snapshots for udførte aftaler (også hvis stop/rute er slettet).
       (snapRows || []).forEach((sn: any) => {
         const key = sn.stop_id || `snap:${sn.id}`;
-        if (map.has(key)) return;
+        // Snapshot indeholder den autoritative `earnings`-værdi — overskriv
+        // gerne live-rækken så vi altid kan vise præcis udbetaling pr. aftale.
+        const existing = map.get(key);
         map.set(key, {
+          ...(existing || {}),
           id: key,
           status: "completed",
-          planned_arrival: null,
+          planned_arrival: existing?.planned_arrival ?? null,
           completed_at: sn.completed_at,
-          address: sn.address,
-          customer_name: sn.customer_name,
-          service_summary: sn.service_summary,
-          duration_minutes: sn.duration_minutes,
-          routes: sn.route_name || sn.route_date
+          address: existing?.address ?? sn.address,
+          customer_name: existing?.customer_name ?? sn.customer_name,
+          service_summary: existing?.service_summary ?? sn.service_summary,
+          duration_minutes: existing?.duration_minutes ?? sn.duration_minutes,
+          routes: existing?.routes ?? (sn.route_name || sn.route_date
             ? { id: null, name: sn.route_name, route_date: sn.route_date }
-            : null,
+            : null),
+          order_id: existing?.order_id ?? null,
+          // Snapshot-værdier — bruges direkte for udførte aftaler.
+          snapshot_earnings: Number(sn.earnings || 0),
+          snapshot_amount: Number(sn.order_amount || 0),
         });
       });
-      return Array.from(map.values());
+      const rows = Array.from(map.values());
+
+      // ─── Beregn medarbejderens andel pr. aftale ───
+      // For PLANLAGTE aftaler er der ingen snapshot endnu, så vi henter
+      // ordrebeløb fra `orders` og antal medarbejdere pr. stop fra
+      // `route_stop_assignees`. Vi viser præcis hvad medarbejderen ville
+      // tjene hvis aftalen blev udført som planlagt — dvs. estimeret
+      // omsætning pr. aftale, ikke kun samlet.
+      const orderIds = Array.from(new Set(
+        rows.map((r: any) => r.order_id).filter(Boolean) as string[],
+      ));
+      const orderAmountMap = new Map<string, number>();
+      if (orderIds.length > 0) {
+        const { data: orders } = await supabase
+          .from("orders")
+          .select("id, total_amount, adjusted_amount")
+          .in("id", orderIds);
+        (orders || []).forEach((o: any) => {
+          orderAmountMap.set(o.id, Number(o.adjusted_amount ?? o.total_amount ?? 0));
+        });
+      }
+      const stopIdsForAssignees = rows
+        .map((r: any) => r.id)
+        .filter((id: string) => !String(id).startsWith("snap:"));
+      const assigneeCountMap = new Map<string, number>();
+      if (stopIdsForAssignees.length > 0) {
+        const { data: counts } = await supabase
+          .from("route_stop_assignees")
+          .select("stop_id")
+          .in("stop_id", stopIdsForAssignees);
+        (counts || []).forEach((a: any) => {
+          assigneeCountMap.set(a.stop_id, (assigneeCountMap.get(a.stop_id) || 0) + 1);
+        });
+      }
+
+      return rows.map((r: any) => {
+        if (r.status === "completed" && r.snapshot_earnings != null) {
+          return {
+            ...r,
+            order_amount: r.snapshot_amount ?? 0,
+            employee_share: r.snapshot_earnings ?? 0,
+          };
+        }
+        const amount = r.order_id ? orderAmountMap.get(r.order_id) || 0 : 0;
+        const sharers = Math.max(1, assigneeCountMap.get(r.id) || 1);
+        const share = calcEmployeeShare(amount, commissionPct, sharers);
+        return { ...r, order_amount: amount, employee_share: share };
+      });
     },
   });
 
@@ -1251,6 +1307,19 @@ const EmployeeTasksDialog = ({
 
   const list = tab === "upcoming" ? upcoming : completed;
 
+  const upcomingShareTotal = upcoming.reduce(
+    (sum, s: any) => sum + Number(s.employee_share || 0), 0,
+  );
+  const completedShareTotal = completed.reduce(
+    (sum, s: any) => sum + Number(s.employee_share || 0), 0,
+  );
+  const completedRevenueTotal = completed.reduce(
+    (sum, s: any) => sum + Number(s.order_amount || 0), 0,
+  );
+  const upcomingRevenueTotal = upcoming.reduce(
+    (sum, s: any) => sum + Number(s.order_amount || 0), 0,
+  );
+
   const fmtDateTime = (iso?: string | null) => {
     if (!iso) return "—";
     try { return format(parseISO(iso), "d. MMM yyyy 'kl.' HH:mm", { locale: da }); }
@@ -1263,39 +1332,68 @@ const EmployeeTasksDialog = ({
         <DialogHeader className="px-5 py-4 border-b">
           <DialogTitle className="flex items-center gap-2 text-base">
             <ListChecks className="h-4 w-4 text-accent" />
-            Opgaver — {employeeName}
+            Aftaler — {employeeName}
           </DialogTitle>
           <DialogDescription className="text-xs">
-            Overblik over hvilke stops medarbejderen er tildelt og hvilke der er udført.
+            Overblik over hvilke aftaler medarbejderen er tildelt — og præcis
+            hvad de tjener pr. aftale (provision {commissionPct} % af beløb
+            ekskl. moms, delt ligeligt mellem medarbejdere på samme aftale).
           </DialogDescription>
         </DialogHeader>
 
         <div className="px-5 pt-3 pb-2 border-b bg-secondary/30">
-          <div className="inline-flex rounded-lg border bg-card p-0.5">
-            {([
-              { k: "upcoming",  label: `Planlagt (${upcoming.length})`,  icon: CalendarDays },
-              { k: "completed", label: `Udført (${completed.length})`,   icon: CheckCircle2 },
-            ] as const).map((t) => (
-              <button
-                key={t.k}
-                onClick={() => setTab(t.k)}
-                className={cn(
-                  "px-3 py-1.5 text-xs font-medium rounded-md flex items-center gap-1.5 transition-colors",
-                  tab === t.k ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <t.icon className="h-3.5 w-3.5" /> {t.label}
-              </button>
-            ))}
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="inline-flex rounded-lg border bg-card p-0.5">
+              {([
+                { k: "upcoming",  label: `Planlagt (${upcoming.length})`,  icon: CalendarDays },
+                { k: "completed", label: `Udført (${completed.length})`,   icon: CheckCircle2 },
+              ] as const).map((t) => (
+                <button
+                  key={t.k}
+                  onClick={() => setTab(t.k)}
+                  className={cn(
+                    "px-3 py-1.5 text-xs font-medium rounded-md flex items-center gap-1.5 transition-colors",
+                    tab === t.k ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <t.icon className="h-3.5 w-3.5" /> {t.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-3 text-[11px] text-muted-foreground tabular-nums">
+              {tab === "upcoming" ? (
+                <>
+                  <span>
+                    Estimeret omsætning:{" "}
+                    <span className="font-semibold text-foreground">{formatKr(upcomingRevenueTotal)}</span>
+                  </span>
+                  <span>
+                    Medarbejderens andel:{" "}
+                    <span className="font-semibold text-foreground">{formatKr(upcomingShareTotal)}</span>
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span>
+                    Omsætning:{" "}
+                    <span className="font-semibold text-foreground">{formatKr(completedRevenueTotal)}</span>
+                  </span>
+                  <span>
+                    Medarbejderens andel:{" "}
+                    <span className="font-semibold text-foreground">{formatKr(completedShareTotal)}</span>
+                  </span>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto">
           {isLoading ? (
-            <div className="p-8 text-center text-sm text-muted-foreground">Henter opgaver…</div>
+            <div className="p-8 text-center text-sm text-muted-foreground">Henter aftaler…</div>
           ) : list.length === 0 ? (
             <div className="p-8 text-center text-sm text-muted-foreground">
-              {tab === "upcoming" ? "Ingen planlagte opgaver." : "Ingen udførte opgaver endnu."}
+              {tab === "upcoming" ? "Ingen planlagte aftaler." : "Ingen udførte aftaler endnu."}
             </div>
           ) : (
             <ul className="divide-y">
@@ -1314,6 +1412,11 @@ const EmployeeTasksDialog = ({
                           <MapPin className="h-3 w-3" /> {s.address}
                         </p>
                       )}
+                      {s.duration_minutes != null && (
+                        <p className="mt-0.5 text-[11px] text-muted-foreground flex items-center gap-1">
+                          <Clock className="h-3 w-3" /> {s.duration_minutes} min planlagt
+                        </p>
+                      )}
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-[11px] text-muted-foreground flex items-center gap-1 justify-end">
@@ -1325,6 +1428,20 @@ const EmployeeTasksDialog = ({
                       {s.routes?.name && (
                         <p className="text-[10px] text-muted-foreground mt-0.5 truncate max-w-[140px]">
                           {s.routes.name}
+                        </p>
+                      )}
+                      {Number(s.employee_share || 0) > 0 ? (
+                        <p className="mt-1 text-sm font-semibold text-foreground tabular-nums">
+                          {formatKr(Number(s.employee_share || 0))}
+                        </p>
+                      ) : (
+                        <p className="mt-1 text-[10px] text-muted-foreground italic">
+                          Ingen provision
+                        </p>
+                      )}
+                      {Number(s.order_amount || 0) > 0 && (
+                        <p className="text-[10px] text-muted-foreground tabular-nums">
+                          af {formatKr(Number(s.order_amount || 0))} omsætning
                         </p>
                       )}
                     </div>
