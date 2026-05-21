@@ -1,9 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CheckCircle2, XCircle, ExternalLink, Trash2, MapPin, Mail, BadgeCheck, Download, ChevronDown, CreditCard, Clock, AlertTriangle, Building2, UploadCloud, LogIn, KeyRound, Loader2, MailCheck, Settings2, Plus } from "lucide-react";
+import { CheckCircle2, XCircle, ExternalLink, Trash2, MapPin, Mail, BadgeCheck, Download, ChevronDown, CreditCard, Clock, AlertTriangle, Building2, UploadCloud, LogIn, KeyRound, Loader2, MailCheck, Settings2, Plus, Star, ChevronLeft, ChevronRight, ArrowUpDown, LogIn as LoginIcon, Activity } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
@@ -23,15 +23,45 @@ const BusinessDetailSheet = lazy(() => import("./BusinessDetailSheet"));
 const CreateBusinessWizard = lazy(() => import("./CreateBusinessWizard"));
 
 const fmtKr = (n: number) => `${Math.round(n).toLocaleString("da-DK")} kr`;
+const PAGE_SIZE = 50;
+
+type FilterKey =
+  | "all" | "active_paying" | "trial" | "trial_expiring"
+  | "expired_no_card" | "inactive" | "unverified" | "no_orders" | "no_login";
+type SortKey =
+  | "created_desc" | "created_asc" | "revenue_desc" | "orders_desc"
+  | "last_order_desc" | "last_login_desc" | "name_asc";
+
+type SavedView = { id: string; name: string; q: string; filter: FilterKey; sort: SortKey };
+const SAVED_VIEWS_KEY = "admin.businesses.savedViews.v1";
+const loadViews = (): SavedView[] => {
+  try { return JSON.parse(localStorage.getItem(SAVED_VIEWS_KEY) || "[]"); } catch { return []; }
+};
+const saveViews = (v: SavedView[]) => localStorage.setItem(SAVED_VIEWS_KEY, JSON.stringify(v));
+
+const fmtRelDate = (iso: string | null | undefined) => {
+  if (!iso) return "—";
+  const d = new Date(iso).getTime();
+  const diff = Date.now() - d;
+  const day = 86400000;
+  if (diff < day) return "i dag";
+  if (diff < 2 * day) return "i går";
+  if (diff < 30 * day) return `${Math.floor(diff / day)}d siden`;
+  if (diff < 365 * day) return `${Math.floor(diff / (30 * day))}m siden`;
+  return `${Math.floor(diff / (365 * day))}å siden`;
+};
 
 const PlatformBusinessesTab = () => {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [q, setQ] = useState("");
-  const [filter, setFilter] = useState<
-    "all" | "active_paying" | "trial" | "trial_expiring" | "expired_no_card" | "inactive" | "unverified"
-  >("all");
+  const [filter, setFilter] = useState<FilterKey>("all");
+  const [sort, setSort] = useState<SortKey>("created_desc");
+  const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [views, setViews] = useState<SavedView[]>(() => loadViews());
+
+  useEffect(() => { setPage(0); }, [q, filter, sort]);
 
   // Sheet til at køre dataimport for en specifik virksomhed
   const [importFor, setImportFor] = useState<{ id: string; name: string } | null>(null);
@@ -110,38 +140,27 @@ const PlatformBusinessesTab = () => {
     navigate("/virksomhed");
   };
 
-  const { data: businesses, isLoading } = useQuery({
-    queryKey: ["admin-businesses"],
+  // Server-side paged RPC — skalerer over 1.000 rækker.
+  const { data: listData, isLoading, isFetching } = useQuery({
+    queryKey: ["admin-businesses-rpc", q, filter, sort, page],
     queryFn: async () => {
-      const { data, error } = await supabase.from("businesses").select("*").order("created_at", { ascending: false });
+      const { data, error } = await supabase.rpc("admin_list_businesses", {
+        p_search: q.trim() || null,
+        p_filter: filter,
+        p_sort: sort,
+        p_limit: PAGE_SIZE,
+        p_offset: page * PAGE_SIZE,
+      });
       if (error) throw error;
-      return data || [];
+      return data as unknown as { total: number; rows: any[]; counts: Record<string, number> };
     },
+    placeholderData: (prev) => prev,
   });
 
-  const { data: stats } = useQuery({
-    queryKey: ["admin-business-stats"],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("admin_business_stats");
-      if (error) throw error;
-      const map = new Map<string, any>();
-      (data || []).forEach((s: any) => map.set(s.business_id, s));
-      return map;
-    },
-  });
-
-  // Henter abonnements-/plan-info for alle virksomheder, så vi kan vise
-  // prøvedage tilbage, månedspris og om der er et aktivt betalingskort.
-  const { data: plans } = useQuery({
-    queryKey: ["admin-business-plans-map"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("business_plans").select("*");
-      if (error) throw error;
-      const map = new Map<string, any>();
-      (data || []).forEach((p: any) => map.set(p.business_id, p));
-      return map;
-    },
-  });
+  const rows: any[] = listData?.rows ?? [];
+  const total = listData?.total ?? 0;
+  const counts = (listData?.counts ?? {}) as Record<string, number>;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const updateBiz = useMutation({
     mutationFn: async ({ ids, patch }: { ids: string[]; patch: any }) => {
@@ -149,7 +168,7 @@ const PlatformBusinessesTab = () => {
       if (error) throw error;
     },
     onSuccess: (_d, v) => {
-      qc.invalidateQueries({ queryKey: ["admin-businesses"] });
+      qc.invalidateQueries({ queryKey: ["admin-businesses-rpc"] });
       toast.success(`Opdateret (${v.ids.length})`);
       setSelected(new Set());
     },
@@ -162,98 +181,112 @@ const PlatformBusinessesTab = () => {
       if (error) throw error;
     },
     onSuccess: (_d, ids) => {
-      qc.invalidateQueries({ queryKey: ["admin-businesses"] });
-      qc.invalidateQueries({ queryKey: ["admin-business-stats"] });
+      qc.invalidateQueries({ queryKey: ["admin-businesses-rpc"] });
       toast.success(`${ids.length} virksomheder slettet`);
       setSelected(new Set());
     },
     onError: (e: any) => toast.error(e.message),
   });
 
-  const filtered = useMemo(() => {
-    const now = Date.now();
-    return (businesses || []).filter((b) => {
-      const p = plans?.get(b.id);
-      const hasCard = !!p?.stripe_payment_method_last4;
-      const trialEnd = p?.trial_ends_at ? new Date(p.trial_ends_at).getTime() : null;
-      const daysLeft = trialEnd !== null ? Math.ceil((trialEnd - now) / 86400000) : null;
-      const isExpired = !hasCard && daysLeft !== null && daysLeft <= 0;
-      const isTrial = !hasCard && daysLeft !== null && daysLeft > 0;
-      const isExpiringSoon = isTrial && daysLeft! <= 3;
-
-      if (filter === "active_paying" && !(hasCard && b.is_active)) return false;
-      if (filter === "trial" && !isTrial) return false;
-      if (filter === "trial_expiring" && !isExpiringSoon) return false;
-      if (filter === "expired_no_card" && !isExpired) return false;
-      if (filter === "inactive" && b.is_active) return false;
-      if (filter === "unverified" && b.is_verified) return false;
-      if (!q.trim()) return true;
-      const s = q.toLowerCase();
-      return (
-        b.name?.toLowerCase().includes(s) ||
-        b.city?.toLowerCase().includes(s) ||
-        b.email?.toLowerCase().includes(s) ||
-        b.category?.toLowerCase().includes(s)
-      );
-    });
-  }, [businesses, plans, q, filter]);
-
-  // Tæller pr. chip — admin kan med ét øjekast se hvor mange virksomheder
-  // der har behov for opmærksomhed (forfaldne, snart-udløbende prøver).
-  const counts = useMemo(() => {
-    const now = Date.now();
-    const list = businesses || [];
-    let active_paying = 0, trial = 0, trial_expiring = 0, expired_no_card = 0, inactive = 0, unverified = 0;
-    for (const b of list) {
-      const p = plans?.get(b.id);
-      const hasCard = !!p?.stripe_payment_method_last4;
-      const trialEnd = p?.trial_ends_at ? new Date(p.trial_ends_at).getTime() : null;
-      const daysLeft = trialEnd !== null ? Math.ceil((trialEnd - now) / 86400000) : null;
-      if (hasCard && b.is_active) active_paying++;
-      if (!hasCard && daysLeft !== null && daysLeft > 0) { trial++; if (daysLeft <= 3) trial_expiring++; }
-      if (!hasCard && daysLeft !== null && daysLeft <= 0) expired_no_card++;
-      if (!b.is_active) inactive++;
-      if (!b.is_verified) unverified++;
-    }
-    return { all: list.length, active_paying, trial, trial_expiring, expired_no_card, inactive, unverified };
-  }, [businesses, plans]);
-
-  const allSelected = filtered.length > 0 && filtered.every((b) => selected.has(b.id));
+  const allSelected = rows.length > 0 && rows.every((b) => selected.has(b.id));
   const someSelected = selected.size > 0;
-  const toggleAll = () => allSelected ? setSelected(new Set()) : setSelected(new Set(filtered.map((b) => b.id)));
+  const toggleAll = () => allSelected ? setSelected(new Set()) : setSelected(new Set(rows.map((b) => b.id)));
   const toggleOne = (id: string, c: boolean) => {
     const n = new Set(selected);
     if (c) n.add(id); else n.delete(id);
     setSelected(n);
   };
 
-  const handleExport = () => {
-    exportCsv("virksomheder", filtered.map((b: any) => {
-      const s = stats?.get(b.id);
-      const p = plans?.get(b.id);
-      const trialEnd = p?.trial_ends_at ? new Date(p.trial_ends_at) : null;
-      const daysLeft = trialEnd ? Math.ceil((trialEnd.getTime() - Date.now()) / 86400000) : null;
-      return {
-        navn: b.name, slug: b.slug, kategori: b.category || "",
-        by: b.city || "", email: b.email || "", telefon: b.phone || "",
-        verificeret: b.is_verified ? "ja" : "nej", aktiv: b.is_active ? "ja" : "nej",
-        oprettet: new Date(b.created_at).toLocaleDateString("da-DK"),
-        ordrer: s?.orders_count || 0, omsaetning: s?.total_revenue || 0,
-        plan_status: p?.status || "—",
-        proeve_dage_tilbage: daysLeft ?? "—",
-        maanedspris: p?.monthly_price_dkk || 0,
-        kort: p?.stripe_payment_method_last4 ? `${p.stripe_payment_method_brand} •••• ${p.stripe_payment_method_last4}` : "ingen",
-      };
-    }));
+  const handleExport = async () => {
+    toast.message("Eksporterer alle matchende rækker…");
+    const all: any[] = [];
+    let offset = 0;
+    while (true) {
+      const { data, error } = await supabase.rpc("admin_list_businesses", {
+        p_search: q.trim() || null, p_filter: filter, p_sort: sort,
+        p_limit: 200, p_offset: offset,
+      });
+      if (error) { toast.error(error.message); return; }
+      const d = data as unknown as { total: number; rows: any[] };
+      all.push(...d.rows);
+      if (all.length >= d.total || d.rows.length === 0) break;
+      offset += 200;
+      if (offset > 5000) break;
+    }
+    exportCsv("virksomheder", all.map((b: any) => ({
+      navn: b.name, slug: b.slug, kategori: b.category || "",
+      by: b.city || "", email: b.email || "", telefon: b.phone || "",
+      verificeret: b.is_verified ? "ja" : "nej", aktiv: b.is_active ? "ja" : "nej",
+      oprettet: new Date(b.created_at).toLocaleDateString("da-DK"),
+      ordrer: b.orders_count || 0, omsaetning: b.total_revenue || 0,
+      plan_status: b.plan_status || "—",
+      proeve_dage_tilbage: b.days_left ?? "—",
+      maanedspris: b.monthly_price_dkk || 0,
+      kort: b.stripe_payment_method_last4 ? `${b.stripe_payment_method_brand} •••• ${b.stripe_payment_method_last4}` : "ingen",
+      sidste_login: b.owner_last_login ? new Date(b.owner_last_login).toLocaleDateString("da-DK") : "aldrig",
+      sidste_ordre: b.last_order_at ? new Date(b.last_order_at).toLocaleDateString("da-DK") : "ingen",
+    })));
   };
+
+  const saveCurrentView = () => {
+    const name = prompt("Navngiv visning (fx 'Forfaldne prøver')");
+    if (!name) return;
+    const v: SavedView = { id: crypto.randomUUID(), name, q, filter, sort };
+    const next = [...views, v];
+    setViews(next); saveViews(next);
+    toast.success(`Visning '${name}' gemt`);
+  };
+  const applyView = (v: SavedView) => { setQ(v.q); setFilter(v.filter); setSort(v.sort); };
+  const deleteView = (id: string) => { const next = views.filter(v => v.id !== id); setViews(next); saveViews(next); };
 
   return (
     <div className="space-y-4">
       <PageHeader
         title="Virksomheder"
-        description={`${filtered.length} ${filtered.length === 1 ? "virksomhed" : "virksomheder"} matcher`}
+        description={`${total} ${total === 1 ? "virksomhed" : "virksomheder"} matcher · side ${page + 1}/${totalPages}`}
         action={
           <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline" className="h-9 gap-1.5">
+                  <ArrowUpDown className="h-3.5 w-3.5" /> Sortér
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {([
+                  ["created_desc","Nyeste først"],
+                  ["created_asc","Ældste først"],
+                  ["revenue_desc","Højeste omsætning"],
+                  ["orders_desc","Flest ordrer"],
+                  ["last_order_desc","Senest aktive (ordre)"],
+                  ["last_login_desc","Senest logget ind"],
+                  ["name_asc","Navn A→Z"],
+                ] as const).map(([k,l]) => (
+                  <DropdownMenuItem key={k} onClick={() => setSort(k as SortKey)}>
+                    {sort === k ? "✓ " : ""}{l}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline" className="h-9 gap-1.5">
+                  <Star className="h-3.5 w-3.5" /> Visninger
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-64">
+                <DropdownMenuItem onClick={saveCurrentView}>+ Gem nuværende visning</DropdownMenuItem>
+                {views.length === 0 && (
+                  <div className="px-2 py-1.5 text-xs text-muted-foreground">Ingen gemte visninger</div>
+                )}
+                {views.map(v => (
+                  <DropdownMenuItem key={v.id} onClick={() => applyView(v)} className="justify-between gap-2">
+                    <span className="truncate">{v.name}</span>
+                    <button onClick={(e) => { e.stopPropagation(); deleteView(v.id); }} className="text-muted-foreground hover:text-destructive text-xs">×</button>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button size="sm" variant="outline" onClick={handleExport} className="h-9 gap-1.5">
               <Download className="h-3.5 w-3.5" /> CSV
             </Button>
@@ -265,17 +298,19 @@ const PlatformBusinessesTab = () => {
       />
 
       <div className="space-y-2">
-        <SearchInput value={q} onChange={setQ} placeholder="Søg navn, by, kategori..." />
+        <SearchInput value={q} onChange={setQ} placeholder="Søg navn, by, kategori, e-mail..." />
         {/* Chip-filtre med tællere — gør status synlig uden ekstra klik */}
         <div className="flex flex-wrap items-center gap-1.5">
           {([
-            { v: "all", label: "Alle", count: counts.all, tone: "default" },
-            { v: "active_paying", label: "Aktive (betalende)", count: counts.active_paying, tone: "success" },
-            { v: "trial", label: "På prøve", count: counts.trial, tone: "default" },
-            { v: "trial_expiring", label: "Prøve udløber ≤3d", count: counts.trial_expiring, tone: "warning" },
-            { v: "expired_no_card", label: "Prøve udløbet · intet kort", count: counts.expired_no_card, tone: "danger" },
-            { v: "inactive", label: "Inaktive", count: counts.inactive, tone: "default" },
-            { v: "unverified", label: "Ikke verificeret", count: counts.unverified, tone: "default" },
+            { v: "all", label: "Alle", count: counts.all_n ?? 0, tone: "default" },
+            { v: "active_paying", label: "Aktive (betalende)", count: counts.active_paying ?? 0, tone: "success" },
+            { v: "trial", label: "På prøve", count: counts.trial ?? 0, tone: "default" },
+            { v: "trial_expiring", label: "Prøve udløber ≤3d", count: counts.trial_expiring ?? 0, tone: "warning" },
+            { v: "expired_no_card", label: "Prøve udløbet · intet kort", count: counts.expired_no_card ?? 0, tone: "danger" },
+            { v: "inactive", label: "Inaktive", count: counts.inactive ?? 0, tone: "default" },
+            { v: "unverified", label: "Ikke verificeret", count: counts.unverified ?? 0, tone: "default" },
+            { v: "no_orders", label: "Ingen ordrer", count: counts.no_orders ?? 0, tone: "default" },
+            { v: "no_login", label: "Aldrig logget ind", count: counts.no_login ?? 0, tone: "warning" },
           ] as const).map((c) => {
             const active = filter === c.v;
             const toneCls =
@@ -327,7 +362,7 @@ const PlatformBusinessesTab = () => {
 
       {isLoading ? (
         <ListCardSkeleton rows={5} />
-      ) : filtered.length === 0 ? (
+      ) : rows.length === 0 ? (
         <EmptyState
           icon={<Building2 />}
           title="Ingen virksomheder fundet"
@@ -337,15 +372,13 @@ const PlatformBusinessesTab = () => {
         <Card className="rounded-xl border-border shadow-sm overflow-hidden">
           <div className="flex items-center gap-3 border-b border-border bg-secondary/30 px-4 py-2 text-xs font-medium text-muted-foreground">
             <Checkbox checked={allSelected} onCheckedChange={toggleAll} />
-            <span>Vælg alle ({filtered.length})</span>
+            <span>Vælg alle på siden ({rows.length})</span>
+            {isFetching && <Loader2 className="h-3 w-3 animate-spin ml-2" />}
           </div>
           <div className="divide-y divide-border">
-            {filtered.map((b) => {
-              const s = stats?.get(b.id);
-              const p = plans?.get(b.id);
-              const hasCard = !!p?.stripe_payment_method_last4;
-              const trialEnd = p?.trial_ends_at ? new Date(p.trial_ends_at) : null;
-              const daysLeft = trialEnd ? Math.ceil((trialEnd.getTime() - Date.now()) / 86400000) : null;
+            {rows.map((b: any) => {
+              const hasCard = !!b.stripe_payment_method_last4;
+              const daysLeft: number | null = b.days_left ?? null;
               const isExpired = !hasCard && daysLeft !== null && daysLeft <= 0;
               const isWarning = !hasCard && daysLeft !== null && daysLeft > 0 && daysLeft <= 3;
               return (
@@ -385,19 +418,26 @@ const PlatformBusinessesTab = () => {
                     <p className="truncate text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
                       {b.category && <span>{b.category}</span>}
                       {b.city && <span className="flex items-center gap-0.5"><MapPin className="h-3 w-3" />{b.city}</span>}
-                      {(s?.owner_email || b.email) && <span className="flex items-center gap-0.5"><Mail className="h-3 w-3" />{s?.owner_email || b.email}</span>}
+                      {(b.owner_email || b.email) && <span className="flex items-center gap-0.5"><Mail className="h-3 w-3" />{b.owner_email || b.email}</span>}
                     </p>
                     <p className="text-[11px] text-muted-foreground/80">
-                      Oprettet {new Date(b.created_at).toLocaleDateString("da-DK")} ·
-                      {s ? ` ${Number(s.orders_count)} ordrer · ${fmtKr(Number(s.total_revenue || 0))}` : " Indlæser..."}
-                      {s && Number(s.pending_count) > 0 && <span className="text-amber-700"> · {Number(s.pending_count)} afventer</span>}
+                      Oprettet {new Date(b.created_at).toLocaleDateString("da-DK")} ·{` ${Number(b.orders_count || 0)} ordrer · ${fmtKr(Number(b.total_revenue || 0))}`}
+                      {Number(b.pending_count || 0) > 0 && <span className="text-amber-700"> · {Number(b.pending_count)} afventer</span>}
                     </p>
-                    {p && (
+                    <p className="text-[11px] text-muted-foreground/80 flex items-center gap-3 mt-0.5">
+                      <span className="inline-flex items-center gap-1" title="Sidste login (ejer)">
+                        <LoginIcon className="h-3 w-3" /> {b.owner_last_login ? fmtRelDate(b.owner_last_login) : "aldrig"}
+                      </span>
+                      <span className="inline-flex items-center gap-1" title="Sidste ordre">
+                        <Activity className="h-3 w-3" /> {b.last_order_at ? fmtRelDate(b.last_order_at) : "ingen"}
+                      </span>
+                    </p>
+                    {(b.plan_status || hasCard || daysLeft !== null) && (
                       <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px]">
                         {hasCard ? (
                           <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 font-medium text-emerald-700 ring-1 ring-inset ring-emerald-200">
                             <CreditCard className="h-3 w-3" />
-                            {p.stripe_payment_method_brand || "Kort"} •••• {p.stripe_payment_method_last4}
+                            {b.stripe_payment_method_brand || "Kort"} •••• {b.stripe_payment_method_last4}
                           </span>
                         ) : isExpired ? (
                           <span className="inline-flex items-center gap-1 rounded-md bg-destructive/10 px-1.5 py-0.5 font-medium text-destructive ring-1 ring-inset ring-destructive/20">
@@ -413,7 +453,7 @@ const PlatformBusinessesTab = () => {
                           </span>
                         ) : null}
                         <span className="inline-flex items-center rounded-md bg-secondary px-1.5 py-0.5 font-medium text-muted-foreground ring-1 ring-inset ring-border">
-                          {fmtKr(Number(p.monthly_price_dkk) || 0)}/md
+                          {fmtKr(Number(b.monthly_price_dkk) || 0)}/md
                         </span>
                       </div>
                     )}
@@ -458,6 +498,22 @@ const PlatformBusinessesTab = () => {
               );
             })}
           </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between gap-2 border-t border-border bg-secondary/20 px-4 py-2 text-xs">
+              <span className="text-muted-foreground">
+                Viser {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} af {total}
+              </span>
+              <div className="flex items-center gap-1">
+                <Button size="sm" variant="ghost" className="h-8 gap-1" disabled={page === 0} onClick={() => setPage(p => Math.max(0, p - 1))}>
+                  <ChevronLeft className="h-3.5 w-3.5" /> Forrige
+                </Button>
+                <span className="px-2 tabular-nums">{page + 1} / {totalPages}</span>
+                <Button size="sm" variant="ghost" className="h-8 gap-1" disabled={page + 1 >= totalPages} onClick={() => setPage(p => p + 1)}>
+                  Næste <ChevronRight className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+          )}
         </Card>
       )}
 

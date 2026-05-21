@@ -3610,6 +3610,16 @@ export type Database = {
         Returns: undefined
       }
       admin_health_stats: { Args: never; Returns: Json }
+      admin_list_businesses: {
+        Args: {
+          p_filter?: string
+          p_limit?: number
+          p_offset?: number
+          p_search?: string
+          p_sort?: string
+        }
+        Returns: Json
+      }
       admin_list_users: {
         Args: never
         Returns: {
