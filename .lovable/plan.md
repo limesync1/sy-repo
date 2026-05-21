@@ -370,3 +370,13 @@ Sig "ja" → jeg starter på **Trin 6** (Platform-overblik). Vil du have en ande
 - `overview/OverviewGrowthChart.tsx`: stacked area-chart for ordrer/brugere/virksomheder.
 - `overview/OverviewTopLists.tsx`: tab-baseret top-liste for kategorier/byer/virksomheder/kunder.
 - `PlatformOverviewTab` skrumpet fra 460 → 63 linjer — kun orkestrering, loading-state og CSV-eksport tilbage.
+
+## Trin 26e — PlatformBusinessesTab split ✅
+- `businesses/types.ts`: typer (`FilterKey`, `SortKey`, `SavedView`, `BusinessRow`), `loadViews`/`saveViews`, `fmtKr`/`fmtRelDate`, `SORT_OPTIONS` + `buildChips`.
+- `businesses/useImpersonation.ts`: hook for 5-cifret email-kode-flow (open/redeem/close/setCode) — løftet ud af tab'en.
+- `businesses/ImpersonationDialog.tsx`: præsentations-dialog der kun kender hook'ens state.
+- `businesses/BusinessesFilters.tsx`: `SortMenu`, `ViewsMenu`, `BusinessChips`.
+- `businesses/BulkActionsBar.tsx`: bar med verificering/aktivering/slet når noget er valgt.
+- `businesses/BusinessRow.tsx`: én listerække inkl. plan-badges, sidste login/ordre og handlinger.
+- Mutations konverteret til `useAdminMutation` (samme toast/invalidering, mindre boilerplate).
+- `PlatformBusinessesTab` skrumpet fra 607 → 255 linjer — kun state, query, mutations og layout tilbage.
