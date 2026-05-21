@@ -235,7 +235,7 @@ const PlatformBusinessesTab = () => {
       <div className="flex flex-wrap items-center gap-2">
         <SearchInput value={q} onChange={setQ} placeholder="Søg navn, by, kategori..." />
         <Select value={filter} onValueChange={(v: any) => setFilter(v)}>
-          <SelectTrigger className="w-[180px] h-10"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[180px] h-9"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Alle</SelectItem>
             <SelectItem value="verified">Verificeret</SelectItem>
@@ -252,7 +252,7 @@ const PlatformBusinessesTab = () => {
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="sm" variant="outline" className="h-8 gap-1.5">Handlinger <ChevronDown className="h-3.5 w-3.5" /></Button>
+                <Button size="sm" variant="outline" className="gap-1.5">Handlinger <ChevronDown className="h-3.5 w-3.5" /></Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuItem onClick={() => updateBiz.mutate({ ids: Array.from(selected), patch: { is_verified: true } })}>Verificér</DropdownMenuItem>
@@ -261,11 +261,11 @@ const PlatformBusinessesTab = () => {
                 <DropdownMenuItem onClick={() => updateBiz.mutate({ ids: Array.from(selected), patch: { is_active: false } })}>Deaktivér</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button size="sm" variant="outline" className="h-8 gap-1.5 text-red-600 hover:text-red-700"
+            <Button size="sm" variant="outline" className="gap-1.5 text-destructive hover:text-destructive"
               onClick={() => { if (confirm(`Slet ${selected.size} virksomheder?`)) deleteBiz.mutate(Array.from(selected)); }}>
               <Trash2 className="h-3.5 w-3.5" /> Slet
             </Button>
-            <Button size="sm" variant="ghost" className="h-8" onClick={() => setSelected(new Set())}>Ryd</Button>
+            <Button size="sm" variant="ghost" className="h-9" onClick={() => setSelected(new Set())}>Ryd</Button>
           </div>
         </div>
       )}
@@ -364,12 +364,12 @@ const PlatformBusinessesTab = () => {
                     )}
                   </div>
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <Button size="sm" variant="outline" className="h-8 gap-1.5"
+                    <Button size="sm" variant="outline" className="gap-1.5"
                       onClick={() => updateBiz.mutate({ ids: [b.id], patch: { is_verified: !b.is_verified } })}>
                       {b.is_verified ? <XCircle className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
                       <span className="hidden sm:inline">{b.is_verified ? "Fjern verif." : "Verificér"}</span>
                     </Button>
-                    <Button size="sm" variant="default" className="h-8 gap-1.5"
+                    <Button size="sm" variant="default" className="gap-1.5"
                       onClick={() => setDetailFor(b.id)}
                       title="Åbn fuldt kontrolpanel: prøveperiode, plan, ejer, slet">
                       <Settings2 className="h-3.5 w-3.5" />
@@ -378,7 +378,7 @@ const PlatformBusinessesTab = () => {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-8 gap-1.5"
+                      className="gap-1.5"
                       onClick={() => setImportFor({ id: b.id, name: b.name })}
                       title="Importér data for denne virksomhed"
                     >
@@ -388,7 +388,7 @@ const PlatformBusinessesTab = () => {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-8 gap-1.5"
+                      className="gap-1.5"
                       onClick={() => openImpersonate({ id: b.id, name: b.name })}
                       title="Log ind på denne virksomheds panel"
                     >
@@ -396,7 +396,7 @@ const PlatformBusinessesTab = () => {
                       <span className="hidden sm:inline">Log ind som</span>
                     </Button>
                     <Link to={`/b/${b.slug}`} target="_blank" rel="noopener noreferrer">
-                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0" aria-label="Åbn"><ExternalLink className="h-3.5 w-3.5" /></Button>
+                      <Button size="sm" variant="ghost" className="h-9 w-9 p-0" aria-label="Åbn"><ExternalLink className="h-3.5 w-3.5" /></Button>
                     </Link>
                   </div>
                 </div>
