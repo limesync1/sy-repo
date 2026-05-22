@@ -753,8 +753,8 @@ const OrdersListSection = ({
             <p className="mt-0.5 text-xs text-muted-foreground">Bestillinger fra kunder lander her, så snart de booker.</p>
           </div>
         </div>
-        <div className="p-5 sm:p-7">
-          <div className="rounded-2xl border border-dashed border-border bg-secondary/30 p-6 text-center sm:p-8">
+          <div className="p-3 sm:p-7">
+          <div className="rounded-xl border border-dashed border-border bg-secondary/30 p-4 text-center sm:rounded-2xl sm:p-8">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-card shadow-sm">
               <Inbox className="h-5 w-5 text-muted-foreground" />
             </div>
@@ -766,7 +766,7 @@ const OrdersListSection = ({
                   ? "Profilen er næsten klar. Færdiggør den, så I rangerer højere i søgningen."
                   : "Profilen er klar. Del jeres link på Facebook eller jeres hjemmeside for at få de første bestillinger."}
             </p>
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+            <div className="mt-5 grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-center">
               {servicesCount === 0 ? (
                 <Button size="sm" className="h-9 rounded-lg" onClick={() => onNavigate?.("services")}>
                   <Briefcase className="mr-1.5 h-4 w-4" /> Tilføj din første service
@@ -797,12 +797,12 @@ const OrdersListSection = ({
   return (
     <>
       <div className="border-b border-border px-4 py-3 sm:px-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h3 className="text-sm font-semibold text-foreground">Seneste bestillinger</h3>
             <p className="mt-0.5 text-xs text-muted-foreground">Filtrér efter status eller søg på kunde, e-mail eller beløb.</p>
           </div>
-          <button onClick={() => onNavigate?.("orders")} className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
+          <button onClick={() => onNavigate?.("orders")} className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
             Se alle <ArrowRight className="h-3 w-3" />
           </button>
         </div>
@@ -877,7 +877,7 @@ const OrdersListSection = ({
               key={order.id}
               type="button"
               onClick={() => onNavigate?.("orders")}
-              className="grid w-full gap-3 px-4 py-3 text-left transition-colors hover:bg-secondary/60 sm:grid-cols-[minmax(0,1.1fr)_auto_auto] sm:items-center sm:px-5"
+              className="grid w-full gap-2 px-4 py-3 text-left transition-colors hover:bg-secondary/60 sm:grid-cols-[minmax(0,1.1fr)_auto_auto] sm:items-center sm:px-5"
             >
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-foreground">{order.customer_name}</p>
