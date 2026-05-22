@@ -178,10 +178,10 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
   const showIntervals = intervals.length > 1 || (intervals.length === 1 && intervals[0] !== "engangskøb");
 
   return (
-    <Card className="group flex h-full flex-col overflow-hidden rounded-2xl border-border/80 bg-card transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/25">
+    <Card className="group flex h-full flex-col overflow-hidden rounded-xl border-border/80 bg-card transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/25">
       {/* Image or placeholder */}
       {service.image_url ? (
-        <div className="relative h-28 w-full overflow-hidden bg-secondary sm:h-32">
+        <div className="relative h-20 w-full overflow-hidden bg-secondary sm:h-28">
           <img
             src={service.image_url}
             alt={service.name}
@@ -191,25 +191,25 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
           <div className="absolute inset-0 bg-gradient-to-t from-foreground/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
       ) : (
-        <div className="relative flex h-14 w-full items-center justify-center bg-secondary/70 sm:h-16">
+        <div className="relative flex h-10 w-full items-center justify-center bg-secondary/70 sm:h-12">
           <ImageIcon className="h-6 w-6 text-muted-foreground/15" />
         </div>
       )}
 
-      <CardContent className="flex flex-1 flex-col p-3 sm:p-4">
-        <div className="flex items-start justify-between gap-3 border-b border-border/70 pb-3">
+      <CardContent className="flex flex-1 flex-col p-2.5 sm:p-3">
+        <div className="flex items-start justify-between gap-3 border-b border-border/70 pb-2.5">
           <div className="min-w-0 flex-1">
-          <h3 className="text-base font-bold leading-tight text-foreground sm:text-lg">{service.name}</h3>
+           <h3 className="text-sm font-bold leading-tight text-foreground sm:text-base">{service.name}</h3>
           {(service as any).subcategory && (
             <span className="mt-1 inline-flex rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-semibold text-accent">{(service as any).subcategory}</span>
           )}
           {service.description && (
-            <p className="mt-1.5 text-xs leading-snug text-muted-foreground/90 line-clamp-2">{service.description}</p>
+             <p className="mt-1 text-[11px] leading-snug text-muted-foreground/90 line-clamp-2 sm:text-xs">{service.description}</p>
           )}
           </div>
         </div>
 
-        <div className="mt-3 space-y-3">
+        <div className="mt-2.5 space-y-2.5">
         {showIntervals && (
           <div className="rounded-xl border border-border bg-secondary/30 p-2.5">
             <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Abonnement / interval</label>
@@ -284,7 +284,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Prisoverslag</p>
               <div className="mt-0.5 flex items-end gap-1">
-                <p className="text-xl font-bold leading-none text-foreground">{roundPrice(total)}</p>
+                <p className="text-lg font-bold leading-none text-foreground sm:text-xl">{roundPrice(total)}</p>
                 <span className="text-xs text-muted-foreground">kr</span>
               </div>
               <p className="mt-0.5 text-[11px] text-muted-foreground">
@@ -297,7 +297,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
           <Button
             onClick={handleAdd}
             disabled={justAdded}
-            className={`h-10 w-full gap-2 rounded-lg text-sm font-semibold transition-all ${
+            className={`h-9 w-full gap-2 rounded-lg text-sm font-semibold transition-all ${
               justAdded
                 ? "bg-accent/80 text-accent-foreground"
                 : "bg-accent text-accent-foreground shadow-lg shadow-accent/25 hover:bg-accent/90 active:scale-[0.98]"
