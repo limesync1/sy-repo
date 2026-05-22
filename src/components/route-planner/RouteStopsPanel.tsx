@@ -2,7 +2,7 @@
 // Brugeren kan: omrangere via drag, klikke for at åbne detail, fjerne stop fra ruten.
 // Vises ved siden af RouteEditSheet.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useIsBelowBreakpoint, useIsMobile } from "@/hooks/use-mobile";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
