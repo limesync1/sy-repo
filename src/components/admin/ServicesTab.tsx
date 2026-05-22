@@ -27,7 +27,7 @@ import {
 import { useEmployees } from "@/hooks/useEmployees";
 import { IntervalBuilder } from "@/components/admin/IntervalBuilder";
 import { formatInterval } from "@/lib/interval";
-import { PageHeader, PrimaryButton, EmptyState } from "@/components/admin/shared/AdminUI";
+import { PageHeader, PrimaryButton, EmptyState, FieldLabel } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton, StatGridSkeleton } from "@/components/admin/shared/Skeletons";
 import {
   findIndustry,
