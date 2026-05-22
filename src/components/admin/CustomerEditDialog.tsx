@@ -351,7 +351,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
             {type === "business" && (
               <div className="rounded-lg border bg-card p-3 space-y-3">
                 <div>
-                  <Label className="text-xs">CVR (slå op for at auto-udfylde)</Label>
+                  <FieldLabel optional>CVR (slå op for at auto-udfylde)</FieldLabel>
                   <CvrLookupField
                     value={cvr}
                     onChange={setCvr}
@@ -413,13 +413,13 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
 
             {(zipCode || city) && (
               <div className="grid grid-cols-3 gap-3">
-                <div><Label className="text-xs">Postnr.</Label><Input value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="h-9" /></div>
-                <div className="col-span-2"><Label className="text-xs">By</Label><Input value={city} onChange={(e) => setCity(e.target.value)} className="h-9" /></div>
+                <div><FieldLabel optional>Postnr.</FieldLabel><Input value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="h-9" /></div>
+                <div className="col-span-2"><FieldLabel optional>By</FieldLabel><Input value={city} onChange={(e) => setCity(e.target.value)} className="h-9" /></div>
               </div>
             )}
 
             <div>
-              <Label className="text-xs">Interne noter</Label>
+              <FieldLabel optional>Interne noter</FieldLabel>
               <Textarea value={notes} onChange={(e) => setNotes(e.target.value.slice(0, 1000))} rows={2} placeholder="Fx kode til hoveddør, særlige aftaler…" className="bg-background resize-none" />
             </div>
 
