@@ -823,3 +823,72 @@ const CompletedRouteSummary = ({ routeId }: { routeId: string }) => {
     </Section>
   );
 };
+
+/* ─── RouteRevenueBreakdown ──────────────────────────────────────────
+ * Lille tabel under "Omsætning" på en kommende rute: pr.-stop nedbrydning
+ * + tydeligt "Estimat for perioden"-label, så brugeren ved hvilken
+ * tidsramme tallet dækker. Tom-tilstand vises hvis ingen aftaler har
+ * beløb endnu.
+ * ─────────────────────────────────────────────────────────────────── */
+const RouteRevenueBreakdown = ({
+  stops, total, routeDate,
+}: { stops: RouteStop[]; total: number; routeDate: string }) => {
+  const sorted = useMemo(
+    () => [...stops].sort((a, b) => a.sequence - b.sequence),
+    [stops],
+  );
+  const withAmounts = sorted.filter((s) => Number((s as any).order_amount || 0) > 0);
+  const periodLabel = routeDate
+    ? format(parseISO(routeDate), "EEEE d. MMMM yyyy", { locale: da })
+    : "valgte dato";
+
+  return (
+    <div className="space-y-2.5">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <div className="min-w-0">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Estimat for perioden
+          </p>
+          <p className="text-[11px] text-muted-foreground">{periodLabel}</p>
+        </div>
+        <p className="text-2xl font-bold tabular-nums text-foreground">
+          {Math.round(total).toLocaleString("da-DK")} kr
+        </p>
+      </div>
+
+      {withAmounts.length === 0 ? (
+        <div className="rounded-md border border-dashed bg-secondary/30 px-3 py-3 text-center text-[11px] text-muted-foreground">
+          Aftalerne på ruten har endnu ingen beløb — beløb sættes på selve bestillingen.
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-md border bg-card">
+          <ul className="divide-y text-xs">
+            {sorted.map((s, i) => {
+              const amount = Number((s as any).order_amount || 0);
+              return (
+                <li key={s.id || i} className="flex items-center justify-between gap-2 px-2.5 py-1.5">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-secondary text-[10px] font-bold tabular-nums text-foreground">
+                      {i + 1}
+                    </span>
+                    <span className="truncate text-foreground">{s.customer_name || "Aftale"}</span>
+                  </div>
+                  <span className={cn(
+                    "shrink-0 tabular-nums",
+                    amount > 0 ? "font-semibold text-foreground" : "text-muted-foreground",
+                  )}>
+                    {amount > 0 ? `${Math.round(amount).toLocaleString("da-DK")} kr` : "—"}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
+      <p className="text-[11px] text-muted-foreground">
+        Estimeret omsætning — summen af aftalens beløb. Faktisk beløb registreres når aftalen afsluttes.
+      </p>
+    </div>
+  );
+};
