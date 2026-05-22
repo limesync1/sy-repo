@@ -967,6 +967,18 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                       <div className="mt-0.5 text-xs text-muted-foreground truncate">
                         {metaParts.join(" · ") || "Ingen aftaler endnu"}
                       </div>
+                      {/* Mobile-only: vis aftaler + omsætning som chips,
+                          fordi de fulde kolonner først dukker op fra sm: */}
+                      <div className="mt-1 flex flex-wrap items-center gap-1.5 sm:hidden">
+                        <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-foreground">
+                          {c.orders_count > 0 ? `${c.orders_count} ${c.orders_count === 1 ? "aftale" : "aftaler"}` : "Ingen aftaler"}
+                        </span>
+                        {c.total_revenue > 0 && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-foreground">
+                            {fmtKr(c.total_revenue)}
+                          </span>
+                        )}
+                      </div>
                       {/* Aggregeret regnskabsstatus: viser fx "1 forfalden · 1 rykker · 3 betalt" */}
                       {c.accounting_summary && (
                         <div className="mt-1.5">
