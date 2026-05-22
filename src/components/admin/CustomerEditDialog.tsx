@@ -429,17 +429,17 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
               <p className="text-xs font-medium text-foreground">Regnskab & fakturering</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs">Kunde-nr.</Label>
+                  <FieldLabel optional>Kunde-nr.</FieldLabel>
                   <Input value={customerNumber} onChange={(e) => setCustomerNumber(e.target.value)} placeholder="Auto" className="h-9" />
                 </div>
                 <div>
-                  <Label className="text-xs">Betalingsbetingelse (dage)</Label>
+                  <FieldLabel optional>Betalingsbetingelse (dage)</FieldLabel>
                   <Input type="number" min="0" value={paymentTermsDays} onChange={(e) => setPaymentTermsDays(e.target.value)} placeholder="14" className="h-9" />
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs">Momszone</Label>
+                  <FieldLabel optional>Momszone</FieldLabel>
                   <Select value={vatZone} onValueChange={setVatZone}>
                     <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -451,13 +451,13 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-xs">EAN-nummer</Label>
+                  <FieldLabel optional>EAN-nummer</FieldLabel>
                   <Input value={eanNumber} onChange={(e) => setEanNumber(e.target.value)} placeholder="5790000000000" className="h-9" />
                 </div>
               </div>
               {customerGroups.length > 0 && (
                 <div>
-                  <Label className="text-xs">{groupsLabel}</Label>
+                  <FieldLabel optional>{groupsLabel}</FieldLabel>
                   <Select value={customerGroup} onValueChange={setCustomerGroup}>
                     <SelectTrigger className="h-9"><SelectValue placeholder="Vælg gruppe" /></SelectTrigger>
                     <SelectContent>
