@@ -415,7 +415,7 @@ export const AdminShell = ({
         </header>
         {topbarRight && (
           <div className="sm:hidden sticky top-14 z-20 border-b border-border bg-card px-3 py-2">
-            <div className="flex items-center gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex min-w-0 flex-wrap items-center gap-2 overflow-hidden">
               {topbarRight}
             </div>
           </div>
