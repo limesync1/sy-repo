@@ -173,6 +173,11 @@ export const Field = ({
   <div className="space-y-1">
     <label className={cn("flex flex-wrap items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider", required ? "text-foreground" : "text-muted-foreground")}>
       <span>{label}</span>
+      {required && (
+        <span className="inline-flex items-center rounded-full bg-accent/10 px-1.5 py-0.5 text-[9px] font-semibold normal-case tracking-normal text-accent">
+          Påkrævet
+        </span>
+      )}
       {!required && optional ? (
         <span className="inline-flex items-center rounded-full bg-secondary px-1.5 py-0.5 text-[9px] font-medium normal-case tracking-normal text-muted-foreground">
           Behøves ikke
