@@ -1307,10 +1307,10 @@ export const DashboardSkeleton = () => {
         </div>
       </section>
 
-      <div className="grid gap-3 sm:gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)]">
-        <section className="space-y-3 sm:space-y-4">
+      <div className="grid w-full max-w-full min-w-0 gap-3 sm:gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)]">
+        <section className="min-w-0 space-y-3 sm:space-y-4">
           {/* Stat cards */}
-          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
             {Array.from({ length: 2 }).map((_, i) => (
               <Card key={i} className="surface-admin rounded-xl border-border/80 shadow-sm">
                 <CardContent className="p-4 sm:p-5">
@@ -1343,9 +1343,9 @@ export const DashboardSkeleton = () => {
                 <Shimmer className="h-9 w-full rounded-lg" />
                 <Shimmer className="h-9 w-full rounded-lg sm:w-[210px]" />
               </div>
-              <div className="mt-2 flex gap-1.5">
+              <div className="mt-2 grid grid-cols-2 gap-1.5 min-[430px]:flex min-[430px]:flex-wrap">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <Shimmer key={i} className="h-6 w-20 rounded-full" />
+                  <Shimmer key={i} className="h-6 w-full rounded-full min-[430px]:w-20" />
                 ))}
               </div>
             </div>
