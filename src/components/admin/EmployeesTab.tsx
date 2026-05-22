@@ -16,6 +16,7 @@ import {
   Mail, Phone, Briefcase, UserPlus,
   Trash2, Power, PowerOff, Pencil, KeyRound, Users, Percent, MessageCircle,
   Wallet, TrendingUp, ListChecks, MapPin, CheckCircle2, Clock, CalendarDays,
+  MoreHorizontal,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ROUTE_COLORS } from "@/components/route-planner/RouteEditSheet";
@@ -34,6 +35,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { PageHeader, PrimaryButton, FieldLabel, EmptyState, SearchInput } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 
