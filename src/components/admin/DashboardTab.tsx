@@ -70,6 +70,24 @@ const DashboardTab = ({
     params.set("guide", "1");
     navigate({ pathname: location.pathname, search: `?${params.toString()}` }, { replace: true });
   };
+  // Hurtig inline status til "Se guide"-knappen — viser brugeren hvor langt
+  // de er kommet uden at åbne popuppen. Bruger samme signaler som
+  // OnboardingHub auto-detekterer på (men kun det vi har lokalt).
+  const guideSignals = useMemo(() => {
+    const settings = (business as any)?.settings || {};
+    const categories = (business as any)?.categories || [];
+    const accountingEnabled = !!settings.accounting_integration_enabled;
+    const checks = [
+      categories.length > 0,                          // 1 brancher
+      !accountingEnabled,                             // 2 regnskab (antaget OK hvis ikke aktiveret)
+      false,                                          // 3 medarbejder — kan ikke detekteres her, OnboardingHub henter
+      servicesCount > 0,                              // 4 services
+      ordersCount > 0,                                // 5 bestilling
+      false,                                          // 6 rute — hentes i hub
+    ];
+    const done = checks.filter(Boolean).length;
+    return { done, total: 6 };
+  }, [business, servicesCount, ordersCount]);
   // Stat-detalje-panel — hvilken metric vi har åbnet, hvis nogen.
   const [openStat, setOpenStat] = useState<null | "revenue" | "orders" | "today" | "pending" | "rating">(null);
   // Filtre på "Seneste bestillinger" — status-pille + søgetekst.
@@ -314,6 +332,7 @@ const DashboardTab = ({
                 className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-background/20 bg-background/10 px-3 py-1.5 text-[11px] font-semibold text-background backdrop-blur-sm transition-colors hover:bg-background/15 sm:px-3.5 sm:py-2 sm:text-xs"
               >
                 <HelpCircle className="h-3.5 w-3.5" /> Se guide
+                <span className="tabular-nums opacity-80">· {guideSignals.done}/{guideSignals.total}</span>
               </button>
             </div>
           )}
