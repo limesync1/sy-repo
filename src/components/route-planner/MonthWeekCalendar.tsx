@@ -465,6 +465,7 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
   const completedCount = route.stops.filter((s) => s.status === "completed").length;
   const travelMin = Number(route.total_duration_minutes || 0) || route.stops.reduce((sum, s) => sum + Number(s.travel_time_to_next_min || 0), 0);
   const revenue = route.stops.reduce((sum, s) => sum + Number((s as any).order_amount || 0), 0);
+  void compact;
   const visibleEmployees = route.attachedEmployees.slice(0, 3);
   const extraEmployees = route.attachedEmployees.length - visibleEmployees.length;
   // Fjernet: grøn bundkant og "klar til udførelse"-logik efter ønske.
