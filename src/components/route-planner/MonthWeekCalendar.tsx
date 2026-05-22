@@ -518,16 +518,12 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
             {isVirtual && <Repeat className="h-2.5 w-2.5 shrink-0 text-muted-foreground" />}
             <span className="truncate">{route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}</span>
           </div>
-          {!compact ? (
-            <div className="flex items-center gap-1 text-[10px] text-muted-foreground tabular-nums mt-0.5">
-              <MapPin className="h-2.5 w-2.5" />{stopCount}
-              {completedCount > 0 && <span className="text-emerald-600">({completedCount}✓)</span>}
-            </div>
-          ) : (
-            stopCount > 0 && (
-              <p className="text-[9px] text-muted-foreground tabular-nums">{stopCount} stop</p>
-            )
-          )}
+          <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[9px] text-muted-foreground tabular-nums sm:text-[10px]">
+            {stopCount > 0 && <span className="inline-flex items-center gap-0.5"><MapPin className="h-2.5 w-2.5" />{stopCount} stop</span>}
+            {completedCount > 0 && <span className="text-emerald-600">{completedCount}✓</span>}
+            {travelMin > 0 && <span className="inline-flex items-center gap-0.5"><Clock className="h-2.5 w-2.5" />{fmtRouteMin(travelMin)}</span>}
+            {revenue > 0 && <span className="inline-flex items-center gap-0.5"><Wallet className="h-2.5 w-2.5" />{fmtRouteKr(revenue)}</span>}
+          </div>
         </div>
         {/* Medarbejder-avatarer */}
         {visibleEmployees.length > 0 && (
