@@ -17,6 +17,7 @@ import {
 } from "date-fns";
 import { da } from "date-fns/locale";
 import { formatDurationMin } from "@/lib/duration-format";
+import { cn } from "@/lib/utils";
 
 /**
  * PlanningPanel — kompakt højrepanel for ruteplanlæggeren, åbnes via en knap
@@ -373,6 +374,13 @@ const LegendDot = ({ color, label }: { color: string; label: string }) => (
     <span className="h-2.5 w-2.5 rounded-sm ring-1 ring-border" style={{ background: color }} aria-hidden />
     {label}
   </li>
+);
+
+const MiniStat = ({ label, value }: { label: string; value: string }) => (
+  <div className="rounded-lg border border-border bg-card px-2.5 py-2">
+    <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+    <p className="mt-0.5 text-sm font-semibold tabular-nums text-foreground">{value}</p>
+  </div>
 );
 
 const LegendBadge = ({ symbol, label }: { symbol: string; label: string }) => (
