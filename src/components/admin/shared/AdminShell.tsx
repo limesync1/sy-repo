@@ -267,7 +267,7 @@ export const AdminShell = ({
   };
 
   return (
-    <div className="flex min-h-dvh overflow-x-hidden bg-secondary/50">
+    <div className="flex min-h-dvh w-full max-w-full overflow-x-hidden bg-secondary/50">
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-foreground/40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
@@ -372,7 +372,7 @@ export const AdminShell = ({
       </aside>
 
       {/* Main */}
-      <div className="flex flex-1 flex-col min-w-0 lg:pl-[248px]">
+      <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden lg:pl-[248px]">
         <header className="sticky top-0 z-30 flex h-14 shrink-0 flex-nowrap items-center gap-2 border-b border-border bg-card px-3 sm:gap-3 sm:px-6">
           <button
             onClick={() => setSidebarOpen(true)}
@@ -415,7 +415,7 @@ export const AdminShell = ({
         </header>
         {topbarRight && (
           <div className="sm:hidden sticky top-14 z-20 border-b border-border bg-card px-3 py-2">
-            <div className="flex items-center gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex min-w-0 flex-wrap items-center gap-2 overflow-hidden">
               {topbarRight}
             </div>
           </div>
@@ -423,7 +423,7 @@ export const AdminShell = ({
 
         <main
           className={cn(
-            "flex-1 min-w-0 overflow-x-hidden",
+            "flex-1 min-w-0 max-w-full overflow-x-hidden",
             contentPadding
               ? "px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+6.75rem)] sm:px-6 sm:pt-6 lg:pb-6"
               : "pb-[calc(env(safe-area-inset-bottom)+6.75rem)] lg:pb-0",

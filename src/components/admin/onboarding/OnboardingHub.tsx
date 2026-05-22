@@ -248,8 +248,8 @@ export const OnboardingHub = ({ business }: { business: any }) => {
         </div>
 
         {guidedSteps.length > 0 && !isFirst && (
-          <div className="shrink-0 overflow-x-auto border-b bg-card px-4 py-2.5 [scrollbar-width:none] sm:px-5 [&::-webkit-scrollbar]:hidden">
-            <div className="flex min-w-max items-center gap-1.5">
+          <div className="shrink-0 border-b bg-card px-4 py-2.5 sm:px-5">
+            <div className="grid grid-cols-3 gap-1.5 sm:flex sm:flex-wrap sm:items-center">
               {guidedSteps.map((s) => {
                 const idx = slides.indexOf(s);
                 const active = idx === step;
@@ -260,14 +260,14 @@ export const OnboardingHub = ({ business }: { business: any }) => {
                     type="button"
                     onClick={() => setStep(idx)}
                     className={cn(
-                      "inline-flex h-8 items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-semibold transition-colors",
+                      "inline-flex h-8 min-w-0 items-center justify-center gap-1.5 rounded-full border px-2 text-[11px] font-semibold transition-colors sm:justify-start sm:px-2.5",
                       active && "border-foreground bg-foreground text-background",
                       done && !active && "border-accent/30 bg-accent/10 text-foreground",
                       !active && !done && "border-border bg-secondary/60 text-muted-foreground",
                     )}
                   >
                     <span className="tabular-nums">{done ? "✓" : s.step}</span>
-                    <span className="max-w-[7rem] truncate sm:max-w-none">{s.cta?.replace("Åbn ", "") || s.title.replace(/^Trin \d+ — /, "")}</span>
+                    <span className="hidden truncate sm:inline sm:max-w-none">{s.cta?.replace("Åbn ", "") || s.title.replace(/^Trin \d+ — /, "")}</span>
                   </button>
                 );
               })}
@@ -288,8 +288,8 @@ export const OnboardingHub = ({ business }: { business: any }) => {
                   return (
                     <div
                       key={s.step}
-                      className={cn(
-                        "flex items-center gap-3 border-b border-border bg-card px-3 py-3 last:border-b-0 sm:px-4",
+                    className={cn(
+                        "grid grid-cols-[auto_minmax(0,1fr)] gap-3 border-b border-border bg-card px-3 py-3 last:border-b-0 sm:flex sm:items-center sm:px-4",
                         done && "bg-accent/5",
                       )}
                     >
@@ -319,7 +319,7 @@ export const OnboardingHub = ({ business }: { business: any }) => {
                         size="sm"
                         variant={done ? "ghost" : "outline"}
                         onClick={() => setStep(idx)}
-                        className="h-8 shrink-0 px-2.5 text-[11px]"
+                        className="col-span-2 h-8 w-full px-2.5 text-[11px] sm:col-span-1 sm:w-auto sm:shrink-0"
                       >
                         {done ? "Se igen" : "Start"}
                         <ArrowRight className="ml-1 h-3 w-3" />

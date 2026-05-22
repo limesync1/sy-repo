@@ -266,7 +266,7 @@ const DashboardTab = ({
   });
   if (shareUrl) actions.push({
     key: "share", label: copied ? "Link kopieret" : "Del din profil",
-    meta: shareUrl.replace(/^https?:\/\//, ""), icon: copied ? Check : Link2, onClick: copyLink, priority: 50, tone: "muted",
+    meta: "Kopiér linket til jeres offentlige profil", icon: copied ? Check : Link2, onClick: copyLink, priority: 50, tone: "muted",
   });
   actions.push({ key: "new-service", label: "Tilføj service", meta: "Udvid jeres tilbud", icon: Briefcase, tab: "services", priority: 30, tone: "muted" });
   actions.push({ key: "team", label: "Medarbejdere", meta: "Inviter dit team", icon: Users, tab: "employees", priority: 20, tone: "muted" });
@@ -275,7 +275,7 @@ const DashboardTab = ({
   const primaryActions = actions.slice(0, 4);
 
   return (
-    <div className="space-y-3 overflow-x-clip pb-[calc(env(safe-area-inset-bottom)+1rem)] sm:space-y-5">
+    <div className="w-full max-w-full min-w-0 space-y-3 overflow-x-hidden pb-[calc(env(safe-area-inset-bottom)+1rem)] sm:space-y-5">
       {/* ── Hero welcome panel — matcher forsidens hero (dark + cyan glows) ── */}
       <section
         className="relative isolate overflow-hidden rounded-xl px-3 py-3 text-background sm:rounded-2xl sm:px-6 sm:py-6 lg:px-8 lg:py-8"
@@ -340,7 +340,7 @@ const DashboardTab = ({
         </div>
 
         {/* Snapshot-pille: i dag */}
-        <div className="mt-2.5 grid grid-cols-2 gap-1.5 sm:mt-4 sm:grid-cols-4 sm:gap-2 lg:mt-6">
+        <div className="mt-2.5 grid min-w-0 grid-cols-2 gap-1.5 sm:mt-4 sm:grid-cols-4 sm:gap-2 lg:mt-6">
           <SnapshotPill label="I dag" value={String(stats.todayCount)} sub={`${fmtKrShort(stats.todayRevenue)} kr`} onClick={() => setOpenStat("today")} />
           <SnapshotPill label="Denne uge" value={String(stats.orders7)} sub={`${fmtKrShort(stats.revenue7)} kr`} onClick={() => setOpenStat("orders")} />
           <SnapshotPill label="Afventer" value={String(pendingOrders)} sub={pendingOrders > 0 ? "Skal besvares" : "Alt besvaret"} accent={pendingOrders > 0} onClick={() => setOpenStat("pending")} />
@@ -348,10 +348,10 @@ const DashboardTab = ({
         </div>
       </section>
 
-      <div className="grid items-start gap-3 sm:gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)]">
-        <section className="order-2 space-y-3 sm:space-y-4 xl:order-1">
+      <div className="grid w-full max-w-full min-w-0 items-start gap-3 sm:gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)]">
+        <section className="order-2 min-w-0 space-y-3 sm:space-y-4 xl:order-1">
           {/* Periode-stat-kort med sparklines */}
-          <div className="grid grid-cols-1 gap-2 min-[440px]:grid-cols-2 sm:gap-3">
+          <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
             <SmartStatCard
               label="Omsætning · 7 dage"
               value={fmtKr(stats.revenue7)}
@@ -442,7 +442,7 @@ const DashboardTab = ({
           )}
         </section>
 
-        <section className="order-1 space-y-3 sm:space-y-4 xl:order-2">
+        <section className="order-1 min-w-0 max-w-full space-y-3 sm:space-y-4 xl:order-2">
           {/* Smart Quick Actions */}
           <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
             <div className="border-b border-border px-4 py-3 sm:px-5">
@@ -452,15 +452,15 @@ const DashboardTab = ({
               </div>
               <p className="mt-0.5 text-xs text-muted-foreground">Prioriteret efter hvad der flytter mest lige nu.</p>
             </div>
-            <div className="p-3 sm:p-4">
+              <div className="p-3 sm:p-4">
               <div className="grid gap-2">
                 {primaryActions.map((a) => (
                   <button
                     key={a.key}
                     type="button"
                     onClick={() => a.onClick ? a.onClick() : (a.tab && onNavigate?.(a.tab))}
-                    className={cn(
-                      "group flex items-center gap-3 rounded-xl border px-3 py-3 text-left transition-all",
+                      className={cn(
+                        "group flex w-full min-w-0 max-w-full items-center gap-3 overflow-hidden rounded-xl border px-3 py-3 text-left transition-all",
                       a.tone === "primary" && "border-foreground/15 bg-foreground text-background hover:-translate-y-0.5 hover:shadow-[0_10px_30px_-12px_hsl(var(--foreground)/0.5)]",
                       a.tone === "accent" && "border-accent/30 bg-accent/[0.06] hover:border-accent/50 hover:bg-accent/[0.10]",
                       a.tone === "muted" && "border-border bg-card hover:border-foreground/20 hover:bg-secondary/60",
@@ -474,8 +474,8 @@ const DashboardTab = ({
                     )}>
                       <a.icon />
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
+                      <div className="min-w-0 flex-1 overflow-hidden">
+                        <div className="flex min-w-0 items-center gap-2">
                         <p className={cn("truncate text-sm font-semibold", a.tone === "primary" ? "text-background" : "text-foreground")}>{a.label}</p>
                         {a.badge && (
                           <span className={cn(
@@ -511,7 +511,7 @@ const DashboardTab = ({
                         key={a.key}
                         type="button"
                         onClick={() => a.onClick ? a.onClick() : (a.tab && onNavigate?.(a.tab))}
-                        className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-secondary/60"
+                    className="flex w-full min-w-0 items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-secondary/60"
                       >
                         <a.icon className="h-3.5 w-3.5 text-muted-foreground" />
                         <span className="flex-1 truncate text-xs font-medium text-foreground">{a.label}</span>
@@ -529,7 +529,7 @@ const DashboardTab = ({
             <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
               <CardContent className="p-4 sm:p-5">
                 <div className="flex items-start justify-between gap-3">
-                  <div>
+                  <div className="min-w-0">
                     <h3 className="text-sm font-semibold text-foreground">Profilfuldendelse</h3>
                     <p className="mt-0.5 text-xs text-muted-foreground">Jo mere komplet profilen er, jo stærkere står I udadtil.</p>
                   </div>
@@ -583,14 +583,14 @@ const DashboardTab = ({
 /** Lille pille i hero-stripen — kompakt KPI med label/værdi/sub. Klikbar når onClick er sat. */
 const SnapshotPill = ({ label, value, sub, accent, onClick }: { label: string; value: string; sub: string; accent?: boolean; onClick?: () => void }) => {
   const className = cn(
-    "rounded-lg border px-2 py-1.5 text-left backdrop-blur-sm transition-all sm:rounded-xl sm:px-3 sm:py-2.5",
+    "min-w-0 overflow-hidden rounded-lg border px-2 py-1.5 text-left backdrop-blur-sm transition-all sm:rounded-xl sm:px-3 sm:py-2.5",
     accent ? "border-amber-300/40 bg-amber-400/[0.10]" : "border-background/10 bg-background/[0.05]",
     onClick && "hover:-translate-y-0.5 hover:border-background/25 hover:bg-background/[0.10]",
   );
   const content = (
     <>
       <p className="truncate text-[9px] font-medium uppercase tracking-wide text-background/60 sm:text-[10px] sm:tracking-wider">{label}</p>
-      <p className="mt-0.5 text-sm font-semibold tabular-nums text-background sm:mt-1 sm:text-xl">{value}</p>
+      <p className="mt-0.5 min-w-0 truncate text-sm font-semibold tabular-nums text-background sm:mt-1 sm:text-xl">{value}</p>
       <p className="truncate text-[9px] text-background/65 sm:mt-0.5 sm:text-[11px]">{sub}</p>
     </>
   );
@@ -874,7 +874,7 @@ const OrdersListSection = ({
           </Select>
         </div>
 
-        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+      <div className="mt-2 grid grid-cols-2 gap-1.5 min-[430px]:flex min-[430px]:flex-wrap min-[430px]:items-center">
           {chips.map((chip) => {
             const active = orderFilter === chip.key;
             const n = counts[chip.key] || 0;
@@ -884,7 +884,7 @@ const OrdersListSection = ({
                 type="button"
                 onClick={() => setOrderFilter(chip.key)}
                 className={cn(
-                  "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
+                  "inline-flex min-w-0 items-center justify-center gap-1.5 rounded-full border px-2 py-1 text-xs font-medium transition-colors min-[430px]:justify-start min-[430px]:px-2.5",
                   active
                     ? "border-foreground bg-foreground text-background"
                     : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground",
@@ -908,7 +908,7 @@ const OrdersListSection = ({
               key={order.id}
               type="button"
               onClick={() => onNavigate?.("orders")}
-              className="grid w-full gap-2 px-4 py-3 text-left transition-colors hover:bg-secondary/60 sm:grid-cols-[minmax(0,1.1fr)_auto_auto] sm:items-center sm:px-5"
+              className="grid w-full min-w-0 gap-2 px-4 py-3 text-left transition-colors hover:bg-secondary/60 sm:grid-cols-[minmax(0,1.1fr)_auto_auto] sm:items-center sm:px-5"
             >
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-foreground">{order.customer_name}</p>
@@ -916,13 +916,13 @@ const OrdersListSection = ({
                   {new Date(order.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge className={`${statusColors[order.status] || ""} w-fit border px-2 py-0.5 text-xs font-medium`}>
+              <div className="flex min-w-0 items-center gap-2">
+                <Badge className={`${statusColors[order.status] || ""} max-w-full truncate border px-2 py-0.5 text-xs font-medium`}>
                   {statusLabels[order.status] || order.status}
                 </Badge>
                 {order.status === "pending" && <AlertCircle className="h-3.5 w-3.5 text-amber-600" />}
               </div>
-              <div className="flex items-center justify-between gap-3 sm:justify-end">
+              <div className="flex min-w-0 items-center justify-between gap-3 sm:justify-end">
                 <span className="text-sm font-semibold tabular-nums text-foreground whitespace-nowrap">{fmtKr(Number(order.total_amount) || 0)}</span>
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </div>
@@ -1307,10 +1307,10 @@ export const DashboardSkeleton = () => {
         </div>
       </section>
 
-      <div className="grid gap-3 sm:gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)]">
-        <section className="space-y-3 sm:space-y-4">
+      <div className="grid w-full max-w-full min-w-0 gap-3 sm:gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)]">
+        <section className="min-w-0 space-y-3 sm:space-y-4">
           {/* Stat cards */}
-          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+          <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
             {Array.from({ length: 2 }).map((_, i) => (
               <Card key={i} className="surface-admin rounded-xl border-border/80 shadow-sm">
                 <CardContent className="p-4 sm:p-5">
@@ -1319,7 +1319,7 @@ export const DashboardSkeleton = () => {
                     <Shimmer className="h-7 w-7 rounded-lg" />
                   </div>
                   <Shimmer className="mt-3 h-8 w-32" />
-                  <div className="mt-3 flex h-8 items-end gap-[3px]">
+                  <div className="mt-3 flex h-8 min-w-0 items-end gap-[3px] overflow-hidden">
                     {Array.from({ length: 14 }).map((_, j) => (
                       <div
                         key={j}
@@ -1343,9 +1343,9 @@ export const DashboardSkeleton = () => {
                 <Shimmer className="h-9 w-full rounded-lg" />
                 <Shimmer className="h-9 w-full rounded-lg sm:w-[210px]" />
               </div>
-              <div className="mt-2 flex gap-1.5">
+              <div className="mt-2 grid grid-cols-2 gap-1.5 min-[430px]:flex min-[430px]:flex-wrap">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <Shimmer key={i} className="h-6 w-20 rounded-full" />
+                  <Shimmer key={i} className="h-6 w-full rounded-full min-[430px]:w-20" />
                 ))}
               </div>
             </div>
