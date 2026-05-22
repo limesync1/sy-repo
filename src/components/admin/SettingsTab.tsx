@@ -2133,19 +2133,24 @@ const SubcategoryPicker = ({
     <div className="grid gap-3 lg:grid-cols-2">
       {industries.map((ind) => {
         const picked = selectedSubcategories[ind.key] || [];
+        const total = ind.subcategories.length;
+        const pct = total > 0 ? (picked.length / total) * 100 : 0;
         return (
           <div
             key={ind.key}
-            className="rounded-xl border border-border bg-card p-3"
+            className="rounded-xl border border-border bg-card p-3.5 shadow-sm transition-shadow hover:shadow-md"
           >
             <div className="flex items-center gap-2">
-              <span className="text-base leading-none">{ind.icon}</span>
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-foreground/5 text-base leading-none">{ind.icon}</span>
               <span className="text-sm font-semibold text-foreground">{ind.label}</span>
-              <span className="ml-auto text-[11px] font-medium text-muted-foreground tabular-nums">
-                {picked.length}/{ind.subcategories.length}
+              <span className="ml-auto inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold text-foreground tabular-nums">
+                {picked.length}/{total}
               </span>
             </div>
-            <div className="mt-2.5 flex flex-wrap gap-1.5">
+            <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-border/60">
+              <div className="h-full bg-foreground transition-all" style={{ width: `${pct}%` }} />
+            </div>
+            <div className="mt-3 flex flex-wrap gap-1.5">
               {ind.subcategories.map((sc) => {
                 const isOn = picked.includes(sc.label);
                 return (
@@ -2153,10 +2158,10 @@ const SubcategoryPicker = ({
                     key={sc.label}
                     type="button"
                     onClick={() => onToggle(ind.key, sc.label)}
-                    className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium transition-colors ${
+                    className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
                       isOn
-                        ? "border-foreground bg-foreground/5 text-foreground"
-                        : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
+                        ? "border-foreground bg-foreground text-background shadow-sm"
+                        : "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:bg-secondary hover:text-foreground"
                     }`}
                   >
                     {isOn && <span aria-hidden>✓</span>}
