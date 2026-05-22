@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FieldLabel } from "@/components/admin/shared/AdminUI";
 import { Switch } from "@/components/ui/switch";
 import { Plus, Trash2, Mail, Phone, Loader2, Users } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -137,11 +138,11 @@ const CustomerContactsSection = ({ businessCustomerId }: Props) => {
         <div key={r.id || idx} className="rounded-md border bg-background p-2.5 space-y-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
-              <Label className="text-[11px]">Navn *</Label>
+              <FieldLabel required>Navn</FieldLabel>
               <Input value={r.name} onChange={(e) => updateRow(idx, { name: e.target.value })} className="h-8 text-sm" />
             </div>
             <div>
-              <Label className="text-[11px]">Rolle</Label>
+              <FieldLabel optional>Rolle</FieldLabel>
               <Input
                 value={r.role || ""}
                 onChange={(e) => updateRow(idx, { role: e.target.value })}
@@ -152,7 +153,7 @@ const CustomerContactsSection = ({ businessCustomerId }: Props) => {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
-              <Label className="text-[11px] flex items-center gap-1"><Mail className="h-3 w-3" /> Email</Label>
+              <FieldLabel optional><Mail className="h-3 w-3" /> Email</FieldLabel>
               <Input
                 type="email"
                 value={r.email || ""}
@@ -161,7 +162,7 @@ const CustomerContactsSection = ({ businessCustomerId }: Props) => {
               />
             </div>
             <div>
-              <Label className="text-[11px] flex items-center gap-1"><Phone className="h-3 w-3" /> Telefon</Label>
+              <FieldLabel optional><Phone className="h-3 w-3" /> Telefon</FieldLabel>
               <Input
                 value={r.phone || ""}
                 onChange={(e) => updateRow(idx, { phone: e.target.value })}
