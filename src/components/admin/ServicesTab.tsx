@@ -609,6 +609,22 @@ const ServiceForm = ({
   const upsertSteps = useUpsertCalculatorSteps();
 
   const [currentStep, setCurrentStep] = useState(1);
+  const formRootRef = useRef<HTMLDivElement>(null);
+  // Når brugeren skifter trin scroller vi tilbage til toppen af popuppen,
+  // ellers står man midt på det nye trin og ved ikke hvor man er.
+  useEffect(() => {
+    const root = formRootRef.current;
+    if (!root) return;
+    let el: HTMLElement | null = root.parentElement;
+    while (el) {
+      const s = getComputedStyle(el);
+      if (/(auto|scroll|overlay)/.test(s.overflowY) && el.scrollHeight > el.clientHeight) {
+        el.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+      el = el.parentElement;
+    }
+  }, [currentStep]);
   const [serviceCategory, setServiceCategory] = useState(existingService?.service_category || "");
   const [subcategory, setSubcategory] = useState(existingService?.subcategory || "");
   const [name, setName] = useState(existingService?.name || "");
