@@ -168,6 +168,11 @@ export const OnboardingHub = ({ business }: { business: any }) => {
   const primaryLabel = isLast ? "Færdig" : "Næste";
   const onPrimary = () => {
     if (isLast) { close(); return; }
+    if (isFirst) {
+      const nextStep = guidedSteps.find((s) => !doneSteps[s.step!]) || guidedSteps[0];
+      setStep(slides.indexOf(nextStep));
+      return;
+    }
     if (slide.step !== undefined && !doneSteps[slide.step]) toggleDone(slide.step);
     setStep((i) => i + 1);
   };
