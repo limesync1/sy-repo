@@ -2,7 +2,7 @@
 // This entire module (~1700 lines) loads only when the user opens
 // the Services tab in their business panel, removing it from the
 // initial /virksomhed chunk.
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   Plus, Trash2,
@@ -406,7 +406,7 @@ const ServiceRow = ({ service, orderCount, accountingMeta, onEdit, onDelete }: {
   onEdit: () => void;
   onDelete: () => void;
 }) => {
-  const pricingLabels: Record<string, string> = { fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner" };
+  const pricingLabels: Record<string, string> = { fast_pris: "Specifik pris", timepris: "Timepris", prisberegner: "Prisberegner" };
 
   const intervals = service.interval_options || [];
   const hasRecurring = intervals.some((i: string) => i !== "engangskøb");
@@ -609,6 +609,22 @@ const ServiceForm = ({
   const upsertSteps = useUpsertCalculatorSteps();
 
   const [currentStep, setCurrentStep] = useState(1);
+  const formRootRef = useRef<HTMLDivElement>(null);
+  // Når brugeren skifter trin scroller vi tilbage til toppen af popuppen,
+  // ellers står man midt på det nye trin og ved ikke hvor man er.
+  useEffect(() => {
+    const root = formRootRef.current;
+    if (!root) return;
+    let el: HTMLElement | null = root.parentElement;
+    while (el) {
+      const s = getComputedStyle(el);
+      if (/(auto|scroll|overlay)/.test(s.overflowY) && el.scrollHeight > el.clientHeight) {
+        el.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+      el = el.parentElement;
+    }
+  }, [currentStep]);
   const [serviceCategory, setServiceCategory] = useState(existingService?.service_category || "");
   const [subcategory, setSubcategory] = useState(existingService?.subcategory || "");
   const [name, setName] = useState(existingService?.name || "");
@@ -1104,7 +1120,7 @@ const ServiceForm = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div ref={formRootRef} className="space-y-6">
       {/* Step Progress Bar — kompakt, tydelig nuværende fase + lille hint
           om hvad der mangler i alt. */}
       <div className="surface-admin rounded-xl border border-border/80 p-3 sm:p-4">
@@ -1318,7 +1334,7 @@ const ServiceForm = ({
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[
-              { value: "fast_pris", label: "Fast pris", desc: "Kunden betaler én fast pris for hele servicen", icon: "💰" },
+              { value: "fast_pris", label: "Specifik pris", desc: "Kunden betaler én specifik pris for hele servicen", icon: "💰" },
               { value: "timepris", label: "Timepris", desc: "Kunden betaler pr. time brugt på opgaven", icon: "⏱️" },
               { value: "prisberegner", label: "Prisberegner", desc: "Kunden sammensætter selv og ser prisen live", icon: "🧮" },
             ].map((opt) => (
@@ -1340,15 +1356,10 @@ const ServiceForm = ({
               <div className="flex-1">
                 <label className="mb-1.5 block text-sm font-medium text-foreground">
                   {pricingType === "fast_pris" ? "Pris (kr)" : "Timepris (kr)"}
+                  <span className="ml-1 text-destructive">*</span>
                 </label>
                 <Input type="number" placeholder="0" value={basePrice} onChange={(e) => setBasePrice(e.target.value)} className="bg-card h-11 text-base" />
               </div>
-              {pricingType === "timepris" && (
-                <div className="flex-1">
-                  <label className="mb-1.5 block text-sm font-medium text-foreground">Enhed</label>
-                  <Input placeholder="Fx timer" value={unit} onChange={(e) => setUnit(e.target.value)} className="bg-card h-11 text-base" />
-                </div>
-              )}
             </div>
           )}
 
@@ -1692,7 +1703,10 @@ const ServiceForm = ({
             )}
           </div>
 
-          {/* Regnskabs-felter på service: vare-nr og momszone */}
+          {/* Regnskabs-felter på service: vare-nr og momszone — kun når
+              virksomheden har et regnskabsprogram tilkoblet, ellers er felterne
+              uden formål og forvirrer brugeren. */}
+          {hasIntegration && (
           <div className="rounded-xl border border-border bg-secondary/30 p-4 space-y-4">
             <div>
               <h4 className="text-sm font-semibold text-foreground">Regnskabsfelter</h4>
@@ -1728,6 +1742,7 @@ const ServiceForm = ({
               </div>
             </div>
           </div>
+          )}
 
           {hasIntegration && (
             <div className="mt-6 rounded-xl border border-border bg-secondary/30 p-4 space-y-4">

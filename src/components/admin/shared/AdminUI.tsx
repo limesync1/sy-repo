@@ -153,11 +153,20 @@ SectionCard.displayName = "SectionCard";
    Lille uppercase-stil, samme på tværs af alle faner. */
 export const FieldLabel = React.forwardRef<
   HTMLLabelElement,
-  { children: React.ReactNode; required?: boolean; className?: string }
->(({ children, required, className }, ref) => (
-  <label ref={ref} className={cn("mb-1.5 block text-xs font-medium text-muted-foreground uppercase tracking-wider", className)}>
-    {children}
-    {required && <span className="text-destructive ml-0.5">*</span>}
+  { children: React.ReactNode; required?: boolean; optional?: boolean; className?: string }
+>(({ children, required, optional, className }, ref) => (
+  <label ref={ref} className={cn("mb-1.5 flex flex-wrap items-center gap-1.5 text-xs font-medium uppercase tracking-wider", required ? "text-foreground" : "text-muted-foreground", className)}>
+    <span>{children}</span>
+    {required && (
+      <span className="inline-flex items-center gap-0.5 rounded-full bg-destructive/10 px-1.5 py-0.5 text-[9px] font-bold text-destructive normal-case tracking-normal">
+        Påkrævet
+      </span>
+    )}
+    {optional && !required && (
+      <span className="inline-flex items-center rounded-full bg-secondary px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground normal-case tracking-normal">
+        Valgfri
+      </span>
+    )}
   </label>
 ));
 FieldLabel.displayName = "FieldLabel";

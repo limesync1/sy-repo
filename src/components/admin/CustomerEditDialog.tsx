@@ -477,13 +477,14 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
             </div>
             )}
 
-            {/* Ekstra kontaktpersoner — kun for erhvervskunder */}
-            {type === "business" && (
+            {/* Ekstra kontaktpersoner & dokumenter — kun for erhvervskunder
+                OG kun når der er et regnskabsprogram tilkoblet. Begge dele er
+                regnskabs-funktioner (bogholderi-mail, kontrakter osv.). */}
+            {type === "business" && accountingEnabled && initial?.id && (
               <CustomerContactsSection businessCustomerId={initial?.id ?? null} />
             )}
 
-            {/* Dokumenter — kontrakter, tilbud, aftaler */}
-            {type === "business" && (
+            {type === "business" && accountingEnabled && initial?.id && (
               <CustomerDocumentsSection
                 businessId={businessId}
                 businessCustomerId={initial?.id ?? null}

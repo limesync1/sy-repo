@@ -14,7 +14,7 @@ const FixedPriceService = ({ service }: { service: Service }) => {
       <span className="text-2xl font-bold text-foreground">{service.fixedPrice} kr</span>
       <Button
         onClick={() => {
-          addItem({ serviceId: service.id, serviceName: service.name, total: service.fixedPrice!, details: "Fast pris", quantity: 1 });
+          addItem({ serviceId: service.id, serviceName: service.name, total: service.fixedPrice!, details: "Specifik pris", quantity: 1 });
           toast.success(`${service.name} tilføjet til kurv`);
         }}
         className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90"

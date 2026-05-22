@@ -241,7 +241,7 @@ const STATUS_CONFIG: Record<string, { label: string; icon: typeof Clock; cls: st
 };
 
 const PRICING_LABELS: Record<string, string> = {
-  fast_pris: "Fast pris",
+  fast_pris: "Specifik pris",
   timepris: "Timepris",
   prisberegner: "Prisberegner",
 };

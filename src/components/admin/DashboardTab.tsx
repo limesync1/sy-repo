@@ -259,7 +259,7 @@ const DashboardTab = ({
     <div className="space-y-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] sm:space-y-5">
       {/* ── Hero welcome panel — matcher forsidens hero (dark + cyan glows) ── */}
       <section
-        className="relative isolate overflow-hidden rounded-xl px-3 py-3.5 text-background sm:rounded-2xl sm:px-6 sm:py-6 lg:px-8 lg:py-8"
+        className="relative isolate overflow-hidden rounded-xl px-3 py-3 text-background sm:rounded-2xl sm:px-6 sm:py-6 lg:px-8 lg:py-8"
         style={{ backgroundColor: "hsl(var(--hero-bg))" }}
       >
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">

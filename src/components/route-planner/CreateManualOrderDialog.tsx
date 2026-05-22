@@ -222,7 +222,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
         }));
         const description = it.service.pricing_type === "timepris"
           ? `${it.hours} timer`
-          : it.service.pricing_type === "fast_pris" ? "Fast pris" : "";
+          : it.service.pricing_type === "fast_pris" ? "Specifik pris" : "";
         return {
           order_id: childOrderIds[idx],
           service_id: it.serviceId,
@@ -499,7 +499,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                               </span>
                             )}
                             <Badge variant="outline" className="text-[10px] font-normal">
-                              {it.service.pricing_type === "fast_pris" ? "Fast pris" : it.service.pricing_type === "timepris" ? "Timepris" : "Prisberegner"}
+                              {it.service.pricing_type === "fast_pris" ? "Specifik pris" : it.service.pricing_type === "timepris" ? "Timepris" : "Prisberegner"}
                             </Badge>
                           </div>
                         </div>
