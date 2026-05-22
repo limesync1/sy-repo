@@ -266,7 +266,7 @@ const DashboardTab = ({
   });
   if (shareUrl) actions.push({
     key: "share", label: copied ? "Link kopieret" : "Del din profil",
-    meta: shareUrl.replace(/^https?:\/\//, ""), icon: copied ? Check : Link2, onClick: copyLink, priority: 50, tone: "muted",
+    meta: "Kopiér linket til jeres offentlige profil", icon: copied ? Check : Link2, onClick: copyLink, priority: 50, tone: "muted",
   });
   actions.push({ key: "new-service", label: "Tilføj service", meta: "Udvid jeres tilbud", icon: Briefcase, tab: "services", priority: 30, tone: "muted" });
   actions.push({ key: "team", label: "Medarbejdere", meta: "Inviter dit team", icon: Users, tab: "employees", priority: 20, tone: "muted" });
@@ -275,7 +275,7 @@ const DashboardTab = ({
   const primaryActions = actions.slice(0, 4);
 
   return (
-    <div className="space-y-3 overflow-x-clip pb-[calc(env(safe-area-inset-bottom)+1rem)] sm:space-y-5">
+    <div className="w-full max-w-full min-w-0 space-y-3 overflow-x-hidden pb-[calc(env(safe-area-inset-bottom)+1rem)] sm:space-y-5">
       {/* ── Hero welcome panel — matcher forsidens hero (dark + cyan glows) ── */}
       <section
         className="relative isolate overflow-hidden rounded-xl px-3 py-3 text-background sm:rounded-2xl sm:px-6 sm:py-6 lg:px-8 lg:py-8"
@@ -348,8 +348,8 @@ const DashboardTab = ({
         </div>
       </section>
 
-      <div className="grid items-start gap-3 sm:gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)]">
-        <section className="order-2 space-y-3 sm:space-y-4 xl:order-1">
+      <div className="grid w-full max-w-full min-w-0 items-start gap-3 sm:gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)]">
+        <section className="order-2 min-w-0 space-y-3 sm:space-y-4 xl:order-1">
           {/* Periode-stat-kort med sparklines */}
           <div className="grid grid-cols-1 gap-2 min-[440px]:grid-cols-2 sm:gap-3">
             <SmartStatCard
@@ -452,15 +452,15 @@ const DashboardTab = ({
               </div>
               <p className="mt-0.5 text-xs text-muted-foreground">Prioriteret efter hvad der flytter mest lige nu.</p>
             </div>
-            <div className="p-3 sm:p-4">
+              <div className="p-3 sm:p-4">
               <div className="grid gap-2">
                 {primaryActions.map((a) => (
                   <button
                     key={a.key}
                     type="button"
                     onClick={() => a.onClick ? a.onClick() : (a.tab && onNavigate?.(a.tab))}
-                    className={cn(
-                      "group flex items-center gap-3 rounded-xl border px-3 py-3 text-left transition-all",
+                      className={cn(
+                        "group flex w-full min-w-0 max-w-full items-center gap-3 overflow-hidden rounded-xl border px-3 py-3 text-left transition-all",
                       a.tone === "primary" && "border-foreground/15 bg-foreground text-background hover:-translate-y-0.5 hover:shadow-[0_10px_30px_-12px_hsl(var(--foreground)/0.5)]",
                       a.tone === "accent" && "border-accent/30 bg-accent/[0.06] hover:border-accent/50 hover:bg-accent/[0.10]",
                       a.tone === "muted" && "border-border bg-card hover:border-foreground/20 hover:bg-secondary/60",
@@ -474,8 +474,8 @@ const DashboardTab = ({
                     )}>
                       <a.icon />
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
+                      <div className="min-w-0 flex-1 overflow-hidden">
+                        <div className="flex min-w-0 items-center gap-2">
                         <p className={cn("truncate text-sm font-semibold", a.tone === "primary" ? "text-background" : "text-foreground")}>{a.label}</p>
                         {a.badge && (
                           <span className={cn(
