@@ -406,7 +406,7 @@ const ServiceRow = ({ service, orderCount, accountingMeta, onEdit, onDelete }: {
   onEdit: () => void;
   onDelete: () => void;
 }) => {
-  const pricingLabels: Record<string, string> = { fast_pris: "Fast pris", timepris: "Timepris", prisberegner: "Prisberegner" };
+  const pricingLabels: Record<string, string> = { fast_pris: "Specifik pris", timepris: "Timepris", prisberegner: "Prisberegner" };
 
   const intervals = service.interval_options || [];
   const hasRecurring = intervals.some((i: string) => i !== "engangskøb");
@@ -1318,7 +1318,7 @@ const ServiceForm = ({
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[
-              { value: "fast_pris", label: "Fast pris", desc: "Kunden betaler én fast pris for hele servicen", icon: "💰" },
+              { value: "fast_pris", label: "Specifik pris", desc: "Kunden betaler én specifik pris for hele servicen", icon: "💰" },
               { value: "timepris", label: "Timepris", desc: "Kunden betaler pr. time brugt på opgaven", icon: "⏱️" },
               { value: "prisberegner", label: "Prisberegner", desc: "Kunden sammensætter selv og ser prisen live", icon: "🧮" },
             ].map((opt) => (
@@ -1340,15 +1340,10 @@ const ServiceForm = ({
               <div className="flex-1">
                 <label className="mb-1.5 block text-sm font-medium text-foreground">
                   {pricingType === "fast_pris" ? "Pris (kr)" : "Timepris (kr)"}
+                  <span className="ml-1 text-destructive">*</span>
                 </label>
                 <Input type="number" placeholder="0" value={basePrice} onChange={(e) => setBasePrice(e.target.value)} className="bg-card h-11 text-base" />
               </div>
-              {pricingType === "timepris" && (
-                <div className="flex-1">
-                  <label className="mb-1.5 block text-sm font-medium text-foreground">Enhed</label>
-                  <Input placeholder="Fx timer" value={unit} onChange={(e) => setUnit(e.target.value)} className="bg-card h-11 text-base" />
-                </div>
-              )}
             </div>
           )}
 
