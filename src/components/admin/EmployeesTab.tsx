@@ -813,57 +813,73 @@ const EmployeeRow = ({
           >
             <Pencil className="h-4 w-4" />
           </button></TooltipTrigger><TooltipContent>Rediger oplysninger</TooltipContent></Tooltip>
-          <Tooltip><TooltipTrigger asChild><button
-            onClick={() => {
-              const next = !(employee as any).livechat_enabled;
-              onUpdate.mutate(
-                { id: employee.id, business_id: businessId, livechat_enabled: next } as any,
-                {
-                  onSuccess: () =>
-                    toast.success(next ? "Livechat-adgang aktiveret" : "Livechat-adgang fjernet"),
-                  onError: (e: any) => toast.error(e.message),
-                },
-              );
-            }}
-            className={cn(
-              "rounded-md p-2 transition-colors",
-              (employee as any).livechat_enabled
-                ? "bg-accent/10 text-accent hover:bg-accent/15"
-                : "text-muted-foreground hover:bg-secondary hover:text-foreground",
-            )}
-          >
-            <MessageCircle className="h-4 w-4" />
-          </button></TooltipTrigger><TooltipContent>{(employee as any).livechat_enabled ? "Fjern livechat-adgang" : "Giv adgang til livechat"}</TooltipContent></Tooltip>
-          {linked && (
-            <Tooltip><TooltipTrigger asChild><button
-              onClick={() => setConfirmReset(true)}
-              disabled={resetPw.isPending}
-              className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors disabled:opacity-50"
-            >
-              <KeyRound className="h-4 w-4" />
-            </button></TooltipTrigger><TooltipContent>Send nulstilling af adgangskode</TooltipContent></Tooltip>
-          )}
-          <Tooltip><TooltipTrigger asChild><button
-            onClick={() => {
-              onUpdate.mutate(
-                { id: employee.id, business_id: businessId, is_active: !employee.is_active },
-                {
-                  onSuccess: () =>
-                    toast.success(employee.is_active ? "Medarbejder deaktiveret" : "Medarbejder aktiveret"),
-                  onError: (e: any) => toast.error(e.message),
-                }
-              );
-            }}
-            className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-          >
-            {employee.is_active ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
-          </button></TooltipTrigger><TooltipContent>{employee.is_active ? "Deaktiver medarbejder" : "Aktivér medarbejder"}</TooltipContent></Tooltip>
-          <Tooltip><TooltipTrigger asChild><button
-            onClick={() => setConfirmDelete(true)}
-            className="rounded-md p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button></TooltipTrigger><TooltipContent>Slet medarbejder</TooltipContent></Tooltip>
+          <DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                    aria-label="Flere handlinger"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent>Flere handlinger</TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel className="text-xs">{employee.name || "Medarbejder"}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  const next = !(employee as any).livechat_enabled;
+                  onUpdate.mutate(
+                    { id: employee.id, business_id: businessId, livechat_enabled: next } as any,
+                    {
+                      onSuccess: () =>
+                        toast.success(next ? "Livechat-adgang aktiveret" : "Livechat-adgang fjernet"),
+                      onError: (e: any) => toast.error(e.message),
+                    },
+                  );
+                }}
+              >
+                <MessageCircle className="h-4 w-4 mr-2" />
+                {(employee as any).livechat_enabled ? "Fjern livechat-adgang" : "Giv adgang til livechat"}
+              </DropdownMenuItem>
+              {linked && (
+                <DropdownMenuItem
+                  onClick={() => setConfirmReset(true)}
+                  disabled={resetPw.isPending}
+                >
+                  <KeyRound className="h-4 w-4 mr-2" />
+                  Send nulstilling af adgangskode
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem
+                onClick={() => {
+                  onUpdate.mutate(
+                    { id: employee.id, business_id: businessId, is_active: !employee.is_active },
+                    {
+                      onSuccess: () =>
+                        toast.success(employee.is_active ? "Medarbejder deaktiveret" : "Medarbejder aktiveret"),
+                      onError: (e: any) => toast.error(e.message),
+                    }
+                  );
+                }}
+              >
+                {employee.is_active ? <PowerOff className="h-4 w-4 mr-2" /> : <Power className="h-4 w-4 mr-2" />}
+                {employee.is_active ? "Deaktiver medarbejder" : "Aktivér medarbejder"}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => setConfirmDelete(true)}
+                className="text-destructive focus:text-destructive focus:bg-destructive/10"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Slet medarbejder
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
