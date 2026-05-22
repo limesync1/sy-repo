@@ -23,7 +23,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import {
   GripVertical, MapPin, Trash2, Inbox, ExternalLink, Loader2,
-  Crown, UserPlus, Check, PlayCircle, Wallet,
+  Crown, UserPlus, Check, PlayCircle, Wallet, Gauge,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
