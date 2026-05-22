@@ -51,7 +51,8 @@ Deno.serve(async (req) => {
   } catch (_e) { /* ignore */ }
 
   if (existingUserId) {
-    return new Response(JSON.stringify({ existed: true, userId: existingUserId }), {
+    // Returnér samme respons-shape for both cases for at undgå user-enumeration.
+    return new Response(JSON.stringify({ ok: true, email }), {
       status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
@@ -91,7 +92,8 @@ Deno.serve(async (req) => {
     },
   }).catch(() => {})
 
-  return new Response(JSON.stringify({ created: true, userId: created.user.id, password, email }), {
+  // Returnér IKKE plaintext password — det sendes kun via velkomstmailen ovenfor.
+  return new Response(JSON.stringify({ ok: true, email }), {
     status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   })
 })
