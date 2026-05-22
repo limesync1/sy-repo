@@ -117,7 +117,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
     }[] = [];
 
     if (service.pricing_type === "fast_pris") {
-      details = "Fast pris";
+      details = "Specifik pris";
     } else if (service.pricing_type === "timepris") {
       details = `${hours} timer`;
       stepDetails.push({
