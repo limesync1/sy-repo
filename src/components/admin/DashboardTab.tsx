@@ -275,7 +275,7 @@ const DashboardTab = ({
   const primaryActions = actions.slice(0, 4);
 
   return (
-    <div className="space-y-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] sm:space-y-5">
+    <div className="space-y-3 overflow-x-clip pb-[calc(env(safe-area-inset-bottom)+1rem)] sm:space-y-5">
       {/* ── Hero welcome panel — matcher forsidens hero (dark + cyan glows) ── */}
       <section
         className="relative isolate overflow-hidden rounded-xl px-3 py-3 text-background sm:rounded-2xl sm:px-6 sm:py-6 lg:px-8 lg:py-8"
@@ -312,7 +312,7 @@ const DashboardTab = ({
           </div>
 
           {business.slug && (
-            <div className="-mx-1 flex items-center gap-1.5 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-2 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 lg:shrink-0">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 lg:shrink-0">
               <button
                 type="button" onClick={copyLink}
                 className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold text-[hsl(var(--hero-bg))] transition-all hover:-translate-y-0.5 sm:px-3.5 sm:py-2 sm:text-xs"
@@ -863,7 +863,7 @@ const OrdersListSection = ({
           </Select>
         </div>
 
-        <div className="mt-2 -mx-1 flex flex-nowrap items-center gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
           {chips.map((chip) => {
             const active = orderFilter === chip.key;
             const n = counts[chip.key] || 0;
