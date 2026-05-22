@@ -164,6 +164,11 @@ export const FieldLabel = React.forwardRef<
 >(({ children, required, optional, important, className }, ref) => (
   <label ref={ref} className={cn("mb-1.5 flex flex-wrap items-center gap-1.5 text-xs font-medium uppercase tracking-wider", required ? "text-foreground" : "text-muted-foreground", className)}>
     <span>{children}</span>
+    {required && (
+      <span className="inline-flex items-center rounded-full bg-accent/10 px-1.5 py-0.5 text-[9px] font-semibold text-accent normal-case tracking-normal">
+        Påkrævet
+      </span>
+    )}
     {important && (
       <span className="inline-flex items-center rounded-full bg-accent/10 px-1.5 py-0.5 text-[9px] font-semibold text-accent normal-case tracking-normal">
         {important}
