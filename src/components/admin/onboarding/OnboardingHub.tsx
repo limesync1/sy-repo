@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   Rocket, Tags, Calculator, Users, Wrench, ShoppingCart, Route as RouteIcon,
-  UserPlus, Sparkles, ChevronLeft, ChevronRight, X, ArrowRight, Check,
+  UserPlus, Sparkles, X, ArrowRight, Check,
   type LucideIcon,
 } from "lucide-react";
 
@@ -131,6 +131,7 @@ export const OnboardingHub = ({ business }: { business: any }) => {
   const slides = useMemo(() => buildSlides(business?.name), [business?.name]);
   const slide = slides[step];
   const isLast = step === slides.length - 1;
+  const isFirst = step === 0;
 
   const goToTab = () => {
     close();
@@ -142,6 +143,16 @@ export const OnboardingHub = ({ business }: { business: any }) => {
   if (!open || !slide) return null;
 
   const Icon = slide.icon;
+  const primaryLabel = isLast
+    ? "Færdig"
+    : slide.tab
+      ? slide.cta || "Åbn og fortsæt"
+      : "Næste";
+  const onPrimary = () => {
+    if (isLast) { close(); return; }
+    if (slide.tab) { goToTab(); return; }
+    setStep((i) => i + 1);
+  };
 
   return (
     <Dialog open onOpenChange={(v) => { if (!v) close(); }}>
@@ -177,50 +188,40 @@ export const OnboardingHub = ({ business }: { business: any }) => {
           )}
         </div>
 
-        {/* Progress dots */}
-        <div className="flex shrink-0 items-center justify-center gap-1.5 bg-card pt-4">
-          {slides.map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => setStep(i)}
-              aria-label={`Gå til slide ${i + 1}`}
-              className={cn(
-                "h-1.5 rounded-full transition-all",
-                i === step ? "w-6 bg-foreground" : "w-1.5 bg-border",
-              )}
-            />
-          ))}
-        </div>
-
-        {/* Footer */}
-        <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 bg-card px-5 py-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setStep((i) => Math.max(0, i - 1))}
-            disabled={step === 0}
-            className="gap-1"
-          >
-            <ChevronLeft className="h-4 w-4" /> Tilbage
-          </Button>
-
-          <div className="flex items-center gap-2">
-            {slide.cta && slide.tab && (
-              <Button size="sm" variant="outline" onClick={goToTab} className="gap-1.5">
-                {slide.cta} <ArrowRight className="h-3.5 w-3.5" />
-              </Button>
-            )}
-            {isLast ? (
-              <Button size="sm" onClick={close} className="gap-1">
-                Færdig <Check className="h-4 w-4" />
-              </Button>
-            ) : (
-              <Button size="sm" onClick={() => setStep((i) => i + 1)} className="gap-1">
-                Næste <ChevronRight className="h-4 w-4" />
-              </Button>
+        {/* Progress bar */}
+        <div className="shrink-0 bg-card px-5 pt-4">
+          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+            <span className="font-medium">{step + 1} af {slides.length}</span>
+            {!isLast && !isFirst && (
+              <button type="button" onClick={close} className="hover:text-foreground transition-colors">
+                Spring over
+              </button>
             )}
           </div>
+          <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-border">
+            <div
+              className="h-full bg-foreground transition-all duration-300"
+              style={{ width: `${((step + 1) / slides.length) * 100}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Footer — én primær handling. */}
+        <div className="flex shrink-0 items-center justify-between gap-3 bg-card px-5 py-4">
+          {!isFirst ? (
+            <button
+              type="button"
+              onClick={() => setStep((i) => Math.max(0, i - 1))}
+              className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Tilbage
+            </button>
+          ) : <span />}
+
+          <Button size="sm" onClick={onPrimary} className="gap-1.5 min-w-[140px]">
+            {primaryLabel}
+            {isLast ? <Check className="h-4 w-4" /> : <ArrowRight className="h-3.5 w-3.5" />}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
