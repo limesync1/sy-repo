@@ -1954,13 +1954,13 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             </div>
             <div className="grid gap-4 py-3 sm:grid-cols-2 sm:gap-3 last:pb-0">
               <div>
-                <FieldLabel>Hvor mange dage må kunden om at betale?</FieldLabel>
+                <FieldLabel required>Hvor mange dage må kunden om at betale?</FieldLabel>
                 <Input type="number" min={0} value={settings.default_payment_terms_days ?? 14}
                   onChange={e => setSettings({ ...settings, default_payment_terms_days: Number(e.target.value) || 0 })} />
                 <p className="mt-1.5 text-xs text-muted-foreground">Bruges på nye fakturaer. 14 dage er standard i Danmark.</p>
               </div>
               <div>
-                <FieldLabel>Moms-sats i procent</FieldLabel>
+                <FieldLabel required>Moms-sats i procent</FieldLabel>
                 <Input type="number" min={0} max={100} value={settings.default_vat_rate ?? 25}
                   onChange={e => setSettings({ ...settings, default_vat_rate: Number(e.target.value) || 0 })} />
                 <p className="mt-1.5 text-xs text-muted-foreground">25 % er almindelig moms i Danmark.</p>
@@ -1979,7 +1979,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           <div className="grid gap-4 sm:grid-cols-2">
             {groups.customer_groups.length > 0 && (
               <div>
-                <FieldLabel>
+                <FieldLabel optional>
                   Hvor skal nye kunder placeres?
                 </FieldLabel>
                 <Select
@@ -2003,7 +2003,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             )}
             {groups.product_groups.length > 0 && (
               <div>
-                <FieldLabel>
+                <FieldLabel optional>
                   Hvor skal nye services placeres?
                 </FieldLabel>
                 <Select
@@ -2027,7 +2027,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             )}
             {groups.income_accounts.length > 0 && (
               <div className="sm:col-span-2">
-                <FieldLabel>
+                <FieldLabel optional>
                   Hvilken konto skal indtægterne bogføres på?
                 </FieldLabel>
                 <Select
