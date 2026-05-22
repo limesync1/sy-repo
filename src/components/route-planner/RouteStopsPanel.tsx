@@ -2,7 +2,7 @@
 // Brugeren kan: omrangere via drag, klikke for at åbne detail, fjerne stop fra ruten.
 // Vises ved siden af RouteEditSheet.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useIsBelowBreakpoint, useIsMobile } from "@/hooks/use-mobile";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
@@ -23,7 +23,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import {
   GripVertical, MapPin, Trash2, Inbox, ExternalLink, Loader2,
-  Crown, UserPlus, Check, PlayCircle, Wallet, Gauge,
+  Crown, UserPlus, Check, PlayCircle,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
@@ -31,10 +31,9 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import {
   useReorderStops, useDeleteStop, useSetStopAssignees,
-  useDirections, type RouteStop, type Route,
+  type RouteStop, type Route,
 } from "@/hooks/useRoutes";
 import { IntervalBadge } from "./IntervalBadge";
-import { pickDuration } from "@/components/route/EtaBreakdown";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -76,40 +75,6 @@ export const RouteStopsPanel = ({
   useEffect(() => {
     setItems([...stops].sort((a, b) => a.sequence - b.sequence));
   }, [stops]);
-  const estimatedRevenue = useMemo(
-    () => items.reduce((sum, s) => sum + Number((s as any).order_amount || 0), 0),
-    [items],
-  );
-  const waypoints = useMemo(() => {
-    if (!route || items.length < 1) return null;
-    const points = [...items]
-      .filter((s) => s.latitude != null && s.longitude != null)
-      .sort((a, b) => a.sequence - b.sequence)
-      .map((s) => ({ lat: Number(s.latitude), lng: Number(s.longitude) }));
-    if (route.start_latitude != null && route.start_longitude != null) {
-      points.unshift({ lat: Number(route.start_latitude), lng: Number(route.start_longitude) });
-    }
-    return points.length >= 2 ? points : null;
-  }, [route, items]);
-  const departAt = useMemo(() => {
-    if (!route?.route_date) return null;
-    const time = route.planned_start_time?.slice(0, 5) || "08:00";
-    const planned = parseISO(`${route.route_date}T${time}:00`);
-    if (Number.isNaN(planned.getTime()) || planned.getTime() < Date.now()) return null;
-    return planned.toISOString();
-  }, [route?.route_date, route?.planned_start_time]);
-  const { data: routeDirections, isFetching: directionsFetching } = useDirections(waypoints, {
-    departAt: departAt || undefined,
-    businessId: route?.business_id,
-  });
-  const displayDuration = routeDirections ? pickDuration(routeDirections, false) : null;
-  const formatTravelTime = (seconds: number) => {
-    const minutes = Math.max(1, Math.round(seconds / 60));
-    if (minutes < 60) return `${minutes} min`;
-    const h = Math.floor(minutes / 60);
-    const m = minutes % 60;
-    return m ? `${h} t ${m} min` : `${h} t`;
-  };
 
   // Dedikerede sensorer pr. inputtype: mus reagerer hurtigt (3px distance),
   // touch kræver kort hold (120ms / 8px tolerance) så tap stadig fungerer
@@ -202,41 +167,6 @@ export const RouteStopsPanel = ({
                 : "Træk for at omrangere · Klik for detaljer"}
             </SheetDescription>
           </SheetHeader>
-
-          {items.length > 0 && (
-            <div className="border-b bg-secondary/30 px-4 py-3">
-              <div className="grid grid-cols-2 gap-2">
-              <div className="flex min-w-0 items-center justify-between gap-2 rounded-xl border bg-card px-3 py-2.5">
-                <div className="flex min-w-0 items-center gap-2">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
-                    <Wallet className="h-4 w-4" />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold text-muted-foreground">Omsætning</p>
-                    <p className="truncate text-[11px] text-muted-foreground">Estimat for denne rute</p>
-                  </div>
-                </div>
-                <p className="shrink-0 text-sm font-bold tabular-nums text-foreground sm:text-lg">
-                  {Math.round(estimatedRevenue).toLocaleString("da-DK")} kr
-                </p>
-              </div>
-              <div className="flex min-w-0 items-center justify-between gap-2 rounded-xl border bg-card px-3 py-2.5">
-                <div className="flex min-w-0 items-center gap-2">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
-                    <Gauge className="h-4 w-4" />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold text-muted-foreground">Rejsetid</p>
-                    <p className="truncate text-[11px] text-muted-foreground">Estimeret kørsel</p>
-                  </div>
-                </div>
-                <p className="shrink-0 text-sm font-bold tabular-nums text-foreground sm:text-lg">
-                  {directionsFetching ? "…" : displayDuration != null ? formatTravelTime(displayDuration) : "—"}
-                </p>
-              </div>
-              </div>
-            </div>
-          )}
 
           <div className="flex-1 overflow-y-auto p-2.5 sm:p-3">
             {items.length === 0 ? (

@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -38,7 +40,7 @@ const buildSlides = (businessName?: string): Slide[] => [
     icon: Rocket,
     title: `Velkommen, ${businessName || "ny virksomhed"}!`,
     body:
-      "Denne guide tager jer trin for trin gennem den rigtige rækkefølge for at få jeres panel i drift. Følg trinene fra start til slut — så undgår I rod i regnskab, ruter og medarbejder-tildelinger senere.",
+      "Guiden tjekker selv om I har gjort hvert trin og markerer dem færdige automatisk. I behøver ikke krydse manuelt af — kør bare videre i panelet, og statussen herinde opdaterer sig selv.",
   },
   {
     icon: Tags,
@@ -116,15 +118,53 @@ export const OnboardingHub = ({ business }: { business: any }) => {
   const [step, setStep] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Auto-detektion: vi spørger databasen om hvad virksomheden HAR allerede gjort,
+  // og bruger det til at præ-markere trin som færdige. Det er klart bedre end
+  // at lade brugeren krydse manuelt af — guiden bliver en levende statusrapport
+  // i stedet for en huskeliste.
+  const { data: autoSignals } = useQuery({
+    queryKey: ["onboarding-signals", business?.id],
+    enabled: !!business?.id,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const bizId = business.id as string;
+      const settings = (business?.settings ?? {}) as Record<string, any>;
+      const categories = (business?.categories as string[] | null) || [];
+      const [services, employees, orders, routes, accounting] = await Promise.all([
+        supabase.from("services").select("id", { count: "exact", head: true }).eq("business_id", bizId),
+        supabase.from("employees").select("id", { count: "exact", head: true }).eq("business_id", bizId).eq("is_active", true),
+        supabase.from("orders").select("id", { count: "exact", head: true }).eq("business_id", bizId),
+        supabase.from("routes").select("id", { count: "exact", head: true }).eq("business_id", bizId),
+        supabase.from("accounting_integrations").select("id", { count: "exact", head: true }).eq("business_id", bizId).eq("is_active", true),
+      ]);
+      const accountingEnabled = !!settings.accounting_integration_enabled;
+      return {
+        1: categories.length > 0,                                    // brancher valgt
+        2: !accountingEnabled || (accounting.count ?? 0) > 0,        // regnskab forbundet (eller fravalgt)
+        3: (employees.count ?? 0) > 0,                               // medarbejder oprettet
+        4: (services.count ?? 0) > 0,                                // service oprettet
+        5: (orders.count ?? 0) > 0,                                  // bestilling oprettet
+        6: (routes.count ?? 0) > 0,                                  // rute oprettet
+      } as Record<number, boolean>;
+    },
+  });
+
   const storageKey = STORAGE_KEY_PREFIX + (business?.id || "anon");
-  const [doneSteps, setDoneSteps] = useState<Record<number, boolean>>(() => {
+  const [manualOverrides, setManualOverrides] = useState<Record<number, boolean>>(() => {
     if (typeof window === "undefined") return {};
     try { return JSON.parse(localStorage.getItem(storageKey) || "{}"); }
     catch { return {}; }
   });
+  // Effektiv færdig-status: auto-detekteret status + manuelle overrides
+  // (så brugeren kan markere et trin som færdigt selvom systemet ikke kan
+  // detektere det, fx hvis de bevidst springer regnskab over).
+  const doneSteps = useMemo<Record<number, boolean>>(() => {
+    const base = autoSignals ?? {};
+    return { ...base, ...manualOverrides };
+  }, [autoSignals, manualOverrides]);
   const toggleDone = (n?: number) => {
     if (n === undefined) return;
-    setDoneSteps((prev) => {
+    setManualOverrides((prev) => {
       const next = { ...prev, [n]: !prev[n] };
       try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch {}
       return next;
