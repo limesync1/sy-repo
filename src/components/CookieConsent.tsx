@@ -45,7 +45,7 @@ const CookieConsent = () => {
     setVisible(false);
   };
 
-  if (!visible) return null;
+  if (!visible || isPanelRoute) return null;
 
   return (
     <div
@@ -53,10 +53,7 @@ const CookieConsent = () => {
       aria-live="polite"
       aria-label="Cookies"
       className={cn(
-        "fixed inset-x-0 z-[60] px-3 sm:px-4",
-        isPanelRoute
-          ? "bottom-[calc(env(safe-area-inset-bottom)+4.25rem)] pb-2 lg:bottom-0 lg:pb-4"
-          : "bottom-0 pb-3 sm:pb-4",
+        "fixed inset-x-0 bottom-0 z-[60] px-3 pb-3 sm:px-4 sm:pb-4",
         "animate-fade-in",
       )}
       style={{ animationDelay: "100ms" }}
