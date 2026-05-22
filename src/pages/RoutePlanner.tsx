@@ -2591,6 +2591,7 @@ const Planner = () => {
               employees={activeEmployees as any}
               filterAssigneeIds={filterAssigneeIds}
               onFilterAssigneeIds={setFilterAssigneeIds}
+              unassignedCount={unassigned.length}
             />
 
             <div className="flex items-center gap-1.5">
@@ -3080,6 +3081,7 @@ const Planner = () => {
                         employees={activeEmployees as any}
                         filterAssigneeIds={filterAssigneeIds}
                         onFilterAssigneeIds={setFilterAssigneeIds}
+                        unassignedCount={unassigned.length}
                       />
                       <Button data-tour="routes-create-button" size="sm" className="h-8 gap-1 text-xs" onClick={() => setCreateOpen(true)}>
                         <Plus className="h-3.5 w-3.5" /> Opret rute
