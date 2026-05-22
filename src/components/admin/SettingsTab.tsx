@@ -1259,7 +1259,7 @@ const SettingsTab = ({ business }: { business: any }) => {
               <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Visuelle elementer</p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-[180px_1fr]">
                 <div className="rounded-xl border border-border bg-card/50 p-4" data-tour="field-logo">
-                  <FieldLabel>Logo</FieldLabel>
+                  <FieldLabel optional>Logo</FieldLabel>
                   <div className="mt-1 flex items-start gap-3">
                     <ImageUpload folder={`${user!.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-24" objectFit="contain" />
                   </div>
@@ -1268,7 +1268,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                   </p>
                 </div>
                 <div className="rounded-xl border border-border bg-card/50 p-4" data-tour="field-cover">
-                  <FieldLabel>Coverbillede</FieldLabel>
+                  <FieldLabel optional>Coverbillede</FieldLabel>
                   <div className="mt-1">
                     <ImageUpload folder={`${user!.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="" aspectRatio="aspect-video" className="w-full max-w-[360px]" />
                   </div>
