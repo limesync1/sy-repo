@@ -372,11 +372,11 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
                   />
                 </div>
                 <div>
-                  <Label className="text-xs">Firmanavn *</Label>
+                  <FieldLabel required>Firmanavn</FieldLabel>
                   <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Hansen ApS" className="h-9" />
                 </div>
                 <div>
-                  <Label className="text-xs">Kontaktperson</Label>
+                  <FieldLabel optional>Kontaktperson</FieldLabel>
                   <Input value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Mette Hansen" className="h-9" />
                 </div>
               </div>
@@ -384,24 +384,24 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
 
             {type === "private" && (
               <div>
-                <Label className="text-xs">Navn *</Label>
+                <FieldLabel required>Navn</FieldLabel>
                 <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Mette Hansen" className="h-9" />
               </div>
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs">Email *</Label>
+                <FieldLabel required>Email</FieldLabel>
                 <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="kunde@email.dk" className="h-9" />
               </div>
               <div>
-                <Label className="text-xs">Telefon</Label>
+                <FieldLabel optional>Telefon</FieldLabel>
                 <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+45 22 33 44 55" className="h-9" />
               </div>
             </div>
 
             <div className="rounded-lg border bg-card p-3 space-y-2 sm:border-0 sm:bg-transparent sm:p-0">
-              <Label className="text-xs">Adresse</Label>
+              <FieldLabel optional>Adresse</FieldLabel>
               <AddressAutocomplete
                 value={{ address, zip_code: zipCode, city, latitude, longitude }}
                 onChange={(v) => {
