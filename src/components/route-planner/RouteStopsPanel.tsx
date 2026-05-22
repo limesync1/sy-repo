@@ -2,7 +2,7 @@
 // Brugeren kan: omrangere via drag, klikke for at åbne detail, fjerne stop fra ruten.
 // Vises ved siden af RouteEditSheet.
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useIsBelowBreakpoint, useIsMobile } from "@/hooks/use-mobile";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
@@ -23,7 +23,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import {
   GripVertical, MapPin, Trash2, Inbox, ExternalLink, Loader2,
-  Crown, UserPlus, Check, PlayCircle,
+  Crown, UserPlus, Check, PlayCircle, Wallet,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
@@ -75,6 +75,10 @@ export const RouteStopsPanel = ({
   useEffect(() => {
     setItems([...stops].sort((a, b) => a.sequence - b.sequence));
   }, [stops]);
+  const estimatedRevenue = useMemo(
+    () => items.reduce((sum, s) => sum + Number((s as any).order_amount || 0), 0),
+    [items],
+  );
 
   // Dedikerede sensorer pr. inputtype: mus reagerer hurtigt (3px distance),
   // touch kræver kort hold (120ms / 8px tolerance) så tap stadig fungerer
@@ -167,6 +171,25 @@ export const RouteStopsPanel = ({
                 : "Træk for at omrangere · Klik for detaljer"}
             </SheetDescription>
           </SheetHeader>
+
+          {items.length > 0 && (
+            <div className="border-b bg-secondary/30 px-4 py-3">
+              <div className="flex items-center justify-between gap-3 rounded-xl border bg-card px-3 py-2.5">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
+                    <Wallet className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-muted-foreground">Omsætning</p>
+                    <p className="truncate text-[11px] text-muted-foreground">Estimat for denne rute</p>
+                  </div>
+                </div>
+                <p className="shrink-0 text-lg font-bold tabular-nums text-foreground">
+                  {Math.round(estimatedRevenue).toLocaleString("da-DK")} kr
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="flex-1 overflow-y-auto p-3">
             {items.length === 0 ? (

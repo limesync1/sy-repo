@@ -256,10 +256,10 @@ const DashboardTab = ({
   const primaryActions = actions.slice(0, 4);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-3 sm:space-y-5">
       {/* ── Hero welcome panel — matcher forsidens hero (dark + cyan glows) ── */}
       <section
-        className="relative isolate overflow-hidden rounded-2xl px-4 py-5 text-background sm:px-8 sm:py-8"
+        className="relative isolate overflow-hidden rounded-xl px-3 py-4 text-background sm:rounded-2xl sm:px-8 sm:py-8"
         style={{ backgroundColor: "hsl(var(--hero-bg))" }}
       >
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
@@ -278,22 +278,22 @@ const DashboardTab = ({
           <div className="absolute inset-0 bg-noise opacity-[0.05] mix-blend-overlay" />
         </div>
 
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-5">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-5">
           <div className="min-w-0">
-            <p className="text-xs font-medium uppercase tracking-[0.2em] text-background/55">
+            <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-background/55 sm:text-xs sm:tracking-[0.2em]">
               {greeting()} · {new Date().toLocaleDateString("da-DK", { weekday: "long", day: "numeric", month: "long" })}
             </p>
-            <h1 className="mt-2 truncate text-xl font-semibold tracking-[-0.02em] text-background sm:text-3xl lg:text-[2rem]">
+            <h1 className="mt-1.5 truncate text-lg font-semibold text-background sm:mt-2 sm:text-3xl lg:text-[2rem]">
               {business.name}
             </h1>
-            <p className="mt-2 flex items-start gap-2 text-[13px] leading-5 text-background/80 sm:text-[15px] sm:leading-6">
+            <p className="mt-1.5 flex items-start gap-2 text-xs leading-5 text-background/80 sm:mt-2 sm:text-[15px] sm:leading-6">
               <Sparkles className="mt-0.5 h-4 w-4 shrink-0" style={{ color: "hsl(var(--hero-cyan-bright))" }} />
               <span>{insight}</span>
             </p>
           </div>
 
           {business.slug && (
-            <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0 lg:shrink-0">
+            <div className="-mx-1 flex items-center gap-1.5 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-2 lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0 lg:shrink-0">
               <button
                 type="button" onClick={copyLink}
                 className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold text-[hsl(var(--hero-bg))] transition-all hover:-translate-y-0.5 sm:px-3.5 sm:py-2 sm:text-xs"
@@ -320,7 +320,7 @@ const DashboardTab = ({
         </div>
 
         {/* Snapshot-pille: i dag */}
-        <div className="mt-5 grid grid-cols-2 gap-2 sm:mt-6 sm:grid-cols-4">
+        <div className="mt-3 grid grid-cols-2 gap-1.5 sm:mt-6 sm:grid-cols-4 sm:gap-2">
           <SnapshotPill label="I dag" value={String(stats.todayCount)} sub={`${fmtKrShort(stats.todayRevenue)} kr`} onClick={() => setOpenStat("today")} />
           <SnapshotPill label="Denne uge" value={String(stats.orders7)} sub={`${fmtKrShort(stats.revenue7)} kr`} onClick={() => setOpenStat("orders")} />
           <SnapshotPill label="Afventer" value={String(pendingOrders)} sub={pendingOrders > 0 ? "Skal besvares" : "Alt besvaret"} accent={pendingOrders > 0} onClick={() => setOpenStat("pending")} />
@@ -552,15 +552,15 @@ const DashboardTab = ({
 /** Lille pille i hero-stripen — kompakt KPI med label/værdi/sub. Klikbar når onClick er sat. */
 const SnapshotPill = ({ label, value, sub, accent, onClick }: { label: string; value: string; sub: string; accent?: boolean; onClick?: () => void }) => {
   const className = cn(
-    "rounded-xl border px-3 py-2.5 text-left backdrop-blur-sm transition-all",
+    "rounded-lg border px-2.5 py-2 text-left backdrop-blur-sm transition-all sm:rounded-xl sm:px-3 sm:py-2.5",
     accent ? "border-amber-300/40 bg-amber-400/[0.10]" : "border-background/10 bg-background/[0.05]",
     onClick && "hover:-translate-y-0.5 hover:border-background/25 hover:bg-background/[0.10]",
   );
   const content = (
     <>
-      <p className="text-[10px] font-medium uppercase tracking-wider text-background/60">{label}</p>
-      <p className="mt-1 text-lg font-semibold tabular-nums text-background sm:text-xl">{value}</p>
-      <p className="mt-0.5 truncate text-[11px] text-background/65">{sub}</p>
+      <p className="truncate text-[9px] font-medium uppercase tracking-wide text-background/60 sm:text-[10px] sm:tracking-wider">{label}</p>
+      <p className="mt-0.5 text-base font-semibold tabular-nums text-background sm:mt-1 sm:text-xl">{value}</p>
+      <p className="truncate text-[10px] text-background/65 sm:mt-0.5 sm:text-[11px]">{sub}</p>
     </>
   );
   if (onClick) {
@@ -611,7 +611,7 @@ const SmartStatCard = ({
   );
   const body = (
     <Card className={cardClass}>
-      <CardContent className="p-4 sm:p-5">
+        <CardContent className="p-3 sm:p-5">
         <div className="flex items-start justify-between gap-2">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
           <div className={cn(
@@ -621,8 +621,8 @@ const SmartStatCard = ({
             {icon}
           </div>
         </div>
-        <div className="mt-2 flex items-baseline gap-2">
-          <p className="text-2xl font-semibold tabular-nums text-foreground sm:text-[1.75rem]">{value}</p>
+        <div className="mt-2 flex min-w-0 flex-wrap items-baseline gap-1.5 sm:gap-2">
+          <p className="min-w-0 break-words text-xl font-semibold tabular-nums text-foreground sm:text-[1.75rem]">{value}</p>
           {trend && (
             <span className={cn(
               "inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-semibold",
@@ -753,8 +753,8 @@ const OrdersListSection = ({
             <p className="mt-0.5 text-xs text-muted-foreground">Bestillinger fra kunder lander her, så snart de booker.</p>
           </div>
         </div>
-        <div className="p-5 sm:p-7">
-          <div className="rounded-2xl border border-dashed border-border bg-secondary/30 p-6 text-center sm:p-8">
+          <div className="p-3 sm:p-7">
+          <div className="rounded-xl border border-dashed border-border bg-secondary/30 p-4 text-center sm:rounded-2xl sm:p-8">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-card shadow-sm">
               <Inbox className="h-5 w-5 text-muted-foreground" />
             </div>
@@ -766,7 +766,7 @@ const OrdersListSection = ({
                   ? "Profilen er næsten klar. Færdiggør den, så I rangerer højere i søgningen."
                   : "Profilen er klar. Del jeres link på Facebook eller jeres hjemmeside for at få de første bestillinger."}
             </p>
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+            <div className="mt-5 grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-center">
               {servicesCount === 0 ? (
                 <Button size="sm" className="h-9 rounded-lg" onClick={() => onNavigate?.("services")}>
                   <Briefcase className="mr-1.5 h-4 w-4" /> Tilføj din første service
@@ -797,12 +797,12 @@ const OrdersListSection = ({
   return (
     <>
       <div className="border-b border-border px-4 py-3 sm:px-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h3 className="text-sm font-semibold text-foreground">Seneste bestillinger</h3>
             <p className="mt-0.5 text-xs text-muted-foreground">Filtrér efter status eller søg på kunde, e-mail eller beløb.</p>
           </div>
-          <button onClick={() => onNavigate?.("orders")} className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
+          <button onClick={() => onNavigate?.("orders")} className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
             Se alle <ArrowRight className="h-3 w-3" />
           </button>
         </div>
@@ -877,7 +877,7 @@ const OrdersListSection = ({
               key={order.id}
               type="button"
               onClick={() => onNavigate?.("orders")}
-              className="grid w-full gap-3 px-4 py-3 text-left transition-colors hover:bg-secondary/60 sm:grid-cols-[minmax(0,1.1fr)_auto_auto] sm:items-center sm:px-5"
+              className="grid w-full gap-2 px-4 py-3 text-left transition-colors hover:bg-secondary/60 sm:grid-cols-[minmax(0,1.1fr)_auto_auto] sm:items-center sm:px-5"
             >
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-foreground">{order.customer_name}</p>

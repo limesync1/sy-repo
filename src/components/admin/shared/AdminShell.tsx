@@ -267,7 +267,7 @@ export const AdminShell = ({
   };
 
   return (
-    <div className="flex min-h-dvh bg-secondary/50">
+    <div className="flex min-h-dvh overflow-x-hidden bg-secondary/50">
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-foreground/40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
@@ -423,8 +423,10 @@ export const AdminShell = ({
 
         <main
           className={cn(
-            "flex-1 min-w-0 pb-[calc(env(safe-area-inset-bottom)+5.5rem)] lg:pb-0",
-            contentPadding ? "p-3 sm:p-6" : "",
+            "flex-1 min-w-0 overflow-x-hidden",
+            contentPadding
+              ? "px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+6.75rem)] sm:px-6 sm:pt-6 lg:pb-6"
+              : "pb-[calc(env(safe-area-inset-bottom)+6.75rem)] lg:pb-0",
             contentClassName,
           )}
         >

@@ -35,10 +35,10 @@ const sheetVariants = cva(
       side: {
         top: "inset-x-0 top-0 border-b data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top",
         bottom:
-          "inset-x-0 bottom-0 border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
-        left: "inset-y-0 left-0 h-full w-3/4 border-r data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left sm:max-w-sm",
+          "inset-x-2 bottom-2 rounded-2xl border data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom sm:inset-x-0 sm:bottom-0 sm:rounded-t-2xl sm:rounded-b-none sm:border-x-0 sm:border-b-0",
+        left: "inset-y-2 left-2 h-[calc(100dvh-1rem)] w-3/4 rounded-2xl border data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left sm:max-w-sm lg:inset-y-0 lg:left-0 lg:h-full lg:rounded-none lg:border-y-0 lg:border-l-0 lg:border-r",
         right:
-          "inset-y-0 right-0 h-full w-3/4  border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-sm",
+          "inset-y-2 right-2 h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-sm rounded-2xl border data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right lg:inset-y-0 lg:right-0 lg:h-full lg:w-3/4 lg:rounded-none lg:border-y-0 lg:border-r-0 lg:border-l",
       },
     },
     defaultVariants: {

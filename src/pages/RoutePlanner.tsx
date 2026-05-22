@@ -740,6 +740,17 @@ const Planner = () => {
           byStop.set(a.stop_id, entry);
         });
       }
+      const orderIds = Array.from(new Set((stopsData || []).map((s: any) => s.order_id).filter(Boolean))) as string[];
+      const orderAmountById = new Map<string, number>();
+      if (orderIds.length > 0) {
+        const { data: orderRows } = await supabase
+          .from("orders")
+          .select("id,total_amount,adjusted_amount")
+          .in("id", orderIds);
+        for (const o of orderRows || []) {
+          orderAmountById.set((o as any).id, Number((o as any).adjusted_amount ?? (o as any).total_amount ?? 0));
+        }
+      }
       const stopsByRoute = new Map<string, any[]>();
       for (const s of stopsData || []) {
         const entry = byStop.get(s.id);
@@ -757,6 +768,7 @@ const Planner = () => {
             (s as any).agreement_occurrences?.agreement_id
             ?? (s as any).agreement_id
             ?? null,
+          order_amount: orderAmountById.get((s as any).order_id) ?? Number((s as any).order_amount ?? 0),
         };
         const arr = stopsByRoute.get(s.route_id) || [];
         arr.push(enriched);
@@ -3508,6 +3520,7 @@ const Planner = () => {
                     assignee_ids: s.assignee_ids || [],
                     lead_employee_id: s.lead_employee_id ?? s.assigned_employee_id ?? null,
                     agreement_interval: s.agreement_interval ?? inheritedInterval,
+                    order_amount: Number((s as any).order_amount ?? 0),
                   };
                 }) as RouteStop[];
               stopsForActive = sourced;
