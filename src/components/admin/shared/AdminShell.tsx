@@ -21,7 +21,6 @@ import { useEmployees } from "@/hooks/useEmployees";
 import { useMyEmployee } from "@/hooks/useMyEmployee";
 import {
   SidebarNavButton, SidebarFooterItem,
-  SIDEBAR_WIDTH_EXPANDED,
 } from "@/components/shared/sidebar/SidebarParts";
 import AdminBottomNav from "./AdminBottomNav";
 
@@ -209,7 +208,6 @@ export const AdminShell = ({
     employees.length === 1 &&
     employees[0]?.id === myEmployee.id;
   const collapsed = false;
-  const sidebarPx = SIDEBAR_WIDTH_EXPANDED;
 
   // ESC lukker mobil-sidebar — letter tastatur-navigation.
   useEffect(() => {
