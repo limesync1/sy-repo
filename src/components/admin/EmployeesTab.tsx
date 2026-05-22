@@ -672,6 +672,29 @@ const EmployeeRow = ({
                 </span>
               )}
             </div>
+            {/* Mobile-only: status + indtjening som chips, da kolonnerne først
+                vises fra sm: og opefter. */}
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5 sm:hidden">
+              {!employee.is_active ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                  <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60" />
+                  Deaktiveret
+                </span>
+              ) : !linked ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                  Afventer login
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-400">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  Aktiv
+                </span>
+              )}
+              <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-foreground">
+                {formatKr(earning?.earnings ?? 0)} · {rangeLabel}
+              </span>
+            </div>
             {/* Farve / billede-styring */}
             <div className="mt-1.5 flex items-center gap-2">
               <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
