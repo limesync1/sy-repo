@@ -14,6 +14,7 @@ import { INTERVAL_LABELS } from "@/types/service";
 import { cn } from "@/lib/utils";
 import AddressAutocomplete from "@/components/shared/AddressAutocomplete";
 import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupField";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 /**
  * Global bestillings-sheet. Renderes én gang globalt (i App.tsx) og åbnes
@@ -26,6 +27,7 @@ const CartSheet = () => {
   const { user } = useAuth();
   const createOrder = useCreateOrder();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [checkout, setCheckout] = useState(false);
   // Re-entry guard: forhindrer at samme bestilling sendes flere gange,
   // hvis kunden klikker hurtigt eller har en dårlig forbindelse, og
@@ -346,9 +348,10 @@ const CartSheet = () => {
     <Sheet open={sheetOpen} onOpenChange={(v) => { setSheetOpen(v); if (!v) { setCheckout(false); setOrderSuccess(false); } }} modal={false}>
       <SheetContent
         hideOverlay
+        side={isMobile ? "bottom" : "right"}
         onInteractOutside={(e) => e.preventDefault()}
         onPointerDownOutside={(e) => e.preventDefault()}
-        className="flex w-full flex-col sm:max-w-md p-0 gap-0 shadow-2xl"
+        className="flex w-full flex-col sm:max-w-md p-0 gap-0 shadow-2xl data-[side=bottom]:h-[92dvh] data-[side=bottom]:max-h-[92dvh] data-[side=bottom]:rounded-t-2xl"
       >
         {/* Header with stepper */}
         <div className="shrink-0 border-b border-border bg-card">
