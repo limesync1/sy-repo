@@ -340,7 +340,7 @@ const DashboardTab = ({
         </div>
 
         {/* Snapshot-pille: i dag */}
-        <div className="mt-2.5 grid grid-cols-2 gap-1.5 sm:mt-4 sm:grid-cols-4 sm:gap-2 lg:mt-6">
+        <div className="mt-2.5 grid min-w-0 grid-cols-2 gap-1.5 sm:mt-4 sm:grid-cols-4 sm:gap-2 lg:mt-6">
           <SnapshotPill label="I dag" value={String(stats.todayCount)} sub={`${fmtKrShort(stats.todayRevenue)} kr`} onClick={() => setOpenStat("today")} />
           <SnapshotPill label="Denne uge" value={String(stats.orders7)} sub={`${fmtKrShort(stats.revenue7)} kr`} onClick={() => setOpenStat("orders")} />
           <SnapshotPill label="Afventer" value={String(pendingOrders)} sub={pendingOrders > 0 ? "Skal besvares" : "Alt besvaret"} accent={pendingOrders > 0} onClick={() => setOpenStat("pending")} />
@@ -351,7 +351,7 @@ const DashboardTab = ({
       <div className="grid w-full max-w-full min-w-0 items-start gap-3 sm:gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)]">
         <section className="order-2 min-w-0 space-y-3 sm:space-y-4 xl:order-1">
           {/* Periode-stat-kort med sparklines */}
-          <div className="grid grid-cols-1 gap-2 min-[440px]:grid-cols-2 sm:gap-3">
+          <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
             <SmartStatCard
               label="Omsætning · 7 dage"
               value={fmtKr(stats.revenue7)}
@@ -442,7 +442,7 @@ const DashboardTab = ({
           )}
         </section>
 
-        <section className="order-1 min-w-0 space-y-3 sm:space-y-4 xl:order-2">
+        <section className="order-1 min-w-0 max-w-full space-y-3 sm:space-y-4 xl:order-2">
           {/* Smart Quick Actions */}
           <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
             <div className="border-b border-border px-4 py-3 sm:px-5">
