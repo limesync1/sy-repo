@@ -35,7 +35,17 @@ type Slide = {
   tip?: string;
 };
 
-const buildSlides = (businessName?: string): Slide[] => [
+const buildSlides = (
+  businessName?: string,
+  signals?: {
+    accountingActive?: boolean;
+    accountingFeatureEnabled?: boolean;
+    employeesCount?: number;
+    servicesCount?: number;
+    ordersCount?: number;
+    routesCount?: number;
+  },
+): Slide[] => [
   {
     icon: Rocket,
     title: `Velkommen, ${businessName || "ny virksomhed"}!`,
@@ -55,18 +65,27 @@ const buildSlides = (businessName?: string): Slide[] => [
   {
     icon: Calculator,
     step: 2,
-    tab: "settings",
-    cta: "Åbn indstillinger",
+    tab: signals?.accountingActive || signals?.accountingFeatureEnabled ? "accounting" : "settings",
+    cta: signals?.accountingActive
+      ? "Åbn regnskabsintegration"
+      : signals?.accountingFeatureEnabled
+      ? "Forbind regnskabsprogram"
+      : "Aktivér regnskab i indstillinger",
     title: "Trin 2 — Integrér jeres regnskabsprogram",
-    body:
-      "Forbind e-conomic, Billy, Dinero eller Zenegy under Indstillinger → Ekstra funktioner → Regnskab. Når integrationen er aktiv, sendes fakturaer og kunder automatisk over, så snart en bestilling afsluttes.",
-    tip: "VIGTIGT: Sæt regnskab op FØR medarbejderne kører den første rute. Ellers ender I med at skulle bogføre de første bestillinger manuelt — det er besværligt at rette bagefter.",
+    body: signals?.accountingActive
+      ? "Jeres regnskabsintegration er aktiv. Åbn Regnskab-fanen for at vælge standardkonti, produktgrupper og se status — så bogføres alle bestillinger automatisk."
+      : signals?.accountingFeatureEnabled
+      ? "I har slået regnskabs-funktionen til, men der er endnu ikke forbundet et program. Gå til Regnskab og vælg e-conomic, Billy, Dinero eller Zenegy — det tager under et minut."
+      : "Slå regnskab til under Indstillinger → Ekstra funktioner. Derefter kan I forbinde e-conomic, Billy, Dinero eller Zenegy så fakturaer og kunder oprettes automatisk når en bestilling afsluttes.",
+    tip: signals?.accountingActive
+      ? "Tjek at jeres standard indtægts- og momskonto er sat — så slipper I for at vælge konto pr. service."
+      : "VIGTIGT: Sæt regnskab op FØR medarbejderne kører den første rute. Ellers ender I med at bogføre de første bestillinger manuelt.",
   },
   {
     icon: UserPlus,
     step: 3,
     tab: "employees",
-    cta: "Tilføj medarbejder",
+    cta: (signals?.employeesCount ?? 0) > 0 ? "Åbn medarbejdere" : "Tilføj medarbejder",
     title: "Trin 3 — Opret jeres medarbejdere",
     body:
       "Tilføj jeres team under Medarbejdere. Hver medarbejder får sit eget login og adgang til medarbejder-appen, hvor de ser deres ruter, opgaver og kontaktoplysninger på kunden.",
@@ -76,7 +95,7 @@ const buildSlides = (businessName?: string): Slide[] => [
     icon: Wrench,
     step: 4,
     tab: "services",
-    cta: "Opret service",
+    cta: (signals?.servicesCount ?? 0) > 0 ? "Se & tilføj services" : "Opret første service",
     title: "Trin 4 — Opret jeres services",
     body:
       "Opret de ydelser I tilbyder. Vælg mellem fast pris, timepris eller prisberegner med jeres egne enheder (m², stk, timer m.fl.). Services er det, kunder bestiller — og det, der ligger til grund for prisen på hver aftale.",
@@ -86,7 +105,7 @@ const buildSlides = (businessName?: string): Slide[] => [
     icon: ShoppingCart,
     step: 5,
     tab: "orders",
-    cta: "Opret bestilling",
+    cta: (signals?.ordersCount ?? 0) > 0 ? "Åbn aftaler" : "Opret første bestilling",
     title: "Trin 5 — Opret jeres første bestilling",
     body:
       "Gå til Aftaler eller Ruter og klik \"Opret bestilling\". Inde i modulet kan I oprette kunden direkte hvis det er en ny kunde — så behøver I ikke springe frem og tilbage. Vælg services, antal og dato.",
