@@ -442,7 +442,7 @@ const DashboardTab = ({
           )}
         </section>
 
-        <section className="order-1 space-y-3 sm:space-y-4 xl:order-2">
+        <section className="order-1 min-w-0 space-y-3 sm:space-y-4 xl:order-2">
           {/* Smart Quick Actions */}
           <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
             <div className="border-b border-border px-4 py-3 sm:px-5">
@@ -511,7 +511,7 @@ const DashboardTab = ({
                         key={a.key}
                         type="button"
                         onClick={() => a.onClick ? a.onClick() : (a.tab && onNavigate?.(a.tab))}
-                        className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-secondary/60"
+                    className="flex w-full min-w-0 items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-secondary/60"
                       >
                         <a.icon className="h-3.5 w-3.5 text-muted-foreground" />
                         <span className="flex-1 truncate text-xs font-medium text-foreground">{a.label}</span>
@@ -529,7 +529,7 @@ const DashboardTab = ({
             <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
               <CardContent className="p-4 sm:p-5">
                 <div className="flex items-start justify-between gap-3">
-                  <div>
+                  <div className="min-w-0">
                     <h3 className="text-sm font-semibold text-foreground">Profilfuldendelse</h3>
                     <p className="mt-0.5 text-xs text-muted-foreground">Jo mere komplet profilen er, jo stærkere står I udadtil.</p>
                   </div>
