@@ -79,6 +79,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { invalidateRouteSyncQueries } from "@/hooks/useRoutes";
 import { cn } from "@/lib/utils";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
+import { usePersistentState } from "@/hooks/usePersistentState";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -143,9 +144,9 @@ const Planner = () => {
   const isCompactRouteLayout = useIsBelowBreakpoint(1024);
   const qc = useQueryClient();
   const [date, setDate] = useState<string>(todayStr());
-  const [view, setView] = useState<"month" | "week">("month");
+  const [view, setView] = usePersistentState<"month" | "week">("route-planner:view", "month");
   const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState<"date" | "price" | "name">("date");
+  const [sortBy, setSortBy] = usePersistentState<"date" | "price" | "name">("route-planner:sortBy", "date");
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
@@ -420,8 +421,13 @@ const Planner = () => {
   const [optimizingRouteId, setOptimizingRouteId] = useState<string | null>(null);
 
   // ── Filtre: kun vis stops for valgte assignees / forekomst-statusser ──
-  const [filterAssigneeIds, setFilterAssigneeIds] = useState<string[]>([]);
-  const [filterStatuses, setFilterStatuses] = useState<string[]>([]);
+  // Persisteret i localStorage så brugerens valg overlever sidegenindlæsning.
+  const [filterAssigneeIds, setFilterAssigneeIds] = usePersistentState<string[]>(
+    "route-planner:filterAssigneeIds", [],
+  );
+  const [filterStatuses, setFilterStatuses] = usePersistentState<string[]>(
+    "route-planner:filterStatuses", [],
+  );
   const STATUS_OPTIONS: { value: string; label: string }[] = [
     { value: "planned",   label: "Planlagt" },
     { value: "confirmed", label: "Bekræftet" },
