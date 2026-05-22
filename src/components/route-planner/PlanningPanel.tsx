@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import {
   BarChart3, ChevronDown, Calendar as CalendarIcon, Clock, Users, Palette,
+  Inbox, AlertTriangle, TrendingUp,
 } from "lucide-react";
 import {
   startOfWeek, endOfWeek, startOfMonth, endOfMonth, parseISO, isWithinInterval,
@@ -55,10 +56,18 @@ interface Props {
   employees: PlanningPanelEmployee[];
   filterAssigneeIds: string[];
   onFilterAssigneeIds: (ids: string[]) => void;
+  /** Antal aftaler i poolen som endnu ikke er lagt på en rute. */
+  unassignedCount?: number;
+  /**
+   * Kapacitetstærskel pr. dag i minutter — dage hvor (arbejde + kørsel)
+   * overstiger dette får en advarsel. Default 8 timer (480 min).
+   */
+  dailyCapacityMin?: number;
 }
 
 export const PlanningPanel = ({
   businessId, anchorDate, stops, routes, employees, filterAssigneeIds, onFilterAssigneeIds,
+  unassignedCount = 0, dailyCapacityMin = 480,
 }: Props) => {
   const [open, setOpen] = useState(false);
   // Forklaringer er åbnet by-default — brugeren skal kunne se farve-
@@ -136,8 +145,20 @@ export const PlanningPanel = ({
 
     const weekDriveTotal = drivePerDay.reduce((acc, d) => acc + d.driveMin, 0);
 
-    return { weekRevenue, monthRevenue, drivePerDay, weekDriveTotal };
-  }, [anchorDate, routes, stops, amountByOrder]);
+    // Aggregater til topkortene
+    const weekStopCount = drivePerDay.reduce((acc, d) => acc + d.stopCount, 0);
+    const activeDays = drivePerDay.filter((d) => d.stopCount > 0).length;
+    const avgStopsPerDay = activeDays > 0 ? weekStopCount / activeDays : 0;
+    const overbookedDays = drivePerDay.filter(
+      (d) => d.driveMin + d.workMin > dailyCapacityMin,
+    );
+    const weekWorkTotal = drivePerDay.reduce((acc, d) => acc + d.workMin, 0);
+
+    return {
+      weekRevenue, monthRevenue, drivePerDay, weekDriveTotal,
+      weekStopCount, avgStopsPerDay, overbookedDays, weekWorkTotal,
+    };
+  }, [anchorDate, routes, stops, amountByOrder, dailyCapacityMin]);
 
   const toggleEmployee = (id: string) => {
     if (filterAssigneeIds.includes(id)) {
@@ -164,6 +185,47 @@ export const PlanningPanel = ({
         </SheetHeader>
 
         <div className="px-5 py-4 space-y-5">
+          {/* Hurtigt overblik øverst — viser umiddelbart hvad der kræver
+              opmærksomhed (uplanlagte aftaler, overbookede dage). */}
+          {(unassignedCount > 0 || stats.overbookedDays.length > 0) && (
+            <section className="space-y-2">
+              {unassignedCount > 0 && (
+                <div className="flex items-center gap-2 rounded-lg border border-feature-warm/40 bg-feature-warm/10 px-3 py-2 text-xs">
+                  <Inbox className="h-4 w-4 shrink-0 text-feature-warm-foreground" />
+                  <span className="flex-1 text-foreground">
+                    <strong className="font-semibold">{unassignedCount}</strong> aftale{unassignedCount === 1 ? "" : "r"} venter på en rute
+                  </span>
+                </div>
+              )}
+              {stats.overbookedDays.length > 0 && (
+                <div className="flex items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+                  <div className="flex-1">
+                    <p className="font-semibold text-foreground">
+                      {stats.overbookedDays.length} overbooked dag{stats.overbookedDays.length === 1 ? "" : "e"}
+                    </p>
+                    <p className="text-muted-foreground">
+                      {stats.overbookedDays.map((d) => format(d.date, "EEE d.", { locale: da })).join(", ")} — over {Math.round(dailyCapacityMin / 60)} t arbejde + kørsel
+                    </p>
+                  </div>
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* Nøgletal denne uge */}
+          <section>
+            <SectionLabel icon={<TrendingUp className="h-3.5 w-3.5" />}>
+              Denne uge
+            </SectionLabel>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <MiniStat label="Aftaler" value={String(stats.weekStopCount)} />
+              <MiniStat label="Snit/dag" value={stats.avgStopsPerDay > 0 ? stats.avgStopsPerDay.toFixed(1) : "—"} />
+              <MiniStat label="Arbejde" value={stats.weekWorkTotal > 0 ? formatDurationMin(stats.weekWorkTotal, { short: true }) : "—"} />
+              <MiniStat label="Kørsel" value={stats.weekDriveTotal > 0 ? formatDurationMin(stats.weekDriveTotal, { short: true }) : "—"} />
+            </div>
+          </section>
+
           {/* Planlagt omsætning */}
           <section>
             <SectionLabel icon={<CalendarIcon className="h-3.5 w-3.5" />}>
@@ -179,19 +241,39 @@ export const PlanningPanel = ({
           {stats.drivePerDay.length > 0 && (
             <section>
               <SectionLabel icon={<Clock className="h-3.5 w-3.5" />}>
-                Planlagt kørsel
+                Belastning pr. dag
               </SectionLabel>
-              <dl className="mt-2 space-y-1 text-sm">
-                {stats.drivePerDay.map((d) => (
-                  <Row
-                    key={d.key}
-                    label={format(d.date, "EEE", { locale: da }).replace(".", "")}
-                    value={d.driveMin > 0 ? formatDurationMin(d.driveMin, { short: true }) : "—"}
-                  />
-                ))}
-                <Separator className="my-2" />
-                <Row label="Total" value={formatDurationMin(stats.weekDriveTotal, { short: true })} bold />
-              </dl>
+              <ul className="mt-2 space-y-1.5">
+                {stats.drivePerDay.map((d) => {
+                  const totalMin = d.driveMin + d.workMin;
+                  const pct = Math.min(100, Math.round((totalMin / dailyCapacityMin) * 100));
+                  const over = totalMin > dailyCapacityMin;
+                  return (
+                    <li key={d.key} className="space-y-1">
+                      <div className="flex items-center justify-between gap-2 text-xs">
+                        <span className="capitalize text-muted-foreground">
+                          {format(d.date, "EEE d.", { locale: da }).replace(".", ".")}
+                        </span>
+                        <span className={cn("tabular-nums", over ? "font-semibold text-destructive" : "text-foreground")}>
+                          {formatDurationMin(totalMin, { short: true })} · {d.stopCount} stop
+                        </span>
+                      </div>
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+                        <div
+                          className={cn(
+                            "h-full rounded-full transition-all",
+                            over ? "bg-destructive" : pct > 75 ? "bg-feature-warm" : "bg-foreground",
+                          )}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                Baseret på en standardarbejdsdag på {Math.round(dailyCapacityMin / 60)} timer (arbejde + kørsel).
+              </p>
             </section>
           )}
 
