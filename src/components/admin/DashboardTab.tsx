@@ -874,7 +874,7 @@ const OrdersListSection = ({
           </Select>
         </div>
 
-        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+      <div className="mt-2 grid grid-cols-2 gap-1.5 min-[430px]:flex min-[430px]:flex-wrap min-[430px]:items-center">
           {chips.map((chip) => {
             const active = orderFilter === chip.key;
             const n = counts[chip.key] || 0;
@@ -884,7 +884,7 @@ const OrdersListSection = ({
                 type="button"
                 onClick={() => setOrderFilter(chip.key)}
                 className={cn(
-                  "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
+                  "inline-flex min-w-0 items-center justify-center gap-1.5 rounded-full border px-2 py-1 text-xs font-medium transition-colors min-[430px]:justify-start min-[430px]:px-2.5",
                   active
                     ? "border-foreground bg-foreground text-background"
                     : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground",
@@ -908,7 +908,7 @@ const OrdersListSection = ({
               key={order.id}
               type="button"
               onClick={() => onNavigate?.("orders")}
-              className="grid w-full gap-2 px-4 py-3 text-left transition-colors hover:bg-secondary/60 sm:grid-cols-[minmax(0,1.1fr)_auto_auto] sm:items-center sm:px-5"
+              className="grid w-full min-w-0 gap-2 px-4 py-3 text-left transition-colors hover:bg-secondary/60 sm:grid-cols-[minmax(0,1.1fr)_auto_auto] sm:items-center sm:px-5"
             >
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-foreground">{order.customer_name}</p>
@@ -916,13 +916,13 @@ const OrdersListSection = ({
                   {new Date(order.created_at).toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" })}
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge className={`${statusColors[order.status] || ""} w-fit border px-2 py-0.5 text-xs font-medium`}>
+              <div className="flex min-w-0 items-center gap-2">
+                <Badge className={`${statusColors[order.status] || ""} max-w-full truncate border px-2 py-0.5 text-xs font-medium`}>
                   {statusLabels[order.status] || order.status}
                 </Badge>
                 {order.status === "pending" && <AlertCircle className="h-3.5 w-3.5 text-amber-600" />}
               </div>
-              <div className="flex items-center justify-between gap-3 sm:justify-end">
+              <div className="flex min-w-0 items-center justify-between gap-3 sm:justify-end">
                 <span className="text-sm font-semibold tabular-nums text-foreground whitespace-nowrap">{fmtKr(Number(order.total_amount) || 0)}</span>
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </div>
