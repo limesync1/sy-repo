@@ -1703,7 +1703,10 @@ const ServiceForm = ({
             )}
           </div>
 
-          {/* Regnskabs-felter på service: vare-nr og momszone */}
+          {/* Regnskabs-felter på service: vare-nr og momszone — kun når
+              virksomheden har et regnskabsprogram tilkoblet, ellers er felterne
+              uden formål og forvirrer brugeren. */}
+          {hasIntegration && (
           <div className="rounded-xl border border-border bg-secondary/30 p-4 space-y-4">
             <div>
               <h4 className="text-sm font-semibold text-foreground">Regnskabsfelter</h4>
@@ -1739,6 +1742,7 @@ const ServiceForm = ({
               </div>
             </div>
           </div>
+          )}
 
           {hasIntegration && (
             <div className="mt-6 rounded-xl border border-border bg-secondary/30 p-4 space-y-4">
