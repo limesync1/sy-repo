@@ -423,8 +423,10 @@ export const AdminShell = ({
 
         <main
           className={cn(
-            "flex-1 min-w-0 pb-[calc(env(safe-area-inset-bottom)+5.5rem)] lg:pb-0",
-            contentPadding ? "p-3 sm:p-6" : "",
+            "flex-1 min-w-0",
+            contentPadding
+              ? "px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+6.75rem)] sm:px-6 sm:pt-6 lg:pb-6"
+              : "pb-[calc(env(safe-area-inset-bottom)+6.75rem)] lg:pb-0",
             contentClassName,
           )}
         >
