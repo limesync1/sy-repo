@@ -275,7 +275,7 @@ export const AdminShell = ({
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-[86vw] max-w-[320px] flex-col border-r border-border bg-background transition-[transform,width] duration-200 lg:sticky lg:top-0 lg:h-dvh lg:w-[248px] lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex w-[86vw] max-w-[320px] flex-col border-r border-border bg-background transition-[transform,width] duration-200 lg:h-dvh lg:w-[248px] lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full",
         )}
         aria-label="Hovednavigation"
@@ -372,7 +372,7 @@ export const AdminShell = ({
       </aside>
 
       {/* Main */}
-      <div className="flex flex-1 flex-col min-w-0">
+      <div className="flex flex-1 flex-col min-w-0 lg:pl-[248px]">
         <header className="sticky top-0 z-30 flex h-14 shrink-0 flex-nowrap items-center gap-2 border-b border-border bg-card px-3 sm:gap-3 sm:px-6">
           <button
             onClick={() => setSidebarOpen(true)}
