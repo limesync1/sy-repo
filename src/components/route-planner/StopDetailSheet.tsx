@@ -18,7 +18,7 @@ import {
   MapPin, Phone, Mail, Clock, Trash2, Check, Loader2,
   AlertCircle, Banknote, FileText, Repeat, PauseCircle,
   Timer, Hourglass, User, Package, CalendarClock, Users, Crown, X as XIcon,
-  TimerReset,
+  TimerReset, CheckCircle2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
