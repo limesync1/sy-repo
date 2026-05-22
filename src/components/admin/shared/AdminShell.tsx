@@ -21,8 +21,8 @@ import { useEmployees } from "@/hooks/useEmployees";
 import { useMyEmployee } from "@/hooks/useMyEmployee";
 import {
   SidebarNavButton, SidebarFooterItem,
-  SIDEBAR_WIDTH_EXPANDED,
 } from "@/components/shared/sidebar/SidebarParts";
+import AdminBottomNav from "./AdminBottomNav";
 
 export type AdminTabKey =
   | "dashboard" | "services" | "orders" | "customers"
@@ -208,7 +208,6 @@ export const AdminShell = ({
     employees.length === 1 &&
     employees[0]?.id === myEmployee.id;
   const collapsed = false;
-  const sidebarPx = SIDEBAR_WIDTH_EXPANDED;
 
   // ESC lukker mobil-sidebar — letter tastatur-navigation.
   useEffect(() => {
@@ -275,9 +274,8 @@ export const AdminShell = ({
 
       {/* Sidebar */}
       <aside
-        style={{ width: `${sidebarPx}px` }}
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-border bg-background transition-[transform,width] duration-200 lg:sticky lg:top-0 lg:h-dvh lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex w-[86vw] max-w-[320px] flex-col border-r border-border bg-background transition-[transform,width] duration-200 lg:sticky lg:top-0 lg:h-dvh lg:w-[248px] lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full",
         )}
         aria-label="Hovednavigation"
@@ -375,7 +373,7 @@ export const AdminShell = ({
 
       {/* Main */}
       <div className="flex flex-1 flex-col min-w-0">
-        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-card px-5 sm:px-6">
+        <header className="sticky top-0 z-30 flex min-h-14 shrink-0 flex-wrap items-center gap-2 border-b border-border bg-card px-3 py-2 sm:flex-nowrap sm:gap-3 sm:px-6 sm:py-0">
           <button
             onClick={() => setSidebarOpen(true)}
             className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors lg:hidden"
@@ -383,17 +381,21 @@ export const AdminShell = ({
           >
             <Menu className="h-5 w-5" />
           </button>
-          <h1 className="text-lg font-semibold text-foreground truncate">
+          <h1 className="min-w-0 flex-1 truncate text-base font-semibold text-foreground sm:flex-none sm:text-lg">
             {title ?? currentNav?.label}
           </h1>
-          <div className="ml-auto flex items-center gap-2 min-w-0">
-            {topbarRight}
+          <div className="order-3 ml-0 flex w-full flex-wrap items-center gap-2 sm:order-none sm:ml-auto sm:w-auto sm:flex-nowrap sm:min-w-0">
+            {topbarRight && (
+              <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap">
+                {topbarRight}
+              </div>
+            )}
             <button
               type="button"
               onClick={() => window.dispatchEvent(new CustomEvent("serviceydere:open-platform-chat"))}
               title="Kontakt Serviceydere kundeservice"
               aria-label="Kontakt Serviceydere kundeservice"
-              className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-3 py-2 text-xs font-semibold text-background shadow-[0_14px_32px_-14px_hsl(var(--foreground)/0.55)] transition-all hover:bg-foreground/90 hover:shadow-[0_18px_40px_-14px_hsl(var(--foreground)/0.6)] active:scale-95"
+              className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-full bg-foreground px-2.5 py-1.5 text-xs font-semibold text-background shadow-[0_14px_32px_-14px_hsl(var(--foreground)/0.55)] transition-all hover:bg-foreground/90 hover:shadow-[0_18px_40px_-14px_hsl(var(--foreground)/0.6)] active:scale-95 sm:ml-0 sm:px-3 sm:py-2"
             >
               <span className="relative flex h-5 w-5 items-center justify-center">
                 <img
@@ -414,14 +416,23 @@ export const AdminShell = ({
 
         <main
           className={cn(
-            "flex-1 min-w-0",
-            contentPadding ? "p-4 sm:p-6" : "",
+            "flex-1 min-w-0 pb-20 lg:pb-0",
+            contentPadding ? "p-3 sm:p-6" : "",
             contentClassName,
           )}
         >
           <ImpersonationBanner />
           {children}
         </main>
+        <AdminBottomNav
+          activeTab={activeTab}
+          routePlanningEnabled={routePlanningEnabled}
+          onSelect={(key) => {
+            const item = NAV_ITEMS.find((n) => n.value === key);
+            if (item) handleNavClick(item);
+          }}
+          onOpenMenu={() => setSidebarOpen(true)}
+        />
       </div>
     </div>
   );

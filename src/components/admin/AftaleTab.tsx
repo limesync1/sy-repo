@@ -1663,7 +1663,7 @@ const AftaleTab = ({
         </div>
 
       {/* Filtre — segmenteret kontrol opdelt i tre logiske grupper. */}
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
+      <div className="-mx-1 flex flex-nowrap items-center gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
         {(() => {
           type Chip = { key: string; label: string; count: number; tone?: "danger" | "warning" };
           const groups: Chip[][] = [
