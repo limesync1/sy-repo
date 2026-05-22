@@ -3122,8 +3122,10 @@ const Planner = () => {
                 </div>
               </div>
 
-              {/* Mobil (<lg): dedikeret toolbar + agenda-kalender fuld bredde. */}
-              <div className="flex h-full flex-col gap-2 lg:hidden">
+              {/* Mobil/tablet/narrow desktop (<xl): dedikeret toolbar + agenda-kalender fuld bredde.
+                  Vi har bumpet breakpointet fra lg→xl så 1024–1279px viewports ikke længere
+                  presses ind i et 7-kolonners grid hvor hver dagcelle bliver < 120px. */}
+              <div className="flex h-full flex-col gap-2 xl:hidden">
                 <div className="shrink-0 space-y-2 rounded-lg border bg-card p-2 shadow-sm">
                   <div className="flex items-center gap-1.5">
                     <Button
