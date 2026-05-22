@@ -681,13 +681,18 @@ export const useUnassignedJobs = (businessId: string | undefined) => {
       const orderIds = (orders || []).map((o) => o.id);
       if (orderIds.length === 0) return [];
 
-      // Find ordrer der allerede har et åbent (ikke-completed) stop på en rute
-      const { data: openStops } = await supabase
+      // Find ordrer der allerede er på en rute — uanset stop-status.
+      // Tidligere ekskluderede vi kun ikke-completed stops, men det betød
+      // at en aftale dukkede op igen i "Aftaler uden rute" så snart den var
+      // udført, selvom den stadig var registreret på ruten. For gentagende
+      // aftaler er det forventningen at næste forekomst auto-projiceres
+      // (via projected routes / next_service_date), så vi skal IKKE vise
+      // den gamle ordre i poolen igen.
+      const { data: allStops } = await supabase
         .from("route_stops")
-        .select("order_id, status")
-        .in("order_id", orderIds)
-        .neq("status", "completed");
-      const usedOpen = new Set((openStops || []).map((s) => s.order_id));
+        .select("order_id")
+        .in("order_id", orderIds);
+      const usedOpen = new Set((allStops || []).map((s) => s.order_id));
 
       // Hent abonnement-status + preferred route pr. ordre
       const { data: subs } = await supabase
