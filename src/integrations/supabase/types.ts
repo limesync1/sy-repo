@@ -3862,6 +3862,25 @@ export type Database = {
         Args: { p_email: string; p_key: string }
         Returns: boolean
       }
+      get_employee_invitation_by_token: {
+        Args: { _token: string }
+        Returns: {
+          accepted_at: string | null
+          business_id: string
+          created_at: string
+          email: string
+          employee_id: string
+          expires_at: string
+          id: string
+          token: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "employee_invitations"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_platform_pricing: {
         Args: never
         Returns: {
