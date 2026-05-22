@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Cookie } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -20,6 +20,8 @@ const STORAGE_KEY = "serviceydere.cookie-consent";
 
 const CookieConsent = () => {
   const [visible, setVisible] = useState(false);
+  const location = useLocation();
+  const isPanelRoute = location.pathname.startsWith("/virksomhed") || location.pathname.startsWith("/medarbejder");
 
   useEffect(() => {
     // Forsink mount let så banneret ikke konkurrerer med hero-animationen
@@ -51,7 +53,10 @@ const CookieConsent = () => {
       aria-live="polite"
       aria-label="Cookies"
       className={cn(
-        "fixed inset-x-0 bottom-0 z-[60] px-3 pb-3 sm:px-4 sm:pb-4",
+        "fixed inset-x-0 z-[60] px-3 sm:px-4",
+        isPanelRoute
+          ? "bottom-[calc(env(safe-area-inset-bottom)+4.25rem)] pb-2 lg:bottom-0 lg:pb-4"
+          : "bottom-0 pb-3 sm:pb-4",
         "animate-fade-in",
       )}
       style={{ animationDelay: "100ms" }}
