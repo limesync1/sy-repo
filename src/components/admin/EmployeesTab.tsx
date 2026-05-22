@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
-  Mail, Phone, Briefcase, UserPlus, X,
+  Mail, Phone, Briefcase, UserPlus,
   Trash2, Power, PowerOff, Pencil, KeyRound, Users, Percent, MessageCircle,
   Wallet, TrendingUp, ListChecks, MapPin, CheckCircle2, Clock, CalendarDays,
 } from "lucide-react";
@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { PageHeader, PrimaryButton, FieldLabel, SectionCard, EmptyState, SearchInput } from "@/components/admin/shared/AdminUI";
+import { PageHeader, PrimaryButton, FieldLabel, EmptyState, SearchInput } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 
 interface Props {
