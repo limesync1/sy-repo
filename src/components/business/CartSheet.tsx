@@ -187,7 +187,7 @@ const CartSheet = () => {
             activeUserId = acct.userId;
             createdAccount = true;
           }
-        } else if (acct?.existed) {
+        } else if (acct?.ok && !acct?.created) {
           // Account already exists — proceed without auto-login. Order will still be linked by email.
           toast.message("Du har allerede en konto", {
             description: "Log ind for at se dine bestillinger på din konto.",
