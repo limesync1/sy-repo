@@ -1281,7 +1281,10 @@ const ServiceForm = ({
             <p className="mt-1 text-sm text-muted-foreground">Beskriv din service så kunderne ved hvad de får</p>
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-foreground">Servicenavn</label>
+            <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-foreground">
+              Servicenavn
+              <span className="inline-flex items-center rounded-full bg-destructive/10 px-1.5 py-0.5 text-[9px] font-bold text-destructive">Påkrævet</span>
+            </label>
             <Input placeholder="Fx Rengøring af kontor" value={name} onChange={(e) => setName(e.target.value)} className="bg-card h-11 text-base" />
             {productSuggestions.length > 0 && !name && (
               <div className="mt-2.5 flex flex-wrap gap-2">
@@ -1294,7 +1297,10 @@ const ServiceForm = ({
             )}
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-foreground">Beskrivelse</label>
+            <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-foreground">
+              Beskrivelse
+              <span className="inline-flex items-center rounded-full bg-destructive/10 px-1.5 py-0.5 text-[9px] font-bold text-destructive">Påkrævet</span>
+            </label>
             <Textarea
               placeholder={aiLoading ? "AI skriver et forslag baseret på servicenavnet…" : "Hvad inkluderer denne service? Hvad kan kunden forvente?"}
               value={description}
@@ -1319,7 +1325,10 @@ const ServiceForm = ({
             </div>
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-foreground">Billede (valgfrit)</label>
+            <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-foreground">
+              Billede
+              <span className="inline-flex items-center rounded-full bg-secondary px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground">Valgfri</span>
+            </label>
             <ImageUpload folder={`${user!.id}/services`} currentUrl={imageUrl || null} onUploaded={setImageUrl} label="" aspectRatio="aspect-video" className="w-40" />
           </div>
         </div>
