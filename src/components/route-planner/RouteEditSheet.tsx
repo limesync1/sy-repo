@@ -546,16 +546,62 @@ export const RouteEditSheet = ({
 
             {/* Rejsetid — kort og enkel: "Estimeret rejsetid: 34 min" */}
             {waypoints && (
-              <Section icon={<Gauge className="h-3.5 w-3.5" />} title="Rejsetid">
+              <Section
+                icon={<Gauge className="h-3.5 w-3.5" />}
+                title="Rejsetid"
+                hint={directionsFetching ? "Genberegner…" : undefined}
+              >
+                {(() => {
+                  const baseSec = displayDuration;
+                  const adjustedSec = baseSec != null ? Math.round(baseSec * weatherFactor.mult) : null;
+                  const trafficMult = routeDirections?.traffic_multiplier ?? 1;
+                  const trafficLabel = trafficMult >= 1.25 ? "Tæt trafik"
+                    : trafficMult >= 1.10 ? "Moderat trafik" : "Fri trafik";
+                  const WeatherIcon = weatherFactor.Icon;
+                  return (
+                    <div>
+                      <p className="text-sm flex items-center gap-2">
+                        <span className="text-muted-foreground">Estimeret rejsetid: </span>
+                        <span className={cn("font-semibold tabular-nums transition-opacity", directionsFetching ? "opacity-50" : "text-foreground")}>
+                          {adjustedSec != null ? formatTravelTime(adjustedSec) : "—"}
+                        </span>
+                        {directionsFetching && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        <Badge variant="secondary" className="gap-1 text-[10px] font-medium">
+                          <TrafficCone className="h-3 w-3" /> {trafficLabel}
+                        </Badge>
+                        {weatherFactor.label && WeatherIcon && (
+                          <Badge variant="secondary" className="gap-1 text-[10px] font-medium">
+                            <WeatherIcon className="h-3 w-3" /> {weatherFactor.label}
+                            {weatherFactor.mult > 1 && (
+                              <span className="ml-0.5 text-muted-foreground">+{Math.round((weatherFactor.mult - 1) * 100)}%</span>
+                            )}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="mt-2 text-[11px] text-muted-foreground">
+                        Justeret for forventet trafik {weather ? "og vejrforhold " : ""}på rutens planlagte starttid.
+                      </p>
+                    </div>
+                  );
+                })()}
+              </Section>
+            )}
+
+            {/* Omsætning — sum af aftaler på ruten. */}
+            {!isPast && stops.length > 0 && (
+              <Section
+                icon={<Wallet className="h-3.5 w-3.5" />}
+                title="Omsætning"
+                hint={`${stops.length} ${stops.length === 1 ? "aftale" : "aftaler"}`}
+              >
                 <div>
-                  <p className="text-sm">
-                    <span className="text-muted-foreground">Estimeret rejsetid: </span>
-                    <span className="font-semibold text-foreground tabular-nums">
-                      {displayDuration != null ? formatTravelTime(displayDuration) : "—"}
-                    </span>
+                  <p className="text-2xl font-bold tabular-nums text-foreground">
+                    {Math.round(estimatedRevenue).toLocaleString("da-DK")} kr
                   </p>
                   <p className="mt-0.5 text-[11px] text-muted-foreground">
-                    Beregnet ud fra rutens planlagte start og forventede trafikforhold.
+                    Estimeret omsætning for ruten — summen af aftalens beløb (inkl. evt. justeringer).
                   </p>
                 </div>
               </Section>
