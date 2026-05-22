@@ -369,20 +369,43 @@ const DayCellInner = ({
             )}
           </>
         )}
-        {routes.map((r) => (
-          <RoutePill
-            key={r.id}
-            route={r}
-            onSelect={() => onSelectRoute(r)}
-            onSelectStop={onSelectStop}
-            onOptimize={() => onOptimizeRoute(r.id)}
-            optimizing={optimizingRouteId === r.id}
-            compact={compact}
-            jobDragActive={isJobDragActive}
-            busy={!!busyRouteIds?.has(`route:${r.id}`)}
-            isPast={isPast}
-          />
-        ))}
+        {(() => {
+          // I månedsvisning kapper vi antallet af synlige piller pr. dag, så travle
+          // dage ikke "blæser" cellen op og forvrænger hele kalender-rækken.
+          // I uge-visning er der masser af plads, så vi viser alle.
+          const MAX_VISIBLE = compact ? 3 : 99;
+          const visible = routes.slice(0, MAX_VISIBLE);
+          const overflow = routes.length - visible.length;
+          return (
+            <>
+              {visible.map((r) => (
+                <RoutePill
+                  key={r.id}
+                  route={r}
+                  onSelect={() => onSelectRoute(r)}
+                  onSelectStop={onSelectStop}
+                  onOptimize={() => onOptimizeRoute(r.id)}
+                  optimizing={optimizingRouteId === r.id}
+                  compact={compact}
+                  jobDragActive={isJobDragActive}
+                  busy={!!busyRouteIds?.has(`route:${r.id}`)}
+                  isPast={isPast}
+                />
+              ))}
+              {overflow > 0 && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); onSelectRoute(routes[MAX_VISIBLE]); }}
+                  className="text-[10px] font-medium text-muted-foreground hover:text-accent hover:bg-accent/10 rounded px-1.5 py-0.5 text-left transition-colors"
+                  aria-label={`Vis ${overflow} flere ruter`}
+                  title={routes.slice(MAX_VISIBLE).map((r) => r.name || "Rute").join(", ")}
+                >
+                  +{overflow} {overflow === 1 ? "mere" : "flere"}
+                </button>
+              )}
+            </>
+          );
+        })()}
 
         {/* "Slip her" overlay på tomme dage når en aftale trækkes */}
         {isJobDragActive && emptyDay && canReceiveDrop && (
