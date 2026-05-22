@@ -411,7 +411,7 @@ const DineroConnectCard = React.forwardRef<HTMLDivElement, {
 
         <div className="space-y-3">
           <div>
-            <FieldLabel>Bruger-ID (Client ID)</FieldLabel>
+            <FieldLabel required>Bruger-ID (Client ID)</FieldLabel>
             <Input
               type="text"
               value={apiToken}
@@ -423,7 +423,7 @@ const DineroConnectCard = React.forwardRef<HTMLDivElement, {
             />
           </div>
           <div>
-            <FieldLabel>Hemmelig kode (Client Secret)</FieldLabel>
+            <FieldLabel required>Hemmelig kode (Client Secret)</FieldLabel>
             <div className="relative">
               <Input
                 type={showSecret ? "text" : "password"}
@@ -446,7 +446,7 @@ const DineroConnectCard = React.forwardRef<HTMLDivElement, {
             <p className="mt-1 text-xs text-muted-foreground">Den hemmelige kode vises kun én gang i Dinero — husk at kopiere den med det samme.</p>
           </div>
           <div>
-            <FieldLabel>Dit Dinero-nummer</FieldLabel>
+            <FieldLabel required>Dit Dinero-nummer</FieldLabel>
             <Input
               type="text"
               value={organizationId}
