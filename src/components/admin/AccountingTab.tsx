@@ -2348,7 +2348,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                     const reveal = !!showSecret[f.key];
                     return (
                       <div key={f.key}>
-                        <FieldLabel>{f.label}</FieldLabel>
+                        <FieldLabel required>{f.label}</FieldLabel>
                         <div className="relative">
                           <Input
                             type={isPwd && !reveal ? "password" : "text"}
@@ -2434,13 +2434,13 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             </div>
             <div className="grid gap-4 py-3 sm:grid-cols-2 sm:gap-3 last:pb-0">
               <div>
-                <FieldLabel>Hvor mange dage må kunden om at betale?</FieldLabel>
+                <FieldLabel required>Hvor mange dage må kunden om at betale?</FieldLabel>
                 <Input type="number" min={0} value={settings.default_payment_terms_days ?? 14}
                   onChange={e => setSettings({ ...settings, default_payment_terms_days: Number(e.target.value) || 0 })} />
                 <p className="mt-1.5 text-xs text-muted-foreground">14 dage er almindeligt i Danmark.</p>
               </div>
               <div>
-                <FieldLabel>Moms-sats i procent</FieldLabel>
+                <FieldLabel required>Moms-sats i procent</FieldLabel>
                 <Input type="number" min={0} max={100} value={settings.default_vat_rate ?? 25}
                   onChange={e => setSettings({ ...settings, default_vat_rate: Number(e.target.value) || 0 })} />
                 <p className="mt-1.5 text-xs text-muted-foreground">25 % er almindelig moms i Danmark.</p>
