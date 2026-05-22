@@ -259,7 +259,7 @@ const DashboardTab = ({
     <div className="space-y-5">
       {/* ── Hero welcome panel — matcher forsidens hero (dark + cyan glows) ── */}
       <section
-        className="relative isolate overflow-hidden rounded-2xl px-5 py-6 text-background sm:px-8 sm:py-8"
+        className="relative isolate overflow-hidden rounded-2xl px-4 py-5 text-background sm:px-8 sm:py-8"
         style={{ backgroundColor: "hsl(var(--hero-bg))" }}
       >
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
@@ -278,49 +278,49 @@ const DashboardTab = ({
           <div className="absolute inset-0 bg-noise opacity-[0.05] mix-blend-overlay" />
         </div>
 
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-5">
           <div className="min-w-0">
             <p className="text-xs font-medium uppercase tracking-[0.2em] text-background/55">
               {greeting()} · {new Date().toLocaleDateString("da-DK", { weekday: "long", day: "numeric", month: "long" })}
             </p>
-            <h1 className="mt-2 truncate text-2xl font-semibold tracking-[-0.02em] text-background sm:text-3xl lg:text-[2rem]">
+            <h1 className="mt-2 truncate text-xl font-semibold tracking-[-0.02em] text-background sm:text-3xl lg:text-[2rem]">
               {business.name}
             </h1>
-            <p className="mt-2 flex items-start gap-2 text-sm leading-6 text-background/80 sm:text-[15px]">
+            <p className="mt-2 flex items-start gap-2 text-[13px] leading-5 text-background/80 sm:text-[15px] sm:leading-6">
               <Sparkles className="mt-0.5 h-4 w-4 shrink-0" style={{ color: "hsl(var(--hero-cyan-bright))" }} />
               <span>{insight}</span>
             </p>
           </div>
 
           {business.slug && (
-            <div className="flex flex-wrap items-center gap-2 lg:shrink-0">
-              <button
-                type="button"
-                onClick={openGuide}
-                className="inline-flex items-center gap-1.5 rounded-full border border-background/20 bg-background/10 px-3.5 py-2 text-xs font-semibold text-background backdrop-blur-sm transition-colors hover:bg-background/15"
-              >
-                <HelpCircle className="h-3.5 w-3.5" /> Se guide til panelet
-              </button>
-              <a
-                href={`/v/${business.slug}`} target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-full border border-background/20 bg-background/10 px-3.5 py-2 text-xs font-semibold text-background backdrop-blur-sm transition-colors hover:bg-background/15"
-              >
-                <Eye className="h-3.5 w-3.5" /> Se din side
-              </a>
+            <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0 lg:shrink-0">
               <button
                 type="button" onClick={copyLink}
-                className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold text-[hsl(var(--hero-bg))] transition-all hover:-translate-y-0.5"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold text-[hsl(var(--hero-bg))] transition-all hover:-translate-y-0.5 sm:px-3.5 sm:py-2 sm:text-xs"
                 style={{ background: "linear-gradient(110deg, hsl(var(--hero-cyan)) 0%, hsl(var(--hero-cyan-bright)) 100%)" }}
               >
                 {copied ? <Check className="h-3.5 w-3.5" /> : <Share2 className="h-3.5 w-3.5" />}
                 {copied ? "Kopieret" : "Del profil"}
+              </button>
+              <a
+                href={`/v/${business.slug}`} target="_blank" rel="noopener noreferrer"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-background/20 bg-background/10 px-3 py-1.5 text-[11px] font-semibold text-background backdrop-blur-sm transition-colors hover:bg-background/15 sm:px-3.5 sm:py-2 sm:text-xs"
+              >
+                <Eye className="h-3.5 w-3.5" /> Se din side
+              </a>
+              <button
+                type="button"
+                onClick={openGuide}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-background/20 bg-background/10 px-3 py-1.5 text-[11px] font-semibold text-background backdrop-blur-sm transition-colors hover:bg-background/15 sm:px-3.5 sm:py-2 sm:text-xs"
+              >
+                <HelpCircle className="h-3.5 w-3.5" /> Se guide
               </button>
             </div>
           )}
         </div>
 
         {/* Snapshot-pille: i dag */}
-        <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="mt-5 grid grid-cols-2 gap-2 sm:mt-6 sm:grid-cols-4">
           <SnapshotPill label="I dag" value={String(stats.todayCount)} sub={`${fmtKrShort(stats.todayRevenue)} kr`} onClick={() => setOpenStat("today")} />
           <SnapshotPill label="Denne uge" value={String(stats.orders7)} sub={`${fmtKrShort(stats.revenue7)} kr`} onClick={() => setOpenStat("orders")} />
           <SnapshotPill label="Afventer" value={String(pendingOrders)} sub={pendingOrders > 0 ? "Skal besvares" : "Alt besvaret"} accent={pendingOrders > 0} onClick={() => setOpenStat("pending")} />
