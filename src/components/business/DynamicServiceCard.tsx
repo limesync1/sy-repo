@@ -178,10 +178,10 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
   const showIntervals = intervals.length > 1 || (intervals.length === 1 && intervals[0] !== "engangskøb");
 
   return (
-    <Card className="group flex h-full flex-col overflow-hidden rounded-[1.75rem] border-border/80 bg-card transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/25">
+    <Card className="group flex h-full flex-col overflow-hidden rounded-2xl border-border/80 bg-card transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/25">
       {/* Image or placeholder */}
       {service.image_url ? (
-        <div className="relative h-36 w-full overflow-hidden bg-secondary sm:h-40">
+        <div className="relative h-28 w-full overflow-hidden bg-secondary sm:h-32">
           <img
             src={service.image_url}
             alt={service.name}
@@ -191,32 +191,32 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
           <div className="absolute inset-0 bg-gradient-to-t from-foreground/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
       ) : (
-        <div className="relative flex h-20 w-full items-center justify-center bg-secondary/70 sm:h-24">
-          <ImageIcon className="h-8 w-8 text-muted-foreground/15" />
+        <div className="relative flex h-14 w-full items-center justify-center bg-secondary/70 sm:h-16">
+          <ImageIcon className="h-6 w-6 text-muted-foreground/15" />
         </div>
       )}
 
-      <CardContent className="flex flex-1 flex-col p-4 sm:p-5">
-        <div className="flex items-start justify-between gap-3 border-b border-border/70 pb-4">
+      <CardContent className="flex flex-1 flex-col p-3 sm:p-4">
+        <div className="flex items-start justify-between gap-3 border-b border-border/70 pb-3">
           <div className="min-w-0 flex-1">
-          <h3 className="text-xl font-bold leading-tight text-foreground">{service.name}</h3>
+          <h3 className="text-base font-bold leading-tight text-foreground sm:text-lg">{service.name}</h3>
           {(service as any).subcategory && (
-            <span className="mt-1 inline-flex rounded-full bg-accent/10 px-2.5 py-1 text-[11px] font-semibold text-accent">{(service as any).subcategory}</span>
+            <span className="mt-1 inline-flex rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-semibold text-accent">{(service as any).subcategory}</span>
           )}
           {service.description && (
-            <p className="mt-2 text-sm leading-5 text-muted-foreground/90 line-clamp-2">{service.description}</p>
+            <p className="mt-1.5 text-xs leading-snug text-muted-foreground/90 line-clamp-2">{service.description}</p>
           )}
           </div>
         </div>
 
-        <div className="mt-4 space-y-4">
+        <div className="mt-3 space-y-3">
         {showIntervals && (
-          <div className="rounded-[1.25rem] border border-border bg-secondary/30 p-3.5">
-            <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Abonnement / interval</label>
-            <div className="flex flex-wrap gap-1.5">
+          <div className="rounded-xl border border-border bg-secondary/30 p-2.5">
+            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Abonnement / interval</label>
+            <div className="flex flex-wrap gap-1">
               {intervals.map((iv) => (
                 <button key={iv} type="button" onClick={() => setSelectedInterval(iv)}
-                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+                  className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition-all ${
                     selectedInterval === iv
                       ? "border-accent bg-accent text-accent-foreground shadow-sm"
                       : "border-border bg-card text-muted-foreground hover:border-accent/40"
@@ -228,49 +228,42 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
           </div>
         )}
 
-        <div className="rounded-[1.5rem] border border-border bg-secondary/20 p-3.5 sm:p-4">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tilpas service</p>
-              <p className="text-sm text-muted-foreground">Vælg omfang og se prisen opdatere med det samme.</p>
-            </div>
-          </div>
+        <div className="rounded-xl border border-border bg-secondary/20 p-2.5 sm:p-3">
+          {service.pricing_type !== "fast_pris" && (
+            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Tilpas service</p>
+          )}
 
         {/* Fast pris */}
         {service.pricing_type === "fast_pris" && (
-          <div className="inline-flex w-fit items-end gap-1.5 rounded-2xl bg-card px-3 py-2 ring-1 ring-border">
-            <span className="text-[1.75rem] font-bold text-foreground">{service.base_price}</span>
-            <span className="pb-1 text-sm text-muted-foreground">kr</span>
+          <div className="inline-flex w-fit items-end gap-1 rounded-lg bg-card px-2.5 py-1.5 ring-1 ring-border">
+            <span className="text-xl font-bold text-foreground">{service.base_price}</span>
+            <span className="pb-0.5 text-xs text-muted-foreground">kr</span>
           </div>
         )}
 
         {/* Timepris */}
         {service.pricing_type === "timepris" && (
-          <div className="space-y-3">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <span className="text-sm text-muted-foreground">{service.base_price} kr / time</span>
+          <div className="space-y-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <span className="text-xs text-muted-foreground">{service.base_price} kr / time</span>
               <StepperInput value={hours} onChange={setHours} min={0.5} max={24} step={0.5} unit="t" />
-            </div>
-            <div className="inline-flex items-end gap-1.5 rounded-2xl bg-card px-3 py-2 pt-2 ring-1 ring-border">
-              <span className="text-[1.75rem] font-bold text-foreground">{roundPrice(total)}</span>
-              <span className="pb-1 text-sm text-muted-foreground">kr</span>
             </div>
           </div>
         )}
 
         {/* Prisberegner */}
         {service.pricing_type === "prisberegner" && sortedSteps.length > 0 && (
-          <div className="space-y-0 overflow-hidden rounded-2xl border border-border bg-card">
+          <div className="space-y-0 overflow-hidden rounded-xl border border-border bg-card">
             {sortedSteps.map((step, idx) => {
               const stepTotal = (stepValues[step.id] || 0) * step.price_per_unit;
               return (
-                <div key={step.id} className={`px-3 py-3 sm:px-4 ${idx !== sortedSteps.length - 1 ? "border-b border-border" : ""}`}>
-                  <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div key={step.id} className={`px-2.5 py-2 sm:px-3 ${idx !== sortedSteps.length - 1 ? "border-b border-border" : ""}`}>
+                  <div className="mb-1.5 flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
-                      <span className="text-sm font-medium text-foreground">{step.label}</span>
-                      <span className="ml-1.5 text-xs text-muted-foreground">({step.price_per_unit} kr/{step.unit})</span>
+                      <span className="text-xs font-medium text-foreground">{step.label}</span>
+                      <span className="ml-1 text-[11px] text-muted-foreground">({step.price_per_unit} kr/{step.unit})</span>
                     </div>
-                    <span className="text-sm font-semibold text-foreground shrink-0">{roundPrice(stepTotal)} kr</span>
+                    <span className="text-xs font-semibold text-foreground shrink-0">{roundPrice(stepTotal)} kr</span>
                   </div>
                   <StepperInput
                     value={stepValues[step.id] ?? step.default_value ?? step.min_value ?? 0}
@@ -282,39 +275,29 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
                 </div>
               );
             })}
-            <div className="flex items-center justify-between border-t border-accent/20 bg-accent/5 px-3 py-3 sm:px-4">
-              <span className="text-sm font-semibold text-foreground">I alt</span>
-              <div className="flex items-baseline gap-1">
-                <span className="text-xl font-bold text-foreground">{roundPrice(total)}</span>
-                <span className="text-sm text-muted-foreground">kr</span>
-              </div>
-            </div>
           </div>
         )}
         </div>
 
-        <div className="rounded-[1.5rem] border border-accent/20 bg-[hsl(var(--accent)/0.06)] p-3.5 shadow-[0_18px_40px_-32px_hsl(var(--foreground)/0.45)]">
-          <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="rounded-xl border border-accent/20 bg-[hsl(var(--accent)/0.06)] p-2.5">
+          <div className="mb-2 flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Prisoverslag</p>
-              <div className="mt-1 flex items-end gap-1.5">
-                <p className="text-2xl font-bold leading-none text-foreground">{roundPrice(total)}</p>
-                <span className="text-sm text-muted-foreground">kr</span>
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Prisoverslag</p>
+              <div className="mt-0.5 flex items-end gap-1">
+                <p className="text-xl font-bold leading-none text-foreground">{roundPrice(total)}</p>
+                <span className="text-xs text-muted-foreground">kr</span>
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-0.5 text-[11px] text-muted-foreground">
                 {selectedInterval && selectedInterval !== "engangskøb"
                   ? INTERVAL_LABELS[selectedInterval] || selectedInterval
                   : "Engangsservice"}
               </p>
             </div>
-            <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-accent/15 bg-background text-accent shadow-sm">
-              <ShoppingCart className="h-4 w-4" />
-            </div>
           </div>
           <Button
             onClick={handleAdd}
             disabled={justAdded}
-            className={`h-12 w-full gap-2 rounded-xl text-sm font-semibold transition-all ${
+            className={`h-10 w-full gap-2 rounded-lg text-sm font-semibold transition-all ${
               justAdded
                 ? "bg-accent/80 text-accent-foreground"
                 : "bg-accent text-accent-foreground shadow-lg shadow-accent/25 hover:bg-accent/90 active:scale-[0.98]"
