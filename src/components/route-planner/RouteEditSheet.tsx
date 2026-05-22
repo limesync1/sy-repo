@@ -437,18 +437,18 @@ export const RouteEditSheet = ({
 
   return (
     <>
-      <Sheet open={open} onOpenChange={onOpenChange} modal={false}>
+      <Sheet open={open} onOpenChange={onOpenChange} modal={isCompact}>
         <SheetContent
           side={isCompact ? "bottom" : "right"}
           className={cn(
             "flex flex-col p-0 shadow-xl",
             isCompact ? "h-[82dvh] max-h-[82dvh] rounded-t-2xl" : "w-full sm:max-w-md",
           )}
-          hideOverlay
-          hideCloseButton={isCompact}
+          hideOverlay={!isCompact}
+          hideCloseButton={false}
           onOpenAutoFocus={(e) => e.preventDefault()}
-          onPointerDownOutside={(e) => e.preventDefault()}
-          onInteractOutside={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => { if (!isCompact) e.preventDefault(); }}
+          onInteractOutside={(e) => { if (!isCompact) e.preventDefault(); }}
         >
           <SheetHeader className="px-4 py-3 pr-14 border-b shrink-0 space-y-0 text-left">
             <SheetHeaderBlock
