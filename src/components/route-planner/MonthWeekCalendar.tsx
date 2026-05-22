@@ -11,7 +11,7 @@ import { useDroppable, useDraggable } from "@dnd-kit/core";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Plus, Users, MapPin, ArrowDown, Repeat } from "lucide-react";
+import { Loader2, Sparkles, Plus, Users, MapPin, ArrowDown, Repeat, Clock, Wallet } from "lucide-react";
 import { CloudOff } from "lucide-react";
 import {
   format, parseISO, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
@@ -69,6 +69,8 @@ type Props = {
 };
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
+const fmtRouteMin = (min: number) => min >= 60 ? `${Math.floor(min / 60)}t ${min % 60}m` : `${min}m`;
+const fmtRouteKr = (n: number) => n >= 1000 ? `${Math.round(n).toLocaleString("da-DK")} kr` : `${Math.round(n)} kr`;
 
 export const MonthWeekCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
@@ -461,6 +463,8 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
 
   const stopCount = route.stops.length;
   const completedCount = route.stops.filter((s) => s.status === "completed").length;
+  const travelMin = Number(route.total_duration_minutes || 0) || route.stops.reduce((sum, s) => sum + Number(s.travel_time_to_next_min || 0), 0);
+  const revenue = route.stops.reduce((sum, s) => sum + Number((s as any).order_amount || 0), 0);
   const visibleEmployees = route.attachedEmployees.slice(0, 3);
   const extraEmployees = route.attachedEmployees.length - visibleEmployees.length;
   // Fjernet: grøn bundkant og "klar til udførelse"-logik efter ønske.
