@@ -221,6 +221,9 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
   }, [businessId, business?.settings]);
 
   const isFocusMode = showForm || editingId !== null;
+  const editingService = editingId
+    ? (services || []).find((service: any) => service.id === editingId)
+    : null;
 
   // Brancher virksomheden har valgt i Indstillinger — styrer hvad der kan oprettes
   const businessIndustries: string[] =
@@ -255,56 +258,40 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
     </div>
   );
 
-  // Focus-mode: når man opretter eller redigerer en service, skjuler vi alt andet
-  // (statistik, filtre og listen) så man kun ser formularen.
-  if (isFocusMode) {
-    const editingService = editingId
-      ? (services || []).find((s: any) => s.id === editingId)
-      : null;
+  return (
+    <div className="space-y-5">
 
-    return (
-      <div className="space-y-5">
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <button
-              type="button"
-              onClick={() => { setShowForm(false); setEditingId(null); }}
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              ← Tilbage til services
-            </button>
-            <h2 className="mt-2 text-xl font-semibold text-foreground truncate">
-              {editingService ? `Rediger "${editingService.name}"` : "Ny service"}
-            </h2>
-            <p className="mt-0.5 text-sm text-muted-foreground">
+      <Dialog open={isFocusMode} onOpenChange={(open) => { if (!open) { setShowForm(false); setEditingId(null); } }}>
+        <DialogContent className="max-w-3xl max-h-[calc(100dvh-1rem)] overflow-hidden p-0 gap-0 flex flex-col">
+          <DialogHeader className="border-b px-4 py-3 text-left sm:px-5 sm:py-4">
+            <DialogTitle className="text-base">
+              {editingService ? `Rediger ${editingService.name}` : "Ny service"}
+            </DialogTitle>
+            <DialogDescription className="text-xs leading-snug">
               {editingService
-                ? "Opdater detaljer, pris og intervaller for denne service."
-                : "Følg trinnene for at oprette en ny service."}
-            </p>
-          </div>
-        </div>
-
-        {showForm && !hasIndustries && (
-          <Card className="surface-admin rounded-xl border-amber-300 bg-amber-50 shadow-sm">
-            <CardContent className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-start gap-2.5">
-                <span className="text-lg leading-none">⚠️</span>
-                <div>
-                  <p className="text-sm font-semibold text-foreground">Vælg jeres brancher først</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    Når I har valgt brancher i Indstillinger, ser I kun service-typer der passer til jeres virksomhed.
-                  </p>
-                </div>
-              </div>
-              <Button asChild size="sm" variant="outline" className="shrink-0 rounded-lg">
-                <a href="/virksomhed?tab=settings">Gå til Indstillinger</a>
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-          <CardContent className="p-5 sm:p-6">
+                ? "Opdater detaljer, pris og intervaller uden at forlade servicekataloget."
+                : "Opret servicen i et fokuseret modul — resten af siden dæmpes imens."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto bg-secondary/20 p-4 sm:p-5">
+            {showForm && !hasIndustries && (
+              <Card className="mb-4 surface-admin rounded-xl border-amber-300 bg-amber-50 shadow-sm">
+                <CardContent className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-lg leading-none">⚠️</span>
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">Vælg jeres brancher først</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        Når I har valgt brancher i Indstillinger, ser I kun service-typer der passer til jeres virksomhed.
+                      </p>
+                    </div>
+                  </div>
+                  <Button asChild size="sm" variant="outline" className="shrink-0 rounded-lg">
+                    <a href="/virksomhed?tab=settings">Gå til Indstillinger</a>
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
             <ServiceForm
               key={editingService?.id || "new"}
               businessId={editingService?.business_id || businessId}
@@ -313,14 +300,10 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
               existingService={editingService || undefined}
               onClose={() => { setShowForm(false); setEditingId(null); }}
             />
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+          </div>
+        </DialogContent>
+      </Dialog>
 
-  return (
-    <div className="space-y-5">
       <PageHeader
         title="Servicekatalog"
         description={`${services?.length || 0} services · ${totalOrders} bestillinger i alt`}
