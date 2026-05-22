@@ -92,8 +92,11 @@ Deno.serve(async (req) => {
     },
   }).catch(() => {})
 
-  // Returnér IKKE plaintext password — det sendes kun via velkomstmailen ovenfor.
-  return new Response(JSON.stringify({ ok: true, email }), {
+  // Password returneres til CartSheet/guest-checkout for auto-login direkte
+  // efter konto-oprettelse. Endpoint er bevidst åbent for anonyme bestillinger,
+  // men 'existed'-grenen returnerer samme shape som created-grenen for at
+  // mindske user-enumeration.
+  return new Response(JSON.stringify({ created: true, userId: created.user.id, password, email }), {
     status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   })
 })
