@@ -7,7 +7,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { FieldLabel } from "@/components/admin/shared/AdminUI";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -351,7 +350,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
             {type === "business" && (
               <div className="rounded-lg border bg-card p-3 space-y-3">
                 <div>
-                  <Label className="text-xs">CVR (slå op for at auto-udfylde)</Label>
+                  <FieldLabel optional>CVR (slå op for at auto-udfylde)</FieldLabel>
                   <CvrLookupField
                     value={cvr}
                     onChange={setCvr}
@@ -413,13 +412,13 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
 
             {(zipCode || city) && (
               <div className="grid grid-cols-3 gap-3">
-                <div><Label className="text-xs">Postnr.</Label><Input value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="h-9" /></div>
-                <div className="col-span-2"><Label className="text-xs">By</Label><Input value={city} onChange={(e) => setCity(e.target.value)} className="h-9" /></div>
+                <div><FieldLabel optional>Postnr.</FieldLabel><Input value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="h-9" /></div>
+                <div className="col-span-2"><FieldLabel optional>By</FieldLabel><Input value={city} onChange={(e) => setCity(e.target.value)} className="h-9" /></div>
               </div>
             )}
 
             <div>
-              <Label className="text-xs">Interne noter</Label>
+              <FieldLabel optional>Interne noter</FieldLabel>
               <Textarea value={notes} onChange={(e) => setNotes(e.target.value.slice(0, 1000))} rows={2} placeholder="Fx kode til hoveddør, særlige aftaler…" className="bg-background resize-none" />
             </div>
 
@@ -429,17 +428,17 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
               <p className="text-xs font-medium text-foreground">Regnskab & fakturering</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs">Kunde-nr.</Label>
+                  <FieldLabel optional>Kunde-nr.</FieldLabel>
                   <Input value={customerNumber} onChange={(e) => setCustomerNumber(e.target.value)} placeholder="Auto" className="h-9" />
                 </div>
                 <div>
-                  <Label className="text-xs">Betalingsbetingelse (dage)</Label>
+                  <FieldLabel optional>Betalingsbetingelse (dage)</FieldLabel>
                   <Input type="number" min="0" value={paymentTermsDays} onChange={(e) => setPaymentTermsDays(e.target.value)} placeholder="14" className="h-9" />
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs">Momszone</Label>
+                  <FieldLabel optional>Momszone</FieldLabel>
                   <Select value={vatZone} onValueChange={setVatZone}>
                     <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -451,13 +450,13 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-xs">EAN-nummer</Label>
+                  <FieldLabel optional>EAN-nummer</FieldLabel>
                   <Input value={eanNumber} onChange={(e) => setEanNumber(e.target.value)} placeholder="5790000000000" className="h-9" />
                 </div>
               </div>
               {customerGroups.length > 0 && (
                 <div>
-                  <Label className="text-xs">{groupsLabel}</Label>
+                  <FieldLabel optional>{groupsLabel}</FieldLabel>
                   <Select value={customerGroup} onValueChange={setCustomerGroup}>
                     <SelectTrigger className="h-9"><SelectValue placeholder="Vælg gruppe" /></SelectTrigger>
                     <SelectContent>

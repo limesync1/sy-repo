@@ -333,19 +333,19 @@ const DynamicBusinessContent = () => {
 
             {/* Services */}
             {services && services.length > 0 && (
-              <section id="services" aria-labelledby="services-heading" className="rounded-[2rem] border border-border bg-card p-4 shadow-[0_22px_50px_-34px_hsl(var(--foreground)/0.2)] md:p-5">
-                <div className="mb-4 flex flex-col gap-2 border-b border-border pb-4 sm:flex-row sm:items-end sm:justify-between">
+              <section id="services" aria-labelledby="services-heading" className="rounded-2xl border border-border bg-card p-3 shadow-[0_22px_50px_-34px_hsl(var(--foreground)/0.2)] sm:p-4 md:p-5">
+                <div className="mb-3 flex flex-col gap-2 border-b border-border pb-3 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Book direkte</p>
-                    <h2 id="services-heading" className="text-[1.75rem] font-bold text-foreground">Services</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">Vælg en service, tilpas den hvis nødvendigt, og læg den direkte i bestillingen.</p>
+                    <h2 id="services-heading" className="text-xl font-bold text-foreground sm:text-[1.75rem]">Services</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">Vælg og tilføj services direkte til din bestilling.</p>
                   </div>
                   <span className="inline-flex w-fit items-center rounded-full bg-secondary px-3 py-1 text-sm font-medium text-muted-foreground">{serviceCount} {serviceCount === 1 ? "service" : "services"}</span>
                 </div>
 
                 {/* Category filter pills */}
                  {hasMultipleCategories && (
-                   <div className="mb-5 -mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                    <div className="mb-4 -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                     <button
                       onClick={() => setActiveCategory(null)}
                       className={`shrink-0 rounded-full border px-4 py-1.5 text-sm font-medium transition-all ${
@@ -383,7 +383,7 @@ const DynamicBusinessContent = () => {
                         <h3 className="mb-4 text-lg font-bold text-foreground">{cat}</h3>
                       )}
                       {Object.keys(subs).length >= 2 && Object.entries(subs).every(([, items]) => items.length === 1) ? (
-                         <div className="grid gap-5 md:grid-cols-2">
+                       <div className="grid gap-3 md:grid-cols-2">
                           {Object.entries(subs).map(([sub, items]) => {
                             const service = items[0];
 
@@ -407,13 +407,13 @@ const DynamicBusinessContent = () => {
                           })}
                         </div>
                       ) : (
-                         <div className="space-y-5">
+                          <div className="space-y-4">
                           {Object.entries(subs).map(([sub, items]) => (
                             <div key={sub || "default"}>
                               {sub && (
                                 <h4 className="mb-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{sub}</h4>
                               )}
-                               <div className="grid gap-4 sm:grid-cols-2">
+                                <div className="grid gap-3 sm:grid-cols-2">
                                 {items.map((s) => (
                                   <DynamicServiceCard
                                     key={s.id}
@@ -431,7 +431,7 @@ const DynamicBusinessContent = () => {
                   ))}
 
                   {compactCategoryEntries.length > 0 && (
-                     <div className="grid gap-5 md:grid-cols-2">
+                      <div className="grid gap-3 md:grid-cols-2">
                       {compactCategoryEntries.map(({ cat, subs }) => {
                         const [sub, items] = Object.entries(subs)[0];
                         const service = items[0];

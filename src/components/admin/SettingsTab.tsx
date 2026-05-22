@@ -1137,7 +1137,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           <SectionCard title="Om virksomheden" icon={<Building2 />} description="Navnet og den korte tekst, der står øverst på jeres profilside — det første kunderne ser.">
             <div className="space-y-4">
               <div data-tour="field-company-name">
-                <FieldLabel>Virksomhedsnavn</FieldLabel>
+                <FieldLabel required>Virksomhedsnavn</FieldLabel>
                 <div className="relative">
                   <Building2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input placeholder="Fx Ready2Clean ApS" value={name} onChange={(e) => setName(e.target.value)} className="bg-card h-11 rounded-lg pl-9 text-[15px]" />
@@ -1145,7 +1145,7 @@ const SettingsTab = ({ business }: { business: any }) => {
               </div>
               <div data-tour="field-company-description">
                 <div className="flex items-center justify-between">
-                  <FieldLabel className="mb-0">Beskrivelse</FieldLabel>
+                  <FieldLabel required className="mb-0">Beskrivelse</FieldLabel>
                   <span className={`text-[11px] tabular-nums ${description.length > 450 ? "text-amber-600" : "text-muted-foreground"}`}>
                     {description.length}/500
                   </span>
@@ -1172,7 +1172,7 @@ const SettingsTab = ({ business }: { business: any }) => {
           >
             <div className="space-y-5">
               <div>
-                <FieldLabel>Hvilke brancher arbejder I med?</FieldLabel>
+                <FieldLabel required>Hvilke brancher arbejder I med?</FieldLabel>
                 <p className="-mt-1 mb-2.5 text-xs text-muted-foreground">
                   Vælg én eller flere. Når I vælger en branche, slår vi automatisk alle dens kategorier til — I kan finjustere længere nede.
                 </p>
@@ -1184,7 +1184,7 @@ const SettingsTab = ({ business }: { business: any }) => {
 
               {selectedCategories.length > 0 && (
                 <div className="border-t border-border pt-4">
-                  <FieldLabel>Hvilke konkrete opgaver tager I?</FieldLabel>
+                  <FieldLabel required>Hvilke konkrete opgaver tager I?</FieldLabel>
                   <p className="-mt-1 mb-3 text-xs text-muted-foreground">
                     Hak de opgavetyper af, I rent faktisk udfører. Dem I fjerner her, vises hverken til kunder eller foreslås, når I opretter nye services.
                   </p>
@@ -1205,14 +1205,14 @@ const SettingsTab = ({ business }: { business: any }) => {
             <div className="space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div data-tour="field-phone">
-                  <FieldLabel>Telefon</FieldLabel>
+                  <FieldLabel required>Telefon</FieldLabel>
                   <div className="relative">
                     <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input placeholder="12 34 56 78" value={phone} onChange={(e) => handlePhoneChange(e.target.value)} className="bg-card h-11 rounded-lg pl-9 text-[15px]" type="tel" />
                   </div>
                 </div>
                 <div data-tour="field-email">
-                  <FieldLabel>Email</FieldLabel>
+                  <FieldLabel required>Email</FieldLabel>
                   <div className="relative">
                     <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input placeholder="kontakt@virksomhed.dk" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-card h-11 rounded-lg pl-9 text-[15px]" type="email" />
@@ -1220,7 +1220,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                 </div>
               </div>
               <div data-tour="field-address">
-                <FieldLabel>Adresse</FieldLabel>
+                <FieldLabel required>Adresse</FieldLabel>
                 <AddressAutocomplete
                   value={address}
                   onChange={setAddress}
@@ -1259,7 +1259,7 @@ const SettingsTab = ({ business }: { business: any }) => {
               <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Visuelle elementer</p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-[180px_1fr]">
                 <div className="rounded-xl border border-border bg-card/50 p-4" data-tour="field-logo">
-                  <FieldLabel>Logo</FieldLabel>
+                  <FieldLabel optional>Logo</FieldLabel>
                   <div className="mt-1 flex items-start gap-3">
                     <ImageUpload folder={`${user!.id}/logo`} currentUrl={logoUrl || null} onUploaded={setLogoUrl} label="" aspectRatio="aspect-square" className="w-24" objectFit="contain" />
                   </div>
@@ -1268,7 +1268,7 @@ const SettingsTab = ({ business }: { business: any }) => {
                   </p>
                 </div>
                 <div className="rounded-xl border border-border bg-card/50 p-4" data-tour="field-cover">
-                  <FieldLabel>Coverbillede</FieldLabel>
+                  <FieldLabel optional>Coverbillede</FieldLabel>
                   <div className="mt-1">
                     <ImageUpload folder={`${user!.id}/cover`} currentUrl={coverUrl || null} onUploaded={setCoverUrl} label="" aspectRatio="aspect-video" className="w-full max-w-[360px]" />
                   </div>

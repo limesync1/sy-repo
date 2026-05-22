@@ -11,7 +11,7 @@ import { useDroppable, useDraggable } from "@dnd-kit/core";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Plus, Users, MapPin, ArrowDown, Repeat } from "lucide-react";
+import { Loader2, Sparkles, Plus, Users, MapPin, ArrowDown, Repeat, Clock, Wallet } from "lucide-react";
 import { CloudOff } from "lucide-react";
 import {
   format, parseISO, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
@@ -69,6 +69,8 @@ type Props = {
 };
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
+const fmtRouteMin = (min: number) => min >= 60 ? `${Math.floor(min / 60)}t ${min % 60}m` : `${min}m`;
+const fmtRouteKr = (n: number) => n >= 1000 ? `${Math.round(n).toLocaleString("da-DK")} kr` : `${Math.round(n)} kr`;
 
 export const MonthWeekCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
@@ -461,6 +463,9 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
 
   const stopCount = route.stops.length;
   const completedCount = route.stops.filter((s) => s.status === "completed").length;
+  const travelMin = Number(route.total_duration_minutes || 0) || route.stops.reduce((sum, s) => sum + Number(s.travel_time_to_next_min || 0), 0);
+  const revenue = route.stops.reduce((sum, s) => sum + Number((s as any).order_amount || 0), 0);
+  void compact;
   const visibleEmployees = route.attachedEmployees.slice(0, 3);
   const extraEmployees = route.attachedEmployees.length - visibleEmployees.length;
   // Fjernet: grøn bundkant og "klar til udførelse"-logik efter ønske.
@@ -514,16 +519,12 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
             {isVirtual && <Repeat className="h-2.5 w-2.5 shrink-0 text-muted-foreground" />}
             <span className="truncate">{route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}</span>
           </div>
-          {!compact ? (
-            <div className="flex items-center gap-1 text-[10px] text-muted-foreground tabular-nums mt-0.5">
-              <MapPin className="h-2.5 w-2.5" />{stopCount}
-              {completedCount > 0 && <span className="text-emerald-600">({completedCount}✓)</span>}
-            </div>
-          ) : (
-            stopCount > 0 && (
-              <p className="text-[9px] text-muted-foreground tabular-nums">{stopCount} stop</p>
-            )
-          )}
+          <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[9px] text-muted-foreground tabular-nums sm:text-[10px]">
+            {stopCount > 0 && <span className="inline-flex items-center gap-0.5"><MapPin className="h-2.5 w-2.5" />{stopCount} stop</span>}
+            {completedCount > 0 && <span className="text-emerald-600">{completedCount}✓</span>}
+            {travelMin > 0 && <span className="inline-flex items-center gap-0.5"><Clock className="h-2.5 w-2.5" />{fmtRouteMin(travelMin)}</span>}
+            {revenue > 0 && <span className="inline-flex items-center gap-0.5"><Wallet className="h-2.5 w-2.5" />{fmtRouteKr(revenue)}</span>}
+          </div>
         </div>
         {/* Medarbejder-avatarer */}
         {visibleEmployees.length > 0 && (

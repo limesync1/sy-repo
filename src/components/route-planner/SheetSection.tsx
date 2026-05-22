@@ -5,7 +5,6 @@
 //   • Field med lille muted label
 //   • Footer-stribe med to knapper (slet/gem)
 import * as React from "react";
-import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
 
@@ -100,7 +99,11 @@ export const Section = ({
       <h4 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
         {title}
       </h4>
-      {required && <span className="text-[10px] text-destructive">*</span>}
+      {required && (
+        <span className="inline-flex items-center rounded-full bg-destructive/10 px-1.5 py-0.5 text-[9px] font-bold normal-case tracking-normal text-destructive">
+          Påkrævet
+        </span>
+      )}
       {hint && <span className="ml-auto text-[10px] text-muted-foreground">{hint}</span>}
     </div>
     <div className="rounded-xl border border-border bg-card p-3">
@@ -161,19 +164,29 @@ export const CollapsibleSection = ({
 export const Field = ({
   label,
   required,
+  optional,
   hint,
   children,
 }: {
   label: string;
   required?: boolean;
+  optional?: boolean;
   hint?: React.ReactNode;
   children: React.ReactNode;
 }) => (
   <div className="space-y-1">
-    <Label className="text-[11px] text-muted-foreground font-medium">
-      {label}
-      {required && <span className="text-destructive ml-0.5">*</span>}
-    </Label>
+    <label className={cn("flex flex-wrap items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider", required ? "text-foreground" : "text-muted-foreground")}>
+      <span>{label}</span>
+      {required ? (
+        <span className="inline-flex items-center rounded-full bg-destructive/10 px-1.5 py-0.5 text-[9px] font-bold normal-case tracking-normal text-destructive">
+          Påkrævet
+        </span>
+      ) : (optional ?? true) ? (
+        <span className="inline-flex items-center rounded-full bg-secondary px-1.5 py-0.5 text-[9px] font-medium normal-case tracking-normal text-muted-foreground">
+          Valgfri
+        </span>
+      ) : null}
+    </label>
     {children}
     {hint && <p className="text-[11px] text-muted-foreground">{hint}</p>}
   </div>

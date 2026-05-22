@@ -3,7 +3,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
@@ -12,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { TimePickerPopover } from "@/components/shared/TimePickerPopover";
+import { FieldLabel } from "@/components/admin/shared/AdminUI";
 
 interface Props {
   businessId: string;
@@ -665,7 +665,7 @@ export function CustomerNotificationsSettings({
                 </label>
 
                 <div className="space-y-2">
-                  <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Emnelinje</Label>
+                  <FieldLabel required>Emnelinje</FieldLabel>
                   <Input
                     ref={subjectCursor.ref}
                     value={drafts[activeEvent].subject}
@@ -676,7 +676,7 @@ export function CustomerNotificationsSettings({
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Indhold</Label>
+                  <FieldLabel required>Indhold</FieldLabel>
                   <Textarea
                     ref={bodyCursor.ref}
                     rows={10}
@@ -732,7 +732,7 @@ export function CustomerNotificationsSettings({
                 </label>
 
                 <div className="space-y-2">
-                  <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">SMS-tekst</Label>
+                  <FieldLabel required>SMS-tekst</FieldLabel>
                   <Textarea
                     ref={smsCursor.ref}
                     rows={6}

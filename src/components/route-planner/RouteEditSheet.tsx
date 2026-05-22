@@ -25,7 +25,7 @@ import {
   type Route, type RouteStop,
 } from "@/hooks/useRoutes";
 import { useWeatherForecast } from "@/hooks/useWeather";
-import { Wallet, Cloud, CloudRain, CloudSnow, Sun, Wind, TrafficCone, type LucideIcon } from "lucide-react";
+import { Wallet, CloudRain, CloudSnow, Wind, TrafficCone, type LucideIcon } from "lucide-react";
 import { DatePickerField } from "./DatePickerField";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection";
 import { pickDuration } from "@/components/route/EtaBreakdown";
@@ -231,7 +231,7 @@ export const RouteEditSheet = ({
     if (!weather) return { mult: 1, label: null as string | null, Icon: null as LucideIcon | null };
     let mult = 1;
     let label: string | null = null;
-    let Icon: LucideIcon | null = Sun;
+    let Icon: LucideIcon | null = null;
     const code = weather.weatherCode;
     const heavyRain = weather.precipitationMm >= 5 || weather.precipitationProbability >= 70;
     const lightRain = weather.precipitationMm >= 1 || weather.precipitationProbability >= 40;
@@ -241,8 +241,6 @@ export const RouteEditSheet = ({
     else if (heavyRain) { mult = 1.15; label = "Kraftig regn"; Icon = CloudRain; }
     else if (lightRain) { mult = 1.07; label = "Regn"; Icon = CloudRain; }
     else if (windy) { mult = 1.05; label = "Stærk vind"; Icon = Wind; }
-    else if (code >= 2) { label = "Skyet"; Icon = Cloud; }
-    else { label = "Klart"; Icon = Sun; }
     return { mult, label, Icon };
   }, [weather]);
 
@@ -556,7 +554,7 @@ export const RouteEditSheet = ({
                   const adjustedSec = baseSec != null ? Math.round(baseSec * weatherFactor.mult) : null;
                   const trafficMult = routeDirections?.traffic_multiplier ?? 1;
                   const trafficLabel = trafficMult >= 1.25 ? "Tæt trafik"
-                    : trafficMult >= 1.10 ? "Moderat trafik" : "Fri trafik";
+                    : trafficMult >= 1.10 ? "Moderat trafik" : null;
                   const WeatherIcon = weatherFactor.Icon;
                   return (
                     <div>
@@ -568,9 +566,11 @@ export const RouteEditSheet = ({
                         {directionsFetching && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
                       </p>
                       <div className="mt-2 flex flex-wrap gap-1.5">
-                        <Badge variant="secondary" className="gap-1 text-[10px] font-medium">
-                          <TrafficCone className="h-3 w-3" /> {trafficLabel}
-                        </Badge>
+                        {trafficLabel && (
+                          <Badge variant="secondary" className="gap-1 text-[10px] font-medium">
+                            <TrafficCone className="h-3 w-3" /> {trafficLabel}
+                          </Badge>
+                        )}
                         {weatherFactor.label && WeatherIcon && (
                           <Badge variant="secondary" className="gap-1 text-[10px] font-medium">
                             <WeatherIcon className="h-3 w-3" /> {weatherFactor.label}
