@@ -2144,6 +2144,13 @@ const AftaleTab = ({
                               <Trash2 className="h-3.5 w-3.5" /> Slet
                             </Button>
                           </div>
+                          {actions.canProgress && actions.nextStatus && (
+                            <p className="mt-2 w-full text-[11px] leading-relaxed text-muted-foreground sm:text-right">
+                              <span className="font-medium text-foreground">Bemærk:</span>{" "}
+                              "{actions.nextLabel}" er kun til <span className="font-medium">manuel udførelse</span> — fx hvis du som ejer selv udfører aftalen.
+                              Hvis aftalen er på en rute med en medarbejder, sker det automatisk når medarbejderen markerer stoppet udført i medarbejder-appen.
+                            </p>
+                          )}
                         </div>
                       ) : (
                         <div className="flex flex-wrap items-center justify-between gap-2" onClick={(e) => e.stopPropagation()}>
