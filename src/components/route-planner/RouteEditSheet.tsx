@@ -193,7 +193,7 @@ export const RouteEditSheet = ({
 
   // Beregn waypoints for hele ruten — start (hvis sat) + alle stop i rækkefølge.
   const waypoints = useMemo(() => {
-    if (!route || stops.length < 2) return null;
+    if (!route || stops.length < 1) return null;
     const sorted = [...stops]
       .filter((s) => s.latitude != null && s.longitude != null)
       .sort((a, b) => a.sequence - b.sequence)
@@ -442,7 +442,7 @@ export const RouteEditSheet = ({
           side={isCompact ? "bottom" : "right"}
           className={cn(
             "flex flex-col p-0 shadow-xl",
-            isCompact ? "h-[58vh] max-h-[58vh] rounded-t-xl" : "w-full sm:max-w-md",
+            isCompact ? "h-[82dvh] max-h-[82dvh] rounded-t-2xl" : "w-full sm:max-w-md",
           )}
           hideOverlay
           hideCloseButton={isCompact}
@@ -545,10 +545,10 @@ export const RouteEditSheet = ({
             )}
 
             {/* Rejsetid — kort og enkel: "Estimeret rejsetid: 34 min" */}
-            {waypoints && (
+            {(waypoints || stops.length > 0) && (
               <Section
                 icon={<Gauge className="h-3.5 w-3.5" />}
-                title="Rejsetid"
+                title="Estimeret rejsetid"
                 hint={directionsFetching ? "Genberegner…" : undefined}
               >
                 {(() => {
@@ -561,7 +561,7 @@ export const RouteEditSheet = ({
                   return (
                     <div>
                       <p className="text-sm flex items-center gap-2">
-                        <span className="text-muted-foreground">Estimeret rejsetid: </span>
+                        <span className="text-muted-foreground">Kørsel på ruten: </span>
                         <span className={cn("font-semibold tabular-nums transition-opacity", directionsFetching ? "opacity-50" : "text-foreground")}>
                           {adjustedSec != null ? formatTravelTime(adjustedSec) : "—"}
                         </span>
@@ -581,7 +581,9 @@ export const RouteEditSheet = ({
                         )}
                       </div>
                       <p className="mt-2 text-[11px] text-muted-foreground">
-                        Justeret for forventet trafik {weather ? "og vejrforhold " : ""}på rutens planlagte starttid.
+                        {waypoints
+                          ? <>Justeret for forventet trafik {weather ? "og vejrforhold " : ""}på rutens planlagte starttid.</>
+                          : "Tilføj startadresse/GPS og mindst ét stop med koordinater for at beregne rejsetid."}
                       </p>
                     </div>
                   );
