@@ -303,7 +303,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v && !submitting) onOpenChange(v); else if (v) onOpenChange(v); }}>
       <DialogContent className="max-w-3xl max-h-[92vh] flex flex-col p-0 gap-0 overflow-hidden">
-        <DialogHeader className="px-5 py-4 border-b shrink-0 space-y-0">
+        <DialogHeader className="px-4 sm:px-5 py-4 pr-12 border-b shrink-0 space-y-0 text-left">
           <SheetHeaderBlock
             icon={<ShoppingBag className="h-4 w-4" />}
             title={<DialogTitle className="text-base">Opret bestilling for kunde</DialogTitle>}
@@ -315,7 +315,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
           />
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3 bg-secondary/20">
+        <div className="flex-1 overflow-y-auto px-3 sm:px-5 py-4 space-y-3 bg-secondary/20">
           {/* Kunde */}
           {(() => {
             const isBusiness = cvr.replace(/\D/g, "").length === 8 || !!companyName;
@@ -513,27 +513,27 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                       </div>
 
                       {it.service.pricing_type === "timepris" && (
-                        <div className="flex items-center gap-2 mb-2 text-xs">
+                        <div className="flex flex-wrap items-center gap-2 mb-2 text-sm">
                           <Label className="text-xs text-muted-foreground">Timer</Label>
                           <Input
                             type="number" min={0.5} max={24} step={0.5} value={it.hours}
                             onChange={(e) => updateItem(it.serviceId, { hours: Math.max(0.5, parseFloat(e.target.value) || 0.5) })}
-                            className="h-7 w-20"
+                            className="h-9 w-24"
                           />
-                          <span className="text-muted-foreground">× {it.service.base_price} kr</span>
+                          <span className="text-muted-foreground text-xs">× {it.service.base_price} kr</span>
                         </div>
                       )}
 
                       {it.service.pricing_type === "prisberegner" && (it.service.calculator_steps?.length ?? 0) > 0 && (
-                        <div className="space-y-1.5 mb-2 rounded-md bg-secondary/40 p-2">
+                        <div className="space-y-2 mb-2 rounded-md bg-secondary/40 p-2">
                           {[...(it.service.calculator_steps || [])].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)).map((step) => (
-                            <div key={step.id} className="flex items-center gap-2 text-xs">
-                              <span className="flex-1 truncate">{step.label} <span className="text-muted-foreground">({step.price_per_unit} kr/{step.unit})</span></span>
+                            <div key={step.id} className="flex flex-wrap items-center gap-2 text-xs">
+                              <span className="flex-1 min-w-[120px] truncate">{step.label} <span className="text-muted-foreground">({step.price_per_unit} kr/{step.unit})</span></span>
                               <Input type="number" min={Number(step.min_value ?? 0)} max={Number(step.max_value ?? 9999)}
                                 value={it.stepValues[step.id] ?? 0}
                                 onChange={(e) => updateItem(it.serviceId, { stepValues: { ...it.stepValues, [step.id]: Math.max(0, parseFloat(e.target.value) || 0) } })}
-                                className="h-7 w-20" />
-                              <span className="text-muted-foreground w-8 text-right">{step.unit}</span>
+                                className="h-9 w-24" />
+                              <span className="text-muted-foreground w-8 text-right text-xs">{step.unit}</span>
                             </div>
                           ))}
                         </div>
@@ -541,9 +541,9 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
 
                       {intervals.length > 1 && (
                         <Select value={it.interval} onValueChange={(v) => updateItem(it.serviceId, { interval: v })}>
-                          <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                          <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            {intervals.map((iv) => <SelectItem key={iv} value={iv} className="text-xs">{INTERVAL_LABELS[iv] || iv}</SelectItem>)}
+                            {intervals.map((iv) => <SelectItem key={iv} value={iv} className="text-sm">{INTERVAL_LABELS[iv] || iv}</SelectItem>)}
                           </SelectContent>
                         </Select>
                       )}
@@ -590,16 +590,16 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
 
         {/* Footer — matcher SheetFooterBar i StopDetailSheet/RouteEditSheet */}
         <SheetFooterBar>
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-baseline gap-2">
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+            <div className="flex items-baseline justify-between gap-2 sm:justify-start">
               <span className="text-[11px] text-muted-foreground uppercase tracking-wide">I alt</span>
               <span className="text-xl font-bold tabular-nums">{fmt(totalAmount)}</span>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
+              <Button variant="outline" className="flex-1 sm:flex-none" onClick={() => onOpenChange(false)} disabled={submitting}>
                 Annullér
               </Button>
-              <Button onClick={handleSubmit} disabled={submitting || items.length === 0}>
+              <Button className="flex-1 sm:flex-none" onClick={handleSubmit} disabled={submitting || items.length === 0}>
                 {submitting ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Send className="h-4 w-4 mr-1.5" />}
                 Opret bestilling
               </Button>

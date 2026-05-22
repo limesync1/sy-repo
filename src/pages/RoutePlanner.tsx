@@ -2614,7 +2614,7 @@ const Planner = () => {
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-md p-0 gap-0 overflow-hidden flex flex-col">
-                  <DialogHeader className="px-5 py-4 border-b shrink-0 space-y-0">
+                  <DialogHeader className="px-4 sm:px-5 py-4 pr-12 border-b shrink-0 space-y-0 text-left">
                     <SheetHeaderBlock
                       icon={<RouteIcon className="h-4 w-4" />}
                       accent={newRouteColor}
@@ -2627,7 +2627,7 @@ const Planner = () => {
                     />
                   </DialogHeader>
 
-                  <div className="px-5 py-3 space-y-2.5 bg-secondary/20">
+                  <div className="px-3 sm:px-5 py-3 space-y-2.5 bg-secondary/20 overflow-y-auto">
                     <Section icon={<Tag className="h-3.5 w-3.5" />} title="Detaljer">
                       <div className="space-y-2.5">
                         <Field label="Navn (valgfrit)">
@@ -2637,7 +2637,7 @@ const Planner = () => {
                             value={newRouteName}
                             onChange={(e) => setNewRouteName(e.target.value)}
                             onKeyDown={(e) => { if (e.key === "Enter") handleCreateRoute(); }}
-                            className="h-8"
+                            className="h-9"
                             autoFocus
                           />
                         </Field>
@@ -2681,7 +2681,7 @@ const Planner = () => {
                           placeholder="Søg kunde eller adresse..."
                           value={newRouteJobSearch}
                           onChange={(e) => setNewRouteJobSearch(e.target.value)}
-                          className="h-7 pl-6 text-xs"
+                          className="h-9 pl-6 text-sm"
                         />
                       </div>
                       <div className="max-h-56 overflow-y-auto rounded border divide-y bg-background">
@@ -2750,11 +2750,12 @@ const Planner = () => {
                   </div>
 
                   <SheetFooterBar>
-                    <div className="flex justify-end gap-2">
-                      <Button variant="outline" onClick={() => setCreateOpen(false)} disabled={createRoute.isPending}>
+                    <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                      <Button variant="outline" className="sm:w-auto" onClick={() => setCreateOpen(false)} disabled={createRoute.isPending}>
                         Annullér
                       </Button>
                       <Button
+                        className="sm:w-auto"
                         onClick={handleCreateRoute}
                         disabled={createRoute.isPending || newRouteJobIds.length === 0}
                       >

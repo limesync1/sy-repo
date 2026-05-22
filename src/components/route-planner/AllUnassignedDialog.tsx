@@ -68,9 +68,9 @@ export const AllUnassignedDialog = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Alle aftaler uden rute ({jobs.length})</DialogTitle>
-          <DialogDescription>
+        <DialogHeader className="pr-8 text-left">
+          <DialogTitle className="text-base sm:text-lg">Alle aftaler uden rute ({jobs.length})</DialogTitle>
+          <DialogDescription className="text-xs sm:text-sm">
             Justér opstartsdato direkte her — eller luk og træk aftalen ind på en dag i kalenderen.
           </DialogDescription>
         </DialogHeader>
@@ -79,7 +79,7 @@ export const AllUnassignedDialog = ({
           placeholder="Søg navn eller by..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="h-8 text-sm"
+          className="h-9 text-sm"
         />
 
         <div className="max-h-[60vh] overflow-y-auto -mx-2">
@@ -90,7 +90,7 @@ export const AllUnassignedDialog = ({
             {filtered.map((j) => {
               const current = j.preferred_date || j.next_service_date || "";
               return (
-                <div key={j.id} className="flex items-center gap-3 px-2 py-2.5">
+                <div key={j.id} className="flex flex-col gap-2 px-2 py-2.5 sm:flex-row sm:items-center sm:gap-3">
                   <div className="flex-1 min-w-0">
                     <p className={`text-sm truncate ${j.customer_name ? "font-medium" : "font-medium text-muted-foreground italic"}`}>
                       {j.customer_name || "Ukendt kunde"}
@@ -99,8 +99,8 @@ export const AllUnassignedDialog = ({
                       {j.city || "—"} · {Math.round(j.total_amount || 0).toLocaleString("da-DK")} kr · ønsket {fmt(current)}
                     </p>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <CalIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                  <div className="flex items-center gap-1.5 sm:shrink-0">
+                    <CalIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                     <Input
                       type="date"
                       defaultValue={current ? current.slice(0, 10) : ""}
@@ -108,10 +108,10 @@ export const AllUnassignedDialog = ({
                         const v = e.target.value;
                         if (v !== (current ? current.slice(0, 10) : "")) updateDate(j.id, v);
                       }}
-                      className="h-7 text-xs w-[150px]"
+                      className="h-9 text-sm flex-1 sm:h-8 sm:w-[160px] sm:flex-none"
                       disabled={savingId === j.id}
                     />
-                    {savingId === j.id && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
+                    {savingId === j.id && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground shrink-0" />}
                   </div>
                 </div>
               );
