@@ -25,7 +25,7 @@ import {
   type Route, type RouteStop,
 } from "@/hooks/useRoutes";
 import { useWeatherForecast } from "@/hooks/useWeather";
-import { Wallet, Cloud, CloudRain, CloudSnow, Sun, Wind, TrafficCone, type LucideIcon } from "lucide-react";
+import { Wallet, CloudRain, CloudSnow, Wind, TrafficCone, type LucideIcon } from "lucide-react";
 import { DatePickerField } from "./DatePickerField";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection";
 import { pickDuration } from "@/components/route/EtaBreakdown";
@@ -231,7 +231,7 @@ export const RouteEditSheet = ({
     if (!weather) return { mult: 1, label: null as string | null, Icon: null as LucideIcon | null };
     let mult = 1;
     let label: string | null = null;
-    let Icon: LucideIcon | null = Sun;
+    let Icon: LucideIcon | null = null;
     const code = weather.weatherCode;
     const heavyRain = weather.precipitationMm >= 5 || weather.precipitationProbability >= 70;
     const lightRain = weather.precipitationMm >= 1 || weather.precipitationProbability >= 40;
@@ -241,8 +241,6 @@ export const RouteEditSheet = ({
     else if (heavyRain) { mult = 1.15; label = "Kraftig regn"; Icon = CloudRain; }
     else if (lightRain) { mult = 1.07; label = "Regn"; Icon = CloudRain; }
     else if (windy) { mult = 1.05; label = "Stærk vind"; Icon = Wind; }
-    else if (code >= 2) { label = "Skyet"; Icon = Cloud; }
-    else { label = "Klart"; Icon = Sun; }
     return { mult, label, Icon };
   }, [weather]);
 
