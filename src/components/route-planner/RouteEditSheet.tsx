@@ -13,7 +13,7 @@ import {
 import { Loader2, Sparkles, Trash2, Check, CalendarRange, History, Award } from "lucide-react";
 import { Palette, CalendarDays, Pencil, Gauge } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
@@ -24,6 +24,8 @@ import {
   useRouteSeriesInfo, useMoveRouteSeries,
   type Route, type RouteStop,
 } from "@/hooks/useRoutes";
+import { useWeatherForecast } from "@/hooks/useWeather";
+import { Wallet, Cloud, CloudRain, CloudSnow, Sun, Wind, TrafficCone, type LucideIcon } from "lucide-react";
 import { DatePickerField } from "./DatePickerField";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection";
 import { pickDuration } from "@/components/route/EtaBreakdown";
