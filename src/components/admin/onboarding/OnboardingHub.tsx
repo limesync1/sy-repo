@@ -225,7 +225,7 @@ export const OnboardingHub = ({ business }: { business: any }) => {
           <button
             onClick={close}
             aria-label="Luk guide"
-            className="absolute right-3 top-3 rounded-md p-1.5 text-background/60 transition-colors hover:bg-background/10 hover:text-background"
+            className="absolute right-2 top-2 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-background/10 text-background ring-1 ring-background/20 backdrop-blur-sm transition-colors hover:bg-background/20 hover:text-background sm:right-3 sm:top-3"
           >
             <X className="h-4 w-4" />
           </button>
