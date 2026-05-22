@@ -144,7 +144,7 @@ export const RouteStopsPanel = ({
           className={cn(
             "flex flex-col p-0 shadow-xl",
             isCompact
-              ? "h-[82vh] max-h-[82vh] rounded-t-xl"
+              ? "h-[86dvh] max-h-[86dvh] rounded-t-2xl"
               : "w-full sm:max-w-sm lg:right-[28rem]",
           )}
           hideOverlay={!isCompact}
@@ -191,7 +191,7 @@ export const RouteStopsPanel = ({
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto p-3">
+          <div className="flex-1 overflow-y-auto p-2.5 sm:p-3">
             {items.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center gap-2 px-4">
                 <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center">
@@ -300,14 +300,14 @@ const SortableStopRow = ({
         isDragging ? "shadow-lg opacity-80 ring-2 ring-accent" : "hover:shadow-sm hover:border-foreground/20",
       )}
     >
-      <div className="grid min-h-[3.5rem] grid-cols-[1.75rem_2.75rem_minmax(0,1fr)] sm:grid-cols-[1.75rem_2.75rem_minmax(0,1fr)_auto]">
+      <div className="grid min-h-[3rem] grid-cols-[1.5rem_2.25rem_minmax(0,1fr)] sm:min-h-[3.5rem] sm:grid-cols-[1.75rem_2.75rem_minmax(0,1fr)_auto]">
         {/* Drag handle — skjult på projicerede ruter (read-only) */}
         {!isProjection ? (
           <button
             type="button"
             {...attributes}
             {...listeners}
-            className="flex items-center justify-center px-1.5 cursor-grab active:cursor-grabbing text-muted-foreground/60 hover:text-foreground hover:bg-secondary/60"
+            className="flex items-center justify-center px-1 cursor-grab active:cursor-grabbing text-muted-foreground/60 hover:text-foreground hover:bg-secondary/60 sm:px-1.5"
             aria-label="Træk for at omrangere"
           >
             <GripVertical className="h-4 w-4" />
@@ -324,7 +324,7 @@ const SortableStopRow = ({
 
         {/* Sekvens-nummer — rutens farve gør hvert stop nemt at koble til kalender/kort. */}
         <div
-          className="flex items-center justify-center w-8 text-xs font-bold text-white tabular-nums shrink-0"
+          className="flex items-center justify-center w-7 text-[11px] font-bold text-white tabular-nums shrink-0 sm:w-8 sm:text-xs"
           style={{ background: color }}
         >
           {index}
@@ -334,40 +334,40 @@ const SortableStopRow = ({
         <button
           type="button"
           onClick={onSelect}
-          className="min-w-0 text-left px-3 py-2.5 hover:bg-accent/5 space-y-1"
+          className="min-w-0 text-left px-2.5 py-2 hover:bg-accent/5 space-y-0.5 sm:px-3 sm:py-2.5 sm:space-y-1"
         >
           {/* Header: kundenavn (primær) + medarbejder-avatars + åbn-pil */}
           <div className="flex items-center gap-1.5">
-            <p className="text-sm font-semibold truncate flex-1 text-foreground leading-tight">
+            <p className="text-xs font-semibold truncate flex-1 text-foreground leading-tight sm:text-sm">
               {stop.customer_name || "Ukendt kunde"}
             </p>
             {assigneeEmps.length > 0 && (
-              <EmployeeAvatars employees={assigneeEmps} size={20} max={3} />
+              <EmployeeAvatars employees={assigneeEmps} size={18} max={2} />
             )}
             <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 shrink-0" />
           </div>
 
           {/* Ydelse — sekundær linje */}
           {stop.service_summary ? (
-            <p className="text-[11px] text-muted-foreground truncate">
+            <p className="text-[10px] text-muted-foreground truncate sm:text-[11px]">
               {stop.service_summary}
             </p>
           ) : (
-            <p className="text-[11px] text-muted-foreground/60 truncate italic">
+            <p className="text-[10px] text-muted-foreground/60 truncate italic sm:text-[11px]">
               Ingen ydelser angivet
             </p>
           )}
 
           {/* Adresse — tertiær */}
           {stop.address && (
-            <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1">
+            <p className="text-[10px] text-muted-foreground truncate flex items-center gap-1 sm:text-[11px]">
               <MapPin className="h-3 w-3 shrink-0" />
               {stop.address}
             </p>
           )}
 
           {/* Konsistent badge-række — alle h-5, samme padding og tekststørrelse. */}
-          <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+          <div className="hidden items-center gap-1.5 flex-wrap pt-0.5 sm:flex">
             <IntervalBadge interval={stop.agreement_interval} size="sm" />
             {stop.status === "completed" && (
               <Badge
