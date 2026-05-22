@@ -132,6 +132,7 @@ export const OnboardingHub = ({ business }: { business: any }) => {
   const slide = slides[step];
   const isLast = step === slides.length - 1;
   const isFirst = step === 0;
+  const guidedSteps = slides.filter((s) => s.step !== undefined);
 
   const goToTab = () => {
     close();
@@ -143,22 +144,17 @@ export const OnboardingHub = ({ business }: { business: any }) => {
   if (!open || !slide) return null;
 
   const Icon = slide.icon;
-  const primaryLabel = isLast
-    ? "Færdig"
-    : slide.tab
-      ? slide.cta || "Åbn og fortsæt"
-      : "Næste";
+  const primaryLabel = isLast ? "Færdig" : "Næste";
   const onPrimary = () => {
     if (isLast) { close(); return; }
-    if (slide.tab) { goToTab(); return; }
     setStep((i) => i + 1);
   };
 
   return (
     <Dialog open onOpenChange={(v) => { if (!v) close(); }}>
-      <DialogContent className="max-w-md gap-0 overflow-hidden border-0 p-0 shadow-2xl max-h-[92dvh] flex flex-col">
+      <DialogContent className="max-w-2xl gap-0 overflow-hidden border-0 p-0 shadow-2xl max-h-[calc(100dvh-1rem)] flex flex-col">
         {/* Header */}
-        <div className="relative shrink-0 bg-gradient-to-br from-foreground to-foreground/90 px-6 py-8 text-center text-background sm:px-8">
+        <div className="relative shrink-0 bg-gradient-to-br from-foreground to-foreground/90 px-4 py-5 text-left text-background sm:px-7 sm:py-7 sm:text-center">
           <button
             onClick={close}
             aria-label="Luk guide"
@@ -166,7 +162,7 @@ export const OnboardingHub = ({ business }: { business: any }) => {
           >
             <X className="h-4 w-4" />
           </button>
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-background/10 backdrop-blur-sm">
+          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-background/10 backdrop-blur-sm sm:mx-auto sm:h-12 sm:w-12 sm:rounded-2xl">
             <Icon className="h-6 w-6" />
           </div>
           {slide.step !== undefined && (
@@ -174,11 +170,39 @@ export const OnboardingHub = ({ business }: { business: any }) => {
               Trin {slide.step} af 6
             </p>
           )}
-          <h2 className="text-lg font-semibold leading-tight">{slide.title}</h2>
+          <h2 className="pr-8 text-base font-semibold leading-tight sm:pr-0 sm:text-lg">{slide.title}</h2>
         </div>
 
+        {guidedSteps.length > 0 && (
+          <div className="shrink-0 overflow-x-auto border-b bg-card px-4 py-2.5 [scrollbar-width:none] sm:px-5 [&::-webkit-scrollbar]:hidden">
+            <div className="flex min-w-max items-center gap-1.5">
+              {guidedSteps.map((s) => {
+                const idx = slides.indexOf(s);
+                const active = idx === step;
+                const done = idx < step;
+                return (
+                  <button
+                    key={s.step}
+                    type="button"
+                    onClick={() => setStep(idx)}
+                    className={cn(
+                      "inline-flex h-8 items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-semibold transition-colors",
+                      active && "border-foreground bg-foreground text-background",
+                      done && !active && "border-accent/30 bg-accent/10 text-foreground",
+                      !active && !done && "border-border bg-secondary/60 text-muted-foreground",
+                    )}
+                  >
+                    <span className="tabular-nums">{s.step}</span>
+                    <span className="max-w-[7rem] truncate sm:max-w-none">{s.cta?.replace("Åbn ", "") || s.title.replace(/^Trin \d+ — /, "")}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Body — scrollable */}
-        <div className="flex-1 overflow-y-auto bg-card px-5 pb-2 pt-5 sm:px-6">
+        <div className="flex-1 overflow-y-auto bg-card px-4 pb-2 pt-4 sm:px-6 sm:pt-5">
           <p className="text-sm leading-relaxed text-foreground/85">{slide.body}</p>
           {slide.tip && (
             <div className="mt-3 rounded-lg border border-accent/30 bg-accent/5 p-3">
@@ -207,7 +231,7 @@ export const OnboardingHub = ({ business }: { business: any }) => {
         </div>
 
         {/* Footer — én primær handling. */}
-        <div className="flex shrink-0 items-center justify-between gap-3 bg-card px-5 py-4">
+        <div className="flex shrink-0 items-center justify-between gap-2 bg-card px-4 py-3 sm:gap-3 sm:px-5 sm:py-4">
           {!isFirst ? (
             <button
               type="button"
@@ -218,10 +242,17 @@ export const OnboardingHub = ({ business }: { business: any }) => {
             </button>
           ) : <span />}
 
-          <Button size="sm" onClick={onPrimary} className="gap-1.5 min-w-[140px]">
-            {primaryLabel}
-            {isLast ? <Check className="h-4 w-4" /> : <ArrowRight className="h-3.5 w-3.5" />}
-          </Button>
+          <div className="flex min-w-0 items-center gap-2">
+            {!isLast && slide.tab && (
+              <Button size="sm" variant="outline" onClick={goToTab} className="h-9 max-w-[42vw] gap-1.5 truncate px-3 text-xs sm:max-w-none">
+                {slide.cta || "Åbn"}
+              </Button>
+            )}
+            <Button size="sm" onClick={onPrimary} className="h-9 gap-1.5 px-4">
+              {primaryLabel}
+              {isLast ? <Check className="h-4 w-4" /> : <ArrowRight className="h-3.5 w-3.5" />}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

@@ -3166,83 +3166,115 @@ const Planner = () => {
                         <TabsTrigger value="week" className="h-7 text-xs">Uge</TabsTrigger>
                       </TabsList>
                     </Tabs>
-                    <Popover>
-                      <PopoverTrigger asChild>
+                    <Sheet>
+                      <SheetTrigger asChild>
                         <Button
                           variant={filtersActive ? "default" : "outline"}
-                          size="icon"
-                          className="h-9 w-9 shrink-0"
+                          size="sm"
+                          className="h-9 shrink-0 gap-1.5 px-3 text-xs"
                           aria-label="Filtre"
                         >
                           <Filter className="h-4 w-4" />
+                          Filtre
+                          {filtersActive && (
+                            <Badge variant="secondary" className="h-4 px-1 text-[10px] tabular-nums">
+                              {filterAssigneeIds.length + filterStatuses.length}
+                            </Badge>
+                          )}
                         </Button>
-                      </PopoverTrigger>
-                      <PopoverContent align="end" className="w-[calc(100vw-1rem)] max-w-80 p-3 space-y-3">
-                        <div>
-                          <div className="flex items-center justify-between mb-1.5">
-                            <Label className="text-xs font-semibold">Medarbejdere</Label>
-                            {filterAssigneeIds.length > 0 && (
-                              <button type="button" onClick={() => setFilterAssigneeIds([])} className="text-[10px] text-muted-foreground hover:text-foreground">
-                                Ryd
-                              </button>
-                            )}
+                      </SheetTrigger>
+                      <SheetContent side="bottom" className="h-[74dvh] max-h-[74dvh] rounded-t-2xl p-0 flex flex-col">
+                        <div className="shrink-0 border-b px-4 py-3 pr-12">
+                          <p className="text-sm font-semibold text-foreground">Filtrér ruter</p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">Vælg medarbejdere eller statusser — kalenderen opdateres med det samme.</p>
+                        </div>
+                        <div className="flex-1 overflow-y-auto space-y-4 px-4 py-4">
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <Label className="text-xs font-semibold">Medarbejdere</Label>
+                              {filterAssigneeIds.length > 0 && (
+                                <button type="button" onClick={() => setFilterAssigneeIds([])} className="text-xs font-medium text-muted-foreground hover:text-foreground">
+                                  Ryd medarbejdere
+                                </button>
+                              )}
+                            </div>
+                            <div className="grid gap-2">
+                              {activeEmployees.length === 0 && <p className="rounded-lg border bg-card px-3 py-2 text-xs text-muted-foreground">Ingen medarbejdere</p>}
+                              {activeEmployees.map((emp: any) => {
+                                const checked = filterAssigneeIds.includes(emp.id);
+                                return (
+                                  <label
+                                    key={emp.id}
+                                    className={cn(
+                                      "flex min-h-11 items-center gap-3 rounded-lg border px-3 py-2 text-sm transition-colors",
+                                      checked ? "border-foreground bg-foreground text-background" : "border-border bg-card text-foreground",
+                                    )}
+                                  >
+                                    <Checkbox
+                                      checked={checked}
+                                      onCheckedChange={(v) =>
+                                        setFilterAssigneeIds((prev) =>
+                                          v ? [...prev, emp.id] : prev.filter((id) => id !== emp.id),
+                                        )
+                                      }
+                                      className={checked ? "border-background data-[state=checked]:bg-background data-[state=checked]:text-foreground" : undefined}
+                                    />
+                                    <FilterEmpAvatar emp={emp} />
+                                    <span className="truncate font-medium">{emp.name}</span>
+                                  </label>
+                                );
+                              })}
+                            </div>
                           </div>
-                          <div className="max-h-48 overflow-y-auto space-y-1 rounded border p-1.5">
-                            {activeEmployees.length === 0 && <p className="text-[11px] text-muted-foreground px-1.5 py-1">Ingen medarbejdere</p>}
-                            {activeEmployees.map((emp: any) => {
-                              const checked = filterAssigneeIds.includes(emp.id);
-                              return (
-                                <label key={emp.id} className="flex items-center gap-2 px-1.5 py-1 rounded hover:bg-secondary cursor-pointer text-xs">
-                                  <Checkbox
-                                    checked={checked}
-                                    onCheckedChange={(v) =>
-                                      setFilterAssigneeIds((prev) =>
-                                        v ? [...prev, emp.id] : prev.filter((id) => id !== emp.id),
-                                      )
-                                    }
-                                  />
-                                  <FilterEmpAvatar emp={emp} />
-                                  <span className="truncate">{emp.name}</span>
-                                </label>
-                              );
-                            })}
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <Label className="text-xs font-semibold">Status</Label>
+                              {filterStatuses.length > 0 && (
+                                <button type="button" onClick={() => setFilterStatuses([])} className="text-xs font-medium text-muted-foreground hover:text-foreground">
+                                  Ryd status
+                                </button>
+                              )}
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              {STATUS_OPTIONS.map((opt) => {
+                                const checked = filterStatuses.includes(opt.value);
+                                return (
+                                  <label
+                                    key={opt.value}
+                                    className={cn(
+                                      "flex min-h-10 items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors",
+                                      checked ? "border-foreground bg-foreground text-background" : "border-border bg-card text-foreground",
+                                    )}
+                                  >
+                                    <Checkbox
+                                      checked={checked}
+                                      onCheckedChange={(v) =>
+                                        setFilterStatuses((prev) =>
+                                          v ? [...prev, opt.value] : prev.filter((s) => s !== opt.value),
+                                        )
+                                      }
+                                      className={checked ? "border-background data-[state=checked]:bg-background data-[state=checked]:text-foreground" : undefined}
+                                    />
+                                    <span>{opt.label}</span>
+                                  </label>
+                                );
+                              })}
+                            </div>
                           </div>
                         </div>
-                        <div>
-                          <div className="flex items-center justify-between mb-1.5">
-                            <Label className="text-xs font-semibold">Status</Label>
-                            {filterStatuses.length > 0 && (
-                              <button type="button" onClick={() => setFilterStatuses([])} className="text-[10px] text-muted-foreground hover:text-foreground">
-                                Ryd
-                              </button>
-                            )}
-                          </div>
-                          <div className="space-y-1 rounded border p-1.5">
-                            {STATUS_OPTIONS.map((opt) => {
-                              const checked = filterStatuses.includes(opt.value);
-                              return (
-                                <label key={opt.value} className="flex items-center gap-2 px-1.5 py-1 rounded hover:bg-secondary cursor-pointer text-xs">
-                                  <Checkbox
-                                    checked={checked}
-                                    onCheckedChange={(v) =>
-                                      setFilterStatuses((prev) =>
-                                        v ? [...prev, opt.value] : prev.filter((s) => s !== opt.value),
-                                      )
-                                    }
-                                  />
-                                  <span>{opt.label}</span>
-                                </label>
-                              );
-                            })}
-                          </div>
-                        </div>
-                        {filtersActive && (
-                          <Button variant="ghost" size="sm" className="w-full h-8 text-xs" onClick={() => { setFilterAssigneeIds([]); setFilterStatuses([]); }}>
+                        <div className="shrink-0 border-t bg-card px-4 py-3">
+                          <Button
+                            variant={filtersActive ? "outline" : "default"}
+                            size="sm"
+                            className="h-9 w-full text-xs"
+                            onClick={() => { setFilterAssigneeIds([]); setFilterStatuses([]); }}
+                            disabled={!filtersActive}
+                          >
                             Nulstil alle filtre
                           </Button>
-                        )}
-                      </PopoverContent>
-                    </Popover>
+                        </div>
+                      </SheetContent>
+                    </Sheet>
                     <Button variant="outline" size="sm" className="h-9 px-3 text-xs" onClick={() => setDate(todayStr())}>
                       I dag
                     </Button>

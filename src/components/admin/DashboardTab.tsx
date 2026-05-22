@@ -256,10 +256,10 @@ const DashboardTab = ({
   const primaryActions = actions.slice(0, 4);
 
   return (
-    <div className="space-y-3 sm:space-y-5">
+    <div className="space-y-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] sm:space-y-5">
       {/* ── Hero welcome panel — matcher forsidens hero (dark + cyan glows) ── */}
       <section
-        className="relative isolate overflow-hidden rounded-xl px-3 py-4 text-background sm:rounded-2xl sm:px-8 sm:py-8"
+        className="relative isolate overflow-hidden rounded-xl px-3 py-3.5 text-background sm:rounded-2xl sm:px-6 sm:py-6 lg:px-8 lg:py-8"
         style={{ backgroundColor: "hsl(var(--hero-bg))" }}
       >
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
@@ -278,22 +278,22 @@ const DashboardTab = ({
           <div className="absolute inset-0 bg-noise opacity-[0.05] mix-blend-overlay" />
         </div>
 
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-5">
+        <div className="flex flex-col gap-2.5 lg:flex-row lg:items-end lg:justify-between lg:gap-5">
           <div className="min-w-0">
             <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-background/55 sm:text-xs sm:tracking-[0.2em]">
               {greeting()} · {new Date().toLocaleDateString("da-DK", { weekday: "long", day: "numeric", month: "long" })}
             </p>
-            <h1 className="mt-1.5 truncate text-lg font-semibold text-background sm:mt-2 sm:text-3xl lg:text-[2rem]">
+            <h1 className="mt-1 truncate text-lg font-semibold leading-tight text-background sm:mt-1.5 sm:text-2xl lg:text-[2rem]">
               {business.name}
             </h1>
-            <p className="mt-1.5 flex items-start gap-2 text-xs leading-5 text-background/80 sm:mt-2 sm:text-[15px] sm:leading-6">
-              <Sparkles className="mt-0.5 h-4 w-4 shrink-0" style={{ color: "hsl(var(--hero-cyan-bright))" }} />
+            <p className="mt-1 flex items-start gap-1.5 text-[11px] leading-4 text-background/78 sm:mt-1.5 sm:gap-2 sm:text-sm sm:leading-5">
+              <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" style={{ color: "hsl(var(--hero-cyan-bright))" }} />
               <span>{insight}</span>
             </p>
           </div>
 
           {business.slug && (
-            <div className="-mx-1 flex items-center gap-1.5 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-2 lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0 lg:shrink-0">
+            <div className="-mx-1 flex items-center gap-1.5 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-2 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 lg:shrink-0">
               <button
                 type="button" onClick={copyLink}
                 className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold text-[hsl(var(--hero-bg))] transition-all hover:-translate-y-0.5 sm:px-3.5 sm:py-2 sm:text-xs"
@@ -320,7 +320,7 @@ const DashboardTab = ({
         </div>
 
         {/* Snapshot-pille: i dag */}
-        <div className="mt-3 grid grid-cols-2 gap-1.5 sm:mt-6 sm:grid-cols-4 sm:gap-2">
+        <div className="mt-2.5 grid grid-cols-2 gap-1.5 sm:mt-4 sm:grid-cols-4 sm:gap-2 lg:mt-6">
           <SnapshotPill label="I dag" value={String(stats.todayCount)} sub={`${fmtKrShort(stats.todayRevenue)} kr`} onClick={() => setOpenStat("today")} />
           <SnapshotPill label="Denne uge" value={String(stats.orders7)} sub={`${fmtKrShort(stats.revenue7)} kr`} onClick={() => setOpenStat("orders")} />
           <SnapshotPill label="Afventer" value={String(pendingOrders)} sub={pendingOrders > 0 ? "Skal besvares" : "Alt besvaret"} accent={pendingOrders > 0} onClick={() => setOpenStat("pending")} />
@@ -328,10 +328,10 @@ const DashboardTab = ({
         </div>
       </section>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)]">
-        <section className="space-y-4">
+      <div className="grid gap-3 sm:gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)]">
+        <section className="space-y-3 sm:space-y-4">
           {/* Periode-stat-kort med sparklines */}
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             <SmartStatCard
               label="Omsætning · 7 dage"
               value={fmtKr(stats.revenue7)}
@@ -411,7 +411,7 @@ const DashboardTab = ({
           )}
         </section>
 
-        <section className="space-y-4">
+        <section className="space-y-3 sm:space-y-4">
           {/* Smart Quick Actions */}
           <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
             <div className="border-b border-border px-4 py-3 sm:px-5">
@@ -552,15 +552,15 @@ const DashboardTab = ({
 /** Lille pille i hero-stripen — kompakt KPI med label/værdi/sub. Klikbar når onClick er sat. */
 const SnapshotPill = ({ label, value, sub, accent, onClick }: { label: string; value: string; sub: string; accent?: boolean; onClick?: () => void }) => {
   const className = cn(
-    "rounded-lg border px-2.5 py-2 text-left backdrop-blur-sm transition-all sm:rounded-xl sm:px-3 sm:py-2.5",
+    "rounded-lg border px-2 py-1.5 text-left backdrop-blur-sm transition-all sm:rounded-xl sm:px-3 sm:py-2.5",
     accent ? "border-amber-300/40 bg-amber-400/[0.10]" : "border-background/10 bg-background/[0.05]",
     onClick && "hover:-translate-y-0.5 hover:border-background/25 hover:bg-background/[0.10]",
   );
   const content = (
     <>
       <p className="truncate text-[9px] font-medium uppercase tracking-wide text-background/60 sm:text-[10px] sm:tracking-wider">{label}</p>
-      <p className="mt-0.5 text-base font-semibold tabular-nums text-background sm:mt-1 sm:text-xl">{value}</p>
-      <p className="truncate text-[10px] text-background/65 sm:mt-0.5 sm:text-[11px]">{sub}</p>
+      <p className="mt-0.5 text-sm font-semibold tabular-nums text-background sm:mt-1 sm:text-xl">{value}</p>
+      <p className="truncate text-[9px] text-background/65 sm:mt-0.5 sm:text-[11px]">{sub}</p>
     </>
   );
   if (onClick) {
@@ -1272,10 +1272,10 @@ export const DashboardSkeleton = () => {
         </div>
       </section>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)]">
-        <section className="space-y-4">
+      <div className="grid gap-3 sm:gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)]">
+        <section className="space-y-3 sm:space-y-4">
           {/* Stat cards */}
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             {Array.from({ length: 2 }).map((_, i) => (
               <Card key={i} className="surface-admin rounded-xl border-border/80 shadow-sm">
                 <CardContent className="p-4 sm:p-5">
@@ -1332,7 +1332,7 @@ export const DashboardSkeleton = () => {
           </Card>
         </section>
 
-        <section className="space-y-4">
+        <section className="space-y-3 sm:space-y-4">
           <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
             <div className="border-b border-border px-4 py-3 sm:px-5">
               <Shimmer className="h-4 w-36" />

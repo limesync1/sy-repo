@@ -292,21 +292,21 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
   return (
     <>
       <Dialog open={open} onOpenChange={(v) => { if (!v && !saving) { reset(); onOpenChange(false); } else if (v) onOpenChange(true); }}>
-        <DialogContent className="max-w-xl max-h-[92vh] flex flex-col p-0 gap-0">
-          <DialogHeader className="px-5 py-4 border-b shrink-0">
+        <DialogContent className="max-w-xl max-h-[calc(100dvh-1rem)] flex flex-col p-0 gap-0 overflow-hidden">
+          <DialogHeader className="px-4 py-3 border-b shrink-0 text-left sm:px-5 sm:py-4">
             <DialogTitle className="flex items-center gap-2 text-base">
               {type === "business" ? <Building2 className="h-4 w-4 text-accent" /> : <User className="h-4 w-4 text-accent" />}
               {initial?.id ? "Rediger kunde" : "Opret ny kunde"}
             </DialogTitle>
-            <DialogDescription className="text-xs">
-              Tilføj kunden i dit kartotek. Du kan vælge at oprette en bestilling for kunden bagefter.
+            <DialogDescription className="text-xs leading-snug">
+              Gem kunden i kartoteket — eller fortsæt direkte til første bestilling.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 bg-secondary/20">
+          <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-secondary/20 sm:px-5 sm:py-4 sm:space-y-4">
             {!initial?.id && (
               <Tabs value={type} onValueChange={(v) => setType(v as CustomerType)}>
-                <TabsList className="grid grid-cols-2 w-full">
+                <TabsList className="grid h-10 w-full grid-cols-2">
                   <TabsTrigger value="private" className="gap-1.5"><User className="h-3.5 w-3.5" /> Privatkunde</TabsTrigger>
                   <TabsTrigger value="business" className="gap-1.5"><Building2 className="h-3.5 w-3.5" /> Erhvervskunde</TabsTrigger>
                 </TabsList>
@@ -314,20 +314,20 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
             )}
 
             {/* Profilbillede */}
-            <div className="flex items-center gap-3">
-              <div className="relative h-14 w-14 shrink-0 group/avatar">
+            <div className="flex items-center gap-3 rounded-lg border bg-card p-3 sm:border-0 sm:bg-transparent sm:p-0">
+              <div className="relative h-12 w-12 shrink-0 group/avatar sm:h-14 sm:w-14">
                 {avatarUrl ? (
                   <img
                     src={avatarUrl}
                     alt="Profil"
-                    className="h-14 w-14 rounded-full object-cover border"
+                    className="h-12 w-12 rounded-full object-cover border sm:h-14 sm:w-14"
                     width={56}
                     height={56}
                     loading="lazy"
                     decoding="async"
                   />
                 ) : (
-                  <div className="h-14 w-14 rounded-full bg-accent/10 border flex items-center justify-center text-accent">
+                  <div className="h-12 w-12 rounded-full bg-accent/10 border flex items-center justify-center text-accent sm:h-14 sm:w-14">
                     {type === "business" ? <Building2 className="h-6 w-6" /> : <User className="h-6 w-6" />}
                   </div>
                 )}
@@ -336,9 +336,9 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
                   <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
                 </label>
               </div>
-              <div className="text-xs text-muted-foreground flex-1">
+              <div className="text-xs text-muted-foreground flex-1 min-w-0">
                 <p className="font-medium text-foreground">Profilbillede</p>
-                <p>Hold over billedet for at skifte. Maks 5MB.</p>
+                <p className="truncate sm:whitespace-normal">Tryk på billedet for at skifte. Maks 5MB.</p>
                 {avatarUrl && (
                   <button type="button" onClick={() => setAvatarUrl(null)} className="text-[11px] text-muted-foreground hover:text-destructive underline-offset-2 hover:underline mt-0.5">
                     Fjern billede
@@ -399,7 +399,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
               </div>
             </div>
 
-            <div>
+            <div className="rounded-lg border bg-card p-3 space-y-2 sm:border-0 sm:bg-transparent sm:p-0">
               <Label className="text-xs">Adresse</Label>
               <AddressAutocomplete
                 value={{ address, zip_code: zipCode, city, latitude, longitude }}
@@ -492,17 +492,17 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
             )}
           </div>
 
-          <DialogFooter className="px-5 py-3 border-t shrink-0 gap-2 sm:gap-2 flex-row sm:justify-between">
-            <Button variant="ghost" onClick={() => { reset(); onOpenChange(false); }} disabled={saving}>Annullér</Button>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => handleSave(false)} disabled={saving}>
+          <DialogFooter className="px-4 py-3 border-t shrink-0 gap-2 sm:gap-2 sm:px-5 sm:flex-row sm:justify-between">
+            <Button variant="ghost" onClick={() => { reset(); onOpenChange(false); }} disabled={saving} className="h-9">Annullér</Button>
+            <div className="grid w-full gap-2 sm:flex sm:w-auto">
+              <Button variant="outline" onClick={() => handleSave(false)} disabled={saving} className="h-9">
                 {saving ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Save className="h-4 w-4 mr-1.5" />}
                 Gem kunde
               </Button>
               {!initial?.id && (
-                <Button onClick={() => handleSave(true)} disabled={saving} className="bg-accent text-accent-foreground hover:bg-accent/90">
+                <Button onClick={() => handleSave(true)} disabled={saving} className="h-9 bg-accent text-accent-foreground hover:bg-accent/90">
                   <ShoppingBag className="h-4 w-4 mr-1.5" />
-                  Gem & opret bestilling
+                  Gem og opret bestilling
                 </Button>
               )}
             </div>
