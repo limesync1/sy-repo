@@ -3520,6 +3520,7 @@ const Planner = () => {
                     assignee_ids: s.assignee_ids || [],
                     lead_employee_id: s.lead_employee_id ?? s.assigned_employee_id ?? null,
                     agreement_interval: s.agreement_interval ?? inheritedInterval,
+                    order_amount: Number((s as any).order_amount ?? 0),
                   };
                 }) as RouteStop[];
               stopsForActive = sourced;
