@@ -1646,7 +1646,7 @@ const AftaleTab = ({
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
             <SelectTrigger
               aria-label="Sortér aftaler"
-              className="h-10 w-auto min-w-[200px] gap-2 rounded-lg border-border bg-card text-sm font-medium hover:bg-secondary"
+              className="h-10 w-full gap-2 rounded-lg border-border bg-card text-sm font-medium hover:bg-secondary sm:w-auto sm:min-w-[200px]"
             >
               <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
               <SelectValue />

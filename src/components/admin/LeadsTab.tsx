@@ -335,7 +335,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
               <div className="ml-auto flex flex-wrap items-center gap-2">
                 {allCategories.length > 1 && (
                   <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                    <SelectTrigger className="h-9 w-[180px] rounded-lg text-xs">
+                    <SelectTrigger className="h-9 w-full rounded-lg text-xs sm:w-[180px]">
                       <div className="flex items-center gap-1.5">
                         <Filter className="h-3.5 w-3.5 text-muted-foreground" />
                         <SelectValue />
