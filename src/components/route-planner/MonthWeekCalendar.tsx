@@ -71,6 +71,13 @@ type Props = {
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
 const fmtRouteMin = (min: number) => min >= 60 ? `${Math.floor(min / 60)}t ${min % 60}m` : `${min}m`;
 const fmtRouteKr = (n: number) => n >= 1000 ? `${Math.round(n).toLocaleString("da-DK")} kr` : `${Math.round(n)} kr`;
+// Kompakt valuta til smalle månedsceller: "1,5k" / "760" — uden "kr"-suffiks
+// så pillens metadata-linje aldrig wrapper eller bliver truncated midt i et tal.
+const fmtRouteKrCompact = (n: number) => {
+  if (n >= 10000) return `${Math.round(n / 1000)}k`;
+  if (n >= 1000) return `${(n / 1000).toFixed(1).replace(".", ",")}k`;
+  return `${Math.round(n)}`;
+};
 
 export const MonthWeekCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
@@ -532,7 +539,12 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
             {travelMin > 0 && (!compact || revenue <= 0) && (
               <span className="inline-flex items-center gap-0.5 shrink-0"><Clock className="h-2.5 w-2.5" />{fmtRouteMin(travelMin)}</span>
             )}
-            {revenue > 0 && <span className="inline-flex items-center gap-0.5 truncate min-w-0"><Wallet className="h-2.5 w-2.5 shrink-0" />{fmtRouteKr(revenue)}</span>}
+            {revenue > 0 && (
+              <span className="inline-flex items-center gap-0.5 shrink-0">
+                <Wallet className="h-2.5 w-2.5 shrink-0" />
+                {compact ? fmtRouteKrCompact(revenue) : fmtRouteKr(revenue)}
+              </span>
+            )}
           </div>
         </div>
         {/* Medarbejder-avatarer */}
