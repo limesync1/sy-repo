@@ -416,10 +416,11 @@ export const AdminShell = ({
 
         <main
           className={cn(
-            "flex-1 min-w-0 pb-20 lg:pb-0",
+            "flex-1 min-w-0 lg:pb-0",
             contentPadding ? "p-3 sm:p-6" : "",
             contentClassName,
           )}
+          style={{ paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 6rem)` }}
         >
           <ImpersonationBanner />
           {children}
