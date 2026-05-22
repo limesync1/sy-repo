@@ -552,15 +552,15 @@ const DashboardTab = ({
 /** Lille pille i hero-stripen — kompakt KPI med label/værdi/sub. Klikbar når onClick er sat. */
 const SnapshotPill = ({ label, value, sub, accent, onClick }: { label: string; value: string; sub: string; accent?: boolean; onClick?: () => void }) => {
   const className = cn(
-    "rounded-xl border px-3 py-2.5 text-left backdrop-blur-sm transition-all",
+    "rounded-lg border px-2.5 py-2 text-left backdrop-blur-sm transition-all sm:rounded-xl sm:px-3 sm:py-2.5",
     accent ? "border-amber-300/40 bg-amber-400/[0.10]" : "border-background/10 bg-background/[0.05]",
     onClick && "hover:-translate-y-0.5 hover:border-background/25 hover:bg-background/[0.10]",
   );
   const content = (
     <>
-      <p className="text-[10px] font-medium uppercase tracking-wider text-background/60">{label}</p>
-      <p className="mt-1 text-lg font-semibold tabular-nums text-background sm:text-xl">{value}</p>
-      <p className="mt-0.5 truncate text-[11px] text-background/65">{sub}</p>
+      <p className="truncate text-[9px] font-medium uppercase tracking-wide text-background/60 sm:text-[10px] sm:tracking-wider">{label}</p>
+      <p className="mt-0.5 text-base font-semibold tabular-nums text-background sm:mt-1 sm:text-xl">{value}</p>
+      <p className="truncate text-[10px] text-background/65 sm:mt-0.5 sm:text-[11px]">{sub}</p>
     </>
   );
   if (onClick) {
@@ -611,7 +611,7 @@ const SmartStatCard = ({
   );
   const body = (
     <Card className={cardClass}>
-      <CardContent className="p-4 sm:p-5">
+        <CardContent className="p-3 sm:p-5">
         <div className="flex items-start justify-between gap-2">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
           <div className={cn(
@@ -621,8 +621,8 @@ const SmartStatCard = ({
             {icon}
           </div>
         </div>
-        <div className="mt-2 flex items-baseline gap-2">
-          <p className="text-2xl font-semibold tabular-nums text-foreground sm:text-[1.75rem]">{value}</p>
+        <div className="mt-2 flex min-w-0 flex-wrap items-baseline gap-1.5 sm:gap-2">
+          <p className="min-w-0 break-words text-xl font-semibold tabular-nums text-foreground sm:text-[1.75rem]">{value}</p>
           {trend && (
             <span className={cn(
               "inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-semibold",
