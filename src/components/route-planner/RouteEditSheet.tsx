@@ -714,7 +714,6 @@ export const RouteEditSheet = ({
  * ─────────────────────────────────────────────────────────────────── */
 const CompletedRouteSummary = ({ routeId }: { routeId: string }) => {
   const { data: rows = [], isLoading } = useQuery({
-    /* eslint-disable-line */
     queryKey: ["route-completed-snapshots", routeId],
     enabled: !!routeId,
     staleTime: 60_000,
