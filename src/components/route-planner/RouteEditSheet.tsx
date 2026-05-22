@@ -156,6 +156,7 @@ export const RouteEditSheet = ({
   const optimize = useOptimizeRoute();
   const moveRouteSeries = useMoveRouteSeries();
   const { data: seriesInfo } = useRouteSeriesInfo(route?.id ?? null, route?.route_date ?? null);
+  const qc = useQueryClient();
 
   useEffect(() => {
     if (!route) return;
@@ -203,10 +204,62 @@ export const RouteEditSheet = ({
     return sorted.length >= 2 ? sorted : null;
   }, [route, stops]);
 
-  const { data: routeDirections } = useDirections(waypoints, {
+  const { data: routeDirections, isFetching: directionsFetching, refetch: refetchDirections } = useDirections(waypoints, {
     departAt: departAt || undefined,
     businessId: route?.business_id,
   });
+
+  // Vejrudsigt for rutens dato — bruges som faktor på rejsetiden.
+  const weatherPoint = useMemo(() => {
+    if (route?.start_latitude != null && route?.start_longitude != null) {
+      return { lat: Number(route.start_latitude), lng: Number(route.start_longitude) };
+    }
+    const s = stops.find((s) => s.latitude != null && s.longitude != null);
+    if (s) return { lat: Number(s.latitude), lng: Number(s.longitude) };
+    return null;
+  }, [route?.start_latitude, route?.start_longitude, stops]);
+
+  const { data: weatherDays } = useWeatherForecast({
+    startDate: route?.route_date || format(new Date(), "yyyy-MM-dd"),
+    endDate: route?.route_date || format(new Date(), "yyyy-MM-dd"),
+    latitude: weatherPoint?.lat ?? null,
+    longitude: weatherPoint?.lng ?? null,
+  });
+  const weather = weatherDays?.[0] || null;
+
+  const weatherFactor = useMemo(() => {
+    if (!weather) return { mult: 1, label: null as string | null, Icon: null as LucideIcon | null };
+    let mult = 1;
+    let label: string | null = null;
+    let Icon: LucideIcon | null = Sun;
+    const code = weather.weatherCode;
+    const heavyRain = weather.precipitationMm >= 5 || weather.precipitationProbability >= 70;
+    const lightRain = weather.precipitationMm >= 1 || weather.precipitationProbability >= 40;
+    const snow = code >= 71 && code <= 77;
+    const windy = weather.windGustMax >= 17;
+    if (snow) { mult = 1.25; label = "Sne"; Icon = CloudSnow; }
+    else if (heavyRain) { mult = 1.15; label = "Kraftig regn"; Icon = CloudRain; }
+    else if (lightRain) { mult = 1.07; label = "Regn"; Icon = CloudRain; }
+    else if (windy) { mult = 1.05; label = "Stærk vind"; Icon = Wind; }
+    else if (code >= 2) { label = "Skyet"; Icon = Cloud; }
+    else { label = "Klart"; Icon = Sun; }
+    return { mult, label, Icon };
+  }, [weather]);
+
+  // Tving refresh af directions umiddelbart efter optimering.
+  useEffect(() => {
+    if (optimize.isSuccess) {
+      qc.invalidateQueries({ queryKey: ["directions"] });
+      refetchDirections();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [optimize.isSuccess]);
+
+  // Estimeret omsætning = sum af aftalens beløb pr. stop.
+  const estimatedRevenue = useMemo(
+    () => stops.reduce((sum, s) => sum + Number((s as any).order_amount || 0), 0),
+    [stops],
+  );
 
   // Hvad skal sendes til serveren?
   //
