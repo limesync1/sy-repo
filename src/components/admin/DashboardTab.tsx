@@ -22,6 +22,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { EmptyState } from "@/components/admin/shared/AdminUI";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 
 interface Props {
   business: Business;
@@ -347,10 +348,10 @@ const DashboardTab = ({
         </div>
       </section>
 
-      <div className="grid gap-3 sm:gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)]">
-        <section className="space-y-3 sm:space-y-4">
+      <div className="grid items-start gap-3 sm:gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)]">
+        <section className="order-2 space-y-3 sm:space-y-4 xl:order-1">
           {/* Periode-stat-kort med sparklines */}
-          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+          <div className="grid grid-cols-1 gap-2 min-[440px]:grid-cols-2 sm:gap-3">
             <SmartStatCard
               label="Omsætning · 7 dage"
               value={fmtKr(stats.revenue7)}
@@ -394,8 +395,8 @@ const DashboardTab = ({
           {/* Top services */}
           {topServices.length > 0 && (
             <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
-              <div className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-5">
-                <div>
+              <div className="flex flex-col gap-2 border-b border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+                <div className="min-w-0">
                   <h3 className="text-sm font-semibold text-foreground">Bedst sælgende services</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">Det her tjener I mest på lige nu — gør gerne mere af det samme.</p>
                 </div>
@@ -430,7 +431,7 @@ const DashboardTab = ({
           )}
         </section>
 
-        <section className="space-y-3 sm:space-y-4">
+        <section className="order-1 space-y-3 sm:space-y-4 xl:order-2">
           {/* Smart Quick Actions */}
           <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
             <div className="border-b border-border px-4 py-3 sm:px-5">
