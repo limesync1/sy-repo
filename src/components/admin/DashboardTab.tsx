@@ -994,6 +994,7 @@ const StatDetailSheet = ({
   statusColors: Record<string, string>;
   onNavigate?: (tab: string) => void;
 }) => {
+  const isCompactSheet = useIsBelowBreakpoint(640);
   const [granularity, setGranularity] = useState<"day" | "week">("day");
   const [rangeDays, setRangeDays] = useState<number>(7);
 
@@ -1060,7 +1061,7 @@ const StatDetailSheet = ({
   if (!config) {
     return (
       <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-        <SheetContent side="right" className="w-full sm:max-w-md" />
+        <SheetContent side={isCompactSheet ? "bottom" : "right"} className={cn("w-full", isCompactSheet ? "h-[86dvh] rounded-t-2xl" : "sm:max-w-md")} />
       </Sheet>
     );
   }
@@ -1115,13 +1116,16 @@ const StatDetailSheet = ({
 
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent side="right" className="w-full overflow-y-auto p-0 sm:max-w-lg">
+      <SheetContent
+        side={isCompactSheet ? "bottom" : "right"}
+        className={cn("w-full overflow-hidden p-0 flex flex-col", isCompactSheet ? "h-[88dvh] rounded-t-2xl" : "sm:max-w-lg")}
+      >
         <SheetHeader className="border-b border-border bg-secondary/40 px-5 py-4 text-left">
           <SheetTitle className="text-base font-semibold text-foreground">{config.title}</SheetTitle>
           <SheetDescription className="text-xs text-muted-foreground">{config.subtitle}</SheetDescription>
         </SheetHeader>
 
-        <div className="space-y-5 p-5">
+        <div className="flex-1 space-y-4 overflow-y-auto p-4 sm:space-y-5 sm:p-5">
           {/* Total for valgt interval */}
           <div className="rounded-xl border border-border bg-card p-4">
             <div className="flex items-center justify-between">
