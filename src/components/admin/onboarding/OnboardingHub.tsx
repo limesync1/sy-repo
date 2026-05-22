@@ -40,7 +40,7 @@ const buildSlides = (businessName?: string): Slide[] => [
     icon: Rocket,
     title: `Velkommen, ${businessName || "ny virksomhed"}!`,
     body:
-      "Denne guide tager jer trin for trin gennem den rigtige rækkefølge for at få jeres panel i drift. Følg trinene fra start til slut — så undgår I rod i regnskab, ruter og medarbejder-tildelinger senere.",
+      "Guiden tjekker selv om I har gjort hvert trin og markerer dem færdige automatisk. I behøver ikke krydse manuelt af — kør bare videre i panelet, og statussen herinde opdaterer sig selv.",
   },
   {
     icon: Tags,
