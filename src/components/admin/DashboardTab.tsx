@@ -393,12 +393,12 @@ const DashboardTab = ({
           </Card>
 
           {/* Top services */}
-          {topServices.length > 0 && (
+          {topServices.length > 0 ? (
             <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
               <div className="flex flex-col gap-2 border-b border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
                 <div className="min-w-0">
                   <h3 className="text-sm font-semibold text-foreground">Bedst sælgende services</h3>
-                  <p className="mt-0.5 text-xs text-muted-foreground">Det her tjener I mest på lige nu — gør gerne mere af det samme.</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">Det her tjener I mest på lige nu.</p>
                 </div>
                 <button onClick={() => onNavigate?.("services")} className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
                   Se alle <ArrowRight className="h-3 w-3" />
@@ -428,6 +428,17 @@ const DashboardTab = ({
                 })}
               </div>
             </Card>
+          ) : (
+            servicesCount > 0 && ordersCount > 0 && (
+              <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
+                <CardContent className="p-4 sm:p-5">
+                  <h3 className="text-sm font-semibold text-foreground">Bedst sælgende services</h3>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Ingen omsætning registreret på services endnu — så snart en bestilling med en service er afsluttet, dukker top-listen op her.
+                  </p>
+                </CardContent>
+              </Card>
+            )
           )}
         </section>
 
