@@ -71,6 +71,13 @@ type Props = {
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
 const fmtRouteMin = (min: number) => min >= 60 ? `${Math.floor(min / 60)}t ${min % 60}m` : `${min}m`;
 const fmtRouteKr = (n: number) => n >= 1000 ? `${Math.round(n).toLocaleString("da-DK")} kr` : `${Math.round(n)} kr`;
+// Kompakt valuta til smalle månedsceller: "1,5k" / "760" — uden "kr"-suffiks
+// så pillens metadata-linje aldrig wrapper eller bliver truncated midt i et tal.
+const fmtRouteKrCompact = (n: number) => {
+  if (n >= 10000) return `${Math.round(n / 1000)}k`;
+  if (n >= 1000) return `${(n / 1000).toFixed(1).replace(".", ",")}k`;
+  return `${Math.round(n)}`;
+};
 
 export const MonthWeekCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
@@ -465,8 +472,10 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
   const completedCount = route.stops.filter((s) => s.status === "completed").length;
   const travelMin = Number(route.total_duration_minutes || 0) || route.stops.reduce((sum, s) => sum + Number(s.travel_time_to_next_min || 0), 0);
   const revenue = route.stops.reduce((sum, s) => sum + Number((s as any).order_amount || 0), 0);
-  void compact;
-  const visibleEmployees = route.attachedEmployees.slice(0, 3);
+  // I månedsvisning er cellerne smalle (~110px). For at undgå at metadata-
+  // rækken wrapper til 3-4 linjer (og dermed gør pillen + hele kalender-
+  // rækken unødigt høj) viser vi færre felter og holder dem på én linje.
+  const visibleEmployees = route.attachedEmployees.slice(0, compact ? 2 : 3);
   const extraEmployees = route.attachedEmployees.length - visibleEmployees.length;
   // Fjernet: grøn bundkant og "klar til udførelse"-logik efter ønske.
 
@@ -519,11 +528,23 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
             {isVirtual && <Repeat className="h-2.5 w-2.5 shrink-0 text-muted-foreground" />}
             <span className="truncate">{route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}</span>
           </div>
-          <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[9px] text-muted-foreground tabular-nums sm:text-[10px]">
-            {stopCount > 0 && <span className="inline-flex items-center gap-0.5"><MapPin className="h-2.5 w-2.5" />{stopCount} stop</span>}
-            {completedCount > 0 && <span className="text-emerald-600">{completedCount}✓</span>}
-            {travelMin > 0 && <span className="inline-flex items-center gap-0.5"><Clock className="h-2.5 w-2.5" />{fmtRouteMin(travelMin)}</span>}
-            {revenue > 0 && <span className="inline-flex items-center gap-0.5"><Wallet className="h-2.5 w-2.5" />{fmtRouteKr(revenue)}</span>}
+          <div
+            className={cn(
+              "mt-0.5 flex items-center gap-x-1.5 text-[9px] text-muted-foreground tabular-nums sm:text-[10px] overflow-hidden",
+              compact ? "flex-nowrap whitespace-nowrap" : "flex-wrap gap-y-0.5",
+            )}
+          >
+            {stopCount > 0 && <span className="inline-flex items-center gap-0.5 shrink-0"><MapPin className="h-2.5 w-2.5" />{stopCount}</span>}
+            {completedCount > 0 && <span className="text-emerald-600 shrink-0">{completedCount}✓</span>}
+            {travelMin > 0 && (!compact || revenue <= 0) && (
+              <span className="inline-flex items-center gap-0.5 shrink-0"><Clock className="h-2.5 w-2.5" />{fmtRouteMin(travelMin)}</span>
+            )}
+            {revenue > 0 && (
+              <span className="inline-flex items-center gap-0.5 shrink-0">
+                <Wallet className="h-2.5 w-2.5 shrink-0" />
+                {compact ? fmtRouteKrCompact(revenue) : fmtRouteKr(revenue)}
+              </span>
+            )}
           </div>
         </div>
         {/* Medarbejder-avatarer */}
