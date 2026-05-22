@@ -2986,7 +2986,7 @@ const Planner = () => {
               {/* Desktop (lg+): resizable side-by-side med aftalepool venstre + kalender højre.
                   Topbaren har ikke plads til alle handlinger før 2xl, så vi viser en kompakt
                   toolbar oven på split-layoutet ved lg/xl. */}
-              <div className="hidden h-full lg:flex lg:flex-col lg:gap-2">
+              <div className="hidden h-full xl:flex xl:flex-col xl:gap-2">
                 <div className="shrink-0 rounded-lg border bg-card p-2 shadow-sm 2xl:hidden">
                   <div className="flex flex-wrap items-center gap-1.5">
                     <Button
