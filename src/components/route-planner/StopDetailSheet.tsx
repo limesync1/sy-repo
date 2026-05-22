@@ -233,6 +233,49 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
           </SheetHeader>
 
           <div className="flex-1 overflow-y-auto p-5 space-y-5">
+              {/* Completion banner — when the stop is already done, show
+                  who completed it and when, so the owner has a quick recap. */}
+              {stop.status === "completed" && (
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-900 px-4 py-3">
+                  <div className="flex items-start gap-2.5">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 mt-0.5 shrink-0" />
+                    <div className="min-w-0 flex-1 text-sm">
+                      <p className="font-semibold text-emerald-900 dark:text-emerald-100">
+                        Aftalen er udført
+                      </p>
+                      {stop.completed_at && (
+                        <p className="text-[12px] text-emerald-800/80 dark:text-emerald-200/80 mt-0.5">
+                          Færdiggjort {format(parseISO(stop.completed_at), "d. MMM yyyy 'kl.' HH:mm", { locale: da })}
+                        </p>
+                      )}
+                      {(() => {
+                        const ids = stop.assignee_ids ?? (stop.assigned_employee_id ? [stop.assigned_employee_id] : []);
+                        if (!ids.length) return null;
+                        const names = ids
+                          .map((id) => (activeEmployees as any[]).find((e) => e.id === id)?.name)
+                          .filter(Boolean);
+                        if (!names.length) return null;
+                        return (
+                          <p className="text-[12px] text-emerald-800/80 dark:text-emerald-200/80 mt-0.5">
+                            Udført af {names.join(", ")}
+                          </p>
+                        );
+                      })()}
+                      {(() => {
+                        const completed = (timeEntries || []).filter((e: any) => e.duration_minutes != null && e.duration_minutes > 0);
+                        if (!completed.length) return null;
+                        const teamMin = Math.max(...completed.map((e: any) => e.duration_minutes));
+                        return (
+                          <p className="text-[12px] text-emerald-800/80 dark:text-emerald-200/80 mt-0.5">
+                            Faktisk tid brugt: <span className="font-semibold">{fmtMinutes(teamMin)}</span>
+                          </p>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Medarbejdere på aftalen (pr-stop tildeling) — vises øverst for hurtig tildeling */}
               {!readOnly && (
                 <Section
