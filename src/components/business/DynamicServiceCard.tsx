@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
-import { ImageIcon, ShoppingCart, Minus, Plus, Check } from "lucide-react";
+import { ShoppingCart, Minus, Plus, Check } from "lucide-react";
 import { INTERVAL_LABELS } from "@/types/service";
 import type { Service, CalculatorStep } from "@/hooks/useDatabase";
 import { buildPricingSnapshot, roundPrice } from "@/lib/service-pricing";
