@@ -554,7 +554,7 @@ export const RouteEditSheet = ({
                   const adjustedSec = baseSec != null ? Math.round(baseSec * weatherFactor.mult) : null;
                   const trafficMult = routeDirections?.traffic_multiplier ?? 1;
                   const trafficLabel = trafficMult >= 1.25 ? "Tæt trafik"
-                    : trafficMult >= 1.10 ? "Moderat trafik" : "Fri trafik";
+                    : trafficMult >= 1.10 ? "Moderat trafik" : null;
                   const WeatherIcon = weatherFactor.Icon;
                   return (
                     <div>
@@ -566,9 +566,11 @@ export const RouteEditSheet = ({
                         {directionsFetching && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
                       </p>
                       <div className="mt-2 flex flex-wrap gap-1.5">
-                        <Badge variant="secondary" className="gap-1 text-[10px] font-medium">
-                          <TrafficCone className="h-3 w-3" /> {trafficLabel}
-                        </Badge>
+                        {trafficLabel && (
+                          <Badge variant="secondary" className="gap-1 text-[10px] font-medium">
+                            <TrafficCone className="h-3 w-3" /> {trafficLabel}
+                          </Badge>
+                        )}
                         {weatherFactor.label && WeatherIcon && (
                           <Badge variant="secondary" className="gap-1 text-[10px] font-medium">
                             <WeatherIcon className="h-3 w-3" /> {weatherFactor.label}
