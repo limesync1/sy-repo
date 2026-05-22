@@ -16,6 +16,7 @@ import {
   Mail, Phone, Briefcase, UserPlus,
   Trash2, Power, PowerOff, Pencil, KeyRound, Users, Percent, MessageCircle,
   Wallet, TrendingUp, ListChecks, MapPin, CheckCircle2, Clock, CalendarDays,
+  MoreHorizontal,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ROUTE_COLORS } from "@/components/route-planner/RouteEditSheet";
@@ -34,6 +35,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { PageHeader, PrimaryButton, FieldLabel, EmptyState, SearchInput } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 
@@ -364,7 +369,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                 />
               </div>
               <div>
-                <FieldLabel>Telefon</FieldLabel>
+                <FieldLabel optional>Telefon</FieldLabel>
                 <Input
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
@@ -373,7 +378,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                 />
               </div>
               <div>
-                <FieldLabel>Titel / rolle</FieldLabel>
+                <FieldLabel optional>Titel / rolle</FieldLabel>
                 <Input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
@@ -382,7 +387,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                 />
               </div>
               <div>
-                <FieldLabel>Provision (%)</FieldLabel>
+                <FieldLabel optional>Provision (%)</FieldLabel>
                 <div className="relative">
                   <Input
                     type="number"
@@ -402,7 +407,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                 </p>
               </div>
               <div>
-                <FieldLabel>Medarbejder-nr.</FieldLabel>
+                <FieldLabel optional>Medarbejder-nr.</FieldLabel>
                 <Input
                   value={employeeNumber}
                   onChange={(e) => setEmployeeNumber(e.target.value)}
@@ -411,7 +416,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                 />
               </div>
               <div>
-                <FieldLabel>Medarbejdergruppe / afdeling</FieldLabel>
+                <FieldLabel optional>Medarbejdergruppe / afdeling</FieldLabel>
                 <Input
                   value={employeeGroup}
                   onChange={(e) => setEmployeeGroup(e.target.value)}
@@ -808,57 +813,73 @@ const EmployeeRow = ({
           >
             <Pencil className="h-4 w-4" />
           </button></TooltipTrigger><TooltipContent>Rediger oplysninger</TooltipContent></Tooltip>
-          <Tooltip><TooltipTrigger asChild><button
-            onClick={() => {
-              const next = !(employee as any).livechat_enabled;
-              onUpdate.mutate(
-                { id: employee.id, business_id: businessId, livechat_enabled: next } as any,
-                {
-                  onSuccess: () =>
-                    toast.success(next ? "Livechat-adgang aktiveret" : "Livechat-adgang fjernet"),
-                  onError: (e: any) => toast.error(e.message),
-                },
-              );
-            }}
-            className={cn(
-              "rounded-md p-2 transition-colors",
-              (employee as any).livechat_enabled
-                ? "bg-accent/10 text-accent hover:bg-accent/15"
-                : "text-muted-foreground hover:bg-secondary hover:text-foreground",
-            )}
-          >
-            <MessageCircle className="h-4 w-4" />
-          </button></TooltipTrigger><TooltipContent>{(employee as any).livechat_enabled ? "Fjern livechat-adgang" : "Giv adgang til livechat"}</TooltipContent></Tooltip>
-          {linked && (
-            <Tooltip><TooltipTrigger asChild><button
-              onClick={() => setConfirmReset(true)}
-              disabled={resetPw.isPending}
-              className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors disabled:opacity-50"
-            >
-              <KeyRound className="h-4 w-4" />
-            </button></TooltipTrigger><TooltipContent>Send nulstilling af adgangskode</TooltipContent></Tooltip>
-          )}
-          <Tooltip><TooltipTrigger asChild><button
-            onClick={() => {
-              onUpdate.mutate(
-                { id: employee.id, business_id: businessId, is_active: !employee.is_active },
-                {
-                  onSuccess: () =>
-                    toast.success(employee.is_active ? "Medarbejder deaktiveret" : "Medarbejder aktiveret"),
-                  onError: (e: any) => toast.error(e.message),
-                }
-              );
-            }}
-            className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-          >
-            {employee.is_active ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
-          </button></TooltipTrigger><TooltipContent>{employee.is_active ? "Deaktiver medarbejder" : "Aktivér medarbejder"}</TooltipContent></Tooltip>
-          <Tooltip><TooltipTrigger asChild><button
-            onClick={() => setConfirmDelete(true)}
-            className="rounded-md p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button></TooltipTrigger><TooltipContent>Slet medarbejder</TooltipContent></Tooltip>
+          <DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                    aria-label="Flere handlinger"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent>Flere handlinger</TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel className="text-xs">{employee.name || "Medarbejder"}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  const next = !(employee as any).livechat_enabled;
+                  onUpdate.mutate(
+                    { id: employee.id, business_id: businessId, livechat_enabled: next } as any,
+                    {
+                      onSuccess: () =>
+                        toast.success(next ? "Livechat-adgang aktiveret" : "Livechat-adgang fjernet"),
+                      onError: (e: any) => toast.error(e.message),
+                    },
+                  );
+                }}
+              >
+                <MessageCircle className="h-4 w-4 mr-2" />
+                {(employee as any).livechat_enabled ? "Fjern livechat-adgang" : "Giv adgang til livechat"}
+              </DropdownMenuItem>
+              {linked && (
+                <DropdownMenuItem
+                  onClick={() => setConfirmReset(true)}
+                  disabled={resetPw.isPending}
+                >
+                  <KeyRound className="h-4 w-4 mr-2" />
+                  Send nulstilling af adgangskode
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem
+                onClick={() => {
+                  onUpdate.mutate(
+                    { id: employee.id, business_id: businessId, is_active: !employee.is_active },
+                    {
+                      onSuccess: () =>
+                        toast.success(employee.is_active ? "Medarbejder deaktiveret" : "Medarbejder aktiveret"),
+                      onError: (e: any) => toast.error(e.message),
+                    }
+                  );
+                }}
+              >
+                {employee.is_active ? <PowerOff className="h-4 w-4 mr-2" /> : <Power className="h-4 w-4 mr-2" />}
+                {employee.is_active ? "Deaktiver medarbejder" : "Aktivér medarbejder"}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => setConfirmDelete(true)}
+                className="text-destructive focus:text-destructive focus:bg-destructive/10"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Slet medarbejder
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
@@ -935,7 +956,7 @@ const EmployeeRow = ({
                   </p>
                 </div>
                 <div>
-                  <FieldLabel>Telefon</FieldLabel>
+                  <FieldLabel optional>Telefon</FieldLabel>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
                     <Input
@@ -947,7 +968,7 @@ const EmployeeRow = ({
                   </div>
                 </div>
                 <div>
-                  <FieldLabel>Titel</FieldLabel>
+                  <FieldLabel optional>Titel</FieldLabel>
                   <div className="relative">
                     <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
                     <Input
@@ -959,7 +980,7 @@ const EmployeeRow = ({
                   </div>
                 </div>
                 <div>
-                  <FieldLabel>Medarbejder-nr.</FieldLabel>
+                  <FieldLabel optional>Medarbejder-nr.</FieldLabel>
                   <Input
                     value={editEmployeeNumber}
                     onChange={(e) => setEditEmployeeNumber(e.target.value)}
@@ -971,7 +992,7 @@ const EmployeeRow = ({
                   </p>
                 </div>
                 <div>
-                  <FieldLabel>Medarbejdergruppe / afdeling</FieldLabel>
+                  <FieldLabel optional>Medarbejdergruppe / afdeling</FieldLabel>
                   <Input
                     value={editEmployeeGroup}
                     onChange={(e) => setEditEmployeeGroup(e.target.value)}
@@ -988,7 +1009,7 @@ const EmployeeRow = ({
                 Aflønning
               </h4>
               <div className="rounded-xl border border-border bg-card p-4">
-                <FieldLabel>Provision af udførte aftaler</FieldLabel>
+                <FieldLabel optional>Provision af udførte aftaler</FieldLabel>
                 <div className="flex items-center gap-3">
                   <div className="relative flex-1">
                     <Input
