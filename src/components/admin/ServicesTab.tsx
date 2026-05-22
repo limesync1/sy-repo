@@ -2,7 +2,7 @@
 // This entire module (~1700 lines) loads only when the user opens
 // the Services tab in their business panel, removing it from the
 // initial /virksomhed chunk.
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   Plus, Trash2,
