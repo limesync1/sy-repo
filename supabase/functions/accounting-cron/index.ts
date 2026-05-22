@@ -3,8 +3,16 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const CRON_SECRET = Deno.env.get("CRON_SECRET") || "";
 
-Deno.serve(async (_req) => {
+Deno.serve(async (req) => {
+  const authHeader = req.headers.get("Authorization") || "";
+  const ok = CRON_SECRET && (authHeader === `Bearer ${CRON_SECRET}` || authHeader === `Bearer ${SERVICE_KEY}`);
+  if (!ok) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401, headers: { "Content-Type": "application/json" },
+    });
+  }
   const admin = createClient(SUPABASE_URL, SERVICE_KEY);
   const { data: integrations } = await admin
     .from("accounting_integrations").select("business_id").eq("is_active", true);

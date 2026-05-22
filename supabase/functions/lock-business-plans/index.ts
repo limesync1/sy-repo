@@ -67,6 +67,15 @@ export function decideLock(plan: LockCandidate, now: Date): LockDecision {
 
 Deno.serve(async (req) => {
   try {
+    const CRON_SECRET = Deno.env.get("CRON_SECRET") || "";
+    const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+    const authHeader = req.headers.get("Authorization") || "";
+    const ok = CRON_SECRET && (authHeader === `Bearer ${CRON_SECRET}` || authHeader === `Bearer ${SERVICE_KEY}`);
+    if (!ok) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { "Content-Type": "application/json" },
+      });
+    }
     const now = Date.now();
     const lockThreshold = new Date(now + LOCK_WINDOW_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
