@@ -369,7 +369,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                 />
               </div>
               <div>
-                <FieldLabel>Telefon</FieldLabel>
+                <FieldLabel optional>Telefon</FieldLabel>
                 <Input
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
@@ -378,7 +378,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                 />
               </div>
               <div>
-                <FieldLabel>Titel / rolle</FieldLabel>
+                <FieldLabel optional>Titel / rolle</FieldLabel>
                 <Input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
@@ -387,7 +387,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                 />
               </div>
               <div>
-                <FieldLabel>Provision (%)</FieldLabel>
+                <FieldLabel optional>Provision (%)</FieldLabel>
                 <div className="relative">
                   <Input
                     type="number"
@@ -407,7 +407,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                 </p>
               </div>
               <div>
-                <FieldLabel>Medarbejder-nr.</FieldLabel>
+                <FieldLabel optional>Medarbejder-nr.</FieldLabel>
                 <Input
                   value={employeeNumber}
                   onChange={(e) => setEmployeeNumber(e.target.value)}
@@ -416,7 +416,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                 />
               </div>
               <div>
-                <FieldLabel>Medarbejdergruppe / afdeling</FieldLabel>
+                <FieldLabel optional>Medarbejdergruppe / afdeling</FieldLabel>
                 <Input
                   value={employeeGroup}
                   onChange={(e) => setEmployeeGroup(e.target.value)}
@@ -956,7 +956,7 @@ const EmployeeRow = ({
                   </p>
                 </div>
                 <div>
-                  <FieldLabel>Telefon</FieldLabel>
+                  <FieldLabel optional>Telefon</FieldLabel>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
                     <Input
@@ -968,7 +968,7 @@ const EmployeeRow = ({
                   </div>
                 </div>
                 <div>
-                  <FieldLabel>Titel</FieldLabel>
+                  <FieldLabel optional>Titel</FieldLabel>
                   <div className="relative">
                     <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
                     <Input
@@ -980,7 +980,7 @@ const EmployeeRow = ({
                   </div>
                 </div>
                 <div>
-                  <FieldLabel>Medarbejder-nr.</FieldLabel>
+                  <FieldLabel optional>Medarbejder-nr.</FieldLabel>
                   <Input
                     value={editEmployeeNumber}
                     onChange={(e) => setEditEmployeeNumber(e.target.value)}
@@ -992,7 +992,7 @@ const EmployeeRow = ({
                   </p>
                 </div>
                 <div>
-                  <FieldLabel>Medarbejdergruppe / afdeling</FieldLabel>
+                  <FieldLabel optional>Medarbejdergruppe / afdeling</FieldLabel>
                   <Input
                     value={editEmployeeGroup}
                     onChange={(e) => setEditEmployeeGroup(e.target.value)}
@@ -1009,7 +1009,7 @@ const EmployeeRow = ({
                 Aflønning
               </h4>
               <div className="rounded-xl border border-border bg-card p-4">
-                <FieldLabel>Provision af udførte aftaler</FieldLabel>
+                <FieldLabel optional>Provision af udførte aftaler</FieldLabel>
                 <div className="flex items-center gap-3">
                   <div className="relative flex-1">
                     <Input
