@@ -373,7 +373,7 @@ export const AdminShell = ({
 
       {/* Main */}
       <div className="flex flex-1 flex-col min-w-0">
-        <header className="sticky top-0 z-30 flex min-h-14 shrink-0 flex-wrap items-center gap-2 border-b border-border bg-card px-3 py-2 sm:flex-nowrap sm:gap-3 sm:px-6 sm:py-0">
+        <header className="sticky top-0 z-30 flex h-14 shrink-0 flex-nowrap items-center gap-2 border-b border-border bg-card px-3 sm:gap-3 sm:px-6">
           <button
             onClick={() => setSidebarOpen(true)}
             className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors lg:hidden"
@@ -381,12 +381,12 @@ export const AdminShell = ({
           >
             <Menu className="h-5 w-5" />
           </button>
-          <h1 className="min-w-0 flex-1 truncate text-base font-semibold text-foreground sm:flex-none sm:text-lg">
+          <h1 className="min-w-0 flex-1 truncate text-base font-semibold text-foreground sm:text-lg">
             {title ?? currentNav?.label}
           </h1>
-          <div className="order-3 ml-0 flex w-full flex-wrap items-center gap-2 sm:order-none sm:ml-auto sm:w-auto sm:flex-nowrap sm:min-w-0">
+          <div className="ml-auto flex shrink-0 items-center gap-2 min-w-0">
             {topbarRight && (
-              <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap">
+              <div className="hidden min-w-0 items-center gap-2 sm:flex">
                 {topbarRight}
               </div>
             )}
@@ -395,7 +395,7 @@ export const AdminShell = ({
               onClick={() => window.dispatchEvent(new CustomEvent("serviceydere:open-platform-chat"))}
               title="Kontakt Serviceydere kundeservice"
               aria-label="Kontakt Serviceydere kundeservice"
-              className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-full bg-foreground px-2.5 py-1.5 text-xs font-semibold text-background shadow-[0_14px_32px_-14px_hsl(var(--foreground)/0.55)] transition-all hover:bg-foreground/90 hover:shadow-[0_18px_40px_-14px_hsl(var(--foreground)/0.6)] active:scale-95 sm:ml-0 sm:px-3 sm:py-2"
+              className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-foreground px-2.5 text-xs font-semibold text-background shadow-[0_14px_32px_-14px_hsl(var(--foreground)/0.55)] transition-all hover:bg-foreground/90 active:scale-95 sm:px-3"
             >
               <span className="relative flex h-5 w-5 items-center justify-center">
                 <img
@@ -413,6 +413,13 @@ export const AdminShell = ({
             </button>
           </div>
         </header>
+        {topbarRight && (
+          <div className="sm:hidden sticky top-14 z-20 border-b border-border bg-card px-3 py-2">
+            <div className="flex items-center gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {topbarRight}
+            </div>
+          </div>
+        )}
 
         <main
           className={cn(

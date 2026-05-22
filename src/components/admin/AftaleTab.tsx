@@ -2118,8 +2118,12 @@ const AftaleTab = ({
                               </>
                             )}
                             {actions.canProgress && actions.nextStatus && (
-                              <Button size="sm" onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, actions.nextStatus!); }}
-                                className="h-8 gap-1.5 rounded-md px-2.5 text-xs bg-foreground text-background hover:bg-foreground/90">
+                              <Button
+                                size="sm"
+                                onClick={(e) => { e.stopPropagation(); handleProgressStatus(order.id, actions.nextStatus!); }}
+                                title="Kun til manuel udførelse — hvis aftalen skal udføres af en medarbejder på en rute, sker det automatisk når medarbejderen markerer stoppet udført i medarbejder-appen. Brug kun denne knap hvis du som ejer selv udfører aftalen manuelt uden at lægge den på en rute."
+                                className="h-8 gap-1.5 rounded-md px-2.5 text-xs bg-foreground text-background hover:bg-foreground/90"
+                              >
                                 {actions.nextStatus === "in_progress" && <><Play className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
                                 {actions.nextStatus === "completed" && hasRecurring && <><RefreshCw className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
                                 {actions.nextStatus === "completed" && !hasRecurring && <><CheckCircle2 className="h-3.5 w-3.5" /> {actions.nextLabel}</>}
@@ -2140,6 +2144,13 @@ const AftaleTab = ({
                               <Trash2 className="h-3.5 w-3.5" /> Slet
                             </Button>
                           </div>
+                          {actions.canProgress && actions.nextStatus && (
+                            <p className="mt-2 w-full text-[11px] leading-relaxed text-muted-foreground sm:text-right">
+                              <span className="font-medium text-foreground">Bemærk:</span>{" "}
+                              "{actions.nextLabel}" er kun til <span className="font-medium">manuel udførelse</span> — fx hvis du som ejer selv udfører aftalen.
+                              Hvis aftalen er på en rute med en medarbejder, sker det automatisk når medarbejderen markerer stoppet udført i medarbejder-appen.
+                            </p>
+                          )}
                         </div>
                       ) : (
                         <div className="flex flex-wrap items-center justify-between gap-2" onClick={(e) => e.stopPropagation()}>

@@ -2024,7 +2024,11 @@ const IndustryPicker = ({
 
       {/* Aktive valg som chips — hurtig oversigt + fravalg */}
       {selected.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 rounded-lg border border-border bg-secondary/40 p-2">
+        <div className="rounded-xl border border-border bg-secondary/40 p-3">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Valgte brancher ({knownSelected.length + customValues.length})
+          </p>
+          <div className="flex flex-wrap gap-1.5">
           {knownSelected.map((k) => {
             const ind = ALL_INDUSTRIES.find((i) => i.key === k)!;
             return (
@@ -2032,11 +2036,11 @@ const IndustryPicker = ({
                 key={k}
                 type="button"
                 onClick={() => onToggle(k)}
-                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-foreground transition-colors hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+                className="group inline-flex items-center gap-1.5 rounded-full border border-foreground/20 bg-foreground/5 px-2.5 py-1 text-xs font-medium text-foreground transition-all hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
               >
                 <span>{ind.icon}</span>
                 <span>{ind.label}</span>
-                <span aria-hidden className="text-muted-foreground">×</span>
+                <span aria-hidden className="text-muted-foreground transition-colors group-hover:text-destructive">×</span>
               </button>
             );
           })}
@@ -2045,7 +2049,7 @@ const IndustryPicker = ({
               key={`custom-${k}`}
               type="button"
               onClick={() => onToggle(k)}
-              className="inline-flex items-center gap-1.5 rounded-md border border-dashed border-border bg-card px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+              className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
               title="Tidligere valg (ikke i nyt katalog)"
             >
               <span>🧰</span>
@@ -2053,6 +2057,7 @@ const IndustryPicker = ({
               <span aria-hidden>×</span>
             </button>
           ))}
+          </div>
         </div>
       )}
 
@@ -2071,18 +2076,23 @@ const IndustryPicker = ({
                     key={i.key}
                     type="button"
                     onClick={() => onToggle(i.key)}
-                    className={`group flex items-center gap-2 rounded-xl border px-2.5 py-2 text-left transition-all ${
+                    className={`group relative flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left transition-all ${
                       isOn
-                        ? "border-foreground bg-foreground/5 shadow-sm"
-                        : "border-border bg-card hover:border-foreground/30"
+                        ? "border-foreground bg-foreground/5 shadow-sm ring-1 ring-foreground/10"
+                        : "border-border bg-card hover:border-foreground/40 hover:bg-secondary/40"
                     }`}
                   >
-                    <span className="text-base leading-none">{i.icon}</span>
+                    <span className="text-lg leading-none">{i.icon}</span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-xs font-medium text-foreground">
+                      <span className="block truncate text-[13px] font-medium text-foreground">
                         {i.label}
                       </span>
                     </span>
+                    {isOn && (
+                      <span className="ml-1 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
+                        <svg viewBox="0 0 20 20" fill="currentColor" className="h-3 w-3"><path fillRule="evenodd" d="M16.7 5.3a1 1 0 010 1.4l-7 7a1 1 0 01-1.4 0l-3-3a1 1 0 011.4-1.4L9 11.6l6.3-6.3a1 1 0 011.4 0z" clipRule="evenodd"/></svg>
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -2123,19 +2133,24 @@ const SubcategoryPicker = ({
     <div className="grid gap-3 lg:grid-cols-2">
       {industries.map((ind) => {
         const picked = selectedSubcategories[ind.key] || [];
+        const total = ind.subcategories.length;
+        const pct = total > 0 ? (picked.length / total) * 100 : 0;
         return (
           <div
             key={ind.key}
-            className="rounded-xl border border-border bg-card p-3"
+            className="rounded-xl border border-border bg-card p-3.5 shadow-sm transition-shadow hover:shadow-md"
           >
             <div className="flex items-center gap-2">
-              <span className="text-base leading-none">{ind.icon}</span>
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-foreground/5 text-base leading-none">{ind.icon}</span>
               <span className="text-sm font-semibold text-foreground">{ind.label}</span>
-              <span className="ml-auto text-[11px] font-medium text-muted-foreground tabular-nums">
-                {picked.length}/{ind.subcategories.length}
+              <span className="ml-auto inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold text-foreground tabular-nums">
+                {picked.length}/{total}
               </span>
             </div>
-            <div className="mt-2.5 flex flex-wrap gap-1.5">
+            <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-border/60">
+              <div className="h-full bg-foreground transition-all" style={{ width: `${pct}%` }} />
+            </div>
+            <div className="mt-3 flex flex-wrap gap-1.5">
               {ind.subcategories.map((sc) => {
                 const isOn = picked.includes(sc.label);
                 return (
@@ -2143,10 +2158,10 @@ const SubcategoryPicker = ({
                     key={sc.label}
                     type="button"
                     onClick={() => onToggle(ind.key, sc.label)}
-                    className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium transition-colors ${
+                    className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
                       isOn
-                        ? "border-foreground bg-foreground/5 text-foreground"
-                        : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
+                        ? "border-foreground bg-foreground text-background shadow-sm"
+                        : "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:bg-secondary hover:text-foreground"
                     }`}
                   >
                     {isOn && <span aria-hidden>✓</span>}

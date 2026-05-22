@@ -13,7 +13,7 @@ import {
 import { Loader2, Sparkles, Trash2, Check, CalendarRange, History, Award } from "lucide-react";
 import { Palette, CalendarDays, Pencil, Gauge } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
@@ -24,6 +24,8 @@ import {
   useRouteSeriesInfo, useMoveRouteSeries,
   type Route, type RouteStop,
 } from "@/hooks/useRoutes";
+import { useWeatherForecast } from "@/hooks/useWeather";
+import { Wallet, Cloud, CloudRain, CloudSnow, Sun, Wind, TrafficCone, type LucideIcon } from "lucide-react";
 import { DatePickerField } from "./DatePickerField";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection";
 import { pickDuration } from "@/components/route/EtaBreakdown";
@@ -154,6 +156,7 @@ export const RouteEditSheet = ({
   const optimize = useOptimizeRoute();
   const moveRouteSeries = useMoveRouteSeries();
   const { data: seriesInfo } = useRouteSeriesInfo(route?.id ?? null, route?.route_date ?? null);
+  const qc = useQueryClient();
 
   useEffect(() => {
     if (!route) return;
@@ -201,10 +204,62 @@ export const RouteEditSheet = ({
     return sorted.length >= 2 ? sorted : null;
   }, [route, stops]);
 
-  const { data: routeDirections } = useDirections(waypoints, {
+  const { data: routeDirections, isFetching: directionsFetching, refetch: refetchDirections } = useDirections(waypoints, {
     departAt: departAt || undefined,
     businessId: route?.business_id,
   });
+
+  // Vejrudsigt for rutens dato — bruges som faktor på rejsetiden.
+  const weatherPoint = useMemo(() => {
+    if (route?.start_latitude != null && route?.start_longitude != null) {
+      return { lat: Number(route.start_latitude), lng: Number(route.start_longitude) };
+    }
+    const s = stops.find((s) => s.latitude != null && s.longitude != null);
+    if (s) return { lat: Number(s.latitude), lng: Number(s.longitude) };
+    return null;
+  }, [route?.start_latitude, route?.start_longitude, stops]);
+
+  const { data: weatherDays } = useWeatherForecast({
+    startDate: route?.route_date || format(new Date(), "yyyy-MM-dd"),
+    endDate: route?.route_date || format(new Date(), "yyyy-MM-dd"),
+    latitude: weatherPoint?.lat ?? null,
+    longitude: weatherPoint?.lng ?? null,
+  });
+  const weather = weatherDays?.[0] || null;
+
+  const weatherFactor = useMemo(() => {
+    if (!weather) return { mult: 1, label: null as string | null, Icon: null as LucideIcon | null };
+    let mult = 1;
+    let label: string | null = null;
+    let Icon: LucideIcon | null = Sun;
+    const code = weather.weatherCode;
+    const heavyRain = weather.precipitationMm >= 5 || weather.precipitationProbability >= 70;
+    const lightRain = weather.precipitationMm >= 1 || weather.precipitationProbability >= 40;
+    const snow = code >= 71 && code <= 77;
+    const windy = weather.windGustMax >= 17;
+    if (snow) { mult = 1.25; label = "Sne"; Icon = CloudSnow; }
+    else if (heavyRain) { mult = 1.15; label = "Kraftig regn"; Icon = CloudRain; }
+    else if (lightRain) { mult = 1.07; label = "Regn"; Icon = CloudRain; }
+    else if (windy) { mult = 1.05; label = "Stærk vind"; Icon = Wind; }
+    else if (code >= 2) { label = "Skyet"; Icon = Cloud; }
+    else { label = "Klart"; Icon = Sun; }
+    return { mult, label, Icon };
+  }, [weather]);
+
+  // Tving refresh af directions umiddelbart efter optimering.
+  useEffect(() => {
+    if (optimize.isSuccess) {
+      qc.invalidateQueries({ queryKey: ["directions"] });
+      refetchDirections();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [optimize.isSuccess]);
+
+  // Estimeret omsætning = sum af aftalens beløb pr. stop.
+  const estimatedRevenue = useMemo(
+    () => stops.reduce((sum, s) => sum + Number((s as any).order_amount || 0), 0),
+    [stops],
+  );
 
   // Hvad skal sendes til serveren?
   //
@@ -491,16 +546,62 @@ export const RouteEditSheet = ({
 
             {/* Rejsetid — kort og enkel: "Estimeret rejsetid: 34 min" */}
             {waypoints && (
-              <Section icon={<Gauge className="h-3.5 w-3.5" />} title="Rejsetid">
+              <Section
+                icon={<Gauge className="h-3.5 w-3.5" />}
+                title="Rejsetid"
+                hint={directionsFetching ? "Genberegner…" : undefined}
+              >
+                {(() => {
+                  const baseSec = displayDuration;
+                  const adjustedSec = baseSec != null ? Math.round(baseSec * weatherFactor.mult) : null;
+                  const trafficMult = routeDirections?.traffic_multiplier ?? 1;
+                  const trafficLabel = trafficMult >= 1.25 ? "Tæt trafik"
+                    : trafficMult >= 1.10 ? "Moderat trafik" : "Fri trafik";
+                  const WeatherIcon = weatherFactor.Icon;
+                  return (
+                    <div>
+                      <p className="text-sm flex items-center gap-2">
+                        <span className="text-muted-foreground">Estimeret rejsetid: </span>
+                        <span className={cn("font-semibold tabular-nums transition-opacity", directionsFetching ? "opacity-50" : "text-foreground")}>
+                          {adjustedSec != null ? formatTravelTime(adjustedSec) : "—"}
+                        </span>
+                        {directionsFetching && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        <Badge variant="secondary" className="gap-1 text-[10px] font-medium">
+                          <TrafficCone className="h-3 w-3" /> {trafficLabel}
+                        </Badge>
+                        {weatherFactor.label && WeatherIcon && (
+                          <Badge variant="secondary" className="gap-1 text-[10px] font-medium">
+                            <WeatherIcon className="h-3 w-3" /> {weatherFactor.label}
+                            {weatherFactor.mult > 1 && (
+                              <span className="ml-0.5 text-muted-foreground">+{Math.round((weatherFactor.mult - 1) * 100)}%</span>
+                            )}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="mt-2 text-[11px] text-muted-foreground">
+                        Justeret for forventet trafik {weather ? "og vejrforhold " : ""}på rutens planlagte starttid.
+                      </p>
+                    </div>
+                  );
+                })()}
+              </Section>
+            )}
+
+            {/* Omsætning — sum af aftaler på ruten. */}
+            {!isPast && stops.length > 0 && (
+              <Section
+                icon={<Wallet className="h-3.5 w-3.5" />}
+                title="Omsætning"
+                hint={`${stops.length} ${stops.length === 1 ? "aftale" : "aftaler"}`}
+              >
                 <div>
-                  <p className="text-sm">
-                    <span className="text-muted-foreground">Estimeret rejsetid: </span>
-                    <span className="font-semibold text-foreground tabular-nums">
-                      {displayDuration != null ? formatTravelTime(displayDuration) : "—"}
-                    </span>
+                  <p className="text-2xl font-bold tabular-nums text-foreground">
+                    {Math.round(estimatedRevenue).toLocaleString("da-DK")} kr
                   </p>
                   <p className="mt-0.5 text-[11px] text-muted-foreground">
-                    Beregnet ud fra rutens planlagte start og forventede trafikforhold.
+                    Estimeret omsætning for ruten — summen af aftalens beløb (inkl. evt. justeringer).
                   </p>
                 </div>
               </Section>
