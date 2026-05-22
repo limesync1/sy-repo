@@ -598,14 +598,11 @@ export const RouteEditSheet = ({
                 title="Omsætning"
                 hint={`${stops.length} ${stops.length === 1 ? "aftale" : "aftaler"}`}
               >
-                <div>
-                  <p className="text-2xl font-bold tabular-nums text-foreground">
-                    {Math.round(estimatedRevenue).toLocaleString("da-DK")} kr
-                  </p>
-                  <p className="mt-0.5 text-[11px] text-muted-foreground">
-                    Estimeret omsætning for ruten — summen af aftalens beløb (inkl. evt. justeringer).
-                  </p>
-                </div>
+                <RouteRevenueBreakdown
+                  stops={stops}
+                  total={estimatedRevenue}
+                  routeDate={date}
+                />
               </Section>
             )}
           </div>
