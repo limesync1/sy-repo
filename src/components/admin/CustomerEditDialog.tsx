@@ -399,7 +399,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
               </div>
             </div>
 
-            <div>
+            <div className="rounded-lg border bg-card p-3 space-y-2 sm:border-0 sm:bg-transparent sm:p-0">
               <Label className="text-xs">Adresse</Label>
               <AddressAutocomplete
                 value={{ address, zip_code: zipCode, city, latitude, longitude }}
@@ -492,17 +492,17 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
             )}
           </div>
 
-          <DialogFooter className="px-5 py-3 border-t shrink-0 gap-2 sm:gap-2 flex-row sm:justify-between">
-            <Button variant="ghost" onClick={() => { reset(); onOpenChange(false); }} disabled={saving}>Annullér</Button>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => handleSave(false)} disabled={saving}>
+          <DialogFooter className="px-4 py-3 border-t shrink-0 gap-2 sm:gap-2 sm:px-5 sm:flex-row sm:justify-between">
+            <Button variant="ghost" onClick={() => { reset(); onOpenChange(false); }} disabled={saving} className="h-9">Annullér</Button>
+            <div className="grid w-full gap-2 sm:flex sm:w-auto">
+              <Button variant="outline" onClick={() => handleSave(false)} disabled={saving} className="h-9">
                 {saving ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Save className="h-4 w-4 mr-1.5" />}
                 Gem kunde
               </Button>
               {!initial?.id && (
-                <Button onClick={() => handleSave(true)} disabled={saving} className="bg-accent text-accent-foreground hover:bg-accent/90">
+                <Button onClick={() => handleSave(true)} disabled={saving} className="h-9 bg-accent text-accent-foreground hover:bg-accent/90">
                   <ShoppingBag className="h-4 w-4 mr-1.5" />
-                  Gem & opret bestilling
+                  Gem og opret bestilling
                 </Button>
               )}
             </div>
