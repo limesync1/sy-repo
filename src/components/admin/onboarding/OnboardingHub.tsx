@@ -157,14 +157,24 @@ export const OnboardingHub = ({ business }: { business: any }) => {
         supabase.from("accounting_integrations").select("id", { count: "exact", head: true }).eq("business_id", bizId).eq("is_active", true),
       ]);
       const accountingEnabled = !!settings.accounting_integration_enabled;
-      return {
+      const accountingActive = (accounting.count ?? 0) > 0;
+      const result: Record<number, boolean> & { _meta?: any } = {
         1: categories.length > 0,                                    // brancher valgt
-        2: !accountingEnabled || (accounting.count ?? 0) > 0,        // regnskab forbundet (eller fravalgt)
+        2: !accountingEnabled || accountingActive,                   // regnskab forbundet (eller fravalgt)
         3: (employees.count ?? 0) > 0,                               // medarbejder oprettet
         4: (services.count ?? 0) > 0,                                // service oprettet
         5: (orders.count ?? 0) > 0,                                  // bestilling oprettet
         6: (routes.count ?? 0) > 0,                                  // rute oprettet
-      } as Record<number, boolean>;
+      };
+      result._meta = {
+        accountingActive,
+        accountingFeatureEnabled: accountingEnabled,
+        employeesCount: employees.count ?? 0,
+        servicesCount: services.count ?? 0,
+        ordersCount: orders.count ?? 0,
+        routesCount: routes.count ?? 0,
+      };
+      return result;
     },
   });
 
@@ -206,7 +216,10 @@ export const OnboardingHub = ({ business }: { business: any }) => {
     navigate({ pathname: location.pathname, search: search ? `?${search}` : "" }, { replace: true });
   };
 
-  const slides = useMemo(() => buildSlides(business?.name), [business?.name]);
+  const slides = useMemo(
+    () => buildSlides(business?.name, (autoSignals as any)?._meta),
+    [business?.name, autoSignals],
+  );
   const slide = slides[step];
   const isLast = step === slides.length - 1;
   const isFirst = step === 0;
