@@ -332,16 +332,17 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
         <SearchInput value={search} onChange={setSearch} placeholder="Søg navn, email, telefon eller titel..." />
       </div>
 
-      {/* Create Form */}
-      {showForm && (
-        <SectionCard
-          title={<><UserPlus /> Ny medarbejder</>}
-          action={
-            <button onClick={resetForm} className="rounded-md p-1 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors">
-              <X className="h-4 w-4" />
-            </button>
-          }
-        >
+      <Dialog open={showForm} onOpenChange={(open) => { if (!open) resetForm(); else setShowForm(true); }}>
+        <DialogContent className="max-w-2xl max-h-[calc(100dvh-1rem)] overflow-hidden p-0 gap-0 flex flex-col">
+          <DialogHeader className="border-b px-4 py-3 text-left sm:px-5 sm:py-4">
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <UserPlus className="h-4 w-4" /> Ny medarbejder
+            </DialogTitle>
+            <DialogDescription className="text-xs leading-snug">
+              Opret medarbejderen i et fokuseret modul — resten af panelet dæmpes imens.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto bg-secondary/20 px-4 py-4 sm:px-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <FieldLabel required>Navn</FieldLabel>
@@ -434,8 +435,9 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                 {create.isPending ? "Opretter..." : "Opret medarbejder"}
               </PrimaryButton>
             </div>
-        </SectionCard>
-      )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {isLoading && <ListCardSkeleton rows={4} />}
 
