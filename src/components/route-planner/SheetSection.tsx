@@ -99,11 +99,7 @@ export const Section = ({
       <h4 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
         {title}
       </h4>
-      {required && (
-        <span className="inline-flex items-center rounded-full bg-destructive/10 px-1.5 py-0.5 text-[9px] font-bold normal-case tracking-normal text-destructive">
-          Påkrævet
-        </span>
-      )}
+      {required && null}
       {hint && <span className="ml-auto text-[10px] text-muted-foreground">{hint}</span>}
     </div>
     <div className="rounded-xl border border-border bg-card p-3">
@@ -177,13 +173,9 @@ export const Field = ({
   <div className="space-y-1">
     <label className={cn("flex flex-wrap items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider", required ? "text-foreground" : "text-muted-foreground")}>
       <span>{label}</span>
-      {required ? (
-        <span className="inline-flex items-center rounded-full bg-destructive/10 px-1.5 py-0.5 text-[9px] font-bold normal-case tracking-normal text-destructive">
-          Påkrævet
-        </span>
-      ) : (optional ?? true) ? (
+      {!required && (optional ?? true) ? (
         <span className="inline-flex items-center rounded-full bg-secondary px-1.5 py-0.5 text-[9px] font-medium normal-case tracking-normal text-muted-foreground">
-          Valgfri
+          Behøves ikke
         </span>
       ) : null}
     </label>

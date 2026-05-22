@@ -1045,7 +1045,7 @@ const ServiceForm = ({
 
   const canGoNext = () => {
     if (currentStep === 1) return !!serviceCategory;
-    if (currentStep === 2) return !!name.trim();
+    if (currentStep === 2) return !!name.trim() && !!description.trim();
     if (currentStep === 3) {
       if (pricingType === "prisberegner") return true;
       return true;
