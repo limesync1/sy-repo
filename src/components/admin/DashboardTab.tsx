@@ -583,14 +583,14 @@ const DashboardTab = ({
 /** Lille pille i hero-stripen — kompakt KPI med label/værdi/sub. Klikbar når onClick er sat. */
 const SnapshotPill = ({ label, value, sub, accent, onClick }: { label: string; value: string; sub: string; accent?: boolean; onClick?: () => void }) => {
   const className = cn(
-    "rounded-lg border px-2 py-1.5 text-left backdrop-blur-sm transition-all sm:rounded-xl sm:px-3 sm:py-2.5",
+    "min-w-0 overflow-hidden rounded-lg border px-2 py-1.5 text-left backdrop-blur-sm transition-all sm:rounded-xl sm:px-3 sm:py-2.5",
     accent ? "border-amber-300/40 bg-amber-400/[0.10]" : "border-background/10 bg-background/[0.05]",
     onClick && "hover:-translate-y-0.5 hover:border-background/25 hover:bg-background/[0.10]",
   );
   const content = (
     <>
       <p className="truncate text-[9px] font-medium uppercase tracking-wide text-background/60 sm:text-[10px] sm:tracking-wider">{label}</p>
-      <p className="mt-0.5 text-sm font-semibold tabular-nums text-background sm:mt-1 sm:text-xl">{value}</p>
+      <p className="mt-0.5 min-w-0 truncate text-sm font-semibold tabular-nums text-background sm:mt-1 sm:text-xl">{value}</p>
       <p className="truncate text-[9px] text-background/65 sm:mt-0.5 sm:text-[11px]">{sub}</p>
     </>
   );
