@@ -1120,7 +1120,7 @@ const ServiceForm = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div ref={formRootRef} className="space-y-6">
       {/* Step Progress Bar — kompakt, tydelig nuværende fase + lille hint
           om hvad der mangler i alt. */}
       <div className="surface-admin rounded-xl border border-border/80 p-3 sm:p-4">
