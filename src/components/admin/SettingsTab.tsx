@@ -1288,7 +1288,12 @@ const SettingsTab = ({ business }: { business: any }) => {
                   <Link2 className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-foreground">Jeres link på Serviceydere</p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-semibold text-foreground">Jeres link på Serviceydere</p>
+                    <span className="inline-flex items-center rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-accent">
+                      Vigtigt
+                    </span>
+                  </div>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     Adressen kunderne åbner, når de besøger jeres profil. Skriv firmanavnet med små bogstaver og bindestreger i stedet for mellemrum (fx <span className="font-mono">nord-rengoering</span>). <strong className="text-foreground">Vær varsom med at ændre det senere</strong> — har I delt linket, holder det gamle op med at virke.
                   </p>
@@ -1337,7 +1342,10 @@ const SettingsTab = ({ business }: { business: any }) => {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-sm font-semibold text-foreground">Brug jeres eget webnavn (valgfrit)</p>
+                    <p className="text-sm font-semibold text-foreground">Brug jeres eget webnavn</p>
+                    <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Behøves ikke
+                    </span>
                     {customDomain.trim() && (
                       domainStatus === "active" ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-[11px] font-semibold text-success">
