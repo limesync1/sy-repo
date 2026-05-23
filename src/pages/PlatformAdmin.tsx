@@ -20,8 +20,10 @@ import AdminBottomTabs from "@/components/platform-admin/AdminBottomTabs";
 import { useAdminShortcuts } from "@/components/platform-admin/lib/useAdminShortcuts";
 import {
   SidebarNavButton, SidebarGroupLabel, SidebarFooterItem,
-  SIDEBAR_WIDTH_EXPANDED,
+  SidebarCollapseToggle,
+  SIDEBAR_WIDTH_EXPANDED, SIDEBAR_WIDTH_COLLAPSED,
 } from "@/components/shared/sidebar/SidebarParts";
+import { useSidebarCollapsed } from "@/components/shared/sidebar/useSidebarCollapsed";
 
 // Lazy-load alle tabs så hver fane først downloades når brugeren rent faktisk
 // åbner den. Det matcher mønstret i virksomhedspanelet (Admin.tsx) og holder
@@ -155,7 +157,9 @@ const PlatformAdmin = () => {
   const [tab, setTab] = useState("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [cmdOpen, setCmdOpen] = useState(false);
-  const collapsed = false;
+  // Persisted collapse-state (key matches the convention from useSidebarCollapsed).
+  // [-toggle, breakpoint lg+ shows toggle in footer.
+  const { collapsed, toggle } = useSidebarCollapsed("sy.sidebar.collapsed.platform");
 
   // ESC lukker mobil-sidebar — manglede tidligere.
   useEffect(() => {
@@ -176,7 +180,7 @@ const PlatformAdmin = () => {
   if (!isAdmin) return <Navigate to="/" replace />;
 
   const current = NAV.find((n) => n.value === tab);
-  const sidebarPx = SIDEBAR_WIDTH_EXPANDED;
+  const sidebarPx = collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH_EXPANDED;
 
   return (
     <AdminFiltersProvider>
@@ -242,6 +246,9 @@ const PlatformAdmin = () => {
           <div className={cn("shrink-0 space-y-1 border-t border-border py-3", collapsed ? "px-2" : "px-3")}>
             <SidebarFooterItem icon={ExternalLink} label="Se forside" href="/" collapsed={collapsed} />
             <SidebarFooterItem icon={LogOut} label="Log ud" onClick={signOut} collapsed={collapsed} danger />
+            <div className="pt-1">
+              <SidebarCollapseToggle collapsed={collapsed} onToggle={toggle} />
+            </div>
           </div>
         </aside>
 
