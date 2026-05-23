@@ -1,4 +1,5 @@
-import { Card } from "@/components/ui/card";
+import { StatCard } from "@/components/admin/shared/AdminUI";
+import * as React from "react";
 
 export type Health = {
   email_7d: Record<string, number>;
@@ -42,31 +43,22 @@ export function sumStatus(obj: Record<string, number> | null | undefined, keys: 
   return keys.reduce((s, k) => s + (Number(obj[k]) || 0), 0);
 }
 
+/**
+ * HealthStatCard — tynd wrapper omkring den delte StatCard så health-faner
+ * deler præcis samme visuelle sprog som resten af admin. Tone "default"
+ * mappes til "neutral" og icon-komponenten renderes til JSX her.
+ */
 export function HealthStatCard({
   title, value, sub, icon: Icon, tone = "default",
 }: { title: string; value: string | number; sub?: string; icon: any; tone?: "default" | "danger" | "warn" | "ok" }) {
-  const toneRing =
-    tone === "danger" ? "ring-destructive/40"
-    : tone === "warn" ? "ring-amber-400/40"
-    : tone === "ok" ? "ring-emerald-400/40"
-    : "ring-border";
-  const toneIcon =
-    tone === "danger" ? "text-destructive bg-destructive/10"
-    : tone === "warn" ? "text-amber-600 bg-amber-100 dark:bg-amber-500/10"
-    : tone === "ok" ? "text-emerald-600 bg-emerald-100 dark:bg-emerald-500/10"
-    : "text-foreground bg-secondary";
+  const mapped = tone === "default" ? "neutral" : tone;
   return (
-    <Card className={`rounded-xl border-border p-4 shadow-sm ring-1 ${toneRing}`}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs font-medium text-muted-foreground">{title}</p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{value}</p>
-          {sub && <p className="mt-0.5 text-xs text-muted-foreground">{sub}</p>}
-        </div>
-        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${toneIcon}`}>
-          <Icon className="h-4 w-4" />
-        </div>
-      </div>
-    </Card>
+    <StatCard
+      label={title}
+      value={value}
+      icon={<Icon />}
+      hint={sub}
+      tone={mapped as any}
+    />
   );
 }

@@ -1,5 +1,6 @@
 import { LayoutDashboard, Building2, Users, ShoppingCart, MessageCircle, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { AdminBadgeMap } from "./lib/useAdminBadges";
 
 /**
  * Mobil-only bottom-tab bar for de hyppigst brugte admin-faner.
@@ -21,13 +22,22 @@ export default function AdminBottomTabs({
   tab,
   onSelectTab,
   onOpenMore,
+  badges,
 }: {
   tab: string;
   onSelectTab: (t: string) => void;
   onOpenMore: () => void;
+  badges?: AdminBadgeMap;
 }) {
   // Match "Mere"-tab når den valgte tab ikke er én af de fem primære.
   const inMore = !ITEMS.some((i) => i.value === tab);
+  // Badge-sum for items skjult bag "Mere" → så brugeren ser at der venter noget.
+  const moreBadge = badges
+    ? Object.entries(badges).reduce((acc, [k, v]) => (ITEMS.some((i) => i.value === k) ? acc : acc + (v.count || 0)), 0)
+    : 0;
+  const moreWarn = badges
+    ? Object.entries(badges).some(([k, v]) => !ITEMS.some((i) => i.value === k) && v.warn)
+    : false;
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-40 flex h-[60px] items-stretch border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/85 pb-[env(safe-area-inset-bottom)] sm:hidden"
@@ -35,6 +45,7 @@ export default function AdminBottomTabs({
     >
       {ITEMS.map((item) => {
         const active = tab === item.value;
+        const badge = badges?.[item.value];
         return (
           <button
             key={item.value}
@@ -44,18 +55,28 @@ export default function AdminBottomTabs({
               active ? "text-foreground" : "text-muted-foreground active:text-foreground",
             )}
             aria-current={active ? "page" : undefined}
-            aria-label={item.label}
+            aria-label={badge?.count ? `${item.label} (${badge.count} nye)` : item.label}
           >
             {active && (
               <span aria-hidden="true" className="absolute top-0 left-1/2 h-[3px] w-8 -translate-x-1/2 rounded-b-full bg-foreground" />
             )}
             <span
               className={cn(
-                "flex h-7 w-12 items-center justify-center rounded-full transition-colors",
+                "relative flex h-7 w-12 items-center justify-center rounded-full transition-colors",
                 active ? "bg-secondary" : "bg-transparent",
               )}
             >
               <item.icon className="h-[18px] w-[18px]" />
+              {badge?.count ? (
+                <span
+                  className={cn(
+                    "absolute -top-0.5 right-2 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[9px] font-bold leading-none ring-2 ring-card",
+                    badge.warn ? "bg-destructive text-destructive-foreground" : "bg-foreground text-background",
+                  )}
+                >
+                  {badge.count > 9 ? "9+" : badge.count}
+                </span>
+              ) : null}
             </span>
             <span className="leading-none">{item.label}</span>
           </button>
@@ -74,11 +95,21 @@ export default function AdminBottomTabs({
         )}
         <span
           className={cn(
-            "flex h-7 w-12 items-center justify-center rounded-full transition-colors",
+            "relative flex h-7 w-12 items-center justify-center rounded-full transition-colors",
             inMore ? "bg-secondary" : "bg-transparent",
           )}
         >
           <MoreHorizontal className="h-[18px] w-[18px]" />
+          {moreBadge ? (
+            <span
+              className={cn(
+                "absolute -top-0.5 right-2 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[9px] font-bold leading-none ring-2 ring-card",
+                moreWarn ? "bg-destructive text-destructive-foreground" : "bg-foreground text-background",
+              )}
+            >
+              {moreBadge > 9 ? "9+" : moreBadge}
+            </span>
+          ) : null}
         </span>
         <span className="leading-none">Mere</span>
       </button>
