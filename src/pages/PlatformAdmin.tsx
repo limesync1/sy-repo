@@ -293,7 +293,7 @@ const PlatformAdmin = () => {
             )}
           </header>
 
-          <main className="flex-1 min-w-0 p-4 pb-20 sm:p-6 sm:pb-6">
+          <main className="flex-1 min-w-0 p-4 pb-[calc(env(safe-area-inset-bottom)+72px)] sm:p-6 sm:pb-6">
             {/* PageTransition fader nyt indhold ind når tab skifter,
                 Suspense viser ensartet skeleton-loading på første åbning. */}
             <PageTransition transitionKey={tab}>
