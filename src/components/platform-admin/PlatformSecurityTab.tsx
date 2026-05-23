@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
-import { PageHeader } from "@/components/admin/shared/AdminUI";
+import { PageHeader, StatCard } from "@/components/admin/shared/AdminUI";
 import { StatGridSkeleton, ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 import { Shield, ShieldAlert, ShieldCheck, RefreshCw, Plus, Database, FileCog, FolderLock, AlertTriangle, CheckCircle2, MinusCircle, Pencil, Trash2, Search } from "lucide-react";
 import { toast } from "sonner";
@@ -78,35 +78,6 @@ const STATUS_TONE: Record<Finding["status"], string> = {
   fixed: "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20",
   accepted_risk: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/20",
 };
-
-function StatCard({
-  label, value, sub, icon: Icon, tone = "default",
-}: { label: string; value: string | number; sub?: string; icon: any; tone?: "default" | "danger" | "warn" | "ok" }) {
-  const toneRing =
-    tone === "danger" ? "ring-destructive/40"
-    : tone === "warn" ? "ring-amber-400/40"
-    : tone === "ok" ? "ring-emerald-400/40"
-    : "ring-border";
-  const toneIcon =
-    tone === "danger" ? "text-destructive bg-destructive/10"
-    : tone === "warn" ? "text-amber-600 bg-amber-100 dark:bg-amber-500/10"
-    : tone === "ok" ? "text-emerald-600 bg-emerald-100 dark:bg-emerald-500/10"
-    : "text-foreground bg-secondary";
-  return (
-    <Card className={`rounded-xl border-border p-4 shadow-sm ring-1 ${toneRing}`}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs font-medium text-muted-foreground">{label}</p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{value}</p>
-          {sub && <p className="mt-0.5 text-xs text-muted-foreground">{sub}</p>}
-        </div>
-        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${toneIcon}`}>
-          <Icon className="h-4 w-4" />
-        </div>
-      </div>
-    </Card>
-  );
-}
 
 const EMPTY_FORM: Partial<Finding> = {
   scanner_name: "manual",
