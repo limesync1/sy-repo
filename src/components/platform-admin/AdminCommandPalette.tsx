@@ -17,6 +17,8 @@ type Props = {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   onSelectTab: (tab: string) => void;
+  /** Sorteret liste af senest besøgte tab-keys — vises øverst som genvej. */
+  recentTabs?: string[];
 };
 
 const TABS = [
@@ -34,7 +36,7 @@ const TABS = [
   { value: "settings", label: "Gå til Platform-indstillinger", icon: Settings },
 ];
 
-export default function AdminCommandPalette({ open, onOpenChange, onSelectTab }: Props) {
+export default function AdminCommandPalette({ open, onOpenChange, onSelectTab, recentTabs }: Props) {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
 
@@ -65,11 +67,36 @@ export default function AdminCommandPalette({ open, onOpenChange, onSelectTab }:
 
   const close = (fn: () => void) => { onOpenChange(false); fn(); };
 
+  // Vis kun senest-besøgt når brugeren ikke har skrevet noget — så søgning
+  // dominerer fuldstændigt over historik når der filtreres.
+  const recents = (recentTabs || [])
+    .slice(0, 4)
+    .map((v) => TABS.find((t) => t.value === v))
+    .filter((t): t is (typeof TABS)[number] => !!t);
+
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
       <CommandInput placeholder="Søg virksomheder, faner, handlinger…" value={query} onValueChange={setQuery} />
       <CommandList>
         <CommandEmpty>Ingen resultater.</CommandEmpty>
+
+        {!query && recents.length > 0 && (
+          <>
+            <CommandGroup heading="Senest besøgt">
+              {recents.map((t) => (
+                <CommandItem
+                  key={`recent-${t.value}`}
+                  value={`recent-${t.value}-${t.label}`}
+                  onSelect={() => close(() => onSelectTab(t.value))}
+                >
+                  <t.icon className="mr-2 h-4 w-4" />
+                  {t.label.replace(/^Gå til /, "")}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+            <CommandSeparator />
+          </>
+        )}
 
         {businesses && businesses.length > 0 && (
           <CommandGroup heading="Virksomheder">
