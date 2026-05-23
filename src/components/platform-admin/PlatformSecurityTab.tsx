@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
-import { PageHeader } from "@/components/admin/shared/AdminUI";
+import { PageHeader, StatCard } from "@/components/admin/shared/AdminUI";
 import { StatGridSkeleton, ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 import { Shield, ShieldAlert, ShieldCheck, RefreshCw, Plus, Database, FileCog, FolderLock, AlertTriangle, CheckCircle2, MinusCircle, Pencil, Trash2, Search } from "lucide-react";
 import { toast } from "sonner";
@@ -78,35 +78,6 @@ const STATUS_TONE: Record<Finding["status"], string> = {
   fixed: "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20",
   accepted_risk: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/20",
 };
-
-function StatCard({
-  label, value, sub, icon: Icon, tone = "default",
-}: { label: string; value: string | number; sub?: string; icon: any; tone?: "default" | "danger" | "warn" | "ok" }) {
-  const toneRing =
-    tone === "danger" ? "ring-destructive/40"
-    : tone === "warn" ? "ring-amber-400/40"
-    : tone === "ok" ? "ring-emerald-400/40"
-    : "ring-border";
-  const toneIcon =
-    tone === "danger" ? "text-destructive bg-destructive/10"
-    : tone === "warn" ? "text-amber-600 bg-amber-100 dark:bg-amber-500/10"
-    : tone === "ok" ? "text-emerald-600 bg-emerald-100 dark:bg-emerald-500/10"
-    : "text-foreground bg-secondary";
-  return (
-    <Card className={`rounded-xl border-border p-4 shadow-sm ring-1 ${toneRing}`}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs font-medium text-muted-foreground">{label}</p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{value}</p>
-          {sub && <p className="mt-0.5 text-xs text-muted-foreground">{sub}</p>}
-        </div>
-        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${toneIcon}`}>
-          <Icon className="h-4 w-4" />
-        </div>
-      </div>
-    </Card>
-  );
-}
 
 const EMPTY_FORM: Partial<Finding> = {
   scanner_name: "manual",
@@ -330,30 +301,30 @@ export default function PlatformSecurityTab() {
             <StatCard
               label="RLS-dækning"
               value={`${coveragePct}%`}
-              sub={`${counts!.tables_with_rls}/${counts!.tables_total} tabeller`}
-              icon={ShieldCheck}
+              hint={`${counts!.tables_with_rls}/${counts!.tables_total} tabeller`}
+              icon={<ShieldCheck />}
               tone={coveragePct === 100 ? "ok" : coveragePct >= 90 ? "warn" : "danger"}
             />
             <StatCard
               label="Tabeller uden politikker"
               value={counts!.tables_no_policies}
-              sub="RLS slået til, men ingen policy"
-              icon={ShieldAlert}
+              hint="RLS slået til, men ingen policy"
+              icon={<ShieldAlert />}
               tone={counts!.tables_no_policies > 0 ? "warn" : "ok"}
             />
             <StatCard
               label="Åbne fund"
               value={overview.data.findings_summary.open}
-              sub={overview.data.findings_summary.critical_open > 0 ? `${overview.data.findings_summary.critical_open} kritisk/høj` : "ingen kritiske"}
-              icon={AlertTriangle}
+              hint={overview.data.findings_summary.critical_open > 0 ? `${overview.data.findings_summary.critical_open} kritisk/høj` : "ingen kritiske"}
+              icon={<AlertTriangle />}
               tone={overview.data.findings_summary.critical_open > 0 ? "danger" : overview.data.findings_summary.open > 0 ? "warn" : "ok"}
             />
             <StatCard
               label="Ignorerede / accepteret"
               value={overview.data.findings_summary.ignored + overview.data.findings_summary.accepted_risk}
-              sub={`${overview.data.findings_summary.fixed} fikset`}
-              icon={Shield}
-              tone="default"
+              hint={`${overview.data.findings_summary.fixed} fikset`}
+              icon={<Shield />}
+              tone="neutral"
             />
           </div>
 
