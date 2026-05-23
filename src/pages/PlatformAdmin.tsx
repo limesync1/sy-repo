@@ -18,6 +18,7 @@ import AdminCommandPalette from "@/components/platform-admin/AdminCommandPalette
 import AdminNotifications from "@/components/platform-admin/AdminNotifications";
 import AdminBottomTabs from "@/components/platform-admin/AdminBottomTabs";
 import { useAdminShortcuts } from "@/components/platform-admin/lib/useAdminShortcuts";
+import { useAdminBadges } from "@/components/platform-admin/lib/useAdminBadges";
 import {
   SidebarNavButton, SidebarGroupLabel, SidebarFooterItem,
   SidebarCollapseToggle,
@@ -160,6 +161,8 @@ const PlatformAdmin = () => {
   // Persisted collapse-state (key matches the convention from useSidebarCollapsed).
   // [-toggle, breakpoint lg+ shows toggle in footer.
   const { collapsed, toggle } = useSidebarCollapsed("sy.sidebar.collapsed.platform");
+  // Drift-badges: ulæste chats, forfaldne ordrer mv. → vises i sidebar/bottom-nav.
+  const badges = useAdminBadges();
 
   // ESC lukker mobil-sidebar — manglede tidligere.
   useEffect(() => {
@@ -238,6 +241,8 @@ const PlatformAdmin = () => {
                     onFocus={() => prefetchTab(item.value)}
                     onTouchStart={() => prefetchTab(item.value)}
                     shortcut={`g ${item.value.charAt(0)}`}
+                    badge={badges[item.value]?.count}
+                    badgeWarn={badges[item.value]?.warn}
                   />
                 ))}
               </div>
@@ -320,7 +325,7 @@ const PlatformAdmin = () => {
         </div>
 
         <AdminCommandPalette open={cmdOpen} onOpenChange={setCmdOpen} onSelectTab={setTab} />
-        <AdminBottomTabs tab={tab} onSelectTab={setTab} onOpenMore={() => setSidebarOpen(true)} />
+        <AdminBottomTabs tab={tab} onSelectTab={setTab} onOpenMore={() => setSidebarOpen(true)} badges={badges} />
       </div>
     </AdminFiltersProvider>
   );
