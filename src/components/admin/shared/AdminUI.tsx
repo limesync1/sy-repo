@@ -61,7 +61,9 @@ export const PrimaryButton = React.forwardRef<
 PrimaryButton.displayName = "PrimaryButton";
 
 /* ───────── StatCard ─────────
-   Standard nøgletal-kort med ikon-badge. Brug i Overblik, Kunder osv. */
+   Standard nøgletal-kort med ikon-badge. Brug i Overblik, Kunder osv.
+   Status-toner (danger/warn/ok) tilføjer en svag ring så sundheds- og
+   sikkerhedssektioner kan bruge samme komponent som operationelle KPI'er. */
 export const StatCard = ({
   label,
   value,
@@ -73,7 +75,7 @@ export const StatCard = ({
   value: React.ReactNode;
   icon: React.ReactNode;
   hint?: React.ReactNode;
-  tone?: "neutral" | "accent" | "emerald" | "amber" | "blue" | "violet";
+  tone?: "neutral" | "accent" | "emerald" | "amber" | "blue" | "violet" | "danger" | "warn" | "ok";
 }) => {
   const tones: Record<string, string> = {
     neutral: "bg-secondary text-foreground",
@@ -82,11 +84,19 @@ export const StatCard = ({
     amber: "bg-feature-warm text-feature-warm-foreground",
     blue: "bg-accent/10 text-accent",
     violet: "bg-feature-lilac text-feature-lilac-foreground",
+    danger: "bg-destructive/10 text-destructive",
+    warn: "bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300",
+    ok: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400",
   };
+  const ring =
+    tone === "danger" ? "ring-1 ring-destructive/30"
+    : tone === "warn" ? "ring-1 ring-amber-400/30"
+    : tone === "ok" ? "ring-1 ring-emerald-400/30"
+    : "";
   return (
     // Diskret hover: kun border bliver lidt mørkere. Ingen lift/rotation som
     // ellers fik nøgletals-kortene til at "danse" tilfældigt.
-    <Card className="rounded-xl border-border shadow-sm transition-colors duration-150 ease-out hover:border-foreground/15">
+    <Card className={cn("rounded-xl border-border shadow-sm transition-colors duration-150 ease-out hover:border-foreground/15", ring)}>
       <CardContent className="flex items-start gap-2.5 p-3 sm:gap-3 sm:p-4">
         <div
           className={cn(
