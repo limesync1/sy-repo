@@ -4,7 +4,7 @@ import { Navigate, Link } from "react-router-dom";
 import { useState, lazy, Suspense, useEffect } from "react";
 import {
   LayoutDashboard, Building2, Users, ShoppingCart, Star,
-  LogOut, Menu, X, Repeat, Settings, MessageCircle, ExternalLink, Globe, History, Search, HeartPulse, Mail,
+  LogOut, Menu, X, Repeat, Settings, MessageCircle, ExternalLink, Globe, History, Search, HeartPulse, Mail, Shield,
 } from "lucide-react";
 import SEO from "@/components/SEO";
 import { cn } from "@/lib/utils";
@@ -38,6 +38,7 @@ const PlatformDomainsTab = lazy(() => import("@/components/platform-admin/Platfo
 const PlatformAuditLogTab = lazy(() => import("@/components/platform-admin/PlatformAuditLogTab"));
 const PlatformHealthTab = lazy(() => import("@/components/platform-admin/PlatformHealthTab"));
 const PlatformMailsTab = lazy(() => import("@/components/platform-admin/PlatformMailsTab"));
+const PlatformSecurityTab = lazy(() => import("@/components/platform-admin/PlatformSecurityTab"));
 
 // Sidebar er nu delt i to logiske grupper. Det reducerer kognitiv belastning
 // når man scanner 10+ menupunkter, og gør "drift"-flowet (det man bruger dagligt)
@@ -62,6 +63,7 @@ const NAV_GROUPS: { label: string; items: { value: string; label: string; icon: 
       { value: "audit", label: "Aktivitetslog", icon: History },
       { value: "health", label: "Sundhed", icon: HeartPulse },
       { value: "mails", label: "Mails", icon: Mail },
+      { value: "security", label: "Sikkerhed", icon: Shield },
       { value: "settings", label: "Platform", icon: Settings },
     ],
   },
@@ -83,6 +85,7 @@ const TAB_PREFETCH: Record<string, () => Promise<unknown>> = {
   audit: () => import("@/components/platform-admin/PlatformAuditLogTab"),
   health: () => import("@/components/platform-admin/PlatformHealthTab"),
   mails: () => import("@/components/platform-admin/PlatformMailsTab"),
+  security: () => import("@/components/platform-admin/PlatformSecurityTab"),
   settings: () => import("@/components/platform-admin/PlatformPlatformSettingsTab"),
 };
 const prefetched = new Set<string>();
@@ -293,6 +296,7 @@ const PlatformAdmin = () => {
                   {tab === "audit" && <PlatformAuditLogTab />}
                   {tab === "health" && <PlatformHealthTab />}
                   {tab === "mails" && <PlatformMailsTab />}
+                  {tab === "security" && <PlatformSecurityTab />}
                   {tab === "settings" && <PlatformSettingsTab />}
                 </Suspense>
               </TabErrorBoundary>

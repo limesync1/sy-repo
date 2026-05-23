@@ -3153,6 +3153,54 @@ export type Database = {
           },
         ]
       }
+      security_findings: {
+        Row: {
+          affected_resource: string | null
+          created_at: string
+          description: string | null
+          id: string
+          internal_id: string
+          justification: string | null
+          resolved_at: string | null
+          scanner_name: string
+          severity: string
+          status: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          affected_resource?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          internal_id: string
+          justification?: string | null
+          resolved_at?: string | null
+          scanner_name: string
+          severity?: string
+          status?: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          affected_resource?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          internal_id?: string
+          justification?: string | null
+          resolved_at?: string | null
+          scanner_name?: string
+          severity?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       service_employee_durations: {
         Row: {
           avg_minutes: number
@@ -3709,6 +3757,7 @@ export type Database = {
         Args: { p_business_id: string }
         Returns: undefined
       }
+      admin_security_overview: { Args: never; Returns: Json }
       admin_set_user_role: {
         Args: {
           _grant: boolean
