@@ -4,7 +4,7 @@ import { Navigate, Link } from "react-router-dom";
 import { useState, lazy, Suspense, useEffect } from "react";
 import {
   LayoutDashboard, Building2, Users, ShoppingCart, Star,
-  LogOut, Menu, X, Repeat, Settings, MessageCircle, ExternalLink, Globe, History, Search, HeartPulse, Mail, Shield,
+  LogOut, Menu, X, Repeat, Settings, MessageCircle, ExternalLink, Globe, History, Search, HeartPulse, Mail, Shield, Keyboard,
 } from "lucide-react";
 import SEO from "@/components/SEO";
 import { cn } from "@/lib/utils";
@@ -17,8 +17,10 @@ import { TabPerfTracker } from "@/components/admin/shared/usePerfMark";
 import AdminCommandPalette from "@/components/platform-admin/AdminCommandPalette";
 import AdminNotifications from "@/components/platform-admin/AdminNotifications";
 import AdminBottomTabs from "@/components/platform-admin/AdminBottomTabs";
+import AdminShortcutsHelp from "@/components/platform-admin/AdminShortcutsHelp";
 import { useAdminShortcuts } from "@/components/platform-admin/lib/useAdminShortcuts";
 import { useAdminBadges } from "@/components/platform-admin/lib/useAdminBadges";
+import { useRecentTabs } from "@/components/platform-admin/lib/useRecentTabs";
 import {
   SidebarNavButton, SidebarGroupLabel, SidebarFooterItem,
   SidebarCollapseToggle,
@@ -158,11 +160,14 @@ const PlatformAdmin = () => {
   const [tab, setTab] = useState("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [cmdOpen, setCmdOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   // Persisted collapse-state (key matches the convention from useSidebarCollapsed).
   // [-toggle, breakpoint lg+ shows toggle in footer.
   const { collapsed, toggle } = useSidebarCollapsed("sy.sidebar.collapsed.platform");
   // Drift-badges: ulæste chats, forfaldne ordrer mv. → vises i sidebar/bottom-nav.
   const badges = useAdminBadges();
+  // Husk seneste faner så kommando-paletten kan tilbyde dem øverst.
+  const { recent } = useRecentTabs(tab);
 
   // ESC lukker mobil-sidebar — manglede tidligere.
   useEffect(() => {
@@ -171,6 +176,26 @@ const PlatformAdmin = () => {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [sidebarOpen]);
+
+  // "?" → åbn shortcut-hjælp (ignoreres mens man skriver i input).
+  useEffect(() => {
+    const isTyping = (el: EventTarget | null) => {
+      const t = el as HTMLElement | null;
+      if (!t) return false;
+      const tag = t.tagName;
+      return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || t.isContentEditable;
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (isTyping(e.target)) return;
+      if (e.key === "?") {
+        e.preventDefault();
+        setHelpOpen((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   // Vim-style "g {key}" hop mellem faner — power-user-shortcut.
   useAdminShortcuts(setTab);
@@ -291,6 +316,16 @@ const PlatformAdmin = () => {
 
             <AdminNotifications onSelectTab={setTab} />
 
+            {/* Tastatur-genveje-hjælp — gør power-user-flow opdageligt. */}
+            <button
+              onClick={() => setHelpOpen(true)}
+              className="hidden rounded-lg p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 sm:inline-flex"
+              aria-label="Vis tastatur-genveje (?)"
+              title="Tastatur-genveje (?)"
+            >
+              <Keyboard className="h-4 w-4" />
+            </button>
+
             {current?.hasRange && (
               <div className="flex items-center gap-2 min-w-0">
                 <RangePicker />
@@ -324,8 +359,9 @@ const PlatformAdmin = () => {
           </main>
         </div>
 
-        <AdminCommandPalette open={cmdOpen} onOpenChange={setCmdOpen} onSelectTab={setTab} />
+        <AdminCommandPalette open={cmdOpen} onOpenChange={setCmdOpen} onSelectTab={setTab} recentTabs={recent} />
         <AdminBottomTabs tab={tab} onSelectTab={setTab} onOpenMore={() => setSidebarOpen(true)} badges={badges} />
+        <AdminShortcutsHelp open={helpOpen} onOpenChange={setHelpOpen} />
       </div>
     </AdminFiltersProvider>
   );
