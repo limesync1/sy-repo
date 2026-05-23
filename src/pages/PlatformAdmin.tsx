@@ -20,8 +20,10 @@ import AdminBottomTabs from "@/components/platform-admin/AdminBottomTabs";
 import { useAdminShortcuts } from "@/components/platform-admin/lib/useAdminShortcuts";
 import {
   SidebarNavButton, SidebarGroupLabel, SidebarFooterItem,
-  SIDEBAR_WIDTH_EXPANDED,
+  SidebarCollapseToggle,
+  SIDEBAR_WIDTH_EXPANDED, SIDEBAR_WIDTH_COLLAPSED,
 } from "@/components/shared/sidebar/SidebarParts";
+import { useSidebarCollapsed } from "@/components/shared/sidebar/useSidebarCollapsed";
 
 // Lazy-load alle tabs så hver fane først downloades når brugeren rent faktisk
 // åbner den. Det matcher mønstret i virksomhedspanelet (Admin.tsx) og holder
@@ -155,7 +157,9 @@ const PlatformAdmin = () => {
   const [tab, setTab] = useState("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [cmdOpen, setCmdOpen] = useState(false);
-  const collapsed = false;
+  // Persisted collapse-state (key matches the convention from useSidebarCollapsed).
+  // [-toggle, breakpoint lg+ shows toggle in footer.
+  const { collapsed, toggle } = useSidebarCollapsed("sy.sidebar.collapsed.platform");
 
   // ESC lukker mobil-sidebar — manglede tidligere.
   useEffect(() => {
@@ -176,7 +180,8 @@ const PlatformAdmin = () => {
   if (!isAdmin) return <Navigate to="/" replace />;
 
   const current = NAV.find((n) => n.value === tab);
-  const sidebarPx = SIDEBAR_WIDTH_EXPANDED;
+  const currentGroup = NAV_GROUPS.find((g) => g.items.some((i) => i.value === tab))?.label;
+  const sidebarPx = collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH_EXPANDED;
 
   return (
     <AdminFiltersProvider>
@@ -242,11 +247,14 @@ const PlatformAdmin = () => {
           <div className={cn("shrink-0 space-y-1 border-t border-border py-3", collapsed ? "px-2" : "px-3")}>
             <SidebarFooterItem icon={ExternalLink} label="Se forside" href="/" collapsed={collapsed} />
             <SidebarFooterItem icon={LogOut} label="Log ud" onClick={signOut} collapsed={collapsed} danger />
+            <div className="pt-1">
+              <SidebarCollapseToggle collapsed={collapsed} onToggle={toggle} />
+            </div>
           </div>
         </aside>
 
         <div className="flex flex-1 flex-col min-w-0">
-          <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-card px-5 sm:px-6">
+          <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 px-4 sm:px-6">
             <button
               onClick={() => setSidebarOpen(true)}
               className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:hidden"
@@ -254,18 +262,25 @@ const PlatformAdmin = () => {
             >
               <Menu className="h-5 w-5" />
             </button>
-            <h1 className="truncate text-sm font-semibold text-foreground">
-              {current?.label}
-            </h1>
+            {/* Breadcrumb: group → current tab. Giver kontekst på tværs af 13 faner. */}
+            <div className="flex min-w-0 items-center gap-1.5 text-sm">
+              {currentGroup && (
+                <>
+                  <span className="hidden truncate text-muted-foreground sm:inline">{currentGroup}</span>
+                  <span className="hidden text-muted-foreground/50 sm:inline" aria-hidden="true">/</span>
+                </>
+              )}
+              <h1 className="truncate font-semibold text-foreground">{current?.label}</h1>
+            </div>
 
             {/* Cmd+K søgning — hurtig adgang til virksomheder og faner */}
             <button
               onClick={() => setCmdOpen(true)}
-              className="ml-auto inline-flex items-center gap-2 rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              className="ml-auto inline-flex items-center gap-2 rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
               aria-label="Søg (Cmd+K)"
             >
               <Search className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Søg…</span>
+              <span className="hidden sm:inline">Søg virksomheder, faner…</span>
               <kbd className="hidden sm:inline-flex h-5 items-center rounded border border-border bg-secondary px-1.5 font-mono text-[10px] font-semibold text-muted-foreground">⌘K</kbd>
             </button>
 
