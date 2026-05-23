@@ -301,30 +301,30 @@ export default function PlatformSecurityTab() {
             <StatCard
               label="RLS-dækning"
               value={`${coveragePct}%`}
-              sub={`${counts!.tables_with_rls}/${counts!.tables_total} tabeller`}
-              icon={ShieldCheck}
+              hint={`${counts!.tables_with_rls}/${counts!.tables_total} tabeller`}
+              icon={<ShieldCheck />}
               tone={coveragePct === 100 ? "ok" : coveragePct >= 90 ? "warn" : "danger"}
             />
             <StatCard
               label="Tabeller uden politikker"
               value={counts!.tables_no_policies}
-              sub="RLS slået til, men ingen policy"
-              icon={ShieldAlert}
+              hint="RLS slået til, men ingen policy"
+              icon={<ShieldAlert />}
               tone={counts!.tables_no_policies > 0 ? "warn" : "ok"}
             />
             <StatCard
               label="Åbne fund"
               value={overview.data.findings_summary.open}
-              sub={overview.data.findings_summary.critical_open > 0 ? `${overview.data.findings_summary.critical_open} kritisk/høj` : "ingen kritiske"}
-              icon={AlertTriangle}
+              hint={overview.data.findings_summary.critical_open > 0 ? `${overview.data.findings_summary.critical_open} kritisk/høj` : "ingen kritiske"}
+              icon={<AlertTriangle />}
               tone={overview.data.findings_summary.critical_open > 0 ? "danger" : overview.data.findings_summary.open > 0 ? "warn" : "ok"}
             />
             <StatCard
               label="Ignorerede / accepteret"
               value={overview.data.findings_summary.ignored + overview.data.findings_summary.accepted_risk}
-              sub={`${overview.data.findings_summary.fixed} fikset`}
-              icon={Shield}
-              tone="default"
+              hint={`${overview.data.findings_summary.fixed} fikset`}
+              icon={<Shield />}
+              tone="neutral"
             />
           </div>
 
