@@ -258,8 +258,10 @@ const SortableStopRow = ({
     disabled: isProjection,
   });
 
+  // Brug Translate i stedet for Transform — Transform inkluderer scale-justering
+  // som dnd-kit beregner ud fra container-rect, og det forvrænger kortet under drag.
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: CSS.Translate.toString(transform),
     transition,
   };
 
