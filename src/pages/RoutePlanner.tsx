@@ -136,10 +136,35 @@ const toMin = (t: string | null | undefined): number | null => {
 
 const RoutePlanner = () => {
   const { user, loading } = useAuth();
+  // Ruteplanlæggeren er bevidst kun tilgængelig på computere — drag-and-drop
+  // planlægning, kortvisning og parallelle paneler kræver en stor skærm og
+  // præcis pointer. På mobil/tablet viser vi en venlig "kun på computer"
+  // forklaring i stedet for at hænge brugeren op med en uanvendelig UI.
+  const isSmallScreen = useIsBelowBreakpoint(1024);
   if (loading) return <ShellSkeleton />;
   if (!user) return <Navigate to="/log-ind" replace />;
+  if (isSmallScreen) return <RoutePlannerDesktopOnly />;
   return <Planner />;
 };
+
+const RoutePlannerDesktopOnly = () => (
+  <div className="flex min-h-screen items-center justify-center bg-background px-6">
+    <SEO title="Ruteplanlægger – Serviceydere" description="Ruteplanlæggeren er kun tilgængelig på computer." noIndex />
+    <div className="max-w-md text-center">
+      <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-secondary">
+        <Monitor className="h-7 w-7 text-foreground" />
+      </div>
+      <h1 className="mb-2 text-lg font-semibold text-foreground">Kun på computer</h1>
+      <p className="mb-6 text-sm text-muted-foreground">
+        Ruteplanlæggeren bruger træk-og-slip, kort og flere paneler ved siden af hinanden.
+        Åbn siden på en computer for at planlægge ruter — telefoner og tablets understøttes ikke.
+      </p>
+      <Link to="/virksomhed" className="text-sm font-medium text-accent hover:underline">
+        ← Tilbage til oversigt
+      </Link>
+    </div>
+  </div>
+);
 
 const Planner = () => {
   const { data: business, isLoading: loadingBusiness } = useMyBusiness();
