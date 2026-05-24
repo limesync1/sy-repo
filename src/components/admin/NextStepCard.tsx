@@ -32,7 +32,7 @@ const TONE_CLS: Record<Step["tone"], { wrap: string; iconWrap: string; icon: str
   neutral: { wrap: "border-border bg-card",                iconWrap: "bg-secondary",  icon: "text-foreground", title: "text-foreground" },
 };
 
-function computeStep(order: Order): Step | null {
+function computeStep(order: Order, hasAccountingIntegration: boolean): Step | null {
   const s = order.status;
   const ps = order.payment_status;
   const isOverdue = order.due_date
@@ -69,8 +69,10 @@ function computeStep(order: Order): Step | null {
   }
   if (s === "in_progress") {
     return {
-      title: "Afslut og fakturér",
-      description: "Markér som udført når opgaven er færdig — fakturaen sendes automatisk til regnskabsprogrammet.",
+      title: hasAccountingIntegration ? "Afslut og fakturér" : "Afslut opgaven",
+      description: hasAccountingIntegration
+        ? "Markér som udført når opgaven er færdig — fakturaen sendes automatisk til regnskabsprogrammet."
+        : "Markér som udført når opgaven er færdig.",
       icon: CheckCircle2, tone: "success",
     };
   }
@@ -82,6 +84,16 @@ function computeStep(order: Order): Step | null {
     };
   }
   // s === completed → fokus skifter til betaling
+  // Hvis der ikke er et regnskabsprogram integreret giver det ingen mening at
+  // vise faktura-/betalings-trin — Serviceydere kan ikke selv håndtere
+  // fakturering. Vi viser i stedet et neutralt "udført"-trin.
+  if (!hasAccountingIntegration && (s === "completed" || ps == null || ps === "unpaid")) {
+    return {
+      title: "Aftalen er udført",
+      description: "Du har ikke et regnskabsprogram integreret. Tilføj en regnskabsintegration for at se faktura- og betalingsstatus her.",
+      icon: CheckCircle2, tone: "success", terminal: true,
+    };
+  }
   if (ps === "paid") {
     return {
       title: "Færdigt — alt er på plads",
@@ -97,6 +109,7 @@ function computeStep(order: Order): Step | null {
     };
   }
   if (!order.invoice_external_id) {
+    if (!hasAccountingIntegration) return null;
     return {
       title: "Faktura mangler",
       description: "Aftalen er udført men ikke faktureret. Tjek at regnskabsintegrationen kører eller send manuelt.",
@@ -104,6 +117,7 @@ function computeStep(order: Order): Step | null {
     };
   }
   if (isOverdue) {
+    if (!hasAccountingIntegration) return null;
     return {
       title: "Faktura forfalden",
       description: "Forfaldsdatoen er overskredet. Rykkere håndteres automatisk i dit regnskabsprogram (rykkerkørsel).",
@@ -111,6 +125,7 @@ function computeStep(order: Order): Step | null {
     };
   }
   if (ps === "unpaid" || !ps) {
+    if (!hasAccountingIntegration) return null;
     return {
       title: "Afventer betaling",
       description: order.due_date
@@ -120,6 +135,7 @@ function computeStep(order: Order): Step | null {
     };
   }
   if (ps === "partially_paid") {
+    if (!hasAccountingIntegration) return null;
     return {
       title: "Delvist betalt",
       description: "Kunden har betalt en del af fakturaen. Bekræft restbeløbet i dit regnskabsprogram.",
@@ -129,8 +145,14 @@ function computeStep(order: Order): Step | null {
   return null;
 }
 
-export default function NextStepCard({ order }: { order: Order }) {
-  const step = computeStep(order);
+export default function NextStepCard({
+  order,
+  hasAccountingIntegration = false,
+}: {
+  order: Order;
+  hasAccountingIntegration?: boolean;
+}) {
+  const step = computeStep(order, hasAccountingIntegration);
   if (!step) return null;
   const cls = TONE_CLS[step.tone];
   const Icon = step.icon;
