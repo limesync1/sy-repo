@@ -168,7 +168,7 @@ export const RouteStopsPanel = ({
             </SheetDescription>
           </SheetHeader>
 
-          <div className="flex-1 overflow-y-auto p-2">
+          <div className="flex-1 overflow-y-auto p-1.5">
             {items.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center gap-2 px-4">
                 <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center">
@@ -181,7 +181,7 @@ export const RouteStopsPanel = ({
             ) : (
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <SortableContext items={items.map((s) => s.id)} strategy={verticalListSortingStrategy}>
-                  <ol className="space-y-1">
+                  <ol className="space-y-0.5">
                     {items.map((stop, idx) => (
                       <SortableStopRow
                         key={stop.id}
@@ -277,7 +277,7 @@ const SortableStopRow = ({
         isDragging ? "shadow-lg opacity-80 ring-2 ring-accent" : "hover:shadow-sm hover:border-foreground/20",
       )}
     >
-      <div className="grid min-h-[2.5rem] grid-cols-[1.25rem_2rem_minmax(0,1fr)] sm:min-h-[2.75rem] sm:grid-cols-[1.5rem_2.25rem_minmax(0,1fr)_auto]">
+      <div className="grid min-h-[2.25rem] grid-cols-[1.25rem_2rem_minmax(0,1fr)] sm:min-h-[2.5rem] sm:grid-cols-[1.5rem_2.25rem_minmax(0,1fr)_auto]">
         {/* Drag handle — skjult på projicerede ruter (read-only) */}
         {!isProjection ? (
           <button
@@ -311,7 +311,7 @@ const SortableStopRow = ({
         <button
           type="button"
           onClick={onSelect}
-          className="min-w-0 text-left px-2 py-1.5 hover:bg-accent/5 space-y-0.5 sm:px-2.5 sm:py-2 sm:space-y-0.5"
+          className="min-w-0 text-left px-2 py-1 hover:bg-accent/5 space-y-0.5 sm:px-2.5 sm:py-1.5 sm:space-y-0.5"
         >
           {/* Header: kundenavn (primær) + medarbejder-avatars + åbn-pil */}
           <div className="flex items-center gap-1.5">

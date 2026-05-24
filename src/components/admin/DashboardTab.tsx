@@ -441,7 +441,7 @@ const DashboardTab = ({
         <div className="mt-2.5 grid min-w-0 grid-cols-2 gap-1.5 sm:mt-4 sm:grid-cols-4 sm:gap-2 lg:mt-6">
           <SnapshotPill label="I dag" value={String(stats.todayCount)} sub={`${fmtKrShort(stats.todayRevenue)} kr`} onClick={() => setOpenStat("today")} />
           <SnapshotPill label="Denne uge" value={String(stats.orders7)} sub={`${fmtKrShort(stats.revenue7)} kr`} onClick={() => setOpenStat("orders")} />
-          <SnapshotPill label="Afventer" value={String(pendingOrders)} sub={pendingOrders > 0 ? "Skal besvares" : "Alt besvaret"} accent={pendingOrders > 0} onClick={() => setOpenStat("pending")} />
+          <SnapshotPill label="Afventer" value={String(pendingOrders)} sub={pendingOrders > 0 ? "Afventer behandling" : "Ingen i kø"} accent={pendingOrders > 0} onClick={() => setOpenStat("pending")} />
           <SnapshotPill label="Bedømmelse" value={reviewsCount > 0 ? `${averageRating.toFixed(1)}★` : "–"} sub={`${reviewsCount} ${reviewsCount === 1 ? "anmeldelse" : "anmeldelser"}`} onClick={reviewsCount > 0 ? () => onNavigate?.("reviews") : undefined} />
         </div>
       </section>
