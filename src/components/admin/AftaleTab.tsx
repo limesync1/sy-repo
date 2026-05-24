@@ -1973,7 +1973,7 @@ const AftaleTab = ({
 
                     {/* Ikon-badge */}
                     <div
-                      className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-card"
+                      className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden"
                       title={primarySubcategory || primaryCategory || "Ukategoriseret"}
                     >
                       <IndustryIcon
