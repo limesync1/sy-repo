@@ -175,6 +175,41 @@ export const StopDetailsContent = ({
     : null;
   const accent = route?.color || "hsl(var(--primary))";
 
+  // Gensend faktura — kun synlig når aftalen er markeret udført OG der findes
+  // en bogført faktura i regnskabsprogrammet som adapter'en kan gensende.
+  const { data: invoiceCaps } = useQuery({
+    queryKey: ["invoice-caps", stop.order_id, isDone],
+    enabled: !readOnly && isDone && !!stop.order_id,
+    staleTime: 60_000,
+    retry: false,
+    queryFn: async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("accounting-action", {
+          body: { order_id: stop.order_id, action: "check_capabilities" },
+        });
+        if (error) return null;
+        return (data as any)?.caps ?? null;
+      } catch { return null; }
+    },
+  });
+  const canResendInvoice = !!invoiceCaps?.can_resend;
+  const [resending, setResending] = useState(false);
+  const handleResendInvoice = async () => {
+    setResending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("accounting-action", {
+        body: { order_id: stop.order_id, action: "resend_invoice" },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      toast.success("Faktura gensendt til kunden");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Kunne ikke gensende faktura");
+    } finally {
+      setResending(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-secondary/20">
       {/* Header — samme SheetHeaderBlock som virksomhedspanelets StopDetailSheet */}
