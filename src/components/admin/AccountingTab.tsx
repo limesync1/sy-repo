@@ -535,6 +535,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     error?: string;
   } | null>(null);
   const [resumingPause, setResumingPause] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   // Dinero paste-and-go: én samlet status fra "udfyldt" til "færdig opsat".
   const [dineroStatus, setDineroStatus] = useState<
     "idle" | "checking" | "testing" | "saving" | "done" | "error"
