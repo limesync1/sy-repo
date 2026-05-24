@@ -535,6 +535,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     error?: string;
   } | null>(null);
   const [resumingPause, setResumingPause] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   // Dinero paste-and-go: én samlet status fra "udfyldt" til "færdig opsat".
   const [dineroStatus, setDineroStatus] = useState<
     "idle" | "checking" | "testing" | "saving" | "done" | "error"
@@ -1550,6 +1551,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   </div>
                 </div>
                </div>
+                {showAdvanced && (
                 <div className="flex flex-col gap-2 sm:shrink-0 sm:flex-row [&>button]:w-full sm:[&>button]:w-auto">
                   <Button
                     variant="outline"
@@ -1631,6 +1633,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                     Kør begge veje
                   </Button>
                 </div>
+                )}
               </div>
             </div>
           );
@@ -1666,6 +1669,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
         {/* Detaljeret push/pull-status — én række pr. retning, så brugeren med ét blik
             kan se hvad der virker og hvad der fejler. */}
+        {showAdvanced && (
         <SectionCard
           title="Forbindelsesstatus"
           icon={<ShieldCheck />}
@@ -1756,6 +1760,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           </div>
 
         </SectionCard>
+        )}
 
         {/* Forbindelsesfejl — kun hvis noget er galt på selve forbindelsen */}
         {hasError && (
@@ -1916,6 +1921,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
         {/* Synlige standardvalg — ikke gemt bag “avanceret”, fordi det er her
             brugeren forstår hvad automatikken gør og kan ændre de vigtigste valg. */}
+        {showAdvanced && (
         <div className="space-y-4">
           <div className="flex items-start gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
@@ -2060,6 +2066,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             )}
           </div>
         </SectionCard>
+        </div>
+        )}
 
         {/* Aktiv forbindelse — viser hvilket regnskabsprogram der er
             forbundet, en kort identitet (organisations-id / nøgle-hale)
@@ -2114,10 +2122,20 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           </div>
         </div>
 
+        {/* Log */}
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowAdvanced(v => !v)}
+            className="text-xs text-muted-foreground"
+          >
+            {showAdvanced ? "Skjul avancerede indstillinger" : "Vis avancerede indstillinger"}
+            <ChevronDown className={`ml-1 h-3.5 w-3.5 transition-transform ${showAdvanced ? "rotate-180" : ""}`} />
+          </Button>
         </div>
 
-        {/* Log */}
-        {logs.length > 0 ? (
+        {showAdvanced && (logs.length > 0 ? (
           <SectionCard
             title="Hvad er der sket på det seneste?"
             icon={<RefreshCw />}
@@ -2158,7 +2176,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               Der er ikke sket noget endnu. Så snart du opretter eller ændrer en kunde, en service eller en aftale, går det i gang helt af sig selv — du behøver ikke trykke på noget.
             </p>
           </SectionCard>
-        )}
+        ))}
 
         {/* Bekræftelses-modaler */}
         <AlertDialog open={confirmDisable} onOpenChange={setConfirmDisable}>
