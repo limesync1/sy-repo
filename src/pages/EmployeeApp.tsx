@@ -826,26 +826,26 @@ const EmployeeApp = () => {
                 {/* Handlinger — primær CTA + print som sekundær.
                     Færdige ruter render allerede som kompakt summary længere
                     oppe og kommer aldrig hertil. */}
-                <div className="flex gap-2 pt-1">
+                <div className="flex gap-2 pt-0.5 sm:pt-1">
                   <Button
                     asChild={total > 0}
                     size="lg"
-                    className="h-11 flex-1 gap-2 rounded-lg bg-foreground font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
+                    className="h-10 sm:h-11 flex-1 gap-2 rounded-lg bg-foreground text-sm sm:text-base font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
                     disabled={total === 0 || isLocked}
                     title={isLocked ? lockReason : undefined}
                   >
                     {isLocked ? (
-                      <><LockIcon className="h-5 w-5" /> {needsStartDay ? "Start dag først" : "Låst — afslut forrige først"}</>
+                      <><LockIcon className="h-4 w-4 sm:h-5 sm:w-5" /> {needsStartDay ? "Start dag først" : "Låst — afslut forrige"}</>
                     ) : total > 0 ? (
                       <Link to={`/medarbejder/rute/${r.id}`}>
                         {done > 0 ? (
-                          <><Navigation className="h-5 w-5" /> Fortsæt rute</>
+                          <><Navigation className="h-4 w-4 sm:h-5 sm:w-5" /> Fortsæt rute</>
                         ) : (
-                          <><Play className="h-5 w-5" /> Start rute</>
+                          <><Play className="h-4 w-4 sm:h-5 sm:w-5" /> Start rute</>
                         )}
                       </Link>
                     ) : (
-                      <><Play className="h-5 w-5" /> Ingen stop</>
+                      <><Play className="h-4 w-4 sm:h-5 sm:w-5" /> Ingen stop</>
                     )}
                   </Button>
                   <Button
@@ -853,7 +853,7 @@ const EmployeeApp = () => {
                     size="lg"
                     variant="outline"
                     onClick={() => setPreviewRouteId(r.id)}
-                    className="h-11 shrink-0 rounded-lg border-border bg-card px-3 text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
+                    className="h-10 sm:h-11 shrink-0 rounded-lg border-border bg-card px-3 text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
                     aria-label="Forhåndsvis & udskriv liste"
                     title="Forhåndsvis & udskriv liste"
                   >
