@@ -875,7 +875,7 @@ const Planner = () => {
       if (filtersActive && (r.stops?.length ?? 0) === 0) return false;
       return true;
     });
-  }, [calendarRoutesRaw, visibleCalendarStops, activeEmployees, recurringBaseRoutes]);
+  }, [calendarRoutesRaw, visibleCalendarStops, activeEmployees, recurringBaseRoutes, filtersActive]);
 
   const virtualCalendarRoutes: CalendarRoute[] = useMemo(() => {
     if (!recurringSources.length) return [];
