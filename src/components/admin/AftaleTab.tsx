@@ -1646,8 +1646,12 @@ const AftaleTab = ({
         );
       })()}
 
-      {/* Søgefelt + sortering */}
-      <div className={`grid gap-5 ${routePlanningEnabled ? "lg:grid-cols-[7fr_3fr]" : ""}`}>
+      {/* Søgefelt + sortering.
+          Højre sidebar (Ruter) skjules både når ruteplanlægning er slået
+          fra, OG når der ikke er nogen ikke-planlagte aftaler. I begge
+          tilfælde lader vi venstre kolonne udvide sig vandret over hele
+          bredden i stedet for at efterlade en tom 30%-spalte. */}
+      <div className={`grid gap-5 ${routePlanningEnabled && notPlannedOrders.length > 0 ? "lg:grid-cols-[7fr_3fr]" : ""}`}>
         <div className="space-y-5 min-w-0">
         <div className="flex flex-wrap gap-2">
           <div className="relative flex-1 min-w-[240px]">
