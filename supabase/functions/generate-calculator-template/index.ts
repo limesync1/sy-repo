@@ -394,7 +394,8 @@ Returnér 2-5 trin der præcist matcher netop denne service. Læs beskrivelsen n
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        // Sparer AI-kredit — beregner-skabeloner er strukturerede og kræver ikke flagskibet.
+        model: "google/gemini-2.5-flash-lite",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },

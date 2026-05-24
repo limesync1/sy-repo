@@ -447,6 +447,29 @@ export const RouteEditSheet = ({
   // Brug altid den korrigerede ETA (med DK trafik-buffer) — ingen toggle længere.
   const displayDuration = routeDirections ? pickDuration(routeDirections, false) : null;
 
+  // Hurtig fallback-estimat baseret på fugl-flugt-afstand mellem waypoints.
+  // Vises mens directions-API'et henter, så "Estimeret rejsetid" aldrig er tom.
+  // 45 km/t er et realistisk dansk by/landevejs-gennemsnit inkl. stop.
+  const fallbackDurationSec = useMemo(() => {
+    if (!waypoints || waypoints.length < 2) return null;
+    let meters = 0;
+    for (let i = 1; i < waypoints.length; i++) {
+      const a = waypoints[i - 1];
+      const b = waypoints[i];
+      const R = 6371000;
+      const toRad = (d: number) => (d * Math.PI) / 180;
+      const dLat = toRad(b.lat - a.lat);
+      const dLng = toRad(b.lng - a.lng);
+      const lat1 = toRad(a.lat);
+      const lat2 = toRad(b.lat);
+      const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+      meters += 2 * R * Math.asin(Math.sqrt(h));
+    }
+    // Korriger fra fugl-flugt til vej (~1.3x) og divider med gennemsnitsfart.
+    const km = (meters / 1000) * 1.3;
+    return Math.round((km / 45) * 3600);
+  }, [waypoints]);
+
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange} modal={isCompact}>
@@ -564,7 +587,8 @@ export const RouteEditSheet = ({
                 hint={directionsFetching ? "Genberegner…" : undefined}
               >
                 {(() => {
-                  const baseSec = displayDuration;
+                  const baseSec = displayDuration ?? fallbackDurationSec;
+                  const isEstimate = displayDuration == null && fallbackDurationSec != null;
                   const adjustedSec = baseSec != null ? Math.round(baseSec * weatherFactor.mult) : null;
                   const trafficMult = routeDirections?.traffic_multiplier ?? 1;
                   const trafficLabel = trafficMult >= 1.25 ? "Tæt trafik"
@@ -578,6 +602,9 @@ export const RouteEditSheet = ({
                           {adjustedSec != null ? formatTravelTime(adjustedSec) : "—"}
                         </span>
                         {directionsFetching && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
+                        {isEstimate && !directionsFetching && (
+                          <span className="text-[10px] text-muted-foreground">(grovskøn)</span>
+                        )}
                       </p>
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {trafficLabel && (

@@ -2076,7 +2076,7 @@ const IndustryPicker = ({
             <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               {g.label}
             </p>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-2 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
               {g.industries.map((i) => {
                 const isOn = selected.includes(i.key);
                 return (
@@ -2084,15 +2084,15 @@ const IndustryPicker = ({
                     key={i.key}
                     type="button"
                     onClick={() => onToggle(i.key)}
-                    className={`group relative flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left transition-all ${
+                    className={`group relative flex min-h-[52px] items-center gap-2 rounded-xl border px-3 py-3 text-left transition-all active:scale-[0.98] ${
                       isOn
                         ? "border-foreground bg-foreground/5 shadow-sm ring-1 ring-foreground/10"
                         : "border-border bg-card hover:border-foreground/40 hover:bg-secondary/40"
                     }`}
                   >
-                    <span className="text-lg leading-none">{i.icon}</span>
+                    <span className="text-xl leading-none">{i.icon}</span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[13px] font-medium text-foreground">
+                      <span className="block text-[13px] font-medium leading-tight text-foreground break-words">
                         {i.label}
                       </span>
                     </span>
@@ -2138,7 +2138,7 @@ const SubcategoryPicker = ({
   if (industries.length === 0) return null;
 
   return (
-    <div className="grid gap-3 lg:grid-cols-2">
+    <div className="grid gap-3 md:grid-cols-2">
       {industries.map((ind) => {
         const picked = selectedSubcategories[ind.key] || [];
         const total = ind.subcategories.length;

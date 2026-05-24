@@ -19,6 +19,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import ImageUpload from "@/components/business/ImageUpload";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -150,6 +154,11 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
   const [showForm, setShowForm] = useState(false);
   const [filterCategory, setFilterCategory] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
+  // Bekræftelses-dialog før sletning af service — undgår utilsigtet tab af data.
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const pendingDeleteService = pendingDeleteId
+    ? (services || []).find((s: any) => s.id === pendingDeleteId)
+    : null;
 
   // Hent regnskabsintegration + vare-links én gang, så hver række kan vise
   // vare-nr og kundegruppe/indtægtskonto uden N+1 kald.
@@ -364,7 +373,7 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
             orderCount={orderCountByService[s.id] || 0}
             accountingMeta={accountingMeta}
             onEdit={() => setEditingId(s.id)}
-            onDelete={() => deleteService.mutate(s.id)}
+            onDelete={() => setPendingDeleteId(s.id)}
           />
         ))}
         <PaginationFooter
@@ -387,6 +396,31 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
           />
         )}
       </div>
+
+      <AlertDialog open={!!pendingDeleteId} onOpenChange={(o) => { if (!o) setPendingDeleteId(null); }}>
+        <AlertDialogContent className="rounded-xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Slet service?</AlertDialogTitle>
+            <AlertDialogDescription className="leading-relaxed">
+              Er du sikker på, at du vil slette
+              {pendingDeleteService ? <> servicen <strong>“{pendingDeleteService.name}”</strong></> : " denne service"}?
+              Handlingen kan ikke fortrydes.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="h-9 rounded-lg text-sm font-medium">Annullér</AlertDialogCancel>
+            <AlertDialogAction
+              className="h-9 rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 text-sm font-medium"
+              onClick={() => {
+                if (pendingDeleteId) deleteService.mutate(pendingDeleteId);
+                setPendingDeleteId(null);
+              }}
+            >
+              Ja, slet servicen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
@@ -766,26 +800,8 @@ const ServiceForm = ({
   };
 
   // Auto-foreslå AI-beskrivelse første gang brugeren rammer detaljer-trinnet
-  // med navn + kategori valgt og tom beskrivelse.
-  useEffect(() => {
-    if (
-      currentStep === 2 &&
-      !existingService &&
-      !aiDescAutoTried &&
-      !aiLoading &&
-      !description.trim() &&
-      name.trim().length > 1 &&
-      serviceCategory.trim().length > 0
-    ) {
-      // Lille forsinkelse så brugeren kan nå at se feltet være tomt og ikke føler at AI tager over
-      const t = setTimeout(() => {
-        setAiDescAutoTried(true);
-        generateAiDescription();
-      }, 600);
-      return () => clearTimeout(t);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStep, name, serviceCategory]);
+  // — bevidst fjernet for at spare AI-kredit. Brugeren kan stadig trykke
+  // "Foreslå med AI" manuelt, men der genereres ikke automatisk længere.
 
   // ── Branchefiltrering ──────────────────────────────────────────────
   // Vi viser kun kategorier/underkategorier/forslag som matcher virksomhedens
@@ -1050,7 +1066,7 @@ const ServiceForm = ({
   // ingen beslutninger på vegne af dem.
 
   const canGoNext = () => {
-    if (currentStep === 1) return !!serviceCategory;
+    if (currentStep === 1) return !!serviceCategory && !!subcategory.trim();
     if (currentStep === 2) return !!name.trim() && !!description.trim();
     if (currentStep === 3) {
       if (pricingType === "prisberegner") return true;
@@ -1062,6 +1078,7 @@ const ServiceForm = ({
   const handleSave = async () => {
     if (!name.trim()) { toast.error("Indtast et servicenavn"); return; }
     if (!serviceCategory.trim()) { toast.error("Vælg en kategori"); return; }
+    if (!subcategory.trim()) { toast.error("Vælg en underkategori"); return; }
     if (pricingType === "prisberegner" && steps.length === 0) { toast.error("Tilføj mindst ét beregnertrin"); return; }
     if (pricingType === "prisberegner" && steps.some(s => !s.label.trim())) { toast.error("Alle beregnertrin skal have et navn"); return; }
 
@@ -1272,7 +1289,7 @@ const ServiceForm = ({
 
           {serviceCategory && subcategoryOptions.length === 0 && !customCategory && (
             <div className="space-y-2 pt-4 border-t border-border">
-              <FieldLabel optional>Underkategori</FieldLabel>
+              <FieldLabel required>Underkategori</FieldLabel>
               <Input placeholder="Fx Erhvervsrengøring" value={subcategory} onChange={(e) => setSubcategory(e.target.value)} className="bg-card" />
             </div>
           )}

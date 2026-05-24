@@ -92,7 +92,8 @@ Service: ${serviceLine}`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        // Sparer AI-kredit: lite-modellen er rigeligt til en kort, dansk produktbeskrivelse.
+        model: "google/gemini-2.5-flash-lite",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },

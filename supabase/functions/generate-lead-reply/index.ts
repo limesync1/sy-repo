@@ -118,7 +118,8 @@ Generér emnelinje + e-mailtekst nu.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        // Lead-svar er korte tekster — lite-modellen er hurtigere og billigere.
+        model: "google/gemini-2.5-flash-lite",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
