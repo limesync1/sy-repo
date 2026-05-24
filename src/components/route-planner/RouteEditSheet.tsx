@@ -471,7 +471,7 @@ export const RouteEditSheet = ({
             />
           </SheetHeader>
 
-          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3 bg-secondary/20">
+          <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2 bg-secondary/20">
             {/* Navn */}
             <Section
               icon={<Pencil className="h-3.5 w-3.5" />}

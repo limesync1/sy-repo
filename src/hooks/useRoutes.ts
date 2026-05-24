@@ -201,6 +201,8 @@ export type RouteStop = {
   start_date?: string | null;
   /** True hvis aftalen endnu ikke er udført én gang (completed_cycles = 0). Decoreret client-side. */
   is_first_occurrence?: boolean;
+  /** Antal gennemførte cyklusser på underliggende ordre. Decoreret client-side. */
+  completed_cycles?: number;
 };
 
 export type RouteEmployee = {
