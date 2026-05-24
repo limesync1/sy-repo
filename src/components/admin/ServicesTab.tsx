@@ -8,6 +8,7 @@ import {
   Plus, Trash2,
   Sparkles, Calculator, Wrench, Wand2, Loader2, Check,
   ArrowUp, ArrowDown, Copy, Tag, Receipt, BookOpen, Repeat,
+  Package, TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,13 +28,14 @@ import {
 import { useEmployees } from "@/hooks/useEmployees";
 import { IntervalBuilder } from "@/components/admin/IntervalBuilder";
 import { formatInterval } from "@/lib/interval";
-import { PageHeader, PrimaryButton, EmptyState, FieldLabel } from "@/components/admin/shared/AdminUI";
+import { PageHeader, PrimaryButton, EmptyState, FieldLabel, StatCard } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton, StatGridSkeleton } from "@/components/admin/shared/Skeletons";
 import {
   findIndustry,
   industryIcon,
   stepTemplatesForIndustries,
 } from "@/lib/service-taxonomy";
+import { IndustryIcon } from "@/components/IndustryIcon";
 
 const STEP_TEMPLATES: Record<string, { label: string; steps: Array<{ label: string; unit: string; price_per_unit: number; min_value: number; max_value: number; default_value: number }> }[]> = {
   "Rengøring": [
@@ -316,24 +318,9 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
 
       <div data-tour="services-stats" className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
         <div className="grid gap-3 sm:grid-cols-3">
-          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-            <CardContent className="p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Services i alt</p>
-              <p className="mt-1 text-2xl font-semibold text-foreground tabular-nums">{services?.length || 0}</p>
-            </CardContent>
-          </Card>
-          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-            <CardContent className="p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Aktive</p>
-              <p className="mt-1 text-2xl font-semibold text-foreground tabular-nums">{activeServices}</p>
-            </CardContent>
-          </Card>
-          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-            <CardContent className="p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Bestillinger</p>
-              <p className="mt-1 text-2xl font-semibold text-foreground tabular-nums">{totalOrders}</p>
-            </CardContent>
-          </Card>
+          <StatCard label="Services i alt" value={services?.length || 0} icon={<Package />} />
+          <StatCard label="Aktive" value={activeServices} icon={<Check />} tone="ok" />
+          <StatCard label="Bestillinger" value={totalOrders} icon={<TrendingUp />} />
         </div>
 
         {uniqueCategories.length > 1 && (
@@ -410,7 +397,6 @@ const ServiceRow = ({ service, orderCount, accountingMeta, onEdit, onDelete }: {
 
   const intervals = service.interval_options || [];
   const hasRecurring = intervals.some((i: string) => i !== "engangskøb");
-  const categoryIcon = industryIcon(service.service_category);
   const intervalSummary = intervals.length > 0
     ? intervals.slice(0, 2).map((interval: string) => formatInterval(interval)).join(", ") + (intervals.length > 2 ? ` +${intervals.length - 2}` : "")
     : "Ikke angivet";
@@ -440,8 +426,12 @@ const ServiceRow = ({ service, orderCount, accountingMeta, onEdit, onDelete }: {
             {/* Header: ikon + titel + meta + handlinger */}
             <div className="flex items-start justify-between gap-2">
               <div className="flex min-w-0 items-start gap-2.5">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-secondary/50 text-sm">
-                  <span className="leading-none">{categoryIcon}</span>
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-secondary/40">
+                  <IndustryIcon
+                    category={service.service_category}
+                    subcategory={service.subcategory}
+                    className="h-8 w-8"
+                  />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-1.5">
@@ -1136,8 +1126,8 @@ const ServiceForm = ({
           {/* Live opsummering af brugerens valg så de altid kan se hvor de er */}
           <div className="hidden sm:flex flex-wrap items-center justify-end gap-1.5">
             {serviceCategory && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-foreground">
-                <span>{CATEGORY_ICONS[serviceCategory] || "📋"}</span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-foreground">
+                <IndustryIcon category={serviceCategory} className="h-4 w-4" />
                 {serviceCategory}
               </span>
             )}
@@ -1204,7 +1194,7 @@ const ServiceForm = ({
                         : "border-border bg-card hover:bg-secondary"
                     }`}
                   >
-                    <span className="text-2xl">{CATEGORY_ICONS[c] || "📋"}</span>
+                    <IndustryIcon category={c} className="h-10 w-10" />
                     <span className="text-sm font-medium text-foreground">{c}</span>
                   </button>
                 ))}

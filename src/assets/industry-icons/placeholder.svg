@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#EBF7F9"/>
+      <stop offset="1" stop-color="#CBEFFB"/>
+    </linearGradient>
+  </defs>
+  <rect x="60" y="60" width="880" height="880" rx="120" fill="url(#bg)"/>
+  <g transform="translate(500 520)">
+    <rect x="-260" y="-60" width="520" height="320" rx="40" fill="#F05C24"/>
+    <rect x="-260" y="-60" width="520" height="60" rx="20" fill="#DE3703"/>
+    <rect x="-90" y="-180" width="180" height="120" rx="24" fill="#4BA9CF" stroke="#2B2D2D" stroke-width="10"/>
+    <rect x="-60" y="-150" width="120" height="60" rx="8" fill="#EBF8FC"/>
+    <circle cx="-160" cy="100" r="28" fill="#FAEA21" stroke="#2B2D2D" stroke-width="8"/>
+    <circle cx="160" cy="100" r="28" fill="#FAEA21" stroke="#2B2D2D" stroke-width="8"/>
+    <rect x="-60" y="40" width="120" height="80" rx="12" fill="#FFFFFF" stroke="#2B2D2D" stroke-width="8"/>
+    <text x="0" y="105" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="80" font-weight="800" fill="#2B2D2D">?</text>
+  </g>
+</svg>

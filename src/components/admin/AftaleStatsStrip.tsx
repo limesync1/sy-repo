@@ -4,6 +4,7 @@ import {
   startOfWeek, endOfWeek, startOfMonth, endOfMonth, parseISO, isWithinInterval,
 } from "date-fns";
 import { da } from "date-fns/locale";
+import { StatCard } from "@/components/admin/shared/AdminUI";
 
 /**
  * AftaleStatsStrip — kompakt strip øverst på Aftaler-fanen, der viser
@@ -52,44 +53,28 @@ export const AftaleStatsStrip = ({ orders }: { orders: OrderLike[] }) => {
   if (s.weekCount === 0 && s.monthCount === 0) return null;
 
   return (
-    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-      <StatChip
-        icon={<Calendar className="h-4 w-4" />}
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <StatCard
+        icon={<Calendar />}
         label="Planlagt denne uge"
         value={fmtKr(s.weekRevenue)}
-        sub={`${s.weekCount} ${s.weekCount === 1 ? "aftale" : "aftaler"}`}
+        hint={`${s.weekCount} ${s.weekCount === 1 ? "aftale" : "aftaler"}`}
       />
-      <StatChip
-        icon={<TrendingUp className="h-4 w-4" />}
+      <StatCard
+        icon={<TrendingUp />}
         label="Planlagt denne måned"
         value={fmtKr(s.monthRevenue)}
-        sub={`${s.monthCount} ${s.monthCount === 1 ? "aftale" : "aftaler"}`}
+        hint={`${s.monthCount} ${s.monthCount === 1 ? "aftale" : "aftaler"}`}
+        tone="ok"
       />
-      <StatChip
-        icon={<DollarSign className="h-4 w-4" />}
+      <StatCard
+        icon={<DollarSign />}
         label="Snit pr. aftale (måned)"
         value={s.monthCount ? fmtKr(s.monthRevenue / s.monthCount) : "—"}
-        sub="Ekskl. annullerede"
+        hint="Ekskl. annullerede"
       />
     </div>
   );
 };
-
-const StatChip = ({
-  icon, label, value, sub,
-}: { icon: React.ReactNode; label: string; value: string; sub?: string }) => (
-  <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-3.5 py-2.5 shadow-sm">
-    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
-      {icon}
-    </div>
-    <div className="min-w-0 flex-1">
-      <p className="truncate text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-        {label}
-      </p>
-      <p className="text-base font-semibold tabular-nums text-foreground">{value}</p>
-      {sub && <p className="text-[11px] text-muted-foreground">{sub}</p>}
-    </div>
-  </div>
-);
 
 export default AftaleStatsStrip;

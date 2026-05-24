@@ -16,7 +16,7 @@ import {
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { da } from "date-fns/locale";
-import { PageHeader, EmptyState } from "@/components/admin/shared/AdminUI";
+import { PageHeader, EmptyState, StatCard } from "@/components/admin/shared/AdminUI";
 import { PageSkeleton } from "@/components/admin/shared/Skeletons";
 import { LeadDetailDialog, type LeadDetailLead } from "@/components/admin/LeadDetailDialog";
 
@@ -58,23 +58,6 @@ const computePriority = (l: Lead): { priority: Priority; score: number; signals:
   return { priority, score, signals };
 };
 
-const StatCard = ({ label, value, sub, icon, tone }: {
-  label: string; value: string | number; sub?: string; icon?: React.ReactNode; tone?: "accent" | "warn" | "ok" | "default";
-}) => {
-  const toneCls = tone === "accent" ? "text-accent" : tone === "warn" ? "text-orange-500" : tone === "ok" ? "text-emerald-600" : "text-muted-foreground";
-  return (
-    <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
-          {icon && <span className={toneCls}>{icon}</span>}
-        </div>
-        <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{value}</p>
-        {sub && <p className="mt-0.5 text-xs text-muted-foreground">{sub}</p>}
-      </CardContent>
-    </Card>
-  );
-};
 
 const LeadsTab = ({ businessId }: { businessId: string }) => {
   const qc = useQueryClient();
@@ -241,9 +224,9 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
         />
 
         <div className="grid gap-3 sm:grid-cols-3">
-          <StatCard label="Aktive leads" value={counts.active || 0} icon={<Target className="h-4 w-4" />} />
-          <StatCard label="Konvertering" value={`${convStats.conversionRate}%`} sub={`${convStats.contactRate}% kontaktet`} icon={<TrendingUp className="h-4 w-4" />} tone="ok" />
-          <StatCard label="Svartid (snit)" value={convStats.avgRespHours > 0 ? (convStats.avgRespHours < 1 ? `${Math.round(convStats.avgRespHours * 60)}m` : `${convStats.avgRespHours.toFixed(1)}t`) : "—"} sub="Hurtigere = flere aftaler" icon={<Clock className="h-4 w-4" />} />
+          <StatCard label="Aktive leads" value={counts.active || 0} icon={<Target />} />
+          <StatCard label="Konvertering" value={`${convStats.conversionRate}%`} hint={`${convStats.contactRate}% kontaktet`} icon={<TrendingUp />} tone="ok" />
+          <StatCard label="Svartid (snit)" value={convStats.avgRespHours > 0 ? (convStats.avgRespHours < 1 ? `${Math.round(convStats.avgRespHours * 60)}m` : `${convStats.avgRespHours.toFixed(1)}t`) : "—"} hint="Hurtigere = flere aftaler" icon={<Clock />} />
         </div>
 
         {allLeads.length === 0 ? (
