@@ -406,6 +406,26 @@ export function makeDineroAdapter(
       };
     },
 
+    async resendInvoice(input) {
+      if (!input.customer_email) {
+        return { sent: false, note: "Kunden har ingen e-mail registreret." };
+      }
+      try {
+        await dineroRequest(creds, orgId, `/invoices/${input.invoice_external_id}/email`, {
+          method: "POST",
+          body: JSON.stringify({
+            Receiver: input.customer_email,
+            Sender: "",
+            Message: "",
+          }),
+        });
+        return { sent: true };
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        throw new Error(`Kunne ikke gensende faktura via Dinero: ${msg}`);
+      }
+    },
+
     async getInvoiceStates(externalIds: string[]): Promise<ExternalInvoiceState[]> {
       const out: ExternalInvoiceState[] = [];
       for (const id of externalIds) {

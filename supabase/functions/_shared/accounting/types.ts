@@ -292,6 +292,17 @@ export interface AccountingAdapter {
     invoice_external_id: string;
     external_type?: "invoice_booked" | "invoice_draft";
   }): Promise<{ pdf_base64: string; filename: string }>;
+
+  /**
+   * Gensend en bogført faktura til kunden via udbyderens egen e-mail-flow.
+   * Bruges fra medarbejderpanelet når en aftale lige er markeret udført og
+   * kunden skal have fakturaen igen.
+   */
+  resendInvoice?(input: {
+    invoice_external_id: string;
+    external_type?: "invoice_booked" | "invoice_draft";
+    customer_email?: string | null;
+  }): Promise<{ sent: boolean; note?: string | null }>;
 }
 
 export type AdapterFactory = (

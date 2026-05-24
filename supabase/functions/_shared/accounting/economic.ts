@@ -787,6 +787,25 @@ export function makeEconomicAdapter(
       };
     },
 
+    async resendInvoice({ invoice_external_id, external_type }) {
+      // E-conomic: POST /invoices/booked/{n}/sent-by-email sender bogført
+      // faktura til kundens registrerede e-mail. Kladder kan ikke sendes.
+      const t = external_type ?? "invoice_booked";
+      if (t !== "invoice_booked") {
+        throw new Error("Fakturaen er ikke bogført endnu — kan ikke gensendes.");
+      }
+      try {
+        await ecRequest(creds, `/invoices/booked/${invoice_external_id}/sent-by-email`, {
+          method: "POST",
+          body: JSON.stringify({}),
+        });
+        return { sent: true };
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        throw new Error(`Kunne ikke gensende faktura via e-conomic: ${msg}`);
+      }
+    },
+
     async creditInvoice({ invoice_external_id }) {
       // 1) Tjek først om fakturaen faktisk er bogført. Hvis den kun findes
       // som kladde (eller er slettet), giv en brugbar fejlbesked i stedet
