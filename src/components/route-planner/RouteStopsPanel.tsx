@@ -168,7 +168,7 @@ export const RouteStopsPanel = ({
             </SheetDescription>
           </SheetHeader>
 
-          <div className="flex-1 overflow-y-auto p-2">
+          <div className="flex-1 overflow-y-auto p-1.5">
             {items.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center gap-2 px-4">
                 <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center">
@@ -181,7 +181,7 @@ export const RouteStopsPanel = ({
             ) : (
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <SortableContext items={items.map((s) => s.id)} strategy={verticalListSortingStrategy}>
-                  <ol className="space-y-1">
+                  <ol className="space-y-0.5">
                     {items.map((stop, idx) => (
                       <SortableStopRow
                         key={stop.id}
