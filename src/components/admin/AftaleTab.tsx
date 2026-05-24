@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrders, useServices, useBusinessSubscriptions } from "@/hooks/useDatabase";
@@ -239,6 +239,18 @@ const STATUS_CONFIG: Record<string, { label: string; icon: typeof Clock; cls: st
   completed:   { label: "Udført",        icon: CheckCircle2,  cls: "border-success/40 bg-success/10 text-success",                                                                          dot: "bg-success" },
   cancelled:   { label: "Annulleret",    icon: XCircle,       cls: "border-destructive/30 bg-destructive/5 text-destructive/80",                                                            dot: "bg-destructive/70" },
 };
+
+/** Lille label til at gruppere sektioner inde i den foldede aftaledetalje.
+ *  En tynd linje + uppercase tekst skaber tydelig visuel rytme, så øjet
+ *  hurtigt kan se hvor "Aftalen" slutter og "Kontekst" starter. */
+const SectionLabel = ({ children }: { children: React.ReactNode }) => (
+  <div className="flex items-center gap-2 px-0.5">
+    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/80">
+      {children}
+    </span>
+    <span className="h-px flex-1 bg-border" />
+  </div>
+);
 
 const PRICING_LABELS: Record<string, string> = {
   fast_pris: "Specifik pris",
@@ -2091,12 +2103,20 @@ const AftaleTab = ({
                     3) Kontekst (kontakt, rute, tilbagevendende, tidslinje) */}
                 {isExpanded && (
                   <div className="border-t border-border bg-background">
-                    <div className="sticky top-0 z-20 border-b border-border bg-background/95 px-3 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/90">
+                    {/* Fokus-banner — primær anker når kortet foldes ud. Tydeligt
+                        accent-tema så øjet straks lander her, før det glider
+                        ned til detaljerne nedenunder. */}
+                    <div className="sticky top-0 z-20 border-b border-accent/30 bg-gradient-to-r from-accent/10 via-accent/5 to-transparent px-3 py-2.5 backdrop-blur supports-[backdrop-filter]:bg-background/80">
                       {!isResponding ? (
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div className="min-w-0">
-                            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Fokus</p>
-                            <p className="truncate text-sm font-semibold text-foreground">{getFocusLine(order)}</p>
+                          <div className="min-w-0 flex items-start gap-2.5">
+                            <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent ring-1 ring-accent/30">
+                              <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
+                            </span>
+                            <div className="min-w-0">
+                              <p className="text-[10px] font-semibold uppercase tracking-wider text-accent/90">Næste handling</p>
+                              <p className="truncate text-sm font-semibold text-foreground">{getFocusLine(order)}</p>
+                            </div>
                           </div>
                           <div className="flex flex-wrap items-center justify-end gap-1.5">
                             {actions.canRespond && (
@@ -2220,8 +2240,11 @@ const AftaleTab = ({
                       </div>
                     )}
 
-                    <div className="px-3 py-2.5 space-y-2">
-                    {!isResponding && <NextStepCard order={order as any} />}
+                    <div className="px-3 py-3 space-y-3">
+                    {/* ── 1) Handling — beslutninger og status der kræver opmærksomhed ── */}
+                    {!isResponding && (
+                      <NextStepCard order={order as any} />
+                    )}
                     {!isResponding && <ProposalStatusBanner order={order} />}
                     {order.business_message && !isResponding && (
                       <div className="rounded-lg border border-border bg-card px-3 py-2">
@@ -2231,17 +2254,24 @@ const AftaleTab = ({
                     )}
                     {!isResponding && <AdjustmentDisplay order={order} />}
 
-                    {/* ── 2) Hvad er aftalen om? ── */}
-                    <CustomerOrderSummary order={order} />
-
-                    {order.notes && (
-                      <div className="flex gap-2 rounded-lg bg-card border border-border px-3 py-2">
-                        <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-                        <p className="text-sm text-foreground">{order.notes}</p>
+                    {/* ── 2) Aftalen — hvad er bestilt, kundens noter ── */}
+                    <div className="pt-1">
+                      <SectionLabel>Aftalen</SectionLabel>
+                      <div className="mt-1.5 space-y-2">
+                        <CustomerOrderSummary order={order} />
+                        {order.notes && (
+                          <div className="flex gap-2 rounded-lg bg-card border border-border px-3 py-2">
+                            <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                            <p className="text-sm text-foreground">{order.notes}</p>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
 
                     {/* ── 3) Kontekst — kontakt, rute, abonnement, tidslinje ── */}
+                    <div className="pt-1">
+                      <SectionLabel>Kontekst</SectionLabel>
+                      <div className="mt-1.5 space-y-2">
                     <div className="flex flex-wrap items-center gap-1.5">
                       <a href={`mailto:${order.customer_email}`}
                         className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground hover:bg-secondary/60 max-w-full">
@@ -2313,6 +2343,8 @@ const AftaleTab = ({
                       </summary>
                       <div className="mt-2"><OrderTimeline order={order as any} /></div>
                     </details>
+                      </div>
+                    </div>
                   </div>
                   </div>
                 )}
