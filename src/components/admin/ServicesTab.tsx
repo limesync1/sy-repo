@@ -34,6 +34,7 @@ import {
   industryIcon,
   stepTemplatesForIndustries,
 } from "@/lib/service-taxonomy";
+import { IndustryIcon } from "@/components/IndustryIcon";
 
 const STEP_TEMPLATES: Record<string, { label: string; steps: Array<{ label: string; unit: string; price_per_unit: number; min_value: number; max_value: number; default_value: number }> }[]> = {
   "Rengøring": [
@@ -410,7 +411,6 @@ const ServiceRow = ({ service, orderCount, accountingMeta, onEdit, onDelete }: {
 
   const intervals = service.interval_options || [];
   const hasRecurring = intervals.some((i: string) => i !== "engangskøb");
-  const categoryIcon = industryIcon(service.service_category);
   const intervalSummary = intervals.length > 0
     ? intervals.slice(0, 2).map((interval: string) => formatInterval(interval)).join(", ") + (intervals.length > 2 ? ` +${intervals.length - 2}` : "")
     : "Ikke angivet";
@@ -440,8 +440,12 @@ const ServiceRow = ({ service, orderCount, accountingMeta, onEdit, onDelete }: {
             {/* Header: ikon + titel + meta + handlinger */}
             <div className="flex items-start justify-between gap-2">
               <div className="flex min-w-0 items-start gap-2.5">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-secondary/50 text-sm">
-                  <span className="leading-none">{categoryIcon}</span>
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-secondary/40">
+                  <IndustryIcon
+                    category={service.service_category}
+                    subcategory={service.subcategory}
+                    className="h-8 w-8"
+                  />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-1.5">
