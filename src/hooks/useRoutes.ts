@@ -1373,7 +1373,7 @@ export const useOptimizeRoute = () => {
       qc.invalidateQueries({ queryKey: ["routes"] });
       qc.invalidateQueries({ queryKey: ["routes-range"] });
     },
-    onError: (e: any) => toast.error(e.message || "Kunne ikke optimere ruten"),
+    // Fejl-toast håndteres af kalderen (toast.promise i UI) — undgår duplikat.
   });
 };
 
