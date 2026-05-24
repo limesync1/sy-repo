@@ -390,7 +390,10 @@ export const RouteEditSheet = ({
   };
 
   const handleOptimize = async () => {
-    try {
+    // Brug toast.promise så brugeren ser øjeblikkelig feedback mens vi
+    // optimerer, og success-/info-toasten først dukker op NÅR ruten faktisk
+    // er opdateret (efter mutationen og dens query-invalidering returnerer).
+    const runner = (async () => {
       const result = await optimize.mutateAsync(route.id);
       const savedKm = Math.max(
         0,
@@ -400,18 +403,38 @@ export const RouteEditSheet = ({
         0,
         (result as any).saved_minutes ?? (((result as any).before_minutes ?? result.total_minutes) - result.total_minutes),
       );
-      const negligible = savedKm < 0.05 && savedMin < 1;
-      if (!negligible) {
-        const parts: string[] = [];
-        if (savedKm >= 0.05) parts.push(`${savedKm.toFixed(1)} km`);
-        if (savedMin >= 1) parts.push(formatTravelTime(Math.round(savedMin) * 60));
-        toast.success(`Sparet ${parts.join(" · ")}`);
-      } else if ((result as any).order_changed) {
-        toast.success("Rækkefølgen er optimeret");
-      } else {
-        toast.info("Ingen bedre rækkefølge fundet");
-      }
-    } catch { /* */ }
+      const orderChanged = !!(result as any).order_changed;
+      const meaningfulSavings = savedKm >= 0.05 || savedMin >= 1;
+      return { result, savedKm, savedMin, orderChanged, meaningfulSavings };
+    })();
+
+    toast.promise(runner, {
+      loading: "Optimerer rækkefølgen…",
+      success: ({ savedKm, savedMin, orderChanged, meaningfulSavings }) => {
+        if (meaningfulSavings) {
+          const parts: string[] = [];
+          if (savedKm >= 0.05) parts.push(`${savedKm.toFixed(1)} km`);
+          if (savedMin >= 1) parts.push(formatTravelTime(Math.round(savedMin) * 60));
+          return {
+            message: `Sparet ${parts.join(" · ")}`,
+            description: orderChanged ? "Rækkefølgen er opdateret" : undefined,
+          } as any;
+        }
+        if (orderChanged) {
+          return {
+            message: "Rækkefølgen er optimeret",
+            description: "Ingen målbar km-/tidsbesparelse — men stops er omrokeret",
+          } as any;
+        }
+        return {
+          message: "Allerede den bedste rækkefølge",
+          description: "Ingen ændringer foretaget",
+        } as any;
+      },
+      error: (e: any) => e?.message || "Kunne ikke optimere ruten",
+    });
+
+    try { await runner; } catch { /* fejl håndteres af toast.promise */ }
   };
 
   /**
