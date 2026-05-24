@@ -103,7 +103,7 @@ const RouteMiniMap = ({
   const bounds = L.latLngBounds(points.map((p) => L.latLng(p[0], p[1])));
 
   return (
-    <div className="relative z-0 h-40 w-full isolate overflow-hidden bg-secondary/40 sm:h-44">
+    <div className="relative z-0 h-32 w-full isolate overflow-hidden bg-secondary/40 sm:h-44">
       <MapContainer
         bounds={bounds}
         boundsOptions={{ padding: [20, 20] }}
@@ -415,19 +415,19 @@ const EmployeeApp = () => {
           const Cta = suggestion.cta;
           return (
             <Card className={cn("overflow-hidden rounded-xl border shadow-sm", toneClasses)}>
-              <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-5 sm:p-5">
-                <div className="flex items-start gap-3 min-w-0">
-                  <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl", iconWrap)} aria-hidden>
-                    <Sparkles className="h-5 w-5" />
+              <div className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-5 sm:p-5">
+                <div className="flex items-start gap-2.5 min-w-0">
+                  <div className={cn("flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl", iconWrap)} aria-hidden>
+                    <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                       Næste skridt
                     </p>
-                    <p className="mt-0.5 text-base font-semibold text-foreground">
+                    <p className="mt-0.5 text-sm sm:text-base font-semibold text-foreground">
                       {suggestion.title}
                     </p>
-                    <p className="mt-1 text-sm text-muted-foreground tabular-nums">
+                    <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-muted-foreground tabular-nums">
                       {suggestion.description}
                     </p>
                     {/* Live arbejdsdag-status under forslaget — så medarbejderen
@@ -463,7 +463,7 @@ const EmployeeApp = () => {
                   asChild={!!Cta.to}
                   onClick={Cta.onClick}
                   size="lg"
-                  className="h-11 w-full shrink-0 gap-2 rounded-lg bg-foreground px-5 text-sm font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] sm:w-auto"
+                  className="h-10 sm:h-11 w-full shrink-0 gap-2 rounded-lg bg-foreground px-4 sm:px-5 text-sm font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] sm:w-auto"
                 >
                   {Cta.to ? (
                     <Link to={Cta.to}>
@@ -517,18 +517,18 @@ const EmployeeApp = () => {
         )}
 
         {!routesLoading && !stopsLoading && routes.length === 0 && (
-          <Card className="rounded-xl border-dashed border-border p-10 text-center shadow-sm">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary">
-              <CalendarIcon className="h-8 w-8 text-muted-foreground" />
+          <Card className="rounded-xl border-dashed border-border p-6 sm:p-10 text-center shadow-sm">
+            <div className="mx-auto mb-3 sm:mb-4 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-secondary">
+              <CalendarIcon className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
             </div>
-            <p className="text-base font-semibold mb-1">Ingen ruter denne dag</p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm sm:text-base font-semibold mb-1">Ingen ruter denne dag</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Du har ingen tildelte stop. Skift dato for at se andre dage.
             </p>
           </Card>
         )}
 
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
         {(() => {
           // ─── Sekventiel låsning ──────────────────────────────────────────
           // Medarbejderen skal kun kunne starte ÉN rute ad gangen i dag.
@@ -601,7 +601,7 @@ const EmployeeApp = () => {
                 className="surface-admin overflow-hidden rounded-xl border-border/80 opacity-95 shadow-sm"
                 aria-label={`Rute ${r.name || ""} er færdig`}
               >
-                <div className="flex items-center gap-3 border-b border-border bg-card px-4 py-3 sm:px-5">
+                <div className="flex items-center gap-2.5 sm:gap-3 border-b border-border bg-card px-3 py-2.5 sm:px-5 sm:py-3">
                   <span
                     className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-border"
                     style={{ background: color }}
@@ -622,7 +622,7 @@ const EmployeeApp = () => {
                     <CheckCircle2 className="h-3 w-3" /> Færdig
                   </span>
                 </div>
-                <div className="grid grid-cols-3 gap-3 p-4 sm:p-5 text-xs">
+                <div className="grid grid-cols-3 gap-3 p-3 sm:p-5 text-xs">
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Stop</p>
                     <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">{total}</p>
@@ -645,13 +645,13 @@ const EmployeeApp = () => {
                 {/* Print som eneste sekundære handling — ingen "genåbn".
                     Pænere outline-stil med tydelig ikon-boks så knappen
                     ikke ligner et "klik for at åbne rute"-hint. */}
-                <div className="border-t border-border bg-secondary/30 px-4 py-3 sm:px-5">
+                <div className="border-t border-border bg-secondary/30 px-3 py-2.5 sm:px-5 sm:py-3">
                   <Button
                     type="button"
                     size="sm"
                     variant="outline"
                     onClick={() => setPreviewRouteId(r.id)}
-                    className="h-9 w-full gap-2 rounded-lg border-border bg-card text-xs font-semibold text-foreground shadow-sm transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] sm:w-auto"
+                    className="h-9 w-full gap-2 rounded-lg border-border bg-card text-xs font-semibold text-foreground shadow-sm transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
                   >
                     <Eye className="h-3.5 w-3.5" /> Vis & udskriv kvittering
                   </Button>
@@ -667,13 +667,13 @@ const EmployeeApp = () => {
             >
               {/* Header — samme prik+titel+badge mønster som virksomhedspanelets
                   rutekort, men med ét enkelt status-badge til højre. */}
-              <div className="flex items-center gap-3 border-b border-border bg-card px-4 py-3 sm:px-5">
+              <div className="flex items-center gap-2.5 sm:gap-3 border-b border-border bg-card px-3 py-2.5 sm:px-5 sm:py-3">
                 <span
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border shadow-sm"
+                  className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg border border-border shadow-sm"
                   style={{ background: color }}
                   aria-hidden
                 >
-                  <RouteIcon className="h-4 w-4 text-background" />
+                  <RouteIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-background" />
                 </span>
                 <div className="min-w-0 flex-1">
                   <h3 className="truncate text-sm font-semibold text-foreground">
@@ -695,7 +695,7 @@ const EmployeeApp = () => {
               <RouteMiniMap stops={myStops} startCoord={startCoord} color={color} />
 
               {/* Body */}
-              <div className="space-y-4 p-4 sm:p-5">
+              <div className="space-y-3 sm:space-y-4 p-3 sm:p-5">
                 {/* Meta-grid — strukturerede tal-felter ligesom statskort i
                     virksomhedspanelet. Tre faste kolonner = forudsigelig
                     visuel rytme på alle skærmstørrelser. */}
@@ -826,26 +826,26 @@ const EmployeeApp = () => {
                 {/* Handlinger — primær CTA + print som sekundær.
                     Færdige ruter render allerede som kompakt summary længere
                     oppe og kommer aldrig hertil. */}
-                <div className="flex gap-2 pt-1">
+                <div className="flex gap-2 pt-0.5 sm:pt-1">
                   <Button
                     asChild={total > 0}
                     size="lg"
-                    className="h-11 flex-1 gap-2 rounded-lg bg-foreground font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
+                    className="h-10 sm:h-11 flex-1 gap-2 rounded-lg bg-foreground text-sm sm:text-base font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
                     disabled={total === 0 || isLocked}
                     title={isLocked ? lockReason : undefined}
                   >
                     {isLocked ? (
-                      <><LockIcon className="h-5 w-5" /> {needsStartDay ? "Start dag først" : "Låst — afslut forrige først"}</>
+                      <><LockIcon className="h-4 w-4 sm:h-5 sm:w-5" /> {needsStartDay ? "Start dag først" : "Låst — afslut forrige"}</>
                     ) : total > 0 ? (
                       <Link to={`/medarbejder/rute/${r.id}`}>
                         {done > 0 ? (
-                          <><Navigation className="h-5 w-5" /> Fortsæt rute</>
+                          <><Navigation className="h-4 w-4 sm:h-5 sm:w-5" /> Fortsæt rute</>
                         ) : (
-                          <><Play className="h-5 w-5" /> Start rute</>
+                          <><Play className="h-4 w-4 sm:h-5 sm:w-5" /> Start rute</>
                         )}
                       </Link>
                     ) : (
-                      <><Play className="h-5 w-5" /> Ingen stop</>
+                      <><Play className="h-4 w-4 sm:h-5 sm:w-5" /> Ingen stop</>
                     )}
                   </Button>
                   <Button
@@ -853,7 +853,7 @@ const EmployeeApp = () => {
                     size="lg"
                     variant="outline"
                     onClick={() => setPreviewRouteId(r.id)}
-                    className="h-11 shrink-0 rounded-lg border-border bg-card px-3 text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
+                    className="h-10 sm:h-11 shrink-0 rounded-lg border-border bg-card px-3 text-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]"
                     aria-label="Forhåndsvis & udskriv liste"
                     title="Forhåndsvis & udskriv liste"
                   >

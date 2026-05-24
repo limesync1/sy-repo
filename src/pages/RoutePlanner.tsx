@@ -1414,25 +1414,6 @@ const Planner = () => {
     );
   }
 
-  if (isCompactRouteLayout) {
-    return (
-      <AdminShell business={business} activeTab="routes">
-        <div className="flex min-h-[60vh] items-center justify-center p-6">
-          <Card className="max-w-md p-8 text-center">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-secondary">
-              <Monitor className="h-7 w-7 text-foreground" />
-            </div>
-            <h2 className="mb-2 text-xl font-semibold">Kun tilgængelig på computer</h2>
-            <p className="text-muted-foreground">
-              Ruteplanlæggeren kræver en større skærm for at fungere godt. Åbn siden på en
-              computer eller bærbar for at planlægge ruter.
-            </p>
-          </Card>
-        </div>
-      </AdminShell>
-    );
-  }
-
   if (!routePlanningEnabled) {
     return (
       <div className="flex min-h-screen items-center justify-center p-6">
@@ -3379,8 +3360,16 @@ const Planner = () => {
                       </Button>
                     </SheetTrigger>
                     <SheetContent side="left" className="w-[88vw] max-w-sm p-0 flex flex-col">
-                      <div className="flex-1 min-h-0">
-                        {unassignedCard}
+                      <div className="flex flex-1 min-h-0 items-center justify-center p-6">
+                        <div className="max-w-xs text-center">
+                          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-secondary">
+                            <Monitor className="h-6 w-6 text-foreground" />
+                          </div>
+                          <h3 className="mb-1.5 text-base font-semibold">Kun på computer</h3>
+                          <p className="text-sm text-muted-foreground">
+                            Planlægning af aftaler uden rute kræver en større skærm. Åbn siden på en computer for at trække aftaler ind på ruter.
+                          </p>
+                        </div>
                       </div>
                     </SheetContent>
                   </Sheet>

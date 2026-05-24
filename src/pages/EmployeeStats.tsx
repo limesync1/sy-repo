@@ -265,19 +265,19 @@ const EmployeeStats = () => {
           <>
             {/* Hero: medarbejderens egen indtjening — fremhævet som det vigtigste tal */}
             <Card className="overflow-hidden rounded-xl border-border shadow-sm">
-              <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-feature-cool text-feature-cool-foreground sm:h-14 sm:w-14">
-                    <Wallet className="h-6 w-6 sm:h-7 sm:w-7" />
+              <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-6">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-feature-cool text-feature-cool-foreground sm:h-14 sm:w-14">
+                    <Wallet className="h-5 w-5 sm:h-7 sm:w-7" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                       Min indtjening
                     </p>
-                    <p className="mt-0.5 text-3xl font-bold tracking-tight tabular-nums text-foreground sm:text-4xl">
+                    <p className="mt-0.5 text-2xl sm:text-4xl font-bold tracking-tight tabular-nums text-foreground">
                       {formatKr(s.commission)}
                     </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
+                    <p className="mt-0.5 sm:mt-1 text-[11px] sm:text-xs text-muted-foreground">
                       Fra {s.stopsCompleted} {s.stopsCompleted === 1 ? "udført opgave" : "udførte opgaver"}
                     </p>
                   </div>
@@ -285,11 +285,11 @@ const EmployeeStats = () => {
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-1 sm:gap-1 sm:text-right">
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Periode</p>
-                    <p className="text-sm font-semibold tabular-nums text-foreground">{headerLabel}</p>
+                    <p className="text-xs sm:text-sm font-semibold tabular-nums text-foreground">{headerLabel}</p>
                   </div>
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Gennemført</p>
-                    <p className="text-sm font-semibold tabular-nums text-foreground">
+                    <p className="text-xs sm:text-sm font-semibold tabular-nums text-foreground">
                       {s.stopsTotal > 0 ? `${Math.round((s.stopsCompleted / s.stopsTotal) * 100)}%` : "—"}
                     </p>
                   </div>
@@ -359,7 +359,7 @@ const EmployeeStats = () => {
                           <CollapsibleTrigger asChild>
                             <button
                               type="button"
-                              className="grid w-full gap-3 px-4 py-3.5 text-left transition-colors hover:bg-secondary/60 active:bg-secondary sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto] sm:items-center sm:gap-4 sm:px-5"
+                              className="grid w-full gap-2.5 px-3 py-3 text-left transition-colors hover:bg-secondary/60 active:bg-secondary sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto] sm:items-center sm:gap-4 sm:px-5 sm:py-3.5"
                             >
                               <div className="min-w-0">
                                 <p className="text-sm font-semibold text-foreground capitalize">
@@ -369,7 +369,7 @@ const EmployeeStats = () => {
                                   {d.stops} {d.stops === 1 ? "opgave" : "opgaver"}
                                 </p>
                               </div>
-                              <div className="block">
+                              <div className="hidden sm:block">
                                 <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
                                   <div
                                     className="h-full bg-foreground transition-all"
