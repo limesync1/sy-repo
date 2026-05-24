@@ -311,7 +311,7 @@ const SortableStopRow = ({
         <button
           type="button"
           onClick={onSelect}
-          className="min-w-0 text-left px-2 py-1.5 hover:bg-accent/5 space-y-0.5 sm:px-2.5 sm:py-2 sm:space-y-0.5"
+          className="min-w-0 text-left px-2 py-1 hover:bg-accent/5 space-y-0.5 sm:px-2.5 sm:py-1.5 sm:space-y-0.5"
         >
           {/* Header: kundenavn (primær) + medarbejder-avatars + åbn-pil */}
           <div className="flex items-center gap-1.5">
