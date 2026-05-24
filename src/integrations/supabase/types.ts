@@ -3611,9 +3611,29 @@ export type Database = {
         }
         Returns: undefined
       }
+      _agreement_interval_duration: {
+        Args: {
+          _custom_days?: number
+          _interval: Database["public"]["Enums"]["agreement_interval"]
+        }
+        Returns: string
+      }
+      _agreement_occurs_on_route_date: {
+        Args: {
+          _anchor_date: string
+          _custom_days: number
+          _interval: Database["public"]["Enums"]["agreement_interval"]
+          _target_date: string
+        }
+        Returns: boolean
+      }
       _generate_occurrences_for_agreement: {
         Args: { _agreement_id: string; _until_date: string }
         Returns: number
+      }
+      _materialize_occurrence_on_route: {
+        Args: { _occurrence_id: string; _route_id: string }
+        Returns: undefined
       }
       _materialize_single_occurrence: {
         Args: { _occurrence_id: string }
@@ -3888,6 +3908,10 @@ export type Database = {
       ensure_agreement_occurrences: {
         Args: { _business_id: string; _until_date: string }
         Returns: number
+      }
+      ensure_next_agreement_occurrence: {
+        Args: { _completed_occurrence_id: string }
+        Returns: string
       }
       find_or_create_route_for_employee: {
         Args: {

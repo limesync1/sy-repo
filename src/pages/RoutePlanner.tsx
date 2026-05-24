@@ -1229,7 +1229,15 @@ const Planner = () => {
       calendarRoutesRaw.find((x: any) => x.id === baseId)
       ?? (recurringBaseRoutes as any[]).find((x: any) => x.id === baseId);
     if (localBase) {
-      setEditingRoute(localBase as Route);
+      try {
+        const materializedRoute = await openProjectedRouteBase({ businessId, baseRouteId: baseId, projectedDate, clientEventId });
+        setEditingRoute(materializedRoute as Route);
+        await qc.invalidateQueries({ queryKey: ["route-calendar"] });
+        await qc.invalidateQueries({ queryKey: ["recurring-agreements-for-planner"] });
+      } catch (err: any) {
+        toast.error(err.message || "Den projicerede rute kunne ikke gøres klar");
+        return;
+      }
       // Telemetri i baggrunden — ikke blokerende.
       void logRoutePlannerEvent({
         businessId,

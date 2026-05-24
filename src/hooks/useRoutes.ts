@@ -93,14 +93,16 @@ export const openProjectedRouteBase = async ({
   projectedDate,
   clientEventId,
 }: OpenProjectedRouteBaseInput): Promise<Route> => {
-  const { data, error } = await supabase.rpc("open_projected_route_base" as any, {
-    _business_id: businessId,
+  // Åbning af en projiceret rutedag betyder nu "gør klar til kørsel":
+  // den virtuelle dag materialiseres som en rigtig route med konkrete
+  // agreement_occurrences/route_stops. Det trigger også regnskabs-ordrekladder
+  // for de nye kørsler via databaseflowet.
+  const { data, error } = await supabase.rpc("materialize_virtual_route" as any, {
     _base_route_id: baseRouteId,
-    _projected_date: projectedDate,
-    _client_event_id: clientEventId ?? null,
+    _date: projectedDate,
   } as any);
   if (error) throw error;
-  if (!data) throw new Error("Basisruten findes ikke længere");
+  if (!data) throw new Error("Den projicerede rute kunne ikke gøres klar");
   return data as unknown as Route;
 };
 
