@@ -866,14 +866,16 @@ const Planner = () => {
         attachedEmployeeCount: emps.length,
       };
     });
-    // Når filtre er aktive, skjul ruter helt hvis ingen af deres stops matcher.
-    // Ellers ser det ud som om filteret bare "skjuler detaljer" — hvilket
-    // forvirrer brugerne.
-    if (filtersActive) {
-      return built.filter((r) => (r.stops?.length ?? 0) > 0);
-    }
-    return built;
-  }, [calendarRoutesRaw, visibleCalendarStops, activeEmployees, recurringBaseRoutes]);
+    return built.filter((r: any) => {
+      // Materialiserede/projicerede forekomster uden aktive stops er ghost-ruter.
+      // Manuelt oprettede tomme ruter må stadig vises, så brugeren kan lægge
+      // aftaler på dem.
+      if (r.base_route_id && (r.stops?.length ?? 0) === 0) return false;
+      // Når filtre er aktive, skjul ruter helt hvis ingen af deres stops matcher.
+      if (filtersActive && (r.stops?.length ?? 0) === 0) return false;
+      return true;
+    });
+  }, [calendarRoutesRaw, visibleCalendarStops, activeEmployees, recurringBaseRoutes, filtersActive]);
 
   const virtualCalendarRoutes: CalendarRoute[] = useMemo(() => {
     if (!recurringSources.length) return [];
@@ -1236,6 +1238,7 @@ const Planner = () => {
         await qc.invalidateQueries({ queryKey: ["route-calendar"] });
         await qc.invalidateQueries({ queryKey: ["recurring-agreements-for-planner"] });
       } catch (err: any) {
+        setEditingProjectedContext(null);
         toast.error(err.message || "Den projicerede rute kunne ikke gøres klar");
         return;
       }
@@ -1269,6 +1272,7 @@ const Planner = () => {
       setEditingRoute(baseRoute);
       await qc.invalidateQueries({ queryKey: ["route-planner-events"] });
     } catch (err: any) {
+      setEditingProjectedContext(null);
       toast.error(err.message || "Basisruten kunne ikke åbnes");
       await logRoutePlannerEvent({
         businessId,
@@ -2822,15 +2826,12 @@ const Planner = () => {
           const unassignedCard = (
                 <Card data-tour="routes-unassigned" className="flex flex-col h-full overflow-hidden">
                   <div className="p-3 border-b bg-secondary/30 space-y-2">
-                    {/* pr-7 lg:pr-0: gør plads til Sheet'ens X-luk-knap på mobil/tablet
-                        så badget med antal stops ikke overlappes. Desktop (lg+)
-                        bruger ResizablePanel uden close-knap, så ingen padding der. */}
-                    <div className="flex items-center justify-between pr-7 lg:pr-0">
-                      <h2 className="font-semibold text-sm flex items-center gap-1.5">
+                    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2 pr-10 lg:pr-0">
+                      <h2 className="min-w-0 font-semibold text-sm flex items-center gap-1.5 leading-tight">
                         <Inbox className="h-4 w-4 text-primary" />
-                        Aftaler uden rute
+                        <span className="truncate">Aftaler uden rute</span>
                       </h2>
-                      <Badge variant="secondary" className="tabular-nums">
+                      <Badge variant="secondary" className="shrink-0 tabular-nums">
                         {filteredUnassigned.length}
                       </Badge>
                     </div>
@@ -3543,7 +3544,10 @@ const Planner = () => {
           const projectionActive = !!(
             editingProjectedContext
             && activeEditingRoute
-            && editingProjectedContext.baseRouteId === activeEditingRoute.id
+            && (
+              editingProjectedContext.baseRouteId === activeEditingRoute.id
+              || editingProjectedContext.baseRouteId === (activeEditingRoute as any).base_route_id
+            )
           );
           // Når projektion er aktiv bruger vi basis-rutens stops fra
           // `recurringBaseRoutes` (som har `agreement_occurrences` joined ind),
@@ -3553,8 +3557,9 @@ const Planner = () => {
           let stopsForActive: RouteStop[] = [];
           if (activeEditingRoute) {
             if (projectionActive) {
+              const projectedBaseId = editingProjectedContext!.baseRouteId;
               const baseFromCache = (recurringBaseRoutes as any[]).find(
-                (r: any) => r.id === activeEditingRoute.id,
+                (r: any) => r.id === projectedBaseId,
               );
               const sourced = (baseFromCache?.stops || [])
                 .filter((s: any) => projectedStopMatchesSources(s, editingProjectedContext!.sourceKeys))
