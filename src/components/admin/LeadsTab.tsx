@@ -196,6 +196,15 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
     return list;
   }, [enriched, filter, categoryFilter, priorityFilter, search, sortBy]);
 
+  // Paginering — adaptiv sidestørrelse.
+  const pageSize = useAdaptivePageSize(25);
+  const [page, setPage] = useState(0);
+  useEffect(() => { setPage(0); }, [filter, categoryFilter, priorityFilter, search, sortBy]);
+  const pagedVisible = useMemo(
+    () => visible.slice(page * pageSize, (page + 1) * pageSize),
+    [visible, page, pageSize],
+  );
+
   const toggleSelect = (id: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
