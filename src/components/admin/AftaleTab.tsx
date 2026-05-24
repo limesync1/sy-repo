@@ -2340,8 +2340,11 @@ const AftaleTab = ({
         {/* ─── Sidebar: Ruter ───
             Viser ruter for de næste 14 dage. Aftaler kan trækkes direkte
             fra venstre kolonne over på en rute her — så er den planlagt.
-            Skjules helt når ruteplanlægning er deaktiveret. */}
-        {routePlanningEnabled && (
+            Skjules helt når ruteplanlægning er deaktiveret ELLER når der
+            ikke findes nogen aftaler der kan trækkes derover (alle aktive
+            aftaler er allerede på en rute). Det fjerner visuel støj for
+            virksomheder der har planlagt alt. */}
+        {routePlanningEnabled && notPlannedOrders.length > 0 && (
         <aside className="lg:sticky lg:top-4 lg:self-start">
           <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
             <div className="flex items-center justify-between gap-2 border-b border-border bg-secondary/40 px-4 py-3">

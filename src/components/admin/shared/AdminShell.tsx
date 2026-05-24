@@ -222,18 +222,33 @@ export const AdminShell = ({
   // (110KB) trak ~250KB ned ved hver mount og blokerede main-thread. Resten
   // hentes on-hover via AnimatedNavItem's onPrefetch.
   useEffect(() => {
+    // To-bølget prefetch: først nabo-fanerne (hurtigt), bagefter resten af
+    // panelets faner (slow idle). Det fjerner "fanen loader to gange"-følelsen
+    // — efter ~5s er alle chunks i memory, så Suspense aldrig viser fallback
+    // ved tab-skift. Internal data-fetch står stadig for den ene "rigtige"
+    // loading-state.
     const neighbours: AdminTabKey[] =
       activeTab === "dashboard" ? ["orders", "customers"]
       : activeTab === "orders" ? ["dashboard", "customers"]
       : ["dashboard", "orders"];
+    const rest = (Object.keys(TAB_PREFETCH) as AdminTabKey[]).filter(
+      (k) => k !== activeTab && !neighbours.includes(k),
+    );
     const ric = (window as any).requestIdleCallback as
       | ((cb: () => void, opts?: { timeout: number }) => number)
       | undefined;
-    const trigger = () => neighbours.forEach((k) => prefetchTab(k));
-    const id = ric ? ric(trigger, { timeout: 3000 }) : window.setTimeout(trigger, 2500);
+    const triggerNear = () => neighbours.forEach((k) => prefetchTab(k));
+    const triggerRest = () => rest.forEach((k) => prefetchTab(k));
+    const id1 = ric ? ric(triggerNear, { timeout: 3000 }) : window.setTimeout(triggerNear, 2500);
+    const id2 = ric ? ric(triggerRest, { timeout: 8000 }) : window.setTimeout(triggerRest, 5000);
     return () => {
-      if (ric && (window as any).cancelIdleCallback) (window as any).cancelIdleCallback(id);
-      else window.clearTimeout(id as number);
+      if (ric && (window as any).cancelIdleCallback) {
+        (window as any).cancelIdleCallback(id1);
+        (window as any).cancelIdleCallback(id2);
+      } else {
+        window.clearTimeout(id1 as number);
+        window.clearTimeout(id2 as number);
+      }
     };
   }, [activeTab]);
 
