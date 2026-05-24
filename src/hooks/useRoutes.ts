@@ -936,7 +936,7 @@ export const useMaterializeVirtualRoute = () => {
 export const useAddStop = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (payload: {
+    mutationFn: (payload: {
       route_id: string;
       order_id?: string | null;
       subscription_id?: string | null;
@@ -951,7 +951,7 @@ export const useAddStop = () => {
       time_window_start?: string | null;
       time_window_end?: string | null;
       assigned_employee_id?: string | null;
-    }) => {
+    }) => routeMutationQueue.run(async () => {
       // Auto-tildel service'ens standard-medarbejder hvis ingen er valgt
       // og aftalen er knyttet til en ordre. Manuelle valg på enkelte
       // aftaler tilsidesætter altid denne default.
