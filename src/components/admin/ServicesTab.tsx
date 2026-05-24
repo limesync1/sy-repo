@@ -4,6 +4,8 @@
 // initial /virksomhed chunk.
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useAdaptivePageSize } from "@/hooks/useAdaptivePageSize";
+import { PaginationFooter } from "@/components/admin/shared/PaginationFooter";
 import {
   Plus, Trash2,
   Sparkles, Calculator, Wrench, Wand2, Loader2, Check,
