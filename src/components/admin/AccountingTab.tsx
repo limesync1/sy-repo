@@ -2066,6 +2066,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
             )}
           </div>
         </SectionCard>
+        </div>
+        )}
 
         {/* Aktiv forbindelse — viser hvilket regnskabsprogram der er
             forbundet, en kort identitet (organisations-id / nøgle-hale)
@@ -2120,10 +2122,20 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           </div>
         </div>
 
+        {/* Log */}
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowAdvanced(v => !v)}
+            className="text-xs text-muted-foreground"
+          >
+            {showAdvanced ? "Skjul avancerede indstillinger" : "Vis avancerede indstillinger"}
+            <ChevronDown className={`ml-1 h-3.5 w-3.5 transition-transform ${showAdvanced ? "rotate-180" : ""}`} />
+          </Button>
         </div>
 
-        {/* Log */}
-        {logs.length > 0 ? (
+        {showAdvanced && (logs.length > 0 ? (
           <SectionCard
             title="Hvad er der sket på det seneste?"
             icon={<RefreshCw />}
@@ -2164,7 +2176,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               Der er ikke sket noget endnu. Så snart du opretter eller ændrer en kunde, en service eller en aftale, går det i gang helt af sig selv — du behøver ikke trykke på noget.
             </p>
           </SectionCard>
-        )}
+        ))}
 
         {/* Bekræftelses-modaler */}
         <AlertDialog open={confirmDisable} onOpenChange={setConfirmDisable}>
