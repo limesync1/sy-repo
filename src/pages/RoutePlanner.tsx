@@ -1238,6 +1238,7 @@ const Planner = () => {
         await qc.invalidateQueries({ queryKey: ["route-calendar"] });
         await qc.invalidateQueries({ queryKey: ["recurring-agreements-for-planner"] });
       } catch (err: any) {
+        setEditingProjectedContext(null);
         toast.error(err.message || "Den projicerede rute kunne ikke gøres klar");
         return;
       }
@@ -3556,8 +3557,9 @@ const Planner = () => {
           let stopsForActive: RouteStop[] = [];
           if (activeEditingRoute) {
             if (projectionActive) {
+              const projectedBaseId = editingProjectedContext!.baseRouteId;
               const baseFromCache = (recurringBaseRoutes as any[]).find(
-                (r: any) => r.id === activeEditingRoute.id,
+                (r: any) => r.id === projectedBaseId,
               );
               const sourced = (baseFromCache?.stops || [])
                 .filter((s: any) => projectedStopMatchesSources(s, editingProjectedContext!.sourceKeys))
