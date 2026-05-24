@@ -1966,8 +1966,13 @@ const AftaleTab = ({
                           >
                             <RefreshCw className="h-2.5 w-2.5" /> {INTERVAL_LABELS[interval] || interval}
                             {cycles > 0 && (
-                              <span className="ml-1 rounded bg-background/70 px-1 py-px text-[9px] font-semibold text-foreground">
-                                {cycles + 1}. kørsel
+                              <span
+                                className="ml-1 rounded bg-background/70 px-1 py-px text-[9px] font-semibold text-foreground"
+                                title={order.status === "completed"
+                                  ? `Denne aftale er gennemført ${cycles} gange — vises som ${cycles}. kørsel`
+                                  : `Næste planlagte: ${cycles + 1}. kørsel — systemet opretter den automatisk på næste interval-dato`}
+                              >
+                                {order.status === "completed" ? `${cycles}. kørsel` : `${cycles + 1}. kørsel`}
                               </span>
                             )}
                           </span>
