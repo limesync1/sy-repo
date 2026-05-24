@@ -754,6 +754,28 @@ export function makeEconomicAdapter(
     },
 
     async sendReminder({ invoice_external_id, type }) {
+    },
+
+    async resendInvoice({ invoice_external_id, external_type }) {
+      // E-conomic: POST /invoices/booked/{n}/sent-by-email sender bogført
+      // faktura til kundens registrerede e-mail. Kladder kan ikke sendes.
+      const type = external_type ?? "invoice_booked";
+      if (type !== "invoice_booked") {
+        throw new Error("Fakturaen er ikke bogført endnu — kan ikke gensendes.");
+      }
+      try {
+        await ecRequest(creds, `/invoices/booked/${invoice_external_id}/sent-by-email`, {
+          method: "POST",
+          body: JSON.stringify({}),
+        });
+        return { sent: true };
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        throw new Error(`Kunne ikke gensende faktura via e-conomic: ${msg}`);
+      }
+    },
+
+    async _sendReminderLegacy({ invoice_external_id, type }) {
       // E-conomic's REST-API understøtter IKKE at trigge rykker programmatisk
       // (rykkere genereres via deres rykkerkørsel i UI'et eller automatisk
       // baseret på fakturaens forfaldsdato + rykker-skabelon).
