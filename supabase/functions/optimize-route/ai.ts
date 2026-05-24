@@ -87,7 +87,8 @@ Hvis planen er allerede god, så returnér tom suggestions-liste. Vær ærlig �
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        // Rute-analyse er struktureret tool-call — lite-modellen er billig nok.
+        model: "google/gemini-2.5-flash-lite",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
