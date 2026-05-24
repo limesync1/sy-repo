@@ -3589,8 +3589,10 @@ const Planner = () => {
               const baseFromCache = (recurringBaseRoutes as any[]).find(
                 (r: any) => r.id === projectedBaseId,
               );
-              const sourced = (baseFromCache?.stops || [])
+              const sourceStops = (baseFromCache?.stops?.length ? baseFromCache.stops : editingProjectedContext!.previewStops) || [];
+              const sourced = sourceStops
                 .filter((s: any) => projectedStopMatchesSources(s, editingProjectedContext!.sourceKeys))
+                .filter((s: any) => (((s.occurrence_status as string | undefined) ?? s.status) !== "completed" && ((s.occurrence_status as string | undefined) ?? s.status) !== "cancelled")
                 .map((s: any) => {
                   // Find aftalens interval via recurringSources (key→interval)
                   // — basis-stop har ofte ikke selv et agreement_occurrence-
