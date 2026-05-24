@@ -12,13 +12,14 @@
 //     <indhold />
 //   </EmployeeShell>
 import { Link, useNavigate } from "react-router-dom";
-import { type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import {
   LogOut, Calendar as CalendarIcon, BarChart3, MessageCircle, Briefcase,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyEmployee } from "@/hooks/useMyEmployee";
 import { useMyBusiness } from "@/hooks/useDatabase";
+import { useEmployees } from "@/hooks/useEmployees";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -26,6 +27,7 @@ import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
   DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export type EmployeeTabKey = "today" | "stats" | "livechat";
@@ -82,7 +84,33 @@ export const EmployeeShell = ({
   // Hvis medarbejderen også ejer virksomheden (typisk solo-ejeren), så
   // vises "Skift til virksomhedspanel" i profilmenuen.
   const { data: myBusiness } = useMyBusiness();
+  // Sole-employee detection — når virksomheden har præcis 1 aktiv medarbejder
+  // og det er ejeren selv, viser vi en synlig genvej i topbaren (samme idé
+  // som "Skift til medarbejder" i AdminShell's footer). Det gør hop frem og
+  // tilbage til ét klik i stedet for to via profilmenuen.
+  const { data: businessEmployees } = useEmployees(myBusiness?.id);
+  const isSoloOwner =
+    !!myBusiness &&
+    !!employee &&
+    Array.isArray(businessEmployees) &&
+    businessEmployees.length === 1 &&
+    businessEmployees[0]?.id === employee.id;
   const navigate = useNavigate();
+
+  // Idle-prefetch ALLE medarbejderfaner kort efter mount, så Suspense aldrig
+  // viser fallback ved fane-skift — kun den enkelte tabs interne data-load.
+  // Fjerner følelsen af "siden loader to gange".
+  useEffect(() => {
+    const ric = (window as any).requestIdleCallback as
+      | ((cb: () => void, opts?: { timeout: number }) => number)
+      | undefined;
+    const trigger = () => Object.keys(TAB_PREFETCH).forEach((k) => prefetchTab(k));
+    const id = ric ? ric(trigger, { timeout: 4000 }) : window.setTimeout(trigger, 2000);
+    return () => {
+      if (ric && (window as any).cancelIdleCallback) (window as any).cancelIdleCallback(id);
+      else window.clearTimeout(id as number);
+    };
+  }, []);
 
   // Hent virksomhedens egen livechat-indstilling — medarbejderen må kun se
   // livechat-fanen hvis BÅDE virksomheden har funktionen aktiveret OG
@@ -175,6 +203,24 @@ export const EmployeeShell = ({
 
           <div className="ml-auto flex min-w-0 items-center gap-2">
             {topbarRight}
+
+            {/* Solo-ejer genvej — kun synlig når virksomheden har præcis
+                1 medarbejder og det er ejeren selv. Spejler "Skift til
+                medarbejder"-knappen i AdminShell's footer. */}
+            {isSoloOwner && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => navigate("/virksomhed")}
+                className="hidden h-8 shrink-0 gap-1.5 px-2.5 text-xs sm:inline-flex"
+                aria-label="Skift til virksomhedspanel"
+              >
+                <Briefcase className="h-3.5 w-3.5" />
+                <span className="hidden md:inline">Virksomhedspanel</span>
+                <span className="md:hidden">Virksomhed</span>
+              </Button>
+            )}
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
