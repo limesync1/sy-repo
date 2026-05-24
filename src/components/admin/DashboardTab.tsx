@@ -448,27 +448,19 @@ const DashboardTab = ({
 
       <div className="grid w-full max-w-full min-w-0 items-start gap-3 sm:gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)]">
         <section className="order-2 min-w-0 space-y-3 sm:space-y-4 xl:order-1">
-          {/* Periode-stat-kort med sparklines */}
-          <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
-            <SmartStatCard
-              label="Omsætning · 7 dage"
-              value={fmtKr(stats.revenue7)}
-              hint={stats.revenuePrev7 > 0 ? `Forrige uge: ${fmtKr(stats.revenuePrev7)}` : "Ingen sammenligning endnu"}
-              icon={<DollarSign />}
-              trend={revTrend}
-              sparkline={stats.buckets14.map((b) => b.rev)}
-              onClick={() => setOpenStat("revenue")}
-            />
-            <SmartStatCard
-              label="Bestillinger · 7 dage"
-              value={stats.orders7}
-              hint={stats.ordersPrev7 > 0 ? `Forrige uge: ${stats.ordersPrev7}` : "Ingen sammenligning endnu"}
-              icon={<Handshake />}
-              trend={ordTrend}
-              sparkline={stats.buckets14.map((b) => b.count)}
-              onClick={() => setOpenStat("orders")}
-            />
-          </div>
+          {/* Finansielt overblik — afløser de tidligere "Omsætning"-kort.
+              Viser hvad der er faktureret, betalt, udestående/forfaldent,
+              udført vs ikke-udført, og hvad der skal udbetales til
+              medarbejdere baseret på udførte aftaler. */}
+          <FinanceOverviewCard
+            finance={finance}
+            revTrend={revTrend}
+            ordTrend={ordTrend}
+            sparkline={stats.buckets14.map((b) => b.rev)}
+            onOpenRevenue={() => setOpenStat("revenue")}
+            onOpenOrders={() => setOpenStat("orders")}
+            onNavigate={onNavigate}
+          />
 
           {/* Seneste bestillinger */}
           <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
