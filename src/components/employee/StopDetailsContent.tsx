@@ -175,7 +175,7 @@ export const StopDetailsContent = ({
   return (
     <div className="flex flex-col h-full bg-secondary/20">
       {/* Header — samme SheetHeaderBlock som virksomhedspanelets StopDetailSheet */}
-      <div className="px-5 pt-3 pb-3 border-b shrink-0 bg-card">
+      <div className="px-4 sm:px-5 pt-3 pb-3 border-b shrink-0 bg-card">
         <SheetHeaderBlock
           accent={accent}
           badge={isDone ? <CheckCircle2 className="h-4 w-4" /> : index + 1}
@@ -250,7 +250,7 @@ export const StopDetailsContent = ({
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-3 sm:py-4 space-y-3">
         {/* Opgaver */}
         <Section
           icon={<Package className="h-3.5 w-3.5" />}

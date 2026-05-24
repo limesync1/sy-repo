@@ -29,6 +29,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageSkeleton } from "@/components/admin/shared/Skeletons";
 import { formatKr as formatKrShared } from "@/lib/commission";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -138,6 +139,7 @@ const RouteMiniMap = ({
 const EmployeeApp = () => {
   const { user, loading } = useAuth();
   const [date, setDate] = useState(todayStr());
+  const isMobile = useIsMobile();
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [detailsStop, setDetailsStop] = useState<{ stop: RouteStop; index: number; routeName: string | null; routeColor: string | null; routeDate: string | null } | null>(null);
   // Print-forhåndsvisning (rute-id der vises i preview-sheet'en)
@@ -258,7 +260,7 @@ const EmployeeApp = () => {
       />
       {/* PageTransition fader indholdet ind når brugeren skifter dag,
           så det føles som en blød navigation frem for et hårdt re-render. */}
-      <PageTransition transitionKey={date} className="w-full space-y-4 pb-24 sm:pb-20">
+      <PageTransition transitionKey={date} className="w-full space-y-3 sm:space-y-4">
         <PageHeader
           title={<span className="capitalize">{format(dateObj, "EEEE d. MMMM", { locale: da })}</span>}
           description={
@@ -868,7 +870,14 @@ const EmployeeApp = () => {
       {/* Detaljer-sheet — højre-side på desktop (matcher virksomhedspanelet)
           og fuld bottom-sheet på mobil. Viser fulde oplysninger for aftalen. */}
       <Sheet open={!!detailsStop} onOpenChange={(o) => !o && setDetailsStop(null)}>
-        <SheetContent side="right" className="w-full p-0 flex flex-col sm:max-w-lg">
+        <SheetContent
+          side={isMobile ? "bottom" : "right"}
+          className={
+            isMobile
+              ? "h-[92dvh] w-full !inset-x-0 !bottom-0 !rounded-t-2xl !rounded-b-none !border-x-0 !border-b-0 p-0 flex flex-col"
+              : "w-full p-0 flex flex-col sm:max-w-lg"
+          }
+        >
           {detailsStop && (
             <StopDetailsContent
               stop={detailsStop.stop}

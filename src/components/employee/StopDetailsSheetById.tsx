@@ -9,6 +9,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { StopDetailsContent } from "./StopDetailsContent";
 import type { RouteStop } from "@/hooks/useRoutes";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type Props = {
   open: boolean;
@@ -70,15 +71,19 @@ const useStopWithRoute = (stopId: string | null) => {
 
 export const StopDetailsSheetById = ({ open, onOpenChange, stopId }: Props) => {
   const { data, isLoading } = useStopWithRoute(stopId);
+  const isMobile = useIsMobile();
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      {/* Højre-side sheet på desktop (matcher virksomhedspanelets
-          StopDetailSheet) og fuld bottom-sheet på mobil for hurtig
-          tommel-adgang. Samme byggeklodser som planlæggeren bruger. */}
+      {/* Bottom-sheet på mobil (native, tommel-venlig) — højre-side
+          på desktop som matcher virksomhedspanelets StopDetailSheet. */}
       <SheetContent
-        side="right"
-        className="w-full p-0 flex flex-col sm:max-w-lg"
+        side={isMobile ? "bottom" : "right"}
+        className={
+          isMobile
+            ? "h-[92dvh] w-full !inset-x-0 !bottom-0 !rounded-t-2xl !rounded-b-none !border-x-0 !border-b-0 p-0 flex flex-col"
+            : "w-full p-0 flex flex-col sm:max-w-lg"
+        }
       >
         {isLoading || !data ? (
           <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground gap-2">

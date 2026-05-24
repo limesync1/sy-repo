@@ -212,7 +212,7 @@ const EmployeeStats = () => {
     <EmployeeShell activeTab="stats" title="Statistik">
       {/* Fade indholdet ind ved hvert range-skift så tal-ændringer føles
           guidede frem for at "blinke" pludseligt. */}
-      <PageTransition transitionKey={`${range}|${from}|${to}`} className="w-full space-y-4 pb-24 sm:space-y-5 sm:pb-20">
+      <PageTransition transitionKey={`${range}|${from}|${to}`} className="w-full space-y-3 sm:space-y-5">
         <PageHeader
           title={<span className="capitalize">{headerLabel}</span>}
           description={
@@ -226,7 +226,7 @@ const EmployeeStats = () => {
         {isLoading || !s ? (
           <>
             <Card className="overflow-hidden rounded-xl border-border shadow-sm">
-              <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+              <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-6">
                 <div className="flex items-center gap-4">
                   <Skeleton className="h-12 w-12 rounded-xl sm:h-14 sm:w-14" />
                   <div className="space-y-2">
