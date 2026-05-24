@@ -158,6 +158,102 @@ const DashboardTab = ({
   const revTrend = trend(stats.revenue7, stats.revenuePrev7);
   const ordTrend = trend(stats.orders7, stats.ordersPrev7);
 
+  // ── Finansielt overblik: hvad er faktureret, betalt, udestående —
+  //    samt hvad der skal udbetales til medarbejdere baseret på udførte
+  //    aftaler i `employee_completed_stops`. Bruger samme periode-vinduer
+  //    (7 dage / 30 dage) som de øvrige snapshots. Default-perioden styres
+  //    af brugeren via FinanceOverviewCard's lille toggle.
+  const { data: employeeEarnings } = useQuery({
+    queryKey: ["dashboard-employee-earnings", business.id],
+    enabled: !!business.id,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const since = new Date(Date.now() - 30 * DAY_MS).toISOString();
+      const { data, error } = await supabase
+        .from("employee_completed_stops")
+        .select("earnings, completed_at, employee_id")
+        .eq("business_id", business.id)
+        .gte("completed_at", since);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const finance = useMemo(() => {
+    const now = Date.now();
+    const cut7 = now - 7 * DAY_MS;
+    const cut30 = now - 30 * DAY_MS;
+    // En aftale tæller med i finans-overblikket hvis den er faktisk værdi —
+    // dvs. ikke annulleret, ikke krediteret og ikke void'et.
+    const isLive = (o: any) =>
+      o.status !== "cancelled" && o.status !== "rejected" && !o.voided_at && !o.credited_at;
+    const amount = (o: any) => Number(o.total_amount) || 0;
+
+    const calc = (cut: number) => {
+      const inPeriod = (recentOrders || []).filter(
+        (o: any) => +new Date(o.created_at) >= cut,
+      );
+      const live = inPeriod.filter(isLive);
+      const billed = live.reduce((s, o) => s + amount(o), 0);
+      const paidOrders = live.filter(
+        (o: any) => o.paid_at || o.payment_status === "paid",
+      );
+      const paid = paidOrders.reduce((s, o) => s + amount(o), 0);
+      const overdueOrders = live.filter(
+        (o: any) =>
+          !o.paid_at &&
+          o.payment_status !== "paid" &&
+          (o.payment_status === "overdue" || (o.reminder_count ?? 0) > 0),
+      );
+      const overdue = overdueOrders.reduce((s, o) => s + amount(o), 0);
+      const outstanding = Math.max(0, billed - paid);
+      const completedOrders = live.filter((o: any) => o.status === "completed");
+      const completedSum = completedOrders.reduce((s, o) => s + amount(o), 0);
+      const notCompletedOrders = live.filter((o: any) => o.status !== "completed");
+      const notCompletedSum = notCompletedOrders.reduce((s, o) => s + amount(o), 0);
+      const cancelledOrders = inPeriod.filter(
+        (o: any) => o.status === "cancelled" || o.status === "rejected",
+      );
+      const cancelled = cancelledOrders.reduce((s, o) => s + amount(o), 0);
+      return {
+        billed,
+        paid,
+        paidCount: paidOrders.length,
+        outstanding,
+        outstandingCount: live.filter(
+          (o: any) => !o.paid_at && o.payment_status !== "paid",
+        ).length,
+        overdue,
+        overdueCount: overdueOrders.length,
+        completedSum,
+        completedCount: completedOrders.length,
+        notCompletedSum,
+        notCompletedCount: notCompletedOrders.length,
+        totalCount: live.length,
+        cancelled,
+        cancelledCount: cancelledOrders.length,
+      };
+    };
+
+    const empPayout = (cut: number) =>
+      (employeeEarnings || [])
+        .filter((s: any) => +new Date(s.completed_at) >= cut)
+        .reduce((sum: number, s: any) => sum + Number(s.earnings || 0), 0);
+
+    const empUniqueCount = (cut: number) => {
+      const ids = new Set<string>();
+      (employeeEarnings || []).forEach((s: any) => {
+        if (+new Date(s.completed_at) >= cut && s.employee_id) ids.add(s.employee_id);
+      });
+      return ids.size;
+    };
+
+    return {
+      p7: { ...calc(cut7), employeePayout: empPayout(cut7), employeeCount: empUniqueCount(cut7) },
+      p30: { ...calc(cut30), employeePayout: empPayout(cut30), employeeCount: empUniqueCount(cut30) },
+    };
+  }, [recentOrders, employeeEarnings]);
+
   // ── Nye anmeldelser sidste 7 dage ───────────────────────────────────
   const newReviews = useMemo(() => {
     if (!reviews) return 0;
