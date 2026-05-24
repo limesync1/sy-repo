@@ -303,7 +303,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v && !submitting) onOpenChange(v); else if (v) onOpenChange(v); }}>
-      <DialogContent className="max-w-3xl max-h-[92vh] flex flex-col p-0 gap-0 overflow-hidden">
+      <DialogContent className="max-w-3xl max-h-[calc(100dvh-1rem)] sm:max-h-[92vh] flex flex-col p-0 gap-0 overflow-hidden">
         <DialogHeader className="px-4 sm:px-5 py-4 pr-12 border-b shrink-0 space-y-0 text-left">
           <SheetHeaderBlock
             icon={<ShoppingBag className="h-4 w-4" />}
