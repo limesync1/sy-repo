@@ -567,19 +567,30 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
           </div>
           <div
             className={cn(
-              "mt-0.5 flex items-center gap-x-1.5 text-[9px] text-muted-foreground tabular-nums sm:text-[10px] overflow-hidden",
+              "mt-0.5 flex items-center gap-x-2 text-[10px] text-muted-foreground tabular-nums overflow-hidden",
               compact ? "flex-nowrap whitespace-nowrap" : "flex-wrap gap-y-0.5",
             )}
           >
-            {stopCount > 0 && <span className="inline-flex items-center gap-0.5 shrink-0"><MapPin className="h-2.5 w-2.5" />{stopCount}</span>}
-            {completedCount > 0 && <span className="text-emerald-600 shrink-0">{completedCount}✓</span>}
-            {travelMin > 0 && (!compact || revenue <= 0) && (
-              <span className="inline-flex items-center gap-0.5 shrink-0"><Clock className="h-2.5 w-2.5" />{fmtRouteMin(travelMin)}</span>
+            {stopCount > 0 && (
+              <span className="inline-flex items-center gap-0.5 shrink-0">
+                <MapPin className="h-2.5 w-2.5" />
+                <span>
+                  {completedCount > 0 && (
+                    <span className="text-emerald-600 font-semibold">{completedCount}/</span>
+                  )}
+                  {stopCount} {stopCount === 1 ? "stop" : "stop"}
+                </span>
+              </span>
             )}
             {revenue > 0 && (
-              <span className="inline-flex items-center gap-0.5 shrink-0">
+              <span className="inline-flex items-center gap-0.5 shrink-0 font-semibold text-foreground/80">
                 <Wallet className="h-2.5 w-2.5 shrink-0" />
                 {compact ? fmtRouteKrCompact(revenue) : fmtRouteKr(revenue)}
+              </span>
+            )}
+            {travelMin > 0 && !compact && (
+              <span className="inline-flex items-center gap-0.5 shrink-0">
+                <Clock className="h-2.5 w-2.5" />{fmtRouteMin(travelMin)}
               </span>
             )}
           </div>
