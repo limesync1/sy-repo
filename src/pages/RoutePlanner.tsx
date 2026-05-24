@@ -2127,7 +2127,16 @@ const Planner = () => {
     });
     setPendingRouteMerge(null);
     try {
+      await routeMutationQueue.run(async () => {
       const sourceStops = calendarStops.filter((s: any) => s.route_id === source.id);
+      // Idempotens: hvis kilderuten allerede er slettet (fx fra et tidligere
+      // klik der nåede igennem), så er der intet at flette — bare returnér.
+      const { data: existing } = await supabase
+        .from("routes")
+        .select("id")
+        .eq("id", source.id)
+        .maybeSingle();
+      if (!existing) return;
       let moved = 0;
       if (sourceStops.length > 0) {
         const { data, error } = await supabase.rpc("move_stops_to_route", {
@@ -2204,6 +2213,7 @@ const Planner = () => {
       if ((count ?? 0) === 0) {
         await supabase.from("routes").delete().eq("id", source.id);
       }
+      });
       toast.success(
         sourceStops.length === 0
           ? "Tom rute slettet"
