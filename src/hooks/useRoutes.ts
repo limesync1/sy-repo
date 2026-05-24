@@ -825,6 +825,34 @@ export const useCreateRoute = () => {
       business_id, route_date, name, color,
     }: { business_id: string; route_date: string; name?: string | null; color?: string | null }) =>
       routeMutationQueue.run(async () => {
+      // ── Idempotency guard ─────────────────────────────────────────────
+      // Hvis præcis samme kombination (business + dato + navn) blev oprettet
+      // for under 8 sekunder siden returnerer vi den eksisterende rute i
+      // stedet for at oprette en duplikat. Dækker dobbeltklik, hurtig retry
+      // og React StrictMode-double-invoke under udvikling.
+      const dedupKey = `${business_id}|${route_date}|${(name || "").trim().toLowerCase()}`;
+      const cached = recentRouteCreations.get(dedupKey);
+      if (cached && Date.now() - cached.at < 8000) {
+        return cached.route;
+      }
+      if (name && name.trim()) {
+        const sinceIso = new Date(Date.now() - 8000).toISOString();
+        const { data: existing } = await supabase
+          .from("routes")
+          .select("*")
+          .eq("business_id", business_id)
+          .eq("route_date", route_date)
+          .eq("name", name.trim())
+          .gte("created_at", sinceIso)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (existing) {
+          recentRouteCreations.set(dedupKey, { at: Date.now(), route: existing as unknown as Route });
+          return existing as unknown as Route;
+        }
+      }
+
       // Fast path: one RPC creates the route with start_address already filled in.
       // Geocoding runs in the background and updates the row afterwards so the
       // UI doesn't have to wait for the edge function round-trip.
@@ -836,6 +864,14 @@ export const useCreateRoute = () => {
       });
       if (error) throw error;
       const route = data as unknown as Route;
+      recentRouteCreations.set(dedupKey, { at: Date.now(), route });
+      // Småryd op så cachen ikke vokser.
+      if (recentRouteCreations.size > 64) {
+        const cutoff = Date.now() - 30000;
+        for (const [k, v] of recentRouteCreations) {
+          if (v.at < cutoff) recentRouteCreations.delete(k);
+        }
+      }
 
       // Fire-and-forget geocoding so the mutation resolves immediately.
       (async () => {
