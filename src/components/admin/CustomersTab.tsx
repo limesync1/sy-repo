@@ -323,7 +323,7 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
       const [ordersRes, subsRes] = await Promise.all([
         supabase
           .from("orders")
-          .select("id, status, total_amount, preferred_date, created_at, notes, address, zip_code, city, payment_status, paid_at, payment_status_synced_at, due_date, invoice_external_id, invoiced_at, invoice_status, reminder_count, last_reminder_at, last_reminder_type, reminder_history, credited_at, voided_at, order_items(service_name, quantity, total_price, details)")
+          .select("id, status, total_amount, preferred_date, created_at, notes, address, zip_code, city, payment_status, paid_at, payment_status_synced_at, due_date, invoice_external_id, invoiced_at, invoice_status, reminder_count, last_reminder_at, last_reminder_type, reminder_history, credited_at, voided_at, completed_cycles, order_items(service_name, quantity, total_price, details)")
           .eq("business_id", businessId)
           .ilike("customer_email", email!)
           .order("created_at", { ascending: false }),
