@@ -283,6 +283,15 @@ export interface AccountingAdapter {
     amount: number;
     paid_at?: string | null; // ISO date
   }): Promise<void>;
+
+  /**
+   * Hent PDF for en faktura (bogført eller kladde). Returnerer base64-encodet
+   * PDF + foreslået filnavn så frontend kan trigge download.
+   */
+  getInvoicePdf?(input: {
+    invoice_external_id: string;
+    external_type?: "invoice_booked" | "invoice_draft";
+  }): Promise<{ pdf_base64: string; filename: string }>;
 }
 
 export type AdapterFactory = (
