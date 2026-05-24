@@ -1155,7 +1155,11 @@ const AftaleTab = ({
       if (error) { toast.error(error.message); return; }
       if (isRecurring && interval !== "engangskøb") {
         const nextDate = calcNextServiceDate(interval);
-        toast.success(`Aftale udført — næste kørsel planlagt ${nextDate ? new Date(nextDate).toLocaleDateString("da-DK", { day: "numeric", month: "long" }) : ""}`);
+        const nextCycle = ((order as any)?.completed_cycles ?? 0) + 2;
+        toast.success(
+          `Aftale udført — næste (${nextCycle}. kørsel) planlagt ${nextDate ? new Date(nextDate).toLocaleDateString("da-DK", { day: "numeric", month: "long" }) : ""}`,
+          { description: "Aftalen flytter til Udførte. Næste kørsel oprettes automatisk og lægges på den planlagte rute — regnskabsordren oprettes når rutedagen åbnes." },
+        );
       } else {
         toast.success("Aftale markeret som udført");
       }
