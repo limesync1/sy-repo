@@ -2394,6 +2394,18 @@ const AftaleTab = ({
             );
           })}
         </div>
+      ) : null}
+      {filteredOrders && filteredOrders.length > 0 && (
+        <PaginationFooter
+          page={aftalePage}
+          pageSize={aftalePageSize}
+          total={filteredOrders.length}
+          onPageChange={setAftalePage}
+          label="aftaler"
+        />
+      )}
+      {(!filteredOrders || filteredOrders.length === 0) ? (
+        <>
       ) : (
         <EmptyState
           icon={<ShoppingCart />}
@@ -2408,6 +2420,7 @@ const AftaleTab = ({
               : "Aftaler vises her når kunder bestiller."
           }
         />
+        </>
       )}
         </div>
 
