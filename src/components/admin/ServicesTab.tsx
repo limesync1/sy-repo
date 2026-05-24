@@ -430,6 +430,7 @@ const ServiceRow = ({ service, orderCount, accountingMeta, onEdit, onDelete }: {
                   <IndustryIcon
                     category={service.service_category}
                     subcategory={service.subcategory}
+                    name={service.name}
                     className="h-8 w-8"
                   />
                 </div>
