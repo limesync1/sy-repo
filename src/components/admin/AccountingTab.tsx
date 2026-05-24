@@ -1760,6 +1760,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           </div>
 
         </SectionCard>
+        )}
 
         {/* Forbindelsesfejl — kun hvis noget er galt på selve forbindelsen */}
         {hasError && (
