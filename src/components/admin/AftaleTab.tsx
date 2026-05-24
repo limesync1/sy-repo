@@ -1913,13 +1913,22 @@ const AftaleTab = ({
               for (const it of items) {
                 const svc = it.service_id ? servicesById[it.service_id] : undefined;
                 if (svc?.service_category || svc?.subcategory) {
-                  return { category: svc.service_category as string | null, subcategory: (svc as any).subcategory as string | null };
+                  return {
+                    category: svc.service_category as string | null,
+                    subcategory: (svc as any).subcategory as string | null,
+                    name: (svc as any).name as string | null ?? it.service_name as string | null,
+                  };
                 }
               }
-              return { category: null as string | null, subcategory: null as string | null };
+              return {
+                category: null as string | null,
+                subcategory: null as string | null,
+                name: (items[0]?.service_name as string | null) ?? null,
+              };
             })();
             const primaryCategory = primary.category;
             const primarySubcategory = primary.subcategory;
+            const primaryName = primary.name;
             const categoryIcon = getSubcategoryIcon(primarySubcategory, primaryCategory) || DEFAULT_CATEGORY_ICON;
             // Aftalen kan kun trækkes til en rute hvis ruteplanlægning er slået
             // til, den ikke allerede ligger på en rute, og ikke er afsluttet/annulleret.
@@ -1958,6 +1967,7 @@ const AftaleTab = ({
                       <IndustryIcon
                         category={primaryCategory}
                         subcategory={primarySubcategory}
+                        name={primaryName}
                         className="h-9 w-9"
                       />
                     </div>

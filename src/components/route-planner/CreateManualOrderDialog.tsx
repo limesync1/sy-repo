@@ -451,7 +451,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                             className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-card"
                             aria-hidden="true"
                           >
-                            <IndustryIcon category={s.service_category} subcategory={sub} className="h-6 w-6" />
+                            <IndustryIcon category={s.service_category} subcategory={sub} name={s.name} className="h-6 w-6" />
                           </span>
                           <div className="min-w-0 flex-1">
                             <div className="truncate text-sm font-medium text-foreground">{s.name}</div>
@@ -489,7 +489,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                           className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-card"
                           aria-hidden="true"
                         >
-                          <IndustryIcon category={it.service.service_category} subcategory={sub} className="h-8 w-8" />
+                          <IndustryIcon category={it.service.service_category} subcategory={sub} name={it.service.name} className="h-8 w-8" />
                         </span>
                         <div className="min-w-0 flex-1">
                           <p className="truncate font-semibold text-sm leading-tight text-foreground">{it.service.name}</p>
