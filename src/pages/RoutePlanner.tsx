@@ -77,6 +77,7 @@ import { expandRecurringRoutes, projectedStopMatchesSources, recurringSourceKeys
 import { intervalToCadence } from "@/lib/interval";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { invalidateRouteSyncQueries } from "@/hooks/useRoutes";
+import { routeMutationQueue } from "@/lib/mutation-queue";
 import { cn } from "@/lib/utils";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { Monitor } from "lucide-react";
@@ -2106,6 +2107,7 @@ const Planner = () => {
   // præcis som "Flyt rute til ny dato" gør.
   const handleConfirmRouteMerge = async (scope: "single" | "future" = "single") => {
     if (!pendingRouteMerge) return;
+    if (mergingRoute) return; // dobbeltklik-beskyttelse
     const { source, target } = pendingRouteMerge;
     setMergingRoute(true);
     // Optimistisk: flyt stops til målruten og fjern kilderuten fra cachen
@@ -2125,7 +2127,16 @@ const Planner = () => {
     });
     setPendingRouteMerge(null);
     try {
+      const result = await routeMutationQueue.run(async () => {
       const sourceStops = calendarStops.filter((s: any) => s.route_id === source.id);
+      // Idempotens: hvis kilderuten allerede er slettet (fx fra et tidligere
+      // klik der nåede igennem), så er der intet at flette — bare returnér.
+      const { data: existing } = await supabase
+        .from("routes")
+        .select("id")
+        .eq("id", source.id)
+        .maybeSingle();
+      if (!existing) return { sourceStops, moved: 0, alreadyMerged: true };
       let moved = 0;
       if (sourceStops.length > 0) {
         const { data, error } = await supabase.rpc("move_stops_to_route", {
@@ -2202,6 +2213,10 @@ const Planner = () => {
       if ((count ?? 0) === 0) {
         await supabase.from("routes").delete().eq("id", source.id);
       }
+      return { sourceStops, moved, alreadyMerged: false };
+      });
+      const sourceStops = result?.sourceStops ?? [];
+      const moved = result?.moved ?? 0;
       toast.success(
         sourceStops.length === 0
           ? "Tom rute slettet"

@@ -823,7 +823,8 @@ export const useCreateRoute = () => {
   return useMutation({
     mutationFn: async ({
       business_id, route_date, name, color,
-    }: { business_id: string; route_date: string; name?: string | null; color?: string | null }) => {
+    }: { business_id: string; route_date: string; name?: string | null; color?: string | null }) =>
+      routeMutationQueue.run(async () => {
       // Fast path: one RPC creates the route with start_address already filled in.
       // Geocoding runs in the background and updates the row afterwards so the
       // UI doesn't have to wait for the edge function round-trip.
@@ -859,7 +860,7 @@ export const useCreateRoute = () => {
       })();
 
       return route;
-    },
+    }),
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ["routes", vars.business_id, vars.route_date] });
       qc.invalidateQueries({ queryKey: ["routes-range"] });
@@ -882,10 +883,10 @@ export const useUpsertRoute = () => {
 export const useDeleteRoute = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (routeId: string) => {
+    mutationFn: (routeId: string) => routeMutationQueue.run(async () => {
       const { error } = await supabase.from("routes").delete().eq("id", routeId);
       if (error) throw error;
-    },
+    }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["routes"] });
       qc.invalidateQueries({ queryKey: ["routes-range"] });
@@ -935,7 +936,7 @@ export const useMaterializeVirtualRoute = () => {
 export const useAddStop = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (payload: {
+    mutationFn: (payload: {
       route_id: string;
       order_id?: string | null;
       subscription_id?: string | null;
@@ -950,7 +951,7 @@ export const useAddStop = () => {
       time_window_start?: string | null;
       time_window_end?: string | null;
       assigned_employee_id?: string | null;
-    }) => {
+    }) => routeMutationQueue.run(async () => {
       // Auto-tildel service'ens standard-medarbejder hvis ingen er valgt
       // og aftalen er knyttet til en ordre. Manuelle valg på enkelte
       // aftaler tilsidesætter altid denne default.
@@ -1070,7 +1071,7 @@ export const useAddStop = () => {
         }
       }
       return data as RouteStop;
-    },
+    }),
     onSuccess: () => invalidateRouteSyncQueries(qc),
   });
 };
