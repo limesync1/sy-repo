@@ -252,6 +252,12 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
   const filtered = filterCategory
     ? services?.filter((s: any) => s.service_category === filterCategory)
     : services;
+  // Paginering — adaptiv sidestørrelse afhængigt af enheden.
+  const pageSize = useAdaptivePageSize(25);
+  const [page, setPage] = useState(0);
+  useEffect(() => { setPage(0); }, [filterCategory, services?.length]);
+  const filteredList = filtered ?? [];
+  const paged = filteredList.slice(page * pageSize, (page + 1) * pageSize);
   const activeServices = (services || []).filter((s: any) => s.is_active !== false).length;
   const totalOrders = Object.values(orderCountByService).reduce((a, b) => a + b, 0);
 
