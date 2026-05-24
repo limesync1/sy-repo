@@ -103,7 +103,7 @@ const RouteMiniMap = ({
   const bounds = L.latLngBounds(points.map((p) => L.latLng(p[0], p[1])));
 
   return (
-    <div className="relative z-0 h-40 w-full isolate overflow-hidden bg-secondary/40 sm:h-44">
+    <div className="relative z-0 h-32 w-full isolate overflow-hidden bg-secondary/40 sm:h-44">
       <MapContainer
         bounds={bounds}
         boundsOptions={{ padding: [20, 20] }}
