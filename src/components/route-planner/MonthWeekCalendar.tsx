@@ -286,10 +286,17 @@ const DayCellInner = ({
       ref={setNodeRef}
       data-route-drop-date={canReceiveDrop ? dateStr : undefined}
       className={cn(
-        "border-r last:border-r-0 relative group flex flex-col gap-1 p-1.5 transition-colors",
-        compact ? "min-h-[110px]" : "min-h-[160px]",
-        !inMonth && "bg-secondary/10",
-        isPast && "bg-muted/20",
+        "border-r last:border-r-0 border-border/50 relative group flex flex-col gap-1.5 p-2 transition-all duration-150",
+        compact ? "min-h-[120px]" : "min-h-[170px]",
+        // Weekend-dage får et helt let varmt grå-skær så uger visuelt
+        // "lukker" i højre side. Holdes meget subtilt — bare en skygge.
+        (date.getDay() === 0 || date.getDay() === 6) && inMonth && !isPast && "bg-muted/15",
+        !inMonth && "bg-muted/20",
+        isPast && inMonth && "bg-muted/10",
+        // Premium hover på fremtidige dage — let baggrund + cursor-pointer-følelse.
+        inMonth && !isPast && !isDragActive && "hover:bg-muted/30",
+        // I dag får en yderst diskret accent-tint i baggrunden + indvendig accent-ring.
+        today && !isDragActive && "bg-accent/[0.04] ring-1 ring-inset ring-accent/20",
         // Når en aftale/rute trækkes:
         //  - Gyldige drop-dage (i måneden, ikke fortid, ikke optaget) får
         //    en subtil accent-ring så brugeren ser hvor der KAN droppes.
@@ -330,9 +337,12 @@ const DayCellInner = ({
       <div className="flex items-center justify-between mb-0.5">
         <span
           className={cn(
-            "inline-flex items-center justify-center rounded-full text-xs font-semibold tabular-nums",
-            today ? "h-6 w-6 bg-accent text-accent-foreground" : "h-6 w-6 text-foreground",
-            !inMonth && !today && "text-muted-foreground/50",
+            "inline-flex items-center justify-center text-[13px] font-semibold tabular-nums transition-all",
+            today
+              ? "h-7 w-7 rounded-full bg-accent text-accent-foreground shadow-sm ring-2 ring-background"
+              : "h-7 w-7 text-foreground/80",
+            !inMonth && !today && "text-muted-foreground/40",
+            isPast && !today && "text-muted-foreground/50 font-medium",
           )}
         >
           {format(date, "d")}
@@ -359,7 +369,7 @@ const DayCellInner = ({
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onCreateRoute(dateStr); }}
-            className="opacity-0 group-hover:opacity-100 transition-opacity h-5 w-5 inline-flex items-center justify-center rounded hover:bg-accent/10 text-muted-foreground hover:text-accent"
+            className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 inline-flex items-center justify-center rounded-md border border-border/60 bg-card hover:bg-accent hover:border-accent hover:text-accent-foreground text-muted-foreground shadow-sm"
             aria-label="Opret rute"
             title="Opret rute denne dag"
           >
