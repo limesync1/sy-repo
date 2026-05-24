@@ -2228,8 +2228,11 @@ const AftaleTab = ({
                       </div>
                     )}
 
-                    <div className="px-3 py-2.5 space-y-2">
-                    {!isResponding && <NextStepCard order={order as any} />}
+                    <div className="px-3 py-3 space-y-3">
+                    {/* ── 1) Handling — beslutninger og status der kræver opmærksomhed ── */}
+                    {!isResponding && (
+                      <NextStepCard order={order as any} />
+                    )}
                     {!isResponding && <ProposalStatusBanner order={order} />}
                     {order.business_message && !isResponding && (
                       <div className="rounded-lg border border-border bg-card px-3 py-2">
@@ -2239,17 +2242,24 @@ const AftaleTab = ({
                     )}
                     {!isResponding && <AdjustmentDisplay order={order} />}
 
-                    {/* ── 2) Hvad er aftalen om? ── */}
-                    <CustomerOrderSummary order={order} />
-
-                    {order.notes && (
-                      <div className="flex gap-2 rounded-lg bg-card border border-border px-3 py-2">
-                        <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-                        <p className="text-sm text-foreground">{order.notes}</p>
+                    {/* ── 2) Aftalen — hvad er bestilt, kundens noter ── */}
+                    <div className="pt-1">
+                      <SectionLabel>Aftalen</SectionLabel>
+                      <div className="mt-1.5 space-y-2">
+                        <CustomerOrderSummary order={order} />
+                        {order.notes && (
+                          <div className="flex gap-2 rounded-lg bg-card border border-border px-3 py-2">
+                            <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                            <p className="text-sm text-foreground">{order.notes}</p>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
 
                     {/* ── 3) Kontekst — kontakt, rute, abonnement, tidslinje ── */}
+                    <div className="pt-1">
+                      <SectionLabel>Kontekst</SectionLabel>
+                      <div className="mt-1.5 space-y-2">
                     <div className="flex flex-wrap items-center gap-1.5">
                       <a href={`mailto:${order.customer_email}`}
                         className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground hover:bg-secondary/60 max-w-full">
@@ -2321,6 +2331,8 @@ const AftaleTab = ({
                       </summary>
                       <div className="mt-2"><OrderTimeline order={order as any} /></div>
                     </details>
+                      </div>
+                    </div>
                   </div>
                   </div>
                 )}
