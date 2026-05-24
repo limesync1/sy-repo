@@ -1872,6 +1872,7 @@ const AftaleTab = ({
       {/* Aftale-liste — individuelle kort pr. aftale (samme stil som Services-fanen).
           Hvert kort viser kunde, services, status og beløb i headeren. Klik for at folde ud. */}
       {filteredOrders && filteredOrders.length > 0 ? (
+        <>
         <div className="space-y-3">
           {pagedOrders.map((order) => {
             const cfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
@@ -2394,8 +2395,6 @@ const AftaleTab = ({
             );
           })}
         </div>
-      ) : null}
-      {filteredOrders && filteredOrders.length > 0 && (
         <PaginationFooter
           page={aftalePage}
           pageSize={aftalePageSize}
@@ -2403,9 +2402,7 @@ const AftaleTab = ({
           onPageChange={setAftalePage}
           label="aftaler"
         />
-      )}
-      {(!filteredOrders || filteredOrders.length === 0) ? (
-        <>
+        </>
       ) : (
         <EmptyState
           icon={<ShoppingCart />}
@@ -2420,7 +2417,6 @@ const AftaleTab = ({
               : "Aftaler vises her når kunder bestiller."
           }
         />
-        </>
       )}
         </div>
 
