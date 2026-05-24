@@ -2106,6 +2106,7 @@ const Planner = () => {
   // præcis som "Flyt rute til ny dato" gør.
   const handleConfirmRouteMerge = async (scope: "single" | "future" = "single") => {
     if (!pendingRouteMerge) return;
+    if (mergingRoute) return; // dobbeltklik-beskyttelse
     const { source, target } = pendingRouteMerge;
     setMergingRoute(true);
     // Optimistisk: flyt stops til målruten og fjern kilderuten fra cachen
