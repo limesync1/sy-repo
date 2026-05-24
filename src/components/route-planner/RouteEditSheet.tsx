@@ -415,21 +415,12 @@ export const RouteEditSheet = ({
           const parts: string[] = [];
           if (savedKm >= 0.05) parts.push(`${savedKm.toFixed(1)} km`);
           if (savedMin >= 1) parts.push(formatTravelTime(Math.round(savedMin) * 60));
-          return {
-            message: `Sparet ${parts.join(" · ")}`,
-            description: orderChanged ? "Rækkefølgen er opdateret" : undefined,
-          } as any;
+          return `Sparet ${parts.join(" · ")}${orderChanged ? " — rækkefølgen er opdateret" : ""}`;
         }
         if (orderChanged) {
-          return {
-            message: "Rækkefølgen er optimeret",
-            description: "Ingen målbar km-/tidsbesparelse — men stops er omrokeret",
-          } as any;
+          return "Rækkefølgen er optimeret — ingen målbar km-/tidsbesparelse";
         }
-        return {
-          message: "Allerede den bedste rækkefølge",
-          description: "Ingen ændringer foretaget",
-        } as any;
+        return "Allerede den bedste rækkefølge — ingen ændringer foretaget";
       },
       error: (e: any) => e?.message || "Kunne ikke optimere ruten",
     });
