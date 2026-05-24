@@ -88,6 +88,7 @@ type OrderRow = {
   reminder_history?: any;
   credited_at?: string | null;
   voided_at?: string | null;
+  completed_cycles?: number | null;
   order_items: Array<{ service_name: string; quantity: number; total_price: number; details: any }>;
 };
 
