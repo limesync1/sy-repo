@@ -1,6 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAdaptivePageSize } from "@/hooks/useAdaptivePageSize";
+import { PaginationFooter } from "@/components/admin/shared/PaginationFooter";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -587,6 +589,16 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
     );
   }, [customers, search, typeFilter]);
 
+  // Paginering — adaptiv sidestørrelse afhængigt af enheden, så svage
+  // mobiler ikke forsøger at rendere tusindvis af rækker på en gang.
+  const pageSize = useAdaptivePageSize(25);
+  const [page, setPage] = useState(0);
+  useEffect(() => { setPage(0); }, [search, typeFilter, customers.length]);
+  const paged = useMemo(
+    () => filtered.slice(page * pageSize, (page + 1) * pageSize),
+    [filtered, page, pageSize],
+  );
+
   const stats = useMemo(() => {
     const totalRev = customers.reduce((s, c) => s + c.total_revenue, 0);
     const recurring = customers.filter(c => c.active_subs > 0).length;
@@ -925,7 +937,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
             </div>
 
             <div className="divide-y divide-border">
-              {filtered.map((c) => {
+              {paged.map((c) => {
                 const typeLabel = c.type === "business" ? "Erhverv" : c.type === "private" ? "Privat" : null;
                 const typeDot = c.type === "business" ? "bg-blue-500" : c.type === "private" ? "bg-emerald-500" : "bg-muted-foreground/40";
                 const displayName = c.type === "business" && c.company_name ? c.company_name : c.name;
@@ -1077,6 +1089,15 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                   </div>
                 );
               })}
+            </div>
+            <div className="px-4 sm:px-5 pb-4">
+              <PaginationFooter
+                page={page}
+                pageSize={pageSize}
+                total={filtered.length}
+                onPageChange={setPage}
+                label="kunder"
+              />
             </div>
           </Card>
         </>

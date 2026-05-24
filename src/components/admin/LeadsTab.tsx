@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAdaptivePageSize } from "@/hooks/useAdaptivePageSize";
+import { PaginationFooter } from "@/components/admin/shared/PaginationFooter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -194,6 +196,15 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
     return list;
   }, [enriched, filter, categoryFilter, priorityFilter, search, sortBy]);
 
+  // Paginering — adaptiv sidestørrelse.
+  const pageSize = useAdaptivePageSize(25);
+  const [page, setPage] = useState(0);
+  useEffect(() => { setPage(0); }, [filter, categoryFilter, priorityFilter, search, sortBy]);
+  const pagedVisible = useMemo(
+    () => visible.slice(page * pageSize, (page + 1) * pageSize),
+    [visible, page, pageSize],
+  );
+
   const toggleSelect = (id: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -369,7 +380,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                 </div>
 
                 <div className="space-y-2">
-                  {visible.map((l) => {
+                  {pagedVisible.map((l) => {
                     const qr = l.quote_request;
                     const status = STATUS_LABELS[l.status] ?? STATUS_LABELS.new;
                     const share = qr?.share_contact !== false;
@@ -519,6 +530,13 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                     );
                   })}
                 </div>
+                <PaginationFooter
+                  page={page}
+                  pageSize={pageSize}
+                  total={visible.length}
+                  onPageChange={setPage}
+                  label="leads"
+                />
               </>
             )}
           </>

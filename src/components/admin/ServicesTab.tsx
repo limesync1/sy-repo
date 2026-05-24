@@ -4,6 +4,8 @@
 // initial /virksomhed chunk.
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useAdaptivePageSize } from "@/hooks/useAdaptivePageSize";
+import { PaginationFooter } from "@/components/admin/shared/PaginationFooter";
 import {
   Plus, Trash2,
   Sparkles, Calculator, Wrench, Wand2, Loader2, Check,
@@ -250,6 +252,12 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
   const filtered = filterCategory
     ? services?.filter((s: any) => s.service_category === filterCategory)
     : services;
+  // Paginering — adaptiv sidestørrelse afhængigt af enheden.
+  const pageSize = useAdaptivePageSize(25);
+  const [page, setPage] = useState(0);
+  useEffect(() => { setPage(0); }, [filterCategory, services?.length]);
+  const filteredList = filtered ?? [];
+  const paged = filteredList.slice(page * pageSize, (page + 1) * pageSize);
   const activeServices = (services || []).filter((s: any) => s.is_active !== false).length;
   const totalOrders = Object.values(orderCountByService).reduce((a, b) => a + b, 0);
 
@@ -349,7 +357,7 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
       )}
 
       <div className="space-y-2" data-tour="services-list">
-        {filtered?.map((s: any) => (
+        {paged.map((s: any) => (
           <ServiceRow
             key={s.id}
             service={s}
@@ -359,6 +367,13 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
             onDelete={() => deleteService.mutate(s.id)}
           />
         ))}
+        <PaginationFooter
+          page={page}
+          pageSize={pageSize}
+          total={filteredList.length}
+          onPageChange={setPage}
+          label="services"
+        />
         {(!filtered || filtered.length === 0) && !showForm && (
           <EmptyState
             icon={<Wrench />}

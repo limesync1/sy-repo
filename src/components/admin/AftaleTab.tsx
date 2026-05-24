@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAdaptivePageSize } from "@/hooks/useAdaptivePageSize";
+import { PaginationFooter } from "@/components/admin/shared/PaginationFooter";
 import { useOrders, useServices, useBusinessSubscriptions } from "@/hooks/useDatabase";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
 import { Button } from "@/components/ui/button";
@@ -1055,6 +1057,15 @@ const AftaleTab = ({
     }
   });
 
+  // Paginering — adaptiv sidestørrelse afhængigt af enheden.
+  const aftalePageSize = useAdaptivePageSize(25);
+  const [aftalePage, setAftalePage] = useState(0);
+  useEffect(() => { setAftalePage(0); }, [sortBy, (searchedOrders || []).length]);
+  const pagedOrders = filteredOrders.slice(
+    aftalePage * aftalePageSize,
+    (aftalePage + 1) * aftalePageSize,
+  );
+
   const initAdjustedItems = (order: any) => {
     const items = (order.order_items || []).map((item: any) =>
       buildAdjustmentItem(item, item.service_id ? servicesById[item.service_id] : undefined)
@@ -1861,8 +1872,9 @@ const AftaleTab = ({
       {/* Aftale-liste — individuelle kort pr. aftale (samme stil som Services-fanen).
           Hvert kort viser kunde, services, status og beløb i headeren. Klik for at folde ud. */}
       {filteredOrders && filteredOrders.length > 0 ? (
+        <>
         <div className="space-y-3">
-          {filteredOrders.map((order) => {
+          {pagedOrders.map((order) => {
             const cfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
             const isExpanded = expandedOrder === order.id;
             const isResponding = respondingTo === order.id;
@@ -2383,6 +2395,14 @@ const AftaleTab = ({
             );
           })}
         </div>
+        <PaginationFooter
+          page={aftalePage}
+          pageSize={aftalePageSize}
+          total={filteredOrders.length}
+          onPageChange={setAftalePage}
+          label="aftaler"
+        />
+        </>
       ) : (
         <EmptyState
           icon={<ShoppingCart />}
