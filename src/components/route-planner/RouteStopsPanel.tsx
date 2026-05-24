@@ -346,15 +346,22 @@ const SortableStopRow = ({
           {/* Konsistent badge-række — alle h-5, samme padding og tekststørrelse. */}
           <div className="hidden items-center gap-1.5 flex-wrap pt-0.5 sm:flex">
             <IntervalBadge interval={stop.agreement_interval} size="sm" />
-            {typeof stop.completed_cycles === "number" && stop.agreement_interval && stop.agreement_interval !== "engangskøb" && (
-              <Badge
-                variant="outline"
-                className="h-5 text-[11px] px-2 gap-1 font-medium"
-                title="Hvilken kørsel af aftalen dette stop er"
-              >
-                {stop.status === "completed" ? stop.completed_cycles : stop.completed_cycles + 1}. kørsel
-              </Badge>
-            )}
+            {(() => {
+              const label = formatCycleLabel({
+                completedCycles: stop.completed_cycles,
+                interval: stop.agreement_interval,
+                isCompleted: stop.status === "completed",
+              });
+              return label ? (
+                <Badge
+                  variant="outline"
+                  className="h-5 text-[11px] px-2 gap-1 font-medium"
+                  title="Hvilken kørsel af aftalen dette stop er"
+                >
+                  {label}
+                </Badge>
+              ) : null;
+            })()}
             {stop.status === "completed" && (
               <Badge
                 variant="outline"
