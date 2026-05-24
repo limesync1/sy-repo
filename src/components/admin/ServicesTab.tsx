@@ -8,6 +8,7 @@ import {
   Plus, Trash2,
   Sparkles, Calculator, Wrench, Wand2, Loader2, Check,
   ArrowUp, ArrowDown, Copy, Tag, Receipt, BookOpen, Repeat,
+  Package, TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
