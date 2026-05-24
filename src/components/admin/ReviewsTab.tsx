@@ -1,8 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Star, ShieldCheck, BarChart3 } from "lucide-react";
 import { PageHeader, EmptyState, SearchInput, StatCard } from "@/components/admin/shared/AdminUI";
 import { StatGridSkeleton, ListCardSkeleton } from "@/components/admin/shared/Skeletons";
+import { useAdaptivePageSize } from "@/hooks/useAdaptivePageSize";
+import { PaginationFooter } from "@/components/admin/shared/PaginationFooter";
 
 interface Props {
   reviews: any[];
@@ -28,6 +30,11 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
       (r.comment || "").toLowerCase().includes(q),
     );
   }, [reviews, search, ratingFilter]);
+
+  const pageSize = useAdaptivePageSize(25);
+  const [page, setPage] = useState(0);
+  useEffect(() => { setPage(0); }, [search, ratingFilter, reviews.length]);
+  const paged = filtered.slice(page * pageSize, (page + 1) * pageSize);
 
   if (isLoading) {
     return (
@@ -129,7 +136,7 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
             </div>
           </div>
           <div className="divide-y divide-border">
-            {filtered.map((review) => (
+            {paged.map((review) => (
               <div
                 key={review.id}
                 className="px-3 py-2.5 transition-colors hover:bg-secondary/60 sm:px-4"
@@ -163,6 +170,15 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
                 </div>
               </div>
             ))}
+          </div>
+          <div className="px-3 sm:px-4 py-3">
+            <PaginationFooter
+              page={page}
+              pageSize={pageSize}
+              total={filtered.length}
+              onPageChange={setPage}
+              label="anmeldelser"
+            />
           </div>
         </Card>
       )}
