@@ -1921,6 +1921,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
         {/* Synlige standardvalg — ikke gemt bag “avanceret”, fordi det er her
             brugeren forstår hvad automatikken gør og kan ændre de vigtigste valg. */}
+        {showAdvanced && (
         <div className="space-y-4">
           <div className="flex items-start gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
