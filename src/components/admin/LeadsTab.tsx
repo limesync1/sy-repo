@@ -530,6 +530,13 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                     );
                   })}
                 </div>
+                <PaginationFooter
+                  page={page}
+                  pageSize={pageSize}
+                  total={visible.length}
+                  onPageChange={setPage}
+                  label="leads"
+                />
               </>
             )}
           </>
