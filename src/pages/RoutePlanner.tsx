@@ -2854,7 +2854,7 @@ const Planner = () => {
           const unassignedCard = (
                 <Card data-tour="routes-unassigned" className="flex flex-col h-full overflow-hidden">
                   <div className="p-3 border-b bg-secondary/30 space-y-2">
-                    <div className="flex items-center justify-between gap-2 pr-10 lg:pr-0">
+                    <div className="flex items-center gap-2 pr-10 lg:pr-0">
                       <h2 className="min-w-0 font-semibold text-sm flex items-center gap-1.5 leading-tight">
                         <Inbox className="h-4 w-4 text-primary" />
                         <span className="truncate">Aftaler uden rute</span>
@@ -3589,13 +3589,16 @@ const Planner = () => {
               const baseFromCache = (recurringBaseRoutes as any[]).find(
                 (r: any) => r.id === projectedBaseId,
               );
-              const sourceStops = (baseFromCache?.stops?.length ? baseFromCache.stops : editingProjectedContext!.previewStops) || [];
-              const sourced = sourceStops
+              const isActiveProjectedStop = (s: any) => {
+                const eff = (s.occurrence_status as string | undefined) ?? s.status;
+                return eff !== "completed" && eff !== "cancelled";
+              };
+              const filterProjectedStops = (list: any[] = []) => list
                 .filter((s: any) => projectedStopMatchesSources(s, editingProjectedContext!.sourceKeys))
-                .filter((s: any) => {
-                  const eff = (s.occurrence_status as string | undefined) ?? s.status;
-                  return eff !== "completed" && eff !== "cancelled";
-                })
+                .filter(isActiveProjectedStop);
+              const sourceStops = filterProjectedStops(baseFromCache?.stops || []);
+              const fallbackStops = filterProjectedStops(editingProjectedContext!.previewStops || []);
+              const sourced = (sourceStops.length > 0 ? sourceStops : fallbackStops)
                 .map((s: any) => {
                   // Find aftalens interval via recurringSources (key→interval)
                   // — basis-stop har ofte ikke selv et agreement_occurrence-
