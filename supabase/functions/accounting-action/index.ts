@@ -67,6 +67,7 @@ Deno.serve(async (req) => {
         can_credit: false,
         can_void: false,
         can_mark_paid: false,
+        can_download_pdf: false,
         is_booked: false,
         is_draft: false,
         exists_in_provider: false,
@@ -95,15 +96,41 @@ Deno.serve(async (req) => {
               && typeof adapter.markInvoicePaid === "function"
               && !fullyPaid;
             caps.can_void = isDraft && typeof adapter.voidDraft === "function";
+            caps.can_download_pdf = typeof adapter.getInvoicePdf === "function";
           }
         } else if (link?.external_id && typeof adapter.voidDraft === "function") {
           // Kladde — kan annulleres
           caps.exists_in_provider = true;
           caps.is_draft = true;
           caps.can_void = true;
+          caps.can_download_pdf = typeof adapter.getInvoicePdf === "function";
         }
       } catch { /* ignorer — caps forbliver false så knapper skjules */ }
       return json({ ok: true, caps });
+    }
+
+    // Download faktura-PDF fra regnskabsprogrammet. Returnerer base64 så
+    // frontend kan trigge en download uden ekstra netværkskald.
+    if (action === "download_invoice") {
+      if (!integ) return json({ error: "Ingen aktiv regnskabsintegration" }, 400);
+      const adapter = makeAdapter(integ.provider, integ as any, integ.settings ?? {});
+      if (typeof adapter.getInvoicePdf !== "function") {
+        return json({ error: `${integ.provider} understøtter ikke PDF-download` }, 400);
+      }
+      const pdfId = bookedInvoiceId ?? link?.external_id ?? null;
+      if (!pdfId) return json({ error: "Fakturaen findes ikke i regnskabsprogrammet endnu." }, 404);
+      const externalType: "invoice_booked" | "invoice_draft" =
+        bookedInvoiceId ? "invoice_booked" : "invoice_draft";
+      try {
+        const pdf = await adapter.getInvoicePdf({
+          invoice_external_id: pdfId,
+          external_type: externalType,
+        });
+        return json({ ok: true, ...pdf });
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        return json({ error: msg }, 500);
+      }
     }
 
     const markPaidLocally = async (amount: number, paidAt: string, note: string) => {

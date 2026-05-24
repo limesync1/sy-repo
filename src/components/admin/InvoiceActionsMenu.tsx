@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Receipt, Ban, CheckCircle2, Loader2, MoreHorizontal } from "lucide-react";
+import { Receipt, Ban, CheckCircle2, Loader2, MoreHorizontal, Download } from "lucide-react";
 
 type Order = {
   id: string;
@@ -60,6 +60,7 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
   });
   const caps = capsData as null | {
     can_credit: boolean; can_void: boolean; can_mark_paid: boolean;
+    can_download_pdf?: boolean;
     is_booked: boolean; is_draft: boolean; exists_in_provider: boolean;
   };
   // Indtil vi har caps: vis intet for at undgå "knap der fejler".
@@ -68,6 +69,39 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
   const canCredit = !!caps?.can_credit && !isCredited && !isCancelled;
   const canVoid = !!caps?.can_void && !isCancelled && !isInvoiced;
   const canMarkPaid = !!caps?.can_mark_paid && !isPaid && !isCredited && !isCancelled;
+  // Download-knappen vises KUN hvis der faktisk er en regnskabsintegration
+  // tilkoblet (caps?.exists_in_provider) OG udbyderens adapter kan levere
+  // en PDF. Uden integration er der ingen faktura at downloade.
+  const canDownloadPdf = !!caps?.exists_in_provider && !!caps?.can_download_pdf;
+  const [downloading, setDownloading] = useState(false);
+
+  async function downloadPdf() {
+    setDownloading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("accounting-action", {
+        body: { order_id: order.id, action: "download_invoice" },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      const { pdf_base64, filename } = data as { pdf_base64: string; filename: string };
+      const bin = atob(pdf_base64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const blob = new Blob([bytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename ?? "faktura.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Kunne ikke hente PDF");
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   type PrimaryAction =
     | { kind: Action; label: string; tone: "danger" | "success" | "neutral"; icon: React.ReactNode; onClick: () => void }
@@ -137,12 +171,25 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
   const showCreditInOverflow = canCredit && primaryKind !== "credit_invoice";
   const showVoidInOverflow   = canVoid   && primaryKind !== "void_draft";
   const showMarkPaidInOverflow = canMarkPaid && primaryKind !== "mark_paid";
-  const hasOverflowItems = showCreditInOverflow || showVoidInOverflow || showMarkPaidInOverflow;
+  const hasOverflowItems = showCreditInOverflow || showVoidInOverflow || showMarkPaidInOverflow || canDownloadPdf;
 
   if (compact) {
-    if (!primary && !hasOverflowItems) return null;
+    if (!primary && !hasOverflowItems && !canDownloadPdf) return null;
     return (
       <div className="inline-flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+        {canDownloadPdf && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 w-7 p-0 border-border bg-card text-muted-foreground transition-colors hover:bg-foreground hover:text-background hover:border-foreground"
+            disabled={downloading}
+            onClick={downloadPdf}
+            aria-label="Download faktura-PDF"
+            title="Download faktura-PDF"
+          >
+            {downloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+          </Button>
+        )}
         {primary && (
           <Button
             variant="outline"
@@ -200,6 +247,23 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
 
   return (
     <div className="flex flex-wrap items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+      {canDownloadPdf && (
+        <Tooltip delayDuration={150}>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost" size="sm"
+              className="h-8 w-8 p-0 border border-border bg-card text-muted-foreground transition-colors hover:bg-foreground hover:text-background hover:border-foreground"
+              disabled={downloading}
+              onClick={downloadPdf}
+              aria-label="Download faktura-PDF"
+            >
+              {downloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="bg-popover border-border">Download faktura som PDF</TooltipContent>
+        </Tooltip>
+      )}
+
       {canMarkPaid && (
         <Tooltip delayDuration={150}>
           <TooltipTrigger asChild>

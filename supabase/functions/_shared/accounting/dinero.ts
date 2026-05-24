@@ -478,5 +478,27 @@ export function makeDineroAdapter(
       }
       return out;
     },
+
+    async getInvoicePdf({ invoice_external_id }) {
+      if (!orgId) throw new Error("Mangler Organisations-ID.");
+      const token = await getToken(creds);
+      const res = await fetch(`${BASE}/${orgId}/invoices/${invoice_external_id}/Pdf`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/octet-stream",
+        },
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(friendlyDineroError(res.status, text));
+      }
+      const buf = new Uint8Array(await res.arrayBuffer());
+      let bin = "";
+      for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
+      return {
+        pdf_base64: btoa(bin),
+        filename: `faktura-${invoice_external_id}.pdf`,
+      };
+    },
   };
 }

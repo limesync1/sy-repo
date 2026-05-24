@@ -865,5 +865,25 @@ export function makeEconomicAdapter(
         }),
       });
     },
+
+    async getInvoicePdf({ invoice_external_id, external_type }) {
+      const path = external_type === "invoice_draft"
+        ? `/invoices/drafts/${invoice_external_id}/pdf`
+        : `/invoices/booked/${invoice_external_id}/pdf`;
+      const res = await fetch(`${BASE}${path}`, {
+        headers: { ...makeHeaders(creds), Accept: "application/octet-stream" },
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(friendlyEconomicError(res.status, text));
+      }
+      const buf = new Uint8Array(await res.arrayBuffer());
+      let bin = "";
+      for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
+      return {
+        pdf_base64: btoa(bin),
+        filename: `faktura-${invoice_external_id}.pdf`,
+      };
+    },
   };
 }
