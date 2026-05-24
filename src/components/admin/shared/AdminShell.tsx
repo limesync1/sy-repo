@@ -24,6 +24,45 @@ import {
 } from "@/components/shared/sidebar/SidebarParts";
 import AdminBottomNav from "./AdminBottomNav";
 
+/**
+ * RoleSwitchFooterItem — speciel sidebar-knap til at skifte mellem
+ * virksomheds- og medarbejder-panel. Får en conic-gradient (rgb) ring
+ * rundt om ikonet så den skiller sig tydeligt ud fra "Se din side" og
+ * "Log ud".
+ */
+const RoleSwitchFooterItem = ({
+  icon: Icon, label, onClick, collapsed,
+}: { icon: any; label: string; onClick: () => void; collapsed: boolean }) => {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={collapsed ? label : undefined}
+      className={cn(
+        "group relative flex w-full items-center rounded-lg text-sm font-semibold text-foreground transition-colors",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30",
+        "hover:bg-secondary",
+        collapsed ? "h-10 justify-center px-0" : "gap-2 px-2 py-2",
+      )}
+    >
+      <span
+        aria-hidden="true"
+        className="relative inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-background"
+        style={{
+          backgroundImage:
+            "conic-gradient(from 0deg, #ef4444, #f59e0b, #84cc16, #06b6d4, #6366f1, #d946ef, #ef4444)",
+          padding: "2px",
+        }}
+      >
+        <span className="flex h-full w-full items-center justify-center rounded-full bg-card">
+          <Icon className="h-3.5 w-3.5 text-foreground" />
+        </span>
+      </span>
+      {!collapsed && <span className="truncate">{label}</span>}
+    </button>
+  );
+};
+
 export type AdminTabKey =
   | "dashboard" | "services" | "orders" | "customers"
   | "routes" | "employees" | "reviews" | "leads" | "livechat" | "accounting" | "settings";
@@ -373,15 +412,15 @@ export const AdminShell = ({
         </nav>
 
         <div className={cn("shrink-0 space-y-1 border-t border-border py-3", collapsed ? "px-2" : "px-3")}>
+          <SidebarFooterItem icon={ExternalLink} label="Se din side" href={`/v/${business.slug}`} collapsed={collapsed} />
           {isSoloOwnerEmployee && (
-            <SidebarFooterItem
+            <RoleSwitchFooterItem
               icon={Truck}
               label="Skift til medarbejder"
               onClick={() => navigate("/medarbejder")}
               collapsed={collapsed}
             />
           )}
-          <SidebarFooterItem icon={ExternalLink} label="Se din side" href={`/v/${business.slug}`} collapsed={collapsed} />
           <SidebarFooterItem icon={LogOut} label="Log ud" onClick={signOut} collapsed={collapsed} danger />
         </div>
       </aside>

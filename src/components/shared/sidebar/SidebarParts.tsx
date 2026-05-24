@@ -199,7 +199,9 @@ export const SidebarFooterItem = ({
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30",
     collapsed ? "h-10 justify-center px-0" : "gap-2 px-3 py-2",
     danger
-      ? "text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+      // Log ud står altid i destruktiv-rød — også uden hover — så den
+      // tydeligt skiller sig ud fra de neutrale navigations-knapper.
+      ? "text-destructive hover:bg-destructive/10 hover:text-destructive"
       : "text-muted-foreground hover:bg-secondary hover:text-foreground",
   );
   const inner = (

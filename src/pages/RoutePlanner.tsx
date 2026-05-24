@@ -2854,7 +2854,10 @@ const Planner = () => {
           const unassignedCard = (
                 <Card data-tour="routes-unassigned" className="flex flex-col h-full overflow-hidden">
                   <div className="p-3 border-b bg-secondary/30 space-y-2">
-                    <div className="flex items-center gap-2 pr-10 lg:pr-0">
+                    {/* pr-10 reserverer plads til Sheet's luk-knap (right-4 top-4) på
+                        alle viewports hvor kortet vises i en Sheet. ResizablePanel-
+                        layoutet kommer først ved xl+ — så vi fjerner først pr-10 dér. */}
+                    <div className="flex items-center gap-2 pr-10 xl:pr-0">
                       <h2 className="min-w-0 font-semibold text-sm flex items-center gap-1.5 leading-tight">
                         <Inbox className="h-4 w-4 text-primary" />
                         <span className="truncate">Aftaler uden rute</span>

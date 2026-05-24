@@ -208,18 +208,28 @@ export const EmployeeShell = ({
                 1 medarbejder og det er ejeren selv. Spejler "Skift til
                 medarbejder"-knappen i AdminShell's footer. */}
             {isSoloOwner && (
-              <Button
+              <button
                 type="button"
-                variant="outline"
-                size="sm"
                 onClick={() => navigate("/virksomhed")}
-                className="hidden h-8 shrink-0 gap-1.5 px-2.5 text-xs sm:inline-flex"
+                className="hidden h-8 shrink-0 items-center gap-2 rounded-md pl-1 pr-2.5 text-xs font-semibold text-foreground transition-colors hover:bg-secondary sm:inline-flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
                 aria-label="Skift til virksomhedspanel"
               >
-                <Briefcase className="h-3.5 w-3.5" />
+                <span
+                  aria-hidden="true"
+                  className="relative inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
+                  style={{
+                    backgroundImage:
+                      "conic-gradient(from 0deg, #ef4444, #f59e0b, #84cc16, #06b6d4, #6366f1, #d946ef, #ef4444)",
+                    padding: "2px",
+                  }}
+                >
+                  <span className="flex h-full w-full items-center justify-center rounded-full bg-card">
+                    <Briefcase className="h-3 w-3 text-foreground" />
+                  </span>
+                </span>
                 <span className="hidden md:inline">Virksomhedspanel</span>
                 <span className="md:hidden">Virksomhed</span>
-              </Button>
+              </button>
             )}
 
             <DropdownMenu>
