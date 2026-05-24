@@ -11,7 +11,7 @@ import { Card } from "@/components/ui/card";
 import {
   ArrowLeft, Navigation, Phone, CheckCircle2, MapPin, List, Clock, Loader2,
   ChevronUp, ChevronDown, Play, Volume2, VolumeX, Crosshair, Flag, TrafficCone,
-  Info, Layers,
+  Info,
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
 import type { Marker as LeafletMarker } from "leaflet";
@@ -346,20 +346,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   // (~85 %).  Default er kompakt, så medarbejderen altid ser kortet.  Klik
   // på drag-bar'en eller chevron'en skifter højde.
   const [sheetExpanded, setSheetExpanded] = useState(false);
-  // Kort-stil: "map" (CARTO Voyager — som hidtil) eller "satellite" (Esri World Imagery).
-  // Valget persistes så brugeren ikke skal vælge igen ved hver kørsel.
-  const MAP_STYLE_KEY = "serviceydere:employee-route:map-style";
-  const [mapStyle, setMapStyleState] = useState<"map" | "satellite">(() => {
-    if (typeof window === "undefined") return "map";
-    try {
-      const v = window.localStorage.getItem(MAP_STYLE_KEY);
-      return v === "satellite" ? "satellite" : "map";
-    } catch { return "map"; }
-  });
-  const setMapStyle = (next: "map" | "satellite") => {
-    setMapStyleState(next);
-    try { window.localStorage.setItem(MAP_STYLE_KEY, next); } catch { /* ignorer */ }
-  };
   // Lyd-indstilling persistes i localStorage så valget overlever app-genstart
   // og lange perioder uden brug.  Initial værdi læses synkront for at undgå
   // at brugeren først ser "lyd til" og bagefter et flicker.
