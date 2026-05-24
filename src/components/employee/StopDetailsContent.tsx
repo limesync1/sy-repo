@@ -4,11 +4,11 @@
 // SheetHeaderBlock + Section byggeklodser som virksomhedspanelets
 // StopDetailSheet, så medarbejder- og virksomhedspanel har 100% ens
 // visuelt sprog når man åbner detaljer for en aftale.
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   CheckCircle2, Clock, ClipboardList, Loader2, MapPin, MessageSquare,
   Phone, Route as RouteIcon, Wallet, Calendar as CalendarIcon, Users,
-  Package,
+  Package, Send,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,9 @@ import { calcEmployeeShare, formatKr as formatKrUtil } from "@/lib/commission";
 import { stripPrices } from "@/lib/employee-display";
 import { SheetHeaderBlock, Section, CollapsibleSection } from "@/components/route-planner/SheetSection";
 import { INTERVAL_LABELS } from "@/types/service";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 type RouteContext = {
   name: string | null;
