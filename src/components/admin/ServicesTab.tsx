@@ -410,7 +410,7 @@ const ServiceRow = ({ service, orderCount, accountingMeta, onEdit, onDelete }: {
 
   const intervals = service.interval_options || [];
   const hasRecurring = intervals.some((i: string) => i !== "engangskøb");
-  const categoryIcon = industryIcon(service.service_category);
+  const categoryIcon = getSubcategoryIcon(service.subcategory, service.service_category);
   const intervalSummary = intervals.length > 0
     ? intervals.slice(0, 2).map((interval: string) => formatInterval(interval)).join(", ") + (intervals.length > 2 ? ` +${intervals.length - 2}` : "")
     : "Ikke angivet";
