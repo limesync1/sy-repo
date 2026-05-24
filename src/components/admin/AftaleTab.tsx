@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { CATEGORY_ICONS, DEFAULT_CATEGORY_ICON, getSubcategoryIcon } from "@/lib/category-icons";
+import { IndustryIcon } from "@/components/IndustryIcon";
 import {
   ShoppingCart, Pencil, Minus, Plus, Check, X, MessageSquare,
   ChevronDown, ChevronUp, Clock, Mail, Phone, ArrowRight,
@@ -1951,10 +1952,14 @@ const AftaleTab = ({
 
                     {/* Ikon-badge */}
                     <div
-                      className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground"
+                      className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-card"
                       title={primarySubcategory || primaryCategory || "Ukategoriseret"}
                     >
-                      <span className="text-base leading-none">{categoryIcon}</span>
+                      <IndustryIcon
+                        category={primaryCategory}
+                        subcategory={primarySubcategory}
+                        className="h-9 w-9"
+                      />
                     </div>
 
                     {/* Midte: identitet + meta — to faste linjer, status-pills på linje 1 */}
