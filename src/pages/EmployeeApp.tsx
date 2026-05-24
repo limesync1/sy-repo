@@ -667,13 +667,13 @@ const EmployeeApp = () => {
             >
               {/* Header — samme prik+titel+badge mønster som virksomhedspanelets
                   rutekort, men med ét enkelt status-badge til højre. */}
-              <div className="flex items-center gap-3 border-b border-border bg-card px-4 py-3 sm:px-5">
+              <div className="flex items-center gap-2.5 sm:gap-3 border-b border-border bg-card px-3 py-2.5 sm:px-5 sm:py-3">
                 <span
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border shadow-sm"
+                  className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg border border-border shadow-sm"
                   style={{ background: color }}
                   aria-hidden
                 >
-                  <RouteIcon className="h-4 w-4 text-background" />
+                  <RouteIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-background" />
                 </span>
                 <div className="min-w-0 flex-1">
                   <h3 className="truncate text-sm font-semibold text-foreground">
@@ -695,7 +695,7 @@ const EmployeeApp = () => {
               <RouteMiniMap stops={myStops} startCoord={startCoord} color={color} />
 
               {/* Body */}
-              <div className="space-y-4 p-4 sm:p-5">
+              <div className="space-y-3 sm:space-y-4 p-3 sm:p-5">
                 {/* Meta-grid — strukturerede tal-felter ligesom statskort i
                     virksomhedspanelet. Tre faste kolonner = forudsigelig
                     visuel rytme på alle skærmstørrelser. */}
