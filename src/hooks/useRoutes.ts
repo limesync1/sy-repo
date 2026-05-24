@@ -823,7 +823,8 @@ export const useCreateRoute = () => {
   return useMutation({
     mutationFn: async ({
       business_id, route_date, name, color,
-    }: { business_id: string; route_date: string; name?: string | null; color?: string | null }) => {
+    }: { business_id: string; route_date: string; name?: string | null; color?: string | null }) =>
+      routeMutationQueue.run(async () => {
       // Fast path: one RPC creates the route with start_address already filled in.
       // Geocoding runs in the background and updates the row afterwards so the
       // UI doesn't have to wait for the edge function round-trip.
@@ -859,7 +860,7 @@ export const useCreateRoute = () => {
       })();
 
       return route;
-    },
+    }),
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ["routes", vars.business_id, vars.route_date] });
       qc.invalidateQueries({ queryKey: ["routes-range"] });
