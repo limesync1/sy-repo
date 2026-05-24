@@ -357,7 +357,7 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
       )}
 
       <div className="space-y-2" data-tour="services-list">
-        {filtered?.map((s: any) => (
+        {paged.map((s: any) => (
           <ServiceRow
             key={s.id}
             service={s}
@@ -367,6 +367,13 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
             onDelete={() => deleteService.mutate(s.id)}
           />
         ))}
+        <PaginationFooter
+          page={page}
+          pageSize={pageSize}
+          total={filteredList.length}
+          onPageChange={setPage}
+          label="services"
+        />
         {(!filtered || filtered.length === 0) && !showForm && (
           <EmptyState
             icon={<Wrench />}
