@@ -947,6 +947,11 @@ const AftaleTab = ({
   const dndSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
   const hasActiveAccountingIntegration = !!activeAccountingIntegration?.is_active;
 
+  // Paginering — adaptiv sidestørrelse. SKAL deklareres før eventuel early
+  // return så React altid ser samme antal hooks pr. render.
+  const aftalePageSize = useAdaptivePageSize(25);
+  const [aftalePage, setAftalePage] = useState(0);
+
   if (isLoading) return <ListCardSkeleton rows={6} />;
 
   const servicesById = (services || []).reduce<Record<string, BusinessService>>((acc, s) => {
@@ -1057,9 +1062,7 @@ const AftaleTab = ({
     }
   });
 
-  // Paginering — adaptiv sidestørrelse afhængigt af enheden.
-  const aftalePageSize = useAdaptivePageSize(25);
-  const [aftalePage, setAftalePage] = useState(0);
+  // Reset til side 0 når filter/sortering ændrer sig.
   useEffect(() => { setAftalePage(0); }, [sortBy, (searchedOrders || []).length]);
   const pagedOrders = filteredOrders.slice(
     aftalePage * aftalePageSize,
