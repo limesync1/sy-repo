@@ -1235,7 +1235,21 @@ const Planner = () => {
     // Husk hvilke aftale-kilder der er aktive for netop denne projicerede
     // forekomst — så stops-listen i sheet/panel kun viser dem.
     const projectedSourceKeys: string[] = Array.isArray(r.sourceKeys) ? r.sourceKeys : [];
-    setEditingProjectedContext({ baseRouteId: baseId, projectedDate, sourceKeys: projectedSourceKeys });
+    const projectedPreviewStops = Array.isArray(r.stops) ? r.stops : [];
+    if (projectedPreviewStops.length === 0) {
+      toast.error("Projiceret rute fjernet", {
+        description: "Ruten har ingen aktive stops og vises derfor ikke længere.",
+      });
+      await qc.invalidateQueries({ queryKey: ["route-calendar"] });
+      await qc.invalidateQueries({ queryKey: ["recurring-agreements-for-planner"] });
+      return;
+    }
+    setEditingProjectedContext({
+      baseRouteId: baseId,
+      projectedDate,
+      sourceKeys: projectedSourceKeys,
+      previewStops: projectedPreviewStops,
+    });
     // Find basisruten direkte i en af de lokale cacher — projicerede ruter må
     // ALDRIG have deres eget modal. Vi åbner altid den originale ruten,
     // så ændringer (navn, farve, osv.) gælder hele serien. Vi tjekker
