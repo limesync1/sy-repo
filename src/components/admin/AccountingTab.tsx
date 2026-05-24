@@ -1551,6 +1551,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                   </div>
                 </div>
                </div>
+                {showAdvanced && (
                 <div className="flex flex-col gap-2 sm:shrink-0 sm:flex-row [&>button]:w-full sm:[&>button]:w-auto">
                   <Button
                     variant="outline"
@@ -1632,6 +1633,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                     Kør begge veje
                   </Button>
                 </div>
+                )}
               </div>
             </div>
           );
