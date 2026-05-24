@@ -39,7 +39,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { PageHeader, PrimaryButton, FieldLabel, EmptyState, SearchInput } from "@/components/admin/shared/AdminUI";
+import { PageHeader, PrimaryButton, FieldLabel, EmptyState, SearchInput, StatCard } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 
 interface Props {
@@ -254,35 +254,37 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
 
       {/* Stats + filter — samme layout som Kunder/Aftaler */}
       <div data-tour="employees-stats" className="grid gap-2.5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
-        <div className="grid gap-2.5 sm:grid-cols-3">
-          <Card className="surface-admin rounded-lg border-border/80 shadow-sm">
-            <CardContent className="p-2.5">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Medarbejdere i alt</p>
-              <p className="mt-0.5 text-lg font-semibold tabular-nums text-foreground leading-tight">{all.length}</p>
-            </CardContent>
-          </Card>
-          <Card className="surface-admin rounded-lg border-border/80 shadow-sm">
-            <CardContent className="p-2.5">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Aktive</p>
-              <p className="mt-0.5 text-lg font-semibold tabular-nums text-foreground leading-tight">{activeEmployees.length}</p>
-            </CardContent>
-          </Card>
-          <Card className="surface-admin rounded-lg border-border/80 shadow-sm">
-            <CardContent className="p-2.5">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                Udbetalt provision · {RANGE_LABELS[earnRange]}
-              </p>
-              <p className="mt-0.5 flex items-center gap-1 text-lg font-semibold tabular-nums text-foreground leading-tight">
-                <Wallet className="h-4 w-4 text-muted-foreground" />
-                {formatKr(
-                  earningsMap
-                    ? Array.from(earningsMap.values()).reduce((s, e) => s + e.earnings, 0)
-                    : 0,
-                )}
-              </p>
-              <p className="mt-0.5 text-[10px] text-muted-foreground">Ekskl. moms</p>
-            </CardContent>
-          </Card>
+        <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            label="Medarbejdere i alt"
+            value={all.length}
+            icon={<Users />}
+            hint={`${activeEmployees.length} aktive`}
+          />
+          <StatCard
+            label="Aktive"
+            value={activeEmployees.length}
+            icon={<CheckCircle2 />}
+            tone="ok"
+          />
+          <StatCard
+            label="Afventer login"
+            value={pendingCount}
+            icon={<KeyRound />}
+            tone={pendingCount > 0 ? "warn" : "neutral"}
+            hint={pendingCount === 0 ? "Alle er logget ind" : "Har endnu ikke aktiveret kontoen"}
+          />
+          <StatCard
+            label={`Provision · ${RANGE_LABELS[earnRange]}`}
+            value={formatKr(
+              earningsMap
+                ? Array.from(earningsMap.values()).reduce((s, e) => s + e.earnings, 0)
+                : 0,
+            )}
+            icon={<Wallet />}
+            tone="emerald"
+            hint="Ekskl. moms"
+          />
         </div>
 
         <div className="flex flex-wrap gap-2 lg:justify-end">
