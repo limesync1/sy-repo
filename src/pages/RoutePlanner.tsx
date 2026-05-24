@@ -980,6 +980,10 @@ const Planner = () => {
       keys.forEach((k) => set.add(k));
       realSourceKeysByDate.set(d, set);
     }
+    const isLiveProjectedStop = (s: any) => {
+      const eff = (s.occurrence_status as string | null | undefined) ?? s.status;
+      return eff !== "completed" && eff !== "cancelled";
+    };
     // Hver aftale beholder sit eget interval, men bruger basisrutens route_date
     // som stabil kalender-anker når den findes. Det gør projektionen robust i
     // begge retninger: en 14-dages aftale på en basisrute d. 28 viser også d.
@@ -1013,12 +1017,19 @@ const Planner = () => {
         }
         const base = baseById.get(p.baseRouteId);
         if (!base) return null;
+        const sourceSet = new Set(p.sourceKeys);
+        const baseHasActiveSource = recurringSources.some((src: any) =>
+          src.preferred_route_id === p.baseRouteId
+          && src.sourceKeys?.some((key: string) => sourceSet.has(key)),
+        );
+        if (!baseHasActiveSource) return null;
         const resolved = resolvedBaseById.get(p.baseRouteId);
         // Projicér basis-rutens stops over på den virtuelle dato — gør at
         // brugeren ser kunderne i kalender-kortet selv før forekomsten er
         // materialiseret. Stops markeres som virtuelle så de ikke kan ændres.
         const projectedStops = (base.stops || [])
           .filter((s: any) => projectedStopMatchesSources(s, p.sourceKeys))
+          .filter(isLiveProjectedStop)
           .map((s: any, i: number) => ({
             ...s,
             id: `virtual-stop:${p.baseRouteId}:${p.date}:${s.id}`,
