@@ -25,6 +25,7 @@ import CustomerEmailAutocomplete from "./CustomerEmailAutocomplete";
 import { DatePickerField } from "./DatePickerField";
 import { format } from "date-fns";
 import { getSubcategoryIcon } from "@/lib/category-icons";
+import { IndustryIcon } from "@/components/IndustryIcon";
 
 type CalcStep = { id: string; label: string; unit: string; price_per_unit: number; min_value: number | null; max_value: number | null; default_value: number | null; sort_order: number | null };
 type Service = { id: string; name: string; description: string | null; pricing_type: "fast_pris" | "timepris" | "prisberegner"; base_price: number | null; unit: string | null; is_active: boolean | null; interval_options: string[] | null; calculator_steps?: CalcStep[]; business_id: string; service_category?: string | null; subcategory?: string | null };
@@ -447,10 +448,10 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
                           <span
-                            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border bg-card text-base leading-none"
+                            className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-card"
                             aria-hidden="true"
                           >
-                            {getSubcategoryIcon(sub, s.service_category)}
+                            <IndustryIcon category={s.service_category} subcategory={sub} className="h-6 w-6" />
                           </span>
                           <div className="min-w-0 flex-1">
                             <div className="truncate text-sm font-medium text-foreground">{s.name}</div>
@@ -485,10 +486,10 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                     <Card key={it.serviceId} className="p-3 bg-background shadow-sm">
                       <div className="flex items-start gap-2.5 mb-2.5">
                         <span
-                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-base leading-none"
+                          className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-card"
                           aria-hidden="true"
                         >
-                          {getSubcategoryIcon(sub, it.service.service_category)}
+                          <IndustryIcon category={it.service.service_category} subcategory={sub} className="h-8 w-8" />
                         </span>
                         <div className="min-w-0 flex-1">
                           <p className="truncate font-semibold text-sm leading-tight text-foreground">{it.service.name}</p>
