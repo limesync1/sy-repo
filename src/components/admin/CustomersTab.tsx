@@ -589,6 +589,16 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
     );
   }, [customers, search, typeFilter]);
 
+  // Paginering — adaptiv sidestørrelse afhængigt af enheden, så svage
+  // mobiler ikke forsøger at rendere tusindvis af rækker på en gang.
+  const pageSize = useAdaptivePageSize(25);
+  const [page, setPage] = useState(0);
+  useEffect(() => { setPage(0); }, [search, typeFilter, customers.length]);
+  const paged = useMemo(
+    () => filtered.slice(page * pageSize, (page + 1) * pageSize),
+    [filtered, page, pageSize],
+  );
+
   const stats = useMemo(() => {
     const totalRev = customers.reduce((s, c) => s + c.total_revenue, 0);
     const recurring = customers.filter(c => c.active_subs > 0).length;
