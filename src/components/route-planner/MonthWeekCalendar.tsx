@@ -139,18 +139,36 @@ export const MonthWeekCalendar = ({
     return m;
   }, [routes]);
 
-  const weekdayLabels = ["Man", "Tir", "Ons", "Tor", "Fre", "Lør", "Søn"];
+  const weekdayLabels = [
+    { short: "Man", full: "Mandag", weekend: false },
+    { short: "Tir", full: "Tirsdag", weekend: false },
+    { short: "Ons", full: "Onsdag", weekend: false },
+    { short: "Tor", full: "Torsdag", weekend: false },
+    { short: "Fre", full: "Fredag", weekend: false },
+    { short: "Lør", full: "Lørdag", weekend: true },
+    { short: "Søn", full: "Søndag", weekend: true },
+  ];
 
   return (
-    <Card className="overflow-hidden flex flex-col h-full">
+    <Card className="overflow-hidden flex flex-col h-full rounded-xl border-border/70 shadow-sm">
       {/* Weekday header */}
-      <div className="grid border-b bg-secondary/30 shrink-0" style={{ gridTemplateColumns: "48px repeat(7, minmax(0, 1fr))" }}>
-        <div className="border-r p-2 text-[10px] uppercase text-muted-foreground font-semibold flex items-center justify-center">
+      <div
+        className="grid border-b border-border/60 bg-muted/30 shrink-0"
+        style={{ gridTemplateColumns: "52px repeat(7, minmax(0, 1fr))" }}
+      >
+        <div className="border-r border-border/60 py-3 text-[10px] uppercase text-muted-foreground/70 font-bold tracking-[0.15em] flex items-center justify-center">
           Uge
         </div>
         {weekdayLabels.map((wd) => (
-          <div key={wd} className="p-2 text-[11px] uppercase text-muted-foreground font-semibold text-center border-r last:border-r-0">
-            {wd}
+          <div
+            key={wd.short}
+            className={cn(
+              "py-3 px-3 text-[10px] uppercase font-bold tracking-[0.15em] border-r last:border-r-0 border-border/60",
+              wd.weekend ? "text-muted-foreground/50" : "text-muted-foreground/80",
+            )}
+          >
+            <span className="hidden sm:inline">{wd.full}</span>
+            <span className="sm:hidden">{wd.short}</span>
           </div>
         ))}
       </div>
@@ -161,11 +179,11 @@ export const MonthWeekCalendar = ({
           return (
             <div
               key={wi}
-              className="grid border-b last:border-b-0"
-              style={{ gridTemplateColumns: "48px repeat(7, minmax(0, 1fr))" }}
+              className="grid border-b last:border-b-0 border-border/50"
+              style={{ gridTemplateColumns: "52px repeat(7, minmax(0, 1fr))" }}
             >
               {/* Ugenummer */}
-              <div className="border-r bg-secondary/20 flex items-start justify-center pt-2 text-xs font-bold text-muted-foreground tabular-nums">
+              <div className="border-r border-border/50 bg-muted/20 flex items-start justify-center pt-3 text-[11px] font-bold text-muted-foreground/60 tabular-nums tracking-wider">
                 {weekNum}
               </div>
               {week.map((day) => {
