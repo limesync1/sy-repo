@@ -277,7 +277,7 @@ const SortableStopRow = ({
         isDragging ? "shadow-lg opacity-80 ring-2 ring-accent" : "hover:shadow-sm hover:border-foreground/20",
       )}
     >
-      <div className="grid min-h-[3rem] grid-cols-[1.5rem_2.25rem_minmax(0,1fr)] sm:min-h-[3.5rem] sm:grid-cols-[1.75rem_2.75rem_minmax(0,1fr)_auto]">
+      <div className="grid min-h-[2.5rem] grid-cols-[1.25rem_2rem_minmax(0,1fr)] sm:min-h-[2.75rem] sm:grid-cols-[1.5rem_2.25rem_minmax(0,1fr)_auto]">
         {/* Drag handle — skjult på projicerede ruter (read-only) */}
         {!isProjection ? (
           <button
@@ -311,7 +311,7 @@ const SortableStopRow = ({
         <button
           type="button"
           onClick={onSelect}
-          className="min-w-0 text-left px-2.5 py-2 hover:bg-accent/5 space-y-0.5 sm:px-3 sm:py-2.5 sm:space-y-1"
+          className="min-w-0 text-left px-2 py-1.5 hover:bg-accent/5 space-y-0.5 sm:px-2.5 sm:py-2 sm:space-y-0.5"
         >
           {/* Header: kundenavn (primær) + medarbejder-avatars + åbn-pil */}
           <div className="flex items-center gap-1.5">
