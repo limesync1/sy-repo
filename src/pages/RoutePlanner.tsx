@@ -197,6 +197,7 @@ const Planner = () => {
     baseRouteId: string;
     projectedDate: string;
     sourceKeys: string[];
+    previewStops?: RouteStop[];
   } | null>(null);
   const [routeToDelete, setRouteToDelete] = useState<{ id: string; name: string } | null>(null);
   const [pendingRouteMerge, setPendingRouteMerge] = useState<{
@@ -720,7 +721,7 @@ const Planner = () => {
       const routes = (data || []) as any[];
       const { data: stopsData, error: stopsErr } = await supabase
         .from("route_stops")
-        .select("*, agreement_occurrences(agreement_id, legacy_order_id, agreements(interval))")
+          .select("*, agreement_occurrences(agreement_id, legacy_order_id, status, occurrence_date, agreements(interval))")
         .in("route_id", recurringRouteIds);
       if (stopsErr) throw stopsErr;
       // Berig stops med assignees fra junction-tabellen, så projicerede
@@ -769,6 +770,8 @@ const Planner = () => {
             (s as any).agreement_occurrences?.agreement_id
             ?? (s as any).agreement_id
             ?? null,
+          occurrence_status: (s as any).agreement_occurrences?.status ?? (s as any).occurrence_status ?? null,
+          occurrence_date: (s as any).agreement_occurrences?.occurrence_date ?? (s as any).occurrence_date ?? null,
           order_amount: orderAmountById.get((s as any).order_id) ?? Number((s as any).order_amount ?? 0),
         };
         const arr = stopsByRoute.get(s.route_id) || [];
@@ -977,6 +980,10 @@ const Planner = () => {
       keys.forEach((k) => set.add(k));
       realSourceKeysByDate.set(d, set);
     }
+    const isLiveProjectedStop = (s: any) => {
+      const eff = (s.occurrence_status as string | null | undefined) ?? s.status;
+      return eff !== "completed" && eff !== "cancelled";
+    };
     // Hver aftale beholder sit eget interval, men bruger basisrutens route_date
     // som stabil kalender-anker når den findes. Det gør projektionen robust i
     // begge retninger: en 14-dages aftale på en basisrute d. 28 viser også d.
@@ -1010,12 +1017,19 @@ const Planner = () => {
         }
         const base = baseById.get(p.baseRouteId);
         if (!base) return null;
+        const sourceSet = new Set(p.sourceKeys);
+        const baseHasActiveSource = recurringSources.some((src: any) =>
+          src.preferred_route_id === p.baseRouteId
+          && src.sourceKeys?.some((key: string) => sourceSet.has(key)),
+        );
+        if (!baseHasActiveSource) return null;
         const resolved = resolvedBaseById.get(p.baseRouteId);
         // Projicér basis-rutens stops over på den virtuelle dato — gør at
         // brugeren ser kunderne i kalender-kortet selv før forekomsten er
         // materialiseret. Stops markeres som virtuelle så de ikke kan ændres.
         const projectedStops = (base.stops || [])
           .filter((s: any) => projectedStopMatchesSources(s, p.sourceKeys))
+          .filter(isLiveProjectedStop)
           .map((s: any, i: number) => ({
             ...s,
             id: `virtual-stop:${p.baseRouteId}:${p.date}:${s.id}`,
@@ -1221,7 +1235,21 @@ const Planner = () => {
     // Husk hvilke aftale-kilder der er aktive for netop denne projicerede
     // forekomst — så stops-listen i sheet/panel kun viser dem.
     const projectedSourceKeys: string[] = Array.isArray(r.sourceKeys) ? r.sourceKeys : [];
-    setEditingProjectedContext({ baseRouteId: baseId, projectedDate, sourceKeys: projectedSourceKeys });
+    const projectedPreviewStops = Array.isArray(r.stops) ? r.stops : [];
+    if (projectedPreviewStops.length === 0) {
+      toast.error("Projiceret rute fjernet", {
+        description: "Ruten har ingen aktive stops og vises derfor ikke længere.",
+      });
+      await qc.invalidateQueries({ queryKey: ["route-calendar"] });
+      await qc.invalidateQueries({ queryKey: ["recurring-agreements-for-planner"] });
+      return;
+    }
+    setEditingProjectedContext({
+      baseRouteId: baseId,
+      projectedDate,
+      sourceKeys: projectedSourceKeys,
+      previewStops: projectedPreviewStops,
+    });
     // Find basisruten direkte i en af de lokale cacher — projicerede ruter må
     // ALDRIG have deres eget modal. Vi åbner altid den originale ruten,
     // så ændringer (navn, farve, osv.) gælder hele serien. Vi tjekker
@@ -2826,7 +2854,7 @@ const Planner = () => {
           const unassignedCard = (
                 <Card data-tour="routes-unassigned" className="flex flex-col h-full overflow-hidden">
                   <div className="p-3 border-b bg-secondary/30 space-y-2">
-                    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2 pr-10 lg:pr-0">
+                    <div className="flex items-center gap-2 pr-10 lg:pr-0">
                       <h2 className="min-w-0 font-semibold text-sm flex items-center gap-1.5 leading-tight">
                         <Inbox className="h-4 w-4 text-primary" />
                         <span className="truncate">Aftaler uden rute</span>
@@ -3561,8 +3589,16 @@ const Planner = () => {
               const baseFromCache = (recurringBaseRoutes as any[]).find(
                 (r: any) => r.id === projectedBaseId,
               );
-              const sourced = (baseFromCache?.stops || [])
+              const isActiveProjectedStop = (s: any) => {
+                const eff = (s.occurrence_status as string | undefined) ?? s.status;
+                return eff !== "completed" && eff !== "cancelled";
+              };
+              const filterProjectedStops = (list: any[] = []) => list
                 .filter((s: any) => projectedStopMatchesSources(s, editingProjectedContext!.sourceKeys))
+                .filter(isActiveProjectedStop);
+              const sourceStops = filterProjectedStops(baseFromCache?.stops || []);
+              const fallbackStops = filterProjectedStops(editingProjectedContext!.previewStops || []);
+              const sourced = (sourceStops.length > 0 ? sourceStops : fallbackStops)
                 .map((s: any) => {
                   // Find aftalens interval via recurringSources (key→interval)
                   // — basis-stop har ofte ikke selv et agreement_occurrence-
