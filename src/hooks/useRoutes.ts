@@ -1071,7 +1071,7 @@ export const useAddStop = () => {
         }
       }
       return data as RouteStop;
-    },
+    }),
     onSuccess: () => invalidateRouteSyncQueries(qc),
   });
 };
