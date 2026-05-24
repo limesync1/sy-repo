@@ -88,10 +88,37 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
           { label: "Tagrens", services: ["Tag­rens med højtryk", "Mekanisk tag­rens", "Tag­maling efter rens"] },
           { label: "Algebehandling tag", services: ["Alge­behandling tegl", "Alge­behandling beton", "Alge­behandling eternit"] },
           { label: "Imprægnering tag", services: ["Imprægnering efter rens", "Nano­imprægnering"] },
+          { label: "Belægning", services: ["Imprægnering belægning", "Granit & natursten", "Indkørsel rens"] },
+          { label: "Tagrender", services: ["Tag­rende­rensning", "Inspektion tag­render", "Løv­filter montering"] },
+        ],
+      },
+      {
+        key: "Fliserens",
+        label: "Fliserens",
+        icon: "🧱",
+        subcategories: [
           { label: "Fliserens", services: ["Højtryks­rens fliser", "Alge­behandling fliser", "Fuge­rens"] },
           { label: "Belægning", services: ["Imprægnering belægning", "Granit & natursten", "Indkørsel rens"] },
-          { label: "Facaderens", services: ["Facade­rens", "Alge­behandling facade", "Graffiti­fjernelse"] },
-          { label: "Tagrender", services: ["Tag­rende­rensning", "Inspektion tag­render", "Løv­filter montering"] },
+          { label: "Terrasse­rens", services: ["Trædæk rens", "Komposit rens", "Træterrasse imprægnering"] },
+        ],
+      },
+      {
+        key: "Facaderens",
+        label: "Facaderens",
+        icon: "🧱",
+        subcategories: [
+          { label: "Facaderens", services: ["Facade­rens", "Alge­behandling facade", "Sand­blæsning"] },
+          { label: "Graffiti­fjernelse", services: ["Graffiti­fjernelse", "Anti-graffiti behandling"] },
+          { label: "Murværk", services: ["Murværks­rens", "Sokkel­rens", "Filt­behandling"] },
+        ],
+      },
+      {
+        key: "Solcellerens",
+        label: "Solcellerens",
+        icon: "☀️",
+        subcategories: [
+          { label: "Solcelle­rens", services: ["Solcelle­rens", "Solcelle­inspektion", "Termografering solceller"] },
+          { label: "Vedligehold", services: ["Forebyggende vedligehold", "Service­aftale solceller"] },
         ],
       },
       {
