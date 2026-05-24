@@ -197,6 +197,7 @@ const Planner = () => {
     baseRouteId: string;
     projectedDate: string;
     sourceKeys: string[];
+    previewStops?: RouteStop[];
   } | null>(null);
   const [routeToDelete, setRouteToDelete] = useState<{ id: string; name: string } | null>(null);
   const [pendingRouteMerge, setPendingRouteMerge] = useState<{
@@ -720,7 +721,7 @@ const Planner = () => {
       const routes = (data || []) as any[];
       const { data: stopsData, error: stopsErr } = await supabase
         .from("route_stops")
-        .select("*, agreement_occurrences(agreement_id, legacy_order_id, agreements(interval))")
+          .select("*, agreement_occurrences(agreement_id, legacy_order_id, status, occurrence_date, agreements(interval))")
         .in("route_id", recurringRouteIds);
       if (stopsErr) throw stopsErr;
       // Berig stops med assignees fra junction-tabellen, så projicerede
@@ -769,6 +770,8 @@ const Planner = () => {
             (s as any).agreement_occurrences?.agreement_id
             ?? (s as any).agreement_id
             ?? null,
+          occurrence_status: (s as any).agreement_occurrences?.status ?? (s as any).occurrence_status ?? null,
+          occurrence_date: (s as any).agreement_occurrences?.occurrence_date ?? (s as any).occurrence_date ?? null,
           order_amount: orderAmountById.get((s as any).order_id) ?? Number((s as any).order_amount ?? 0),
         };
         const arr = stopsByRoute.get(s.route_id) || [];
