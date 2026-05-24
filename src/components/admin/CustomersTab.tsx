@@ -748,12 +748,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
     <div className="space-y-4">
       <PageHeader
         title="Kunder"
-        description={(() => {
-          const parts: string[] = [`${stats.total} ${stats.total === 1 ? "kunde" : "kunder"}`];
-          if (stats.recurring > 0) parts.push(`${stats.recurring} ${stats.recurring === 1 ? "fast" : "faste"}`);
-          if (stats.withOverdue > 0) parts.push(`${stats.withOverdue} med forfalden betaling`);
-          return parts.join(" · ");
-        })()}
+        description="Overblik over private kunder, erhvervskunder og deres samlede omsætning."
         action={
           <PrimaryButton onClick={openCreateDialog} icon={<UserPlus />}>
             Tilføj kunde
@@ -761,20 +756,41 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
         }
       />
 
-      {/* Forfalden betaling — vises kun når relevant, så fokus er på handling */}
-      {stats.withOverdue > 0 && (
-        <Card className="surface-admin rounded-xl border-destructive/30 bg-destructive/5 shadow-sm">
-          <CardContent className="flex items-center justify-between gap-3 p-3">
-            <div className="min-w-0">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Forfalden betaling</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {stats.withOverdue} {stats.withOverdue === 1 ? "kunde" : "kunder"} med forfaldne fakturaer eller rykkere
-              </p>
-            </div>
-            <p className="text-xl font-semibold tabular-nums text-destructive shrink-0">{stats.withOverdue}</p>
-          </CardContent>
-        </Card>
-      )}
+      {/* Stat-strip — fælles design med Aftaler/Services/Leads/Anmeldelser. */}
+      <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          label="Kunder i alt"
+          value={stats.total}
+          icon={<Users />}
+          hint={stats.recurring > 0 ? `${stats.recurring} ${stats.recurring === 1 ? "fast" : "faste"}` : "Privat + erhverv"}
+        />
+        <StatCard
+          label="Privatkunder"
+          value={stats.privateCount}
+          icon={<User />}
+        />
+        <StatCard
+          label="Erhvervskunder"
+          value={stats.businessCount}
+          icon={<Building2 />}
+        />
+        <StatCard
+          label="Samlet omsætning"
+          value={new Intl.NumberFormat("da-DK", { style: "currency", currency: "DKK", maximumFractionDigits: 0 }).format(stats.totalRev)}
+          icon={<Wallet />}
+          tone="emerald"
+          hint="Ekskl. moms"
+        />
+        {stats.withOverdue > 0 && (
+          <StatCard
+            label="Forfalden betaling"
+            value={stats.withOverdue}
+            icon={<AlertTriangle />}
+            tone="danger"
+            hint={`${stats.withOverdue === 1 ? "kunde" : "kunder"} mangler at betale`}
+          />
+        )}
+      </div>
 
       {/* Søg + type-filter på samme linje — kompakt værktøjsbar */}
       <div className="flex flex-wrap items-center gap-2">
