@@ -415,19 +415,19 @@ const EmployeeApp = () => {
           const Cta = suggestion.cta;
           return (
             <Card className={cn("overflow-hidden rounded-xl border shadow-sm", toneClasses)}>
-              <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-5 sm:p-5">
-                <div className="flex items-start gap-3 min-w-0">
-                  <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl", iconWrap)} aria-hidden>
-                    <Sparkles className="h-5 w-5" />
+              <div className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-5 sm:p-5">
+                <div className="flex items-start gap-2.5 min-w-0">
+                  <div className={cn("flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl", iconWrap)} aria-hidden>
+                    <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                       Næste skridt
                     </p>
-                    <p className="mt-0.5 text-base font-semibold text-foreground">
+                    <p className="mt-0.5 text-sm sm:text-base font-semibold text-foreground">
                       {suggestion.title}
                     </p>
-                    <p className="mt-1 text-sm text-muted-foreground tabular-nums">
+                    <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-muted-foreground tabular-nums">
                       {suggestion.description}
                     </p>
                     {/* Live arbejdsdag-status under forslaget — så medarbejderen
