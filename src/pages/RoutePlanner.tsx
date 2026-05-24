@@ -866,13 +866,15 @@ const Planner = () => {
         attachedEmployeeCount: emps.length,
       };
     });
-    // Når filtre er aktive, skjul ruter helt hvis ingen af deres stops matcher.
-    // Ellers ser det ud som om filteret bare "skjuler detaljer" — hvilket
-    // forvirrer brugerne.
-    if (filtersActive) {
-      return built.filter((r) => (r.stops?.length ?? 0) > 0);
-    }
-    return built;
+    return built.filter((r: any) => {
+      // Materialiserede/projicerede forekomster uden aktive stops er ghost-ruter.
+      // Manuelt oprettede tomme ruter må stadig vises, så brugeren kan lægge
+      // aftaler på dem.
+      if (r.base_route_id && (r.stops?.length ?? 0) === 0) return false;
+      // Når filtre er aktive, skjul ruter helt hvis ingen af deres stops matcher.
+      if (filtersActive && (r.stops?.length ?? 0) === 0) return false;
+      return true;
+    });
   }, [calendarRoutesRaw, visibleCalendarStops, activeEmployees, recurringBaseRoutes]);
 
   const virtualCalendarRoutes: CalendarRoute[] = useMemo(() => {
