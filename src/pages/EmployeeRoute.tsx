@@ -1180,38 +1180,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               updateWhenIdle={false}
               updateWhenZooming={false}
               keepBuffer={4}
-              opacity={mapStyle === "map" ? 1 : 0}
               className="map-tile-fade"
               zIndex={1}
-              detectRetina
-              maxZoom={20}
-              maxNativeZoom={19}
-            />
-            <TileLayer
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-              attribution='Tiles &copy; Esri'
-              updateWhenIdle={false}
-              updateWhenZooming={false}
-              keepBuffer={4}
-              opacity={mapStyle === "satellite" ? 1 : 0}
-              className="map-tile-fade"
-              zIndex={2}
-              detectRetina
-              maxZoom={20}
-              maxNativeZoom={19}
-            />
-            {/* Vejnavne + labels-overlay på satellit — uden dette ser satellit-
-                visningen ud som ren luftfoto uden at man kan læse vej- eller
-                bynavne.  Esri's "Reference"-lag matcher World Imagery 1:1. */}
-            <TileLayer
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
-              attribution=''
-              updateWhenIdle={false}
-              updateWhenZooming={false}
-              keepBuffer={4}
-              opacity={mapStyle === "satellite" ? 1 : 0}
-              className="map-tile-fade"
-              zIndex={3}
               detectRetina
               maxZoom={20}
               maxNativeZoom={19}
