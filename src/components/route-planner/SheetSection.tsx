@@ -81,7 +81,7 @@ export const Section = ({
 }) => (
   // Matcher kunde-detalje-sheetet (rounded-xl border-border bg-card, h4 uppercase
   // tracking-wider) så de to paneler ser ud som ét designsystem.
-  <div className={cn("space-y-1.5", className)}>
+  <div className={cn("space-y-1", className)}>
     <div className="flex items-center gap-1.5">
       <span
         className={cn(
@@ -102,7 +102,7 @@ export const Section = ({
       {required && null}
       {hint && <span className="ml-auto text-[10px] text-muted-foreground">{hint}</span>}
     </div>
-    <div className="rounded-xl border border-border bg-card p-2.5">
+    <div className="rounded-lg border border-border bg-card p-2">
       {children}
     </div>
   </div>
