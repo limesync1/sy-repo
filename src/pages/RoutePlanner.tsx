@@ -327,6 +327,7 @@ const Planner = () => {
         ...s,
         start_date: info.preferred_date,
         is_first_occurrence: info.completed_cycles === 0,
+        completed_cycles: info.completed_cycles,
       } as RouteStop;
     });
   }, [rawCalendarStops, orderStartInfo]);
