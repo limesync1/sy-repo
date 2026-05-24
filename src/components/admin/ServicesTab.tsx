@@ -800,26 +800,8 @@ const ServiceForm = ({
   };
 
   // Auto-foreslå AI-beskrivelse første gang brugeren rammer detaljer-trinnet
-  // med navn + kategori valgt og tom beskrivelse.
-  useEffect(() => {
-    if (
-      currentStep === 2 &&
-      !existingService &&
-      !aiDescAutoTried &&
-      !aiLoading &&
-      !description.trim() &&
-      name.trim().length > 1 &&
-      serviceCategory.trim().length > 0
-    ) {
-      // Lille forsinkelse så brugeren kan nå at se feltet være tomt og ikke føler at AI tager over
-      const t = setTimeout(() => {
-        setAiDescAutoTried(true);
-        generateAiDescription();
-      }, 600);
-      return () => clearTimeout(t);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStep, name, serviceCategory]);
+  // — bevidst fjernet for at spare AI-kredit. Brugeren kan stadig trykke
+  // "Foreslå med AI" manuelt, men der genereres ikke automatisk længere.
 
   // ── Branchefiltrering ──────────────────────────────────────────────
   // Vi viser kun kategorier/underkategorier/forslag som matcher virksomhedens
@@ -1084,7 +1066,7 @@ const ServiceForm = ({
   // ingen beslutninger på vegne af dem.
 
   const canGoNext = () => {
-    if (currentStep === 1) return !!serviceCategory;
+    if (currentStep === 1) return !!serviceCategory && !!subcategory.trim();
     if (currentStep === 2) return !!name.trim() && !!description.trim();
     if (currentStep === 3) {
       if (pricingType === "prisberegner") return true;
@@ -1096,6 +1078,7 @@ const ServiceForm = ({
   const handleSave = async () => {
     if (!name.trim()) { toast.error("Indtast et servicenavn"); return; }
     if (!serviceCategory.trim()) { toast.error("Vælg en kategori"); return; }
+    if (!subcategory.trim()) { toast.error("Vælg en underkategori"); return; }
     if (pricingType === "prisberegner" && steps.length === 0) { toast.error("Tilføj mindst ét beregnertrin"); return; }
     if (pricingType === "prisberegner" && steps.some(s => !s.label.trim())) { toast.error("Alle beregnertrin skal have et navn"); return; }
 
@@ -1306,7 +1289,7 @@ const ServiceForm = ({
 
           {serviceCategory && subcategoryOptions.length === 0 && !customCategory && (
             <div className="space-y-2 pt-4 border-t border-border">
-              <FieldLabel optional>Underkategori</FieldLabel>
+              <FieldLabel required>Underkategori</FieldLabel>
               <Input placeholder="Fx Erhvervsrengøring" value={subcategory} onChange={(e) => setSubcategory(e.target.value)} className="bg-card" />
             </div>
           )}
