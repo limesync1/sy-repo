@@ -277,7 +277,7 @@ const SortableStopRow = ({
         isDragging ? "shadow-lg opacity-80 ring-2 ring-accent" : "hover:shadow-sm hover:border-foreground/20",
       )}
     >
-      <div className="grid min-h-[2.5rem] grid-cols-[1.25rem_2rem_minmax(0,1fr)] sm:min-h-[2.75rem] sm:grid-cols-[1.5rem_2.25rem_minmax(0,1fr)_auto]">
+      <div className="grid min-h-[2.25rem] grid-cols-[1.25rem_2rem_minmax(0,1fr)] sm:min-h-[2.5rem] sm:grid-cols-[1.5rem_2.25rem_minmax(0,1fr)_auto]">
         {/* Drag handle — skjult på projicerede ruter (read-only) */}
         {!isProjection ? (
           <button
