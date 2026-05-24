@@ -517,12 +517,12 @@ const EmployeeApp = () => {
         )}
 
         {!routesLoading && !stopsLoading && routes.length === 0 && (
-          <Card className="rounded-xl border-dashed border-border p-10 text-center shadow-sm">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary">
-              <CalendarIcon className="h-8 w-8 text-muted-foreground" />
+          <Card className="rounded-xl border-dashed border-border p-6 sm:p-10 text-center shadow-sm">
+            <div className="mx-auto mb-3 sm:mb-4 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-secondary">
+              <CalendarIcon className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
             </div>
-            <p className="text-base font-semibold mb-1">Ingen ruter denne dag</p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm sm:text-base font-semibold mb-1">Ingen ruter denne dag</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Du har ingen tildelte stop. Skift dato for at se andre dage.
             </p>
           </Card>
