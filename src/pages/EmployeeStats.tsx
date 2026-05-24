@@ -359,7 +359,7 @@ const EmployeeStats = () => {
                           <CollapsibleTrigger asChild>
                             <button
                               type="button"
-                              className="grid w-full gap-3 px-4 py-3.5 text-left transition-colors hover:bg-secondary/60 active:bg-secondary sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto] sm:items-center sm:gap-4 sm:px-5"
+                              className="grid w-full gap-2.5 px-3 py-3 text-left transition-colors hover:bg-secondary/60 active:bg-secondary sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto] sm:items-center sm:gap-4 sm:px-5 sm:py-3.5"
                             >
                               <div className="min-w-0">
                                 <p className="text-sm font-semibold text-foreground capitalize">
@@ -369,7 +369,7 @@ const EmployeeStats = () => {
                                   {d.stops} {d.stops === 1 ? "opgave" : "opgaver"}
                                 </p>
                               </div>
-                              <div className="block">
+                              <div className="hidden sm:block">
                                 <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
                                   <div
                                     className="h-full bg-foreground transition-all"
