@@ -34,6 +34,7 @@ import {
   industryIcon,
   stepTemplatesForIndustries,
 } from "@/lib/service-taxonomy";
+import { getSubcategoryIcon } from "@/lib/category-icons";
 
 const STEP_TEMPLATES: Record<string, { label: string; steps: Array<{ label: string; unit: string; price_per_unit: number; min_value: number; max_value: number; default_value: number }> }[]> = {
   "Rengøring": [
