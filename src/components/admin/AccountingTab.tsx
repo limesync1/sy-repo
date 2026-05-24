@@ -1669,6 +1669,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
 
         {/* Detaljeret push/pull-status — én række pr. retning, så brugeren med ét blik
             kan se hvad der virker og hvad der fejler. */}
+        {showAdvanced && (
         <SectionCard
           title="Forbindelsesstatus"
           icon={<ShieldCheck />}
