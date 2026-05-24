@@ -528,7 +528,7 @@ const EmployeeApp = () => {
           </Card>
         )}
 
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
         {(() => {
           // ─── Sekventiel låsning ──────────────────────────────────────────
           // Medarbejderen skal kun kunne starte ÉN rute ad gangen i dag.
