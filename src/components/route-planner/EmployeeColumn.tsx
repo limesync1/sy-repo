@@ -8,6 +8,7 @@ import { MapPin, Clock, Sparkles, Navigation, Loader2, Send, AlertCircle, Refres
 import type { RouteStop } from "@/hooks/useRoutes";
 import { formatDurationMin } from "@/lib/duration-format";
 import { formatInterval } from "@/lib/interval";
+import { formatCycleLabel } from "@/lib/cycle-label";
 
 type Props = {
   routeId: string;
@@ -189,12 +190,19 @@ const SortableStopCard = ({
           {stop.agreement_interval && (
             <p className="text-[10px] text-muted-foreground truncate mt-0.5">
               {formatInterval(stop.agreement_interval)}
-              {typeof stop.completed_cycles === "number" && stop.completed_cycles >= 0 && stop.agreement_interval !== "engangskøb" && (
-                <span className="ml-1 inline-flex items-center gap-0.5 rounded bg-secondary/80 px-1 py-px text-[9px] font-semibold text-foreground">
-                  <RefreshCw className="h-2 w-2" />
-                  {isDone ? stop.completed_cycles : stop.completed_cycles + 1}. kørsel
-                </span>
-              )}
+              {(() => {
+                const label = formatCycleLabel({
+                  completedCycles: stop.completed_cycles,
+                  interval: stop.agreement_interval,
+                  isCompleted: isDone,
+                });
+                return label ? (
+                  <span className="ml-1 inline-flex items-center gap-0.5 rounded bg-secondary/80 px-1 py-px text-[9px] font-semibold text-foreground">
+                    <RefreshCw className="h-2 w-2" />
+                    {label}
+                  </span>
+                ) : null;
+              })()}
             </p>
           )}
           {stop.address && (

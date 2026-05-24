@@ -1155,7 +1155,11 @@ const AftaleTab = ({
       if (error) { toast.error(error.message); return; }
       if (isRecurring && interval !== "engangskøb") {
         const nextDate = calcNextServiceDate(interval);
-        toast.success(`Aftale udført — næste kørsel planlagt ${nextDate ? new Date(nextDate).toLocaleDateString("da-DK", { day: "numeric", month: "long" }) : ""}`);
+        const nextCycle = ((order as any)?.completed_cycles ?? 0) + 2;
+        toast.success(
+          `Aftale udført — næste (${nextCycle}. kørsel) planlagt ${nextDate ? new Date(nextDate).toLocaleDateString("da-DK", { day: "numeric", month: "long" }) : ""}`,
+          { description: "Aftalen flytter til Udførte. Næste kørsel oprettes automatisk og lægges på den planlagte rute — regnskabsordren oprettes når rutedagen åbnes." },
+        );
       } else {
         toast.success("Aftale markeret som udført");
       }
@@ -1966,8 +1970,13 @@ const AftaleTab = ({
                           >
                             <RefreshCw className="h-2.5 w-2.5" /> {INTERVAL_LABELS[interval] || interval}
                             {cycles > 0 && (
-                              <span className="ml-1 rounded bg-background/70 px-1 py-px text-[9px] font-semibold text-foreground">
-                                {cycles + 1}. kørsel
+                              <span
+                                className="ml-1 rounded bg-background/70 px-1 py-px text-[9px] font-semibold text-foreground"
+                                title={order.status === "completed"
+                                  ? `Denne aftale er gennemført ${cycles} gange — vises som ${cycles}. kørsel`
+                                  : `Næste planlagte: ${cycles + 1}. kørsel — systemet opretter den automatisk på næste interval-dato`}
+                              >
+                                {order.status === "completed" ? `${cycles}. kørsel` : `${cycles + 1}. kørsel`}
                               </span>
                             )}
                           </span>
