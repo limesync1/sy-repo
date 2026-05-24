@@ -1873,7 +1873,7 @@ const AftaleTab = ({
           Hvert kort viser kunde, services, status og beløb i headeren. Klik for at folde ud. */}
       {filteredOrders && filteredOrders.length > 0 ? (
         <div className="space-y-3">
-          {filteredOrders.map((order) => {
+          {pagedOrders.map((order) => {
             const cfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
             const isExpanded = expandedOrder === order.id;
             const isResponding = respondingTo === order.id;
