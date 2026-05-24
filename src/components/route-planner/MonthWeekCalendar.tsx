@@ -70,16 +70,17 @@ type Props = {
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
 const fmtRouteMin = (min: number) => min >= 60 ? `${Math.floor(min / 60)}t ${min % 60}m` : `${min}m`;
-const fmtRouteKr = (n: number) => n >= 1000 ? `${Math.round(n).toLocaleString("da-DK")} kr` : `${Math.round(n)} kr`;
-// Kompakt valuta til smalle månedsceller: "1,5t" / "760" — uden "kr"-suffiks
-// så pillens metadata-linje aldrig wrapper eller bliver truncated midt i et tal.
-// Vi bruger "t" (tusinde) i stedet for "k", som danskere ikke nødvendigvis
-// genkender som tusind-forkortelse.
+// Vis altid med dansk tusind-separator + "kr" — så et tal på et rute-kort
+// aldrig kan misforstås som "antal" i stedet for "beløb".
+const fmtRouteKr = (n: number) =>
+  `${Math.round(n).toLocaleString("da-DK")} kr`;
+// Kompakt valuta til smalle månedsceller: viser stadig "kr" så betydningen
+// er entydig. "1,5k kr" / "760 kr" — ingen tvivl om at det er penge.
 const fmtRouteKrCompact = (n: number) => {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(".", ",")} mio`;
-  if (n >= 10000) return `${Math.round(n / 1000)}t`;
-  if (n >= 1000) return `${(n / 1000).toFixed(1).replace(".", ",")}t`;
-  return `${Math.round(n)}`;
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(".", ",")} mio kr`;
+  if (n >= 10_000) return `${Math.round(n / 1000)}k kr`;
+  if (n >= 1_000) return `${(n / 1000).toFixed(1).replace(".", ",")}k kr`;
+  return `${Math.round(n)} kr`;
 };
 
 export const MonthWeekCalendar = ({
