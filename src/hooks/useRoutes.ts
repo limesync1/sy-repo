@@ -2222,9 +2222,12 @@ export const useDirections = (
     // Hold cache i 30 sek — kort nok til at en reroute (samme key, men efter
     // invalidate) faktisk fetches igen, langt nok til at vi ikke spammer
     // endpoint mens stableOrigin holdes konstant mellem GPS-fixes.
-    staleTime: 30 * 1000,
-    gcTime: 5 * 60 * 1000,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
+    // Behold sidste resultat mens vi genberegner — så "Estimeret rejsetid"
+    // ikke flimrer eller forsvinder under refetch (fx ved drag/optimer).
+    placeholderData: keepPreviousData,
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke("route-directions", {
         body: {
