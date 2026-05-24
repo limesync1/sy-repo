@@ -380,7 +380,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
                 </div>
 
                 <div className="space-y-2">
-                  {visible.map((l) => {
+                  {pagedVisible.map((l) => {
                     const qr = l.quote_request;
                     const status = STATUS_LABELS[l.status] ?? STATUS_LABELS.new;
                     const share = qr?.share_contact !== false;
