@@ -148,19 +148,22 @@ const RoutePlanner = () => {
 };
 
 const RoutePlannerDesktopOnly = () => (
-  <AdminShell business={null as any} activeTab="routes" contentPadding>
+  <div className="flex min-h-screen items-center justify-center bg-background px-6">
     <SEO title="Ruteplanlægger – Serviceydere" description="Ruteplanlæggeren er kun tilgængelig på computer." noIndex />
-    <div className="mx-auto flex min-h-[60vh] max-w-md flex-col items-center justify-center px-6 text-center">
-      <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-secondary">
+    <div className="max-w-md text-center">
+      <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-secondary">
         <Monitor className="h-7 w-7 text-foreground" />
       </div>
       <h1 className="mb-2 text-lg font-semibold text-foreground">Kun på computer</h1>
-      <p className="text-sm text-muted-foreground">
+      <p className="mb-6 text-sm text-muted-foreground">
         Ruteplanlæggeren bruger træk-og-slip, kort og flere paneler ved siden af hinanden.
         Åbn siden på en computer for at planlægge ruter — telefoner og tablets understøttes ikke.
       </p>
+      <Link to="/virksomhed" className="text-sm font-medium text-accent hover:underline">
+        ← Tilbage til oversigt
+      </Link>
     </div>
-  </AdminShell>
+  </div>
 );
 
 const Planner = () => {
