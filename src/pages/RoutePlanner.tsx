@@ -2824,15 +2824,12 @@ const Planner = () => {
           const unassignedCard = (
                 <Card data-tour="routes-unassigned" className="flex flex-col h-full overflow-hidden">
                   <div className="p-3 border-b bg-secondary/30 space-y-2">
-                    {/* pr-7 lg:pr-0: gør plads til Sheet'ens X-luk-knap på mobil/tablet
-                        så badget med antal stops ikke overlappes. Desktop (lg+)
-                        bruger ResizablePanel uden close-knap, så ingen padding der. */}
-                    <div className="flex items-center justify-between pr-7 lg:pr-0">
-                      <h2 className="font-semibold text-sm flex items-center gap-1.5">
+                    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2 pr-10 lg:pr-0">
+                      <h2 className="min-w-0 font-semibold text-sm flex items-center gap-1.5 leading-tight">
                         <Inbox className="h-4 w-4 text-primary" />
-                        Aftaler uden rute
+                        <span className="truncate">Aftaler uden rute</span>
                       </h2>
-                      <Badge variant="secondary" className="tabular-nums">
+                      <Badge variant="secondary" className="shrink-0 tabular-nums">
                         {filteredUnassigned.length}
                       </Badge>
                     </div>
