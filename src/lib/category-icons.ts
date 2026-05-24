@@ -32,18 +32,26 @@ export const getCategoryIcon = (category?: string | null): string => {
  * keywords skal stå før mere generelle.
  */
 const SUBCATEGORY_KEYWORD_ICONS: Array<[RegExp, string]> = [
-  // Rengøring-varianter
-  [/flytter?engøring|flytte/i, "📦"],
+  // ─── Rengøring-varianter ───
+  // Rækkefølge: mere specifikke matches FØR de brede ("aflevering"/"slut"
+  // skal vinde over "bygge"; "flytte" skal vinde over "rengøring").
+  [/aflevering|slut.?rengøring|nøgle.?aflever/i, "🔑"],
+  [/flytte.?rengøring|flytte/i, "📦"],
   [/dødsbo/i, "🕯️"],
   [/hovedrengøring|forår/i, "✨"],
   [/kontor/i, "🏢"],
   [/erhverv|butik|industri|lager|restaurant|klinik|skole/i, "🏬"],
   [/trappe|opgang|fælles/i, "🪜"],
-  [/bygge/i, "🚧"],
+  // "Bygge­rengøring under arbejde" — selve byggepladsen. Tidligere var
+  // det 🚧 (gade-spærring), hvilket gav stop-skilt-associationer.
+  [/bygge.?rengøring|bygge.*under arbejde/i, "🏗️"],
+  [/bygge/i, "🏗️"],
   [/special|brand|vand|hoarder|desinfic/i, "🧴"],
   [/tæppe|polstring|møbel/i, "🛋️"],
   [/måtte|gardin/i, "🪟"],
   [/privat.*rengøring|hjemme|ugentlig|14-?dag|månedlig|engang/i, "🏠"],
+  // Generel rengørings-fallback når intet andet matcher — bedre end "🧰".
+  [/rengøring|rens$/i, "🧽"],
 
   // Vinduer & facader
   [/vindue|rude|karm/i, "🪟"],
