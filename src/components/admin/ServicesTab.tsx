@@ -1140,8 +1140,8 @@ const ServiceForm = ({
           {/* Live opsummering af brugerens valg så de altid kan se hvor de er */}
           <div className="hidden sm:flex flex-wrap items-center justify-end gap-1.5">
             {serviceCategory && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-foreground">
-                <span>{CATEGORY_ICONS[serviceCategory] || "📋"}</span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-foreground">
+                <IndustryIcon category={serviceCategory} className="h-4 w-4" />
                 {serviceCategory}
               </span>
             )}
@@ -1208,7 +1208,7 @@ const ServiceForm = ({
                         : "border-border bg-card hover:bg-secondary"
                     }`}
                   >
-                    <span className="text-2xl">{CATEGORY_ICONS[c] || "📋"}</span>
+                    <IndustryIcon category={c} className="h-10 w-10" />
                     <span className="text-sm font-medium text-foreground">{c}</span>
                   </button>
                 ))}
