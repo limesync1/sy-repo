@@ -472,10 +472,14 @@ type RoutePillProps = {
 const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing, compact, jobDragActive, busy, isPast }: RoutePillProps) => {
   const isVirtual = !!route.isVirtual;
   // Drag-handle: hele pillen kan trækkes til ny dato (kun rigtige ruter).
+  // Fortids-ruter og projicerede (virtuelle) ruter kan ALDRIG flyttes —
+  // det giver ingen mening at re-planlægge noget der allerede er kørt,
+  // og en projektion ER ikke en rigtig rute (den lever af basisruten).
+  const dragLocked = isVirtual || !!busy || !!isPast;
   const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({
     id: `route:${route.id}`,
     data: { type: "route", route },
-    disabled: isVirtual || !!busy,
+    disabled: dragLocked,
   });
 
   // Drop-zone: aftaler kan slippes på pillen for at blive tilføjet til ruten.
@@ -533,7 +537,13 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
           ? { boxShadow: `0 0 0 1px ${route.color}40, 0 1px 3px ${route.color}20` }
           : {}),
       }}
-      title={isVirtual ? "Projiceret rute — klik åbner basisruten; flytning kræver eksplicit træk af en rigtig rute" : undefined}
+      title={
+        isVirtual
+          ? "Projiceret rute — klik åbner basisruten; flytning kræver eksplicit træk af en rigtig rute"
+          : isPast
+            ? "Tidligere rute — kan ikke flyttes"
+            : undefined
+      }
       aria-busy={busy || undefined}
     >
       {busy && (
@@ -542,11 +552,11 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
         </div>
       )}
       <div
-        {...(isVirtual ? {} : listeners)}
-        {...(isVirtual ? {} : attributes)}
+        {...(dragLocked ? {} : listeners)}
+        {...(dragLocked ? {} : attributes)}
         className={cn(
           "px-2 py-1 flex items-center justify-between gap-1",
-          isVirtual ? "cursor-pointer" : "cursor-grab active:cursor-grabbing",
+          dragLocked ? "cursor-pointer" : "cursor-grab active:cursor-grabbing",
         )}
       >
         <div className="min-w-0 flex-1">
