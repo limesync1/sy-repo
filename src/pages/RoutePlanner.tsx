@@ -3592,7 +3592,10 @@ const Planner = () => {
               const sourceStops = (baseFromCache?.stops?.length ? baseFromCache.stops : editingProjectedContext!.previewStops) || [];
               const sourced = sourceStops
                 .filter((s: any) => projectedStopMatchesSources(s, editingProjectedContext!.sourceKeys))
-                .filter((s: any) => (((s.occurrence_status as string | undefined) ?? s.status) !== "completed" && ((s.occurrence_status as string | undefined) ?? s.status) !== "cancelled")
+                .filter((s: any) => {
+                  const eff = (s.occurrence_status as string | undefined) ?? s.status;
+                  return eff !== "completed" && eff !== "cancelled";
+                })
                 .map((s: any) => {
                   // Find aftalens interval via recurringSources (key→interval)
                   // — basis-stop har ofte ikke selv et agreement_occurrence-
