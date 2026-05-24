@@ -1057,6 +1057,15 @@ const AftaleTab = ({
     }
   });
 
+  // Paginering — adaptiv sidestørrelse afhængigt af enheden.
+  const aftalePageSize = useAdaptivePageSize(25);
+  const [aftalePage, setAftalePage] = useState(0);
+  useEffect(() => { setAftalePage(0); }, [sortBy, (searchedOrders || []).length]);
+  const pagedOrders = filteredOrders.slice(
+    aftalePage * aftalePageSize,
+    (aftalePage + 1) * aftalePageSize,
+  );
+
   const initAdjustedItems = (order: any) => {
     const items = (order.order_items || []).map((item: any) =>
       buildAdjustmentItem(item, item.service_id ? servicesById[item.service_id] : undefined)
