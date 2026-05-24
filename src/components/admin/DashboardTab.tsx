@@ -14,10 +14,12 @@ import {
   Share2, Eye, Calendar, MessageSquare, Link2, Check,
   Zap, Target, Settings as SettingsIcon, Users,
   Search, X, Inbox, Rocket, PartyPopper, ArrowUpDown,
-  HelpCircle,
+  HelpCircle, Wallet, FileText, AlertTriangle, ReceiptText,
 } from "lucide-react";
 import type { Business } from "@/hooks/useDatabase";
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useLocation } from "react-router-dom";
 import { EmptyState } from "@/components/admin/shared/AdminUI";
 import { cn } from "@/lib/utils";
