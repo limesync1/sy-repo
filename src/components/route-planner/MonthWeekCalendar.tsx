@@ -545,11 +545,11 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
       data-route-drop-date={!isVirtual && !isPast ? route.route_date : undefined}
       onClick={(e) => { e.stopPropagation(); if (!isDragging) onSelect(); }}
       className={cn(
-        "relative rounded-md border-l-[3px] cursor-pointer transition-all overflow-hidden bg-card hover:shadow-sm",
-        "border border-border/60",
+        "relative rounded-lg cursor-pointer transition-all overflow-hidden bg-card border border-border/70 shadow-[0_1px_2px_rgba(15,23,42,0.04)]",
+        "hover:shadow-md hover:-translate-y-[1px] hover:border-border",
         isDragging && "opacity-40",
-        isVirtual && "border-dashed",
-        isPast && "opacity-50 saturate-50 hover:opacity-90",
+        isVirtual && "border-dashed bg-muted/30",
+        isPast && "opacity-60 saturate-[0.6] hover:opacity-90 hover:translate-y-0 shadow-none",
         // Under drag dæmpes fortids-ruter yderligere — de er ikke gyldige
         // drop-targets (kalender-cellen er disabled), så de skal heller
         // ikke visuelt invitere til drop.
@@ -560,8 +560,6 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
         busy && "cursor-wait",
       )}
       style={{
-        borderLeftColor: route.color,
-        borderLeftWidth: 3,
         ...(!isVirtual && jobDragActive && !isOver
           ? { boxShadow: `0 0 0 1px ${route.color}40, 0 1px 3px ${route.color}20` }
           : {}),
@@ -580,44 +578,49 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
           <Loader2 className="h-3.5 w-3.5 animate-spin text-accent" />
         </div>
       )}
+      {/* Venstre farve-bar — rutens farve, tegnet som ægte accent-stripe */}
+      <div
+        aria-hidden
+        className="absolute left-0 top-0 bottom-0 w-[3px]"
+        style={{ background: route.color || "hsl(var(--accent))" }}
+      />
       <div
         {...(dragLocked ? {} : listeners)}
         {...(dragLocked ? {} : attributes)}
         className={cn(
-          "px-2 py-1 flex items-center justify-between gap-1",
+          "pl-2.5 pr-2 py-1.5 flex items-center justify-between gap-1.5",
           dragLocked ? "cursor-pointer" : "cursor-grab active:cursor-grabbing",
         )}
       >
         <div className="min-w-0 flex-1">
-          <div className="text-[11px] font-semibold truncate text-foreground leading-tight flex items-center gap-1">
+          <div className="text-[11px] font-bold truncate text-foreground leading-tight flex items-center gap-1 tracking-tight">
             {isVirtual && <Repeat className="h-2.5 w-2.5 shrink-0 text-muted-foreground" />}
             <span className="truncate">{route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}</span>
           </div>
           <div
             className={cn(
-              "mt-0.5 flex items-center gap-x-2 text-[10px] text-muted-foreground tabular-nums overflow-hidden",
-              compact ? "flex-nowrap whitespace-nowrap" : "flex-wrap gap-y-0.5",
+              "mt-1 flex items-center gap-1 text-[10px] tabular-nums overflow-hidden",
+              compact ? "flex-nowrap whitespace-nowrap" : "flex-wrap gap-y-1",
             )}
           >
             {stopCount > 0 && (
-              <span className="inline-flex items-center gap-0.5 shrink-0">
+              <span className="inline-flex items-center gap-1 shrink-0 rounded-md bg-muted/70 px-1.5 py-[1px] font-medium text-muted-foreground border border-border/40">
                 <MapPin className="h-2.5 w-2.5" />
-                <span>
+                <span className="leading-none">
                   {completedCount > 0 && (
-                    <span className="text-emerald-600 font-semibold">{completedCount}/</span>
+                    <span className="text-emerald-600 font-bold">{completedCount}/</span>
                   )}
-                  {stopCount} {stopCount === 1 ? "stop" : "stop"}
+                  {stopCount} stop
                 </span>
               </span>
             )}
             {revenue > 0 && (
-              <span className="inline-flex items-center gap-0.5 shrink-0 font-semibold text-foreground/80">
-                <Wallet className="h-2.5 w-2.5 shrink-0" />
+              <span className="inline-flex items-center gap-1 shrink-0 rounded-md bg-accent/10 px-1.5 py-[1px] font-bold text-accent border border-accent/20 leading-none">
                 {compact ? fmtRouteKrCompact(revenue) : fmtRouteKr(revenue)}
               </span>
             )}
             {travelMin > 0 && !compact && (
-              <span className="inline-flex items-center gap-0.5 shrink-0">
+              <span className="inline-flex items-center gap-0.5 shrink-0 text-muted-foreground/80 leading-none">
                 <Clock className="h-2.5 w-2.5" />{fmtRouteMin(travelMin)}
               </span>
             )}
