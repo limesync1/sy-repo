@@ -937,7 +937,7 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
             </div>
 
             <div className="divide-y divide-border">
-              {filtered.map((c) => {
+              {paged.map((c) => {
                 const typeLabel = c.type === "business" ? "Erhverv" : c.type === "private" ? "Privat" : null;
                 const typeDot = c.type === "business" ? "bg-blue-500" : c.type === "private" ? "bg-emerald-500" : "bg-muted-foreground/40";
                 const displayName = c.type === "business" && c.company_name ? c.company_name : c.name;
@@ -1089,6 +1089,15 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
                   </div>
                 );
               })}
+            </div>
+            <div className="px-4 sm:px-5 pb-4">
+              <PaginationFooter
+                page={page}
+                pageSize={pageSize}
+                total={filtered.length}
+                onPageChange={setPage}
+                label="kunder"
+              />
             </div>
           </Card>
         </>
