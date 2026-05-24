@@ -4,11 +4,11 @@
 // SheetHeaderBlock + Section byggeklodser som virksomhedspanelets
 // StopDetailSheet, så medarbejder- og virksomhedspanel har 100% ens
 // visuelt sprog når man åbner detaljer for en aftale.
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   CheckCircle2, Clock, ClipboardList, Loader2, MapPin, MessageSquare,
   Phone, Route as RouteIcon, Wallet, Calendar as CalendarIcon, Users,
-  Package,
+  Package, Send,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,9 @@ import { calcEmployeeShare, formatKr as formatKrUtil } from "@/lib/commission";
 import { stripPrices } from "@/lib/employee-display";
 import { SheetHeaderBlock, Section, CollapsibleSection } from "@/components/route-planner/SheetSection";
 import { INTERVAL_LABELS } from "@/types/service";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 type RouteContext = {
   name: string | null;
@@ -171,6 +174,41 @@ export const StopDetailsContent = ({
     ? format(new Date(stop.completed_at), "EEEE d. MMM 'kl.' HH:mm", { locale: da })
     : null;
   const accent = route?.color || "hsl(var(--primary))";
+
+  // Gensend faktura — kun synlig når aftalen er markeret udført OG der findes
+  // en bogført faktura i regnskabsprogrammet som adapter'en kan gensende.
+  const { data: invoiceCaps } = useQuery({
+    queryKey: ["invoice-caps", stop.order_id, isDone],
+    enabled: !readOnly && isDone && !!stop.order_id,
+    staleTime: 60_000,
+    retry: false,
+    queryFn: async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("accounting-action", {
+          body: { order_id: stop.order_id, action: "check_capabilities" },
+        });
+        if (error) return null;
+        return (data as any)?.caps ?? null;
+      } catch { return null; }
+    },
+  });
+  const canResendInvoice = !!invoiceCaps?.can_resend;
+  const [resending, setResending] = useState(false);
+  const handleResendInvoice = async () => {
+    setResending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("accounting-action", {
+        body: { order_id: stop.order_id, action: "resend_invoice" },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      toast.success("Faktura gensendt til kunden");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Kunne ikke gensende faktura");
+    } finally {
+      setResending(false);
+    }
+  };
 
   return (
     <div className="flex flex-col h-full bg-secondary/20">
@@ -418,9 +456,21 @@ export const StopDetailsContent = ({
               Markér som udført
             </Button>
           ) : (
-            <Button onClick={onUndo} variant="outline" className="w-full h-12 rounded-lg">
-              Fortryd udført
-            </Button>
+            <div className="space-y-2">
+              {canResendInvoice && (
+                <Button
+                  onClick={handleResendInvoice}
+                  disabled={resending}
+                  className="w-full gap-2 h-11 rounded-lg bg-foreground text-background hover:bg-foreground/90"
+                >
+                  {resending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  Gensend faktura til kunden
+                </Button>
+              )}
+              <Button onClick={onUndo} variant="outline" className="w-full h-11 rounded-lg">
+                Fortryd udført
+              </Button>
+            </div>
           )}
         </div>
       )}

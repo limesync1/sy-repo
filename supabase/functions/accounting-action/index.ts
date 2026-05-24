@@ -41,10 +41,26 @@ Deno.serve(async (req) => {
       .eq("id", order_id).maybeSingle();
     if (!order) return json({ error: "Order not found" }, 404);
 
-    // Owner check
+    // Permission check.
+    // - Owners (virksomhedspanelet) må alt.
+    // - Medarbejdere (medarbejderpanelet) må KUN gensende faktura, ikke
+    //   andre handlinger som kreditering/markér betalt mm.
     const { data: biz } = await userClient.from("businesses")
       .select("id, owner_id").eq("id", order.business_id).maybeSingle();
-    if (!biz || biz.owner_id !== auth.userId) return json({ error: "Forbidden" }, 403);
+    const isOwner = !!biz && biz.owner_id === auth.userId;
+    let isEmployee = false;
+    if (!isOwner) {
+      const { data: emp } = await admin.from("employees")
+        .select("id, business_id, active")
+        .eq("user_id", auth.userId)
+        .eq("business_id", order.business_id)
+        .maybeSingle();
+      isEmployee = !!emp && emp.active !== false;
+    }
+    if (!isOwner && !isEmployee) return json({ error: "Forbidden" }, 403);
+    if (!isOwner && action !== "resend_invoice" && action !== "check_capabilities") {
+      return json({ error: "Forbidden" }, 403);
+    }
 
     const { data: integ } = await admin.from("accounting_integrations")
       .select("*").eq("business_id", order.business_id).eq("is_active", true).maybeSingle();
@@ -68,6 +84,7 @@ Deno.serve(async (req) => {
         can_void: false,
         can_mark_paid: false,
         can_download_pdf: false,
+        can_resend: false,
         is_booked: false,
         is_draft: false,
         exists_in_provider: false,
@@ -97,6 +114,7 @@ Deno.serve(async (req) => {
               && !fullyPaid;
             caps.can_void = isDraft && typeof adapter.voidDraft === "function";
             caps.can_download_pdf = typeof adapter.getInvoicePdf === "function";
+            caps.can_resend = isBooked && typeof adapter.resendInvoice === "function";
           }
         } else if (link?.external_id && typeof adapter.voidDraft === "function") {
           // Kladde — kan annulleres
@@ -107,6 +125,42 @@ Deno.serve(async (req) => {
         }
       } catch { /* ignorer — caps forbliver false så knapper skjules */ }
       return json({ ok: true, caps });
+    }
+
+    // Gensend en bogført faktura til kunden via udbyderens egen e-mail-flow.
+    // Bruges fra medarbejderpanelet når en aftale er markeret udført.
+    if (action === "resend_invoice") {
+      if (!integ) return json({ error: "Ingen aktiv regnskabsintegration" }, 400);
+      const adapter = makeAdapter(integ.provider, integ as any, integ.settings ?? {});
+      if (typeof adapter.resendInvoice !== "function") {
+        return json({ error: `${integ.provider} understøtter ikke gensending af faktura` }, 400);
+      }
+      const sendId = bookedInvoiceId ?? link?.external_id ?? null;
+      if (!sendId) return json({ error: "Fakturaen findes ikke i regnskabsprogrammet endnu." }, 404);
+      const externalType: "invoice_booked" | "invoice_draft" =
+        bookedInvoiceId ? "invoice_booked" : "invoice_draft";
+      try {
+        const res = await adapter.resendInvoice({
+          invoice_external_id: sendId,
+          external_type: externalType,
+          customer_email: order.customer_email ?? null,
+        });
+        await admin.from("accounting_sync_log").insert({
+          business_id: order.business_id, provider: integ.provider,
+          direction: "push", entity_type: "invoice", entity_id: order_id,
+          external_id: sendId, status: "success",
+          message: `Faktura gensendt${res?.note ? `: ${res.note}` : ""}`,
+        });
+        return json({ ok: true, ...res });
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        await admin.from("accounting_sync_log").insert({
+          business_id: order.business_id, provider: integ.provider,
+          direction: "push", entity_type: "invoice", entity_id: order_id,
+          status: "error", message: `resend_invoice: ${msg}`,
+        });
+        return json({ error: msg }, 500);
+      }
     }
 
     // Download faktura-PDF fra regnskabsprogrammet. Returnerer base64 så

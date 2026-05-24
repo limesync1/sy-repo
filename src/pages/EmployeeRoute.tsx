@@ -11,7 +11,7 @@ import { Card } from "@/components/ui/card";
 import {
   ArrowLeft, Navigation, Phone, CheckCircle2, MapPin, List, Clock, Loader2,
   ChevronUp, ChevronDown, Play, Volume2, VolumeX, Crosshair, Flag, TrafficCone,
-  Info, Layers,
+  Info,
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
 import type { Marker as LeafletMarker } from "leaflet";
@@ -346,20 +346,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   // (~85 %).  Default er kompakt, så medarbejderen altid ser kortet.  Klik
   // på drag-bar'en eller chevron'en skifter højde.
   const [sheetExpanded, setSheetExpanded] = useState(false);
-  // Kort-stil: "map" (CARTO Voyager — som hidtil) eller "satellite" (Esri World Imagery).
-  // Valget persistes så brugeren ikke skal vælge igen ved hver kørsel.
-  const MAP_STYLE_KEY = "serviceydere:employee-route:map-style";
-  const [mapStyle, setMapStyleState] = useState<"map" | "satellite">(() => {
-    if (typeof window === "undefined") return "map";
-    try {
-      const v = window.localStorage.getItem(MAP_STYLE_KEY);
-      return v === "satellite" ? "satellite" : "map";
-    } catch { return "map"; }
-  });
-  const setMapStyle = (next: "map" | "satellite") => {
-    setMapStyleState(next);
-    try { window.localStorage.setItem(MAP_STYLE_KEY, next); } catch { /* ignorer */ }
-  };
   // Lyd-indstilling persistes i localStorage så valget overlever app-genstart
   // og lange perioder uden brug.  Initial værdi læses synkront for at undgå
   // at brugeren først ser "lyd til" og bagefter et flicker.
@@ -1194,38 +1180,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               updateWhenIdle={false}
               updateWhenZooming={false}
               keepBuffer={4}
-              opacity={mapStyle === "map" ? 1 : 0}
               className="map-tile-fade"
               zIndex={1}
-              detectRetina
-              maxZoom={20}
-              maxNativeZoom={19}
-            />
-            <TileLayer
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-              attribution='Tiles &copy; Esri'
-              updateWhenIdle={false}
-              updateWhenZooming={false}
-              keepBuffer={4}
-              opacity={mapStyle === "satellite" ? 1 : 0}
-              className="map-tile-fade"
-              zIndex={2}
-              detectRetina
-              maxZoom={20}
-              maxNativeZoom={19}
-            />
-            {/* Vejnavne + labels-overlay på satellit — uden dette ser satellit-
-                visningen ud som ren luftfoto uden at man kan læse vej- eller
-                bynavne.  Esri's "Reference"-lag matcher World Imagery 1:1. */}
-            <TileLayer
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
-              attribution=''
-              updateWhenIdle={false}
-              updateWhenZooming={false}
-              keepBuffer={4}
-              opacity={mapStyle === "satellite" ? 1 : 0}
-              className="map-tile-fade"
-              zIndex={3}
               detectRetina
               maxZoom={20}
               maxNativeZoom={19}
@@ -1350,22 +1306,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
            skygge-, ring- og active-feedback er 100% ensartet. Aktive states
            bruger fremhævet baggrund + en lille indikator-prik. */}
         <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-2">
-          {/* Map-stil toggle — altid synlig (også før start), så medarbejderen
-              kan vælge satellit-visning når han skal genkende parkering, indkørsel mm. */}
-          <button
-            type="button"
-            onClick={() => setMapStyle(mapStyle === "map" ? "satellite" : "map")}
-            className={`relative h-12 w-12 rounded-full backdrop-blur-md border shadow-[0_6px_20px_-6px_rgba(0,0,0,0.25)] hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.3)] transition-all duration-150 active:scale-[0.93] flex items-center justify-center ${
-              mapStyle === "satellite"
-                ? "bg-foreground text-background border-transparent"
-                : "bg-card/95 border-border/80 text-foreground hover:bg-secondary"
-            }`}
-            aria-label={mapStyle === "satellite" ? "Skift til kortvisning" : "Skift til satellit"}
-            aria-pressed={mapStyle === "satellite"}
-            title={mapStyle === "satellite" ? "Satellit — tryk for kort" : "Kort — tryk for satellit"}
-          >
-            <Layers className="h-[19px] w-[19px]" strokeWidth={2.25} />
-          </button>
           {routeStarted && !allDone && (
             <button
               type="button"
