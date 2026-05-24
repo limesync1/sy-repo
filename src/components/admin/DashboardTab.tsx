@@ -447,7 +447,7 @@ const DashboardTab = ({
       </section>
 
       <div className="grid w-full max-w-full min-w-0 items-start gap-3 sm:gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.9fr)]">
-        <section className="order-2 min-w-0 space-y-3 sm:space-y-4 xl:order-1">
+        <section className="order-1 min-w-0 space-y-3 sm:space-y-4 xl:order-1">
           {/* Finansielt overblik — afløser de tidligere "Omsætning"-kort.
               Viser hvad der er faktureret, betalt, udestående/forfaldent,
               udført vs ikke-udført, og hvad der skal udbetales til
@@ -532,7 +532,7 @@ const DashboardTab = ({
           )}
         </section>
 
-        <section className="order-1 min-w-0 max-w-full space-y-3 sm:space-y-4 xl:order-2">
+        <section className="order-2 min-w-0 max-w-full space-y-3 sm:space-y-4 xl:order-2">
           {/* Smart Quick Actions */}
           <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
             <div className="border-b border-border px-4 py-3 sm:px-5">
