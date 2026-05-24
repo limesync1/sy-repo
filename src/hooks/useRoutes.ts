@@ -883,10 +883,10 @@ export const useUpsertRoute = () => {
 export const useDeleteRoute = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (routeId: string) => {
+    mutationFn: (routeId: string) => routeMutationQueue.run(async () => {
       const { error } = await supabase.from("routes").delete().eq("id", routeId);
       if (error) throw error;
-    },
+    }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["routes"] });
       qc.invalidateQueries({ queryKey: ["routes-range"] });
