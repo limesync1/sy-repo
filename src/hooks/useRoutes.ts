@@ -818,6 +818,15 @@ export const useOrderForStop = (orderId: string | null | undefined) => {
 };
 
 /* ─── Create a NEW route (manually). Always seeds start address from business. ─── */
+/**
+ * Lokal dedup-cache: husker netop oprettede ruter pr. (business+dato+navn) i
+ * et kort vindue så dobbeltklik, hurtig retry og StrictMode-doublecalls ikke
+ * kan resultere i duplikat-ruter selv hvis databasen ikke har en
+ * constraint. Bruges sammen med `routeMutationQueue` (serialiseret) og et
+ * realt SELECT-tjek mod databasen som ekstra sikkerhedsnet.
+ */
+const recentRouteCreations = new Map<string, { at: number; route: Route }>();
+
 export const useCreateRoute = () => {
   const qc = useQueryClient();
   return useMutation({
