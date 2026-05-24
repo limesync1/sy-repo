@@ -70,16 +70,17 @@ type Props = {
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
 const fmtRouteMin = (min: number) => min >= 60 ? `${Math.floor(min / 60)}t ${min % 60}m` : `${min}m`;
-const fmtRouteKr = (n: number) => n >= 1000 ? `${Math.round(n).toLocaleString("da-DK")} kr` : `${Math.round(n)} kr`;
-// Kompakt valuta til smalle månedsceller: "1,5t" / "760" — uden "kr"-suffiks
-// så pillens metadata-linje aldrig wrapper eller bliver truncated midt i et tal.
-// Vi bruger "t" (tusinde) i stedet for "k", som danskere ikke nødvendigvis
-// genkender som tusind-forkortelse.
+// Vis altid med dansk tusind-separator + "kr" — så et tal på et rute-kort
+// aldrig kan misforstås som "antal" i stedet for "beløb".
+const fmtRouteKr = (n: number) =>
+  `${Math.round(n).toLocaleString("da-DK")} kr`;
+// Kompakt valuta til smalle månedsceller: viser stadig "kr" så betydningen
+// er entydig. "1,5k kr" / "760 kr" — ingen tvivl om at det er penge.
 const fmtRouteKrCompact = (n: number) => {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(".", ",")} mio`;
-  if (n >= 10000) return `${Math.round(n / 1000)}t`;
-  if (n >= 1000) return `${(n / 1000).toFixed(1).replace(".", ",")}t`;
-  return `${Math.round(n)}`;
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(".", ",")} mio kr`;
+  if (n >= 10_000) return `${Math.round(n / 1000)}k kr`;
+  if (n >= 1_000) return `${(n / 1000).toFixed(1).replace(".", ",")}k kr`;
+  return `${Math.round(n)} kr`;
 };
 
 export const MonthWeekCalendar = ({
@@ -472,10 +473,14 @@ type RoutePillProps = {
 const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing, compact, jobDragActive, busy, isPast }: RoutePillProps) => {
   const isVirtual = !!route.isVirtual;
   // Drag-handle: hele pillen kan trækkes til ny dato (kun rigtige ruter).
+  // Fortids-ruter og projicerede (virtuelle) ruter kan ALDRIG flyttes —
+  // det giver ingen mening at re-planlægge noget der allerede er kørt,
+  // og en projektion ER ikke en rigtig rute (den lever af basisruten).
+  const dragLocked = isVirtual || !!busy || !!isPast;
   const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({
     id: `route:${route.id}`,
     data: { type: "route", route },
-    disabled: isVirtual || !!busy,
+    disabled: dragLocked,
   });
 
   // Drop-zone: aftaler kan slippes på pillen for at blive tilføjet til ruten.
@@ -533,7 +538,13 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
           ? { boxShadow: `0 0 0 1px ${route.color}40, 0 1px 3px ${route.color}20` }
           : {}),
       }}
-      title={isVirtual ? "Projiceret rute — klik åbner basisruten; flytning kræver eksplicit træk af en rigtig rute" : undefined}
+      title={
+        isVirtual
+          ? "Projiceret rute — klik åbner basisruten; flytning kræver eksplicit træk af en rigtig rute"
+          : isPast
+            ? "Tidligere rute — kan ikke flyttes"
+            : undefined
+      }
       aria-busy={busy || undefined}
     >
       {busy && (
@@ -542,11 +553,11 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
         </div>
       )}
       <div
-        {...(isVirtual ? {} : listeners)}
-        {...(isVirtual ? {} : attributes)}
+        {...(dragLocked ? {} : listeners)}
+        {...(dragLocked ? {} : attributes)}
         className={cn(
           "px-2 py-1 flex items-center justify-between gap-1",
-          isVirtual ? "cursor-pointer" : "cursor-grab active:cursor-grabbing",
+          dragLocked ? "cursor-pointer" : "cursor-grab active:cursor-grabbing",
         )}
       >
         <div className="min-w-0 flex-1">
@@ -556,19 +567,30 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
           </div>
           <div
             className={cn(
-              "mt-0.5 flex items-center gap-x-1.5 text-[9px] text-muted-foreground tabular-nums sm:text-[10px] overflow-hidden",
+              "mt-0.5 flex items-center gap-x-2 text-[10px] text-muted-foreground tabular-nums overflow-hidden",
               compact ? "flex-nowrap whitespace-nowrap" : "flex-wrap gap-y-0.5",
             )}
           >
-            {stopCount > 0 && <span className="inline-flex items-center gap-0.5 shrink-0"><MapPin className="h-2.5 w-2.5" />{stopCount}</span>}
-            {completedCount > 0 && <span className="text-emerald-600 shrink-0">{completedCount}✓</span>}
-            {travelMin > 0 && (!compact || revenue <= 0) && (
-              <span className="inline-flex items-center gap-0.5 shrink-0"><Clock className="h-2.5 w-2.5" />{fmtRouteMin(travelMin)}</span>
+            {stopCount > 0 && (
+              <span className="inline-flex items-center gap-0.5 shrink-0">
+                <MapPin className="h-2.5 w-2.5" />
+                <span>
+                  {completedCount > 0 && (
+                    <span className="text-emerald-600 font-semibold">{completedCount}/</span>
+                  )}
+                  {stopCount} {stopCount === 1 ? "stop" : "stop"}
+                </span>
+              </span>
             )}
             {revenue > 0 && (
-              <span className="inline-flex items-center gap-0.5 shrink-0">
+              <span className="inline-flex items-center gap-0.5 shrink-0 font-semibold text-foreground/80">
                 <Wallet className="h-2.5 w-2.5 shrink-0" />
                 {compact ? fmtRouteKrCompact(revenue) : fmtRouteKr(revenue)}
+              </span>
+            )}
+            {travelMin > 0 && !compact && (
+              <span className="inline-flex items-center gap-0.5 shrink-0">
+                <Clock className="h-2.5 w-2.5" />{fmtRouteMin(travelMin)}
               </span>
             )}
           </div>

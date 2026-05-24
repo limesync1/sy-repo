@@ -2256,7 +2256,10 @@ const AftaleTab = ({
                     <div className="px-3 py-3 space-y-3">
                     {/* ── 1) Handling — beslutninger og status der kræver opmærksomhed ── */}
                     {!isResponding && (
-                      <NextStepCard order={order as any} />
+                      <NextStepCard
+                        order={order as any}
+                        hasAccountingIntegration={!!activeAccountingIntegration}
+                      />
                     )}
                     {!isResponding && <ProposalStatusBanner order={order} />}
                     {order.business_message && !isResponding && (
