@@ -35,7 +35,11 @@ const KEYWORD_FALLBACK: Array<[RegExp, string]> = [
   [/facade|graffiti|murværk|sand.?blæs|filt/i, facadeCleaning],
   [/tag.?rens|alge|imprægn|tagrend/i, roofAlgae],
   [/vindue|rude|karm|rentvand|pure.?water|ovenlys|glas.?tag|glas.?facade|vinter.?have/i, windowCleaning],
-  [/rengøring|rens$/i, cleaning],
+  // Bred rengørings-fallback (mest specifikke matches står over). Rammer fx
+  // "Hovedrengøring af villa", "Flytterengøring", "Privat rengøring",
+  // "Erhvervsrens" osv. så servicen får cleaning-ikonet selv hvis brugeren
+  // ikke har sat en kategori.
+  [/rengøring|rens\b|rens$|polering|støvsug|gulvvask/i, cleaning],
 ];
 
 export const INDUSTRY_PLACEHOLDER_ICON = placeholder;
@@ -43,14 +47,19 @@ export const INDUSTRY_PLACEHOLDER_ICON = placeholder;
 /**
  * Returnér SVG-asset URL for en branche. Falder tilbage til en neutral
  * placeholder så alle brancher får et illustrativt ikon.
+ *
+ * Søger keyword-match i kategori + underkategori + navn, så vi også
+ * kan ramme rigtigt når kun servicens navn er kendt (fx
+ * "Hovedrengøring af villa" → cleaning-ikon).
  */
 export function getIndustryIconAsset(
   category?: string | null,
   subcategory?: string | null,
+  name?: string | null,
 ): string {
   if (category && INDUSTRY_ASSETS[category]) return INDUSTRY_ASSETS[category];
 
-  const haystack = `${subcategory ?? ""} ${category ?? ""}`.trim();
+  const haystack = `${name ?? ""} ${subcategory ?? ""} ${category ?? ""}`.trim();
   if (haystack) {
     for (const [re, asset] of KEYWORD_FALLBACK) {
       if (re.test(haystack)) return asset;
