@@ -456,9 +456,21 @@ export const StopDetailsContent = ({
               Markér som udført
             </Button>
           ) : (
-            <Button onClick={onUndo} variant="outline" className="w-full h-12 rounded-lg">
-              Fortryd udført
-            </Button>
+            <div className="space-y-2">
+              {canResendInvoice && (
+                <Button
+                  onClick={handleResendInvoice}
+                  disabled={resending}
+                  className="w-full gap-2 h-11 rounded-lg bg-foreground text-background hover:bg-foreground/90"
+                >
+                  {resending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  Gensend faktura til kunden
+                </Button>
+              )}
+              <Button onClick={onUndo} variant="outline" className="w-full h-11 rounded-lg">
+                Fortryd udført
+              </Button>
+            </div>
           )}
         </div>
       )}
