@@ -2196,7 +2196,7 @@ const Planner = () => {
   const handleOptimize = async (routeId: string, routeName: string | null) => {
     setOptimizingRouteId(routeId);
     const label = routeName || "Rute";
-    try {
+    const runner = (async () => {
       const result = await optimizeRoute.mutateAsync(routeId);
       const savedKm = Math.max(
         0,
@@ -2206,19 +2206,29 @@ const Planner = () => {
         0,
         (result as any).saved_minutes ?? (((result as any).before_minutes ?? result.total_minutes) - result.total_minutes),
       );
-      const negligible = savedKm < 0.05 && savedMin < 1;
-      if (!negligible) {
-        const parts: string[] = [];
-        if (savedKm >= 0.05) parts.push(`${savedKm.toFixed(1)} km`);
-        if (savedMin >= 1) parts.push(`${Math.round(savedMin)} min`);
-        toast.success(`${label}: sparet ${parts.join(" · ")}`);
-      } else if ((result as any).order_changed) {
-        toast.success(`${label}: rækkefølgen er optimeret`);
-      } else {
-        toast.info(`${label}: ingen bedre rækkefølge fundet`);
-      }
-    } catch { /* error toast handled in hook */ }
-    finally { setOptimizingRouteId(null); }
+      return {
+        savedKm,
+        savedMin,
+        orderChanged: !!(result as any).order_changed,
+        meaningful: savedKm >= 0.05 || savedMin >= 1,
+      };
+    })();
+    toast.promise(runner, {
+      loading: `${label}: optimerer rækkefølgen…`,
+      success: ({ savedKm, savedMin, orderChanged, meaningful }) => {
+        if (meaningful) {
+          const parts: string[] = [];
+          if (savedKm >= 0.05) parts.push(`${savedKm.toFixed(1)} km`);
+          if (savedMin >= 1) parts.push(`${Math.round(savedMin)} min`);
+          return `${label}: sparet ${parts.join(" · ")}`;
+        }
+        if (orderChanged) return `${label}: rækkefølgen er opdateret`;
+        return `${label}: allerede den bedste rækkefølge`;
+      },
+      error: (e: any) => `${label}: ${e?.message || "kunne ikke optimere"}`,
+    });
+    try { await runner; } catch { /* */ }
+    setOptimizingRouteId(null);
   };
 
   const handleCreateRoute = async () => {
