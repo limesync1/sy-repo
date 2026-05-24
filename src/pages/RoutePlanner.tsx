@@ -79,6 +79,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { invalidateRouteSyncQueries } from "@/hooks/useRoutes";
 import { cn } from "@/lib/utils";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
+import { Monitor } from "lucide-react";
 import { usePersistentState } from "@/hooks/usePersistentState";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
@@ -1410,6 +1411,25 @@ const Planner = () => {
           <Button asChild><Link to="/virksomhed">Gå til virksomhedspanel</Link></Button>
         </Card>
       </div>
+    );
+  }
+
+  if (isCompactRouteLayout) {
+    return (
+      <AdminShell business={business} activeTab="routes">
+        <div className="flex min-h-[60vh] items-center justify-center p-6">
+          <Card className="max-w-md p-8 text-center">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-secondary">
+              <Monitor className="h-7 w-7 text-foreground" />
+            </div>
+            <h2 className="mb-2 text-xl font-semibold">Kun tilgængelig på computer</h2>
+            <p className="text-muted-foreground">
+              Ruteplanlæggeren kræver en større skærm for at fungere godt. Åbn siden på en
+              computer eller bærbar for at planlægge ruter.
+            </p>
+          </Card>
+        </div>
+      </AdminShell>
     );
   }
 
