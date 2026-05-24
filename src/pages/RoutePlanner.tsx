@@ -1271,6 +1271,7 @@ const Planner = () => {
       setEditingRoute(baseRoute);
       await qc.invalidateQueries({ queryKey: ["route-planner-events"] });
     } catch (err: any) {
+      setEditingProjectedContext(null);
       toast.error(err.message || "Basisruten kunne ikke åbnes");
       await logRoutePlannerEvent({
         businessId,
@@ -3542,7 +3543,10 @@ const Planner = () => {
           const projectionActive = !!(
             editingProjectedContext
             && activeEditingRoute
-            && editingProjectedContext.baseRouteId === activeEditingRoute.id
+            && (
+              editingProjectedContext.baseRouteId === activeEditingRoute.id
+              || editingProjectedContext.baseRouteId === (activeEditingRoute as any).base_route_id
+            )
           );
           // Når projektion er aktiv bruger vi basis-rutens stops fra
           // `recurringBaseRoutes` (som har `agreement_occurrences` joined ind),
