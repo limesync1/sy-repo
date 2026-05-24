@@ -463,7 +463,7 @@ const EmployeeApp = () => {
                   asChild={!!Cta.to}
                   onClick={Cta.onClick}
                   size="lg"
-                  className="h-11 w-full shrink-0 gap-2 rounded-lg bg-foreground px-5 text-sm font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] sm:w-auto"
+                  className="h-10 sm:h-11 w-full shrink-0 gap-2 rounded-lg bg-foreground px-4 sm:px-5 text-sm font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 hover:text-background focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] sm:w-auto"
                 >
                   {Cta.to ? (
                     <Link to={Cta.to}>
