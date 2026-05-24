@@ -19,6 +19,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import ImageUpload from "@/components/business/ImageUpload";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -150,6 +154,11 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
   const [showForm, setShowForm] = useState(false);
   const [filterCategory, setFilterCategory] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
+  // Bekræftelses-dialog før sletning af service — undgår utilsigtet tab af data.
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const pendingDeleteService = pendingDeleteId
+    ? (services || []).find((s: any) => s.id === pendingDeleteId)
+    : null;
 
   // Hent regnskabsintegration + vare-links én gang, så hver række kan vise
   // vare-nr og kundegruppe/indtægtskonto uden N+1 kald.
@@ -364,7 +373,7 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
             orderCount={orderCountByService[s.id] || 0}
             accountingMeta={accountingMeta}
             onEdit={() => setEditingId(s.id)}
-            onDelete={() => deleteService.mutate(s.id)}
+            onDelete={() => setPendingDeleteId(s.id)}
           />
         ))}
         <PaginationFooter
@@ -387,6 +396,31 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
           />
         )}
       </div>
+
+      <AlertDialog open={!!pendingDeleteId} onOpenChange={(o) => { if (!o) setPendingDeleteId(null); }}>
+        <AlertDialogContent className="rounded-xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Slet service?</AlertDialogTitle>
+            <AlertDialogDescription className="leading-relaxed">
+              Er du sikker på, at du vil slette
+              {pendingDeleteService ? <> servicen <strong>“{pendingDeleteService.name}”</strong></> : " denne service"}?
+              Handlingen kan ikke fortrydes.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="h-9 rounded-lg text-sm font-medium">Annullér</AlertDialogCancel>
+            <AlertDialogAction
+              className="h-9 rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 text-sm font-medium"
+              onClick={() => {
+                if (pendingDeleteId) deleteService.mutate(pendingDeleteId);
+                setPendingDeleteId(null);
+              }}
+            >
+              Ja, slet servicen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
