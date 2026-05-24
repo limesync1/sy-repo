@@ -1403,9 +1403,20 @@ const Planner = () => {
     return <ShellSkeleton />;
   }
 
+  if (!business) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Card className="p-6 text-center">
+          <p className="mb-4">Du skal oprette en virksomhed først.</p>
+          <Button asChild><Link to="/virksomhed">Gå til virksomhedspanel</Link></Button>
+        </Card>
+      </div>
+    );
+  }
+
   if (isCompactRouteLayout) {
     return (
-      <AdminShell activeTab="routes">
+      <AdminShell business={business} activeTab="routes">
         <div className="flex min-h-[60vh] items-center justify-center p-6">
           <Card className="max-w-md p-8 text-center">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-secondary">
@@ -1419,17 +1430,6 @@ const Planner = () => {
           </Card>
         </div>
       </AdminShell>
-    );
-  }
-
-  if (!business) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Card className="p-6 text-center">
-          <p className="mb-4">Du skal oprette en virksomhed først.</p>
-          <Button asChild><Link to="/virksomhed">Gå til virksomhedspanel</Link></Button>
-        </Card>
-      </div>
     );
   }
 
