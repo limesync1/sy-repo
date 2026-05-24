@@ -32,87 +32,87 @@ export const getCategoryIcon = (category?: string | null): string => {
  * keywords skal stå før mere generelle.
  */
 const SUBCATEGORY_KEYWORD_ICONS: Array<[RegExp, string]> = [
-  // ─── Rengøring-varianter ───
-  // Rækkefølge: mere specifikke matches FØR de brede ("aflevering"/"slut"
-  // skal vinde over "bygge"; "flytte" skal vinde over "rengøring").
-  [/aflevering|slut.?rengøring|nøgle.?aflever/i, "🔑"],
-  [/flytte.?rengøring|flytte/i, "📦"],
-  [/dødsbo/i, "🕯️"],
-  [/hovedrengøring|forår/i, "✨"],
-  [/kontor/i, "🏢"],
-  [/erhverv|butik|industri|lager|restaurant|klinik|skole/i, "🏬"],
-  [/trappe|opgang|fælles/i, "🪜"],
-  // "Bygge­rengøring under arbejde" — selve byggepladsen. Tidligere var
-  // det 🚧 (gade-spærring), hvilket gav stop-skilt-associationer.
-  [/bygge.?rengøring|bygge.*under arbejde/i, "🏗️"],
-  [/bygge/i, "🏗️"],
-  [/special|brand|vand|hoarder|desinfic/i, "🧴"],
-  [/tæppe|polstring|møbel/i, "🛋️"],
-  [/måtte|gardin/i, "🪟"],
-  [/privat.*rengøring|hjemme|ugentlig|14-?dag|månedlig|engang/i, "🏠"],
-  // Generel rengørings-fallback når intet andet matcher — bedre end "🧰".
-  [/rengøring|rens$/i, "🧽"],
+  // ─────────────────────────────────────────────────────────────
+  // VIGTIGT: Mest specifikke matches ØVERST. Brede keywords som
+  // "vand", "bad", "tag" skal stå sidst og være afgrænsede (\b),
+  // så fx "rentvandsanlæg" ikke rammer en "vand"-regel beregnet
+  // til VVS. Første match vinder.
+  // ─────────────────────────────────────────────────────────────
 
-  // Vinduer & facader
-  [/vindue|rude|karm/i, "🪟"],
-  [/glas|ovenlys|vinter.*have/i, "🪟"],
-  [/facade|graffiti/i, "🧱"],
+  // ─── Vinduer, glas, facader (skal stå før rengøring/vand) ───
+  [/vindue|rude|karm|rentvand|pure.?water/i, "🪟"],
+  [/ovenlys|vinter.?have|glas(facade|tag)?/i, "🪟"],
   [/solcelle/i, "☀️"],
-  [/tagrend/i, "💦"],
-  [/tagrens|tag.*rens|alge/i, "🪣"],
-  [/imprægn/i, "🛡️"],
+  [/graffiti/i, "🎨"],
+  [/facade|murværk|sokkel|filt|sand.?blæs/i, "🧱"],
   [/flise|belægning|granit|natursten|fuge|indkørsel/i, "🧱"],
 
-  // Skadedyr
-  [/skadedyr|insekt|hveps|myre|væg.*lus|sølvfisk|kakerlak|møl/i, "🐜"],
-  [/rotte|muse|gnaver|mår/i, "🐭"],
+  // ─── Tag (rens, render, reparation) ───
+  [/tagrens|tag.?rens|alge.?fjern|alge.?behandl/i, "🪣"],
+  [/tagrend/i, "💦"],
+  [/imprægn/i, "🛡️"],
+  [/tag.?arbejde|tagsten|under.?tag|nyt tag|tag.?reparation/i, "🏠"],
+  [/skorsten|fejning|\bsod\b|brænde.?ovn|pille.?ovn|røg.?rør/i, "🏚️"],
+
+  // ─── Rengøring-varianter (specifikke før brede) ───
+  [/aflevering|slut.?rengøring|nøgle.?aflever/i, "🔑"],
+  [/dødsbo/i, "🕯️"],
+  [/hovedrengøring|forår.?rengøring/i, "✨"],
+  [/kontor.?rengøring/i, "🏢"],
+  [/erhverv|butik|industri|lager|restaurant|klinik|skole/i, "🏬"],
+  [/trappe|opgang|fælles.?areal/i, "🪜"],
+  [/bygge.?rengøring|bygge.*under arbejde/i, "🏗️"],
+  [/desinfic|smitte|covid|virus/i, "🧴"],
+  [/brand.?skade|vand.?skade|hoarder|special.?rengøring/i, "🧴"],
+  [/tæppe.?rens|polstring|møbel.?rens/i, "🛋️"],
+  [/måtte.?rens|gardin.?rens/i, "🧺"],
+  [/privat.*rengøring|hjemme.?rengøring|ugentlig.?rengøring|14.?dag|månedlig.?rengøring|engangs.?rengøring/i, "🏠"],
+  [/rengøring|rens$/i, "🧽"],
+
+  // ─── Skadedyr ───
+  [/skadedyr|insekt|hveps|myre|væg.?lus|sølvfisk|kakerlak|møl\b/i, "🐜"],
+  [/rotte|muse|gnaver|\bmår\b/i, "🐭"],
   [/fugl|due/i, "🕊️"],
-  [/borebille|hus.*bukke|råd.*svamp|træ.*skadedyr/i, "🪵"],
+  [/borebille|hus.?bukke|råd.?svamp|træ.?skadedyr/i, "🪵"],
 
-  // Skorsten
-  [/skorsten|fejning|sod|brænde.*ovn|pille.*ovn|røg.*rør/i, "🏚️"],
-
-  // Have
+  // ─── Have ───
   [/græs|plæne|topdress|vertikal/i, "🌱"],
   [/hæk|busk/i, "🌳"],
-  [/beskæring|frugt.*træ|krone|stamme/i, "✂️"],
-  [/træ.?fældning|stub|top.*kapning|sektions/i, "🪓"],
-  [/lugning|oprydning|haveaffald/i, "🧹"],
-  [/anlæg|bede|beplantning|drivhus|have.*projekt/i, "🌷"],
-  [/sne|salt|glat|vinter/i, "❄️"],
-  [/løv/i, "🍂"],
-  [/dam|bassin|vand.*anlæg|vandings/i, "💧"],
+  [/beskæring|frugt.?træ|krone|stamme/i, "✂️"],
+  [/træ.?fældning|stub|top.?kapning|sektions/i, "🪓"],
+  [/lugning|oprydning|haveaffald|løv/i, "🍂"],
+  [/anlæg|bede|beplantning|drivhus|have.?projekt/i, "🌷"],
+  [/sne|salt|glat.?før|vinter.?service/i, "❄️"],
+  [/dam|bassin|vandings/i, "💧"],
   [/gravsted/i, "🪦"],
-  [/jord|drænarbejde|terræn|afgravning/i, "🚜"],
+  [/jord.?arbejde|drænarbejde|terræn|afgravning/i, "🚜"],
   [/hegn|læhegn|pergola/i, "🪧"],
 
-  // Tømrer / Murer / Maler / Bad
-  [/tag.*arbejde|tagsten|under.*tag|nyt tag|tag.*reparation/i, "🏠"],
+  // ─── Bygge / Tømrer / Murer / Maler / Bad ───
   [/tilbygning|udestue|carport|altan|skur/i, "🏗️"],
-  [/dør|vindue.*montering|termo/i, "🚪"],
-  [/snedker|skab|køkken.*montering|trappe.*renov/i, "🪚"],
+  [/snedker|skab|køkken.?montering|trappe.?renov/i, "🪚"],
+  [/dør.?montering|dør.?udskift|termo.?rude|vindue.?montering/i, "🚪"],
   [/terrasse|trædæk|komposit/i, "🪵"],
-  [/spær|bjælke|reparation/i, "🔧"],
-  [/murværk|sokkel|pudsning|filt|sand.*blæs/i, "🧱"],
-  [/bade.*værelse|vådrum/i, "🛁"],
-  [/maling|tapet|fiber|glas.*væv|spartling/i, "🎨"],
+  [/bade.?værelse|vådrum/i, "🛁"],
+  [/maling|tapet|fiber.?væv|glas.?væv|spartling/i, "🎨"],
+  [/spær|bjælke/i, "🔧"],
 
-  // VVS
-  [/vvs|vand|afløb|kloak|toilet|bad|brus|blander/i, "💧"],
+  // ─── VVS ───
+  [/vvs|afløb|kloak|toilet|bruser|blander|vandhane|vandrør|rørarbejde/i, "🚰"],
   [/varme|radiator|gulvvarme|fjernvarme|varmepumpe/i, "♨️"],
 
-  // El
-  [/el(ek)?triker|el.*installation|stik|sikring|gruppetavle/i, "⚡"],
-  [/lade.*standar|elbil/i, "🔌"],
-  [/belysning|lampe|spot/i, "💡"],
+  // ─── El ───
+  [/el(ek)?triker|el.?installation|stikkontakt|sikring|gruppetavle/i, "⚡"],
+  [/lade.?stander|elbil/i, "🔌"],
+  [/belysning|lampe|\bspot\b/i, "💡"],
   [/alarm|kamera|overvågning/i, "📹"],
 
-  // Flytte
+  // ─── Flytte ───
   [/flytte|transport|opmagasin/i, "📦"],
 
-  // Sikkerhed
-  [/lås|nøgle|adgang/i, "🔑"],
-  [/brand|røgalarm/i, "🔥"],
+  // ─── Sikkerhed / Lås ───
+  [/lås|nøgle.?service|adgangs.?kontrol/i, "🔑"],
+  [/brand.?alarm|røgalarm/i, "🔥"],
 ];
 
 /**
