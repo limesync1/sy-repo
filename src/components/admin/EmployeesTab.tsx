@@ -253,34 +253,34 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
       </div>
 
       {/* Stats + filter — samme layout som Kunder/Aftaler */}
-      <div data-tour="employees-stats" className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
-        <div className="grid gap-3 sm:grid-cols-3">
-          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-            <CardContent className="p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Medarbejdere i alt</p>
-              <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{all.length}</p>
+      <div data-tour="employees-stats" className="grid gap-2.5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+        <div className="grid gap-2.5 sm:grid-cols-3">
+          <Card className="surface-admin rounded-lg border-border/80 shadow-sm">
+            <CardContent className="p-2.5">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Medarbejdere i alt</p>
+              <p className="mt-0.5 text-lg font-semibold tabular-nums text-foreground leading-tight">{all.length}</p>
             </CardContent>
           </Card>
-          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-            <CardContent className="p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Aktive</p>
-              <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{activeEmployees.length}</p>
+          <Card className="surface-admin rounded-lg border-border/80 shadow-sm">
+            <CardContent className="p-2.5">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Aktive</p>
+              <p className="mt-0.5 text-lg font-semibold tabular-nums text-foreground leading-tight">{activeEmployees.length}</p>
             </CardContent>
           </Card>
-          <Card className="surface-admin rounded-xl border-border/80 shadow-sm">
-            <CardContent className="p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <Card className="surface-admin rounded-lg border-border/80 shadow-sm">
+            <CardContent className="p-2.5">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                 Udbetalt provision · {RANGE_LABELS[earnRange]}
               </p>
-              <p className="mt-1 flex items-center gap-1.5 text-2xl font-semibold tabular-nums text-foreground">
-                <Wallet className="h-5 w-5 text-muted-foreground" />
+              <p className="mt-0.5 flex items-center gap-1 text-lg font-semibold tabular-nums text-foreground leading-tight">
+                <Wallet className="h-4 w-4 text-muted-foreground" />
                 {formatKr(
                   earningsMap
                     ? Array.from(earningsMap.values()).reduce((s, e) => s + e.earnings, 0)
                     : 0,
                 )}
               </p>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">Beregnet ekskl. moms</p>
+              <p className="mt-0.5 text-[10px] text-muted-foreground">Ekskl. moms</p>
             </CardContent>
           </Card>
         </div>
