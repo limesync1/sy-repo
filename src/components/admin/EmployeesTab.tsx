@@ -618,35 +618,97 @@ const EmployeeRow = ({
     >
         {/* Navn + kontakt + farve-styring (venstre kolonne) */}
         <div className="flex items-center gap-3 min-w-0">
-          {/* Avatar / farve-prik med hover-overlay til upload */}
-          <div className="relative h-10 w-10 shrink-0 group/avatar">
-            {employee.avatar_url ? (
-              <img
-                src={employee.avatar_url}
-                alt={employee.name}
-                className="h-10 w-10 rounded-full object-cover border"
-               loading="lazy" decoding="async"/>
-            ) : (
-              <div
-                className="h-10 w-10 rounded-full border"
-                style={{ background: fallbackColor }}
-                aria-label={`Farve for ${employee.name}`}
-              />
-            )}
-            <label
-              className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/60 text-background text-[9px] font-semibold opacity-0 group-hover/avatar:opacity-100 cursor-pointer transition-opacity"
-              title="Skift profilbillede"
+          {/* Avatar — klik åbner popover med billede + farve i ét.
+              Tidligere lå "Skift farve" og "Fjern billede" som inline-tekstlinks
+              under navnet og skabte støj. Nu er alt billede/farve samlet bag
+              avataren, så rækken kan koncentrere sig om identitet + kontakt. */}
+          <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                aria-label="Skift billede eller farve"
+                title="Skift billede eller farve"
+                className="relative h-10 w-10 shrink-0 rounded-full ring-offset-background transition-shadow hover:ring-2 hover:ring-foreground/20 hover:ring-offset-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-2"
+              >
+                {employee.avatar_url ? (
+                  <img
+                    src={employee.avatar_url}
+                    alt={employee.name}
+                    className="h-10 w-10 rounded-full object-cover border"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ) : (
+                  <span
+                    className="block h-10 w-10 rounded-full border"
+                    style={{ background: fallbackColor }}
+                    aria-label={`Farve for ${employee.name}`}
+                  />
+                )}
+                <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border border-background bg-card text-muted-foreground shadow-sm">
+                  <Pencil className="h-2.5 w-2.5" />
+                </span>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent
+              align="start"
+              side="bottom"
+              className="w-72 p-3 space-y-3"
+              onOpenAutoFocus={(e) => e.preventDefault()}
             >
-              {uploading ? "..." : "Skift"}
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleAvatarUpload}
-                disabled={uploading}
-              />
-            </label>
-          </div>
+              <div>
+                <p className="text-xs font-semibold text-foreground">Profilbillede</p>
+                <div className="mt-1.5 flex items-center gap-2">
+                  <label className="inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-md border border-border bg-card px-2.5 text-[11px] font-medium text-foreground hover:bg-secondary">
+                    {uploading ? "Uploader…" : (employee.avatar_url ? "Skift billede" : "Upload billede")}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleAvatarUpload}
+                      disabled={uploading}
+                    />
+                  </label>
+                  {employee.avatar_url && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveAvatar}
+                      className="text-[11px] text-muted-foreground hover:text-destructive underline-offset-2 hover:underline"
+                    >
+                      Fjern
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div>
+                <div className="mb-1.5 flex items-center justify-between">
+                  <p className="text-xs font-semibold text-foreground">Farve</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {ROUTE_COLORS.find((c) => c.value === fallbackColor)?.name || "Brugerdefineret"}
+                  </p>
+                </div>
+                <div className="grid grid-cols-6 gap-2">
+                  {ROUTE_COLORS.map((c) => {
+                    const selected = fallbackColor === c.value;
+                    return (
+                      <button
+                        key={c.value}
+                        type="button"
+                        onClick={() => handlePickColor(c.value)}
+                        title={c.name}
+                        aria-label={c.name}
+                        className={cn(
+                          "h-8 w-8 rounded-md border border-border/60 transition-all hover:scale-110",
+                          selected && "ring-2 ring-offset-2 ring-foreground ring-offset-background",
+                        )}
+                        style={{ background: c.value }}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <p className="text-sm font-medium text-foreground truncate">{employee.name}</p>
@@ -694,64 +756,6 @@ const EmployeeRow = ({
               <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-foreground">
                 {formatKr(earning?.earnings ?? 0)} · {rangeLabel}
               </span>
-            </div>
-            {/* Farve / billede-styring */}
-            <div className="mt-1.5 flex items-center gap-2">
-              <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    className="text-[10px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1 underline-offset-2 hover:underline"
-                  >
-                    <span
-                      className="inline-block h-2.5 w-2.5 rounded-full border"
-                      style={{ background: fallbackColor }}
-                    />
-                    Skift farve
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent
-                  align="start"
-                  side="bottom"
-                  className="w-72 p-3"
-                  onOpenAutoFocus={(e) => e.preventDefault()}
-                >
-                  <div className="mb-2 flex items-center justify-between">
-                    <p className="text-xs font-semibold text-foreground">Vælg farve</p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {ROUTE_COLORS.find((c) => c.value === fallbackColor)?.name || "Brugerdefineret"}
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-6 gap-2">
-                    {ROUTE_COLORS.map((c) => {
-                      const selected = fallbackColor === c.value;
-                      return (
-                        <button
-                          key={c.value}
-                          type="button"
-                          onClick={() => handlePickColor(c.value)}
-                          title={c.name}
-                          aria-label={c.name}
-                          className={cn(
-                            "h-8 w-8 rounded-md border border-border/60 transition-all hover:scale-110",
-                            selected && "ring-2 ring-offset-2 ring-foreground ring-offset-background",
-                          )}
-                          style={{ background: c.value }}
-                        />
-                      );
-                    })}
-                  </div>
-                </PopoverContent>
-              </Popover>
-              {employee.avatar_url && (
-                <button
-                  type="button"
-                  onClick={handleRemoveAvatar}
-                  className="text-[10px] text-muted-foreground hover:text-destructive underline-offset-2 hover:underline"
-                >
-                  Fjern billede
-                </button>
-              )}
             </div>
           </div>
         </div>
