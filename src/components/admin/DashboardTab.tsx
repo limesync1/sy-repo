@@ -784,6 +784,192 @@ const SmartStatCard = ({
 
 /* ─────────────────────────────────────────────────────────────────────── */
 
+/** FinanceOverviewCard — samlet finans-overblik. Erstatter de gamle
+ *  "Omsætning"-stat-kort. Viser i én visuelt klar enhed:
+ *   • Faktureret (alt der er bestilt og ikke annulleret)
+ *   • Betalt (med procent og antal)
+ *   • Udestående (med antal forfaldne)
+ *   • Udført vs ikke-udført
+ *   • Til medarbejdere (hvad de skal have udbetalt for udførte aftaler)
+ *  Brugeren kan toggle mellem 7-dage og 30-dage. */
+type FinancePeriod = {
+  billed: number; paid: number; paidCount: number;
+  outstanding: number; outstandingCount: number;
+  overdue: number; overdueCount: number;
+  completedSum: number; completedCount: number;
+  notCompletedSum: number; notCompletedCount: number;
+  totalCount: number;
+  cancelled: number; cancelledCount: number;
+  employeePayout: number; employeeCount: number;
+};
+
+const FinanceOverviewCard = ({
+  finance, revTrend, ordTrend, sparkline, onOpenRevenue, onOpenOrders, onNavigate,
+}: {
+  finance: { p7: FinancePeriod; p30: FinancePeriod };
+  revTrend: { pct: number; dir: "up" | "down" | "flat" };
+  ordTrend: { pct: number; dir: "up" | "down" | "flat" };
+  sparkline: number[];
+  onOpenRevenue: () => void;
+  onOpenOrders: () => void;
+  onNavigate?: (tab: string) => void;
+}) => {
+  const [period, setPeriod] = useState<"p7" | "p30">("p7");
+  const p = finance[period];
+  const paidPct = p.billed > 0 ? Math.round((p.paid / p.billed) * 100) : 0;
+  const completedPct = (p.completedCount + p.notCompletedCount) > 0
+    ? Math.round((p.completedCount / (p.completedCount + p.notCompletedCount)) * 100) : 0;
+  const periodLabel = period === "p7" ? "7 dage" : "30 dage";
+
+  return (
+    <Card className="surface-admin rounded-xl border-border/80 shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3 sm:px-5">
+        <div className="min-w-0">
+          <h3 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+            <Wallet className="h-4 w-4" /> Finansielt overblik
+          </h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Hvad er faktureret, betalt og udført — og hvad skal udbetales.
+          </p>
+        </div>
+        <div className="inline-flex shrink-0 items-center rounded-lg border border-border bg-card p-0.5 text-[11px] font-medium">
+          {(["p7", "p30"] as const).map((k) => (
+            <button
+              key={k}
+              type="button"
+              onClick={() => setPeriod(k)}
+              className={cn(
+                "rounded-md px-2.5 py-1 transition-colors",
+                period === k ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {k === "p7" ? "7 dage" : "30 dage"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-px bg-border sm:grid-cols-2">
+        {/* Faktureret */}
+        <button
+          type="button"
+          onClick={onOpenRevenue}
+          className="group bg-card p-4 text-left transition-colors hover:bg-secondary/40 sm:p-5"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Faktureret · {periodLabel}
+            </p>
+            <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+          </div>
+          <p className="mt-2 text-xl font-semibold tabular-nums text-foreground sm:text-2xl">{fmtKr(p.billed)}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {p.totalCount} {p.totalCount === 1 ? "aftale" : "aftaler"}
+            {p.cancelled > 0 && <> · {fmtKrShort(p.cancelled)} kr annulleret</>}
+          </p>
+        </button>
+
+        {/* Betalt */}
+        <button
+          type="button"
+          onClick={onOpenRevenue}
+          className="group bg-card p-4 text-left transition-colors hover:bg-secondary/40 sm:p-5"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Betalt · {periodLabel}
+            </p>
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+          </div>
+          <div className="mt-2 flex items-baseline gap-2">
+            <p className="text-xl font-semibold tabular-nums text-foreground sm:text-2xl">{fmtKr(p.paid)}</p>
+            <span className="text-xs font-semibold tabular-nums text-emerald-700">{paidPct}%</span>
+          </div>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary">
+            <div className="h-full bg-emerald-500" style={{ width: `${paidPct}%` }} />
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            {p.paidCount} af {p.totalCount} aftaler betalt
+          </p>
+        </button>
+
+        {/* Udestående / forfaldent */}
+        <button
+          type="button"
+          onClick={() => onNavigate?.("orders")}
+          className="group bg-card p-4 text-left transition-colors hover:bg-secondary/40 sm:p-5"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Udestående
+            </p>
+            {p.overdue > 0
+              ? <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
+              : <ReceiptText className="h-3.5 w-3.5 text-muted-foreground" />}
+          </div>
+          <p className="mt-2 text-xl font-semibold tabular-nums text-foreground sm:text-2xl">{fmtKr(p.outstanding)}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {p.outstandingCount} {p.outstandingCount === 1 ? "aftale mangler betaling" : "aftaler mangler betaling"}
+            {p.overdue > 0 && (
+              <> · <span className="font-medium text-amber-700">{fmtKrShort(p.overdue)} kr forfaldent</span></>
+            )}
+          </p>
+        </button>
+
+        {/* Udført */}
+        <button
+          type="button"
+          onClick={() => onNavigate?.("orders")}
+          className="group bg-card p-4 text-left transition-colors hover:bg-secondary/40 sm:p-5"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Udført · {periodLabel}
+            </p>
+            <Handshake className="h-3.5 w-3.5 text-muted-foreground" />
+          </div>
+          <div className="mt-2 flex items-baseline gap-2">
+            <p className="text-xl font-semibold tabular-nums text-foreground sm:text-2xl">{fmtKr(p.completedSum)}</p>
+            <span className="text-xs font-semibold tabular-nums text-muted-foreground">{completedPct}%</span>
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            {p.completedCount} udført · {p.notCompletedCount} mangler ({fmtKrShort(p.notCompletedSum)} kr)
+          </p>
+        </button>
+      </div>
+
+      {/* Til medarbejdere — fremhævet bånd i bunden */}
+      <button
+        type="button"
+        onClick={() => onNavigate?.("employees")}
+        className="group flex w-full items-center justify-between gap-3 border-t border-border bg-accent/[0.05] px-4 py-3 text-left transition-colors hover:bg-accent/[0.10] sm:px-5"
+      >
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/15 text-accent">
+            <Users className="h-4 w-4" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Til udbetaling · {periodLabel}
+            </p>
+            <p className="mt-0.5 text-base font-semibold tabular-nums text-foreground sm:text-lg">
+              {fmtKr(p.employeePayout)}
+            </p>
+          </div>
+        </div>
+        <div className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
+          <span className="hidden sm:inline">
+            {p.employeeCount} {p.employeeCount === 1 ? "medarbejder" : "medarbejdere"}
+          </span>
+          <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+        </div>
+      </button>
+    </Card>
+  );
+};
+
+/* ─────────────────────────────────────────────────────────────────────── */
+
 /** OrdersListSection — seneste bestillinger med status-filter + søgning. */
 const OrdersListSection = ({
   recentOrders, servicesCount, completeness, orderFilter, setOrderFilter,
