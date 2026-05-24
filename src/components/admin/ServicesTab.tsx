@@ -34,7 +34,6 @@ import {
   industryIcon,
   stepTemplatesForIndustries,
 } from "@/lib/service-taxonomy";
-import { getSubcategoryIcon } from "@/lib/category-icons";
 
 const STEP_TEMPLATES: Record<string, { label: string; steps: Array<{ label: string; unit: string; price_per_unit: number; min_value: number; max_value: number; default_value: number }> }[]> = {
   "Rengøring": [
@@ -411,7 +410,7 @@ const ServiceRow = ({ service, orderCount, accountingMeta, onEdit, onDelete }: {
 
   const intervals = service.interval_options || [];
   const hasRecurring = intervals.some((i: string) => i !== "engangskøb");
-  const categoryIcon = getSubcategoryIcon(service.subcategory, service.service_category);
+  const categoryIcon = industryIcon(service.service_category);
   const intervalSummary = intervals.length > 0
     ? intervals.slice(0, 2).map((interval: string) => formatInterval(interval)).join(", ") + (intervals.length > 2 ? ` +${intervals.length - 2}` : "")
     : "Ikke angivet";

@@ -139,36 +139,18 @@ export const MonthWeekCalendar = ({
     return m;
   }, [routes]);
 
-  const weekdayLabels = [
-    { short: "Man", full: "Mandag", weekend: false },
-    { short: "Tir", full: "Tirsdag", weekend: false },
-    { short: "Ons", full: "Onsdag", weekend: false },
-    { short: "Tor", full: "Torsdag", weekend: false },
-    { short: "Fre", full: "Fredag", weekend: false },
-    { short: "Lør", full: "Lørdag", weekend: true },
-    { short: "Søn", full: "Søndag", weekend: true },
-  ];
+  const weekdayLabels = ["Man", "Tir", "Ons", "Tor", "Fre", "Lør", "Søn"];
 
   return (
-    <Card className="overflow-hidden flex flex-col h-full rounded-xl border-border/70 shadow-sm">
+    <Card className="overflow-hidden flex flex-col h-full">
       {/* Weekday header */}
-      <div
-        className="grid border-b border-border/60 bg-muted/30 shrink-0"
-        style={{ gridTemplateColumns: "52px repeat(7, minmax(0, 1fr))" }}
-      >
-        <div className="border-r border-border/60 py-3 text-[10px] uppercase text-muted-foreground/70 font-bold tracking-[0.15em] flex items-center justify-center">
+      <div className="grid border-b bg-secondary/30 shrink-0" style={{ gridTemplateColumns: "48px repeat(7, minmax(0, 1fr))" }}>
+        <div className="border-r p-2 text-[10px] uppercase text-muted-foreground font-semibold flex items-center justify-center">
           Uge
         </div>
         {weekdayLabels.map((wd) => (
-          <div
-            key={wd.short}
-            className={cn(
-              "py-3 px-3 text-[10px] uppercase font-bold tracking-[0.15em] border-r last:border-r-0 border-border/60",
-              wd.weekend ? "text-muted-foreground/50" : "text-muted-foreground/80",
-            )}
-          >
-            <span className="hidden sm:inline">{wd.full}</span>
-            <span className="sm:hidden">{wd.short}</span>
+          <div key={wd} className="p-2 text-[11px] uppercase text-muted-foreground font-semibold text-center border-r last:border-r-0">
+            {wd}
           </div>
         ))}
       </div>
@@ -179,11 +161,11 @@ export const MonthWeekCalendar = ({
           return (
             <div
               key={wi}
-              className="grid border-b last:border-b-0 border-border/50"
-              style={{ gridTemplateColumns: "52px repeat(7, minmax(0, 1fr))" }}
+              className="grid border-b last:border-b-0"
+              style={{ gridTemplateColumns: "48px repeat(7, minmax(0, 1fr))" }}
             >
               {/* Ugenummer */}
-              <div className="border-r border-border/50 bg-muted/20 flex items-start justify-center pt-3 text-[11px] font-bold text-muted-foreground/60 tabular-nums tracking-wider">
+              <div className="border-r bg-secondary/20 flex items-start justify-center pt-2 text-xs font-bold text-muted-foreground tabular-nums">
                 {weekNum}
               </div>
               {week.map((day) => {
@@ -286,17 +268,10 @@ const DayCellInner = ({
       ref={setNodeRef}
       data-route-drop-date={canReceiveDrop ? dateStr : undefined}
       className={cn(
-        "border-r last:border-r-0 border-border/50 relative group flex flex-col gap-1.5 p-2 transition-all duration-150",
-        compact ? "min-h-[120px]" : "min-h-[170px]",
-        // Weekend-dage får et helt let varmt grå-skær så uger visuelt
-        // "lukker" i højre side. Holdes meget subtilt — bare en skygge.
-        (date.getDay() === 0 || date.getDay() === 6) && inMonth && !isPast && "bg-muted/15",
-        !inMonth && "bg-muted/20",
-        isPast && inMonth && "bg-muted/10",
-        // Premium hover på fremtidige dage — let baggrund + cursor-pointer-følelse.
-        inMonth && !isPast && !isDragActive && "hover:bg-muted/30",
-        // I dag får en yderst diskret accent-tint i baggrunden + indvendig accent-ring.
-        today && !isDragActive && "bg-accent/[0.04] ring-1 ring-inset ring-accent/20",
+        "border-r last:border-r-0 relative group flex flex-col gap-1 p-1.5 transition-colors",
+        compact ? "min-h-[110px]" : "min-h-[160px]",
+        !inMonth && "bg-secondary/10",
+        isPast && "bg-muted/20",
         // Når en aftale/rute trækkes:
         //  - Gyldige drop-dage (i måneden, ikke fortid, ikke optaget) får
         //    en subtil accent-ring så brugeren ser hvor der KAN droppes.
@@ -337,12 +312,9 @@ const DayCellInner = ({
       <div className="flex items-center justify-between mb-0.5">
         <span
           className={cn(
-            "inline-flex items-center justify-center text-[13px] font-semibold tabular-nums transition-all",
-            today
-              ? "h-7 w-7 rounded-full bg-accent text-accent-foreground shadow-sm ring-2 ring-background"
-              : "h-7 w-7 text-foreground/80",
-            !inMonth && !today && "text-muted-foreground/40",
-            isPast && !today && "text-muted-foreground/50 font-medium",
+            "inline-flex items-center justify-center rounded-full text-xs font-semibold tabular-nums",
+            today ? "h-6 w-6 bg-accent text-accent-foreground" : "h-6 w-6 text-foreground",
+            !inMonth && !today && "text-muted-foreground/50",
           )}
         >
           {format(date, "d")}
@@ -369,7 +341,7 @@ const DayCellInner = ({
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onCreateRoute(dateStr); }}
-            className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 inline-flex items-center justify-center rounded-md border border-border/60 bg-card hover:bg-accent hover:border-accent hover:text-accent-foreground text-muted-foreground shadow-sm"
+            className="opacity-0 group-hover:opacity-100 transition-opacity h-5 w-5 inline-flex items-center justify-center rounded hover:bg-accent/10 text-muted-foreground hover:text-accent"
             aria-label="Opret rute"
             title="Opret rute denne dag"
           >
@@ -545,11 +517,11 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
       data-route-drop-date={!isVirtual && !isPast ? route.route_date : undefined}
       onClick={(e) => { e.stopPropagation(); if (!isDragging) onSelect(); }}
       className={cn(
-        "relative rounded-lg cursor-pointer transition-all overflow-hidden bg-card border border-border/70 shadow-[0_1px_2px_rgba(15,23,42,0.04)]",
-        "hover:shadow-md hover:-translate-y-[1px] hover:border-border",
+        "relative rounded-md border-l-[3px] cursor-pointer transition-all overflow-hidden bg-card hover:shadow-sm",
+        "border border-border/60",
         isDragging && "opacity-40",
-        isVirtual && "border-dashed bg-muted/30",
-        isPast && "opacity-60 saturate-[0.6] hover:opacity-90 hover:translate-y-0 shadow-none",
+        isVirtual && "border-dashed",
+        isPast && "opacity-50 saturate-50 hover:opacity-90",
         // Under drag dæmpes fortids-ruter yderligere — de er ikke gyldige
         // drop-targets (kalender-cellen er disabled), så de skal heller
         // ikke visuelt invitere til drop.
@@ -560,6 +532,8 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
         busy && "cursor-wait",
       )}
       style={{
+        borderLeftColor: route.color,
+        borderLeftWidth: 3,
         ...(!isVirtual && jobDragActive && !isOver
           ? { boxShadow: `0 0 0 1px ${route.color}40, 0 1px 3px ${route.color}20` }
           : {}),
@@ -578,49 +552,44 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
           <Loader2 className="h-3.5 w-3.5 animate-spin text-accent" />
         </div>
       )}
-      {/* Venstre farve-bar — rutens farve, tegnet som ægte accent-stripe */}
-      <div
-        aria-hidden
-        className="absolute left-0 top-0 bottom-0 w-[3px]"
-        style={{ background: route.color || "hsl(var(--accent))" }}
-      />
       <div
         {...(dragLocked ? {} : listeners)}
         {...(dragLocked ? {} : attributes)}
         className={cn(
-          "pl-2.5 pr-2 py-1.5 flex items-center justify-between gap-1.5",
+          "px-2 py-1 flex items-center justify-between gap-1",
           dragLocked ? "cursor-pointer" : "cursor-grab active:cursor-grabbing",
         )}
       >
         <div className="min-w-0 flex-1">
-          <div className="text-[11px] font-bold truncate text-foreground leading-tight flex items-center gap-1 tracking-tight">
+          <div className="text-[11px] font-semibold truncate text-foreground leading-tight flex items-center gap-1">
             {isVirtual && <Repeat className="h-2.5 w-2.5 shrink-0 text-muted-foreground" />}
             <span className="truncate">{route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}</span>
           </div>
           <div
             className={cn(
-              "mt-1 flex items-center gap-1 text-[10px] tabular-nums overflow-hidden",
-              compact ? "flex-nowrap whitespace-nowrap" : "flex-wrap gap-y-1",
+              "mt-0.5 flex items-center gap-x-2 text-[10px] text-muted-foreground tabular-nums overflow-hidden",
+              compact ? "flex-nowrap whitespace-nowrap" : "flex-wrap gap-y-0.5",
             )}
           >
             {stopCount > 0 && (
-              <span className="inline-flex items-center gap-1 shrink-0 rounded-md bg-muted/70 px-1.5 py-[1px] font-medium text-muted-foreground border border-border/40">
+              <span className="inline-flex items-center gap-0.5 shrink-0">
                 <MapPin className="h-2.5 w-2.5" />
-                <span className="leading-none">
+                <span>
                   {completedCount > 0 && (
-                    <span className="text-emerald-600 font-bold">{completedCount}/</span>
+                    <span className="text-emerald-600 font-semibold">{completedCount}/</span>
                   )}
-                  {stopCount} stop
+                  {stopCount} {stopCount === 1 ? "stop" : "stop"}
                 </span>
               </span>
             )}
             {revenue > 0 && (
-              <span className="inline-flex items-center gap-1 shrink-0 rounded-md bg-accent/10 px-1.5 py-[1px] font-bold text-accent border border-accent/20 leading-none">
+              <span className="inline-flex items-center gap-0.5 shrink-0 font-semibold text-foreground/80">
+                <Wallet className="h-2.5 w-2.5 shrink-0" />
                 {compact ? fmtRouteKrCompact(revenue) : fmtRouteKr(revenue)}
               </span>
             )}
             {travelMin > 0 && !compact && (
-              <span className="inline-flex items-center gap-0.5 shrink-0 text-muted-foreground/80 leading-none">
+              <span className="inline-flex items-center gap-0.5 shrink-0">
                 <Clock className="h-2.5 w-2.5" />{fmtRouteMin(travelMin)}
               </span>
             )}
