@@ -281,9 +281,9 @@ export const EmployeeShell = ({
       <main
         className={cn(
           "relative z-0 flex-1 min-w-0",
-          contentPadding ? "p-3 sm:p-4 md:p-6" : "",
+          contentPadding ? "p-2.5 sm:p-4 md:p-6" : "",
           // 64px bottom-nav + safe-area på mobil/tablet.
-          visibleNav.length > 1 ? "pb-[calc(72px+env(safe-area-inset-bottom))] lg:pb-0" : "",
+          visibleNav.length > 1 ? "pb-[calc(64px+env(safe-area-inset-bottom))] lg:pb-0" : "",
           contentClassName,
         )}
       >
