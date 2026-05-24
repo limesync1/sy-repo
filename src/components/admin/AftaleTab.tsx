@@ -240,6 +240,18 @@ const STATUS_CONFIG: Record<string, { label: string; icon: typeof Clock; cls: st
   cancelled:   { label: "Annulleret",    icon: XCircle,       cls: "border-destructive/30 bg-destructive/5 text-destructive/80",                                                            dot: "bg-destructive/70" },
 };
 
+/** Lille label til at gruppere sektioner inde i den foldede aftaledetalje.
+ *  En tynd linje + uppercase tekst skaber tydelig visuel rytme, så øjet
+ *  hurtigt kan se hvor "Aftalen" slutter og "Kontekst" starter. */
+const SectionLabel = ({ children }: { children: React.ReactNode }) => (
+  <div className="flex items-center gap-2 px-0.5">
+    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/80">
+      {children}
+    </span>
+    <span className="h-px flex-1 bg-border" />
+  </div>
+);
+
 const PRICING_LABELS: Record<string, string> = {
   fast_pris: "Specifik pris",
   timepris: "Timepris",
