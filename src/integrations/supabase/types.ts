@@ -3111,10 +3111,12 @@ export type Database = {
       }
       routes: {
         Row: {
+          archived_at: string | null
           base_route_id: string | null
           business_id: string
           color: string
           created_at: string
+          deleted_at: string | null
           employee_id: string | null
           id: string
           name: string | null
@@ -3135,10 +3137,12 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           base_route_id?: string | null
           business_id: string
           color?: string
           created_at?: string
+          deleted_at?: string | null
           employee_id?: string | null
           id?: string
           name?: string | null
@@ -3159,10 +3163,12 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           base_route_id?: string | null
           business_id?: string
           color?: string
           created_at?: string
+          deleted_at?: string | null
           employee_id?: string | null
           id?: string
           name?: string | null
@@ -3915,10 +3921,12 @@ export type Database = {
           _route_date: string
         }
         Returns: {
+          archived_at: string | null
           base_route_id: string | null
           business_id: string
           color: string
           created_at: string
+          deleted_at: string | null
           employee_id: string | null
           id: string
           name: string | null
@@ -4111,10 +4119,12 @@ export type Database = {
       materialize_virtual_route: {
         Args: { _base_route_id: string; _date: string }
         Returns: {
+          archived_at: string | null
           base_route_id: string | null
           business_id: string
           color: string
           created_at: string
+          deleted_at: string | null
           employee_id: string | null
           id: string
           name: string | null
@@ -4175,10 +4185,12 @@ export type Database = {
           _projected_date: string
         }
         Returns: {
+          archived_at: string | null
           base_route_id: string | null
           business_id: string
           color: string
           created_at: string
+          deleted_at: string | null
           employee_id: string | null
           id: string
           name: string | null
