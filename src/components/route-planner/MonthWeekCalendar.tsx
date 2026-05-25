@@ -11,7 +11,7 @@ import { useDroppable, useDraggable } from "@dnd-kit/core";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Plus, Users, MapPin, ArrowDown, Repeat, Clock, Wallet, Lock } from "lucide-react";
+import { Loader2, Sparkles, Plus, Users, MapPin, ArrowDown, Repeat, Clock, Wallet, Lock, GitMerge } from "lucide-react";
 import { CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { CloudOff } from "lucide-react";
 import {
@@ -563,6 +563,15 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
         !isVirtual && jobDragActive && !isOver && "ring-1 shadow-sm",
         !isVirtual && isOver && !validation && "ring-2 ring-accent shadow-md scale-[1.02]",
         !isVirtual && isOver && validation && cn(ringForSeverity(validation.severity), "shadow-md scale-[1.02]"),
+        // Når en ANDEN rute er ved at blive trukket og denne pille er et
+        // gyldigt flette-mål: vis distinkt "merge target" affordance.
+        isMergeTarget && !isOver && "ring-1 ring-accent/50 shadow-sm",
+        isMergeTarget && isOver && "ring-2 ring-accent shadow-lg scale-[1.03] bg-accent/5",
+        // Hvis denne pille selv er kilde i en rute-drag: dæmp + crosshatch-look
+        routeDragSourceId === route.id && "opacity-50",
+        // Hvis denne pille IKKE er et gyldigt flette-mål under route-drag (fx projiceret/fortid),
+        // dæmp den så brugeren ikke prøver at slippe.
+        routeDragSourceId && !isMergeTarget && routeDragSourceId !== route.id && "opacity-40 pointer-events-none",
         busy && "cursor-wait",
       )}
       style={{
