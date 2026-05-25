@@ -66,6 +66,7 @@ import { RouteStopsPanel } from "@/components/route-planner/RouteStopsPanel";
 import { MoveRouteDateDialog, type MoveRouteScope } from "@/components/route-planner/MoveRouteDateDialog";
 import { MergeRoutesDialog } from "@/components/route-planner/MergeRoutesDialog";
 import { DeleteRouteDialog } from "@/components/route-planner/DeleteRouteDialog";
+import { DiagnosticsDialog } from "@/components/route-planner/DiagnosticsDialog";
 import { supabase } from "@/integrations/supabase/client";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
 import { renameFreshSplitRoutes } from "@/components/route-planner/MoveStopsDialog";
