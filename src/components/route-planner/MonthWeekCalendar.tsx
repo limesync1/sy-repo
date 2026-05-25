@@ -272,7 +272,14 @@ const DayCellInner = ({
     if (validation?.topMessage) return validation.topMessage;
     if (draggingType === "job") return emptyDay ? "Opret ny rute" : "Tilføj til rute";
     if (draggingType === "stop") return "Flyt stop hertil";
-    if (draggingType === "route") return "Flyt rute hertil";
+    if (draggingType === "route") {
+      // Hvis dagen allerede har en anden rute (som ikke er kilden), så er
+      // dagscellen IKKE et merge-mål — den lægger ruten som en ekstra rute
+      // ved siden af. Gør forskellen helt eksplicit for brugeren.
+      const hasOtherRoute = routes.some((r) => !r.isVirtual && r.id !== draggingRouteId);
+      if (hasOtherRoute) return "Læg som ekstra rute (slip på rute-pille for at flette)";
+      return "Flyt rute hertil";
+    }
     return null;
   })();
 
@@ -629,10 +636,11 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
       {/* Diskret merge-affordance når rute-drag er aktivt men endnu ikke over pillen */}
       {isMergeTarget && !isOver && (
         <div
-          className="absolute top-1 right-1 z-20 pointer-events-none rounded-full bg-accent/15 text-accent p-0.5 animate-in fade-in duration-150"
-          aria-hidden
+          className="absolute top-1 right-1 z-20 pointer-events-none rounded-md bg-accent/90 text-accent-foreground px-1.5 py-0.5 shadow-md text-[10px] font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-150 ring-1 ring-accent"
+          role="status"
         >
-          <GitMerge className="h-2.5 w-2.5" />
+          <GitMerge className="h-3 w-3 shrink-0" />
+          <span>Flet</span>
         </div>
       )}
       {busy && (
