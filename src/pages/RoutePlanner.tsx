@@ -47,6 +47,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { format, addDays, addWeeks, addMonths, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { da } from "date-fns/locale";
 import { toast } from "sonner";
+import { toastRouteError } from "@/lib/route-errors";
 import {
   DndContext, DragOverlay, useSensor, useSensors,
   pointerWithin, rectIntersection, type CollisionDetection, type DragEndEvent, type DragMoveEvent, type DragOverEvent, type DragStartEvent,
@@ -1438,7 +1439,7 @@ const Planner = () => {
         await qc.invalidateQueries({ queryKey: ["recurring-agreements-for-planner"] });
       } catch (err: any) {
         setEditingProjectedContext(null);
-        toast.error(err.message || "Den projicerede rute kunne ikke gøres klar");
+        toastRouteError(err, toast.error, { titleFallback: "Den projicerede rute kunne ikke gøres klar" });
         return;
       }
       // Telemetri i baggrunden — ikke blokerende.
@@ -1472,7 +1473,7 @@ const Planner = () => {
       await qc.invalidateQueries({ queryKey: ["route-planner-events"] });
     } catch (err: any) {
       setEditingProjectedContext(null);
-      toast.error(err.message || "Basisruten kunne ikke åbnes");
+      toastRouteError(err, toast.error, { titleFallback: "Basisruten kunne ikke åbnes" });
       await logRoutePlannerEvent({
         businessId,
         eventType: "projected_route_open_failed_client",
@@ -2085,7 +2086,7 @@ const Planner = () => {
           toast.info("Aftalen ligger allerede på denne rute");
           invalidateRouteSyncQueries(qc);
         } else {
-          toast.error(err.message || "Kunne ikke tilføje aftale");
+          toastRouteError(err, toast.error, { titleFallback: "Kunne ikke tilføje aftale" });
         }
       } finally {
         releaseDrop();
@@ -2178,7 +2179,7 @@ const Planner = () => {
           toast.info("Aftalen ligger allerede på en rute den dag");
           invalidateRouteSyncQueries(qc);
         } else {
-          toast.error(err.message || "Kunne ikke oprette rute");
+          toastRouteError(err, toast.error, { titleFallback: "Kunne ikke oprette rute" });
         }
       } finally {
         releaseDrop();
@@ -2281,7 +2282,7 @@ const Planner = () => {
       try {
         await performMoveStop();
       } catch (err: any) {
-        toast.error(err.message || "Kunne ikke flytte stop");
+        toastRouteError(err, toast.error, { titleFallback: "Kunne ikke flytte stop" });
       } finally {
         releaseDrop();
       }
@@ -2451,7 +2452,7 @@ const Planner = () => {
     } catch (err: any) {
       // Rul optimistisk cache-patch tilbage hvis fletningen fejlede.
       calSnapshots.forEach(([key, data]) => qc.setQueryData(key, data));
-      toast.error(err.message || "Kunne ikke flette ruterne");
+      toastRouteError(err, toast.error, { titleFallback: "Kunne ikke flette ruterne" });
     } finally {
       setMergingRoute(false);
     }
@@ -2676,7 +2677,7 @@ const Planner = () => {
         { description: "Klik på en rute og 'Optimér' for bedste rækkefølge." },
       );
     } catch (e: any) {
-      toast.error(e.message || "Kunne ikke auto-fordele aftaler");
+      toastRouteError(e, toast.error, { titleFallback: "Kunne ikke auto-fordele aftaler" });
     } finally {
       setDistributing(false);
     }
@@ -3944,7 +3945,7 @@ const Planner = () => {
                     toast.success("Den projicerede forekomst er flyttet til den nye dato");
                     setPendingProjectedMove(null);
                   } catch (e: any) {
-                    toast.error(e?.message || "Kunne ikke flytte den projicerede rute");
+                    toastRouteError(e, toast.error, { titleFallback: "Kunne ikke flytte den projicerede rute" });
                   }
                 }}
                 disabled={shiftProjectedOccurrence.isPending}
@@ -4008,7 +4009,7 @@ const Planner = () => {
                   try {
                     await pendingStartDateChange.execute();
                   } catch (err: any) {
-                    toast.error(err?.message || "Kunne ikke flytte aftalen");
+                    toastRouteError(err, toast.error, { titleFallback: "Kunne ikke flytte aftalen" });
                   } finally {
                     setConfirmingStartDate(false);
                     setPendingStartDateChange(null);
@@ -4073,7 +4074,7 @@ const Planner = () => {
                   try {
                     await pendingBulkStartDateChange.execute();
                   } catch (err: any) {
-                    toast.error(err?.message || "Kunne ikke oprette ruten");
+                    toastRouteError(err, toast.error, { titleFallback: "Kunne ikke oprette ruten" });
                   } finally {
                     setConfirmingBulkStartDate(false);
                     setPendingBulkStartDateChange(null);

@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { toast } from "sonner";
+import { toastRouteError } from "@/lib/route-errors";
 import { cn } from "@/lib/utils";
 import {
   useUpdateRoute, useDeleteRoute, useOptimizeRoute, useDirections,
@@ -482,7 +483,7 @@ export const RouteEditSheet = ({
       );
       setPendingDate(null);
     } catch (e: any) {
-      toast.error(e.message || "Kunne ikke flytte rute");
+      toastRouteError(e, toast.error, { titleFallback: "Kunne ikke flytte rute" });
     }
   };
 
@@ -500,7 +501,7 @@ export const RouteEditSheet = ({
       // blot på den nye dato. Brugeren kan åbne den fra kalenderen.
       onOpenChange(false);
     } catch (e: any) {
-      toast.error(e.message || "Kunne ikke flytte den projicerede rute");
+      toastRouteError(e, toast.error, { titleFallback: "Kunne ikke flytte den projicerede rute" });
     }
   };
 
@@ -968,7 +969,7 @@ export const RouteEditSheet = ({
             setCancelOccurrenceOpen(false);
             onOpenChange(false);
           } catch (e: any) {
-            toast.error(e?.message || "Kunne ikke aflyse forekomsten");
+            toastRouteError(e, toast.error, { titleFallback: "Kunne ikke aflyse forekomsten" });
           } finally {
             setCancelLoading(false);
           }
