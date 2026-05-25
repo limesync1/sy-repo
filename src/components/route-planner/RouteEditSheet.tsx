@@ -805,6 +805,7 @@ export const RouteEditSheet = ({
         recurringAppointmentCount={seriesInfo?.recurringAppointmentCount ?? 0}
         linkedSubscriptionCount={seriesInfo?.linkedSubscriptionCount ?? 0}
         loading={moveRouteSeries.isPending}
+        warnings={moveConflictWarnings}
         onConfirm={handleConfirmMoveDate}
       />
 
