@@ -32,6 +32,8 @@ import { pickDuration } from "@/components/route/EtaBreakdown";
 import { MoveRouteDateDialog, type MoveRouteScope } from "./MoveRouteDateDialog";
 import { MoveStopsDialog } from "./MoveStopsDialog";
 import { SeriesScopeDialog, type SeriesScope } from "./SeriesScopeDialog";
+import { logRouteAudit } from "@/lib/route-audit";
+import { useSeriesImpact } from "@/hooks/useSeriesImpact";
 import { Ban } from "lucide-react";
 
 export type RouteEmployeeOption = { id: string; name: string };
@@ -137,6 +139,21 @@ export const RouteEditSheet = ({
   // skjuler forekomsten uden at røre basis-aftalen.
   const [cancelOccurrenceOpen, setCancelOccurrenceOpen] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
+  // Find første aftale-id på ruten — bruges til at vise konsekvens-tal i
+  // "Aflys forekomst"-dialogen (alle stops på en projiceret rute deler typisk
+  // samme cadence, så ét aftale-id giver et repræsentativt estimat).
+  const cancelImpactAgreementId = useMemo<string | null>(() => {
+    for (const s of stops) {
+      const aid = (s as any).agreement_id as string | null | undefined;
+      if (aid) return aid;
+    }
+    return null;
+  }, [stops]);
+  const { data: cancelImpact } = useSeriesImpact({
+    agreementId: cancelImpactAgreementId,
+    fromDate: route?.route_date ?? null,
+    enabled: cancelOccurrenceOpen,
+  });
   // Sporer om brugeren *aktivt* har ændret navn/farve i denne session af
   // sheet'et. Vi bruger den til at undgå at autosave skriver stale lokal
   // state tilbage til serveren når route-data refetches udefra (fx efter
@@ -780,6 +797,8 @@ export const RouteEditSheet = ({
         defaultScope="single"
         confirmLabel="Aflys forekomst"
         loading={cancelLoading}
+        futureCount={cancelImpact?.futureCount}
+        totalCount={cancelImpact?.totalCount}
         onConfirm={async (_scope: SeriesScope) => {
           if (!route) return;
           setCancelLoading(true);
@@ -808,6 +827,20 @@ export const RouteEditSheet = ({
               .from("agreement_occurrence_overrides")
               .upsert(rows, { onConflict: "agreement_id,original_date" });
             if (error) throw error;
+            // Audit-log pr. aftale så vi kan se hvem der aflyste hvad og hvornår.
+            await Promise.all(
+              agreementIds.map((aid) =>
+                logRouteAudit({
+                  business_id: route.business_id,
+                  route_id: route.id,
+                  agreement_id: aid,
+                  action: "occurrence.cancel",
+                  scope: "single",
+                  affected_count: 1,
+                  after: { original_date: route.route_date, status: "cancelled" },
+                }),
+              ),
+            );
             await qc.invalidateQueries({ queryKey: ["agreement-occurrence-overrides"] });
             await qc.invalidateQueries({ queryKey: ["routes"] });
             toast.success(`Forekomsten er aflyst (${agreementIds.length} ${agreementIds.length === 1 ? "aftale" : "aftaler"})`);
