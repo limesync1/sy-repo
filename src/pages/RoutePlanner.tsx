@@ -421,6 +421,17 @@ const Planner = () => {
     newDate: string;
   } | null>(null);
 
+  // Pending drag-and-drop af en projiceret rute → ny dato.
+  // Vises som en bekræftelsesdialog så brugeren aktivt skal sige ja
+  // før forekomsten flyttes — en utilsigtet drag/drop må aldrig flytte
+  // en fremtidig forekomst uden bekræftelse.
+  const [pendingProjectedMove, setPendingProjectedMove] = useState<{
+    baseRouteId: string;
+    routeName: string;
+    fromDate: string;
+    toDate: string;
+  } | null>(null);
+
   // Pending start-date konflikt: vises når brugeren dropper en aftale på en
   // dato der ikke matcher aftalens opstartsdato. Brugeren bekræfter om
   // opstartsdatoen skal flyttes — først derefter eksekveres `execute()`.
