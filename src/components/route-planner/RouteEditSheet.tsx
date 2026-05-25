@@ -155,6 +155,32 @@ export const RouteEditSheet = ({
     fromDate: route?.route_date ?? null,
     enabled: cancelOccurrenceOpen,
   });
+  // Konflikter på *mål-datoen* for et flyt — bruges som advarsel i
+  // MoveRouteDateDialog. Konflikter på *kilde-datoen* bruges i
+  // "Aflys forekomst"-dialogen, så brugeren kan se hvilke andre stops
+  // der ligger samme dag (måske skal de også flyttes).
+  const { conflicts: moveTargetConflicts } = useDayConflicts(
+    route?.business_id,
+    pendingDate || undefined,
+  );
+  const { conflicts: sourceDayConflicts } = useDayConflicts(
+    route?.business_id,
+    cancelOccurrenceOpen ? route?.route_date : undefined,
+  );
+  const moveConflictWarnings = useMemo<string[]>(() => {
+    return moveTargetConflicts
+      .filter((c) => c.stops.length >= 2)
+      .map((c) => {
+        const names = Array.from(new Set(c.stops.map((s) => s.label).filter(Boolean))).slice(0, 3).join(", ");
+        const overlap = c.overlapsTime ? " (tidsoverlap)" : "";
+        return `Medarbejder har allerede ${c.stops.length} stops denne dag${overlap}${names ? `: ${names}` : ""}.`;
+      });
+  }, [moveTargetConflicts]);
+  const cancelConflictWarnings = useMemo<string[]>(() => {
+    return sourceDayConflicts
+      .filter((c) => c.stops.length >= 2 && c.overlapsTime)
+      .map((c) => `${c.stops.length} overlappende stops samme dag — tjek om de andre også skal aflyses.`);
+  }, [sourceDayConflicts]);
   // Sporer om brugeren *aktivt* har ændret navn/farve i denne session af
   // sheet'et. Vi bruger den til at undgå at autosave skriver stale lokal
   // state tilbage til serveren når route-data refetches udefra (fx efter
