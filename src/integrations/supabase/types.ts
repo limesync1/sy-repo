@@ -550,6 +550,63 @@ export type Database = {
           },
         ]
       }
+      agreement_occurrence_overrides: {
+        Row: {
+          agreement_id: string
+          business_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          new_date: string | null
+          new_employee_ids: string[] | null
+          notes: string | null
+          original_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agreement_id: string
+          business_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          new_date?: string | null
+          new_employee_ids?: string[] | null
+          notes?: string | null
+          original_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          agreement_id?: string
+          business_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          new_date?: string | null
+          new_employee_ids?: string[] | null
+          notes?: string | null
+          original_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agreement_occurrence_overrides_agreement_id_fkey"
+            columns: ["agreement_id"]
+            isOneToOne: false
+            referencedRelation: "agreements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agreement_occurrence_overrides_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agreement_occurrences: {
         Row: {
           agreement_id: string
