@@ -67,16 +67,16 @@ export function writeDragValidationDebounced(v: TargetValidation | null, delayMs
 /** Map severity → tailwind ring-classes (semantic tokens). */
 export function ringForSeverity(s: "ok" | "warning" | "error" | undefined): string {
   if (s === "error") return "ring-2 ring-destructive ring-inset bg-destructive/10";
-  if (s === "warning") return "ring-2 ring-amber-500 ring-inset bg-amber-500/10";
-  if (s === "ok") return "ring-2 ring-emerald-500 ring-inset bg-emerald-500/10";
+  if (s === "warning") return "ring-2 ring-warning ring-inset bg-warning/10";
+  if (s === "ok") return "ring-2 ring-success ring-inset bg-success/10";
   return "";
 }
 
 /** Map severity → label-baggrund til floating "drop-verb"-pille. */
 export function chipBgForSeverity(s: "ok" | "warning" | "error" | undefined): string {
   if (s === "error") return "bg-destructive text-destructive-foreground";
-  if (s === "warning") return "bg-amber-500 text-white";
-  if (s === "ok") return "bg-emerald-600 text-white";
+  if (s === "warning") return "bg-warning text-warning-foreground";
+  if (s === "ok") return "bg-success text-success-foreground";
   return "bg-accent text-accent-foreground";
 }
 
