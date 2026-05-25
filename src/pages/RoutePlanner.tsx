@@ -4198,109 +4198,53 @@ const Planner = () => {
         />
 
         {/* Bekræftelse: drag/drop af en projiceret forekomst til ny dato. */}
-        <AlertDialog
+        <MoveProjectedOccurrenceDialog
           open={!!pendingProjectedMove}
           onOpenChange={(o) => { if (!o && !shiftProjectedOccurrence.isPending) setPendingProjectedMove(null); }}
-        >
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Flyt denne projicerede forekomst?</AlertDialogTitle>
-              <AlertDialogDescription asChild>
-                <div className="space-y-2 text-sm">
-                  <div>
-                    Du er ved at flytte den projicerede forekomst af
-                    {" "}<span className="font-medium text-foreground">{pendingProjectedMove?.routeName}</span>{" "}
-                    fra{" "}
-                    <span className="font-medium text-foreground capitalize">
-                      {pendingProjectedMove?.fromDate ? format(parseISO(pendingProjectedMove.fromDate), "EEEE d. MMM yyyy", { locale: da }) : "—"}
-                    </span>{" "}
-                    til{" "}
-                    <span className="font-medium text-foreground capitalize">
-                      {pendingProjectedMove?.toDate ? format(parseISO(pendingProjectedMove.toDate), "EEEE d. MMM yyyy", { locale: da }) : "—"}
-                    </span>.
-                  </div>
-                  <div className="rounded-md border border-border bg-muted/40 p-2 text-xs leading-snug text-muted-foreground">
-                    Kun denne ene forekomst flyttes — den forbliver en projektion
-                    på den nye dato og bliver ikke til en faktisk rute. Basisruten
-                    og rutens øvrige projicerede forekomster forbliver uændrede.
-                  </div>
-                  {(pendingProjectedSeriesInfo?.recurringAppointmentCount ?? 0) > 0 && (
-                    <div className="rounded-md border border-border bg-background p-2 space-y-2">
-                      <div className="text-xs font-medium text-foreground">
-                        {pendingProjectedSeriesInfo!.recurringAppointmentCount} tilknyttet{pendingProjectedSeriesInfo!.recurringAppointmentCount === 1 ? "" : "te"} aftale{pendingProjectedSeriesInfo!.recurringAppointmentCount === 1 ? "" : "r"} på basisruten
-                      </div>
-                      <label className="flex items-start gap-2 text-xs cursor-pointer">
-                        <input
-                          type="checkbox"
-                          className="mt-0.5"
-                          checked={projectedMoveSyncNext}
-                          onChange={(e) => setProjectedMoveSyncNext(e.target.checked)}
-                        />
-                        <span className="text-muted-foreground">
-                          Flyt også <span className="text-foreground">næste udførsel</span> for de tilknyttede aftaler til den nye dato
-                        </span>
-                      </label>
-                      <label className="flex items-start gap-2 text-xs cursor-pointer">
-                        <input
-                          type="checkbox"
-                          className="mt-0.5"
-                          checked={projectedMoveSyncStart}
-                          onChange={(e) => setProjectedMoveSyncStart(e.target.checked)}
-                        />
-                        <span className="text-muted-foreground">
-                          Flyt også <span className="text-foreground">opstartsdatoen</span> for de tilknyttede aftaler til den nye dato
-                        </span>
-                      </label>
-                    </div>
-                  )}
-                </div>
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={shiftProjectedOccurrence.isPending}>Annullér</AlertDialogCancel>
-              <Button
-                onClick={async () => {
-                  if (!pendingProjectedMove) return;
-                  const ids = pendingProjectedSeriesInfo?.subscriptionIds ?? [];
-                  const agreementIds = ids.filter((s) => s.startsWith("agr:")).map((s) => s.slice(4));
-                  const subscriptionIds = ids.filter((s) => s.startsWith("sub:")).map((s) => s.slice(4));
-                  try {
-                    await shiftProjectedOccurrence.mutateAsync({
-                      baseRouteId: pendingProjectedMove.baseRouteId,
-                      fromDate: pendingProjectedMove.fromDate,
-                      toDate: pendingProjectedMove.toDate,
-                      agreementIds,
-                      subscriptionIds,
-                      moveStartDates: projectedMoveSyncStart,
-                      moveNextDates: projectedMoveSyncNext,
-                    });
-                    toast.success("Den projicerede forekomst er flyttet til den nye dato");
-                    const fromD = pendingProjectedMove.fromDate;
-                    const toD = pendingProjectedMove.toDate;
-                    const baseId = pendingProjectedMove.baseRouteId;
-                    pushRouteUndo({
-                      label: `Flyt projiceret forekomst tilbage til ${format(parseISO(fromD), "d. MMM", { locale: da })}`,
-                      undo: async () => {
-                        await shiftProjectedOccurrence.mutateAsync({
-                          baseRouteId: baseId,
-                          fromDate: toD,
-                          toDate: fromD,
-                        });
-                      },
-                    });
-                    setPendingProjectedMove(null);
-                  } catch (e: any) {
-                    toastRouteError(e, toast.error, { titleFallback: "Kunne ikke flytte den projicerede rute" });
-                  }
-                }}
-                disabled={shiftProjectedOccurrence.isPending}
-              >
-                {shiftProjectedOccurrence.isPending && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
-                Flyt forekomst
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+          routeName={pendingProjectedMove?.routeName || "Rute"}
+          fromDate={pendingProjectedMove?.fromDate || ""}
+          toDate={pendingProjectedMove?.toDate || ""}
+          recurringAppointmentCount={pendingProjectedSeriesInfo?.recurringAppointmentCount ?? 0}
+          syncNext={projectedMoveSyncNext}
+          onSyncNextChange={setProjectedMoveSyncNext}
+          syncStart={projectedMoveSyncStart}
+          onSyncStartChange={setProjectedMoveSyncStart}
+          loading={shiftProjectedOccurrence.isPending}
+          onConfirm={async () => {
+            if (!pendingProjectedMove) return;
+            const ids = pendingProjectedSeriesInfo?.subscriptionIds ?? [];
+            const agreementIds = ids.filter((s) => s.startsWith("agr:")).map((s) => s.slice(4));
+            const subscriptionIds = ids.filter((s) => s.startsWith("sub:")).map((s) => s.slice(4));
+            try {
+              await shiftProjectedOccurrence.mutateAsync({
+                baseRouteId: pendingProjectedMove.baseRouteId,
+                fromDate: pendingProjectedMove.fromDate,
+                toDate: pendingProjectedMove.toDate,
+                agreementIds,
+                subscriptionIds,
+                moveStartDates: projectedMoveSyncStart,
+                moveNextDates: projectedMoveSyncNext,
+              });
+              toast.success("Den projicerede forekomst er flyttet til den nye dato");
+              const fromD = pendingProjectedMove.fromDate;
+              const toD = pendingProjectedMove.toDate;
+              const baseId = pendingProjectedMove.baseRouteId;
+              pushRouteUndo({
+                label: `Flyt projiceret forekomst tilbage til ${format(parseISO(fromD), "d. MMM", { locale: da })}`,
+                undo: async () => {
+                  await shiftProjectedOccurrence.mutateAsync({
+                    baseRouteId: baseId,
+                    fromDate: toD,
+                    toDate: fromD,
+                  });
+                },
+              });
+              setPendingProjectedMove(null);
+            } catch (e: any) {
+              toastRouteError(e, toast.error, { titleFallback: "Kunne ikke flytte den projicerede rute" });
+            }
+          }}
+        />
 
         {/* Klog opstartsdato-validering ved drop af aftale på dato/rute. */}
         <AlertDialog
