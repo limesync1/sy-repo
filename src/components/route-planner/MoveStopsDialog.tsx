@@ -26,6 +26,8 @@ import type { Route, RouteStop } from "@/hooks/useRoutes";
 import { invalidateRouteSyncQueries } from "@/hooks/useRoutes";
 import { cn } from "@/lib/utils";
 import { ROUTE_COLORS, pickAvailableColor } from "./RouteEditSheet";
+import { useDayConflicts } from "@/hooks/useDayConflicts";
+import { AlertTriangle } from "lucide-react";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -171,6 +173,19 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
       }));
     },
   });
+
+  // Konfliktdetektion for valgt måldato (kun i "date"-mode).
+  const { conflicts: targetDateConflicts } = useDayConflicts(
+    route?.business_id,
+    mode === "date" ? targetDate : undefined,
+  );
+  const conflictWarnings = useMemo<string[]>(() => {
+    if (mode !== "date" || !targetDateConflicts?.length) return [];
+    return targetDateConflicts.slice(0, 3).map((c) => {
+      const times = c.stops.map((s) => s.label || "aftale").join(", ");
+      return `Medarbejder har allerede ${c.stops.length} aftale${c.stops.length === 1 ? "" : "r"} (${times})${c.overlapsTime ? " — tidsoverlap" : ""}.`;
+    });
+  }, [mode, targetDateConflicts]);
 
   const toggle = (id: string) => {
     setSelected((prev) => {
@@ -388,6 +403,16 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
                       {format(parseISO(targetDate), "EEEE d. MMM", { locale: da })}
                     </span>
                   </p>
+                )}
+                {conflictWarnings.length > 0 && (
+                  <div className="mt-2 rounded-md border border-amber-500/40 bg-amber-50 dark:bg-amber-950/30 p-2.5 text-xs">
+                    <div className="flex items-center gap-1.5 font-medium text-amber-700 dark:text-amber-300 mb-1">
+                      <AlertTriangle className="h-3.5 w-3.5" /> Mulige konflikter
+                    </div>
+                    <ul className="space-y-0.5 text-amber-800 dark:text-amber-200">
+                      {conflictWarnings.map((w, i) => <li key={i}>• {w}</li>)}
+                    </ul>
+                  </div>
                 )}
               </>
             ) : (
