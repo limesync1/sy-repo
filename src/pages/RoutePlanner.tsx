@@ -4415,6 +4415,17 @@ const Planner = () => {
                 description: "Klik Fortryd for at lægge den tilbage på den oprindelige dato.",
               });
               setPendingProjectedMove(null);
+              // Projicerede forekomster materialiseres på serveren — vi har ikke
+              // altid det nye route_id direkte i hånden. Spørger kun om
+              // optimering hvis vi kan udlede en konkret rute fra resultatet.
+              const newRouteId: string | undefined = (result as any)?.target_route_id ?? (result as any)?.route_id;
+              if (newRouteId) {
+                setPendingOptimizePrompt({
+                  routeId: newRouteId,
+                  routeName: pendingProjectedMove.routeName,
+                  reason: "moved",
+                });
+              }
             } catch (e: any) {
               toastRouteError(e, toast.error, { titleFallback: "Kunne ikke flytte den projicerede rute" });
             }
