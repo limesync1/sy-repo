@@ -11,7 +11,7 @@ import { useDroppable, useDraggable } from "@dnd-kit/core";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Plus, Users, MapPin, ArrowDown, Repeat, Clock, Wallet, Lock } from "lucide-react";
+import { Loader2, Sparkles, Plus, Users, MapPin, ArrowDown, Repeat, Clock, Wallet, Lock, GitMerge } from "lucide-react";
 import { CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { CloudOff } from "lucide-react";
 import {
@@ -55,6 +55,9 @@ type Props = {
   optimizingRouteId?: string | null;
   /** Sat til 'job' når brugeren trækker en aftale fra aftalepoolen — får drop-targets til at lyse op. */
   draggingType?: "job" | "route" | "stop" | null;
+  /** Id på den rute der pt. trækkes (kun sat når draggingType === "route") — bruges til at
+   *  markere andre ruter som mulige flette-mål visuelt, og til at undgå at markere kilden selv. */
+  draggingRouteId?: string | null;
   /** Map fra yyyy-MM-dd → vejrudsigt for dagen. */
   weatherByDate?: Map<string, WeatherDay>;
   /** Vi henter stadig ruter/stops til perioden — vis skeleton-piller i hver dag-celle
@@ -87,7 +90,7 @@ const fmtRouteKrCompact = (n: number) => {
 
 export const MonthWeekCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
-  onCreateRoute, onOptimizeRoute, optimizingRouteId, draggingType, weatherByDate,
+  onCreateRoute, onOptimizeRoute, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
   loadingRoutes, loadingWeather, weatherError, busyTargets,
 }: Props) => {
   const anchor = parseISO(anchorDate);
@@ -190,6 +193,7 @@ export const MonthWeekCalendar = ({
                     optimizingRouteId={optimizingRouteId}
                     compact={view === "month"}
                     draggingType={draggingType}
+                    draggingRouteId={draggingRouteId ?? null}
                     weather={weatherByDate?.get(dateStr) ?? null}
                     loadingRoutes={!!loadingRoutes}
                     loadingWeather={!!loadingWeather}
@@ -221,6 +225,7 @@ type DayCellProps = {
   optimizingRouteId?: string | null;
   compact: boolean;
   draggingType?: "job" | "route" | "stop" | null;
+  draggingRouteId?: string | null;
   weather?: WeatherDay | null;
   loadingRoutes?: boolean;
   loadingWeather?: boolean;
@@ -233,7 +238,7 @@ type DayCellProps = {
 
 const DayCellInner = ({
   date, dateStr, routes, inMonth, today,
-  onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, optimizingRouteId, compact, draggingType, weather,
+  onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, optimizingRouteId, compact, draggingType, draggingRouteId, weather,
   loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds,
 }: DayCellProps) => {
   const todayIso = format(new Date(), "yyyy-MM-dd");
@@ -406,6 +411,7 @@ const DayCellInner = ({
                   optimizing={optimizingRouteId === r.id}
                   compact={compact}
                   jobDragActive={isJobDragActive}
+                  routeDragSourceId={draggingType === "route" ? (draggingRouteId ?? null) : null}
                   busy={!!busyRouteIds?.has(`route:${r.id}`)}
                   isPast={isPast}
                 />
@@ -460,6 +466,7 @@ const DayCell = memo(DayCellInner, (prev, next) => {
     prev.routes === next.routes &&
     prev.weather === next.weather &&
     prev.draggingType === next.draggingType &&
+    prev.draggingRouteId === next.draggingRouteId &&
     prev.optimizingRouteId === next.optimizingRouteId &&
     prev.loadingRoutes === next.loadingRoutes &&
     prev.loadingWeather === next.loadingWeather &&
@@ -478,14 +485,23 @@ type RoutePillProps = {
   optimizing: boolean;
   compact: boolean;
   jobDragActive?: boolean;
+  /** Id på den rute der pt. trækkes — bruges til at vise denne pille som flette-mål.
+   *  Null/undefined hvis ingen rute er under drag eller hvis denne pille selv er kilden. */
+  routeDragSourceId?: string | null;
   /** True hvis ruten pt. behandler en flytning — drop deaktiveres + spinner. */
   busy?: boolean;
   /** True hvis rutens dato ligger før i dag — vis dæmpet visuel stil. */
   isPast?: boolean;
 };
 
-const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing, compact, jobDragActive, busy, isPast }: RoutePillProps) => {
+const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing, compact, jobDragActive, routeDragSourceId, busy, isPast }: RoutePillProps) => {
   const isVirtual = !!route.isVirtual;
+  // Er denne pille et gyldigt flette-mål for den rute der pt. trækkes?
+  // - kilden må aldrig være sit eget mål
+  // - projicerede ruter må aldrig modtage en merge (de findes ikke fysisk endnu)
+  // - fortids-ruter må ikke modtage merge
+  const isMergeTarget =
+    !!routeDragSourceId && routeDragSourceId !== route.id && !isVirtual && !isPast && !busy;
   // Drag-handle: hele pillen kan trækkes til ny dato.
   // - Fortids-ruter er altid låst (giver ingen mening at re-planlægge noget der er kørt).
   // - Projicerede (virtuelle) ruter må trækkes til ny dato — drop håndteres af
@@ -548,6 +564,15 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
         !isVirtual && jobDragActive && !isOver && "ring-1 shadow-sm",
         !isVirtual && isOver && !validation && "ring-2 ring-accent shadow-md scale-[1.02]",
         !isVirtual && isOver && validation && cn(ringForSeverity(validation.severity), "shadow-md scale-[1.02]"),
+        // Når en ANDEN rute er ved at blive trukket og denne pille er et
+        // gyldigt flette-mål: vis distinkt "merge target" affordance.
+        isMergeTarget && !isOver && "ring-1 ring-accent/50 shadow-sm",
+        isMergeTarget && isOver && "ring-2 ring-accent shadow-lg scale-[1.03] bg-accent/5",
+        // Hvis denne pille selv er kilde i en rute-drag: dæmp + crosshatch-look
+        routeDragSourceId === route.id && "opacity-50",
+        // Hvis denne pille IKKE er et gyldigt flette-mål under route-drag (fx projiceret/fortid),
+        // dæmp den så brugeren ikke prøver at slippe.
+        routeDragSourceId && !isMergeTarget && routeDragSourceId !== route.id && "opacity-40 pointer-events-none",
         busy && "cursor-wait",
       )}
       style={{
@@ -588,6 +613,26 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
             <CheckCircle2 className="h-3 w-3 shrink-0" />
           )}
           <span className="truncate">{validation.topMessage ?? (validation.severity === "ok" ? "Tilføj til rute" : "")}</span>
+        </div>
+      )}
+      {/* Merge-target chip: vises når en anden rute trækkes over denne pille.
+          Brugeren skal aldrig være i tvivl om at et drop = fletning. */}
+      {isMergeTarget && isOver && !validation && (
+        <div
+          className="absolute -top-1 right-1 z-20 pointer-events-none rounded-md px-1.5 py-0.5 shadow-md text-[10px] font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-150 max-w-[95%] bg-accent text-accent-foreground"
+          role="status"
+        >
+          <GitMerge className="h-3 w-3 shrink-0" />
+          <span className="truncate">Flet ind i denne rute</span>
+        </div>
+      )}
+      {/* Diskret merge-affordance når rute-drag er aktivt men endnu ikke over pillen */}
+      {isMergeTarget && !isOver && (
+        <div
+          className="absolute top-1 right-1 z-20 pointer-events-none rounded-full bg-accent/15 text-accent p-0.5 animate-in fade-in duration-150"
+          aria-hidden
+        >
+          <GitMerge className="h-2.5 w-2.5" />
         </div>
       )}
       {busy && (
@@ -708,6 +753,7 @@ const RoutePill = memo(RoutePillInner, (prev, next) => {
     prev.optimizing === next.optimizing &&
     prev.compact === next.compact &&
     prev.jobDragActive === next.jobDragActive &&
+    prev.routeDragSourceId === next.routeDragSourceId &&
     prev.busy === next.busy
   );
 });
