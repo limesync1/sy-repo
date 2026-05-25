@@ -40,7 +40,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon,
   Loader2, Search, Plus, Inbox, ArrowUpDown, X, Keyboard, Filter,
-  ShoppingBag, Route as RouteIcon, Tag, Palette, ListChecks, AlertTriangle, Undo2, Redo2,
+  ShoppingBag, Route as RouteIcon, Tag, Palette, ListChecks, AlertTriangle, Undo2, Redo2, Sparkles,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -446,6 +446,16 @@ const Planner = () => {
   const [pendingRouteMove, setPendingRouteMove] = useState<{
     route: Route;
     newDate: string;
+  } | null>(null);
+
+  // Efter en vellykket flytning/merge spørger vi om brugeren vil køre
+  // auto-optimering af stop-rækkefølgen på den berørte rute. Vi optimerer
+  // ALDRIG uden brugerens aktive ja — så rækkefølgen ikke pludselig ændrer
+  // sig "i baggrunden" efter en flytning.
+  const [pendingOptimizePrompt, setPendingOptimizePrompt] = useState<{
+    routeId: string;
+    routeName: string;
+    reason: "moved" | "merged";
   } | null>(null);
 
   // Pending drag-and-drop af en projiceret rute → ny dato.
@@ -2524,6 +2534,12 @@ const Planner = () => {
         description: "Klik Fortryd for at rulle tilbage.",
       });
       setPendingRouteMove(null);
+      // Spørg om vi skal optimere rækkefølgen på den nye dato. Sker kun
+      // hvis ruten har mindst 2 stops — ellers er der intet at optimere.
+      const stopsOnRoute = calendarStops.filter((s: any) => s.route_id === route.id).length;
+      if (stopsOnRoute >= 2) {
+        setPendingOptimizePrompt({ routeId: route.id, routeName: route.name || "Rute", reason: "moved" });
+      }
     } catch (err: any) {
       toast.error(err.message || "Kunne ikke flytte rute", {
         description: "Tjek at den nye dato er gyldig, og prøv igen.",
@@ -2684,6 +2700,17 @@ const Planner = () => {
       qc.invalidateQueries({ queryKey: ["recurring-agreements-for-planner"] });
       qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
       qc.invalidateQueries({ queryKey: ["route-series-info"] });
+
+      // Efter en flet er målruten næsten altid blevet større. Spørg om vi
+      // skal optimere stop-rækkefølgen så den nye samlede rute kører
+      // geografisk korrekt.
+      if (!result?.alreadyMerged) {
+        setPendingOptimizePrompt({
+          routeId: target.id,
+          routeName: target.name || "Rute",
+          reason: "merged",
+        });
+      }
 
       // Undo (kun for "single" scope — at rulle subscription/agreement-ændringer
       // tilbage er destruktivt og ikke worth complexity). Genopretter kildens
@@ -4283,6 +4310,51 @@ const Planner = () => {
           onConfirm={handleConfirmMoveRoute}
         />
 
+        {/* Klog auto-optimering: efter en flytning/merge spørger vi om
+            brugeren vil have stop-rækkefølgen optimeret automatisk.
+            Aldrig uden bekræftelse — så brugeren bevarer fuld kontrol. */}
+        <AlertDialog
+          open={!!pendingOptimizePrompt}
+          onOpenChange={(o) => { if (!o) setPendingOptimizePrompt(null); }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-accent" />
+                Optimér stop-rækkefølgen?
+              </AlertDialogTitle>
+              <AlertDialogDescription asChild>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <p>
+                    <span className="font-medium text-foreground">{pendingOptimizePrompt?.routeName}</span>{" "}
+                    {pendingOptimizePrompt?.reason === "merged"
+                      ? "har fået nye stops efter fletningen."
+                      : "er flyttet til en ny dato."}
+                  </p>
+                  <p>
+                    Vil du have rækkefølgen optimeret automatisk, så ruten kører
+                    mest effektivt geografisk? Du kan altid optimere manuelt senere.
+                  </p>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Nej tak</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(e) => {
+                  e.preventDefault();
+                  const p = pendingOptimizePrompt;
+                  setPendingOptimizePrompt(null);
+                  if (p) void handleOptimize(p.routeId, p.routeName);
+                }}
+              >
+                <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+                Ja, optimér nu
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         {/* Bekræftelse: drag/drop af en projiceret forekomst til ny dato. */}
         <MoveProjectedOccurrenceDialog
           open={!!pendingProjectedMove}
@@ -4343,6 +4415,17 @@ const Planner = () => {
                 description: "Klik Fortryd for at lægge den tilbage på den oprindelige dato.",
               });
               setPendingProjectedMove(null);
+              // Projicerede forekomster materialiseres på serveren — vi har ikke
+              // altid det nye route_id direkte i hånden. Spørger kun om
+              // optimering hvis vi kan udlede en konkret rute fra resultatet.
+              const newRouteId: string | undefined = (result as any)?.target_route_id ?? (result as any)?.route_id;
+              if (newRouteId) {
+                setPendingOptimizePrompt({
+                  routeId: newRouteId,
+                  routeName: pendingProjectedMove.routeName,
+                  reason: "moved",
+                });
+              }
             } catch (e: any) {
               toastRouteError(e, toast.error, { titleFallback: "Kunne ikke flytte den projicerede rute" });
             }
