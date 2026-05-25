@@ -235,6 +235,7 @@ const Planner = () => {
     previewStops?: RouteStop[];
   } | null>(null);
   const [routeToDelete, setRouteToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
   const [pendingRouteMerge, setPendingRouteMerge] = useState<{
     source: Route;
     target: Route;
