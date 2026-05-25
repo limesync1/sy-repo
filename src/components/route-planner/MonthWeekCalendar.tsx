@@ -506,6 +506,10 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
     disabled: isVirtual || !!busy || !!isPast,
   });
 
+  // Live drag-validering for denne rute — sat af RoutePlanner.handleDragOver
+  // når en aftale eller en anden rute svæver over pillen.
+  const validation = useTargetValidation(`route:${route.id}`);
+
   // Combined ref
   const setRefs = (node: HTMLElement | null) => {
     setDragRef(node);
@@ -541,7 +545,8 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
         jobDragActive && isPast && "opacity-25 pointer-events-none",
         // Når en aftale er ved at blive sluppet på pillen — markér tydeligt
         !isVirtual && jobDragActive && !isOver && "ring-1 shadow-sm",
-        !isVirtual && isOver && "ring-2 ring-accent shadow-md scale-[1.02]",
+        !isVirtual && isOver && !validation && "ring-2 ring-accent shadow-md scale-[1.02]",
+        !isVirtual && isOver && validation && cn(ringForSeverity(validation.severity), "shadow-md scale-[1.02]"),
         busy && "cursor-wait",
       )}
       style={{
@@ -552,7 +557,9 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
           : {}),
       }}
       title={
-        isVirtual
+        validation?.topMessage
+          ? validation.topMessage
+          : isVirtual
           ? "Projiceret rute — klik åbner basisruten. Træk til en anden dato for at flytte netop denne ene forekomst (basisruten røres ikke)."
           : isPast
             ? "Tidligere rute — kan ikke flyttes"
