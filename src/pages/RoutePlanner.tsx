@@ -3828,15 +3828,37 @@ const Planner = () => {
           route={routeToDelete}
           onOpenChange={(o) => !o && setRouteToDelete(null)}
           pending={deleteRoute.isPending}
-          onConfirm={() => {
-            if (routeToDelete) {
-              const name = routeToDelete.name;
-              deleteRoute.mutate(routeToDelete.id, {
-                onSuccess: () => {
-                  toast.success(`${name} slettet`);
-                  setRouteToDelete(null);
-                },
-              });
+          onConfirm={async () => {
+            if (!routeToDelete) return;
+            const name = routeToDelete.name;
+            const routeId = routeToDelete.id;
+            try {
+              const res = await deleteRoute.mutateAsync(routeId);
+              setRouteToDelete(null);
+              if ((res as any)?.soft) {
+                // Soft-delete (archived_at). Kan fortrydes ved at nulstille archived_at.
+                pushRouteUndo({
+                  label: `Slet rute: ${name}`,
+                  undo: async () => {
+                    const { error } = await supabase
+                      .from("routes")
+                      .update({ archived_at: null })
+                      .eq("id", routeId);
+                    if (error) {
+                      toast.error("Kunne ikke fortryde sletning");
+                      return;
+                    }
+                    await qc.invalidateQueries({ queryKey: ["routes"] });
+                    await qc.invalidateQueries({ queryKey: ["routes-range"] });
+                    toast.success(`${name} gendannet`);
+                  },
+                });
+                toast.success(`${name} slettet — Cmd+Z for at fortryde`);
+              } else {
+                toast.success(`${name} slettet`);
+              }
+            } catch {
+              /* useDeleteRoute har allerede vist fejl-toast */
             }
           }}
         />
