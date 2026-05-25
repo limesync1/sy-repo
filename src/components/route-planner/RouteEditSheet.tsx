@@ -653,14 +653,16 @@ export const RouteEditSheet = ({
               </div>
             </Section>
 
-            {/* Dato — vises kun på rigtige basisruter. Projicerede forekomster
-                er låst til den dato aftalens cyklus rammer, så datovalg
-                giver ikke mening her. */}
-            {!isProjection && (
+            {/* Dato — på projicerede forekomster åbner ændring en bekræftelses-
+                dialog der materialiserer netop denne ene forekomst på den nye
+                dato (basisruten røres aldrig). */}
+            {(
               <Section
                 icon={<CalendarDays className="h-3.5 w-3.5" />}
                 title="Dato"
-                hint={(seriesInfo?.recurringAppointmentCount ?? 0) >= 1 ? "Del af fast rute" : "Træk i kalenderen for hurtigt skift"}
+                hint={isProjection
+                  ? "Flytter kun denne ene forekomst"
+                  : (seriesInfo?.recurringAppointmentCount ?? 0) >= 1 ? "Del af fast rute" : "Træk i kalenderen for hurtigt skift"}
               >
                 <DatePickerField value={date} onChange={handleDateChange} minDate={todayIso} />
               </Section>
