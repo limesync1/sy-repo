@@ -2924,6 +2924,27 @@ export type Database = {
         }
         Relationships: []
       }
+      route_mutation_claims: {
+        Row: {
+          business_id: string | null
+          created_at: string
+          key: string
+          kind: string
+        }
+        Insert: {
+          business_id?: string | null
+          created_at?: string
+          key: string
+          kind: string
+        }
+        Update: {
+          business_id?: string | null
+          created_at?: string
+          key?: string
+          kind?: string
+        }
+        Relationships: []
+      }
       route_occurrence_exceptions: {
         Row: {
           base_route_id: string
@@ -4077,6 +4098,7 @@ export type Database = {
         Returns: boolean
       }
       cleanup_accounting_sync_log: { Args: never; Returns: undefined }
+      cleanup_route_mutation_claims: { Args: never; Returns: number }
       cleanup_route_planner_idempotency: { Args: never; Returns: number }
       confirm_business_deletion: {
         Args: { p_business_id: string; p_code: string }
@@ -4130,6 +4152,7 @@ export type Database = {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
       }
+      detect_route_duplicates: { Args: never; Returns: number }
       dismiss_dlq_job: {
         Args: { _dlq_id: string; _note?: string }
         Returns: undefined
@@ -4469,6 +4492,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      try_claim_route_mutation: {
+        Args: { _business_id?: string; _key: string; _kind: string }
+        Returns: boolean
       }
     }
     Enums: {
