@@ -132,6 +132,31 @@ export const MoveProjectedOccurrenceDialog = ({
             </div>
           )}
 
+          {reassignSuggestions && reassignSuggestions.length > 0 && (
+            <div className="rounded-md border border-accent/40 bg-accent/5 p-2.5">
+              <div className="flex items-start gap-2">
+                <Users className="h-3.5 w-3.5 text-accent mt-0.5 shrink-0" />
+                <div className="text-[11px] leading-snug min-w-0">
+                  <div className="font-semibold text-foreground mb-0.5">
+                    Foreslåede medarbejder-erstatninger
+                  </div>
+                  <p className="text-muted-foreground mb-1">
+                    Følgende medarbejdere er allerede booket på den nye dato. Du kan tildele en kollega bagefter i rute-panelet.
+                  </p>
+                  <ul className="space-y-0.5">
+                    {reassignSuggestions.map((s, i) => (
+                      <li key={i} className="text-foreground">
+                        <span className="font-medium">{s.conflictingName}</span>
+                        <span className="text-muted-foreground"> → </span>
+                        <span className="font-medium">{s.suggestedName}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
           {warnings && warnings.length > 0 && (
             <div className="rounded-md border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 p-2.5">
               <div className="flex items-start gap-2">
