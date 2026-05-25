@@ -66,6 +66,7 @@ const BusinessSEO = ({
   name, description, city, address, zipCode, phone, email,
   logoUrl, coverImageUrl, avgRating, reviewCount, slug, openingHours,
   categories, services, reviews, customDomain,
+  faqs,
 }: BusinessSEOProps) => {
   const fallbackOrigin = typeof window !== "undefined" ? window.location.origin : "https://serviceydere.dk";
   // Hvis virksomheden har sat et custom domæne under Branding, bruger vi det
