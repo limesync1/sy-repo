@@ -477,6 +477,20 @@ const Planner = () => {
     pendingRouteMove?.route.id ?? null,
     pendingRouteMove?.route.route_date ?? null,
   );
+  // Serie-info for den projicerede flytning, så vi kan tilbyde brugeren at
+  // synkronisere aftalens opstartsdato / næste-udførsel med den nye dato.
+  const { data: pendingProjectedSeriesInfo } = useRouteSeriesInfo(
+    pendingProjectedMove?.baseRouteId ?? null,
+    pendingProjectedMove?.fromDate ?? null,
+  );
+  const [projectedMoveSyncStart, setProjectedMoveSyncStart] = useState(false);
+  const [projectedMoveSyncNext, setProjectedMoveSyncNext] = useState(false);
+  useEffect(() => {
+    if (!pendingProjectedMove) {
+      setProjectedMoveSyncStart(false);
+      setProjectedMoveSyncNext(false);
+    }
+  }, [pendingProjectedMove]);
   // Serie-info for kilde-ruten i en igangværende fletning, så fletteren
   // også kan tilbyde "fremtidige aftaler også" når kilden har gentagne aftaler.
   const { data: pendingMergeSeriesInfo } = useRouteSeriesInfo(
