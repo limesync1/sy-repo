@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { differenceInCalendarDays, format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
-import { CalendarRange, ArrowRight, Loader2, AlertTriangle, Info, Repeat } from "lucide-react";
+import { CalendarRange, ArrowRight, Loader2, AlertTriangle, Info, Repeat, Sparkles, SkipForward, Users } from "lucide-react";
 
 type Props = {
   open: boolean;
@@ -27,6 +27,12 @@ type Props = {
   syncStart?: boolean;
   onSyncStartChange?: (v: boolean) => void;
   warnings?: string[];
+  /** En foreslået fri dato hvis mål-datoen har konflikter. Vises som "Brug X i stedet". */
+  suggestedFreeDate?: string | null;
+  onPickSuggestedDate?: (iso: string) => void;
+  /** Hvis true: mål-datoen er også en naturlig kadence-dato for samme serie,
+   *  så den oprindelige forekomst der ville lande dér bliver sprunget over. */
+  autoSkipCadence?: boolean;
   loading?: boolean;
   onConfirm: () => Promise<void> | void;
 };
@@ -35,10 +41,15 @@ export const MoveProjectedOccurrenceDialog = ({
   open, onOpenChange, routeName, fromDate, toDate,
   recurringAppointmentCount = 0,
   syncNext, onSyncNextChange, syncStart, onSyncStartChange,
-  warnings, loading, onConfirm,
+  warnings, suggestedFreeDate, onPickSuggestedDate, autoSkipCadence,
+  loading, onConfirm,
 }: Props) => {
   const fmt = (d: string) => {
     try { return format(parseISO(d), "EEEE d. MMM yyyy", { locale: da }); }
+    catch { return d; }
+  };
+  const fmtShort = (d: string) => {
+    try { return format(parseISO(d), "EEEE d. MMM", { locale: da }); }
     catch { return d; }
   };
 
@@ -48,6 +59,8 @@ export const MoveProjectedOccurrenceDialog = ({
   const showSync =
     recurringAppointmentCount > 0 &&
     (onSyncNextChange !== undefined || onSyncStartChange !== undefined);
+
+  const showSuggestion = !!warnings?.length && !!suggestedFreeDate && suggestedFreeDate !== toDate;
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -84,13 +97,35 @@ export const MoveProjectedOccurrenceDialog = ({
           <div className="rounded-md border border-border bg-secondary/30 p-2.5">
             <div className="flex items-start gap-2">
               <Info className="h-3.5 w-3.5 text-accent mt-0.5 shrink-0" />
-              <p className="text-[11px] leading-snug text-muted-foreground">
-                Den oprindelige dato bliver tom, og ruten dukker op på den nye
-                dato i stedet. Alle andre dage i serien — og selve den
-                gentagne rute — fortsætter som før.
-              </p>
+              <div className="text-[11px] leading-snug text-muted-foreground space-y-1">
+                <p>
+                  <span className="capitalize text-foreground font-medium">{fromDate ? fmtShort(fromDate) : "—"}</span> bliver tom,
+                  og ruten dukker op på <span className="capitalize text-foreground font-medium">{toDate ? fmtShort(toDate) : "—"}</span> i stedet.
+                  Resten af serien fortsætter som før.
+                </p>
+                {recurringAppointmentCount > 0 && (
+                  <p className="flex items-center gap-1">
+                    <Users className="h-3 w-3" />
+                    {recurringAppointmentCount} tilbagevendende aftale{recurringAppointmentCount === 1 ? "" : "r"} på ruten følger med til den nye dato.
+                  </p>
+                )}
+              </div>
             </div>
           </div>
+
+          {autoSkipCadence && (
+            <div className="rounded-md border border-accent/40 bg-accent/5 p-2.5">
+              <div className="flex items-start gap-2">
+                <SkipForward className="h-3.5 w-3.5 text-accent mt-0.5 shrink-0" />
+                <div className="text-[11px] leading-snug">
+                  <div className="font-semibold text-foreground mb-0.5">Den naturlige forekomst på samme dag springes over</div>
+                  <p className="text-muted-foreground">
+                    Serien ville normalt også køre på <span className="capitalize text-foreground">{toDate ? fmtShort(toDate) : ""}</span>. Den dag bliver automatisk markeret som sprunget over, så der ikke ligger to forekomster oven i hinanden.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {warnings && warnings.length > 0 && (
             <div className="rounded-md border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 p-2.5">
@@ -103,6 +138,19 @@ export const MoveProjectedOccurrenceDialog = ({
                   <ul className="text-[11px] leading-snug text-amber-900/90 dark:text-amber-200/90 space-y-0.5">
                     {warnings.map((w, i) => <li key={i}>• {w}</li>)}
                   </ul>
+                  {showSuggestion && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onPickSuggestedDate?.(suggestedFreeDate!)}
+                      disabled={loading}
+                      className="mt-2 h-7 text-[11px] gap-1"
+                    >
+                      <Sparkles className="h-3 w-3" />
+                      Brug <span className="capitalize">{fmtShort(suggestedFreeDate!)}</span> i stedet
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>

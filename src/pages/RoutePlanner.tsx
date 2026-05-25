@@ -44,7 +44,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { format, addDays, addWeeks, addMonths, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
+import { format, addDays, addWeeks, addMonths, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth, differenceInCalendarDays } from "date-fns";
 import { da } from "date-fns/locale";
 import { toast } from "sonner";
 import { toastRouteError } from "@/lib/route-errors";
@@ -75,6 +75,8 @@ import { dragMetrics } from "@/lib/drag-metrics";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
 import { AdminShell } from "@/components/admin/shared/AdminShell";
 import { useWeatherForecast, type WeatherDay } from "@/hooks/useWeather";
+import { useDayConflicts } from "@/hooks/useDayConflicts";
+import { findNearestFreeDate } from "@/lib/find-free-date";
 import { ShellSkeleton } from "@/components/admin/shared/Skeletons";
 import { useQuery } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
@@ -452,6 +454,7 @@ const Planner = () => {
     routeName: string;
     fromDate: string;
     toDate: string;
+    autoSkipCadence?: boolean;
   } | null>(null);
 
   // Pending start-date konflikt: vises når brugeren dropper en aftale på en
@@ -491,8 +494,34 @@ const Planner = () => {
     if (!pendingProjectedMove) {
       setProjectedMoveSyncStart(false);
       setProjectedMoveSyncNext(false);
+      return;
     }
-  }, [pendingProjectedMove]);
+    // Smart sync-default: bestem ud fra hvor langt brugeren flytter ift.
+    // seriens dominerende interval. Små flytninger (inden for halvdelen af
+    // intervallet) → "kun næste besøg". Store flytninger (≥ ét helt interval)
+    // → "forskyd hele rytmen". Mellem-store: lad begge være afkrydsede så
+    //  brugeren selv vælger. Defaultet kan altid overskrives manuelt.
+    const intv = pendingProjectedSeriesInfo?.dominantIntervalDays;
+    if (!intv || intv <= 0) {
+      setProjectedMoveSyncStart(false);
+      setProjectedMoveSyncNext(true);
+      return;
+    }
+    let delta = 0;
+    try {
+      delta = Math.abs(differenceInCalendarDays(
+        parseISO(pendingProjectedMove.toDate),
+        parseISO(pendingProjectedMove.fromDate),
+      ));
+    } catch {}
+    if (delta >= intv) {
+      setProjectedMoveSyncStart(true);
+      setProjectedMoveSyncNext(false);
+    } else {
+      setProjectedMoveSyncStart(false);
+      setProjectedMoveSyncNext(true);
+    }
+  }, [pendingProjectedMove, pendingProjectedSeriesInfo?.dominantIntervalDays]);
   // Serie-info for kilde-ruten i en igangværende fletning, så fletteren
   // også kan tilbyde "fremtidige aftaler også" når kilden har gentagne aftaler.
   const { data: pendingMergeSeriesInfo } = useRouteSeriesInfo(
@@ -1260,6 +1289,41 @@ const Planner = () => {
       })
       .filter(Boolean) as CalendarRoute[];
   }, [recurringSources, recurringBaseRoutes, calendarRoutesRaw, routeOccurrenceExceptions, calendarRange.start, calendarRange.end, activeEmployees, calendarRoutes, occurrenceOverrides, agreementPauses, businessHolidays]);
+
+  // ── Soft target-konflikter + foreslået fri dato for projiceret-flyt ──
+  const { conflicts: projectedTargetConflicts } = useDayConflicts(
+    businessId,
+    pendingProjectedMove?.toDate || undefined,
+  );
+  const projectedTargetWarnings = useMemo<string[]>(() => {
+    return projectedTargetConflicts
+      .filter((c) => c.stops.length >= 2)
+      .map((c) => {
+        const names = Array.from(new Set(c.stops.map((s) => s.label).filter(Boolean))).slice(0, 3).join(", ");
+        const overlap = c.overlapsTime ? " (tidsoverlap)" : "";
+        return `Medarbejder har allerede ${c.stops.length} stops denne dag${overlap}${names ? `: ${names}` : ""}.`;
+      });
+  }, [projectedTargetConflicts]);
+  const projectedSuggestedDate = useMemo<string | null>(() => {
+    if (!pendingProjectedMove) return null;
+    if (projectedTargetWarnings.length === 0) return null;
+    const baseId = pendingProjectedMove.baseRouteId;
+    const occupiedSeriesDates = new Set<string>();
+    for (const r of calendarRoutesRaw) {
+      if ((r as any).id === baseId || (r as any).base_route_id === baseId) {
+        occupiedSeriesDates.add(String((r as any).route_date).slice(0, 10));
+      }
+    }
+    for (const r of virtualCalendarRoutes) {
+      if ((r as any).baseRouteId === baseId && (r as any).route_date !== pendingProjectedMove.fromDate) {
+        occupiedSeriesDates.add(String((r as any).route_date).slice(0, 10));
+      }
+    }
+    const conflictDates = new Set<string>([pendingProjectedMove.toDate]);
+    return findNearestFreeDate(pendingProjectedMove.toDate, (iso) =>
+      occupiedSeriesDates.has(iso) || conflictDates.has(iso),
+    );
+  }, [pendingProjectedMove, projectedTargetWarnings, calendarRoutesRaw, virtualCalendarRoutes]);
 
   /* ─── Projection sanity-check / diagnostik ───
      Kører FØR projektionen bruges i UI'et, så vi:
@@ -2035,15 +2099,18 @@ const Planner = () => {
         && r.baseRouteId === baseRouteId
         && r.id !== activeData.route.id,
       );
-      if (collidingVirtual) {
-        toast.error("Der er allerede en projiceret forekomst af ruten på den dato");
-        return;
-      }
+      // Hvis det er en NATURLIG kadence-forekomst af samme serie der ville
+      // ligge på mål-datoen, blokerer vi ikke længere. I stedet tilbyder vi
+      // brugeren at "auto-skippe" den dag, så der ikke ender to forekomster
+      // oven i hinanden. (En shifted-forekomst flyttet hertil tidligere er
+      // stadig en hård konflikt — server-RPC'en fanger den.)
+      const autoSkipCadence = !!collidingVirtual;
       setPendingProjectedMove({
         baseRouteId,
         routeName: activeData.route.name || "Rute",
         fromDate,
         toDate,
+        autoSkipCadence,
       });
       return;
     }
@@ -4212,6 +4279,10 @@ const Planner = () => {
           onSyncNextChange={setProjectedMoveSyncNext}
           syncStart={projectedMoveSyncStart}
           onSyncStartChange={setProjectedMoveSyncStart}
+          warnings={projectedTargetWarnings}
+          suggestedFreeDate={projectedSuggestedDate}
+          onPickSuggestedDate={(iso) => setPendingProjectedMove((prev) => prev ? { ...prev, toDate: iso, autoSkipCadence: false } : prev)}
+          autoSkipCadence={!!pendingProjectedMove?.autoSkipCadence}
           loading={shiftProjectedOccurrence.isPending}
           onConfirm={async () => {
             if (!pendingProjectedMove) return;
@@ -4228,6 +4299,7 @@ const Planner = () => {
                 orderIds,
                 moveStartDates: projectedMoveSyncStart,
                 moveNextDates: projectedMoveSyncNext,
+                skipTargetCadence: !!pendingProjectedMove.autoSkipCadence,
               });
               toast.success("Den projicerede forekomst er flyttet til den nye dato");
               const fromD = pendingProjectedMove.fromDate;

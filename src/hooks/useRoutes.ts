@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useMyEmployeeId } from "@/hooks/useMyEmployee";
 import { filterStopsByOccurrenceDate } from "@/lib/recurring-projection";
+import { intervalToDays as intervalToDaysCentral } from "@/lib/interval";
 import { logRouteAudit } from "@/lib/route-audit";
 import { toastRouteError } from "@/lib/route-errors";
 
@@ -1787,6 +1788,24 @@ export const useRouteSeriesInfo = (
         if (s?.order_id) orderIds.add(String(s.order_id));
       }
 
+      // Dominerende interval i dage — bruges til at sætte smart defaults
+      // for sync-checkboksene når brugeren flytter en projiceret forekomst.
+      // Det interval flest aftaler i serien deler "vinder".
+      const intervalVotes = new Map<number, number>();
+      const addVote = (intv: string | null | undefined) => {
+        const days = intervalToDaysCentral(intv);
+        if (!days) return;
+        intervalVotes.set(days, (intervalVotes.get(days) || 0) + 1);
+      };
+      for (const s of recurringSubs) addVote((s as any).interval);
+      for (const s of (subsByPref.data || [])) addVote((s as any).interval);
+      for (const a of (agreementsByPref.data || [])) addVote((a as any).interval);
+      let dominantIntervalDays: number | null = null;
+      let bestVotes = 0;
+      for (const [days, votes] of intervalVotes) {
+        if (votes > bestVotes) { bestVotes = votes; dominantIntervalDays = days; }
+      }
+
       return {
         recurringAppointmentCount: ids.size,
         linkedSubscriptionCount: ids.size,
@@ -1794,6 +1813,7 @@ export const useRouteSeriesInfo = (
         recurringSubscriptionIds: Array.from(subscriptionIds),
         agreementIds: Array.from(agreementIds),
         orderIds: Array.from(orderIds),
+        dominantIntervalDays,
       };
     },
   });
@@ -1885,7 +1905,7 @@ export const useMoveRouteSeries = () => {
 export const useMoveProjectedOccurrence = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ baseRouteId, fromDate, toDate, agreementIds, subscriptionIds, orderIds, moveStartDates, moveNextDates }: {
+    mutationFn: ({ baseRouteId, fromDate, toDate, agreementIds, subscriptionIds, orderIds, moveStartDates, moveNextDates, skipTargetCadence }: {
       baseRouteId: string;
       fromDate: string;
       toDate: string;
@@ -1894,6 +1914,7 @@ export const useMoveProjectedOccurrence = () => {
       orderIds?: string[];
       moveStartDates?: boolean;
       moveNextDates?: boolean;
+      skipTargetCadence?: boolean;
     }) => routeMutationQueue.run(async () => {
       // Brug den nye `shift_projected_occurrence` RPC der KUN registrerer
       // en flytte-undtagelse — den materialiserer aldrig basisruten på den
@@ -1908,6 +1929,7 @@ export const useMoveProjectedOccurrence = () => {
         _order_ids: orderIds ?? [],
         _move_start_dates: !!moveStartDates,
         _move_next_dates: !!moveNextDates,
+        _skip_target_cadence: !!skipTargetCadence,
       });
       if (error) throw error;
       return data as any;

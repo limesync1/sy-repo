@@ -202,6 +202,19 @@ export const RouteEditSheet = ({
         return `Medarbejder har allerede ${c.stops.length} stops denne dag${overlap}${names ? `: ${names}` : ""}.`;
       });
   }, [projectedMoveTargetConflicts]);
+  // Simpel foreslået fri dato: hvis mål-datoen har konflikter, prøv ±1, ±2 …
+  // Vi kan ikke nemt se medarbejder-konflikter på andre datoer uden flere
+  // queries, så vi bumper bare datoen og lader brugeren se en advarsel
+  // hvis den nye dato også har problemer.
+  const projectedMoveSuggestedDate = useMemo<string | null>(() => {
+    if (!pendingProjectedDate) return null;
+    if (projectedMoveConflictWarnings.length === 0) return null;
+    try {
+      const base = new Date(pendingProjectedDate);
+      const next = new Date(base.getTime() + 86400000);
+      return next.toISOString().slice(0, 10);
+    } catch { return null; }
+  }, [pendingProjectedDate, projectedMoveConflictWarnings.length]);
   const cancelConflictWarnings = useMemo<string[]>(() => {
     return sourceDayConflicts
       .filter((c) => c.stops.length >= 2 && c.overlapsTime)
@@ -240,8 +253,31 @@ export const RouteEditSheet = ({
     if (!pendingProjectedDate) {
       setProjectedMoveSyncStart(false);
       setProjectedMoveSyncNext(false);
+      return;
     }
-  }, [pendingProjectedDate]);
+    // Smart sync-default: ud fra seriens dominerende interval — store flytninger
+    // sætter "forskyd hele rytmen", små flytninger sætter "kun næste besøg".
+    const intv = (seriesInfo as any)?.dominantIntervalDays as number | null | undefined;
+    const fromIso = projectedDate || "";
+    if (!intv || intv <= 0 || !fromIso) {
+      setProjectedMoveSyncStart(false);
+      setProjectedMoveSyncNext(true);
+      return;
+    }
+    let delta = 0;
+    try {
+      delta = Math.abs(
+        Math.round((new Date(pendingProjectedDate).getTime() - new Date(fromIso).getTime()) / 86400000),
+      );
+    } catch {}
+    if (delta >= intv) {
+      setProjectedMoveSyncStart(true);
+      setProjectedMoveSyncNext(false);
+    } else {
+      setProjectedMoveSyncStart(false);
+      setProjectedMoveSyncNext(true);
+    }
+  }, [pendingProjectedDate, projectedDate, (seriesInfo as any)?.dominantIntervalDays]);
 
   useEffect(() => {
     if (!route) return;
@@ -898,6 +934,8 @@ export const RouteEditSheet = ({
         syncStart={projectedMoveSyncStart}
         onSyncStartChange={setProjectedMoveSyncStart}
         warnings={projectedMoveConflictWarnings}
+        suggestedFreeDate={projectedMoveSuggestedDate}
+        onPickSuggestedDate={(iso) => setPendingProjectedDate(iso)}
         loading={moveProjected.isPending}
         onConfirm={handleConfirmMoveProjected}
       />
