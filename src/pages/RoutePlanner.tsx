@@ -3702,6 +3702,8 @@ const Planner = () => {
                   weatherError={weatherError}
                   busyTargets={busyTargets}
                   dateAlerts={dateAlerts}
+                  selectedRouteIds={selectedRouteIds}
+                  onToggleRouteSelection={(id) => toggleRouteSelection(id)}
                 />
                 </div>
                 </div>
