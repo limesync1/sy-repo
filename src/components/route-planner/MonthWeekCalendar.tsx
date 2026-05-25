@@ -753,6 +753,7 @@ const RoutePill = memo(RoutePillInner, (prev, next) => {
     prev.optimizing === next.optimizing &&
     prev.compact === next.compact &&
     prev.jobDragActive === next.jobDragActive &&
+    prev.routeDragSourceId === next.routeDragSourceId &&
     prev.busy === next.busy
   );
 });
