@@ -501,6 +501,56 @@ export function makeEconomicAdapter(
       const fallbackRecipientName =
         (input as any).customer_name?.toString().trim() ||
         `Kunde ${input.customer_external_id}`;
+
+      // E-conomic kræver et productNumber på HVER linje i en ordrekladde —
+      // ellers fejler hele pushet med "Validation failed. lines.items". Hvis en
+      // ordrelinje ikke er knyttet til en service (fx ad-hoc linjer eller
+      // historisk import uden service_id), opretter vi én gang et fælles
+      // "Diverse ydelse" (SY-MISC) produkt i e-conomic og bruger det som
+      // fallback. Eksistensen verificeres pr. push, så vi også selvhelbreder
+      // hvis produktet er slettet manuelt i e-conomic.
+      let fallbackProductNumber: string | null = null;
+      const ensureFallbackProduct = async (): Promise<string> => {
+        if (fallbackProductNumber) return fallbackProductNumber;
+        const productNumber = "SY-MISC";
+        const productGroupNumber = Number(settings.default_product_group ?? 1);
+        const productBody = {
+          productNumber,
+          name: "Diverse ydelse",
+          salesPrice: 0,
+          productGroup: { productGroupNumber },
+        };
+        const existing = await ecRequest(
+          creds,
+          `/products/${encodeURIComponent(productNumber)}`,
+          {},
+          { silent404: true },
+        );
+        if (!existing) {
+          await ecRequest(creds, `/products`, {
+            method: "POST",
+            body: JSON.stringify(productBody),
+          });
+        }
+        fallbackProductNumber = productNumber;
+        return productNumber;
+      };
+
+      const mappedLines = await Promise.all(
+        input.lines.map(async (l, idx) => {
+          const productNumber = l.product_external_id
+            ? String(l.product_external_id)
+            : await ensureFallbackProduct();
+          return {
+            lineNumber: idx + 1,
+            description: (l.description ?? "").toString().trim() || "Ydelse",
+            quantity: l.quantity,
+            unitNetPrice: l.unit_price,
+            product: { productNumber },
+          };
+        }),
+      );
+
       const body: Record<string, unknown> = {
         date,
         currency: input.currency ?? "DKK",
@@ -512,15 +562,7 @@ export function makeEconomicAdapter(
         // missing from object: paymentTerms" — overskrives senere fra
         // kunde-opslag eller aftalens default hvis tilgængeligt.
         paymentTerms: { paymentTermsNumber: 1 },
-        lines: input.lines.map((l, idx) => ({
-          lineNumber: idx + 1,
-          description: (l.description ?? "").toString().trim() || "Ydelse",
-          quantity: l.quantity,
-          unitNetPrice: l.unit_price,
-          product: l.product_external_id
-            ? { productNumber: l.product_external_id }
-            : undefined,
-        })),
+        lines: mappedLines,
       };
 
       // Lookup the actual customer to copy paymentTerms, vatZone, layout og navn
