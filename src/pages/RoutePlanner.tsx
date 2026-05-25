@@ -1086,6 +1086,35 @@ const Planner = () => {
             // så uden dette ville badge'et fejlagtigt vise "Engangsaftale".
             agreement_interval: s.agreement_interval ?? intervalForStop(s),
           }));
+        // Synthesér placeholder-stops for de aftaler i sourceKeys der ikke har
+        // et eksisterende stop på basisruten — ellers ville fx 3 aftaler på
+        // samme rute kun vise 1 kunde på den projicerede dato (kun den med
+        // et materialiseret base-stop). Hver aftale fortjener sin egen række.
+        const coveredKeys = new Set<string>();
+        for (const s of projectedStops) {
+          for (const k of recurringSourceKeysForStop(s)) coveredKeys.add(k);
+        }
+        let synthIndex = projectedStops.length;
+        for (const src of recurringSources as any[]) {
+          if (src.preferred_route_id !== p.baseRouteId) continue;
+          if (!src.placeholder) continue;
+          const keys: string[] = src.sourceKeys ?? [];
+          if (!keys.some((k) => sourceSet.has(k))) continue;
+          if (keys.some((k) => coveredKeys.has(k))) continue;
+          const ph = src.placeholder;
+          projectedStops.push({
+            ...ph,
+            id: `virtual-stop:${p.baseRouteId}:${p.date}:agr:${ph.agreement_id}`,
+            route_id: p.id,
+            status: "planned",
+            isVirtual: true,
+            sequence: synthIndex++,
+            agreement_interval: src.interval ?? null,
+            order_id: null,
+            subscription_id: null,
+          } as any);
+          for (const k of keys) coveredKeys.add(k);
+        }
         if (projectedStops.length === 0) return null;
         // Saml medarbejdere fra basis-rutens stops så virtuelle ruter også
         // viser tilknyttede medarbejdere på kalender-kortet.
