@@ -540,7 +540,7 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
       }}
       title={
         isVirtual
-          ? "Projiceret rute — klik åbner basisruten; flytning kræver eksplicit træk af en rigtig rute"
+          ? "Projiceret rute — klik åbner basisruten. Træk til en anden dato for at flytte netop denne ene forekomst (basisruten røres ikke)."
           : isPast
             ? "Tidligere rute — kan ikke flyttes"
             : undefined
