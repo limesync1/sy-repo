@@ -56,9 +56,9 @@ Basisrute `Ruten 1` (27. maj) har **6 materialiserede dattererute-rows** (8. jun
 
 ### P2 — Recurrence-rigdom + medarbejder-sikkerhed
 
-7. **Skip helligdage / pause-perioder**: Tilføj `agreement_pauses` (start, end, agreement_id). `expandRecurringRoutes` springer datoer der falder i pause.
-8. **Medarbejder-API guard**: Verificér at `useMyDayStops` / `useMyRouteData` ALDRIG returnerer stops med `route_date > today` — backend RLS check.
-9. **Konfliktdetektion**: Når en aftale flyttes eller medarbejder skiftes, beregn dobbeltbookinger og advar.
+7. ✅ **Skip helligdage / pause-perioder**: `agreement_pauses` + `business_holidays` tabeller oprettet med RLS. `expandRecurringRoutes` springer datoer i pause-vinduer og helligdage. Wired ind i `RoutePlanner` via `useAgreementPauses` + `useBusinessHolidays`.
+8. ✅ **Medarbejder-API guard**: `useMyDayStops` og `useMyRouteData` afviser nu requests hvor `date > today` — fremtidige ruter er aldrig synlige i medarbejder-appen.
+9. ✅ **Konfliktdetektion**: `src/lib/route-conflicts.ts` — `detectConflicts(stops)` returnerer alle medarbejder+dato par med dobbeltbookinger, inkl. tidsoverlap-flag. Klar til at wires ind i `SeriesScopeDialog` ved flyt / medarbejder-skift.
 
 ### P3 — Kø + retries (enterprise)
 
