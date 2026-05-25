@@ -31,6 +31,8 @@ import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection
 import { pickDuration } from "@/components/route/EtaBreakdown";
 import { MoveRouteDateDialog, type MoveRouteScope } from "./MoveRouteDateDialog";
 import { MoveStopsDialog } from "./MoveStopsDialog";
+import { SeriesScopeDialog, type SeriesScope } from "./SeriesScopeDialog";
+import { Ban } from "lucide-react";
 
 export type RouteEmployeeOption = { id: string; name: string };
 
@@ -130,6 +132,11 @@ export const RouteEditSheet = ({
   // brugeren om kun denne ene eller alle fremtidige skal flyttes.
   const [pendingDate, setPendingDate] = useState<string | null>(null);
   const [moveStopsOpen, setMoveStopsOpen] = useState(false);
+  // Aflys-denne-forekomst dialog for projicerede ruter — opretter
+  // `agreement_occurrence_overrides` med status="cancelled" så projektionen
+  // skjuler forekomsten uden at røre basis-aftalen.
+  const [cancelOccurrenceOpen, setCancelOccurrenceOpen] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
   // Sporer om brugeren *aktivt* har ændret navn/farve i denne session af
   // sheet'et. Vi bruger den til at undgå at autosave skriver stale lokal
   // state tilbage til serveren når route-data refetches udefra (fx efter
@@ -699,15 +706,27 @@ export const RouteEditSheet = ({
             </Button>
             )}
             {isProjection && (
-              <div className="flex items-start gap-2 rounded-md border border-dashed border-muted-foreground/40 bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-                <Lock className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                <div>
-                  <div className="font-semibold text-foreground mb-0.5">Projiceret forekomst</div>
-                  Denne rute er automatisk genereret ud fra basisruten. Ændringer i rækkefølge,
-                  dato eller sletning gælder kun denne ene dag — for at ændre serien skal du
-                  redigere basisruten.
+              <>
+                <div className="flex items-start gap-2 rounded-md border border-dashed border-muted-foreground/40 bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+                  <Lock className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                  <div>
+                    <div className="font-semibold text-foreground mb-0.5">Projiceret forekomst</div>
+                    Denne rute er automatisk genereret ud fra basisruten. Ændringer i rækkefølge,
+                    dato eller sletning gælder kun denne ene dag — for at ændre serien skal du
+                    redigere basisruten.
+                  </div>
                 </div>
-              </div>
+                {stops.some((s) => (s as any).agreement_id) && (
+                  <Button
+                    variant="outline"
+                    className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => setCancelOccurrenceOpen(true)}
+                  >
+                    <Ban className="h-4 w-4 mr-1.5" />
+                    Aflys denne forekomst
+                  </Button>
+                )}
+              </>
             )}
           </SheetFooterBar>
         </SheetContent>
@@ -750,6 +769,56 @@ export const RouteEditSheet = ({
         onOpenChange={setMoveStopsOpen}
         route={route}
         stops={stops}
+      />
+
+      <SeriesScopeDialog
+        open={cancelOccurrenceOpen}
+        onOpenChange={setCancelOccurrenceOpen}
+        title="Aflys forekomst?"
+        description={`Aflys aftalerne på denne rute den ${date ? format(parseISO(date), "d. MMMM yyyy", { locale: da }) : ""}. Basis-aftalen og fremtidige forekomster fortsætter uændret.`}
+        allowedScopes={["single"]}
+        defaultScope="single"
+        confirmLabel="Aflys forekomst"
+        loading={cancelLoading}
+        onConfirm={async (_scope: SeriesScope) => {
+          if (!route) return;
+          setCancelLoading(true);
+          try {
+            const agreementIds = Array.from(
+              new Set(
+                stops
+                  .map((s) => (s as any).agreement_id as string | null | undefined)
+                  .filter((v): v is string => !!v),
+              ),
+            );
+            if (agreementIds.length === 0) {
+              toast.info("Ingen aftaler på denne forekomst at aflyse");
+              setCancelOccurrenceOpen(false);
+              return;
+            }
+            const { data: userRes } = await supabase.auth.getUser();
+            const rows = agreementIds.map((aid) => ({
+              agreement_id: aid,
+              business_id: route.business_id,
+              original_date: route.route_date,
+              status: "cancelled" as const,
+              created_by: userRes.user?.id ?? null,
+            }));
+            const { error } = await supabase
+              .from("agreement_occurrence_overrides")
+              .upsert(rows, { onConflict: "agreement_id,original_date" });
+            if (error) throw error;
+            await qc.invalidateQueries({ queryKey: ["agreement-occurrence-overrides"] });
+            await qc.invalidateQueries({ queryKey: ["routes"] });
+            toast.success(`Forekomsten er aflyst (${agreementIds.length} ${agreementIds.length === 1 ? "aftale" : "aftaler"})`);
+            setCancelOccurrenceOpen(false);
+            onOpenChange(false);
+          } catch (e: any) {
+            toast.error(e?.message || "Kunne ikke aflyse forekomsten");
+          } finally {
+            setCancelLoading(false);
+          }
+        }}
       />
     </>
   );

@@ -58,4 +58,5 @@ Specifikationen er omfattende (33 sektioner). Jeg foreslår at gennemføre den i
   - `SeriesScopeDialog` (genbrugelig 3-valgs dialog) er klar.
   - `expandRecurringRoutes` honorerer nu overrides — `cancelled` skjuler forekomsten, `rescheduled`/`modified` med `new_date` flytter den projicerede dato.
   - Planneren henter overrides for alle aktive aftaler og inkluderer dem i projektionen.
-  - Resterende: wiring af `SeriesScopeDialog` ind på konkrete UI-handlinger (aflys denne forekomst, skift medarbejder for denne ene dag, flyt en enkelt aftale-forekomst) — kan tilføjes pr. trigger efter behov.
+  - Første konkrete wiring: "Aflys denne forekomst"-knap på projicerede ruter i `RouteEditSheet` åbner `SeriesScopeDialog` (kun `single`-scope), opretter `cancelled`-overrides for alle aftale-ider på datoen, og invaliderer queries så projektionen straks skjuler forekomsten.
+  - Resterende: tilsvarende wiring for "skift medarbejder for denne ene dag" og "flyt en enkelt aftale-forekomst" — kan tilføjes pr. trigger efter behov.
