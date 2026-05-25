@@ -2423,6 +2423,7 @@ const Planner = () => {
   ) => {
     if (!pendingRouteMove) return;
     const { route, newDate } = pendingRouteMove;
+    const oldDate = route.route_date;
     try {
       await moveRouteSeries.mutateAsync({
         routeId: route.id,
@@ -2435,6 +2436,19 @@ const Planner = () => {
           ? `Ruteserien forskudt til ${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`
           : `Rute flyttet til ${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`,
       );
+      pushRouteUndo({
+        label: scope === "future"
+          ? `Forskydning af ruteserie til ${format(parseISO(newDate), "d. MMM", { locale: da })}`
+          : `Flyt rute til ${format(parseISO(newDate), "d. MMM", { locale: da })}`,
+        undo: async () => {
+          await moveRouteSeries.mutateAsync({
+            routeId: route.id,
+            newDate: oldDate,
+            scope,
+            moveLinkedSubscriptions,
+          });
+        },
+      });
       setPendingRouteMove(null);
     } catch (err: any) {
       toast.error(err.message || "Kunne ikke flytte rute", {
