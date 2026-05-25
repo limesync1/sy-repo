@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { exportCsv } from "./lib/csv";
 import { PageHeader, SearchInput, EmptyState, StatCard } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
+import { PaginationFooter } from "@/components/admin/shared/PaginationFooter";
+import { useAdaptivePageSize } from "@/hooks/useAdaptivePageSize";
 import { ReviewFilter, computeInsights } from "./reviews/shared";
 import ReviewRow from "./reviews/ReviewRow";
 import ReviewsInsights from "./reviews/ReviewsInsights";
@@ -109,6 +111,14 @@ const PlatformReviewsTab = () => {
   const avgRating = filtered.length ? filtered.reduce((s: number, r: any) => s + (r.rating || 0), 0) / filtered.length : 0;
   const insights = useMemo(() => computeInsights(data || []), [data]);
 
+  const pageSize = useAdaptivePageSize();
+  const [page, setPage] = useState(0);
+  useEffect(() => { setPage(0); }, [q, ratingFilter, stateFilter]);
+  const paged = useMemo(
+    () => filtered.slice(page * pageSize, (page + 1) * pageSize),
+    [filtered, page, pageSize],
+  );
+
   const handleExport = () => {
     exportCsv("anmeldelser", filtered.map((r: any) => ({
       navn: r.reviewer_name, virksomhed: r.businesses?.name || "",
@@ -175,7 +185,7 @@ const PlatformReviewsTab = () => {
       ) : (
         <Card className="rounded-xl border-border shadow-sm overflow-hidden">
           <div className="divide-y divide-border">
-            {filtered.map((r: any) => (
+            {paged.map((r: any) => (
               <ReviewRow
                 key={r.id} review={r}
                 onFlag={setFlagDialog}
@@ -187,6 +197,13 @@ const PlatformReviewsTab = () => {
           </div>
         </Card>
       )}
+      <PaginationFooter
+        page={page}
+        pageSize={pageSize}
+        total={filtered.length}
+        onPageChange={setPage}
+        label="anmeldelser"
+      />
 
       <FlagDialog
         open={!!flagDialog} review={flagDialog}
