@@ -827,6 +827,7 @@ export const RouteEditSheet = ({
         loading={cancelLoading}
         futureCount={cancelImpact?.futureCount}
         totalCount={cancelImpact?.totalCount}
+        warnings={cancelConflictWarnings}
         onConfirm={async (_scope: SeriesScope) => {
           if (!route) return;
           setCancelLoading(true);
