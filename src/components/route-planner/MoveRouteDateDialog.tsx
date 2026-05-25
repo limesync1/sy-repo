@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { differenceInCalendarDays, format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
-import { CalendarRange, Repeat, ArrowRight, Loader2 } from "lucide-react";
+import { CalendarRange, Repeat, ArrowRight, Loader2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type MoveRouteScope = "single" | "future";
@@ -31,12 +31,14 @@ type Props = {
   /** (Behold for bagudkompatibilitet — bruges ikke længere visuelt.) */
   linkedSubscriptionCount: number;
   loading?: boolean;
+  /** Valgfri konflikt-advarsler vist over scope-valgene. */
+  warnings?: string[];
   onConfirm: (scope: MoveRouteScope, moveLinkedSubscriptions: boolean) => Promise<void> | void;
 };
 
 export const MoveRouteDateDialog = ({
   open, onOpenChange, routeName, fromDate, toDate,
-  recurringAppointmentCount, linkedSubscriptionCount, loading, onConfirm,
+  recurringAppointmentCount, linkedSubscriptionCount, loading, warnings, onConfirm,
 }: Props) => {
   void linkedSubscriptionCount;
   const [scope, setScope] = useState<MoveRouteScope>("single");
@@ -91,6 +93,21 @@ export const MoveRouteDateDialog = ({
         </AlertDialogHeader>
 
         <div className="space-y-2 pt-1">
+          {warnings && warnings.length > 0 && (
+            <div className="rounded-md border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 p-2.5">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-3.5 w-3.5 text-amber-600 mt-0.5 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[11px] font-semibold text-amber-900 dark:text-amber-200 mb-0.5">
+                    Mulige konflikter på måldatoen
+                  </div>
+                  <ul className="text-[11px] leading-snug text-amber-900/90 dark:text-amber-200/90 space-y-0.5">
+                    {warnings.map((w, i) => <li key={i}>• {w}</li>)}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
           <ScopeOption
             selected={scope === "single"}
             onClick={() => setScope("single")}
