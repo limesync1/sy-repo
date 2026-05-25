@@ -387,6 +387,54 @@ const Planner = () => {
     });
   }, [rawCalendarStops, orderStartInfo]);
 
+  // ─── Proaktive konflikt-prikker i kalenderen ─────────────────────────────
+  // Beregner en map<dato → severity+label> der vises som farvet prik ved siden
+  // af dato-tallet i MonthWeekCalendar. Brugeren ser problemer INDEN de prøver
+  // at trække noget hen — sparer en mislykket drag-cyklus.
+  //
+  // - `warning` (gul):  helligdag / virksomheds-lukkedag
+  // - `error`   (rød):  samme medarbejder dobbeltbooket på samme dato
+  const dateAlerts = useMemo(() => {
+    const map = new Map<string, { severity: "warning" | "error"; label: string }>();
+    // 1) Helligdage → gul prik
+    for (const h of businessHolidays as any[]) {
+      const d = h.holiday_date as string;
+      if (!d) continue;
+      map.set(d, { severity: "warning", label: h.name ? `Lukkedag: ${h.name}` : "Lukkedag" });
+    }
+    // 2) Medarbejder-dobbeltbookinger pr. dato → rød prik (trumfer gul)
+    // Brug både assigned_employee_id og route_stop_assignees-relationen ville
+    // kræve ekstra query — vi nøjes med stop.assigned_employee_id som er det
+    // primære felt i kalenderens data og dermed tilstrækkeligt til en
+    // proaktiv advarsel. Faktiske konflikter valideres mere præcist ved drop.
+    const byDateEmp = new Map<string, Map<string, number>>();
+    const routesById = new Map<string, any>();
+    for (const r of calendarRoutesRaw) routesById.set(r.id, r);
+    for (const s of calendarStops as any[]) {
+      if (!s.assigned_employee_id) continue;
+      if (s.status === "cancelled") continue;
+      const route = routesById.get(s.route_id);
+      const date = route?.route_date;
+      if (!date) continue;
+      let inner = byDateEmp.get(date);
+      if (!inner) { inner = new Map(); byDateEmp.set(date, inner); }
+      inner.set(s.assigned_employee_id, (inner.get(s.assigned_employee_id) ?? 0) + 1);
+    }
+    for (const [date, empCounts] of byDateEmp) {
+      let dupEmpCount = 0;
+      for (const c of empCounts.values()) if (c > 1) dupEmpCount++;
+      if (dupEmpCount > 0) {
+        map.set(date, {
+          severity: "error",
+          label: dupEmpCount === 1
+            ? "1 medarbejder er dobbeltbooket"
+            : `${dupEmpCount} medarbejdere er dobbeltbooket`,
+        });
+      }
+    }
+    return map;
+  }, [businessHolidays, calendarStops, calendarRoutesRaw]);
+
   // Vejrudsigt — bruger gennemsnit af stop-koordinater i det viste interval,
   // ellers Danmarks centrum. Open-Meteo kan levere op til 16 dage frem.
   // Vi henter altid maks. forecast (i dag → +15 dage) så vejret allerede er
@@ -3597,6 +3645,7 @@ const Planner = () => {
                   loadingWeather={loadingWeather}
                   weatherError={weatherError}
                   busyTargets={busyTargets}
+                  dateAlerts={dateAlerts}
                 />
                 </div>
                 </div>

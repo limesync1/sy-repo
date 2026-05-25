@@ -33,6 +33,10 @@ type Props = {
   /** Hvis true: mål-datoen er også en naturlig kadence-dato for samme serie,
    *  så den oprindelige forekomst der ville lande dér bliver sprunget over. */
   autoSkipCadence?: boolean;
+  /** Foreslåede medarbejder-erstatninger når original-tildelinger har konflikt
+   *  på mål-datoen. Vises som rådgivende note — selve omdelingen sker manuelt
+   *  i rute-sheet'et bagefter (vi flytter ikke tildelinger automatisk). */
+  reassignSuggestions?: Array<{ conflictingName: string; suggestedName: string }>;
   loading?: boolean;
   onConfirm: () => Promise<void> | void;
 };
@@ -42,6 +46,7 @@ export const MoveProjectedOccurrenceDialog = ({
   recurringAppointmentCount = 0,
   syncNext, onSyncNextChange, syncStart, onSyncStartChange,
   warnings, suggestedFreeDate, onPickSuggestedDate, autoSkipCadence,
+  reassignSuggestions,
   loading, onConfirm,
 }: Props) => {
   const fmt = (d: string) => {
@@ -122,6 +127,31 @@ export const MoveProjectedOccurrenceDialog = ({
                   <p className="text-muted-foreground">
                     Serien ville normalt også køre på <span className="capitalize text-foreground">{toDate ? fmtShort(toDate) : ""}</span>. Den dag bliver automatisk markeret som sprunget over, så der ikke ligger to forekomster oven i hinanden.
                   </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {reassignSuggestions && reassignSuggestions.length > 0 && (
+            <div className="rounded-md border border-accent/40 bg-accent/5 p-2.5">
+              <div className="flex items-start gap-2">
+                <Users className="h-3.5 w-3.5 text-accent mt-0.5 shrink-0" />
+                <div className="text-[11px] leading-snug min-w-0">
+                  <div className="font-semibold text-foreground mb-0.5">
+                    Foreslåede medarbejder-erstatninger
+                  </div>
+                  <p className="text-muted-foreground mb-1">
+                    Følgende medarbejdere er allerede booket på den nye dato. Du kan tildele en kollega bagefter i rute-panelet.
+                  </p>
+                  <ul className="space-y-0.5">
+                    {reassignSuggestions.map((s, i) => (
+                      <li key={i} className="text-foreground">
+                        <span className="font-medium">{s.conflictingName}</span>
+                        <span className="text-muted-foreground"> → </span>
+                        <span className="font-medium">{s.suggestedName}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </div>

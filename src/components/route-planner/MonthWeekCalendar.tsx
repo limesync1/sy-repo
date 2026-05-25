@@ -71,6 +71,10 @@ type Props = {
    *  pt. behandler en flytning. Targets i settet deaktiveres som drop-zone
    *  og viser en spinner, så brugeren ikke kan slippe igen ved et uheld. */
   busyTargets?: Set<string>;
+  /** Proaktive konflikt-advarsler pr. dato: vises som farvet prik ved siden
+   *  af dato-tallet INDEN brugeren prøver at trække noget hen. `error` =
+   *  rød (fx dobbeltbooket medarbejder), `warning` = gul (fx helligdag). */
+  dateAlerts?: Map<string, { severity: "warning" | "error"; label: string }>;
 };
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
@@ -91,7 +95,7 @@ const fmtRouteKrCompact = (n: number) => {
 export const MonthWeekCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
   onCreateRoute, onOptimizeRoute, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
-  loadingRoutes, loadingWeather, weatherError, busyTargets,
+  loadingRoutes, loadingWeather, weatherError, busyTargets, dateAlerts,
 }: Props) => {
   const anchor = parseISO(anchorDate);
 
@@ -200,6 +204,7 @@ export const MonthWeekCalendar = ({
                     weatherError={!!weatherError}
                     busy={!!busyTargets?.has(`day:${dateStr}`)}
                     busyRouteIds={busyTargets}
+                    alert={dateAlerts?.get(dateStr) ?? null}
                   />
                 );
               })}
@@ -234,12 +239,14 @@ type DayCellProps = {
   busy?: boolean;
   /** Sæt med alle busy targets — videresendes til RoutePill for rute-niveau. */
   busyRouteIds?: Set<string>;
+  /** Forhåndsdetekteret konflikt på dagen (helligdag / dobbeltbooking). */
+  alert?: { severity: "warning" | "error"; label: string } | null;
 };
 
 const DayCellInner = ({
   date, dateStr, routes, inMonth, today,
   onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, optimizingRouteId, compact, draggingType, draggingRouteId, weather,
-  loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds,
+  loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds, alert,
 }: DayCellProps) => {
   const todayIso = format(new Date(), "yyyy-MM-dd");
   const isPast = dateStr < todayIso;
@@ -331,15 +338,27 @@ const DayCellInner = ({
       )}
       {/* Dato-header */}
       <div className="flex items-center justify-between mb-0.5">
-        <span
-          className={cn(
-            "inline-flex items-center justify-center rounded-full text-xs font-semibold tabular-nums",
-            today ? "h-6 w-6 bg-accent text-accent-foreground" : "h-6 w-6 text-foreground",
-            !inMonth && !today && "text-muted-foreground/50",
+        <div className="flex items-center gap-1">
+          <span
+            className={cn(
+              "inline-flex items-center justify-center rounded-full text-xs font-semibold tabular-nums",
+              today ? "h-6 w-6 bg-accent text-accent-foreground" : "h-6 w-6 text-foreground",
+              !inMonth && !today && "text-muted-foreground/50",
+            )}
+          >
+            {format(date, "d")}
+          </span>
+          {alert && inMonth && (
+            <span
+              className={cn(
+                "h-2 w-2 rounded-full ring-2 ring-background",
+                alert.severity === "error" ? "bg-destructive" : "bg-amber-500",
+              )}
+              title={alert.label}
+              aria-label={alert.label}
+            />
           )}
-        >
-          {format(date, "d")}
-        </span>
+        </div>
         <div className="flex items-center gap-1">
           {weather && (
             <WeatherBadge weather={weather} size={compact ? "compact" : "full"} />
@@ -474,7 +493,9 @@ const DayCell = memo(DayCellInner, (prev, next) => {
     prev.loadingWeather === next.loadingWeather &&
     prev.weatherError === next.weatherError &&
     prev.busy === next.busy &&
-    prev.busyRouteIds === next.busyRouteIds
+    prev.busyRouteIds === next.busyRouteIds &&
+    prev.alert?.severity === next.alert?.severity &&
+    prev.alert?.label === next.alert?.label
   );
 });
 
