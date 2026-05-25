@@ -1,97 +1,56 @@
-## Mål
 
-Tre uafhængige opgaver i ét forløb:
+# Rutekalender — UX & datalogik-refaktor
 
-1. **Pagination overalt** — sikre at alle lister med >25 emner får adaptiv pagination.
-2. **Rutekalender — stabilitetsfix** — flere konkrete bugs i `/virksomhed/ruter`.
-3. **Datasletning** — fjerne alle ruter, services og aftaler for `Ready2Clean ApS` (public_id `0177cdef`, id `8258070b-acc7-4145-b236-e2157001563c`).
+Specifikationen er omfattende (33 sektioner). Jeg foreslår at gennemføre den i **5 faser** så vi kan teste hver milepæl uden at lægge hele systemet ned. Eksisterende UI bevares — kun adfærd, badges på låste elementer, og dialoger ændres.
 
-Jeg foreslår at vi tager dem i den rækkefølge — opgave 3 er hurtig, opgave 1 er bred men mekanisk, opgave 2 er det største stykke arbejde.
+## Fase 1 — Lås projicerede ruter (UX + backend-guard)
 
----
+**Mål:** Brugeren kan ikke længere flytte, redigere, omarrangere eller slette projicerede instanser.
 
-## 1) Pagination på alle lister
+- I `RoutePlanner.tsx` + `route-planner/`-komponenter: marker projicerede stops/ruter (id starter med `virtual:`) som `isProjected` og:
+  - Disable drag-and-drop (DnD-kit `disabled` på droppable + draggable).
+  - Disable rediger/slet-knapper.
+  - Tilføj lille "Projiceret" badge + lås-ikon (genbruger eksisterende Badge-komponent).
+- Backend: i alle route/stop-mutations afvis kald med virtuelle ids → 409 "Projicerede ruter kan ikke ændres direkte. Rediger basisruten i stedet."
+- Klik på projiceret rute → åbn read-only visning af basisrutens stops projiceret til datoen (ikke en tom rute).
 
-Bygger videre på eksisterende infrastruktur:
-- `PaginationFooter` (Forrige/Næste + "X–Y af Z" + sidetal)
-- `useAdaptivePageSize(base=25)` — vælger 10/25/50 ud fra `navigator.deviceMemory`, `hardwareConcurrency`, `connection.effectiveType`, `saveData`
+## Fase 2 — Beskyt mod datatab (soft-delete + sletteguard)
 
-**Lister der allerede paginerer** (verificeret):
-- Admin: AftaleTab, CustomersTab, LeadsTab, ReviewsTab, ServicesTab, DataImportTab
-- Platform admin: Businesses, Orders, Users
+- Migration: tilføj `archived_at`, `deleted_at` på `routes` (hvis ikke allerede).
+- `delete_route` blokeres hvis ruten har stops med `agreement_id`/`subscription_id`/aktive ordrer. UI viser dialog: "Ruten har N aftaler — arkivér i stedet?".
+- Sletning af et enkelt stop på en basisrute med aftale → samme dialog: "Aflys kun denne forekomst" / "Stop hele serien".
 
-**Lister jeg gennemgår og tilføjer pagination til hvis de mangler det:**
-- Admin: `OrdersTab`, `EmployeesTab`, `RoutesTab` (ruteliste, ikke kalender), `AccountingTab` (faner: kunder, produkter, ordrer, DLQ), `MessagesTab`, `NotificationsTab`, `BillingTab/InvoicesTab`, `BusinessCustomersTab`-undertabeller
-- Platform admin: `PlatformLeadsTab`, `PlatformReviewsTab`, `PlatformSubscriptionsTab`, `PlatformPaymentsTab`, `PlatformChatTab`, evt. flere
-- Kunde: `CustomerDashboard` historik
-- Medarbejder: aftalelister hvis lange
+## Fase 3 — Idempotens & race condition-hærdning
 
-Mønster pr. liste:
-```ts
-const pageSize = useAdaptivePageSize();
-const [page, setPage] = useState(0);
-useEffect(() => setPage(0), [search, filter, sort]); // reset ved filter
-const paged = rows.slice(page * pageSize, (page + 1) * pageSize);
-// render paged + <PaginationFooter ... />
-```
+- Database: unique constraint `(base_route_id, route_date)` på materialiserede instanser; unique `(agreement_id, occurrence_date)` på stops.
+- Backend: alle mutations bruger transaktioner + idempotency-key (allerede delvist via `routeMutationQueue`); upsert på conflict i stedet for insert.
+- Frontend: debounce + disabled-state på knapper under pending mutation (gælder også drop-zoner).
 
-Jeg lader være med at røre kalenderen/board-views (det giver ikke mening at paginere en kalender).
+## Fase 4 — Recurrence pr. aftale (ikke pr. rute)
 
----
+- I dag projiceres ruter helt — alle aftaler antages at falde på samme cadence. Skift til: hver aftale projiceres individuelt ud fra eget interval. Hvis en projiceret rute-dato har 0 matchende aftaler → rute vises ikke.
+- Justér `recurring-projection.ts` til at evaluere `agreement.interval` pr. occurrence, ikke pr. rute.
+- Konsekvens: aftale A (ugentligt), B (hver 2. uge), C (månedligt) viser kun de aftaler hvis cadence matcher datoen.
 
-## 2) Rutekalender — bugfixes
+## Fase 5 — Intelligente konsekvensdialoger ("kun denne / fremtidige / hele serien")
 
-Hver bug håndteres som et separat, isoleret fix:
+- Genbrug eksisterende `AlertDialog` til en `SeriesEditDialog` med 3 valg + konsekvens-tekst:
+  - "Påvirker N fremtidige forekomster, M medarbejdere."
+- Trigges ved: flyt aftale til ny dato, skift medarbejder, skift interval, flet ruter.
+- Backend understøtter `scope: "single" | "future" | "all"` på alle relevante mutations.
+- "single" → opretter `agreement_occurrence_override` række (exception); rører ikke basis-aftalen.
+- "future" → split serien: sæt `end_date` på gammel, opret ny aftale fra valgt dato.
+- "all" → opdater basis-aftalen.
 
-**A. Lag/race ved drag-and-drop laver duplikater af ruter/aftaler**
-- Sikre at ALLE mutationer (drop, move, dato-ændring, sletning) går gennem `routeMutationQueue` (eksisterende serial queue med retries).
-- Disable drop-zoner mens kø ikke er tom, så en hurtig dobbelt-drop ikke kan trigge to mutations.
-- Tilføj idempotens-nøgle (rute-id + dato + occurrence-id) til "create"-handler så samme drop ikke kan oprette to identiske stops.
+## Teknisk overblik (for senere reference)
 
-**B. Klik på projiceret rute → tom side / lag**
-- I `RouteEditSheet` (og evt. dag-view) sikre at virtuel rute (`virtual:<routeId>:<date>`) løses korrekt: hydrere fra basisrute + filtrér stops via `filterStopsByOccurrenceDate` for den valgte dato.
-- Vis loading-state mens projiceringen hydreres i stedet for tom UI.
-- Fang fejl og vis "Kunne ikke åbne projiceret rute — prøv igen" frem for blank side.
+- Berørte filer: `src/pages/RoutePlanner.tsx`, `src/components/route-planner/*`, `src/lib/recurring-projection.ts`, `src/hooks/useRoutes.ts`, `supabase/functions/recurring-orders/`, ny migration for unique constraints + `agreement_occurrence_overrides`-tabel + `archived_at` kolonner.
+- Audit log (sektion 25): bruger eksisterende `audit_log`-tabel hvis den findes — ellers tilføj i fase 3.
 
-**C. Sletning af rute med aftaler får aftaler til at forsvinde**
-- Lave delete-flow om: før man kan slette en basisrute, tjek om der findes `agreement_occurrences` eller `agreements.preferred_route_id` der peger på den.
-- Hvis ja: vis dialog "Denne rute har X aktive aftaler. Vælg: Flyt aftaler til anden rute / Annullér".
-- Aftalerne må aldrig slettes som side-effekt. DB: sæt `agreements.preferred_route_id` til `null` ved rute-sletning (eller bloker) i stedet for cascade.
+## Anbefalet rækkefølge & næste skridt
 
-**D. Man kan flytte projicerede (virtuelle) ruter**
-- I drag-handler: hvis `route.id` starter med `virtual:` → afvis drag med toast "Flyt basisruten i stedet — projicerede forekomster følger automatisk".
-- Tilsvarende for dato-ændring og stops-reorder på virtuelle ruter.
+Faserne er uafhængige nok til at vi kan stoppe efter hver. **Foreslår at starte med Fase 1 + Fase 2** — det giver mest synlig stabilitet hurtigst (ingen flere ødelagte serier, ingen datatab) og kræver mindst DB-arbejde.
 
-**E. Kun 1 aftale vises på projiceret rute selvom flere aftaler har interval på samme rute**
-- I `expandRecurringRoutes` slås flere aftaler korrekt sammen pr. (rute, dato) via `sourceKeys`. Bug ligger sandsynligvis i stops-rendering: når projiceret dato vises, filtreres stops på første kilde frem for alle kilder.
-- Fix: brug ALLE `sourceKeys` for den virtuelle rute som filter, ikke kun én aftale. Verificér via `projectedStopMatchesSources` med hele kildesættet.
-- Tilføj test i `recurring-projection.test.ts` der dækker "to aftaler, hver 3. uge, på samme rute, falder begge på samme dato".
-
----
-
-## 3) Datasletning — Ready2Clean ApS (`0177cdef`)
-
-Som migration (kræver delete-rettigheder):
-```sql
--- Sletter i korrekt rækkefølge så fremmednøgler/RLS ikke blokerer
-delete from public.route_stops    where route_id in (select id from public.routes where business_id = '8258070b-…');
-delete from public.routes         where business_id = '8258070b-…';
-delete from public.agreement_items       where agreement_id in (select id from public.agreements where business_id = '8258070b-…');
-delete from public.agreement_occurrences where business_id = '8258070b-…';
-delete from public.agreements            where business_id = '8258070b-…';
-delete from public.calculator_steps where service_id in (select id from public.services where business_id = '8258070b-…');
-delete from public.services       where business_id = '8258070b-…';
-```
-(Endelig tabel-liste verificeres mod skema før kørsel — fx også `route_templates`, `agreement_occurrence_*`-relaterede tabeller hvis de findes.)
-
-Virksomheden, brugere, kunder, fakturaer og regnskabsintegration **bevares** — kun ruter/services/aftaler fjernes.
-
----
-
-## Rækkefølge
-
-1. Migration for opgave 3 (kører separat, kræver godkendelse).
-2. Opgave 2 bugfixes (én commit pr. bug A–E).
-3. Opgave 1 pagination — gennemgang af alle lister.
-
-Sig til hvis jeg skal justere scope, eller om der er en bug under #2 jeg har misforstået.
+**Bekræft venligst:**
+1. Skal jeg gå i gang med Fase 1+2 nu?
+2. Eller en anden rækkefølge / kun udvalgte faser?
