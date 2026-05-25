@@ -39,7 +39,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon,
   Loader2, Search, Plus, Inbox, ArrowUpDown, X, Keyboard, Filter,
-  ShoppingBag, Route as RouteIcon, Tag, Palette, ListChecks, AlertTriangle, Undo2,
+  ShoppingBag, Route as RouteIcon, Tag, Palette, ListChecks, AlertTriangle, Undo2, Redo2,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -3243,6 +3243,7 @@ const Planner = () => {
                     <p><kbd className="px-1 rounded bg-secondary text-[10px]">T</kbd> I dag</p>
                     <p><kbd className="px-1 rounded bg-secondary text-[10px]">N</kbd> Ny rute</p>
                     <p><kbd className="px-1 rounded bg-secondary text-[10px]">{navigator.platform.toLowerCase().includes("mac") ? "⌘" : "Ctrl"}+Z</kbd> Fortryd</p>
+                    <p><kbd className="px-1 rounded bg-secondary text-[10px]">{navigator.platform.toLowerCase().includes("mac") ? "⌘⇧" : "Ctrl+Shift"}+Z</kbd> Gentag</p>
                     <p><kbd className="px-1 rounded bg-secondary text-[10px]">Esc</kbd> Luk panel</p>
                   </div>
                 </TooltipContent>
@@ -3267,6 +3268,26 @@ const Planner = () => {
                   {history.canUndo
                     ? <>Fortryd: <span className="font-medium">{history.lastLabel}</span></>
                     : "Intet at fortryde"}
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => void history.redo()}
+                    disabled={!history.canRedo}
+                    aria-label="Gentag seneste fortryd"
+                  >
+                    <Redo2 className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  {history.canRedo
+                    ? <>Gentag: <span className="font-medium">{history.nextRedoLabel}</span></>
+                    : "Intet at gentage"}
                 </TooltipContent>
               </Tooltip>
             </div>
