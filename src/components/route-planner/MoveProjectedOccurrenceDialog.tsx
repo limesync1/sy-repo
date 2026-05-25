@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { differenceInCalendarDays, format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
-import { CalendarRange, ArrowRight, Loader2, AlertTriangle, Sparkles } from "lucide-react";
+import { CalendarRange, ArrowRight, Loader2, AlertTriangle, Info, Repeat } from "lucide-react";
 
 type Props = {
   open: boolean;
@@ -55,10 +55,13 @@ export const MoveProjectedOccurrenceDialog = ({
         <AlertDialogHeader className="min-w-0 text-left">
           <AlertDialogTitle className="flex min-w-0 items-center gap-2">
             <CalendarRange className="h-4 w-4 text-accent" />
-            Flyt projiceret forekomst
+            Flyt kun denne dag?
           </AlertDialogTitle>
           <AlertDialogDescription asChild>
             <div className="min-w-0 space-y-2 text-sm">
+              <p className="text-muted-foreground">
+                Du flytter én enkelt dag fra den gentagne rute. Resten af serien rører vi ikke.
+              </p>
               <div className="min-w-0 text-foreground">
                 <span className="block min-w-0 [overflow-wrap:anywhere] rounded-md border border-border bg-secondary/30 px-2.5 py-2 font-medium sm:truncate">{routeName}</span>
               </div>
@@ -80,11 +83,11 @@ export const MoveProjectedOccurrenceDialog = ({
         <div className="space-y-2 pt-1">
           <div className="rounded-md border border-border bg-secondary/30 p-2.5">
             <div className="flex items-start gap-2">
-              <Sparkles className="h-3.5 w-3.5 text-accent mt-0.5 shrink-0" />
+              <Info className="h-3.5 w-3.5 text-accent mt-0.5 shrink-0" />
               <p className="text-[11px] leading-snug text-muted-foreground">
-                Kun denne ene forekomst flyttes — den forbliver en projektion på
-                den nye dato og bliver ikke til en faktisk rute. Basisruten og
-                rutens øvrige projicerede forekomster forbliver uændrede.
+                Den oprindelige dato bliver tom, og ruten dukker op på den nye
+                dato i stedet. Alle andre dage i serien — og selve den
+                gentagne rute — fortsætter som før.
               </p>
             </div>
           </div>
@@ -95,7 +98,7 @@ export const MoveProjectedOccurrenceDialog = ({
                 <AlertTriangle className="h-3.5 w-3.5 text-amber-600 mt-0.5 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="text-[11px] font-semibold text-amber-900 dark:text-amber-200 mb-0.5">
-                    Mulige konflikter på måldatoen
+                    Vær opmærksom på den nye dato
                   </div>
                   <ul className="text-[11px] leading-snug text-amber-900/90 dark:text-amber-200/90 space-y-0.5">
                     {warnings.map((w, i) => <li key={i}>• {w}</li>)}
@@ -106,31 +109,43 @@ export const MoveProjectedOccurrenceDialog = ({
           )}
 
           {showSync && (
-            <div className="rounded-md border border-border p-2.5 space-y-2">
-              <div className="text-[11px] font-semibold text-foreground">
-                {recurringAppointmentCount} tilknyttet{recurringAppointmentCount === 1 ? "" : "te"} aftale{recurringAppointmentCount === 1 ? "" : "r"} på basisruten
+            <div className="rounded-md border border-border p-3 space-y-3">
+              <div className="flex items-start gap-2">
+                <Repeat className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
+                <div className="min-w-0">
+                  <div className="text-xs font-semibold text-foreground">
+                    Skal de tilbagevendende aftaler følge med?
+                  </div>
+                  <p className="text-[11px] leading-snug text-muted-foreground">
+                    {recurringAppointmentCount} aftale{recurringAppointmentCount === 1 ? "" : "r"} på ruten gentager sig automatisk. Vælg hvad der skal ske med deres rytme.
+                  </p>
+                </div>
               </div>
+
               {onSyncNextChange !== undefined && (
-                <label className="flex items-start gap-2 cursor-pointer">
+                <label className="flex items-start gap-2 cursor-pointer rounded-md border border-border/60 bg-secondary/20 p-2 hover:bg-secondary/40 transition-colors">
                   <Checkbox
                     checked={!!syncNext}
                     onCheckedChange={(v) => onSyncNextChange(v === true)}
                     className="mt-0.5"
                   />
-                  <span className="text-[11px] leading-snug text-muted-foreground">
-                    Flyt også <span className="text-foreground font-medium">næste udførsel</span> for de tilknyttede aftaler til den nye dato
+                  <span className="min-w-0 text-xs leading-snug">
+                    <span className="block font-medium text-foreground">Flyt kun næste besøg</span>
+                    <span className="block text-[11px] text-muted-foreground">Aftalernes næste planlagte dato rykkes til den nye dato. Besøget efter falder tilbage i den normale rytme.</span>
                   </span>
                 </label>
               )}
+
               {onSyncStartChange !== undefined && (
-                <label className="flex items-start gap-2 cursor-pointer">
+                <label className="flex items-start gap-2 cursor-pointer rounded-md border border-border/60 bg-secondary/20 p-2 hover:bg-secondary/40 transition-colors">
                   <Checkbox
                     checked={!!syncStart}
                     onCheckedChange={(v) => onSyncStartChange(v === true)}
                     className="mt-0.5"
                   />
-                  <span className="text-[11px] leading-snug text-muted-foreground">
-                    Flyt også <span className="text-foreground font-medium">opstartsdatoen</span> for de tilknyttede aftaler til den nye dato
+                  <span className="min-w-0 text-xs leading-snug">
+                    <span className="block font-medium text-foreground">Forskyd hele rytmen</span>
+                    <span className="block text-[11px] text-muted-foreground">Aftalernes opstartsdato flyttes med, så alle fremtidige besøg lander på den nye ugedag.</span>
                   </span>
                 </label>
               )}
@@ -139,10 +154,10 @@ export const MoveProjectedOccurrenceDialog = ({
         </div>
 
         <AlertDialogFooter className="pt-1">
-          <AlertDialogCancel disabled={loading}>Annullér</AlertDialogCancel>
+          <AlertDialogCancel disabled={loading}>Fortryd</AlertDialogCancel>
           <Button onClick={async () => { await onConfirm(); }} disabled={loading}>
             {loading && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
-            Flyt forekomst
+            Flyt denne dag
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
