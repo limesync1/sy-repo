@@ -189,6 +189,19 @@ export const RouteEditSheet = ({
         return `Medarbejder har allerede ${c.stops.length} stops denne dag${overlap}${names ? `: ${names}` : ""}.`;
       });
   }, [moveTargetConflicts]);
+  const { conflicts: projectedMoveTargetConflicts } = useDayConflicts(
+    route?.business_id,
+    pendingProjectedDate || undefined,
+  );
+  const projectedMoveConflictWarnings = useMemo<string[]>(() => {
+    return projectedMoveTargetConflicts
+      .filter((c) => c.stops.length >= 2)
+      .map((c) => {
+        const names = Array.from(new Set(c.stops.map((s) => s.label).filter(Boolean))).slice(0, 3).join(", ");
+        const overlap = c.overlapsTime ? " (tidsoverlap)" : "";
+        return `Medarbejder har allerede ${c.stops.length} stops denne dag${overlap}${names ? `: ${names}` : ""}.`;
+      });
+  }, [projectedMoveTargetConflicts]);
   const cancelConflictWarnings = useMemo<string[]>(() => {
     return sourceDayConflicts
       .filter((c) => c.stops.length >= 2 && c.overlapsTime)
@@ -884,7 +897,7 @@ export const RouteEditSheet = ({
         onSyncNextChange={setProjectedMoveSyncNext}
         syncStart={projectedMoveSyncStart}
         onSyncStartChange={setProjectedMoveSyncStart}
-        warnings={moveConflictWarnings}
+        warnings={projectedMoveConflictWarnings}
         loading={moveProjected.isPending}
         onConfirm={handleConfirmMoveProjected}
       />
