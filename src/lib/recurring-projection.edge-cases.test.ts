@@ -153,7 +153,7 @@ describe("Case 6/7/8 — No duplicates regardless of overlapping sources", () =>
     const out = expandRecurringRoutes({
       rangeStart: "2026-05-01",
       rangeEnd: "2026-05-31",
-      realRouteDates: new Set(["2026-05-11"]),
+      realRouteDates: new Set(["r|2026-05-11"]),
       sources: [
         { id: "a", interval: "ugentlig", seed_date: "2026-05-04", preferred_route_id: "r" },
       ],
@@ -169,10 +169,10 @@ describe("Case 17 — Pause windows skip recurrence", () => {
       rangeEnd: "2026-05-31",
       realRouteDates: new Set(),
       sources: [
-        {
-          id: "a", interval: "ugentlig", seed_date: "2026-05-04", preferred_route_id: "r",
-          pauses: [{ start: "2026-05-10", end: "2026-05-20" }],
-        } as any,
+        { id: "a", agreement_id: "ag1", interval: "ugentlig", seed_date: "2026-05-04", preferred_route_id: "r" } as any,
+      ],
+      pauses: [
+        { agreement_id: "ag1", start_date: "2026-05-10", end_date: "2026-05-20" } as any,
       ],
     });
     // 2026-05-11 and 2026-05-18 fall in pause window
