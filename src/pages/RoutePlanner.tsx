@@ -1939,6 +1939,13 @@ const Planner = () => {
       }
       const targetRouteId: string = overData.routeId;
       const targetRoute = calendarRoutesRaw.find((r) => r.id === targetRouteId);
+      if ((targetRoute as any)?.isVirtual) {
+        toast.error("Kan ikke lægge aftaler på en projiceret rute", {
+          description: "Projicerede ruter er fremtidige forekomster — læg aftalen på basisruten eller en faktisk rute.",
+        });
+        releaseDrop();
+        return;
+      }
       const targetDate = targetRoute?.route_date || (targetRoute as any)?.date;
       if (!(await claimIdempotency())) {
         // Et andet kald har allerede claimet samme drop — bail.
