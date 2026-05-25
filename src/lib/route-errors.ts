@@ -319,3 +319,20 @@ export function toastIssue(issue: Issue, toastFn: (msg: string, opts?: any) => v
     description: issue.hint ? `${issue.message}\n${issue.hint}` : issue.message,
   });
 }
+
+/**
+ * Konvenience: tag en fanget exception, map den til en konkret rute-fejl,
+ * og vis den som en sonner-toast med titel + beskrivelse. Returnerer issue'et
+ * så callers kan logge eller bruge det videre.
+ */
+export function toastRouteError(
+  err: unknown,
+  toastErrorFn: (msg: string, opts?: any) => void,
+  override?: { titleFallback?: string },
+): Issue {
+  const issue = mapPostgresError(err);
+  toastErrorFn(override?.titleFallback ?? issue.title, {
+    description: issue.hint ? `${issue.message}\n${issue.hint}` : issue.message,
+  });
+  return issue;
+}
