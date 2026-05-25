@@ -32,6 +32,8 @@ import { pickDuration } from "@/components/route/EtaBreakdown";
 import { MoveRouteDateDialog, type MoveRouteScope } from "./MoveRouteDateDialog";
 import { MoveStopsDialog } from "./MoveStopsDialog";
 import { SeriesScopeDialog, type SeriesScope } from "./SeriesScopeDialog";
+import { logRouteAudit } from "@/lib/route-audit";
+import { useSeriesImpact } from "@/hooks/useSeriesImpact";
 import { Ban } from "lucide-react";
 
 export type RouteEmployeeOption = { id: string; name: string };
