@@ -33,6 +33,10 @@ type Props = {
   /** Hvis true: mål-datoen er også en naturlig kadence-dato for samme serie,
    *  så den oprindelige forekomst der ville lande dér bliver sprunget over. */
   autoSkipCadence?: boolean;
+  /** Foreslåede medarbejder-erstatninger når original-tildelinger har konflikt
+   *  på mål-datoen. Vises som rådgivende note — selve omdelingen sker manuelt
+   *  i rute-sheet'et bagefter (vi flytter ikke tildelinger automatisk). */
+  reassignSuggestions?: Array<{ conflictingName: string; suggestedName: string }>;
   loading?: boolean;
   onConfirm: () => Promise<void> | void;
 };
@@ -42,6 +46,7 @@ export const MoveProjectedOccurrenceDialog = ({
   recurringAppointmentCount = 0,
   syncNext, onSyncNextChange, syncStart, onSyncStartChange,
   warnings, suggestedFreeDate, onPickSuggestedDate, autoSkipCadence,
+  reassignSuggestions,
   loading, onConfirm,
 }: Props) => {
   const fmt = (d: string) => {
