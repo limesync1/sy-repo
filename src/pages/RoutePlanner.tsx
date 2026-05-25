@@ -2587,12 +2587,10 @@ const Planner = () => {
         description: "Klik Fortryd for at rulle tilbage.",
       });
       setPendingRouteMove(null);
-      // Spørg om vi skal optimere rækkefølgen på den nye dato. Sker kun
-      // hvis ruten har mindst 2 stops — ellers er der intet at optimere.
-      const stopsOnRoute = calendarStops.filter((s: any) => s.route_id === route.id).length;
-      if (stopsOnRoute >= 2) {
-        setPendingOptimizePrompt({ routeId: route.id, routeName: route.name || "Rute", reason: "moved" });
-      }
+      // Klogt: spørg KUN om optimering hvis vores estimat viser at der
+      // reelt er noget at vinde (≥5 km OG ≥20 % besparelse). Ellers
+      // pester vi ikke brugeren — ruten er allerede fint planlagt.
+      tryPromptOptimize(route.id, route.name, "moved");
     } catch (err: any) {
       toast.error(err.message || "Kunne ikke flytte rute", {
         description: "Tjek at den nye dato er gyldig, og prøv igen.",
