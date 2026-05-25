@@ -24,6 +24,8 @@ interface BusinessSEOProps {
     comment?: string | null;
     created_at?: string | null;
   }[];
+  /** Ofte stillede spørgsmål — bruges til FAQPage strukturerede data. */
+  faqs?: { question: string; answer: string }[];
   /**
    * Virksomhedens eget domæne (fra Branding-indstillinger), fx "ready2clean.dk".
    * Når det er sat, bruges det som kanonisk URL og i strukturerede data, så
@@ -64,6 +66,7 @@ const BusinessSEO = ({
   name, description, city, address, zipCode, phone, email,
   logoUrl, coverImageUrl, avgRating, reviewCount, slug, openingHours,
   categories, services, reviews, customDomain,
+  faqs,
 }: BusinessSEOProps) => {
   const fallbackOrigin = typeof window !== "undefined" ? window.location.origin : "https://serviceydere.dk";
   // Hvis virksomheden har sat et custom domæne under Branding, bruger vi det
@@ -164,6 +167,18 @@ const BusinessSEO = ({
         };
       }
       ldArr.push(offer);
+    });
+  }
+
+  if (faqs && faqs.length) {
+    ldArr.push({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faqs.map((f) => ({
+        "@type": "Question",
+        name: f.question,
+        acceptedAnswer: { "@type": "Answer", text: f.answer },
+      })),
     });
   }
 
