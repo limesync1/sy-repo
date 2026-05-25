@@ -53,4 +53,9 @@ Specifikationen er omfattende (33 sektioner). Jeg foreslår at gennemføre den i
 - **Fase 2 (Sletteguard m. konsekvens-visning):** Færdig — ny `DeleteRouteDialog` viser antal aftale-/abonnement-/ordre-stop der påvirkes før sletning.
 - **Fase 3 (Idempotens):** DB-niveau allerede på plads — `routes_base_route_id_route_date_key` og `agreement_occurrences_agreement_id_occurrence_date_key` UNIQUE constraints findes, og frontend kører gennem `routeMutationQueue` (idempotency-kø). Pending state tilføjet til delete-knapper.
 - **Fase 4 (Per-aftale recurrence):** Allerede implementeret i `recurring-projection.ts` — `expandRecurringRoutes` projicerer hver aftale individuelt med eget interval, og `projectedStopMatchesSources` sørger for at kun stops hvis kilde reelt falder på datoen vises. Aftaler med forskellig cadence på samme basisrute behandles korrekt.
-- **Fase 5 (Single/future/all-dialoger):** Grundlag færdig — ny tabel `agreement_occurrence_overrides` (med RLS) gemmer per-forekomst undtagelser (flytning, aflysning, anden medarbejder) uden at røre basisaftalen. Ny generisk `SeriesScopeDialog` med 3 valg ("kun denne" / "denne og fremtidige" / "hele serien") er klar til genbrug på medarbejderskift, intervalskift og aflysning. Wiring til konkrete mutation-handlers + edge function til at anvende overrides på materialisering er næste skridt.
+- **Fase 5 (Single/future/all-dialoger):**
+  - Tabel `agreement_occurrence_overrides` (med RLS) gemmer per-forekomst undtagelser.
+  - `SeriesScopeDialog` (genbrugelig 3-valgs dialog) er klar.
+  - `expandRecurringRoutes` honorerer nu overrides — `cancelled` skjuler forekomsten, `rescheduled`/`modified` med `new_date` flytter den projicerede dato.
+  - Planneren henter overrides for alle aktive aftaler og inkluderer dem i projektionen.
+  - Resterende: wiring af `SeriesScopeDialog` ind på konkrete UI-handlinger (aflys denne forekomst, skift medarbejder for denne ene dag, flyt en enkelt aftale-forekomst) — kan tilføjes pr. trigger efter behov.
