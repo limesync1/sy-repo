@@ -83,6 +83,8 @@ import { useBusinessHolidays } from "@/hooks/useBusinessHolidays";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { invalidateRouteSyncQueries } from "@/hooks/useRoutes";
 import { routeMutationQueue } from "@/lib/mutation-queue";
+import { writeDragValidationDebounced, clearDragValidation, summarize } from "@/components/route-planner/drag-validation-context";
+import { validateStopAssignment, validateRouteMove } from "@/lib/route-validation";
 import { cn } from "@/lib/utils";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { Monitor } from "lucide-react";
