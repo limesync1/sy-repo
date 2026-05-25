@@ -239,12 +239,14 @@ type DayCellProps = {
   busy?: boolean;
   /** Sæt med alle busy targets — videresendes til RoutePill for rute-niveau. */
   busyRouteIds?: Set<string>;
+  /** Forhåndsdetekteret konflikt på dagen (helligdag / dobbeltbooking). */
+  alert?: { severity: "warning" | "error"; label: string } | null;
 };
 
 const DayCellInner = ({
   date, dateStr, routes, inMonth, today,
   onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, optimizingRouteId, compact, draggingType, draggingRouteId, weather,
-  loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds,
+  loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds, alert,
 }: DayCellProps) => {
   const todayIso = format(new Date(), "yyyy-MM-dd");
   const isPast = dateStr < todayIso;
