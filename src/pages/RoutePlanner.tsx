@@ -937,6 +937,27 @@ const Planner = () => {
       // omdøbt. Falder vi tilbage, sker det via dateFallback nedenfor.
       baseInfoById.set(b.id, { name: explicit, color: b.color || null });
     }
+    // Basisruter der er flyttet til en anden dato via `move_route_to_date`
+    // efterlader en `moved`-exception der peger på en ny rute-row. Den
+    // oprindelige basisrute-row bliver dog liggende på sin ankerdato — så
+    // projektions-cadencen ikke ødelægges. Når vi viser den til brugeren
+    // skal vi dog SKJULE basisruten på dens oprindelige dato hvis der
+    // findes en gyldig erstatning, ellers ses ruten BÅDE på den gamle
+    // OG den nye dato samtidig.
+    const movedBaseKeys = new Set<string>();
+    {
+      const realIds = new Set(calendarRoutesRaw.map((r) => r.id));
+      for (const ex of routeOccurrenceExceptions as any[]) {
+        const type = (ex.exception_type as string | null) ?? "moved";
+        if (type !== "moved") continue;
+        const replId = ex.replacement_route_id as string | null;
+        const baseId = ex.base_route_id as string;
+        const date = String(ex.occurrence_date).slice(0, 10);
+        if (!replId || replId === baseId) continue;
+        if (!realIds.has(replId)) continue;
+        movedBaseKeys.add(`${baseId}|${date}`);
+      }
+    }
     const built = calendarRoutesRaw.map((r) => {
       const stopsForRoute = stopsByRoute.get(r.id) || [];
       const emps = employeesForStops(stopsForRoute);
@@ -977,11 +998,14 @@ const Planner = () => {
       // Manuelt oprettede tomme ruter må stadig vises, så brugeren kan lægge
       // aftaler på dem.
       if (r.base_route_id && (r.stops?.length ?? 0) === 0) return false;
+      // Skjul den oprindelige basisrute-row på dens ankerdato hvis brugeren
+      // har flyttet den til en anden dato (se kommentaren ovenfor).
+      if (!r.base_route_id && movedBaseKeys.has(`${r.id}|${r.route_date}`)) return false;
       // Når filtre er aktive, skjul ruter helt hvis ingen af deres stops matcher.
       if (filtersActive && (r.stops?.length ?? 0) === 0) return false;
       return true;
     });
-  }, [calendarRoutesRaw, visibleCalendarStops, activeEmployees, recurringBaseRoutes, filtersActive]);
+  }, [calendarRoutesRaw, visibleCalendarStops, activeEmployees, recurringBaseRoutes, filtersActive, routeOccurrenceExceptions]);
 
   const virtualCalendarRoutes: CalendarRoute[] = useMemo(() => {
     if (!recurringSources.length) return [];
