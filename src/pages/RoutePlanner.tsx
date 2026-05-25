@@ -2868,6 +2868,34 @@ const Planner = () => {
     setOptimizingRouteId(null);
   };
 
+  /**
+   * Klog gatekeeper: kun spørg brugeren om auto-optimering hvis der reelt er
+   * noget at vinde. Bruger `estimateOptimizationGain` til at sammenligne
+   * den nuværende rækkefølge med en nearest-neighbour heuristik. Hvis
+   * besparelsen er for lille (eller brugeren nylig har sagt "nej tak" til
+   * denne rute) viser vi ingenting — så undgår vi nag.
+   */
+  const tryPromptOptimize = (routeId: string, routeName: string | null, reason: "moved" | "merged") => {
+    if (!routeId) return;
+    // Ekstra defensiv: hent stops fra cachen så vi aldrig viser prompten
+    // for en rute uden data (fx hvis kald sker mellem invalidate og refetch).
+    const stops = calendarStops.filter((s: any) => s.route_id === routeId);
+    if (stops.length === 0) return;
+    const est = estimateOptimizationGain(routeId, stops as any[]);
+    if (!est.worth) return;
+    setPendingOptimizePrompt({
+      routeId,
+      routeName: routeName || "Rute",
+      reason,
+      estimate: {
+        savingsKm: est.savingsKm,
+        savingsPct: est.savingsPct,
+        currentKm: est.currentKm,
+        suggestedKm: est.suggestedKm,
+      },
+    });
+  };
+
   const handleCreateRoute = async () => {
     if (!businessId) return;
     if (newRouteJobIds.length === 0) {
