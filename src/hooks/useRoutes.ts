@@ -438,6 +438,8 @@ export const useRoutesForDate = (businessId: string | undefined, date: string) =
         .select("*")
         .eq("business_id", businessId!)
         .eq("route_date", date)
+        .is("archived_at", null)
+        .is("deleted_at", null)
         .order("created_at", { ascending: true });
       if (error) throw error;
       return (data || []) as unknown as Route[];
@@ -459,6 +461,8 @@ export const useRoutesForRange = (businessId: string | undefined, from: string, 
         .eq("business_id", businessId!)
         .gte("route_date", from)
         .lte("route_date", to)
+        .is("archived_at", null)
+        .is("deleted_at", null)
         .order("route_date", { ascending: true });
       if (error) throw error;
       return (data || []) as unknown as Route[];
