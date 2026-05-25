@@ -3756,7 +3756,10 @@ const Planner = () => {
             if (routeToDelete) {
               const name = routeToDelete.name;
               deleteRoute.mutate(routeToDelete.id, {
-                onSuccess: () => toast.success(`${name} slettet`),
+                onSuccess: () => {
+                  toast.success(`${name} slettet`);
+                  setRouteToDelete(null);
+                },
               });
             }
           }}
