@@ -933,16 +933,35 @@ export const useDeleteRoute = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (routeId: string) => routeMutationQueue.run(async () => {
+      // Robust sletning: hvis ruten har ALLE typer stops (også fremtidige planlagte),
+      // soft-deletes vi for at undgå datatab. Kun ruter helt uden stops hard-deletes.
+      const { count, error: countErr } = await supabase
+        .from("route_stops")
+        .select("id", { head: true, count: "exact" })
+        .eq("route_id", routeId);
+      if (countErr) throw countErr;
+      if ((count ?? 0) > 0) {
+        const { error } = await supabase
+          .from("routes")
+          .update({ archived_at: new Date().toISOString() })
+          .eq("id", routeId);
+        if (error) throw error;
+        return { soft: true } as const;
+      }
       const { error } = await supabase.from("routes").delete().eq("id", routeId);
       if (error) throw error;
+      return { soft: false } as const;
     }),
-    onSuccess: () => {
+    onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ["routes"] });
       qc.invalidateQueries({ queryKey: ["routes-range"] });
       qc.invalidateQueries({ queryKey: ["my-day-routes"] });
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
       qc.invalidateQueries({ queryKey: ["route-employees-bulk"] });
       qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
+      if ((res as any)?.soft) {
+        toast.success("Rute arkiveret — historik bevares");
+      }
     },
     onError: (e: any) => toast.error(e.message || "Kunne ikke slette rute"),
   });
