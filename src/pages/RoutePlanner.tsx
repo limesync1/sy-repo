@@ -64,6 +64,7 @@ import SEO from "@/components/SEO";
 import { DatePickerField } from "@/components/route-planner/DatePickerField";
 import { RouteStopsPanel } from "@/components/route-planner/RouteStopsPanel";
 import { MoveRouteDateDialog, type MoveRouteScope } from "@/components/route-planner/MoveRouteDateDialog";
+import { MoveProjectedOccurrenceDialog } from "@/components/route-planner/MoveProjectedOccurrenceDialog";
 import { MergeRoutesDialog } from "@/components/route-planner/MergeRoutesDialog";
 import { DeleteRouteDialog } from "@/components/route-planner/DeleteRouteDialog";
 import { DiagnosticsDialog } from "@/components/route-planner/DiagnosticsDialog";
