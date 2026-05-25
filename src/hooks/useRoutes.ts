@@ -1839,10 +1839,18 @@ export const useMoveRouteSeries = () => {
       qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
       qc.invalidateQueries({ queryKey: ["route-occurrence-exceptions"] });
     },
-    onError: (e: any, _vars, ctx: any) => {
+    onError: (e: any, vars: any, ctx: any) => {
       // Rul optimistisk patch tilbage hvis serveren afviser.
       ctx?.snapshots?.forEach(([key, data]: [any, any]) => qc.setQueryData(key, data));
-      toastRouteError(e, toast.error, { titleFallback: "Kunne ikke flytte rute" });
+      toastRouteError(e, toast.error, {
+        titleFallback: "Kunne ikke flytte rute",
+        audit: {
+          action: "move_route_to_date",
+          route_id: vars?.routeId ?? null,
+          scope: vars?.scope ?? null,
+          payload: { newDate: vars?.newDate, scope: vars?.scope, moveLinkedSubscriptions: vars?.moveLinkedSubscriptions },
+        },
+      });
     },
   });
 };
