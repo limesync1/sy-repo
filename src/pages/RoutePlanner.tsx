@@ -1555,6 +1555,19 @@ const Planner = () => {
       // Ignore when typing in inputs
       const t = e.target as HTMLElement;
       if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+      // Undo/redo (skal håndteres FØR den generelle modifier-guard nedenfor).
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z") {
+        e.preventDefault();
+        if (e.shiftKey) void history.redo();
+        else void history.undo();
+        return;
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "y") {
+        // Windows-konvention for redo.
+        e.preventDefault();
+        void history.redo();
+        return;
+      }
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === "ArrowLeft") {
         e.preventDefault();
@@ -1568,14 +1581,6 @@ const Planner = () => {
         setCreateOpen(true);
       } else if (e.key === "Escape" && selectedStopId) {
         setSelectedStopId(null);
-      } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z" && !e.shiftKey) {
-        // Cmd/Ctrl+Z — fortryd seneste rute-mutation. Ignorer hvis fokus er i et
-        // input/textarea/contenteditable, så browserens egen tekst-undo virker.
-        const tgt = e.target as HTMLElement | null;
-        const tag = tgt?.tagName;
-        if (tag === "INPUT" || tag === "TEXTAREA" || tgt?.isContentEditable) return;
-        e.preventDefault();
-        void history.undo();
       }
     };
     window.addEventListener("keydown", onKey);
