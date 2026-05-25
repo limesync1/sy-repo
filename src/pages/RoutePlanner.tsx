@@ -492,8 +492,34 @@ const Planner = () => {
     if (!pendingProjectedMove) {
       setProjectedMoveSyncStart(false);
       setProjectedMoveSyncNext(false);
+      return;
     }
-  }, [pendingProjectedMove]);
+    // Smart sync-default: bestem ud fra hvor langt brugeren flytter ift.
+    // seriens dominerende interval. Små flytninger (inden for halvdelen af
+    // intervallet) → "kun næste besøg". Store flytninger (≥ ét helt interval)
+    // → "forskyd hele rytmen". Mellem-store: lad begge være afkrydsede så
+    //  brugeren selv vælger. Defaultet kan altid overskrives manuelt.
+    const intv = pendingProjectedSeriesInfo?.dominantIntervalDays;
+    if (!intv || intv <= 0) {
+      setProjectedMoveSyncStart(false);
+      setProjectedMoveSyncNext(true);
+      return;
+    }
+    let delta = 0;
+    try {
+      delta = Math.abs(differenceInCalendarDays(
+        parseISO(pendingProjectedMove.toDate),
+        parseISO(pendingProjectedMove.fromDate),
+      ));
+    } catch {}
+    if (delta >= intv) {
+      setProjectedMoveSyncStart(true);
+      setProjectedMoveSyncNext(false);
+    } else {
+      setProjectedMoveSyncStart(false);
+      setProjectedMoveSyncNext(true);
+    }
+  }, [pendingProjectedMove, pendingProjectedSeriesInfo?.dominantIntervalDays]);
   // Serie-info for kilde-ruten i en igangværende fletning, så fletteren
   // også kan tilbyde "fremtidige aftaler også" når kilden har gentagne aftaler.
   const { data: pendingMergeSeriesInfo } = useRouteSeriesInfo(
