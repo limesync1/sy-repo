@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { CheckCircle2, ExternalLink, Globe, Copy, Loader2, Rocket, Lock, RefreshCw, Search } from "lucide-react";
 import { PageHeader, EmptyState } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
+import { PaginationFooter } from "@/components/admin/shared/PaginationFooter";
+import { useAdaptivePageSize } from "@/hooks/useAdaptivePageSize";
 import { DomainRow, SslInfo, STATUS_LABEL, LOVABLE_PROJECT_DOMAINS_URL, renderSslBadge } from "./domains/shared";
 import DomainGuide from "./domains/DomainGuide";
 
