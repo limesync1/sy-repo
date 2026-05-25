@@ -139,6 +139,21 @@ export const RouteEditSheet = ({
   // skjuler forekomsten uden at røre basis-aftalen.
   const [cancelOccurrenceOpen, setCancelOccurrenceOpen] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
+  // Find første aftale-id på ruten — bruges til at vise konsekvens-tal i
+  // "Aflys forekomst"-dialogen (alle stops på en projiceret rute deler typisk
+  // samme cadence, så ét aftale-id giver et repræsentativt estimat).
+  const cancelImpactAgreementId = useMemo<string | null>(() => {
+    for (const s of stops) {
+      const aid = (s as any).agreement_id as string | null | undefined;
+      if (aid) return aid;
+    }
+    return null;
+  }, [stops]);
+  const { data: cancelImpact } = useSeriesImpact({
+    agreementId: cancelImpactAgreementId,
+    fromDate: route?.route_date ?? null,
+    enabled: cancelOccurrenceOpen,
+  });
   // Sporer om brugeren *aktivt* har ændret navn/farve i denne session af
   // sheet'et. Vi bruger den til at undgå at autosave skriver stale lokal
   // state tilbage til serveren når route-data refetches udefra (fx efter
