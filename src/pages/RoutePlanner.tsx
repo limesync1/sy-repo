@@ -2701,6 +2701,17 @@ const Planner = () => {
       qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
       qc.invalidateQueries({ queryKey: ["route-series-info"] });
 
+      // Efter en flet er målruten næsten altid blevet større. Spørg om vi
+      // skal optimere stop-rækkefølgen så den nye samlede rute kører
+      // geografisk korrekt.
+      if (!result?.alreadyMerged) {
+        setPendingOptimizePrompt({
+          routeId: target.id,
+          routeName: target.name || "Rute",
+          reason: "merged",
+        });
+      }
+
       // Undo (kun for "single" scope — at rulle subscription/agreement-ændringer
       // tilbage er destruktivt og ikke worth complexity). Genopretter kildens
       // routes-row med samme id + flytter stops tilbage.
