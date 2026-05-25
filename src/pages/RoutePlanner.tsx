@@ -647,7 +647,7 @@ const Planner = () => {
       const [agreementsRes, subsRes] = await Promise.all([
         supabase
           .from("agreements")
-          .select("id, interval, interval_days, start_date, preferred_route_id, legacy_subscription_id")
+          .select("id, interval, interval_days, start_date, preferred_route_id, legacy_subscription_id, customer_name, customer_phone, address, zip_code, city, latitude, longitude, notes, estimated_duration_minutes, preferred_time_start, preferred_time_end, employee_ids, total_amount")
           .eq("business_id", businessId!)
           .eq("status", "active")
           .neq("interval", "engangskøb")
@@ -705,6 +705,23 @@ const Planner = () => {
           a.legacy_subscription_id ? `sub:${a.legacy_subscription_id}` : null,
           a.legacy_subscription_id && subOrderById.get(a.legacy_subscription_id) ? `order:${subOrderById.get(a.legacy_subscription_id)}` : null,
         ].filter(Boolean) as string[],
+        placeholder: {
+          agreement_id: a.id,
+          customer_name: a.customer_name ?? null,
+          customer_phone: a.customer_phone ?? null,
+          address: a.address ?? null,
+          zip_code: a.zip_code ?? null,
+          city: a.city ?? null,
+          latitude: a.latitude ?? null,
+          longitude: a.longitude ?? null,
+          notes: a.notes ?? null,
+          duration_minutes: a.estimated_duration_minutes ?? 30,
+          time_window_start: a.preferred_time_start ?? null,
+          time_window_end: a.preferred_time_end ?? null,
+          assignee_ids: (a.employee_ids as string[] | null) ?? [],
+          assigned_employee_id: ((a.employee_ids as string[] | null) ?? [])[0] ?? null,
+          order_amount: Number(a.total_amount ?? 0),
+        },
       }));
       const fromSubs = (subsRes.data || [])
         .filter((s: any) => !agreementLegacySubIds.has(s.id))
@@ -1054,7 +1071,7 @@ const Planner = () => {
         // Projicér basis-rutens stops over på den virtuelle dato — gør at
         // brugeren ser kunderne i kalender-kortet selv før forekomsten er
         // materialiseret. Stops markeres som virtuelle så de ikke kan ændres.
-        const projectedStops = (base.stops || [])
+        const projectedStops: any[] = (base.stops || [])
           .filter((s: any) => projectedStopMatchesSources(s, p.sourceKeys))
           .filter(isLiveProjectedStop)
           .map((s: any, i: number) => ({
@@ -1069,6 +1086,35 @@ const Planner = () => {
             // så uden dette ville badge'et fejlagtigt vise "Engangsaftale".
             agreement_interval: s.agreement_interval ?? intervalForStop(s),
           }));
+        // Synthesér placeholder-stops for de aftaler i sourceKeys der ikke har
+        // et eksisterende stop på basisruten — ellers ville fx 3 aftaler på
+        // samme rute kun vise 1 kunde på den projicerede dato (kun den med
+        // et materialiseret base-stop). Hver aftale fortjener sin egen række.
+        const coveredKeys = new Set<string>();
+        for (const s of projectedStops) {
+          for (const k of recurringSourceKeysForStop(s)) coveredKeys.add(k);
+        }
+        let synthIndex = projectedStops.length;
+        for (const src of recurringSources as any[]) {
+          if (src.preferred_route_id !== p.baseRouteId) continue;
+          if (!src.placeholder) continue;
+          const keys: string[] = src.sourceKeys ?? [];
+          if (!keys.some((k) => sourceSet.has(k))) continue;
+          if (keys.some((k) => coveredKeys.has(k))) continue;
+          const ph = src.placeholder;
+          projectedStops.push({
+            ...ph,
+            id: `virtual-stop:${p.baseRouteId}:${p.date}:agr:${ph.agreement_id}`,
+            route_id: p.id,
+            status: "planned",
+            isVirtual: true,
+            sequence: synthIndex++,
+            agreement_interval: src.interval ?? null,
+            order_id: null,
+            subscription_id: null,
+          } as any);
+          for (const k of keys) coveredKeys.add(k);
+        }
         if (projectedStops.length === 0) return null;
         // Saml medarbejdere fra basis-rutens stops så virtuelle ruter også
         // viser tilknyttede medarbejdere på kalender-kortet.
