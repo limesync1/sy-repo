@@ -3483,6 +3483,7 @@ const Planner = () => {
         <DeleteRouteDialog
           route={routeToDelete}
           onOpenChange={(o) => !o && setRouteToDelete(null)}
+          pending={deleteRoute.isPending}
           onConfirm={() => {
             if (routeToDelete) {
               const name = routeToDelete.name;
