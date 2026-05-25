@@ -158,7 +158,7 @@ const PlatformBusinessesTab = () => {
       />
 
       <div className="space-y-2">
-        <SearchInput value={q} onChange={setQ} placeholder="Søg navn, by, kategori, e-mail..." />
+        <SearchInput value={q} onChange={setQ} placeholder="Søg navn, ID, by, kategori, e-mail..." />
         <BusinessChips filter={filter} onFilterChange={setFilter} counts={counts} />
       </div>
 
