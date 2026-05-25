@@ -1905,7 +1905,7 @@ export const useMoveRouteSeries = () => {
 export const useMoveProjectedOccurrence = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ baseRouteId, fromDate, toDate, agreementIds, subscriptionIds, orderIds, moveStartDates, moveNextDates }: {
+    mutationFn: ({ baseRouteId, fromDate, toDate, agreementIds, subscriptionIds, orderIds, moveStartDates, moveNextDates, skipTargetCadence }: {
       baseRouteId: string;
       fromDate: string;
       toDate: string;
@@ -1914,6 +1914,7 @@ export const useMoveProjectedOccurrence = () => {
       orderIds?: string[];
       moveStartDates?: boolean;
       moveNextDates?: boolean;
+      skipTargetCadence?: boolean;
     }) => routeMutationQueue.run(async () => {
       // Brug den nye `shift_projected_occurrence` RPC der KUN registrerer
       // en flytte-undtagelse — den materialiserer aldrig basisruten på den
@@ -1928,6 +1929,7 @@ export const useMoveProjectedOccurrence = () => {
         _order_ids: orderIds ?? [],
         _move_start_dates: !!moveStartDates,
         _move_next_dates: !!moveNextDates,
+        _skip_target_cadence: !!skipTargetCadence,
       });
       if (error) throw error;
       return data as any;
