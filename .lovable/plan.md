@@ -1,74 +1,97 @@
 ## Mål
 
-Sikre at hele kæden — udførsel af aftale på rute → flyt til "Udførte" → automatisk næste kørsel på projiceret rute → automatisk ordre/faktura i regnskabsprogram — fungerer pålideligt og med synligt kørselsnummer overalt.
+Tre uafhængige opgaver i ét forløb:
 
-## Status i dag (det jeg har gennemgået)
+1. **Pagination overalt** — sikre at alle lister med >25 emner får adaptiv pagination.
+2. **Rutekalender — stabilitetsfix** — flere konkrete bugs i `/virksomhed/ruter`.
+3. **Datasletning** — fjerne alle ruter, services og aftaler for `Ready2Clean ApS` (public_id `0177cdef`, id `8258070b-acc7-4145-b236-e2157001563c`).
 
-Meget af infrastrukturen findes allerede i databasen:
+Jeg foreslår at vi tager dem i den rækkefølge — opgave 3 er hurtig, opgave 1 er bred men mekanisk, opgave 2 er det største stykke arbejde.
 
-- `handle_route_stop_completion` trigger: når et stop sættes til `completed`, lukkes `agreement_occurrence`, ordren markeres `completed`, og `completed_cycles` bumpes.
-- `ensure_next_agreement_occurrence`: opretter automatisk næste planlagte forekomst på næste intervaldato, og placerer den på den projicerede/fremtidige rute hvis aftalen har en præfereret rute.
-- `enqueue_order_for_new_occurrence`: når en ny forekomst får et `route_id`, lægges et `create_order`-job i `accounting_sync_queue` og `kick_accounting_sync` kaldes.
-- `enqueue_invoice_on_stop_completion`: når et stop udføres, lægges et `create_invoice`-job.
-- `materialize_virtual_route`: omdanner projiceret rute til konkret rute når dagen åbnes.
-- "Kørselsnummer"-badges (`X. kørsel`) vises allerede i Aftaler-listen, Kunder-listen, ruteplanlæggerens stops og kolonner.
+---
 
-## Det der mangler / skal verificeres
+## 1) Pagination på alle lister
 
-1. **Aftale forsvinder ikke fra "Aftaler" og dukker ikke op under "Udførte"**
-   - Når triggeren bumper `completed_cycles` på den oprindelige ordre og sætter `status='completed'`, så flytter aftalefiltreringen ordren væk. Men den nye forekomst skal opstå som et nyt, planlagt kort under "Aftaler" — i dag laver triggeren kun en `agreement_occurrence`, ikke en ny `orders`-række. Det skal jeg verificere og evt. fixe så listen viser den næste kørsel uden tomt hul.
+Bygger videre på eksisterende infrastruktur:
+- `PaginationFooter` (Forrige/Næste + "X–Y af Z" + sidetal)
+- `useAdaptivePageSize(base=25)` — vælger 10/25/50 ud fra `navigator.deviceMemory`, `hardwareConcurrency`, `connection.effectiveType`, `saveData`
 
-2. **Konsistent kørselsnummer**
-   - Sikre at den nye forekomst kommer ud med `cycles + 1` overalt: route stop card, aftalekort, kundekort, sheet. I dag bruger nogle steder `completed_cycles + 1` og andre `sequence_index`. Jeg samler det i én helper og bruger `agreement_occurrences.sequence_index` som autoritativ kilde.
+**Lister der allerede paginerer** (verificeret):
+- Admin: AftaleTab, CustomersTab, LeadsTab, ReviewsTab, ServicesTab, DataImportTab
+- Platform admin: Businesses, Orders, Users
 
-3. **Projiceret rute → "gjort klar"**
-   - I `materialize_virtual_route` skal forekomster på den dag enten arve `route_id` eller blive flyttet til den nye konkrete rute, så `enqueue_order_for_new_occurrence` skyder et `create_order` job. Verificeres med en test.
+**Lister jeg gennemgår og tilføjer pagination til hvis de mangler det:**
+- Admin: `OrdersTab`, `EmployeesTab`, `RoutesTab` (ruteliste, ikke kalender), `AccountingTab` (faner: kunder, produkter, ordrer, DLQ), `MessagesTab`, `NotificationsTab`, `BillingTab/InvoicesTab`, `BusinessCustomersTab`-undertabeller
+- Platform admin: `PlatformLeadsTab`, `PlatformReviewsTab`, `PlatformSubscriptionsTab`, `PlatformPaymentsTab`, `PlatformChatTab`, evt. flere
+- Kunde: `CustomerDashboard` historik
+- Medarbejder: aftalelister hvis lange
 
-4. **Accounting hooks**
-   - Bekræft at `accounting_sync_queue` faktisk har handlers for `operation='create_order'` (entity_type `agreement_occurrence`) og `create_invoice`, og at `accounting-sync` edge function konsumerer dem. Hvis manglende, tilføj.
+Mønster pr. liste:
+```ts
+const pageSize = useAdaptivePageSize();
+const [page, setPage] = useState(0);
+useEffect(() => setPage(0), [search, filter, sort]); // reset ved filter
+const paged = rows.slice(page * pageSize, (page + 1) * pageSize);
+// render paged + <PaginationFooter ... />
+```
 
-5. **UI**
-   - "Udførte"-sektionen på Aftaler-siden skal vise tidligere kørsler tydeligt med kørselsnummer (`3. kørsel — udført 12. maj`).
-   - Den næste planlagte kørsel skal vises som et nyt kort under "Kommende" med `X. kørsel` og dato + rute.
+Jeg lader være med at røre kalenderen/board-views (det giver ikke mening at paginere en kalender).
 
-## Plan
+---
 
-### Trin 1 — Diagnose (ingen kodeændringer)
+## 2) Rutekalender — bugfixes
 
-- Verificér i databasen at triggeren faktisk opretter næste `agreement_occurrence` og at den får `route_id` når aftalen har præfereret/projiceret rute.
-- Verificér at `accounting_sync_queue` har relevante jobs efter en test-completion.
-- Kør `recurring-orders` cron og `materialize_virtual_route` mod en testaftale.
+Hver bug håndteres som et separat, isoleret fix:
 
-### Trin 2 — Databasefix (én migration)
+**A. Lag/race ved drag-and-drop laver duplikater af ruter/aftaler**
+- Sikre at ALLE mutationer (drop, move, dato-ændring, sletning) går gennem `routeMutationQueue` (eksisterende serial queue med retries).
+- Disable drop-zoner mens kø ikke er tom, så en hurtig dobbelt-drop ikke kan trigge to mutations.
+- Tilføj idempotens-nøgle (rute-id + dato + occurrence-id) til "create"-handler så samme drop ikke kan oprette to identiske stops.
 
-- Sikre at `handle_route_stop_completion` også synkroniserer `orders`-rækken (eller opretter en ny `orders`-række for næste kørsel), så Aftaler-listen automatisk viser den næste kørsel uden manuel oprettelse.
-- Indeksér `agreement_occurrences (agreement_id, sequence_index)` så vi billigt kan finde "næste kørselsnummer".
-- Patch `materialize_virtual_route` så åbning af projiceret rute kicker accounting-sync for alle stops på den dag.
+**B. Klik på projiceret rute → tom side / lag**
+- I `RouteEditSheet` (og evt. dag-view) sikre at virtuel rute (`virtual:<routeId>:<date>`) løses korrekt: hydrere fra basisrute + filtrér stops via `filterStopsByOccurrenceDate` for den valgte dato.
+- Vis loading-state mens projiceringen hydreres i stedet for tom UI.
+- Fang fejl og vis "Kunne ikke åbne projiceret rute — prøv igen" frem for blank side.
 
-### Trin 3 — Accounting edge function
+**C. Sletning af rute med aftaler får aftaler til at forsvinde**
+- Lave delete-flow om: før man kan slette en basisrute, tjek om der findes `agreement_occurrences` eller `agreements.preferred_route_id` der peger på den.
+- Hvis ja: vis dialog "Denne rute har X aktive aftaler. Vælg: Flyt aftaler til anden rute / Annullér".
+- Aftalerne må aldrig slettes som side-effekt. DB: sæt `agreements.preferred_route_id` til `null` ved rute-sletning (eller bloker) i stedet for cascade.
 
-- I `accounting-sync` index.ts: sikre at både `create_order` (når dagen materialiseres) og `create_invoice` (når stop udføres) behandles og er idempotente.
-- Tilføj log/toast så brugeren får besked når regnskabsordre/faktura er oprettet.
+**D. Man kan flytte projicerede (virtuelle) ruter**
+- I drag-handler: hvis `route.id` starter med `virtual:` → afvis drag med toast "Flyt basisruten i stedet — projicerede forekomster følger automatisk".
+- Tilsvarende for dato-ændring og stops-reorder på virtuelle ruter.
 
-### Trin 4 — UI/UX
+**E. Kun 1 aftale vises på projiceret rute selvom flere aftaler har interval på samme rute**
+- I `expandRecurringRoutes` slås flere aftaler korrekt sammen pr. (rute, dato) via `sourceKeys`. Bug ligger sandsynligvis i stops-rendering: når projiceret dato vises, filtreres stops på første kilde frem for alle kilder.
+- Fix: brug ALLE `sourceKeys` for den virtuelle rute som filter, ikke kun én aftale. Verificér via `projectedStopMatchesSources` med hele kildesættet.
+- Tilføj test i `recurring-projection.test.ts` der dækker "to aftaler, hver 3. uge, på samme rute, falder begge på samme dato".
 
-- Aftalekort: vis "Næste: 4. kørsel — onsdag 27. maj · Rute Aarhus N" på det aktive kort.
-- Udførte-sektion: vis liste af tidligere kørsler (occurrences) med nummer, dato og evt. faktura-nummer.
-- Helper `formatCycleLabel(occurrenceOrOrder)` i `src/lib/` så alle visninger bruger samme format.
+---
 
-### Trin 5 — Smoke test
+## 3) Datasletning — Ready2Clean ApS (`0177cdef`)
 
-- Opret testaftale ugentlig → læg på rute → markér udført → bekræft: forekomst lukkes, næste forekomst oprettes på næste uge på samme rute, accounting-queue får ét `create_order` (når dagen åbnes) og ét `create_invoice` (efter udførsel).
+Som migration (kræver delete-rettigheder):
+```sql
+-- Sletter i korrekt rækkefølge så fremmednøgler/RLS ikke blokerer
+delete from public.route_stops    where route_id in (select id from public.routes where business_id = '8258070b-…');
+delete from public.routes         where business_id = '8258070b-…';
+delete from public.agreement_items       where agreement_id in (select id from public.agreements where business_id = '8258070b-…');
+delete from public.agreement_occurrences where business_id = '8258070b-…';
+delete from public.agreements            where business_id = '8258070b-…';
+delete from public.calculator_steps where service_id in (select id from public.services where business_id = '8258070b-…');
+delete from public.services       where business_id = '8258070b-…';
+```
+(Endelig tabel-liste verificeres mod skema før kørsel — fx også `route_templates`, `agreement_occurrence_*`-relaterede tabeller hvis de findes.)
 
-## Tekniske detaljer (kort)
+Virksomheden, brugere, kunder, fakturaer og regnskabsintegration **bevares** — kun ruter/services/aftaler fjernes.
 
-- Migration filer: `supabase/migrations/<timestamp>_agreement_cycle_flow.sql`.
-- Berørte funktioner: `handle_route_stop_completion`, `ensure_next_agreement_occurrence`, `materialize_virtual_route`, `enqueue_order_for_new_occurrence`.
-- Berørte komponenter: `AftaleTab.tsx`, `CustomersTab.tsx`, `RouteStopsPanel.tsx`, `EmployeeColumn.tsx`, ny `src/lib/cycle-label.ts`.
-- Edge function: `supabase/functions/accounting-sync/index.ts` (verificér handlers).
+---
 
-## Spørgsmål før jeg går i gang
+## Rækkefølge
 
-1. Når du udfører et stop nu — flyttes aftalen så til "Udførte" på Aftaler-siden, eller bliver den bare stående? (afgør om trin 2 kræver ekstra orders-håndtering)
-2. Bruger du allerede regnskabsintegration (Dinero/e-conomic) på testkontoen? Skal jeg verificere mod en konkret virksomhed, eller bare sikre at hooks fyrer korrekt i kø?
-3. Skal "Udførte" vise hver enkelt tidligere kørsel som separate kort, eller ét aftalekort med en udfoldelig historik?
+1. Migration for opgave 3 (kører separat, kræver godkendelse).
+2. Opgave 2 bugfixes (én commit pr. bug A–E).
+3. Opgave 1 pagination — gennemgang af alle lister.
+
+Sig til hvis jeg skal justere scope, eller om der er en bug under #2 jeg har misforstået.

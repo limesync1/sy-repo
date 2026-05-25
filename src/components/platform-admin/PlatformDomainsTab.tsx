@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { CheckCircle2, ExternalLink, Globe, Copy, Loader2, Rocket, Lock, RefreshCw, Search } from "lucide-react";
 import { PageHeader, EmptyState } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
+import { PaginationFooter } from "@/components/admin/shared/PaginationFooter";
+import { useAdaptivePageSize } from "@/hooks/useAdaptivePageSize";
 import { DomainRow, SslInfo, STATUS_LABEL, LOVABLE_PROJECT_DOMAINS_URL, renderSslBadge } from "./domains/shared";
 import DomainGuide from "./domains/DomainGuide";
 
@@ -71,6 +73,14 @@ const PlatformDomainsTab = () => {
     });
     return c;
   }, [rows]);
+
+  const pageSize = useAdaptivePageSize();
+  const [page, setPage] = useState(0);
+  useEffect(() => { setPage(0); }, [filter]);
+  const paged = useMemo(
+    () => filtered.slice(page * pageSize, (page + 1) * pageSize),
+    [filtered, page, pageSize],
+  );
 
   const setActive = useMutation({
     mutationFn: async ({ row, active }: { row: DomainRow; active: boolean }) => {
@@ -200,7 +210,7 @@ const PlatformDomainsTab = () => {
         <EmptyState icon={<Globe />} title="Ingen domæner i denne kategori" description="Kunders custom domæner vises her når de tilføjer dem i deres virksomhedsindstillinger." />
       ) : (
         <div className="space-y-2">
-          {filtered.map((row) => {
+          {paged.map((row) => {
             const meta = STATUS_LABEL[row.status] || STATUS_LABEL.unknown;
             return (
               <Card key={row.id} className="p-4">
@@ -286,6 +296,13 @@ const PlatformDomainsTab = () => {
           })}
         </div>
       )}
+      <PaginationFooter
+        page={page}
+        pageSize={pageSize}
+        total={filtered.length}
+        onPageChange={setPage}
+        label="domæner"
+      />
     </div>
   );
 };
