@@ -940,16 +940,40 @@ export const useDeleteRoute = () => {
         .select("id", { head: true, count: "exact" })
         .eq("route_id", routeId);
       if (countErr) throw countErr;
+      // Hent rute-metadata til audit FØR sletning, så vi har before-data.
+      const { data: routeBefore } = await supabase
+        .from("routes")
+        .select("id, business_id, route_date, employee_id, status, name, base_route_id")
+        .eq("id", routeId)
+        .maybeSingle();
       if ((count ?? 0) > 0) {
         const { error } = await supabase
           .from("routes")
           .update({ archived_at: new Date().toISOString() })
           .eq("id", routeId);
         if (error) throw error;
+        if (routeBefore?.business_id) {
+          await logRouteAudit({
+            business_id: routeBefore.business_id,
+            route_id: routeId,
+            action: "route.archive",
+            affected_count: count ?? 0,
+            before: routeBefore,
+          });
+        }
         return { soft: true } as const;
       }
       const { error } = await supabase.from("routes").delete().eq("id", routeId);
       if (error) throw error;
+      if (routeBefore?.business_id) {
+        await logRouteAudit({
+          business_id: routeBefore.business_id,
+          route_id: routeId,
+          action: "route.delete",
+          affected_count: 0,
+          before: routeBefore,
+        });
+      }
       return { soft: false } as const;
     }),
     onSuccess: (res) => {
