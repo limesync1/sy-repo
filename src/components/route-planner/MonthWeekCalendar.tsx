@@ -71,6 +71,10 @@ type Props = {
    *  pt. behandler en flytning. Targets i settet deaktiveres som drop-zone
    *  og viser en spinner, så brugeren ikke kan slippe igen ved et uheld. */
   busyTargets?: Set<string>;
+  /** Proaktive konflikt-advarsler pr. dato: vises som farvet prik ved siden
+   *  af dato-tallet INDEN brugeren prøver at trække noget hen. `error` =
+   *  rød (fx dobbeltbooket medarbejder), `warning` = gul (fx helligdag). */
+  dateAlerts?: Map<string, { severity: "warning" | "error"; label: string }>;
 };
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
@@ -200,6 +204,7 @@ export const MonthWeekCalendar = ({
                     weatherError={!!weatherError}
                     busy={!!busyTargets?.has(`day:${dateStr}`)}
                     busyRouteIds={busyTargets}
+                    alert={dateAlerts?.get(dateStr) ?? null}
                   />
                 );
               })}
