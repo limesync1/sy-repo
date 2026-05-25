@@ -423,6 +423,11 @@ const Planner = () => {
   const optimizeRoute = useOptimizeRoute();
   const geocode = useGeocodeAddress();
 
+  // Undo-stak (Rutekalender 3.0 — Fase B.3). Sidste 50 handlinger kan
+  // fortrydes via Cmd/Ctrl+Z eller toolbar-knap. Pushes lokalt fra hver
+  // mutation der ændrer en rute eller forekomst.
+  const history = useRouteHistory();
+
   // Pending route-move: viser MoveRouteDateDialog. Hvis ruten er del af en
   // serie spørger vi brugeren om kun denne ene eller alle fremtidige skal flyttes.
   const [pendingRouteMove, setPendingRouteMove] = useState<{
