@@ -2004,6 +2004,11 @@ export const useMyDayStops = (date: string) => {
     staleTime: 30_000,
     queryFn: async () => {
       if (!employeeId) return [];
+      // Sikkerheds-guard: medarbejder-appen viser ALDRIG fremtidige stops.
+      // Dette undgår at en bug i klienten (fx forkert dato-state) viser
+      // morgendagens ruter — kun aktuelle eller historiske dage tillades.
+      const today = new Date().toISOString().slice(0, 10);
+      if (date > today) return [];
       const [linksRes, legacyRes, stopAssignRes] = await Promise.all([
         supabase.from("route_employees").select("route_id").eq("employee_id", employeeId),
         supabase.from("routes").select("id").eq("employee_id", employeeId).eq("route_date", date),
@@ -2147,6 +2152,11 @@ export const useMyRouteData = (routeId: string | undefined) => {
         .eq("id", routeId!)
         .maybeSingle();
       if (!route) return null;
+      // Spec §2/§30: medarbejder må ALDRIG få fremtidige route_dates.
+      const todayKey = new Date().toISOString().slice(0, 10);
+      if ((route as any).route_date && String((route as any).route_date).slice(0, 10) > todayKey) {
+        return null;
+      }
 
       const { data: myAssign } = await supabase
         .from("route_stop_assignees")

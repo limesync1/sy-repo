@@ -76,6 +76,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { expandRecurringRoutes, projectedStopMatchesSources, recurringSourceKeysForStop } from "@/lib/recurring-projection";
 import { intervalToCadence } from "@/lib/interval";
+import { useAgreementPauses } from "@/hooks/useAgreementPauses";
+import { useBusinessHolidays } from "@/hooks/useBusinessHolidays";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { invalidateRouteSyncQueries } from "@/hooks/useRoutes";
 import { routeMutationQueue } from "@/lib/mutation-queue";
@@ -304,6 +306,10 @@ const Planner = () => {
     calendarRange.start,
     calendarRange.end,
   );
+  // Pauseperioder + helligdage — bruges af projektionen til at springe over
+  // datoer hvor en aftale ikke skal forekomme (kunde-ferie, lukkedage osv.).
+  const { data: agreementPauses = [] } = useAgreementPauses(businessId, calendarRange);
+  const { data: businessHolidays = [] } = useBusinessHolidays(businessId, calendarRange);
   const calendarRoutesRaw = calendarData?.routes ?? [];
   const rawCalendarStops = calendarData?.stops ?? [];
   const loadingCalendarRoutes = loadingCalendar;
@@ -1070,6 +1076,12 @@ const Planner = () => {
       rangeEnd: calendarRange.end,
       realRouteDates: realKeys,
       overrides: occurrenceOverrides as any[],
+      pauses: agreementPauses.map((p) => ({
+        agreement_id: p.agreement_id,
+        start_date: p.start_date,
+        end_date: p.end_date,
+      })),
+      holidayDates: businessHolidays.map((h) => h.holiday_date),
     });
     return projections
       .map((p) => {
@@ -1180,7 +1192,7 @@ const Planner = () => {
         } as CalendarRoute;
       })
       .filter(Boolean) as CalendarRoute[];
-  }, [recurringSources, recurringBaseRoutes, calendarRoutesRaw, routeOccurrenceExceptions, calendarRange.start, calendarRange.end, activeEmployees, calendarRoutes, occurrenceOverrides]);
+  }, [recurringSources, recurringBaseRoutes, calendarRoutesRaw, routeOccurrenceExceptions, calendarRange.start, calendarRange.end, activeEmployees, calendarRoutes, occurrenceOverrides, agreementPauses, businessHolidays]);
 
   /* ─── Projection sanity-check / diagnostik ───
      Kører FØR projektionen bruges i UI'et, så vi:

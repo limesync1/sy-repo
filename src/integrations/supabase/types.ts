@@ -713,6 +713,42 @@ export type Database = {
           },
         ]
       }
+      agreement_pauses: {
+        Row: {
+          agreement_id: string
+          business_id: string
+          created_at: string
+          created_by: string | null
+          end_date: string
+          id: string
+          reason: string | null
+          start_date: string
+          updated_at: string
+        }
+        Insert: {
+          agreement_id: string
+          business_id: string
+          created_at?: string
+          created_by?: string | null
+          end_date: string
+          id?: string
+          reason?: string | null
+          start_date: string
+          updated_at?: string
+        }
+        Update: {
+          agreement_id?: string
+          business_id?: string
+          created_at?: string
+          created_by?: string | null
+          end_date?: string
+          id?: string
+          reason?: string | null
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       agreements: {
         Row: {
           address: string | null
@@ -987,6 +1023,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      business_holidays: {
+        Row: {
+          business_id: string
+          created_at: string
+          holiday_date: string
+          id: string
+          name: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          holiday_date: string
+          id?: string
+          name: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          holiday_date?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
       }
       business_onboarding_progress: {
         Row: {
