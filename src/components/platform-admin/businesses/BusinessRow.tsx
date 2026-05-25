@@ -49,6 +49,19 @@ export const BusinessListRow = ({
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-1.5">
           <p className="truncate text-sm font-semibold text-foreground">{b.name}</p>
+          {b.public_id && (
+            <button
+              type="button"
+              title="Kopiér virksomheds-ID"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigator.clipboard?.writeText(b.public_id!).catch(() => {});
+              }}
+              className="font-mono text-[10px] uppercase tracking-wider rounded-md bg-secondary px-1.5 py-0.5 text-muted-foreground ring-1 ring-inset ring-border hover:bg-secondary/70"
+            >
+              {b.public_id}
+            </button>
+          )}
           {!b.is_active && (
             <span className="inline-flex items-center rounded-md bg-destructive/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-destructive ring-1 ring-inset ring-destructive/20">
               Inaktiv

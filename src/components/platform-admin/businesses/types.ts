@@ -34,6 +34,7 @@ export type BusinessRow = {
   id: string;
   name: string;
   slug: string;
+  public_id?: string | null;
   category: string | null;
   city: string | null;
   email: string | null;
