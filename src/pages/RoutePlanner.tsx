@@ -1835,6 +1835,7 @@ const Planner = () => {
     setRouteDragPoint(null);
     activeRouteDragPointRef.current = null;
     activeRouteDragOriginRef.current = null;
+    clearDragValidation();
     // ─── Metrics: registrér resultatet af denne drag ───
     // `dropped=true` kun når brugeren faktisk slap på et target. Drags
     // der ender uden over-target tæller som "klik-fejl" — typisk når
@@ -2808,6 +2809,7 @@ const Planner = () => {
         setRouteDragPoint(null);
         activeRouteDragPointRef.current = null;
         activeRouteDragOriginRef.current = null;
+        clearDragValidation();
       }}
     >
       <SEO
