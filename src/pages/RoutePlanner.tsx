@@ -3891,6 +3891,62 @@ const Planner = () => {
           onConfirm={handleConfirmMoveRoute}
         />
 
+        {/* Bekræftelse: drag/drop af en projiceret forekomst til ny dato. */}
+        <AlertDialog
+          open={!!pendingProjectedMove}
+          onOpenChange={(o) => { if (!o && !shiftProjectedOccurrence.isPending) setPendingProjectedMove(null); }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Flyt denne projicerede forekomst?</AlertDialogTitle>
+              <AlertDialogDescription asChild>
+                <div className="space-y-2 text-sm">
+                  <div>
+                    Du er ved at flytte den projicerede forekomst af
+                    {" "}<span className="font-medium text-foreground">{pendingProjectedMove?.routeName}</span>{" "}
+                    fra{" "}
+                    <span className="font-medium text-foreground capitalize">
+                      {pendingProjectedMove?.fromDate ? format(parseISO(pendingProjectedMove.fromDate), "EEEE d. MMM yyyy", { locale: da }) : "—"}
+                    </span>{" "}
+                    til{" "}
+                    <span className="font-medium text-foreground capitalize">
+                      {pendingProjectedMove?.toDate ? format(parseISO(pendingProjectedMove.toDate), "EEEE d. MMM yyyy", { locale: da }) : "—"}
+                    </span>.
+                  </div>
+                  <div className="rounded-md border border-border bg-muted/40 p-2 text-xs leading-snug text-muted-foreground">
+                    Kun denne ene forekomst flyttes — den forbliver en projektion
+                    på den nye dato og bliver ikke til en faktisk rute. Basisruten
+                    og rutens øvrige projicerede forekomster forbliver uændrede.
+                  </div>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={shiftProjectedOccurrence.isPending}>Annullér</AlertDialogCancel>
+              <Button
+                onClick={async () => {
+                  if (!pendingProjectedMove) return;
+                  try {
+                    await shiftProjectedOccurrence.mutateAsync({
+                      baseRouteId: pendingProjectedMove.baseRouteId,
+                      fromDate: pendingProjectedMove.fromDate,
+                      toDate: pendingProjectedMove.toDate,
+                    });
+                    toast.success("Den projicerede forekomst er flyttet til den nye dato");
+                    setPendingProjectedMove(null);
+                  } catch (e: any) {
+                    toast.error(e?.message || "Kunne ikke flytte den projicerede rute");
+                  }
+                }}
+                disabled={shiftProjectedOccurrence.isPending}
+              >
+                {shiftProjectedOccurrence.isPending && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
+                Flyt forekomst
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         {/* Klog opstartsdato-validering ved drop af aftale på dato/rute. */}
         <AlertDialog
           open={!!pendingStartDateChange}
