@@ -39,7 +39,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon,
   Loader2, Search, Plus, Inbox, ArrowUpDown, X, Keyboard, Filter,
-  ShoppingBag, Route as RouteIcon, Tag, Palette, ListChecks, AlertTriangle,
+  ShoppingBag, Route as RouteIcon, Tag, Palette, ListChecks, AlertTriangle, Undo2,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -90,6 +90,8 @@ import { cn } from "@/lib/utils";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { Monitor } from "lucide-react";
 import { usePersistentState } from "@/hooks/usePersistentState";
+import { pushRouteUndo } from "@/lib/route-history";
+import { useRouteHistory } from "@/hooks/useRouteHistory";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
