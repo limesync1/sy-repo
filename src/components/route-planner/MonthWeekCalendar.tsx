@@ -12,6 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Sparkles, Plus, Users, MapPin, ArrowDown, Repeat, Clock, Wallet, Lock } from "lucide-react";
+import { CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { CloudOff } from "lucide-react";
 import {
   format, parseISO, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
@@ -567,6 +568,28 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
       }
       aria-busy={busy || undefined}
     >
+      {/* L2 — Live drop-validering chip på rute-pille.
+          Vises kun mens et drag svæver over pillen og en validering er
+          aktiv, så brugeren ser præcis hvorfor dropet er ok/advarsel/fejl
+          INDEN slip. Matcher chip-stilen på DayCell for konsistens. */}
+      {isOver && validation && (
+        <div
+          className={cn(
+            "absolute -top-1 right-1 z-20 pointer-events-none rounded-md px-1.5 py-0.5 shadow-md text-[10px] font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-150 max-w-[95%]",
+            chipBgForSeverity(validation.severity),
+          )}
+          role="status"
+        >
+          {validation.severity === "error" ? (
+            <XCircle className="h-3 w-3 shrink-0" />
+          ) : validation.severity === "warning" ? (
+            <AlertTriangle className="h-3 w-3 shrink-0" />
+          ) : (
+            <CheckCircle2 className="h-3 w-3 shrink-0" />
+          )}
+          <span className="truncate">{validation.topMessage ?? (validation.severity === "ok" ? "Tilføj til rute" : "")}</span>
+        </div>
+      )}
       {busy && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/70 backdrop-blur-[1px] pointer-events-none">
           <Loader2 className="h-3.5 w-3.5 animate-spin text-accent" />
