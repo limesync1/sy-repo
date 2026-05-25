@@ -1,101 +1,52 @@
-# Rutekalender 3.0
+# Smarte forbedringer til ruteflytning (basis + projiceret)
 
-Mål: planlæg 500 ruter/dag uden ryk, færre klik pr. ændring, og lad systemet selv tænke med — i stedet for kun at validere efter brugeren har klikket.
+Alle fire forbedringer bygges, så de fungerer ensartet for **både basisruter og projicerede ruter**. Fælles bygge­blokke deles på tværs så UX og kode forbliver konsistent.
 
-Implementeres i 4 faser. Hver fase er selvstændig værdi og kan udrulles trinvist.
+## 1. Undo / fortryd flytning
+- Efter en vellykket flytning (basisrute eller projektion) vises en sonner-toast med "Fortryd"-knap i 10 sek.
+- Ny utility `src/lib/route-undo.ts` med en lille in-memory stack der husker sidste mutation (route_id, fra-dato, til-dato, evt. exception_id, sync-flags).
+- For basisruter: revert ved at sætte `route_date` tilbage + nulstil tilbageshiftede aftaler (samme RPC kaldt baglæns).
+- For projicerede: slet/rebland den `route_exceptions`-row der lige blev oprettet (ny RPC `revert_projected_shift(_exception_id uuid)`).
+- Hook `useRouteUndo()` eksponerer `register()` + `undo()`; integreres i `RoutePlanner`, `RouteEditSheet`, `MoveRouteDateDialog`, `MoveProjectedOccurrenceDialog`.
 
----
+## 2. Bulk-flyt flere dage
+- Ny multi-select tilstand i kalenderen (`AgendaCalendar` + `MonthWeekCalendar`): hold Shift/Ctrl eller klik på en ny "Vælg flere"-knap i toolbaren for at markere flere ruter/projektioner.
+- Floating action bar viser antal valgte + "Flyt valgte ±N dage".
+- Ny dialog `BulkMoveRoutesDialog` der validerer hver flytning (konflikter, helligdage, serie-kollisioner) via eksisterende `validateRouteMove` + viser per-rute status (OK / advarsel / blokeret).
+- Eksekvering: én batched mutation pr. rute med progress-bar; fejl ruller tilbage successfully flyttede via Undo-stacken.
 
-## Fase A — Smartere planlægning (logik)
+## 3. Smart medarbejder-omfordeling
+- Ny utility `src/lib/employee-reassign.ts`: givet nyt rute-datointerval + tildelte medarbejdere, returnér første ledige kollega pr. konfliktende stop (baseret på `useDayConflicts` + medarbejder­tilgængelighed/skills hvis tilgængelig).
+- Når flytning (basis eller projiceret) detekterer medarbejder­konflikt, viser dialogen "Tildel **Anna** i stedet for Peter" med ét-klik accept før bekræft.
+- Sker også automatisk hvis brugeren vælger "Foreslå" — ellers bevares original tildeling og kun en advarsel vises.
 
-Skal ligge i `src/lib/route-brain/` + `supabase/functions/route-brain/`.
+## 4. Visuel drag-preview med konfliktfarve
+- Under drag-and-drop af både basisruter og projicerede ruter beregnes pr.-dato status i memo: grøn (ledig), gul (advarsel: helligdag/geografisk spring), rød (blokeret: kollision/fortid/serie-konflikt).
+- Kalender-cellerne får baggrunds-ring i den farve mens drag er aktiv (uden at flytte indhold), inkl. lille badge med årsag på hover.
+- Logikken samles i `useDragTargetStatus(date)` hook der genbruger `validateRouteMove` + `useDayConflicts`.
 
-1. **Auto-byg dagen** (ny edge function `route-brain-build-day`)
-   - Input: dato + valgte ordrer/abonnementer + tilgængelige medarbejdere + lukkedage/ferie/vejr.
-   - Bruger eksisterende VRP-kerne fra `optimize-route/vrp.ts`, men kører den på *alle utildelte stops* og fordeler i nye/eksisterende ruter.
-   - Respekterer: hårde tidsvinduer, faste kunde-medarbejder relationer (ny `customer_employee_preferences`), kompetencer (allerede i `employees.skills`), bil/last-kapacitet.
-   - Output: forslag som dry-run — vises i ny `BuildDayPreviewSheet` før commit.
+## Tekniske ændringer
 
-2. **Geo-clustering på drop** (klient-side, synkront)
-   - Når et stop trækkes over en dag uden eksisterende rute: foreslå *hvilken medarbejder* baseret på (a) hvem der bor tættest, (b) hvem der allerede har stops i samme postnummer, (c) hvem der har plads i tidsvinduet.
-   - Vises som live "smart drop" pille på cellen — én klik tildeler.
+**Nye filer**
+- `src/lib/route-undo.ts` — undo-stack + hook
+- `src/lib/employee-reassign.ts` — foreslå ledig medarbejder
+- `src/hooks/useDragTargetStatus.ts` — pr.-dato konfliktstatus
+- `src/components/route-planner/BulkMoveRoutesDialog.tsx`
+- `src/components/route-planner/BulkSelectionBar.tsx`
+- `supabase/migrations/<ts>_revert_projected_shift.sql` — RPC til at fortryde projiceret exception + RPC `bulk_shift_routes` der validerer atomisk
 
-3. **Kunde-præferencer & historik**
-   - Ny tabel `customer_employee_affinity` (auto-opbygges fra `route_stops`-historik via daglig cron): hvor ofte har medarbejder X været hos kunde Y, sidste besøg.
-   - Bruges i VRP-vægtning + vises i UI ("Marie har været her 12x").
+**Opdaterede filer**
+- `src/pages/RoutePlanner.tsx` — wire multi-select, undo, drag-status
+- `src/components/route-planner/AgendaCalendar.tsx` + `MonthWeekCalendar.tsx` — multi-select UI + drag-target farver
+- `src/components/route-planner/RouteEditSheet.tsx` — undo-trigger, reassign-forslag
+- `src/components/route-planner/MoveRouteDateDialog.tsx` + `MoveProjectedOccurrenceDialog.tsx` — vis reassign-forslag + indkald undo ved success
+- `src/hooks/useRoutes.ts` — eksporter `revertProjectedShift` + `bulkShiftRoutes`
 
-4. **AI-second-opinion** (Lovable AI, ny edge function `route-brain-review-day`)
-   - Tager dagens plan + giver 0-3 konkrete forslag i strukturerede tool-calls.
-   - Knappet bag "Spørg AI" i toolbar — ikke automatisk for at undgå støj og rate-limits.
+## Rækkefølge
+1. Migration (RPC'er) — kræver godkendelse
+2. Fælles utilities + hooks
+3. Dialoger og UI-integration
+4. Drag-target farver
+5. Manuel verificering i preview
 
-## Fase B — Drag & drop UX
-
-Alt i `src/components/route-planner/`.
-
-1. **Multi-select**: shift+klik på stops, træk hele bundtet. Visual: stack-card i drag overlay med antal.
-2. **Keyboard**: piletaster flytter selected stop ±1 dag eller ±1 plads i rute. `Cmd/Ctrl+Z` undo.
-3. **Undo/redo-stak** (`src/lib/route-history.ts`)
-   - Hver mutation pushes som invers-operation; max 50.
-   - Vises som toast med "Fortryd" + persistent undo-knap i toolbar.
-4. **Snappier drag overlay**
-   - Drop CSS-only ghost; brug `@dnd-kit` `DragOverlay` med GPU-transform.
-   - Fjern `JSON.stringify` i hot paths (set kun ændrede felter).
-5. **Hover-pre-validation**: kør allerede-eksisterende `validateStopAssignment` synkront ved `onDragOver` (debounced 50ms) — pille viser ok/warn/blok *før* slip. Delvist gjort i forrige iteration, men finpudses.
-
-## Fase C — Performance & realtime
-
-For 500 ruter/dag + 5 samtidige planlæggere.
-
-1. **Virtualisering**
-   - `MonthWeekCalendar`: brug `@tanstack/react-virtual` på dag-celler — render kun viewport + 1 row buffer.
-   - Liste-views (stop-liste, audit-log): samme.
-
-2. **Selective queries**
-   - Split `useRoutes` i `useRoutesIndex` (kun metadata: id, date, employee_ids, stop_count) og `useRouteDetail(id)` (stops, geo).
-   - Index-query er det eneste der lyttes til realtime; detaljer hentes on-demand når kort/popover åbnes.
-
-3. **Optimistic batching**
-   - Eksisterende `mutation-queue.ts` udvides: batch flere `update_stop_order` i ét round-trip via ny RPC `batch_update_stop_orders(jsonb)`.
-   - Reducerer 12 sekventielle kald til 1 ved omrokering af en rute.
-
-4. **Realtime presence + locks**
-   - Nye Supabase `realtime presence` channel `route-day:{date}`: viser farvede avatarer på dage hvor en anden planlægger redigerer.
-   - Soft-lock på drag-start (allerede halvt klar via `route-claim.ts`) udvides til at sende presence-broadcast så andre ser låsen øjeblikkeligt uden DB-roundtrip.
-
-5. **Medarbejderpanel-optimering**
-   - `EmployeeApp` / `EmployeeRoute`: skift fra polling-agtig `useRoutes` til targeted `useMyTodayRoute(employee_id, date)` med realtime kun på den ene række.
-   - Map-rendering: clusterer kun stops i viewport, lazy-load polyline efter første idle.
-
-## Fase D — Observability (kort)
-
-- `route_performance_log` tabel: planlæggers mutation → ms; surface som mini-graf i admin "Rutefejl" tab (omdøbes til "Rutediagnostik").
-- Sentry breadcrumbs på alle drag-events (kun anonymiseret payload).
-
----
-
-## Tekniske noter
-
-- DB-ændringer:
-  - `customer_employee_affinity` (customer_id, employee_id, business_id, visit_count, last_visit_at)
-  - `customer_employee_preferences` (manuelle pinninger)
-  - `route_performance_log`
-  - RPC `batch_update_stop_orders(payload jsonb)` + RLS via `has_role`.
-- Nye edge functions: `route-brain-build-day`, `route-brain-review-day`. Genbruger `optimize-route/vrp.ts` + `geo.ts`.
-- Ingen breaking changes — alt nyt kører side om side med eksisterende kalender, bag feature-flag `route_planner_v3` i `businesses.feature_flags` (jsonb) så vi kan rulle ud til 1 firma først.
-
-## Rækkefølge & estimat
-
-```text
-Fase C.2 (selective queries)        ← fundament, gør resten hurtigere
-Fase C.1 (virtualisering)
-Fase B.3 (undo/redo)                ← billig sikkerhed inden vi rører logik
-Fase B.1+B.2 (multi-select, kbd)
-Fase A.2 (geo-clustering smart drop)
-Fase A.1 (auto-byg dagen)
-Fase A.3 + A.4 (affinity + AI review)
-Fase C.3+C.4 (batching, presence)
-Fase C.5 (medarbejderpanel)
-Fase D (observability)
-```
-
-Jeg starter med Fase C.2 → C.1 → B.3 i første implementeringsrunde (det giver mærkbart hurtigere kalender + safety net), og spørger så før jeg går videre til logik-fasen.
+Ønsker du jeg går i gang med migration først?

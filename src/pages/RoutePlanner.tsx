@@ -12,6 +12,7 @@ import {
   useRouteSeriesInfo, useMoveRouteSeries,
   useRouteOccurrenceExceptions,
   useShiftProjectedOccurrence,
+  useRevertProjectedShift,
   openProjectedRouteBase,
   logRoutePlannerEvent,
   type RouteStop, type Route,
@@ -100,8 +101,9 @@ import { cn } from "@/lib/utils";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { Monitor } from "lucide-react";
 import { usePersistentState } from "@/hooks/usePersistentState";
-import { pushRouteUndo } from "@/lib/route-history";
+import { pushRouteUndo, routeHistory } from "@/lib/route-history";
 import { useRouteHistory } from "@/hooks/useRouteHistory";
+import { toastSuccessWithUndo } from "@/lib/toast-undo";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -430,6 +432,7 @@ const Planner = () => {
   const moveRouteSeries = useMoveRouteSeries();
   const addStop = useAddStop();
   const shiftProjectedOccurrence = useShiftProjectedOccurrence();
+  const revertProjectedShift = useRevertProjectedShift();
   const optimizeRoute = useOptimizeRoute();
   const geocode = useGeocodeAddress();
 
@@ -2501,11 +2504,6 @@ const Planner = () => {
         scope,
         moveLinkedSubscriptions,
       });
-      toast.success(
-        scope === "future"
-          ? `Ruteserien forskudt til ${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`
-          : `Rute flyttet til ${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`,
-      );
       pushRouteUndo({
         label: scope === "future"
           ? `Forskydning af ruteserie til ${format(parseISO(newDate), "d. MMM", { locale: da })}`
@@ -2518,6 +2516,12 @@ const Planner = () => {
             moveLinkedSubscriptions,
           });
         },
+      });
+      toastSuccessWithUndo({
+        message: scope === "future"
+          ? `Ruteserien forskudt til ${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`
+          : `Rute flyttet til ${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`,
+        description: "Klik Fortryd for at rulle tilbage.",
       });
       setPendingRouteMove(null);
     } catch (err: any) {
@@ -2660,8 +2664,20 @@ const Planner = () => {
         id: toastId,
         description:
           scope === "future"
-            ? "Fremtidige forekomster af gentagne aftaler følger med — Cmd+Z for at fortryde"
-            : "Kilderuten blev slettet automatisk — Cmd+Z for at fortryde",
+            ? "Fremtidige forekomster af gentagne aftaler følger med."
+            : "Kilderuten blev slettet automatisk.",
+        duration: 8000,
+        action: scope === "single" ? {
+          label: "Fortryd",
+          onClick: async () => {
+            try {
+              const ran = await routeHistory.undoLast();
+              if (ran) toast.success(`Fortrudt: ${ran.label}`);
+            } catch (e: any) {
+              toast.error("Kunne ikke fortryde", { description: e?.message });
+            }
+          },
+        } : undefined,
       });
       setPendingRouteMerge(null);
       invalidateRouteSyncQueries(qc);
@@ -4290,7 +4306,7 @@ const Planner = () => {
             const subscriptionIds = pendingProjectedSeriesInfo?.recurringSubscriptionIds ?? [];
             const orderIds = pendingProjectedSeriesInfo?.orderIds ?? [];
             try {
-              await shiftProjectedOccurrence.mutateAsync({
+              const result = await shiftProjectedOccurrence.mutateAsync({
                 baseRouteId: pendingProjectedMove.baseRouteId,
                 fromDate: pendingProjectedMove.fromDate,
                 toDate: pendingProjectedMove.toDate,
@@ -4301,19 +4317,30 @@ const Planner = () => {
                 moveNextDates: projectedMoveSyncNext,
                 skipTargetCadence: !!pendingProjectedMove.autoSkipCadence,
               });
-              toast.success("Den projicerede forekomst er flyttet til den nye dato");
               const fromD = pendingProjectedMove.fromDate;
               const toD = pendingProjectedMove.toDate;
               const baseId = pendingProjectedMove.baseRouteId;
+              const exceptionId: string | null = (result as any)?.id ?? null;
               pushRouteUndo({
                 label: `Flyt projiceret forekomst tilbage til ${format(parseISO(fromD), "d. MMM", { locale: da })}`,
                 undo: async () => {
-                  await shiftProjectedOccurrence.mutateAsync({
-                    baseRouteId: baseId,
-                    fromDate: toD,
-                    toDate: fromD,
-                  });
+                  // Foretræk ren revert (fjerner exception-rækken helt)
+                  // så projektionen lander præcis på sin oprindelige kadence-dato
+                  // uden at efterlade ekstra exception-rows i DB.
+                  if (exceptionId) {
+                    await revertProjectedShift.mutateAsync({ exceptionId });
+                  } else {
+                    await shiftProjectedOccurrence.mutateAsync({
+                      baseRouteId: baseId,
+                      fromDate: toD,
+                      toDate: fromD,
+                    });
+                  }
                 },
+              });
+              toastSuccessWithUndo({
+                message: `Forekomst flyttet til ${format(parseISO(toD), "EEEE d. MMM", { locale: da })}`,
+                description: "Klik Fortryd for at lægge den tilbage på den oprindelige dato.",
               });
               setPendingProjectedMove(null);
             } catch (e: any) {

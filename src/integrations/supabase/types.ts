@@ -4085,6 +4085,15 @@ export type Database = {
           source_order_id: string
         }[]
       }
+      bulk_shift_routes: {
+        Args: { _delta_days: number; _route_ids: string[] }
+        Returns: {
+          error: string
+          new_date: string
+          ok: boolean
+          route_id: string
+        }[]
+      }
       business_has_active_plan: {
         Args: { _business_id: string }
         Returns: boolean
@@ -4507,6 +4516,10 @@ export type Database = {
         Returns: string
       }
       retry_dlq_job: { Args: { _dlq_id: string }; Returns: string }
+      revert_projected_shift: {
+        Args: { _exception_id: string }
+        Returns: boolean
+      }
       shift_projected_occurrence:
         | {
             Args: {
