@@ -566,9 +566,9 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
         !isVirtual && jobDragActive && !isOver && "ring-1 shadow-sm",
         !isVirtual && isOver && !validation && "ring-2 ring-accent shadow-md scale-[1.02]",
         !isVirtual && isOver && validation && cn(ringForSeverity(validation.severity), "shadow-md scale-[1.02]"),
-        // Når en ANDEN rute er ved at blive trukket og denne pille er et
-        // gyldigt flette-mål: vis distinkt "merge target" affordance.
-        isMergeTarget && !isOver && "ring-1 ring-accent/50 shadow-sm",
+        // Når en ANDEN rute faktisk hovrer over denne pille, er det et merge.
+        // Vi markerer derfor KUN ved reel hover, så en dato med en eksisterende
+        // rute ikke fejlagtigt ligner et merge-target i sig selv.
         isMergeTarget && isOver && "ring-2 ring-accent shadow-lg scale-[1.03] bg-accent/5",
         // Hvis denne pille selv er kilde i en rute-drag: dæmp + crosshatch-look
         routeDragSourceId === route.id && "opacity-50",
@@ -617,25 +617,15 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
           <span className="truncate">{validation.topMessage ?? (validation.severity === "ok" ? "Tilføj til rute" : "")}</span>
         </div>
       )}
-      {/* Merge-target chip: vises når en anden rute trækkes over denne pille.
-          Brugeren skal aldrig være i tvivl om at et drop = fletning. */}
+      {/* Merge-target chip: vises kun ved reel hover på selve rute-pillen.
+          Drop på dagen = flytning; drop på pillen = fletning. */}
       {isMergeTarget && isOver && !validation && (
         <div
           className="absolute -top-1 right-1 z-20 pointer-events-none rounded-md px-1.5 py-0.5 shadow-md text-[10px] font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-150 max-w-[95%] bg-accent text-accent-foreground"
           role="status"
         >
           <GitMerge className="h-3 w-3 shrink-0" />
-          <span className="truncate">Flet ind i denne rute</span>
-        </div>
-      )}
-      {/* Diskret merge-affordance når rute-drag er aktivt men endnu ikke over pillen */}
-      {isMergeTarget && !isOver && (
-        <div
-          className="absolute top-1 right-1 z-20 pointer-events-none rounded-md bg-accent/90 text-accent-foreground px-1.5 py-0.5 shadow-md text-[10px] font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-150 ring-1 ring-accent"
-          role="status"
-        >
-          <GitMerge className="h-3 w-3 shrink-0" />
-          <span>Flet</span>
+          <span className="truncate">Slip her for at flette</span>
         </div>
       )}
       {busy && (
