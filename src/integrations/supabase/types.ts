@@ -2723,6 +2723,48 @@ export type Database = {
           },
         ]
       }
+      route_audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          affected_count: number
+          after_data: Json | null
+          agreement_id: string | null
+          before_data: Json | null
+          business_id: string
+          created_at: string
+          id: string
+          route_id: string | null
+          scope: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          affected_count?: number
+          after_data?: Json | null
+          agreement_id?: string | null
+          before_data?: Json | null
+          business_id: string
+          created_at?: string
+          id?: string
+          route_id?: string | null
+          scope?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          affected_count?: number
+          after_data?: Json | null
+          agreement_id?: string | null
+          before_data?: Json | null
+          business_id?: string
+          created_at?: string
+          id?: string
+          route_id?: string | null
+          scope?: string | null
+        }
+        Relationships: []
+      }
       route_employees: {
         Row: {
           created_at: string
