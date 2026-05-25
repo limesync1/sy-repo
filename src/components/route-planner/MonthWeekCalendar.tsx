@@ -518,7 +518,9 @@ const DayCell = memo(DayCellInner, (prev, next) => {
     prev.busy === next.busy &&
     prev.busyRouteIds === next.busyRouteIds &&
     prev.alert?.severity === next.alert?.severity &&
-    prev.alert?.label === next.alert?.label
+    prev.alert?.label === next.alert?.label &&
+    prev.selectedRouteIds === next.selectedRouteIds &&
+    prev.onToggleRouteSelection === next.onToggleRouteSelection
   );
 });
 
