@@ -1066,8 +1066,6 @@ const AftaleTab = ({
     }
   });
 
-  // Reset til side 0 når filter/sortering ændrer sig.
-  useEffect(() => { setAftalePage(0); }, [sortBy, (searchedOrders || []).length]);
   const pagedOrders = filteredOrders.slice(
     aftalePage * aftalePageSize,
     (aftalePage + 1) * aftalePageSize,
