@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -12,6 +12,8 @@ import { Mail, MailX, Ban, RefreshCw, RotateCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { STATUS_LABEL, STATUS_TONE, RANGES, fmtTime } from "./shared";
+import { useAdaptivePageSize } from "@/hooks/useAdaptivePageSize";
+import { PaginationFooter } from "@/components/admin/shared/PaginationFooter";
 
 export function SendLogView() {
   const [q, setQ] = useState("");
@@ -20,6 +22,9 @@ export function SendLogView() {
   const [range, setRange] = useState<string>("7d");
   const [openRow, setOpenRow] = useState<any | null>(null);
   const [resendingId, setResendingId] = useState<string | null>(null);
+  const pageSize = useAdaptivePageSize();
+  const [page, setPage] = useState(0);
+  useEffect(() => { setPage(0); }, [q, template, status, range]);
 
   const sinceIso = useMemo(() => {
     const r = RANGES.find((x) => x.value === range);
@@ -85,6 +90,12 @@ export function SendLogView() {
     });
     return c;
   }, [rows]);
+
+  const total = rows?.length ?? 0;
+  const paged = useMemo(
+    () => (rows ?? []).slice(page * pageSize, (page + 1) * pageSize),
+    [rows, page, pageSize],
+  );
 
   return (
     <div className="space-y-4">
@@ -156,7 +167,7 @@ export function SendLogView() {
       ) : (
         <Card className="rounded-xl border-border shadow-sm overflow-hidden">
           <div className="divide-y divide-border">
-            {rows.map((r) => (
+            {paged.map((r) => (
               <div key={r.message_id} className="flex w-full items-start gap-3 px-4 py-3 transition-colors hover:bg-secondary/30">
                 <button onClick={() => setOpenRow(r)} className="flex flex-1 items-start gap-3 text-left min-w-0">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
@@ -187,6 +198,7 @@ export function SendLogView() {
           </div>
         </Card>
       )}
+      <PaginationFooter page={page} pageSize={pageSize} total={total} onPageChange={setPage} label="mails" />
 
       <Dialog open={!!openRow} onOpenChange={(o) => !o && setOpenRow(null)}>
         <DialogContent className="max-w-lg">

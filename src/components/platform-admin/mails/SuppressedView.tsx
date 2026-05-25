@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,9 +8,13 @@ import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
 import { Ban, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { fmtTime } from "./shared";
+import { useAdaptivePageSize } from "@/hooks/useAdaptivePageSize";
+import { PaginationFooter } from "@/components/admin/shared/PaginationFooter";
 
 export function SuppressedView() {
   const qc = useQueryClient();
+  const pageSize = useAdaptivePageSize();
+  const [page, setPage] = useState(0);
   const { data, isLoading } = useQuery({
     queryKey: ["admin-suppressed-emails"],
     queryFn: async () => {
@@ -18,6 +23,13 @@ export function SuppressedView() {
       return (data || []) as { id: string; email: string; reason: string; created_at: string; metadata: any }[];
     },
   });
+
+  const total = data?.length ?? 0;
+  useEffect(() => { setPage(0); }, [total]);
+  const paged = useMemo(
+    () => (data ?? []).slice(page * pageSize, (page + 1) * pageSize),
+    [data, page, pageSize],
+  );
 
   const unblock = useMutation({
     mutationFn: async (row: { id: string; email: string }) => {
@@ -37,9 +49,10 @@ export function SuppressedView() {
   ) : !data || data.length === 0 ? (
     <EmptyState icon={<Ban />} title="Ingen blokerede e-mails" description="Når en modtager bouncer, klager eller afmelder dukker de op her." />
   ) : (
+    <div className="space-y-3">
     <Card className="rounded-xl border-border shadow-sm overflow-hidden">
       <div className="divide-y divide-border">
-        {data.map((s) => (
+        {paged.map((s) => (
           <div key={s.id} className="flex items-center gap-3 px-4 py-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
               <Ban className="h-4 w-4" />
@@ -66,5 +79,7 @@ export function SuppressedView() {
         ))}
       </div>
     </Card>
+      <PaginationFooter page={page} pageSize={pageSize} total={total} onPageChange={setPage} label="blokerede mails" />
+    </div>
   );
 }
