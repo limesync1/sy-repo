@@ -2664,8 +2664,20 @@ const Planner = () => {
         id: toastId,
         description:
           scope === "future"
-            ? "Fremtidige forekomster af gentagne aftaler følger med — Cmd+Z for at fortryde"
-            : "Kilderuten blev slettet automatisk — Cmd+Z for at fortryde",
+            ? "Fremtidige forekomster af gentagne aftaler følger med."
+            : "Kilderuten blev slettet automatisk.",
+        duration: 8000,
+        action: scope === "single" ? {
+          label: "Fortryd",
+          onClick: async () => {
+            try {
+              const ran = await routeHistory.undoLast();
+              if (ran) toast.success(`Fortrudt: ${ran.label}`);
+            } catch (e: any) {
+              toast.error("Kunne ikke fortryde", { description: e?.message });
+            }
+          },
+        } : undefined,
       });
       setPendingRouteMerge(null);
       invalidateRouteSyncQueries(qc);
