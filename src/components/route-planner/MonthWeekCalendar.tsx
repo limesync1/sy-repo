@@ -493,7 +493,9 @@ const DayCell = memo(DayCellInner, (prev, next) => {
     prev.loadingWeather === next.loadingWeather &&
     prev.weatherError === next.weatherError &&
     prev.busy === next.busy &&
-    prev.busyRouteIds === next.busyRouteIds
+    prev.busyRouteIds === next.busyRouteIds &&
+    prev.alert?.severity === next.alert?.severity &&
+    prev.alert?.label === next.alert?.label
   );
 });
 
