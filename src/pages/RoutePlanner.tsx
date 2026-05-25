@@ -647,7 +647,7 @@ const Planner = () => {
       const [agreementsRes, subsRes] = await Promise.all([
         supabase
           .from("agreements")
-          .select("id, interval, interval_days, start_date, preferred_route_id, legacy_subscription_id")
+          .select("id, interval, interval_days, start_date, preferred_route_id, legacy_subscription_id, customer_name, customer_phone, address, zip_code, city, latitude, longitude, notes, estimated_duration_minutes, preferred_time_start, preferred_time_end, employee_ids, total_amount")
           .eq("business_id", businessId!)
           .eq("status", "active")
           .neq("interval", "engangskøb")
@@ -705,6 +705,23 @@ const Planner = () => {
           a.legacy_subscription_id ? `sub:${a.legacy_subscription_id}` : null,
           a.legacy_subscription_id && subOrderById.get(a.legacy_subscription_id) ? `order:${subOrderById.get(a.legacy_subscription_id)}` : null,
         ].filter(Boolean) as string[],
+        placeholder: {
+          agreement_id: a.id,
+          customer_name: a.customer_name ?? null,
+          customer_phone: a.customer_phone ?? null,
+          address: a.address ?? null,
+          zip_code: a.zip_code ?? null,
+          city: a.city ?? null,
+          latitude: a.latitude ?? null,
+          longitude: a.longitude ?? null,
+          notes: a.notes ?? null,
+          duration_minutes: a.estimated_duration_minutes ?? 30,
+          time_window_start: a.preferred_time_start ?? null,
+          time_window_end: a.preferred_time_end ?? null,
+          assignee_ids: (a.employee_ids as string[] | null) ?? [],
+          assigned_employee_id: ((a.employee_ids as string[] | null) ?? [])[0] ?? null,
+          order_amount: Number(a.total_amount ?? 0),
+        },
       }));
       const fromSubs = (subsRes.data || [])
         .filter((s: any) => !agreementLegacySubIds.has(s.id))
