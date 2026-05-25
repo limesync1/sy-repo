@@ -494,10 +494,10 @@ export const RouteEditSheet = ({
         fromDate: projectedDate,
         toDate: pendingProjectedDate,
       });
-      toast.success("Den projicerede forekomst er flyttet");
+      toast.success("Den projicerede forekomst er flyttet til den nye dato");
       setPendingProjectedDate(null);
-      // Luk sheet'et — den flyttede forekomst er nu en rigtig rute som
-      // brugeren kan åbne igen fra kalenderen.
+      // Luk sheet'et — den flyttede forekomst er stadig en projektion,
+      // blot på den nye dato. Brugeren kan åbne den fra kalenderen.
       onOpenChange(false);
     } catch (e: any) {
       toast.error(e.message || "Kunne ikke flytte den projicerede rute");
@@ -872,9 +872,9 @@ export const RouteEditSheet = ({
                   </span>.
                 </div>
                 <div className="rounded-md border border-border bg-muted/40 p-2 text-xs leading-snug text-muted-foreground">
-                  Kun denne ene forekomst flyttes. Basisruten og rutens øvrige
-                  projicerede forekomster forbliver uændrede. Den oprindelige
-                  dato markeres som flyttet, så den ikke vises to gange i kalenderen.
+                  Kun denne ene forekomst flyttes — den forbliver en projektion
+                  på den nye dato og bliver ikke til en faktisk rute. Basisruten
+                  og rutens øvrige projicerede forekomster forbliver uændrede.
                 </div>
                 {moveConflictWarnings.length > 0 && (
                   <ul className="rounded-md border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 p-2 text-[11px] leading-snug text-amber-900 dark:text-amber-200 space-y-0.5">
