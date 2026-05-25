@@ -466,6 +466,7 @@ const DayCell = memo(DayCellInner, (prev, next) => {
     prev.routes === next.routes &&
     prev.weather === next.weather &&
     prev.draggingType === next.draggingType &&
+    prev.draggingRouteId === next.draggingRouteId &&
     prev.optimizingRouteId === next.optimizingRouteId &&
     prev.loadingRoutes === next.loadingRoutes &&
     prev.loadingWeather === next.loadingWeather &&
