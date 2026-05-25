@@ -1128,7 +1128,7 @@ export type Database = {
           opening_hours?: Json | null
           owner_id: string
           phone?: string | null
-          public_id: string
+          public_id?: string
           settings?: Json
           slug: string
           updated_at?: string
