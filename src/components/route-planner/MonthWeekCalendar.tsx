@@ -472,11 +472,11 @@ type RoutePillProps = {
 
 const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing, compact, jobDragActive, busy, isPast }: RoutePillProps) => {
   const isVirtual = !!route.isVirtual;
-  // Drag-handle: hele pillen kan trækkes til ny dato (kun rigtige ruter).
-  // Fortids-ruter og projicerede (virtuelle) ruter kan ALDRIG flyttes —
-  // det giver ingen mening at re-planlægge noget der allerede er kørt,
-  // og en projektion ER ikke en rigtig rute (den lever af basisruten).
-  const dragLocked = isVirtual || !!busy || !!isPast;
+  // Drag-handle: hele pillen kan trækkes til ny dato.
+  // - Fortids-ruter er altid låst (giver ingen mening at re-planlægge noget der er kørt).
+  // - Projicerede (virtuelle) ruter må trækkes til ny dato — drop håndteres af
+  //   RoutePlanner via shift_projected_occurrence (ingen materialisering).
+  const dragLocked = !!busy || !!isPast;
   const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({
     id: `route:${route.id}`,
     data: { type: "route", route },
