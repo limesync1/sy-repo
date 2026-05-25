@@ -4216,6 +4216,35 @@ const Planner = () => {
                     på den nye dato og bliver ikke til en faktisk rute. Basisruten
                     og rutens øvrige projicerede forekomster forbliver uændrede.
                   </div>
+                  {(pendingProjectedSeriesInfo?.recurringAppointmentCount ?? 0) > 0 && (
+                    <div className="rounded-md border border-border bg-background p-2 space-y-2">
+                      <div className="text-xs font-medium text-foreground">
+                        {pendingProjectedSeriesInfo!.recurringAppointmentCount} tilknyttet{pendingProjectedSeriesInfo!.recurringAppointmentCount === 1 ? "" : "te"} aftale{pendingProjectedSeriesInfo!.recurringAppointmentCount === 1 ? "" : "r"} på basisruten
+                      </div>
+                      <label className="flex items-start gap-2 text-xs cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="mt-0.5"
+                          checked={projectedMoveSyncNext}
+                          onChange={(e) => setProjectedMoveSyncNext(e.target.checked)}
+                        />
+                        <span className="text-muted-foreground">
+                          Flyt også <span className="text-foreground">næste udførsel</span> for de tilknyttede aftaler til den nye dato
+                        </span>
+                      </label>
+                      <label className="flex items-start gap-2 text-xs cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="mt-0.5"
+                          checked={projectedMoveSyncStart}
+                          onChange={(e) => setProjectedMoveSyncStart(e.target.checked)}
+                        />
+                        <span className="text-muted-foreground">
+                          Flyt også <span className="text-foreground">opstartsdatoen</span> for de tilknyttede aftaler til den nye dato
+                        </span>
+                      </label>
+                    </div>
+                  )}
                 </div>
               </AlertDialogDescription>
             </AlertDialogHeader>
@@ -4224,11 +4253,18 @@ const Planner = () => {
               <Button
                 onClick={async () => {
                   if (!pendingProjectedMove) return;
+                  const ids = pendingProjectedSeriesInfo?.subscriptionIds ?? [];
+                  const agreementIds = ids.filter((s) => s.startsWith("agr:")).map((s) => s.slice(4));
+                  const subscriptionIds = ids.filter((s) => s.startsWith("sub:")).map((s) => s.slice(4));
                   try {
                     await shiftProjectedOccurrence.mutateAsync({
                       baseRouteId: pendingProjectedMove.baseRouteId,
                       fromDate: pendingProjectedMove.fromDate,
                       toDate: pendingProjectedMove.toDate,
+                      agreementIds,
+                      subscriptionIds,
+                      moveStartDates: projectedMoveSyncStart,
+                      moveNextDates: projectedMoveSyncNext,
                     });
                     toast.success("Den projicerede forekomst er flyttet til den nye dato");
                     const fromD = pendingProjectedMove.fromDate;
