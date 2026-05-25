@@ -4330,6 +4330,41 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      move_projected_occurrence: {
+        Args: { _base_route_id: string; _from_date: string; _to_date: string }
+        Returns: {
+          archived_at: string | null
+          base_route_id: string | null
+          business_id: string
+          color: string
+          created_at: string
+          deleted_at: string | null
+          employee_id: string | null
+          id: string
+          name: string | null
+          notes: string | null
+          optimization_suggestions: Json | null
+          optimization_summary: string | null
+          optimized_at: string | null
+          planned_start_time: string | null
+          route_date: string
+          route_template_id: string | null
+          start_address: string | null
+          start_from_home: boolean
+          start_latitude: number | null
+          start_longitude: number | null
+          status: string
+          total_distance_km: number | null
+          total_duration_minutes: number | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "routes"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       move_route_to_date: {
         Args: { _new_date: string; _route_id: string; _scope?: string }
         Returns: Json
