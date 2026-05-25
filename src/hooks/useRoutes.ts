@@ -1839,10 +1839,18 @@ export const useMoveRouteSeries = () => {
       qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
       qc.invalidateQueries({ queryKey: ["route-occurrence-exceptions"] });
     },
-    onError: (e: any, _vars, ctx: any) => {
+    onError: (e: any, vars: any, ctx: any) => {
       // Rul optimistisk patch tilbage hvis serveren afviser.
       ctx?.snapshots?.forEach(([key, data]: [any, any]) => qc.setQueryData(key, data));
-      toastRouteError(e, toast.error, { titleFallback: "Kunne ikke flytte rute" });
+      toastRouteError(e, toast.error, {
+        titleFallback: "Kunne ikke flytte rute",
+        audit: {
+          action: "move_route_to_date",
+          route_id: vars?.routeId ?? null,
+          scope: vars?.scope ?? null,
+          payload: { newDate: vars?.newDate, scope: vars?.scope, moveLinkedSubscriptions: vars?.moveLinkedSubscriptions },
+        },
+      });
     },
   });
 };
@@ -1890,8 +1898,15 @@ export const useMoveProjectedOccurrence = () => {
       qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
       qc.invalidateQueries({ queryKey: ["route-occurrence-exceptions"] });
     },
-    onError: (e: any) => {
-      toastRouteError(e, toast.error, { titleFallback: "Kunne ikke flytte den projicerede rute" });
+    onError: (e: any, vars: any) => {
+      toastRouteError(e, toast.error, {
+        titleFallback: "Kunne ikke flytte den projicerede rute",
+        audit: {
+          action: "shift_projected_occurrence",
+          route_id: vars?.baseRouteId ?? null,
+          payload: { fromDate: vars?.fromDate, toDate: vars?.toDate },
+        },
+      });
     },
   });
 };
