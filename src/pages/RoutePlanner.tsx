@@ -4279,6 +4279,10 @@ const Planner = () => {
           onSyncNextChange={setProjectedMoveSyncNext}
           syncStart={projectedMoveSyncStart}
           onSyncStartChange={setProjectedMoveSyncStart}
+          warnings={projectedTargetWarnings}
+          suggestedFreeDate={projectedSuggestedDate}
+          onPickSuggestedDate={(iso) => setPendingProjectedMove((prev) => prev ? { ...prev, toDate: iso, autoSkipCadence: false } : prev)}
+          autoSkipCadence={!!pendingProjectedMove?.autoSkipCadence}
           loading={shiftProjectedOccurrence.isPending}
           onConfirm={async () => {
             if (!pendingProjectedMove) return;
@@ -4295,6 +4299,7 @@ const Planner = () => {
                 orderIds,
                 moveStartDates: projectedMoveSyncStart,
                 moveNextDates: projectedMoveSyncNext,
+                skipTargetCadence: !!pendingProjectedMove.autoSkipCadence,
               });
               toast.success("Den projicerede forekomst er flyttet til den nye dato");
               const fromD = pendingProjectedMove.fromDate;
