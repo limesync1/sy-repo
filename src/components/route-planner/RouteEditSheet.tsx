@@ -202,6 +202,19 @@ export const RouteEditSheet = ({
         return `Medarbejder har allerede ${c.stops.length} stops denne dag${overlap}${names ? `: ${names}` : ""}.`;
       });
   }, [projectedMoveTargetConflicts]);
+  // Simpel foreslået fri dato: hvis mål-datoen har konflikter, prøv ±1, ±2 …
+  // Vi kan ikke nemt se medarbejder-konflikter på andre datoer uden flere
+  // queries, så vi bumper bare datoen og lader brugeren se en advarsel
+  // hvis den nye dato også har problemer.
+  const projectedMoveSuggestedDate = useMemo<string | null>(() => {
+    if (!pendingProjectedDate) return null;
+    if (projectedMoveConflictWarnings.length === 0) return null;
+    try {
+      const base = new Date(pendingProjectedDate);
+      const next = new Date(base.getTime() + 86400000);
+      return next.toISOString().slice(0, 10);
+    } catch { return null; }
+  }, [pendingProjectedDate, projectedMoveConflictWarnings.length]);
   const cancelConflictWarnings = useMemo<string[]>(() => {
     return sourceDayConflicts
       .filter((c) => c.stops.length >= 2 && c.overlapsTime)
