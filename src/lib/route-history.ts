@@ -22,6 +22,11 @@ export type HistoryEntry = {
   /** Inverse-handling. Skal selv vise sin egen success/error-toast. */
   undo: () => void | Promise<void>;
   /**
+   * Re-do — gentager den oprindelige handling efter en undo.
+   * Hvis udeladt, fjernes entry'en fra redo-stakken efter undo (engangs-fortryd).
+   */
+  redo?: () => void | Promise<void>;
+  /**
    * Hvis undo'en selv afhænger af serverstate der måske allerede er fjernet
    * (slettet rute, anden bruger ændrede noget), kan vi markere den som
    * "ikke fortryd-bar" og UI'et viser graceful fejl.
@@ -35,6 +40,7 @@ const MAX_ENTRIES = 50;
 
 class RouteHistoryStore {
   private stack: HistoryEntry[] = [];
+  private redoStack: HistoryEntry[] = [];
   private listeners = new Set<Listener>();
   private undoing = false;
 
@@ -46,11 +52,17 @@ class RouteHistoryStore {
     };
     this.stack.push(full);
     if (this.stack.length > MAX_ENTRIES) this.stack.shift();
+    // Ny handling invaliderer redo-stakken (klassisk undo-tree semantik).
+    if (this.redoStack.length) this.redoStack = [];
     this.emit();
   }
 
   peek(): HistoryEntry | null {
     return this.stack[this.stack.length - 1] ?? null;
+  }
+
+  peekRedo(): HistoryEntry | null {
+    return this.redoStack[this.redoStack.length - 1] ?? null;
   }
 
   /** Pop og kør den øverste undo-handling. Returnerer entry'en hvis den blev kørt. */
@@ -69,6 +81,31 @@ class RouteHistoryStore {
         if (!ok) return entry; // entry'en er allerede poppet; UI'et viser fejl
       }
       await entry.undo();
+      if (entry.redo) {
+        this.redoStack.push(entry);
+        if (this.redoStack.length > MAX_ENTRIES) this.redoStack.shift();
+      }
+      return entry;
+    } finally {
+      this.undoing = false;
+      this.emit();
+    }
+  }
+
+  /** Pop og kør øverste redo-handling. */
+  async redoLast(): Promise<HistoryEntry | null> {
+    if (this.undoing) return null;
+    const entry = this.redoStack.pop();
+    if (!entry || !entry.redo) {
+      this.emit();
+      return null;
+    }
+    this.undoing = true;
+    this.emit();
+    try {
+      await entry.redo();
+      this.stack.push(entry);
+      if (this.stack.length > MAX_ENTRIES) this.stack.shift();
       return entry;
     } finally {
       this.undoing = false;
@@ -78,10 +115,12 @@ class RouteHistoryStore {
 
   clear(): void {
     this.stack = [];
+    this.redoStack = [];
     this.emit();
   }
 
   size(): number { return this.stack.length; }
+  redoSize(): number { return this.redoStack.length; }
   isUndoing(): boolean { return this.undoing; }
 
   subscribe(fn: Listener): () => void {
