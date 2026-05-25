@@ -1819,6 +1819,56 @@ export const useRouteSeriesInfo = (
   });
 };
 
+/* ─── Revert a previous projected shift (true undo) ───
+ * Removes the route_occurrence_exceptions row created by
+ * shift_projected_occurrence, so the projection returns to its original
+ * cadence date. Cleaner than running shift_projected in reverse because
+ * it leaves no extra exception rows behind.
+ */
+export const useRevertProjectedShift = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ exceptionId }: { exceptionId: string }) => {
+      const { data, error } = await supabase.rpc("revert_projected_shift" as any, {
+        _exception_id: exceptionId,
+      });
+      if (error) throw error;
+      return Boolean(data);
+    },
+    onSuccess: () => {
+      invalidateRouteSyncQueries(qc);
+      qc.invalidateQueries({ queryKey: ["route-occurrence-exceptions"] });
+      qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
+    },
+    onError: (e: any) =>
+      toastRouteError(e, toast.error, { titleFallback: "Kunne ikke fortryde flytningen" }),
+  });
+};
+
+/* ─── Bulk shift multiple routes by ±N days ───
+ * Atomisk per-rute via SQL-funktion. Returnerer per-rute resultat så UI
+ * kan vise hvilke der lykkedes og hvilke der blev blokeret.
+ */
+export const useBulkShiftRoutes = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ routeIds, deltaDays }: { routeIds: string[]; deltaDays: number }) => {
+      const { data, error } = await supabase.rpc("bulk_shift_routes" as any, {
+        _route_ids: routeIds,
+        _delta_days: deltaDays,
+      });
+      if (error) throw error;
+      return (data || []) as Array<{ route_id: string; ok: boolean; error: string | null; new_date: string | null }>;
+    },
+    onSuccess: () => {
+      invalidateRouteSyncQueries(qc);
+      qc.invalidateQueries({ queryKey: ["route-occurrence-exceptions"] });
+    },
+    onError: (e: any) =>
+      toastRouteError(e, toast.error, { titleFallback: "Kunne ikke flytte ruterne" }),
+  });
+};
+
 /** Flyt én rute eller hele resten af serien til en ny dato. */
 export const useMoveRouteSeries = () => {
   const qc = useQueryClient();
