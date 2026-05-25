@@ -1103,6 +1103,7 @@ export type Database = {
           opening_hours: Json | null
           owner_id: string
           phone: string | null
+          public_id: string
           settings: Json
           slug: string
           updated_at: string
@@ -1127,6 +1128,7 @@ export type Database = {
           opening_hours?: Json | null
           owner_id: string
           phone?: string | null
+          public_id: string
           settings?: Json
           slug: string
           updated_at?: string
@@ -1151,6 +1153,7 @@ export type Database = {
           opening_hours?: Json | null
           owner_id?: string
           phone?: string | null
+          public_id?: string
           settings?: Json
           slug?: string
           updated_at?: string
@@ -3931,6 +3934,7 @@ export type Database = {
         }
         Returns: string
       }
+      generate_business_public_id: { Args: never; Returns: string }
       get_accounting_integration_secret_meta: {
         Args: { p_business_id: string }
         Returns: {
