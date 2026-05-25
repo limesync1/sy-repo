@@ -35,7 +35,9 @@ export default function OverviewPanel({ business, plan, daysLeft, businessId, on
     enabled: !!businessId,
     queryFn: async () => {
       const [{ data: integ }, { count: queueCount }, { count: failedCount }, { data: lastLog }] = await Promise.all([
-        supabase.from("accounting_integrations").select("*").eq("business_id", businessId).maybeSingle(),
+        supabase.from("accounting_integrations")
+          .select("id, business_id, provider, is_active, agreement_number, organization_id, last_pull_at, last_push_at, last_error, last_error_at, settings, consecutive_failures, paused_until, last_kick_at, created_at, updated_at")
+          .eq("business_id", businessId).maybeSingle(),
         supabase.from("accounting_sync_queue").select("id", { count: "exact", head: true })
           .eq("business_id", businessId).in("status", ["pending", "processing"]),
         supabase.from("accounting_sync_queue").select("id", { count: "exact", head: true })

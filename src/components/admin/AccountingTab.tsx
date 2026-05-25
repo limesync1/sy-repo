@@ -625,7 +625,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       lastPullRes,
     ] = await Promise.all([
       supabase.from("accounting_integrations" as any)
-        .select("*").eq("business_id", businessId).maybeSingle(),
+        .select("id, business_id, provider, is_active, agreement_number, organization_id, last_pull_at, last_push_at, last_error, last_error_at, settings, consecutive_failures, paused_until, last_kick_at, created_at, updated_at")
+        .eq("business_id", businessId).maybeSingle(),
       supabase.from("accounting_sync_log" as any)
         .select("*").eq("business_id", businessId)
         .order("created_at", { ascending: false }).limit(15),
@@ -2092,9 +2093,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                     ? <>{activeDef.value === "dinero" ? "Dinero-nummer" : "Organisation"} <span className="font-medium text-foreground/80">{integration.organization_id}</span></>
                     : integration.agreement_number
                       ? <>Aftalenummer <span className="font-medium text-foreground/80">{integration.agreement_number}</span></>
-                      : integration.api_token
-                        ? <>Adgangsnøgle <span className="font-mono text-foreground/80">••••{integration.api_token.slice(-4)}</span></>
-                        : "Forbundet"}
+                      : "Forbundet"}
                 </div>
               </div>
             </div>

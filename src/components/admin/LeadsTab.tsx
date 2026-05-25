@@ -69,7 +69,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quote_request_matches")
-        .select("id, match_score, reason, estimated_price, distance_km, status, business_note, ai_draft, ai_draft_generated_at, follow_up_at, created_at, viewed_at, responded_at, quote_request:quote_requests(id, customer_name, customer_email, customer_phone, category, description, city, zip_code, share_contact, created_at)")
+        .select("id, match_score, reason, estimated_price, distance_km, status, business_note, ai_draft, ai_draft_generated_at, follow_up_at, created_at, viewed_at, responded_at, quote_request:quote_requests(id, customer_name, category, description, city, zip_code, share_contact, created_at)")
         .eq("business_id", businessId)
         .order("created_at", { ascending: false })
         .limit(100);
@@ -100,6 +100,49 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
       .update({ status: "viewed", viewed_at: new Date().toISOString() })
       .in("id", newIds)
       .then(({ error }) => { if (error) console.error(error); });
+  }, [leads]);
+
+  // Fetch customer contact details (email/phone) via secure RPC for leads
+  // where the customer agreed to share contact. Direct table access to
+  // these columns is revoked at the database level to prevent leaks.
+  useEffect(() => {
+    if (!leads) return;
+    const toFetch = leads.filter(
+      (l) => l.quote_request?.share_contact && l.quote_request?.id &&
+        (l.quote_request as any).customer_email === undefined
+    );
+    if (toFetch.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      const results = await Promise.all(
+        toFetch.map(async (l) => {
+          const { data } = await supabase.rpc("get_quote_request_contact", {
+            p_quote_request_id: l.quote_request!.id,
+          });
+          const row = Array.isArray(data) ? data[0] : data;
+          return { id: l.quote_request!.id, row };
+        })
+      );
+      if (cancelled) return;
+      const byId = new Map(results.map((r) => [r.id, r.row]));
+      setLeads((prev) =>
+        (prev ?? []).map((l) => {
+          const qr = l.quote_request;
+          if (!qr) return l;
+          const row = byId.get(qr.id);
+          if (!row) return l;
+          return {
+            ...l,
+            quote_request: {
+              ...qr,
+              customer_email: (row as any).customer_email ?? null,
+              customer_phone: (row as any).customer_phone ?? null,
+            },
+          } as Lead;
+        })
+      );
+    })();
+    return () => { cancelled = true; };
   }, [leads]);
 
   const updateStatus = async (id: string, status: string) => {
