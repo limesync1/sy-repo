@@ -3931,6 +3931,26 @@ export type Database = {
         }
         Returns: string
       }
+      get_accounting_integration_secret_meta: {
+        Args: { p_business_id: string }
+        Returns: {
+          api_secret_last4: string
+          api_token_last4: string
+          has_secret: boolean
+          has_token: boolean
+        }[]
+      }
+      get_chat_conversation_by_token: {
+        Args: { p_token: string }
+        Returns: {
+          id: string
+          session_token: string
+          status: string
+          subject: string
+          visitor_email: string
+          visitor_name: string
+        }[]
+      }
       get_customer_notification_pref: {
         Args: { p_email: string; p_key: string }
         Returns: boolean
@@ -3967,6 +3987,15 @@ export type Database = {
           startup_fee_dkk: number
           stripe_publishable_key: string
           trial_days: number
+        }[]
+      }
+      get_quote_request_contact: {
+        Args: { p_quote_request_id: string }
+        Returns: {
+          customer_email: string
+          customer_name: string
+          customer_phone: string
+          share_contact: boolean
         }[]
       }
       get_route_calendar: {
