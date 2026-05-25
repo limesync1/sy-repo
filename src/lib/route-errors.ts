@@ -14,6 +14,7 @@
 
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
+import { logRouteAudit } from "./route-audit";
 
 export type IssueSeverity = "error" | "warning" | "info";
 
@@ -328,11 +329,50 @@ export function toastIssue(issue: Issue, toastFn: (msg: string, opts?: any) => v
 export function toastRouteError(
   err: unknown,
   toastErrorFn: (msg: string, opts?: any) => void,
-  override?: { titleFallback?: string },
+  override?: {
+    titleFallback?: string;
+    /**
+     * L5: hvis sat, logges fejlen automatisk til `route_audit_log` med
+     * fuld kontekst, så vi kan fejlsøge bagudrettet uden brugerbesvær.
+     */
+    audit?: {
+      business_id: string;
+      action: string;
+      route_id?: string | null;
+      agreement_id?: string | null;
+      scope?: "single" | "future" | "all" | null;
+      payload?: unknown;
+    };
+  },
 ): Issue {
   const issue = mapPostgresError(err);
   toastErrorFn(override?.titleFallback ?? issue.title, {
     description: issue.hint ? `${issue.message}\n${issue.hint}` : issue.message,
   });
+  // Struktureret konsol-log for udviklere / Sentry-hooks.
+  // eslint-disable-next-line no-console
+  console.warn("[route-error]", {
+    code: issue.code,
+    title: issue.title,
+    message: issue.message,
+    raw: err instanceof Error ? err.message : err,
+  });
+  if (override?.audit) {
+    void logRouteAudit({
+      business_id: override.audit.business_id,
+      action: `error:${issue.code}:${override.audit.action}`,
+      route_id: override.audit.route_id ?? null,
+      agreement_id: override.audit.agreement_id ?? null,
+      scope: override.audit.scope ?? null,
+      affected_count: 0,
+      before: override.audit.payload ?? null,
+      after: {
+        error_code: issue.code,
+        title: issue.title,
+        message: issue.message,
+        raw: err instanceof Error ? err.message : String(err),
+      },
+    });
+  }
   return issue;
 }
