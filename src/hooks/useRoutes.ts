@@ -567,6 +567,7 @@ export const useCalendarData = (
 };
 
 type RouteOccurrenceException = {
+  id: string;
   base_route_id: string;
   occurrence_date: string;
   replacement_route_id: string | null;
@@ -589,7 +590,7 @@ export const useRouteOccurrenceExceptions = (
     queryFn: async () => {
       const { data, error } = await supabase
         .from("route_occurrence_exceptions" as any)
-        .select("base_route_id, occurrence_date, replacement_route_id, exception_type, shifted_to_date")
+        .select("id, base_route_id, occurrence_date, replacement_route_id, exception_type, shifted_to_date")
         .eq("business_id", businessId!)
         .gte("occurrence_date", from)
         .lte("occurrence_date", to);
