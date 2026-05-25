@@ -916,6 +916,15 @@ export const useCreateRoute = () => {
       })();
 
       return route;
+    }, {
+      // Server-side claim: forhindrer at samme oprettelse (samme business
+      // + dato + navn) køres to gange — også på tværs af tabs/enheder.
+      claim: {
+        key: `create_route:${business_id}:${route_date}:${(name || "").trim().toLowerCase()}`,
+        kind: "create_route",
+        businessId: business_id,
+      },
+      onClaimLost: () => null,
     }),
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ["routes", vars.business_id, vars.route_date] });
