@@ -16,6 +16,7 @@ interface Props {
   route: { id: string; name: string } | null;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
+  pending?: boolean;
 }
 
 /**
@@ -24,7 +25,7 @@ interface Props {
  * destruktive handling. Aftaler og abonnementer ryger tilbage i aftalepoolen,
  * men selve aftalen slettes ikke.
  */
-export function DeleteRouteDialog({ route, onOpenChange, onConfirm }: Props) {
+export function DeleteRouteDialog({ route, onOpenChange, onConfirm, pending }: Props) {
   const open = !!route;
   const { data, isLoading } = useQuery({
     queryKey: ["route-delete-impact", route?.id],
@@ -86,12 +87,15 @@ export function DeleteRouteDialog({ route, onOpenChange, onConfirm }: Props) {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Annullér</AlertDialogCancel>
+          <AlertDialogCancel disabled={pending}>Annullér</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
+            disabled={pending || isLoading}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            {hasLinked ? `Slet rute alligevel` : "Slet rute"}
+            {pending ? (
+              <><Loader2 className="h-3.5 w-3.5 animate-spin mr-2" /> Sletter…</>
+            ) : hasLinked ? "Slet rute alligevel" : "Slet rute"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

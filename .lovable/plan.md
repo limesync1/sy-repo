@@ -51,4 +51,5 @@ Specifikationen er omfattende (33 sektioner). Jeg foreslår at gennemføre den i
 
 - **Fase 1 (UI-låsning af projicerede ruter):** Færdig — 🔒 PROJICERET badges i `MonthWeekCalendar`, `AgendaCalendar`, samt prominent banner i `RouteEditSheet`.
 - **Fase 2 (Sletteguard m. konsekvens-visning):** Færdig — ny `DeleteRouteDialog` viser antal aftale-/abonnement-/ordre-stop der påvirkes før sletning.
-- **Fase 3-5:** Kræver DB-migrations (unique constraints, override-tabeller, archived_at). Tages som separat iteration når UX-grundlaget er valideret.
+- **Fase 3 (Idempotens):** DB-niveau allerede på plads — `routes_base_route_id_route_date_key` og `agreement_occurrences_agreement_id_occurrence_date_key` UNIQUE constraints findes, og frontend kører gennem `routeMutationQueue` (idempotency-kø). Pending state tilføjet til delete-knapper.
+- **Fase 4-5:** Kræver business-logic ændringer (per-aftale recurrence-evaluering, override-tabel). Tages som separat iteration — sig til.
