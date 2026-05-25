@@ -78,8 +78,8 @@ const fmtRouteKr = (n: number) =>
 // er entydig. "1,5k kr" / "760 kr" — ingen tvivl om at det er penge.
 const fmtRouteKrCompact = (n: number) => {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(".", ",")} mio kr`;
-  if (n >= 10_000) return `${Math.round(n / 1000)}k kr`;
-  if (n >= 1_000) return `${(n / 1000).toFixed(1).replace(".", ",")}k kr`;
+  if (n >= 10_000) return `${Math.round(n / 1000)}t kr`;
+  if (n >= 1_000) return `${(n / 1000).toFixed(1).replace(".", ",")}t kr`;
   return `${Math.round(n)} kr`;
 };
 
