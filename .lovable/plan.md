@@ -1,99 +1,101 @@
+# Rutekalender 3.0
 
-# Rutekalender 2.0 — markant forbedring
+Mål: planlæg 500 ruter/dag uden ryk, færre klik pr. ændring, og lad systemet selv tænke med — i stedet for kun at validere efter brugeren har klikket.
 
-Målet er at flytte planlæggeren fra "fungerer" til "tænker med brugeren". Hver handling skal:
-- Forudse fejl før de sker
-- Give præcise, handlingsanvisende fejlmeddelelser på dansk
-- Foreslå smarte alternativer i stedet for bare at blokere
-- Aldrig efterlade systemet i en inkonsistent tilstand
-
-Planen er opdelt i 5 leverancer. Hver kan leveres selvstændigt; de bygger ovenpå hinanden men giver værdi enkeltvis.
+Implementeres i 4 faser. Hver fase er selvstændig værdi og kan udrulles trinvist.
 
 ---
 
-## L1 — Centralt validerings- og fejl-bibliotek
+## Fase A — Smartere planlægning (logik)
 
-Ét sted som alle handlinger i planlæggeren går igennem før de rammer databasen.
+Skal ligge i `src/lib/route-brain/` + `supabase/functions/route-brain/`.
 
-- Ny fil `src/lib/route-validation.ts` med rene funktioner:
-  - `validateRouteMove(route, newDate, context)` — tjekker fortid, helligdag, eksisterende serie-konflikt, medarbejder-konflikt, kapacitet, åbningstider.
-  - `validateStopAssignment(stop, targetRoute)` — tjekker duplikat-aftale på dagen, kunde-konflikt (samme kunde to gange samme dag), åbningstid på adresse, geografisk afstand vs. transporttid.
-  - `validateMerge(source, target)` — tjekker farve-/medarbejder-mismatch, projiceret + projiceret, overlap af aftaler, kapacitet efter fletning.
-  - `validateInterval(agreement, newInterval)` — preview af tilføjede/fjernede datoer, konflikter med ferier og pauser.
-  - `validateBulkAction(routes, action)` — for "optimér alle", "tøm dag" osv.
-- Hver validator returnerer et `ValidationResult`:
-  ```ts
-  { ok: boolean, errors: Issue[], warnings: Issue[], suggestions: Suggestion[] }
-  ```
-  hvor `Issue` har `code`, `severity`, `message` (dansk, konkret), `field`, `affectedIds`, og evt. `fix: () => Promise<void>`.
-- Centralt fejl-katalog `src/lib/route-errors.ts` med 40-60 navngivne fejlkoder + danske beskeder (eksempler: `ROUTE_DATE_IN_PAST`, `DUPLICATE_AGREEMENT_SAME_DAY`, `EMPLOYEE_DOUBLE_BOOKED`, `MERGE_PROJECTION_INTO_PROJECTION`, `STOP_OUTSIDE_BUSINESS_HOURS`, `GEOGRAPHIC_GAP_TOO_LARGE`).
-- Et `useValidation()`-hook UI'et bruger til realtime-feedback (rød/gul/grøn pille på drop-targets, knapper, inputfelter).
+1. **Auto-byg dagen** (ny edge function `route-brain-build-day`)
+   - Input: dato + valgte ordrer/abonnementer + tilgængelige medarbejdere + lukkedage/ferie/vejr.
+   - Bruger eksisterende VRP-kerne fra `optimize-route/vrp.ts`, men kører den på *alle utildelte stops* og fordeler i nye/eksisterende ruter.
+   - Respekterer: hårde tidsvinduer, faste kunde-medarbejder relationer (ny `customer_employee_preferences`), kompetencer (allerede i `employees.skills`), bil/last-kapacitet.
+   - Output: forslag som dry-run — vises i ny `BuildDayPreviewSheet` før commit.
 
-## L2 — Smart drag-and-drop med live-preview
+2. **Geo-clustering på drop** (klient-side, synkront)
+   - Når et stop trækkes over en dag uden eksisterende rute: foreslå *hvilken medarbejder* baseret på (a) hvem der bor tættest, (b) hvem der allerede har stops i samme postnummer, (c) hvem der har plads i tidsvinduet.
+   - Vises som live "smart drop" pille på cellen — én klik tildeler.
 
-I dag opdages konflikter først efter slip. Det skal vendes.
+3. **Kunde-præferencer & historik**
+   - Ny tabel `customer_employee_affinity` (auto-opbygges fra `route_stops`-historik via daglig cron): hvor ofte har medarbejder X været hos kunde Y, sidste besøg.
+   - Bruges i VRP-vægtning + vises i UI ("Marie har været her 12x").
 
-- Mens brugeren trækker:
-  - Hver kalender-celle markeres grøn/gul/rød ud fra `validateStopAssignment` / `validateRouteMove` for det træk.
-  - Tooltip med præcis årsag ved rød ("Anders har allerede 8 timers ruter den dag", "Kunden er allerede booket kl. 10").
-  - Forslag ved gul ("Ruten bliver 95 km lang — vil du optimere efter slip?").
-- Efter slip:
-  - Ved warnings: bekræftelses-dialog med liste over warnings og knappen "Slip alligevel" + "Annullér" + evt. "Auto-fix".
-  - Ved errors: blokering med præcis dansk besked, ingen toast-spam.
-- Debounce på 250 ms på valideringen så det ikke laver flimmer.
+4. **AI-second-opinion** (Lovable AI, ny edge function `route-brain-review-day`)
+   - Tager dagens plan + giver 0-3 konkrete forslag i strukturerede tool-calls.
+   - Knappet bag "Spørg AI" i toolbar — ikke automatisk for at undgå støj og rate-limits.
 
-## L3 — Intelligent planlægning og forslag
+## Fase B — Drag & drop UX
 
-Planlæggeren skal selv komme med svar.
+Alt i `src/components/route-planner/`.
 
-- **Forslag-motor** `src/lib/route-suggestions.ts`:
-  - Når en aftale lander på en overfyldt rute: foreslå nærmeste tomme dag samme uge.
-  - Når en aftale lander langt fra ruten: foreslå nærmere rute samme dag.
-  - Når en medarbejder er dobbeltbooket: foreslå anden ledig medarbejder.
-  - Når en serie får et nyt interval: vis preview af de næste 6 datoer, marker konflikter pr. dato.
-- **Auto-fix knapper** i fejldialoger: "Flyt til nærmeste tomme dag", "Tildel anden medarbejder", "Optimér rækkefølge".
-- **Daglig sundhedstjek** (allerede i `projectionDiagnostics` — udvides):
-  - Banner øverst når der findes inkonsistens: "3 aftaler kan ikke projiceres — vis detaljer".
-  - Klik åbner panel med per-aftale diagnose og fix-knap.
+1. **Multi-select**: shift+klik på stops, træk hele bundtet. Visual: stack-card i drag overlay med antal.
+2. **Keyboard**: piletaster flytter selected stop ±1 dag eller ±1 plads i rute. `Cmd/Ctrl+Z` undo.
+3. **Undo/redo-stak** (`src/lib/route-history.ts`)
+   - Hver mutation pushes som invers-operation; max 50.
+   - Vises som toast med "Fortryd" + persistent undo-knap i toolbar.
+4. **Snappier drag overlay**
+   - Drop CSS-only ghost; brug `@dnd-kit` `DragOverlay` med GPU-transform.
+   - Fjern `JSON.stringify` i hot paths (set kun ændrede felter).
+5. **Hover-pre-validation**: kør allerede-eksisterende `validateStopAssignment` synkront ved `onDragOver` (debounced 50ms) — pille viser ok/warn/blok *før* slip. Delvist gjort i forrige iteration, men finpudses.
 
-## L4 — Duplikat-forsvar i flere lag
+## Fase C — Performance & realtime
 
-Database-uniques findes (L1 i forrige plan). Vi tilføjer:
+For 500 ruter/dag + 5 samtidige planlæggere.
 
-- **Frontend claim-token**: alle mutations får et idempotency-token genereret i UI'et, sendes med til RPC, så dobbeltklik / network-retry aldrig laver to records.
-- **Mutation-kø pr. rute**: react-query mutation-keys serialiserer skrivninger til samme rute, så drag-drop-spam ikke racer.
-- **Server-side dedup-RPC**: én `claim_and_execute(_kind, _idempotency_key, _payload)` der bruger `INSERT … ON CONFLICT DO NOTHING` på et claims-table før den udfører handlingen.
-- **Periodisk dedup-scanner** (`detect-route-duplicates` cron, dagligt): finder dubletter på `(business_id, route_date, customer_id)` og logger til `route_audit_log` med severity `warning` så admin kan rydde op.
+1. **Virtualisering**
+   - `MonthWeekCalendar`: brug `@tanstack/react-virtual` på dag-celler — render kun viewport + 1 row buffer.
+   - Liste-views (stop-liste, audit-log): samme.
 
-## L5 — Bedre fejlmeddelelser overalt
+2. **Selective queries**
+   - Split `useRoutes` i `useRoutesIndex` (kun metadata: id, date, employee_ids, stop_count) og `useRouteDetail(id)` (stops, geo).
+   - Index-query er det eneste der lyttes til realtime; detaljer hentes on-demand når kort/popover åbnes.
 
-Audit af alle `toast.error(...)` og `throw new Error(...)` i planlæggeren:
+3. **Optimistic batching**
+   - Eksisterende `mutation-queue.ts` udvides: batch flere `update_stop_order` i ét round-trip via ny RPC `batch_update_stop_orders(jsonb)`.
+   - Reducerer 12 sekventielle kald til 1 ved omrokering af en rute.
 
-- Erstatte generiske beskeder ("Noget gik galt", "Kunne ikke opdatere") med:
-  - Hvad blev forsøgt
-  - Hvorfor det fejlede
-  - Hvad brugeren kan gøre
-  - Evt. handlings-knap i toasten
-- Eksempler:
-  - Før: "Kunne ikke flytte rute"
-  - Efter: "Ruten kan ikke flyttes til 14. juni — der findes allerede en rute fra samme serie. Vil du flette dem?" [Flet] [Annullér]
-- Alle fejl logges samtidigt til `route_audit_log` med fuld kontekst (handling, payload, før/efter), så vi kan fejlsøge bagudrettet.
+4. **Realtime presence + locks**
+   - Nye Supabase `realtime presence` channel `route-day:{date}`: viser farvede avatarer på dage hvor en anden planlægger redigerer.
+   - Soft-lock på drag-start (allerede halvt klar via `route-claim.ts`) udvides til at sende presence-broadcast så andre ser låsen øjeblikkeligt uden DB-roundtrip.
+
+5. **Medarbejderpanel-optimering**
+   - `EmployeeApp` / `EmployeeRoute`: skift fra polling-agtig `useRoutes` til targeted `useMyTodayRoute(employee_id, date)` med realtime kun på den ene række.
+   - Map-rendering: clusterer kun stops i viewport, lazy-load polyline efter første idle.
+
+## Fase D — Observability (kort)
+
+- `route_performance_log` tabel: planlæggers mutation → ms; surface som mini-graf i admin "Rutefejl" tab (omdøbes til "Rutediagnostik").
+- Sentry breadcrumbs på alle drag-events (kun anonymiseret payload).
 
 ---
 
 ## Tekniske noter
 
-- Validatorerne er rene funktioner — testbare med vitest uden DOM.
-- Fejl-katalog er en const-record, så TypeScript håndhæver at alle koder har en dansk besked.
-- L2 og L3 bygger ovenpå L1; L4 og L5 kan delvist leveres parallelt.
-- Ingen database-skemaændringer nødvendige i L1, L2, L3, L5. Kun L4 kræver en migration (claims-table + dedup-cron).
+- DB-ændringer:
+  - `customer_employee_affinity` (customer_id, employee_id, business_id, visit_count, last_visit_at)
+  - `customer_employee_preferences` (manuelle pinninger)
+  - `route_performance_log`
+  - RPC `batch_update_stop_orders(payload jsonb)` + RLS via `has_role`.
+- Nye edge functions: `route-brain-build-day`, `route-brain-review-day`. Genbruger `optimize-route/vrp.ts` + `geo.ts`.
+- Ingen breaking changes — alt nyt kører side om side med eksisterende kalender, bag feature-flag `route_planner_v3` i `businesses.feature_flags` (jsonb) så vi kan rulle ud til 1 firma først.
 
-## Foreslået rækkefølge
+## Rækkefølge & estimat
 
-1. **L1** først — uden den er resten halvhjertet.
-2. **L5** umiddelbart efter — store oplevelsesgevinster med lav risiko.
-3. **L2** — bruger L1, men ændrer UX markant.
-4. **L4** — sikrer at intet slipper igennem.
-5. **L3** — fløden på toppen.
+```text
+Fase C.2 (selective queries)        ← fundament, gør resten hurtigere
+Fase C.1 (virtualisering)
+Fase B.3 (undo/redo)                ← billig sikkerhed inden vi rører logik
+Fase B.1+B.2 (multi-select, kbd)
+Fase A.2 (geo-clustering smart drop)
+Fase A.1 (auto-byg dagen)
+Fase A.3 + A.4 (affinity + AI review)
+Fase C.3+C.4 (batching, presence)
+Fase C.5 (medarbejderpanel)
+Fase D (observability)
+```
 
-Sig til hvilken rækkefølge du vil have, eller om jeg skal udvide en leverance med mere detalje før jeg starter.
+Jeg starter med Fase C.2 → C.1 → B.3 i første implementeringsrunde (det giver mærkbart hurtigere kalender + safety net), og spørger så før jeg går videre til logik-fasen.

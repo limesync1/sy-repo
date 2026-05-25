@@ -39,7 +39,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon,
   Loader2, Search, Plus, Inbox, ArrowUpDown, X, Keyboard, Filter,
-  ShoppingBag, Route as RouteIcon, Tag, Palette, ListChecks, AlertTriangle,
+  ShoppingBag, Route as RouteIcon, Tag, Palette, ListChecks, AlertTriangle, Undo2,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -90,6 +90,8 @@ import { cn } from "@/lib/utils";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { Monitor } from "lucide-react";
 import { usePersistentState } from "@/hooks/usePersistentState";
+import { pushRouteUndo } from "@/lib/route-history";
+import { useRouteHistory } from "@/hooks/useRouteHistory";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -420,6 +422,11 @@ const Planner = () => {
   const shiftProjectedOccurrence = useShiftProjectedOccurrence();
   const optimizeRoute = useOptimizeRoute();
   const geocode = useGeocodeAddress();
+
+  // Undo-stak (Rutekalender 3.0 — Fase B.3). Sidste 50 handlinger kan
+  // fortrydes via Cmd/Ctrl+Z eller toolbar-knap. Pushes lokalt fra hver
+  // mutation der ændrer en rute eller forekomst.
+  const history = useRouteHistory();
 
   // Pending route-move: viser MoveRouteDateDialog. Hvis ruten er del af en
   // serie spørger vi brugeren om kun denne ene eller alle fremtidige skal flyttes.
@@ -1537,11 +1544,19 @@ const Planner = () => {
         setCreateOpen(true);
       } else if (e.key === "Escape" && selectedStopId) {
         setSelectedStopId(null);
+      } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z" && !e.shiftKey) {
+        // Cmd/Ctrl+Z — fortryd seneste rute-mutation. Ignorer hvis fokus er i et
+        // input/textarea/contenteditable, så browserens egen tekst-undo virker.
+        const tgt = e.target as HTMLElement | null;
+        const tag = tgt?.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || tgt?.isContentEditable) return;
+        e.preventDefault();
+        void history.undo();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [selectedStopId, view]);
+  }, [selectedStopId, view, history]);
 
   /* Når create-dialog åbnes, foreslå en ledig farve for den valgte dato */
   useEffect(() => {
@@ -2408,6 +2423,7 @@ const Planner = () => {
   ) => {
     if (!pendingRouteMove) return;
     const { route, newDate } = pendingRouteMove;
+    const oldDate = route.route_date;
     try {
       await moveRouteSeries.mutateAsync({
         routeId: route.id,
@@ -2420,6 +2436,19 @@ const Planner = () => {
           ? `Ruteserien forskudt til ${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`
           : `Rute flyttet til ${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`,
       );
+      pushRouteUndo({
+        label: scope === "future"
+          ? `Forskydning af ruteserie til ${format(parseISO(newDate), "d. MMM", { locale: da })}`
+          : `Flyt rute til ${format(parseISO(newDate), "d. MMM", { locale: da })}`,
+        undo: async () => {
+          await moveRouteSeries.mutateAsync({
+            routeId: route.id,
+            newDate: oldDate,
+            scope,
+            moveLinkedSubscriptions,
+          });
+        },
+      });
       setPendingRouteMove(null);
     } catch (err: any) {
       toast.error(err.message || "Kunne ikke flytte rute", {
@@ -3184,8 +3213,31 @@ const Planner = () => {
                     <p><kbd className="px-1 rounded bg-secondary text-[10px]">←</kbd> <kbd className="px-1 rounded bg-secondary text-[10px]">→</kbd> Skift {view === "week" ? "uge" : "måned"}</p>
                     <p><kbd className="px-1 rounded bg-secondary text-[10px]">T</kbd> I dag</p>
                     <p><kbd className="px-1 rounded bg-secondary text-[10px]">N</kbd> Ny rute</p>
+                    <p><kbd className="px-1 rounded bg-secondary text-[10px]">{navigator.platform.toLowerCase().includes("mac") ? "⌘" : "Ctrl"}+Z</kbd> Fortryd</p>
                     <p><kbd className="px-1 rounded bg-secondary text-[10px]">Esc</kbd> Luk panel</p>
                   </div>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => void history.undo()}
+                    disabled={!history.canUndo}
+                    aria-label="Fortryd seneste handling"
+                  >
+                    {history.isUndoing
+                      ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      : <Undo2 className="h-3.5 w-3.5" />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  {history.canUndo
+                    ? <>Fortryd: <span className="font-medium">{history.lastLabel}</span></>
+                    : "Intet at fortryde"}
                 </TooltipContent>
               </Tooltip>
             </div>
@@ -4075,6 +4127,19 @@ const Planner = () => {
                       toDate: pendingProjectedMove.toDate,
                     });
                     toast.success("Den projicerede forekomst er flyttet til den nye dato");
+                    const fromD = pendingProjectedMove.fromDate;
+                    const toD = pendingProjectedMove.toDate;
+                    const baseId = pendingProjectedMove.baseRouteId;
+                    pushRouteUndo({
+                      label: `Flyt projiceret forekomst tilbage til ${format(parseISO(fromD), "d. MMM", { locale: da })}`,
+                      undo: async () => {
+                        await shiftProjectedOccurrence.mutateAsync({
+                          baseRouteId: baseId,
+                          fromDate: toD,
+                          toDate: fromD,
+                        });
+                      },
+                    });
                     setPendingProjectedMove(null);
                   } catch (e: any) {
                     toastRouteError(e, toast.error, { titleFallback: "Kunne ikke flytte den projicerede rute" });
