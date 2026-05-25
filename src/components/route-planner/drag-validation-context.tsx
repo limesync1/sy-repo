@@ -1,12 +1,16 @@
 /**
- * Live drag-validering kontekst.
+ * Live drag-validering — letvægts modul-singleton + useSyncExternalStore.
  *
  * RoutePlanner beregner et `ValidationResult` for det aktuelt hovrede
  * drop-target under drag-over (debouncet) og lægger det her. Drop-targets
  * (dag-celler, rute-pillule) læser deres egen status med `useTargetValidation`
  * og kan så vise grøn/gul/rød ring + tooltip — INDEN brugeren slipper.
+ *
+ * Vi bruger en modul-singleton (ikke React-context) så enhver komponent
+ * kan skrive uden at skulle ligge inde i en provider. Det undgår at
+ * splitte den enorme RoutePlanner-komponent op for L2-leverancen.
  */
-import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
+import { useSyncExternalStore } from "react";
 import type { ValidationResult } from "@/lib/route-validation";
 
 export type TargetValidation = {
@@ -16,45 +20,48 @@ export type TargetValidation = {
   result: ValidationResult;
 };
 
-type Ctx = {
-  current: TargetValidation | null;
-  setCurrent: (v: TargetValidation | null) => void;
+let current: TargetValidation | null = null;
+const listeners = new Set<() => void>();
+const emit = () => { for (const l of listeners) l(); };
+
+const subscribe = (l: () => void) => {
+  listeners.add(l);
+  return () => { listeners.delete(l); };
 };
+const getSnapshot = () => current;
 
-const DragValidationCtx = createContext<Ctx>({ current: null, setCurrent: () => {} });
-
-export function DragValidationProvider({ children }: { children: ReactNode }) {
-  const [current, setCurrent] = useState<TargetValidation | null>(null);
-  const value = useMemo(() => ({ current, setCurrent }), [current]);
-  return <DragValidationCtx.Provider value={value}>{children}</DragValidationCtx.Provider>;
+/** Skriv det aktuelle drop-target's validering (kald fra drag-over). */
+export function setDragValidation(v: TargetValidation | null) {
+  // Skip ekstra emits hvis intet reelt har ændret sig — minder cells
+  // om kun at re-render når det betyder noget.
+  if (v === current) return;
+  if (v && current
+    && v.targetId === current.targetId
+    && v.severity === current.severity
+    && v.topMessage === current.topMessage) return;
+  current = v;
+  emit();
 }
+export function clearDragValidation() { setDragValidation(null); }
 
 /**
  * Læs validering for et bestemt target-id (fx `day:2026-05-25` eller
  * `route:abc-123`). Returnerer null hvis dette target ikke er hovret nu.
  */
 export function useTargetValidation(targetId: string | null | undefined): TargetValidation | null {
-  const { current } = useContext(DragValidationCtx);
-  if (!current || !targetId) return null;
-  return current.targetId === targetId ? current : null;
+  const snap = useSyncExternalStore(subscribe, getSnapshot, () => null);
+  if (!snap || !targetId) return null;
+  return snap.targetId === targetId ? snap : null;
 }
 
-/** Skriv siden af RoutePlanner — debouncet hjælper. */
-export function useDragValidationWriter() {
-  const { setCurrent } = useContext(DragValidationCtx);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const write = useCallback((v: TargetValidation | null) => {
-    if (timer.current) clearTimeout(timer.current);
-    // 80 ms — hurtigt nok til at føles realtid, langsomt nok til at
-    // undgå at trigge dyre re-renders på hver pixel.
-    timer.current = setTimeout(() => setCurrent(v), 80);
-  }, [setCurrent]);
-  const clear = useCallback(() => {
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = null;
-    setCurrent(null);
-  }, [setCurrent]);
-  return { write, clear };
+/** Debouncet writer — undgår flimmer under hurtig drag-bevægelse. */
+let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+export function writeDragValidationDebounced(v: TargetValidation | null, delayMs = 60) {
+  if (debounceTimer) clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    debounceTimer = null;
+    setDragValidation(v);
+  }, delayMs);
 }
 
 /** Map severity → tailwind ring-classes (semantic tokens). */
@@ -63,6 +70,14 @@ export function ringForSeverity(s: "ok" | "warning" | "error" | undefined): stri
   if (s === "warning") return "ring-2 ring-amber-500 ring-inset bg-amber-500/10";
   if (s === "ok") return "ring-2 ring-emerald-500 ring-inset bg-emerald-500/10";
   return "";
+}
+
+/** Map severity → label-baggrund til floating "drop-verb"-pille. */
+export function chipBgForSeverity(s: "ok" | "warning" | "error" | undefined): string {
+  if (s === "error") return "bg-destructive text-destructive-foreground";
+  if (s === "warning") return "bg-amber-500 text-white";
+  if (s === "ok") return "bg-emerald-600 text-white";
+  return "bg-accent text-accent-foreground";
 }
 
 /** Konvertér ValidationResult → severity + kort besked til UI. */
