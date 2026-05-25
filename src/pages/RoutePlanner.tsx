@@ -2504,11 +2504,6 @@ const Planner = () => {
         scope,
         moveLinkedSubscriptions,
       });
-      toast.success(
-        scope === "future"
-          ? `Ruteserien forskudt til ${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`
-          : `Rute flyttet til ${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`,
-      );
       pushRouteUndo({
         label: scope === "future"
           ? `Forskydning af ruteserie til ${format(parseISO(newDate), "d. MMM", { locale: da })}`
@@ -2521,6 +2516,12 @@ const Planner = () => {
             moveLinkedSubscriptions,
           });
         },
+      });
+      toastSuccessWithUndo({
+        message: scope === "future"
+          ? `Ruteserien forskudt til ${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`
+          : `Rute flyttet til ${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`,
+        description: "Klik Fortryd for at rulle tilbage.",
       });
       setPendingRouteMove(null);
     } catch (err: any) {
