@@ -47,6 +47,14 @@ export type AgreementPauseRange = {
   end_date: string;   // yyyy-MM-dd (inkl.)
 };
 
+export type RouteOccurrenceExceptionLike = {
+  base_route_id: string;
+  occurrence_date: string;
+  replacement_route_id?: string | null;
+  exception_type?: string | null;
+  shifted_to_date?: string | null;
+};
+
 export const recurringSourceKeysForStop = (stop: any): string[] => {
   const occurrence = stop?.agreement_occurrences || stop?.agreement_occurrence || null;
   return [
@@ -62,6 +70,84 @@ export const projectedStopMatchesSources = (stop: any, sourceKeys: string[] | un
   if (!sourceKeys || sourceKeys.length === 0) return true;
   const active = new Set(sourceKeys);
   return recurringSourceKeysForStop(stop).some((key) => active.has(key));
+};
+
+/**
+ * Oversætter route-occurrence-exceptions til to rene datastrukturer, som
+ * projektionen kan bruge uden UI-logik:
+ *  - `suppressedProjectionKeys`: forekomster der helt skal skjules
+ *  - `shiftsByOriginal`: forekomster der skal flyttes til en anden dato
+ *
+ * Vigtigt: `shifted` må IKKE undertrykkes før projektionen er bygget, ellers
+ * findes original-forekomsten aldrig og kan derfor ikke flyttes til måldatoen.
+ */
+export const resolveProjectionExceptions = (
+  exceptions: RouteOccurrenceExceptionLike[],
+  realRouteIds: Set<string>,
+) => {
+  const suppressedProjectionKeys = new Set<string>();
+  const shiftsByOriginal = new Map<string, string>();
+
+  for (const ex of exceptions) {
+    const baseId = String(ex.base_route_id || "");
+    const date = String(ex.occurrence_date || "").slice(0, 10);
+    const type = (ex.exception_type as string | null) ?? "moved";
+    if (!baseId || !date) continue;
+
+    if (type === "skipped") {
+      suppressedProjectionKeys.add(`${baseId}|${date}`);
+      continue;
+    }
+
+    if (type === "shifted") {
+      const toDate = ex.shifted_to_date ? String(ex.shifted_to_date).slice(0, 10) : null;
+      if (toDate) shiftsByOriginal.set(`${baseId}|${date}`, toDate);
+      continue;
+    }
+
+    const replId = ex.replacement_route_id ? String(ex.replacement_route_id) : null;
+    if (!replId || replId === baseId) continue;
+    if (!realRouteIds.has(replId)) continue;
+    suppressedProjectionKeys.add(`${baseId}|${date}`);
+  }
+
+  return { suppressedProjectionKeys, shiftsByOriginal };
+};
+
+/**
+ * Flytter projicerede forekomster til deres exception-måldatoer efter den
+ * almindelige projektion er bygget.
+ */
+export const applyProjectedOccurrenceShifts = (
+  projections: ProjectedRoute[],
+  shiftsByOriginal: Map<string, string>,
+  occupiedRouteDates: Set<string>,
+): ProjectedRoute[] => {
+  const byKey = new Map<string, ProjectedRoute>();
+
+  for (const projection of projections) {
+    const shiftTarget = shiftsByOriginal.get(`${projection.baseRouteId}|${projection.date}`);
+    if (shiftTarget && occupiedRouteDates.has(`${projection.baseRouteId}|${shiftTarget}`)) {
+      continue;
+    }
+
+    const nextDate = shiftTarget ?? projection.date;
+    const key = `${projection.baseRouteId}|${nextDate}`;
+    const nextProjection = shiftTarget
+      ? { ...projection, date: nextDate, id: `virtual:${projection.baseRouteId}:${nextDate}` }
+      : projection;
+
+    const existing = byKey.get(key);
+    if (existing) {
+      const sourceKeys = Array.from(new Set([...existing.sourceKeys, ...nextProjection.sourceKeys]));
+      byKey.set(key, { ...existing, sourceKeys, id: `virtual:${existing.baseRouteId}:${nextDate}` });
+      continue;
+    }
+
+    byKey.set(key, nextProjection);
+  }
+
+  return Array.from(byKey.values());
 };
 
 /**
