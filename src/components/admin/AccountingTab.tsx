@@ -625,7 +625,8 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
       lastPullRes,
     ] = await Promise.all([
       supabase.from("accounting_integrations" as any)
-        .select("*").eq("business_id", businessId).maybeSingle(),
+        .select("id, business_id, provider, is_active, agreement_number, organization_id, last_pull_at, last_push_at, last_error, last_error_at, settings, consecutive_failures, paused_until, last_kick_at, created_at, updated_at")
+        .eq("business_id", businessId).maybeSingle(),
       supabase.from("accounting_sync_log" as any)
         .select("*").eq("business_id", businessId)
         .order("created_at", { ascending: false }).limit(15),
