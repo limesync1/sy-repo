@@ -486,6 +486,44 @@ const Planner = () => {
     pendingProjectedMove?.baseRouteId ?? null,
     pendingProjectedMove?.fromDate ?? null,
   );
+  // Soft target-konflikter (medarbejder dobbeltbookning på mål-datoen).
+  const { conflicts: projectedTargetConflicts } = useDayConflicts(
+    myBusiness?.id,
+    pendingProjectedMove?.toDate || undefined,
+  );
+  const projectedTargetWarnings = useMemo<string[]>(() => {
+    return projectedTargetConflicts
+      .filter((c) => c.stops.length >= 2)
+      .map((c) => {
+        const names = Array.from(new Set(c.stops.map((s) => s.label).filter(Boolean))).slice(0, 3).join(", ");
+        const overlap = c.overlapsTime ? " (tidsoverlap)" : "";
+        return `Medarbejder har allerede ${c.stops.length} stops denne dag${overlap}${names ? `: ${names}` : ""}.`;
+      });
+  }, [projectedTargetConflicts]);
+  // Foreslå nærmeste ledige dato: optaget = nogen rute fra samme serie eller
+  // en virtuel projektion fra samme serie, eller medarbejder-konflikt-dag.
+  const projectedSuggestedDate = useMemo<string | null>(() => {
+    if (!pendingProjectedMove) return null;
+    if (projectedTargetWarnings.length === 0) return null;
+    const baseId = pendingProjectedMove.baseRouteId;
+    const occupiedSeriesDates = new Set<string>();
+    for (const r of calendarRoutesRaw) {
+      if ((r as any).id === baseId || (r as any).base_route_id === baseId) {
+        occupiedSeriesDates.add(String((r as any).route_date).slice(0, 10));
+      }
+    }
+    for (const r of virtualCalendarRoutes) {
+      if ((r as any).baseRouteId === baseId && (r as any).id !== `virtual:${baseId}:${pendingProjectedMove.fromDate}`) {
+        occupiedSeriesDates.add(String((r as any).route_date).slice(0, 10));
+      }
+    }
+    // Dage med medarbejder-konflikter (proxy: bare den ene dato vi har info om).
+    const conflictDates = new Set<string>();
+    if (projectedTargetWarnings.length > 0) conflictDates.add(pendingProjectedMove.toDate);
+    return findNearestFreeDate(pendingProjectedMove.toDate, (iso) =>
+      occupiedSeriesDates.has(iso) || conflictDates.has(iso),
+    );
+  }, [pendingProjectedMove, projectedTargetWarnings, calendarRoutesRaw, virtualCalendarRoutes]);
   const [projectedMoveSyncStart, setProjectedMoveSyncStart] = useState(false);
   const [projectedMoveSyncNext, setProjectedMoveSyncNext] = useState(false);
   useEffect(() => {
