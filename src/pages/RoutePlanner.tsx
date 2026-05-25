@@ -101,7 +101,7 @@ import { cn } from "@/lib/utils";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { Monitor } from "lucide-react";
 import { usePersistentState } from "@/hooks/usePersistentState";
-import { pushRouteUndo } from "@/lib/route-history";
+import { pushRouteUndo, routeHistory } from "@/lib/route-history";
 import { useRouteHistory } from "@/hooks/useRouteHistory";
 import { toastSuccessWithUndo } from "@/lib/toast-undo";
 
