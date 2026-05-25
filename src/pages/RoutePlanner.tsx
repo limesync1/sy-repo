@@ -3308,7 +3308,14 @@ const Planner = () => {
           const calendarBlock = (
                 <div data-tour="routes-calendar" className="h-full flex flex-col">
                 {projectionDiagnostics.unprojectable.length > 0 && (
-                  <Alert variant="destructive" className="m-2 mb-0 shrink-0">
+                  <Alert
+                    variant="destructive"
+                    className="m-2 mb-0 shrink-0 cursor-pointer hover:opacity-90"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setDiagnosticsOpen(true)}
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setDiagnosticsOpen(true); }}
+                  >
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle>
                       {projectionDiagnostics.unprojectable.length === 1
@@ -3316,9 +3323,7 @@ const Planner = () => {
                         : `${projectionDiagnostics.unprojectable.length} aftaler kan ikke vises i kalenderen`}
                     </AlertTitle>
                     <AlertDescription className="text-xs">
-                      Tjek aftalens interval og foretrukne rute. Aftaler uden et gyldigt
-                      gentagelses-interval eller uden en startdato kan ikke beregnes og
-                      bliver derfor sprunget over i kalender-projektionen.
+                      Klik for at se hvilke aftaler det drejer sig om og rette dem.
                     </AlertDescription>
                   </Alert>
                 )}
@@ -3346,7 +3351,14 @@ const Planner = () => {
           const mobileCalendarBlock = (
             <div data-tour="routes-calendar" className="h-full flex flex-col">
               {projectionDiagnostics.unprojectable.length > 0 && (
-                <Alert variant="destructive" className="m-2 mb-0 shrink-0">
+                <Alert
+                  variant="destructive"
+                  className="m-2 mb-0 shrink-0 cursor-pointer hover:opacity-90"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setDiagnosticsOpen(true)}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setDiagnosticsOpen(true); }}
+                >
                   <AlertTriangle className="h-4 w-4" />
                   <AlertTitle className="text-sm">
                     {projectionDiagnostics.unprojectable.length === 1
@@ -3354,7 +3366,7 @@ const Planner = () => {
                       : `${projectionDiagnostics.unprojectable.length} aftaler kan ikke vises`}
                   </AlertTitle>
                   <AlertDescription className="text-xs">
-                    Tjek aftalens interval og startdato.
+                    Tryk for at åbne diagnostik og rette aftalerne.
                   </AlertDescription>
                 </Alert>
               )}
