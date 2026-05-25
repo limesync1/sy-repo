@@ -1,6 +1,7 @@
 import { demoBusiness, demoServices } from "@/data/demoData";
 import ServiceCard from "@/components/business/ServiceCard";
 import CartSheet from "@/components/business/CartSheet";
+import BusinessSEO from "@/components/business/BusinessSEO";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,22 @@ const BusinessPageContent = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <BusinessSEO
+        name={biz.name}
+        description={biz.description}
+        city={(biz as any).city || null}
+        address={biz.contact?.address || null}
+        phone={biz.contact?.phone || null}
+        email={biz.contact?.email || null}
+        logoUrl={biz.logo}
+        slug="demo"
+        services={demoServices.map((s: any) => ({
+          name: s.name,
+          description: s.description,
+          base_price: s.price ?? s.base_price ?? null,
+        }))}
+        faqs={biz.faq?.map((f: any) => ({ question: f.question, answer: f.answer }))}
+      />
       {/* Top nav */}
       <nav className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur">
         <div className="container mx-auto flex items-center justify-between px-4 py-3">
