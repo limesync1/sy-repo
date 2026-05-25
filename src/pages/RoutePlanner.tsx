@@ -63,6 +63,7 @@ import { DatePickerField } from "@/components/route-planner/DatePickerField";
 import { RouteStopsPanel } from "@/components/route-planner/RouteStopsPanel";
 import { MoveRouteDateDialog, type MoveRouteScope } from "@/components/route-planner/MoveRouteDateDialog";
 import { MergeRoutesDialog } from "@/components/route-planner/MergeRoutesDialog";
+import { DeleteRouteDialog } from "@/components/route-planner/DeleteRouteDialog";
 import { supabase } from "@/integrations/supabase/client";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
 import { renameFreshSplitRoutes } from "@/components/route-planner/MoveStopsDialog";
@@ -3478,34 +3479,20 @@ const Planner = () => {
           />
         )}
 
-        {/* Slet rute bekræftelse */}
-        <AlertDialog open={!!routeToDelete} onOpenChange={(o) => !o && setRouteToDelete(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Slet rute?</AlertDialogTitle>
-              <AlertDialogDescription>
-                <strong>{routeToDelete?.name}</strong> og alle dens stops slettes permanent.
-                Tilkoblede medarbejdere fjernes fra ruten, og aftalerne ryger tilbage i aftalepoolen.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Annullér</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => {
-                  if (routeToDelete) {
-                    deleteRoute.mutate(routeToDelete.id, {
-                      onSuccess: () => toast.success(`${routeToDelete.name} slettet`),
-                    });
-                    setRouteToDelete(null);
-                  }
-                }}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                Slet rute
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        {/* Slet rute bekræftelse — viser konsekvens for tilknyttede aftaler */}
+        <DeleteRouteDialog
+          route={routeToDelete}
+          onOpenChange={(o) => !o && setRouteToDelete(null)}
+          onConfirm={() => {
+            if (routeToDelete) {
+              const name = routeToDelete.name;
+              deleteRoute.mutate(routeToDelete.id, {
+                onSuccess: () => toast.success(`${name} slettet`),
+              });
+              setRouteToDelete(null);
+            }
+          }}
+        />
 
         {/* Bekræft fletning af to ruter (drag-and-drop rute → rute) */}
         <MergeRoutesDialog
