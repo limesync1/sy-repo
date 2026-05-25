@@ -24,6 +24,7 @@ import { WeatherBadge } from "./WeatherBadge";
 import type { WeatherDay } from "@/hooks/useWeather";
 import { Skeleton } from "@/components/ui/skeleton";
 import { memo, useMemo } from "react";
+import { useTargetValidation, ringForSeverity, chipBgForSeverity } from "./drag-validation-context";
 
 export type CalendarRoute = Route & {
   stops: RouteStop[];
@@ -242,6 +243,11 @@ const DayCellInner = ({
     disabled: !!busy || isPast,
   });
 
+  // Live-validering for netop denne dag — sat af RoutePlanner.handleDragOver.
+  // Hvis et drag svæver over cellen, fortæller vi brugeren INDEN slip om
+  // dropet er gyldigt (grøn), advarsel (gul) eller blokeret (rød).
+  const validation = useTargetValidation(`day:${dateStr}`);
+
   const isDragActive = !!draggingType;
   const isJobDragActive = draggingType === "job";
   const emptyDay = routes.length === 0;
@@ -257,6 +263,7 @@ const DayCellInner = ({
   // aftale". Bruger samme dato-format som resten af planlæggeren.
   const dropVerb = (() => {
     if (!isOver || !canReceiveDrop) return null;
+    if (validation?.topMessage) return validation.topMessage;
     if (draggingType === "job") return emptyDay ? "Opret ny rute" : "Tilføj til rute";
     if (draggingType === "stop") return "Flyt stop hertil";
     if (draggingType === "route") return "Flyt rute hertil";
@@ -284,8 +291,11 @@ const DayCellInner = ({
         // accepterer slip eller ej. Sparer en mislykket drop-cyklus.
         isDragActive && isPast && "cursor-not-allowed",
         canReceiveDrop && "cursor-copy",
-        // Når man hovrer over en gyldig dag — tydeligt highlight
-        isOver && canReceiveDrop && "bg-accent/20 ring-2 ring-accent ring-inset shadow-inner",
+        // Når man hovrer over en gyldig dag — tydeligt highlight. Hvis
+        // live-validering har en severity (grøn/gul/rød) trumfer den
+        // standard-accent-ringen, så brugeren ser den korrekte status.
+        isOver && canReceiveDrop && !validation && "bg-accent/20 ring-2 ring-accent ring-inset shadow-inner",
+        isOver && canReceiveDrop && validation && ringForSeverity(validation.severity),
         busy && "opacity-90 cursor-wait",
       )}
       aria-busy={busy || undefined}
@@ -296,11 +306,14 @@ const DayCellInner = ({
           aldrig er i tvivl om udfaldet før de slipper. */}
       {dropVerb && (
         <div
-          className="absolute top-1 right-1 z-30 pointer-events-none rounded-md bg-accent text-accent-foreground px-1.5 py-0.5 shadow-lg text-[10px] font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-150"
+          className={cn(
+            "absolute top-1 right-1 z-30 pointer-events-none rounded-md px-1.5 py-0.5 shadow-lg text-[10px] font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-150 max-w-[90%]",
+            chipBgForSeverity(validation?.severity),
+          )}
           role="status"
         >
           <ArrowDown className="h-3 w-3" />
-          <span>{dropVerb}</span>
+          <span className="truncate">{dropVerb}</span>
         </div>
       )}
       {busy && (
@@ -493,6 +506,10 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
     disabled: isVirtual || !!busy || !!isPast,
   });
 
+  // Live drag-validering for denne rute — sat af RoutePlanner.handleDragOver
+  // når en aftale eller en anden rute svæver over pillen.
+  const validation = useTargetValidation(`route:${route.id}`);
+
   // Combined ref
   const setRefs = (node: HTMLElement | null) => {
     setDragRef(node);
@@ -528,7 +545,8 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
         jobDragActive && isPast && "opacity-25 pointer-events-none",
         // Når en aftale er ved at blive sluppet på pillen — markér tydeligt
         !isVirtual && jobDragActive && !isOver && "ring-1 shadow-sm",
-        !isVirtual && isOver && "ring-2 ring-accent shadow-md scale-[1.02]",
+        !isVirtual && isOver && !validation && "ring-2 ring-accent shadow-md scale-[1.02]",
+        !isVirtual && isOver && validation && cn(ringForSeverity(validation.severity), "shadow-md scale-[1.02]"),
         busy && "cursor-wait",
       )}
       style={{
@@ -539,7 +557,9 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
           : {}),
       }}
       title={
-        isVirtual
+        validation?.topMessage
+          ? validation.topMessage
+          : isVirtual
           ? "Projiceret rute — klik åbner basisruten. Træk til en anden dato for at flytte netop denne ene forekomst (basisruten røres ikke)."
           : isPast
             ? "Tidligere rute — kan ikke flyttes"

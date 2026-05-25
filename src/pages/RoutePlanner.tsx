@@ -83,6 +83,8 @@ import { useBusinessHolidays } from "@/hooks/useBusinessHolidays";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { invalidateRouteSyncQueries } from "@/hooks/useRoutes";
 import { routeMutationQueue } from "@/lib/mutation-queue";
+import { writeDragValidationDebounced, clearDragValidation, summarize } from "@/components/route-planner/drag-validation-context";
+import { validateStopAssignment, validateRouteMove } from "@/lib/route-validation";
 import { cn } from "@/lib/utils";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { Monitor } from "lucide-react";
@@ -1630,7 +1632,112 @@ const Planner = () => {
   };
 
   const handleDragOver = (e: DragOverEvent) => {
-    if (e.active.data.current?.type !== "route") return;
+    // ─── Live drag-validering ───
+    // Beregn et `ValidationResult` for det aktuelt hovrede target og
+    // skriv det til den globale drag-validation-store. MonthWeekCalendar's
+    // celler/rute-pillule læser status via `useTargetValidation` og
+    // ændrer ring-farve (grøn/gul/rød) + tooltip — INDEN drop.
+    const activeData: any = e.active.data.current;
+    const overData: any = e.over?.data.current;
+    if (!activeData || !overData) {
+      clearDragValidation();
+      return;
+    }
+
+    try {
+      // ── JOB → ROUTE: tjek aftaledubletter på dagen + kapacitet ──
+      if (activeData.type === "job" && overData.type === "route") {
+        const targetRoute = calendarRoutesRaw.find((r) => r.id === overData.routeId);
+        if (!targetRoute) return clearDragValidation();
+        const sameDayStops = visibleCalendarStops.filter((s: any) => {
+          const r = calendarRoutesRaw.find((x) => x.id === s.route_id);
+          return r?.route_date === targetRoute.route_date;
+        });
+        const stopsOnRoute = visibleCalendarStops.filter((s) => s.route_id === targetRoute.id) as any[];
+        const job = activeData.job ?? {};
+        const result = validateStopAssignment(
+          {
+            order_id: job.id ?? null,
+            customer_id: job.customer_id ?? null,
+            customer_name: job.customer_name ?? null,
+            latitude: job.latitude ?? null,
+            longitude: job.longitude ?? null,
+          },
+          { id: targetRoute.id, route_date: targetRoute.route_date, isVirtual: (targetRoute as any).isVirtual },
+          {
+            otherStopsSameDay: sameDayStops as any[],
+            stopsOnTargetRoute: stopsOnRoute.map((s) => ({ id: s.id, latitude: s.latitude, longitude: s.longitude })),
+            estimatedStopCountAfter: stopsOnRoute.length + 1,
+          },
+        );
+        const { severity, topMessage } = summarize(result);
+        writeDragValidationDebounced({ targetId: `route:${targetRoute.id}`, severity, topMessage, result });
+        return;
+      }
+
+      // ── JOB → DAY (tom celle = ny rute): altid ok (men advar ved fortid) ──
+      if (activeData.type === "job" && overData.type === "day") {
+        const today = todayStr();
+        const result = overData.date < today
+          ? validateRouteMove({ id: "new", route_date: today }, overData.date)
+          : { ok: true, errors: [], warnings: [], suggestions: [] } as any;
+        const { severity, topMessage } = summarize(result);
+        writeDragValidationDebounced({ targetId: `day:${overData.date}`, severity, topMessage, result });
+        return;
+      }
+
+      // ── ROUTE → DAY (flytning): tjek fortid, serie-kollision på datoen ──
+      if (activeData.type === "route" && overData.type === "day") {
+        const route = activeData.route;
+        if (!route) return clearDragValidation();
+        const baseId: string | null = route.base_route_id ?? route.baseRouteId ?? null;
+        const seriesRoutesOnTargetDate = calendarRoutesRaw.filter((r: any) =>
+          String(r.route_date).slice(0, 10) === overData.date
+          && r.id !== route.id
+          && (
+            (baseId && (r.id === baseId || r.base_route_id === baseId))
+            || (!baseId && r.id === route.id)
+          )
+        );
+        const result = validateRouteMove(
+          { id: route.id, route_date: route.route_date, isVirtual: route.isVirtual, baseRouteId: baseId },
+          overData.date,
+          { seriesRoutesOnTargetDate },
+        );
+        const { severity, topMessage } = summarize(result);
+        writeDragValidationDebounced({ targetId: `day:${overData.date}`, severity, topMessage, result });
+        return;
+      }
+
+      // ── ROUTE → ROUTE (flet): blokér ved projection→projection ──
+      if (activeData.type === "route" && overData.type === "route") {
+        const source = activeData.route;
+        const target = calendarRoutesRaw.find((r) => r.id === overData.routeId) as any;
+        if (!source || !target) return clearDragValidation();
+        if (source.isVirtual && target.isVirtual) {
+          writeDragValidationDebounced({
+            targetId: `route:${target.id}`,
+            severity: "error",
+            topMessage: "Kan ikke flette to projicerede ruter",
+            result: { ok: false, errors: [], warnings: [], suggestions: [] } as any,
+          });
+          return;
+        }
+        writeDragValidationDebounced({
+          targetId: `route:${target.id}`,
+          severity: "ok",
+          topMessage: undefined,
+          result: { ok: true, errors: [], warnings: [], suggestions: [] } as any,
+        });
+        return;
+      }
+
+      clearDragValidation();
+    } catch {
+      // Validering må ALDRIG kaste — ryd state stille og fald tilbage til
+      // den klassiske flow (drop-handler beholder sin egen guard).
+      clearDragValidation();
+    }
   };
 
   const handleDragMove = (e: DragMoveEvent) => {
@@ -1728,6 +1835,7 @@ const Planner = () => {
     setRouteDragPoint(null);
     activeRouteDragPointRef.current = null;
     activeRouteDragOriginRef.current = null;
+    clearDragValidation();
     // ─── Metrics: registrér resultatet af denne drag ───
     // `dropped=true` kun når brugeren faktisk slap på et target. Drags
     // der ender uden over-target tæller som "klik-fejl" — typisk når
@@ -2701,6 +2809,7 @@ const Planner = () => {
         setRouteDragPoint(null);
         activeRouteDragPointRef.current = null;
         activeRouteDragOriginRef.current = null;
+        clearDragValidation();
       }}
     >
       <SEO
