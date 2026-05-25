@@ -5,7 +5,7 @@
 // `route-drop:<id>`) så al planlægger-logikken i RoutePlanner virker uændret.
 
 import { useDroppable, useDraggable } from "@dnd-kit/core";
-import { Loader2, Sparkles, Plus, MapPin, ArrowDown, Repeat, ChevronDown, Inbox, Lock } from "lucide-react";
+import { Loader2, Sparkles, Plus, MapPin, ArrowDown, Repeat, ChevronDown, Inbox, Lock, GitMerge } from "lucide-react";
 import { CloudOff } from "lucide-react";
 import {
   format, parseISO, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
@@ -19,6 +19,7 @@ import type { WeatherDay } from "@/hooks/useWeather";
 import { Skeleton } from "@/components/ui/skeleton";
 import { memo, useMemo } from "react";
 import type { CalendarRoute } from "./MonthWeekCalendar";
+import { useTargetValidation, ringForSeverity, chipBgForSeverity } from "./drag-validation-context";
 
 type Props = {
   view: "month" | "week";
@@ -30,6 +31,7 @@ type Props = {
   onOptimizeRoute: (routeId: string) => void;
   optimizingRouteId?: string | null;
   draggingType?: "job" | "route" | "stop" | null;
+  draggingRouteId?: string | null;
   weatherByDate?: Map<string, WeatherDay>;
   loadingRoutes?: boolean;
   loadingWeather?: boolean;
@@ -41,7 +43,7 @@ const ymd = (d: Date) => format(d, "yyyy-MM-dd");
 
 export const AgendaCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
-  onCreateRoute, onOptimizeRoute, optimizingRouteId, draggingType, weatherByDate,
+  onCreateRoute, onOptimizeRoute, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
   loadingRoutes, loadingWeather, weatherError, busyTargets,
 }: Props) => {
   const anchor = parseISO(anchorDate);
@@ -128,6 +130,7 @@ export const AgendaCalendar = ({
                   onOptimizeRoute={onOptimizeRoute}
                   optimizingRouteId={optimizingRouteId}
                   draggingType={draggingType}
+                  draggingRouteId={draggingRouteId ?? null}
                   weather={weatherByDate?.get(dateStr) ?? null}
                   loadingRoutes={!!loadingRoutes}
                   loadingWeather={!!loadingWeather}
@@ -161,6 +164,7 @@ type DayRowProps = {
   onOptimizeRoute: (routeId: string) => void;
   optimizingRouteId?: string | null;
   draggingType?: "job" | "route" | "stop" | null;
+  draggingRouteId?: string | null;
   weather?: WeatherDay | null;
   loadingRoutes?: boolean;
   loadingWeather?: boolean;
@@ -172,7 +176,7 @@ type DayRowProps = {
 const DayRowInner = ({
   date, dateStr, todayIso, routes,
   onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, optimizingRouteId,
-  draggingType, weather, loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds,
+  draggingType, draggingRouteId, weather, loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds,
 }: DayRowProps) => {
   const isPast = dateStr < todayIso;
   const today = isToday(date);
@@ -186,9 +190,11 @@ const DayRowInner = ({
   const isJobDragActive = draggingType === "job";
   const emptyDay = routes.length === 0;
   const canReceiveDrop = isDragActive && !isPast && !busy;
+  const validation = useTargetValidation(`day:${dateStr}`);
 
   const dropVerb = (() => {
     if (!isOver || !canReceiveDrop) return null;
+    if (validation?.topMessage) return validation.topMessage;
     if (draggingType === "job") return emptyDay ? "Opret ny rute" : "Tilføj til rute";
     if (draggingType === "stop") return "Flyt stop hertil";
     if (draggingType === "route") return "Flyt rute hertil";
@@ -203,7 +209,8 @@ const DayRowInner = ({
         "relative px-3 py-2.5 transition-colors",
         isPast && "bg-muted/20",
         canReceiveDrop && !isOver && "ring-1 ring-accent/30 ring-inset",
-        isOver && canReceiveDrop && "bg-accent/15 ring-2 ring-accent ring-inset",
+        isOver && canReceiveDrop && !validation && "bg-accent/15 ring-2 ring-accent ring-inset",
+        isOver && canReceiveDrop && validation && ringForSeverity(validation.severity),
         busy && "opacity-90",
       )}
       aria-busy={busy || undefined}
@@ -260,7 +267,10 @@ const DayRowInner = ({
       </div>
 
       {dropVerb && (
-        <div className="absolute top-2 right-2 z-30 pointer-events-none rounded-md bg-accent text-accent-foreground px-1.5 py-0.5 shadow-lg text-[10px] font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-150">
+        <div className={cn(
+          "absolute top-2 right-2 z-30 pointer-events-none rounded-md px-1.5 py-0.5 shadow-lg text-[10px] font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-150",
+          chipBgForSeverity(validation?.severity),
+        )}>
           <ArrowDown className="h-3 w-3" />
           <span>{dropVerb}</span>
         </div>
@@ -284,6 +294,7 @@ const DayRowInner = ({
             onOptimize={() => onOptimizeRoute(r.id)}
             optimizing={optimizingRouteId === r.id}
             jobDragActive={isJobDragActive}
+            routeDragSourceId={draggingType === "route" ? (draggingRouteId ?? null) : null}
             busy={!!busyRouteIds?.has(`route:${r.id}`)}
             isPast={isPast}
           />
@@ -330,12 +341,14 @@ type AgendaRoutePillProps = {
   onOptimize: () => void;
   optimizing: boolean;
   jobDragActive?: boolean;
+  routeDragSourceId?: string | null;
   busy?: boolean;
   isPast?: boolean;
 };
 
-const AgendaRoutePillInner = ({ route, onSelect, onOptimize, optimizing, jobDragActive, busy, isPast }: AgendaRoutePillProps) => {
+const AgendaRoutePillInner = ({ route, onSelect, onOptimize, optimizing, jobDragActive, routeDragSourceId, busy, isPast }: AgendaRoutePillProps) => {
   const isVirtual = !!route.isVirtual;
+  const isMergeTarget = !!routeDragSourceId && routeDragSourceId !== route.id && !isVirtual && !isPast && !busy;
   const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({
     id: `route:${route.id}`,
     data: { type: "route", route },
@@ -352,6 +365,7 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, optimizing, jobDrag
     setDragRef(node);
     setDropRef(node);
   };
+  const validation = useTargetValidation(`route:${route.id}`);
 
   const stopCount = route.stops.length;
   const completedCount = route.stops.filter((s) => s.status === "completed").length;
@@ -371,12 +385,29 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, optimizing, jobDrag
         isVirtual && "border-dashed",
         isPast && "opacity-60 saturate-50",
         jobDragActive && isPast && "opacity-25 pointer-events-none",
-        !isVirtual && isOver && "ring-2 ring-accent shadow-md",
+        !isVirtual && isOver && !validation && "ring-2 ring-accent shadow-md",
+        !isVirtual && isOver && validation && ringForSeverity(validation.severity),
+        isMergeTarget && isOver && "shadow-md bg-accent/5",
+        routeDragSourceId && !isMergeTarget && routeDragSourceId !== route.id && "opacity-40 pointer-events-none",
         busy && "cursor-wait",
       )}
       style={{ borderLeftColor: route.color, borderLeftWidth: 3 }}
       aria-busy={busy || undefined}
     >
+      {isOver && validation && (
+        <div className={cn(
+          "absolute -top-1 right-1 z-20 pointer-events-none rounded-md px-1.5 py-0.5 shadow-md text-[10px] font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-150 max-w-[95%]",
+          chipBgForSeverity(validation.severity),
+        )}>
+          <span className="truncate">{validation.topMessage ?? (validation.severity === "ok" ? "Tilføj til rute" : "")}</span>
+        </div>
+      )}
+      {isMergeTarget && isOver && !validation && (
+        <div className="absolute -top-1 right-1 z-20 pointer-events-none rounded-md bg-accent text-accent-foreground px-1.5 py-0.5 shadow-md text-[10px] font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-150 max-w-[95%]">
+          <GitMerge className="h-3 w-3 shrink-0" />
+          <span className="truncate">Slip her for at flette</span>
+        </div>
+      )}
       {busy && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/70 backdrop-blur-[1px] pointer-events-none">
           <Loader2 className="h-3.5 w-3.5 animate-spin text-accent" />
