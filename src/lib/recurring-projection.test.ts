@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import {
   expandRecurringRoutes,
+  expandProjectionWindowForShiftedOccurrences,
   intervalToDays,
   projectedStopMatchesSources,
   filterStopsByOccurrenceDate,
@@ -528,6 +529,19 @@ describe("expandRecurringRoutes — overlap/suppression mod rigtige ruter", () =
     expect(shifted.find((p) => p.date === "2026-05-11")).toBeUndefined();
     expect(shifted.find((p) => p.date === "2026-05-12")).toBeDefined();
     expect(shifted.find((p) => p.date === "2026-05-12")?.id).toBe("virtual:base-1:2026-05-12");
+  });
+
+  it("extends the projection window when a shifted target is visible but the original date is outside view", () => {
+    const window = expandProjectionWindowForShiftedOccurrences("2026-06-16", "2026-06-18", [
+      {
+        base_route_id: "base-1",
+        occurrence_date: "2026-06-22",
+        exception_type: "shifted",
+        shifted_to_date: "2026-06-17",
+      },
+    ]);
+
+    expect(window).toEqual({ rangeStart: "2026-06-16", rangeEnd: "2026-06-22" });
   });
 
   it("drops shifted projection when a real route already occupies the target date", () => {

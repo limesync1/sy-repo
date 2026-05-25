@@ -115,6 +115,39 @@ export const resolveProjectionExceptions = (
 };
 
 /**
+ * Udvider projektions-vinduet når en flyttet forekomst lander inde i den
+ * synlige periode, men originaldatoen ligger udenfor.
+ *
+ * Eksempel: en ugentlig forekomst d. 22. juni flyttes til d. 17. juni.
+ * Hvis brugeren kigger på uge 25 (16.-22. juni) virker det fint, men hvis de
+ * kun kigger på dagene op til d. 17. juni skal vi stadig projicere d. 22. juni
+ * i baggrunden, ellers findes der ingen original at flytte ind i viewet.
+ */
+export const expandProjectionWindowForShiftedOccurrences = (
+  visibleStart: string,
+  visibleEnd: string,
+  exceptions: RouteOccurrenceExceptionLike[],
+) => {
+  let rangeStart = String(visibleStart).slice(0, 10);
+  let rangeEnd = String(visibleEnd).slice(0, 10);
+
+  for (const ex of exceptions) {
+    const type = (ex.exception_type as string | null) ?? "moved";
+    if (type !== "shifted") continue;
+
+    const occurrenceDate = String(ex.occurrence_date || "").slice(0, 10);
+    const shiftedToDate = String(ex.shifted_to_date || "").slice(0, 10);
+    if (!occurrenceDate || !shiftedToDate) continue;
+
+    if (shiftedToDate < rangeStart || shiftedToDate > rangeEnd) continue;
+    if (occurrenceDate < rangeStart) rangeStart = occurrenceDate;
+    if (occurrenceDate > rangeEnd) rangeEnd = occurrenceDate;
+  }
+
+  return { rangeStart, rangeEnd };
+};
+
+/**
  * Flytter projicerede forekomster til deres exception-måldatoer efter den
  * almindelige projektion er bygget.
  */
