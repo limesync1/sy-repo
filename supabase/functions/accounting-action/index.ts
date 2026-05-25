@@ -39,7 +39,19 @@ Deno.serve(async (req) => {
     const { data: order } = await admin.from("orders")
       .select("id, business_id, invoice_external_id, total_amount, customer_email")
       .eq("id", order_id).maybeSingle();
-    if (!order) return json({ error: "Order not found" }, 404);
+    if (!order) {
+      // Capability-probes må ALDRIG bryde UI'et — hvis ordren ikke findes
+      // (slettet, virtuel/projiceret række, stale cache) returnerer vi tomme
+      // caps så knapperne bare skjules i stedet for at fejle med 404.
+      if (action === "check_capabilities") {
+        return json({ caps: {
+          can_credit: false, can_void: false, can_mark_paid: false,
+          can_download_pdf: false,
+          is_booked: false, is_draft: false, exists_in_provider: false,
+        } });
+      }
+      return json({ error: "Order not found" }, 404);
+    }
 
     // Permission check.
     // - Owners (virksomhedspanelet) må alt.
