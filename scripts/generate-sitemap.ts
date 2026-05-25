@@ -23,6 +23,11 @@ const entries: SitemapEntry[] = [
   { path: "/vilkaar", changefreq: "yearly", priority: "0.3" },
 ];
 
+// Med vilje udeladt fra sitemap: /reset-password, /admin, /virksomhed,
+// /virksomhed/ruter, /medarbejder. Disse er auth-gated private ruter
+// (virksomhedspanel, ruteplanlægger, medarbejder-app, password reset link)
+// som ikke skal indekseres af søgemaskiner.
+
 const CATEGORIES = [
   "Rengøring", "Håndværker", "Flyttehjælp", "Haveservice",
   "Maler", "VVS", "Elektriker", "Tømrer", "Sikkerhed",
