@@ -444,6 +444,19 @@ export const AdminShell = ({
                 {topbarRight}
               </div>
             )}
+            {(business as any).public_id && (
+              <button
+                type="button"
+                title="Kopiér virksomheds-ID"
+                onClick={() => {
+                  const id = (business as any).public_id as string;
+                  navigator.clipboard?.writeText(id).catch(() => {});
+                }}
+                className="hidden md:inline-flex h-9 shrink-0 items-center rounded-full bg-secondary px-2.5 font-mono text-[11px] uppercase tracking-wider text-muted-foreground ring-1 ring-inset ring-border transition-colors hover:bg-secondary/70 hover:text-foreground"
+              >
+                ID {(business as any).public_id}
+              </button>
+            )}
             <button
               type="button"
               onClick={() => window.dispatchEvent(new CustomEvent("serviceydere:open-platform-chat"))}
