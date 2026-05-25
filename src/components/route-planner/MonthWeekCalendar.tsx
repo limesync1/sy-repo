@@ -254,12 +254,17 @@ type DayCellProps = {
   busyRouteIds?: Set<string>;
   /** Forhåndsdetekteret konflikt på dagen (helligdag / dobbeltbooking). */
   alert?: { severity: "warning" | "error"; label: string } | null;
+  /** Multi-select bulk-flyt: valgte rute-ids. Videresendes til RoutePill. */
+  selectedRouteIds?: Set<string>;
+  /** Toggle af bulk-valg på rute-pille. */
+  onToggleRouteSelection?: (id: string, e?: React.MouseEvent) => void;
 };
 
 const DayCellInner = ({
   date, dateStr, routes, inMonth, today,
   onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, optimizingRouteId, compact, draggingType, draggingRouteId, weather,
   loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds, alert,
+  selectedRouteIds, onToggleRouteSelection,
 }: DayCellProps) => {
   const todayIso = format(new Date(), "yyyy-MM-dd");
   const isPast = dateStr < todayIso;
@@ -448,6 +453,11 @@ const DayCellInner = ({
                   routeDragSourceId={draggingType === "route" ? (draggingRouteId ?? null) : null}
                   busy={!!busyRouteIds?.has(`route:${r.id}`)}
                   isPast={isPast}
+                  selected={!!selectedRouteIds?.has(r.id)}
+                  anySelected={!!selectedRouteIds && selectedRouteIds.size > 0}
+                  onToggleSelect={onToggleRouteSelection
+                    ? (e) => onToggleRouteSelection(r.id, e)
+                    : undefined}
                 />
               ))}
               {overflow > 0 && (
