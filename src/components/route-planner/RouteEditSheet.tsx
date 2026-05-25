@@ -921,6 +921,8 @@ export const RouteEditSheet = ({
         syncStart={projectedMoveSyncStart}
         onSyncStartChange={setProjectedMoveSyncStart}
         warnings={projectedMoveConflictWarnings}
+        suggestedFreeDate={projectedMoveSuggestedDate}
+        onPickSuggestedDate={(iso) => setPendingProjectedDate(iso)}
         loading={moveProjected.isPending}
         onConfirm={handleConfirmMoveProjected}
       />
