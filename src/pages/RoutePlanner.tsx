@@ -1147,6 +1147,7 @@ const Planner = () => {
       holidayDates: businessHolidays.map((h) => h.holiday_date),
     });
     const shifted = applyProjectedOccurrenceShifts(projections, shiftsByOriginal, realKeys);
+    const shiftedTargetDates = new Set(Array.from(shiftsByOriginal.values()));
     return shifted
       .map((p) => {
         // Klip kun projektioner væk der ligger før basisrutens dato når kilden
@@ -1156,7 +1157,7 @@ const Planner = () => {
         const baseMinDate = minDateByBaseRouteId.get(p.baseRouteId);
         const hasAnchoredSource = p.sourceKeys.some((key) => anchoredSourceKeys.has(key));
         const isShiftedOccurrence = shiftsByOriginal.get(`${p.baseRouteId}|${p.date}`) !== undefined
-          || Array.from(shiftsByOriginal.values()).includes(p.date);
+          || shiftedTargetDates.has(p.date);
         if (baseMinDate && p.date < baseMinDate && !hasAnchoredSource && !isShiftedOccurrence) return null;
         // Filtrér source-keys der allerede er materialiseret som rigtige
         // stops på samme dato — så vi ikke får dubletter.
