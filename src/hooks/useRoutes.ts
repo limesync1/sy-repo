@@ -94,16 +94,20 @@ export const openProjectedRouteBase = async ({
   projectedDate,
   clientEventId,
 }: OpenProjectedRouteBaseInput): Promise<Route> => {
-  // Åbning af en projiceret rutedag betyder nu "gør klar til kørsel":
-  // den virtuelle dag materialiseres som en rigtig route med konkrete
-  // agreement_occurrences/route_stops. Det trigger også regnskabs-ordrekladder
-  // for de nye kørsler via databaseflowet.
-  const { data, error } = await supabase.rpc("materialize_virtual_route" as any, {
-    _base_route_id: baseRouteId,
-    _date: projectedDate,
-  } as any);
+  // VIGTIGT: Et klik på en projiceret rute må ALDRIG materialisere den i DB.
+  // Vi åbner blot basisruten read-/edit-only og lader UI filtrere visningen
+  // til den projicerede dato via `editingProjectedContext`. Materialisering
+  // sker først når brugeren laver en ægte override (aflys forekomst, skift
+  // medarbejder for én dag, flyt stop mv.) — eller når dagen er nået og
+  // worker-kø'en materialiserer den.
+  const { data, error } = await supabase
+    .from("routes")
+    .select("*, route_stops(*)")
+    .eq("id", baseRouteId)
+    .eq("business_id", businessId)
+    .maybeSingle();
   if (error) throw error;
-  if (!data) throw new Error("Den projicerede rute kunne ikke gøres klar");
+  if (!data) throw new Error("Basisruten kunne ikke findes");
   return data as unknown as Route;
 };
 
