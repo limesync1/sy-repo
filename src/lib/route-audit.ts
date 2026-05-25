@@ -9,7 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 export type RouteAuditScope = "single" | "future" | "all" | null;
 
 export type RouteAuditInput = {
-  business_id: string;
+  /** Hvis ikke angivet, slås den op via `route_id`. */
+  business_id?: string | null;
   action: string;
   route_id?: string | null;
   agreement_id?: string | null;
@@ -21,9 +22,24 @@ export type RouteAuditInput = {
 
 export async function logRouteAudit(input: RouteAuditInput): Promise<void> {
   try {
+    let businessId = input.business_id ?? null;
+    if (!businessId && input.route_id) {
+      const { data } = await supabase
+        .from("routes")
+        .select("business_id")
+        .eq("id", input.route_id)
+        .maybeSingle();
+      businessId = (data as any)?.business_id ?? null;
+    }
+    if (!businessId) {
+      // Uden business_id kan RLS ikke acceptere insert — log lokalt og opgiv.
+      // eslint-disable-next-line no-console
+      console.warn("[route-audit] skipping insert — no business_id resolvable", input.action);
+      return;
+    }
     const { data: userRes } = await supabase.auth.getUser();
     await supabase.from("route_audit_log").insert({
-      business_id: input.business_id,
+      business_id: businessId,
       actor_id: userRes.user?.id ?? null,
       route_id: input.route_id ?? null,
       agreement_id: input.agreement_id ?? null,
