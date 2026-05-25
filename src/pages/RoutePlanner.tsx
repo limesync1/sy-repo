@@ -1180,7 +1180,7 @@ const Planner = () => {
         } as CalendarRoute;
       })
       .filter(Boolean) as CalendarRoute[];
-  }, [recurringSources, recurringBaseRoutes, calendarRoutesRaw, routeOccurrenceExceptions, calendarRange.start, calendarRange.end, activeEmployees, calendarRoutes]);
+  }, [recurringSources, recurringBaseRoutes, calendarRoutesRaw, routeOccurrenceExceptions, calendarRange.start, calendarRange.end, activeEmployees, calendarRoutes, occurrenceOverrides]);
 
   /* ─── Projection sanity-check / diagnostik ───
      Kører FØR projektionen bruges i UI'et, så vi:
