@@ -952,6 +952,10 @@ const AftaleTab = ({
   const aftalePageSize = useAdaptivePageSize(25);
   const [aftalePage, setAftalePage] = useState(0);
 
+  // Reset til side 0 når filter/sortering ændrer sig. SKAL deklareres før
+  // eventuel early return så React altid ser samme antal hooks pr. render.
+  useEffect(() => { setAftalePage(0); }, [sortBy, filter, search]);
+
   if (isLoading) return <ListCardSkeleton rows={6} />;
 
   const servicesById = (services || []).reduce<Record<string, BusinessService>>((acc, s) => {
@@ -1062,8 +1066,6 @@ const AftaleTab = ({
     }
   });
 
-  // Reset til side 0 når filter/sortering ændrer sig.
-  useEffect(() => { setAftalePage(0); }, [sortBy, (searchedOrders || []).length]);
   const pagedOrders = filteredOrders.slice(
     aftalePage * aftalePageSize,
     (aftalePage + 1) * aftalePageSize,
