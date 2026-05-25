@@ -432,6 +432,7 @@ const Planner = () => {
   const moveRouteSeries = useMoveRouteSeries();
   const addStop = useAddStop();
   const shiftProjectedOccurrence = useShiftProjectedOccurrence();
+  const revertProjectedShift = useRevertProjectedShift();
   const optimizeRoute = useOptimizeRoute();
   const geocode = useGeocodeAddress();
 
