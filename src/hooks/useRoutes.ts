@@ -1846,6 +1846,40 @@ export const useMoveRouteSeries = () => {
   });
 };
 
+/* ─── Move a single PROJECTED occurrence to a different date ───
+ * Clones the base route onto _to_date and adds a 'moved' exception on
+ * _from_date so the projection on the original date is suppressed.
+ * The base route is NEVER changed — projection cadence stays intact.
+ */
+export const useMoveProjectedOccurrence = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ baseRouteId, fromDate, toDate }: {
+      baseRouteId: string;
+      fromDate: string;
+      toDate: string;
+    }) => routeMutationQueue.run(async () => {
+      const { data, error } = await supabase.rpc("move_projected_occurrence" as any, {
+        _base_route_id: baseRouteId,
+        _from_date: fromDate,
+        _to_date: toDate,
+      });
+      if (error) throw error;
+      return data as any;
+    }),
+    onSuccess: () => {
+      invalidateRouteSyncQueries(qc);
+      qc.invalidateQueries({ queryKey: ["route-series-info"] });
+      qc.invalidateQueries({ queryKey: ["recurring-agreements-for-planner"] });
+      qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
+      qc.invalidateQueries({ queryKey: ["route-occurrence-exceptions"] });
+    },
+    onError: (e: any) => {
+      toast.error(e.message || "Kunne ikke flytte den projicerede rute");
+    },
+  });
+};
+
 /* ─── Dispatch route — sends email to a SPECIFIC employee on the route. ─── */
 export const useDispatchRoute = () => {
   const qc = useQueryClient();
