@@ -104,6 +104,8 @@ import { usePersistentState } from "@/hooks/usePersistentState";
 import { pushRouteUndo, routeHistory } from "@/lib/route-history";
 import { useRouteHistory } from "@/hooks/useRouteHistory";
 import { toastSuccessWithUndo } from "@/lib/toast-undo";
+import { estimateOptimizationGain, markOptimizeDismissed } from "@/lib/optimize-savings-estimate";
+import { BulkMoveRoutesDialog, type BulkMoveRouteItem } from "@/components/route-planner/BulkMoveRoutesDialog";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -504,6 +506,9 @@ const Planner = () => {
     routeId: string;
     routeName: string;
     reason: "moved" | "merged";
+    /** Estimat fra `estimateOptimizationGain` — bruges til at vise konkrete
+     *  tal i dialogen så brugeren ved HVORFOR vi spørger ("kan spare 12 km"). */
+    estimate: { savingsKm: number; savingsPct: number; currentKm: number; suggestedKm: number };
   } | null>(null);
 
   // Pending drag-and-drop af en projiceret rute → ny dato.
