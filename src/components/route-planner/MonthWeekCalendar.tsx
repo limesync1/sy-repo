@@ -75,6 +75,16 @@ type Props = {
    *  af dato-tallet INDEN brugeren prøver at trække noget hen. `error` =
    *  rød (fx dobbeltbooket medarbejder), `warning` = gul (fx helligdag). */
   dateAlerts?: Map<string, { severity: "warning" | "error"; label: string }>;
+  /** Sæt med id'er på ruter der pt. er valgt i bulk-multi-select. Tomt sæt
+   *  = ingen i valg-tilstand. Bruges til at tegne en tydelig ring rundt om
+   *  valgte rute-piller, så brugeren altid kan se hvad der vil blive
+   *  bulk-flyttet. */
+  selectedRouteIds?: Set<string>;
+  /** Toggle valg af en konkret rute. Kaldes når brugeren ⌘/Ctrl/Shift-klikker
+   *  på en rute-pille, eller eksplicit på en valg-knap inde i pillen.
+   *  Modtager `id` og evt. originalt event så implementationen kan se
+   *  hvilken modifier-tast der blev brugt. */
+  onToggleRouteSelection?: (id: string, e?: React.MouseEvent) => void;
 };
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
@@ -96,6 +106,7 @@ export const MonthWeekCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
   onCreateRoute, onOptimizeRoute, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
   loadingRoutes, loadingWeather, weatherError, busyTargets, dateAlerts,
+  selectedRouteIds, onToggleRouteSelection,
 }: Props) => {
   const anchor = parseISO(anchorDate);
 
@@ -205,6 +216,8 @@ export const MonthWeekCalendar = ({
                     busy={!!busyTargets?.has(`day:${dateStr}`)}
                     busyRouteIds={busyTargets}
                     alert={dateAlerts?.get(dateStr) ?? null}
+                    selectedRouteIds={selectedRouteIds}
+                    onToggleRouteSelection={onToggleRouteSelection}
                   />
                 );
               })}
