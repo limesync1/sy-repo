@@ -104,6 +104,8 @@ import { usePersistentState } from "@/hooks/usePersistentState";
 import { pushRouteUndo, routeHistory } from "@/lib/route-history";
 import { useRouteHistory } from "@/hooks/useRouteHistory";
 import { toastSuccessWithUndo } from "@/lib/toast-undo";
+import { estimateOptimizationGain, markOptimizeDismissed } from "@/lib/optimize-savings-estimate";
+import { BulkMoveRoutesDialog, type BulkMoveRouteItem } from "@/components/route-planner/BulkMoveRoutesDialog";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -504,6 +506,9 @@ const Planner = () => {
     routeId: string;
     routeName: string;
     reason: "moved" | "merged";
+    /** Estimat fra `estimateOptimizationGain` — bruges til at vise konkrete
+     *  tal i dialogen så brugeren ved HVORFOR vi spørger ("kan spare 12 km"). */
+    estimate: { savingsKm: number; savingsPct: number; currentKm: number; suggestedKm: number };
   } | null>(null);
 
   // Pending drag-and-drop af en projiceret rute → ny dato.
@@ -517,6 +522,32 @@ const Planner = () => {
     toDate: string;
     autoSkipCadence?: boolean;
   } | null>(null);
+
+  // ─── Bulk-multi-select: flyt flere ruter med ét tryk ─────────────────
+  // Brugeren ⌘/Ctrl/Shift-klikker rute-piller i kalenderen for at samle et
+  // valg, og kan så åbne en bulk-flyt dialog der forskyder alle valgte med
+  // samme antal dage. Per-rute konflikt-check og fortidsfilter sker live i
+  // dialogen — ruter med konflikter springes pænt over uden at blokere de
+  // andre.
+  const [selectedRouteIds, setSelectedRouteIds] = useState<Set<string>>(new Set());
+  const [bulkMoveOpen, setBulkMoveOpen] = useState(false);
+  const [bulkMoveInProgress, setBulkMoveInProgress] = useState(false);
+  const [bulkMoveProgress, setBulkMoveProgress] = useState<{ done: number; total: number } | null>(null);
+
+  const toggleRouteSelection = useCallback((id: string) => {
+    setSelectedRouteIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+  const clearRouteSelection = useCallback(() => setSelectedRouteIds(new Set()), []);
+
+  // Når brugeren skifter ugen/måneden eller skifter view rydder vi valget —
+  // ellers risikerer vi at brugeren bulk-flytter ruter de ikke længere kan se.
+  useEffect(() => {
+    setSelectedRouteIds(new Set());
+  }, [calendarRange.start, calendarRange.end, view]);
 
   // Pending start-date konflikt: vises når brugeren dropper en aftale på en
   // dato der ikke matcher aftalens opstartsdato. Brugeren bekræfter om
@@ -2582,12 +2613,10 @@ const Planner = () => {
         description: "Klik Fortryd for at rulle tilbage.",
       });
       setPendingRouteMove(null);
-      // Spørg om vi skal optimere rækkefølgen på den nye dato. Sker kun
-      // hvis ruten har mindst 2 stops — ellers er der intet at optimere.
-      const stopsOnRoute = calendarStops.filter((s: any) => s.route_id === route.id).length;
-      if (stopsOnRoute >= 2) {
-        setPendingOptimizePrompt({ routeId: route.id, routeName: route.name || "Rute", reason: "moved" });
-      }
+      // Klogt: spørg KUN om optimering hvis vores estimat viser at der
+      // reelt er noget at vinde (≥5 km OG ≥20 % besparelse). Ellers
+      // pester vi ikke brugeren — ruten er allerede fint planlagt.
+      tryPromptOptimize(route.id, route.name, "moved");
     } catch (err: any) {
       toast.error(err.message || "Kunne ikke flytte rute", {
         description: "Tjek at den nye dato er gyldig, og prøv igen.",
@@ -2753,11 +2782,10 @@ const Planner = () => {
       // skal optimere stop-rækkefølgen så den nye samlede rute kører
       // geografisk korrekt.
       if (!result?.alreadyMerged) {
-        setPendingOptimizePrompt({
-          routeId: target.id,
-          routeName: target.name || "Rute",
-          reason: "merged",
-        });
+        // Klogt: spørg KUN hvis estimatet faktisk viser meningsfuld
+        // besparelse — ellers er fletteren bare blevet en længere rute
+        // der allerede kører fornuftigt.
+        tryPromptOptimize(target.id, target.name, "merged");
       }
 
       // Undo (kun for "single" scope — at rulle subscription/agreement-ændringer
@@ -2861,6 +2889,34 @@ const Planner = () => {
     });
     try { await runner; } catch { /* */ }
     setOptimizingRouteId(null);
+  };
+
+  /**
+   * Klog gatekeeper: kun spørg brugeren om auto-optimering hvis der reelt er
+   * noget at vinde. Bruger `estimateOptimizationGain` til at sammenligne
+   * den nuværende rækkefølge med en nearest-neighbour heuristik. Hvis
+   * besparelsen er for lille (eller brugeren nylig har sagt "nej tak" til
+   * denne rute) viser vi ingenting — så undgår vi nag.
+   */
+  const tryPromptOptimize = (routeId: string, routeName: string | null, reason: "moved" | "merged") => {
+    if (!routeId) return;
+    // Ekstra defensiv: hent stops fra cachen så vi aldrig viser prompten
+    // for en rute uden data (fx hvis kald sker mellem invalidate og refetch).
+    const stops = calendarStops.filter((s: any) => s.route_id === routeId);
+    if (stops.length === 0) return;
+    const est = estimateOptimizationGain(routeId, stops as any[]);
+    if (!est.worth) return;
+    setPendingOptimizePrompt({
+      routeId,
+      routeName: routeName || "Rute",
+      reason,
+      estimate: {
+        savingsKm: est.savingsKm,
+        savingsPct: est.savingsPct,
+        currentKm: est.currentKm,
+        suggestedKm: est.suggestedKm,
+      },
+    });
   };
 
   const handleCreateRoute = async () => {
@@ -3646,6 +3702,8 @@ const Planner = () => {
                   weatherError={weatherError}
                   busyTargets={busyTargets}
                   dateAlerts={dateAlerts}
+                  selectedRouteIds={selectedRouteIds}
+                  onToggleRouteSelection={(id) => toggleRouteSelection(id)}
                 />
                 </div>
                 </div>
@@ -4364,31 +4422,63 @@ const Planner = () => {
             Aldrig uden bekræftelse — så brugeren bevarer fuld kontrol. */}
         <AlertDialog
           open={!!pendingOptimizePrompt}
-          onOpenChange={(o) => { if (!o) setPendingOptimizePrompt(null); }}
+          onOpenChange={(o) => {
+            if (!o) {
+              // Markér at brugeren dismisset denne rute — vi spørger ikke
+              // igen indenfor 1 time, så vi ikke pester. Samme effekt som
+              // "Nej tak"-knappen.
+              if (pendingOptimizePrompt) markOptimizeDismissed(pendingOptimizePrompt.routeId);
+              setPendingOptimizePrompt(null);
+            }
+          }}
         >
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-accent" />
-                Optimér stop-rækkefølgen?
+                Spar {pendingOptimizePrompt?.estimate.savingsKm ?? 0} km på {pendingOptimizePrompt?.routeName ?? "ruten"}?
               </AlertDialogTitle>
               <AlertDialogDescription asChild>
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <p>
-                    <span className="font-medium text-foreground">{pendingOptimizePrompt?.routeName}</span>{" "}
                     {pendingOptimizePrompt?.reason === "merged"
-                      ? "har fået nye stops efter fletningen."
-                      : "er flyttet til en ny dato."}
+                      ? "Efter fletningen er rækkefølgen ikke længere optimal — kører lidt frem og tilbage."
+                      : "Rækkefølgen er ikke længere optimal på den nye dato — kører lidt frem og tilbage."}
                   </p>
-                  <p>
-                    Vil du have rækkefølgen optimeret automatisk, så ruten kører
-                    mest effektivt geografisk? Du kan altid optimere manuelt senere.
+                  {pendingOptimizePrompt && (
+                    <div className="rounded-md border bg-muted/40 px-3 py-2 text-foreground tabular-nums">
+                      <div className="flex items-center justify-between">
+                        <span>Nu</span>
+                        <span className="font-semibold">{pendingOptimizePrompt.estimate.currentKm} km</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span>Efter optimering</span>
+                        <span className="font-semibold text-emerald-600">
+                          ≈ {pendingOptimizePrompt.estimate.suggestedKm} km
+                        </span>
+                      </div>
+                      <div className="mt-1 border-t pt-1 flex items-center justify-between text-xs">
+                        <span>Besparelse</span>
+                        <span className="font-semibold text-emerald-600">
+                          {pendingOptimizePrompt.estimate.savingsKm} km ({pendingOptimizePrompt.estimate.savingsPct}%)
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  <p className="text-[11px]">
+                    Estimat — du kan altid optimere manuelt senere via knappen på rute-pillen.
                   </p>
                 </div>
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Nej tak</AlertDialogCancel>
+              <AlertDialogCancel
+                onClick={() => {
+                  if (pendingOptimizePrompt) markOptimizeDismissed(pendingOptimizePrompt.routeId);
+                }}
+              >
+                Nej tak
+              </AlertDialogCancel>
               <AlertDialogAction
                 onClick={(e) => {
                   e.preventDefault();
@@ -4403,6 +4493,155 @@ const Planner = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* ─── Bulk-flyt: selection-bar + dialog ─────────────────────────
+            Når ≥1 rute er valgt vises en flydende bar nederst med "Flyt N
+            ruter" + "Ryd". Klik åbner BulkMoveRoutesDialog hvor brugeren
+            angiver dage at forskyde med, ser per-rute preview og konflikter,
+            og bekræfter. Hver mutation køres sekventielt via samme hook
+            som single-flytning, så undo/optimistik fungerer som normalt.  */}
+        {selectedRouteIds.size > 0 && (
+          <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 animate-in fade-in slide-in-from-bottom-2">
+            <div className="flex items-center gap-3 rounded-full border bg-background px-4 py-2 shadow-lg">
+              <span className="text-sm font-semibold text-foreground">
+                {selectedRouteIds.size} {selectedRouteIds.size === 1 ? "rute" : "ruter"} valgt
+              </span>
+              <Button
+                size="sm"
+                className="h-8"
+                onClick={() => setBulkMoveOpen(true)}
+                disabled={bulkMoveInProgress}
+              >
+                <CalendarIcon className="h-3.5 w-3.5" />
+                Flyt valgte
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8"
+                onClick={clearRouteSelection}
+                disabled={bulkMoveInProgress}
+              >
+                Ryd
+              </Button>
+            </div>
+          </div>
+        )}
+        <BulkMoveRoutesDialog
+          open={bulkMoveOpen}
+          onOpenChange={(o) => { if (!bulkMoveInProgress) setBulkMoveOpen(o); }}
+          loading={bulkMoveInProgress}
+          progress={bulkMoveProgress}
+          routes={(() => {
+            const items: BulkMoveRouteItem[] = [];
+            for (const id of selectedRouteIds) {
+              const r = calendarRoutesRaw.find((x) => x.id === id);
+              if (!r) continue;
+              items.push({
+                id: r.id,
+                name: r.name || "Rute",
+                currentDate: r.route_date,
+                color: r.color,
+              });
+            }
+            return items;
+          })()}
+          detectConflicts={(newDates) => {
+            // Live konflikt-tjek pr. rute. To slags blokering:
+            //   1) "collision" — en ANDEN rute (ikke selv en af de valgte)
+            //      ligger allerede på måldatoen.
+            //   2) "past"      — håndteres direkte i dialogen (dato < i dag)
+            // Tomme/manglende koordinater = ingen blokering, fejl udløses
+            // først ved selve mutation.
+            const result = new Map<string, { kind: "collision" | "past"; message: string } | null>();
+            const selected = selectedRouteIds;
+            for (const [routeId, newDate] of newDates.entries()) {
+              const collision = calendarRoutesRaw.find((r) =>
+                r.id !== routeId && !selected.has(r.id) && r.route_date === newDate,
+              );
+              if (collision) {
+                result.set(routeId, {
+                  kind: "collision",
+                  message: `Allerede en rute "${collision.name || "uden navn"}" på den dato`,
+                });
+              } else {
+                result.set(routeId, null);
+              }
+            }
+            return result;
+          }}
+          onRemoveRoute={(id) => toggleRouteSelection(id)}
+          onConfirm={async (offsetDays) => {
+            const today = todayStr();
+            const ids = Array.from(selectedRouteIds);
+            // Filtrer ruter der enten ligger i fortid eller har kollision
+            // — vi flytter kun dem der faktisk kan flyttes, og rapporterer
+            // hvor mange der blev sprunget over.
+            const plan: { route: Route; newDate: string }[] = [];
+            const skipped: { name: string; reason: string }[] = [];
+            for (const id of ids) {
+              const r = calendarRoutesRaw.find((x) => x.id === id);
+              if (!r) continue;
+              const newDate = format(addDays(parseISO(r.route_date), offsetDays), "yyyy-MM-dd");
+              if (newDate < today) {
+                skipped.push({ name: r.name || "Rute", reason: "fortid" });
+                continue;
+              }
+              const collision = calendarRoutesRaw.find((x) =>
+                x.id !== id && !selectedRouteIds.has(x.id) && x.route_date === newDate,
+              );
+              if (collision) {
+                skipped.push({ name: r.name || "Rute", reason: "kollision" });
+                continue;
+              }
+              plan.push({ route: r, newDate });
+            }
+            if (plan.length === 0) {
+              toast.error("Ingen ruter kan flyttes", {
+                description: "Alle valgte ruter ville lande på en blokeret dato.",
+              });
+              return;
+            }
+            setBulkMoveInProgress(true);
+            setBulkMoveProgress({ done: 0, total: plan.length });
+            const toastId = toast.loading(`Flytter ${plan.length} ${plan.length === 1 ? "rute" : "ruter"}…`);
+            let succeeded = 0;
+            const failed: { name: string; message: string }[] = [];
+            for (let i = 0; i < plan.length; i++) {
+              const { route, newDate } = plan[i];
+              try {
+                await moveRouteSeries.mutateAsync({
+                  routeId: route.id,
+                  newDate,
+                  scope: "single",
+                  moveLinkedSubscriptions: false,
+                });
+                succeeded++;
+              } catch (err: any) {
+                failed.push({ name: route.name || "Rute", message: err?.message || "ukendt fejl" });
+              }
+              setBulkMoveProgress({ done: i + 1, total: plan.length });
+            }
+            toast.dismiss(toastId);
+            if (failed.length === 0 && skipped.length === 0) {
+              toast.success(`${succeeded} ${succeeded === 1 ? "rute flyttet" : "ruter flyttet"}`, {
+                description: `Forskudt med ${offsetDays > 0 ? "+" : ""}${offsetDays} ${Math.abs(offsetDays) === 1 ? "dag" : "dage"}.`,
+              });
+            } else if (failed.length === 0) {
+              toast.success(`${succeeded} flyttet · ${skipped.length} sprunget over`, {
+                description: skipped.map((s) => `${s.name} (${s.reason})`).slice(0, 3).join(", "),
+              });
+            } else {
+              toast.error(`${succeeded} flyttet · ${failed.length} fejlede`, {
+                description: failed.map((f) => `${f.name}: ${f.message}`).slice(0, 3).join(" · "),
+              });
+            }
+            setBulkMoveInProgress(false);
+            setBulkMoveProgress(null);
+            setBulkMoveOpen(false);
+            clearRouteSelection();
+          }}
+        />
 
         {/* Bekræftelse: drag/drop af en projiceret forekomst til ny dato. */}
         <MoveProjectedOccurrenceDialog
@@ -4469,11 +4708,7 @@ const Planner = () => {
               // optimering hvis vi kan udlede en konkret rute fra resultatet.
               const newRouteId: string | undefined = (result as any)?.target_route_id ?? (result as any)?.route_id;
               if (newRouteId) {
-                setPendingOptimizePrompt({
-                  routeId: newRouteId,
-                  routeName: pendingProjectedMove.routeName,
-                  reason: "moved",
-                });
+                tryPromptOptimize(newRouteId, pendingProjectedMove.routeName, "moved");
               }
             } catch (e: any) {
               toastRouteError(e, toast.error, { titleFallback: "Kunne ikke flytte den projicerede rute" });

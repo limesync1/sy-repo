@@ -75,6 +75,16 @@ type Props = {
    *  af dato-tallet INDEN brugeren prøver at trække noget hen. `error` =
    *  rød (fx dobbeltbooket medarbejder), `warning` = gul (fx helligdag). */
   dateAlerts?: Map<string, { severity: "warning" | "error"; label: string }>;
+  /** Sæt med id'er på ruter der pt. er valgt i bulk-multi-select. Tomt sæt
+   *  = ingen i valg-tilstand. Bruges til at tegne en tydelig ring rundt om
+   *  valgte rute-piller, så brugeren altid kan se hvad der vil blive
+   *  bulk-flyttet. */
+  selectedRouteIds?: Set<string>;
+  /** Toggle valg af en konkret rute. Kaldes når brugeren ⌘/Ctrl/Shift-klikker
+   *  på en rute-pille, eller eksplicit på en valg-knap inde i pillen.
+   *  Modtager `id` og evt. originalt event så implementationen kan se
+   *  hvilken modifier-tast der blev brugt. */
+  onToggleRouteSelection?: (id: string, e?: React.MouseEvent) => void;
 };
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
@@ -96,6 +106,7 @@ export const MonthWeekCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
   onCreateRoute, onOptimizeRoute, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
   loadingRoutes, loadingWeather, weatherError, busyTargets, dateAlerts,
+  selectedRouteIds, onToggleRouteSelection,
 }: Props) => {
   const anchor = parseISO(anchorDate);
 
@@ -205,6 +216,8 @@ export const MonthWeekCalendar = ({
                     busy={!!busyTargets?.has(`day:${dateStr}`)}
                     busyRouteIds={busyTargets}
                     alert={dateAlerts?.get(dateStr) ?? null}
+                    selectedRouteIds={selectedRouteIds}
+                    onToggleRouteSelection={onToggleRouteSelection}
                   />
                 );
               })}
@@ -241,12 +254,17 @@ type DayCellProps = {
   busyRouteIds?: Set<string>;
   /** Forhåndsdetekteret konflikt på dagen (helligdag / dobbeltbooking). */
   alert?: { severity: "warning" | "error"; label: string } | null;
+  /** Multi-select bulk-flyt: valgte rute-ids. Videresendes til RoutePill. */
+  selectedRouteIds?: Set<string>;
+  /** Toggle af bulk-valg på rute-pille. */
+  onToggleRouteSelection?: (id: string, e?: React.MouseEvent) => void;
 };
 
 const DayCellInner = ({
   date, dateStr, routes, inMonth, today,
   onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, optimizingRouteId, compact, draggingType, draggingRouteId, weather,
   loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds, alert,
+  selectedRouteIds, onToggleRouteSelection,
 }: DayCellProps) => {
   const todayIso = format(new Date(), "yyyy-MM-dd");
   const isPast = dateStr < todayIso;
@@ -435,6 +453,11 @@ const DayCellInner = ({
                   routeDragSourceId={draggingType === "route" ? (draggingRouteId ?? null) : null}
                   busy={!!busyRouteIds?.has(`route:${r.id}`)}
                   isPast={isPast}
+                  selected={!!selectedRouteIds?.has(r.id)}
+                  anySelected={!!selectedRouteIds && selectedRouteIds.size > 0}
+                  onToggleSelect={onToggleRouteSelection
+                    ? (e) => onToggleRouteSelection(r.id, e)
+                    : undefined}
                 />
               ))}
               {overflow > 0 && (
@@ -495,7 +518,9 @@ const DayCell = memo(DayCellInner, (prev, next) => {
     prev.busy === next.busy &&
     prev.busyRouteIds === next.busyRouteIds &&
     prev.alert?.severity === next.alert?.severity &&
-    prev.alert?.label === next.alert?.label
+    prev.alert?.label === next.alert?.label &&
+    prev.selectedRouteIds === next.selectedRouteIds &&
+    prev.onToggleRouteSelection === next.onToggleRouteSelection
   );
 });
 
@@ -515,9 +540,21 @@ type RoutePillProps = {
   busy?: boolean;
   /** True hvis rutens dato ligger før i dag — vis dæmpet visuel stil. */
   isPast?: boolean;
+  /** True hvis ruten er valgt i bulk-multi-select. Tegner tydelig ring. */
+  selected?: boolean;
+  /** True hvis ÉN ELLER FLERE ruter er valgt — bruges til at vise en svag
+   *  checkbox-affordance på ikke-valgte piller så brugeren forstår at de
+   *  også kan vælges. */
+  anySelected?: boolean;
+  /** Toggle valg/fravalg af denne rute (kaldes ved ⌘/Ctrl/Shift-klik eller
+   *  via eksplicit valg-knap). Når undefined er multi-select deaktiveret. */
+  onToggleSelect?: (e: React.MouseEvent) => void;
 };
 
-const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing, compact, jobDragActive, routeDragSourceId, busy, isPast }: RoutePillProps) => {
+const RoutePillInner = ({
+  route, onSelect, onSelectStop, onOptimize, optimizing, compact, jobDragActive, routeDragSourceId,
+  busy, isPast, selected, anySelected, onToggleSelect,
+}: RoutePillProps) => {
   const isVirtual = !!route.isVirtual;
   // Er denne pille et gyldigt flette-mål for den rute der pt. trækkes?
   // - kilden må aldrig være sit eget mål
@@ -529,7 +566,10 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
   // - Fortids-ruter er altid låst (giver ingen mening at re-planlægge noget der er kørt).
   // - Projicerede (virtuelle) ruter må trækkes til ny dato — drop håndteres af
   //   RoutePlanner via shift_projected_occurrence (ingen materialisering).
-  const dragLocked = !!busy || !!isPast;
+  // - Når brugeren er i bulk-valg-tilstand låser vi også drag, så det er
+  //   tydeligt at klik=valg og ikke flyt — undgår overraskelser hvor en
+  //   ⌘-klik ved et uheld ender med at trække ruten i stedet for at vælge.
+  const dragLocked = !!busy || !!isPast || !!anySelected;
   const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({
     id: `route:${route.id}`,
     data: { type: "route", route },
@@ -572,7 +612,24 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
       ref={setRefs}
       data-route-drop-route-id={!isVirtual && !isPast ? route.id : undefined}
       data-route-drop-date={!isVirtual && !isPast ? route.route_date : undefined}
-      onClick={(e) => { e.stopPropagation(); if (!isDragging) onSelect(); }}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (isDragging) return;
+        // Multi-select: ⌘/Ctrl/Shift-klik toggler valg i stedet for at
+        // åbne ruten. Når mindst én rute allerede er valgt opfører ALLE
+        // klik sig som "toggle" så brugeren kan udvide valget uden at
+        // skulle holde en modifier-tast hele tiden. Klik på en pille
+        // udenfor valg-tilstand åbner som før.
+        if (onToggleSelect && (e.metaKey || e.ctrlKey || e.shiftKey || anySelected)) {
+          // Virtuelle/fortids-ruter er låst for bulk-flyt — vi ignorerer
+          // valg-toggle på dem så valget altid kun indeholder ruter der
+          // faktisk kan flyttes.
+          if (isVirtual || isPast) return;
+          onToggleSelect(e);
+          return;
+        }
+        onSelect();
+      }}
       className={cn(
         "relative rounded-md border-l-[3px] cursor-pointer transition-all overflow-hidden bg-card hover:shadow-sm",
         "border border-border/60",
@@ -597,6 +654,12 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
         // dæmp den så brugeren ikke prøver at slippe.
         routeDragSourceId && !isMergeTarget && routeDragSourceId !== route.id && "opacity-40 pointer-events-none",
         busy && "cursor-wait",
+        // Multi-select visuelt — tydelig accent-ring på valgte piller, og
+        // svag dæmpning på ikke-valgte piller mens man er i valg-tilstand,
+        // så valget altid er let at scanne i en travl kalender.
+        selected && "ring-2 ring-accent ring-offset-1 ring-offset-background shadow-sm",
+        anySelected && !selected && !isVirtual && !isPast && "opacity-70 hover:opacity-100",
+        anySelected && (isVirtual || isPast) && "opacity-30",
       )}
       style={{
         borderLeftColor: route.color,
@@ -768,6 +831,9 @@ const RoutePill = memo(RoutePillInner, (prev, next) => {
     prev.compact === next.compact &&
     prev.jobDragActive === next.jobDragActive &&
     prev.routeDragSourceId === next.routeDragSourceId &&
-    prev.busy === next.busy
+    prev.busy === next.busy &&
+    prev.selected === next.selected &&
+    prev.anySelected === next.anySelected &&
+    prev.onToggleSelect === next.onToggleSelect
   );
 });
