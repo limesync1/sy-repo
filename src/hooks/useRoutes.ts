@@ -1739,12 +1739,12 @@ export const useRouteSeriesInfo = (
         subIds.length > 0
           ? supabase
               .from("subscriptions")
-              .select("id, interval, status, next_service_date")
+                .select("id, interval, status, next_service_date, order_id")
               .in("id", subIds)
           : Promise.resolve({ data: [] as any[], error: null } as any),
         supabase
           .from("subscriptions")
-          .select("id, interval, status, next_service_date")
+            .select("id, interval, status, next_service_date, order_id")
           .eq("preferred_route_id", routeId!)
           .eq("status", "active")
           .neq("interval", "engangskøb"),
@@ -1765,14 +1765,35 @@ export const useRouteSeriesInfo = (
       );
 
       const ids = new Set<string>();
+      const subscriptionIds = new Set<string>();
+      const agreementIds = new Set<string>();
+      const orderIds = new Set<string>();
       for (const s of recurringSubs) ids.add(`sub:${s.id}`);
       for (const s of (subsByPref.data || [])) ids.add(`sub:${s.id}`);
       for (const a of (agreementsByPref.data || [])) ids.add(`agr:${a.id}`);
+      for (const s of recurringSubs) {
+        if (s?.id) subscriptionIds.add(String(s.id));
+      }
+      for (const s of (subsByPref.data || [])) {
+        if (s?.id) subscriptionIds.add(String(s.id));
+      }
+      for (const a of (agreementsByPref.data || [])) {
+        if (a?.id) agreementIds.add(String(a.id));
+      }
+      for (const s of recurringSubs) {
+        if (s?.order_id) orderIds.add(String(s.order_id));
+      }
+      for (const s of (subsByPref.data || [])) {
+        if (s?.order_id) orderIds.add(String(s.order_id));
+      }
 
       return {
         recurringAppointmentCount: ids.size,
         linkedSubscriptionCount: ids.size,
         subscriptionIds: Array.from(ids),
+        recurringSubscriptionIds: Array.from(subscriptionIds),
+        agreementIds: Array.from(agreementIds),
+        orderIds: Array.from(orderIds),
       };
     },
   });

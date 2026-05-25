@@ -4212,9 +4212,9 @@ const Planner = () => {
           loading={shiftProjectedOccurrence.isPending}
           onConfirm={async () => {
             if (!pendingProjectedMove) return;
-            const ids = pendingProjectedSeriesInfo?.subscriptionIds ?? [];
-            const agreementIds = ids.filter((s) => s.startsWith("agr:")).map((s) => s.slice(4));
-            const subscriptionIds = ids.filter((s) => s.startsWith("sub:")).map((s) => s.slice(4));
+            const agreementIds = pendingProjectedSeriesInfo?.agreementIds ?? [];
+            const subscriptionIds = pendingProjectedSeriesInfo?.recurringSubscriptionIds ?? [];
+            const orderIds = pendingProjectedSeriesInfo?.orderIds ?? [];
             try {
               await shiftProjectedOccurrence.mutateAsync({
                 baseRouteId: pendingProjectedMove.baseRouteId,
@@ -4222,6 +4222,7 @@ const Planner = () => {
                 toDate: pendingProjectedMove.toDate,
                 agreementIds,
                 subscriptionIds,
+                orderIds,
                 moveStartDates: projectedMoveSyncStart,
                 moveNextDates: projectedMoveSyncNext,
               });

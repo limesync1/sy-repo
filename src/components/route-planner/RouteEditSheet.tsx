@@ -145,6 +145,8 @@ export const RouteEditSheet = ({
   // Pending projected-date flytning — bekræftelses-dialog for at flytte
   // én projiceret fremtidig forekomst uden at røre basisruten.
   const [pendingProjectedDate, setPendingProjectedDate] = useState<string | null>(null);
+  const [projectedMoveSyncStart, setProjectedMoveSyncStart] = useState(false);
+  const [projectedMoveSyncNext, setProjectedMoveSyncNext] = useState(false);
   const [moveStopsOpen, setMoveStopsOpen] = useState(false);
   // Aflys-denne-forekomst dialog for projicerede ruter — opretter
   // `agreement_occurrence_overrides` med status="cancelled" så projektionen
@@ -187,6 +189,19 @@ export const RouteEditSheet = ({
         return `Medarbejder har allerede ${c.stops.length} stops denne dag${overlap}${names ? `: ${names}` : ""}.`;
       });
   }, [moveTargetConflicts]);
+  const { conflicts: projectedMoveTargetConflicts } = useDayConflicts(
+    route?.business_id,
+    pendingProjectedDate || undefined,
+  );
+  const projectedMoveConflictWarnings = useMemo<string[]>(() => {
+    return projectedMoveTargetConflicts
+      .filter((c) => c.stops.length >= 2)
+      .map((c) => {
+        const names = Array.from(new Set(c.stops.map((s) => s.label).filter(Boolean))).slice(0, 3).join(", ");
+        const overlap = c.overlapsTime ? " (tidsoverlap)" : "";
+        return `Medarbejder har allerede ${c.stops.length} stops denne dag${overlap}${names ? `: ${names}` : ""}.`;
+      });
+  }, [projectedMoveTargetConflicts]);
   const cancelConflictWarnings = useMemo<string[]>(() => {
     return sourceDayConflicts
       .filter((c) => c.stops.length >= 2 && c.overlapsTime)
@@ -220,6 +235,13 @@ export const RouteEditSheet = ({
   const moveProjected = useMoveProjectedOccurrence();
   const { data: seriesInfo } = useRouteSeriesInfo(route?.id ?? null, route?.route_date ?? null);
   const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!pendingProjectedDate) {
+      setProjectedMoveSyncStart(false);
+      setProjectedMoveSyncNext(false);
+    }
+  }, [pendingProjectedDate]);
 
   useEffect(() => {
     if (!route) return;
@@ -495,6 +517,11 @@ export const RouteEditSheet = ({
         baseRouteId: route.id,
         fromDate: projectedDate,
         toDate: pendingProjectedDate,
+        agreementIds: seriesInfo?.agreementIds ?? [],
+        subscriptionIds: seriesInfo?.recurringSubscriptionIds ?? [],
+        orderIds: seriesInfo?.orderIds ?? [],
+        moveStartDates: projectedMoveSyncStart,
+        moveNextDates: projectedMoveSyncNext,
       });
       toast.success("Den projicerede forekomst er flyttet til den nye dato");
       setPendingProjectedDate(null);
@@ -865,7 +892,12 @@ export const RouteEditSheet = ({
         routeName={route.name || "Rute"}
         fromDate={projectedDate || ""}
         toDate={pendingProjectedDate || ""}
-        warnings={moveConflictWarnings}
+        recurringAppointmentCount={seriesInfo?.recurringAppointmentCount ?? 0}
+        syncNext={projectedMoveSyncNext}
+        onSyncNextChange={setProjectedMoveSyncNext}
+        syncStart={projectedMoveSyncStart}
+        onSyncStartChange={setProjectedMoveSyncStart}
+        warnings={projectedMoveConflictWarnings}
         loading={moveProjected.isPending}
         onConfirm={handleConfirmMoveProjected}
       />
