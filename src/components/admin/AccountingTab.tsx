@@ -2093,9 +2093,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                     ? <>{activeDef.value === "dinero" ? "Dinero-nummer" : "Organisation"} <span className="font-medium text-foreground/80">{integration.organization_id}</span></>
                     : integration.agreement_number
                       ? <>Aftalenummer <span className="font-medium text-foreground/80">{integration.agreement_number}</span></>
-                      : integration.api_token
-                        ? <>Adgangsnøgle <span className="font-mono text-foreground/80">••••{integration.api_token.slice(-4)}</span></>
-                        : "Forbundet"}
+                      : "Forbundet"}
                 </div>
               </div>
             </div>
