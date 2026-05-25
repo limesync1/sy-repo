@@ -3768,10 +3768,6 @@ const Planner = () => {
           onOpenChange={setDiagnosticsOpen}
           items={projectionDiagnostics.unprojectable}
         />
-              setRouteToDelete(null);
-            }
-          }}
-        />
 
         {/* Bekræft fletning af to ruter (drag-and-drop rute → rute) */}
         <MergeRoutesDialog
