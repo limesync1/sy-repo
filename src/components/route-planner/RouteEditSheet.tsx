@@ -140,6 +140,9 @@ export const RouteEditSheet = ({
   // Pending date-flytning — hvis ruten er del af en serie spørger vi
   // brugeren om kun denne ene eller alle fremtidige skal flyttes.
   const [pendingDate, setPendingDate] = useState<string | null>(null);
+  // Pending projected-date flytning — bekræftelses-dialog for at flytte
+  // én projiceret fremtidig forekomst uden at røre basisruten.
+  const [pendingProjectedDate, setPendingProjectedDate] = useState<string | null>(null);
   const [moveStopsOpen, setMoveStopsOpen] = useState(false);
   // Aflys-denne-forekomst dialog for projicerede ruter — opretter
   // `agreement_occurrence_overrides` med status="cancelled" så projektionen
