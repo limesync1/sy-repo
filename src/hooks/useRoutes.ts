@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useMyEmployeeId } from "@/hooks/useMyEmployee";
 import { filterStopsByOccurrenceDate } from "@/lib/recurring-projection";
+import { intervalToDays as intervalToDaysCentral } from "@/lib/interval";
 import { logRouteAudit } from "@/lib/route-audit";
 import { toastRouteError } from "@/lib/route-errors";
 
