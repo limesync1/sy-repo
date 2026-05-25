@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useMyEmployeeId } from "@/hooks/useMyEmployee";
 import { filterStopsByOccurrenceDate } from "@/lib/recurring-projection";
 import { logRouteAudit } from "@/lib/route-audit";
+import { toastRouteError } from "@/lib/route-errors";
 
 export const invalidateRouteSyncQueries = (qc: ReturnType<typeof useQueryClient>) => {
   qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
@@ -283,7 +284,7 @@ export const useStartStopTime = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["stop-time-entries"] });
     },
-    onError: (e: any) => toast.error(e.message || "Kunne ikke starte tidsregistrering"),
+    onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke starte tidsregistrering" }),
   });
 };
 
@@ -310,7 +311,7 @@ export const useEndStopTime = () => {
       qc.invalidateQueries({ queryKey: ["my-employee-stats"] });
       qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
     },
-    onError: (e: any) => toast.error(e.message || "Kunne ikke afslutte tidsregistrering"),
+    onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke afslutte tidsregistrering" }),
   });
 };
 
@@ -385,7 +386,7 @@ export const useStartWorkday = () => {
         description: `Tidsregistrering begyndte kl. ${time}.`,
       });
     },
-    onError: (e: any) => toast.error(e.message || "Kunne ikke starte arbejdsdag"),
+    onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke starte arbejdsdag" }),
   });
 };
 
@@ -428,7 +429,7 @@ export const useEndWorkday = () => {
         : `Stoppet kl. ${endTime}.`;
       toast.success("Arbejdsdag afsluttet", { description: desc });
     },
-    onError: (e: any) => toast.error(e.message || "Kunne ikke afslutte arbejdsdag"),
+    onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke afslutte arbejdsdag" }),
   });
 };
 
@@ -627,7 +628,7 @@ export const useAddRouteEmployee = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["route-employees-bulk"] });
     },
-    onError: (e: any) => toast.error(e.message || "Kunne ikke tilkoble medarbejder"),
+    onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke tilkoble medarbejder" }),
   });
 };
 
@@ -659,7 +660,7 @@ export const useRemoveRouteEmployee = () => {
       qc.invalidateQueries({ queryKey: ["route-employees-bulk"] });
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
     },
-    onError: (e: any) => toast.error(e.message || "Kunne ikke fjerne medarbejder"),
+    onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke fjerne medarbejder" }),
   });
 };
 
@@ -919,7 +920,7 @@ export const useCreateRoute = () => {
       qc.invalidateQueries({ queryKey: ["routes", vars.business_id, vars.route_date] });
       qc.invalidateQueries({ queryKey: ["routes-range"] });
     },
-    onError: (e: any) => toast.error(e.message || "Kunne ikke oprette rute"),
+    onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke oprette rute" }),
   });
 };
 
@@ -992,7 +993,7 @@ export const useDeleteRoute = () => {
         toast.success("Rute arkiveret — historik bevares");
       }
     },
-    onError: (e: any) => toast.error(e.message || "Kunne ikke slette rute"),
+    onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke slette rute" }),
   });
 };
 
@@ -1025,7 +1026,7 @@ export const useMaterializeVirtualRoute = () => {
       qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
       qc.invalidateQueries({ queryKey: ["route-occurrence-exceptions"] });
     },
-    onError: (e: any) => toast.error(e.message || "Kunne ikke materialisere rute"),
+    onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke materialisere rute" }),
   });
 };
 
@@ -1334,7 +1335,7 @@ export const useSetStopAssignees = () => {
       ctx?.stopsSnap.forEach(([key, data]) => qc.setQueryData(key, data));
       ctx?.calSnap.forEach(([key, data]) => qc.setQueryData(key, data));
       ctx?.recSnap?.forEach(([key, data]) => qc.setQueryData(key, data));
-      toast.error(e.message || "Kunne ikke opdatere medarbejdere");
+      toastRouteError(e, toast.error, { titleFallback: "Kunne ikke opdatere medarbejdere" });
     },
     onSettled: (_data, _err, vars) => {
       // Spring invalidate over hvis brugeren allerede har klikket igen —
@@ -1394,7 +1395,7 @@ export const useAssignSingleEmployee = () => {
     onError: (e: any, _vars, ctx) => {
       ctx?.stopsSnap.forEach(([key, data]) => qc.setQueryData(key, data));
       ctx?.calSnap.forEach(([key, data]) => qc.setQueryData(key, data));
-      toast.error(e.message || "Kunne ikke tildele medarbejder");
+      toastRouteError(e, toast.error, { titleFallback: "Kunne ikke tildele medarbejder" });
     },
     onSettled: (_data, _err, vars) => {
       const q = stopAssigneeQueues.get(vars.stop_id);
@@ -1422,7 +1423,7 @@ export const useUpdateStopStatus = () => {
       return data as RouteStop;
     },
     onSuccess: () => invalidateRouteSyncQueries(qc),
-    onError: (e: any) => toast.error(e.message || "Kunne ikke opdatere stop"),
+    onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke opdatere stop" }),
   });
 };
 
@@ -1499,7 +1500,7 @@ export const useApplyRouteSuggestion = () => {
       qc.invalidateQueries({ queryKey: ["routes-range"] });
       toast.success("Forslag anvendt");
     },
-    onError: (e: any) => toast.error(e.message || "Kunne ikke anvende forslag"),
+    onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke anvende forslag" }),
   });
 };
 
@@ -1625,7 +1626,7 @@ export const useAutoAssignStops = () => {
       return { assigned: stopsTouched, totalAssignments: inserts.length };
     },
     onSuccess: () => invalidateRouteSyncQueries(qc),
-    onError: (e: any) => toast.error(e.message || "Kunne ikke fordele aftaler"),
+    onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke fordele aftaler" }),
   });
 };
 
@@ -1693,7 +1694,7 @@ export const useUpdateRoute = () => {
     },
     onError: (e: any, _vars, ctx) => {
       ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data));
-      toast.error(e.message || "Kunne ikke opdatere rute");
+      toastRouteError(e, toast.error, { titleFallback: "Kunne ikke opdatere rute" });
     },
   });
 };
@@ -1841,7 +1842,7 @@ export const useMoveRouteSeries = () => {
     onError: (e: any, _vars, ctx: any) => {
       // Rul optimistisk patch tilbage hvis serveren afviser.
       ctx?.snapshots?.forEach(([key, data]: [any, any]) => qc.setQueryData(key, data));
-      toast.error(e.message || "Kunne ikke flytte rute");
+      toastRouteError(e, toast.error, { titleFallback: "Kunne ikke flytte rute" });
     },
   });
 };
@@ -1879,7 +1880,7 @@ export const useMoveProjectedOccurrence = () => {
       qc.invalidateQueries({ queryKey: ["route-occurrence-exceptions"] });
     },
     onError: (e: any) => {
-      toast.error(e.message || "Kunne ikke flytte den projicerede rute");
+      toastRouteError(e, toast.error, { titleFallback: "Kunne ikke flytte den projicerede rute" });
     },
   });
 };
@@ -1962,7 +1963,7 @@ export const useDispatchRoute = () => {
       toast.success(`Rute sendt til ${res.recipient}`);
       qc.invalidateQueries({ queryKey: ["routes"] });
     },
-    onError: (e: any) => toast.error(e.message || "Kunne ikke sende ruten"),
+    onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke sende ruten" }),
   });
 };
 

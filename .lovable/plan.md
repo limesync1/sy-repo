@@ -1,110 +1,99 @@
 
-# Rutekalender – faseopdelt redesign
+# Rutekalender 2.0 — markant forbedring
 
-Dokumentet beskriver ~30 sammenhængende krav. De kan ikke leveres som ét stykke arbejde uden at destabilisere systemet undervejs. Planen nedenfor er prioriteret efter hvad der **forhindrer datatab og duplikationer nu**, og hvad der kan vente.
+Målet er at flytte planlæggeren fra "fungerer" til "tænker med brugeren". Hver handling skal:
+- Forudse fejl før de sker
+- Give præcise, handlingsanvisende fejlmeddelelser på dansk
+- Foreslå smarte alternativer i stedet for bare at blokere
+- Aldrig efterlade systemet i en inkonsistent tilstand
 
-Hver fase er et selvstændigt stykke arbejde der efterlader systemet i en stabil tilstand. Vi tager én fase ad gangen og du bekræfter resultatet før vi går videre.
+Planen er opdelt i 5 leverancer. Hver kan leveres selvstændigt; de bygger ovenpå hinanden men giver værdi enkeltvis.
 
 ---
 
-## Fase 1 — Lås projicerede ruter (kritisk)
+## L1 — Centralt validerings- og fejl-bibliotek
 
-Forhindrer at fremtidige projicerede ruter kan ændres ved et uheld.
+Ét sted som alle handlinger i planlæggeren går igennem før de rammer databasen.
 
-- Backend: ny RPC-guard der afviser direkte updates/deletes/stop-ændringer på en route hvis dens dato er en projiceret instans (dvs. ikke materialiseret endnu). Frontend skal IKKE være eneste forsvar.
-- Frontend (`RouteEditSheet`, `StopDetailSheet`, `MonthWeekCalendar`):
-  - Disable rediger-felter (navn, farve, dato, medarbejder, rækkefølge, optimer, slet) når `isVirtual === true`.
-  - Lås-ikon + badge "Projiceret rute".
-  - Drag/drop af stops på projicerede ruter: blokeret.
-  - Drag af hele projicerede ruter til ny dato: stadig tilladt via shift-RPC'en fra forrige tur (kun shift, ingen materialisering).
-- Aflys-forekomst-knappen bevares — den skriver en `cancelled` override på agreement, ikke en route-edit.
+- Ny fil `src/lib/route-validation.ts` med rene funktioner:
+  - `validateRouteMove(route, newDate, context)` — tjekker fortid, helligdag, eksisterende serie-konflikt, medarbejder-konflikt, kapacitet, åbningstider.
+  - `validateStopAssignment(stop, targetRoute)` — tjekker duplikat-aftale på dagen, kunde-konflikt (samme kunde to gange samme dag), åbningstid på adresse, geografisk afstand vs. transporttid.
+  - `validateMerge(source, target)` — tjekker farve-/medarbejder-mismatch, projiceret + projiceret, overlap af aftaler, kapacitet efter fletning.
+  - `validateInterval(agreement, newInterval)` — preview af tilføjede/fjernede datoer, konflikter med ferier og pauser.
+  - `validateBulkAction(routes, action)` — for "optimér alle", "tøm dag" osv.
+- Hver validator returnerer et `ValidationResult`:
+  ```ts
+  { ok: boolean, errors: Issue[], warnings: Issue[], suggestions: Suggestion[] }
+  ```
+  hvor `Issue` har `code`, `severity`, `message` (dansk, konkret), `field`, `affectedIds`, og evt. `fix: () => Promise<void>`.
+- Centralt fejl-katalog `src/lib/route-errors.ts` med 40-60 navngivne fejlkoder + danske beskeder (eksempler: `ROUTE_DATE_IN_PAST`, `DUPLICATE_AGREEMENT_SAME_DAY`, `EMPLOYEE_DOUBLE_BOOKED`, `MERGE_PROJECTION_INTO_PROJECTION`, `STOP_OUTSIDE_BUSINESS_HOURS`, `GEOGRAPHIC_GAP_TOO_LARGE`).
+- Et `useValidation()`-hook UI'et bruger til realtime-feedback (rød/gul/grøn pille på drop-targets, knapper, inputfelter).
 
-## Fase 2 — Sletteguard for ruter med aftaler (kritisk, datatab)
+## L2 — Smart drag-and-drop med live-preview
 
-Forhindrer at ruter med stops/aftaler/historik kan hard-deletes.
+I dag opdages konflikter først efter slip. Det skal vendes.
 
-- Migration: tilføj `archived_at timestamptz` på `routes`. Behold `DELETE` for tomme ruter, men kræv soft-delete via `archive_route(_route_id)` for alt andet.
-- RPC `archive_route` validerer:
-  - Ingen `completed`/`in_progress` stops mistes — de bevares og er stadig synlige i historikken.
-  - Hvis ruten er basisrute for en serie: spørg eksplicit hvad der skal ske med fremtidige projektioner (skip / lad serien fortsætte uden basis).
-- Frontend: erstat slet-knappen med "Arkivér rute" når ruten ikke er tom. Tilføj advarselsdialog med konsekvensanalyse ("X aftaler, Y stops, Z fremtidige forekomster påvirkes").
-- Kalender + lister filtrerer arkiverede ruter fra som default; admin-visning kan toggle dem ind.
+- Mens brugeren trækker:
+  - Hver kalender-celle markeres grøn/gul/rød ud fra `validateStopAssignment` / `validateRouteMove` for det træk.
+  - Tooltip med præcis årsag ved rød ("Anders har allerede 8 timers ruter den dag", "Kunden er allerede booket kl. 10").
+  - Forslag ved gul ("Ruten bliver 95 km lang — vil du optimere efter slip?").
+- Efter slip:
+  - Ved warnings: bekræftelses-dialog med liste over warnings og knappen "Slip alligevel" + "Annullér" + evt. "Auto-fix".
+  - Ved errors: blokering med præcis dansk besked, ingen toast-spam.
+- Debounce på 250 ms på valideringen så det ikke laver flimmer.
 
-## Fase 3 — Recurrence pr. aftale på projicerede ruter (kritisk korrekthed)
+## L3 — Intelligent planlægning og forslag
 
-Sikrer at en projiceret rute viser præcis de aftaler hvis interval rammer den dato.
+Planlæggeren skal selv komme med svar.
 
-Status: dette er allerede implementeret i `expandRecurringRoutes` + `virtualCalendarRoutes` på source-key-niveau. Vi auditerer for kantsager:
+- **Forslag-motor** `src/lib/route-suggestions.ts`:
+  - Når en aftale lander på en overfyldt rute: foreslå nærmeste tomme dag samme uge.
+  - Når en aftale lander langt fra ruten: foreslå nærmere rute samme dag.
+  - Når en medarbejder er dobbeltbooket: foreslå anden ledig medarbejder.
+  - Når en serie får et nyt interval: vis preview af de næste 6 datoer, marker konflikter pr. dato.
+- **Auto-fix knapper** i fejldialoger: "Flyt til nærmeste tomme dag", "Tildel anden medarbejder", "Optimér rækkefølge".
+- **Daglig sundhedstjek** (allerede i `projectionDiagnostics` — udvides):
+  - Banner øverst når der findes inkonsistens: "3 aftaler kan ikke projiceres — vis detaljer".
+  - Klik åbner panel med per-aftale diagnose og fix-knap.
 
-- Hver `agreement` evalueres uafhængigt via `intervalToCadence` + `seed_date`/`anchor_date`.
-- Pause-perioder og helligdage respekteres pr. aftale.
-- Tests/verifikation: kør en datasæts-walk gennem alle aktive serier i basen og log uoverensstemmelser mellem cadence og hvad kalenderen viser. Fix evt. fejl.
+## L4 — Duplikat-forsvar i flere lag
 
-## Fase 4 — Medarbejderpanel: kun aktuelle ruter
+Database-uniques findes (L1 i forrige plan). Vi tilføjer:
 
-Sikrer at medarbejdere ikke ser eller kan udføre fremtidige aftaler.
+- **Frontend claim-token**: alle mutations får et idempotency-token genereret i UI'et, sendes med til RPC, så dobbeltklik / network-retry aldrig laver to records.
+- **Mutation-kø pr. rute**: react-query mutation-keys serialiserer skrivninger til samme rute, så drag-drop-spam ikke racer.
+- **Server-side dedup-RPC**: én `claim_and_execute(_kind, _idempotency_key, _payload)` der bruger `INSERT … ON CONFLICT DO NOTHING` på et claims-table før den udfører handlingen.
+- **Periodisk dedup-scanner** (`detect-route-duplicates` cron, dagligt): finder dubletter på `(business_id, route_date, customer_id)` og logger til `route_audit_log` med severity `warning` så admin kan rydde op.
 
-- Hooks for medarbejder-views (`useMyRoutes`, `useEmployeeAssignments` osv.) filtreres `route_date <= today`.
-- Backend RLS / RPC: medarbejderrolle får kun læseadgang til stops hvor route.route_date <= today OR status in ('completed','in_progress').
-- Action-RPC'er (`complete_stop`, `start_stop`) afviser hvis stoppets dato er i fremtiden.
-- "Næste forekomst" oprettes ikke længere på den aktuelle rute når et stop fuldføres — den findes allerede som projektion på den korrekte fremtidige dato (dette er en stille men vigtig opfølgning på Fase 3).
+## L5 — Bedre fejlmeddelelser overalt
 
-## Fase 5 — Idempotens og duplikat-beskyttelse (robusthed)
+Audit af alle `toast.error(...)` og `throw new Error(...)` i planlæggeren:
 
-Eliminerer dubletter ved dobbeltklik, lag og parallelle brugere.
-
-- Unique constraints:
-  - `routes (base_route_id, route_date) WHERE base_route_id IS NOT NULL` (findes delvist).
-  - `route_stops (route_id, order_id) WHERE order_id IS NOT NULL` — verificér at den findes.
-  - `route_stops (route_id, agreement_id, agreement_occurrence_date)` — partial unique for projicerede stops.
-- Alle write-RPC'er kører i én transaktion med `SELECT … FOR UPDATE` på basisruten.
-- Frontend: alle kritiske knapper (opret rute, materialisér, flyt, flet, optimer, opret stop) bruger `disabled={mutation.isPending}` + serverside idempotency-claim (allerede etableret som `claim_route_planner_idempotency` — vi auditerer dækningen).
-- Debounce på 250 ms på drag-drop final.
-
-## Fase 6 — Intelligent change management (scope-dialoger)
-
-Alle handlinger der påvirker en serie skal spørge bruger: kun denne / fremtidige / hele serien.
-
-Allerede delvist på plads for "flyt rute" og "flyt projiceret rute". Udvides til:
-
-- Flet to ruter → spørg om kilde-rutens fremtidige aftaler også flyttes.
-- Skift medarbejder på basisrute → spørg om fremtidige projektioner også.
-- Skift recurrence-interval → preview af hvilke fremtidige datoer der ændres/fjernes/tilføjes.
-- Aflys forekomst → bekræft med antal påvirkede.
-- Hver dialog viser konsekvensanalyse: påvirkede aftaler, ruter, medarbejdere, konflikter, dobbeltbookinger.
-
-## Fase 7 — Exception/override-model
-
-Renser modellen for enkeltstående afvigelser.
-
-- `route_occurrence_exceptions` er på plads og dækker `skipped` / `shifted` / legacy `moved`.
-- `agreement_occurrence_overrides` dækker per-aftale afvigelser (dato, medarbejder, cancelled).
-- Audit + tests: én pipeline for hvordan exceptions konsumeres i projektionen, så vi aldrig får dobbeltvisning.
-
-## Fase 8 — Audit log og historik
-
-- Ny tabel `route_change_audit` (hvem, hvad, hvornår, scope, before, after).
-- Trigger på `routes`, `route_stops`, `route_occurrence_exceptions`, `agreement_occurrence_overrides`.
-- Admin-view "Aktivitet" på rute-detaljer.
-
-## Fase 9 — Skalerbarhed & queue
-
-- Flyt batch-materialisering og recurrence-regenerering til pg_cron + en worker-edge-function i stedet for at frontend trigger ad-hoc.
-- Pagination/virtualisering i kalender og aftalepool ved store datamængder.
+- Erstatte generiske beskeder ("Noget gik galt", "Kunne ikke opdatere") med:
+  - Hvad blev forsøgt
+  - Hvorfor det fejlede
+  - Hvad brugeren kan gøre
+  - Evt. handlings-knap i toasten
+- Eksempler:
+  - Før: "Kunne ikke flytte rute"
+  - Efter: "Ruten kan ikke flyttes til 14. juni — der findes allerede en rute fra samme serie. Vil du flette dem?" [Flet] [Annullér]
+- Alle fejl logges samtidigt til `route_audit_log` med fuld kontekst (handling, payload, før/efter), så vi kan fejlsøge bagudrettet.
 
 ---
 
 ## Tekniske noter
 
-- Alle nye RPC'er: `SECURITY DEFINER`, `SET search_path = public`, `EXECUTE` kun for `authenticated`, eksplicit auth-check + ejerskab-check.
-- Migrationer kører idempotent (`IF NOT EXISTS`, `ON CONFLICT`).
-- Frontend isolerer projection/instance-logik i `src/lib/recurring-projection.ts` så ingen komponent gætter selv.
-- Vi rører ikke `src/integrations/supabase/{client,types}.ts`.
+- Validatorerne er rene funktioner — testbare med vitest uden DOM.
+- Fejl-katalog er en const-record, så TypeScript håndhæver at alle koder har en dansk besked.
+- L2 og L3 bygger ovenpå L1; L4 og L5 kan delvist leveres parallelt.
+- Ingen database-skemaændringer nødvendige i L1, L2, L3, L5. Kun L4 kræver en migration (claims-table + dedup-cron).
 
----
+## Foreslået rækkefølge
 
-## Hvad jeg foreslår vi starter med
+1. **L1** først — uden den er resten halvhjertet.
+2. **L5** umiddelbart efter — store oplevelsesgevinster med lav risiko.
+3. **L2** — bruger L1, men ændrer UX markant.
+4. **L4** — sikrer at intet slipper igennem.
+5. **L3** — fløden på toppen.
 
-**Fase 1 + Fase 2** først — de fjerner de to mest skadelige bugs (utilsigtet ændring af projicerede ruter, og datatab ved sletning). De er afgrænsede og kan leveres uden at røre projektionsmotoren.
-
-Sig til hvis du vil have en anden rækkefølge, eller om jeg skal udvide en fase med mere detalje før jeg går i gang.
+Sig til hvilken rækkefølge du vil have, eller om jeg skal udvide en leverance med mere detalje før jeg starter.
