@@ -69,7 +69,7 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quote_request_matches")
-        .select("id, match_score, reason, estimated_price, distance_km, status, business_note, ai_draft, ai_draft_generated_at, follow_up_at, created_at, viewed_at, responded_at, quote_request:quote_requests(id, customer_name, customer_email, customer_phone, category, description, city, zip_code, share_contact, created_at)")
+        .select("id, match_score, reason, estimated_price, distance_km, status, business_note, ai_draft, ai_draft_generated_at, follow_up_at, created_at, viewed_at, responded_at, quote_request:quote_requests(id, customer_name, category, description, city, zip_code, share_contact, created_at)")
         .eq("business_id", businessId)
         .order("created_at", { ascending: false })
         .limit(100);
