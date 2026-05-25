@@ -1901,6 +1901,15 @@ const Planner = () => {
       if (source.id === targetRouteId) { releaseDrop(); return; }
       const target = calendarRoutesRaw.find((r) => r.id === targetRouteId);
       if (!target) { releaseDrop(); return; }
+      // Spær: aldrig flet ind i en projiceret (virtuel) rute — den findes
+      // ikke fysisk endnu og ville ellers blive ufrivilligt materialiseret.
+      if ((target as any).isVirtual) {
+        toast.error("Kan ikke flette ind i en projiceret rute", {
+          description: "Vælg en faktisk rute som mål — eller flyt den projicerede forekomst først.",
+        });
+        releaseDrop();
+        return;
+      }
       setPendingRouteMerge({ source, target: target as unknown as Route });
       releaseDrop();
       return;
