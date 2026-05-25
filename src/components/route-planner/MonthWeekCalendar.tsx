@@ -338,15 +338,27 @@ const DayCellInner = ({
       )}
       {/* Dato-header */}
       <div className="flex items-center justify-between mb-0.5">
-        <span
-          className={cn(
-            "inline-flex items-center justify-center rounded-full text-xs font-semibold tabular-nums",
-            today ? "h-6 w-6 bg-accent text-accent-foreground" : "h-6 w-6 text-foreground",
-            !inMonth && !today && "text-muted-foreground/50",
+        <div className="flex items-center gap-1">
+          <span
+            className={cn(
+              "inline-flex items-center justify-center rounded-full text-xs font-semibold tabular-nums",
+              today ? "h-6 w-6 bg-accent text-accent-foreground" : "h-6 w-6 text-foreground",
+              !inMonth && !today && "text-muted-foreground/50",
+            )}
+          >
+            {format(date, "d")}
+          </span>
+          {alert && inMonth && (
+            <span
+              className={cn(
+                "h-2 w-2 rounded-full ring-2 ring-background",
+                alert.severity === "error" ? "bg-destructive" : "bg-amber-500",
+              )}
+              title={alert.label}
+              aria-label={alert.label}
+            />
           )}
-        >
-          {format(date, "d")}
-        </span>
+        </div>
         <div className="flex items-center gap-1">
           {weather && (
             <WeatherBadge weather={weather} size={compact ? "compact" : "full"} />
