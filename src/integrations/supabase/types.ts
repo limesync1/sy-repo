@@ -4356,26 +4356,60 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      move_projected_occurrence: {
-        Args: { _base_route_id: string; _from_date: string; _to_date: string }
-        Returns: {
-          base_route_id: string
-          business_id: string
-          created_at: string
-          exception_type: string
-          id: string
-          occurrence_date: string
-          replacement_route_id: string | null
-          shifted_to_date: string | null
-          updated_at: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "route_occurrence_exceptions"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
+      move_projected_occurrence:
+        | {
+            Args: {
+              _base_route_id: string
+              _from_date: string
+              _to_date: string
+            }
+            Returns: {
+              base_route_id: string
+              business_id: string
+              created_at: string
+              exception_type: string
+              id: string
+              occurrence_date: string
+              replacement_route_id: string | null
+              shifted_to_date: string | null
+              updated_at: string
+            }
+            SetofOptions: {
+              from: "*"
+              to: "route_occurrence_exceptions"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: {
+              _agreement_ids?: string[]
+              _base_route_id: string
+              _from_date: string
+              _move_next_dates?: boolean
+              _move_start_dates?: boolean
+              _order_ids?: string[]
+              _subscription_ids?: string[]
+              _to_date: string
+            }
+            Returns: {
+              base_route_id: string
+              business_id: string
+              created_at: string
+              exception_type: string
+              id: string
+              occurrence_date: string
+              replacement_route_id: string | null
+              shifted_to_date: string | null
+              updated_at: string
+            }
+            SetofOptions: {
+              from: "*"
+              to: "route_occurrence_exceptions"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
       move_route_to_date: {
         Args: { _new_date: string; _route_id: string; _scope?: string }
         Returns: Json
@@ -4473,26 +4507,60 @@ export type Database = {
         Returns: string
       }
       retry_dlq_job: { Args: { _dlq_id: string }; Returns: string }
-      shift_projected_occurrence: {
-        Args: { _base_route_id: string; _from_date: string; _to_date: string }
-        Returns: {
-          base_route_id: string
-          business_id: string
-          created_at: string
-          exception_type: string
-          id: string
-          occurrence_date: string
-          replacement_route_id: string | null
-          shifted_to_date: string | null
-          updated_at: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "route_occurrence_exceptions"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
+      shift_projected_occurrence:
+        | {
+            Args: {
+              _base_route_id: string
+              _from_date: string
+              _to_date: string
+            }
+            Returns: {
+              base_route_id: string
+              business_id: string
+              created_at: string
+              exception_type: string
+              id: string
+              occurrence_date: string
+              replacement_route_id: string | null
+              shifted_to_date: string | null
+              updated_at: string
+            }
+            SetofOptions: {
+              from: "*"
+              to: "route_occurrence_exceptions"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: {
+              _agreement_ids?: string[]
+              _base_route_id: string
+              _from_date: string
+              _move_next_dates?: boolean
+              _move_start_dates?: boolean
+              _order_ids?: string[]
+              _subscription_ids?: string[]
+              _to_date: string
+            }
+            Returns: {
+              base_route_id: string
+              business_id: string
+              created_at: string
+              exception_type: string
+              id: string
+              occurrence_date: string
+              replacement_route_id: string | null
+              shifted_to_date: string | null
+              updated_at: string
+            }
+            SetofOptions: {
+              from: "*"
+              to: "route_occurrence_exceptions"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
       try_claim_route_mutation: {
         Args: { _business_id?: string; _key: string; _kind: string }
         Returns: boolean
