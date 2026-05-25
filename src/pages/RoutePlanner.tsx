@@ -4294,7 +4294,7 @@ const Planner = () => {
             const subscriptionIds = pendingProjectedSeriesInfo?.recurringSubscriptionIds ?? [];
             const orderIds = pendingProjectedSeriesInfo?.orderIds ?? [];
             try {
-              await shiftProjectedOccurrence.mutateAsync({
+              const result = await shiftProjectedOccurrence.mutateAsync({
                 baseRouteId: pendingProjectedMove.baseRouteId,
                 fromDate: pendingProjectedMove.fromDate,
                 toDate: pendingProjectedMove.toDate,
@@ -4305,19 +4305,30 @@ const Planner = () => {
                 moveNextDates: projectedMoveSyncNext,
                 skipTargetCadence: !!pendingProjectedMove.autoSkipCadence,
               });
-              toast.success("Den projicerede forekomst er flyttet til den nye dato");
               const fromD = pendingProjectedMove.fromDate;
               const toD = pendingProjectedMove.toDate;
               const baseId = pendingProjectedMove.baseRouteId;
+              const exceptionId: string | null = (result as any)?.id ?? null;
               pushRouteUndo({
                 label: `Flyt projiceret forekomst tilbage til ${format(parseISO(fromD), "d. MMM", { locale: da })}`,
                 undo: async () => {
-                  await shiftProjectedOccurrence.mutateAsync({
-                    baseRouteId: baseId,
-                    fromDate: toD,
-                    toDate: fromD,
-                  });
+                  // Foretræk ren revert (fjerner exception-rækken helt)
+                  // så projektionen lander præcis på sin oprindelige kadence-dato
+                  // uden at efterlade ekstra exception-rows i DB.
+                  if (exceptionId) {
+                    await revertProjectedShift.mutateAsync({ exceptionId });
+                  } else {
+                    await shiftProjectedOccurrence.mutateAsync({
+                      baseRouteId: baseId,
+                      fromDate: toD,
+                      toDate: fromD,
+                    });
+                  }
                 },
+              });
+              toastSuccessWithUndo({
+                message: `Forekomst flyttet til ${format(parseISO(toD), "EEEE d. MMM", { locale: da })}`,
+                description: "Klik Fortryd for at lægge den tilbage på den oprindelige dato.",
               });
               setPendingProjectedMove(null);
             } catch (e: any) {
