@@ -236,12 +236,10 @@ const LiveChatWidget = () => {
       const { token } = JSON.parse(raw) as { token: string };
       if (!token) return;
       supabase
-        .from("chat_conversations")
-        .select("id, session_token, visitor_name, visitor_email, subject, status")
-        .eq("session_token", token)
-        .maybeSingle()
+        .rpc("get_chat_conversation_by_token", { p_token: token })
         .then(({ data }) => {
-          if (data) setConversation(data as Conversation);
+          const row = Array.isArray(data) ? data[0] : data;
+          if (row) setConversation(row as Conversation);
           else { localStorage.removeItem(STORAGE_KEY); removeChat(platformKey()); }
         });
     } catch {
