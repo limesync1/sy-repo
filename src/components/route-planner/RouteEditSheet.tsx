@@ -782,6 +782,8 @@ export const RouteEditSheet = ({
         defaultScope="single"
         confirmLabel="Aflys forekomst"
         loading={cancelLoading}
+        futureCount={cancelImpact?.futureCount}
+        totalCount={cancelImpact?.totalCount}
         onConfirm={async (_scope: SeriesScope) => {
           if (!route) return;
           setCancelLoading(true);
@@ -810,6 +812,20 @@ export const RouteEditSheet = ({
               .from("agreement_occurrence_overrides")
               .upsert(rows, { onConflict: "agreement_id,original_date" });
             if (error) throw error;
+            // Audit-log pr. aftale så vi kan se hvem der aflyste hvad og hvornår.
+            await Promise.all(
+              agreementIds.map((aid) =>
+                logRouteAudit({
+                  business_id: route.business_id,
+                  route_id: route.id,
+                  agreement_id: aid,
+                  action: "occurrence.cancel",
+                  scope: "single",
+                  affected_count: 1,
+                  after: { original_date: route.route_date, status: "cancelled" },
+                }),
+              ),
+            );
             await qc.invalidateQueries({ queryKey: ["agreement-occurrence-overrides"] });
             await qc.invalidateQueries({ queryKey: ["routes"] });
             toast.success(`Forekomsten er aflyst (${agreementIds.length} ${agreementIds.length === 1 ? "aftale" : "aftaler"})`);
