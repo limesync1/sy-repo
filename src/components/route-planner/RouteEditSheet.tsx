@@ -440,7 +440,8 @@ export const RouteEditSheet = ({
 
   // Hvis brugeren ændrer datoen i picker → åbn scope-dialog i stedet for at autosave.
   const handleDateChange = (next: string) => {
-    if (!route || !next || next === route.route_date) {
+    const currentFrom = isProjection && projectedDate ? projectedDate : route?.route_date;
+    if (!route || !next || next === currentFrom) {
       setDate(next);
       return;
     }
@@ -448,6 +449,13 @@ export const RouteEditSheet = ({
       toast.error("Kan ikke flytte ruten bagud i tiden", {
         description: "Vælg en dato fra i dag eller frem.",
       });
+      return;
+    }
+    if (isProjection) {
+      // Projicerede ruter: vis en simpel bekræftelses-dialog i stedet for
+      // scope-dialogen — vi flytter ALDRIG basisruten, kun denne ene
+      // fremtidige forekomst.
+      setPendingProjectedDate(next);
       return;
     }
     setPendingDate(next);
@@ -472,6 +480,24 @@ export const RouteEditSheet = ({
       setPendingDate(null);
     } catch (e: any) {
       toast.error(e.message || "Kunne ikke flytte rute");
+    }
+  };
+
+  const handleConfirmMoveProjected = async () => {
+    if (!route || !projectedDate || !pendingProjectedDate) return;
+    try {
+      await moveProjected.mutateAsync({
+        baseRouteId: route.id,
+        fromDate: projectedDate,
+        toDate: pendingProjectedDate,
+      });
+      toast.success("Den projicerede forekomst er flyttet");
+      setPendingProjectedDate(null);
+      // Luk sheet'et — den flyttede forekomst er nu en rigtig rute som
+      // brugeren kan åbne igen fra kalenderen.
+      onOpenChange(false);
+    } catch (e: any) {
+      toast.error(e.message || "Kunne ikke flytte den projicerede rute");
     }
   };
 
