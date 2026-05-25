@@ -3472,6 +3472,7 @@ const Planner = () => {
                   onOptimizeRoute={handleCalendarOptimizeRoute}
                   optimizingRouteId={optimizingRouteId}
                   draggingType={draggingTypeForCalendar}
+                  draggingRouteId={activeDragData?.type === "route" ? (activeDragData.route?.id ?? null) : null}
                   weatherByDate={weatherByDate}
                   loadingRoutes={loadingCalendarRoutes || loadingCalendarStops}
                   loadingWeather={loadingWeather}
