@@ -2036,15 +2036,18 @@ const Planner = () => {
         && r.baseRouteId === baseRouteId
         && r.id !== activeData.route.id,
       );
-      if (collidingVirtual) {
-        toast.error("Der er allerede en projiceret forekomst af ruten på den dato");
-        return;
-      }
+      // Hvis det er en NATURLIG kadence-forekomst af samme serie der ville
+      // ligge på mål-datoen, blokerer vi ikke længere. I stedet tilbyder vi
+      // brugeren at "auto-skippe" den dag, så der ikke ender to forekomster
+      // oven i hinanden. (En shifted-forekomst flyttet hertil tidligere er
+      // stadig en hård konflikt — server-RPC'en fanger den.)
+      const autoSkipCadence = !!collidingVirtual;
       setPendingProjectedMove({
         baseRouteId,
         routeName: activeData.route.name || "Rute",
         fromDate,
         toDate,
+        autoSkipCadence,
       });
       return;
     }
