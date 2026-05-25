@@ -829,6 +829,9 @@ const RoutePill = memo(RoutePillInner, (prev, next) => {
     prev.compact === next.compact &&
     prev.jobDragActive === next.jobDragActive &&
     prev.routeDragSourceId === next.routeDragSourceId &&
-    prev.busy === next.busy
+    prev.busy === next.busy &&
+    prev.selected === next.selected &&
+    prev.anySelected === next.anySelected &&
+    prev.onToggleSelect === next.onToggleSelect
   );
 });
