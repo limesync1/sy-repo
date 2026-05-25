@@ -1739,12 +1739,12 @@ export const useRouteSeriesInfo = (
         subIds.length > 0
           ? supabase
               .from("subscriptions")
-              .select("id, interval, status, next_service_date")
+                .select("id, interval, status, next_service_date, order_id")
               .in("id", subIds)
           : Promise.resolve({ data: [] as any[], error: null } as any),
         supabase
           .from("subscriptions")
-          .select("id, interval, status, next_service_date")
+            .select("id, interval, status, next_service_date, order_id")
           .eq("preferred_route_id", routeId!)
           .eq("status", "active")
           .neq("interval", "engangskøb"),
