@@ -571,6 +571,7 @@ type RouteOccurrenceException = {
   occurrence_date: string;
   replacement_route_id: string | null;
   exception_type: string;
+  shifted_to_date: string | null;
 };
 
 /** Datoer hvor en projiceret rute er flyttet/materialiseret, så gamle virtuelle forekomster ikke vises igen. */
@@ -588,7 +589,7 @@ export const useRouteOccurrenceExceptions = (
     queryFn: async () => {
       const { data, error } = await supabase
         .from("route_occurrence_exceptions" as any)
-        .select("base_route_id, occurrence_date, replacement_route_id, exception_type")
+        .select("base_route_id, occurrence_date, replacement_route_id, exception_type, shifted_to_date")
         .eq("business_id", businessId!)
         .gte("occurrence_date", from)
         .lte("occurrence_date", to);
