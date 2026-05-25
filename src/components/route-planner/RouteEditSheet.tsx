@@ -145,6 +145,8 @@ export const RouteEditSheet = ({
   // Pending projected-date flytning — bekræftelses-dialog for at flytte
   // én projiceret fremtidig forekomst uden at røre basisruten.
   const [pendingProjectedDate, setPendingProjectedDate] = useState<string | null>(null);
+  const [projectedMoveSyncStart, setProjectedMoveSyncStart] = useState(false);
+  const [projectedMoveSyncNext, setProjectedMoveSyncNext] = useState(false);
   const [moveStopsOpen, setMoveStopsOpen] = useState(false);
   // Aflys-denne-forekomst dialog for projicerede ruter — opretter
   // `agreement_occurrence_overrides` med status="cancelled" så projektionen
@@ -220,6 +222,13 @@ export const RouteEditSheet = ({
   const moveProjected = useMoveProjectedOccurrence();
   const { data: seriesInfo } = useRouteSeriesInfo(route?.id ?? null, route?.route_date ?? null);
   const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!pendingProjectedDate) {
+      setProjectedMoveSyncStart(false);
+      setProjectedMoveSyncNext(false);
+    }
+  }, [pendingProjectedDate]);
 
   useEffect(() => {
     if (!route) return;
@@ -495,6 +504,11 @@ export const RouteEditSheet = ({
         baseRouteId: route.id,
         fromDate: projectedDate,
         toDate: pendingProjectedDate,
+        agreementIds: seriesInfo?.agreementIds ?? [],
+        subscriptionIds: seriesInfo?.recurringSubscriptionIds ?? [],
+        orderIds: seriesInfo?.orderIds ?? [],
+        moveStartDates: projectedMoveSyncStart,
+        moveNextDates: projectedMoveSyncNext,
       });
       toast.success("Den projicerede forekomst er flyttet til den nye dato");
       setPendingProjectedDate(null);
@@ -865,6 +879,11 @@ export const RouteEditSheet = ({
         routeName={route.name || "Rute"}
         fromDate={projectedDate || ""}
         toDate={pendingProjectedDate || ""}
+        recurringAppointmentCount={seriesInfo?.recurringAppointmentCount ?? 0}
+        syncNext={projectedMoveSyncNext}
+        onSyncNextChange={setProjectedMoveSyncNext}
+        syncStart={projectedMoveSyncStart}
+        onSyncStartChange={setProjectedMoveSyncStart}
         warnings={moveConflictWarnings}
         loading={moveProjected.isPending}
         onConfirm={handleConfirmMoveProjected}
