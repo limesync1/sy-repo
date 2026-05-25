@@ -448,6 +448,16 @@ const Planner = () => {
     newDate: string;
   } | null>(null);
 
+  // Efter en vellykket flytning/merge spørger vi om brugeren vil køre
+  // auto-optimering af stop-rækkefølgen på den berørte rute. Vi optimerer
+  // ALDRIG uden brugerens aktive ja — så rækkefølgen ikke pludselig ændrer
+  // sig "i baggrunden" efter en flytning.
+  const [pendingOptimizePrompt, setPendingOptimizePrompt] = useState<{
+    routeId: string;
+    routeName: string;
+    reason: "moved" | "merged";
+  } | null>(null);
+
   // Pending drag-and-drop af en projiceret rute → ny dato.
   // Vises som en bekræftelsesdialog så brugeren aktivt skal sige ja
   // før forekomsten flyttes — en utilsigtet drag/drop må aldrig flytte
