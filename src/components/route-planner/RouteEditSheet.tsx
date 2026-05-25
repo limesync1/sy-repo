@@ -31,6 +31,7 @@ import { DatePickerField } from "./DatePickerField";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection";
 import { pickDuration } from "@/components/route/EtaBreakdown";
 import { MoveRouteDateDialog, type MoveRouteScope } from "./MoveRouteDateDialog";
+import { MoveProjectedOccurrenceDialog } from "./MoveProjectedOccurrenceDialog";
 import { MoveStopsDialog } from "./MoveStopsDialog";
 import { SeriesScopeDialog, type SeriesScope } from "./SeriesScopeDialog";
 import { logRouteAudit } from "@/lib/route-audit";
@@ -858,49 +859,16 @@ export const RouteEditSheet = ({
       />
 
       {/* Bekræftelse: flyt EN projiceret forekomst til ny dato. */}
-      <AlertDialog
+      <MoveProjectedOccurrenceDialog
         open={!!pendingProjectedDate}
         onOpenChange={(o) => { if (!o && !moveProjected.isPending) setPendingProjectedDate(null); }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Flyt denne fremtidige rute?</AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-2 text-sm">
-                <div>
-                  Du er ved at flytte den projicerede forekomst af
-                  {" "}<span className="font-medium text-foreground">{route.name || "ruten"}</span>{" "}
-                  fra{" "}
-                  <span className="font-medium text-foreground capitalize">
-                    {projectedDate ? format(parseISO(projectedDate), "EEEE d. MMM yyyy", { locale: da }) : "—"}
-                  </span>{" "}
-                  til{" "}
-                  <span className="font-medium text-foreground capitalize">
-                    {pendingProjectedDate ? format(parseISO(pendingProjectedDate), "EEEE d. MMM yyyy", { locale: da }) : "—"}
-                  </span>.
-                </div>
-                <div className="rounded-md border border-border bg-muted/40 p-2 text-xs leading-snug text-muted-foreground">
-                  Kun denne ene forekomst flyttes — den forbliver en projektion
-                  på den nye dato og bliver ikke til en faktisk rute. Basisruten
-                  og rutens øvrige projicerede forekomster forbliver uændrede.
-                </div>
-                {moveConflictWarnings.length > 0 && (
-                  <ul className="rounded-md border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 p-2 text-[11px] leading-snug text-amber-900 dark:text-amber-200 space-y-0.5">
-                    {moveConflictWarnings.map((w, i) => <li key={i}>• {w}</li>)}
-                  </ul>
-                )}
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={moveProjected.isPending}>Annullér</AlertDialogCancel>
-            <Button onClick={handleConfirmMoveProjected} disabled={moveProjected.isPending}>
-              {moveProjected.isPending && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
-              Flyt forekomst
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        routeName={route.name || "Rute"}
+        fromDate={projectedDate || ""}
+        toDate={pendingProjectedDate || ""}
+        warnings={moveConflictWarnings}
+        loading={moveProjected.isPending}
+        onConfirm={handleConfirmMoveProjected}
+      />
 
       <MoveStopsDialog
         open={moveStopsOpen}
