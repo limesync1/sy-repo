@@ -66,6 +66,7 @@ Basisrute `Ruten 1` (27. maj) har **6 materialiserede dattererute-rows** (8. jun
 11. ✅ **Idempotency-keys**: Jobs har unik `idempotency_key`. Klient-side `routeMutationQueue` har allerede mutation-keys; nye materialiseringer kan nu queues uden duplikat-risiko.
 12. **`useMaterializationJobs(businessId)`** hook eksponerer kø-status til admin-panel (filtrer på status, limit). Klar til at wires ind i et "Kø-monitor" view.
 13. ✅ **Cron-aktiveret worker**: `pg_cron` planlagt til at køre `process_route_materialization_jobs(50)` hvert minut. Køens retries fyrer nu uden manuel intervention.
+14. ✅ **Konfliktadvarsler i UI**: `SeriesScopeDialog` har nu `warnings?: string[]` prop som viser en gul "Mulige konflikter"-boks over scope-valg. `useDayConflicts(businessId, date)` hook samler dobbeltbookinger live fra databasen og kan kobles på enhver mutation der flytter aftaler eller skifter medarbejder.
 
 ## Hvorfor det her tager flere iterationer
 

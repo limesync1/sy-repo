@@ -9,7 +9,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Calendar, CalendarRange, Repeat, Loader2 } from "lucide-react";
+import { Calendar, CalendarRange, Repeat, Loader2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type SeriesScope = "single" | "future" | "all";
@@ -37,6 +37,12 @@ type Props = {
   loading?: boolean;
   confirmLabel?: string;
   onConfirm: (scope: SeriesScope) => Promise<void> | void;
+  /**
+   * Valgfri advarsler — vises som gul boks over scope-valg så brugeren
+   * kan se fx dobbeltbookinger FØR de bekræfter. Bruges af
+   * konfliktdetektion (`detectConflicts`).
+   */
+  warnings?: string[];
 };
 
 /**
@@ -52,6 +58,7 @@ export function SeriesScopeDialog({
   loading,
   confirmLabel = "Bekræft",
   onConfirm,
+  warnings,
 }: Props) {
   const [scope, setScope] = useState<SeriesScope>(defaultScope);
 
@@ -95,6 +102,23 @@ export function SeriesScopeDialog({
         </AlertDialogHeader>
 
         <div className="space-y-2 py-2">
+          {warnings && warnings.length > 0 && (
+            <div className="rounded-md border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 p-3 mb-1">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-semibold text-amber-900 dark:text-amber-200 mb-1">
+                    Mulige konflikter
+                  </div>
+                  <ul className="text-xs text-amber-900/90 dark:text-amber-200/90 space-y-0.5">
+                    {warnings.map((w, i) => (
+                      <li key={i}>• {w}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
           {options.map((opt) => {
             const Icon = opt.icon;
             const active = scope === opt.value;
