@@ -1595,24 +1595,9 @@ const Planner = () => {
         ? data.type
         : "unknown";
     dragMetrics.start(metricType);
-    if (data?.type === "route" && data?.route?.isVirtual) {
-      setActiveDragId(null);
-      setActiveDragData(null);
-      setRouteDragPoint(null);
-      activeRouteDragPointRef.current = null;
-      activeRouteDragOriginRef.current = null;
-      if (businessId) {
-        void logRoutePlannerEvent({
-          businessId,
-          eventType: "virtual_route_drag_blocked_client",
-          severity: "warning",
-          baseRouteId: data.route.baseRouteId ?? null,
-          projectedDate: data.route.route_date ?? null,
-          details: { routeId: data.route.id },
-        });
-      }
-      return;
-    }
+    // Virtuelle (projicerede) ruter er nu tilladt at trække — de håndteres
+    // separat i drag-end ved at registrere en shift-undtagelse i stedet for
+    // at flytte selve basisruten eller materialisere den.
     setActiveDragId(e.active.id as string);
     setActiveDragData(data);
     const origin = getDragPoint(e.activatorEvent);
