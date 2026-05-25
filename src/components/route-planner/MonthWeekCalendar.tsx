@@ -610,7 +610,24 @@ const RoutePillInner = ({
       ref={setRefs}
       data-route-drop-route-id={!isVirtual && !isPast ? route.id : undefined}
       data-route-drop-date={!isVirtual && !isPast ? route.route_date : undefined}
-      onClick={(e) => { e.stopPropagation(); if (!isDragging) onSelect(); }}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (isDragging) return;
+        // Multi-select: ⌘/Ctrl/Shift-klik toggler valg i stedet for at
+        // åbne ruten. Når mindst én rute allerede er valgt opfører ALLE
+        // klik sig som "toggle" så brugeren kan udvide valget uden at
+        // skulle holde en modifier-tast hele tiden. Klik på en pille
+        // udenfor valg-tilstand åbner som før.
+        if (onToggleSelect && (e.metaKey || e.ctrlKey || e.shiftKey || anySelected)) {
+          // Virtuelle/fortids-ruter er låst for bulk-flyt — vi ignorerer
+          // valg-toggle på dem så valget altid kun indeholder ruter der
+          // faktisk kan flyttes.
+          if (isVirtual || isPast) return;
+          onToggleSelect(e);
+          return;
+        }
+        onSelect();
+      }}
       className={cn(
         "relative rounded-md border-l-[3px] cursor-pointer transition-all overflow-hidden bg-card hover:shadow-sm",
         "border border-border/60",
@@ -635,6 +652,12 @@ const RoutePillInner = ({
         // dæmp den så brugeren ikke prøver at slippe.
         routeDragSourceId && !isMergeTarget && routeDragSourceId !== route.id && "opacity-40 pointer-events-none",
         busy && "cursor-wait",
+        // Multi-select visuelt — tydelig accent-ring på valgte piller, og
+        // svag dæmpning på ikke-valgte piller mens man er i valg-tilstand,
+        // så valget altid er let at scanne i en travl kalender.
+        selected && "ring-2 ring-accent ring-offset-1 ring-offset-background shadow-sm",
+        anySelected && !selected && !isVirtual && !isPast && "opacity-70 hover:opacity-100",
+        anySelected && (isVirtual || isPast) && "opacity-30",
       )}
       style={{
         borderLeftColor: route.color,
