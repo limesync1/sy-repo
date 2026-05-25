@@ -2756,11 +2756,10 @@ const Planner = () => {
       // skal optimere stop-rækkefølgen så den nye samlede rute kører
       // geografisk korrekt.
       if (!result?.alreadyMerged) {
-        setPendingOptimizePrompt({
-          routeId: target.id,
-          routeName: target.name || "Rute",
-          reason: "merged",
-        });
+        // Klogt: spørg KUN hvis estimatet faktisk viser meningsfuld
+        // besparelse — ellers er fletteren bare blevet en længere rute
+        // der allerede kører fornuftigt.
+        tryPromptOptimize(target.id, target.name, "merged");
       }
 
       // Undo (kun for "single" scope — at rulle subscription/agreement-ændringer
