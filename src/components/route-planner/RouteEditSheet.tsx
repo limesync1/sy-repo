@@ -341,6 +341,32 @@ export const RouteEditSheet = ({
   }, [open]);
   useEffect(() => () => { flushPending(); }, []); // unmount safety
 
+  // Hurtig fallback-estimat baseret på fugl-flugt-afstand mellem waypoints.
+  // Vises mens directions-API'et henter, så "Estimeret rejsetid" aldrig er tom.
+  // 45 km/t er et realistisk dansk by/landevejs-gennemsnit inkl. stop.
+  // VIGTIGT: denne hook skal stå FØR enhver early-return, ellers ændres
+  // hook-rækkefølgen mellem renders → "Rendered more hooks than during the
+  // previous render"-fejl når sheeten åbnes/lukkes.
+  const fallbackDurationSec = useMemo(() => {
+    if (!waypoints || waypoints.length < 2) return null;
+    let meters = 0;
+    for (let i = 1; i < waypoints.length; i++) {
+      const a = waypoints[i - 1];
+      const b = waypoints[i];
+      const R = 6371000;
+      const toRad = (d: number) => (d * Math.PI) / 180;
+      const dLat = toRad(b.lat - a.lat);
+      const dLng = toRad(b.lng - a.lng);
+      const lat1 = toRad(a.lat);
+      const lat2 = toRad(b.lat);
+      const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+      meters += 2 * R * Math.asin(Math.sqrt(h));
+    }
+    // Korriger fra fugl-flugt til vej (~1.3x) og divider med gennemsnitsfart.
+    const km = (meters / 1000) * 1.3;
+    return Math.round((km / 45) * 3600);
+  }, [waypoints]);
+
   if (!route) return null;
 
   const handleDelete = async () => {
@@ -446,29 +472,6 @@ export const RouteEditSheet = ({
 
   // Brug altid den korrigerede ETA (med DK trafik-buffer) — ingen toggle længere.
   const displayDuration = routeDirections ? pickDuration(routeDirections, false) : null;
-
-  // Hurtig fallback-estimat baseret på fugl-flugt-afstand mellem waypoints.
-  // Vises mens directions-API'et henter, så "Estimeret rejsetid" aldrig er tom.
-  // 45 km/t er et realistisk dansk by/landevejs-gennemsnit inkl. stop.
-  const fallbackDurationSec = useMemo(() => {
-    if (!waypoints || waypoints.length < 2) return null;
-    let meters = 0;
-    for (let i = 1; i < waypoints.length; i++) {
-      const a = waypoints[i - 1];
-      const b = waypoints[i];
-      const R = 6371000;
-      const toRad = (d: number) => (d * Math.PI) / 180;
-      const dLat = toRad(b.lat - a.lat);
-      const dLng = toRad(b.lng - a.lng);
-      const lat1 = toRad(a.lat);
-      const lat2 = toRad(b.lat);
-      const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
-      meters += 2 * R * Math.asin(Math.sqrt(h));
-    }
-    // Korriger fra fugl-flugt til vej (~1.3x) og divider med gennemsnitsfart.
-    const km = (meters / 1000) * 1.3;
-    return Math.round((km / 45) * 3600);
-  }, [waypoints]);
 
   return (
     <>
