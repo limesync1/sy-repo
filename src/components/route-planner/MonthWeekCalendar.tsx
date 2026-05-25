@@ -55,6 +55,9 @@ type Props = {
   optimizingRouteId?: string | null;
   /** Sat til 'job' når brugeren trækker en aftale fra aftalepoolen — får drop-targets til at lyse op. */
   draggingType?: "job" | "route" | "stop" | null;
+  /** Id på den rute der pt. trækkes (kun sat når draggingType === "route") — bruges til at
+   *  markere andre ruter som mulige flette-mål visuelt, og til at undgå at markere kilden selv. */
+  draggingRouteId?: string | null;
   /** Map fra yyyy-MM-dd → vejrudsigt for dagen. */
   weatherByDate?: Map<string, WeatherDay>;
   /** Vi henter stadig ruter/stops til perioden — vis skeleton-piller i hver dag-celle
@@ -87,7 +90,7 @@ const fmtRouteKrCompact = (n: number) => {
 
 export const MonthWeekCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
-  onCreateRoute, onOptimizeRoute, optimizingRouteId, draggingType, weatherByDate,
+  onCreateRoute, onOptimizeRoute, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
   loadingRoutes, loadingWeather, weatherError, busyTargets,
 }: Props) => {
   const anchor = parseISO(anchorDate);
