@@ -1076,6 +1076,12 @@ const Planner = () => {
       rangeEnd: calendarRange.end,
       realRouteDates: realKeys,
       overrides: occurrenceOverrides as any[],
+      pauses: agreementPauses.map((p) => ({
+        agreement_id: p.agreement_id,
+        start_date: p.start_date,
+        end_date: p.end_date,
+      })),
+      holidayDates: businessHolidays.map((h) => h.holiday_date),
     });
     return projections
       .map((p) => {
