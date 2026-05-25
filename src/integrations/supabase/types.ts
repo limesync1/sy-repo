@@ -2864,6 +2864,66 @@ export type Database = {
           },
         ]
       }
+      route_materialization_jobs: {
+        Row: {
+          agreement_id: string | null
+          attempts: number
+          business_id: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          idempotency_key: string
+          last_error: string | null
+          max_attempts: number
+          next_attempt_at: string
+          occurrence_date: string | null
+          occurrence_id: string | null
+          payload: Json
+          started_at: string | null
+          status: string
+          target_route_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          agreement_id?: string | null
+          attempts?: number
+          business_id: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          idempotency_key: string
+          last_error?: string | null
+          max_attempts?: number
+          next_attempt_at?: string
+          occurrence_date?: string | null
+          occurrence_id?: string | null
+          payload?: Json
+          started_at?: string | null
+          status?: string
+          target_route_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          agreement_id?: string | null
+          attempts?: number
+          business_id?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          idempotency_key?: string
+          last_error?: string | null
+          max_attempts?: number
+          next_attempt_at?: string
+          occurrence_date?: string | null
+          occurrence_id?: string | null
+          payload?: Json
+          started_at?: string | null
+          status?: string
+          target_route_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       route_occurrence_exceptions: {
         Row: {
           base_route_id: string
@@ -3807,6 +3867,10 @@ export type Database = {
         Args: { _occurrence_id: string }
         Returns: undefined
       }
+      _worker_materialize_occurrence: {
+        Args: { _occurrence_id: string; _target_route_id: string }
+        Returns: string
+      }
       admin_business_stats: {
         Args: never
         Returns: {
@@ -4075,6 +4139,19 @@ export type Database = {
         Args: { _business_id: string; _month: number; _year: number }
         Returns: number
       }
+      enqueue_route_materialization: {
+        Args: {
+          p_agreement_id?: string
+          p_business_id: string
+          p_delay_seconds?: number
+          p_idempotency_key: string
+          p_occurrence_date?: string
+          p_occurrence_id?: string
+          p_payload?: Json
+          p_target_route_id?: string
+        }
+        Returns: string
+      }
       ensure_agreement_occurrences: {
         Args: { _business_id: string; _until_date: string }
         Returns: number
@@ -4326,6 +4403,14 @@ export type Database = {
       pick_route_color: {
         Args: { _business_id: string; _route_date: string }
         Returns: string
+      }
+      process_route_materialization_jobs: {
+        Args: { p_limit?: number }
+        Returns: {
+          error: string
+          job_id: string
+          status: string
+        }[]
       }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
