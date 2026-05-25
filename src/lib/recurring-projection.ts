@@ -25,6 +25,17 @@ export type ProjectedRoute = {
   sourceKeys: string[];
 };
 
+/**
+ * Override-række pr. forekomst af en gentagende aftale. Bruges til at flytte,
+ * aflyse eller på anden vis ændre en enkelt forekomst uden at røre serien.
+ */
+export type AgreementOccurrenceOverride = {
+  agreement_id: string;
+  original_date: string;   // yyyy-MM-dd — den dato i serien der overskrives
+  new_date?: string | null;
+  status: "modified" | "cancelled" | "rescheduled";
+};
+
 export const recurringSourceKeysForStop = (stop: any): string[] => {
   const occurrence = stop?.agreement_occurrences || stop?.agreement_occurrence || null;
   return [
@@ -85,6 +96,8 @@ type RecurringSource = {
   preferred_route_id: string | null;
   /** Match-nøgler til stops: fx `agr:<id>`, `sub:<id>`, `order:<id>`. */
   sourceKeys?: string[];
+  /** Aftalens id (når kilden er en aftale). Bruges til at slå overrides op. */
+  agreement_id?: string | null;
 };
 
 export const expandRecurringRoutes = (params: {
@@ -95,9 +108,19 @@ export const expandRecurringRoutes = (params: {
   horizonDays?: number;
   /** Sæt af `${routeId}|${yyyy-MM-dd}` der allerede har en rigtig rute — disse springes over. */
   realRouteDates: Set<string>;
+  /** Per-forekomst overrides — aflyser/flytter enkelte forekomster uden at røre serien. */
+  overrides?: AgreementOccurrenceOverride[];
   /** Callback når en kilde IKKE kan projiceres — bruges til UI-advarsler så fejl ikke bare "forsvinder". */
   onUnprojectable?: (source: RecurringSource, reason: "missing_route" | "missing_seed" | "invalid_interval") => void;
 }): ProjectedRoute[] => {
+  // Index overrides pr. aftale så lookup pr. dato er O(1).
+  const overridesByAgreement = new Map<string, Map<string, AgreementOccurrenceOverride>>();
+  for (const o of params.overrides || []) {
+    const inner = overridesByAgreement.get(o.agreement_id) || new Map();
+    inner.set(String(o.original_date).slice(0, 10), o);
+    overridesByAgreement.set(o.agreement_id, inner);
+  }
+
   // Projicerer pr. kilde (aftale) og samler datoer pr. rute, så samme dato
   // ikke duplikeres når flere aftaler falder sammen på samme rute/dag.
   const byRouteDate = new Map<string, ProjectedRoute>(); // `${routeId}|${date}`
@@ -175,9 +198,21 @@ export const expandRecurringRoutes = (params: {
     // risikere uendelig løkke ved misformede data.
     let safety = 0;
     while (!isBefore(limit, cursor) && safety++ < 4000) {
-      const ds = format(cursor, "yyyy-MM-dd");
+      const rawDs = format(cursor, "yyyy-MM-dd");
+      // Anvend evt. override på denne forekomst — aflyste hoppes over,
+      // flyttede projiceres på den nye dato i stedet.
+      const ovr = s.agreement_id ? overridesByAgreement.get(s.agreement_id)?.get(rawDs) : undefined;
+      if (ovr?.status === "cancelled") {
+        stepIndex += 1;
+        cursor = advance(seed, stepIndex);
+        continue;
+      }
+      const ds = (ovr?.new_date && (ovr.status === "rescheduled" || ovr.status === "modified"))
+        ? String(ovr.new_date).slice(0, 10)
+        : rawDs;
       const key = `${routeId}|${ds}`;
-      if (!isBefore(cursor, start) && !isBefore(cursor, earliest) && !params.realRouteDates.has(key)) {
+      const cursorForBounds = ds === rawDs ? cursor : parseISO(ds);
+      if (!isBefore(cursorForBounds, start) && !isBefore(cursorForBounds, earliest) && !params.realRouteDates.has(key)) {
         const sourceKeys = (s.sourceKeys && s.sourceKeys.length > 0) ? s.sourceKeys : [s.id];
         const existing = byRouteDate.get(key);
         if (existing) {
