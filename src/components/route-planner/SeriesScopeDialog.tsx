@@ -59,15 +59,15 @@ export function SeriesScopeDialog({
     if (open) setScope(defaultScope);
   }, [open, defaultScope]);
 
-  const options: ScopeOption[] = [
+  const options: ScopeOption[] = ([
     {
-      value: "single",
+      value: "single" as const,
       label: "Kun denne forekomst",
       description: "Resten af serien fortsætter uændret.",
       icon: Calendar,
     },
     {
-      value: "future",
+      value: "future" as const,
       label: "Denne og alle fremtidige",
       description: typeof futureCount === "number"
         ? `Påvirker ${futureCount} kommende ${futureCount === 1 ? "forekomst" : "forekomster"}.`
@@ -75,14 +75,14 @@ export function SeriesScopeDialog({
       icon: CalendarRange,
     },
     {
-      value: "all",
+      value: "all" as const,
       label: "Hele serien",
       description: typeof totalCount === "number"
         ? `Påvirker alle ${totalCount} forekomster — også historiske.`
         : "Påvirker hele serien — også historiske forekomster.",
       icon: Repeat,
     },
-  ].filter((o) => allowedScopes.includes(o.value));
+  ] satisfies ScopeOption[]).filter((o) => allowedScopes.includes(o.value));
 
   return (
     <AlertDialog open={open} onOpenChange={(o) => { if (!loading) onOpenChange(o); }}>
