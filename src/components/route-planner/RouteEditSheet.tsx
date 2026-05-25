@@ -240,8 +240,31 @@ export const RouteEditSheet = ({
     if (!pendingProjectedDate) {
       setProjectedMoveSyncStart(false);
       setProjectedMoveSyncNext(false);
+      return;
     }
-  }, [pendingProjectedDate]);
+    // Smart sync-default: ud fra seriens dominerende interval — store flytninger
+    // sætter "forskyd hele rytmen", små flytninger sætter "kun næste besøg".
+    const intv = (seriesInfo as any)?.dominantIntervalDays as number | null | undefined;
+    const fromIso = projectedDate || "";
+    if (!intv || intv <= 0 || !fromIso) {
+      setProjectedMoveSyncStart(false);
+      setProjectedMoveSyncNext(true);
+      return;
+    }
+    let delta = 0;
+    try {
+      delta = Math.abs(
+        Math.round((new Date(pendingProjectedDate).getTime() - new Date(fromIso).getTime()) / 86400000),
+      );
+    } catch {}
+    if (delta >= intv) {
+      setProjectedMoveSyncStart(true);
+      setProjectedMoveSyncNext(false);
+    } else {
+      setProjectedMoveSyncStart(false);
+      setProjectedMoveSyncNext(true);
+    }
+  }, [pendingProjectedDate, projectedDate, (seriesInfo as any)?.dominantIntervalDays]);
 
   useEffect(() => {
     if (!route) return;
