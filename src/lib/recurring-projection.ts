@@ -36,6 +36,17 @@ export type AgreementOccurrenceOverride = {
   status: "modified" | "cancelled" | "rescheduled";
 };
 
+/**
+ * Pause-periode pr. aftale. Forekomster der falder mellem `start_date` og
+ * `end_date` (inklusiv begge ender) projiceres ikke. Bruges fx når en kunde
+ * holder ferie eller midlertidigt pauserer en abonnementsaftale.
+ */
+export type AgreementPauseRange = {
+  agreement_id: string;
+  start_date: string; // yyyy-MM-dd
+  end_date: string;   // yyyy-MM-dd (inkl.)
+};
+
 export const recurringSourceKeysForStop = (stop: any): string[] => {
   const occurrence = stop?.agreement_occurrences || stop?.agreement_occurrence || null;
   return [
@@ -110,6 +121,10 @@ export const expandRecurringRoutes = (params: {
   realRouteDates: Set<string>;
   /** Per-forekomst overrides — aflyser/flytter enkelte forekomster uden at røre serien. */
   overrides?: AgreementOccurrenceOverride[];
+  /** Pause-perioder pr. aftale — forekomster der falder i et pause-vindue projiceres ikke. */
+  pauses?: AgreementPauseRange[];
+  /** Datoer (yyyy-MM-dd) hvor INGEN gentagende aftaler projiceres (helligdage/lukkedage). */
+  holidayDates?: Iterable<string>;
   /** Callback når en kilde IKKE kan projiceres — bruges til UI-advarsler så fejl ikke bare "forsvinder". */
   onUnprojectable?: (source: RecurringSource, reason: "missing_route" | "missing_seed" | "invalid_interval") => void;
 }): ProjectedRoute[] => {
@@ -120,6 +135,26 @@ export const expandRecurringRoutes = (params: {
     inner.set(String(o.original_date).slice(0, 10), o);
     overridesByAgreement.set(o.agreement_id, inner);
   }
+
+  // Index pauser pr. aftale — vi gemmer som array af [start, end] strings og
+  // bruger string-sammenligning (yyyy-MM-dd er leksikografisk dato-sikker).
+  const pausesByAgreement = new Map<string, Array<[string, string]>>();
+  for (const p of params.pauses || []) {
+    if (!p.agreement_id || !p.start_date || !p.end_date) continue;
+    const arr = pausesByAgreement.get(p.agreement_id) || [];
+    arr.push([String(p.start_date).slice(0, 10), String(p.end_date).slice(0, 10)]);
+    pausesByAgreement.set(p.agreement_id, arr);
+  }
+  const holidaySet = new Set<string>();
+  if (params.holidayDates) {
+    for (const d of params.holidayDates) holidaySet.add(String(d).slice(0, 10));
+  }
+  const isPausedForAgreement = (agreementId: string | null | undefined, ds: string): boolean => {
+    if (!agreementId) return false;
+    const ranges = pausesByAgreement.get(agreementId);
+    if (!ranges) return false;
+    return ranges.some(([s, e]) => ds >= s && ds <= e);
+  };
 
   // Projicerer pr. kilde (aftale) og samler datoer pr. rute, så samme dato
   // ikke duplikeres når flere aftaler falder sammen på samme rute/dag.
@@ -210,6 +245,13 @@ export const expandRecurringRoutes = (params: {
       const ds = (ovr?.new_date && (ovr.status === "rescheduled" || ovr.status === "modified"))
         ? String(ovr.new_date).slice(0, 10)
         : rawDs;
+      // Spring helligdage og pause-perioder over — forekomster på disse dage
+      // skal hverken vises i kalenderen eller materialiseres.
+      if (holidaySet.has(ds) || isPausedForAgreement(s.agreement_id, ds)) {
+        stepIndex += 1;
+        cursor = advance(seed, stepIndex);
+        continue;
+      }
       const key = `${routeId}|${ds}`;
       const cursorForBounds = ds === rawDs ? cursor : parseISO(ds);
       if (!isBefore(cursorForBounds, start) && !isBefore(cursorForBounds, earliest) && !params.realRouteDates.has(key)) {
