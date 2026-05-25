@@ -2495,11 +2495,20 @@ const Planner = () => {
     if (mergingRoute) return; // dobbeltklik-beskyttelse
     const { source, target } = pendingRouteMerge;
     setMergingRoute(true);
+    // Persistent loading-toast så brugeren får live feedback under flytningen.
+    // Lukkes/erstattes i success eller error blok nedenfor.
+    const toastId = toast.loading(
+      `Fletter ${source.name || "rute"} → ${target.name || "rute"}…`,
+      { description: scope === "future" ? "Inklusive fremtidige forekomster" : "Kun denne dato" },
+    );
     // Optimistisk: flyt stops til målruten og fjern kilderuten fra cachen
     // med det samme, så UI'et reagerer øjeblikkeligt i stedet for at vente
     // 3-4 sek på server-roundtrip + invalidate + refetch. Vi tager snapshots
     // for at kunne rulle tilbage hvis serveren afviser.
     const calSnapshots = qc.getQueriesData<any>({ queryKey: ["route-calendar"] });
+    // Snapshot af kilderuten FØR vi fjerner den fra cachen, så undo kan
+    // genoprette den med samme id, navn, farve, dato osv.
+    const sourceSnapshot: any = { ...source };
     qc.setQueriesData({ queryKey: ["route-calendar"] }, (old: any) => {
       if (!old?.routes || !old?.stops) return old;
       return {
@@ -2510,7 +2519,6 @@ const Planner = () => {
         ),
       };
     });
-    setPendingRouteMerge(null);
     try {
       const result = await routeMutationQueue.run(async () => {
       const sourceStops = calendarStops.filter((s: any) => s.route_id === source.id);
@@ -2602,27 +2610,86 @@ const Planner = () => {
       });
       const sourceStops = result?.sourceStops ?? [];
       const moved = result?.moved ?? 0;
-      toast.success(
-        sourceStops.length === 0
+      const successTitle = result?.alreadyMerged
+        ? "Allerede flettet"
+        : sourceStops.length === 0
           ? "Tom rute slettet"
-          : `${moved} aftale${moved === 1 ? "" : "r"} flettet ind i ${target.name || "rute"}`,
-        {
-          description:
-            scope === "future"
-              ? "Fremtidige forekomster af gentagne aftaler følger med."
-              : "Kilderuten blev slettet automatisk.",
-        },
-      );
+          : `${moved} aftale${moved === 1 ? "" : "r"} flettet ind i ${target.name || "rute"}`;
+      toast.success(successTitle, {
+        id: toastId,
+        description:
+          scope === "future"
+            ? "Fremtidige forekomster af gentagne aftaler følger med — Cmd+Z for at fortryde"
+            : "Kilderuten blev slettet automatisk — Cmd+Z for at fortryde",
+      });
+      setPendingRouteMerge(null);
       invalidateRouteSyncQueries(qc);
       qc.invalidateQueries({ queryKey: ["recurring-agreements-for-planner"] });
       qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
       qc.invalidateQueries({ queryKey: ["route-series-info"] });
+
+      // Undo (kun for "single" scope — at rulle subscription/agreement-ændringer
+      // tilbage er destruktivt og ikke worth complexity). Genopretter kildens
+      // routes-row med samme id + flytter stops tilbage.
+      if (!result?.alreadyMerged && scope === "single") {
+        const stopIdsToMoveBack = sourceStops.map((s: any) => s.id);
+        pushRouteUndo({
+          label: `Flet ${source.name || "rute"} → ${target.name || "rute"}`,
+          undo: async () => {
+            try {
+              // 1) Genopret kildens routes-row hvis den blev slettet.
+              const { data: stillExists } = await supabase
+                .from("routes")
+                .select("id")
+                .eq("id", source.id)
+                .maybeSingle();
+              if (!stillExists) {
+                const insertRow: any = {
+                  id: source.id,
+                  business_id: (source as any).business_id,
+                  route_date: source.route_date,
+                  name: source.name,
+                  color: (source as any).color ?? null,
+                  status: (source as any).status ?? "draft",
+                  employee_id: (source as any).employee_id ?? null,
+                  start_address: (source as any).start_address ?? null,
+                  base_route_id: (source as any).base_route_id ?? null,
+                  recurrence_type: (source as any).recurrence_type ?? null,
+                  recurrence_interval: (source as any).recurrence_interval ?? null,
+                  recurrence_days: (source as any).recurrence_days ?? null,
+                };
+                const { error: insErr } = await supabase.from("routes").insert(insertRow);
+                if (insErr) throw insErr;
+              }
+              // 2) Flyt stops tilbage til kilden (kun dem vi rent faktisk flyttede).
+              if (stopIdsToMoveBack.length > 0) {
+                const { error: mvErr } = await supabase.rpc("move_stops_to_route", {
+                  _stop_ids: stopIdsToMoveBack,
+                  _target_route_id: source.id,
+                });
+                if (mvErr) throw mvErr;
+              }
+              invalidateRouteSyncQueries(qc);
+              toast.success(`Fletning fortrudt — ${source.name || "rute"} gendannet`);
+            } catch (e: any) {
+              toast.error("Kunne ikke fortryde fletning", {
+                description: e?.message ?? "Prøv at genindlæse siden.",
+              });
+              throw e;
+            }
+          },
+        });
+      }
     } catch (err: any) {
       // Rul optimistisk cache-patch tilbage hvis fletningen fejlede.
       calSnapshots.forEach(([key, data]) => qc.setQueryData(key, data));
+      toast.dismiss(toastId);
       toastRouteError(err, toast.error, { titleFallback: "Kunne ikke flette ruterne" });
+      // Behold dialogen åben så brugeren kan prøve igen eller annullere bevidst.
     } finally {
       setMergingRoute(false);
+      // Brug sourceSnapshot for at undgå unused-var advarsel hvis vi ikke nåede til undo-blokken.
+      void sourceSnapshot;
     }
   };
 
