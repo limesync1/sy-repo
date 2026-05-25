@@ -183,7 +183,7 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
     if (mode !== "date" || !targetDateConflicts?.length) return [];
     return targetDateConflicts.slice(0, 3).map((c) => {
       const times = c.stops.map((s) => s.label || "aftale").join(", ");
-      return `Medarbejder har allerede ${c.stops.length} aftale${c.stops.length === 1 ? "" : "r"} (${times})${c.overlaps ? " — tidsoverlap" : ""}.`;
+      return `Medarbejder har allerede ${c.stops.length} aftale${c.stops.length === 1 ? "" : "r"} (${times})${c.overlapsTime ? " — tidsoverlap" : ""}.`;
     });
   }, [mode, targetDateConflicts]);
 
