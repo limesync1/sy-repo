@@ -336,7 +336,7 @@ export function toastRouteError(
      * fuld kontekst, så vi kan fejlsøge bagudrettet uden brugerbesvær.
      */
     audit?: {
-      business_id: string;
+      business_id?: string | null;
       action: string;
       route_id?: string | null;
       agreement_id?: string | null;
@@ -359,7 +359,7 @@ export function toastRouteError(
   });
   if (override?.audit) {
     void logRouteAudit({
-      business_id: override.audit.business_id,
+      business_id: override.audit.business_id ?? null,
       action: `error:${issue.code}:${override.audit.action}`,
       route_id: override.audit.route_id ?? null,
       agreement_id: override.audit.agreement_id ?? null,
