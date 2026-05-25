@@ -1787,6 +1787,24 @@ export const useRouteSeriesInfo = (
         if (s?.order_id) orderIds.add(String(s.order_id));
       }
 
+      // Dominerende interval i dage — bruges til at sætte smart defaults
+      // for sync-checkboksene når brugeren flytter en projiceret forekomst.
+      // Det interval flest aftaler i serien deler "vinder".
+      const intervalVotes = new Map<number, number>();
+      const addVote = (intv: string | null | undefined) => {
+        const days = intervalToDaysCentral(intv);
+        if (!days) return;
+        intervalVotes.set(days, (intervalVotes.get(days) || 0) + 1);
+      };
+      for (const s of recurringSubs) addVote((s as any).interval);
+      for (const s of (subsByPref.data || [])) addVote((s as any).interval);
+      for (const a of (agreementsByPref.data || [])) addVote((a as any).interval);
+      let dominantIntervalDays: number | null = null;
+      let bestVotes = 0;
+      for (const [days, votes] of intervalVotes) {
+        if (votes > bestVotes) { bestVotes = votes; dominantIntervalDays = days; }
+      }
+
       return {
         recurringAppointmentCount: ids.size,
         linkedSubscriptionCount: ids.size,
@@ -1794,6 +1812,7 @@ export const useRouteSeriesInfo = (
         recurringSubscriptionIds: Array.from(subscriptionIds),
         agreementIds: Array.from(agreementIds),
         orderIds: Array.from(orderIds),
+        dominantIntervalDays,
       };
     },
   });
