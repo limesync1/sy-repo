@@ -4499,11 +4499,7 @@ const Planner = () => {
               // optimering hvis vi kan udlede en konkret rute fra resultatet.
               const newRouteId: string | undefined = (result as any)?.target_route_id ?? (result as any)?.route_id;
               if (newRouteId) {
-                setPendingOptimizePrompt({
-                  routeId: newRouteId,
-                  routeName: pendingProjectedMove.routeName,
-                  reason: "moved",
-                });
+                tryPromptOptimize(newRouteId, pendingProjectedMove.routeName, "moved");
               }
             } catch (e: any) {
               toastRouteError(e, toast.error, { titleFallback: "Kunne ikke flytte den projicerede rute" });
