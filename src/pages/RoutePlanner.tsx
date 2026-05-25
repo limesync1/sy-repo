@@ -1071,7 +1071,7 @@ const Planner = () => {
         // Projicér basis-rutens stops over på den virtuelle dato — gør at
         // brugeren ser kunderne i kalender-kortet selv før forekomsten er
         // materialiseret. Stops markeres som virtuelle så de ikke kan ændres.
-        const projectedStops = (base.stops || [])
+        const projectedStops: any[] = (base.stops || [])
           .filter((s: any) => projectedStopMatchesSources(s, p.sourceKeys))
           .filter(isLiveProjectedStop)
           .map((s: any, i: number) => ({
