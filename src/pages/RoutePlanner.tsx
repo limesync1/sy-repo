@@ -4104,6 +4104,19 @@ const Planner = () => {
                       toDate: pendingProjectedMove.toDate,
                     });
                     toast.success("Den projicerede forekomst er flyttet til den nye dato");
+                    const fromD = pendingProjectedMove.fromDate;
+                    const toD = pendingProjectedMove.toDate;
+                    const baseId = pendingProjectedMove.baseRouteId;
+                    pushRouteUndo({
+                      label: `Flyt projiceret forekomst tilbage til ${format(parseISO(fromD), "d. MMM", { locale: da })}`,
+                      undo: async () => {
+                        await shiftProjectedOccurrence.mutateAsync({
+                          baseRouteId: baseId,
+                          fromDate: toD,
+                          toDate: fromD,
+                        });
+                      },
+                    });
                     setPendingProjectedMove(null);
                   } catch (e: any) {
                     toastRouteError(e, toast.error, { titleFallback: "Kunne ikke flytte den projicerede rute" });
