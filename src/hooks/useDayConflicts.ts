@@ -27,25 +27,20 @@ export const useDayConflicts = (
         .is("deleted_at", null);
       const routeIds = (routes || []).map((r: any) => r.id);
       if (routeIds.length === 0) return [];
-      const [{ data: stops }, { data: assignees }] = await Promise.all([
-        supabase
-          .from("route_stops")
-          .select("id, route_id, assigned_employee_id, time_window_start, time_window_end, customer_name, agreement_occurrence_id")
-          .in("route_id", routeIds)
-          .neq("status", "cancelled"),
-        supabase
-          .from("route_stop_assignees")
-          .select("stop_id, employee_id")
-          .in("stop_id", []), // placeholder; we replace below
-      ]).then(async ([s]) => {
-        const stopIds = (s.data || []).map((x: any) => x.id);
-        if (stopIds.length === 0) return [s, { data: [] as any[] }];
-        const ass = await supabase
+      const { data: stops } = await supabase
+        .from("route_stops")
+        .select("id, route_id, assigned_employee_id, time_window_start, time_window_end, customer_name, agreement_occurrence_id")
+        .in("route_id", routeIds)
+        .neq("status", "cancelled");
+      const stopIds = (stops || []).map((x: any) => x.id);
+      let assignees: any[] = [];
+      if (stopIds.length > 0) {
+        const { data } = await supabase
           .from("route_stop_assignees")
           .select("stop_id, employee_id")
           .in("stop_id", stopIds);
-        return [s, ass];
-      });
+        assignees = data || [];
+      }
       const byStop = new Map<string, string[]>();
       (assignees || []).forEach((a: any) => {
         const arr = byStop.get(a.stop_id) || [];
