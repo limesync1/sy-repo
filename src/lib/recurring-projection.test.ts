@@ -133,7 +133,7 @@ describe("expandRecurringRoutes", () => {
     expect(out.map((p) => p.date)).toEqual(["2026-05-10", "2026-05-24"]);
   });
 
-  it("uses route anchor date to project a 14-day route backwards inside the visible range", () => {
+  it("does NOT project a 14-day route backwards before its anchor / seed date", () => {
     const out = expandRecurringRoutes({
       rangeStart: "2026-05-01",
       rangeEnd: "2026-05-31",
@@ -142,7 +142,8 @@ describe("expandRecurringRoutes", () => {
         { id: "sub:s1", interval: "hver_14_dag", seed_date: "2026-05-28", anchor_date: "2026-05-28", preferred_route_id: "r14" },
       ],
     });
-    expect(out.map((p) => p.date)).toEqual(["2026-05-14"]);
+    // Ruten er aldrig blevet kørt før 28. maj — så vi viser ikke "kunne være kørt" 14. maj.
+    expect(out.map((p) => p.date)).toEqual([]);
   });
 
   it("deduplicates when multiple agreements share route + date", () => {
