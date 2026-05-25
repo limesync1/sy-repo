@@ -1069,6 +1069,7 @@ const Planner = () => {
       rangeStart: calendarRange.start,
       rangeEnd: calendarRange.end,
       realRouteDates: realKeys,
+      overrides: occurrenceOverrides as any[],
     });
     return projections
       .map((p) => {
