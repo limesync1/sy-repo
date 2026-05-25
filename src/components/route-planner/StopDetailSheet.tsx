@@ -28,6 +28,8 @@ import { INTERVAL_LABELS } from "@/types/service";
 import { intervalToCadence } from "@/lib/interval";
 import { Section, SheetFooterBar } from "./SheetSection";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
+import { useDayConflicts } from "@/hooks/useDayConflicts";
+import { AlertTriangle } from "lucide-react";
 
 type Props = {
   stop: RouteStop | null;
@@ -85,6 +87,25 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
   }, [stop?.id]);
 
   const items = useMemo(() => (order as any)?.order_items || [], [order]);
+
+  // Konfliktdetektion: tjek om de valgte medarbejdere allerede har andre
+  // stops på samme dato. Vises som diskret advarsel ved siden af pickeren.
+  const stopDate = effectiveDate || (stop as any)?.route_date || null;
+  const { conflicts: dayConflicts } = useDayConflicts(myBusiness?.id, stopDate || undefined);
+  const assigneeConflicts = useMemo<string[]>(() => {
+    if (!assigneeIds.length || !dayConflicts?.length) return [];
+    const msgs: string[] = [];
+    for (const c of dayConflicts) {
+      if (!assigneeIds.includes(c.employee_id)) continue;
+      const others = c.stops.filter((s) => s.id !== stop?.id);
+      if (others.length === 0) continue;
+      const emp = activeEmployees.find((e: any) => e.id === c.employee_id);
+      const empName = emp?.name || "Medarbejderen";
+      const labels = others.slice(0, 2).map((s) => s.label || "aftale").join(", ");
+      msgs.push(`${empName} har allerede ${others.length} aftale${others.length === 1 ? "" : "r"} (${labels})${c.overlapsTime ? " — tidsoverlap" : ""}.`);
+    }
+    return msgs;
+  }, [assigneeIds, dayConflicts, activeEmployees, stop?.id]);
   const totalAmount = Number((order as any)?.total_amount || 0);
   const subscriptions: any[] = (order as any)?.subscriptions || [];
   const business = (order as any)?.businesses;
@@ -298,6 +319,16 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                       setLeadId(lead);
                     }}
                   />
+                  {assigneeConflicts.length > 0 && (
+                    <div className="mt-2 rounded-md border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 p-2.5 text-xs">
+                      <div className="flex items-center gap-1.5 font-medium text-amber-800 dark:text-amber-200 mb-1">
+                        <AlertTriangle className="h-3.5 w-3.5" /> Mulige konflikter
+                      </div>
+                      <ul className="space-y-0.5 text-amber-900/90 dark:text-amber-200/90">
+                        {assigneeConflicts.map((w, i) => <li key={i}>• {w}</li>)}
+                      </ul>
+                    </div>
+                  )}
                 </Section>
               )}
 
