@@ -66,6 +66,7 @@ import { RouteStopsPanel } from "@/components/route-planner/RouteStopsPanel";
 import { MoveRouteDateDialog, type MoveRouteScope } from "@/components/route-planner/MoveRouteDateDialog";
 import { MergeRoutesDialog } from "@/components/route-planner/MergeRoutesDialog";
 import { DeleteRouteDialog } from "@/components/route-planner/DeleteRouteDialog";
+import { DiagnosticsDialog } from "@/components/route-planner/DiagnosticsDialog";
 import { supabase } from "@/integrations/supabase/client";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
 import { renameFreshSplitRoutes } from "@/components/route-planner/MoveStopsDialog";
@@ -234,6 +235,7 @@ const Planner = () => {
     previewStops?: RouteStop[];
   } | null>(null);
   const [routeToDelete, setRouteToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
   const [pendingRouteMerge, setPendingRouteMerge] = useState<{
     source: Route;
     target: Route;
@@ -3306,7 +3308,14 @@ const Planner = () => {
           const calendarBlock = (
                 <div data-tour="routes-calendar" className="h-full flex flex-col">
                 {projectionDiagnostics.unprojectable.length > 0 && (
-                  <Alert variant="destructive" className="m-2 mb-0 shrink-0">
+                  <Alert
+                    variant="destructive"
+                    className="m-2 mb-0 shrink-0 cursor-pointer hover:opacity-90"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setDiagnosticsOpen(true)}
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setDiagnosticsOpen(true); }}
+                  >
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle>
                       {projectionDiagnostics.unprojectable.length === 1
@@ -3314,9 +3323,7 @@ const Planner = () => {
                         : `${projectionDiagnostics.unprojectable.length} aftaler kan ikke vises i kalenderen`}
                     </AlertTitle>
                     <AlertDescription className="text-xs">
-                      Tjek aftalens interval og foretrukne rute. Aftaler uden et gyldigt
-                      gentagelses-interval eller uden en startdato kan ikke beregnes og
-                      bliver derfor sprunget over i kalender-projektionen.
+                      Klik for at se hvilke aftaler det drejer sig om og rette dem.
                     </AlertDescription>
                   </Alert>
                 )}
@@ -3344,7 +3351,14 @@ const Planner = () => {
           const mobileCalendarBlock = (
             <div data-tour="routes-calendar" className="h-full flex flex-col">
               {projectionDiagnostics.unprojectable.length > 0 && (
-                <Alert variant="destructive" className="m-2 mb-0 shrink-0">
+                <Alert
+                  variant="destructive"
+                  className="m-2 mb-0 shrink-0 cursor-pointer hover:opacity-90"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setDiagnosticsOpen(true)}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setDiagnosticsOpen(true); }}
+                >
                   <AlertTriangle className="h-4 w-4" />
                   <AlertTitle className="text-sm">
                     {projectionDiagnostics.unprojectable.length === 1
@@ -3352,7 +3366,7 @@ const Planner = () => {
                       : `${projectionDiagnostics.unprojectable.length} aftaler kan ikke vises`}
                   </AlertTitle>
                   <AlertDescription className="text-xs">
-                    Tjek aftalens interval og startdato.
+                    Tryk for at åbne diagnostik og rette aftalerne.
                   </AlertDescription>
                 </Alert>
               )}
@@ -3742,11 +3756,20 @@ const Planner = () => {
             if (routeToDelete) {
               const name = routeToDelete.name;
               deleteRoute.mutate(routeToDelete.id, {
-                onSuccess: () => toast.success(`${name} slettet`),
+                onSuccess: () => {
+                  toast.success(`${name} slettet`);
+                  setRouteToDelete(null);
+                },
               });
-              setRouteToDelete(null);
             }
           }}
+        />
+
+        {/* L3: Diagnostik for ikke-projicérbare aftaler — per-aftale fix-knapper */}
+        <DiagnosticsDialog
+          open={diagnosticsOpen}
+          onOpenChange={setDiagnosticsOpen}
+          items={projectionDiagnostics.unprojectable}
         />
 
         {/* Bekræft fletning af to ruter (drag-and-drop rute → rute) */}
