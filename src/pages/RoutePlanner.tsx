@@ -3213,8 +3213,31 @@ const Planner = () => {
                     <p><kbd className="px-1 rounded bg-secondary text-[10px]">←</kbd> <kbd className="px-1 rounded bg-secondary text-[10px]">→</kbd> Skift {view === "week" ? "uge" : "måned"}</p>
                     <p><kbd className="px-1 rounded bg-secondary text-[10px]">T</kbd> I dag</p>
                     <p><kbd className="px-1 rounded bg-secondary text-[10px]">N</kbd> Ny rute</p>
+                    <p><kbd className="px-1 rounded bg-secondary text-[10px]">{navigator.platform.toLowerCase().includes("mac") ? "⌘" : "Ctrl"}+Z</kbd> Fortryd</p>
                     <p><kbd className="px-1 rounded bg-secondary text-[10px]">Esc</kbd> Luk panel</p>
                   </div>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => void history.undo()}
+                    disabled={!history.canUndo}
+                    aria-label="Fortryd seneste handling"
+                  >
+                    {history.isUndoing
+                      ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      : <Undo2 className="h-3.5 w-3.5" />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  {history.canUndo
+                    ? <>Fortryd: <span className="font-medium">{history.lastLabel}</span></>
+                    : "Intet at fortryde"}
                 </TooltipContent>
               </Tooltip>
             </div>
