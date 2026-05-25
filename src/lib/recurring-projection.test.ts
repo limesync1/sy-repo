@@ -1,5 +1,12 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
-import { expandRecurringRoutes, intervalToDays, projectedStopMatchesSources, filterStopsByOccurrenceDate } from "./recurring-projection";
+import {
+  expandRecurringRoutes,
+  intervalToDays,
+  projectedStopMatchesSources,
+  filterStopsByOccurrenceDate,
+  resolveProjectionExceptions,
+  applyProjectedOccurrenceShifts,
+} from "./recurring-projection";
 
 // Lås "today" på filniveau, så past-clamp i expandRecurringRoutes ikke
 // filtrerer testdatoer afhængigt af kørselstidspunktet. Alle testdata er
@@ -486,6 +493,60 @@ describe("expandRecurringRoutes — overlap/suppression mod rigtige ruter", () =
     });
     expect(out.find((p) => p.date === "2026-05-11")).toBeUndefined();
     expect(out.length).toBe(3);
+  });
+
+  it("shifted exceptions suppresses NOT the original projection before shifting", () => {
+    const realRouteIds = new Set<string>();
+    const { suppressedProjectionKeys, shiftsByOriginal } = resolveProjectionExceptions([
+      {
+        base_route_id: "base-1",
+        occurrence_date: "2026-05-11",
+        exception_type: "shifted",
+        shifted_to_date: "2026-05-12",
+      },
+    ], realRouteIds);
+
+    expect(Array.from(suppressedProjectionKeys)).toEqual([]);
+    expect(shiftsByOriginal.get("base-1|2026-05-11")).toBe("2026-05-12");
+  });
+
+  it("applies shifted projected occurrence onto target date", () => {
+    const projected = expandRecurringRoutes({
+      ...range,
+      realRouteDates: new Set(),
+      sources: [
+        { id: "agr", interval: "ugentlig", seed_date: "2026-05-04", preferred_route_id: "base-1" },
+      ],
+    });
+
+    const shifted = applyProjectedOccurrenceShifts(
+      projected,
+      new Map([["base-1|2026-05-11", "2026-05-12"]]),
+      new Set(),
+    );
+
+    expect(shifted.find((p) => p.date === "2026-05-11")).toBeUndefined();
+    expect(shifted.find((p) => p.date === "2026-05-12")).toBeDefined();
+    expect(shifted.find((p) => p.date === "2026-05-12")?.id).toBe("virtual:base-1:2026-05-12");
+  });
+
+  it("drops shifted projection when a real route already occupies the target date", () => {
+    const projected = expandRecurringRoutes({
+      ...range,
+      realRouteDates: new Set(),
+      sources: [
+        { id: "agr", interval: "ugentlig", seed_date: "2026-05-04", preferred_route_id: "base-1" },
+      ],
+    });
+
+    const shifted = applyProjectedOccurrenceShifts(
+      projected,
+      new Map([["base-1|2026-05-11", "2026-05-12"]]),
+      new Set(["base-1|2026-05-12"]),
+    );
+
+    expect(shifted.find((p) => p.date === "2026-05-11")).toBeUndefined();
+    expect(shifted.find((p) => p.date === "2026-05-12")).toBeUndefined();
   });
 
   it("realRouteDates med FORKERT routeId blokerer ikke andre serier", () => {
