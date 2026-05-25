@@ -523,6 +523,32 @@ const Planner = () => {
     autoSkipCadence?: boolean;
   } | null>(null);
 
+  // ─── Bulk-multi-select: flyt flere ruter med ét tryk ─────────────────
+  // Brugeren ⌘/Ctrl/Shift-klikker rute-piller i kalenderen for at samle et
+  // valg, og kan så åbne en bulk-flyt dialog der forskyder alle valgte med
+  // samme antal dage. Per-rute konflikt-check og fortidsfilter sker live i
+  // dialogen — ruter med konflikter springes pænt over uden at blokere de
+  // andre.
+  const [selectedRouteIds, setSelectedRouteIds] = useState<Set<string>>(new Set());
+  const [bulkMoveOpen, setBulkMoveOpen] = useState(false);
+  const [bulkMoveInProgress, setBulkMoveInProgress] = useState(false);
+  const [bulkMoveProgress, setBulkMoveProgress] = useState<{ done: number; total: number } | null>(null);
+
+  const toggleRouteSelection = useCallback((id: string) => {
+    setSelectedRouteIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+  const clearRouteSelection = useCallback(() => setSelectedRouteIds(new Set()), []);
+
+  // Når brugeren skifter ugen/måneden eller skifter view rydder vi valget —
+  // ellers risikerer vi at brugeren bulk-flytter ruter de ikke længere kan se.
+  useEffect(() => {
+    setSelectedRouteIds(new Set());
+  }, [calendarRange.start, calendarRange.end, view]);
+
   // Pending start-date konflikt: vises når brugeren dropper en aftale på en
   // dato der ikke matcher aftalens opstartsdato. Brugeren bekræfter om
   // opstartsdatoen skal flyttes — først derefter eksekveres `execute()`.
