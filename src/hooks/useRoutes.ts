@@ -1765,14 +1765,22 @@ export const useRouteSeriesInfo = (
       );
 
       const ids = new Set<string>();
+      const orderIds = new Set<string>();
       for (const s of recurringSubs) ids.add(`sub:${s.id}`);
       for (const s of (subsByPref.data || [])) ids.add(`sub:${s.id}`);
       for (const a of (agreementsByPref.data || [])) ids.add(`agr:${a.id}`);
+      for (const s of recurringSubs) {
+        if (s?.id) orderIds.add(String(s.id));
+      }
+      for (const s of (subsByPref.data || [])) {
+        if (s?.order_id) orderIds.add(String(s.order_id));
+      }
 
       return {
         recurringAppointmentCount: ids.size,
         linkedSubscriptionCount: ids.size,
         subscriptionIds: Array.from(ids),
+        orderIds: Array.from(orderIds),
       };
     },
   });
