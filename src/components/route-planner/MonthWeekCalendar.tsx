@@ -95,7 +95,7 @@ const fmtRouteKrCompact = (n: number) => {
 export const MonthWeekCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
   onCreateRoute, onOptimizeRoute, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
-  loadingRoutes, loadingWeather, weatherError, busyTargets,
+  loadingRoutes, loadingWeather, weatherError, busyTargets, dateAlerts,
 }: Props) => {
   const anchor = parseISO(anchorDate);
 
