@@ -57,26 +57,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
     [allEmployees],
   );
 
-  // Konfliktdetektion: tjek om de valgte medarbejdere allerede har andre
-  // stops på samme dato. Vises som diskret advarsel ved siden af pickeren
-  // — afgør ikke gemning, kun information.
-  const stopDate = effectiveDate || (stop as any)?.route_date || null;
-  const { conflicts: dayConflicts } = useDayConflicts(myBusiness?.id, stopDate || undefined);
-  const assigneeConflicts = useMemo<string[]>(() => {
-    if (!assigneeIds.length || !dayConflicts?.length) return [];
-    const msgs: string[] = [];
-    for (const c of dayConflicts) {
-      if (!assigneeIds.includes(c.employee_id)) continue;
-      const others = c.stops.filter((s) => s.id !== stop?.id);
-      if (others.length === 0) continue;
-      const emp = activeEmployees.find((e: any) => e.id === c.employee_id);
-      const empName = emp?.name || "Medarbejderen";
-      const labels = others.slice(0, 2).map((s) => s.label || "aftale").join(", ");
-      msgs.push(`${empName} har allerede ${others.length} aftale${others.length === 1 ? "" : "r"} (${labels})${c.overlapsTime ? " — tidsoverlap" : ""}.`);
-    }
-    return msgs;
-  }, [assigneeIds, dayConflicts, activeEmployees, stop?.id]);
-
   const [durationHours, setDurationHours] = useState<number>(0);
   const [durationMinutes, setDurationMinutes] = useState<number>(30);
   const [timeSlot, setTimeSlot] = useState<string>("");
