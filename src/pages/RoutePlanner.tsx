@@ -3758,6 +3758,16 @@ const Planner = () => {
               deleteRoute.mutate(routeToDelete.id, {
                 onSuccess: () => toast.success(`${name} slettet`),
               });
+            }
+          }}
+        />
+
+        {/* L3: Diagnostik for ikke-projicérbare aftaler — per-aftale fix-knapper */}
+        <DiagnosticsDialog
+          open={diagnosticsOpen}
+          onOpenChange={setDiagnosticsOpen}
+          items={projectionDiagnostics.unprojectable}
+        />
               setRouteToDelete(null);
             }
           }}
