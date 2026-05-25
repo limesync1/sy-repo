@@ -1,0 +1,151 @@
+// MoveProjectedOccurrenceDialog — bekræftelses-dialog for at flytte EN enkelt
+// projiceret forekomst af en tilbagevendende rute til en ny dato. UI matcher
+// MoveRouteDateDialog så alle "flyt rute"-popups deler samme layout og
+// responsive opførsel.
+
+import {
+  AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { differenceInCalendarDays, format, parseISO } from "date-fns";
+import { da } from "date-fns/locale";
+import { CalendarRange, ArrowRight, Loader2, AlertTriangle, Sparkles } from "lucide-react";
+
+type Props = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  routeName: string;
+  fromDate: string;
+  toDate: string;
+  /** Antal tilbagevendende aftaler på basisruten — styrer om sync-options vises. */
+  recurringAppointmentCount?: number;
+  /** Sync-states. Hvis ikke leveret, vises sync-sektionen ikke. */
+  syncNext?: boolean;
+  onSyncNextChange?: (v: boolean) => void;
+  syncStart?: boolean;
+  onSyncStartChange?: (v: boolean) => void;
+  warnings?: string[];
+  loading?: boolean;
+  onConfirm: () => Promise<void> | void;
+};
+
+export const MoveProjectedOccurrenceDialog = ({
+  open, onOpenChange, routeName, fromDate, toDate,
+  recurringAppointmentCount = 0,
+  syncNext, onSyncNextChange, syncStart, onSyncStartChange,
+  warnings, loading, onConfirm,
+}: Props) => {
+  const fmt = (d: string) => {
+    try { return format(parseISO(d), "EEEE d. MMM yyyy", { locale: da }); }
+    catch { return d; }
+  };
+
+  let deltaDays = 0;
+  try { deltaDays = differenceInCalendarDays(parseISO(toDate), parseISO(fromDate)); } catch {}
+
+  const showSync =
+    recurringAppointmentCount > 0 &&
+    (onSyncNextChange !== undefined || onSyncStartChange !== undefined);
+
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent className="left-4 right-4 top-4 max-h-[calc(100svh-2rem)] w-auto max-w-none translate-x-0 translate-y-0 overflow-y-auto overflow-x-hidden p-4 sm:left-1/2 sm:right-auto sm:top-1/2 sm:w-[min(92vw,32rem)] sm:max-w-md sm:translate-x-[-50%] sm:translate-y-[-50%] sm:p-6">
+        <AlertDialogHeader className="min-w-0 text-left">
+          <AlertDialogTitle className="flex min-w-0 items-center gap-2">
+            <CalendarRange className="h-4 w-4 text-accent" />
+            Flyt projiceret forekomst
+          </AlertDialogTitle>
+          <AlertDialogDescription asChild>
+            <div className="min-w-0 space-y-2 text-sm">
+              <div className="min-w-0 text-foreground">
+                <span className="block min-w-0 [overflow-wrap:anywhere] rounded-md border border-border bg-secondary/30 px-2.5 py-2 font-medium sm:truncate">{routeName}</span>
+              </div>
+              <div className="grid min-w-0 gap-2 text-muted-foreground tabular-nums sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center">
+                <span className="min-w-0 [overflow-wrap:anywhere] rounded-md border border-border bg-secondary/30 px-2.5 py-2 capitalize sm:truncate">{fromDate ? fmt(fromDate) : "—"}</span>
+                <ArrowRight className="mx-auto h-3 w-3 shrink-0 rotate-90 sm:rotate-0" />
+                <span className="min-w-0 [overflow-wrap:anywhere] rounded-md border border-border bg-secondary/30 px-2.5 py-2 font-medium capitalize text-foreground sm:truncate">{toDate ? fmt(toDate) : "—"}</span>
+              </div>
+              {deltaDays !== 0 && (
+                <p className="text-[11px] text-muted-foreground">
+                  Forskydes med {Math.abs(deltaDays)} dag{Math.abs(deltaDays) === 1 ? "" : "e"}
+                  {deltaDays > 0 ? " frem" : " tilbage"}.
+                </p>
+              )}
+            </div>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        <div className="space-y-2 pt-1">
+          <div className="rounded-md border border-border bg-secondary/30 p-2.5">
+            <div className="flex items-start gap-2">
+              <Sparkles className="h-3.5 w-3.5 text-accent mt-0.5 shrink-0" />
+              <p className="text-[11px] leading-snug text-muted-foreground">
+                Kun denne ene forekomst flyttes — den forbliver en projektion på
+                den nye dato og bliver ikke til en faktisk rute. Basisruten og
+                rutens øvrige projicerede forekomster forbliver uændrede.
+              </p>
+            </div>
+          </div>
+
+          {warnings && warnings.length > 0 && (
+            <div className="rounded-md border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 p-2.5">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-3.5 w-3.5 text-amber-600 mt-0.5 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[11px] font-semibold text-amber-900 dark:text-amber-200 mb-0.5">
+                    Mulige konflikter på måldatoen
+                  </div>
+                  <ul className="text-[11px] leading-snug text-amber-900/90 dark:text-amber-200/90 space-y-0.5">
+                    {warnings.map((w, i) => <li key={i}>• {w}</li>)}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showSync && (
+            <div className="rounded-md border border-border p-2.5 space-y-2">
+              <div className="text-[11px] font-semibold text-foreground">
+                {recurringAppointmentCount} tilknyttet{recurringAppointmentCount === 1 ? "" : "te"} aftale{recurringAppointmentCount === 1 ? "" : "r"} på basisruten
+              </div>
+              {onSyncNextChange !== undefined && (
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={!!syncNext}
+                    onCheckedChange={(v) => onSyncNextChange(v === true)}
+                    className="mt-0.5"
+                  />
+                  <span className="text-[11px] leading-snug text-muted-foreground">
+                    Flyt også <span className="text-foreground font-medium">næste udførsel</span> for de tilknyttede aftaler til den nye dato
+                  </span>
+                </label>
+              )}
+              {onSyncStartChange !== undefined && (
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={!!syncStart}
+                    onCheckedChange={(v) => onSyncStartChange(v === true)}
+                    className="mt-0.5"
+                  />
+                  <span className="text-[11px] leading-snug text-muted-foreground">
+                    Flyt også <span className="text-foreground font-medium">opstartsdatoen</span> for de tilknyttede aftaler til den nye dato
+                  </span>
+                </label>
+              )}
+            </div>
+          )}
+        </div>
+
+        <AlertDialogFooter className="pt-1">
+          <AlertDialogCancel disabled={loading}>Annullér</AlertDialogCancel>
+          <Button onClick={async () => { await onConfirm(); }} disabled={loading}>
+            {loading && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
+            Flyt forekomst
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
