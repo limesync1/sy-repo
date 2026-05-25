@@ -696,6 +696,7 @@ const Planner = () => {
       );
       const fromAgreements = (agreementsRes.data || []).map((a: any) => ({
         id: `agr:${a.id}`,
+        agreement_id: a.id as string,
         interval: (agreementItemIntervalById.get(a.id) || a.interval) as string,
         interval_days: (a.interval_days ?? null) as number | null,
         seed_date: a.start_date as string | null,
