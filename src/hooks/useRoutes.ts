@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useMyEmployeeId } from "@/hooks/useMyEmployee";
 import { filterStopsByOccurrenceDate } from "@/lib/recurring-projection";
+import { logRouteAudit } from "@/lib/route-audit";
 
 export const invalidateRouteSyncQueries = (qc: ReturnType<typeof useQueryClient>) => {
   qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
