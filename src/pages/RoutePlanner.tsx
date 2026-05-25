@@ -1024,10 +1024,40 @@ const Planner = () => {
       const baseId = (ex as any).base_route_id as string;
       const replId = (ex as any).replacement_route_id as string | null;
       const date = String((ex as any).occurrence_date).slice(0, 10);
-      // Behold kun exceptions der reelt peger på en anden materialiseret rute.
+      const type = ((ex as any).exception_type as string | null) ?? 'moved';
+      // Skip-exceptions: undertryk projektionen helt på den oprindelige dato.
+      if (type === 'skipped') {
+        realKeys.add(`${baseId}|${date}`);
+        continue;
+      }
+      // Shift-exceptions: vi undertrykker den oprindelige dato HER —
+      // den nye dato indsættes længere nede (efter expandRecurringRoutes)
+      // som en virtuel projektion på shifted_to_date.
+      if (type === 'shifted') {
+        realKeys.add(`${baseId}|${date}`);
+        continue;
+      }
+      // Legacy 'moved' med en faktisk materialiseret erstatning.
       if (!replId || replId === baseId) continue;
       if (!realRouteIds.has(replId)) continue;
       realKeys.add(`${baseId}|${date}`);
+    }
+    // Index over shifts pr. basisrute, så vi efter projektion kan flytte
+    // forekomster fra deres oprindelige dato til shifted_to_date uden at
+    // materialisere noget. Nøglen `${baseId}|${fromDate}` → toDate.
+    const shiftsByOriginal = new Map<string, string>();
+    const shiftTargetsByBase = new Map<string, Set<string>>(); // for dedup
+    for (const ex of routeOccurrenceExceptions) {
+      const type = ((ex as any).exception_type as string | null) ?? 'moved';
+      if (type !== 'shifted') continue;
+      const baseId = (ex as any).base_route_id as string;
+      const fromDate = String((ex as any).occurrence_date).slice(0, 10);
+      const toDate = (ex as any).shifted_to_date ? String((ex as any).shifted_to_date).slice(0, 10) : null;
+      if (!baseId || !toDate) continue;
+      shiftsByOriginal.set(`${baseId}|${fromDate}`, toDate);
+      const set = shiftTargetsByBase.get(baseId) ?? new Set<string>();
+      set.add(toDate);
+      shiftTargetsByBase.set(baseId, set);
     }
     // Pr. basis-rute: den dato hvor den RIGTIGE rute-row faktisk ligger lige nu.
     // Vi bruger den til at klippe projektioner væk der ellers ville dukke op
@@ -1083,7 +1113,21 @@ const Planner = () => {
       })),
       holidayDates: businessHolidays.map((h) => h.holiday_date),
     });
-    return projections
+    // Anvend shifts: flyt projektioner fra original dato til shifted_to_date.
+    // Spring projektioner over hvor en faktisk rute findes på shifted_to_date.
+    const shifted: typeof projections = [];
+    for (const p of projections) {
+      const shiftTarget = shiftsByOriginal.get(`${p.baseRouteId}|${p.date}`);
+      if (shiftTarget) {
+        // Hvis target-datoen allerede er materialiseret som rigtig rute i samme
+        // serie, så drop projektionen helt — den findes nu fysisk.
+        if (realKeys.has(`${p.baseRouteId}|${shiftTarget}`)) continue;
+        shifted.push({ ...p, date: shiftTarget, id: `${p.baseRouteId}|${shiftTarget}` });
+      } else {
+        shifted.push(p);
+      }
+    }
+    return shifted
       .map((p) => {
         // Klip kun projektioner væk der ligger før basisrutens dato når kilden
         // IKKE har en route-date som kalender-anker. For ankrede serier er
