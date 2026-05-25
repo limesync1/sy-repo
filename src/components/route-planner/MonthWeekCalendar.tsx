@@ -538,9 +538,21 @@ type RoutePillProps = {
   busy?: boolean;
   /** True hvis rutens dato ligger før i dag — vis dæmpet visuel stil. */
   isPast?: boolean;
+  /** True hvis ruten er valgt i bulk-multi-select. Tegner tydelig ring. */
+  selected?: boolean;
+  /** True hvis ÉN ELLER FLERE ruter er valgt — bruges til at vise en svag
+   *  checkbox-affordance på ikke-valgte piller så brugeren forstår at de
+   *  også kan vælges. */
+  anySelected?: boolean;
+  /** Toggle valg/fravalg af denne rute (kaldes ved ⌘/Ctrl/Shift-klik eller
+   *  via eksplicit valg-knap). Når undefined er multi-select deaktiveret. */
+  onToggleSelect?: (e: React.MouseEvent) => void;
 };
 
-const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing, compact, jobDragActive, routeDragSourceId, busy, isPast }: RoutePillProps) => {
+const RoutePillInner = ({
+  route, onSelect, onSelectStop, onOptimize, optimizing, compact, jobDragActive, routeDragSourceId,
+  busy, isPast, selected, anySelected, onToggleSelect,
+}: RoutePillProps) => {
   const isVirtual = !!route.isVirtual;
   // Er denne pille et gyldigt flette-mål for den rute der pt. trækkes?
   // - kilden må aldrig være sit eget mål
@@ -552,7 +564,10 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
   // - Fortids-ruter er altid låst (giver ingen mening at re-planlægge noget der er kørt).
   // - Projicerede (virtuelle) ruter må trækkes til ny dato — drop håndteres af
   //   RoutePlanner via shift_projected_occurrence (ingen materialisering).
-  const dragLocked = !!busy || !!isPast;
+  // - Når brugeren er i bulk-valg-tilstand låser vi også drag, så det er
+  //   tydeligt at klik=valg og ikke flyt — undgår overraskelser hvor en
+  //   ⌘-klik ved et uheld ender med at trække ruten i stedet for at vælge.
+  const dragLocked = !!busy || !!isPast || !!anySelected;
   const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({
     id: `route:${route.id}`,
     data: { type: "route", route },
