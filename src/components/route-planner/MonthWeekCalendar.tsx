@@ -614,7 +614,7 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
           ) : (
             <CheckCircle2 className="h-3 w-3 shrink-0" />
           )}
-          <span className="truncate">{validation.topMessage ?? (validation.severity === "ok" ? "Tilføj til rute" : "")}</span>
+          <span className="truncate">{validation.topMessage ?? (validation.severity === "ok" ? (routeDragSourceId ? "Slip her for at flette ruterne" : "Tilføj til rute") : "")}</span>
         </div>
       )}
       {/* Merge-target chip: vises kun ved reel hover på selve rute-pillen.

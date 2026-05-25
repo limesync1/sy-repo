@@ -399,7 +399,7 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, optimizing, jobDrag
           "absolute -top-1 right-1 z-20 pointer-events-none rounded-md px-1.5 py-0.5 shadow-md text-[10px] font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-150 max-w-[95%]",
           chipBgForSeverity(validation.severity),
         )}>
-          <span className="truncate">{validation.topMessage ?? (validation.severity === "ok" ? "Tilføj til rute" : "")}</span>
+          <span className="truncate">{validation.topMessage ?? (validation.severity === "ok" ? (routeDragSourceId ? "Slip her for at flette ruterne" : "Tilføj til rute") : "")}</span>
         </div>
       )}
       {isMergeTarget && isOver && !validation && (

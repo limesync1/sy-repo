@@ -1147,6 +1147,7 @@ const Planner = () => {
       holidayDates: businessHolidays.map((h) => h.holiday_date),
     });
     const shifted = applyProjectedOccurrenceShifts(projections, shiftsByOriginal, realKeys);
+    const shiftedTargetDates = new Set(Array.from(shiftsByOriginal.values()));
     return shifted
       .map((p) => {
         // Klip kun projektioner væk der ligger før basisrutens dato når kilden
@@ -1155,7 +1156,9 @@ const Planner = () => {
         // aftalen kører hver 14. dag.
         const baseMinDate = minDateByBaseRouteId.get(p.baseRouteId);
         const hasAnchoredSource = p.sourceKeys.some((key) => anchoredSourceKeys.has(key));
-        if (baseMinDate && p.date < baseMinDate && !hasAnchoredSource) return null;
+        const isShiftedOccurrence = shiftsByOriginal.get(`${p.baseRouteId}|${p.date}`) !== undefined
+          || shiftedTargetDates.has(p.date);
+        if (baseMinDate && p.date < baseMinDate && !hasAnchoredSource && !isShiftedOccurrence) return null;
         // Filtrér source-keys der allerede er materialiseret som rigtige
         // stops på samme dato — så vi ikke får dubletter.
         const dateRealKeys = realSourceKeysByDate.get(p.date);
@@ -1743,7 +1746,7 @@ const Planner = () => {
         writeDragValidationDebounced({
           targetId: `route:${target.id}`,
           severity: "ok",
-          topMessage: undefined,
+          topMessage: "Slip her for at flette ruterne",
           result: { ok: true, errors: [], warnings: [], suggestions: [] } as any,
         });
         return;
