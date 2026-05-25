@@ -12,6 +12,7 @@ import {
   useRouteSeriesInfo, useMoveRouteSeries,
   useRouteOccurrenceExceptions,
   useShiftProjectedOccurrence,
+  useRevertProjectedShift,
   openProjectedRouteBase,
   logRoutePlannerEvent,
   type RouteStop, type Route,
