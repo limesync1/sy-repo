@@ -2191,6 +2191,15 @@ const Planner = () => {
     // og opdaterer agreement_occurrences via DB-trigger.
     if (activeData?.type === "stop" && overData?.type === "day") {
       const stop = activeData.stop;
+      // Spær: virtuelle (projicerede) stops findes ikke i DB endnu. De skal
+      // ikke kunne flyttes direkte — kun via skift på basisruten.
+      if ((stop as any)?.isVirtual || String(stop?.id || "").startsWith("virtual-stop:")) {
+        toast.error("Projicerede stops kan ikke flyttes", {
+          description: "Åbn basisruten for at ændre rækkefølge eller dato for denne aftale.",
+        });
+        releaseDrop();
+        return;
+      }
       const newDate: string = overData.date;
       // Find aktuel rute-dato — undgå "flytning" til samme dag
       const currentRoute = calendarRoutesRaw.find((r) => r.id === stop.route_id);

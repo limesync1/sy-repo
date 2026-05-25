@@ -1,85 +1,110 @@
-# Rutekalender — fuld gennemgang vs. spec (33 sektioner)
 
-Jeg har gennemgået hele spec'en mod kodebasen og databasen. Her er status og hvad der reelt mangler for at gøre systemet robust som beskrevet.
+# Rutekalender – faseopdelt redesign
 
-## Status-matrix (spec-sektion → faktisk implementering)
+Dokumentet beskriver ~30 sammenhængende krav. De kan ikke leveres som ét stykke arbejde uden at destabilisere systemet undervejs. Planen nedenfor er prioriteret efter hvad der **forhindrer datatab og duplikationer nu**, og hvad der kan vente.
 
-| § | Krav | Status | Note |
-|---|---|---|---|
-| 1 | Korrekt projicering pr. interval når aftale udføres | ⚠️ Delvist | `auto_recur_due_orders` materialiserer på cron, ikke ved completion |
-| 2 | Medarbejdere ser kun aktuelle (≤ i dag) | ❓ Ikke verificeret i denne audit |
-| 3 | Skel basisrute / projiceret rute | ✅ |
-| 4 | Lås projicerede ruter (UI + backend) | ⚠️ UI lås OK, **backend guard mangler** for virtuelle ids |
-| 5 | Projicerede viser korrekte stops | ✅ |
-| 6 | Idempotens / unique constraints | ✅ DB-niveau |
-| 7 | Soft-delete / sletteguard | ❌ **`archived_at` / `deleted_at` findes IKKE på `routes`** — dialog viser advarsel, men DB beskytter ikke |
-| 8 | Per-aftale recurrence | ✅ |
-| 9–10 | Template/Instance-arkitektur | ⚠️ Vi har basisrute+materialiserede rows, men ingen klar instance-tabel |
-| 11 | Sikkerhed på fremtidige instanser | ⚠️ Frontend kun |
-| 12 | Queue/transactions ved generation | ⚠️ Cron-based, ingen kø |
-| 13 | UI-lock badges | ✅ |
-| 14 | Kritiske bugs (duplikater, tom load) | ⚠️ Materialiserede kopier af basisrute opfattes som dubletter |
-| 15–17 | Konsekvensdialoger | ⚠️ `SeriesScopeDialog` findes, men kun wired til "aflys forekomst" + dato-flyt |
-| 18 | Instance/serie-model | ⚠️ Delvist |
-| 19 | Exception/override-system | ✅ Tabel + projektion |
-| 20 | Konsekvensanalyse-tekst i dialoger | ⚠️ Simpel — mangler "X medarbejdere", "Y konflikter" |
-| 21 | Smart beskyttelse | ⚠️ Delvist |
-| 22 | Confirmation modal + preview | ⚠️ Mangler preview |
-| 23 | Avanceret recurrence (helligdage, pause, slutdato) | ❌ Slutdato findes, men ikke helligdags-skip, pause |
-| 24 | Enterprise-arkitektur | ⚠️ |
-| 25 | Audit log | ❌ Ingen `route_audit_log`-tabel |
-| 30 | Medarbejder kun aktuelle | ❓ Skal verificeres |
+Hver fase er et selvstændigt stykke arbejde der efterlader systemet i en stabil tilstand. Vi tager én fase ad gangen og du bekræfter resultatet før vi går videre.
 
-## Faktiske data-fund (live DB)
+---
 
-Basisrute `Ruten 1` (27. maj) har **6 materialiserede dattererute-rows** (8. juni, 10. juni, 17. juni, 22. juni, 24. juni, 8. juli) med `base_route_id` pegende på basis. Det er DEM brugeren oplever som "duplikater". `realRouteDates`-dedup forhindrer dobbelt-visning, men disse rows er **statiske kopier** der ikke længere følger basis hvis basis ændres. **Det er rod-årsagen til "duplikater af basisruten".**
+## Fase 1 — Lås projicerede ruter (kritisk)
 
-## Prioriteret implementeringsplan
+Forhindrer at fremtidige projicerede ruter kan ændres ved et uheld.
 
-### P0 — Stopper bløder: dubletter forsvinder
+- Backend: ny RPC-guard der afviser direkte updates/deletes/stop-ændringer på en route hvis dens dato er en projiceret instans (dvs. ikke materialiseret endnu). Frontend skal IKKE være eneste forsvar.
+- Frontend (`RouteEditSheet`, `StopDetailSheet`, `MonthWeekCalendar`):
+  - Disable rediger-felter (navn, farve, dato, medarbejder, rækkefølge, optimer, slet) når `isVirtual === true`.
+  - Lås-ikon + badge "Projiceret rute".
+  - Drag/drop af stops på projicerede ruter: blokeret.
+  - Drag af hele projicerede ruter til ny dato: stadig tilladt via shift-RPC'en fra forrige tur (kun shift, ingen materialisering).
+- Aflys-forekomst-knappen bevares — den skriver en `cancelled` override på agreement, ikke en route-edit.
 
-1. **Migration**: Tilføj `archived_at TIMESTAMPTZ`, `deleted_at TIMESTAMPTZ` på `routes`. Soft-delete på alle rute-mutations.
-2. **Migration + cleanup**: For-materialiserede rute-rows (rows med `base_route_id` IS NOT NULL og `route_date > now()` og ingen completed stops) konverteres til at være "skygge-instanser" der enten:
-   - (a) slettes (foretrukken — lad projektionen overtage), eller
-   - (b) markeres som låste pure-instances.
-   Vi vælger (a): drop fremtidige materialiserede skygger og lad `expandRecurringRoutes` projicere på flugten. Det er den eneste vej til at undgå "frosne kopier".
-3. **Backend guard**: Database-trigger på `routes` UPDATE/DELETE der afviser hvis `id` starter med `virtual:` (skulle aldrig kunne nå DB, men belt+suspenders). Eksisterende RLS udvides til at afvise mutations på `routes` hvor `archived_at IS NOT NULL` for almindelige brugere.
+## Fase 2 — Sletteguard for ruter med aftaler (kritisk, datatab)
 
-### P1 — Audit + intelligent dialog overalt
+Forhindrer at ruter med stops/aftaler/historik kan hard-deletes.
 
-4. **Migration**: `route_audit_log` tabel (`actor_id`, `route_id`, `action`, `scope`, `before_jsonb`, `after_jsonb`, `affected_count`, `created_at`).
-5. **Wire `SeriesScopeDialog`** ind på resterende triggers:
-   - Skift medarbejder på projiceret stop (override med `new_employee_ids`).
-   - Flyt en enkelt aftale-forekomst mellem ruter.
-   - Skift interval på basis-aftale (split serien).
-6. **Konsekvens-preview**: Beriger alle scope-dialoger med `useRouteSeriesImpact()`-hook der returnerer `{ futureRouteCount, futureStopCount, affectedEmployees, conflicts }`.
+- Migration: tilføj `archived_at timestamptz` på `routes`. Behold `DELETE` for tomme ruter, men kræv soft-delete via `archive_route(_route_id)` for alt andet.
+- RPC `archive_route` validerer:
+  - Ingen `completed`/`in_progress` stops mistes — de bevares og er stadig synlige i historikken.
+  - Hvis ruten er basisrute for en serie: spørg eksplicit hvad der skal ske med fremtidige projektioner (skip / lad serien fortsætte uden basis).
+- Frontend: erstat slet-knappen med "Arkivér rute" når ruten ikke er tom. Tilføj advarselsdialog med konsekvensanalyse ("X aftaler, Y stops, Z fremtidige forekomster påvirkes").
+- Kalender + lister filtrerer arkiverede ruter fra som default; admin-visning kan toggle dem ind.
 
-### P2 — Recurrence-rigdom + medarbejder-sikkerhed
+## Fase 3 — Recurrence pr. aftale på projicerede ruter (kritisk korrekthed)
 
-7. ✅ **Skip helligdage / pause-perioder**: `agreement_pauses` + `business_holidays` tabeller oprettet med RLS. `expandRecurringRoutes` springer datoer i pause-vinduer og helligdage. Wired ind i `RoutePlanner` via `useAgreementPauses` + `useBusinessHolidays`.
-8. ✅ **Medarbejder-API guard**: `useMyDayStops` og `useMyRouteData` afviser nu requests hvor `date > today` — fremtidige ruter er aldrig synlige i medarbejder-appen.
-9. ✅ **Konfliktdetektion**: `src/lib/route-conflicts.ts` — `detectConflicts(stops)` returnerer alle medarbejder+dato par med dobbeltbookinger, inkl. tidsoverlap-flag. Klar til at wires ind i `SeriesScopeDialog` ved flyt / medarbejder-skift.
+Sikrer at en projiceret rute viser præcis de aftaler hvis interval rammer den dato.
 
-### P3 — Kø + retries (enterprise)
+Status: dette er allerede implementeret i `expandRecurringRoutes` + `virtualCalendarRoutes` på source-key-niveau. Vi auditerer for kantsager:
 
-10. ✅ **Job-kø for materialisering**: `route_materialization_jobs` med UNIQUE `idempotency_key`, attempts/max_attempts, `last_error`, `next_attempt_at` (eksponentiel backoff 1m→2m→4m→8m→16m). `enqueue_route_materialization()` indsætter idempotent (ON CONFLICT DO NOTHING). `process_route_materialization_jobs(limit)` plukker pending jobs med `FOR UPDATE SKIP LOCKED`, kalder intern worker, retry/fail efter status. RLS: kun admin + virksomheds-ejer kan læse; tabellen kan kun skrives via SECURITY DEFINER-funktioner.
-11. ✅ **Idempotency-keys**: Jobs har unik `idempotency_key`. Klient-side `routeMutationQueue` har allerede mutation-keys; nye materialiseringer kan nu queues uden duplikat-risiko.
-12. **`useMaterializationJobs(businessId)`** hook eksponerer kø-status til admin-panel (filtrer på status, limit). Klar til at wires ind i et "Kø-monitor" view.
-13. ✅ **Cron-aktiveret worker**: `pg_cron` planlagt til at køre `process_route_materialization_jobs(50)` hvert minut. Køens retries fyrer nu uden manuel intervention.
-14. ✅ **Konfliktadvarsler i UI**: `SeriesScopeDialog` har nu `warnings?: string[]` prop som viser en gul "Mulige konflikter"-boks over scope-valg. `useDayConflicts(businessId, date)` hook samler dobbeltbookinger live fra databasen og kan kobles på enhver mutation der flytter aftaler eller skifter medarbejder.
-15. ✅ **Konflikter wired ind i flyt + aflys**: `RouteEditSheet` kalder `useDayConflicts` for både mål-datoen (flyt rute) og kilde-datoen (aflys forekomst), og sender konkrete advarsler ("Medarbejder har allerede X stops denne dag" + tidsoverlap-flag) videre til `MoveRouteDateDialog` og `SeriesScopeDialog`. `MoveRouteDateDialog` har fået samme `warnings?` prop som scope-dialogen.
+- Hver `agreement` evalueres uafhængigt via `intervalToCadence` + `seed_date`/`anchor_date`.
+- Pause-perioder og helligdage respekteres pr. aftale.
+- Tests/verifikation: kør en datasæts-walk gennem alle aktive serier i basen og log uoverensstemmelser mellem cadence og hvad kalenderen viser. Fix evt. fejl.
 
-## Hvorfor det her tager flere iterationer
+## Fase 4 — Medarbejderpanel: kun aktuelle ruter
 
-Hver P-blok rammer mange filer + migrationer + RLS + dialoger. Forsøger jeg at lave alle 11 punkter på én gang ender vi med en stor uoverskuelig commit som er svær at fejlfinde. Plan er at lave **én P-blok pr. iteration**, teste i preview, og fortsætte.
+Sikrer at medarbejdere ikke ser eller kan udføre fremtidige aftaler.
 
-## Foreslået første iteration (efter godkendelse)
+- Hooks for medarbejder-views (`useMyRoutes`, `useEmployeeAssignments` osv.) filtreres `route_date <= today`.
+- Backend RLS / RPC: medarbejderrolle får kun læseadgang til stops hvor route.route_date <= today OR status in ('completed','in_progress').
+- Action-RPC'er (`complete_stop`, `start_stop`) afviser hvis stoppets dato er i fremtiden.
+- "Næste forekomst" oprettes ikke længere på den aktuelle rute når et stop fuldføres — den findes allerede som projektion på den korrekte fremtidige dato (dette er en stille men vigtig opfølgning på Fase 3).
 
-P0.1 + P0.2 + P0.3 i én sammenhængende ændring:
-- Migration: `archived_at`, `deleted_at` på `routes`.
-- DB-trigger: forbyd hard-delete af `routes` med stops; forbyd UPDATE på rows hvor `archived_at IS NOT NULL`.
-- Cleanup-migration: `DELETE FROM routes WHERE base_route_id IS NOT NULL AND route_date > CURRENT_DATE AND id NOT IN (SELECT DISTINCT route_id FROM route_stops WHERE status IN ('completed','in_progress'))`. **Dette fjerner de 6 dublet-rows** brugeren ser nu.
-- `useDeleteRoute`: rute med stops → `UPDATE archived_at = now()` i stedet for hard delete.
-- UI: skjul ruter med `archived_at IS NOT NULL` fra kalenderen.
+## Fase 5 — Idempotens og duplikat-beskyttelse (robusthed)
 
-Sig "ja" til P0 så starter jeg dér. Hvis du hellere vil tackle audit log eller helligdage først, så pek på den prioritet.
+Eliminerer dubletter ved dobbeltklik, lag og parallelle brugere.
+
+- Unique constraints:
+  - `routes (base_route_id, route_date) WHERE base_route_id IS NOT NULL` (findes delvist).
+  - `route_stops (route_id, order_id) WHERE order_id IS NOT NULL` — verificér at den findes.
+  - `route_stops (route_id, agreement_id, agreement_occurrence_date)` — partial unique for projicerede stops.
+- Alle write-RPC'er kører i én transaktion med `SELECT … FOR UPDATE` på basisruten.
+- Frontend: alle kritiske knapper (opret rute, materialisér, flyt, flet, optimer, opret stop) bruger `disabled={mutation.isPending}` + serverside idempotency-claim (allerede etableret som `claim_route_planner_idempotency` — vi auditerer dækningen).
+- Debounce på 250 ms på drag-drop final.
+
+## Fase 6 — Intelligent change management (scope-dialoger)
+
+Alle handlinger der påvirker en serie skal spørge bruger: kun denne / fremtidige / hele serien.
+
+Allerede delvist på plads for "flyt rute" og "flyt projiceret rute". Udvides til:
+
+- Flet to ruter → spørg om kilde-rutens fremtidige aftaler også flyttes.
+- Skift medarbejder på basisrute → spørg om fremtidige projektioner også.
+- Skift recurrence-interval → preview af hvilke fremtidige datoer der ændres/fjernes/tilføjes.
+- Aflys forekomst → bekræft med antal påvirkede.
+- Hver dialog viser konsekvensanalyse: påvirkede aftaler, ruter, medarbejdere, konflikter, dobbeltbookinger.
+
+## Fase 7 — Exception/override-model
+
+Renser modellen for enkeltstående afvigelser.
+
+- `route_occurrence_exceptions` er på plads og dækker `skipped` / `shifted` / legacy `moved`.
+- `agreement_occurrence_overrides` dækker per-aftale afvigelser (dato, medarbejder, cancelled).
+- Audit + tests: én pipeline for hvordan exceptions konsumeres i projektionen, så vi aldrig får dobbeltvisning.
+
+## Fase 8 — Audit log og historik
+
+- Ny tabel `route_change_audit` (hvem, hvad, hvornår, scope, before, after).
+- Trigger på `routes`, `route_stops`, `route_occurrence_exceptions`, `agreement_occurrence_overrides`.
+- Admin-view "Aktivitet" på rute-detaljer.
+
+## Fase 9 — Skalerbarhed & queue
+
+- Flyt batch-materialisering og recurrence-regenerering til pg_cron + en worker-edge-function i stedet for at frontend trigger ad-hoc.
+- Pagination/virtualisering i kalender og aftalepool ved store datamængder.
+
+---
+
+## Tekniske noter
+
+- Alle nye RPC'er: `SECURITY DEFINER`, `SET search_path = public`, `EXECUTE` kun for `authenticated`, eksplicit auth-check + ejerskab-check.
+- Migrationer kører idempotent (`IF NOT EXISTS`, `ON CONFLICT`).
+- Frontend isolerer projection/instance-logik i `src/lib/recurring-projection.ts` så ingen komponent gætter selv.
+- Vi rører ikke `src/integrations/supabase/{client,types}.ts`.
+
+---
+
+## Hvad jeg foreslår vi starter med
+
+**Fase 1 + Fase 2** først — de fjerner de to mest skadelige bugs (utilsigtet ændring af projicerede ruter, og datatab ved sletning). De er afgrænsede og kan leveres uden at røre projektionsmotoren.
+
+Sig til hvis du vil have en anden rækkefølge, eller om jeg skal udvide en fase med mere detalje før jeg går i gang.
