@@ -1859,7 +1859,11 @@ export const useMoveProjectedOccurrence = () => {
       fromDate: string;
       toDate: string;
     }) => routeMutationQueue.run(async () => {
-      const { data, error } = await supabase.rpc("move_projected_occurrence" as any, {
+      // Brug den nye `shift_projected_occurrence` RPC der KUN registrerer
+      // en flytte-undtagelse — den materialiserer aldrig basisruten på den
+      // nye dato. Den projicerede forekomst bliver derved siddende som en
+      // virtuel pille i kalenderen, blot på den nye dato.
+      const { data, error } = await supabase.rpc("shift_projected_occurrence" as any, {
         _base_route_id: baseRouteId,
         _from_date: fromDate,
         _to_date: toDate,
@@ -1879,6 +1883,12 @@ export const useMoveProjectedOccurrence = () => {
     },
   });
 };
+
+/**
+ * Alias for useMoveProjectedOccurrence — clearer name now that the underlying
+ * RPC merely registers a shift exception instead of materializing the route.
+ */
+export const useShiftProjectedOccurrence = useMoveProjectedOccurrence;
 
 /* ─── Dispatch route — sends email to a SPECIFIC employee on the route. ─── */
 export const useDispatchRoute = () => {

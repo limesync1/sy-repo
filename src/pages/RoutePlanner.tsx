@@ -11,6 +11,7 @@ import {
   useCreateRoute, useDeleteRoute, useUpdateRoute,
   useRouteSeriesInfo, useMoveRouteSeries,
   useRouteOccurrenceExceptions,
+  useShiftProjectedOccurrence,
   openProjectedRouteBase,
   logRoutePlannerEvent,
   type RouteStop, type Route,
@@ -411,6 +412,7 @@ const Planner = () => {
   const updateRoute = useUpdateRoute();
   const moveRouteSeries = useMoveRouteSeries();
   const addStop = useAddStop();
+  const shiftProjectedOccurrence = useShiftProjectedOccurrence();
   const optimizeRoute = useOptimizeRoute();
   const geocode = useGeocodeAddress();
 
@@ -419,6 +421,17 @@ const Planner = () => {
   const [pendingRouteMove, setPendingRouteMove] = useState<{
     route: Route;
     newDate: string;
+  } | null>(null);
+
+  // Pending drag-and-drop af en projiceret rute → ny dato.
+  // Vises som en bekræftelsesdialog så brugeren aktivt skal sige ja
+  // før forekomsten flyttes — en utilsigtet drag/drop må aldrig flytte
+  // en fremtidig forekomst uden bekræftelse.
+  const [pendingProjectedMove, setPendingProjectedMove] = useState<{
+    baseRouteId: string;
+    routeName: string;
+    fromDate: string;
+    toDate: string;
   } | null>(null);
 
   // Pending start-date konflikt: vises når brugeren dropper en aftale på en
@@ -1024,10 +1037,40 @@ const Planner = () => {
       const baseId = (ex as any).base_route_id as string;
       const replId = (ex as any).replacement_route_id as string | null;
       const date = String((ex as any).occurrence_date).slice(0, 10);
-      // Behold kun exceptions der reelt peger på en anden materialiseret rute.
+      const type = ((ex as any).exception_type as string | null) ?? 'moved';
+      // Skip-exceptions: undertryk projektionen helt på den oprindelige dato.
+      if (type === 'skipped') {
+        realKeys.add(`${baseId}|${date}`);
+        continue;
+      }
+      // Shift-exceptions: vi undertrykker den oprindelige dato HER —
+      // den nye dato indsættes længere nede (efter expandRecurringRoutes)
+      // som en virtuel projektion på shifted_to_date.
+      if (type === 'shifted') {
+        realKeys.add(`${baseId}|${date}`);
+        continue;
+      }
+      // Legacy 'moved' med en faktisk materialiseret erstatning.
       if (!replId || replId === baseId) continue;
       if (!realRouteIds.has(replId)) continue;
       realKeys.add(`${baseId}|${date}`);
+    }
+    // Index over shifts pr. basisrute, så vi efter projektion kan flytte
+    // forekomster fra deres oprindelige dato til shifted_to_date uden at
+    // materialisere noget. Nøglen `${baseId}|${fromDate}` → toDate.
+    const shiftsByOriginal = new Map<string, string>();
+    const shiftTargetsByBase = new Map<string, Set<string>>(); // for dedup
+    for (const ex of routeOccurrenceExceptions) {
+      const type = ((ex as any).exception_type as string | null) ?? 'moved';
+      if (type !== 'shifted') continue;
+      const baseId = (ex as any).base_route_id as string;
+      const fromDate = String((ex as any).occurrence_date).slice(0, 10);
+      const toDate = (ex as any).shifted_to_date ? String((ex as any).shifted_to_date).slice(0, 10) : null;
+      if (!baseId || !toDate) continue;
+      shiftsByOriginal.set(`${baseId}|${fromDate}`, toDate);
+      const set = shiftTargetsByBase.get(baseId) ?? new Set<string>();
+      set.add(toDate);
+      shiftTargetsByBase.set(baseId, set);
     }
     // Pr. basis-rute: den dato hvor den RIGTIGE rute-row faktisk ligger lige nu.
     // Vi bruger den til at klippe projektioner væk der ellers ville dukke op
@@ -1083,7 +1126,21 @@ const Planner = () => {
       })),
       holidayDates: businessHolidays.map((h) => h.holiday_date),
     });
-    return projections
+    // Anvend shifts: flyt projektioner fra original dato til shifted_to_date.
+    // Spring projektioner over hvor en faktisk rute findes på shifted_to_date.
+    const shifted: typeof projections = [];
+    for (const p of projections) {
+      const shiftTarget = shiftsByOriginal.get(`${p.baseRouteId}|${p.date}`);
+      if (shiftTarget) {
+        // Hvis target-datoen allerede er materialiseret som rigtig rute i samme
+        // serie, så drop projektionen helt — den findes nu fysisk.
+        if (realKeys.has(`${p.baseRouteId}|${shiftTarget}`)) continue;
+        shifted.push({ ...p, date: shiftTarget, id: `${p.baseRouteId}|${shiftTarget}` });
+      } else {
+        shifted.push(p);
+      }
+    }
+    return shifted
       .map((p) => {
         // Klip kun projektioner væk der ligger før basisrutens dato når kilden
         // IKKE har en route-date som kalender-anker. For ankrede serier er
@@ -1551,24 +1608,9 @@ const Planner = () => {
         ? data.type
         : "unknown";
     dragMetrics.start(metricType);
-    if (data?.type === "route" && data?.route?.isVirtual) {
-      setActiveDragId(null);
-      setActiveDragData(null);
-      setRouteDragPoint(null);
-      activeRouteDragPointRef.current = null;
-      activeRouteDragOriginRef.current = null;
-      if (businessId) {
-        void logRoutePlannerEvent({
-          businessId,
-          eventType: "virtual_route_drag_blocked_client",
-          severity: "warning",
-          baseRouteId: data.route.baseRouteId ?? null,
-          projectedDate: data.route.route_date ?? null,
-          details: { routeId: data.route.id },
-        });
-      }
-      return;
-    }
+    // Virtuelle (projicerede) ruter er nu tilladt at trække — de håndteres
+    // separat i drag-end ved at registrere en shift-undtagelse i stedet for
+    // at flytte selve basisruten eller materialisere den.
     setActiveDragId(e.active.id as string);
     setActiveDragData(data);
     const origin = getDragPoint(e.activatorEvent);
@@ -1827,16 +1869,53 @@ const Planner = () => {
       });
       return;
     }
+    // ─── Projicerede ruter (virtuelle pilule) ───
+    // Tilladt: træk → en anden DATO. Spørger via dialog og registrerer en
+    //          shift-undtagelse (ingen materialisering, ingen duplikering).
+    // Ikke tilladt: træk → en anden rute (flet) — projicerede forekomster
+    //          findes ikke fysisk endnu og kan ikke flettes ind i noget.
     if (activeData?.type === "route" && activeData?.route?.isVirtual) {
-      await logRoutePlannerEvent({
-        businessId,
-        eventType: "virtual_route_move_blocked_client",
-        severity: "error",
-        baseRouteId: activeData.route.baseRouteId ?? null,
-        projectedDate: activeData.route.route_date ?? null,
-        details: { routeId: activeData.route.id, overType: overData?.type ?? null },
+      if (overData?.type === "route") {
+        toast.error("Kan ikke flette en projiceret rute", {
+          description: "Åbn den projicerede rute først, eller flyt en faktisk rute i stedet.",
+        });
+        return;
+      }
+      if (overData?.type !== "day") return;
+      const fromDate = String(activeData.route.route_date || "").slice(0, 10);
+      const toDate = String(overData.date || "").slice(0, 10);
+      if (!fromDate || !toDate || fromDate === toDate) return;
+      const baseRouteId: string | null = activeData.route.baseRouteId ?? null;
+      if (!baseRouteId) {
+        toast.error("Kan ikke identificere basisruten for forekomsten");
+        return;
+      }
+      // Klient-side guard: er der allerede en faktisk rute fra samme serie
+      // på target-datoen? Eller en anden projicerede forekomst af samme
+      // basisrute? — så blokerer vi før vi spørger.
+      const collidingReal = calendarRoutesRaw.find((r: any) =>
+        String(r.route_date).slice(0, 10) === toDate
+        && (r.id === baseRouteId || r.base_route_id === baseRouteId),
+      );
+      if (collidingReal) {
+        toast.error("Der findes allerede en rute fra samme serie på den dato");
+        return;
+      }
+      const collidingVirtual = virtualCalendarRoutes.find((r: any) =>
+        String(r.route_date).slice(0, 10) === toDate
+        && r.baseRouteId === baseRouteId
+        && r.id !== activeData.route.id,
+      );
+      if (collidingVirtual) {
+        toast.error("Der er allerede en projiceret forekomst af ruten på den dato");
+        return;
+      }
+      setPendingProjectedMove({
+        baseRouteId,
+        routeName: activeData.route.name || "Rute",
+        fromDate,
+        toDate,
       });
-      toast.info("Projicerede ruter kan åbnes, men ikke flyttes direkte");
       return;
     }
 
@@ -3811,6 +3890,62 @@ const Planner = () => {
           loading={moveRouteSeries.isPending}
           onConfirm={handleConfirmMoveRoute}
         />
+
+        {/* Bekræftelse: drag/drop af en projiceret forekomst til ny dato. */}
+        <AlertDialog
+          open={!!pendingProjectedMove}
+          onOpenChange={(o) => { if (!o && !shiftProjectedOccurrence.isPending) setPendingProjectedMove(null); }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Flyt denne projicerede forekomst?</AlertDialogTitle>
+              <AlertDialogDescription asChild>
+                <div className="space-y-2 text-sm">
+                  <div>
+                    Du er ved at flytte den projicerede forekomst af
+                    {" "}<span className="font-medium text-foreground">{pendingProjectedMove?.routeName}</span>{" "}
+                    fra{" "}
+                    <span className="font-medium text-foreground capitalize">
+                      {pendingProjectedMove?.fromDate ? format(parseISO(pendingProjectedMove.fromDate), "EEEE d. MMM yyyy", { locale: da }) : "—"}
+                    </span>{" "}
+                    til{" "}
+                    <span className="font-medium text-foreground capitalize">
+                      {pendingProjectedMove?.toDate ? format(parseISO(pendingProjectedMove.toDate), "EEEE d. MMM yyyy", { locale: da }) : "—"}
+                    </span>.
+                  </div>
+                  <div className="rounded-md border border-border bg-muted/40 p-2 text-xs leading-snug text-muted-foreground">
+                    Kun denne ene forekomst flyttes — den forbliver en projektion
+                    på den nye dato og bliver ikke til en faktisk rute. Basisruten
+                    og rutens øvrige projicerede forekomster forbliver uændrede.
+                  </div>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={shiftProjectedOccurrence.isPending}>Annullér</AlertDialogCancel>
+              <Button
+                onClick={async () => {
+                  if (!pendingProjectedMove) return;
+                  try {
+                    await shiftProjectedOccurrence.mutateAsync({
+                      baseRouteId: pendingProjectedMove.baseRouteId,
+                      fromDate: pendingProjectedMove.fromDate,
+                      toDate: pendingProjectedMove.toDate,
+                    });
+                    toast.success("Den projicerede forekomst er flyttet til den nye dato");
+                    setPendingProjectedMove(null);
+                  } catch (e: any) {
+                    toast.error(e?.message || "Kunne ikke flytte den projicerede rute");
+                  }
+                }}
+                disabled={shiftProjectedOccurrence.isPending}
+              >
+                {shiftProjectedOccurrence.isPending && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
+                Flyt forekomst
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Klog opstartsdato-validering ved drop af aftale på dato/rute. */}
         <AlertDialog
