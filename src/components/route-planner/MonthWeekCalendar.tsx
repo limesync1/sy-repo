@@ -614,6 +614,26 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
           <span className="truncate">{validation.topMessage ?? (validation.severity === "ok" ? "Tilføj til rute" : "")}</span>
         </div>
       )}
+      {/* Merge-target chip: vises når en anden rute trækkes over denne pille.
+          Brugeren skal aldrig være i tvivl om at et drop = fletning. */}
+      {isMergeTarget && isOver && !validation && (
+        <div
+          className="absolute -top-1 right-1 z-20 pointer-events-none rounded-md px-1.5 py-0.5 shadow-md text-[10px] font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-150 max-w-[95%] bg-accent text-accent-foreground"
+          role="status"
+        >
+          <GitMerge className="h-3 w-3 shrink-0" />
+          <span className="truncate">Flet ind i denne rute</span>
+        </div>
+      )}
+      {/* Diskret merge-affordance når rute-drag er aktivt men endnu ikke over pillen */}
+      {isMergeTarget && !isOver && (
+        <div
+          className="absolute top-1 right-1 z-20 pointer-events-none rounded-full bg-accent/15 text-accent p-0.5 animate-in fade-in duration-150"
+          aria-hidden
+        >
+          <GitMerge className="h-2.5 w-2.5" />
+        </div>
+      )}
       {busy && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/70 backdrop-blur-[1px] pointer-events-none">
           <Loader2 className="h-3.5 w-3.5 animate-spin text-accent" />
