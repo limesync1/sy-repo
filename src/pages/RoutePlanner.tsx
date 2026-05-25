@@ -754,6 +754,32 @@ const Planner = () => {
       ),
     [recurringSources],
   );
+
+  // Per-forekomst overrides for gentagende aftaler — bruges af `expandRecurringRoutes`
+  // til at hoppe over aflyste forekomster og flytte rescheduled forekomster til ny dato.
+  const agreementIdsForOverrides = useMemo(
+    () =>
+      Array.from(new Set(
+        (recurringSources as any[])
+          .map((s) => s.agreement_id as string | undefined)
+          .filter((id): id is string => !!id),
+      )),
+    [recurringSources],
+  );
+  const { data: occurrenceOverrides = [] } = useQuery({
+    queryKey: ["agreement-occurrence-overrides", businessId, agreementIdsForOverrides.sort().join(",")],
+    enabled: !!businessId && agreementIdsForOverrides.length > 0,
+    staleTime: 30 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("agreement_occurrence_overrides" as any)
+        .select("agreement_id, original_date, new_date, status")
+        .in("agreement_id", agreementIdsForOverrides);
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+  });
+
   const { data: recurringBaseRoutes = [] } = useQuery({
     queryKey: ["recurring-base-routes", businessId, recurringRouteIds.sort().join(",")],
     enabled: !!businessId && recurringRouteIds.length > 0,
