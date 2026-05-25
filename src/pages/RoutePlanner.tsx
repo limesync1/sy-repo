@@ -1290,6 +1290,41 @@ const Planner = () => {
       .filter(Boolean) as CalendarRoute[];
   }, [recurringSources, recurringBaseRoutes, calendarRoutesRaw, routeOccurrenceExceptions, calendarRange.start, calendarRange.end, activeEmployees, calendarRoutes, occurrenceOverrides, agreementPauses, businessHolidays]);
 
+  // ── Soft target-konflikter + foreslået fri dato for projiceret-flyt ──
+  const { conflicts: projectedTargetConflicts } = useDayConflicts(
+    businessId,
+    pendingProjectedMove?.toDate || undefined,
+  );
+  const projectedTargetWarnings = useMemo<string[]>(() => {
+    return projectedTargetConflicts
+      .filter((c) => c.stops.length >= 2)
+      .map((c) => {
+        const names = Array.from(new Set(c.stops.map((s) => s.label).filter(Boolean))).slice(0, 3).join(", ");
+        const overlap = c.overlapsTime ? " (tidsoverlap)" : "";
+        return `Medarbejder har allerede ${c.stops.length} stops denne dag${overlap}${names ? `: ${names}` : ""}.`;
+      });
+  }, [projectedTargetConflicts]);
+  const projectedSuggestedDate = useMemo<string | null>(() => {
+    if (!pendingProjectedMove) return null;
+    if (projectedTargetWarnings.length === 0) return null;
+    const baseId = pendingProjectedMove.baseRouteId;
+    const occupiedSeriesDates = new Set<string>();
+    for (const r of calendarRoutesRaw) {
+      if ((r as any).id === baseId || (r as any).base_route_id === baseId) {
+        occupiedSeriesDates.add(String((r as any).route_date).slice(0, 10));
+      }
+    }
+    for (const r of virtualCalendarRoutes) {
+      if ((r as any).baseRouteId === baseId && (r as any).route_date !== pendingProjectedMove.fromDate) {
+        occupiedSeriesDates.add(String((r as any).route_date).slice(0, 10));
+      }
+    }
+    const conflictDates = new Set<string>([pendingProjectedMove.toDate]);
+    return findNearestFreeDate(pendingProjectedMove.toDate, (iso) =>
+      occupiedSeriesDates.has(iso) || conflictDates.has(iso),
+    );
+  }, [pendingProjectedMove, projectedTargetWarnings, calendarRoutesRaw, virtualCalendarRoutes]);
+
   /* ─── Projection sanity-check / diagnostik ───
      Kører FØR projektionen bruges i UI'et, så vi:
        1) Auto-fjerner inkonsistente `route_occurrence_exceptions`
