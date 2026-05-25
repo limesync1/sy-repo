@@ -1898,8 +1898,15 @@ export const useMoveProjectedOccurrence = () => {
       qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
       qc.invalidateQueries({ queryKey: ["route-occurrence-exceptions"] });
     },
-    onError: (e: any) => {
-      toastRouteError(e, toast.error, { titleFallback: "Kunne ikke flytte den projicerede rute" });
+    onError: (e: any, vars: any) => {
+      toastRouteError(e, toast.error, {
+        titleFallback: "Kunne ikke flytte den projicerede rute",
+        audit: {
+          action: "shift_projected_occurrence",
+          route_id: vars?.baseRouteId ?? null,
+          payload: { fromDate: vars?.fromDate, toDate: vars?.toDate },
+        },
+      });
     },
   });
 };
