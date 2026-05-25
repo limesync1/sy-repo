@@ -193,6 +193,7 @@ export const MonthWeekCalendar = ({
                     optimizingRouteId={optimizingRouteId}
                     compact={view === "month"}
                     draggingType={draggingType}
+                    draggingRouteId={draggingRouteId ?? null}
                     weather={weatherByDate?.get(dateStr) ?? null}
                     loadingRoutes={!!loadingRoutes}
                     loadingWeather={!!loadingWeather}
@@ -224,6 +225,7 @@ type DayCellProps = {
   optimizingRouteId?: string | null;
   compact: boolean;
   draggingType?: "job" | "route" | "stop" | null;
+  draggingRouteId?: string | null;
   weather?: WeatherDay | null;
   loadingRoutes?: boolean;
   loadingWeather?: boolean;
@@ -236,7 +238,7 @@ type DayCellProps = {
 
 const DayCellInner = ({
   date, dateStr, routes, inMonth, today,
-  onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, optimizingRouteId, compact, draggingType, weather,
+  onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, optimizingRouteId, compact, draggingType, draggingRouteId, weather,
   loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds,
 }: DayCellProps) => {
   const todayIso = format(new Date(), "yyyy-MM-dd");
