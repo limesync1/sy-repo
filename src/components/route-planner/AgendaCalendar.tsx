@@ -5,7 +5,7 @@
 // `route-drop:<id>`) så al planlægger-logikken i RoutePlanner virker uændret.
 
 import { useDroppable, useDraggable } from "@dnd-kit/core";
-import { Loader2, Sparkles, Plus, MapPin, ArrowDown, Repeat, ChevronDown, Inbox } from "lucide-react";
+import { Loader2, Sparkles, Plus, MapPin, ArrowDown, Repeat, ChevronDown, Inbox, Lock } from "lucide-react";
 import { CloudOff } from "lucide-react";
 import {
   format, parseISO, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
@@ -391,7 +391,15 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, optimizing, jobDrag
         )}
       >
         <div className="text-xs font-semibold leading-tight flex items-center gap-1">
-          {isVirtual && <Repeat className="h-3 w-3 shrink-0 text-muted-foreground" />}
+          {isVirtual && (
+            <span
+              className="inline-flex items-center gap-0.5 rounded-sm bg-muted px-1 py-px text-[9px] font-bold uppercase tracking-wide text-muted-foreground shrink-0"
+              title="Projiceret rute — låst forekomst af en gentagende basisrute"
+            >
+              <Lock className="h-2 w-2" />
+              Projiceret
+            </span>
+          )}
           <span className="truncate">{route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}</span>
         </div>
         <div className="mt-0.5 flex items-center gap-2 text-[10px] text-muted-foreground tabular-nums">
