@@ -1544,6 +1544,14 @@ const Planner = () => {
         setCreateOpen(true);
       } else if (e.key === "Escape" && selectedStopId) {
         setSelectedStopId(null);
+      } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z" && !e.shiftKey) {
+        // Cmd/Ctrl+Z — fortryd seneste rute-mutation. Ignorer hvis fokus er i et
+        // input/textarea/contenteditable, så browserens egen tekst-undo virker.
+        const tgt = e.target as HTMLElement | null;
+        const tag = tgt?.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || tgt?.isContentEditable) return;
+        e.preventDefault();
+        void history.undo();
       }
     };
     window.addEventListener("keydown", onKey);
