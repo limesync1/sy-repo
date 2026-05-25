@@ -1865,10 +1865,15 @@ export const useMoveRouteSeries = () => {
 export const useMoveProjectedOccurrence = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ baseRouteId, fromDate, toDate }: {
+    mutationFn: ({ baseRouteId, fromDate, toDate, agreementIds, subscriptionIds, orderIds, moveStartDates, moveNextDates }: {
       baseRouteId: string;
       fromDate: string;
       toDate: string;
+      agreementIds?: string[];
+      subscriptionIds?: string[];
+      orderIds?: string[];
+      moveStartDates?: boolean;
+      moveNextDates?: boolean;
     }) => routeMutationQueue.run(async () => {
       // Brug den nye `shift_projected_occurrence` RPC der KUN registrerer
       // en flytte-undtagelse — den materialiserer aldrig basisruten på den
@@ -1878,6 +1883,11 @@ export const useMoveProjectedOccurrence = () => {
         _base_route_id: baseRouteId,
         _from_date: fromDate,
         _to_date: toDate,
+        _agreement_ids: agreementIds ?? [],
+        _subscription_ids: subscriptionIds ?? [],
+        _order_ids: orderIds ?? [],
+        _move_start_dates: !!moveStartDates,
+        _move_next_dates: !!moveNextDates,
       });
       if (error) throw error;
       return data as any;
@@ -1899,6 +1909,8 @@ export const useMoveProjectedOccurrence = () => {
       qc.invalidateQueries({ queryKey: ["recurring-agreements-for-planner"] });
       qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
       qc.invalidateQueries({ queryKey: ["route-occurrence-exceptions"] });
+      qc.invalidateQueries({ queryKey: ["agreements"] });
+      qc.invalidateQueries({ queryKey: ["subscriptions"] });
     },
     onError: (e: any, vars: any) => {
       toastRouteError(e, toast.error, {
