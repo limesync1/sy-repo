@@ -452,6 +452,7 @@ const Planner = () => {
     routeName: string;
     fromDate: string;
     toDate: string;
+    autoSkipCadence?: boolean;
   } | null>(null);
 
   // Pending start-date konflikt: vises når brugeren dropper en aftale på en
