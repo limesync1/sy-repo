@@ -47,10 +47,8 @@ Specifikationen er omfattende (33 sektioner). Jeg foreslår at gennemføre den i
 - Berørte filer: `src/pages/RoutePlanner.tsx`, `src/components/route-planner/*`, `src/lib/recurring-projection.ts`, `src/hooks/useRoutes.ts`, `supabase/functions/recurring-orders/`, ny migration for unique constraints + `agreement_occurrence_overrides`-tabel + `archived_at` kolonner.
 - Audit log (sektion 25): bruger eksisterende `audit_log`-tabel hvis den findes — ellers tilføj i fase 3.
 
-## Anbefalet rækkefølge & næste skridt
+## Status
 
-Faserne er uafhængige nok til at vi kan stoppe efter hver. **Foreslår at starte med Fase 1 + Fase 2** — det giver mest synlig stabilitet hurtigst (ingen flere ødelagte serier, ingen datatab) og kræver mindst DB-arbejde.
-
-**Bekræft venligst:**
-1. Skal jeg gå i gang med Fase 1+2 nu?
-2. Eller en anden rækkefølge / kun udvalgte faser?
+- **Fase 1 (UI-låsning af projicerede ruter):** Færdig — 🔒 PROJICERET badges i `MonthWeekCalendar`, `AgendaCalendar`, samt prominent banner i `RouteEditSheet`.
+- **Fase 2 (Sletteguard m. konsekvens-visning):** Færdig — ny `DeleteRouteDialog` viser antal aftale-/abonnement-/ordre-stop der påvirkes før sletning.
+- **Fase 3-5:** Kræver DB-migrations (unique constraints, override-tabeller, archived_at). Tages som separat iteration når UX-grundlaget er valideret.
