@@ -62,8 +62,9 @@ Basisrute `Ruten 1` (27. maj) har **6 materialiserede dattererute-rows** (8. jun
 
 ### P3 — Kø + retries (enterprise)
 
-10. **Job-kø for materialisering**: Erstat cron-baseret `auto_recur_due_orders` med en pg-`pgmq`-style queue så samtidige kald serialiseres.
-11. **Idempotency-keys**: Klient-genererede UUIDs på alle mutations; backend ignorerer duplikat-keys (delvist allerede via `routeMutationQueue`).
+10. ✅ **Job-kø for materialisering**: `route_materialization_jobs` med UNIQUE `idempotency_key`, attempts/max_attempts, `last_error`, `next_attempt_at` (eksponentiel backoff 1m→2m→4m→8m→16m). `enqueue_route_materialization()` indsætter idempotent (ON CONFLICT DO NOTHING). `process_route_materialization_jobs(limit)` plukker pending jobs med `FOR UPDATE SKIP LOCKED`, kalder intern worker, retry/fail efter status. RLS: kun admin + virksomheds-ejer kan læse; tabellen kan kun skrives via SECURITY DEFINER-funktioner.
+11. ✅ **Idempotency-keys**: Jobs har unik `idempotency_key`. Klient-side `routeMutationQueue` har allerede mutation-keys; nye materialiseringer kan nu queues uden duplikat-risiko.
+12. **`useMaterializationJobs(businessId)`** hook eksponerer kø-status til admin-panel (filtrer på status, limit). Klar til at wires ind i et "Kø-monitor" view.
 
 ## Hvorfor det her tager flere iterationer
 
