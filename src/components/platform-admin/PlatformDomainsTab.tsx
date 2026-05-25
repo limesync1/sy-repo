@@ -210,7 +210,7 @@ const PlatformDomainsTab = () => {
         <EmptyState icon={<Globe />} title="Ingen domæner i denne kategori" description="Kunders custom domæner vises her når de tilføjer dem i deres virksomhedsindstillinger." />
       ) : (
         <div className="space-y-2">
-          {filtered.map((row) => {
+          {paged.map((row) => {
             const meta = STATUS_LABEL[row.status] || STATUS_LABEL.unknown;
             return (
               <Card key={row.id} className="p-4">
@@ -296,6 +296,13 @@ const PlatformDomainsTab = () => {
           })}
         </div>
       )}
+      <PaginationFooter
+        page={page}
+        pageSize={pageSize}
+        total={filtered.length}
+        onPageChange={setPage}
+        label="domæner"
+      />
     </div>
   );
 };
