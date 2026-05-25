@@ -484,14 +484,23 @@ type RoutePillProps = {
   optimizing: boolean;
   compact: boolean;
   jobDragActive?: boolean;
+  /** Id på den rute der pt. trækkes — bruges til at vise denne pille som flette-mål.
+   *  Null/undefined hvis ingen rute er under drag eller hvis denne pille selv er kilden. */
+  routeDragSourceId?: string | null;
   /** True hvis ruten pt. behandler en flytning — drop deaktiveres + spinner. */
   busy?: boolean;
   /** True hvis rutens dato ligger før i dag — vis dæmpet visuel stil. */
   isPast?: boolean;
 };
 
-const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing, compact, jobDragActive, busy, isPast }: RoutePillProps) => {
+const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing, compact, jobDragActive, routeDragSourceId, busy, isPast }: RoutePillProps) => {
   const isVirtual = !!route.isVirtual;
+  // Er denne pille et gyldigt flette-mål for den rute der pt. trækkes?
+  // - kilden må aldrig være sit eget mål
+  // - projicerede ruter må aldrig modtage en merge (de findes ikke fysisk endnu)
+  // - fortids-ruter må ikke modtage merge
+  const isMergeTarget =
+    !!routeDragSourceId && routeDragSourceId !== route.id && !isVirtual && !isPast && !busy;
   // Drag-handle: hele pillen kan trækkes til ny dato.
   // - Fortids-ruter er altid låst (giver ingen mening at re-planlægge noget der er kørt).
   // - Projicerede (virtuelle) ruter må trækkes til ny dato — drop håndteres af
