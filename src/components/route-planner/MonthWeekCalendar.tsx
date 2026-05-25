@@ -11,7 +11,7 @@ import { useDroppable, useDraggable } from "@dnd-kit/core";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Plus, Users, MapPin, ArrowDown, Repeat, Clock, Wallet } from "lucide-react";
+import { Loader2, Sparkles, Plus, Users, MapPin, ArrowDown, Repeat, Clock, Wallet, Lock } from "lucide-react";
 import { CloudOff } from "lucide-react";
 import {
   format, parseISO, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
@@ -562,7 +562,15 @@ const RoutePillInner = ({ route, onSelect, onSelectStop, onOptimize, optimizing,
       >
         <div className="min-w-0 flex-1">
           <div className="text-[11px] font-semibold truncate text-foreground leading-tight flex items-center gap-1">
-            {isVirtual && <Repeat className="h-2.5 w-2.5 shrink-0 text-muted-foreground" />}
+            {isVirtual && (
+              <span
+                className="inline-flex items-center gap-0.5 rounded-sm bg-muted px-1 py-px text-[8px] font-bold uppercase tracking-wide text-muted-foreground shrink-0"
+                title="Projiceret rute — låst forekomst af en gentagende basisrute"
+              >
+                <Lock className="h-2 w-2" />
+                Projiceret
+              </span>
+            )}
             <span className="truncate">{route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}</span>
           </div>
           <div
