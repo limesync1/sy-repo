@@ -306,6 +306,10 @@ const Planner = () => {
     calendarRange.start,
     calendarRange.end,
   );
+  // Pauseperioder + helligdage — bruges af projektionen til at springe over
+  // datoer hvor en aftale ikke skal forekomme (kunde-ferie, lukkedage osv.).
+  const { data: agreementPauses = [] } = useAgreementPauses(businessId, calendarRange);
+  const { data: businessHolidays = [] } = useBusinessHolidays(businessId, calendarRange);
   const calendarRoutesRaw = calendarData?.routes ?? [];
   const rawCalendarStops = calendarData?.stops ?? [];
   const loadingCalendarRoutes = loadingCalendar;
