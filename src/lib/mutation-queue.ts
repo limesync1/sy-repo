@@ -11,6 +11,8 @@
  * outcome — a failure in one task does NOT cancel the rest of the queue.
  */
 
+import { claimRouteMutation, type RouteMutationKind } from "./route-claim";
+
 type Task<T> = {
   fn: () => Promise<T>;
   resolve: (v: T) => void;
@@ -18,6 +20,8 @@ type Task<T> = {
   retries: number;
   backoffMs: number;
   shouldRetry: (err: unknown, attempt: number) => boolean;
+  claim?: { key: string; kind: RouteMutationKind; businessId?: string | null };
+  onClaimLost?: () => unknown;
 };
 
 export type RunOptions = {
@@ -27,6 +31,15 @@ export type RunOptions = {
   backoffMs?: number;
   /** Decide if a thrown error is retryable. Default: network/5xx/timeout. */
   shouldRetry?: (err: unknown, attempt: number) => boolean;
+  /**
+   * Server-side idempotency-claim. Hvis sat, kalder vi try_claim_route_mutation
+   * INDEN fn() — hvis nogen anden allerede har taget nøglen (cross-tab,
+   * network-retry efter timeout, dobbeltklik der gennemslår debounce) køres
+   * fn() ikke. Resultatet bliver det `onClaimLost()` returnerer, ellers null.
+   */
+  claim?: { key: string; kind: RouteMutationKind; businessId?: string | null };
+  /** Hvad skal returneres hvis claim'en er tabt. Default: null. */
+  onClaimLost?: () => unknown;
 };
 
 /** Heuristic: retry network / Supabase 5xx / abort / timeout. */
@@ -63,6 +76,8 @@ export class MutationQueue {
         retries: Math.max(1, opts.retries ?? 3),
         backoffMs: opts.backoffMs ?? 250,
         shouldRetry: opts.shouldRetry ?? defaultShouldRetry,
+        claim: opts.claim,
+        onClaimLost: opts.onClaimLost,
       } as Task<unknown>);
       void this.drain();
     });
@@ -82,6 +97,24 @@ export class MutationQueue {
     try {
       while (this.q.length > 0) {
         const task = this.q.shift()!;
+        // ── Idempotency-claim (L4) ──
+        // Tjek FØR vi udfører handlingen. Vinder vi ikke claim'en er der
+        // intet at gøre — vi resolver med onClaimLost()-værdien (typisk null)
+        // og går videre til næste task. Dette stopper duplikerede mutations
+        // også på tværs af tabs/enheder, ikke kun inden for samme session.
+        if (task.claim) {
+          try {
+            const won = await claimRouteMutation(task.claim.key, task.claim.kind, task.claim.businessId ?? null);
+            if (!won) {
+              try { task.resolve((task.onClaimLost?.() ?? null) as never); }
+              catch (e) { task.reject(e); }
+              continue;
+            }
+          } catch (e) {
+            // Claim-fejl skal aldrig blokere — fail-open og fortsæt.
+            console.warn("[mutation-queue] claim failed — fail-open", e);
+          }
+        }
         let lastErr: unknown;
         let succeeded = false;
         for (let attempt = 1; attempt <= task.retries; attempt++) {

@@ -1871,6 +1871,17 @@ export const useMoveProjectedOccurrence = () => {
       });
       if (error) throw error;
       return data as any;
+    }, {
+      // Server-side claim: hindrer dobbeltklik / network-retry / cross-tab
+      // i at registrere SAMME projicerede flytning to gange (præcis samme
+      // basisrute, fra-dato og til-dato). 24-timers TTL er rigeligt — efter
+      // det er user-intentet næsten altid en bevidst handling.
+      claim: {
+        key: `shift_projected:${baseRouteId}:${fromDate}->${toDate}`,
+        kind: "shift_projected",
+        businessId: null,
+      },
+      onClaimLost: () => null,
     }),
     onSuccess: () => {
       invalidateRouteSyncQueries(qc);
