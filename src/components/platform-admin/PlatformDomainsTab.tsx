@@ -74,6 +74,14 @@ const PlatformDomainsTab = () => {
     return c;
   }, [rows]);
 
+  const pageSize = useAdaptivePageSize();
+  const [page, setPage] = useState(0);
+  useEffect(() => { setPage(0); }, [filter]);
+  const paged = useMemo(
+    () => filtered.slice(page * pageSize, (page + 1) * pageSize),
+    [filtered, page, pageSize],
+  );
+
   const setActive = useMutation({
     mutationFn: async ({ row, active }: { row: DomainRow; active: boolean }) => {
       const newSettings = {
