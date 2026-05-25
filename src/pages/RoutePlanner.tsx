@@ -4310,6 +4310,51 @@ const Planner = () => {
           onConfirm={handleConfirmMoveRoute}
         />
 
+        {/* Klog auto-optimering: efter en flytning/merge spørger vi om
+            brugeren vil have stop-rækkefølgen optimeret automatisk.
+            Aldrig uden bekræftelse — så brugeren bevarer fuld kontrol. */}
+        <AlertDialog
+          open={!!pendingOptimizePrompt}
+          onOpenChange={(o) => { if (!o) setPendingOptimizePrompt(null); }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-accent" />
+                Optimér stop-rækkefølgen?
+              </AlertDialogTitle>
+              <AlertDialogDescription asChild>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <p>
+                    <span className="font-medium text-foreground">{pendingOptimizePrompt?.routeName}</span>{" "}
+                    {pendingOptimizePrompt?.reason === "merged"
+                      ? "har fået nye stops efter fletningen."
+                      : "er flyttet til en ny dato."}
+                  </p>
+                  <p>
+                    Vil du have rækkefølgen optimeret automatisk, så ruten kører
+                    mest effektivt geografisk? Du kan altid optimere manuelt senere.
+                  </p>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Nej tak</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(e) => {
+                  e.preventDefault();
+                  const p = pendingOptimizePrompt;
+                  setPendingOptimizePrompt(null);
+                  if (p) void handleOptimize(p.routeId, p.routeName);
+                }}
+              >
+                <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+                Ja, optimér nu
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         {/* Bekræftelse: drag/drop af en projiceret forekomst til ny dato. */}
         <MoveProjectedOccurrenceDialog
           open={!!pendingProjectedMove}
