@@ -144,6 +144,18 @@ export const expandRecurringRoutes = (params: {
     } catch {
       continue;
     }
+    // Hård nedre grænse for projektionen: vi viser aldrig forekomster før
+    // hverken aftalens start eller basisrutens første dato. Det undgår at
+    // en 27. maj-rute projiceres tilbage til 6. maj for en 3-ugers aftale
+    // — den rute er aldrig blevet kørt, så historiske "kunne være kørt"
+    // datoer giver ingen mening.
+    const earliestCandidates = [s.seed_date, s.anchor_date]
+      .filter((d): d is string => !!d)
+      .map((d) => parseISO(String(d).slice(0, 10)))
+      .filter((d) => !Number.isNaN(d.getTime()));
+    const earliest = earliestCandidates.length > 0
+      ? earliestCandidates.reduce((a, b) => (isBefore(a, b) ? b : a))
+      : seed;
     // Spol cursor til første forekomst inden for det synlige interval.
     // Uden anchor_date bevarer vi gammel semantik: seed_date er første mulige
     // forekomst. Med anchor_date (basisrutens dato) behandler vi derimod ruten
@@ -165,7 +177,7 @@ export const expandRecurringRoutes = (params: {
     while (!isBefore(limit, cursor) && safety++ < 4000) {
       const ds = format(cursor, "yyyy-MM-dd");
       const key = `${routeId}|${ds}`;
-      if (!isBefore(cursor, start) && !params.realRouteDates.has(key)) {
+      if (!isBefore(cursor, start) && !isBefore(cursor, earliest) && !params.realRouteDates.has(key)) {
         const sourceKeys = (s.sourceKeys && s.sourceKeys.length > 0) ? s.sourceKeys : [s.id];
         const existing = byRouteDate.get(key);
         if (existing) {
