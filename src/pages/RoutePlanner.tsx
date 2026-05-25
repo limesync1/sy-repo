@@ -3645,6 +3645,7 @@ const Planner = () => {
                   loadingWeather={loadingWeather}
                   weatherError={weatherError}
                   busyTargets={busyTargets}
+                  dateAlerts={dateAlerts}
                 />
                 </div>
                 </div>
