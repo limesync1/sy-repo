@@ -31,6 +31,7 @@ import { DatePickerField } from "./DatePickerField";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection";
 import { pickDuration } from "@/components/route/EtaBreakdown";
 import { MoveRouteDateDialog, type MoveRouteScope } from "./MoveRouteDateDialog";
+import { MoveProjectedOccurrenceDialog } from "./MoveProjectedOccurrenceDialog";
 import { MoveStopsDialog } from "./MoveStopsDialog";
 import { SeriesScopeDialog, type SeriesScope } from "./SeriesScopeDialog";
 import { logRouteAudit } from "@/lib/route-audit";
