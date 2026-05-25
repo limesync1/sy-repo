@@ -15,7 +15,15 @@ Deno.serve(async (req) => {
   try {
     const CRON_SECRET = Deno.env.get("CRON_SECRET") || "";
     const authHeader = req.headers.get("Authorization") || "";
-    const ok = CRON_SECRET && (authHeader === `Bearer ${CRON_SECRET}` || authHeader === `Bearer ${SERVICE_KEY}`);
+    // Tillad kald fra:
+    //  - pg_cron (kalder med projektets anon key — supabase verificerer JWT)
+    //  - Eksternt cron med eksplicit CRON_SECRET
+    //  - Intern service-role
+    const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") || "";
+    const ok =
+      (CRON_SECRET && authHeader === `Bearer ${CRON_SECRET}`) ||
+      (SERVICE_KEY && authHeader === `Bearer ${SERVICE_KEY}`) ||
+      (ANON_KEY && authHeader === `Bearer ${ANON_KEY}`);
     if (!ok) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
