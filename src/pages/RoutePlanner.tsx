@@ -76,6 +76,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { expandRecurringRoutes, projectedStopMatchesSources, recurringSourceKeysForStop } from "@/lib/recurring-projection";
 import { intervalToCadence } from "@/lib/interval";
+import { useAgreementPauses } from "@/hooks/useAgreementPauses";
+import { useBusinessHolidays } from "@/hooks/useBusinessHolidays";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { invalidateRouteSyncQueries } from "@/hooks/useRoutes";
 import { routeMutationQueue } from "@/lib/mutation-queue";
