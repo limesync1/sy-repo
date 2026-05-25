@@ -592,8 +592,7 @@ export const useRouteOccurrenceExceptions = (
         .from("route_occurrence_exceptions" as any)
         .select("id, base_route_id, occurrence_date, replacement_route_id, exception_type, shifted_to_date")
         .eq("business_id", businessId!)
-        .gte("occurrence_date", from)
-        .lte("occurrence_date", to);
+        .or(`and(occurrence_date.gte.${from},occurrence_date.lte.${to}),and(shifted_to_date.gte.${from},shifted_to_date.lte.${to})`);
       if (error) throw error;
       return (data || []) as unknown as RouteOccurrenceException[];
     },

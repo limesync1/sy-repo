@@ -79,6 +79,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   expandRecurringRoutes,
+  expandProjectionWindowForShiftedOccurrences,
   projectedStopMatchesSources,
   recurringSourceKeysForStop,
   resolveProjectionExceptions,
@@ -1124,13 +1125,17 @@ const Planner = () => {
     // begge retninger: en 14-dages aftale på en basisrute d. 28 viser også d.
     // 14, mens månedlige/ugentlige aftaler stadig beregnes med deres egen cadence.
     const sourcesWithRouteSeed = recurringSources;
+    const projectionWindow = expandProjectionWindowForShiftedOccurrences(
+      calendarRange.start,
+      calendarRange.end,
+      routeOccurrenceExceptions as any[],
+    );
     const projections = expandRecurringRoutes({
       sources: sourcesWithRouteSeed,
-      // Brug hele det synlige kalenderinterval — også datoer tidligere i
-      // måneden. Ellers forsvinder fx d. 14 i en 14-dages serie, når man ser
-      // måneden efter d. 14 er passeret.
-      rangeStart: calendarRange.start,
-      rangeEnd: calendarRange.end,
+      // Hvis en shifted forekomst lander i viewet men originaldatoen ligger
+      // lige udenfor, udvider vi projektionen nok til at kunne flytte den ind.
+      rangeStart: projectionWindow.rangeStart,
+      rangeEnd: projectionWindow.rangeEnd,
       realRouteDates: realKeys,
       overrides: occurrenceOverrides as any[],
       pauses: agreementPauses.map((p) => ({
