@@ -6,7 +6,6 @@ import { useMyEmployeeId } from "@/hooks/useMyEmployee";
 import { filterStopsByOccurrenceDate } from "@/lib/recurring-projection";
 import { logRouteAudit } from "@/lib/route-audit";
 import { toastRouteError } from "@/lib/route-errors";
-import { newRouteMutationKey } from "@/lib/route-claim";
 
 export const invalidateRouteSyncQueries = (qc: ReturnType<typeof useQueryClient>) => {
   qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
