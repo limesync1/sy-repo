@@ -273,11 +273,6 @@ const DayCellInner = ({
     if (draggingType === "job") return emptyDay ? "Opret ny rute" : "Tilføj til rute";
     if (draggingType === "stop") return "Flyt stop hertil";
     if (draggingType === "route") {
-      // Hvis dagen allerede har en anden rute (som ikke er kilden), så er
-      // dagscellen IKKE et merge-mål — den lægger ruten som en ekstra rute
-      // ved siden af. Gør forskellen helt eksplicit for brugeren.
-      const hasOtherRoute = routes.some((r) => !r.isVirtual && r.id !== draggingRouteId);
-      if (hasOtherRoute) return "Læg som ekstra rute (slip på rute-pille for at flette)";
       return "Flyt rute hertil";
     }
     return null;
