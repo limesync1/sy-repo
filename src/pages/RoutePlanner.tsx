@@ -4394,31 +4394,63 @@ const Planner = () => {
             Aldrig uden bekræftelse — så brugeren bevarer fuld kontrol. */}
         <AlertDialog
           open={!!pendingOptimizePrompt}
-          onOpenChange={(o) => { if (!o) setPendingOptimizePrompt(null); }}
+          onOpenChange={(o) => {
+            if (!o) {
+              // Markér at brugeren dismisset denne rute — vi spørger ikke
+              // igen indenfor 1 time, så vi ikke pester. Samme effekt som
+              // "Nej tak"-knappen.
+              if (pendingOptimizePrompt) markOptimizeDismissed(pendingOptimizePrompt.routeId);
+              setPendingOptimizePrompt(null);
+            }
+          }}
         >
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-accent" />
-                Optimér stop-rækkefølgen?
+                Spar {pendingOptimizePrompt?.estimate.savingsKm ?? 0} km på {pendingOptimizePrompt?.routeName ?? "ruten"}?
               </AlertDialogTitle>
               <AlertDialogDescription asChild>
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <p>
-                    <span className="font-medium text-foreground">{pendingOptimizePrompt?.routeName}</span>{" "}
                     {pendingOptimizePrompt?.reason === "merged"
-                      ? "har fået nye stops efter fletningen."
-                      : "er flyttet til en ny dato."}
+                      ? "Efter fletningen er rækkefølgen ikke længere optimal — kører lidt frem og tilbage."
+                      : "Rækkefølgen er ikke længere optimal på den nye dato — kører lidt frem og tilbage."}
                   </p>
-                  <p>
-                    Vil du have rækkefølgen optimeret automatisk, så ruten kører
-                    mest effektivt geografisk? Du kan altid optimere manuelt senere.
+                  {pendingOptimizePrompt && (
+                    <div className="rounded-md border bg-muted/40 px-3 py-2 text-foreground tabular-nums">
+                      <div className="flex items-center justify-between">
+                        <span>Nu</span>
+                        <span className="font-semibold">{pendingOptimizePrompt.estimate.currentKm} km</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span>Efter optimering</span>
+                        <span className="font-semibold text-emerald-600">
+                          ≈ {pendingOptimizePrompt.estimate.suggestedKm} km
+                        </span>
+                      </div>
+                      <div className="mt-1 border-t pt-1 flex items-center justify-between text-xs">
+                        <span>Besparelse</span>
+                        <span className="font-semibold text-emerald-600">
+                          {pendingOptimizePrompt.estimate.savingsKm} km ({pendingOptimizePrompt.estimate.savingsPct}%)
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  <p className="text-[11px]">
+                    Estimat — du kan altid optimere manuelt senere via knappen på rute-pillen.
                   </p>
                 </div>
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Nej tak</AlertDialogCancel>
+              <AlertDialogCancel
+                onClick={() => {
+                  if (pendingOptimizePrompt) markOptimizeDismissed(pendingOptimizePrompt.routeId);
+                }}
+              >
+                Nej tak
+              </AlertDialogCancel>
               <AlertDialogAction
                 onClick={(e) => {
                   e.preventDefault();
