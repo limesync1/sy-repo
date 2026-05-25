@@ -11,6 +11,7 @@ import {
   useCreateRoute, useDeleteRoute, useUpdateRoute,
   useRouteSeriesInfo, useMoveRouteSeries,
   useRouteOccurrenceExceptions,
+  useShiftProjectedOccurrence,
   openProjectedRouteBase,
   logRoutePlannerEvent,
   type RouteStop, type Route,
