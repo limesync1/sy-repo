@@ -1869,16 +1869,53 @@ const Planner = () => {
       });
       return;
     }
+    // ─── Projicerede ruter (virtuelle pilule) ───
+    // Tilladt: træk → en anden DATO. Spørger via dialog og registrerer en
+    //          shift-undtagelse (ingen materialisering, ingen duplikering).
+    // Ikke tilladt: træk → en anden rute (flet) — projicerede forekomster
+    //          findes ikke fysisk endnu og kan ikke flettes ind i noget.
     if (activeData?.type === "route" && activeData?.route?.isVirtual) {
-      await logRoutePlannerEvent({
-        businessId,
-        eventType: "virtual_route_move_blocked_client",
-        severity: "error",
-        baseRouteId: activeData.route.baseRouteId ?? null,
-        projectedDate: activeData.route.route_date ?? null,
-        details: { routeId: activeData.route.id, overType: overData?.type ?? null },
+      if (overData?.type === "route") {
+        toast.error("Kan ikke flette en projiceret rute", {
+          description: "Åbn den projicerede rute først, eller flyt en faktisk rute i stedet.",
+        });
+        return;
+      }
+      if (overData?.type !== "day") return;
+      const fromDate = String(activeData.route.route_date || "").slice(0, 10);
+      const toDate = String(overData.date || "").slice(0, 10);
+      if (!fromDate || !toDate || fromDate === toDate) return;
+      const baseRouteId: string | null = activeData.route.baseRouteId ?? null;
+      if (!baseRouteId) {
+        toast.error("Kan ikke identificere basisruten for forekomsten");
+        return;
+      }
+      // Klient-side guard: er der allerede en faktisk rute fra samme serie
+      // på target-datoen? Eller en anden projicerede forekomst af samme
+      // basisrute? — så blokerer vi før vi spørger.
+      const collidingReal = calendarRoutesRaw.find((r: any) =>
+        String(r.route_date).slice(0, 10) === toDate
+        && (r.id === baseRouteId || r.base_route_id === baseRouteId),
+      );
+      if (collidingReal) {
+        toast.error("Der findes allerede en rute fra samme serie på den dato");
+        return;
+      }
+      const collidingVirtual = virtualCalendarRoutes.find((r: any) =>
+        String(r.route_date).slice(0, 10) === toDate
+        && r.baseRouteId === baseRouteId
+        && r.id !== activeData.route.id,
+      );
+      if (collidingVirtual) {
+        toast.error("Der er allerede en projiceret forekomst af ruten på den dato");
+        return;
+      }
+      setPendingProjectedMove({
+        baseRouteId,
+        routeName: activeData.route.name || "Rute",
+        fromDate,
+        toDate,
       });
-      toast.info("Projicerede ruter kan åbnes, men ikke flyttes direkte");
       return;
     }
 
