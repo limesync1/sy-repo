@@ -182,10 +182,14 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
 
   const statusBadge = () => {
     switch (stop.status) {
-      case "completed": return <span><Badge className="bg-green-600">Færdig</Badge></span>;
-      case "in_progress": return <span><Badge className="bg-blue-600">I gang</Badge></span>;
-      case "skipped": return <span><Badge variant="outline" className="text-orange-600 border-orange-300">Sprunget over</Badge></span>;
-      default: return <span><Badge variant="secondary">Afventer</Badge></span>;
+      case "completed":
+        return <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white gap-1 text-[10px] h-5"><CheckCircle2 className="h-3 w-3" />Færdig</Badge>;
+      case "in_progress":
+        return <Badge className="bg-sky-600 hover:bg-sky-600 text-white gap-1 text-[10px] h-5"><Loader2 className="h-3 w-3 animate-spin" />I gang</Badge>;
+      case "skipped":
+        return <Badge variant="outline" className="text-amber-700 border-amber-300 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-200 gap-1 text-[10px] h-5"><AlertCircle className="h-3 w-3" />Sprunget over</Badge>;
+      default:
+        return <Badge variant="secondary" className="gap-1 text-[10px] h-5"><Clock className="h-3 w-3" />Afventer</Badge>;
     }
   };
 
