@@ -75,7 +75,7 @@ export const SuggestRouteDialog = ({
   }, [job.id]);
 
   useEffect(() => {
-    if (!open || latitude != null || longitude != null || !hasAddress || geocode.isPending) return;
+    if (!open || (latitude != null && longitude != null) || !hasAddress || geocode.isPending) return;
     (async () => {
       try {
         const res = await geocode.mutateAsync({
@@ -120,7 +120,7 @@ export const SuggestRouteDialog = ({
             Foreslå rute til {job.customer_name || "aftalen"}
           </DialogTitle>
           <DialogDescription>
-            Top {suggestions?.length ?? 3} ruter på {format(parseISO(date), "EEEE d. MMM", { locale: da })} — sorteret efter afstand, ledig kapacitet, færdigheder og zone.
+            Vi finder de bedste ruter på {format(parseISO(date), "EEEE d. MMM", { locale: da })} ud fra afstand, plads på dagen og medarbejderens branche.
           </DialogDescription>
         </DialogHeader>
 
