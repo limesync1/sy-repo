@@ -2278,6 +2278,8 @@ const Planner = () => {
     // browseren startede en drag pga. en lille touch-bevægelse, mens
     // brugeren forsøgte at klikke (særligt Windows-touchpads/Android).
     dragMetrics.end(hasDropTarget);
+    setDragOverTargetId(null);
+    clearDragEta();
     if (!hasDropTarget || !businessId) return;
 
     // Knyt en ordres aktive, gentagende abonnement til en bestemt rute,
