@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import {
   GripVertical, MapPin, CalendarClock, Clock, Phone,
-  StickyNote, ChevronDown, ChevronRight, Route as RouteIcon, Lock, Sparkles,
+  StickyNote, ChevronDown, ChevronRight, Route as RouteIcon, Lock, Sparkles, CalendarSearch,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format, parseISO, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
@@ -46,6 +46,8 @@ type Props = {
   };
   onClick?: () => void;
   onSuggestRoute?: () => void;
+  /** Hopper kalenderen til første dag med ledig kapacitet. */
+  onFindFreeSlot?: () => void;
   /** Kompakt visning — skjuler varighed/badges og holder skema-banner på én linje. */
   compact?: boolean;
 };
@@ -88,7 +90,7 @@ const getSchedule = (d?: string | null) => {
   return { dayLabel, relative, tone };
 };
 
-export const UnassignedJobCard = ({ job, onClick, onSuggestRoute, compact = false }: Props) => {
+export const UnassignedJobCard = ({ job, onClick, onSuggestRoute, onFindFreeSlot, compact = false }: Props) => {
   const [expanded, setExpanded] = useState(false);
   const isPending = job.status === "pending";
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
@@ -277,15 +279,28 @@ export const UnassignedJobCard = ({ job, onClick, onSuggestRoute, compact = fals
       </div>
 
       {onSuggestRoute && !isPending && !compact && (
+        <div className="flex border-t border-border/50">
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); onSuggestRoute(); }}
-          className="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 text-[11px] font-medium text-foreground hover:bg-accent/10 border-t border-border/50 transition-colors"
+          className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-[11px] font-medium text-foreground hover:bg-accent/10 transition-colors"
           title="Foreslå bedste rute baseret på afstand, kapacitet og færdigheder"
         >
           <Sparkles className="h-3 w-3 text-accent" />
           Foreslå rute
         </button>
+        {onFindFreeSlot && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onFindFreeSlot(); }}
+            className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-[11px] font-medium text-foreground hover:bg-accent/10 border-l border-border/50 transition-colors"
+            title="Spring til første dag med ledig kapacitet"
+          >
+            <CalendarSearch className="h-3 w-3 text-foreground/70" />
+            Næste ledige
+          </button>
+        )}
+        </div>
       )}
 
       {/* Expandable details */}
