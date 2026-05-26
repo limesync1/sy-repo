@@ -5527,6 +5527,7 @@ const Planner = () => {
         routeName={historyRoute?.name}
       />
     </DndContext>
+    </div>
   );
 };
 
