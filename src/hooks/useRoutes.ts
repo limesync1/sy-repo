@@ -1257,8 +1257,17 @@ export const useDeleteStop = () => {
   return useMutation({
     mutationFn: (id: string) =>
       routeMutationQueue.run(async () => {
+        const { data: existing } = await supabase
+          .from("route_stops")
+          .select("route_id")
+          .eq("id", id)
+          .maybeSingle();
+        const routeId = (existing as any)?.route_id as string | undefined;
         const { error } = await supabase.from("route_stops").delete().eq("id", id);
         if (error) throw error;
+        if (routeId) {
+          await supabase.rpc("cleanup_route_after_stop_delete" as any, { _route_id: routeId });
+        }
       }),
     onMutate: async (id) => {
       await qc.cancelQueries({ queryKey: ["route-stops-bulk"] });
