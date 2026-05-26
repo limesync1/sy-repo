@@ -1079,9 +1079,8 @@ export const useAddStop = () => {
           /* lookup må aldrig blokere oprettelse */
         }
       }
-      const { data, error } = await supabase
-        .from("route_stops")
-        .insert({
+      const { data, error } = await supabase.rpc("add_route_stop_idempotent" as any, {
+        _payload: {
           route_id: payload.route_id,
           order_id: payload.order_id ?? null,
           subscription_id: payload.subscription_id ?? null,
@@ -1096,17 +1095,17 @@ export const useAddStop = () => {
           time_window_start: payload.time_window_start ?? null,
           time_window_end: payload.time_window_end ?? null,
           assigned_employee_id: resolvedAssignee,
-        })
-        .select("*")
-        .single();
+        } as any,
+      });
       if (error) throw error;
+      const stop = (Array.isArray(data) ? data[0] : data) as any;
       // Hvis vi auto-tildelte, opret også en assignee-række så det ses i UI
       if (resolvedAssignee && !payload.assigned_employee_id) {
         try {
           await supabase
             .from("route_stop_assignees")
             .upsert(
-              { stop_id: (data as any).id, employee_id: resolvedAssignee, is_lead: true },
+              { stop_id: stop.id, employee_id: resolvedAssignee, is_lead: true },
               { onConflict: "stop_id,employee_id", ignoreDuplicates: true },
             );
         } catch { /* ignorer hvis trigger allerede har sat den */ }
@@ -1170,7 +1169,7 @@ export const useAddStop = () => {
           /* preferred_route_id er en hint — må aldrig blokere drop'et */
         }
       }
-      return data as RouteStop;
+      return stop as RouteStop;
     }),
     onSuccess: () => invalidateRouteSyncQueries(qc),
   });
