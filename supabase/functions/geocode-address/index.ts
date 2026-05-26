@@ -1,72 +1,70 @@
-// Geocode danske adresser via DAWA (Danmarks Adressers Web API) — officielt,
-// hurtigt og uden nøgle. Falder tilbage til Nominatim hvis DAWA ikke svarer.
+// Geokod danske adresser via DAWA (Danmarks officielle adresse-API).
+// Bruger struktur=mini for lille payload + fuzzy=1 for typo-tolerance.
+// Falder tilbage til Nominatim hvis DAWA er nede.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-type GeoHit = { latitude: number; longitude: number; display_name: string; raw_display_name?: string };
-
-const dawaLookup = async (query: string): Promise<GeoHit | null> => {
-  if (!query.trim()) return null;
-  try {
-    const r = await fetch(
-      `https://api.dataforsyningen.dk/datavask/adresser?betegnelse=${encodeURIComponent(query)}`,
-      { headers: { "User-Agent": "Serviceydere/1.0" } },
-    );
-    if (r.ok) {
-      const j = await r.json();
-      const hit = Array.isArray(j?.resultater) ? j.resultater[0]?.adresse : null;
-      if (hit?.x != null && hit?.y != null) {
-        return { latitude: Number(hit.y), longitude: Number(hit.x), display_name: hit.betegnelse || query };
-      }
-    }
-  } catch (e) { console.warn("DAWA datavask failed", e); }
-  try {
-    const r = await fetch(
-      `https://api.dataforsyningen.dk/adgangsadresser?q=${encodeURIComponent(query)}&fuzzy=&per_side=1`,
-      { headers: { "User-Agent": "Serviceydere/1.0" } },
-    );
-    if (r.ok) {
-      const j = await r.json();
-      const hit = Array.isArray(j) ? j[0] : null;
-      if (hit?.adgangspunkt?.koordinater) {
-        const [lon, lat] = hit.adgangspunkt.koordinater;
-        return {
-          latitude: Number(lat),
-          longitude: Number(lon),
-          display_name: `${hit.vejstykke?.navn || ""} ${hit.husnr || ""}, ${hit.postnummer?.nr || ""} ${hit.postnummer?.navn || ""}`.trim(),
-        };
-      }
-    }
-  } catch (e) { console.warn("DAWA adgangsadresser failed", e); }
-  return null;
+type GeoHit = {
+  latitude: number;
+  longitude: number;
+  display_name: string;
+  confidence: "exact" | "fuzzy" | "approximate";
+  matched_address?: string;
 };
 
-const nominatimLookup = async (query: string): Promise<GeoHit | null> => {
-  if (!query.trim()) return null;
+const safeFetch = async (url: string): Promise<any | null> => {
   try {
-    const r = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&countrycodes=dk&q=${encodeURIComponent(query)}`,
-      { headers: { "User-Agent": "Serviceydere/1.0 (kontakt@serviceydere.dk)" } },
-    );
+    const r = await fetch(url, {
+      headers: {
+        "User-Agent": "Serviceydere/1.0 (kontakt@serviceydere.dk)",
+        // Tvinger ukomprimeret svar — Deno-runtime fejler nogle gange på
+        // gzip-streams med "unexpected end of file".
+        "Accept-Encoding": "identity",
+        "Accept": "application/json",
+      },
+    });
     if (!r.ok) return null;
-    const data = await r.json();
-    if (!Array.isArray(data) || data.length === 0) return null;
-    const hit = data[0];
-    const a = hit.address || {};
-    const road = a.road || a.pedestrian || a.residential || "";
-    const formatted = road
-      ? `${road}${a.house_number ? " " + a.house_number : ""}, ${[a.postcode, a.city || a.town || a.village || a.municipality].filter(Boolean).join(" ")}`
-      : hit.display_name;
-    return {
-      latitude: parseFloat(hit.lat),
-      longitude: parseFloat(hit.lon),
-      display_name: formatted,
-      raw_display_name: hit.display_name,
-    };
-  } catch (e) { console.warn("Nominatim failed", e); return null; }
+    const text = await r.text();
+    if (!text) return null;
+    return JSON.parse(text);
+  } catch (e) {
+    console.warn("fetch failed", url.slice(0, 80), String(e));
+    return null;
+  }
+};
+
+const dawaSearch = async (query: string, fuzzy: boolean): Promise<GeoHit | null> => {
+  if (!query.trim()) return null;
+  const url = `https://api.dataforsyningen.dk/adgangsadresser?q=${encodeURIComponent(query)}${fuzzy ? "&fuzzy=" : ""}&per_side=1&struktur=mini`;
+  const data = await safeFetch(url);
+  if (!Array.isArray(data) || data.length === 0) return null;
+  const hit = data[0];
+  if (hit?.x == null || hit?.y == null) return null;
+  return {
+    latitude: Number(hit.y),
+    longitude: Number(hit.x),
+    display_name: hit.betegnelse || query,
+    matched_address: hit.betegnelse,
+    confidence: fuzzy ? "fuzzy" : "exact",
+  };
+};
+
+const nominatim = async (query: string): Promise<GeoHit | null> => {
+  if (!query.trim()) return null;
+  const data = await safeFetch(
+    `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=dk&q=${encodeURIComponent(query + ", Danmark")}`,
+  );
+  if (!Array.isArray(data) || data.length === 0) return null;
+  const hit = data[0];
+  return {
+    latitude: parseFloat(hit.lat),
+    longitude: parseFloat(hit.lon),
+    display_name: hit.display_name,
+    confidence: "approximate",
+  };
 };
 
 Deno.serve(async (req) => {
@@ -84,24 +82,36 @@ Deno.serve(async (req) => {
     }
 
     const cityLine = [zip, city].filter(Boolean).join(" ");
+    // Forsøg fra mest til mindst præcis. Eksakt match først, derefter fuzzy.
     const queries = [
       [address, cityLine].filter(Boolean).join(", "),
       [address, city].filter(Boolean).join(", "),
-      [address, zip].filter(Boolean).join(", "),
+      [address, zip].filter(Boolean).join(" "),
       address,
       cityLine,
-    ].filter((q, i, arr) => q && arr.indexOf(q) === i);
+    ].filter((q, i, arr) => q.trim() && arr.indexOf(q) === i);
 
+    // 1) DAWA eksakt
     for (const q of queries) {
-      const hit = await dawaLookup(q);
+      const hit = await dawaSearch(q, false);
       if (hit) {
         return new Response(JSON.stringify({ found: true, ...hit }), {
           status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
     }
+    // 2) DAWA fuzzy — fanger typografi-fejl
     for (const q of queries) {
-      const hit = await nominatimLookup(`${q}, Danmark`);
+      const hit = await dawaSearch(q, true);
+      if (hit) {
+        return new Response(JSON.stringify({ found: true, ...hit }), {
+          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+    // 3) Nominatim — sidste udvej
+    for (const q of queries) {
+      const hit = await nominatim(q);
       if (hit) {
         return new Response(JSON.stringify({ found: true, ...hit }), {
           status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
