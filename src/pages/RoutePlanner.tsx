@@ -327,6 +327,8 @@ const Planner = () => {
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [suggestJob, setSuggestJob] = useState<any | null>(null);
+  // Ref til "Aftaler uden rute"-søgefeltet — så vi kan fokusere det med "/".
+  const unassignedSearchRef = useRef<HTMLInputElement | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragData, setActiveDragData] = useState<any>(null);
   // ID for det drop-target musen p.t. hovrer over — bruges af DragEtaOverlay
@@ -2025,6 +2027,17 @@ const Planner = () => {
     await runAutoAssignCore(candidates, { setBusy: setAutoAssigning, sourceLabel: "alle" });
   };
 
+  // Hold refs synkroniseret så keyboard-shortcuts altid kalder seneste closure.
+  useEffect(() => {
+    runAutoAssignRef.current = runAutoAssign;
+    focusSearchRef.current = () => {
+      const el = unassignedSearchRef.current;
+      if (!el) return;
+      el.focus();
+      try { el.select(); } catch { /* select kan kaste på read-only inputs */ }
+    };
+  });
+
   const runBulkAutoAssign = async () => {
     if (bulkBusy || selectedJobIds.size === 0) return;
     const candidates = (unassigned as any[]).filter((j) => selectedJobIds.has(j.id));
@@ -2092,6 +2105,10 @@ const Planner = () => {
   // Ref så vi kan kalde optimize-handleren fra keydown uden at depende på
   // dens definition-rækkefølge (den er defineret længere nede).
   const optimizeRouteRef = useRef<(id: string) => void>(() => {});
+  // Refs så keyboard-shortcuts kan kalde de senest definerede handlers
+  // uden at vi skal hejse hele runAutoAssign op før effekten.
+  const runAutoAssignRef = useRef<() => void | Promise<void>>(() => {});
+  const focusSearchRef = useRef<() => void>(() => {});
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       // Ignore when typing in inputs
@@ -2111,7 +2128,11 @@ const Planner = () => {
         return;
       }
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      if (e.key === "ArrowLeft") {
+      if (e.key === "/") {
+        // "/" — som GitHub/Linear: hop til søgefeltet i "Aftaler uden rute".
+        e.preventDefault();
+        focusSearchRef.current();
+      } else if (e.key === "ArrowLeft") {
         e.preventDefault();
         setDate((d) => format(view === "week" ? addWeeks(parseISO(d), -1) : addMonths(parseISO(d), -1), "yyyy-MM-dd"));
       } else if (e.key === "ArrowRight") {
@@ -2121,6 +2142,11 @@ const Planner = () => {
         setDate(todayStr());
       } else if (e.key.toLowerCase() === "n") {
         setCreateOpen(true);
+      } else if (e.key.toLowerCase() === "a") {
+        // "A" — auto-fordel alle aftaler uden rute (eller find bedste rute
+        // hvis kun én er klar). Springer over hvis intet er klar.
+        e.preventDefault();
+        void runAutoAssignRef.current();
       } else if (e.key === "Escape" && selectedStopId) {
         setSelectedStopId(null);
       } else if (e.key === "?" || (e.shiftKey && e.key === "/")) {
@@ -4145,12 +4171,14 @@ const Planner = () => {
                     <div className="relative">
                       <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                       <Input
+                        ref={unassignedSearchRef}
                         placeholder="Søg navn eller adresse..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="h-8 pl-7 pr-7 text-xs bg-background"
+                        onKeyDown={(e) => { if (e.key === "Escape") { setSearch(""); (e.target as HTMLInputElement).blur(); } }}
+                        className="h-8 pl-7 pr-12 text-xs bg-background"
                       />
-                      {search && (
+                      {search ? (
                         <button
                           type="button"
                           onClick={() => setSearch("")}
@@ -4159,6 +4187,12 @@ const Planner = () => {
                         >
                           <X className="h-3 w-3" />
                         </button>
+                      ) : (
+                        <kbd
+                          aria-hidden
+                          title="Tryk / for at søge"
+                          className="absolute right-1.5 top-1/2 -translate-y-1/2 hidden sm:inline-flex h-4 min-w-[16px] items-center justify-center rounded border border-border bg-secondary px-1 font-mono text-[10px] font-semibold text-muted-foreground pointer-events-none"
+                        >/</kbd>
                       )}
                     </div>
                     {filteredUnassigned.length > 0 && (
@@ -4300,19 +4334,55 @@ const Planner = () => {
                       </div>
                     )}
                     {!loadingUnassigned && filteredUnassigned.length === 0 && (
-                      <EmptyState
-                        icon={<Inbox className="h-5 w-5" />}
-                        title={search
-                          ? "Ingen aftaler matcher"
-                          : calendarRoutesRaw.length === 0
-                            ? "Ingen ruter endnu"
-                            : "Alle aftaler er planlagt 🎉"}
-                        description={!search ? (calendarRoutesRaw.length === 0
-                          ? "Træk en aftale ind på en dag i kalenderen — så opretter vi automatisk en rute for dig."
-                          : undefined) : undefined}
-                        action={search ? { label: "Ryd søgning", onClick: () => setSearch("") } : undefined}
-                        compact
-                      />
+                      (() => {
+                        const hasFilter = unassignedStatusFilter !== "all";
+                        const filterLabel: Record<typeof unassignedStatusFilter, string> = {
+                          all: "alle",
+                          ready: "klar til auto-fordel",
+                          pending: "afventer godkendelse",
+                          "missing-gps": "mangler GPS",
+                        } as any;
+                        if (search) {
+                          return (
+                            <EmptyState
+                              icon={<Search className="h-5 w-5" />}
+                              title="Ingen aftaler matcher"
+                              description={`Ingen aftaler i ”${filterLabel[unassignedStatusFilter]}” matcher din søgning.`}
+                              action={{ label: "Ryd søgning", onClick: () => setSearch("") }}
+                              compact
+                            />
+                          );
+                        }
+                        if (hasFilter && unassigned.length > 0) {
+                          return (
+                            <EmptyState
+                              icon={<Filter className="h-5 w-5" />}
+                              title="Ingen aftaler i dette filter"
+                              description={`Der er ${unassigned.length} aftale${unassigned.length === 1 ? "" : "r"} uden rute — bare ikke i kategorien “${filterLabel[unassignedStatusFilter]}”.`}
+                              action={{ label: "Vis alle aftaler", onClick: () => setUnassignedStatusFilter("all") }}
+                              compact
+                            />
+                          );
+                        }
+                        if (calendarRoutesRaw.length === 0) {
+                          return (
+                            <EmptyState
+                              icon={<Inbox className="h-5 w-5" />}
+                              title="Ingen ruter endnu"
+                              description="Træk en aftale ind på en dag i kalenderen — så opretter vi automatisk en rute for dig."
+                              compact
+                            />
+                          );
+                        }
+                        return (
+                          <EmptyState
+                            icon={<Inbox className="h-5 w-5" />}
+                            title="Alle aftaler er planlagt 🎉"
+                            description="Nye bookinger lander her, så snart de oprettes."
+                            compact
+                          />
+                        );
+                      })()
                     )}
                     {(() => {
                       const renderCard = (job: any) => (
