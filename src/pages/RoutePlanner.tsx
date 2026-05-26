@@ -4297,6 +4297,7 @@ const Planner = () => {
                       onSelectAll={() => setSelectedJobIds(new Set(filteredUnassigned.map((j: any) => j.id)))}
                       onAutoAssign={runBulkAutoAssign}
                       onCancel={runBulkCancel}
+                      onShiftDate={() => setBulkShiftOpen(true)}
                       busy={bulkBusy}
                     />
                   </div>
