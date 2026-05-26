@@ -2094,6 +2094,10 @@ const Planner = () => {
   // Ref så vi kan kalde optimize-handleren fra keydown uden at depende på
   // dens definition-rækkefølge (den er defineret længere nede).
   const optimizeRouteRef = useRef<(id: string) => void>(() => {});
+  // Refs så keyboard-shortcuts kan kalde de senest definerede handlers
+  // uden at vi skal hejse hele runAutoAssign op før effekten.
+  const runAutoAssignRef = useRef<() => void | Promise<void>>(() => {});
+  const focusSearchRef = useRef<() => void>(() => {});
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       // Ignore when typing in inputs
@@ -2113,7 +2117,11 @@ const Planner = () => {
         return;
       }
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      if (e.key === "ArrowLeft") {
+      if (e.key === "/") {
+        // "/" — som GitHub/Linear: hop til søgefeltet i "Aftaler uden rute".
+        e.preventDefault();
+        focusSearchRef.current();
+      } else if (e.key === "ArrowLeft") {
         e.preventDefault();
         setDate((d) => format(view === "week" ? addWeeks(parseISO(d), -1) : addMonths(parseISO(d), -1), "yyyy-MM-dd"));
       } else if (e.key === "ArrowRight") {
@@ -2123,6 +2131,11 @@ const Planner = () => {
         setDate(todayStr());
       } else if (e.key.toLowerCase() === "n") {
         setCreateOpen(true);
+      } else if (e.key.toLowerCase() === "a") {
+        // "A" — auto-fordel alle aftaler uden rute (eller find bedste rute
+        // hvis kun én er klar). Springer over hvis intet er klar.
+        e.preventDefault();
+        void runAutoAssignRef.current();
       } else if (e.key === "Escape" && selectedStopId) {
         setSelectedStopId(null);
       } else if (e.key === "?" || (e.shiftKey && e.key === "/")) {
