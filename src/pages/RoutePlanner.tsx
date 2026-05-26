@@ -115,8 +115,9 @@ import DensityToggle from "@/components/route-planner/DensityToggle";
 import ThemeToggle from "@/components/route-planner/ThemeToggle";
 import NextFreeSlotButton from "@/components/route-planner/NextFreeSlotButton";
 import RoutePrintDialog, { type PrintRoute } from "@/components/route-planner/RoutePrintDialog";
-import { Printer } from "lucide-react";
+import { Printer, ListOrdered } from "lucide-react";
 import EmptyState from "@/components/route-planner/EmptyState";
+import DayDetailPanel, { type DayStop } from "@/components/route-planner/DayDetailPanel";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
