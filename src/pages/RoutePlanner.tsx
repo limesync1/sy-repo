@@ -4535,9 +4535,18 @@ const Planner = () => {
                         kort i toppen og spiser ikke plads når intet er valgt. */}
                     <UnassignedBulkBar
                       selectedCount={selectedJobIds.size}
+                      visibleCount={selectedVisibleCount}
+                      hiddenCount={selectedHiddenCount}
                       totalCount={filteredUnassigned.length}
                       onClear={() => setSelectedJobIds(new Set())}
                       onSelectAll={() => setSelectedJobIds(new Set(filteredUnassigned.map((j: any) => j.id)))}
+                      onShowHidden={selectedHiddenCount > 0 ? () => {
+                        // Nulstil filtre/søgning så de skjulte valgte aftaler
+                        // bliver synlige igen — så brugeren kan se præcis hvad
+                        // bulk-handlingen rammer.
+                        setSearch("");
+                        setUnassignedStatusFilter("all");
+                      } : undefined}
                       onAutoAssign={runBulkAutoAssign}
                       onCancel={runBulkCancel}
                       onShiftDate={() => setBulkShiftOpen(true)}
