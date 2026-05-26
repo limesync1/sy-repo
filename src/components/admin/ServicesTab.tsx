@@ -365,6 +365,8 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
         <div className="hidden" />
       )}
 
+      <LearnedDurationsCard businessId={businessId} />
+
       <div className="space-y-2" data-tour="services-list">
         {paged.map((s: any) => (
           <ServiceRow
