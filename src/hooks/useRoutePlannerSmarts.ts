@@ -13,7 +13,8 @@ import { supabase } from "@/integrations/supabase/client";
 export type EmployeeSkill = {
   id: string;
   employee_id: string;
-  service_id: string;
+  service_id?: string | null;
+  skill_key?: string | null;
   business_id: string;
 };
 
@@ -46,25 +47,27 @@ export const useAllEmployeeSkills = (businessId?: string) =>
     },
   });
 
-/** Erstatter hele skill-sættet for en medarbejder. */
+/** Erstatter hele skill-sættet for en medarbejder. Skills er brancher, ikke services. */
 export const useSetEmployeeSkills = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: {
       employee_id: string;
       business_id: string;
-      service_ids: string[];
+      skill_keys: string[];
     }) => {
       // Slet eksisterende
       await (supabase as any)
         .from("employee_skills")
         .delete()
         .eq("employee_id", input.employee_id);
-      if (input.service_ids.length === 0) return;
-      const rows = input.service_ids.map((service_id) => ({
+      const keys = Array.from(new Set(input.skill_keys.map((k) => k.trim()).filter(Boolean)));
+      if (keys.length === 0) return;
+      const rows = keys.map((skill_key) => ({
         employee_id: input.employee_id,
         business_id: input.business_id,
-        service_id,
+        service_id: null,
+        skill_key,
       }));
       const { error } = await (supabase as any)
         .from("employee_skills")
@@ -131,6 +134,7 @@ export const useRouteSuggestions = (input: {
   latitude?: number | null;
   longitude?: number | null;
   service_id?: string | null;
+  skill_key?: string | null;
   duration_minutes?: number;
   zone_key?: string | null;
   weather_bad?: boolean;
@@ -144,6 +148,7 @@ export const useRouteSuggestions = (input: {
       input.latitude,
       input.longitude,
       input.service_id,
+      input.skill_key,
     ],
     enabled:
       (input.enabled ?? true) &&
@@ -163,6 +168,7 @@ export const useRouteSuggestions = (input: {
           _duration_minutes: input.duration_minutes ?? 30,
           _zone_key: input.zone_key ?? null,
           _weather_bad: input.weather_bad ?? false,
+          _skill_key: input.skill_key ?? null,
         },
       );
       if (error) throw error;
