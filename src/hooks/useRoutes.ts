@@ -1257,17 +1257,14 @@ export const useDeleteStop = () => {
   return useMutation({
     mutationFn: (id: string) =>
       routeMutationQueue.run(async () => {
-        const { data: existing } = await supabase
-          .from("route_stops")
-          .select("route_id")
-          .eq("id", id)
-          .maybeSingle();
-        const routeId = (existing as any)?.route_id as string | undefined;
-        const { error } = await supabase.from("route_stops").delete().eq("id", id);
+        const { data, error } = await supabase.rpc("remove_route_stop_safely" as any, { _stop_id: id });
         if (error) throw error;
-        if (routeId) {
-          await supabase.rpc("cleanup_route_after_stop_delete" as any, { _route_id: routeId });
-        }
+        return data as {
+          stop_removed?: boolean;
+          route_deleted?: boolean;
+          remaining_stops?: number;
+          recurring_unlinked?: boolean;
+        };
       }),
     onMutate: async (id) => {
       await qc.cancelQueries({ queryKey: ["route-stops-bulk"] });
@@ -1280,7 +1277,16 @@ export const useDeleteStop = () => {
     onError: (_e, _vars, ctx) => {
       ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data));
     },
-    onSettled: () => invalidateRouteSyncQueries(qc),
+    onSettled: () => {
+      invalidateRouteSyncQueries(qc);
+      qc.invalidateQueries({ queryKey: ["recurring-agreements-for-planner"] });
+      qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
+      qc.invalidateQueries({ queryKey: ["route-occurrence-exceptions"] });
+      qc.invalidateQueries({ queryKey: ["pending-occurrences"] });
+      qc.invalidateQueries({ queryKey: ["route-series-info"] });
+      qc.invalidateQueries({ queryKey: ["agreements"] });
+      qc.invalidateQueries({ queryKey: ["subscriptions"] });
+    },
   });
 };
 
