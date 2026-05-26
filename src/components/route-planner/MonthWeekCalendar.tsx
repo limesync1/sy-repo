@@ -85,6 +85,13 @@ type Props = {
    *  Modtager `id` og evt. originalt event så implementationen kan se
    *  hvilken modifier-tast der blev brugt. */
   onToggleRouteSelection?: (id: string, e?: React.MouseEvent) => void;
+  /** Dagligt kapacitetsoverblik — vises som tynd farve-bar i bunden af
+   *  hver dag-celle. Grøn (<70%), gul (70-100%), rød (>100%). Hjælper
+   *  brugeren med at se overbelastning før de tildeler endnu et stop. */
+  capacityByDate?: Map<string, { load_pct: number; minutes_booked: number; minutes_capacity: number }>;
+  /** Sæt af rute-ids hvor mindst én tildelt medarbejder mangler den
+   *  færdighed et stop kræver. Vises som lille ⚠-ikon på rute-pillen. */
+  mismatchedRouteIds?: Set<string>;
 };
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
@@ -106,7 +113,7 @@ export const MonthWeekCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
   onCreateRoute, onOptimizeRoute, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
   loadingRoutes, loadingWeather, weatherError, busyTargets, dateAlerts,
-  selectedRouteIds, onToggleRouteSelection,
+  selectedRouteIds, onToggleRouteSelection, capacityByDate, mismatchedRouteIds,
 }: Props) => {
   const anchor = parseISO(anchorDate);
 
@@ -218,6 +225,8 @@ export const MonthWeekCalendar = ({
                     alert={dateAlerts?.get(dateStr) ?? null}
                     selectedRouteIds={selectedRouteIds}
                     onToggleRouteSelection={onToggleRouteSelection}
+                    capacity={capacityByDate?.get(dateStr) ?? null}
+                    mismatchedRouteIds={mismatchedRouteIds}
                   />
                 );
               })}
@@ -258,13 +267,17 @@ type DayCellProps = {
   selectedRouteIds?: Set<string>;
   /** Toggle af bulk-valg på rute-pille. */
   onToggleRouteSelection?: (id: string, e?: React.MouseEvent) => void;
+  /** Kapacitetsinfo for denne dag — render som tynd farve-bar i bunden. */
+  capacity?: { load_pct: number; minutes_booked: number; minutes_capacity: number } | null;
+  /** Sæt af rute-ids der har skill-mismatch — videresendes til RoutePill. */
+  mismatchedRouteIds?: Set<string>;
 };
 
 const DayCellInner = ({
   date, dateStr, routes, inMonth, today,
   onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, optimizingRouteId, compact, draggingType, draggingRouteId, weather,
   loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds, alert,
-  selectedRouteIds, onToggleRouteSelection,
+  selectedRouteIds, onToggleRouteSelection, capacity, mismatchedRouteIds,
 }: DayCellProps) => {
   const todayIso = format(new Date(), "yyyy-MM-dd");
   const isPast = dateStr < todayIso;
@@ -458,6 +471,7 @@ const DayCellInner = ({
                   onToggleSelect={onToggleRouteSelection
                     ? (e) => onToggleRouteSelection(r.id, e)
                     : undefined}
+                  hasSkillMismatch={!!mismatchedRouteIds?.has(r.id)}
                 />
               ))}
               {overflow > 0 && (
@@ -494,6 +508,28 @@ const DayCellInner = ({
           </div>
         )}
       </div>
+      {/* Kapacitetsbar — viser hvor stor en del af dagens medarbejder-
+          kapacitet der allerede er booket. Grøn (<70%), gul (70-100%),
+          rød (>100%). Skjules på dage uden kapacitet (= ingen aktive
+          medarbejdere), helt tomme dage og fortid. */}
+      {capacity && capacity.minutes_capacity > 0 && inMonth && !isPast && (
+        <div
+          className="absolute bottom-0 left-0 right-0 h-1 bg-muted/40 overflow-hidden"
+          title={`Belastning: ${Math.round(capacity.load_pct)}% (${Math.round(capacity.minutes_booked / 60 * 10) / 10}t / ${Math.round(capacity.minutes_capacity / 60)}t)`}
+        >
+          <div
+            className={cn(
+              "h-full transition-all",
+              capacity.load_pct >= 100
+                ? "bg-destructive"
+                : capacity.load_pct >= 70
+                ? "bg-amber-500"
+                : "bg-emerald-500",
+            )}
+            style={{ width: `${Math.min(100, capacity.load_pct)}%` }}
+          />
+        </div>
+      )}
     </div>
   );
 };
@@ -520,7 +556,10 @@ const DayCell = memo(DayCellInner, (prev, next) => {
     prev.alert?.severity === next.alert?.severity &&
     prev.alert?.label === next.alert?.label &&
     prev.selectedRouteIds === next.selectedRouteIds &&
-    prev.onToggleRouteSelection === next.onToggleRouteSelection
+    prev.onToggleRouteSelection === next.onToggleRouteSelection &&
+    prev.capacity?.load_pct === next.capacity?.load_pct &&
+    prev.capacity?.minutes_capacity === next.capacity?.minutes_capacity &&
+    prev.mismatchedRouteIds === next.mismatchedRouteIds
   );
 });
 
@@ -549,11 +588,14 @@ type RoutePillProps = {
   /** Toggle valg/fravalg af denne rute (kaldes ved ⌘/Ctrl/Shift-klik eller
    *  via eksplicit valg-knap). Når undefined er multi-select deaktiveret. */
   onToggleSelect?: (e: React.MouseEvent) => void;
+  /** True hvis ruten har mindst én service hvor ingen tildelt medarbejder
+   *  har den krævede færdighed. Vises som lille ⚠ ved siden af titlen. */
+  hasSkillMismatch?: boolean;
 };
 
 const RoutePillInner = ({
   route, onSelect, onSelectStop, onOptimize, optimizing, compact, jobDragActive, routeDragSourceId,
-  busy, isPast, selected, anySelected, onToggleSelect,
+  busy, isPast, selected, anySelected, onToggleSelect, hasSkillMismatch,
 }: RoutePillProps) => {
   const isVirtual = !!route.isVirtual;
   // Er denne pille et gyldigt flette-mål for den rute der pt. trækkes?
@@ -737,6 +779,15 @@ const RoutePillInner = ({
               </span>
             )}
             <span className="truncate">{route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}</span>
+            {hasSkillMismatch && (
+              <span
+                className="shrink-0 inline-flex"
+                title="En tildelt medarbejder mangler en færdighed for et af stoppene"
+                aria-label="Skill-mismatch"
+              >
+                <AlertTriangle className="h-3 w-3 text-amber-500" />
+              </span>
+            )}
           </div>
           <div
             className={cn(
@@ -834,6 +885,7 @@ const RoutePill = memo(RoutePillInner, (prev, next) => {
     prev.busy === next.busy &&
     prev.selected === next.selected &&
     prev.anySelected === next.anySelected &&
-    prev.onToggleSelect === next.onToggleSelect
+    prev.onToggleSelect === next.onToggleSelect &&
+    prev.hasSkillMismatch === next.hasSkillMismatch
   );
 });

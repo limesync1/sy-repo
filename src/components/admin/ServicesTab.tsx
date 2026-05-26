@@ -42,6 +42,7 @@ import {
   stepTemplatesForIndustries,
 } from "@/lib/service-taxonomy";
 import { IndustryIcon } from "@/components/IndustryIcon";
+import { LearnedDurationsCard } from "@/components/admin/LearnedDurationsCard";
 
 const STEP_TEMPLATES: Record<string, { label: string; steps: Array<{ label: string; unit: string; price_per_unit: number; min_value: number; max_value: number; default_value: number }> }[]> = {
   "Rengøring": [
@@ -364,6 +365,8 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
       {uniqueCategories.length > 1 && (
         <div className="hidden" />
       )}
+
+      <LearnedDurationsCard businessId={businessId} />
 
       <div className="space-y-2" data-tour="services-list">
         {paged.map((s: any) => (

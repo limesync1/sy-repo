@@ -78,6 +78,7 @@ import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/r
 import { AdminShell } from "@/components/admin/shared/AdminShell";
 import { useWeatherForecast, type WeatherDay } from "@/hooks/useWeather";
 import { useDayConflicts } from "@/hooks/useDayConflicts";
+import { useDailyCapacity, useRouteSkillMismatch } from "@/hooks/useRoutePlannerSmarts";
 import { findNearestFreeDate } from "@/lib/find-free-date";
 import { ShellSkeleton } from "@/components/admin/shared/Skeletons";
 import { useQuery } from "@tanstack/react-query";
@@ -438,6 +439,38 @@ const Planner = () => {
     }
     return map;
   }, [businessHolidays, calendarStops, calendarRoutesRaw]);
+
+  // ─── Smartere kalender-signaler (#9) ───
+  // Dagligt kapacitetsoverblik (booket vs. medarbejder-kapacitet) og
+  // skill-mismatch-detektion. Begge er rene "info"-lag der ikke ændrer
+  // adfærd — bare hjælper brugeren med at se overbelastning eller
+  // medarbejdere der mangler en færdighed for et stop på ruten.
+  const { data: dailyCapacityRows = [] } = useDailyCapacity({
+    business_id: businessId,
+    start: calendarRange.start,
+    end: calendarRange.end,
+  });
+  const capacityByDate = useMemo(() => {
+    const m = new Map<string, { load_pct: number; minutes_booked: number; minutes_capacity: number }>();
+    for (const row of dailyCapacityRows) {
+      m.set(row.route_date, {
+        load_pct: Number(row.load_pct) || 0,
+        minutes_booked: row.minutes_booked,
+        minutes_capacity: row.minutes_capacity,
+      });
+    }
+    return m;
+  }, [dailyCapacityRows]);
+
+  const { data: skillMismatchRows = [] } = useRouteSkillMismatch({
+    business_id: businessId,
+    start: calendarRange.start,
+    end: calendarRange.end,
+  });
+  const mismatchedRouteIds = useMemo(
+    () => new Set(skillMismatchRows.map((r) => r.route_id)),
+    [skillMismatchRows],
+  );
 
   // Vejrudsigt — bruger gennemsnit af stop-koordinater i det viste interval,
   // ellers Danmarks centrum. Open-Meteo kan levere op til 16 dage frem.
@@ -3707,6 +3740,8 @@ const Planner = () => {
                   dateAlerts={dateAlerts}
                   selectedRouteIds={selectedRouteIds}
                   onToggleRouteSelection={(id) => toggleRouteSelection(id)}
+                  capacityByDate={capacityByDate}
+                  mismatchedRouteIds={mismatchedRouteIds}
                 />
                 </div>
                 </div>

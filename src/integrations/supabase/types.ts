@@ -4237,6 +4237,16 @@ export type Database = {
           route_id: string
         }[]
       }
+      business_daily_capacity: {
+        Args: { _business_id: string; _end: string; _start: string }
+        Returns: {
+          employees_count: number
+          load_pct: number
+          minutes_booked: number
+          minutes_capacity: number
+          route_date: string
+        }[]
+      }
       business_has_active_plan: {
         Args: { _business_id: string }
         Returns: boolean
@@ -4457,6 +4467,18 @@ export type Database = {
         Args: { _business_id: string }
         Returns: undefined
       }
+      learned_service_durations: {
+        Args: { _business_id: string }
+        Returns: {
+          avg_actual_minutes: number
+          max_actual_minutes: number
+          min_actual_minutes: number
+          samples: number
+          service_id: string
+          service_name: string
+          suggested_minutes: number
+        }[]
+      }
       log_route_planner_event: {
         Args: {
           _base_route_id?: string
@@ -4667,6 +4689,14 @@ export type Database = {
       revert_projected_shift: {
         Args: { _exception_id: string }
         Returns: boolean
+      }
+      routes_with_skill_mismatch: {
+        Args: { _business_id: string; _end: string; _start: string }
+        Returns: {
+          missing_count: number
+          missing_service_ids: string[]
+          route_id: string
+        }[]
       }
       shift_projected_occurrence:
         | {
