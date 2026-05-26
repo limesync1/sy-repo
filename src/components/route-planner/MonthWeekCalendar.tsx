@@ -779,6 +779,13 @@ const RoutePillInner = ({
               </span>
             )}
             <span className="truncate">{route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}</span>
+            {hasSkillMismatch && (
+              <AlertTriangle
+                className="h-3 w-3 shrink-0 text-amber-500"
+                aria-label="Skill-mismatch"
+                titleAccess="En tildelt medarbejder mangler en færdighed for et af stoppene"
+              />
+            )}
           </div>
           <div
             className={cn(
