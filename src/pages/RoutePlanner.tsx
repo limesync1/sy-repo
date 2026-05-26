@@ -49,6 +49,7 @@ import { format, addDays, addWeeks, addMonths, parseISO, startOfWeek, endOfWeek,
 import { da } from "date-fns/locale";
 import { toast } from "sonner";
 import { toastRouteError } from "@/lib/route-errors";
+import { pushBatchedToast } from "@/lib/toast-batch";
 import {
   DndContext, DragOverlay, useSensor, useSensors,
   pointerWithin, rectIntersection, type CollisionDetection, type DragEndEvent, type DragMoveEvent, type DragOverEvent, type DragStartEvent,
@@ -2554,7 +2555,12 @@ const Planner = () => {
         });
         // Vis success med det samme — koblingen til projektion sker i
         // baggrunden så brugeren ikke mærker forsinkelse.
-        toast.success("Aftale tilføjet til ruten");
+        // Batchet så hurtigt dropp-tempo bliver til "N aftaler tilføjet".
+        pushBatchedToast("success", "Aftale tilføjet til ruten", {
+          key: "rp-add-to-route",
+          successWord: "aftaler tilføjet",
+          errorWord: "fejlede",
+        });
         void linkAgreementToRoute(job.id, targetRouteId);
       };
       // Klog tjek: matcher target-datoen aftalens opstartsdato?
