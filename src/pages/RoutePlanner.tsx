@@ -5184,6 +5184,28 @@ const Planner = () => {
               })),
           })))}
       />
+      <DayDetailPanel
+        open={dayDetailOpen}
+        onOpenChange={setDayDetailOpen}
+        date={date}
+        stops={(calendarRoutes
+          .filter((r: any) => r.route_date === date)
+          .flatMap((r: any): DayStop[] =>
+            [...(r.stops ?? [])]
+              .sort((a: any, b: any) => (a.sequence ?? 0) - (b.sequence ?? 0))
+              .map((s: any): DayStop => ({
+                id: s.id,
+                routeName: r.name || r.display_name || "Rute",
+                routeColor: r.color,
+                customerName: s.customer_name ?? "—",
+                address: s.address ?? null,
+                startTime: s.planned_arrival
+                  ? new Date(s.planned_arrival).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })
+                  : null,
+                durationMin: s.duration_minutes ?? null,
+              }))
+          ))}
+      />
     </DndContext>
   );
 };
