@@ -45,6 +45,10 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { format, addDays, addWeeks, addMonths, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth, differenceInCalendarDays } from "date-fns";
 import { da } from "date-fns/locale";
 import { toast } from "sonner";
@@ -105,7 +109,7 @@ import { haversineMeters } from "@/lib/geo-distance";
 import { validateStopAssignment, validateRouteMove } from "@/lib/route-validation";
 import { cn } from "@/lib/utils";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
-import { Monitor, MousePointer2, Map as MapIcon, LayoutGrid, ArrowLeft, Copy, Check, Rows3 } from "lucide-react";
+import { Monitor, MousePointer2, Map as MapIcon, LayoutGrid, ArrowLeft, Copy, Check, Rows3, MoreHorizontal } from "lucide-react";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { pushRouteUndo, routeHistory } from "@/lib/route-history";
 import { useRouteHistory } from "@/hooks/useRouteHistory";
@@ -3952,36 +3956,21 @@ const Planner = () => {
                         <Inbox className="h-4 w-4" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h2 className="font-bold text-sm leading-tight flex items-center gap-1.5 text-foreground">
-                          <span className="truncate">Aftaler uden rute</span>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                type="button"
-                                className="shrink-0 h-4 w-4 inline-flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-background border border-border focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-                                aria-label="Hjælp om aftaler uden rute"
-                              >
-                                <span className="text-[9px] font-bold">?</span>
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom" className="max-w-[260px] text-xs leading-snug">
-                              Træk en aftale ind i kalenderen for at planlægge den. Når en aftale med interval markeres som udført, opretter vi automatisk næste aftale på samme rute og medarbejder.
-                            </TooltipContent>
-                          </Tooltip>
+                        <h2 className="font-bold text-sm leading-tight text-foreground truncate">
+                          Aftaler uden rute
                         </h2>
-                        <div className="mt-1 flex items-center gap-1.5 text-[11px]">
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-background border border-border font-semibold text-foreground tabular-nums">
-                            {filteredUnassigned.length}
-                            <span className="text-muted-foreground font-normal">
-                              {filteredUnassigned.length === 1 ? "aftale" : "aftaler"}
-                            </span>
-                          </span>
-                          {filteredUnassigned.length > 0 && (
-                            <span className="text-muted-foreground tabular-nums truncate">
-                              {Math.round(unassignedTotal).toLocaleString("da-DK")} kr
-                            </span>
-                          )}
-                        </div>
+                        <p className="mt-0.5 text-[11px] text-muted-foreground truncate">
+                          {filteredUnassigned.length === 0
+                            ? "Træk aftaler ind i kalenderen for at planlægge"
+                            : (
+                              <>
+                                <span className="font-semibold text-foreground tabular-nums">{filteredUnassigned.length}</span>
+                                {" "}{filteredUnassigned.length === 1 ? "aftale" : "aftaler"}
+                                {" · "}
+                                <span className="tabular-nums">{Math.round(unassignedTotal).toLocaleString("da-DK")} kr</span>
+                              </>
+                            )}
+                        </p>
                       </div>
                     </div>
                     <div className="relative">
@@ -4003,55 +3992,37 @@ const Planner = () => {
                         </button>
                       )}
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
-                        <SelectTrigger className="h-7 text-[11px] flex-1 bg-background gap-1.5" aria-label="Sortering">
-                          <ArrowUpDown className="h-3 w-3 text-muted-foreground shrink-0" />
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="date" className="text-xs">Sortér efter dato</SelectItem>
-                          <SelectItem value="price" className="text-xs">Højeste pris først</SelectItem>
-                          <SelectItem value="name" className="text-xs">Navn (A-Å)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <div className="inline-flex items-center rounded-md border border-border bg-background p-0.5 shrink-0" role="group" aria-label="Korttæthed">
+                    {filteredUnassigned.length > 0 && (
+                      <div className="flex items-center gap-1.5">
+                        <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+                          <SelectTrigger className="h-7 text-[11px] flex-1 bg-background gap-1.5" aria-label="Sortering">
+                            <ArrowUpDown className="h-3 w-3 text-muted-foreground shrink-0" />
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="date" className="text-xs">Sortér efter dato</SelectItem>
+                            <SelectItem value="price" className="text-xs">Højeste pris først</SelectItem>
+                            <SelectItem value="name" className="text-xs">Navn (A-Å)</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <button
                               type="button"
-                              onClick={() => setCompactCards(false)}
-                              aria-label="Vis fulde kort"
-                              aria-pressed={!compactCards}
-                              className={cn(
-                                "h-6 w-6 inline-flex items-center justify-center rounded transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none",
-                                !compactCards ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground hover:bg-secondary",
-                              )}
-                            >
-                              <Rows3 className="h-3 w-3" />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent side="bottom" className="text-xs">Fulde kort</TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              type="button"
-                              onClick={() => setCompactCards(true)}
-                              aria-label="Vis kompakte kort"
+                              onClick={() => setCompactCards((v) => !v)}
+                              aria-label={compactCards ? "Skift til fulde kort" : "Skift til kompakte kort"}
                               aria-pressed={compactCards}
-                              className={cn(
-                                "h-6 w-6 inline-flex items-center justify-center rounded transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none",
-                                compactCards ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground hover:bg-secondary",
-                              )}
+                              className="h-7 w-7 inline-flex items-center justify-center rounded-md border border-border bg-background text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none shrink-0"
                             >
-                              <LayoutGrid className="h-3 w-3" />
+                              {compactCards ? <LayoutGrid className="h-3.5 w-3.5" /> : <Rows3 className="h-3.5 w-3.5" />}
                             </button>
                           </TooltipTrigger>
-                          <TooltipContent side="bottom" className="text-xs">Kompakte kort</TooltipContent>
+                          <TooltipContent side="bottom" className="text-xs">
+                            {compactCards ? "Skift til fulde kort" : "Skift til kompakte kort"}
+                          </TooltipContent>
                         </Tooltip>
                       </div>
-                    </div>
+                    )}
                     {(() => {
                       const missing = (unassigned as any[]).filter(
                         (j) => (j.address || j.zip_code || j.city) && (j.latitude == null || j.longitude == null),
@@ -4407,32 +4378,6 @@ const Planner = () => {
                       />
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Print dagens ruter" onClick={() => setPrintOpen(true)}>
-                            <Printer className="h-3.5 w-3.5" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" className="text-xs">Print / PDF af den valgte dags ruter</TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Vis dag som tidslinje" onClick={() => setDayDetailOpen(true)}>
-                            <ListOrdered className="h-3.5 w-3.5" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" className="text-xs">Vis den valgte dag som tidslinje (huller/overlap)</TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Tastatur-genveje" onClick={() => setShortcutsOpen(true)}>
-                            <Keyboard className="h-3.5 w-3.5" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" className="text-xs">Tastatur-genveje (<kbd className="px-1 rounded bg-secondary text-[10px]">?</kbd>)</TooltipContent>
-                      </Tooltip>
-                      <DensityToggle />
-                      <ThemeToggle />
-                      <Tooltip>
-                        <TooltipTrigger asChild>
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => void history.undo()} disabled={!history.canUndo} aria-label="Fortryd seneste handling">
                             {history.isUndoing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Undo2 className="h-3.5 w-3.5" />}
                           </Button>
@@ -4451,12 +4396,53 @@ const Planner = () => {
                           {history.canRedo ? <>Gentag: <span className="font-medium">{history.nextRedoLabel}</span></> : "Intet at gentage"}
                         </TooltipContent>
                       </Tooltip>
+                      <DropdownMenu>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Flere handlinger">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom" className="text-xs">Flere handlinger</TooltipContent>
+                        </Tooltip>
+                        <DropdownMenuContent align="end" className="w-56">
+                          <DropdownMenuLabel className="text-xs">Handlinger</DropdownMenuLabel>
+                          <DropdownMenuItem onClick={() => setPrintOpen(true)} className="text-xs gap-2">
+                            <Printer className="h-3.5 w-3.5" /> Print / PDF
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setDayDetailOpen(true)} className="text-xs gap-2">
+                            <ListOrdered className="h-3.5 w-3.5" /> Vis dag som tidslinje
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuLabel className="text-xs">Visning</DropdownMenuLabel>
+                          <div className="px-2 py-1 flex items-center justify-between gap-2">
+                            <span className="text-xs text-muted-foreground">Tæthed</span>
+                            <DensityToggle />
+                          </div>
+                          <div className="px-2 py-1 flex items-center justify-between gap-2">
+                            <span className="text-xs text-muted-foreground">Tema</span>
+                            <ThemeToggle />
+                          </div>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => setShortcutsOpen(true)} className="text-xs gap-2">
+                            <Keyboard className="h-3.5 w-3.5" /> Tastatur-genveje
+                            <kbd className="ml-auto px-1 rounded bg-secondary text-[10px]">?</kbd>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                       <Button data-tour="routes-create-button" size="sm" className="h-8 gap-1 text-xs" onClick={() => setCreateOpen(true)}>
                         <Plus className="h-3.5 w-3.5" /> Opret rute
                       </Button>
-                      <Button variant="outline" size="sm" className="h-8 gap-1 text-xs" onClick={() => setCreateOrderOpen(true)}>
-                        <ShoppingBag className="h-3.5 w-3.5" /> Bestilling
-                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="outline" size="icon" className="h-8 w-8" aria-label="Ny bestilling" onClick={() => setCreateOrderOpen(true)}>
+                            <ShoppingBag className="h-3.5 w-3.5" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="text-xs">Opret ny bestilling manuelt</TooltipContent>
+                      </Tooltip>
                     </div>
                   </div>
                 </div>
