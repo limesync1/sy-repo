@@ -1210,6 +1210,11 @@ const EmployeeRow = ({
                   } as any,
                   {
                     onSuccess: () => {
+                      setSkills.mutate({
+                        employee_id: employee.id,
+                        business_id: businessId,
+                        service_ids: editSkillIds,
+                      });
                       toast.success("Medarbejder opdateret");
                       setEditOpen(false);
                     },
