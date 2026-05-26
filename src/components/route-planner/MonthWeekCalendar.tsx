@@ -26,6 +26,7 @@ import type { WeatherDay } from "@/hooks/useWeather";
 import { Skeleton } from "@/components/ui/skeleton";
 import { memo, useMemo } from "react";
 import { useTargetValidation, ringForSeverity, chipBgForSeverity } from "./drag-validation-context";
+import RouteContextMenu from "./RouteContextMenu";
 
 export type CalendarRoute = Route & {
   stops: RouteStop[];
