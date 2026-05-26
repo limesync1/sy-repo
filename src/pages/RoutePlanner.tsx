@@ -113,6 +113,9 @@ import RoutePlannerShortcutsHelp from "@/components/route-planner/RoutePlannerSh
 import UndoBar from "@/components/route-planner/UndoBar";
 import DensityToggle from "@/components/route-planner/DensityToggle";
 import ThemeToggle from "@/components/route-planner/ThemeToggle";
+import NextFreeSlotButton from "@/components/route-planner/NextFreeSlotButton";
+import RoutePrintDialog, { type PrintRoute } from "@/components/route-planner/RoutePrintDialog";
+import { Printer } from "lucide-react";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -207,6 +210,7 @@ const Planner = () => {
   const [sortBy, setSortBy] = usePersistentState<"date" | "price" | "name">("route-planner:sortBy", "date");
   const [compactCards, setCompactCards] = usePersistentState<boolean>("route-planner:compactCards", false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [printOpen, setPrintOpen] = useState(false);
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [suggestJob, setSuggestJob] = useState<any | null>(null);
@@ -3471,6 +3475,25 @@ const Planner = () => {
                 <ChevronRight className="h-3.5 w-3.5" />
               </Button>
               <Button data-tour="routes-today" variant="outline" size="sm" className="h-7" onClick={() => setDate(todayStr())}>I dag</Button>
+              <NextFreeSlotButton
+                fromDate={date}
+                capacityByDate={capacityByDate}
+                onGoTo={(d) => setDate(d)}
+              />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    aria-label="Print dagens ruter"
+                    onClick={() => setPrintOpen(true)}
+                  >
+                    <Printer className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">Print / PDF af valgte dags ruter</TooltipContent>
+              </Tooltip>
             </div>
 
             <PlanningPanel
@@ -5121,6 +5144,33 @@ const Planner = () => {
       </AdminShell>
       <UndoBar />
       <RoutePlannerShortcutsHelp open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
+      <RoutePrintDialog
+        open={printOpen}
+        onOpenChange={setPrintOpen}
+        date={date}
+        businessName={(business as any)?.name}
+        routes={(calendarRoutes
+          .filter((r: any) => r.route_date === date)
+          .map((r: any): PrintRoute => ({
+            id: r.id,
+            name: r.name || r.display_name || "Rute",
+            color: r.color,
+            employeeName: (r.employees?.[0]?.name) ?? null,
+            stops: [...(r.stops ?? [])]
+              .sort((a: any, b: any) => (a.sequence ?? 0) - (b.sequence ?? 0))
+              .map((s: any) => ({
+                customerName: s.customer_name ?? "—",
+                address: s.address ?? null,
+                city: null,
+                phone: s.customer_phone ?? null,
+                startTime: s.planned_arrival
+                  ? new Date(s.planned_arrival).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })
+                  : null,
+                durationMin: s.duration_minutes ?? null,
+                notes: s.notes ?? null,
+              })),
+          })))}
+      />
     </DndContext>
   );
 };
