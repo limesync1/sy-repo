@@ -3497,6 +3497,20 @@ const Planner = () => {
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="text-xs">Print / PDF af valgte dags ruter</TooltipContent>
               </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    aria-label="Vis dag som tidslinje"
+                    onClick={() => setDayDetailOpen(true)}
+                  >
+                    <ListOrdered className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">Vis valgte dag som tidslinje (huller/overlap)</TooltipContent>
+              </Tooltip>
             </div>
 
             <PlanningPanel
