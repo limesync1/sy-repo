@@ -267,13 +267,17 @@ type DayCellProps = {
   selectedRouteIds?: Set<string>;
   /** Toggle af bulk-valg på rute-pille. */
   onToggleRouteSelection?: (id: string, e?: React.MouseEvent) => void;
+  /** Kapacitetsinfo for denne dag — render som tynd farve-bar i bunden. */
+  capacity?: { load_pct: number; minutes_booked: number; minutes_capacity: number } | null;
+  /** Sæt af rute-ids der har skill-mismatch — videresendes til RoutePill. */
+  mismatchedRouteIds?: Set<string>;
 };
 
 const DayCellInner = ({
   date, dateStr, routes, inMonth, today,
   onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, optimizingRouteId, compact, draggingType, draggingRouteId, weather,
   loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds, alert,
-  selectedRouteIds, onToggleRouteSelection,
+  selectedRouteIds, onToggleRouteSelection, capacity, mismatchedRouteIds,
 }: DayCellProps) => {
   const todayIso = format(new Date(), "yyyy-MM-dd");
   const isPast = dateStr < todayIso;
