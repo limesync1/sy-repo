@@ -535,10 +535,11 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
 };
 
 const EmployeeRow = ({
-  employee, businessId, onUpdate, onRemove, earning, rangeLabel,
+  employee, businessId, businessSkillOptions, onUpdate, onRemove, earning, rangeLabel,
 }: {
   employee: any;
   businessId: string;
+  businessSkillOptions: string[];
   onUpdate: ReturnType<typeof useUpdateEmployee>;
   onRemove: ReturnType<typeof useDeleteEmployee>;
   earning: { earnings: number; stopsCompleted: number; revenue: number } | null;
@@ -557,7 +558,6 @@ const EmployeeRow = ({
   );
   const [editLivechat, setEditLivechat] = useState<boolean>(!!(employee as any).livechat_enabled);
   const [editEmployeeNumber, setEditEmployeeNumber] = useState<string>((employee as any).employee_number || "");
-  const [editEmployeeGroup, setEditEmployeeGroup] = useState<string>((employee as any).employee_group || "");
   const [editMaxHours, setEditMaxHours] = useState<string>(
     (employee as any).max_hours_per_day != null ? String((employee as any).max_hours_per_day) : "",
   );
@@ -567,12 +567,11 @@ const EmployeeRow = ({
   const [editMaxStops, setEditMaxStops] = useState<string>(
     (employee as any).max_stops_per_day != null ? String((employee as any).max_stops_per_day) : "",
   );
-  const { data: allServices = [] } = useServices(businessId);
   const { data: currentSkills = [] } = useEmployeeSkills(employee.id);
   const setSkills = useSetEmployeeSkills();
-  const [editSkillIds, setEditSkillIds] = useState<string[]>([]);
+  const [editSkillKeys, setEditSkillKeys] = useState<string[]>([]);
   React.useEffect(() => {
-    setEditSkillIds(currentSkills.map((s) => s.service_id));
+    setEditSkillKeys(currentSkills.map((s) => s.skill_key).filter(Boolean) as string[]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentSkills.length, editOpen]);
   const [tasksOpen, setTasksOpen] = useState(false);
