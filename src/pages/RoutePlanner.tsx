@@ -4309,8 +4309,9 @@ const Planner = () => {
                         compact
                       />
                     )}
-                    {filteredUnassigned.map((job: any) => (
-                      <UnassignedJobCard
+                    {(() => {
+                      const renderCard = (job: any) => (
+                        <UnassignedJobCard
                         key={job.id}
                         job={job}
                         onClick={() => setSelectedJob(job)}
@@ -4340,8 +4341,51 @@ const Planner = () => {
                           toast.message("Ingen ledige slots fundet de næste 90 dage");
                         }}
                         compact={compactCards}
-                      />
-                    ))}
+                        />
+                      );
+                      if (unassignedGroupBy === "none") {
+                        return filteredUnassigned.map(renderCard);
+                      }
+                      const groups = new Map<string, { label: string; items: any[] }>();
+                      const keyFor = (job: any): { key: string; label: string } => {
+                        if (unassignedGroupBy === "status") {
+                          const hasGps = job.latitude != null && job.longitude != null;
+                          if (job.status === "pending") return { key: "1-pending", label: "Afventer godkendelse" };
+                          if (!hasGps) return { key: "2-gps", label: "Mangler GPS" };
+                          if (job.preferred_date || job.next_service_date) return { key: "0-ready", label: "Klar til auto-fordel" };
+                          return { key: "3-other", label: "Andet" };
+                        }
+                        if (unassignedGroupBy === "route") {
+                          const name = job.preferred_route_name?.trim();
+                          return name
+                            ? { key: `r-${name}`, label: `Ønsker: ${name}` }
+                            : { key: "z-no-route", label: "Ingen foretrukken rute" };
+                        }
+                        // week
+                        const iso = job.preferred_date || job.next_service_date;
+                        if (!iso) return { key: "z-no-date", label: "Uden dato" };
+                        const d = parseISO(iso);
+                        const monday = startOfWeek(d, { weekStartsOn: 1 });
+                        const wk = format(d, "I", { locale: da });
+                        const label = `Uge ${wk} · ${format(monday, "d. MMM", { locale: da })}`;
+                        return { key: format(monday, "yyyy-MM-dd"), label };
+                      };
+                      for (const job of filteredUnassigned) {
+                        const { key, label } = keyFor(job);
+                        if (!groups.has(key)) groups.set(key, { label, items: [] });
+                        groups.get(key)!.items.push(job);
+                      }
+                      const entries = Array.from(groups.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+                      return entries.map(([key, g]) => (
+                        <div key={key} className="space-y-1.5">
+                          <div className="sticky top-0 z-[1] flex items-center gap-2 px-1 py-1 bg-card/95 backdrop-blur text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
+                            <span className="truncate">{g.label}</span>
+                            <span className="ml-auto tabular-nums text-foreground/70">{g.items.length}</span>
+                          </div>
+                          {g.items.map(renderCard)}
+                        </div>
+                      ));
+                    })()}
                     {/* Sticky bulk-bar i bunden af listen — overlapper ikke
                         kort i toppen og spiser ikke plads når intet er valgt. */}
                     <UnassignedBulkBar
