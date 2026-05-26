@@ -571,6 +571,7 @@ type RoutePillProps = {
   onSelect: () => void;
   onSelectStop: (stop: RouteStop) => void;
   onOptimize: () => void;
+  onDelete?: () => void;
   optimizing: boolean;
   compact: boolean;
   jobDragActive?: boolean;
@@ -596,7 +597,7 @@ type RoutePillProps = {
 };
 
 const RoutePillInner = ({
-  route, onSelect, onSelectStop, onOptimize, optimizing, compact, jobDragActive, routeDragSourceId,
+  route, onSelect, onSelectStop, onOptimize, onDelete, optimizing, compact, jobDragActive, routeDragSourceId,
   busy, isPast, selected, anySelected, onToggleSelect, hasSkillMismatch,
 }: RoutePillProps) => {
   const isVirtual = !!route.isVirtual;
