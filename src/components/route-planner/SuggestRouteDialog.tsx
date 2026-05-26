@@ -120,7 +120,7 @@ export const SuggestRouteDialog = ({
             Foreslå rute til {job.customer_name || "aftalen"}
           </DialogTitle>
           <DialogDescription>
-            Vi finder de bedste ruter på {format(parseISO(date), "EEEE d. MMM", { locale: da })} ud fra afstand, plads på dagen og medarbejderens branche.
+            Vi finder de ruter på {format(parseISO(date), "EEEE d. MMM", { locale: da })} hvor aftalen passer bedst ind — tæt på, plads til og rigtig medarbejder.
           </DialogDescription>
         </DialogHeader>
 
@@ -129,10 +129,10 @@ export const SuggestRouteDialog = ({
             {geocode.isPending ? <Loader2 className="h-4 w-4 mt-0.5 shrink-0 animate-spin" /> : <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />}
             <span>
               {geocode.isPending
-                ? "Slår adressen op, så vi kan finde de nærmeste ruter."
+                ? "Finder adressen på kortet…"
                 : hasAddress
-                  ? "Vi kunne ikke finde adressen automatisk. Tjek adressen på aftalen og prøv igen."
-                  : "Aftalen mangler adresse. Tilføj en adresse, før vi kan foreslå en rute."}
+                  ? "Vi kunne ikke placere adressen på kortet. Åbn aftalen, ret adressen, og prøv igen."
+                  : "Aftalen har ingen adresse endnu — tilføj én, så kan vi foreslå en rute."}
             </span>
           </div>
         ) : isLoading ? (
