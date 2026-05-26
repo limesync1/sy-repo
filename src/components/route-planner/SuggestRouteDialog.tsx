@@ -220,15 +220,15 @@ export const SuggestRouteDialog = ({
                   {geocode.isPending
                     ? "Finder adressen på kortet…"
                     : hasAddress
-                      ? "Vi kunne ikke placere adressen på kortet — vi kan derfor ikke score ruterne på afstand. Du kan stadig vælge en rute manuelt herunder."
-                      : "Aftalen har ingen adresse endnu — tilføj én for at få et automatisk forslag, eller vælg en rute manuelt herunder."}
+                      ? "Vi kunne ikke finde adressen på kortet, så vi kan ikke regne afstande ud. Du kan stadig vælge en rute selv herunder."
+                      : "Aftalen mangler en adresse. Tilføj én for at få forslag automatisk — eller vælg en rute selv herunder."}
                 </p>
                 {hasAddress && !geocode.isPending && typedAddress && (
-                  <p className="text-xs text-amber-800/80">Vi prøvede: <span className="font-mono">{typedAddress}</span></p>
+                  <p className="text-xs text-amber-800/80">Vi prøvede: <span className="font-medium">{typedAddress}</span></p>
                 )}
                 {hasAddress && !geocode.isPending && (
                   <Button size="sm" variant="outline" onClick={runGeocode}>
-                    Prøv at finde adressen igen
+                    Prøv igen
                   </Button>
                 )}
               </div>
@@ -241,7 +241,7 @@ export const SuggestRouteDialog = ({
             ) : nearbyRoutes && nearbyRoutes.length > 0 ? (
               <div className="space-y-1.5">
                 <p className="text-[11px] uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
-                  <CalendarSearch className="h-3 w-3" /> Vælg en rute manuelt
+                  <CalendarSearch className="h-3 w-3" /> Vælg selv en rute
                 </p>
                 {nearbyRoutes.map((r: any) => {
                   const dayDiff = differenceInDays(parseISO(r.route_date), parseISO(date));
@@ -277,34 +277,34 @@ export const SuggestRouteDialog = ({
             <div className="flex items-start gap-2">
               <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
               <div className="space-y-1">
-                <p className="font-medium">Vi fandt ikke et eksakt match på adressen.</p>
+                <p className="font-medium">Adressen er ikke 100% identificeret.</p>
                 <p className="text-amber-900/80">
                   Du indtastede: <span className="font-medium">{matchInfo.typed}</span>
                 </p>
                 <p className="text-amber-900/80">
-                  Nærmeste match: <span className="font-medium">{matchInfo.matched}</span>
+                  Vi tror du mener: <span className="font-medium">{matchInfo.matched}</span>
                 </p>
               </div>
             </div>
             <div className="flex gap-2">
-              <Button size="sm" onClick={acceptMatch}>Brug nærmeste match</Button>
+              <Button size="sm" onClick={acceptMatch}>Ja, brug den adresse</Button>
               <Button size="sm" variant="outline" onClick={rejectMatch}>
-                Nej — jeg retter adressen
+                Nej, jeg retter den
               </Button>
             </div>
           </div>
         ) : isLoading ? (
           <div className="flex items-center justify-center py-12 text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin mr-2" /> Beregner forslag…
+            <Loader2 className="h-5 w-5 animate-spin mr-2" /> Finder de bedste ruter…
           </div>
         ) : !suggestions || suggestions.length === 0 ? (
           <div className="space-y-3">
             <div className="rounded-lg border border-border bg-secondary/40 p-4 text-sm text-muted-foreground">
               <p className="text-foreground font-medium mb-1">
-                Ingen ruter på {format(parseISO(date), "EEEE d. MMM", { locale: da })}.
+                Der er ingen ruter {format(parseISO(date), "EEEE d. MMM", { locale: da })}.
               </p>
               <p className="text-xs">
-                Du kan vælge en rute på en nærliggende dag herunder — eller lukke og trække aftalen direkte ind på en ledig dag i kalenderen.
+                Vælg en rute på en nærliggende dag herunder — eller luk vinduet og træk aftalen ind på en ledig dag i kalenderen.
               </p>
             </div>
             {loadingNearby ? (
@@ -314,7 +314,7 @@ export const SuggestRouteDialog = ({
             ) : nearbyRoutes && nearbyRoutes.length > 0 ? (
               <div className="space-y-1.5">
                 <p className="text-[11px] uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
-                  <CalendarSearch className="h-3 w-3" /> Ruter i ±2 uger
+                  <CalendarSearch className="h-3 w-3" /> Ruter de nærmeste 2 uger
                 </p>
                 {nearbyRoutes.map((r: any) => {
                   const dayDiff = differenceInDays(parseISO(r.route_date), parseISO(date));
