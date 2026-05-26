@@ -854,7 +854,6 @@ const EmployeeRow = ({
               setEditCommission(employee.commission_pct != null ? String(employee.commission_pct) : "0");
               setEditLivechat(!!(employee as any).livechat_enabled);
               setEditEmployeeNumber((employee as any).employee_number || "");
-              setEditEmployeeGroup((employee as any).employee_group || "");
               setEditOpen(true);
             }}
             className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
@@ -1039,15 +1038,6 @@ const EmployeeRow = ({
                     Bruges til synkronisering med lønsystem.
                   </p>
                 </div>
-                <div>
-                  <FieldLabel optional>Medarbejdergruppe / afdeling</FieldLabel>
-                  <Input
-                    value={editEmployeeGroup}
-                    onChange={(e) => setEditEmployeeGroup(e.target.value)}
-                    className="h-10"
-                    placeholder="fx Service Øst"
-                  />
-                </div>
               </div>
             </section>
 
@@ -1148,18 +1138,18 @@ const EmployeeRow = ({
               </h4>
               <div className="rounded-xl border border-border bg-card p-4 space-y-2">
                 <p className="text-[11px] text-muted-foreground">
-                  Vælg hvilke services medarbejderen kan udføre. Bruges af "Foreslå rute" og advarsler ved fejltildeling.
+                  Vælg hvilke brancher medarbejderen kan arbejde i. Bruges af "Foreslå rute" og advarsler ved fejltildeling.
                 </p>
-                {(allServices as any[]).length === 0 ? (
-                  <p className="text-xs text-muted-foreground italic">Opret services først.</p>
+                {businessSkillOptions.length === 0 ? (
+                  <p className="text-xs text-muted-foreground italic">Tilføj brancher til virksomheden først.</p>
                 ) : (
                   <div className="flex flex-wrap gap-1.5">
-                    {(allServices as any[]).filter((s) => s.is_active !== false).map((s) => {
-                      const selected = editSkillIds.includes(s.id);
+                    {businessSkillOptions.map((key) => {
+                      const selected = editSkillKeys.includes(key);
                       return (
-                        <button key={s.id} type="button"
-                          onClick={() => setEditSkillIds((prev) =>
-                            prev.includes(s.id) ? prev.filter((x) => x !== s.id) : [...prev, s.id],
+                        <button key={key} type="button"
+                          onClick={() => setEditSkillKeys((prev) =>
+                            prev.includes(key) ? prev.filter((x) => x !== key) : [...prev, key],
                           )}
                           className={cn(
                             "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition",
@@ -1169,7 +1159,7 @@ const EmployeeRow = ({
                           )}
                         >
                           {selected && <span aria-hidden>✓</span>}
-                          {s.name}
+                          {key}
                         </button>
                       );
                     })}
@@ -1203,7 +1193,6 @@ const EmployeeRow = ({
                     commission_pct: pctNum,
                     livechat_enabled: editLivechat,
                     employee_number: editEmployeeNumber.trim() || null,
-                    employee_group: editEmployeeGroup.trim() || null,
                     max_hours_per_day: editMaxHours.trim() === "" ? null : Number(editMaxHours.replace(",", ".")),
                     max_km_per_day: editMaxKm.trim() === "" ? null : Number(editMaxKm.replace(",", ".")),
                     max_stops_per_day: editMaxStops.trim() === "" ? null : parseInt(editMaxStops, 10),
@@ -1213,7 +1202,7 @@ const EmployeeRow = ({
                       setSkills.mutate({
                         employee_id: employee.id,
                         business_id: businessId,
-                        service_ids: editSkillIds,
+                        skill_keys: editSkillKeys,
                       });
                       toast.success("Medarbejder opdateret");
                       setEditOpen(false);
