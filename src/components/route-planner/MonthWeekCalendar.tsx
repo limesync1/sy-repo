@@ -508,6 +508,28 @@ const DayCellInner = ({
           </div>
         )}
       </div>
+      {/* Kapacitetsbar — viser hvor stor en del af dagens medarbejder-
+          kapacitet der allerede er booket. Grøn (<70%), gul (70-100%),
+          rød (>100%). Skjules på dage uden kapacitet (= ingen aktive
+          medarbejdere), helt tomme dage og fortid. */}
+      {capacity && capacity.minutes_capacity > 0 && inMonth && !isPast && (
+        <div
+          className="absolute bottom-0 left-0 right-0 h-1 bg-muted/40 overflow-hidden"
+          title={`Belastning: ${Math.round(capacity.load_pct)}% (${Math.round(capacity.minutes_booked / 60 * 10) / 10}t / ${Math.round(capacity.minutes_capacity / 60)}t)`}
+        >
+          <div
+            className={cn(
+              "h-full transition-all",
+              capacity.load_pct >= 100
+                ? "bg-destructive"
+                : capacity.load_pct >= 70
+                ? "bg-amber-500"
+                : "bg-emerald-500",
+            )}
+            style={{ width: `${Math.min(100, capacity.load_pct)}%` }}
+          />
+        </div>
+      )}
     </div>
   );
 };
@@ -534,7 +556,10 @@ const DayCell = memo(DayCellInner, (prev, next) => {
     prev.alert?.severity === next.alert?.severity &&
     prev.alert?.label === next.alert?.label &&
     prev.selectedRouteIds === next.selectedRouteIds &&
-    prev.onToggleRouteSelection === next.onToggleRouteSelection
+    prev.onToggleRouteSelection === next.onToggleRouteSelection &&
+    prev.capacity?.load_pct === next.capacity?.load_pct &&
+    prev.capacity?.minutes_capacity === next.capacity?.minutes_capacity &&
+    prev.mismatchedRouteIds === next.mismatchedRouteIds
   );
 });
 
