@@ -54,6 +54,7 @@ type Props = {
   onCreateRoute: (date: string) => void;
   onOptimizeRoute: (routeId: string) => void;
   onDeleteRoute?: (route: CalendarRoute) => void;
+  onShowHistory?: (route: CalendarRoute) => void;
   optimizingRouteId?: string | null;
   /** Sat til 'job' når brugeren trækker en aftale fra aftalepoolen — får drop-targets til at lyse op. */
   draggingType?: "job" | "route" | "stop" | null;
@@ -113,7 +114,7 @@ const fmtRouteKrCompact = (n: number) => {
 
 export const MonthWeekCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
-  onCreateRoute, onOptimizeRoute, onDeleteRoute, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
+  onCreateRoute, onOptimizeRoute, onDeleteRoute, onShowHistory, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
   loadingRoutes, loadingWeather, weatherError, busyTargets, dateAlerts,
   selectedRouteIds, onToggleRouteSelection, capacityByDate, mismatchedRouteIds,
 }: Props) => {
@@ -215,6 +216,7 @@ export const MonthWeekCalendar = ({
                     onCreateRoute={onCreateRoute}
                     onOptimizeRoute={onOptimizeRoute}
                     onDeleteRoute={onDeleteRoute}
+                    onShowHistory={onShowHistory}
                     optimizingRouteId={optimizingRouteId}
                     compact={view === "month"}
                     draggingType={draggingType}
@@ -253,6 +255,7 @@ type DayCellProps = {
   onCreateRoute: (date: string) => void;
   onOptimizeRoute: (routeId: string) => void;
   onDeleteRoute?: (route: CalendarRoute) => void;
+  onShowHistory?: (route: CalendarRoute) => void;
   optimizingRouteId?: string | null;
   compact: boolean;
   draggingType?: "job" | "route" | "stop" | null;
@@ -279,7 +282,7 @@ type DayCellProps = {
 
 const DayCellInner = ({
   date, dateStr, routes, inMonth, today,
-  onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, onDeleteRoute, optimizingRouteId, compact, draggingType, draggingRouteId, weather,
+  onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, onDeleteRoute, onShowHistory, optimizingRouteId, compact, draggingType, draggingRouteId, weather,
   loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds, alert,
   selectedRouteIds, onToggleRouteSelection, capacity, mismatchedRouteIds,
 }: DayCellProps) => {
@@ -465,6 +468,7 @@ const DayCellInner = ({
                   onSelectStop={onSelectStop}
                   onOptimize={() => onOptimizeRoute(r.id)}
                   onDelete={onDeleteRoute ? () => onDeleteRoute(r) : undefined}
+                  onShowHistory={onShowHistory ? () => onShowHistory(r) : undefined}
                   optimizing={optimizingRouteId === r.id}
                   compact={compact}
                   jobDragActive={isJobDragActive}
@@ -575,6 +579,7 @@ type RoutePillProps = {
   onSelectStop: (stop: RouteStop) => void;
   onOptimize: () => void;
   onDelete?: () => void;
+  onShowHistory?: () => void;
   optimizing: boolean;
   compact: boolean;
   jobDragActive?: boolean;
@@ -600,7 +605,7 @@ type RoutePillProps = {
 };
 
 const RoutePillInner = ({
-  route, onSelect, onSelectStop, onOptimize, onDelete, optimizing, compact, jobDragActive, routeDragSourceId,
+  route, onSelect, onSelectStop, onOptimize, onDelete, onShowHistory, optimizing, compact, jobDragActive, routeDragSourceId,
   busy, isPast, selected, anySelected, onToggleSelect, hasSkillMismatch,
 }: RoutePillProps) => {
   const isVirtual = !!route.isVirtual;
@@ -882,6 +887,7 @@ const RoutePillInner = ({
 
   const canDelete = !!onDelete && !isVirtual && !busy;
   const canOptimize = !isVirtual && stopCount >= 2 && !busy;
+  const canHistory = !!onShowHistory && !isVirtual;
 
   return (
     <RouteContextMenu
@@ -891,11 +897,13 @@ const RoutePillInner = ({
         "show-on-map": true,
         optimize: !canOptimize,
         delete: !canDelete,
+        history: !canHistory,
       }}
       onAction={(action) => {
         if (action === "view") onSelect();
         else if (action === "optimize" && canOptimize) onOptimize();
         else if (action === "delete" && canDelete) onDelete!();
+        else if (action === "history" && canHistory) onShowHistory!();
       }}
     >
       {pill}
