@@ -57,6 +57,7 @@ import {
 import { createPortal } from "react-dom";
 import { UnassignedJobCard } from "@/components/route-planner/UnassignedJobCard";
 import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
+import { SuggestRouteDialog } from "@/components/route-planner/SuggestRouteDialog";
 import { MonthWeekCalendar, type CalendarRoute } from "@/components/route-planner/MonthWeekCalendar";
 import { AgendaCalendar } from "@/components/route-planner/AgendaCalendar";
 import { RouteEditSheet, ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor } from "@/components/route-planner/RouteEditSheet";
