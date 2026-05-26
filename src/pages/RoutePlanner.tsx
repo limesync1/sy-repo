@@ -2034,7 +2034,7 @@ const Planner = () => {
                 byStatus.set(row.status, list);
               }
               for (const [status, rowIds] of byStatus.entries()) {
-                await supabase.from("orders").update({ status }).in("id", rowIds);
+                await supabase.from("orders").update({ status: status as any }).in("id", rowIds);
               }
               invalidateRouteSyncQueries(qc);
               toast.success("Annullering fortrudt");
