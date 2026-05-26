@@ -1903,7 +1903,7 @@ const Planner = () => {
         e.preventDefault();
         setDate((d) => format(addDays(parseISO(d), -1), "yyyy-MM-dd"));
       } else if (e.key.toLowerCase() === "o") {
-        if (editingRoute && (editingRoute.stops?.length ?? 0) >= 2) {
+        if (editingRoute) {
           e.preventDefault();
           handleCalendarOptimizeRoute(editingRoute.id);
         }
