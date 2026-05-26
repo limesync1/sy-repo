@@ -200,12 +200,14 @@ export const SuggestRouteDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-accent" />
-            Foreslå rute til {job.customer_name || "aftalen"}
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-accent/15 text-accent">
+              <Sparkles className="h-4 w-4" />
+            </span>
+            Find den bedste rute til {job.customer_name || "aftalen"}
           </DialogTitle>
-          <DialogDescription>
-            Vi finder de ruter på {format(parseISO(date), "EEEE d. MMM", { locale: da })} hvor aftalen passer bedst ind — tæt på, plads til og rigtig medarbejder.
+          <DialogDescription className="text-sm">
+            Vi viser de ruter {format(parseISO(date), "EEEE d. MMM", { locale: da })} hvor aftalen passer bedst — kort vej, plads til opgaven og en medarbejder der kender ydelsen. Vælg én herunder.
           </DialogDescription>
         </DialogHeader>
 
