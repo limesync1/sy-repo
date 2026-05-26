@@ -588,11 +588,14 @@ type RoutePillProps = {
   /** Toggle valg/fravalg af denne rute (kaldes ved ⌘/Ctrl/Shift-klik eller
    *  via eksplicit valg-knap). Når undefined er multi-select deaktiveret. */
   onToggleSelect?: (e: React.MouseEvent) => void;
+  /** True hvis ruten har mindst én service hvor ingen tildelt medarbejder
+   *  har den krævede færdighed. Vises som lille ⚠ ved siden af titlen. */
+  hasSkillMismatch?: boolean;
 };
 
 const RoutePillInner = ({
   route, onSelect, onSelectStop, onOptimize, optimizing, compact, jobDragActive, routeDragSourceId,
-  busy, isPast, selected, anySelected, onToggleSelect,
+  busy, isPast, selected, anySelected, onToggleSelect, hasSkillMismatch,
 }: RoutePillProps) => {
   const isVirtual = !!route.isVirtual;
   // Er denne pille et gyldigt flette-mål for den rute der pt. trækkes?
