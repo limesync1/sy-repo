@@ -555,6 +555,15 @@ const EmployeeRow = ({
   const [editLivechat, setEditLivechat] = useState<boolean>(!!(employee as any).livechat_enabled);
   const [editEmployeeNumber, setEditEmployeeNumber] = useState<string>((employee as any).employee_number || "");
   const [editEmployeeGroup, setEditEmployeeGroup] = useState<string>((employee as any).employee_group || "");
+  const [editMaxHours, setEditMaxHours] = useState<string>(
+    (employee as any).max_hours_per_day != null ? String((employee as any).max_hours_per_day) : "",
+  );
+  const [editMaxKm, setEditMaxKm] = useState<string>(
+    (employee as any).max_km_per_day != null ? String((employee as any).max_km_per_day) : "",
+  );
+  const [editMaxStops, setEditMaxStops] = useState<string>(
+    (employee as any).max_stops_per_day != null ? String((employee as any).max_stops_per_day) : "",
+  );
   const [tasksOpen, setTasksOpen] = useState(false);
   const resetPw = useResetEmployeePassword();
   const fallbackColor = employee.color || "#64748b";
