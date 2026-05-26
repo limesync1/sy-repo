@@ -58,10 +58,23 @@ const fmtCap = (used: number, max: number | null, unit: string) => {
   return `${Math.round(used)} / ${Math.round(max)}${unit}`;
 };
 
-const scoreColor = (score: number) => {
-  if (score >= 75) return "text-emerald-600 bg-emerald-50 border-emerald-200";
-  if (score >= 50) return "text-amber-700 bg-amber-50 border-amber-200";
-  return "text-rose-700 bg-rose-50 border-rose-200";
+/** Oversæt rå score til en venlig "passer"-vurdering uden tal-jargon. */
+const matchLevel = (score: number): { label: string; cls: string; dot: string } => {
+  if (score >= 75) return {
+    label: "Passer rigtig godt",
+    cls: "text-emerald-700 bg-emerald-50 border-emerald-200",
+    dot: "bg-emerald-500",
+  };
+  if (score >= 50) return {
+    label: "Passer rimeligt",
+    cls: "text-amber-800 bg-amber-50 border-amber-200",
+    dot: "bg-amber-500",
+  };
+  return {
+    label: "Passer dårligt",
+    cls: "text-rose-700 bg-rose-50 border-rose-200",
+    dot: "bg-rose-500",
+  };
 };
 
 export const SuggestRouteDialog = ({
@@ -187,12 +200,14 @@ export const SuggestRouteDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-accent" />
-            Foreslå rute til {job.customer_name || "aftalen"}
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-accent/15 text-accent">
+              <Sparkles className="h-4 w-4" />
+            </span>
+            Find den bedste rute til {job.customer_name || "aftalen"}
           </DialogTitle>
-          <DialogDescription>
-            Vi finder de ruter på {format(parseISO(date), "EEEE d. MMM", { locale: da })} hvor aftalen passer bedst ind — tæt på, plads til og rigtig medarbejder.
+          <DialogDescription className="text-sm">
+            Vi viser de ruter {format(parseISO(date), "EEEE d. MMM", { locale: da })} hvor aftalen passer bedst — kort vej, plads til opgaven og en medarbejder der kender ydelsen. Vælg én herunder.
           </DialogDescription>
         </DialogHeader>
 
@@ -205,15 +220,15 @@ export const SuggestRouteDialog = ({
                   {geocode.isPending
                     ? "Finder adressen på kortet…"
                     : hasAddress
-                      ? "Vi kunne ikke placere adressen på kortet — vi kan derfor ikke score ruterne på afstand. Du kan stadig vælge en rute manuelt herunder."
-                      : "Aftalen har ingen adresse endnu — tilføj én for at få et automatisk forslag, eller vælg en rute manuelt herunder."}
+                      ? "Vi kunne ikke finde adressen på kortet, så vi kan ikke regne afstande ud. Du kan stadig vælge en rute selv herunder."
+                      : "Aftalen mangler en adresse. Tilføj én for at få forslag automatisk — eller vælg en rute selv herunder."}
                 </p>
                 {hasAddress && !geocode.isPending && typedAddress && (
-                  <p className="text-xs text-amber-800/80">Vi prøvede: <span className="font-mono">{typedAddress}</span></p>
+                  <p className="text-xs text-amber-800/80">Vi prøvede: <span className="font-medium">{typedAddress}</span></p>
                 )}
                 {hasAddress && !geocode.isPending && (
                   <Button size="sm" variant="outline" onClick={runGeocode}>
-                    Prøv at finde adressen igen
+                    Prøv igen
                   </Button>
                 )}
               </div>
@@ -226,7 +241,7 @@ export const SuggestRouteDialog = ({
             ) : nearbyRoutes && nearbyRoutes.length > 0 ? (
               <div className="space-y-1.5">
                 <p className="text-[11px] uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
-                  <CalendarSearch className="h-3 w-3" /> Vælg en rute manuelt
+                  <CalendarSearch className="h-3 w-3" /> Vælg selv en rute
                 </p>
                 {nearbyRoutes.map((r: any) => {
                   const dayDiff = differenceInDays(parseISO(r.route_date), parseISO(date));
@@ -262,34 +277,34 @@ export const SuggestRouteDialog = ({
             <div className="flex items-start gap-2">
               <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
               <div className="space-y-1">
-                <p className="font-medium">Vi fandt ikke et eksakt match på adressen.</p>
+                <p className="font-medium">Adressen er ikke 100% identificeret.</p>
                 <p className="text-amber-900/80">
                   Du indtastede: <span className="font-medium">{matchInfo.typed}</span>
                 </p>
                 <p className="text-amber-900/80">
-                  Nærmeste match: <span className="font-medium">{matchInfo.matched}</span>
+                  Vi tror du mener: <span className="font-medium">{matchInfo.matched}</span>
                 </p>
               </div>
             </div>
             <div className="flex gap-2">
-              <Button size="sm" onClick={acceptMatch}>Brug nærmeste match</Button>
+              <Button size="sm" onClick={acceptMatch}>Ja, brug den adresse</Button>
               <Button size="sm" variant="outline" onClick={rejectMatch}>
-                Nej — jeg retter adressen
+                Nej, jeg retter den
               </Button>
             </div>
           </div>
         ) : isLoading ? (
           <div className="flex items-center justify-center py-12 text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin mr-2" /> Beregner forslag…
+            <Loader2 className="h-5 w-5 animate-spin mr-2" /> Finder de bedste ruter…
           </div>
         ) : !suggestions || suggestions.length === 0 ? (
           <div className="space-y-3">
             <div className="rounded-lg border border-border bg-secondary/40 p-4 text-sm text-muted-foreground">
               <p className="text-foreground font-medium mb-1">
-                Ingen ruter på {format(parseISO(date), "EEEE d. MMM", { locale: da })}.
+                Der er ingen ruter {format(parseISO(date), "EEEE d. MMM", { locale: da })}.
               </p>
               <p className="text-xs">
-                Du kan vælge en rute på en nærliggende dag herunder — eller lukke og trække aftalen direkte ind på en ledig dag i kalenderen.
+                Vælg en rute på en nærliggende dag herunder — eller luk vinduet og træk aftalen ind på en ledig dag i kalenderen.
               </p>
             </div>
             {loadingNearby ? (
@@ -299,7 +314,7 @@ export const SuggestRouteDialog = ({
             ) : nearbyRoutes && nearbyRoutes.length > 0 ? (
               <div className="space-y-1.5">
                 <p className="text-[11px] uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
-                  <CalendarSearch className="h-3 w-3" /> Ruter i ±2 uger
+                  <CalendarSearch className="h-3 w-3" /> Ruter de nærmeste 2 uger
                 </p>
                 {nearbyRoutes.map((r: any) => {
                   const dayDiff = differenceInDays(parseISO(r.route_date), parseISO(date));
@@ -354,7 +369,7 @@ export const SuggestRouteDialog = ({
             Annuller
           </Button>
           <Button variant="outline" onClick={() => refetch()} disabled={noCoords || isLoading}>
-            Beregn igen
+            Opdater forslag
           </Button>
           <Button
             disabled={!chosen}
@@ -366,7 +381,7 @@ export const SuggestRouteDialog = ({
             }}
           >
             <CheckCircle2 className="h-4 w-4 mr-1.5" />
-            Tildel til valgt rute
+            Tilføj til denne rute
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -412,58 +427,63 @@ const SuggestionCard = ({
               </span>
             </span>
             {isTop && (
-              <Badge className="bg-accent text-accent-foreground hover:bg-accent">Bedste match</Badge>
+              <Badge className="bg-accent text-accent-foreground hover:bg-accent">Vores anbefaling</Badge>
             )}
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
             {s.nearest_km != null && (
               <Badge variant="outline" className="gap-1">
-                <MapPin className="h-3 w-3" /> {s.nearest_km} km til nærmeste stop
+                <MapPin className="h-3 w-3" /> {s.nearest_km} km fra nærmeste besøg
               </Badge>
             )}
             {s.has_skill ? (
               <Badge variant="outline" className="gap-1 border-emerald-200 bg-emerald-50 text-emerald-700">
-                <Wrench className="h-3 w-3" /> Matcher færdigheder
+                <Wrench className="h-3 w-3" /> Kan opgaven
               </Badge>
             ) : (
               <Badge variant="outline" className="gap-1 border-rose-200 bg-rose-50 text-rose-700">
-                <Wrench className="h-3 w-3" /> Mangler færdighed
+                <Wrench className="h-3 w-3" /> Har ikke prøvet ydelsen før
               </Badge>
             )}
             {s.same_zone && (
               <Badge variant="outline" className="gap-1 border-sky-200 bg-sky-50 text-sky-700">
-                <MapPinned className="h-3 w-3" /> Samme zone
+                <MapPinned className="h-3 w-3" /> Tæt på området
               </Badge>
             )}
             {overCapacity && (
               <Badge variant="outline" className="gap-1 border-amber-200 bg-amber-50 text-amber-800">
-                <AlertTriangle className="h-3 w-3" /> Over kapacitet
+                <AlertTriangle className="h-3 w-3" /> Dagen er fuld
               </Badge>
             )}
           </div>
         </div>
-        <div className={cn("shrink-0 rounded-lg border px-2.5 py-1.5 text-center", scoreColor(s.score))}>
-          <div className="text-lg font-bold leading-none tabular-nums">{Math.round(s.score)}</div>
-          <div className="text-[10px] uppercase tracking-wider mt-0.5">score</div>
-        </div>
+        {(() => {
+          const m = matchLevel(s.score);
+          return (
+            <div className={cn("shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold", m.cls)}>
+              <span className={cn("h-1.5 w-1.5 rounded-full", m.dot)} />
+              {m.label}
+            </div>
+          );
+        })()}
       </div>
 
       {/* Kapacitets-bars */}
       <div className="mt-3 grid grid-cols-3 gap-3">
         <CapacityBar
-          label="Timer"
+          label="Arbejdstid"
           icon={<Clock className="h-3 w-3" />}
           value={fmtCap(hoursUsed, s.capacity.hours_max, " t")}
           pct={hoursPct}
         />
         <CapacityBar
-          label="Stop"
+          label="Besøg"
           icon={<MapPin className="h-3 w-3" />}
           value={fmtCap(s.stop_count + 1, s.capacity.stops_max, "")}
           pct={stopsPct}
         />
         <CapacityBar
-          label="Km"
+          label="Køretur"
           icon={<MapPinned className="h-3 w-3" />}
           value={fmtCap(s.km_used, s.capacity.km_max, " km")}
           pct={s.capacity.km_max ? Math.min(100, (s.km_used / s.capacity.km_max) * 100) : null}
