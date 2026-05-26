@@ -33,6 +33,7 @@ import { pickDuration } from "@/components/route/EtaBreakdown";
 import { MoveRouteDateDialog, type MoveRouteScope } from "./MoveRouteDateDialog";
 import { MoveProjectedOccurrenceDialog } from "./MoveProjectedOccurrenceDialog";
 import { MoveStopsDialog } from "./MoveStopsDialog";
+import RouteHistoryDialog from "./RouteHistoryDialog";
 import { SeriesScopeDialog, type SeriesScope } from "./SeriesScopeDialog";
 import { logRouteAudit } from "@/lib/route-audit";
 import { useSeriesImpact } from "@/hooks/useSeriesImpact";
@@ -139,6 +140,7 @@ export const RouteEditSheet = ({
   const [color, setColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
   const [date, setDate] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   // Pending date-flytning — hvis ruten er del af en serie spørger vi
   // brugeren om kun denne ene eller alle fremtidige skal flyttes.
   const [pendingDate, setPendingDate] = useState<string | null>(null);
@@ -860,6 +862,17 @@ export const RouteEditSheet = ({
               <Trash2 className="h-4 w-4 mr-1.5" />
               {stopCount > 0 ? "Slet (flyt aftaler først)" : "Slet rute"}
             </Button>
+            )}
+            {!isProjection && route?.id && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full text-muted-foreground"
+                onClick={() => setHistoryOpen(true)}
+              >
+                <History className="h-3.5 w-3.5 mr-1.5" />
+                Vis historik
+              </Button>
             )}
             {isProjection && (
               <>
