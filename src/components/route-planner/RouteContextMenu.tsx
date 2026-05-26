@@ -4,9 +4,9 @@ import type { ReactNode } from "react";
 import {
   ContextMenu, ContextMenuTrigger, ContextMenuContent, ContextMenuItem, ContextMenuSeparator,
 } from "@/components/ui/context-menu";
-import { Sparkles, Copy, ArrowRightLeft, Trash2, MapPin, Eye } from "lucide-react";
+import { Sparkles, Copy, ArrowRightLeft, Trash2, MapPin, Eye, History } from "lucide-react";
 
-export type RouteAction = "optimize" | "duplicate" | "move" | "view" | "show-on-map" | "delete";
+export type RouteAction = "optimize" | "duplicate" | "move" | "view" | "show-on-map" | "delete" | "history";
 
 type Props = {
   children: ReactNode;
@@ -33,6 +33,11 @@ export default function RouteContextMenu({ children, onAction, hide }: Props) {
         {!hide?.["show-on-map"] && (
           <ContextMenuItem onSelect={() => onAction("show-on-map")}>
             <MapPin className="h-3.5 w-3.5 mr-2" /> Vis på kort
+          </ContextMenuItem>
+        )}
+        {!hide?.history && (
+          <ContextMenuItem onSelect={() => onAction("history")}>
+            <History className="h-3.5 w-3.5 mr-2" /> Vis historik
           </ContextMenuItem>
         )}
         <ContextMenuSeparator />

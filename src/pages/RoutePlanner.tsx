@@ -118,6 +118,7 @@ import RoutePrintDialog, { type PrintRoute } from "@/components/route-planner/Ro
 import { Printer, ListOrdered } from "lucide-react";
 import EmptyState from "@/components/route-planner/EmptyState";
 import DayDetailPanel, { type DayStop } from "@/components/route-planner/DayDetailPanel";
+import RouteHistoryDialog from "@/components/route-planner/RouteHistoryDialog";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -214,6 +215,7 @@ const Planner = () => {
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [printOpen, setPrintOpen] = useState(false);
   const [dayDetailOpen, setDayDetailOpen] = useState(false);
+  const [historyRoute, setHistoryRoute] = useState<{ id: string; name: string } | null>(null);
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [suggestJob, setSuggestJob] = useState<any | null>(null);
@@ -3962,6 +3964,7 @@ const Planner = () => {
                   onCreateRoute={handleCalendarCreateRoute}
                   onOptimizeRoute={handleCalendarOptimizeRoute}
                   onDeleteRoute={(r) => setRouteToDelete({ id: r.id, name: r.name || "Rute" })}
+                  onShowHistory={(r) => setHistoryRoute({ id: r.id, name: r.name || "Rute" })}
                   optimizingRouteId={optimizingRouteId}
                   draggingType={draggingTypeForCalendar}
                   draggingRouteId={activeDragData?.type === "route" ? (activeDragData.route?.id ?? null) : null}
@@ -4012,6 +4015,7 @@ const Planner = () => {
                   onCreateRoute={handleCalendarCreateRoute}
                   onOptimizeRoute={handleCalendarOptimizeRoute}
                   onDeleteRoute={(r) => setRouteToDelete({ id: r.id, name: r.name || "Rute" })}
+                  onShowHistory={(r) => setHistoryRoute({ id: r.id, name: r.name || "Rute" })}
                   optimizingRouteId={optimizingRouteId}
                   draggingType={draggingTypeForCalendar}
                   draggingRouteId={activeDragData?.type === "route" ? (activeDragData.route?.id ?? null) : null}
@@ -5213,6 +5217,12 @@ const Planner = () => {
                 durationMin: s.duration_minutes ?? null,
               }))
           ))}
+      />
+      <RouteHistoryDialog
+        open={!!historyRoute}
+        onOpenChange={(o) => { if (!o) setHistoryRoute(null); }}
+        routeId={historyRoute?.id ?? null}
+        routeName={historyRoute?.name}
       />
     </DndContext>
   );

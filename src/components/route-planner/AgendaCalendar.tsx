@@ -31,6 +31,7 @@ type Props = {
   onCreateRoute: (date: string) => void;
   onOptimizeRoute: (routeId: string) => void;
   onDeleteRoute?: (route: CalendarRoute) => void;
+  onShowHistory?: (route: CalendarRoute) => void;
   optimizingRouteId?: string | null;
   draggingType?: "job" | "route" | "stop" | null;
   draggingRouteId?: string | null;
@@ -45,7 +46,7 @@ const ymd = (d: Date) => format(d, "yyyy-MM-dd");
 
 export const AgendaCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
-  onCreateRoute, onOptimizeRoute, onDeleteRoute, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
+  onCreateRoute, onOptimizeRoute, onDeleteRoute, onShowHistory, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
   loadingRoutes, loadingWeather, weatherError, busyTargets,
 }: Props) => {
   const anchor = parseISO(anchorDate);
@@ -131,6 +132,7 @@ export const AgendaCalendar = ({
                   onCreateRoute={onCreateRoute}
                   onOptimizeRoute={onOptimizeRoute}
                   onDeleteRoute={onDeleteRoute}
+                  onShowHistory={onShowHistory}
                   optimizingRouteId={optimizingRouteId}
                   draggingType={draggingType}
                   draggingRouteId={draggingRouteId ?? null}
@@ -166,6 +168,7 @@ type DayRowProps = {
   onCreateRoute: (date: string) => void;
   onOptimizeRoute: (routeId: string) => void;
   onDeleteRoute?: (route: CalendarRoute) => void;
+  onShowHistory?: (route: CalendarRoute) => void;
   optimizingRouteId?: string | null;
   draggingType?: "job" | "route" | "stop" | null;
   draggingRouteId?: string | null;
@@ -179,7 +182,7 @@ type DayRowProps = {
 
 const DayRowInner = ({
   date, dateStr, todayIso, routes,
-  onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, onDeleteRoute, optimizingRouteId,
+  onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, onDeleteRoute, onShowHistory, optimizingRouteId,
   draggingType, draggingRouteId, weather, loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds,
 }: DayRowProps) => {
   const isPast = dateStr < todayIso;
@@ -297,6 +300,7 @@ const DayRowInner = ({
             onSelectStop={onSelectStop}
             onOptimize={() => onOptimizeRoute(r.id)}
             onDelete={onDeleteRoute ? () => onDeleteRoute(r) : undefined}
+            onShowHistory={onShowHistory ? () => onShowHistory(r) : undefined}
             optimizing={optimizingRouteId === r.id}
             jobDragActive={isJobDragActive}
             routeDragSourceId={draggingType === "route" ? (draggingRouteId ?? null) : null}
@@ -345,6 +349,7 @@ type AgendaRoutePillProps = {
   onSelectStop: (stop: RouteStop) => void;
   onOptimize: () => void;
   onDelete?: () => void;
+  onShowHistory?: () => void;
   optimizing: boolean;
   jobDragActive?: boolean;
   routeDragSourceId?: string | null;
@@ -352,7 +357,7 @@ type AgendaRoutePillProps = {
   isPast?: boolean;
 };
 
-const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, optimizing, jobDragActive, routeDragSourceId, busy, isPast }: AgendaRoutePillProps) => {
+const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHistory, optimizing, jobDragActive, routeDragSourceId, busy, isPast }: AgendaRoutePillProps) => {
   const isVirtual = !!route.isVirtual;
   const isMergeTarget = !!routeDragSourceId && routeDragSourceId !== route.id && !isVirtual && !isPast && !busy;
   const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({
@@ -487,6 +492,7 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, optimizin
   const isVirtualRoute = !!route.isVirtual;
   const canDelete = !!onDelete && !isVirtualRoute && !busy;
   const canOptimize = !isVirtualRoute && stopCount >= 2 && !busy;
+  const canHistory = !!onShowHistory && !isVirtualRoute;
 
   return (
     <RouteContextMenu
@@ -496,11 +502,13 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, optimizin
         "show-on-map": true,
         optimize: !canOptimize,
         delete: !canDelete,
+        history: !canHistory,
       }}
       onAction={(action) => {
         if (action === "view") onSelect();
         else if (action === "optimize" && canOptimize) onOptimize();
         else if (action === "delete" && canDelete) onDelete!();
+        else if (action === "history" && canHistory) onShowHistory!();
       }}
     >
       {pill}
