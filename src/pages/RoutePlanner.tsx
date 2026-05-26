@@ -115,8 +115,9 @@ import DensityToggle from "@/components/route-planner/DensityToggle";
 import ThemeToggle from "@/components/route-planner/ThemeToggle";
 import NextFreeSlotButton from "@/components/route-planner/NextFreeSlotButton";
 import RoutePrintDialog, { type PrintRoute } from "@/components/route-planner/RoutePrintDialog";
-import { Printer } from "lucide-react";
+import { Printer, ListOrdered } from "lucide-react";
 import EmptyState from "@/components/route-planner/EmptyState";
+import DayDetailPanel, { type DayStop } from "@/components/route-planner/DayDetailPanel";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -212,6 +213,7 @@ const Planner = () => {
   const [compactCards, setCompactCards] = usePersistentState<boolean>("route-planner:compactCards", false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [printOpen, setPrintOpen] = useState(false);
+  const [dayDetailOpen, setDayDetailOpen] = useState(false);
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [suggestJob, setSuggestJob] = useState<any | null>(null);
@@ -3495,6 +3497,20 @@ const Planner = () => {
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="text-xs">Print / PDF af valgte dags ruter</TooltipContent>
               </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    aria-label="Vis dag som tidslinje"
+                    onClick={() => setDayDetailOpen(true)}
+                  >
+                    <ListOrdered className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">Vis valgte dag som tidslinje (huller/overlap)</TooltipContent>
+              </Tooltip>
             </div>
 
             <PlanningPanel
@@ -5167,6 +5183,28 @@ const Planner = () => {
                 notes: s.notes ?? null,
               })),
           })))}
+      />
+      <DayDetailPanel
+        open={dayDetailOpen}
+        onOpenChange={setDayDetailOpen}
+        date={date}
+        stops={(calendarRoutes
+          .filter((r: any) => r.route_date === date)
+          .flatMap((r: any): DayStop[] =>
+            [...(r.stops ?? [])]
+              .sort((a: any, b: any) => (a.sequence ?? 0) - (b.sequence ?? 0))
+              .map((s: any): DayStop => ({
+                id: s.id,
+                routeName: r.name || r.display_name || "Rute",
+                routeColor: r.color,
+                customerName: s.customer_name ?? "—",
+                address: s.address ?? null,
+                startTime: s.planned_arrival
+                  ? new Date(s.planned_arrival).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })
+                  : null,
+                durationMin: s.duration_minutes ?? null,
+              }))
+          ))}
       />
     </DndContext>
   );
