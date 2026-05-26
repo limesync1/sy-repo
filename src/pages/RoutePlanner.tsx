@@ -3657,22 +3657,23 @@ const Planner = () => {
 
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Tastatur-genveje">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    aria-label="Tastatur-genveje"
+                    onClick={() => setShortcutsOpen(true)}
+                  >
                     <Keyboard className="h-3.5 w-3.5" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="text-xs">
-                  <div className="space-y-1">
-                    <p className="font-semibold mb-1">Tastatur-genveje</p>
-                    <p><kbd className="px-1 rounded bg-secondary text-[10px]">←</kbd> <kbd className="px-1 rounded bg-secondary text-[10px]">→</kbd> Skift {view === "week" ? "uge" : "måned"}</p>
-                    <p><kbd className="px-1 rounded bg-secondary text-[10px]">T</kbd> I dag</p>
-                    <p><kbd className="px-1 rounded bg-secondary text-[10px]">N</kbd> Ny rute</p>
-                    <p><kbd className="px-1 rounded bg-secondary text-[10px]">{navigator.platform.toLowerCase().includes("mac") ? "⌘" : "Ctrl"}+Z</kbd> Fortryd</p>
-                    <p><kbd className="px-1 rounded bg-secondary text-[10px]">{navigator.platform.toLowerCase().includes("mac") ? "⌘⇧" : "Ctrl+Shift"}+Z</kbd> Gentag</p>
-                    <p><kbd className="px-1 rounded bg-secondary text-[10px]">Esc</kbd> Luk panel</p>
-                  </div>
+                  Tastatur-genveje (<kbd className="px-1 rounded bg-secondary text-[10px]">?</kbd>)
                 </TooltipContent>
               </Tooltip>
+
+              <DensityToggle />
+              <ThemeToggle />
 
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -5118,6 +5119,8 @@ const Planner = () => {
           </AlertDialogContent>
         </AlertDialog>
       </AdminShell>
+      <UndoBar />
+      <RoutePlannerShortcutsHelp open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
     </DndContext>
   );
 };
