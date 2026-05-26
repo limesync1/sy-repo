@@ -4089,12 +4089,12 @@ const Planner = () => {
                               type="button"
                               onClick={runAutoAssign}
                               disabled={autoAssigning}
-                              className="w-full flex items-center justify-center gap-1.5 h-6 rounded border border-accent/40 bg-accent/10 text-[10px] font-medium text-foreground hover:bg-accent/20 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                              className="w-full inline-flex items-center justify-center gap-1.5 h-8 rounded-md bg-accent text-accent-foreground text-xs font-semibold hover:bg-accent/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:outline-none"
                               title="Fordel automatisk alle aftaler til den bedst matchende eksisterende rute"
                             >
                               {autoAssigning
-                                ? <><Loader2 className="h-2.5 w-2.5 animate-spin" />Fordeler…</>
-                                : <><Sparkles className="h-2.5 w-2.5 text-accent" />Auto-fordel ({canAutoAssign})</>}
+                                ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Fordeler {canAutoAssign}…</>
+                                : <><Sparkles className="h-3.5 w-3.5" />Auto-fordel {canAutoAssign} {canAutoAssign === 1 ? "aftale" : "aftaler"}</>}
                             </button>
                           )}
                         </div>
