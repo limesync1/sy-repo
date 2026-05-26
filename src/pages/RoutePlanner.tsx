@@ -327,6 +327,8 @@ const Planner = () => {
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [suggestJob, setSuggestJob] = useState<any | null>(null);
+  // Ref til "Aftaler uden rute"-søgefeltet — så vi kan fokusere det med "/".
+  const unassignedSearchRef = useRef<HTMLInputElement | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragData, setActiveDragData] = useState<any>(null);
   // ID for det drop-target musen p.t. hovrer over — bruges af DragEtaOverlay
