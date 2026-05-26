@@ -114,6 +114,7 @@ import { estimateOptimizationGain, markOptimizeDismissed } from "@/lib/optimize-
 import { BulkMoveRoutesDialog, type BulkMoveRouteItem } from "@/components/route-planner/BulkMoveRoutesDialog";
 import RoutePlannerShortcutsHelp from "@/components/route-planner/RoutePlannerShortcutsHelp";
 import UndoBar from "@/components/route-planner/UndoBar";
+import PlannerSkeleton from "@/components/route-planner/PlannerSkeleton";
 import DensityToggle from "@/components/route-planner/DensityToggle";
 import ThemeToggle from "@/components/route-planner/ThemeToggle";
 import NextFreeSlotButton from "@/components/route-planner/NextFreeSlotButton";
@@ -1959,7 +1960,9 @@ const Planner = () => {
   }, [activeDragData?.type]);
 
   if (loadingBusiness) {
-    return <ShellSkeleton />;
+    // Planner-specifik skeleton (sidebar + kalender-grid) — virker mere
+    // "rigtig" end den generiske ShellSkeleton fordi formen matcher.
+    return <PlannerSkeleton />;
   }
 
   if (!business) {
@@ -2787,6 +2790,24 @@ const Planner = () => {
           // og giv den en ledig farve — samme adfærd som MoveStopsDialog.
           try { await renameFreshSplitRoutes([stop.id], newDate); }
           catch (e) { console.warn("renameFreshSplitRoutes", e); }
+          // ── Undo: registrér så brugeren kan rulle stoppet tilbage til
+          //    dets oprindelige dato. Bruger samme RPC i modsat retning;
+          //    fungerer for både simple og split-genererede flytninger.
+          const originalDate = currentRoute?.route_date;
+          if (originalDate && originalDate !== newDate) {
+            pushRouteUndo({
+              label: `Flyt stop tilbage til ${format(parseISO(originalDate), "d. MMM", { locale: da })}`,
+              undo: async () => {
+                const { error: undoErr } = await supabase.rpc("move_stops_to_date", {
+                  _stop_ids: [stop.id],
+                  _target_date: originalDate,
+                });
+                if (undoErr) throw undoErr;
+                invalidateRouteSyncQueries(qc);
+                toast.success("Stop flyttet tilbage");
+              },
+            });
+          }
           // Batchet — hurtige flytninger samles til "N stops flyttet".
           if (conflictMsg) {
             toast.success(
