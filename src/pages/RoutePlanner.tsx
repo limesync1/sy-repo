@@ -312,6 +312,16 @@ const Planner = () => {
   // Bulk-valg i "Aftaler uden rute": Sæt af ordre-ids der pt. er markeret.
   const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
+  // Bulk-flyt dato: åbner dialog der viser forhåndsvisning før udførsel.
+  const [bulkShiftOpen, setBulkShiftOpen] = useState(false);
+  // Filter + gruppering for "Aftaler uden rute" — gør store puljer
+  // overskuelige uden at brugeren skal scrolle gennem alt.
+  const [unassignedStatusFilter, setUnassignedStatusFilter] = usePersistentState<
+    "all" | "ready" | "pending" | "missing-gps"
+  >("route-planner:unassignedStatus", "all");
+  const [unassignedGroupBy, setUnassignedGroupBy] = usePersistentState<
+    "none" | "status" | "route" | "week"
+  >("route-planner:unassignedGroupBy", "none");
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [suggestJob, setSuggestJob] = useState<any | null>(null);
