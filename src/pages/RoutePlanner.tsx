@@ -1918,6 +1918,113 @@ const Planner = () => {
     }
   };
 
+  /** Auto-fordel KUN de aftaler som er markeret i bulk-bjælken.
+   *  Genbrugbar logik fra `runAutoAssign` — men afgrænset til valgte ids,
+   *  og rydder valg-state efter en succesfuld kørsel. */
+  const runBulkAutoAssign = async () => {
+    if (!businessId || bulkBusy || selectedJobIds.size === 0) return;
+    const candidates = (unassigned as any[]).filter(
+      (j) => selectedJobIds.has(j.id)
+        && j.status !== "pending"
+        && j.latitude != null && j.longitude != null
+        && (j.preferred_date || j.next_service_date),
+    );
+    if (candidates.length === 0) {
+      toast.info("Ingen af de valgte kan auto-fordeles", {
+        description: "Valgte aftaler skal have GPS og en dato.",
+      });
+      return;
+    }
+    setBulkBusy(true);
+    let assigned = 0;
+    let skipped = 0;
+    try {
+      for (const job of candidates) {
+        const jobDate = (job.preferred_date || job.next_service_date).slice(0, 10);
+        const duration = Number(job.estimated_duration_minutes) || 30;
+        try {
+          const { data: rpc, error } = await (supabase as any).rpc("suggest_routes_for_stop", {
+            _business_id: businessId,
+            _date: jobDate,
+            _latitude: job.latitude,
+            _longitude: job.longitude,
+            _service_id: job.order_items?.[0]?.service_id ?? null,
+            _duration_minutes: duration,
+            _zone_key: deriveZoneKey(job.zip_code),
+            _weather_bad: false,
+            _skill_key: null,
+          });
+          if (error) { skipped++; continue; }
+          const suggestions = (rpc as any)?.suggestions || [];
+          const top = suggestions.find((s: any) => {
+            const hoursUsed = (s.minutes_used + duration) / 60;
+            const overHours = s.capacity?.hours_max != null && hoursUsed > s.capacity.hours_max;
+            const overStops = s.capacity?.stops_max != null && s.stop_count + 1 > s.capacity.stops_max;
+            return !overHours && !overStops;
+          });
+          if (!top) { skipped++; continue; }
+          const sequence = (calendarStops as any[]).filter((s) => s.route_id === top.route_id).length;
+          await addStop.mutateAsync({
+            route_id: top.route_id,
+            order_id: job.id,
+            sequence,
+            customer_name: job.customer_name,
+            customer_phone: job.customer_phone,
+            address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
+            latitude: job.latitude,
+            longitude: job.longitude,
+            service_summary: serviceSummaryForJob(job),
+            duration_minutes: duration,
+            time_window_start: job.preferred_time_start || null,
+            time_window_end: job.preferred_time_end || null,
+          });
+          assigned++;
+        } catch {
+          skipped++;
+        }
+      }
+      qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
+      qc.invalidateQueries({ queryKey: ["route-calendar"] });
+      if (assigned > 0) {
+        toast.success(`Fordelt ${assigned} af ${candidates.length} valgte aftale${candidates.length === 1 ? "" : "r"}${skipped > 0 ? ` — ${skipped} sprunget over` : ""}`);
+        setSelectedJobIds(new Set());
+      } else {
+        toast.error("Ingen valgte aftaler kunne fordeles", {
+          description: "Ingen ruter havde plads. Opret en rute på dagen først.",
+        });
+      }
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  /** Annullér de valgte aftaler — sætter status til 'cancelled' så de
+   *  forsvinder fra "Aftaler uden rute". Bekræftelse via window.confirm
+   *  for at undgå utilsigtede masse-annulleringer. */
+  const runBulkCancel = async () => {
+    if (!businessId || bulkBusy || selectedJobIds.size === 0) return;
+    const ids = Array.from(selectedJobIds);
+    const ok = typeof window !== "undefined"
+      ? window.confirm(`Annullér ${ids.length} aftale${ids.length === 1 ? "" : "r"}? Dette kan ikke fortrydes.`)
+      : true;
+    if (!ok) return;
+    setBulkBusy(true);
+    try {
+      const { error } = await supabase
+        .from("orders")
+        .update({ status: "cancelled" })
+        .in("id", ids);
+      if (error) throw error;
+      toast.success(`${ids.length} aftale${ids.length === 1 ? "" : "r"} annulleret`);
+      setSelectedJobIds(new Set());
+      qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
+    } catch (e: any) {
+      toast.error(e?.message || "Kunne ikke annullere aftalerne");
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
   /* Keyboard shortcuts: ←/→ for date, T for today, M for map, N for new route */
   // Ref så vi kan kalde optimize-handleren fra keydown uden at depende på
   // dens definition-rækkefølge (den er defineret længere nede).
