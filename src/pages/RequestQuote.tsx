@@ -225,6 +225,7 @@ const RequestQuote = () => {
     interval_options: s.interval_options || ["engangskøb"],
     default_employee_id: null,
     default_employee_ids: [],
+    weather_sensitive: false,
     calculator_steps: s.calculator_steps.map((cs) => ({
       id: cs.id,
       label: cs.label,
