@@ -116,6 +116,7 @@ import ThemeToggle from "@/components/route-planner/ThemeToggle";
 import NextFreeSlotButton from "@/components/route-planner/NextFreeSlotButton";
 import RoutePrintDialog, { type PrintRoute } from "@/components/route-planner/RoutePrintDialog";
 import { Printer } from "lucide-react";
+import EmptyState from "@/components/route-planner/EmptyState";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -3874,23 +3875,19 @@ const Planner = () => {
                       </div>
                     )}
                     {!loadingUnassigned && filteredUnassigned.length === 0 && (
-                      <div className="flex flex-col items-center justify-center py-12 px-4 text-center gap-2">
-                        <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center">
-                          <Inbox className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                        <p className="text-xs text-muted-foreground italic">
-                          {search
-                            ? "Ingen aftaler matcher søgningen"
-                            : calendarRoutesRaw.length === 0
-                              ? "Træk en aftale ind på en dag i kalenderen — så opretter vi automatisk en rute for dig"
-                              : "Alle aftaler er planlagt 🎉"}
-                        </p>
-                        {search && (
-                          <Button size="sm" variant="ghost" className="h-6 text-xs" onClick={() => setSearch("")}>
-                            Ryd søgning
-                          </Button>
-                        )}
-                      </div>
+                      <EmptyState
+                        icon={<Inbox className="h-5 w-5" />}
+                        title={search
+                          ? "Ingen aftaler matcher"
+                          : calendarRoutesRaw.length === 0
+                            ? "Ingen ruter endnu"
+                            : "Alle aftaler er planlagt 🎉"}
+                        description={!search ? (calendarRoutesRaw.length === 0
+                          ? "Træk en aftale ind på en dag i kalenderen — så opretter vi automatisk en rute for dig."
+                          : undefined) : undefined}
+                        action={search ? { label: "Ryd søgning", onClick: () => setSearch("") } : undefined}
+                        compact
+                      />
                     )}
                     {filteredUnassigned.map((job: any) => (
                       <UnassignedJobCard
