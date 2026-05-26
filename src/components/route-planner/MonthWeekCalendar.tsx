@@ -249,6 +249,7 @@ type DayCellProps = {
   onSelectStop: (stop: RouteStop) => void;
   onCreateRoute: (date: string) => void;
   onOptimizeRoute: (routeId: string) => void;
+  onDeleteRoute?: (route: CalendarRoute) => void;
   optimizingRouteId?: string | null;
   compact: boolean;
   draggingType?: "job" | "route" | "stop" | null;
