@@ -1712,6 +1712,47 @@ const Planner = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unassigned.length, businessId]);
 
+  // Manuel bulk-geokod: kører gennem ALLE aftaler uden GPS i én omgang
+  // (op til 50). Bruges af knappen "Geokod alle" i sidebaren — så ejeren
+  // kan rense en hel pulje på én gang i stedet for at vente på den
+  // automatiske 5-ad-gangen-loop.
+  const runBulkGeocode = async () => {
+    if (!businessId) return;
+    const needs = (unassigned as any[]).filter(
+      (j) => (j.address || j.zip_code || j.city) && (j.latitude == null || j.longitude == null),
+    );
+    if (needs.length === 0) {
+      toast.info("Alle aftaler har allerede koordinater.");
+      return;
+    }
+    setGeocoding(true);
+    let ok = 0;
+    let failed = 0;
+    try {
+      const batch = needs.slice(0, 50);
+      for (const job of batch) {
+        try {
+          const res = await geocode.mutateAsync({
+            address: job.address || undefined,
+            zip_code: job.zip_code || undefined,
+            city: job.city || undefined,
+          });
+          if (res.found && res.latitude != null && res.longitude != null) {
+            await supabase.from("orders").update({
+              latitude: res.latitude, longitude: res.longitude,
+            }).eq("id", job.id);
+            ok++;
+          } else { failed++; }
+        } catch { failed++; }
+      }
+      qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
+      if (ok > 0) toast.success(`Fandt koordinater på ${ok} aftale${ok === 1 ? "" : "r"}.${failed > 0 ? ` ${failed} kunne ikke findes — tjek adressen.` : ""}`);
+      else toast.error("Ingen adresser kunne findes — tjek at de er stavet rigtigt.");
+    } finally {
+      setGeocoding(false);
+    }
+  };
+
   /* Keyboard shortcuts: ←/→ for date, T for today, M for map, N for new route */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
