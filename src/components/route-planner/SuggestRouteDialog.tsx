@@ -111,6 +111,21 @@ export const SuggestRouteDialog = ({
 
   const noCoords = latitude == null || longitude == null;
 
+  const tryGeocodeAgain = async () => {
+    try {
+      const res = await geocode.mutateAsync({
+        address: job.address || undefined,
+        zip_code: job.zip_code || undefined,
+        city: job.city || undefined,
+      });
+      if (res.found && res.latitude != null && res.longitude != null) {
+        setResolvedCoords({ latitude: res.latitude, longitude: res.longitude });
+        await supabase.from("orders").update({ latitude: res.latitude, longitude: res.longitude }).eq("id", job.id);
+        qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
+      }
+    } catch { /* fejlen vises i banneret */ }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
@@ -125,15 +140,22 @@ export const SuggestRouteDialog = ({
         </DialogHeader>
 
         {noCoords ? (
-          <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 flex items-start gap-2">
+          <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 flex items-start gap-3">
             {geocode.isPending ? <Loader2 className="h-4 w-4 mt-0.5 shrink-0 animate-spin" /> : <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />}
-            <span>
-              {geocode.isPending
-                ? "Finder adressen på kortet…"
-                : hasAddress
-                  ? "Vi kunne ikke placere adressen på kortet. Åbn aftalen, ret adressen, og prøv igen."
-                  : "Aftalen har ingen adresse endnu — tilføj én, så kan vi foreslå en rute."}
-            </span>
+            <div className="flex-1 space-y-2">
+              <p>
+                {geocode.isPending
+                  ? "Finder adressen på kortet…"
+                  : hasAddress
+                    ? "Vi kunne ikke placere adressen på kortet endnu. Prøv igen — eller åbn aftalen og ret adressen."
+                    : "Aftalen har ingen adresse endnu — tilføj én, så kan vi foreslå en rute."}
+              </p>
+              {hasAddress && !geocode.isPending && (
+                <Button size="sm" variant="outline" onClick={tryGeocodeAgain}>
+                  Prøv at finde adressen igen
+                </Button>
+              )}
+            </div>
           </div>
         ) : isLoading ? (
           <div className="flex items-center justify-center py-12 text-muted-foreground">
