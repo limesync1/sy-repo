@@ -1038,15 +1038,6 @@ const EmployeeRow = ({
                     Bruges til synkronisering med lønsystem.
                   </p>
                 </div>
-                <div>
-                  <FieldLabel optional>Medarbejdergruppe / afdeling</FieldLabel>
-                  <Input
-                    value={editEmployeeGroup}
-                    onChange={(e) => setEditEmployeeGroup(e.target.value)}
-                    className="h-10"
-                    placeholder="fx Service Øst"
-                  />
-                </div>
               </div>
             </section>
 
