@@ -188,7 +188,7 @@ export const UnassignedJobCard = ({
           aria-label={isPending ? "Skal godkendes før den kan flyttes" : "Træk for at flytte"}
           title={isPending ? "Aftalen skal godkendes før den kan lægges på en rute" : "Træk for at flytte"}
           disabled={isPending}
-          className={`shrink-0 mt-1 ${isPending ? "text-amber-500 cursor-not-allowed" : "text-muted-foreground/50 hover:text-primary/70 cursor-grab active:cursor-grabbing"}`}
+          className={`shrink-0 mt-1 transition-colors ${isPending ? "text-amber-500 cursor-not-allowed" : "text-muted-foreground/70 hover:text-foreground cursor-grab active:cursor-grabbing"}`}
         >
           {isPending ? <Lock className="h-3.5 w-3.5" /> : <GripVertical className="h-4 w-4" />}
         </button>
@@ -310,7 +310,7 @@ export const UnassignedJobCard = ({
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); onSuggestRoute(); }}
-          className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-[11px] font-medium text-foreground hover:bg-accent/10 transition-colors"
+          className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 text-[11px] font-medium text-foreground hover:bg-accent/10 transition-colors"
           title="Foreslå bedste rute baseret på afstand, kapacitet og færdigheder"
         >
           <Sparkles className="h-3 w-3 text-accent" />
@@ -320,10 +320,10 @@ export const UnassignedJobCard = ({
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onFindFreeSlot(); }}
-            className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-[11px] font-medium text-foreground hover:bg-accent/10 border-l border-border/50 transition-colors"
+            className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary border-l border-border/50 transition-colors"
             title="Spring til første dag med ledig kapacitet"
           >
-            <CalendarSearch className="h-3 w-3 text-foreground/70" />
+            <CalendarSearch className="h-3 w-3" />
             Næste ledige
           </button>
         )}
@@ -335,7 +335,7 @@ export const UnassignedJobCard = ({
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="w-full flex items-center justify-center gap-1 px-2 py-1 text-[10px] text-muted-foreground hover:bg-secondary/60 border-t border-border/50 transition-colors"
+          className="w-full flex items-center justify-center gap-1 px-2 py-1.5 text-[11px] text-muted-foreground hover:text-foreground hover:bg-secondary/60 border-t border-border/50 transition-colors"
         >
           {expanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
           {expanded ? "Skjul detaljer" : "Vis detaljer"}
