@@ -4012,39 +4012,6 @@ const Planner = () => {
                       onClear={() => setSelectedJobIds(new Set())}
                       onSelectAll={() => setSelectedJobIds(new Set(filteredUnassigned.map((j: any) => j.id)))}
                       busy={bulkBusy}
-                      onGeocode={async () => {
-                        if (!businessId || selectedJobIds.size === 0) return;
-                        const jobs = (unassigned as any[]).filter(
-                          (j) => selectedJobIds.has(j.id) && (j.address || j.zip_code || j.city)
-                            && (j.latitude == null || j.longitude == null),
-                        );
-                        if (jobs.length === 0) { toast.info("Valgte aftaler har allerede koordinater."); return; }
-                        setBulkBusy(true);
-                        let ok = 0, failed = 0;
-                        try {
-                          for (const job of jobs) {
-                            try {
-                              const res = await geocode.mutateAsync({
-                                address: job.address || undefined,
-                                zip_code: job.zip_code || undefined,
-                                city: job.city || undefined,
-                              });
-                              if (res.found && res.latitude != null && res.longitude != null) {
-                                await supabase.from("orders").update({
-                                  latitude: res.latitude, longitude: res.longitude,
-                                }).eq("id", job.id);
-                                ok++;
-                              } else failed++;
-                            } catch { failed++; }
-                          }
-                          qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
-                          if (ok > 0) toast.success(`Geokodet ${ok} aftale${ok === 1 ? "" : "r"}${failed > 0 ? ` · ${failed} fejlede` : ""}`);
-                          else toast.error("Ingen adresser kunne findes.");
-                        } finally {
-                          setBulkBusy(false);
-                          setSelectedJobIds(new Set());
-                        }
-                      }}
                     />
                     {loadingUnassigned && unassigned.length === 0 && (
                       <div className="space-y-1.5">
