@@ -936,6 +936,16 @@ const Planner = () => {
         j.city?.toLowerCase().includes(q),
       );
     }
+    // Status-filter — gør store puljer lettere at fokusere på.
+    if (unassignedStatusFilter !== "all") {
+      list = list.filter((j: any) => {
+        const hasGps = j.latitude != null && j.longitude != null;
+        if (unassignedStatusFilter === "pending") return j.status === "pending";
+        if (unassignedStatusFilter === "missing-gps") return !hasGps;
+        // "ready" = klar til auto-fordel: ikke pending, har GPS, har dato.
+        return j.status !== "pending" && hasGps && (j.preferred_date || j.next_service_date);
+      });
+    }
     const sorted = [...list];
     if (sortBy === "date") {
       sorted.sort((a: any, b: any) => {
@@ -952,7 +962,7 @@ const Planner = () => {
       sorted.sort((a: any, b: any) => (a.customer_name || "").localeCompare(b.customer_name || "", "da"));
     }
     return sorted;
-  }, [unassigned, search, sortBy]);
+  }, [unassigned, search, sortBy, unassignedStatusFilter]);
 
   const unassignedTotal = useMemo(
     () => filteredUnassigned.reduce((s: number, j: any) => s + Number(j.total_amount || 0), 0),
