@@ -206,6 +206,7 @@ const Planner = () => {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = usePersistentState<"date" | "price" | "name">("route-planner:sortBy", "date");
   const [compactCards, setCompactCards] = usePersistentState<boolean>("route-planner:compactCards", false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [suggestJob, setSuggestJob] = useState<any | null>(null);
@@ -1877,6 +1878,9 @@ const Planner = () => {
         setCreateOpen(true);
       } else if (e.key === "Escape" && selectedStopId) {
         setSelectedStopId(null);
+      } else if (e.key === "?" || (e.shiftKey && e.key === "/")) {
+        e.preventDefault();
+        setShortcutsOpen(true);
       }
     };
     window.addEventListener("keydown", onKey);
