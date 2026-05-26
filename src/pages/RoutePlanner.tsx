@@ -4148,6 +4148,18 @@ const Planner = () => {
                             <SelectItem value="name" className="text-xs">Navn (A-Å)</SelectItem>
                           </SelectContent>
                         </Select>
+                        <Select value={unassignedStatusFilter} onValueChange={(v) => setUnassignedStatusFilter(v as any)}>
+                          <SelectTrigger className="h-7 text-[11px] flex-1 bg-background gap-1.5" aria-label="Filtrér">
+                            <Filter className="h-3 w-3 text-muted-foreground shrink-0" />
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all" className="text-xs">Vis alle</SelectItem>
+                            <SelectItem value="ready" className="text-xs">Klar til auto-fordel</SelectItem>
+                            <SelectItem value="pending" className="text-xs">Afventer godkendelse</SelectItem>
+                            <SelectItem value="missing-gps" className="text-xs">Mangler GPS</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <button
