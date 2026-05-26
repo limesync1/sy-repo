@@ -974,6 +974,36 @@ const Planner = () => {
     [filteredUnassigned],
   );
 
+  // ─── Bulk-selection: hold valg i sync med listen ───
+  // Hvis en valgt aftale forsvinder fra "Aftaler uden rute" (blev
+  // tildelt en rute, annulleret, eller filtreret væk fra serveren),
+  // skal vi rydde dens id ud af selectedJobIds. Ellers viser tælleren
+  // "1 valgt" mens highlight'et peger på ingenting — kilden til den
+  // klassiske "1 af 0 valgt"-forvirring.
+  useEffect(() => {
+    if (selectedJobIds.size === 0) return;
+    const live = new Set((unassigned as any[]).map((j) => j.id));
+    let changed = false;
+    const next = new Set<string>();
+    selectedJobIds.forEach((id) => {
+      if (live.has(id)) next.add(id);
+      else changed = true;
+    });
+    if (changed) setSelectedJobIds(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [unassigned]);
+
+  // Antal valgte aftaler der pt. er synlige i listen — det er DEM bulk-
+  // handlingerne reelt rammer i denne visning. Vises sammen med "skjulte
+  // valgte" så brugeren forstår hvorfor tallet kan afvige fra totalen.
+  const selectedVisibleCount = useMemo(() => {
+    if (selectedJobIds.size === 0) return 0;
+    let n = 0;
+    for (const j of filteredUnassigned as any[]) if (selectedJobIds.has(j.id)) n++;
+    return n;
+  }, [filteredUnassigned, selectedJobIds]);
+  const selectedHiddenCount = selectedJobIds.size - selectedVisibleCount;
+
   /** Periode-overblik vist i toolbaren — giver hurtigt overblik over hvor
    *  meget arbejde der er planlagt i den viste måned/uge. */
   const periodSummary = useMemo(() => {
@@ -4505,9 +4535,18 @@ const Planner = () => {
                         kort i toppen og spiser ikke plads når intet er valgt. */}
                     <UnassignedBulkBar
                       selectedCount={selectedJobIds.size}
+                      visibleCount={selectedVisibleCount}
+                      hiddenCount={selectedHiddenCount}
                       totalCount={filteredUnassigned.length}
                       onClear={() => setSelectedJobIds(new Set())}
                       onSelectAll={() => setSelectedJobIds(new Set(filteredUnassigned.map((j: any) => j.id)))}
+                      onShowHidden={selectedHiddenCount > 0 ? () => {
+                        // Nulstil filtre/søgning så de skjulte valgte aftaler
+                        // bliver synlige igen — så brugeren kan se præcis hvad
+                        // bulk-handlingen rammer.
+                        setSearch("");
+                        setUnassignedStatusFilter("all");
+                      } : undefined}
                       onAutoAssign={runBulkAutoAssign}
                       onCancel={runBulkCancel}
                       onShiftDate={() => setBulkShiftOpen(true)}
