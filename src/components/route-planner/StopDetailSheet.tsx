@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { registerStopRestoreUndo } from "@/lib/stop-restore";
 import { format, parseISO, addDays, addWeeks, addMonths, addYears } from "date-fns";
 import { da } from "date-fns/locale";
 import { INTERVAL_LABELS } from "@/types/service";
@@ -48,6 +50,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
   const { data: order, isLoading } = useOrderForStop(stop?.order_id);
   const updateStop = useUpdateStop();
   const deleteStop = useDeleteStop();
+  const qc = useQueryClient();
   const setAssignees = useSetStopAssignees();
   const { data: myBusiness } = useMyBusiness();
   const { data: allEmployees = [] } = useEmployees(myBusiness?.id);
@@ -161,11 +164,15 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
     try {
       const res = await deleteStop.mutateAsync(stop.id) as any;
       const message = res?.route_deleted ? "Aftale fjernet — den tomme rute blev slettet" : "Aftale fjernet fra ruten";
-      if (res?.recurring_unlinked) {
-        toast.success(message, { description: "Fremtidige gentagelser vises ikke længere på denne rute." });
-      } else {
-        toast.success(message);
-      }
+      registerStopRestoreUndo({
+        stop,
+        message,
+        description: res?.recurring_unlinked
+          ? "Fremtidige gentagelser vises ikke længere på denne rute."
+          : undefined,
+        routeDeleted: !!res?.route_deleted,
+        qc,
+      });
       setConfirmDelete(false);
       onOpenChange(false);
     } catch (err: any) {

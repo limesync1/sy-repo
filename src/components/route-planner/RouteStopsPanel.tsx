@@ -34,6 +34,8 @@ import {
   useReorderStops, useDeleteStop, useSetStopAssignees,
   type RouteStop, type Route,
 } from "@/hooks/useRoutes";
+import { useQueryClient } from "@tanstack/react-query";
+import { registerStopRestoreUndo } from "@/lib/stop-restore";
 import { IntervalBadge } from "./IntervalBadge";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -68,6 +70,7 @@ export const RouteStopsPanel = ({
 }: Props) => {
   const reorder = useReorderStops();
   const deleteStop = useDeleteStop();
+  const qc = useQueryClient();
   const setAssignees = useSetStopAssignees();
   const [confirmDelete, setConfirmDelete] = useState<RouteStop | null>(null);
 
@@ -116,11 +119,15 @@ export const RouteStopsPanel = ({
       const message = res?.route_deleted
         ? "Aftale fjernet — den tomme rute blev slettet"
         : "Aftale fjernet fra ruten";
-      if (res?.recurring_unlinked) {
-        toast.success(message, { description: "Fremtidige gentagelser vises ikke længere på denne rute." });
-      } else {
-        toast.success(message);
-      }
+      registerStopRestoreUndo({
+        stop,
+        message,
+        description: res?.recurring_unlinked
+          ? "Fremtidige gentagelser vises ikke længere på denne rute."
+          : undefined,
+        routeDeleted: !!res?.route_deleted,
+        qc,
+      });
     } catch (err: any) {
       toast.error(err.message || "Kunne ikke fjerne stop");
     }
