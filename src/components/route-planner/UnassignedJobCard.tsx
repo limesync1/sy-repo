@@ -46,6 +46,8 @@ type Props = {
   };
   onClick?: () => void;
   onSuggestRoute?: () => void;
+  /** Kompakt visning — skjuler varighed/badges og holder skema-banner på én linje. */
+  compact?: boolean;
 };
 
 /** Beregn tydeligt label for hvornår jobbet skal udføres næste gang.
@@ -86,7 +88,7 @@ const getSchedule = (d?: string | null) => {
   return { dayLabel, relative, tone };
 };
 
-export const UnassignedJobCard = ({ job, onClick, onSuggestRoute }: Props) => {
+export const UnassignedJobCard = ({ job, onClick, onSuggestRoute, compact = false }: Props) => {
   const [expanded, setExpanded] = useState(false);
   const isPending = job.status === "pending";
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
@@ -148,7 +150,7 @@ export const UnassignedJobCard = ({ job, onClick, onSuggestRoute }: Props) => {
       className={`group rounded-lg border bg-card hover:shadow-md transition-all overflow-hidden ${isPending ? "border-amber-300 bg-amber-50/40" : "hover:border-primary/60"}`}
     >
       {/* Top row: drag handle + clickable content */}
-      <div className="flex items-start gap-2 p-3">
+      <div className={`flex items-start gap-2 ${compact ? "p-2" : "p-3"}`}>
         {/* Kun grip-håndtaget initierer drag — så kortet selv kan klikkes */}
         <button
           type="button"
@@ -164,7 +166,7 @@ export const UnassignedJobCard = ({ job, onClick, onSuggestRoute }: Props) => {
         <button
           type="button"
           onClick={onClick}
-          className="flex-1 min-w-0 space-y-2 text-left cursor-pointer"
+          className={`flex-1 min-w-0 text-left cursor-pointer ${compact ? "space-y-1" : "space-y-2"}`}
         >
           {/* Header: navn + første ydelse som sub-label + pris. Ingen ikon foran
               navnet — kortet er allerede tydeligt en kunde, og ikonet stjal plads. */}
@@ -203,9 +205,8 @@ export const UnassignedJobCard = ({ job, onClick, onSuggestRoute }: Props) => {
           )}
 
           {/* Tydeligt skema-banner — viser hvornår aftalen skal udføres næste
-              gang. Bruger flex-wrap + min-w-0 så indholdet aldrig overlapper
-              når sidebaren er smal (Aftaler uden rute har min 16% bredde). */}
-          {schedule && (
+              gang. I kompakt visning trimmes det til én linje. */}
+          {schedule && !compact && (
             <div className={`flex flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-md border px-2 py-1 text-[11px] font-medium min-w-0 ${schedule.tone}`}>
               <CalendarClock className="h-3 w-3 shrink-0" />
               <span className="opacity-70 font-normal">
@@ -223,10 +224,21 @@ export const UnassignedJobCard = ({ job, onClick, onSuggestRoute }: Props) => {
               )}
             </div>
           )}
+          {schedule && compact && (
+            <div className={`flex items-center gap-1.5 rounded border px-1.5 py-0.5 text-[10px] font-medium min-w-0 ${schedule.tone}`}>
+              <CalendarClock className="h-2.5 w-2.5 shrink-0" />
+              <span className="font-semibold truncate">{schedule.dayLabel}</span>
+              {job.preferred_time_start && (
+                <span className="opacity-80 ml-auto tabular-nums shrink-0">
+                  {job.preferred_time_start.slice(0, 5)}
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Foreslået rute — flex-wrap + truncate så lange rutenavne ikke
               skubber andre felter ud af kortet i smal layout. */}
-          {job.preferred_route_name && (
+          {job.preferred_route_name && !compact && (
             <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-md border border-accent/40 bg-accent/5 px-2 py-1 text-[11px] font-medium text-accent min-w-0">
               <RouteIcon className="h-3 w-3 shrink-0" />
               <span className="opacity-80 font-normal">Tidligere rute:</span>
@@ -236,6 +248,7 @@ export const UnassignedJobCard = ({ job, onClick, onSuggestRoute }: Props) => {
 
           {/* Badge-række: viser kun det der giver mening. Varighed har label
               så ejeren forstår hvad tallet betyder — ikke et nøgent "30 min". */}
+          {!compact && (
           <div className="flex items-center gap-1.5 flex-wrap">
             <IntervalBadge
               interval={items.find((it: any) => it.details?.interval)?.details?.interval}
@@ -259,10 +272,11 @@ export const UnassignedJobCard = ({ job, onClick, onSuggestRoute }: Props) => {
               </Badge>
             )}
           </div>
+          )}
         </button>
       </div>
 
-      {onSuggestRoute && !isPending && (
+      {onSuggestRoute && !isPending && !compact && (
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); onSuggestRoute(); }}
@@ -275,7 +289,7 @@ export const UnassignedJobCard = ({ job, onClick, onSuggestRoute }: Props) => {
       )}
 
       {/* Expandable details */}
-      {(job.customer_phone || itemCount > 1 || job.notes) && (
+      {!compact && (job.customer_phone || itemCount > 1 || job.notes) && (
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
