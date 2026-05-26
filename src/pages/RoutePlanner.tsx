@@ -4334,19 +4334,55 @@ const Planner = () => {
                       </div>
                     )}
                     {!loadingUnassigned && filteredUnassigned.length === 0 && (
-                      <EmptyState
-                        icon={<Inbox className="h-5 w-5" />}
-                        title={search
-                          ? "Ingen aftaler matcher"
-                          : calendarRoutesRaw.length === 0
-                            ? "Ingen ruter endnu"
-                            : "Alle aftaler er planlagt 🎉"}
-                        description={!search ? (calendarRoutesRaw.length === 0
-                          ? "Træk en aftale ind på en dag i kalenderen — så opretter vi automatisk en rute for dig."
-                          : undefined) : undefined}
-                        action={search ? { label: "Ryd søgning", onClick: () => setSearch("") } : undefined}
-                        compact
-                      />
+                      (() => {
+                        const hasFilter = unassignedStatusFilter !== "all";
+                        const filterLabel: Record<typeof unassignedStatusFilter, string> = {
+                          all: "alle",
+                          ready: "klar til auto-fordel",
+                          pending: "afventer godkendelse",
+                          "missing-gps": "mangler GPS",
+                        } as any;
+                        if (search) {
+                          return (
+                            <EmptyState
+                              icon={<Search className="h-5 w-5" />}
+                              title="Ingen aftaler matcher"
+                              description={`Ingen aftaler i ”${filterLabel[unassignedStatusFilter]}” matcher din søgning.`}
+                              action={{ label: "Ryd søgning", onClick: () => setSearch("") }}
+                              compact
+                            />
+                          );
+                        }
+                        if (hasFilter && unassigned.length > 0) {
+                          return (
+                            <EmptyState
+                              icon={<Filter className="h-5 w-5" />}
+                              title="Ingen aftaler i dette filter"
+                              description={`Der er ${unassigned.length} aftale${unassigned.length === 1 ? "" : "r"} uden rute — bare ikke i kategorien “${filterLabel[unassignedStatusFilter]}”.`}
+                              action={{ label: "Vis alle aftaler", onClick: () => setUnassignedStatusFilter("all") }}
+                              compact
+                            />
+                          );
+                        }
+                        if (calendarRoutesRaw.length === 0) {
+                          return (
+                            <EmptyState
+                              icon={<Inbox className="h-5 w-5" />}
+                              title="Ingen ruter endnu"
+                              description="Træk en aftale ind på en dag i kalenderen — så opretter vi automatisk en rute for dig."
+                              compact
+                            />
+                          );
+                        }
+                        return (
+                          <EmptyState
+                            icon={<Inbox className="h-5 w-5" />}
+                            title="Alle aftaler er planlagt 🎉"
+                            description="Nye bookinger lander her, så snart de oprettes."
+                            compact
+                          />
+                        );
+                      })()
                     )}
                     {(() => {
                       const renderCard = (job: any) => (
