@@ -1,13 +1,19 @@
 // Bulk-handlingsbjælke for "Aftaler uden rute".
 // Sticky i bunden af aftalepoolen så den ikke spiser plads fra listen og
 // ikke overlapper kort i toppen. Vises kun når mindst én aftale er valgt.
-import { Sparkles, X, Trash2, Loader2, CalendarDays } from "lucide-react";
+import { Sparkles, X, Trash2, Loader2, CalendarDays, Eye } from "lucide-react";
 
 type Props = {
   selectedCount: number;
+  /** Antal valgte aftaler der pt. er synlige i listen (efter filter/søgning). */
+  visibleCount?: number;
+  /** Antal valgte aftaler der ligger udenfor det aktuelle filter/søgning. */
+  hiddenCount?: number;
   totalCount: number;
   onClear: () => void;
   onSelectAll: () => void;
+  /** Nulstil filter+søgning så skjulte valgte aftaler kommer i syne. */
+  onShowHidden?: () => void;
   onAutoAssign?: () => void;
   onCancel?: () => void;
   onShiftDate?: () => void;
@@ -15,7 +21,7 @@ type Props = {
 };
 
 export default function UnassignedBulkBar({
-  selectedCount, totalCount, onClear, onSelectAll,
+  selectedCount, visibleCount, hiddenCount, totalCount, onClear, onSelectAll, onShowHidden,
   onAutoAssign, onCancel, onShiftDate, busy,
 }: Props) {
   if (selectedCount === 0) return null;
@@ -24,6 +30,8 @@ export default function UnassignedBulkBar({
   // og man ikke allerede har valgt alle. Tidligere viste den "Vælg alle 1"
   // når der kun var én aftale i listen — det forvirrede mere end det hjalp.
   const showSelectAll = !allSelected && totalCount > 1;
+  const hidden = hiddenCount ?? 0;
+  const visible = visibleCount ?? selectedCount;
   return (
     <div
       className="sticky bottom-0 z-20 mt-1 rounded-lg border border-foreground/15 bg-card/95 backdrop-blur shadow-lg overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-150"
@@ -35,7 +43,9 @@ export default function UnassignedBulkBar({
           {selectedCount}
         </span>
         <span className="text-xs font-medium text-foreground">
-          af {totalCount} valgt
+          {hidden > 0
+            ? `valgt (${visible} synlig${visible === 1 ? "" : "e"})`
+            : `af ${totalCount} valgt`}
         </span>
         {showSelectAll && (
           <button
@@ -55,6 +65,23 @@ export default function UnassignedBulkBar({
           <X className="h-3.5 w-3.5" />
         </button>
       </div>
+      {hidden > 0 && (
+        <div className="flex items-center gap-2 px-2.5 py-1.5 border-b border-amber-300/60 bg-amber-50/70 text-[11px] text-amber-900">
+          <Eye className="h-3 w-3 shrink-0" />
+          <span className="flex-1 leading-tight">
+            {hidden} valgt {hidden === 1 ? "aftale ligger" : "aftaler ligger"} udenfor dit filter — handlingen rammer alle {selectedCount}.
+          </span>
+          {onShowHidden && (
+            <button
+              type="button"
+              onClick={onShowHidden}
+              className="font-semibold underline underline-offset-2 hover:text-amber-950 shrink-0"
+            >
+              Vis dem
+            </button>
+          )}
+        </div>
+      )}
       <div className="grid grid-cols-3 divide-x divide-border/60">
         <button
           type="button"
