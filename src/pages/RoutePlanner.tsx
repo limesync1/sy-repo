@@ -3956,36 +3956,21 @@ const Planner = () => {
                         <Inbox className="h-4 w-4" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h2 className="font-bold text-sm leading-tight flex items-center gap-1.5 text-foreground">
-                          <span className="truncate">Aftaler uden rute</span>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                type="button"
-                                className="shrink-0 h-4 w-4 inline-flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-background border border-border focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-                                aria-label="Hjælp om aftaler uden rute"
-                              >
-                                <span className="text-[9px] font-bold">?</span>
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom" className="max-w-[260px] text-xs leading-snug">
-                              Træk en aftale ind i kalenderen for at planlægge den. Når en aftale med interval markeres som udført, opretter vi automatisk næste aftale på samme rute og medarbejder.
-                            </TooltipContent>
-                          </Tooltip>
+                        <h2 className="font-bold text-sm leading-tight text-foreground truncate">
+                          Aftaler uden rute
                         </h2>
-                        <div className="mt-1 flex items-center gap-1.5 text-[11px]">
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-background border border-border font-semibold text-foreground tabular-nums">
-                            {filteredUnassigned.length}
-                            <span className="text-muted-foreground font-normal">
-                              {filteredUnassigned.length === 1 ? "aftale" : "aftaler"}
-                            </span>
-                          </span>
-                          {filteredUnassigned.length > 0 && (
-                            <span className="text-muted-foreground tabular-nums truncate">
-                              {Math.round(unassignedTotal).toLocaleString("da-DK")} kr
-                            </span>
-                          )}
-                        </div>
+                        <p className="mt-0.5 text-[11px] text-muted-foreground truncate">
+                          {filteredUnassigned.length === 0
+                            ? "Træk aftaler ind i kalenderen for at planlægge"
+                            : (
+                              <>
+                                <span className="font-semibold text-foreground tabular-nums">{filteredUnassigned.length}</span>
+                                {" "}{filteredUnassigned.length === 1 ? "aftale" : "aftaler"}
+                                {" · "}
+                                <span className="tabular-nums">{Math.round(unassignedTotal).toLocaleString("da-DK")} kr</span>
+                              </>
+                            )}
+                        </p>
                       </div>
                     </div>
                     <div className="relative">
