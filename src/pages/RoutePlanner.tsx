@@ -1888,6 +1888,12 @@ const Planner = () => {
       } else if (e.key === "?" || (e.shiftKey && e.key === "/")) {
         e.preventDefault();
         setShortcutsOpen(true);
+      } else if (e.key.toLowerCase() === "p") {
+        e.preventDefault();
+        setPrintOpen(true);
+      } else if (e.key.toLowerCase() === "d") {
+        e.preventDefault();
+        setDayDetailOpen(true);
       }
     };
     window.addEventListener("keydown", onKey);

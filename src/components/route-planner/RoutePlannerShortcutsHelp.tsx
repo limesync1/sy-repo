@@ -16,6 +16,8 @@ const SECTIONS: { title: string; rows: { keys: string[]; label: string }[] }[] =
     title: "Handlinger",
     rows: [
       { keys: ["N"], label: "Ny rute" },
+      { keys: ["P"], label: "Print dagens ruter" },
+      { keys: ["D"], label: "Vis dag som tidslinje" },
       { keys: ["⌘", "Z"], label: "Fortryd" },
       { keys: ["⌘", "⇧", "Z"], label: "Gentag" },
       { keys: ["?"], label: "Vis denne hjælp" },
