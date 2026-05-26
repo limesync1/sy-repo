@@ -128,6 +128,7 @@ import EmptyState from "@/components/route-planner/EmptyState";
 import DayDetailPanel, { type DayStop } from "@/components/route-planner/DayDetailPanel";
 import RouteHistoryDialog from "@/components/route-planner/RouteHistoryDialog";
 import UnassignedBulkBar from "@/components/route-planner/UnassignedBulkBar";
+import BulkShiftDateDialog from "@/components/route-planner/BulkShiftDateDialog";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
