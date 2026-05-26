@@ -21,7 +21,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { ROUTE_COLORS } from "@/components/route-planner/RouteEditSheet";
 import { cn } from "@/lib/utils";
-import { useServices } from "@/hooks/useDatabase";
+import { useMyBusiness } from "@/hooks/useDatabase";
 import { useEmployeeSkills, useSetEmployeeSkills } from "@/hooks/useRoutePlannerSmarts";
 import {
   startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear,
@@ -52,6 +52,7 @@ interface Props {
 
 const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
   const { data: employees, isLoading } = useEmployees(businessId);
+  const { data: business } = useMyBusiness();
   const { data: plan } = useBusinessPlan(businessId);
   const create = useCreateEmployee();
   const update = useUpdateEmployee();
@@ -147,6 +148,13 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
   const inactiveEmployees = all.filter((e) => !e.is_active);
   const linkedCount = all.filter((e) => !!e.user_id).length;
   const pendingCount = all.filter((e) => !e.user_id).length;
+  const businessSkillOptions = useMemo(
+    () => Array.from(new Set([
+      ...(((business as any)?.categories as string[] | null) || []),
+      (business as any)?.category,
+    ].filter(Boolean) as string[])),
+    [business],
+  );
 
   // ─── Plan-grænse for antal medarbejderlogins ───
   // Virksomheden betaler for et bestemt antal medarbejderlogins
@@ -419,15 +427,6 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                   className="h-10"
                 />
               </div>
-              <div>
-                <FieldLabel optional>Medarbejdergruppe / afdeling</FieldLabel>
-                <Input
-                  value={employeeGroup}
-                  onChange={(e) => setEmployeeGroup(e.target.value)}
-                  placeholder="fx Service Øst"
-                  className="h-10"
-                />
-              </div>
             </div>
             <p className="text-xs text-muted-foreground">
               Der genereres automatisk en sikker adgangskode, og medarbejderen
@@ -489,6 +488,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                     key={emp.id}
                     employee={emp}
                     businessId={businessId}
+                    businessSkillOptions={businessSkillOptions}
                     onUpdate={update}
                     onRemove={remove}
                     earning={earningsMap?.get(emp.id) ?? null}
@@ -518,6 +518,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                     key={emp.id}
                     employee={emp}
                     businessId={businessId}
+                    businessSkillOptions={businessSkillOptions}
                     onUpdate={update}
                     onRemove={remove}
                     earning={earningsMap?.get(emp.id) ?? null}
@@ -534,10 +535,11 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
 };
 
 const EmployeeRow = ({
-  employee, businessId, onUpdate, onRemove, earning, rangeLabel,
+  employee, businessId, businessSkillOptions, onUpdate, onRemove, earning, rangeLabel,
 }: {
   employee: any;
   businessId: string;
+  businessSkillOptions: string[];
   onUpdate: ReturnType<typeof useUpdateEmployee>;
   onRemove: ReturnType<typeof useDeleteEmployee>;
   earning: { earnings: number; stopsCompleted: number; revenue: number } | null;
@@ -556,7 +558,6 @@ const EmployeeRow = ({
   );
   const [editLivechat, setEditLivechat] = useState<boolean>(!!(employee as any).livechat_enabled);
   const [editEmployeeNumber, setEditEmployeeNumber] = useState<string>((employee as any).employee_number || "");
-  const [editEmployeeGroup, setEditEmployeeGroup] = useState<string>((employee as any).employee_group || "");
   const [editMaxHours, setEditMaxHours] = useState<string>(
     (employee as any).max_hours_per_day != null ? String((employee as any).max_hours_per_day) : "",
   );
@@ -566,12 +567,11 @@ const EmployeeRow = ({
   const [editMaxStops, setEditMaxStops] = useState<string>(
     (employee as any).max_stops_per_day != null ? String((employee as any).max_stops_per_day) : "",
   );
-  const { data: allServices = [] } = useServices(businessId);
   const { data: currentSkills = [] } = useEmployeeSkills(employee.id);
   const setSkills = useSetEmployeeSkills();
-  const [editSkillIds, setEditSkillIds] = useState<string[]>([]);
+  const [editSkillKeys, setEditSkillKeys] = useState<string[]>([]);
   React.useEffect(() => {
-    setEditSkillIds(currentSkills.map((s) => s.service_id));
+    setEditSkillKeys(currentSkills.map((s) => s.skill_key).filter(Boolean) as string[]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentSkills.length, editOpen]);
   const [tasksOpen, setTasksOpen] = useState(false);
