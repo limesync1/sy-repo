@@ -37,14 +37,52 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
     () => [...stops].sort((a, b) => (a.startTime ?? "99:99").localeCompare(b.startTime ?? "99:99")),
     [stops],
   );
+  const totalMinutes = useMemo(
+    () => sorted.reduce((sum, s) => sum + (s.durationMin ?? 0), 0),
+    [sorted],
+  );
+  const routes = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const s of sorted) {
+      const key = s.routeName ?? "";
+      if (!map.has(key)) map.set(key, s.routeColor ?? "");
+    }
+    return Array.from(map.entries());
+  }, [sorted]);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-md flex flex-col">
-        <SheetHeader>
-          <SheetTitle className="text-base">
+        <SheetHeader className="space-y-2">
+          <SheetTitle className="text-base capitalize">
             {date ? format(parseISO(date), "EEEE d. MMMM yyyy", { locale: da }) : "Dag"}
           </SheetTitle>
+          {sorted.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/50 border border-border">
+                <MapPin className="h-3 w-3" />
+                {sorted.length} {sorted.length === 1 ? "stop" : "stop"}
+              </span>
+              {totalMinutes > 0 && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/50 border border-border tabular-nums">
+                  <Clock className="h-3 w-3" />
+                  {formatDurationMin(totalMinutes)}
+                </span>
+              )}
+              {routes.length > 1 && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/50 border border-border">
+                  {routes.slice(0, 4).map(([name, color]) => (
+                    <span
+                      key={name}
+                      className="h-2 w-2 rounded-full"
+                      style={{ background: color || "hsl(var(--primary))" }}
+                    />
+                  ))}
+                  {routes.length} ruter
+                </span>
+              )}
+            </div>
+          )}
         </SheetHeader>
 
         <div className="mt-3 flex-1 overflow-auto pr-1">
@@ -78,7 +116,10 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
                         Overlap med foregående stop ({formatDurationMin(Math.abs(gap))})
                       </div>
                     )}
-                    <div className="rounded-md border border-border bg-card p-2.5">
+                    <div
+                      className="rounded-md border border-border bg-card p-2.5 border-l-[3px] hover:bg-muted/30 transition-colors"
+                      style={{ borderLeftColor: s.routeColor ?? "hsl(var(--primary))" }}
+                    >
                       <div className="flex items-center justify-between gap-2">
                         <p className="text-sm font-medium truncate">{s.customerName}</p>
                         {s.startTime && <span className="text-xs tabular-nums text-muted-foreground">{s.startTime}</span>}
