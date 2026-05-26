@@ -4273,6 +4273,57 @@ const Planner = () => {
                         onFilterAssigneeIds={setFilterAssigneeIds}
                         unassignedCount={unassigned.length}
                       />
+                      <NextFreeSlotButton
+                        fromDate={date}
+                        capacityByDate={capacityByDate}
+                        onGoTo={(d) => setDate(d)}
+                      />
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Print dagens ruter" onClick={() => setPrintOpen(true)}>
+                            <Printer className="h-3.5 w-3.5" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="text-xs">Print / PDF af den valgte dags ruter</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Vis dag som tidslinje" onClick={() => setDayDetailOpen(true)}>
+                            <ListOrdered className="h-3.5 w-3.5" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="text-xs">Vis den valgte dag som tidslinje (huller/overlap)</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Tastatur-genveje" onClick={() => setShortcutsOpen(true)}>
+                            <Keyboard className="h-3.5 w-3.5" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="text-xs">Tastatur-genveje (<kbd className="px-1 rounded bg-secondary text-[10px]">?</kbd>)</TooltipContent>
+                      </Tooltip>
+                      <DensityToggle />
+                      <ThemeToggle />
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => void history.undo()} disabled={!history.canUndo} aria-label="Fortryd seneste handling">
+                            {history.isUndoing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Undo2 className="h-3.5 w-3.5" />}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="text-xs">
+                          {history.canUndo ? <>Fortryd: <span className="font-medium">{history.lastLabel}</span></> : "Intet at fortryde"}
+                        </TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => void history.redo()} disabled={!history.canRedo} aria-label="Gentag seneste fortryd">
+                            <Redo2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="text-xs">
+                          {history.canRedo ? <>Gentag: <span className="font-medium">{history.nextRedoLabel}</span></> : "Intet at gentage"}
+                        </TooltipContent>
+                      </Tooltip>
                       <Button data-tour="routes-create-button" size="sm" className="h-8 gap-1 text-xs" onClick={() => setCreateOpen(true)}>
                         <Plus className="h-3.5 w-3.5" /> Opret rute
                       </Button>
