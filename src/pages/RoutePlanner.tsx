@@ -1711,7 +1711,11 @@ const Planner = () => {
     }
   };
 
-  /* Auto-geocode jobs missing coords */
+  /* Auto-geocode jobs missing coords.
+   * Vi rydder hele puljen op til 25 ad gangen — det er hurtigt nok at
+   * geocoding føles "automatisk" uden manuel knap, men ikke så stort
+   * at vi rate-limiter edge-funktionen ved første sideloading. Effekten
+   * kører igen når listen ændrer længde, så restende stragglere fanges. */
   useEffect(() => {
     if (!businessId || geocoding) return;
     const needsGeocode = unassigned.filter((j: any) =>
@@ -1720,7 +1724,7 @@ const Planner = () => {
     if (needsGeocode.length === 0) return;
     setGeocoding(true);
     (async () => {
-      for (const job of needsGeocode.slice(0, 5)) {
+      for (const job of needsGeocode.slice(0, 25)) {
         try {
           const res = await geocode.mutateAsync({
             address: job.address || undefined,
@@ -1734,6 +1738,7 @@ const Planner = () => {
           }
         } catch { /* ignore */ }
       }
+      qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
       setGeocoding(false);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
