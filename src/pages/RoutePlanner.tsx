@@ -114,6 +114,7 @@ import { estimateOptimizationGain, markOptimizeDismissed } from "@/lib/optimize-
 import { BulkMoveRoutesDialog, type BulkMoveRouteItem } from "@/components/route-planner/BulkMoveRoutesDialog";
 import RoutePlannerShortcutsHelp from "@/components/route-planner/RoutePlannerShortcutsHelp";
 import UndoBar from "@/components/route-planner/UndoBar";
+import PlannerSkeleton from "@/components/route-planner/PlannerSkeleton";
 import DensityToggle from "@/components/route-planner/DensityToggle";
 import ThemeToggle from "@/components/route-planner/ThemeToggle";
 import NextFreeSlotButton from "@/components/route-planner/NextFreeSlotButton";
