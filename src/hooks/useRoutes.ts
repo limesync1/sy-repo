@@ -634,6 +634,9 @@ export const useAddRouteEmployee = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["route-employees-bulk"] });
+      // Medarbejder-tilknytning ændrer dagens kapacitet (booket vs ledig
+      // arbejdstid) — så belastnings-baren i kalenderdagen skal opdateres.
+      qc.invalidateQueries({ queryKey: ["daily-capacity"] });
     },
     onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke tilkoble medarbejder" }),
   });
@@ -666,6 +669,7 @@ export const useRemoveRouteEmployee = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["route-employees-bulk"] });
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
+      qc.invalidateQueries({ queryKey: ["daily-capacity"] });
     },
     onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke fjerne medarbejder" }),
   });
@@ -996,6 +1000,7 @@ export const useDeleteRoute = () => {
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
       qc.invalidateQueries({ queryKey: ["route-employees-bulk"] });
       qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
+      qc.invalidateQueries({ queryKey: ["daily-capacity"] });
       if ((res as any)?.soft) {
         toast.success("Rute arkiveret — historik bevares");
       }
@@ -1032,6 +1037,7 @@ export const useMaterializeVirtualRoute = () => {
       qc.invalidateQueries({ queryKey: ["route-stops"] });
       qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
       qc.invalidateQueries({ queryKey: ["route-occurrence-exceptions"] });
+      qc.invalidateQueries({ queryKey: ["daily-capacity"] });
     },
     onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke materialisere rute" }),
   });
@@ -1492,6 +1498,9 @@ export const useOptimizeRoute = () => {
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
       qc.invalidateQueries({ queryKey: ["routes"] });
       qc.invalidateQueries({ queryKey: ["routes-range"] });
+      // Optimering kan ændre stop-rækkefølge og dermed total køretid
+      // for dagen — kapacitets-baren skal afspejle det med det samme.
+      qc.invalidateQueries({ queryKey: ["daily-capacity"] });
     },
     // Fejl-toast håndteres af kalderen (toast.promise i UI) — undgår duplikat.
   });
@@ -1519,6 +1528,7 @@ export const useApplyRouteSuggestion = () => {
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
       qc.invalidateQueries({ queryKey: ["routes"] });
       qc.invalidateQueries({ queryKey: ["routes-range"] });
+      qc.invalidateQueries({ queryKey: ["daily-capacity"] });
       toast.success("Forslag anvendt");
     },
     onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke anvende forslag" }),
@@ -1719,6 +1729,10 @@ export const useUpdateRoute = () => {
       // det gamle navn/farve indtil næste fulde refetch.
       qc.invalidateQueries({ queryKey: ["route-calendar"] });
       qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
+      // Ændringer af start-tid eller route_date påvirker dagens kapacitet
+      // (flyt til ny dag = booket tid skifter dag) — invalidér så
+      // kapacitets-barer i kalenderen følger med.
+      qc.invalidateQueries({ queryKey: ["daily-capacity"] });
     },
     onError: (e: any, _vars, ctx) => {
       ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data));
