@@ -694,6 +694,9 @@ const ServiceForm = ({
   const [productNumber, setProductNumber] = useState<string>(existingService?.product_number || "");
   const [vatZone, setVatZone] = useState<string>(existingService?.vat_zone || "");
   const [isActive, setIsActive] = useState<boolean>(existingService?.is_active !== false);
+  const [weatherSensitive, setWeatherSensitive] = useState<boolean>(
+    !!(existingService as any)?.weather_sensitive,
+  );
   const [defaultEmployeeIds, setDefaultEmployeeIds] = useState<string[]>(
     (existingService?.default_employee_ids && existingService.default_employee_ids.length > 0)
       ? existingService.default_employee_ids
