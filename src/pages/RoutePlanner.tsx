@@ -3961,6 +3961,7 @@ const Planner = () => {
                   onSelectStop={handleCalendarSelectStop}
                   onCreateRoute={handleCalendarCreateRoute}
                   onOptimizeRoute={handleCalendarOptimizeRoute}
+                  onDeleteRoute={(r) => setRouteToDelete({ id: r.id, name: r.name || "Rute" })}
                   optimizingRouteId={optimizingRouteId}
                   draggingType={draggingTypeForCalendar}
                   draggingRouteId={activeDragData?.type === "route" ? (activeDragData.route?.id ?? null) : null}
