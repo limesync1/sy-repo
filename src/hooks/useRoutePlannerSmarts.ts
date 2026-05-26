@@ -179,3 +179,83 @@ export const deriveZoneKey = (zip?: string | null): string | null => {
   if (trimmed.length < 2) return null;
   return trimmed.slice(0, 2);
 };
+
+/* ── Daily capacity overview (kalender-bjælke #9) ────────────── */
+
+export type DailyCapacity = {
+  route_date: string;
+  minutes_booked: number;
+  minutes_capacity: number;
+  load_pct: number;
+  employees_count: number;
+};
+
+export const useDailyCapacity = (input: {
+  business_id?: string;
+  start?: string;
+  end?: string;
+}) =>
+  useQuery({
+    queryKey: ["daily-capacity", input.business_id, input.start, input.end],
+    enabled: !!input.business_id && !!input.start && !!input.end,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc(
+        "business_daily_capacity",
+        { _business_id: input.business_id, _start: input.start, _end: input.end },
+      );
+      if (error) throw error;
+      return (data ?? []) as DailyCapacity[];
+    },
+  });
+
+/* ── Skill-mismatch pr. rute (#9) ─────────────────────────────── */
+
+export type SkillMismatch = {
+  route_id: string;
+  missing_service_ids: string[];
+  missing_count: number;
+};
+
+export const useRouteSkillMismatch = (input: {
+  business_id?: string;
+  start?: string;
+  end?: string;
+}) =>
+  useQuery({
+    queryKey: ["route-skill-mismatch", input.business_id, input.start, input.end],
+    enabled: !!input.business_id && !!input.start && !!input.end,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc(
+        "routes_with_skill_mismatch",
+        { _business_id: input.business_id, _start: input.start, _end: input.end },
+      );
+      if (error) throw error;
+      return (data ?? []) as SkillMismatch[];
+    },
+  });
+
+/* ── Læring fra historik: anbefalede service-varigheder (#8) ── */
+
+export type LearnedDuration = {
+  service_id: string;
+  service_name: string;
+  avg_actual_minutes: number;
+  min_actual_minutes: number;
+  max_actual_minutes: number;
+  samples: number;
+  suggested_minutes: number;
+};
+
+export const useLearnedServiceDurations = (businessId?: string) =>
+  useQuery({
+    queryKey: ["learned-service-durations", businessId],
+    enabled: !!businessId,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc(
+        "learned_service_durations",
+        { _business_id: businessId },
+      );
+      if (error) throw error;
+      return (data ?? []) as LearnedDuration[];
+    },
+  });
