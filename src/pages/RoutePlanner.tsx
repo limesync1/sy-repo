@@ -4145,16 +4145,29 @@ const Planner = () => {
                             </p>
                           )}
                           {canAutoAssign > 0 && (
+                            // Når der kun er én aftale tilbage er det sjældent værd
+                            // at "auto-fordele" — brugeren kan lige så hurtigt trække
+                            // kortet eller bruge "Foreslå bedste rute" på kortet selv.
+                            // Derfor: stille outline-knap ved 1, fuld accent ved 2+.
                             <button
                               type="button"
                               onClick={runAutoAssign}
                               disabled={autoAssigning}
-                              className="w-full inline-flex items-center justify-center gap-1.5 h-8 rounded-md bg-accent text-accent-foreground text-xs font-semibold hover:bg-accent/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:outline-none"
-                              title="Fordel automatisk alle aftaler til den bedst matchende eksisterende rute"
+                              className={cn(
+                                "w-full inline-flex items-center justify-center gap-1.5 h-8 rounded-md text-xs font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:outline-none",
+                                canAutoAssign === 1
+                                  ? "border border-border bg-background text-foreground hover:bg-secondary"
+                                  : "bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm",
+                              )}
+                              title={canAutoAssign === 1
+                                ? "Lad systemet finde den bedste rute til denne aftale"
+                                : "Fordel alle aftaler til de bedst matchende ruter"}
                             >
                               {autoAssigning
                                 ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Fordeler {canAutoAssign}…</>
-                                : <><Sparkles className="h-3.5 w-3.5" />Auto-fordel {canAutoAssign} {canAutoAssign === 1 ? "aftale" : "aftaler"}</>}
+                                : canAutoAssign === 1
+                                  ? <><Sparkles className="h-3.5 w-3.5 text-accent" />Find bedste rute</>
+                                  : <><Sparkles className="h-3.5 w-3.5" />Auto-fordel {canAutoAssign} aftaler</>}
                             </button>
                           )}
                         </div>

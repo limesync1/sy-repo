@@ -172,14 +172,14 @@ export const PlanningPanel = ({
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" size="sm" className="h-7 gap-1.5">
+        <Button variant="outline" size="sm" className="h-7 gap-1.5" title="Overblik over uge, kapacitet og uplanlagte aftaler">
           <BarChart3 className="h-3.5 w-3.5" />
-          Planlægning
+          Overblik
         </Button>
       </SheetTrigger>
       <SheetContent side="right" className="w-[320px] sm:max-w-sm p-0 overflow-y-auto">
         <SheetHeader className="px-5 pt-5 pb-3 border-b">
-          <SheetTitle className="text-base">Planlægning</SheetTitle>
+          <SheetTitle className="text-base">Overblik</SheetTitle>
           <SheetDescription className="text-xs">
             Overblik for {format(parseISO(anchorDate), "MMMM yyyy", { locale: da })}
           </SheetDescription>
