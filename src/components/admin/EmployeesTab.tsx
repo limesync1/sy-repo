@@ -854,7 +854,6 @@ const EmployeeRow = ({
               setEditCommission(employee.commission_pct != null ? String(employee.commission_pct) : "0");
               setEditLivechat(!!(employee as any).livechat_enabled);
               setEditEmployeeNumber((employee as any).employee_number || "");
-              setEditEmployeeGroup((employee as any).employee_group || "");
               setEditOpen(true);
             }}
             className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
