@@ -213,6 +213,7 @@ const Planner = () => {
   const [compactCards, setCompactCards] = usePersistentState<boolean>("route-planner:compactCards", false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [printOpen, setPrintOpen] = useState(false);
+  const [dayDetailOpen, setDayDetailOpen] = useState(false);
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [suggestJob, setSuggestJob] = useState<any | null>(null);
