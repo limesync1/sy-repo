@@ -216,6 +216,9 @@ const Planner = () => {
   const [printOpen, setPrintOpen] = useState(false);
   const [dayDetailOpen, setDayDetailOpen] = useState(false);
   const [historyRoute, setHistoryRoute] = useState<{ id: string; name: string } | null>(null);
+  // Bulk-valg i "Aftaler uden rute": Sæt af ordre-ids der pt. er markeret.
+  const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [suggestJob, setSuggestJob] = useState<any | null>(null);
