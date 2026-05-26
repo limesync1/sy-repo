@@ -427,58 +427,63 @@ const SuggestionCard = ({
               </span>
             </span>
             {isTop && (
-              <Badge className="bg-accent text-accent-foreground hover:bg-accent">Bedste match</Badge>
+              <Badge className="bg-accent text-accent-foreground hover:bg-accent">Vores anbefaling</Badge>
             )}
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
             {s.nearest_km != null && (
               <Badge variant="outline" className="gap-1">
-                <MapPin className="h-3 w-3" /> {s.nearest_km} km til nærmeste stop
+                <MapPin className="h-3 w-3" /> {s.nearest_km} km fra nærmeste besøg
               </Badge>
             )}
             {s.has_skill ? (
               <Badge variant="outline" className="gap-1 border-emerald-200 bg-emerald-50 text-emerald-700">
-                <Wrench className="h-3 w-3" /> Matcher færdigheder
+                <Wrench className="h-3 w-3" /> Kan opgaven
               </Badge>
             ) : (
               <Badge variant="outline" className="gap-1 border-rose-200 bg-rose-50 text-rose-700">
-                <Wrench className="h-3 w-3" /> Mangler færdighed
+                <Wrench className="h-3 w-3" /> Har ikke prøvet ydelsen før
               </Badge>
             )}
             {s.same_zone && (
               <Badge variant="outline" className="gap-1 border-sky-200 bg-sky-50 text-sky-700">
-                <MapPinned className="h-3 w-3" /> Samme zone
+                <MapPinned className="h-3 w-3" /> Tæt på området
               </Badge>
             )}
             {overCapacity && (
               <Badge variant="outline" className="gap-1 border-amber-200 bg-amber-50 text-amber-800">
-                <AlertTriangle className="h-3 w-3" /> Over kapacitet
+                <AlertTriangle className="h-3 w-3" /> Dagen er fuld
               </Badge>
             )}
           </div>
         </div>
-        <div className={cn("shrink-0 rounded-lg border px-2.5 py-1.5 text-center", scoreColor(s.score))}>
-          <div className="text-lg font-bold leading-none tabular-nums">{Math.round(s.score)}</div>
-          <div className="text-[10px] uppercase tracking-wider mt-0.5">score</div>
-        </div>
+        {(() => {
+          const m = matchLevel(s.score);
+          return (
+            <div className={cn("shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold", m.cls)}>
+              <span className={cn("h-1.5 w-1.5 rounded-full", m.dot)} />
+              {m.label}
+            </div>
+          );
+        })()}
       </div>
 
       {/* Kapacitets-bars */}
       <div className="mt-3 grid grid-cols-3 gap-3">
         <CapacityBar
-          label="Timer"
+          label="Arbejdstid"
           icon={<Clock className="h-3 w-3" />}
           value={fmtCap(hoursUsed, s.capacity.hours_max, " t")}
           pct={hoursPct}
         />
         <CapacityBar
-          label="Stop"
+          label="Besøg"
           icon={<MapPin className="h-3 w-3" />}
           value={fmtCap(s.stop_count + 1, s.capacity.stops_max, "")}
           pct={stopsPct}
         />
         <CapacityBar
-          label="Km"
+          label="Køretur"
           icon={<MapPinned className="h-3 w-3" />}
           value={fmtCap(s.km_used, s.capacity.km_max, " km")}
           pct={s.capacity.km_max ? Math.min(100, (s.km_used / s.capacity.km_max) * 100) : null}
