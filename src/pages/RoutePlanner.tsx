@@ -4315,6 +4315,51 @@ const Planner = () => {
           onOpenChange={(o) => !o && setSelectedJob(null)}
         />
 
+        {suggestJob && businessId && (
+          <SuggestRouteDialog
+            open={!!suggestJob}
+            onOpenChange={(o) => !o && setSuggestJob(null)}
+            businessId={businessId}
+            job={{
+              id: suggestJob.id,
+              customer_name: suggestJob.customer_name,
+              latitude: suggestJob.latitude,
+              longitude: suggestJob.longitude,
+              zip_code: suggestJob.zip_code,
+              estimated_duration_minutes: Number(suggestJob.estimated_duration_minutes) || 30,
+              preferred_date: suggestJob.preferred_date,
+              next_service_date: suggestJob.next_service_date,
+              service_id: suggestJob.order_items?.[0]?.service_id ?? null,
+              weather_sensitive: suggestJob.order_items?.some?.((it: any) => it?.weather_sensitive) ?? false,
+            }}
+            weatherBad={false}
+            onAssignToRoute={async (routeId) => {
+              try {
+                const sequence = calendarStops.filter((s: any) => s.route_id === routeId).length;
+                await addStop.mutateAsync({
+                  route_id: routeId,
+                  order_id: suggestJob.id,
+                  sequence,
+                  customer_name: suggestJob.customer_name,
+                  customer_phone: suggestJob.customer_phone,
+                  address: suggestJob.address || [suggestJob.zip_code, suggestJob.city].filter(Boolean).join(" "),
+                  latitude: suggestJob.latitude,
+                  longitude: suggestJob.longitude,
+                  service_summary: serviceSummaryForJob(suggestJob),
+                  duration_minutes: Number(suggestJob.estimated_duration_minutes) || 30,
+                  time_window_start: suggestJob.preferred_time_start || null,
+                  time_window_end: suggestJob.preferred_time_end || null,
+                });
+                toast.success("Aftalen tildelt valgt rute");
+              } catch (e: any) {
+                toast.error(e?.message || "Kunne ikke tildele rute");
+              } finally {
+                setSuggestJob(null);
+              }
+            }}
+          />
+        )}
+
         {(() => {
           // Stops for den aktive rute. Når sheet'et er åbnet via en projiceret
           // forekomst, filtrerer vi til kun de aftaler der reelt rammer den
