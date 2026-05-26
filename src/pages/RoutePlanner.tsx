@@ -43,6 +43,7 @@ import {
   ShoppingBag, Route as RouteIcon, Tag, Palette, ListChecks, AlertTriangle, Undo2, Redo2, Sparkles, MapPin,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
@@ -3798,11 +3799,31 @@ const Planner = () => {
               >
                 <ChevronLeft className="h-3.5 w-3.5" />
               </Button>
-              <span className="text-xs font-medium capitalize min-w-[110px] text-center tabular-nums">
-                {view === "week"
-                  ? `Uge ${format(parseISO(date), "I", { locale: da })} · ${format(parseISO(date), "MMM yyyy", { locale: da })}`
-                  : format(parseISO(date), "MMMM yyyy", { locale: da })}
-              </span>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="text-xs font-medium capitalize min-w-[110px] text-center tabular-nums px-2 h-7 rounded-md hover:bg-secondary focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                    aria-label="Vælg dato"
+                    title="Spring til specifik dato"
+                  >
+                    {view === "week"
+                      ? `Uge ${format(parseISO(date), "I", { locale: da })} · ${format(parseISO(date), "MMM yyyy", { locale: da })}`
+                      : format(parseISO(date), "MMMM yyyy", { locale: da })}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent align="center" className="w-auto p-0">
+                  <CalendarPicker
+                    mode="single"
+                    selected={parseISO(date)}
+                    onSelect={(d) => { if (d) setDate(format(d, "yyyy-MM-dd")); }}
+                    weekStartsOn={1}
+                    locale={da}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
               <Button
                 variant="outline"
                 size="icon"
@@ -4160,22 +4181,33 @@ const Planner = () => {
                             <SelectItem value="missing-gps" className="text-xs">Mangler GPS</SelectItem>
                           </SelectContent>
                         </Select>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              type="button"
-                              onClick={() => setCompactCards((v) => !v)}
-                              aria-label={compactCards ? "Skift til fulde kort" : "Skift til kompakte kort"}
-                              aria-pressed={compactCards}
-                              className="h-7 w-7 inline-flex items-center justify-center rounded-md border border-border bg-background text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none shrink-0"
-                            >
-                              {compactCards ? <LayoutGrid className="h-3.5 w-3.5" /> : <Rows3 className="h-3.5 w-3.5" />}
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent side="bottom" className="text-xs">
-                            {compactCards ? "Skift til fulde kort" : "Skift til kompakte kort"}
-                          </TooltipContent>
-                        </Tooltip>
+                         <Select value={unassignedGroupBy} onValueChange={(v) => setUnassignedGroupBy(v as any)}>
+                           <SelectTrigger className="h-7 w-7 p-0 justify-center bg-background text-muted-foreground [&>svg:last-child]:hidden shrink-0" aria-label="Gruppering">
+                             <LayoutGrid className="h-3.5 w-3.5" />
+                           </SelectTrigger>
+                           <SelectContent align="end">
+                             <SelectItem value="none" className="text-xs">Ingen gruppering</SelectItem>
+                             <SelectItem value="week" className="text-xs">Gruppér efter uge</SelectItem>
+                             <SelectItem value="status" className="text-xs">Gruppér efter status</SelectItem>
+                             <SelectItem value="route" className="text-xs">Gruppér efter foretrukken rute</SelectItem>
+                           </SelectContent>
+                         </Select>
+                         <Tooltip>
+                           <TooltipTrigger asChild>
+                             <button
+                               type="button"
+                               onClick={() => setCompactCards((v) => !v)}
+                               aria-label={compactCards ? "Skift til fulde kort" : "Skift til kompakte kort"}
+                               aria-pressed={compactCards}
+                               className="h-7 w-7 inline-flex items-center justify-center rounded-md border border-border bg-background text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none shrink-0"
+                             >
+                               {compactCards ? <Rows3 className="h-3.5 w-3.5" /> : <LayoutGrid className="h-3.5 w-3.5" />}
+                             </button>
+                           </TooltipTrigger>
+                           <TooltipContent side="bottom" className="text-xs">
+                             {compactCards ? "Skift til fulde kort" : "Skift til kompakte kort"}
+                           </TooltipContent>
+                         </Tooltip>
                       </div>
                     )}
                     {(() => {
@@ -4277,8 +4309,9 @@ const Planner = () => {
                         compact
                       />
                     )}
-                    {filteredUnassigned.map((job: any) => (
-                      <UnassignedJobCard
+                    {(() => {
+                      const renderCard = (job: any) => (
+                        <UnassignedJobCard
                         key={job.id}
                         job={job}
                         onClick={() => setSelectedJob(job)}
@@ -4308,8 +4341,51 @@ const Planner = () => {
                           toast.message("Ingen ledige slots fundet de næste 90 dage");
                         }}
                         compact={compactCards}
-                      />
-                    ))}
+                        />
+                      );
+                      if (unassignedGroupBy === "none") {
+                        return filteredUnassigned.map(renderCard);
+                      }
+                      const groups = new Map<string, { label: string; items: any[] }>();
+                      const keyFor = (job: any): { key: string; label: string } => {
+                        if (unassignedGroupBy === "status") {
+                          const hasGps = job.latitude != null && job.longitude != null;
+                          if (job.status === "pending") return { key: "1-pending", label: "Afventer godkendelse" };
+                          if (!hasGps) return { key: "2-gps", label: "Mangler GPS" };
+                          if (job.preferred_date || job.next_service_date) return { key: "0-ready", label: "Klar til auto-fordel" };
+                          return { key: "3-other", label: "Andet" };
+                        }
+                        if (unassignedGroupBy === "route") {
+                          const name = job.preferred_route_name?.trim();
+                          return name
+                            ? { key: `r-${name}`, label: `Ønsker: ${name}` }
+                            : { key: "z-no-route", label: "Ingen foretrukken rute" };
+                        }
+                        // week
+                        const iso = job.preferred_date || job.next_service_date;
+                        if (!iso) return { key: "z-no-date", label: "Uden dato" };
+                        const d = parseISO(iso);
+                        const monday = startOfWeek(d, { weekStartsOn: 1 });
+                        const wk = format(d, "I", { locale: da });
+                        const label = `Uge ${wk} · ${format(monday, "d. MMM", { locale: da })}`;
+                        return { key: format(monday, "yyyy-MM-dd"), label };
+                      };
+                      for (const job of filteredUnassigned) {
+                        const { key, label } = keyFor(job);
+                        if (!groups.has(key)) groups.set(key, { label, items: [] });
+                        groups.get(key)!.items.push(job);
+                      }
+                      const entries = Array.from(groups.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+                      return entries.map(([key, g]) => (
+                        <div key={key} className="space-y-1.5">
+                          <div className="sticky top-0 z-[1] flex items-center gap-2 px-1 py-1 bg-card/95 backdrop-blur text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
+                            <span className="truncate">{g.label}</span>
+                            <span className="ml-auto tabular-nums text-foreground/70">{g.items.length}</span>
+                          </div>
+                          {g.items.map(renderCard)}
+                        </div>
+                      ));
+                    })()}
                     {/* Sticky bulk-bar i bunden af listen — overlapper ikke
                         kort i toppen og spiser ikke plads når intet er valgt. */}
                     <UnassignedBulkBar
