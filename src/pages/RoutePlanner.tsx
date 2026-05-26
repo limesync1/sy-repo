@@ -113,6 +113,9 @@ import RoutePlannerShortcutsHelp from "@/components/route-planner/RoutePlannerSh
 import UndoBar from "@/components/route-planner/UndoBar";
 import DensityToggle from "@/components/route-planner/DensityToggle";
 import ThemeToggle from "@/components/route-planner/ThemeToggle";
+import NextFreeSlotButton from "@/components/route-planner/NextFreeSlotButton";
+import RoutePrintDialog, { type PrintRoute } from "@/components/route-planner/RoutePrintDialog";
+import { Printer } from "lucide-react";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -207,6 +210,7 @@ const Planner = () => {
   const [sortBy, setSortBy] = usePersistentState<"date" | "price" | "name">("route-planner:sortBy", "date");
   const [compactCards, setCompactCards] = usePersistentState<boolean>("route-planner:compactCards", false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [printOpen, setPrintOpen] = useState(false);
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [suggestJob, setSuggestJob] = useState<any | null>(null);
