@@ -118,7 +118,9 @@ export const SuggestRouteDialog = ({
   const noSuggestions = !isLoading && (!suggestions || suggestions.length === 0);
   const { data: nearbyRoutes, isLoading: loadingNearby } = useQuery({
     queryKey: ["suggest-nearby-routes", businessId, date],
-    enabled: open && noSuggestions && !!businessId && latitude != null && longitude != null,
+    // Hent altid nærliggende ruter når hovedforslag mangler — også når vi
+    // ikke kunne geokode adressen, så dialogen aldrig bliver en blindgyde.
+    enabled: open && !!businessId && (noSuggestions || latitude == null || longitude == null),
     staleTime: 30_000,
     queryFn: async () => {
       const from = format(addDays(parseISO(date), -7), "yyyy-MM-dd");
@@ -195,25 +197,65 @@ export const SuggestRouteDialog = ({
         </DialogHeader>
 
         {noCoords ? (
-          <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 flex items-start gap-3">
-            {geocode.isPending ? <Loader2 className="h-4 w-4 mt-0.5 shrink-0 animate-spin" /> : <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />}
-            <div className="flex-1 space-y-2">
-              <p>
-                {geocode.isPending
-                  ? "Finder adressen på kortet…"
-                  : hasAddress
-                    ? "Vi kunne ikke placere adressen på kortet endnu. Prøv igen — eller åbn aftalen og ret adressen."
-                    : "Aftalen har ingen adresse endnu — tilføj én, så kan vi foreslå en rute."}
-              </p>
-              {hasAddress && !geocode.isPending && typedAddress && (
-                <p className="text-xs text-amber-800/80">Vi prøvede: <span className="font-mono">{typedAddress}</span></p>
-              )}
-              {hasAddress && !geocode.isPending && (
-                <Button size="sm" variant="outline" onClick={runGeocode}>
-                  Prøv at finde adressen igen
-                </Button>
-              )}
+          <div className="space-y-3">
+            <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 flex items-start gap-3">
+              {geocode.isPending ? <Loader2 className="h-4 w-4 mt-0.5 shrink-0 animate-spin" /> : <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />}
+              <div className="flex-1 space-y-2">
+                <p>
+                  {geocode.isPending
+                    ? "Finder adressen på kortet…"
+                    : hasAddress
+                      ? "Vi kunne ikke placere adressen på kortet — vi kan derfor ikke score ruterne på afstand. Du kan stadig vælge en rute manuelt herunder."
+                      : "Aftalen har ingen adresse endnu — tilføj én for at få et automatisk forslag, eller vælg en rute manuelt herunder."}
+                </p>
+                {hasAddress && !geocode.isPending && typedAddress && (
+                  <p className="text-xs text-amber-800/80">Vi prøvede: <span className="font-mono">{typedAddress}</span></p>
+                )}
+                {hasAddress && !geocode.isPending && (
+                  <Button size="sm" variant="outline" onClick={runGeocode}>
+                    Prøv at finde adressen igen
+                  </Button>
+                )}
+              </div>
             </div>
+
+            {loadingNearby ? (
+              <div className="flex items-center justify-center py-6 text-muted-foreground text-sm">
+                <Loader2 className="h-4 w-4 animate-spin mr-2" /> Henter ruter…
+              </div>
+            ) : nearbyRoutes && nearbyRoutes.length > 0 ? (
+              <div className="space-y-1.5">
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                  <CalendarSearch className="h-3 w-3" /> Vælg en rute manuelt
+                </p>
+                {nearbyRoutes.map((r: any) => {
+                  const dayDiff = differenceInDays(parseISO(r.route_date), parseISO(date));
+                  const rel = dayDiff === 0 ? "samme dag" : dayDiff > 0 ? `om ${dayDiff} dag${dayDiff === 1 ? "" : "e"}` : `for ${Math.abs(dayDiff)} dag${Math.abs(dayDiff) === 1 ? "" : "e"} siden`;
+                  return (
+                    <button
+                      key={r.id}
+                      type="button"
+                      onClick={() => setChosen(r.id)}
+                      className={cn(
+                        "w-full text-left rounded-lg border p-2.5 text-sm flex items-center justify-between gap-2 transition-all",
+                        chosen === r.id ? "border-foreground bg-foreground/5 ring-2 ring-foreground/10" : "border-border hover:border-foreground/40",
+                      )}
+                    >
+                      <div className="min-w-0">
+                        <p className="font-medium truncate text-foreground">
+                          {r.name || "Rute"}
+                          {r.employees?.name && <span className="font-normal text-muted-foreground"> · {r.employees.name}</span>}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {format(parseISO(r.route_date), "EEEE d. MMM", { locale: da })} · {rel}
+                        </p>
+                      </div>
+                      {chosen === r.id && <CheckCircle2 className="h-4 w-4 text-foreground shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
           </div>
         ) : matchInfo && !matchAccepted ? (
           <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 space-y-3">
