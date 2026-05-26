@@ -3884,6 +3884,12 @@ const Planner = () => {
                     </AlertDescription>
                   </Alert>
                 )}
+                <ConflictBanner
+                  capacityByDate={capacityByDate}
+                  mismatchedRouteIds={mismatchedRouteIds}
+                  rangeStart={calendarRange.start}
+                  rangeEnd={calendarRange.end}
+                />
                 <div className="flex-1 min-h-0">
                 <MonthWeekCalendar
                   view={view}
