@@ -378,7 +378,7 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, optimizin
   const visibleEmployees = route.attachedEmployees.slice(0, 3);
   const extraEmployees = route.attachedEmployees.length - visibleEmployees.length;
 
-  return (
+  const pill = (
     <div
       ref={setRefs}
       data-route-drop-route-id={!isVirtual && !isPast ? route.id : undefined}
