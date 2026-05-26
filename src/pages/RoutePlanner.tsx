@@ -5616,6 +5616,12 @@ const Planner = () => {
       </AdminShell>
       <UndoBar />
       <RoutePlannerShortcutsHelp open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
+      <BulkShiftDateDialog
+        open={bulkShiftOpen}
+        onOpenChange={setBulkShiftOpen}
+        jobs={(unassigned as any[]).filter((j) => selectedJobIds.has(j.id))}
+        onDone={() => setSelectedJobIds(new Set())}
+      />
       <RoutePrintDialog
         open={printOpen}
         onOpenChange={setPrintOpen}
