@@ -5218,6 +5218,12 @@ const Planner = () => {
               }))
           ))}
       />
+      <RouteHistoryDialog
+        open={!!historyRoute}
+        onOpenChange={(o) => { if (!o) setHistoryRoute(null); }}
+        routeId={historyRoute?.id ?? null}
+        routeName={historyRoute?.name}
+      />
     </DndContext>
   );
 };
