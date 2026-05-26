@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { format, parseISO } from "date-fns";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { format, parseISO, addDays, differenceInDays } from "date-fns";
 import { da } from "date-fns/locale";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Sparkles, MapPin, Clock, Wrench, Cloud, CheckCircle2,
-  AlertTriangle, User, Loader2, MapPinned,
+  AlertTriangle, User, Loader2, MapPinned, CalendarSearch,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -111,6 +111,30 @@ export const SuggestRouteDialog = ({
   });
 
   const [chosen, setChosen] = useState<string | null>(null);
+
+  // Når der ikke findes ruter på den ønskede dato, henter vi ruter i et
+  // ±7-dages vindue så brugeren kan vælge en nærliggende dag i stedet for
+  // at få en blindgyde-fejl. Kører kun når hovedforslag er tomme.
+  const noSuggestions = !isLoading && (!suggestions || suggestions.length === 0);
+  const { data: nearbyRoutes, isLoading: loadingNearby } = useQuery({
+    queryKey: ["suggest-nearby-routes", businessId, date],
+    enabled: open && noSuggestions && !!businessId && latitude != null && longitude != null,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const from = format(addDays(parseISO(date), -7), "yyyy-MM-dd");
+      const to = format(addDays(parseISO(date), 14), "yyyy-MM-dd");
+      const { data, error } = await supabase
+        .from("routes")
+        .select("id, name, route_date, assigned_employee_id, employees(name, color)")
+        .eq("business_id", businessId)
+        .gte("route_date", from)
+        .lte("route_date", to)
+        .order("route_date", { ascending: true })
+        .limit(20);
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+  });
 
   const noCoords = latitude == null || longitude == null;
 
