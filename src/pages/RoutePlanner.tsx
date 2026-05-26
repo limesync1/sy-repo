@@ -60,6 +60,7 @@ import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
 import { SuggestRouteDialog } from "@/components/route-planner/SuggestRouteDialog";
 import { MonthWeekCalendar, type CalendarRoute } from "@/components/route-planner/MonthWeekCalendar";
 import { AgendaCalendar } from "@/components/route-planner/AgendaCalendar";
+import { ConflictBanner } from "@/components/route-planner/ConflictBanner";
 import { RouteEditSheet, ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor } from "@/components/route-planner/RouteEditSheet";
 import PlanningPanel from "@/components/route-planner/PlanningPanel";
 import SEO from "@/components/SEO";
@@ -78,7 +79,7 @@ import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/r
 import { AdminShell } from "@/components/admin/shared/AdminShell";
 import { useWeatherForecast, type WeatherDay } from "@/hooks/useWeather";
 import { useDayConflicts } from "@/hooks/useDayConflicts";
-import { useDailyCapacity, useRouteSkillMismatch } from "@/hooks/useRoutePlannerSmarts";
+import { useDailyCapacity, useRouteSkillMismatch, deriveZoneKey } from "@/hooks/useRoutePlannerSmarts";
 import { findNearestFreeDate } from "@/lib/find-free-date";
 import { ShellSkeleton } from "@/components/admin/shared/Skeletons";
 import { useQuery } from "@tanstack/react-query";
@@ -1750,6 +1751,92 @@ const Planner = () => {
       else toast.error("Ingen adresser kunne findes — tjek at de er stavet rigtigt.");
     } finally {
       setGeocoding(false);
+    }
+  };
+
+  // Auto-fordel: forsøger at lægge alle ikke-tildelte aftaler på den bedst
+  // matchende eksisterende rute. Bruger samme RPC ("suggest_routes_for_stop")
+  // som "Foreslå rute"-dialogen, så scoring er konsistent. Springer over:
+  // • aftaler uden GPS (kører bulk-geokod først hvis tomt)
+  // • aftaler uden dato
+  // • aftaler hvor top-rute er over kapacitet
+  const [autoAssigning, setAutoAssigning] = useState(false);
+  const runAutoAssign = async () => {
+    if (!businessId || autoAssigning) return;
+    const candidates = (unassigned as any[]).filter(
+      (j) => j.status !== "pending"
+        && j.latitude != null && j.longitude != null
+        && (j.preferred_date || j.next_service_date),
+    );
+    if (candidates.length === 0) {
+      toast.info("Ingen aftaler kan auto-fordeles", {
+        description: "Aftaler skal have både GPS og en dato. Prøv 'Geokod alle' først.",
+      });
+      return;
+    }
+    setAutoAssigning(true);
+    let assigned = 0;
+    let skipped = 0;
+    try {
+      for (const job of candidates.slice(0, 25)) {
+        const jobDate = (job.preferred_date || job.next_service_date).slice(0, 10);
+        const duration = Number(job.estimated_duration_minutes) || 30;
+        try {
+          const { data: rpc, error } = await (supabase as any).rpc("suggest_routes_for_stop", {
+            _business_id: businessId,
+            _date: jobDate,
+            _latitude: job.latitude,
+            _longitude: job.longitude,
+            _service_id: job.order_items?.[0]?.service_id ?? null,
+            _duration_minutes: duration,
+            _zone_key: deriveZoneKey(job.zip_code),
+            _weather_bad: false,
+            _skill_key: null,
+          });
+          if (error) { skipped++; continue; }
+          const suggestions = (rpc as any)?.suggestions || [];
+          // Vælg topforslag der ikke er overbooked. Hvis kun overbooked findes
+          // — spring over og lad brugeren håndtere det manuelt.
+          const top = suggestions.find((s: any) => {
+            const hoursUsed = (s.minutes_used + duration) / 60;
+            const overHours = s.capacity?.hours_max != null && hoursUsed > s.capacity.hours_max;
+            const overStops = s.capacity?.stops_max != null && s.stop_count + 1 > s.capacity.stops_max;
+            return !overHours && !overStops;
+          });
+          if (!top) { skipped++; continue; }
+          const sequence = (calendarStops as any[]).filter((s) => s.route_id === top.route_id).length;
+          await addStop.mutateAsync({
+            route_id: top.route_id,
+            order_id: job.id,
+            sequence,
+            customer_name: job.customer_name,
+            customer_phone: job.customer_phone,
+            address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
+            latitude: job.latitude,
+            longitude: job.longitude,
+            service_summary: serviceSummaryForJob(job),
+            duration_minutes: duration,
+            time_window_start: job.preferred_time_start || null,
+            time_window_end: job.preferred_time_end || null,
+          });
+          assigned++;
+        } catch {
+          skipped++;
+        }
+      }
+      qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
+      qc.invalidateQueries({ queryKey: ["route-calendar"] });
+      if (assigned > 0) {
+        toast.success(`Fordelt ${assigned} aftale${assigned === 1 ? "" : "r"} til bedst matchende ruter${skipped > 0 ? ` — ${skipped} sprunget over` : ""}`, {
+          description: skipped > 0 ? "Sprungne aftaler manglede plads eller ingen rute matchede." : undefined,
+        });
+      } else {
+        toast.error("Kunne ikke auto-fordele nogen aftaler", {
+          description: "Ingen ruter passede — prøv at oprette flere ruter på de relevante datoer først.",
+        });
+      }
+    } finally {
+      setAutoAssigning(false);
     }
   };
 
@@ -3685,6 +3772,9 @@ const Planner = () => {
                       const missing = (unassigned as any[]).filter(
                         (j) => (j.address || j.zip_code || j.city) && (j.latitude == null || j.longitude == null),
                       ).length;
+                      const canAutoAssign = (unassigned as any[]).filter(
+                        (j) => j.status !== "pending" && j.latitude != null && j.longitude != null && (j.preferred_date || j.next_service_date),
+                      ).length;
                       if (geocoding) {
                         return (
                           <p className="text-[10px] text-muted-foreground flex items-center gap-1">
@@ -3692,17 +3782,34 @@ const Planner = () => {
                           </p>
                         );
                       }
-                      if (missing === 0) return null;
+                      if (missing === 0 && canAutoAssign === 0) return null;
                       return (
-                        <button
-                          type="button"
-                          onClick={runBulkGeocode}
-                          className="w-full flex items-center justify-center gap-1.5 h-6 rounded border border-amber-300 bg-amber-50/60 text-[10px] font-medium text-amber-900 hover:bg-amber-100/80 transition-colors"
-                          title="Find GPS-koordinater på alle aftaler uden — så de kan placeres på kortet"
-                        >
-                          <MapPin className="h-2.5 w-2.5" />
-                          Geokod alle ({missing})
-                        </button>
+                        <div className="space-y-1.5">
+                          {missing > 0 && (
+                            <button
+                              type="button"
+                              onClick={runBulkGeocode}
+                              className="w-full flex items-center justify-center gap-1.5 h-6 rounded border border-amber-300 bg-amber-50/60 text-[10px] font-medium text-amber-900 hover:bg-amber-100/80 transition-colors"
+                              title="Find GPS-koordinater på alle aftaler uden — så de kan placeres på kortet"
+                            >
+                              <MapPin className="h-2.5 w-2.5" />
+                              Geokod alle ({missing})
+                            </button>
+                          )}
+                          {canAutoAssign > 0 && (
+                            <button
+                              type="button"
+                              onClick={runAutoAssign}
+                              disabled={autoAssigning}
+                              className="w-full flex items-center justify-center gap-1.5 h-6 rounded border border-accent/40 bg-accent/10 text-[10px] font-medium text-foreground hover:bg-accent/20 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                              title="Fordel automatisk alle aftaler til den bedst matchende eksisterende rute"
+                            >
+                              {autoAssigning
+                                ? <><Loader2 className="h-2.5 w-2.5 animate-spin" />Fordeler…</>
+                                : <><Sparkles className="h-2.5 w-2.5 text-accent" />Auto-fordel ({canAutoAssign})</>}
+                            </button>
+                          )}
+                        </div>
                       );
                     })()}
                   </div>
@@ -3778,6 +3885,12 @@ const Planner = () => {
                     </AlertDescription>
                   </Alert>
                 )}
+                <ConflictBanner
+                  capacityByDate={capacityByDate}
+                  mismatchedRouteIds={mismatchedRouteIds}
+                  rangeStart={calendarRange.start}
+                  rangeEnd={calendarRange.end}
+                />
                 <div className="flex-1 min-h-0">
                 <MonthWeekCalendar
                   view={view}
