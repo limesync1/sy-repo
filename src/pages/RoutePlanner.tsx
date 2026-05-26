@@ -3691,19 +3691,22 @@ const Planner = () => {
                             Ingen aftaler i poolen. Opret en bestilling først.
                           </div>
                         )}
-                        {unassigned
-                          .filter((j: any) => j.status !== "pending")
-                          .filter((j: any) => {
-                            const q = newRouteJobSearch.trim().toLowerCase();
-                            if (!q) return true;
-                            return (
-                              j.customer_name?.toLowerCase().includes(q) ||
-                              j.address?.toLowerCase().includes(q) ||
-                              j.city?.toLowerCase().includes(q)
-                            );
-                          })
-                          .slice(0, 50)
-                          .map((j: any) => {
+                        {(() => {
+                          const filtered = unassigned
+                            .filter((j: any) => j.status !== "pending")
+                            .filter((j: any) => {
+                              const q = newRouteJobSearch.trim().toLowerCase();
+                              if (!q) return true;
+                              return (
+                                j.customer_name?.toLowerCase().includes(q) ||
+                                j.address?.toLowerCase().includes(q) ||
+                                j.city?.toLowerCase().includes(q)
+                              );
+                            });
+                          const shown = filtered.slice(0, 50);
+                          return (
+                            <>
+                              {shown.map((j: any) => {
                             const checked = newRouteJobIds.includes(j.id);
                             const jStart = (j.preferred_date || j.next_service_date || "").slice(0, 10);
                             const mismatch = jStart && jStart !== newRouteDate;
@@ -3745,7 +3748,20 @@ const Planner = () => {
                                 </div>
                               </label>
                             );
-                          })}
+                              })}
+                              {filtered.length > shown.length && (
+                                <div className="p-2 text-center text-[10px] text-muted-foreground bg-secondary/30">
+                                  Viser {shown.length} af {filtered.length} — søg for at indsnævre
+                                </div>
+                              )}
+                              {filtered.length === 0 && unassigned.length > 0 && (
+                                <div className="p-4 text-center text-xs text-muted-foreground">
+                                  Ingen aftaler matcher søgningen.
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()}
                       </div>
                     </Section>
                   </div>
