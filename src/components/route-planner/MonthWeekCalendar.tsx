@@ -26,6 +26,7 @@ import type { WeatherDay } from "@/hooks/useWeather";
 import { Skeleton } from "@/components/ui/skeleton";
 import { memo, useMemo } from "react";
 import { useTargetValidation, ringForSeverity, chipBgForSeverity } from "./drag-validation-context";
+import RouteContextMenu from "./RouteContextMenu";
 
 export type CalendarRoute = Route & {
   stops: RouteStop[];
@@ -52,6 +53,7 @@ type Props = {
   onSelectStop: (stop: RouteStop) => void;
   onCreateRoute: (date: string) => void;
   onOptimizeRoute: (routeId: string) => void;
+  onDeleteRoute?: (route: CalendarRoute) => void;
   optimizingRouteId?: string | null;
   /** Sat til 'job' når brugeren trækker en aftale fra aftalepoolen — får drop-targets til at lyse op. */
   draggingType?: "job" | "route" | "stop" | null;
@@ -111,7 +113,7 @@ const fmtRouteKrCompact = (n: number) => {
 
 export const MonthWeekCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
-  onCreateRoute, onOptimizeRoute, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
+  onCreateRoute, onOptimizeRoute, onDeleteRoute, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
   loadingRoutes, loadingWeather, weatherError, busyTargets, dateAlerts,
   selectedRouteIds, onToggleRouteSelection, capacityByDate, mismatchedRouteIds,
 }: Props) => {
@@ -212,6 +214,7 @@ export const MonthWeekCalendar = ({
                     onSelectStop={onSelectStop}
                     onCreateRoute={onCreateRoute}
                     onOptimizeRoute={onOptimizeRoute}
+                    onDeleteRoute={onDeleteRoute}
                     optimizingRouteId={optimizingRouteId}
                     compact={view === "month"}
                     draggingType={draggingType}
@@ -249,6 +252,7 @@ type DayCellProps = {
   onSelectStop: (stop: RouteStop) => void;
   onCreateRoute: (date: string) => void;
   onOptimizeRoute: (routeId: string) => void;
+  onDeleteRoute?: (route: CalendarRoute) => void;
   optimizingRouteId?: string | null;
   compact: boolean;
   draggingType?: "job" | "route" | "stop" | null;
@@ -275,7 +279,7 @@ type DayCellProps = {
 
 const DayCellInner = ({
   date, dateStr, routes, inMonth, today,
-  onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, optimizingRouteId, compact, draggingType, draggingRouteId, weather,
+  onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, onDeleteRoute, optimizingRouteId, compact, draggingType, draggingRouteId, weather,
   loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds, alert,
   selectedRouteIds, onToggleRouteSelection, capacity, mismatchedRouteIds,
 }: DayCellProps) => {
@@ -460,6 +464,7 @@ const DayCellInner = ({
                   onSelect={() => onSelectRoute(r)}
                   onSelectStop={onSelectStop}
                   onOptimize={() => onOptimizeRoute(r.id)}
+                  onDelete={onDeleteRoute ? () => onDeleteRoute(r) : undefined}
                   optimizing={optimizingRouteId === r.id}
                   compact={compact}
                   jobDragActive={isJobDragActive}
@@ -569,6 +574,7 @@ type RoutePillProps = {
   onSelect: () => void;
   onSelectStop: (stop: RouteStop) => void;
   onOptimize: () => void;
+  onDelete?: () => void;
   optimizing: boolean;
   compact: boolean;
   jobDragActive?: boolean;
@@ -594,7 +600,7 @@ type RoutePillProps = {
 };
 
 const RoutePillInner = ({
-  route, onSelect, onSelectStop, onOptimize, optimizing, compact, jobDragActive, routeDragSourceId,
+  route, onSelect, onSelectStop, onOptimize, onDelete, optimizing, compact, jobDragActive, routeDragSourceId,
   busy, isPast, selected, anySelected, onToggleSelect, hasSkillMismatch,
 }: RoutePillProps) => {
   const isVirtual = !!route.isVirtual;
@@ -649,7 +655,7 @@ const RoutePillInner = ({
   const extraEmployees = route.attachedEmployees.length - visibleEmployees.length;
   // Fjernet: grøn bundkant og "klar til udførelse"-logik efter ønske.
 
-  return (
+  const pill = (
     <div
       ref={setRefs}
       data-route-drop-route-id={!isVirtual && !isPast ? route.id : undefined}
@@ -872,6 +878,28 @@ const RoutePillInner = ({
 
       {/* Stops vises ikke under rute-pillen — åbn ruten ved at klikke for at se aftaler. */}
     </div>
+  );
+
+  const canDelete = !!onDelete && !isVirtual && !busy;
+  const canOptimize = !isVirtual && stopCount >= 2 && !busy;
+
+  return (
+    <RouteContextMenu
+      hide={{
+        duplicate: true,
+        move: true,
+        "show-on-map": true,
+        optimize: !canOptimize,
+        delete: !canDelete,
+      }}
+      onAction={(action) => {
+        if (action === "view") onSelect();
+        else if (action === "optimize" && canOptimize) onOptimize();
+        else if (action === "delete" && canDelete) onDelete!();
+      }}
+    >
+      {pill}
+    </RouteContextMenu>
   );
 };
 
