@@ -109,6 +109,10 @@ import { useRouteHistory } from "@/hooks/useRouteHistory";
 import { toastSuccessWithUndo } from "@/lib/toast-undo";
 import { estimateOptimizationGain, markOptimizeDismissed } from "@/lib/optimize-savings-estimate";
 import { BulkMoveRoutesDialog, type BulkMoveRouteItem } from "@/components/route-planner/BulkMoveRoutesDialog";
+import RoutePlannerShortcutsHelp from "@/components/route-planner/RoutePlannerShortcutsHelp";
+import UndoBar from "@/components/route-planner/UndoBar";
+import DensityToggle from "@/components/route-planner/DensityToggle";
+import ThemeToggle from "@/components/route-planner/ThemeToggle";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
