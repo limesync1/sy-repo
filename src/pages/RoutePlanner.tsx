@@ -60,6 +60,7 @@ import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
 import { SuggestRouteDialog } from "@/components/route-planner/SuggestRouteDialog";
 import { MonthWeekCalendar, type CalendarRoute } from "@/components/route-planner/MonthWeekCalendar";
 import { AgendaCalendar } from "@/components/route-planner/AgendaCalendar";
+import { ConflictBanner } from "@/components/route-planner/ConflictBanner";
 import { RouteEditSheet, ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor } from "@/components/route-planner/RouteEditSheet";
 import PlanningPanel from "@/components/route-planner/PlanningPanel";
 import SEO from "@/components/SEO";
