@@ -1651,7 +1651,14 @@ export const useGeocodeAddress = () => {
     mutationFn: async (input: { address?: string; zip_code?: string; city?: string }) => {
       const { data, error } = await supabase.functions.invoke("geocode-address", { body: input });
       if (error) throw error;
-      return data as { found: boolean; latitude?: number; longitude?: number; display_name?: string };
+      return data as {
+        found: boolean;
+        latitude?: number;
+        longitude?: number;
+        display_name?: string;
+        matched_address?: string;
+        confidence?: "exact" | "fuzzy" | "approximate";
+      };
     },
   });
 };
