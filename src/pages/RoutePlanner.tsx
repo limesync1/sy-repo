@@ -1864,14 +1864,19 @@ const Planner = () => {
   type SkipReason =
     | "no-gps" | "no-date" | "pending"
     | "no-route" | "full" | "rpc-error" | "save-error";
-  const skipLabel: Record<SkipReason, string> = {
-    "no-gps": "mangler adresse på kortet",
-    "no-date": "mangler dato",
-    "pending": "afventer godkendelse",
-    "no-route": "ingen rute på dagen",
-    "full": "ruterne er fyldte",
-    "rpc-error": "kunne ikke hente forslag",
-    "save-error": "kunne ikke gemme",
+  // Returnerer en hel sætning med korrekt ental/flertal, så fx "1 aftale
+  // mangler adresse" og "3 aftaler mangler adresse" begge giver mening.
+  const skipPhrase = (reason: SkipReason, n: number): string => {
+    const aftale = n === 1 ? "aftale" : "aftaler";
+    switch (reason) {
+      case "no-gps":     return `${n} ${aftale} mangler adresse`;
+      case "no-date":    return `${n} ${aftale} mangler dato`;
+      case "pending":    return `${n} ${aftale} afventer godkendelse`;
+      case "no-route":   return `${n} ${aftale} havde ingen rute på dagen`;
+      case "full":       return `${n} ${aftale} kunne ikke få plads`;
+      case "rpc-error":  return `${n} ${aftale} kunne ikke hentes forslag for`;
+      case "save-error": return `${n} ${aftale} kunne ikke gemmes`;
+    }
   };
 
   const runAutoAssignCore = async (
@@ -1973,7 +1978,7 @@ const Planner = () => {
       for (const s of skipped) reasonCounts.set(s.reason, (reasonCounts.get(s.reason) ?? 0) + 1);
       const reasonSummary = Array.from(reasonCounts.entries())
         .sort((a, b) => b[1] - a[1])
-        .map(([r, n]) => `${n} ${skipLabel[r]}`)
+        .map(([r, n]) => skipPhrase(r, n))
         .join(" · ");
 
       if (assigned > 0) {
