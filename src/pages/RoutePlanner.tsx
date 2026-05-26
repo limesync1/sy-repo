@@ -1854,15 +1854,155 @@ const Planner = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unassigned.length, businessId]);
 
-  // Auto-fordel: forsøger at lægge alle ikke-tildelte aftaler på den bedst
-  // matchende eksisterende rute. Bruger samme RPC ("suggest_routes_for_stop")
-  // som "Foreslå rute"-dialogen, så scoring er konsistent. Springer over:
-  // • aftaler uden GPS (kører bulk-geokod først hvis tomt)
-  // • aftaler uden dato
-  // • aftaler hvor top-rute er over kapacitet
+  // Auto-fordel: lægger valgte/alle aftaler ind på den bedst matchende
+  // eksisterende rute. Bruger samme RPC som "Foreslå rute"-dialogen, men
+  // holder selv styr på kapacitet og sequence-numre LOKALT under kørslen
+  // — så to aftaler ikke ender på samme plads og en rute ikke fyldes ud
+  // over kapacitet bare fordi RPC'en ikke ved at vi lige har lagt noget på.
   const [autoAssigning, setAutoAssigning] = useState(false);
+
+  type SkipReason =
+    | "no-gps" | "no-date" | "pending"
+    | "no-route" | "full" | "rpc-error" | "save-error";
+  const skipLabel: Record<SkipReason, string> = {
+    "no-gps": "mangler adresse på kortet",
+    "no-date": "mangler dato",
+    "pending": "afventer godkendelse",
+    "no-route": "ingen rute på dagen",
+    "full": "ruterne er fyldte",
+    "rpc-error": "kunne ikke hente forslag",
+    "save-error": "kunne ikke gemme",
+  };
+
+  const runAutoAssignCore = async (
+    jobs: any[],
+    opts: { setBusy: (b: boolean) => void; sourceLabel: "alle" | "valgte" },
+  ) => {
+    if (!businessId) return;
+    opts.setBusy(true);
+    // Lokale akkumulatorer pr. rute — opdateres efter hver succes så næste
+    // job ser den korrekte kapacitet i samme batch.
+    const usage = new Map<string, { minutes: number; stops: number }>();
+    const seqByRoute = new Map<string, number>();
+    const getUsage = (id: string) => usage.get(id) ?? { minutes: 0, stops: 0 };
+    const getSeq = (id: string) => {
+      const cur = seqByRoute.get(id);
+      if (cur != null) return cur;
+      const base = (calendarStops as any[]).filter((s) => s.route_id === id).length;
+      seqByRoute.set(id, base);
+      return base;
+    };
+
+    let assigned = 0;
+    const skipped: { job: any; reason: SkipReason }[] = [];
+
+    try {
+      for (const job of jobs) {
+        if (job.status === "pending") { skipped.push({ job, reason: "pending" }); continue; }
+        if (job.latitude == null || job.longitude == null) { skipped.push({ job, reason: "no-gps" }); continue; }
+        const jobDateRaw = job.preferred_date || job.next_service_date;
+        if (!jobDateRaw) { skipped.push({ job, reason: "no-date" }); continue; }
+        const jobDate = String(jobDateRaw).slice(0, 10);
+        const duration = Number(job.estimated_duration_minutes) || 30;
+
+        let suggestions: any[] = [];
+        try {
+          const { data: rpc, error } = await (supabase as any).rpc("suggest_routes_for_stop", {
+            _business_id: businessId,
+            _date: jobDate,
+            _latitude: job.latitude,
+            _longitude: job.longitude,
+            _service_id: job.order_items?.[0]?.service_id ?? null,
+            _duration_minutes: duration,
+            _zone_key: deriveZoneKey(job.zip_code),
+            _weather_bad: false,
+            _skill_key: null,
+          });
+          if (error) { skipped.push({ job, reason: "rpc-error" }); continue; }
+          suggestions = (rpc as any)?.suggestions || [];
+        } catch {
+          skipped.push({ job, reason: "rpc-error" });
+          continue;
+        }
+
+        if (suggestions.length === 0) { skipped.push({ job, reason: "no-route" }); continue; }
+
+        // Find første forslag der HAR plads INKL. det vi lige har akkumuleret
+        // på samme rute i denne kørsel.
+        const top = suggestions.find((s: any) => {
+          const extra = getUsage(s.route_id);
+          const minutesAfter = s.minutes_used + extra.minutes + duration;
+          const stopsAfter = s.stop_count + extra.stops + 1;
+          const overHours = s.capacity?.hours_max != null && minutesAfter / 60 > s.capacity.hours_max;
+          const overStops = s.capacity?.stops_max != null && stopsAfter > s.capacity.stops_max;
+          return !overHours && !overStops;
+        });
+        if (!top) { skipped.push({ job, reason: "full" }); continue; }
+
+        const seq = getSeq(top.route_id);
+        try {
+          await addStop.mutateAsync({
+            route_id: top.route_id,
+            order_id: job.id,
+            sequence: seq,
+            customer_name: job.customer_name,
+            customer_phone: job.customer_phone,
+            address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
+            latitude: job.latitude,
+            longitude: job.longitude,
+            service_summary: serviceSummaryForJob(job),
+            duration_minutes: duration,
+            time_window_start: job.preferred_time_start || null,
+            time_window_end: job.preferred_time_end || null,
+          });
+          const cur = getUsage(top.route_id);
+          usage.set(top.route_id, { minutes: cur.minutes + duration, stops: cur.stops + 1 });
+          seqByRoute.set(top.route_id, seq + 1);
+          assigned++;
+        } catch {
+          skipped.push({ job, reason: "save-error" });
+        }
+      }
+
+      invalidateRouteSyncQueries(qc);
+
+      // Lav læselig opsummering: hvis flere blev sprunget over af samme
+      // årsag — skriv "X mangler adresse, Y ruterne fyldte" i stedet for
+      // bare et tal.
+      const reasonCounts = new Map<SkipReason, number>();
+      for (const s of skipped) reasonCounts.set(s.reason, (reasonCounts.get(s.reason) ?? 0) + 1);
+      const reasonSummary = Array.from(reasonCounts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .map(([r, n]) => `${n} ${skipLabel[r]}`)
+        .join(" · ");
+
+      if (assigned > 0) {
+        const total = assigned + skipped.length;
+        toast.success(
+          `Fordelt ${assigned} af ${total} aftale${total === 1 ? "" : "r"}`,
+          {
+            description: skipped.length > 0
+              ? `Sprunget over: ${reasonSummary}`
+              : "Kapacitetsbjælkerne i kalenderen er opdateret.",
+            duration: skipped.length > 0 ? 8000 : 4000,
+          },
+        );
+        if (opts.sourceLabel === "valgte") setSelectedJobIds(new Set());
+      } else {
+        toast.error("Ingen aftaler kunne fordeles", {
+          description: skipped.length > 0
+            ? reasonSummary + ". Opret en rute på dagen eller flyt opstartsdatoen."
+            : "Opret en rute på den ønskede dag først, eller flyt opstartsdatoen.",
+          duration: 8000,
+        });
+      }
+    } finally {
+      opts.setBusy(false);
+    }
+  };
+
   const runAutoAssign = async () => {
-    if (!businessId || autoAssigning) return;
+    if (autoAssigning) return;
     const candidates = (unassigned as any[]).filter(
       (j) => j.status !== "pending"
         && j.latitude != null && j.longitude != null
@@ -1870,164 +2010,24 @@ const Planner = () => {
     );
     if (candidates.length === 0) {
       toast.info("Ingen aftaler kan auto-fordeles", {
-        description: "Aftaler skal have både GPS og en dato. Prøv 'Geokod alle' først.",
+        description: "Aftaler skal have adresse på kortet og en ønsket dato.",
       });
       return;
     }
-    setAutoAssigning(true);
-    let assigned = 0;
-    let skipped = 0;
-    try {
-      for (const job of candidates.slice(0, 25)) {
-        const jobDate = (job.preferred_date || job.next_service_date).slice(0, 10);
-        const duration = Number(job.estimated_duration_minutes) || 30;
-        try {
-          const { data: rpc, error } = await (supabase as any).rpc("suggest_routes_for_stop", {
-            _business_id: businessId,
-            _date: jobDate,
-            _latitude: job.latitude,
-            _longitude: job.longitude,
-            _service_id: job.order_items?.[0]?.service_id ?? null,
-            _duration_minutes: duration,
-            _zone_key: deriveZoneKey(job.zip_code),
-            _weather_bad: false,
-            _skill_key: null,
-          });
-          if (error) { skipped++; continue; }
-          const suggestions = (rpc as any)?.suggestions || [];
-          // Vælg topforslag der ikke er overbooked. Hvis kun overbooked findes
-          // — spring over og lad brugeren håndtere det manuelt.
-          const top = suggestions.find((s: any) => {
-            const hoursUsed = (s.minutes_used + duration) / 60;
-            const overHours = s.capacity?.hours_max != null && hoursUsed > s.capacity.hours_max;
-            const overStops = s.capacity?.stops_max != null && s.stop_count + 1 > s.capacity.stops_max;
-            return !overHours && !overStops;
-          });
-          if (!top) { skipped++; continue; }
-          const sequence = (calendarStops as any[]).filter((s) => s.route_id === top.route_id).length;
-          await addStop.mutateAsync({
-            route_id: top.route_id,
-            order_id: job.id,
-            sequence,
-            customer_name: job.customer_name,
-            customer_phone: job.customer_phone,
-            address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
-            latitude: job.latitude,
-            longitude: job.longitude,
-            service_summary: serviceSummaryForJob(job),
-            duration_minutes: duration,
-            time_window_start: job.preferred_time_start || null,
-            time_window_end: job.preferred_time_end || null,
-          });
-          assigned++;
-        } catch {
-          skipped++;
-        }
-      }
-      invalidateRouteSyncQueries(qc);
-      if (assigned > 0) {
-        toast.success(
-          `Fordelt ${assigned} aftale${assigned === 1 ? "" : "r"} til bedst matchende ruter`,
-          {
-            description: skipped > 0
-              ? `${skipped} sprunget over — manglede plads eller ingen rute matchede.`
-              : "Kapacitetsbarerne i kalenderen er opdateret.",
-          },
-        );
-      } else {
-        toast.error("Kunne ikke auto-fordele nogen aftaler", {
-          description: "Ingen ruter passede — prøv at oprette flere ruter på de relevante datoer først.",
-        });
-      }
-    } finally {
-      setAutoAssigning(false);
-    }
+    // Tidligere skar vi listen ned til 25 — det er forvirrende når brugeren
+    // ser "Auto-fordel 40 aftaler" og kun 25 bliver kørt. Vi tager nu hele
+    // listen; tunge batches sker stadig sekventielt så DB ikke overbelastes.
+    await runAutoAssignCore(candidates, { setBusy: setAutoAssigning, sourceLabel: "alle" });
   };
 
-  /** Auto-fordel KUN de aftaler som er markeret i bulk-bjælken.
-   *  Genbrugbar logik fra `runAutoAssign` — men afgrænset til valgte ids,
-   *  og rydder valg-state efter en succesfuld kørsel. */
   const runBulkAutoAssign = async () => {
-    if (!businessId || bulkBusy || selectedJobIds.size === 0) return;
-    const candidates = (unassigned as any[]).filter(
-      (j) => selectedJobIds.has(j.id)
-        && j.status !== "pending"
-        && j.latitude != null && j.longitude != null
-        && (j.preferred_date || j.next_service_date),
-    );
+    if (bulkBusy || selectedJobIds.size === 0) return;
+    const candidates = (unassigned as any[]).filter((j) => selectedJobIds.has(j.id));
     if (candidates.length === 0) {
-      toast.info("Ingen af de valgte kan auto-fordeles", {
-        description: "Valgte aftaler skal have GPS og en dato.",
-      });
+      toast.info("Ingen valgte aftaler at fordele");
       return;
     }
-    setBulkBusy(true);
-    let assigned = 0;
-    let skipped = 0;
-    try {
-      for (const job of candidates) {
-        const jobDate = (job.preferred_date || job.next_service_date).slice(0, 10);
-        const duration = Number(job.estimated_duration_minutes) || 30;
-        try {
-          const { data: rpc, error } = await (supabase as any).rpc("suggest_routes_for_stop", {
-            _business_id: businessId,
-            _date: jobDate,
-            _latitude: job.latitude,
-            _longitude: job.longitude,
-            _service_id: job.order_items?.[0]?.service_id ?? null,
-            _duration_minutes: duration,
-            _zone_key: deriveZoneKey(job.zip_code),
-            _weather_bad: false,
-            _skill_key: null,
-          });
-          if (error) { skipped++; continue; }
-          const suggestions = (rpc as any)?.suggestions || [];
-          const top = suggestions.find((s: any) => {
-            const hoursUsed = (s.minutes_used + duration) / 60;
-            const overHours = s.capacity?.hours_max != null && hoursUsed > s.capacity.hours_max;
-            const overStops = s.capacity?.stops_max != null && s.stop_count + 1 > s.capacity.stops_max;
-            return !overHours && !overStops;
-          });
-          if (!top) { skipped++; continue; }
-          const sequence = (calendarStops as any[]).filter((s) => s.route_id === top.route_id).length;
-          await addStop.mutateAsync({
-            route_id: top.route_id,
-            order_id: job.id,
-            sequence,
-            customer_name: job.customer_name,
-            customer_phone: job.customer_phone,
-            address: job.address || [job.zip_code, job.city].filter(Boolean).join(" "),
-            latitude: job.latitude,
-            longitude: job.longitude,
-            service_summary: serviceSummaryForJob(job),
-            duration_minutes: duration,
-            time_window_start: job.preferred_time_start || null,
-            time_window_end: job.preferred_time_end || null,
-          });
-          assigned++;
-        } catch {
-          skipped++;
-        }
-      }
-      invalidateRouteSyncQueries(qc);
-      if (assigned > 0) {
-        toast.success(
-          `Fordelt ${assigned} af ${candidates.length} valgte aftale${candidates.length === 1 ? "" : "r"}`,
-          {
-            description: skipped > 0
-              ? `${skipped} kunne ikke fordeles automatisk — manglede plads eller matchende rute.`
-              : "Kapacitetsbarerne i kalenderen er opdateret.",
-          },
-        );
-        setSelectedJobIds(new Set());
-      } else {
-        toast.error("Ingen valgte aftaler kunne fordeles", {
-          description: "Ingen ruter havde plads. Opret en rute på den ønskede dag først, eller flyt opstartsdatoen.",
-        });
-      }
-    } finally {
-      setBulkBusy(false);
-    }
+    await runAutoAssignCore(candidates, { setBusy: setBulkBusy, sourceLabel: "valgte" });
   };
 
   /** Annullér de valgte aftaler — sætter status til 'cancelled' så de
