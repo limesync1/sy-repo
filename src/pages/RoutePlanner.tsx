@@ -4411,32 +4411,6 @@ const Planner = () => {
                       />
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Print dagens ruter" onClick={() => setPrintOpen(true)}>
-                            <Printer className="h-3.5 w-3.5" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" className="text-xs">Print / PDF af den valgte dags ruter</TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Vis dag som tidslinje" onClick={() => setDayDetailOpen(true)}>
-                            <ListOrdered className="h-3.5 w-3.5" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" className="text-xs">Vis den valgte dag som tidslinje (huller/overlap)</TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Tastatur-genveje" onClick={() => setShortcutsOpen(true)}>
-                            <Keyboard className="h-3.5 w-3.5" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" className="text-xs">Tastatur-genveje (<kbd className="px-1 rounded bg-secondary text-[10px]">?</kbd>)</TooltipContent>
-                      </Tooltip>
-                      <DensityToggle />
-                      <ThemeToggle />
-                      <Tooltip>
-                        <TooltipTrigger asChild>
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => void history.undo()} disabled={!history.canUndo} aria-label="Fortryd seneste handling">
                             {history.isUndoing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Undo2 className="h-3.5 w-3.5" />}
                           </Button>
@@ -4455,12 +4429,53 @@ const Planner = () => {
                           {history.canRedo ? <>Gentag: <span className="font-medium">{history.nextRedoLabel}</span></> : "Intet at gentage"}
                         </TooltipContent>
                       </Tooltip>
+                      <DropdownMenu>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Flere handlinger">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom" className="text-xs">Flere handlinger</TooltipContent>
+                        </Tooltip>
+                        <DropdownMenuContent align="end" className="w-56">
+                          <DropdownMenuLabel className="text-xs">Handlinger</DropdownMenuLabel>
+                          <DropdownMenuItem onClick={() => setPrintOpen(true)} className="text-xs gap-2">
+                            <Printer className="h-3.5 w-3.5" /> Print / PDF
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setDayDetailOpen(true)} className="text-xs gap-2">
+                            <ListOrdered className="h-3.5 w-3.5" /> Vis dag som tidslinje
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuLabel className="text-xs">Visning</DropdownMenuLabel>
+                          <div className="px-2 py-1 flex items-center justify-between gap-2">
+                            <span className="text-xs text-muted-foreground">Tæthed</span>
+                            <DensityToggle />
+                          </div>
+                          <div className="px-2 py-1 flex items-center justify-between gap-2">
+                            <span className="text-xs text-muted-foreground">Tema</span>
+                            <ThemeToggle />
+                          </div>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => setShortcutsOpen(true)} className="text-xs gap-2">
+                            <Keyboard className="h-3.5 w-3.5" /> Tastatur-genveje
+                            <kbd className="ml-auto px-1 rounded bg-secondary text-[10px]">?</kbd>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                       <Button data-tour="routes-create-button" size="sm" className="h-8 gap-1 text-xs" onClick={() => setCreateOpen(true)}>
                         <Plus className="h-3.5 w-3.5" /> Opret rute
                       </Button>
-                      <Button variant="outline" size="sm" className="h-8 gap-1 text-xs" onClick={() => setCreateOrderOpen(true)}>
-                        <ShoppingBag className="h-3.5 w-3.5" /> Bestilling
-                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="outline" size="icon" className="h-8 w-8" aria-label="Ny bestilling" onClick={() => setCreateOrderOpen(true)}>
+                            <ShoppingBag className="h-3.5 w-3.5" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="text-xs">Opret ny bestilling manuelt</TooltipContent>
+                      </Tooltip>
                     </div>
                   </div>
                 </div>
