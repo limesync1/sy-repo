@@ -295,6 +295,11 @@ const Planner = () => {
   const { data: business, isLoading: loadingBusiness } = useMyBusiness();
   const isCompactRouteLayout = useIsBelowBreakpoint(1024);
   const qc = useQueryClient();
+  // Scoped dark-mode: kun gældende inde i ruteplanlæggerens DOM-træ.
+  // Vi læser temaet her og applicerer .dark på wrapper-divet — så vi ikke
+  // farver hele appen sort når brugeren skifter tema her på siden.
+  const [plannerTheme] = usePlannerTheme();
+  useEnsureGlobalDarkRemoved();
   const [date, setDate] = useState<string>(todayStr());
   const [view, setView] = usePersistentState<"month" | "week">("route-planner:view", "month");
   const [search, setSearch] = useState("");
