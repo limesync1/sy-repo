@@ -3876,22 +3876,33 @@ const Planner = () => {
                       <Badge variant="secondary" className="shrink-0 tabular-nums">
                         {filteredUnassigned.length}
                       </Badge>
+                      {filteredUnassigned.length > 0 && (
+                        <span className="ml-auto text-[11px] text-muted-foreground tabular-nums shrink-0">
+                          {Math.round(unassignedTotal).toLocaleString("da-DK")} kr
+                        </span>
+                      )}
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            className="shrink-0 h-5 w-5 inline-flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-secondary"
+                            aria-label="Hjælp"
+                          >
+                            <span className="text-[10px] font-semibold">?</span>
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="max-w-[260px] text-xs leading-snug">
+                          Træk en aftale ind i kalenderen for at planlægge den. Når en aftale med interval markeres som udført, opretter vi automatisk næste aftale på samme rute og medarbejder.
+                        </TooltipContent>
+                      </Tooltip>
                     </div>
-                    <p className="text-[10px] text-muted-foreground leading-snug">
-                      Træk en aftale ind i kalenderen for at planlægge den. Når en aftale med interval markeres som udført, opretter vi automatisk næste aftale på samme rute og medarbejder.
-                    </p>
-                    {filteredUnassigned.length > 0 && (
-                      <p className="text-[10px] text-muted-foreground tabular-nums">
-                        Total værdi: <span className="font-semibold text-foreground">{Math.round(unassignedTotal).toLocaleString("da-DK")} kr</span>
-                      </p>
-                    )}
                     <div className="relative">
                       <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                       <Input
                         placeholder="Søg navn eller adresse..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="h-7 pl-7 pr-7 text-xs"
+                        className="h-8 pl-7 pr-7 text-xs"
                       />
                       {search && (
                         <button
@@ -3907,7 +3918,7 @@ const Planner = () => {
                     <div className="flex items-center gap-1.5">
                       <ArrowUpDown className="h-3 w-3 text-muted-foreground shrink-0" />
                       <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
-                        <SelectTrigger className="h-6 text-[11px] flex-1">
+                        <SelectTrigger className="h-7 text-[11px] flex-1">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -3916,14 +3927,21 @@ const Planner = () => {
                           <SelectItem value="name" className="text-xs">Navn (A-Å)</SelectItem>
                         </SelectContent>
                       </Select>
-                      <button
-                        type="button"
-                        onClick={() => setCompactCards((v) => !v)}
-                        className="h-6 px-1.5 rounded border border-border bg-background text-[10px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors shrink-0"
-                        title={compactCards ? "Vis fulde kort" : "Vis kompakte kort"}
-                      >
-                        {compactCards ? "Fuld" : "Kompakt"}
-                      </button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            onClick={() => setCompactCards((v) => !v)}
+                            className="h-7 px-2 rounded border border-border bg-background text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors shrink-0"
+                            aria-label={compactCards ? "Vis fulde kort" : "Vis kompakte kort"}
+                          >
+                            {compactCards ? "Fuld" : "Kompakt"}
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="text-xs">
+                          {compactCards ? "Skift til fulde kort" : "Skift til kompakte kort"}
+                        </TooltipContent>
+                      </Tooltip>
                     </div>
                     {(() => {
                       const missing = (unassigned as any[]).filter(
