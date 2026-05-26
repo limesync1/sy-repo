@@ -876,6 +876,28 @@ const RoutePillInner = ({
       {/* Stops vises ikke under rute-pillen — åbn ruten ved at klikke for at se aftaler. */}
     </div>
   );
+
+  const canDelete = !!onDelete && !isVirtual && !busy;
+  const canOptimize = !isVirtual && stopCount >= 2 && !busy;
+
+  return (
+    <RouteContextMenu
+      hide={{
+        duplicate: true,
+        move: true,
+        "show-on-map": true,
+        optimize: !canOptimize,
+        delete: !canDelete,
+      }}
+      onAction={(action) => {
+        if (action === "view") onSelect();
+        else if (action === "optimize" && canOptimize) onOptimize();
+        else if (action === "delete" && canDelete) onDelete!();
+      }}
+    >
+      {pill}
+    </RouteContextMenu>
+  );
 };
 
 const RoutePill = memo(RoutePillInner, (prev, next) => {
