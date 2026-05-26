@@ -120,7 +120,7 @@ import RoutePlannerShortcutsHelp from "@/components/route-planner/RoutePlannerSh
 import UndoBar from "@/components/route-planner/UndoBar";
 import PlannerSkeleton from "@/components/route-planner/PlannerSkeleton";
 import DensityToggle from "@/components/route-planner/DensityToggle";
-import ThemeToggle from "@/components/route-planner/ThemeToggle";
+import ThemeToggle, { usePlannerTheme, useEnsureGlobalDarkRemoved } from "@/components/route-planner/ThemeToggle";
 import NextFreeSlotButton from "@/components/route-planner/NextFreeSlotButton";
 import RoutePrintDialog, { type PrintRoute } from "@/components/route-planner/RoutePrintDialog";
 import { Printer, ListOrdered } from "lucide-react";
@@ -295,6 +295,11 @@ const Planner = () => {
   const { data: business, isLoading: loadingBusiness } = useMyBusiness();
   const isCompactRouteLayout = useIsBelowBreakpoint(1024);
   const qc = useQueryClient();
+  // Scoped dark-mode: kun gældende inde i ruteplanlæggerens DOM-træ.
+  // Vi læser temaet her og applicerer .dark på wrapper-divet — så vi ikke
+  // farver hele appen sort når brugeren skifter tema her på siden.
+  const [plannerTheme] = usePlannerTheme();
+  useEnsureGlobalDarkRemoved();
   const [date, setDate] = useState<string>(todayStr());
   const [view, setView] = usePersistentState<"month" | "week">("route-planner:view", "month");
   const [search, setSearch] = useState("");
@@ -3455,6 +3460,7 @@ const Planner = () => {
   };
 
   return (
+    <div className={cn(plannerTheme === "dark" && "dark")}>
     <DndContext
       sensors={sensors}
       collisionDetection={routePlannerCollisionDetection}
@@ -3489,8 +3495,9 @@ const Planner = () => {
         contentClassName="flex flex-col overflow-hidden"
         topbarRight={
           <div className="hidden 2xl:flex items-center gap-1.5 flex-wrap justify-end">
-            {/* Hurtig periode-statistik — gør det øjeblikkeligt klart hvor
-                meget arbejde der ligger i den viste måned/uge. */}
+            {/* Slank topbar: kun de handlinger der bruges dagligt ligger frit fremme.
+                Print, tidslinje, planlægning, opret bestilling, tæthed, tema og
+                genveje er flyttet ind i "Mere"-menuen for at reducere visuel støj. */}
             {periodSummary.routeCount > 0 && (
               <div className="hidden md:inline-flex items-center gap-2 h-7 px-2.5 rounded-md bg-secondary/60 border border-border/60 text-[11px] tabular-nums">
                 <span className="font-semibold text-foreground">{periodSummary.routeCount}</span>
@@ -3644,39 +3651,6 @@ const Planner = () => {
                 <ChevronRight className="h-3.5 w-3.5" />
               </Button>
               <Button data-tour="routes-today" variant="outline" size="sm" className="h-7" onClick={() => setDate(todayStr())}>I dag</Button>
-              <NextFreeSlotButton
-                fromDate={date}
-                capacityByDate={capacityByDate}
-                onGoTo={(d) => setDate(d)}
-              />
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    aria-label="Print dagens ruter"
-                    onClick={() => setPrintOpen(true)}
-                  >
-                    <Printer className="h-3.5 w-3.5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="text-xs">Print / PDF af den valgte dags ruter</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    aria-label="Vis dag som tidslinje"
-                    onClick={() => setDayDetailOpen(true)}
-                  >
-                    <ListOrdered className="h-3.5 w-3.5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="text-xs">Vis den valgte dag som tidslinje (huller/overlap)</TooltipContent>
-              </Tooltip>
             </div>
 
             <PlanningPanel
@@ -3691,6 +3665,88 @@ const Planner = () => {
             />
 
             <div className="flex items-center gap-1.5">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => void history.undo()}
+                    disabled={!history.canUndo}
+                    aria-label="Fortryd seneste handling"
+                  >
+                    {history.isUndoing
+                      ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      : <Undo2 className="h-3.5 w-3.5" />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  {history.canUndo
+                    ? <>Fortryd: <span className="font-medium">{history.lastLabel}</span></>
+                    : "Intet at fortryde"}
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => void history.redo()}
+                    disabled={!history.canRedo}
+                    aria-label="Gentag seneste fortryd"
+                  >
+                    <Redo2 className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  {history.canRedo
+                    ? <>Gentag: <span className="font-medium">{history.nextRedoLabel}</span></>
+                    : "Intet at gentage"}
+                </TooltipContent>
+              </Tooltip>
+
+              <DropdownMenu>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Flere handlinger">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-xs">Flere handlinger</TooltipContent>
+                </Tooltip>
+                <DropdownMenuContent align="end" className="w-60">
+                  <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">Handlinger</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => setCreateOrderOpen(true)} className="text-xs gap-2">
+                    <ShoppingBag className="h-3.5 w-3.5" /> Opret bestilling manuelt
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setPrintOpen(true)} className="text-xs gap-2">
+                    <Printer className="h-3.5 w-3.5" /> Print / PDF af dagen
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setDayDetailOpen(true)} className="text-xs gap-2">
+                    <ListOrdered className="h-3.5 w-3.5" /> Vis dag som tidslinje
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">Visning</DropdownMenuLabel>
+                  <div className="px-2 py-1 flex items-center justify-between gap-2">
+                    <span className="text-xs text-muted-foreground">Tæthed</span>
+                    <DensityToggle />
+                  </div>
+                  <div className="px-2 py-1 flex items-center justify-between gap-2">
+                    <span className="text-xs text-muted-foreground">Mørk tilstand</span>
+                    <ThemeToggle />
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setShortcutsOpen(true)} className="text-xs gap-2">
+                    <Keyboard className="h-3.5 w-3.5" /> Tastatur-genveje
+                    <kbd className="ml-auto px-1 rounded bg-secondary text-[10px]">?</kbd>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               <Dialog open={createOpen} onOpenChange={setCreateOpen}>
                 <DialogTrigger asChild>
                   <Button data-tour="routes-create-button" size="sm" className="h-7 gap-1">
@@ -3866,78 +3922,6 @@ const Planner = () => {
                   </SheetFooterBar>
                 </DialogContent>
               </Dialog>
-
-              <Button
-                data-tour="routes-create-order"
-                variant="default"
-                size="sm"
-                className="h-7"
-                onClick={() => setCreateOrderOpen(true)}
-              >
-                <ShoppingBag className="h-3.5 w-3.5 mr-1" />Opret bestilling
-              </Button>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    aria-label="Tastatur-genveje"
-                    onClick={() => setShortcutsOpen(true)}
-                  >
-                    <Keyboard className="h-3.5 w-3.5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="text-xs">
-                  Tastatur-genveje (<kbd className="px-1 rounded bg-secondary text-[10px]">?</kbd>)
-                </TooltipContent>
-              </Tooltip>
-
-              <DensityToggle />
-              <ThemeToggle />
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => void history.undo()}
-                    disabled={!history.canUndo}
-                    aria-label="Fortryd seneste handling"
-                  >
-                    {history.isUndoing
-                      ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      : <Undo2 className="h-3.5 w-3.5" />}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="text-xs">
-                  {history.canUndo
-                    ? <>Fortryd: <span className="font-medium">{history.lastLabel}</span></>
-                    : "Intet at fortryde"}
-                </TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => void history.redo()}
-                    disabled={!history.canRedo}
-                    aria-label="Gentag seneste fortryd"
-                  >
-                    <Redo2 className="h-3.5 w-3.5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="text-xs">
-                  {history.canRedo
-                    ? <>Gentag: <span className="font-medium">{history.nextRedoLabel}</span></>
-                    : "Intet at gentage"}
-                </TooltipContent>
-              </Tooltip>
             </div>
           </div>
         }
@@ -3947,32 +3931,27 @@ const Planner = () => {
           // mobil/tablet Sheet-drawer, så drag-and-drop fungerer på alle enheder.
           const unassignedCard = (
                 <Card data-tour="routes-unassigned" className="flex flex-col h-full overflow-hidden">
-                  <div className="p-3 border-b bg-gradient-to-b from-secondary/50 to-secondary/20 space-y-2.5">
-                    {/* pr-10 reserverer plads til Sheet's luk-knap (right-4 top-4) på
-                        alle viewports hvor kortet vises i en Sheet. ResizablePanel-
-                        layoutet kommer først ved xl+ — så vi fjerner først pr-10 dér. */}
-                    <div className="flex items-start gap-2 pr-10 xl:pr-0">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-foreground text-background shadow-sm">
-                        <Inbox className="h-4 w-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h2 className="font-bold text-sm leading-tight text-foreground truncate">
-                          Aftaler uden rute
-                        </h2>
-                        <p className="mt-0.5 text-[11px] text-muted-foreground truncate">
-                          {filteredUnassigned.length === 0
-                            ? "Træk aftaler ind i kalenderen for at planlægge"
-                            : (
-                              <>
-                                <span className="font-semibold text-foreground tabular-nums">{filteredUnassigned.length}</span>
-                                {" "}{filteredUnassigned.length === 1 ? "aftale" : "aftaler"}
-                                {" · "}
-                                <span className="tabular-nums">{Math.round(unassignedTotal).toLocaleString("da-DK")} kr</span>
-                              </>
-                            )}
-                        </p>
-                      </div>
+                  <div className="px-3 pt-3 pb-2.5 border-b bg-card space-y-2.5">
+                    <div className="flex items-center gap-2 pr-10 xl:pr-0">
+                      <Inbox className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <h2 className="font-semibold text-sm leading-tight text-foreground truncate flex-1">
+                        Aftaler uden rute
+                      </h2>
+                      {filteredUnassigned.length > 0 && (
+                        <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-foreground text-background text-[11px] font-semibold tabular-nums shrink-0">
+                          {filteredUnassigned.length}
+                        </span>
+                      )}
                     </div>
+                    {filteredUnassigned.length > 0 ? (
+                      <p className="text-[11px] text-muted-foreground -mt-1">
+                        <span className="tabular-nums font-medium text-foreground">{Math.round(unassignedTotal).toLocaleString("da-DK")} kr</span> samlet · træk ind i kalenderen
+                      </p>
+                    ) : (
+                      <p className="text-[11px] text-muted-foreground -mt-1">
+                        Træk aftaler ind i kalenderen for at planlægge
+                      </p>
+                    )}
                     <div className="relative">
                       <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                       <Input
@@ -5521,6 +5500,7 @@ const Planner = () => {
         routeName={historyRoute?.name}
       />
     </DndContext>
+    </div>
   );
 };
 
