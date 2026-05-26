@@ -20,6 +20,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { memo, useMemo } from "react";
 import type { CalendarRoute } from "./MonthWeekCalendar";
 import { useTargetValidation, ringForSeverity, chipBgForSeverity } from "./drag-validation-context";
+import RouteContextMenu from "./RouteContextMenu";
 
 type Props = {
   view: "month" | "week";
@@ -29,6 +30,7 @@ type Props = {
   onSelectStop: (stop: RouteStop) => void;
   onCreateRoute: (date: string) => void;
   onOptimizeRoute: (routeId: string) => void;
+  onDeleteRoute?: (route: CalendarRoute) => void;
   optimizingRouteId?: string | null;
   draggingType?: "job" | "route" | "stop" | null;
   draggingRouteId?: string | null;
@@ -43,7 +45,7 @@ const ymd = (d: Date) => format(d, "yyyy-MM-dd");
 
 export const AgendaCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
-  onCreateRoute, onOptimizeRoute, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
+  onCreateRoute, onOptimizeRoute, onDeleteRoute, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
   loadingRoutes, loadingWeather, weatherError, busyTargets,
 }: Props) => {
   const anchor = parseISO(anchorDate);
@@ -128,6 +130,7 @@ export const AgendaCalendar = ({
                   onSelectStop={onSelectStop}
                   onCreateRoute={onCreateRoute}
                   onOptimizeRoute={onOptimizeRoute}
+                  onDeleteRoute={onDeleteRoute}
                   optimizingRouteId={optimizingRouteId}
                   draggingType={draggingType}
                   draggingRouteId={draggingRouteId ?? null}
@@ -162,6 +165,7 @@ type DayRowProps = {
   onSelectStop: (stop: RouteStop) => void;
   onCreateRoute: (date: string) => void;
   onOptimizeRoute: (routeId: string) => void;
+  onDeleteRoute?: (route: CalendarRoute) => void;
   optimizingRouteId?: string | null;
   draggingType?: "job" | "route" | "stop" | null;
   draggingRouteId?: string | null;
@@ -175,7 +179,7 @@ type DayRowProps = {
 
 const DayRowInner = ({
   date, dateStr, todayIso, routes,
-  onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, optimizingRouteId,
+  onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, onDeleteRoute, optimizingRouteId,
   draggingType, draggingRouteId, weather, loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds,
 }: DayRowProps) => {
   const isPast = dateStr < todayIso;
@@ -292,6 +296,7 @@ const DayRowInner = ({
             onSelect={() => onSelectRoute(r)}
             onSelectStop={onSelectStop}
             onOptimize={() => onOptimizeRoute(r.id)}
+            onDelete={onDeleteRoute ? () => onDeleteRoute(r) : undefined}
             optimizing={optimizingRouteId === r.id}
             jobDragActive={isJobDragActive}
             routeDragSourceId={draggingType === "route" ? (draggingRouteId ?? null) : null}
