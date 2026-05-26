@@ -2144,6 +2144,8 @@ const Planner = () => {
     const r = calendarRoutesRaw.find((x) => x.id === id);
     handleOptimize(id, r?.name ?? null);
   };
+  // Hold ref opdateret så keyboard-shortcut'en "O" kan kalde den seneste version.
+  optimizeRouteRef.current = handleCalendarOptimizeRoute;
 
   /** Tjekker om en flytning af et stop til en ny dato vil overlappe
    *  med en assignees øvrige stops på den dato. Returnerer en kort
