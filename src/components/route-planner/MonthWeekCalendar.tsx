@@ -461,6 +461,7 @@ const DayCellInner = ({
                   onSelect={() => onSelectRoute(r)}
                   onSelectStop={onSelectStop}
                   onOptimize={() => onOptimizeRoute(r.id)}
+                  onDelete={onDeleteRoute ? () => onDeleteRoute(r) : undefined}
                   optimizing={optimizingRouteId === r.id}
                   compact={compact}
                   jobDragActive={isJobDragActive}
