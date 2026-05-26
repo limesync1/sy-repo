@@ -1103,6 +1103,7 @@ const ServiceForm = ({
         is_active: isActive,
         default_employee_id: defaultEmployeeIds[0] || null,
         default_employee_ids: defaultEmployeeIds,
+        weather_sensitive: weatherSensitive,
       };
 
       if (existingService) {
