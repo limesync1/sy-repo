@@ -2711,7 +2711,11 @@ const Planner = () => {
           time_window_start: job.preferred_time_start || null,
           time_window_end: job.preferred_time_end || null,
         });
-        toast.success(`Ny rute oprettet på ${format(parseISO(newDate), "d. MMM", { locale: da })}`);
+        pushBatchedToast(
+          "success",
+          `Ny rute oprettet på ${format(parseISO(newDate), "d. MMM", { locale: da })}`,
+          { key: "rp-create-route", successWord: "nye ruter oprettet", errorWord: "fejlede" },
+        );
         void linkAgreementToRoute(job.id, created.id);
       };
       if (!ensureStartDateMatches(
