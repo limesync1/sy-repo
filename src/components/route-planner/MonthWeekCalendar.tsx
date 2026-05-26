@@ -53,6 +53,7 @@ type Props = {
   onSelectStop: (stop: RouteStop) => void;
   onCreateRoute: (date: string) => void;
   onOptimizeRoute: (routeId: string) => void;
+  onDeleteRoute?: (route: CalendarRoute) => void;
   optimizingRouteId?: string | null;
   /** Sat til 'job' når brugeren trækker en aftale fra aftalepoolen — får drop-targets til at lyse op. */
   draggingType?: "job" | "route" | "stop" | null;
@@ -112,7 +113,7 @@ const fmtRouteKrCompact = (n: number) => {
 
 export const MonthWeekCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
-  onCreateRoute, onOptimizeRoute, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
+  onCreateRoute, onOptimizeRoute, onDeleteRoute, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
   loadingRoutes, loadingWeather, weatherError, busyTargets, dateAlerts,
   selectedRouteIds, onToggleRouteSelection, capacityByDate, mismatchedRouteIds,
 }: Props) => {
