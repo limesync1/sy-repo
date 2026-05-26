@@ -1920,21 +1920,24 @@ export type Database = {
           created_at: string
           employee_id: string
           id: string
-          service_id: string
+          service_id: string | null
+          skill_key: string | null
         }
         Insert: {
           business_id: string
           created_at?: string
           employee_id: string
           id?: string
-          service_id: string
+          service_id?: string | null
+          skill_key?: string | null
         }
         Update: {
           business_id?: string
           created_at?: string
           employee_id?: string
           id?: string
-          service_id?: string
+          service_id?: string | null
+          skill_key?: string | null
         }
         Relationships: [
           {
@@ -4260,6 +4263,10 @@ export type Database = {
         Returns: boolean
       }
       cleanup_accounting_sync_log: { Args: never; Returns: undefined }
+      cleanup_route_after_stop_delete: {
+        Args: { _route_id: string }
+        Returns: Json
+      }
       cleanup_route_mutation_claims: { Args: never; Returns: number }
       cleanup_route_planner_idempotency: { Args: never; Returns: number }
       confirm_business_deletion: {
@@ -4782,19 +4789,34 @@ export type Database = {
               isSetofReturn: false
             }
           }
-      suggest_routes_for_stop: {
-        Args: {
-          _business_id: string
-          _date: string
-          _duration_minutes?: number
-          _latitude: number
-          _longitude: number
-          _service_id?: string
-          _weather_bad?: boolean
-          _zone_key?: string
-        }
-        Returns: Json
-      }
+      suggest_routes_for_stop:
+        | {
+            Args: {
+              _business_id: string
+              _date: string
+              _duration_minutes?: number
+              _latitude: number
+              _longitude: number
+              _service_id?: string
+              _weather_bad?: boolean
+              _zone_key?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              _business_id: string
+              _date: string
+              _duration_minutes?: number
+              _latitude: number
+              _longitude: number
+              _service_id?: string
+              _skill_key?: string
+              _weather_bad?: boolean
+              _zone_key?: string
+            }
+            Returns: Json
+          }
       try_claim_route_mutation: {
         Args: { _business_id?: string; _key: string; _kind: string }
         Returns: boolean
