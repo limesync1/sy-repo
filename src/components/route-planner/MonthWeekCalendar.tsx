@@ -85,6 +85,13 @@ type Props = {
    *  Modtager `id` og evt. originalt event så implementationen kan se
    *  hvilken modifier-tast der blev brugt. */
   onToggleRouteSelection?: (id: string, e?: React.MouseEvent) => void;
+  /** Dagligt kapacitetsoverblik — vises som tynd farve-bar i bunden af
+   *  hver dag-celle. Grøn (<70%), gul (70-100%), rød (>100%). Hjælper
+   *  brugeren med at se overbelastning før de tildeler endnu et stop. */
+  capacityByDate?: Map<string, { load_pct: number; minutes_booked: number; minutes_capacity: number }>;
+  /** Sæt af rute-ids hvor mindst én tildelt medarbejder mangler den
+   *  færdighed et stop kræver. Vises som lille ⚠-ikon på rute-pillen. */
+  mismatchedRouteIds?: Set<string>;
 };
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
