@@ -1960,7 +1960,9 @@ const Planner = () => {
   }, [activeDragData?.type]);
 
   if (loadingBusiness) {
-    return <ShellSkeleton />;
+    // Planner-specifik skeleton (sidebar + kalender-grid) — virker mere
+    // "rigtig" end den generiske ShellSkeleton fordi formen matcher.
+    return <PlannerSkeleton />;
   }
 
   if (!business) {
