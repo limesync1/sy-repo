@@ -214,6 +214,7 @@ export const MonthWeekCalendar = ({
                     onSelectStop={onSelectStop}
                     onCreateRoute={onCreateRoute}
                     onOptimizeRoute={onOptimizeRoute}
+                    onDeleteRoute={onDeleteRoute}
                     optimizingRouteId={optimizingRouteId}
                     compact={view === "month"}
                     draggingType={draggingType}
