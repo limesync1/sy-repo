@@ -3895,6 +3895,44 @@ export type Database = {
         Args: { _occurrence_id: string; _target_route_id: string }
         Returns: string
       }
+      add_route_stop_idempotent: {
+        Args: { _payload: Json }
+        Returns: {
+          address: string | null
+          agreement_occurrence_id: string | null
+          assigned_employee_id: string | null
+          completed_at: string | null
+          created_at: string
+          customer_name: string | null
+          customer_phone: string | null
+          distance_to_next_km: number | null
+          duration_minutes: number
+          id: string
+          latitude: number | null
+          longitude: number | null
+          notes: string | null
+          order_id: string | null
+          photo_urls: string[] | null
+          planned_arrival: string | null
+          planned_departure: string | null
+          required_staff: number
+          route_id: string
+          sequence: number
+          service_summary: string | null
+          status: string
+          subscription_id: string | null
+          time_window_end: string | null
+          time_window_start: string | null
+          travel_time_to_next_min: number | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "route_stops"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       admin_business_stats: {
         Args: never
         Returns: {
