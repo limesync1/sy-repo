@@ -105,7 +105,7 @@ import { haversineMeters } from "@/lib/geo-distance";
 import { validateStopAssignment, validateRouteMove } from "@/lib/route-validation";
 import { cn } from "@/lib/utils";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
-import { Monitor } from "lucide-react";
+import { Monitor, MousePointer2, Map as MapIcon, LayoutGrid, ArrowLeft, Copy, Check } from "lucide-react";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { pushRouteUndo, routeHistory } from "@/lib/route-history";
 import { useRouteHistory } from "@/hooks/useRouteHistory";
@@ -189,24 +189,100 @@ const RoutePlanner = () => {
   return <Planner />;
 };
 
-const RoutePlannerDesktopOnly = () => (
-  <div className="flex min-h-screen items-center justify-center bg-background px-6">
-    <SEO title="Ruteplanlægger – Serviceydere" description="Ruteplanlæggeren er kun tilgængelig på computer." noIndex />
-    <div className="max-w-md text-center">
-      <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-secondary">
-        <Monitor className="h-7 w-7 text-foreground" />
+const RoutePlannerDesktopOnly = () => {
+  const [copied, setCopied] = useState(false);
+  const url = typeof window !== "undefined" ? window.location.href : "";
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {}
+  };
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-background via-background to-muted/30 px-5 py-10">
+      <SEO title="Ruteplanlægger – Serviceydere" description="Ruteplanlæggeren er kun tilgængelig på computer." noIndex />
+      <div className="w-full max-w-md">
+        <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+          {/* Hero */}
+          <div className="relative px-6 pt-8 pb-6 text-center bg-gradient-to-b from-secondary/40 to-transparent">
+            <div className="mx-auto mb-4 relative">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-foreground text-background shadow-md">
+                <Monitor className="h-8 w-8" />
+              </div>
+              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 translate-x-6 inline-flex h-6 w-6 items-center justify-center rounded-full bg-accent text-accent-foreground text-[10px] font-bold border-2 border-card">
+                HD
+              </span>
+            </div>
+            <h1 className="text-xl font-bold text-foreground">Åbn på computer</h1>
+            <p className="mx-auto mt-2 max-w-xs text-sm text-muted-foreground leading-relaxed">
+              Ruteplanlæggeren er bygget til store skærme med præcis pegeenhed.
+            </p>
+          </div>
+
+          {/* Features */}
+          <div className="px-6 py-5 space-y-2.5 border-t border-border">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+              Hvad du får på desktop
+            </p>
+            {[
+              { icon: MousePointer2, title: "Træk-og-slip planlægning", desc: "Flyt aftaler mellem dage og ruter med musen." },
+              { icon: MapIcon, title: "Live kort og ETA", desc: "Se ruter på kortet og beregn køretid undervejs." },
+              { icon: LayoutGrid, title: "Paneler side-om-side", desc: "Kalender, aftaler og detaljer samtidigt." },
+            ].map(({ icon: Icon, title, desc }) => (
+              <div key={title} className="flex items-start gap-3 rounded-lg p-2 hover:bg-muted/40 transition-colors">
+                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-foreground">
+                  <Icon className="h-4 w-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground leading-tight">{title}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Copy link */}
+          <div className="px-6 pb-5">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+              Send linket til dig selv
+            </p>
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="group w-full flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2.5 text-left transition-colors hover:bg-muted/60 active:scale-[0.99]"
+            >
+              <span className="min-w-0 flex-1 truncate text-xs font-mono text-muted-foreground">
+                {url || "ruteplanlægger"}
+              </span>
+              <span className={cn(
+                "inline-flex items-center gap-1 shrink-0 text-xs font-medium transition-colors",
+                copied ? "text-emerald-600" : "text-foreground group-hover:text-accent",
+              )}>
+                {copied ? <><Check className="h-3.5 w-3.5" />Kopieret</> : <><Copy className="h-3.5 w-3.5" />Kopiér</>}
+              </span>
+            </button>
+          </div>
+
+          {/* Footer */}
+          <div className="border-t border-border bg-muted/20 px-6 py-3">
+            <Link
+              to="/virksomhed"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground hover:text-accent transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Tilbage til oversigt
+            </Link>
+          </div>
+        </div>
+
+        <p className="mt-4 text-center text-[11px] text-muted-foreground">
+          Tip: Bookmark siden på din computer for hurtig adgang.
+        </p>
       </div>
-      <h1 className="mb-2 text-lg font-semibold text-foreground">Kun på computer</h1>
-      <p className="mb-6 text-sm text-muted-foreground">
-        Ruteplanlæggeren bruger træk-og-slip, kort og flere paneler ved siden af hinanden.
-        Åbn siden på en computer for at planlægge ruter — telefoner og tablets understøttes ikke.
-      </p>
-      <Link to="/virksomhed" className="text-sm font-medium text-accent hover:underline">
-        ← Tilbage til oversigt
-      </Link>
     </div>
-  </div>
-);
+  );
+};
 
 const Planner = () => {
   const { data: business, isLoading: loadingBusiness } = useMyBusiness();
