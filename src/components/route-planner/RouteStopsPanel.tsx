@@ -113,14 +113,14 @@ export const RouteStopsPanel = ({
     if (isProjection) return; // safety — knappen er skjult i projection-mode
     try {
       const res = await deleteStop.mutateAsync(stop.id) as any;
-      toast.success(
-        res?.route_deleted
-          ? "Aftale fjernet — den tomme rute blev slettet"
-          : "Aftale fjernet fra ruten",
-        res?.recurring_unlinked
-          ? { description: "Fremtidige gentagelser vises ikke længere på denne rute." }
-          : undefined,
-      );
+      const message = res?.route_deleted
+        ? "Aftale fjernet — den tomme rute blev slettet"
+        : "Aftale fjernet fra ruten";
+      if (res?.recurring_unlinked) {
+        toast.success(message, { description: "Fremtidige gentagelser vises ikke længere på denne rute." });
+      } else {
+        toast.success(message);
+      }
     } catch (err: any) {
       toast.error(err.message || "Kunne ikke fjerne stop");
     }
