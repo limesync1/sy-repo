@@ -483,6 +483,29 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, optimizin
       <ChevronDown className="h-3.5 w-3.5 -rotate-90 text-muted-foreground shrink-0" />
     </div>
   );
+
+  const isVirtualRoute = !!route.isVirtual;
+  const canDelete = !!onDelete && !isVirtualRoute && !busy;
+  const canOptimize = !isVirtualRoute && stopCount >= 2 && !busy;
+
+  return (
+    <RouteContextMenu
+      hide={{
+        duplicate: true,
+        move: true,
+        "show-on-map": true,
+        optimize: !canOptimize,
+        delete: !canDelete,
+      }}
+      onAction={(action) => {
+        if (action === "view") onSelect();
+        else if (action === "optimize" && canOptimize) onOptimize();
+        else if (action === "delete" && canDelete) onDelete!();
+      }}
+    >
+      {pill}
+    </RouteContextMenu>
+  );
 };
 
 const AgendaRoutePill = memo(AgendaRoutePillInner);
