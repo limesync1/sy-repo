@@ -3799,11 +3799,31 @@ const Planner = () => {
               >
                 <ChevronLeft className="h-3.5 w-3.5" />
               </Button>
-              <span className="text-xs font-medium capitalize min-w-[110px] text-center tabular-nums">
-                {view === "week"
-                  ? `Uge ${format(parseISO(date), "I", { locale: da })} · ${format(parseISO(date), "MMM yyyy", { locale: da })}`
-                  : format(parseISO(date), "MMMM yyyy", { locale: da })}
-              </span>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="text-xs font-medium capitalize min-w-[110px] text-center tabular-nums px-2 h-7 rounded-md hover:bg-secondary focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                    aria-label="Vælg dato"
+                    title="Spring til specifik dato"
+                  >
+                    {view === "week"
+                      ? `Uge ${format(parseISO(date), "I", { locale: da })} · ${format(parseISO(date), "MMM yyyy", { locale: da })}`
+                      : format(parseISO(date), "MMMM yyyy", { locale: da })}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent align="center" className="w-auto p-0">
+                  <CalendarPicker
+                    mode="single"
+                    selected={parseISO(date)}
+                    onSelect={(d) => { if (d) setDate(format(d, "yyyy-MM-dd")); }}
+                    weekStartsOn={1}
+                    locale={da}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
               <Button
                 variant="outline"
                 size="icon"
