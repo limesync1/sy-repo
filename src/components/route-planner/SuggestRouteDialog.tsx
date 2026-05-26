@@ -369,7 +369,7 @@ export const SuggestRouteDialog = ({
             Annuller
           </Button>
           <Button variant="outline" onClick={() => refetch()} disabled={noCoords || isLoading}>
-            Beregn igen
+            Opdater forslag
           </Button>
           <Button
             disabled={!chosen}
@@ -381,7 +381,7 @@ export const SuggestRouteDialog = ({
             }}
           >
             <CheckCircle2 className="h-4 w-4 mr-1.5" />
-            Tildel til valgt rute
+            Tilføj til denne rute
           </Button>
         </DialogFooter>
       </DialogContent>
