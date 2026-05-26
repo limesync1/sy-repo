@@ -3768,6 +3768,14 @@ const Planner = () => {
                           <SelectItem value="name" className="text-xs">Navn (A-Å)</SelectItem>
                         </SelectContent>
                       </Select>
+                      <button
+                        type="button"
+                        onClick={() => setCompactCards((v) => !v)}
+                        className="h-6 px-1.5 rounded border border-border bg-background text-[10px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors shrink-0"
+                        title={compactCards ? "Vis fulde kort" : "Vis kompakte kort"}
+                      >
+                        {compactCards ? "Fuld" : "Kompakt"}
+                      </button>
                     </div>
                     {(() => {
                       const missing = (unassigned as any[]).filter(
@@ -3858,6 +3866,7 @@ const Planner = () => {
                         job={job}
                         onClick={() => setSelectedJob(job)}
                         onSuggestRoute={() => setSuggestJob(job)}
+                        compact={compactCards}
                       />
                     ))}
                   </div>
