@@ -1912,12 +1912,16 @@ const Planner = () => {
           skipped++;
         }
       }
-      qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
-      qc.invalidateQueries({ queryKey: ["route-calendar"] });
+      invalidateRouteSyncQueries(qc);
       if (assigned > 0) {
-        toast.success(`Fordelt ${assigned} aftale${assigned === 1 ? "" : "r"} til bedst matchende ruter${skipped > 0 ? ` — ${skipped} sprunget over` : ""}`, {
-          description: skipped > 0 ? "Sprungne aftaler manglede plads eller ingen rute matchede." : undefined,
-        });
+        toast.success(
+          `Fordelt ${assigned} aftale${assigned === 1 ? "" : "r"} til bedst matchende ruter`,
+          {
+            description: skipped > 0
+              ? `${skipped} sprunget over — manglede plads eller ingen rute matchede.`
+              : "Kapacitetsbarerne i kalenderen er opdateret.",
+          },
+        );
       } else {
         toast.error("Kunne ikke auto-fordele nogen aftaler", {
           description: "Ingen ruter passede — prøv at oprette flere ruter på de relevante datoer først.",
