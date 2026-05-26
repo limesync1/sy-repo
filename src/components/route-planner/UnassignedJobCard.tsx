@@ -118,14 +118,16 @@ export const UnassignedJobCard = ({ job, onClick, onSuggestRoute }: Props) => {
   const fullAddress = [job.address, cityLine].filter(Boolean).join(", ");
 
   // Foretrukken kilde til varighed: eksplicit estimeret felt fra ordren.
-  // Falder tilbage til tidsvindue, derefter 30 min default.
-  let estimatedMin = 30;
+  // Falder tilbage til tidsvindue. Vi viser kun varighed hvis vi har
+  // et reelt tal — et hard-coded "30 min" forvirrer mere end det hjælper.
+  let estimatedMin: number | null = null;
   if (job.estimated_duration_minutes && job.estimated_duration_minutes > 0) {
     estimatedMin = job.estimated_duration_minutes;
   } else if (job.preferred_time_start && job.preferred_time_end) {
     const [sh, sm] = job.preferred_time_start.split(":").map(Number);
     const [eh, em] = job.preferred_time_end.split(":").map(Number);
-    estimatedMin = (eh * 60 + em) - (sh * 60 + sm);
+    const diff = (eh * 60 + em) - (sh * 60 + sm);
+    if (diff > 0) estimatedMin = diff;
   }
 
   // Foretrukken dato — recurring abonnementer bruger next_service_date som "skal udføres senest".
@@ -227,22 +229,28 @@ export const UnassignedJobCard = ({ job, onClick, onSuggestRoute }: Props) => {
           {job.preferred_route_name && (
             <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-md border border-accent/40 bg-accent/5 px-2 py-1 text-[11px] font-medium text-accent min-w-0">
               <RouteIcon className="h-3 w-3 shrink-0" />
-              <span className="opacity-80 font-normal">Foreslået rute:</span>
+              <span className="opacity-80 font-normal">Fast rute:</span>
               <span className="font-semibold truncate min-w-0">{job.preferred_route_name}</span>
             </div>
           )}
 
-          {/* Konsistent badge-række: alle h-5, samme tekst-størrelse og padding.
-              Farver siger noget: primary = gentaget, neutral = engangs/tid. */}
+          {/* Badge-række: viser kun det der giver mening. Varighed har label
+              så ejeren forstår hvad tallet betyder — ikke et nøgent "30 min". */}
           <div className="flex items-center gap-1.5 flex-wrap">
             <IntervalBadge
               interval={items.find((it: any) => it.details?.interval)?.details?.interval}
               size="sm"
             />
-            <Badge variant="outline" className="h-5 text-[11px] px-2 gap-1 border-border text-muted-foreground font-medium">
-              <Clock className="h-3 w-3" />
-              {formatDurationMin(estimatedMin)}
-            </Badge>
+            {estimatedMin != null && (
+              <Badge
+                variant="outline"
+                className="h-5 text-[11px] px-2 gap-1 border-border text-muted-foreground font-medium"
+                title="Forventet varighed på opgaven"
+              >
+                <Clock className="h-3 w-3" />
+                Varighed {formatDurationMin(estimatedMin)}
+              </Badge>
+            )}
             {!schedule && job.preferred_time_start && (
               <Badge variant="outline" className="h-5 text-[11px] px-2 gap-1 border-border text-muted-foreground font-medium">
                 <Clock className="h-3 w-3" />
