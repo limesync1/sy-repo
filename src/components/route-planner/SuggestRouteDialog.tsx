@@ -58,10 +58,23 @@ const fmtCap = (used: number, max: number | null, unit: string) => {
   return `${Math.round(used)} / ${Math.round(max)}${unit}`;
 };
 
-const scoreColor = (score: number) => {
-  if (score >= 75) return "text-emerald-600 bg-emerald-50 border-emerald-200";
-  if (score >= 50) return "text-amber-700 bg-amber-50 border-amber-200";
-  return "text-rose-700 bg-rose-50 border-rose-200";
+/** Oversæt rå score til en venlig "passer"-vurdering uden tal-jargon. */
+const matchLevel = (score: number): { label: string; cls: string; dot: string } => {
+  if (score >= 75) return {
+    label: "Passer rigtig godt",
+    cls: "text-emerald-700 bg-emerald-50 border-emerald-200",
+    dot: "bg-emerald-500",
+  };
+  if (score >= 50) return {
+    label: "Passer rimeligt",
+    cls: "text-amber-800 bg-amber-50 border-amber-200",
+    dot: "bg-amber-500",
+  };
+  return {
+    label: "Passer dårligt",
+    cls: "text-rose-700 bg-rose-50 border-rose-200",
+    dot: "bg-rose-500",
+  };
 };
 
 export const SuggestRouteDialog = ({
