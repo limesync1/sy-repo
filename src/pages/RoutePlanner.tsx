@@ -40,7 +40,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon,
   Loader2, Search, Plus, Inbox, ArrowUpDown, X, Keyboard, Filter,
-  ShoppingBag, Route as RouteIcon, Tag, Palette, ListChecks, AlertTriangle, Undo2, Redo2, Sparkles,
+  ShoppingBag, Route as RouteIcon, Tag, Palette, ListChecks, AlertTriangle, Undo2, Redo2, Sparkles, MapPin,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -1711,6 +1711,47 @@ const Planner = () => {
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unassigned.length, businessId]);
+
+  // Manuel bulk-geokod: kører gennem ALLE aftaler uden GPS i én omgang
+  // (op til 50). Bruges af knappen "Geokod alle" i sidebaren — så ejeren
+  // kan rense en hel pulje på én gang i stedet for at vente på den
+  // automatiske 5-ad-gangen-loop.
+  const runBulkGeocode = async () => {
+    if (!businessId) return;
+    const needs = (unassigned as any[]).filter(
+      (j) => (j.address || j.zip_code || j.city) && (j.latitude == null || j.longitude == null),
+    );
+    if (needs.length === 0) {
+      toast.info("Alle aftaler har allerede koordinater.");
+      return;
+    }
+    setGeocoding(true);
+    let ok = 0;
+    let failed = 0;
+    try {
+      const batch = needs.slice(0, 50);
+      for (const job of batch) {
+        try {
+          const res = await geocode.mutateAsync({
+            address: job.address || undefined,
+            zip_code: job.zip_code || undefined,
+            city: job.city || undefined,
+          });
+          if (res.found && res.latitude != null && res.longitude != null) {
+            await supabase.from("orders").update({
+              latitude: res.latitude, longitude: res.longitude,
+            }).eq("id", job.id);
+            ok++;
+          } else { failed++; }
+        } catch { failed++; }
+      }
+      qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
+      if (ok > 0) toast.success(`Fandt koordinater på ${ok} aftale${ok === 1 ? "" : "r"}.${failed > 0 ? ` ${failed} kunne ikke findes — tjek adressen.` : ""}`);
+      else toast.error("Ingen adresser kunne findes — tjek at de er stavet rigtigt.");
+    } finally {
+      setGeocoding(false);
+    }
+  };
 
   /* Keyboard shortcuts: ←/→ for date, T for today, M for map, N for new route */
   useEffect(() => {
@@ -3640,11 +3681,30 @@ const Planner = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                    {geocoding && (
-                      <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                        <Loader2 className="h-2.5 w-2.5 animate-spin" />Finder GPS-koordinater...
-                      </p>
-                    )}
+                    {(() => {
+                      const missing = (unassigned as any[]).filter(
+                        (j) => (j.address || j.zip_code || j.city) && (j.latitude == null || j.longitude == null),
+                      ).length;
+                      if (geocoding) {
+                        return (
+                          <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                            <Loader2 className="h-2.5 w-2.5 animate-spin" />Finder GPS-koordinater…
+                          </p>
+                        );
+                      }
+                      if (missing === 0) return null;
+                      return (
+                        <button
+                          type="button"
+                          onClick={runBulkGeocode}
+                          className="w-full flex items-center justify-center gap-1.5 h-6 rounded border border-amber-300 bg-amber-50/60 text-[10px] font-medium text-amber-900 hover:bg-amber-100/80 transition-colors"
+                          title="Find GPS-koordinater på alle aftaler uden — så de kan placeres på kortet"
+                        >
+                          <MapPin className="h-2.5 w-2.5" />
+                          Geokod alle ({missing})
+                        </button>
+                      );
+                    })()}
                   </div>
 
                   <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
