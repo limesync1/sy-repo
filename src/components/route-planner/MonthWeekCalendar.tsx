@@ -652,7 +652,7 @@ const RoutePillInner = ({
   const extraEmployees = route.attachedEmployees.length - visibleEmployees.length;
   // Fjernet: grøn bundkant og "klar til udførelse"-logik efter ønske.
 
-  return (
+  const pill = (
     <div
       ref={setRefs}
       data-route-drop-route-id={!isVirtual && !isPast ? route.id : undefined}
