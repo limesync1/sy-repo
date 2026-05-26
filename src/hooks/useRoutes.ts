@@ -1000,6 +1000,7 @@ export const useDeleteRoute = () => {
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
       qc.invalidateQueries({ queryKey: ["route-employees-bulk"] });
       qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
+      qc.invalidateQueries({ queryKey: ["daily-capacity"] });
       if ((res as any)?.soft) {
         toast.success("Rute arkiveret — historik bevares");
       }
@@ -1036,6 +1037,7 @@ export const useMaterializeVirtualRoute = () => {
       qc.invalidateQueries({ queryKey: ["route-stops"] });
       qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
       qc.invalidateQueries({ queryKey: ["route-occurrence-exceptions"] });
+      qc.invalidateQueries({ queryKey: ["daily-capacity"] });
     },
     onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke materialisere rute" }),
   });
