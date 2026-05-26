@@ -2728,10 +2728,19 @@ const Planner = () => {
           // og giv den en ledig farve — samme adfærd som MoveStopsDialog.
           try { await renameFreshSplitRoutes([stop.id], newDate); }
           catch (e) { console.warn("renameFreshSplitRoutes", e); }
-          toast.success(
-            `Stop flyttet til ${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`,
-            conflictMsg ? { description: `⚠️ ${conflictMsg} — tjek tidsplanen` } : undefined,
-          );
+          // Batchet — hurtige flytninger samles til "N stops flyttet".
+          if (conflictMsg) {
+            toast.success(
+              `Stop flyttet til ${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`,
+              { description: `⚠️ ${conflictMsg} — tjek tidsplanen` },
+            );
+          } else {
+            pushBatchedToast(
+              "success",
+              `Stop flyttet til ${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`,
+              { key: "rp-move-stop", successWord: "stops flyttet", errorWord: "fejlede" },
+            );
+          }
         }
         if (missing > 0) {
           toast.error("Stoppet mangler en medarbejder for at kunne flyttes", {
