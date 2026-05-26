@@ -105,7 +105,7 @@ import { haversineMeters } from "@/lib/geo-distance";
 import { validateStopAssignment, validateRouteMove } from "@/lib/route-validation";
 import { cn } from "@/lib/utils";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
-import { Monitor, MousePointer2, Map as MapIcon, LayoutGrid, ArrowLeft, Copy, Check } from "lucide-react";
+import { Monitor, MousePointer2, Map as MapIcon, LayoutGrid, ArrowLeft, Copy, Check, Rows3 } from "lucide-react";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { pushRouteUndo, routeHistory } from "@/lib/route-history";
 import { useRouteHistory } from "@/hooks/useRouteHistory";
