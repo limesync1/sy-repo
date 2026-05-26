@@ -3931,32 +3931,27 @@ const Planner = () => {
           // mobil/tablet Sheet-drawer, så drag-and-drop fungerer på alle enheder.
           const unassignedCard = (
                 <Card data-tour="routes-unassigned" className="flex flex-col h-full overflow-hidden">
-                  <div className="p-3 border-b bg-gradient-to-b from-secondary/50 to-secondary/20 space-y-2.5">
-                    {/* pr-10 reserverer plads til Sheet's luk-knap (right-4 top-4) på
-                        alle viewports hvor kortet vises i en Sheet. ResizablePanel-
-                        layoutet kommer først ved xl+ — så vi fjerner først pr-10 dér. */}
-                    <div className="flex items-start gap-2 pr-10 xl:pr-0">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-foreground text-background shadow-sm">
-                        <Inbox className="h-4 w-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h2 className="font-bold text-sm leading-tight text-foreground truncate">
-                          Aftaler uden rute
-                        </h2>
-                        <p className="mt-0.5 text-[11px] text-muted-foreground truncate">
-                          {filteredUnassigned.length === 0
-                            ? "Træk aftaler ind i kalenderen for at planlægge"
-                            : (
-                              <>
-                                <span className="font-semibold text-foreground tabular-nums">{filteredUnassigned.length}</span>
-                                {" "}{filteredUnassigned.length === 1 ? "aftale" : "aftaler"}
-                                {" · "}
-                                <span className="tabular-nums">{Math.round(unassignedTotal).toLocaleString("da-DK")} kr</span>
-                              </>
-                            )}
-                        </p>
-                      </div>
+                  <div className="px-3 pt-3 pb-2.5 border-b bg-card space-y-2.5">
+                    <div className="flex items-center gap-2 pr-10 xl:pr-0">
+                      <Inbox className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <h2 className="font-semibold text-sm leading-tight text-foreground truncate flex-1">
+                        Aftaler uden rute
+                      </h2>
+                      {filteredUnassigned.length > 0 && (
+                        <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-foreground text-background text-[11px] font-semibold tabular-nums shrink-0">
+                          {filteredUnassigned.length}
+                        </span>
+                      )}
                     </div>
+                    {filteredUnassigned.length > 0 ? (
+                      <p className="text-[11px] text-muted-foreground -mt-1">
+                        <span className="tabular-nums font-medium text-foreground">{Math.round(unassignedTotal).toLocaleString("da-DK")} kr</span> samlet · træk ind i kalenderen
+                      </p>
+                    ) : (
+                      <p className="text-[11px] text-muted-foreground -mt-1">
+                        Træk aftaler ind i kalenderen for at planlægge
+                      </p>
+                    )}
                     <div className="relative">
                       <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                       <Input
