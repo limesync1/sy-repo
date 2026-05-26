@@ -3771,6 +3771,9 @@ const Planner = () => {
                       const missing = (unassigned as any[]).filter(
                         (j) => (j.address || j.zip_code || j.city) && (j.latitude == null || j.longitude == null),
                       ).length;
+                      const canAutoAssign = (unassigned as any[]).filter(
+                        (j) => j.status !== "pending" && j.latitude != null && j.longitude != null && (j.preferred_date || j.next_service_date),
+                      ).length;
                       if (geocoding) {
                         return (
                           <p className="text-[10px] text-muted-foreground flex items-center gap-1">
@@ -3778,17 +3781,34 @@ const Planner = () => {
                           </p>
                         );
                       }
-                      if (missing === 0) return null;
+                      if (missing === 0 && canAutoAssign === 0) return null;
                       return (
-                        <button
-                          type="button"
-                          onClick={runBulkGeocode}
-                          className="w-full flex items-center justify-center gap-1.5 h-6 rounded border border-amber-300 bg-amber-50/60 text-[10px] font-medium text-amber-900 hover:bg-amber-100/80 transition-colors"
-                          title="Find GPS-koordinater på alle aftaler uden — så de kan placeres på kortet"
-                        >
-                          <MapPin className="h-2.5 w-2.5" />
-                          Geokod alle ({missing})
-                        </button>
+                        <div className="space-y-1.5">
+                          {missing > 0 && (
+                            <button
+                              type="button"
+                              onClick={runBulkGeocode}
+                              className="w-full flex items-center justify-center gap-1.5 h-6 rounded border border-amber-300 bg-amber-50/60 text-[10px] font-medium text-amber-900 hover:bg-amber-100/80 transition-colors"
+                              title="Find GPS-koordinater på alle aftaler uden — så de kan placeres på kortet"
+                            >
+                              <MapPin className="h-2.5 w-2.5" />
+                              Geokod alle ({missing})
+                            </button>
+                          )}
+                          {canAutoAssign > 0 && (
+                            <button
+                              type="button"
+                              onClick={runAutoAssign}
+                              disabled={autoAssigning}
+                              className="w-full flex items-center justify-center gap-1.5 h-6 rounded border border-accent/40 bg-accent/10 text-[10px] font-medium text-foreground hover:bg-accent/20 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                              title="Fordel automatisk alle aftaler til den bedst matchende eksisterende rute"
+                            >
+                              {autoAssigning
+                                ? <><Loader2 className="h-2.5 w-2.5 animate-spin" />Fordeler…</>
+                                : <><Sparkles className="h-2.5 w-2.5 text-accent" />Auto-fordel ({canAutoAssign})</>}
+                            </button>
+                          )}
+                        </div>
                       );
                     })()}
                   </div>
