@@ -1711,7 +1711,11 @@ const Planner = () => {
     }
   };
 
-  /* Auto-geocode jobs missing coords */
+  /* Auto-geocode jobs missing coords.
+   * Vi rydder hele puljen op til 25 ad gangen — det er hurtigt nok at
+   * geocoding føles "automatisk" uden manuel knap, men ikke så stort
+   * at vi rate-limiter edge-funktionen ved første sideloading. Effekten
+   * kører igen når listen ændrer længde, så restende stragglere fanges. */
   useEffect(() => {
     if (!businessId || geocoding) return;
     const needsGeocode = unassigned.filter((j: any) =>
@@ -1720,7 +1724,7 @@ const Planner = () => {
     if (needsGeocode.length === 0) return;
     setGeocoding(true);
     (async () => {
-      for (const job of needsGeocode.slice(0, 5)) {
+      for (const job of needsGeocode.slice(0, 25)) {
         try {
           const res = await geocode.mutateAsync({
             address: job.address || undefined,
@@ -1734,51 +1738,11 @@ const Planner = () => {
           }
         } catch { /* ignore */ }
       }
+      qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
       setGeocoding(false);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unassigned.length, businessId]);
-
-  // Manuel bulk-geokod: kører gennem ALLE aftaler uden GPS i én omgang
-  // (op til 50). Bruges af knappen "Geokod alle" i sidebaren — så ejeren
-  // kan rense en hel pulje på én gang i stedet for at vente på den
-  // automatiske 5-ad-gangen-loop.
-  const runBulkGeocode = async () => {
-    if (!businessId) return;
-    const needs = (unassigned as any[]).filter(
-      (j) => (j.address || j.zip_code || j.city) && (j.latitude == null || j.longitude == null),
-    );
-    if (needs.length === 0) {
-      toast.info("Alle aftaler har allerede koordinater.");
-      return;
-    }
-    setGeocoding(true);
-    let ok = 0;
-    let failed = 0;
-    try {
-      const batch = needs.slice(0, 50);
-      for (const job of batch) {
-        try {
-          const res = await geocode.mutateAsync({
-            address: job.address || undefined,
-            zip_code: job.zip_code || undefined,
-            city: job.city || undefined,
-          });
-          if (res.found && res.latitude != null && res.longitude != null) {
-            await supabase.from("orders").update({
-              latitude: res.latitude, longitude: res.longitude,
-            }).eq("id", job.id);
-            ok++;
-          } else { failed++; }
-        } catch { failed++; }
-      }
-      qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
-      if (ok > 0) toast.success(`Fandt koordinater på ${ok} aftale${ok === 1 ? "" : "r"}.${failed > 0 ? ` ${failed} kunne ikke findes — tjek adressen.` : ""}`);
-      else toast.error("Ingen adresser kunne findes — tjek at de er stavet rigtigt.");
-    } finally {
-      setGeocoding(false);
-    }
-  };
 
   // Auto-fordel: forsøger at lægge alle ikke-tildelte aftaler på den bedst
   // matchende eksisterende rute. Bruger samme RPC ("suggest_routes_for_stop")
@@ -3966,19 +3930,26 @@ const Planner = () => {
                           </p>
                         );
                       }
-                      if (missing === 0 && canAutoAssign === 0) return null;
+                      if (canAutoAssign === 0) {
+                        // GPS-koordinater hentes automatisk i baggrunden — vi viser
+                        // kun en stille statuslinje når noget mangler, ingen knap.
+                        if (missing > 0) {
+                          return (
+                            <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                              <MapPin className="h-2.5 w-2.5 text-amber-500" />
+                              {missing} aftale{missing === 1 ? "" : "r"} uden GPS — hentes automatisk
+                            </p>
+                          );
+                        }
+                        return null;
+                      }
                       return (
                         <div className="space-y-1.5">
                           {missing > 0 && (
-                            <button
-                              type="button"
-                              onClick={runBulkGeocode}
-                              className="w-full flex items-center justify-center gap-1.5 h-6 rounded border border-amber-300 bg-amber-50/60 text-[10px] font-medium text-amber-900 hover:bg-amber-100/80 transition-colors"
-                              title="Find GPS-koordinater på alle aftaler uden — så de kan placeres på kortet"
-                            >
-                              <MapPin className="h-2.5 w-2.5" />
-                              Geokod alle ({missing})
-                            </button>
+                            <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                              <MapPin className="h-2.5 w-2.5 text-amber-500" />
+                              {missing} uden GPS — hentes automatisk
+                            </p>
                           )}
                           {canAutoAssign > 0 && (
                             <button
@@ -4005,39 +3976,6 @@ const Planner = () => {
                       onClear={() => setSelectedJobIds(new Set())}
                       onSelectAll={() => setSelectedJobIds(new Set(filteredUnassigned.map((j: any) => j.id)))}
                       busy={bulkBusy}
-                      onGeocode={async () => {
-                        if (!businessId || selectedJobIds.size === 0) return;
-                        const jobs = (unassigned as any[]).filter(
-                          (j) => selectedJobIds.has(j.id) && (j.address || j.zip_code || j.city)
-                            && (j.latitude == null || j.longitude == null),
-                        );
-                        if (jobs.length === 0) { toast.info("Valgte aftaler har allerede koordinater."); return; }
-                        setBulkBusy(true);
-                        let ok = 0, failed = 0;
-                        try {
-                          for (const job of jobs) {
-                            try {
-                              const res = await geocode.mutateAsync({
-                                address: job.address || undefined,
-                                zip_code: job.zip_code || undefined,
-                                city: job.city || undefined,
-                              });
-                              if (res.found && res.latitude != null && res.longitude != null) {
-                                await supabase.from("orders").update({
-                                  latitude: res.latitude, longitude: res.longitude,
-                                }).eq("id", job.id);
-                                ok++;
-                              } else failed++;
-                            } catch { failed++; }
-                          }
-                          qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
-                          if (ok > 0) toast.success(`Geokodet ${ok} aftale${ok === 1 ? "" : "r"}${failed > 0 ? ` · ${failed} fejlede` : ""}`);
-                          else toast.error("Ingen adresser kunne findes.");
-                        } finally {
-                          setBulkBusy(false);
-                          setSelectedJobIds(new Set());
-                        }
-                      }}
                     />
                     {loadingUnassigned && unassigned.length === 0 && (
                       <div className="space-y-1.5">

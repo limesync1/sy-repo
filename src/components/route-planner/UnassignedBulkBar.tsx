@@ -1,7 +1,7 @@
 // Bulk-handlingsbjælke for "Aftaler uden rute".
 // Vises når én eller flere aftaler er markeret med checkbox; tilbyder
 // hurtige handlinger på alle valgte uden at åbne hver enkelt.
-import { CheckSquare, X, MapPin, ListChecks, Trash2 } from "lucide-react";
+import { CheckSquare, X, ListChecks, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type Props = {
@@ -10,14 +10,13 @@ type Props = {
   onClear: () => void;
   onSelectAll: () => void;
   onAssignToRoute?: () => void;
-  onGeocode?: () => void;
   onDelete?: () => void;
   busy?: boolean;
 };
 
 export default function UnassignedBulkBar({
   selectedCount, totalCount, onClear, onSelectAll,
-  onAssignToRoute, onGeocode, onDelete, busy,
+  onAssignToRoute, onDelete, busy,
 }: Props) {
   if (selectedCount === 0) return null;
   return (
@@ -35,11 +34,6 @@ export default function UnassignedBulkBar({
         {onAssignToRoute && (
           <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={onAssignToRoute} disabled={busy}>
             <ListChecks className="h-3.5 w-3.5 mr-1" /> Tildel rute
-          </Button>
-        )}
-        {onGeocode && (
-          <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={onGeocode} disabled={busy}>
-            <MapPin className="h-3.5 w-3.5 mr-1" /> Geokod
           </Button>
         )}
         {onDelete && (
