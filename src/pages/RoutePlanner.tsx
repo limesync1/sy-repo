@@ -3401,6 +3401,8 @@ const Planner = () => {
         activeRouteDragPointRef.current = null;
         activeRouteDragOriginRef.current = null;
         clearDragValidation();
+        setDragOverTargetId(null);
+        clearDragEta();
       }}
     >
       <SEO
