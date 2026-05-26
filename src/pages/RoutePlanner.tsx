@@ -105,7 +105,7 @@ import { haversineMeters } from "@/lib/geo-distance";
 import { validateStopAssignment, validateRouteMove } from "@/lib/route-validation";
 import { cn } from "@/lib/utils";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
-import { Monitor, MousePointer2, Map as MapIcon, LayoutGrid, ArrowLeft, Copy, Check } from "lucide-react";
+import { Monitor, MousePointer2, Map as MapIcon, LayoutGrid, ArrowLeft, Copy, Check, Rows3 } from "lucide-react";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { pushRouteUndo, routeHistory } from "@/lib/route-history";
 import { useRouteHistory } from "@/hooks/useRouteHistory";
@@ -3940,37 +3940,46 @@ const Planner = () => {
           // mobil/tablet Sheet-drawer, så drag-and-drop fungerer på alle enheder.
           const unassignedCard = (
                 <Card data-tour="routes-unassigned" className="flex flex-col h-full overflow-hidden">
-                  <div className="p-3 border-b bg-secondary/30 space-y-2">
+                  <div className="p-3 border-b bg-gradient-to-b from-secondary/50 to-secondary/20 space-y-2.5">
                     {/* pr-10 reserverer plads til Sheet's luk-knap (right-4 top-4) på
                         alle viewports hvor kortet vises i en Sheet. ResizablePanel-
                         layoutet kommer først ved xl+ — så vi fjerner først pr-10 dér. */}
-                    <div className="flex items-center gap-2 pr-10 xl:pr-0">
-                      <h2 className="min-w-0 font-semibold text-sm flex items-center gap-1.5 leading-tight">
-                        <Inbox className="h-4 w-4 text-primary" />
-                        <span className="truncate">Aftaler uden rute</span>
-                      </h2>
-                      <Badge variant="secondary" className="shrink-0 tabular-nums">
-                        {filteredUnassigned.length}
-                      </Badge>
-                      {filteredUnassigned.length > 0 && (
-                        <span className="ml-auto text-[11px] text-muted-foreground tabular-nums shrink-0">
-                          {Math.round(unassignedTotal).toLocaleString("da-DK")} kr
-                        </span>
-                      )}
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            className="shrink-0 h-5 w-5 inline-flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-secondary"
-                            aria-label="Hjælp"
-                          >
-                            <span className="text-[10px] font-semibold">?</span>
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" className="max-w-[260px] text-xs leading-snug">
-                          Træk en aftale ind i kalenderen for at planlægge den. Når en aftale med interval markeres som udført, opretter vi automatisk næste aftale på samme rute og medarbejder.
-                        </TooltipContent>
-                      </Tooltip>
+                    <div className="flex items-start gap-2 pr-10 xl:pr-0">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-foreground text-background shadow-sm">
+                        <Inbox className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h2 className="font-bold text-sm leading-tight flex items-center gap-1.5 text-foreground">
+                          <span className="truncate">Aftaler uden rute</span>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                className="shrink-0 h-4 w-4 inline-flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-background border border-border focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                                aria-label="Hjælp om aftaler uden rute"
+                              >
+                                <span className="text-[9px] font-bold">?</span>
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom" className="max-w-[260px] text-xs leading-snug">
+                              Træk en aftale ind i kalenderen for at planlægge den. Når en aftale med interval markeres som udført, opretter vi automatisk næste aftale på samme rute og medarbejder.
+                            </TooltipContent>
+                          </Tooltip>
+                        </h2>
+                        <div className="mt-1 flex items-center gap-1.5 text-[11px]">
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-background border border-border font-semibold text-foreground tabular-nums">
+                            {filteredUnassigned.length}
+                            <span className="text-muted-foreground font-normal">
+                              {filteredUnassigned.length === 1 ? "aftale" : "aftaler"}
+                            </span>
+                          </span>
+                          {filteredUnassigned.length > 0 && (
+                            <span className="text-muted-foreground tabular-nums truncate">
+                              {Math.round(unassignedTotal).toLocaleString("da-DK")} kr
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
                     <div className="relative">
                       <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
@@ -3978,13 +3987,13 @@ const Planner = () => {
                         placeholder="Søg navn eller adresse..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="h-8 pl-7 pr-7 text-xs"
+                        className="h-8 pl-7 pr-7 text-xs bg-background"
                       />
                       {search && (
                         <button
                           type="button"
                           onClick={() => setSearch("")}
-                          className="absolute right-1.5 top-1/2 -translate-y-1/2 h-4 w-4 flex items-center justify-center rounded hover:bg-secondary text-muted-foreground"
+                          className="absolute right-1.5 top-1/2 -translate-y-1/2 h-5 w-5 flex items-center justify-center rounded hover:bg-secondary text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                           aria-label="Ryd søgning"
                         >
                           <X className="h-3 w-3" />
@@ -3992,9 +4001,9 @@ const Planner = () => {
                       )}
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <ArrowUpDown className="h-3 w-3 text-muted-foreground shrink-0" />
                       <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
-                        <SelectTrigger className="h-7 text-[11px] flex-1">
+                        <SelectTrigger className="h-7 text-[11px] flex-1 bg-background gap-1.5" aria-label="Sortering">
+                          <ArrowUpDown className="h-3 w-3 text-muted-foreground shrink-0" />
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -4003,21 +4012,42 @@ const Planner = () => {
                           <SelectItem value="name" className="text-xs">Navn (A-Å)</SelectItem>
                         </SelectContent>
                       </Select>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            onClick={() => setCompactCards((v) => !v)}
-                            className="h-7 px-2 rounded border border-border bg-background text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors shrink-0"
-                            aria-label={compactCards ? "Vis fulde kort" : "Vis kompakte kort"}
-                          >
-                            {compactCards ? "Fuld" : "Kompakt"}
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" className="text-xs">
-                          {compactCards ? "Skift til fulde kort" : "Skift til kompakte kort"}
-                        </TooltipContent>
-                      </Tooltip>
+                      <div className="inline-flex items-center rounded-md border border-border bg-background p-0.5 shrink-0" role="group" aria-label="Korttæthed">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              onClick={() => setCompactCards(false)}
+                              aria-label="Vis fulde kort"
+                              aria-pressed={!compactCards}
+                              className={cn(
+                                "h-6 w-6 inline-flex items-center justify-center rounded transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none",
+                                !compactCards ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground hover:bg-secondary",
+                              )}
+                            >
+                              <Rows3 className="h-3 w-3" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom" className="text-xs">Fulde kort</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              onClick={() => setCompactCards(true)}
+                              aria-label="Vis kompakte kort"
+                              aria-pressed={compactCards}
+                              className={cn(
+                                "h-6 w-6 inline-flex items-center justify-center rounded transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none",
+                                compactCards ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground hover:bg-secondary",
+                              )}
+                            >
+                              <LayoutGrid className="h-3 w-3" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom" className="text-xs">Kompakte kort</TooltipContent>
+                        </Tooltip>
+                      </div>
                     </div>
                     {(() => {
                       const missing = (unassigned as any[]).filter(
@@ -4059,12 +4089,12 @@ const Planner = () => {
                               type="button"
                               onClick={runAutoAssign}
                               disabled={autoAssigning}
-                              className="w-full flex items-center justify-center gap-1.5 h-6 rounded border border-accent/40 bg-accent/10 text-[10px] font-medium text-foreground hover:bg-accent/20 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                              className="w-full inline-flex items-center justify-center gap-1.5 h-8 rounded-md bg-accent text-accent-foreground text-xs font-semibold hover:bg-accent/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:outline-none"
                               title="Fordel automatisk alle aftaler til den bedst matchende eksisterende rute"
                             >
                               {autoAssigning
-                                ? <><Loader2 className="h-2.5 w-2.5 animate-spin" />Fordeler…</>
-                                : <><Sparkles className="h-2.5 w-2.5 text-accent" />Auto-fordel ({canAutoAssign})</>}
+                                ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Fordeler {canAutoAssign}…</>
+                                : <><Sparkles className="h-3.5 w-3.5" />Auto-fordel {canAutoAssign} {canAutoAssign === 1 ? "aftale" : "aftaler"}</>}
                             </button>
                           )}
                         </div>

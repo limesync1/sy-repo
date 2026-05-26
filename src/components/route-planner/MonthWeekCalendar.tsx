@@ -174,15 +174,24 @@ export const MonthWeekCalendar = ({
   return (
     <Card className="overflow-hidden flex flex-col h-full">
       {/* Weekday header */}
-      <div className="grid border-b bg-secondary/30 shrink-0" style={{ gridTemplateColumns: "48px repeat(7, minmax(0, 1fr))" }}>
-        <div className="border-r p-2 text-[10px] uppercase text-muted-foreground font-semibold flex items-center justify-center">
+      <div className="grid border-b bg-gradient-to-b from-secondary/60 to-secondary/30 shrink-0" style={{ gridTemplateColumns: "48px repeat(7, minmax(0, 1fr))" }}>
+        <div className="border-r p-2 text-[10px] uppercase text-muted-foreground font-bold tracking-wider flex items-center justify-center">
           Uge
         </div>
-        {weekdayLabels.map((wd) => (
-          <div key={wd} className="p-2 text-[11px] uppercase text-muted-foreground font-semibold text-center border-r last:border-r-0">
-            {wd}
-          </div>
-        ))}
+        {weekdayLabels.map((wd, i) => {
+          const isWeekend = i >= 5;
+          return (
+            <div
+              key={wd}
+              className={cn(
+                "p-2 text-[11px] uppercase font-bold tracking-wider text-center border-r last:border-r-0",
+                isWeekend ? "text-muted-foreground/70" : "text-foreground/80",
+              )}
+            >
+              {wd}
+            </div>
+          );
+        })}
       </div>
 
       <div className="flex-1 overflow-y-auto">
@@ -376,16 +385,23 @@ const DayCellInner = ({
       )}
       {/* Dato-header */}
       <div className="flex items-center justify-between mb-0.5">
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           <span
             className={cn(
-              "inline-flex items-center justify-center rounded-full text-xs font-semibold tabular-nums",
-              today ? "h-6 w-6 bg-accent text-accent-foreground" : "h-6 w-6 text-foreground",
+              "inline-flex items-center justify-center rounded-full text-xs font-semibold tabular-nums transition-colors",
+              today
+                ? "h-6 w-6 bg-accent text-accent-foreground shadow-sm ring-2 ring-accent/30"
+                : "h-6 w-6 text-foreground",
               !inMonth && !today && "text-muted-foreground/50",
             )}
           >
             {format(date, "d")}
           </span>
+          {today && (
+            <span className="text-[10px] font-bold uppercase tracking-wider text-accent">
+              I dag
+            </span>
+          )}
           {alert && inMonth && (
             <span
               className={cn(
@@ -419,11 +435,11 @@ const DayCellInner = ({
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onCreateRoute(dateStr); }}
-            className="opacity-0 group-hover:opacity-100 transition-opacity h-5 w-5 inline-flex items-center justify-center rounded hover:bg-accent/10 text-muted-foreground hover:text-accent"
-            aria-label="Opret rute"
-            title="Opret rute denne dag"
+            className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-all h-6 w-6 inline-flex items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground text-muted-foreground focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1"
+            aria-label={`Opret rute den ${format(date, "d. MMMM", { locale: da })}`}
+            title="Opret tom rute denne dag"
           >
-            <Plus className="h-3 w-3" />
+            <Plus className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
@@ -487,11 +503,12 @@ const DayCellInner = ({
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); onSelectRoute(routes[MAX_VISIBLE]); }}
-                  className="text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary rounded px-1.5 py-0.5 text-left transition-colors"
+                  className="inline-flex items-center gap-1 self-start text-[11px] font-semibold text-foreground bg-secondary/70 hover:bg-secondary rounded-md px-2 py-1 transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                   aria-label={`Vis ${overflow} flere ruter`}
                   title={routes.slice(MAX_VISIBLE).map((r) => r.name || "Rute").join(", ")}
                 >
-                  +{overflow} {overflow === 1 ? "mere" : "flere"}
+                  <span className="text-[10px] opacity-60">+</span>
+                  {overflow} {overflow === 1 ? "rute mere" : "ruter mere"}
                 </button>
               )}
             </>
@@ -502,17 +519,17 @@ const DayCellInner = ({
         {isJobDragActive && emptyDay && canReceiveDrop && (
           <div
             className={cn(
-              "flex-1 flex flex-col items-center justify-center gap-1 rounded-md border-2 border-dashed transition-all",
+              "flex-1 flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed transition-all min-h-[60px]",
               isOver
-                ? "border-accent bg-accent/15 text-accent scale-[1.02]"
-                : "border-accent/40 bg-accent/5 text-accent/70",
+                ? "border-accent bg-accent/20 text-accent scale-[1.03] shadow-md"
+                : "border-accent/50 bg-accent/5 text-accent/80 hover:bg-accent/10",
             )}
           >
-            <ArrowDown className={cn("h-4 w-4", isOver && "animate-bounce")} />
-            <span className="text-[10px] font-medium leading-tight text-center px-1">
+            <ArrowDown className={cn("h-5 w-5", isOver && "animate-bounce")} />
+            <span className="text-[11px] font-semibold leading-tight text-center px-1.5">
               {isOver
                 ? `Opret rute · ${format(date, "EEEE d. MMM", { locale: da })}`
-                : "Slip for ny rute"}
+                : "Slip her for ny rute"}
             </span>
           </div>
         )}
@@ -523,12 +540,13 @@ const DayCellInner = ({
           medarbejdere), helt tomme dage og fortid. */}
       {capacity && capacity.minutes_capacity > 0 && inMonth && !isPast && (
         <div
-          className="absolute bottom-0 left-0 right-0 h-1.5 bg-muted/40 overflow-hidden"
-          title={`Belastning: ${Math.round(capacity.load_pct)}% (${Math.round(capacity.minutes_booked / 60 * 10) / 10}t / ${Math.round(capacity.minutes_capacity / 60)}t)`}
+          className="absolute bottom-0 left-0 right-0 h-1.5 bg-muted/50 overflow-hidden group/cap"
+          title={`Belastning: ${Math.round(capacity.load_pct)}% — ${Math.round(capacity.minutes_booked / 60 * 10) / 10} af ${Math.round(capacity.minutes_capacity / 60)} timer booket`}
+          aria-label={`Dagens belastning: ${Math.round(capacity.load_pct)} procent`}
         >
           <div
             className={cn(
-              "h-full transition-all",
+              "h-full transition-all duration-500",
               capacity.load_pct >= 100
                 ? "bg-destructive"
                 : capacity.load_pct >= 70

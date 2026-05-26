@@ -159,7 +159,11 @@ export const UnassignedJobCard = ({
     <div
       ref={setNodeRef}
       style={{ opacity: isDragging ? 0.4 : 1 }}
-      className={`group rounded-lg border bg-card hover:shadow-md transition-all overflow-hidden ${isPending ? "border-amber-300 bg-amber-50/40" : "hover:border-primary/60"} ${selected ? "ring-2 ring-primary border-primary" : ""}`}
+      className={`group rounded-lg border bg-card transition-all overflow-hidden ${
+        isPending
+          ? "border-amber-300 bg-amber-50/40"
+          : "hover:shadow-md hover:border-foreground/30 hover:-translate-y-px"
+      } ${selected ? "ring-2 ring-accent border-accent shadow-sm" : ""}`}
     >
       {/* Top row: drag handle + clickable content */}
       <div className={`flex items-start gap-2 ${compact ? "p-2" : "p-3"}`}>
@@ -168,12 +172,13 @@ export const UnassignedJobCard = ({
             type="button"
             onClick={(e) => { e.stopPropagation(); onToggleSelect(e); }}
             aria-label={selected ? "Fravælg aftale" : "Vælg aftale"}
+            aria-pressed={selected}
             title={selected ? "Fravælg" : "Vælg"}
-            className={`shrink-0 mt-1 h-4 w-4 rounded border flex items-center justify-center transition-colors ${
+            className={`shrink-0 mt-1 h-4 w-4 rounded border flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${
               selected
-                ? "bg-primary border-primary text-primary-foreground"
+                ? "bg-accent border-accent text-accent-foreground"
                 : anySelected
-                  ? "border-primary/60 hover:bg-primary/10"
+                  ? "border-accent/60 hover:bg-accent/10"
                   : "border-border opacity-0 group-hover:opacity-100 hover:bg-secondary"
             }`}
           >
@@ -185,17 +190,24 @@ export const UnassignedJobCard = ({
           type="button"
           {...(isPending ? {} : listeners)}
           {...(isPending ? {} : attributes)}
-          aria-label={isPending ? "Skal godkendes før den kan flyttes" : "Træk for at flytte"}
-          title={isPending ? "Aftalen skal godkendes før den kan lægges på en rute" : "Træk for at flytte"}
+          aria-label={isPending
+            ? `${job.customer_name} skal godkendes før den kan flyttes`
+            : `Træk ${job.customer_name} ind på en rute eller dag i kalenderen`}
+          title={isPending ? "Aftalen skal godkendes før den kan lægges på en rute" : "Træk ind i kalenderen for at planlægge"}
           disabled={isPending}
-          className={`shrink-0 mt-1 transition-colors ${isPending ? "text-amber-500 cursor-not-allowed" : "text-muted-foreground/70 hover:text-foreground cursor-grab active:cursor-grabbing"}`}
+          className={`shrink-0 mt-0.5 h-6 w-5 inline-flex items-center justify-center rounded transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${
+            isPending
+              ? "text-amber-500 cursor-not-allowed"
+              : "text-muted-foreground hover:text-foreground hover:bg-secondary cursor-grab active:cursor-grabbing"
+          }`}
         >
           {isPending ? <Lock className="h-3.5 w-3.5" /> : <GripVertical className="h-4 w-4" />}
         </button>
         <button
           type="button"
           onClick={onClick}
-          className={`flex-1 min-w-0 text-left cursor-pointer ${compact ? "space-y-1" : "space-y-2"}`}
+          aria-label={`Åbn detaljer for ${job.customer_name}`}
+          className={`flex-1 min-w-0 text-left cursor-pointer rounded-md focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${compact ? "space-y-1" : "space-y-2"}`}
         >
           {/* Header: navn + første ydelse som sub-label + pris. Ingen ikon foran
               navnet — kortet er allerede tydeligt en kunde, og ikonet stjal plads. */}
@@ -310,7 +322,7 @@ export const UnassignedJobCard = ({
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); onSuggestRoute(); }}
-          className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 text-[11px] font-medium text-foreground hover:bg-accent/10 transition-colors"
+          className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 text-[11px] font-semibold text-foreground hover:bg-accent/10 transition-colors focus-visible:bg-accent/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
           title="Foreslå bedste rute baseret på afstand, kapacitet og færdigheder"
         >
           <Sparkles className="h-3 w-3 text-accent" />
@@ -320,7 +332,7 @@ export const UnassignedJobCard = ({
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onFindFreeSlot(); }}
-            className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary border-l border-border/50 transition-colors"
+            className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary border-l border-border/50 transition-colors focus-visible:bg-secondary focus-visible:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
             title="Spring til første dag med ledig kapacitet"
           >
             <CalendarSearch className="h-3 w-3" />
@@ -335,7 +347,8 @@ export const UnassignedJobCard = ({
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="w-full flex items-center justify-center gap-1 px-2 py-1.5 text-[11px] text-muted-foreground hover:text-foreground hover:bg-secondary/60 border-t border-border/50 transition-colors"
+          aria-expanded={expanded}
+          className="w-full flex items-center justify-center gap-1 px-2 py-1.5 text-[11px] text-muted-foreground hover:text-foreground hover:bg-secondary/60 border-t border-border/50 transition-colors focus-visible:bg-secondary focus-visible:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
         >
           {expanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
           {expanded ? "Skjul detaljer" : "Vis detaljer"}
