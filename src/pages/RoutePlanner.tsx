@@ -201,6 +201,7 @@ const Planner = () => {
   const [view, setView] = usePersistentState<"month" | "week">("route-planner:view", "month");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = usePersistentState<"date" | "price" | "name">("route-planner:sortBy", "date");
+  const [compactCards, setCompactCards] = usePersistentState<boolean>("route-planner:compactCards", false);
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [suggestJob, setSuggestJob] = useState<any | null>(null);
@@ -3767,6 +3768,14 @@ const Planner = () => {
                           <SelectItem value="name" className="text-xs">Navn (A-Å)</SelectItem>
                         </SelectContent>
                       </Select>
+                      <button
+                        type="button"
+                        onClick={() => setCompactCards((v) => !v)}
+                        className="h-6 px-1.5 rounded border border-border bg-background text-[10px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors shrink-0"
+                        title={compactCards ? "Vis fulde kort" : "Vis kompakte kort"}
+                      >
+                        {compactCards ? "Fuld" : "Kompakt"}
+                      </button>
                     </div>
                     {(() => {
                       const missing = (unassigned as any[]).filter(
@@ -3857,6 +3866,7 @@ const Planner = () => {
                         job={job}
                         onClick={() => setSelectedJob(job)}
                         onSuggestRoute={() => setSuggestJob(job)}
+                        compact={compactCards}
                       />
                     ))}
                   </div>
