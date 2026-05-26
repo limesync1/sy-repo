@@ -128,6 +128,7 @@ import EmptyState from "@/components/route-planner/EmptyState";
 import DayDetailPanel, { type DayStop } from "@/components/route-planner/DayDetailPanel";
 import RouteHistoryDialog from "@/components/route-planner/RouteHistoryDialog";
 import UnassignedBulkBar from "@/components/route-planner/UnassignedBulkBar";
+import BulkShiftDateDialog from "@/components/route-planner/BulkShiftDateDialog";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -312,6 +313,16 @@ const Planner = () => {
   // Bulk-valg i "Aftaler uden rute": Sæt af ordre-ids der pt. er markeret.
   const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
+  // Bulk-flyt dato: åbner dialog der viser forhåndsvisning før udførsel.
+  const [bulkShiftOpen, setBulkShiftOpen] = useState(false);
+  // Filter + gruppering for "Aftaler uden rute" — gør store puljer
+  // overskuelige uden at brugeren skal scrolle gennem alt.
+  const [unassignedStatusFilter, setUnassignedStatusFilter] = usePersistentState<
+    "all" | "ready" | "pending" | "missing-gps"
+  >("route-planner:unassignedStatus", "all");
+  const [unassignedGroupBy, setUnassignedGroupBy] = usePersistentState<
+    "none" | "status" | "route" | "week"
+  >("route-planner:unassignedGroupBy", "none");
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [suggestJob, setSuggestJob] = useState<any | null>(null);
@@ -925,6 +936,16 @@ const Planner = () => {
         j.city?.toLowerCase().includes(q),
       );
     }
+    // Status-filter — gør store puljer lettere at fokusere på.
+    if (unassignedStatusFilter !== "all") {
+      list = list.filter((j: any) => {
+        const hasGps = j.latitude != null && j.longitude != null;
+        if (unassignedStatusFilter === "pending") return j.status === "pending";
+        if (unassignedStatusFilter === "missing-gps") return !hasGps;
+        // "ready" = klar til auto-fordel: ikke pending, har GPS, har dato.
+        return j.status !== "pending" && hasGps && (j.preferred_date || j.next_service_date);
+      });
+    }
     const sorted = [...list];
     if (sortBy === "date") {
       sorted.sort((a: any, b: any) => {
@@ -941,7 +962,7 @@ const Planner = () => {
       sorted.sort((a: any, b: any) => (a.customer_name || "").localeCompare(b.customer_name || "", "da"));
     }
     return sorted;
-  }, [unassigned, search, sortBy]);
+  }, [unassigned, search, sortBy, unassignedStatusFilter]);
 
   const unassignedTotal = useMemo(
     () => filteredUnassigned.reduce((s: number, j: any) => s + Number(j.total_amount || 0), 0),
@@ -1902,12 +1923,16 @@ const Planner = () => {
           skipped++;
         }
       }
-      qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
-      qc.invalidateQueries({ queryKey: ["route-calendar"] });
+      invalidateRouteSyncQueries(qc);
       if (assigned > 0) {
-        toast.success(`Fordelt ${assigned} aftale${assigned === 1 ? "" : "r"} til bedst matchende ruter${skipped > 0 ? ` — ${skipped} sprunget over` : ""}`, {
-          description: skipped > 0 ? "Sprungne aftaler manglede plads eller ingen rute matchede." : undefined,
-        });
+        toast.success(
+          `Fordelt ${assigned} aftale${assigned === 1 ? "" : "r"} til bedst matchende ruter`,
+          {
+            description: skipped > 0
+              ? `${skipped} sprunget over — manglede plads eller ingen rute matchede.`
+              : "Kapacitetsbarerne i kalenderen er opdateret.",
+          },
+        );
       } else {
         toast.error("Kunne ikke auto-fordele nogen aftaler", {
           description: "Ingen ruter passede — prøv at oprette flere ruter på de relevante datoer først.",
@@ -1983,14 +2008,20 @@ const Planner = () => {
           skipped++;
         }
       }
-      qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
-      qc.invalidateQueries({ queryKey: ["route-calendar"] });
+      invalidateRouteSyncQueries(qc);
       if (assigned > 0) {
-        toast.success(`Fordelt ${assigned} af ${candidates.length} valgte aftale${candidates.length === 1 ? "" : "r"}${skipped > 0 ? ` — ${skipped} sprunget over` : ""}`);
+        toast.success(
+          `Fordelt ${assigned} af ${candidates.length} valgte aftale${candidates.length === 1 ? "" : "r"}`,
+          {
+            description: skipped > 0
+              ? `${skipped} kunne ikke fordeles automatisk — manglede plads eller matchende rute.`
+              : "Kapacitetsbarerne i kalenderen er opdateret.",
+          },
+        );
         setSelectedJobIds(new Set());
       } else {
         toast.error("Ingen valgte aftaler kunne fordeles", {
-          description: "Ingen ruter havde plads. Opret en rute på dagen først.",
+          description: "Ingen ruter havde plads. Opret en rute på den ønskede dag først, eller flyt opstartsdatoen.",
         });
       }
     } finally {
@@ -1999,27 +2030,53 @@ const Planner = () => {
   };
 
   /** Annullér de valgte aftaler — sætter status til 'cancelled' så de
-   *  forsvinder fra "Aftaler uden rute". Bekræftelse via window.confirm
-   *  for at undgå utilsigtede masse-annulleringer. */
+   *  forsvinder fra "Aftaler uden rute". Vi henter forrige status først så
+   *  vi kan tilbyde "Fortryd" i succes-toasten — sikrere end window.confirm
+   *  som ellers gjorde dialogen til en blokerende systembesked. */
   const runBulkCancel = async () => {
     if (!businessId || bulkBusy || selectedJobIds.size === 0) return;
     const ids = Array.from(selectedJobIds);
-    const ok = typeof window !== "undefined"
-      ? window.confirm(`Annullér ${ids.length} aftale${ids.length === 1 ? "" : "r"}? Dette kan ikke fortrydes.`)
-      : true;
-    if (!ok) return;
     setBulkBusy(true);
     try {
+      // Snapshot tidligere status så fortryd kan sætte rækkerne tilbage
+      // til præcis dén status de havde — ikke en gæt-default.
+      const prev = (unassigned as any[])
+        .filter((j) => selectedJobIds.has(j.id))
+        .map((j) => ({ id: j.id as string, status: (j.status as string) || "confirmed" }));
       const { error } = await supabase
         .from("orders")
         .update({ status: "cancelled" })
         .in("id", ids);
       if (error) throw error;
-      toast.success(`${ids.length} aftale${ids.length === 1 ? "" : "r"} annulleret`);
       setSelectedJobIds(new Set());
-      qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
+      invalidateRouteSyncQueries(qc);
+      toast.success(`${ids.length} aftale${ids.length === 1 ? "" : "r"} annulleret`, {
+        description: "De er fjernet fra 'Aftaler uden rute'.",
+        duration: 8000,
+        action: {
+          label: "Fortryd",
+          onClick: async () => {
+            try {
+              // Sæt hver rækker tilbage til sin oprindelige status.
+              const byStatus = new Map<string, string[]>();
+              for (const row of prev) {
+                const list = byStatus.get(row.status) ?? [];
+                list.push(row.id);
+                byStatus.set(row.status, list);
+              }
+              for (const [status, rowIds] of byStatus.entries()) {
+                await supabase.from("orders").update({ status: status as any }).in("id", rowIds);
+              }
+              invalidateRouteSyncQueries(qc);
+              toast.success("Annullering fortrudt");
+            } catch (e: any) {
+              toast.error("Kunne ikke fortryde annulleringen", { description: e?.message });
+            }
+          },
+        },
+      });
     } catch (e: any) {
-      toast.error(e?.message || "Kunne ikke annullere aftalerne");
+      toast.error("Kunne ikke annullere aftalerne", { description: e?.message });
     } finally {
       setBulkBusy(false);
     }
@@ -4091,6 +4148,18 @@ const Planner = () => {
                             <SelectItem value="name" className="text-xs">Navn (A-Å)</SelectItem>
                           </SelectContent>
                         </Select>
+                        <Select value={unassignedStatusFilter} onValueChange={(v) => setUnassignedStatusFilter(v as any)}>
+                          <SelectTrigger className="h-7 text-[11px] flex-1 bg-background gap-1.5" aria-label="Filtrér">
+                            <Filter className="h-3 w-3 text-muted-foreground shrink-0" />
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all" className="text-xs">Vis alle</SelectItem>
+                            <SelectItem value="ready" className="text-xs">Klar til auto-fordel</SelectItem>
+                            <SelectItem value="pending" className="text-xs">Afventer godkendelse</SelectItem>
+                            <SelectItem value="missing-gps" className="text-xs">Mangler GPS</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <button
@@ -4250,6 +4319,7 @@ const Planner = () => {
                       onSelectAll={() => setSelectedJobIds(new Set(filteredUnassigned.map((j: any) => j.id)))}
                       onAutoAssign={runBulkAutoAssign}
                       onCancel={runBulkCancel}
+                      onShiftDate={() => setBulkShiftOpen(true)}
                       busy={bulkBusy}
                     />
                   </div>
@@ -5568,6 +5638,12 @@ const Planner = () => {
       </AdminShell>
       <UndoBar />
       <RoutePlannerShortcutsHelp open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
+      <BulkShiftDateDialog
+        open={bulkShiftOpen}
+        onOpenChange={setBulkShiftOpen}
+        jobs={(unassigned as any[]).filter((j) => selectedJobIds.has(j.id))}
+        onDone={() => setSelectedJobIds(new Set())}
+      />
       <RoutePrintDialog
         open={printOpen}
         onOpenChange={setPrintOpen}
