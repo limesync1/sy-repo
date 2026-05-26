@@ -344,6 +344,7 @@ type AgendaRoutePillProps = {
   onSelect: () => void;
   onSelectStop: (stop: RouteStop) => void;
   onOptimize: () => void;
+  onDelete?: () => void;
   optimizing: boolean;
   jobDragActive?: boolean;
   routeDragSourceId?: string | null;
@@ -351,7 +352,7 @@ type AgendaRoutePillProps = {
   isPast?: boolean;
 };
 
-const AgendaRoutePillInner = ({ route, onSelect, onOptimize, optimizing, jobDragActive, routeDragSourceId, busy, isPast }: AgendaRoutePillProps) => {
+const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, optimizing, jobDragActive, routeDragSourceId, busy, isPast }: AgendaRoutePillProps) => {
   const isVirtual = !!route.isVirtual;
   const isMergeTarget = !!routeDragSourceId && routeDragSourceId !== route.id && !isVirtual && !isPast && !busy;
   const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({
