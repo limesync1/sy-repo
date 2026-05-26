@@ -17,6 +17,7 @@ import {
   logRoutePlannerEvent,
   type RouteStop, type Route,
 } from "@/hooks/useRoutes";
+import { useDeleteStop } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -643,6 +644,7 @@ const Planner = () => {
   const updateRoute = useUpdateRoute();
   const moveRouteSeries = useMoveRouteSeries();
   const addStop = useAddStop();
+  const deleteStop = useDeleteStop();
   const shiftProjectedOccurrence = useShiftProjectedOccurrence();
   const revertProjectedShift = useRevertProjectedShift();
   const optimizeRoute = useOptimizeRoute();
@@ -1902,6 +1904,10 @@ const Planner = () => {
 
     let assigned = 0;
     const skipped: { job: any; reason: SkipReason }[] = [];
+    // Tracker: stop-ids vi har oprettet (til Fortryd) + hvor mange aftaler
+    // der røg på hver rute (til læselig per-rute opsummering).
+    const createdStopIds: string[] = [];
+    const perRouteCount = new Map<string, { name: string; date: string; n: number }>();
 
     try {
       for (const job of jobs) {
@@ -1948,7 +1954,7 @@ const Planner = () => {
 
         const seq = getSeq(top.route_id);
         try {
-          await addStop.mutateAsync({
+          const newStop = await addStop.mutateAsync({
             route_id: top.route_id,
             order_id: job.id,
             sequence: seq,
@@ -1961,6 +1967,13 @@ const Planner = () => {
             duration_minutes: duration,
             time_window_start: job.preferred_time_start || null,
             time_window_end: job.preferred_time_end || null,
+          });
+          if (newStop?.id) createdStopIds.push(newStop.id);
+          const prev = perRouteCount.get(top.route_id);
+          perRouteCount.set(top.route_id, {
+            name: top.route_name || prev?.name || "Rute",
+            date: top.route_date || prev?.date || jobDate,
+            n: (prev?.n ?? 0) + 1,
           });
           const cur = getUsage(top.route_id);
           usage.set(top.route_id, { minutes: cur.minutes + duration, stops: cur.stops + 1 });
@@ -1983,15 +1996,42 @@ const Planner = () => {
         .map(([r, n]) => skipPhrase(r, n))
         .join(" · ");
 
+      // Per-rute opsummering: "2 til Mandagsrute · 1 til Torsdagsrute"
+      const routeSummary = (() => {
+        if (perRouteCount.size === 0) return "";
+        const entries = Array.from(perRouteCount.values()).sort((a, b) => b.n - a.n);
+        const top3 = entries.slice(0, 3).map((e) => `${e.n} til ${e.name}`).join(" · ");
+        const rest = entries.length - 3;
+        return rest > 0 ? `${top3} · +${rest} ruter mere` : top3;
+      })();
+
       if (assigned > 0) {
         const total = assigned + skipped.length;
+        const parts: string[] = [];
+        if (routeSummary) parts.push(routeSummary);
+        if (skipped.length > 0) parts.push(`Sprunget over: ${reasonSummary}`);
         toast.success(
           `Fordelt ${assigned} af ${total} aftale${total === 1 ? "" : "r"}`,
           {
-            description: skipped.length > 0
-              ? `Sprunget over: ${reasonSummary}`
-              : "Kapacitetsbjælkerne i kalenderen er opdateret.",
-            duration: skipped.length > 0 ? 8000 : 4000,
+            description: parts.join(" — ") || "Kapacitetsbjælkerne i kalenderen er opdateret.",
+            duration: 10000,
+            action: createdStopIds.length > 0 ? {
+              label: "Fortryd",
+              onClick: async () => {
+                let ok = 0;
+                for (const id of createdStopIds) {
+                  try { await deleteStop.mutateAsync(id); ok++; } catch { /* ignorer */ }
+                }
+                invalidateRouteSyncQueries(qc);
+                if (ok === createdStopIds.length) {
+                  toast.success(`Fortrudt — ${ok} aftale${ok === 1 ? "" : "r"} fjernet fra ruterne`);
+                } else if (ok > 0) {
+                  toast.warning(`Fortrudt delvist — ${ok} af ${createdStopIds.length} fjernet`);
+                } else {
+                  toast.error("Kunne ikke fortryde", { description: "Aftalerne er måske allerede ændret." });
+                }
+              },
+            } : undefined,
           },
         );
         if (opts.sourceLabel === "valgte") setSelectedJobIds(new Set());
