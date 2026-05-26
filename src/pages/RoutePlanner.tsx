@@ -109,6 +109,10 @@ import { useRouteHistory } from "@/hooks/useRouteHistory";
 import { toastSuccessWithUndo } from "@/lib/toast-undo";
 import { estimateOptimizationGain, markOptimizeDismissed } from "@/lib/optimize-savings-estimate";
 import { BulkMoveRoutesDialog, type BulkMoveRouteItem } from "@/components/route-planner/BulkMoveRoutesDialog";
+import RoutePlannerShortcutsHelp from "@/components/route-planner/RoutePlannerShortcutsHelp";
+import UndoBar from "@/components/route-planner/UndoBar";
+import DensityToggle from "@/components/route-planner/DensityToggle";
+import ThemeToggle from "@/components/route-planner/ThemeToggle";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -202,6 +206,7 @@ const Planner = () => {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = usePersistentState<"date" | "price" | "name">("route-planner:sortBy", "date");
   const [compactCards, setCompactCards] = usePersistentState<boolean>("route-planner:compactCards", false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [suggestJob, setSuggestJob] = useState<any | null>(null);
@@ -1873,6 +1878,9 @@ const Planner = () => {
         setCreateOpen(true);
       } else if (e.key === "Escape" && selectedStopId) {
         setSelectedStopId(null);
+      } else if (e.key === "?" || (e.shiftKey && e.key === "/")) {
+        e.preventDefault();
+        setShortcutsOpen(true);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -3649,22 +3657,23 @@ const Planner = () => {
 
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Tastatur-genveje">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    aria-label="Tastatur-genveje"
+                    onClick={() => setShortcutsOpen(true)}
+                  >
                     <Keyboard className="h-3.5 w-3.5" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="text-xs">
-                  <div className="space-y-1">
-                    <p className="font-semibold mb-1">Tastatur-genveje</p>
-                    <p><kbd className="px-1 rounded bg-secondary text-[10px]">←</kbd> <kbd className="px-1 rounded bg-secondary text-[10px]">→</kbd> Skift {view === "week" ? "uge" : "måned"}</p>
-                    <p><kbd className="px-1 rounded bg-secondary text-[10px]">T</kbd> I dag</p>
-                    <p><kbd className="px-1 rounded bg-secondary text-[10px]">N</kbd> Ny rute</p>
-                    <p><kbd className="px-1 rounded bg-secondary text-[10px]">{navigator.platform.toLowerCase().includes("mac") ? "⌘" : "Ctrl"}+Z</kbd> Fortryd</p>
-                    <p><kbd className="px-1 rounded bg-secondary text-[10px]">{navigator.platform.toLowerCase().includes("mac") ? "⌘⇧" : "Ctrl+Shift"}+Z</kbd> Gentag</p>
-                    <p><kbd className="px-1 rounded bg-secondary text-[10px]">Esc</kbd> Luk panel</p>
-                  </div>
+                  Tastatur-genveje (<kbd className="px-1 rounded bg-secondary text-[10px]">?</kbd>)
                 </TooltipContent>
               </Tooltip>
+
+              <DensityToggle />
+              <ThemeToggle />
 
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -5110,6 +5119,8 @@ const Planner = () => {
           </AlertDialogContent>
         </AlertDialog>
       </AdminShell>
+      <UndoBar />
+      <RoutePlannerShortcutsHelp open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
     </DndContext>
   );
 };
