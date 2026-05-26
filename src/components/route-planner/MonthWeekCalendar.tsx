@@ -471,6 +471,7 @@ const DayCellInner = ({
                   onToggleSelect={onToggleRouteSelection
                     ? (e) => onToggleRouteSelection(r.id, e)
                     : undefined}
+                  hasSkillMismatch={!!mismatchedRouteIds?.has(r.id)}
                 />
               ))}
               {overflow > 0 && (
