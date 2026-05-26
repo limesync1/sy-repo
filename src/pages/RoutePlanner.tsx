@@ -118,6 +118,7 @@ import RoutePrintDialog, { type PrintRoute } from "@/components/route-planner/Ro
 import { Printer, ListOrdered } from "lucide-react";
 import EmptyState from "@/components/route-planner/EmptyState";
 import DayDetailPanel, { type DayStop } from "@/components/route-planner/DayDetailPanel";
+import RouteHistoryDialog from "@/components/route-planner/RouteHistoryDialog";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
