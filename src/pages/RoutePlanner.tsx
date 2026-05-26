@@ -487,16 +487,14 @@ const Planner = () => {
     return { lat, lng };
   }, [calendarStops]);
 
-  // Bredt vejr-interval: fra MIN(synlig start, i dag) til MAX(synlig slut, i dag+15).
-  // På den måde er forecast altid tilgængelig for både fortid (= ingen data) og
-  // fremtidige måneder/uger uden ekstra refetch ved navigation.
+  // Bredt og stabilt vejr-interval: altid i dag → +15 dage. Så genbruger
+  // kalenderen samme cache på tværs af måned/uge-navigation i stedet for at
+  // starte et nyt vejrkald for hvert synligt interval.
   const weatherRange = useMemo(() => {
     const today = todayStr();
     const farFuture = format(addDays(new Date(), 15), "yyyy-MM-dd");
-    const start = calendarRange.start < today ? today : calendarRange.start;
-    const end = calendarRange.end > farFuture ? farFuture : (calendarRange.end < today ? farFuture : calendarRange.end);
-    return { start, end };
-  }, [calendarRange.start, calendarRange.end]);
+    return { start: today, end: farFuture };
+  }, []);
 
   const { data: weatherDays = [], isLoading: loadingWeather, isError: weatherError } = useWeatherForecast({
     startDate: weatherRange.start,
