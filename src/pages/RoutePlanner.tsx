@@ -3740,6 +3740,8 @@ const Planner = () => {
                   dateAlerts={dateAlerts}
                   selectedRouteIds={selectedRouteIds}
                   onToggleRouteSelection={(id) => toggleRouteSelection(id)}
+                  capacityByDate={capacityByDate}
+                  mismatchedRouteIds={mismatchedRouteIds}
                 />
                 </div>
                 </div>
