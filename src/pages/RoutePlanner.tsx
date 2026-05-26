@@ -1856,6 +1856,9 @@ const Planner = () => {
   };
 
   /* Keyboard shortcuts: ←/→ for date, T for today, M for map, N for new route */
+  // Ref så vi kan kalde optimize-handleren fra keydown uden at depende på
+  // dens definition-rækkefølge (den er defineret længere nede).
+  const optimizeRouteRef = useRef<(id: string) => void>(() => {});
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       // Ignore when typing in inputs
@@ -1905,7 +1908,7 @@ const Planner = () => {
       } else if (e.key.toLowerCase() === "o") {
         if (editingRoute) {
           e.preventDefault();
-          handleCalendarOptimizeRoute(editingRoute.id);
+          optimizeRouteRef.current(editingRoute.id);
         }
       }
     };
