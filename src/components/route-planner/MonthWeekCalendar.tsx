@@ -170,19 +170,29 @@ export const MonthWeekCalendar = ({
   }, [routes]);
 
   const weekdayLabels = ["Man", "Tir", "Ons", "Tor", "Fre", "Lør", "Søn"];
+  const todayIso = format(new Date(), "yyyy-MM-dd");
 
   return (
     <Card className="overflow-hidden flex flex-col h-full">
       {/* Weekday header */}
-      <div className="grid border-b bg-secondary/30 shrink-0" style={{ gridTemplateColumns: "48px repeat(7, minmax(0, 1fr))" }}>
-        <div className="border-r p-2 text-[10px] uppercase text-muted-foreground font-semibold flex items-center justify-center">
+      <div className="grid border-b bg-gradient-to-b from-secondary/60 to-secondary/30 shrink-0" style={{ gridTemplateColumns: "48px repeat(7, minmax(0, 1fr))" }}>
+        <div className="border-r p-2 text-[10px] uppercase text-muted-foreground font-bold tracking-wider flex items-center justify-center">
           Uge
         </div>
-        {weekdayLabels.map((wd) => (
-          <div key={wd} className="p-2 text-[11px] uppercase text-muted-foreground font-semibold text-center border-r last:border-r-0">
-            {wd}
-          </div>
-        ))}
+        {weekdayLabels.map((wd, i) => {
+          const isWeekend = i >= 5;
+          return (
+            <div
+              key={wd}
+              className={cn(
+                "p-2 text-[11px] uppercase font-bold tracking-wider text-center border-r last:border-r-0",
+                isWeekend ? "text-muted-foreground/70" : "text-foreground/80",
+              )}
+            >
+              {wd}
+            </div>
+          );
+        })}
       </div>
 
       <div className="flex-1 overflow-y-auto">
