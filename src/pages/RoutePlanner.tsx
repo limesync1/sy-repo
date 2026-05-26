@@ -2027,6 +2027,8 @@ const Planner = () => {
     const overData: any = e.over?.data.current;
     if (!activeData || !overData) {
       clearDragValidation();
+      setDragOverTargetId(null);
+      clearDragEta();
       return;
     }
 
@@ -2058,6 +2060,33 @@ const Planner = () => {
         );
         const { severity, topMessage } = summarize(result);
         writeDragValidationDebounced({ targetId: `route:${targetRoute.id}`, severity, topMessage, result });
+        setDragOverTargetId(`route:${targetRoute.id}`);
+        // ── ETA-estimat: ekstra køretid (luftlinje × 1.3 ÷ 50 km/t) +
+        //    ny kapacitets-% baseret på job.duration_minutes. Grovt nok
+        //    til en live drag-preview uden ekstra netværkskald.
+        try {
+          const job = activeData.job ?? {};
+          let extraDriveMin: number | null = null;
+          if (job.latitude != null && job.longitude != null && stopsOnRoute.length) {
+            let nearestM = Infinity;
+            for (const s of stopsOnRoute) {
+              if (s.latitude == null || s.longitude == null) continue;
+              const d = haversineMeters(Number(job.latitude), Number(job.longitude), Number(s.latitude), Number(s.longitude));
+              if (d < nearestM) nearestM = d;
+            }
+            if (Number.isFinite(nearestM)) {
+              // tur/retur ~ 2× luftlinje × 1.3 omveje, 50 km/t snit
+              extraDriveMin = (nearestM * 2 * 1.3) / 1000 / 50 * 60;
+            }
+          }
+          const cap = capacityByDate.get(targetRoute.route_date);
+          let newLoadPct: number | null = null;
+          if (cap && cap.minutes_capacity > 0) {
+            const addMin = Number(job.duration_minutes) || 0;
+            newLoadPct = ((cap.minutes_booked + addMin) / cap.minutes_capacity) * 100;
+          }
+          setDragEta({ extraDriveMin, newLoadPct });
+        } catch { clearDragEta(); }
         return;
       }
 
@@ -2069,6 +2098,15 @@ const Planner = () => {
           : { ok: true, errors: [], warnings: [], suggestions: [] } as any;
         const { severity, topMessage } = summarize(result);
         writeDragValidationDebounced({ targetId: `day:${overData.date}`, severity, topMessage, result });
+        setDragOverTargetId(`day:${overData.date}`);
+        const cap = capacityByDate.get(overData.date);
+        const job = activeData.job ?? {};
+        let newLoadPct: number | null = null;
+        if (cap && cap.minutes_capacity > 0) {
+          const addMin = Number(job.duration_minutes) || 0;
+          newLoadPct = ((cap.minutes_booked + addMin) / cap.minutes_capacity) * 100;
+        }
+        setDragEta({ newLoadPct, message: "Opretter ny rute" });
         return;
       }
 
@@ -2092,6 +2130,8 @@ const Planner = () => {
         );
         const { severity, topMessage } = summarize(result);
         writeDragValidationDebounced({ targetId: `day:${overData.date}`, severity, topMessage, result });
+        setDragOverTargetId(`day:${overData.date}`);
+        clearDragEta();
         return;
       }
 
@@ -2107,6 +2147,8 @@ const Planner = () => {
             topMessage: "Kan ikke flette to projicerede ruter",
             result: { ok: false, errors: [], warnings: [], suggestions: [] } as any,
           });
+          setDragOverTargetId(`route:${target.id}`);
+          clearDragEta();
           return;
         }
         writeDragValidationDebounced({
@@ -2115,14 +2157,20 @@ const Planner = () => {
           topMessage: "Slip her for at flette ruterne",
           result: { ok: true, errors: [], warnings: [], suggestions: [] } as any,
         });
+        setDragOverTargetId(`route:${target.id}`);
+        clearDragEta();
         return;
       }
 
       clearDragValidation();
+      setDragOverTargetId(null);
+      clearDragEta();
     } catch {
       // Validering må ALDRIG kaste — ryd state stille og fald tilbage til
       // den klassiske flow (drop-handler beholder sin egen guard).
       clearDragValidation();
+      setDragOverTargetId(null);
+      clearDragEta();
     }
   };
 
