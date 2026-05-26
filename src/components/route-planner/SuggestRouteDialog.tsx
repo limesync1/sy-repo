@@ -241,8 +241,56 @@ export const SuggestRouteDialog = ({
             <Loader2 className="h-5 w-5 animate-spin mr-2" /> Beregner forslag…
           </div>
         ) : !suggestions || suggestions.length === 0 ? (
-          <div className="rounded-lg border border-border bg-secondary/40 p-6 text-sm text-muted-foreground text-center">
-            Ingen ruter findes på den dato endnu. Træk aftalen direkte ind på en dag i kalenderen for at oprette en ny rute.
+          <div className="space-y-3">
+            <div className="rounded-lg border border-border bg-secondary/40 p-4 text-sm text-muted-foreground">
+              <p className="text-foreground font-medium mb-1">
+                Ingen ruter på {format(parseISO(date), "EEEE d. MMM", { locale: da })}.
+              </p>
+              <p className="text-xs">
+                Du kan vælge en rute på en nærliggende dag herunder — eller lukke og trække aftalen direkte ind på en ledig dag i kalenderen.
+              </p>
+            </div>
+            {loadingNearby ? (
+              <div className="flex items-center justify-center py-6 text-muted-foreground text-sm">
+                <Loader2 className="h-4 w-4 animate-spin mr-2" /> Henter ruter i nærheden…
+              </div>
+            ) : nearbyRoutes && nearbyRoutes.length > 0 ? (
+              <div className="space-y-1.5">
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                  <CalendarSearch className="h-3 w-3" /> Ruter i ±2 uger
+                </p>
+                {nearbyRoutes.map((r: any) => {
+                  const dayDiff = differenceInDays(parseISO(r.route_date), parseISO(date));
+                  const rel = dayDiff === 0 ? "samme dag" : dayDiff > 0 ? `om ${dayDiff} dag${dayDiff === 1 ? "" : "e"}` : `for ${Math.abs(dayDiff)} dag${Math.abs(dayDiff) === 1 ? "" : "e"} siden`;
+                  return (
+                    <button
+                      key={r.id}
+                      type="button"
+                      onClick={() => setChosen(r.id)}
+                      className={cn(
+                        "w-full text-left rounded-lg border p-2.5 text-sm flex items-center justify-between gap-2 transition-all",
+                        chosen === r.id ? "border-foreground bg-foreground/5 ring-2 ring-foreground/10" : "border-border hover:border-foreground/40",
+                      )}
+                    >
+                      <div className="min-w-0">
+                        <p className="font-medium truncate text-foreground">
+                          {r.name || "Rute"}
+                          {r.employees?.name && <span className="font-normal text-muted-foreground"> · {r.employees.name}</span>}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {format(parseISO(r.route_date), "EEEE d. MMM", { locale: da })} · {rel}
+                        </p>
+                      </div>
+                      {chosen === r.id && <CheckCircle2 className="h-4 w-4 text-foreground shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground text-center py-2">
+                Der er heller ingen ruter på de nærliggende dage. Luk og træk aftalen direkte ind i kalenderen.
+              </p>
+            )}
           </div>
         ) : (
           <div className="space-y-2.5">
