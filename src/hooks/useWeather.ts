@@ -6,7 +6,7 @@
 // vinduespudsere, algebehandling og andet udendørs arbejde.
 //
 // API: https://open-meteo.com/en/docs
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { differenceInCalendarDays, parseISO, format } from "date-fns";
 
 export type WeatherDay = {
@@ -58,15 +58,19 @@ export const useWeatherForecast = ({ startDate, endDate, latitude, longitude }: 
     effectiveEnd != null &&
     effectiveStart <= effectiveEnd;
 
+  const roundedLatitude = latitude == null ? null : Math.round(latitude * 10) / 10;
+  const roundedLongitude = longitude == null ? null : Math.round(longitude * 10) / 10;
+
   return useQuery<WeatherDay[]>({
-    queryKey: ["weather-forecast", latitude, longitude, effectiveStart, effectiveEnd],
+    queryKey: ["weather-forecast", roundedLatitude, roundedLongitude, effectiveStart, effectiveEnd],
     enabled,
-    staleTime: 30 * 60 * 1000, // 30 min — vejret ændrer sig sjældent oftere
-    gcTime: 60 * 60 * 1000,
+    staleTime: 2 * 60 * 60 * 1000, // 2 timer — vejret behøver ikke genhentes ved hvert kalenderskift
+    gcTime: 6 * 60 * 60 * 1000,
+    placeholderData: keepPreviousData,
     queryFn: async () => {
       const params = new URLSearchParams({
-        latitude: String(latitude),
-        longitude: String(longitude),
+        latitude: String(roundedLatitude),
+        longitude: String(roundedLongitude),
         timezone: "Europe/Copenhagen",
         start_date: effectiveStart,
         end_date: effectiveEnd!,

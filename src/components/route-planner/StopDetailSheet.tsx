@@ -157,12 +157,20 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
 
   if (!stop) return null;
 
-  const handleDeleteConfirmed = () => {
-    deleteStop.mutate(stop.id, {
-      onSuccess: () => toast.success("Stop fjernet fra ruten"),
-    });
-    setConfirmDelete(false);
-    onOpenChange(false);
+  const handleDeleteConfirmed = async () => {
+    try {
+      const res = await deleteStop.mutateAsync(stop.id) as any;
+      const message = res?.route_deleted ? "Aftale fjernet — den tomme rute blev slettet" : "Aftale fjernet fra ruten";
+      if (res?.recurring_unlinked) {
+        toast.success(message, { description: "Fremtidige gentagelser vises ikke længere på denne rute." });
+      } else {
+        toast.success(message);
+      }
+      setConfirmDelete(false);
+      onOpenChange(false);
+    } catch (err: any) {
+      toast.error(err?.message || "Kunne ikke fjerne aftalen fra ruten");
+    }
   };
 
   const statusBadge = () => {
@@ -624,9 +632,11 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
           <AlertDialogHeader>
             <AlertDialogTitle>Fjern stop fra ruten?</AlertDialogTitle>
             <AlertDialogDescription>
-              Stoppet for <strong>{stop.customer_name}</strong> bliver fjernet fra denne rute,
-              og aftalen ryger tilbage til aftaler uden rute, så du kan planlægge den igen senere.
-              Hvis det er rutens sidste stop, bliver ruten slettet.
+              Aftalen for <strong>{stop.customer_name}</strong> fjernes fra denne rute.
+              Hvis det er rutens sidste aftale, bliver den tomme rute slettet.
+              {recurringInterval && recurringInterval !== "engangskøb"
+                ? " Fremtidige gentagelser fjernes også fra denne rute."
+                : " Aftalen kan planlægges igen bagefter."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

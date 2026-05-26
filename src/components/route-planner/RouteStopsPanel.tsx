@@ -112,13 +112,15 @@ export const RouteStopsPanel = ({
   const handleDelete = async (stop: RouteStop) => {
     if (isProjection) return; // safety — knappen er skjult i projection-mode
     try {
-      const isLast = items.length <= 1;
-      await deleteStop.mutateAsync(stop.id);
-      toast.success(
-        isLast
-          ? "Stop fjernet — ruten blev slettet og aftalen ligger nu under aftaler uden rute"
-          : "Stop fjernet — aftalen ligger nu under aftaler uden rute",
-      );
+      const res = await deleteStop.mutateAsync(stop.id) as any;
+      const message = res?.route_deleted
+        ? "Aftale fjernet — den tomme rute blev slettet"
+        : "Aftale fjernet fra ruten";
+      if (res?.recurring_unlinked) {
+        toast.success(message, { description: "Fremtidige gentagelser vises ikke længere på denne rute." });
+      } else {
+        toast.success(message);
+      }
     } catch (err: any) {
       toast.error(err.message || "Kunne ikke fjerne stop");
     }
@@ -219,8 +221,11 @@ export const RouteStopsPanel = ({
             <AlertDialogDescription>
               <strong>{confirmDelete?.customer_name}</strong> fjernes fra ruten
               {items.length <= 1
-                ? ", ruten bliver slettet og aftalen ryger tilbage til aftaler uden rute."
-                : " og aftalen ryger tilbage til aftaler uden rute."}
+                ? ", og den tomme rute bliver slettet."
+                : "."}
+              {confirmDelete?.agreement_interval && confirmDelete.agreement_interval !== "engangskøb"
+                ? " Fremtidige gentagelser fjernes også fra denne rute."
+                : " Aftalen kan planlægges igen bagefter."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

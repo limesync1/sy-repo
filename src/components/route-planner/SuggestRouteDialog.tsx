@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import {
@@ -15,6 +16,8 @@ import {
   useRouteSuggestions, type RouteSuggestion,
   deriveZoneKey,
 } from "@/hooks/useRoutePlannerSmarts";
+import { useGeocodeAddress } from "@/hooks/useRoutes";
+import { supabase } from "@/integrations/supabase/client";
 
 type Props = {
   open: boolean;
@@ -25,7 +28,9 @@ type Props = {
     customer_name?: string | null;
     latitude?: number | null;
     longitude?: number | null;
+    address?: string | null;
     zip_code?: string | null;
+    city?: string | null;
     estimated_duration_minutes?: number | null;
     preferred_date?: string | null;
     next_service_date?: string | null;
@@ -50,6 +55,9 @@ const scoreColor = (score: number) => {
 export const SuggestRouteDialog = ({
   open, onOpenChange, businessId, job, weatherBad = false, onAssignToRoute,
 }: Props) => {
+  const qc = useQueryClient();
+  const geocode = useGeocodeAddress();
+  const [resolvedCoords, setResolvedCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const date = useMemo(() => {
     const d = job.preferred_date || job.next_service_date;
     if (d) return d.slice(0, 10);
@@ -58,12 +66,40 @@ export const SuggestRouteDialog = ({
 
   const zoneKey = deriveZoneKey(job.zip_code);
   const duration = job.estimated_duration_minutes ?? 30;
+  const latitude = resolvedCoords?.latitude ?? job.latitude ?? null;
+  const longitude = resolvedCoords?.longitude ?? job.longitude ?? null;
+  const hasAddress = !!(job.address || job.zip_code || job.city);
+
+  useEffect(() => {
+    setResolvedCoords(null);
+  }, [job.id]);
+
+  useEffect(() => {
+    if (!open || (latitude != null && longitude != null) || !hasAddress || geocode.isPending) return;
+    (async () => {
+      try {
+        const res = await geocode.mutateAsync({
+          address: job.address || undefined,
+          zip_code: job.zip_code || undefined,
+          city: job.city || undefined,
+        });
+        if (res.found && res.latitude != null && res.longitude != null) {
+          setResolvedCoords({ latitude: res.latitude, longitude: res.longitude });
+          await supabase.from("orders").update({ latitude: res.latitude, longitude: res.longitude }).eq("id", job.id);
+          qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
+        }
+      } catch {
+        // Dialogen viser en enkel besked nedenfor — ingen ekstra toast-støj.
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, job.id, latitude, longitude, hasAddress]);
 
   const { data: suggestions, isLoading, refetch } = useRouteSuggestions({
     business_id: businessId,
     date,
-    latitude: job.latitude ?? null,
-    longitude: job.longitude ?? null,
+    latitude,
+    longitude,
     service_id: job.service_id ?? null,
     duration_minutes: duration,
     zone_key: zoneKey,
@@ -73,7 +109,7 @@ export const SuggestRouteDialog = ({
 
   const [chosen, setChosen] = useState<string | null>(null);
 
-  const noCoords = job.latitude == null || job.longitude == null;
+  const noCoords = latitude == null || longitude == null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -84,14 +120,20 @@ export const SuggestRouteDialog = ({
             Foreslå rute til {job.customer_name || "aftalen"}
           </DialogTitle>
           <DialogDescription>
-            Top {suggestions?.length ?? 3} ruter på {format(parseISO(date), "EEEE d. MMM", { locale: da })} — sorteret efter afstand, ledig kapacitet, færdigheder og zone.
+            Vi finder de bedste ruter på {format(parseISO(date), "EEEE d. MMM", { locale: da })} ud fra afstand, plads på dagen og medarbejderens branche.
           </DialogDescription>
         </DialogHeader>
 
         {noCoords ? (
           <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 flex items-start gap-2">
-            <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
-            <span>Aftalen mangler GPS-koordinater — vi kan ikke beregne forslag før adressen er geokodet.</span>
+            {geocode.isPending ? <Loader2 className="h-4 w-4 mt-0.5 shrink-0 animate-spin" /> : <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />}
+            <span>
+              {geocode.isPending
+                ? "Slår adressen op, så vi kan finde de nærmeste ruter."
+                : hasAddress
+                  ? "Vi kunne ikke finde adressen automatisk. Tjek adressen på aftalen og prøv igen."
+                  : "Aftalen mangler adresse. Tilføj en adresse, før vi kan foreslå en rute."}
+            </span>
           </div>
         ) : isLoading ? (
           <div className="flex items-center justify-center py-12 text-muted-foreground">
@@ -120,8 +162,8 @@ export const SuggestRouteDialog = ({
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Annuller
           </Button>
-          <Button variant="outline" onClick={() => refetch()}>
-            Genberegn
+          <Button variant="outline" onClick={() => refetch()} disabled={noCoords || isLoading}>
+            Beregn igen
           </Button>
           <Button
             disabled={!chosen}

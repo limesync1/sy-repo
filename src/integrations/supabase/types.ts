@@ -4687,6 +4687,7 @@ export type Database = {
         }[]
       }
       recalc_route_totals: { Args: { _route_id: string }; Returns: undefined }
+      remove_route_stop_safely: { Args: { _stop_id: string }; Returns: Json }
       reorder_route_stops: { Args: { _updates: Json }; Returns: undefined }
       request_business_deletion_code: {
         Args: { p_business_id: string }
