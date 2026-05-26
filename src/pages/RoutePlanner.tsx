@@ -1999,27 +1999,53 @@ const Planner = () => {
   };
 
   /** Annullér de valgte aftaler — sætter status til 'cancelled' så de
-   *  forsvinder fra "Aftaler uden rute". Bekræftelse via window.confirm
-   *  for at undgå utilsigtede masse-annulleringer. */
+   *  forsvinder fra "Aftaler uden rute". Vi henter forrige status først så
+   *  vi kan tilbyde "Fortryd" i succes-toasten — sikrere end window.confirm
+   *  som ellers gjorde dialogen til en blokerende systembesked. */
   const runBulkCancel = async () => {
     if (!businessId || bulkBusy || selectedJobIds.size === 0) return;
     const ids = Array.from(selectedJobIds);
-    const ok = typeof window !== "undefined"
-      ? window.confirm(`Annullér ${ids.length} aftale${ids.length === 1 ? "" : "r"}? Dette kan ikke fortrydes.`)
-      : true;
-    if (!ok) return;
     setBulkBusy(true);
     try {
+      // Snapshot tidligere status så fortryd kan sætte rækkerne tilbage
+      // til præcis dén status de havde — ikke en gæt-default.
+      const prev = (unassigned as any[])
+        .filter((j) => selectedJobIds.has(j.id))
+        .map((j) => ({ id: j.id as string, status: (j.status as string) || "confirmed" }));
       const { error } = await supabase
         .from("orders")
         .update({ status: "cancelled" })
         .in("id", ids);
       if (error) throw error;
-      toast.success(`${ids.length} aftale${ids.length === 1 ? "" : "r"} annulleret`);
       setSelectedJobIds(new Set());
-      qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
+      invalidateRouteSyncQueries(qc);
+      toast.success(`${ids.length} aftale${ids.length === 1 ? "" : "r"} annulleret`, {
+        description: "De er fjernet fra 'Aftaler uden rute'.",
+        duration: 8000,
+        action: {
+          label: "Fortryd",
+          onClick: async () => {
+            try {
+              // Sæt hver rækker tilbage til sin oprindelige status.
+              const byStatus = new Map<string, string[]>();
+              for (const row of prev) {
+                const list = byStatus.get(row.status) ?? [];
+                list.push(row.id);
+                byStatus.set(row.status, list);
+              }
+              for (const [status, rowIds] of byStatus.entries()) {
+                await supabase.from("orders").update({ status }).in("id", rowIds);
+              }
+              invalidateRouteSyncQueries(qc);
+              toast.success("Annullering fortrudt");
+            } catch (e: any) {
+              toast.error("Kunne ikke fortryde annulleringen", { description: e?.message });
+            }
+          },
+        },
+      });
     } catch (e: any) {
-      toast.error(e?.message || "Kunne ikke annullere aftalerne");
+      toast.error("Kunne ikke annullere aftalerne", { description: e?.message });
     } finally {
       setBulkBusy(false);
     }
