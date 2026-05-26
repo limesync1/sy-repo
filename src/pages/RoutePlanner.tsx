@@ -3936,6 +3936,21 @@ const Planner = () => {
                         job={job}
                         onClick={() => setSelectedJob(job)}
                         onSuggestRoute={() => setSuggestJob(job)}
+                        onFindFreeSlot={() => {
+                          const start = parseISO(date);
+                          for (let i = 1; i <= 90; i++) {
+                            const d = format(addDays(start, i), "yyyy-MM-dd");
+                            const cap = capacityByDate.get(d);
+                            if (!cap || cap.load_pct < 80) {
+                              setDate(d);
+                              toast.success(`Hopper til ${d}`, {
+                                description: cap ? `Belastning ${Math.round(cap.load_pct)}%` : "Ingen booket arbejde",
+                              });
+                              return;
+                            }
+                          }
+                          toast.message("Ingen ledige slots fundet de næste 90 dage");
+                        }}
                         compact={compactCards}
                       />
                     ))}
