@@ -1896,6 +1896,17 @@ const Planner = () => {
       } else if (e.key.toLowerCase() === "d") {
         e.preventDefault();
         setDayDetailOpen(true);
+      } else if (e.key.toLowerCase() === "j") {
+        e.preventDefault();
+        setDate((d) => format(addDays(parseISO(d), 1), "yyyy-MM-dd"));
+      } else if (e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setDate((d) => format(addDays(parseISO(d), -1), "yyyy-MM-dd"));
+      } else if (e.key.toLowerCase() === "o") {
+        if (editingRoute && (editingRoute.stops?.length ?? 0) >= 2) {
+          e.preventDefault();
+          handleCalendarOptimizeRoute(editingRoute.id);
+        }
       }
     };
     window.addEventListener("keydown", onKey);
