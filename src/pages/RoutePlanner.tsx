@@ -1911,7 +1911,7 @@ const Planner = () => {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [selectedStopId, view, history]);
+  }, [selectedStopId, view, history, editingRoute, handleCalendarOptimizeRoute]);
 
   /* Når create-dialog åbnes, foreslå en ledig farve for den valgte dato */
   useEffect(() => {
