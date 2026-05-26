@@ -3658,6 +3658,7 @@ const Planner = () => {
                         key={job.id}
                         job={job}
                         onClick={() => setSelectedJob(job)}
+                        onSuggestRoute={() => setSuggestJob(job)}
                       />
                     ))}
                   </div>
