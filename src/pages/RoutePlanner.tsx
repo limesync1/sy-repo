@@ -2027,6 +2027,17 @@ const Planner = () => {
     await runAutoAssignCore(candidates, { setBusy: setAutoAssigning, sourceLabel: "alle" });
   };
 
+  // Hold refs synkroniseret så keyboard-shortcuts altid kalder seneste closure.
+  useEffect(() => {
+    runAutoAssignRef.current = runAutoAssign;
+    focusSearchRef.current = () => {
+      const el = unassignedSearchRef.current;
+      if (!el) return;
+      el.focus();
+      try { el.select(); } catch { /* select kan kaste på read-only inputs */ }
+    };
+  });
+
   const runBulkAutoAssign = async () => {
     if (bulkBusy || selectedJobIds.size === 0) return;
     const candidates = (unassigned as any[]).filter((j) => selectedJobIds.has(j.id));
