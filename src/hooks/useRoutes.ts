@@ -634,6 +634,9 @@ export const useAddRouteEmployee = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["route-employees-bulk"] });
+      // Medarbejder-tilknytning ændrer dagens kapacitet (booket vs ledig
+      // arbejdstid) — så belastnings-baren i kalenderdagen skal opdateres.
+      qc.invalidateQueries({ queryKey: ["daily-capacity"] });
     },
     onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke tilkoble medarbejder" }),
   });
@@ -666,6 +669,7 @@ export const useRemoveRouteEmployee = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["route-employees-bulk"] });
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
+      qc.invalidateQueries({ queryKey: ["daily-capacity"] });
     },
     onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke fjerne medarbejder" }),
   });
