@@ -4181,22 +4181,33 @@ const Planner = () => {
                             <SelectItem value="missing-gps" className="text-xs">Mangler GPS</SelectItem>
                           </SelectContent>
                         </Select>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              type="button"
-                              onClick={() => setCompactCards((v) => !v)}
-                              aria-label={compactCards ? "Skift til fulde kort" : "Skift til kompakte kort"}
-                              aria-pressed={compactCards}
-                              className="h-7 w-7 inline-flex items-center justify-center rounded-md border border-border bg-background text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none shrink-0"
-                            >
-                              {compactCards ? <LayoutGrid className="h-3.5 w-3.5" /> : <Rows3 className="h-3.5 w-3.5" />}
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent side="bottom" className="text-xs">
-                            {compactCards ? "Skift til fulde kort" : "Skift til kompakte kort"}
-                          </TooltipContent>
-                        </Tooltip>
+                         <Select value={unassignedGroupBy} onValueChange={(v) => setUnassignedGroupBy(v as any)}>
+                           <SelectTrigger className="h-7 w-7 p-0 justify-center bg-background text-muted-foreground [&>svg:last-child]:hidden shrink-0" aria-label="Gruppering">
+                             <LayoutGrid className="h-3.5 w-3.5" />
+                           </SelectTrigger>
+                           <SelectContent align="end">
+                             <SelectItem value="none" className="text-xs">Ingen gruppering</SelectItem>
+                             <SelectItem value="week" className="text-xs">Gruppér efter uge</SelectItem>
+                             <SelectItem value="status" className="text-xs">Gruppér efter status</SelectItem>
+                             <SelectItem value="route" className="text-xs">Gruppér efter foretrukken rute</SelectItem>
+                           </SelectContent>
+                         </Select>
+                         <Tooltip>
+                           <TooltipTrigger asChild>
+                             <button
+                               type="button"
+                               onClick={() => setCompactCards((v) => !v)}
+                               aria-label={compactCards ? "Skift til fulde kort" : "Skift til kompakte kort"}
+                               aria-pressed={compactCards}
+                               className="h-7 w-7 inline-flex items-center justify-center rounded-md border border-border bg-background text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none shrink-0"
+                             >
+                               {compactCards ? <Rows3 className="h-3.5 w-3.5" /> : <LayoutGrid className="h-3.5 w-3.5" />}
+                             </button>
+                           </TooltipTrigger>
+                           <TooltipContent side="bottom" className="text-xs">
+                             {compactCards ? "Skift til fulde kort" : "Skift til kompakte kort"}
+                           </TooltipContent>
+                         </Tooltip>
                       </div>
                     )}
                     {(() => {
