@@ -1671,6 +1671,31 @@ const ServiceForm = ({
             </button>
           </div>
 
+          {/* Vejrfølsom — bruges af ruteplanlæggeren til at advare når regn/storm rammer en udendørs service */}
+          <div className="rounded-xl border border-border bg-card p-4 flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-foreground">Vejrfølsom service</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Slå til hvis servicen ikke kan udføres i regn eller storm (fx tagrensning, facade, udvendige vinduer). Ruteplanlæggeren advarer og foreslår flytning ved dårligt vejr.
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={weatherSensitive}
+              onClick={() => setWeatherSensitive(!weatherSensitive)}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+                weatherSensitive ? "bg-foreground" : "bg-muted"
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-background shadow ring-0 transition ${
+                  weatherSensitive ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
+          </div>
+
           {/* Standard-medarbejdere — automatisk tildeles aftaler oprettet med denne service */}
           <div className="rounded-xl border border-border bg-card p-4 space-y-3">
             <div>
