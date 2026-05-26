@@ -4633,6 +4633,9 @@ const Planner = () => {
         </DragOverlay>,
         document.body)}
 
+        {/* Floating ETA-chip — viser severity + ekstra køretid + ny load% */}
+        {activeDragId && <DragEtaOverlay targetId={dragOverTargetId} />}
+
         {activeDragId && activeDragData?.type === "route" && routeDragPoint && createPortal(
           <div
             ref={routeOverlayRef}
