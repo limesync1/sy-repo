@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import {
   GripVertical, MapPin, CalendarClock, Clock, Phone,
-  StickyNote, ChevronDown, ChevronRight, Route as RouteIcon, Lock, Sparkles, CalendarSearch,
+  StickyNote, ChevronDown, ChevronRight, Route as RouteIcon, Lock, Sparkles,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format, parseISO, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
@@ -85,16 +85,27 @@ const getSchedule = (d?: string | null) => {
 
   const tone =
     isPast(date) && !isToday(date)
-      ? "border-destructive/40 text-destructive bg-destructive/5"
+      ? "text-destructive"
       : isToday(date)
-      ? "border-orange-300 text-orange-700 bg-orange-50"
+      ? "text-orange-600 dark:text-orange-400"
       : isTomorrow(date)
-      ? "border-amber-300 text-amber-700 bg-amber-50"
+      ? "text-amber-600 dark:text-amber-400"
       : diff <= 7
-      ? "border-primary/30 text-primary bg-primary/5"
-      : "border-border text-foreground bg-secondary/60";
+      ? "text-foreground"
+      : "text-muted-foreground";
 
-  return { dayLabel, relative, tone };
+  const dotTone =
+    isPast(date) && !isToday(date)
+      ? "bg-destructive"
+      : isToday(date)
+      ? "bg-orange-500"
+      : isTomorrow(date)
+      ? "bg-amber-500"
+      : diff <= 7
+      ? "bg-primary"
+      : "bg-muted-foreground/50";
+
+  return { dayLabel, relative, tone, dotTone };
 };
 
 export const UnassignedJobCard = ({
@@ -162,7 +173,7 @@ export const UnassignedJobCard = ({
       className={`group rounded-lg border bg-card transition-all overflow-hidden ${
         isPending
           ? "border-amber-300 bg-amber-50/40"
-          : "hover:shadow-md hover:border-foreground/30 hover:-translate-y-px"
+          : "hover:shadow-sm hover:border-foreground/20"
       } ${selected ? "ring-2 ring-accent border-accent shadow-sm" : ""}`}
     >
       {/* Top row: drag handle + clickable content */}
@@ -224,7 +235,7 @@ export const UnassignedJobCard = ({
                 </p>
               )}
             </div>
-            <span className="text-sm font-bold text-foreground shrink-0 tabular-nums">
+            <span className="text-xs font-semibold text-muted-foreground shrink-0 tabular-nums">
               {Math.round(Number(displayAmount || 0))} kr
             </span>
           </div>
@@ -245,101 +256,61 @@ export const UnassignedJobCard = ({
             </p>
           )}
 
-          {/* Tydeligt skema-banner — viser hvornår aftalen skal udføres næste
-              gang. I kompakt visning trimmes det til én linje. */}
-          {schedule && !compact && (
-            <div className={`flex flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-md border px-2 py-1 text-[11px] font-medium min-w-0 ${schedule.tone}`}>
-              <CalendarClock className="h-3 w-3 shrink-0" />
-              <span className="opacity-70 font-normal">
-                {hasRecurringInterval && !isFirstOccurrence ? "Næste:" : "Opstart:"}
-              </span>
-              <span className="font-semibold truncate min-w-0">{schedule.dayLabel}</span>
-              {schedule.relative && (
-                <span className="opacity-80 truncate min-w-0">· {schedule.relative}</span>
+          {/* Diskret meta-linje: dato-prik + dag + (tid) + (varighed).
+              Erstatter de tidligere store farvede bannere — kortet bliver roligere
+              og hierarkiet klarere: navn → ydelse → hvornår. */}
+          {(schedule || job.preferred_time_start || estimatedMin != null) && (
+            <div className="flex items-center gap-x-2 gap-y-0.5 flex-wrap text-[11px] min-w-0">
+              {schedule && (
+                <span className={`inline-flex items-center gap-1.5 font-medium min-w-0 ${schedule.tone}`}>
+                  <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${schedule.dotTone}`} />
+                  <span className="truncate">{schedule.dayLabel}</span>
+                  {schedule.relative && !compact && (
+                    <span className="opacity-70 truncate">· {schedule.relative}</span>
+                  )}
+                </span>
               )}
               {job.preferred_time_start && (
-                <span className="opacity-80 ml-auto tabular-nums shrink-0">
+                <span className="text-muted-foreground tabular-nums">
                   {job.preferred_time_start.slice(0, 5)}
                   {job.preferred_time_end && `–${job.preferred_time_end.slice(0, 5)}`}
                 </span>
               )}
-            </div>
-          )}
-          {schedule && compact && (
-            <div className={`flex items-center gap-1.5 rounded border px-1.5 py-0.5 text-[10px] font-medium min-w-0 ${schedule.tone}`}>
-              <CalendarClock className="h-2.5 w-2.5 shrink-0" />
-              <span className="font-semibold truncate">{schedule.dayLabel}</span>
-              {job.preferred_time_start && (
-                <span className="opacity-80 ml-auto tabular-nums shrink-0">
-                  {job.preferred_time_start.slice(0, 5)}
+              {!compact && estimatedMin != null && (
+                <span className="text-muted-foreground inline-flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  {formatDurationMin(estimatedMin)}
                 </span>
+              )}
+              {!compact && (
+                <IntervalBadge
+                  interval={items.find((it: any) => it.details?.interval)?.details?.interval}
+                  size="sm"
+                />
               )}
             </div>
           )}
 
-          {/* Foreslået rute — flex-wrap + truncate så lange rutenavne ikke
-              skubber andre felter ud af kortet i smal layout. */}
+          {/* Foreslået tidligere rute — diskret hint kun når relevant. */}
           {job.preferred_route_name && !compact && (
-            <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-md border border-accent/40 bg-accent/5 px-2 py-1 text-[11px] font-medium text-accent min-w-0">
+            <p className="text-[11px] text-muted-foreground flex items-center gap-1.5 min-w-0">
               <RouteIcon className="h-3 w-3 shrink-0" />
-              <span className="opacity-80 font-normal">Tidligere rute:</span>
-              <span className="font-semibold truncate min-w-0">{job.preferred_route_name}</span>
-            </div>
-          )}
-
-          {/* Badge-række: viser kun det der giver mening. Varighed har label
-              så ejeren forstår hvad tallet betyder — ikke et nøgent "30 min". */}
-          {!compact && (
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <IntervalBadge
-              interval={items.find((it: any) => it.details?.interval)?.details?.interval}
-              size="sm"
-            />
-            {estimatedMin != null && (
-              <Badge
-                variant="outline"
-                className="h-5 text-[11px] px-2 gap-1 border-border text-muted-foreground font-medium"
-                title="Forventet varighed på opgaven"
-              >
-                <Clock className="h-3 w-3" />
-                Varighed {formatDurationMin(estimatedMin)}
-              </Badge>
-            )}
-            {!schedule && job.preferred_time_start && (
-              <Badge variant="outline" className="h-5 text-[11px] px-2 gap-1 border-border text-muted-foreground font-medium">
-                <Clock className="h-3 w-3" />
-                {job.preferred_time_start.slice(0, 5)}
-                {job.preferred_time_end && `–${job.preferred_time_end.slice(0, 5)}`}
-              </Badge>
-            )}
-          </div>
+              <span className="truncate">Tidligere på <span className="font-medium text-foreground">{job.preferred_route_name}</span></span>
+            </p>
           )}
         </button>
       </div>
 
       {onSuggestRoute && !isPending && !compact && (
-        <div className="flex border-t border-border/50">
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); onSuggestRoute(); }}
-          className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 text-[11px] font-semibold text-foreground hover:bg-accent/10 transition-colors focus-visible:bg-accent/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
+          className="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 text-[11px] font-semibold text-foreground hover:bg-accent/10 border-t border-border/50 transition-colors focus-visible:bg-accent/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
           title="Foreslå bedste rute baseret på afstand, kapacitet og færdigheder"
         >
           <Sparkles className="h-3 w-3 text-accent" />
-          Foreslå rute
+          Foreslå bedste rute
         </button>
-        {onFindFreeSlot && (
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onFindFreeSlot(); }}
-            className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary border-l border-border/50 transition-colors focus-visible:bg-secondary focus-visible:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
-            title="Spring til første dag med ledig kapacitet"
-          >
-            <CalendarSearch className="h-3 w-3" />
-            Næste ledige
-          </button>
-        )}
-        </div>
       )}
 
       {/* Expandable details */}
