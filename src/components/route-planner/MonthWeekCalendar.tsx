@@ -376,16 +376,23 @@ const DayCellInner = ({
       )}
       {/* Dato-header */}
       <div className="flex items-center justify-between mb-0.5">
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           <span
             className={cn(
-              "inline-flex items-center justify-center rounded-full text-xs font-semibold tabular-nums",
-              today ? "h-6 w-6 bg-accent text-accent-foreground" : "h-6 w-6 text-foreground",
+              "inline-flex items-center justify-center rounded-full text-xs font-semibold tabular-nums transition-colors",
+              today
+                ? "h-6 w-6 bg-accent text-accent-foreground shadow-sm ring-2 ring-accent/30"
+                : "h-6 w-6 text-foreground",
               !inMonth && !today && "text-muted-foreground/50",
             )}
           >
             {format(date, "d")}
           </span>
+          {today && (
+            <span className="text-[10px] font-bold uppercase tracking-wider text-accent">
+              I dag
+            </span>
+          )}
           {alert && inMonth && (
             <span
               className={cn(
@@ -419,11 +426,11 @@ const DayCellInner = ({
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onCreateRoute(dateStr); }}
-            className="opacity-0 group-hover:opacity-100 transition-opacity h-5 w-5 inline-flex items-center justify-center rounded hover:bg-accent/10 text-muted-foreground hover:text-accent"
-            aria-label="Opret rute"
-            title="Opret rute denne dag"
+            className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-all h-6 w-6 inline-flex items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground text-muted-foreground focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1"
+            aria-label={`Opret rute den ${format(date, "d. MMMM", { locale: da })}`}
+            title="Opret tom rute denne dag"
           >
-            <Plus className="h-3 w-3" />
+            <Plus className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
