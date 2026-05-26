@@ -8,6 +8,8 @@ const SECTIONS: { title: string; rows: { keys: string[]; label: string }[] }[] =
     rows: [
       { keys: ["←"], label: "Forrige uge / måned" },
       { keys: ["→"], label: "Næste uge / måned" },
+      { keys: ["J"], label: "Næste dag" },
+      { keys: ["K"], label: "Forrige dag" },
       { keys: ["T"], label: "Hop til i dag" },
       { keys: ["Esc"], label: "Luk valgt panel" },
     ],
@@ -16,6 +18,7 @@ const SECTIONS: { title: string; rows: { keys: string[]; label: string }[] }[] =
     title: "Handlinger",
     rows: [
       { keys: ["N"], label: "Ny rute" },
+      { keys: ["O"], label: "Optimér åben rute" },
       { keys: ["P"], label: "Print dagens ruter" },
       { keys: ["D"], label: "Vis dag som tidslinje" },
       { keys: ["⌘", "Z"], label: "Fortryd" },
