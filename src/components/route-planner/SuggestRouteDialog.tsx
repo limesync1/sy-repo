@@ -19,6 +19,18 @@ import {
 import { useGeocodeAddress } from "@/hooks/useRoutes";
 import { supabase } from "@/integrations/supabase/client";
 
+const norm = (s: string) =>
+  s.toLowerCase().replace(/[.,]/g, " ").replace(/\s+/g, " ").trim();
+
+/** True hvis to adresser er "samme" gade+husnummer+postnummer. */
+const addressMatchesInput = (matched: string, typed: string): boolean => {
+  const m = norm(matched);
+  const t = norm(typed);
+  if (!t) return true;
+  // Tjek at hvert ord i den indtastede adresse også optræder i match.
+  return t.split(" ").every((w) => w.length < 2 || m.includes(w));
+};
+
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -58,6 +70,8 @@ export const SuggestRouteDialog = ({
   const qc = useQueryClient();
   const geocode = useGeocodeAddress();
   const [resolvedCoords, setResolvedCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [matchInfo, setMatchInfo] = useState<{ matched: string; confidence: string; typed: string } | null>(null);
+  const [matchAccepted, setMatchAccepted] = useState(false);
   const date = useMemo(() => {
     const d = job.preferred_date || job.next_service_date;
     if (d) return d.slice(0, 10);
@@ -72,28 +86,17 @@ export const SuggestRouteDialog = ({
 
   useEffect(() => {
     setResolvedCoords(null);
+    setMatchInfo(null);
+    setMatchAccepted(false);
   }, [job.id]);
 
   useEffect(() => {
-    if (!open || (latitude != null && longitude != null) || !hasAddress || geocode.isPending) return;
+    if (!open || resolvedCoords || (job.latitude != null && job.longitude != null) || !hasAddress || geocode.isPending) return;
     (async () => {
-      try {
-        const res = await geocode.mutateAsync({
-          address: job.address || undefined,
-          zip_code: job.zip_code || undefined,
-          city: job.city || undefined,
-        });
-        if (res.found && res.latitude != null && res.longitude != null) {
-          setResolvedCoords({ latitude: res.latitude, longitude: res.longitude });
-          await supabase.from("orders").update({ latitude: res.latitude, longitude: res.longitude }).eq("id", job.id);
-          qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
-        }
-      } catch {
-        // Dialogen viser en enkel besked nedenfor — ingen ekstra toast-støj.
-      }
+      await runGeocode();
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, job.id, latitude, longitude, hasAddress]);
+  }, [open, job.id, hasAddress]);
 
   const { data: suggestions, isLoading, refetch } = useRouteSuggestions({
     business_id: businessId,
@@ -111,7 +114,9 @@ export const SuggestRouteDialog = ({
 
   const noCoords = latitude == null || longitude == null;
 
-  const tryGeocodeAgain = async () => {
+  const typedAddress = [job.address, [job.zip_code, job.city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+
+  async function runGeocode() {
     try {
       const res = await geocode.mutateAsync({
         address: job.address || undefined,
@@ -119,11 +124,37 @@ export const SuggestRouteDialog = ({
         city: job.city || undefined,
       });
       if (res.found && res.latitude != null && res.longitude != null) {
-        setResolvedCoords({ latitude: res.latitude, longitude: res.longitude });
-        await supabase.from("orders").update({ latitude: res.latitude, longitude: res.longitude }).eq("id", job.id);
-        qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
+        const matched = res.matched_address || res.display_name || "";
+        const looksSame = !matched || addressMatchesInput(matched, typedAddress);
+        if (looksSame && res.confidence === "exact") {
+          // Helt sikkert match — gem coords med det samme.
+          setResolvedCoords({ latitude: res.latitude, longitude: res.longitude });
+          setMatchInfo(null);
+          await supabase.from("orders").update({ latitude: res.latitude, longitude: res.longitude }).eq("id", job.id);
+          qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
+        } else {
+          // Usikkert match — spørg brugeren før vi gemmer i ordren.
+          setResolvedCoords({ latitude: res.latitude, longitude: res.longitude });
+          setMatchInfo({ matched, confidence: res.confidence || "fuzzy", typed: typedAddress });
+        }
       }
     } catch { /* fejlen vises i banneret */ }
+  }
+
+  const acceptMatch = async () => {
+    if (!resolvedCoords) return;
+    setMatchAccepted(true);
+    setMatchInfo(null);
+    await supabase.from("orders").update({
+      latitude: resolvedCoords.latitude,
+      longitude: resolvedCoords.longitude,
+    }).eq("id", job.id);
+    qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
+  };
+
+  const rejectMatch = () => {
+    setResolvedCoords(null);
+    setMatchInfo(null);
   };
 
   return (
@@ -150,11 +181,35 @@ export const SuggestRouteDialog = ({
                     ? "Vi kunne ikke placere adressen på kortet endnu. Prøv igen — eller åbn aftalen og ret adressen."
                     : "Aftalen har ingen adresse endnu — tilføj én, så kan vi foreslå en rute."}
               </p>
+              {hasAddress && !geocode.isPending && typedAddress && (
+                <p className="text-xs text-amber-800/80">Vi prøvede: <span className="font-mono">{typedAddress}</span></p>
+              )}
               {hasAddress && !geocode.isPending && (
-                <Button size="sm" variant="outline" onClick={tryGeocodeAgain}>
+                <Button size="sm" variant="outline" onClick={runGeocode}>
                   Prøv at finde adressen igen
                 </Button>
               )}
+            </div>
+          </div>
+        ) : matchInfo && !matchAccepted ? (
+          <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 space-y-3">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+              <div className="space-y-1">
+                <p className="font-medium">Vi fandt ikke et eksakt match på adressen.</p>
+                <p className="text-amber-900/80">
+                  Du indtastede: <span className="font-medium">{matchInfo.typed}</span>
+                </p>
+                <p className="text-amber-900/80">
+                  Nærmeste match: <span className="font-medium">{matchInfo.matched}</span>
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={acceptMatch}>Brug nærmeste match</Button>
+              <Button size="sm" variant="outline" onClick={rejectMatch}>
+                Nej — jeg retter adressen
+              </Button>
             </div>
           </div>
         ) : isLoading ? (
