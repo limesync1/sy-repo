@@ -1729,6 +1729,10 @@ export const useUpdateRoute = () => {
       // det gamle navn/farve indtil næste fulde refetch.
       qc.invalidateQueries({ queryKey: ["route-calendar"] });
       qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
+      // Ændringer af start-tid eller route_date påvirker dagens kapacitet
+      // (flyt til ny dag = booket tid skifter dag) — invalidér så
+      // kapacitets-barer i kalenderen følger med.
+      qc.invalidateQueries({ queryKey: ["daily-capacity"] });
     },
     onError: (e: any, _vars, ctx) => {
       ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data));
