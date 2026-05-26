@@ -170,7 +170,6 @@ export const MonthWeekCalendar = ({
   }, [routes]);
 
   const weekdayLabels = ["Man", "Tir", "Ons", "Tor", "Fre", "Lør", "Søn"];
-  const todayIso = format(new Date(), "yyyy-MM-dd");
 
   return (
     <Card className="overflow-hidden flex flex-col h-full">
