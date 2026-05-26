@@ -22,6 +22,11 @@ export const invalidateRouteSyncQueries = (qc: ReturnType<typeof useQueryClient>
   qc.invalidateQueries({ queryKey: ["my-employee-stats"] });
   qc.invalidateQueries({ queryKey: ["order-for-stop"] });
   qc.invalidateQueries({ queryKey: ["route-occurrence-exceptions"] });
+  // Disse to var ikke i listen før — derfor opdaterede kapacitetsbarer
+  // i bunden af kalenderdage og "skema-chips" på kortene ikke efter
+  // bulk-handlinger som auto-fordel, annullér og dato-flytning.
+  qc.invalidateQueries({ queryKey: ["daily-capacity"] });
+  qc.invalidateQueries({ queryKey: ["route-stop-order-start-info"] });
 };
 
 /** Map Postgres-fejl fra route_stop_assignees til danske beskeder. */
