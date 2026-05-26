@@ -17,6 +17,7 @@ import {
   logRoutePlannerEvent,
   type RouteStop, type Route,
 } from "@/hooks/useRoutes";
+import { useDeleteStop } from "@/hooks/useRoutes";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
