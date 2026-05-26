@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import {
-  GripVertical, MapPin, CalendarClock, Clock, Phone,
+  GripVertical, MapPin, Clock, Phone,
   StickyNote, ChevronDown, ChevronRight, Route as RouteIcon, Lock, Sparkles,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { format, parseISO, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
 import { da } from "date-fns/locale";
 import { formatDurationMin } from "@/lib/duration-format";
