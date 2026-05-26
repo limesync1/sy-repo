@@ -644,6 +644,7 @@ const Planner = () => {
   const updateRoute = useUpdateRoute();
   const moveRouteSeries = useMoveRouteSeries();
   const addStop = useAddStop();
+  const deleteStop = useDeleteStop();
   const shiftProjectedOccurrence = useShiftProjectedOccurrence();
   const revertProjectedShift = useRevertProjectedShift();
   const optimizeRoute = useOptimizeRoute();
