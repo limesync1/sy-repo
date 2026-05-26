@@ -4056,13 +4056,6 @@ const Planner = () => {
                   </div>
 
                   <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
-                    <UnassignedBulkBar
-                      selectedCount={selectedJobIds.size}
-                      totalCount={filteredUnassigned.length}
-                      onClear={() => setSelectedJobIds(new Set())}
-                      onSelectAll={() => setSelectedJobIds(new Set(filteredUnassigned.map((j: any) => j.id)))}
-                      busy={bulkBusy}
-                    />
                     {loadingUnassigned && unassigned.length === 0 && (
                       <div className="space-y-1.5">
                         {Array.from({ length: 5 }).map((_, i) => (
@@ -4128,6 +4121,17 @@ const Planner = () => {
                         compact={compactCards}
                       />
                     ))}
+                    {/* Sticky bulk-bar i bunden af listen — overlapper ikke
+                        kort i toppen og spiser ikke plads når intet er valgt. */}
+                    <UnassignedBulkBar
+                      selectedCount={selectedJobIds.size}
+                      totalCount={filteredUnassigned.length}
+                      onClear={() => setSelectedJobIds(new Set())}
+                      onSelectAll={() => setSelectedJobIds(new Set(filteredUnassigned.map((j: any) => j.id)))}
+                      onAutoAssign={runBulkAutoAssign}
+                      onCancel={runBulkCancel}
+                      busy={bulkBusy}
+                    />
                   </div>
                 </Card>
           );
