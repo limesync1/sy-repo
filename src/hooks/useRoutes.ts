@@ -1498,6 +1498,9 @@ export const useOptimizeRoute = () => {
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
       qc.invalidateQueries({ queryKey: ["routes"] });
       qc.invalidateQueries({ queryKey: ["routes-range"] });
+      // Optimering kan ændre stop-rækkefølge og dermed total køretid
+      // for dagen — kapacitets-baren skal afspejle det med det samme.
+      qc.invalidateQueries({ queryKey: ["daily-capacity"] });
     },
     // Fejl-toast håndteres af kalderen (toast.promise i UI) — undgår duplikat.
   });
@@ -1525,6 +1528,7 @@ export const useApplyRouteSuggestion = () => {
       qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
       qc.invalidateQueries({ queryKey: ["routes"] });
       qc.invalidateQueries({ queryKey: ["routes-range"] });
+      qc.invalidateQueries({ queryKey: ["daily-capacity"] });
       toast.success("Forslag anvendt");
     },
     onError: (e: any) => toastRouteError(e, toast.error, { titleFallback: "Kunne ikke anvende forslag" }),
