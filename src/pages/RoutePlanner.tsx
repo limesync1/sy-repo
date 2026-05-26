@@ -3966,19 +3966,26 @@ const Planner = () => {
                           </p>
                         );
                       }
-                      if (missing === 0 && canAutoAssign === 0) return null;
+                      if (canAutoAssign === 0) {
+                        // GPS-koordinater hentes automatisk i baggrunden — vi viser
+                        // kun en stille statuslinje når noget mangler, ingen knap.
+                        if (missing > 0) {
+                          return (
+                            <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                              <MapPin className="h-2.5 w-2.5 text-amber-500" />
+                              {missing} aftale{missing === 1 ? "" : "r"} uden GPS — hentes automatisk
+                            </p>
+                          );
+                        }
+                        return null;
+                      }
                       return (
                         <div className="space-y-1.5">
                           {missing > 0 && (
-                            <button
-                              type="button"
-                              onClick={runBulkGeocode}
-                              className="w-full flex items-center justify-center gap-1.5 h-6 rounded border border-amber-300 bg-amber-50/60 text-[10px] font-medium text-amber-900 hover:bg-amber-100/80 transition-colors"
-                              title="Find GPS-koordinater på alle aftaler uden — så de kan placeres på kortet"
-                            >
-                              <MapPin className="h-2.5 w-2.5" />
-                              Geokod alle ({missing})
-                            </button>
+                            <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                              <MapPin className="h-2.5 w-2.5 text-amber-500" />
+                              {missing} uden GPS — hentes automatisk
+                            </p>
                           )}
                           {canAutoAssign > 0 && (
                             <button
