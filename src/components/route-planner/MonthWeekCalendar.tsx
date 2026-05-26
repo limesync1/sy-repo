@@ -510,17 +510,17 @@ const DayCellInner = ({
         {isJobDragActive && emptyDay && canReceiveDrop && (
           <div
             className={cn(
-              "flex-1 flex flex-col items-center justify-center gap-1 rounded-md border-2 border-dashed transition-all",
+              "flex-1 flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed transition-all min-h-[60px]",
               isOver
-                ? "border-accent bg-accent/15 text-accent scale-[1.02]"
-                : "border-accent/40 bg-accent/5 text-accent/70",
+                ? "border-accent bg-accent/20 text-accent scale-[1.03] shadow-md"
+                : "border-accent/50 bg-accent/5 text-accent/80 hover:bg-accent/10",
             )}
           >
-            <ArrowDown className={cn("h-4 w-4", isOver && "animate-bounce")} />
-            <span className="text-[10px] font-medium leading-tight text-center px-1">
+            <ArrowDown className={cn("h-5 w-5", isOver && "animate-bounce")} />
+            <span className="text-[11px] font-semibold leading-tight text-center px-1.5">
               {isOver
                 ? `Opret rute · ${format(date, "EEEE d. MMM", { locale: da })}`
-                : "Slip for ny rute"}
+                : "Slip her for ny rute"}
             </span>
           </div>
         )}
@@ -531,12 +531,13 @@ const DayCellInner = ({
           medarbejdere), helt tomme dage og fortid. */}
       {capacity && capacity.minutes_capacity > 0 && inMonth && !isPast && (
         <div
-          className="absolute bottom-0 left-0 right-0 h-1.5 bg-muted/40 overflow-hidden"
-          title={`Belastning: ${Math.round(capacity.load_pct)}% (${Math.round(capacity.minutes_booked / 60 * 10) / 10}t / ${Math.round(capacity.minutes_capacity / 60)}t)`}
+          className="absolute bottom-0 left-0 right-0 h-1.5 bg-muted/50 overflow-hidden group/cap"
+          title={`Belastning: ${Math.round(capacity.load_pct)}% — ${Math.round(capacity.minutes_booked / 60 * 10) / 10} af ${Math.round(capacity.minutes_capacity / 60)} timer booket`}
+          aria-label={`Dagens belastning: ${Math.round(capacity.load_pct)} procent`}
         >
           <div
             className={cn(
-              "h-full transition-all",
+              "h-full transition-all duration-500",
               capacity.load_pct >= 100
                 ? "bg-destructive"
                 : capacity.load_pct >= 70
