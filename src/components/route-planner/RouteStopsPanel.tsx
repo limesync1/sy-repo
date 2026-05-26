@@ -70,6 +70,7 @@ export const RouteStopsPanel = ({
 }: Props) => {
   const reorder = useReorderStops();
   const deleteStop = useDeleteStop();
+  const qc = useQueryClient();
   const setAssignees = useSetStopAssignees();
   const [confirmDelete, setConfirmDelete] = useState<RouteStop | null>(null);
 
