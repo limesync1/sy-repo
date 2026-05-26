@@ -21,7 +21,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { ROUTE_COLORS } from "@/components/route-planner/RouteEditSheet";
 import { cn } from "@/lib/utils";
-import { useServices } from "@/hooks/useDatabase";
+import { useMyBusiness } from "@/hooks/useDatabase";
 import { useEmployeeSkills, useSetEmployeeSkills } from "@/hooks/useRoutePlannerSmarts";
 import {
   startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear,
@@ -52,6 +52,7 @@ interface Props {
 
 const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
   const { data: employees, isLoading } = useEmployees(businessId);
+  const { data: business } = useMyBusiness();
   const { data: plan } = useBusinessPlan(businessId);
   const create = useCreateEmployee();
   const update = useUpdateEmployee();
@@ -147,6 +148,13 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
   const inactiveEmployees = all.filter((e) => !e.is_active);
   const linkedCount = all.filter((e) => !!e.user_id).length;
   const pendingCount = all.filter((e) => !e.user_id).length;
+  const businessSkillOptions = useMemo(
+    () => Array.from(new Set([
+      ...(((business as any)?.categories as string[] | null) || []),
+      (business as any)?.category,
+    ].filter(Boolean) as string[])),
+    [business],
+  );
 
   // ─── Plan-grænse for antal medarbejderlogins ───
   // Virksomheden betaler for et bestemt antal medarbejderlogins
@@ -419,15 +427,6 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                   className="h-10"
                 />
               </div>
-              <div>
-                <FieldLabel optional>Medarbejdergruppe / afdeling</FieldLabel>
-                <Input
-                  value={employeeGroup}
-                  onChange={(e) => setEmployeeGroup(e.target.value)}
-                  placeholder="fx Service Øst"
-                  className="h-10"
-                />
-              </div>
             </div>
             <p className="text-xs text-muted-foreground">
               Der genereres automatisk en sikker adgangskode, og medarbejderen
@@ -489,6 +488,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                     key={emp.id}
                     employee={emp}
                     businessId={businessId}
+                    businessSkillOptions={businessSkillOptions}
                     onUpdate={update}
                     onRemove={remove}
                     earning={earningsMap?.get(emp.id) ?? null}
@@ -518,6 +518,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                     key={emp.id}
                     employee={emp}
                     businessId={businessId}
+                    businessSkillOptions={businessSkillOptions}
                     onUpdate={update}
                     onRemove={remove}
                     earning={earningsMap?.get(emp.id) ?? null}
