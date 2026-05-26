@@ -609,7 +609,16 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
           {/* Footer actions */}
           {!readOnly && (
             <SheetFooterBar className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground min-w-0">
+              <div
+                className={cn(
+                  "inline-flex items-center gap-1.5 text-[11px] px-2 py-1 rounded-full border transition-colors min-w-0",
+                  saveState === "saving"
+                    ? "bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-900"
+                    : saveState === "saved"
+                      ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900"
+                      : "bg-muted/40 text-muted-foreground border-border",
+                )}
+              >
                 {saveState === "saving" ? (
                   <>
                     <Loader2 className="h-3 w-3 animate-spin" />
@@ -617,11 +626,14 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                   </>
                 ) : saveState === "saved" ? (
                   <>
-                    <Check className="h-3 w-3 text-emerald-600" />
+                    <Check className="h-3 w-3" />
                     <span>Alle ændringer er gemt</span>
                   </>
                 ) : (
-                  <span className="italic">Ændringer gemmes automatisk</span>
+                  <>
+                    <Check className="h-3 w-3 opacity-60" />
+                    <span>Gemmes automatisk</span>
+                  </>
                 )}
               </div>
               <button
