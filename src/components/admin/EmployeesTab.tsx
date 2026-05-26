@@ -1127,6 +1127,9 @@ const EmployeeRow = ({
                     livechat_enabled: editLivechat,
                     employee_number: editEmployeeNumber.trim() || null,
                     employee_group: editEmployeeGroup.trim() || null,
+                    max_hours_per_day: editMaxHours.trim() === "" ? null : Number(editMaxHours.replace(",", ".")),
+                    max_km_per_day: editMaxKm.trim() === "" ? null : Number(editMaxKm.replace(",", ".")),
+                    max_stops_per_day: editMaxStops.trim() === "" ? null : parseInt(editMaxStops, 10),
                   } as any,
                   {
                     onSuccess: () => {
