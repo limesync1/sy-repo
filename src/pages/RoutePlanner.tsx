@@ -3992,55 +3992,37 @@ const Planner = () => {
                         </button>
                       )}
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
-                        <SelectTrigger className="h-7 text-[11px] flex-1 bg-background gap-1.5" aria-label="Sortering">
-                          <ArrowUpDown className="h-3 w-3 text-muted-foreground shrink-0" />
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="date" className="text-xs">Sortér efter dato</SelectItem>
-                          <SelectItem value="price" className="text-xs">Højeste pris først</SelectItem>
-                          <SelectItem value="name" className="text-xs">Navn (A-Å)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <div className="inline-flex items-center rounded-md border border-border bg-background p-0.5 shrink-0" role="group" aria-label="Korttæthed">
+                    {filteredUnassigned.length > 0 && (
+                      <div className="flex items-center gap-1.5">
+                        <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+                          <SelectTrigger className="h-7 text-[11px] flex-1 bg-background gap-1.5" aria-label="Sortering">
+                            <ArrowUpDown className="h-3 w-3 text-muted-foreground shrink-0" />
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="date" className="text-xs">Sortér efter dato</SelectItem>
+                            <SelectItem value="price" className="text-xs">Højeste pris først</SelectItem>
+                            <SelectItem value="name" className="text-xs">Navn (A-Å)</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <button
                               type="button"
-                              onClick={() => setCompactCards(false)}
-                              aria-label="Vis fulde kort"
-                              aria-pressed={!compactCards}
-                              className={cn(
-                                "h-6 w-6 inline-flex items-center justify-center rounded transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none",
-                                !compactCards ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground hover:bg-secondary",
-                              )}
-                            >
-                              <Rows3 className="h-3 w-3" />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent side="bottom" className="text-xs">Fulde kort</TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              type="button"
-                              onClick={() => setCompactCards(true)}
-                              aria-label="Vis kompakte kort"
+                              onClick={() => setCompactCards((v) => !v)}
+                              aria-label={compactCards ? "Skift til fulde kort" : "Skift til kompakte kort"}
                               aria-pressed={compactCards}
-                              className={cn(
-                                "h-6 w-6 inline-flex items-center justify-center rounded transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none",
-                                compactCards ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground hover:bg-secondary",
-                              )}
+                              className="h-7 w-7 inline-flex items-center justify-center rounded-md border border-border bg-background text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none shrink-0"
                             >
-                              <LayoutGrid className="h-3 w-3" />
+                              {compactCards ? <LayoutGrid className="h-3.5 w-3.5" /> : <Rows3 className="h-3.5 w-3.5" />}
                             </button>
                           </TooltipTrigger>
-                          <TooltipContent side="bottom" className="text-xs">Kompakte kort</TooltipContent>
+                          <TooltipContent side="bottom" className="text-xs">
+                            {compactCards ? "Skift til fulde kort" : "Skift til kompakte kort"}
+                          </TooltipContent>
                         </Tooltip>
                       </div>
-                    </div>
+                    )}
                     {(() => {
                       const missing = (unassigned as any[]).filter(
                         (j) => (j.address || j.zip_code || j.city) && (j.latitude == null || j.longitude == null),
