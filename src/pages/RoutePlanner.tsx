@@ -1993,14 +1993,20 @@ const Planner = () => {
           skipped++;
         }
       }
-      qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
-      qc.invalidateQueries({ queryKey: ["route-calendar"] });
+      invalidateRouteSyncQueries(qc);
       if (assigned > 0) {
-        toast.success(`Fordelt ${assigned} af ${candidates.length} valgte aftale${candidates.length === 1 ? "" : "r"}${skipped > 0 ? ` — ${skipped} sprunget over` : ""}`);
+        toast.success(
+          `Fordelt ${assigned} af ${candidates.length} valgte aftale${candidates.length === 1 ? "" : "r"}`,
+          {
+            description: skipped > 0
+              ? `${skipped} kunne ikke fordeles automatisk — manglede plads eller matchende rute.`
+              : "Kapacitetsbarerne i kalenderen er opdateret.",
+          },
+        );
         setSelectedJobIds(new Set());
       } else {
         toast.error("Ingen valgte aftaler kunne fordeles", {
-          description: "Ingen ruter havde plads. Opret en rute på dagen først.",
+          description: "Ingen ruter havde plads. Opret en rute på den ønskede dag først, eller flyt opstartsdatoen.",
         });
       }
     } finally {
