@@ -228,6 +228,9 @@ const Planner = () => {
   const [suggestJob, setSuggestJob] = useState<any | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeDragData, setActiveDragData] = useState<any>(null);
+  // ID for det drop-target musen p.t. hovrer over — bruges af DragEtaOverlay
+  // til at vide hvilken validering + ETA der skal vises.
+  const [dragOverTargetId, setDragOverTargetId] = useState<string | null>(null);
   const activeDragPointRef = useRef<DragPoint | null>(null);
   const activeDragOriginRef = useRef<DragPoint | null>(null);
   const [routeDragPoint, setRouteDragPoint] = useState<DragPoint | null>(null);
