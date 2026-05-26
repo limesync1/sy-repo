@@ -33,12 +33,12 @@ export default function UnassignedBulkBar({
       <div className="ml-auto flex items-center gap-1">
         {onAssignToRoute && (
           <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={onAssignToRoute} disabled={busy}>
-            <ListChecks className="h-3.5 w-3.5 mr-1" /> Tildel rute
+            <ListChecks className="h-3.5 w-3.5 mr-1" /> Tildel rute ({selectedCount})
           </Button>
         )}
         {onDelete && (
           <Button size="sm" variant="ghost" className="h-7 px-2 text-xs text-destructive hover:text-destructive" onClick={onDelete} disabled={busy}>
-            <Trash2 className="h-3.5 w-3.5 mr-1" /> Slet
+            <Trash2 className="h-3.5 w-3.5 mr-1" /> Slet ({selectedCount})
           </Button>
         )}
         <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={onClear} aria-label="Ryd valg">
