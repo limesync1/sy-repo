@@ -3578,7 +3578,7 @@ const Planner = () => {
                     <Printer className="h-3.5 w-3.5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom" className="text-xs">Print / PDF af valgte dags ruter</TooltipContent>
+                <TooltipContent side="bottom" className="text-xs">Print / PDF af den valgte dags ruter</TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -3592,7 +3592,7 @@ const Planner = () => {
                     <ListOrdered className="h-3.5 w-3.5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom" className="text-xs">Vis valgte dag som tidslinje (huller/overlap)</TooltipContent>
+                <TooltipContent side="bottom" className="text-xs">Vis den valgte dag som tidslinje (huller/overlap)</TooltipContent>
               </Tooltip>
             </div>
 
