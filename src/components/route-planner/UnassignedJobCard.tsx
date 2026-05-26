@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import {
   GripVertical, MapPin, CalendarClock, Clock, Phone,
-  StickyNote, ChevronDown, ChevronRight, Route as RouteIcon, Lock,
+  StickyNote, ChevronDown, ChevronRight, Route as RouteIcon, Lock, Sparkles,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format, parseISO, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
@@ -45,6 +45,7 @@ type Props = {
     completed_cycles?: number | null;
   };
   onClick?: () => void;
+  onSuggestRoute?: () => void;
 };
 
 /** Beregn tydeligt label for hvornår jobbet skal udføres næste gang.
@@ -85,7 +86,7 @@ const getSchedule = (d?: string | null) => {
   return { dayLabel, relative, tone };
 };
 
-export const UnassignedJobCard = ({ job, onClick }: Props) => {
+export const UnassignedJobCard = ({ job, onClick, onSuggestRoute }: Props) => {
   const [expanded, setExpanded] = useState(false);
   const isPending = job.status === "pending";
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
@@ -252,6 +253,18 @@ export const UnassignedJobCard = ({ job, onClick }: Props) => {
           </div>
         </button>
       </div>
+
+      {onSuggestRoute && !isPending && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onSuggestRoute(); }}
+          className="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 text-[11px] font-medium text-foreground hover:bg-accent/10 border-t border-border/50 transition-colors"
+          title="Foreslå bedste rute baseret på afstand, kapacitet og færdigheder"
+        >
+          <Sparkles className="h-3 w-3 text-accent" />
+          Foreslå rute
+        </button>
+      )}
 
       {/* Expandable details */}
       {(job.customer_phone || itemCount > 1 || job.notes) && (

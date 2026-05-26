@@ -925,6 +925,7 @@ export type Database = {
           updated_at: string
           vat_zone: string | null
           zip_code: string | null
+          zone_key: string | null
         }
         Insert: {
           address?: string | null
@@ -950,6 +951,7 @@ export type Database = {
           updated_at?: string
           vat_zone?: string | null
           zip_code?: string | null
+          zone_key?: string | null
         }
         Update: {
           address?: string | null
@@ -975,6 +977,7 @@ export type Database = {
           updated_at?: string
           vat_zone?: string | null
           zip_code?: string | null
+          zone_key?: string | null
         }
         Relationships: [
           {
@@ -1911,6 +1914,45 @@ export type Database = {
           },
         ]
       }
+      employee_skills: {
+        Row: {
+          business_id: string
+          created_at: string
+          employee_id: string
+          id: string
+          service_id: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          employee_id: string
+          id?: string
+          service_id: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          employee_id?: string
+          id?: string
+          service_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_skills_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_skills_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_workdays: {
         Row: {
           created_at: string
@@ -1971,6 +2013,9 @@ export type Database = {
           id: string
           is_active: boolean
           livechat_enabled: boolean
+          max_hours_per_day: number | null
+          max_km_per_day: number | null
+          max_stops_per_day: number | null
           name: string
           phone: string | null
           title: string | null
@@ -1994,6 +2039,9 @@ export type Database = {
           id?: string
           is_active?: boolean
           livechat_enabled?: boolean
+          max_hours_per_day?: number | null
+          max_km_per_day?: number | null
+          max_stops_per_day?: number | null
           name: string
           phone?: string | null
           title?: string | null
@@ -2017,6 +2065,9 @@ export type Database = {
           id?: string
           is_active?: boolean
           livechat_enabled?: boolean
+          max_hours_per_day?: number | null
+          max_km_per_day?: number | null
+          max_stops_per_day?: number | null
           name?: string
           phone?: string | null
           title?: string | null
@@ -2450,6 +2501,7 @@ export type Database = {
           updated_at: string
           vat_zone: string | null
           zip_code: string | null
+          zone_key: string | null
         }
         Insert: {
           address?: string | null
@@ -2473,6 +2525,7 @@ export type Database = {
           updated_at?: string
           vat_zone?: string | null
           zip_code?: string | null
+          zone_key?: string | null
         }
         Update: {
           address?: string | null
@@ -2496,6 +2549,7 @@ export type Database = {
           updated_at?: string
           vat_zone?: string | null
           zip_code?: string | null
+          zone_key?: string | null
         }
         Relationships: [
           {
@@ -3453,6 +3507,54 @@ export type Database = {
         }
         Relationships: []
       }
+      service_duration_history: {
+        Row: {
+          actual_minutes: number
+          business_id: string
+          completed_at: string
+          employee_id: string | null
+          estimated_minutes: number | null
+          id: string
+          route_stop_id: string | null
+          service_id: string | null
+        }
+        Insert: {
+          actual_minutes: number
+          business_id: string
+          completed_at?: string
+          employee_id?: string | null
+          estimated_minutes?: number | null
+          id?: string
+          route_stop_id?: string | null
+          service_id?: string | null
+        }
+        Update: {
+          actual_minutes?: number
+          business_id?: string
+          completed_at?: string
+          employee_id?: string | null
+          estimated_minutes?: number | null
+          id?: string
+          route_stop_id?: string | null
+          service_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_duration_history_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_duration_history_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_employee_durations: {
         Row: {
           avg_minutes: number
@@ -3520,6 +3622,7 @@ export type Database = {
           unit: string | null
           updated_at: string
           vat_zone: string | null
+          weather_sensitive: boolean
         }
         Insert: {
           accounting_account_number?: string | null
@@ -3545,6 +3648,7 @@ export type Database = {
           unit?: string | null
           updated_at?: string
           vat_zone?: string | null
+          weather_sensitive?: boolean
         }
         Update: {
           accounting_account_number?: string | null
@@ -3570,6 +3674,7 @@ export type Database = {
           unit?: string | null
           updated_at?: string
           vat_zone?: string | null
+          weather_sensitive?: boolean
         }
         Relationships: [
           {
@@ -4199,6 +4304,7 @@ export type Database = {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
       }
+      derive_zone_key: { Args: { zip: string }; Returns: string }
       detect_route_duplicates: { Args: never; Returns: number }
       dismiss_dlq_job: {
         Args: { _dlq_id: string; _note?: string }
@@ -4275,6 +4381,10 @@ export type Database = {
       get_customer_notification_pref: {
         Args: { p_email: string; p_key: string }
         Returns: boolean
+      }
+      get_employee_capacity_usage: {
+        Args: { _date: string; _employee_id: string }
+        Returns: Json
       }
       get_employee_invitation_by_token: {
         Args: { _token: string }
@@ -4642,6 +4752,19 @@ export type Database = {
               isSetofReturn: false
             }
           }
+      suggest_routes_for_stop: {
+        Args: {
+          _business_id: string
+          _date: string
+          _duration_minutes?: number
+          _latitude: number
+          _longitude: number
+          _service_id?: string
+          _weather_bad?: boolean
+          _zone_key?: string
+        }
+        Returns: Json
+      }
       try_claim_route_mutation: {
         Args: { _business_id?: string; _key: string; _kind: string }
         Returns: boolean

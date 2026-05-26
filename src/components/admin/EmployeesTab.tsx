@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   useEmployees, useCreateEmployee,
@@ -21,6 +21,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { ROUTE_COLORS } from "@/components/route-planner/RouteEditSheet";
 import { cn } from "@/lib/utils";
+import { useServices } from "@/hooks/useDatabase";
+import { useEmployeeSkills, useSetEmployeeSkills } from "@/hooks/useRoutePlannerSmarts";
 import {
   startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear,
   subMonths, format, parseISO,
@@ -555,6 +557,23 @@ const EmployeeRow = ({
   const [editLivechat, setEditLivechat] = useState<boolean>(!!(employee as any).livechat_enabled);
   const [editEmployeeNumber, setEditEmployeeNumber] = useState<string>((employee as any).employee_number || "");
   const [editEmployeeGroup, setEditEmployeeGroup] = useState<string>((employee as any).employee_group || "");
+  const [editMaxHours, setEditMaxHours] = useState<string>(
+    (employee as any).max_hours_per_day != null ? String((employee as any).max_hours_per_day) : "",
+  );
+  const [editMaxKm, setEditMaxKm] = useState<string>(
+    (employee as any).max_km_per_day != null ? String((employee as any).max_km_per_day) : "",
+  );
+  const [editMaxStops, setEditMaxStops] = useState<string>(
+    (employee as any).max_stops_per_day != null ? String((employee as any).max_stops_per_day) : "",
+  );
+  const { data: allServices = [] } = useServices(businessId);
+  const { data: currentSkills = [] } = useEmployeeSkills(employee.id);
+  const setSkills = useSetEmployeeSkills();
+  const [editSkillIds, setEditSkillIds] = useState<string[]>([]);
+  React.useEffect(() => {
+    setEditSkillIds(currentSkills.map((s) => s.service_id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentSkills.length, editOpen]);
   const [tasksOpen, setTasksOpen] = useState(false);
   const resetPw = useResetEmployeePassword();
   const fallbackColor = employee.color || "#64748b";
@@ -1091,6 +1110,73 @@ const EmployeeRow = ({
                 </span>
               </label>
             </section>
+
+            {/* Kapacitet pr. dag — bruges af ruteplanlæggeren */}
+            <section>
+              <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Daglig kapacitet
+              </h4>
+              <div className="rounded-xl border border-border bg-card p-4 grid grid-cols-3 gap-3">
+                <div>
+                  <FieldLabel optional>Maks. timer</FieldLabel>
+                  <Input type="number" inputMode="decimal" min={0} step="0.5"
+                    value={editMaxHours} onChange={(e) => setEditMaxHours(e.target.value)}
+                    className="h-10" placeholder="fx 8" />
+                </div>
+                <div>
+                  <FieldLabel optional>Maks. km</FieldLabel>
+                  <Input type="number" inputMode="decimal" min={0}
+                    value={editMaxKm} onChange={(e) => setEditMaxKm(e.target.value)}
+                    className="h-10" placeholder="fx 150" />
+                </div>
+                <div>
+                  <FieldLabel optional>Maks. stop</FieldLabel>
+                  <Input type="number" inputMode="numeric" min={0}
+                    value={editMaxStops} onChange={(e) => setEditMaxStops(e.target.value)}
+                    className="h-10" placeholder="fx 12" />
+                </div>
+                <p className="col-span-3 text-[11px] text-muted-foreground leading-snug">
+                  Lad felter være tomme for "ubegrænset". Ruteplanlæggeren advarer når en dag overskrider disse værdier.
+                </p>
+              </div>
+            </section>
+
+            {/* Færdigheder — hvilke services kan medarbejderen udføre */}
+            <section>
+              <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Færdigheder
+              </h4>
+              <div className="rounded-xl border border-border bg-card p-4 space-y-2">
+                <p className="text-[11px] text-muted-foreground">
+                  Vælg hvilke services medarbejderen kan udføre. Bruges af "Foreslå rute" og advarsler ved fejltildeling.
+                </p>
+                {(allServices as any[]).length === 0 ? (
+                  <p className="text-xs text-muted-foreground italic">Opret services først.</p>
+                ) : (
+                  <div className="flex flex-wrap gap-1.5">
+                    {(allServices as any[]).filter((s) => s.is_active !== false).map((s) => {
+                      const selected = editSkillIds.includes(s.id);
+                      return (
+                        <button key={s.id} type="button"
+                          onClick={() => setEditSkillIds((prev) =>
+                            prev.includes(s.id) ? prev.filter((x) => x !== s.id) : [...prev, s.id],
+                          )}
+                          className={cn(
+                            "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition",
+                            selected
+                              ? "border-foreground bg-foreground text-background"
+                              : "border-border bg-card text-foreground hover:bg-secondary/60",
+                          )}
+                        >
+                          {selected && <span aria-hidden>✓</span>}
+                          {s.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </section>
           </div>
 
           <DialogFooter className="gap-2 border-t border-border bg-secondary/30 px-5 py-3">
@@ -1118,9 +1204,17 @@ const EmployeeRow = ({
                     livechat_enabled: editLivechat,
                     employee_number: editEmployeeNumber.trim() || null,
                     employee_group: editEmployeeGroup.trim() || null,
+                    max_hours_per_day: editMaxHours.trim() === "" ? null : Number(editMaxHours.replace(",", ".")),
+                    max_km_per_day: editMaxKm.trim() === "" ? null : Number(editMaxKm.replace(",", ".")),
+                    max_stops_per_day: editMaxStops.trim() === "" ? null : parseInt(editMaxStops, 10),
                   } as any,
                   {
                     onSuccess: () => {
+                      setSkills.mutate({
+                        employee_id: employee.id,
+                        business_id: businessId,
+                        service_ids: editSkillIds,
+                      });
                       toast.success("Medarbejder opdateret");
                       setEditOpen(false);
                     },

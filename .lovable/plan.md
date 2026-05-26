@@ -1,52 +1,82 @@
-# Smarte forbedringer til ruteflytning (basis + projiceret)
 
-Alle fire forbedringer bygges, så de fungerer ensartet for **både basisruter og projicerede ruter**. Fælles bygge­blokke deles på tværs så UX og kode forbliver konsistent.
+# Smartere ruteplanlægger
 
-## 1. Undo / fortryd flytning
-- Efter en vellykket flytning (basisrute eller projektion) vises en sonner-toast med "Fortryd"-knap i 10 sek.
-- Ny utility `src/lib/route-undo.ts` med en lille in-memory stack der husker sidste mutation (route_id, fra-dato, til-dato, evt. exception_id, sync-flags).
-- For basisruter: revert ved at sætte `route_date` tilbage + nulstil tilbageshiftede aftaler (samme RPC kaldt baglæns).
-- For projicerede: slet/rebland den `route_exceptions`-row der lige blev oprettet (ny RPC `revert_projected_shift(_exception_id uuid)`).
-- Hook `useRouteUndo()` eksponerer `register()` + `undo()`; integreres i `RoutePlanner`, `RouteEditSheet`, `MoveRouteDateDialog`, `MoveProjectedOccurrenceDialog`.
+Seks forbedringer der hænger sammen: kapacitet/skills danner fundamentet, zoner og historik fodrer forslagsmotoren, og kalenderens UX-signaler viser resultatet. Alt er forslag — intet sker automatisk uden brugerens accept.
 
-## 2. Bulk-flyt flere dage
-- Ny multi-select tilstand i kalenderen (`AgendaCalendar` + `MonthWeekCalendar`): hold Shift/Ctrl eller klik på en ny "Vælg flere"-knap i toolbaren for at markere flere ruter/projektioner.
-- Floating action bar viser antal valgte + "Flyt valgte ±N dage".
-- Ny dialog `BulkMoveRoutesDialog` der validerer hver flytning (konflikter, helligdage, serie-kollisioner) via eksisterende `validateRouteMove` + viser per-rute status (OK / advarsel / blokeret).
-- Eksekvering: én batched mutation pr. rute med progress-bar; fejl ruller tilbage successfully flyttede via Undo-stacken.
+## 1) Forslagsmotor for nye ordrer (#2)
 
-## 3. Smart medarbejder-omfordeling
-- Ny utility `src/lib/employee-reassign.ts`: givet nyt rute-datointerval + tildelte medarbejdere, returnér første ledige kollega pr. konfliktende stop (baseret på `useDayConflicts` + medarbejder­tilgængelighed/skills hvis tilgængelig).
-- Når flytning (basis eller projiceret) detekterer medarbejder­konflikt, viser dialogen "Tildel **Anna** i stedet for Peter" med ét-klik accept før bekræft.
-- Sker også automatisk hvis brugeren vælger "Foreslå" — ellers bevares original tildeling og kun en advarsel vises.
+Når en ny ordre/aftale skal indplaceres, åbnes en "Foreslå rute"-dialog med top-3 ruter scoret efter:
 
-## 4. Visuel drag-preview med konfliktfarve
-- Under drag-and-drop af både basisruter og projicerede ruter beregnes pr.-dato status i memo: grøn (ledig), gul (advarsel: helligdag/geografisk spring), rød (blokeret: kollision/fortid/serie-konflikt).
-- Kalender-cellerne får baggrunds-ring i den farve mens drag er aktiv (uden at flytte indhold), inkl. lille badge med årsag på hover.
-- Logikken samles i `useDragTargetStatus(date)` hook der genbruger `validateRouteMove` + `useDayConflicts`.
+- **Afstand**: nærmeste eksisterende stop på ruten (km, via haversine + zone-bonus)
+- **Ledig kapacitet**: timer/km/stops tilbage ift. medarbejderens grænser (#4)
+- **Skill-match**: kræver service X → kun medarbejdere med skill X scorer højt (#4)
+- **Tidsvindue-fit**: ETA passer ind i kundens preferred-vindue
+- **Vejr-egnethed**: udendørs service + regn = lavere score (#7)
 
-## Tekniske ændringer
+Brugeren ser tre kort med score-breakdown ("Tæt på 3 andre stop · 4 t ledig · matcher skills") og vælger selv — eller springer over og placerer manuelt.
 
-**Nye filer**
-- `src/lib/route-undo.ts` — undo-stack + hook
-- `src/lib/employee-reassign.ts` — foreslå ledig medarbejder
-- `src/hooks/useDragTargetStatus.ts` — pr.-dato konfliktstatus
-- `src/components/route-planner/BulkMoveRoutesDialog.tsx`
-- `src/components/route-planner/BulkSelectionBar.tsx`
-- `supabase/migrations/<ts>_revert_projected_shift.sql` — RPC til at fortryde projiceret exception + RPC `bulk_shift_routes` der validerer atomisk
+## 2) Kapacitet & skills pr. medarbejder (#4)
 
-**Opdaterede filer**
-- `src/pages/RoutePlanner.tsx` — wire multi-select, undo, drag-status
-- `src/components/route-planner/AgendaCalendar.tsx` + `MonthWeekCalendar.tsx` — multi-select UI + drag-target farver
-- `src/components/route-planner/RouteEditSheet.tsx` — undo-trigger, reassign-forslag
-- `src/components/route-planner/MoveRouteDateDialog.tsx` + `MoveProjectedOccurrenceDialog.tsx` — vis reassign-forslag + indkald undo ved success
-- `src/hooks/useRoutes.ts` — eksporter `revertProjectedShift` + `bulkShiftRoutes`
+**Nyt schema**:
+- `employees`: `max_hours_per_day`, `max_km_per_day`, `max_stops_per_day` (alle nullable, defaults virker som i dag)
+- `employee_skills` (n:n): employee_id, service_id — hvilke services kan en medarbejder udføre
+- UI i medarbejder-redigering: tre talfelter + skill-multiselect over alle aktive services
 
-## Rækkefølge
-1. Migration (RPC'er) — kræver godkendelse
-2. Fælles utilities + hooks
-3. Dialoger og UI-integration
-4. Drag-target farver
-5. Manuel verificering i preview
+**Brug i planlæggeren**:
+- Forslagsmotor + valideringer bruger faktiske grænser i stedet for hardcoded `capacityPerDay: 12`
+- Når en rute overskrider en medarbejders grænse → orange advarsel + suggestion "Skift til [navn]" hvis anden ledig medarbejder har matchende skills
+- Drop af stop hvor service ikke matcher medarbejderens skills → rød fejl med foreslået alternativ
 
-Ønsker du jeg går i gang med migration først?
+## 3) Geografiske zoner (#5)
+
+- Auto-grupperer kunder pr. postnummer-zone (eksisterer i `dk-postcodes`)
+- Cacher zone på `customers.zone_key` (migration + trigger ved adresseændring)
+- Forslagsmotor får zone-bonus: stop i samme zone som rutens tyngdepunkt scorer +20%
+- Kalenderen kan farve stops efter zone (lille farveprik) så brugeren visuelt ser "rute der spreder sig over 4 zoner = ineffektiv"
+
+## 4) Vejr-aware planlægning (#7)
+
+- Eksisterende `WeatherBadge` udvides så `services` får et `weather_sensitive` boolean (default false)
+- Brugeren markerer fx "Tagrensning", "Facaderens", "Vinduespudsning udvendigt" som vejrfølsomme
+- Når en rute indeholder vejrfølsomme stops og vejrudsigten viser regn/storm → gul advarsel i kalenderen + suggestion "Foreslå flytning til [nærmeste tørre dag]"
+- Indendørs services ignoreres helt
+
+## 5) Læring fra historik (#8)
+
+- Ny tabel `service_duration_history`: service_id, employee_id, estimated_min, actual_min, completed_at
+- Trigger: ved stop-completion gemmes faktisk tid (departure - arrival)
+- Cron-funktion (ugentlig): opdaterer `services.estimated_duration_minutes` mod rullende 30-dages gennemsnit (kun hvis >5 datapunkter, max ±30% justering pr. kørsel — undgår wild swings)
+- UI: lille badge på service-edit "Justeret fra 45 → 52 min baseret på 23 udførelser"
+
+## 6) UX-signaler i kalenderen (#9)
+
+- **Kapacitetsbar pr. dag**: tynd bar i bunden af hver dag-celle, grøn→gul→rød efter timer brugt/max
+- **Tom-kørsel mellem stops**: hvis to nabostops er >25 km fra hinanden, vis en lille grå linje i ruten med "↔ 32 km tom" 
+- **Skill-mismatch ikon**: lille rødt advarselsikon på stop hvor tildelt medarbejder mangler skill
+- **Zone-prik**: farveprik på stop-kortet for zone-tilhørsforhold
+- **Dag-KPI**: ved hover på dag vises "8 stop · 6,2 t · 47 km · 1 advarsel"
+
+## Implementationsrækkefølge (fordi de afhænger af hinanden)
+
+1. **Schema**: employee capacity-felter, employee_skills, services.weather_sensitive, customers.zone_key, service_duration_history (én migration)
+2. **Kapacitet/skills UI**: redigeringsdialog for medarbejdere + skill-multiselect
+3. **Forslagsmotor (#2)**: ny RPC `suggest_route_for_stop` + frontend dialog
+4. **Validering opgradering**: route-validation bruger faktiske grænser
+5. **Zoner (#5)**: backfill zone_key + zone-bonus i forslagsmotor + visuel prik
+6. **Vejr (#7)**: weather_sensitive checkbox + advarsel i kalender
+7. **Historik (#8)**: trigger + cron + badge på service
+8. **UX-signaler (#9)**: kapacitetsbar + tom-kørsel + KPI hover
+
+## Teknisk
+
+- Alt sker DB-side hvor muligt (RPCs) for at undgå race conditions
+- Forslagsmotor returnerer top-3 med fuld breakdown — UI viser bare resultatet
+- Skills lagres som n:n så en medarbejder kan have mange og en service mange medarbejdere
+- Vejr-data caches 6 timer pr. postnummer (eksisterende `useWeather` hook)
+- Historik-cron beskytter mod outliers (kun datapunkter inden for 2σ tæller)
+
+## Hvad jeg IKKE bygger (med vilje)
+
+- Trafik-API (kræver Mapbox-key/cost vurdering — vi bruger eksisterende OSRM)
+- Fuld TSP-optimering (det er #1 fra listen, ikke bestilt)
+- Automatisk tildeling uden brugerens accept (du sagde eksplicit nej til det)
