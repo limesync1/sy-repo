@@ -2790,6 +2790,24 @@ const Planner = () => {
           // og giv den en ledig farve — samme adfærd som MoveStopsDialog.
           try { await renameFreshSplitRoutes([stop.id], newDate); }
           catch (e) { console.warn("renameFreshSplitRoutes", e); }
+          // ── Undo: registrér så brugeren kan rulle stoppet tilbage til
+          //    dets oprindelige dato. Bruger samme RPC i modsat retning;
+          //    fungerer for både simple og split-genererede flytninger.
+          const originalDate = currentRoute?.route_date;
+          if (originalDate && originalDate !== newDate) {
+            pushRouteUndo({
+              label: `Flyt stop tilbage til ${format(parseISO(originalDate), "d. MMM", { locale: da })}`,
+              undo: async () => {
+                const { error: undoErr } = await supabase.rpc("move_stops_to_date", {
+                  _stop_ids: [stop.id],
+                  _target_date: originalDate,
+                });
+                if (undoErr) throw undoErr;
+                invalidateRouteSyncQueries(qc);
+                toast.success("Stop flyttet tilbage");
+              },
+            });
+          }
           // Batchet — hurtige flytninger samles til "N stops flyttet".
           if (conflictMsg) {
             toast.success(
