@@ -779,10 +779,10 @@ const RoutePillInner = ({
         )}
       >
         <div className="min-w-0 flex-1">
-          <div className="text-[11px] font-semibold truncate text-foreground leading-tight flex items-center gap-1">
+          <div className="text-[12px] font-semibold truncate text-foreground leading-tight flex items-center gap-1">
             {isVirtual && (
               <span
-                className="inline-flex items-center gap-0.5 rounded-sm bg-muted px-1 py-px text-[8px] font-bold uppercase tracking-wide text-muted-foreground shrink-0"
+                className="inline-flex items-center gap-0.5 rounded-sm bg-muted px-1 py-px text-[9px] font-bold uppercase tracking-wide text-muted-foreground shrink-0"
                 title="Projiceret rute — låst forekomst af en gentagende basisrute"
               >
                 <Lock className="h-2 w-2" />
@@ -802,13 +802,13 @@ const RoutePillInner = ({
           </div>
           <div
             className={cn(
-              "mt-0.5 flex items-center gap-x-2 text-[10px] text-muted-foreground tabular-nums overflow-hidden",
+              "mt-0.5 flex items-center gap-x-2 text-[11px] text-muted-foreground tabular-nums overflow-hidden",
               compact ? "flex-nowrap whitespace-nowrap" : "flex-wrap gap-y-0.5",
             )}
           >
             {stopCount > 0 && (
               <span className="inline-flex items-center gap-0.5 shrink-0">
-                <MapPin className="h-2.5 w-2.5" />
+                <MapPin className="h-3 w-3" />
                 <span>
                   {completedCount > 0 && (
                     <span className="text-emerald-600 font-semibold">{completedCount}/</span>
@@ -819,13 +819,13 @@ const RoutePillInner = ({
             )}
             {revenue > 0 && (
               <span className="inline-flex items-center gap-0.5 shrink-0 font-semibold text-foreground/80">
-                <Wallet className="h-2.5 w-2.5 shrink-0" />
+                <Wallet className="h-3 w-3 shrink-0" />
                 {compact ? fmtRouteKrCompact(revenue) : fmtRouteKr(revenue)}
               </span>
             )}
             {travelMin > 0 && !compact && (
               <span className="inline-flex items-center gap-0.5 shrink-0">
-                <Clock className="h-2.5 w-2.5" />{fmtRouteMin(travelMin)}
+                <Clock className="h-3 w-3" />{fmtRouteMin(travelMin)}
               </span>
             )}
           </div>
@@ -841,12 +841,12 @@ const RoutePillInner = ({
                   alt={emp.name}
                   title={emp.name}
                   loading="lazy"
-                  className="h-4 w-4 rounded-full object-cover ring-1 ring-background"
+                  className="h-5 w-5 rounded-full object-cover ring-1 ring-background"
                 />
               ) : (
                 <span
                   key={emp.id}
-                  className="inline-block h-4 w-4 rounded-full ring-1 ring-background"
+                  className="inline-block h-5 w-5 rounded-full ring-1 ring-background"
                   style={{ background: emp.color || "#64748b" }}
                   title={emp.name}
                   aria-label={emp.name}
@@ -854,15 +854,15 @@ const RoutePillInner = ({
               ),
             )}
             {extraEmployees > 0 && (
-              <span className="inline-flex items-center justify-center h-4 min-w-[1rem] px-0.5 rounded-full text-[8px] font-bold ring-1 ring-background bg-muted text-muted-foreground">
+              <span className="inline-flex items-center justify-center h-5 min-w-[1.25rem] px-0.5 rounded-full text-[9px] font-bold ring-1 ring-background bg-muted text-muted-foreground">
                 +{extraEmployees}
               </span>
             )}
           </div>
         )}
         {visibleEmployees.length === 0 && route.attachedEmployeeCount === 0 && !compact && (
-          <span className="text-[9px] text-muted-foreground italic flex items-center gap-0.5 shrink-0">
-            <Users className="h-2.5 w-2.5" />0
+          <span className="text-[10px] text-muted-foreground italic flex items-center gap-0.5 shrink-0">
+            <Users className="h-3 w-3" />0
           </span>
         )}
         {!isVirtual && stopCount >= 2 && (
@@ -870,13 +870,13 @@ const RoutePillInner = ({
             type="button"
             onClick={(e) => { e.stopPropagation(); onOptimize(); }}
             disabled={optimizing}
-            className="shrink-0 h-5 w-5 inline-flex items-center justify-center rounded hover:bg-accent/10 text-muted-foreground hover:text-accent disabled:opacity-50"
+            className="shrink-0 h-6 w-6 inline-flex items-center justify-center rounded hover:bg-accent/10 text-muted-foreground hover:text-accent disabled:opacity-50 transition-colors"
             aria-label="Optimér rækkefølge"
             title="Optimér rækkefølge — ændrer kun rækkefølgen, ikke medarbejdere"
           >
             {optimizing
-              ? <Loader2 className="h-2.5 w-2.5 animate-spin" />
-              : <Sparkles className="h-2.5 w-2.5" />}
+              ? <Loader2 className="h-3 w-3 animate-spin" />
+              : <Sparkles className="h-3 w-3" />}
           </button>
         )}
       </div>
