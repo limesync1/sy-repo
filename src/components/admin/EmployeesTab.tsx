@@ -566,6 +566,14 @@ const EmployeeRow = ({
   const [editMaxStops, setEditMaxStops] = useState<string>(
     (employee as any).max_stops_per_day != null ? String((employee as any).max_stops_per_day) : "",
   );
+  const { data: allServices = [] } = useServices(businessId);
+  const { data: currentSkills = [] } = useEmployeeSkills(employee.id);
+  const setSkills = useSetEmployeeSkills();
+  const [editSkillIds, setEditSkillIds] = useState<string[]>([]);
+  React.useEffect(() => {
+    setEditSkillIds(currentSkills.map((s) => s.service_id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentSkills.length, editOpen]);
   const [tasksOpen, setTasksOpen] = useState(false);
   const resetPw = useResetEmployeePassword();
   const fallbackColor = employee.color || "#64748b";
