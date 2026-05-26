@@ -119,6 +119,7 @@ import { Printer, ListOrdered } from "lucide-react";
 import EmptyState from "@/components/route-planner/EmptyState";
 import DayDetailPanel, { type DayStop } from "@/components/route-planner/DayDetailPanel";
 import RouteHistoryDialog from "@/components/route-planner/RouteHistoryDialog";
+import UnassignedBulkBar from "@/components/route-planner/UnassignedBulkBar";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -216,6 +217,9 @@ const Planner = () => {
   const [printOpen, setPrintOpen] = useState(false);
   const [dayDetailOpen, setDayDetailOpen] = useState(false);
   const [historyRoute, setHistoryRoute] = useState<{ id: string; name: string } | null>(null);
+  // Bulk-valg i "Aftaler uden rute": Sæt af ordre-ids der pt. er markeret.
+  const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [suggestJob, setSuggestJob] = useState<any | null>(null);
@@ -1856,6 +1860,9 @@ const Planner = () => {
   };
 
   /* Keyboard shortcuts: ←/→ for date, T for today, M for map, N for new route */
+  // Ref så vi kan kalde optimize-handleren fra keydown uden at depende på
+  // dens definition-rækkefølge (den er defineret længere nede).
+  const optimizeRouteRef = useRef<(id: string) => void>(() => {});
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       // Ignore when typing in inputs
@@ -1896,11 +1903,23 @@ const Planner = () => {
       } else if (e.key.toLowerCase() === "d") {
         e.preventDefault();
         setDayDetailOpen(true);
+      } else if (e.key.toLowerCase() === "j") {
+        e.preventDefault();
+        setDate((d) => format(addDays(parseISO(d), 1), "yyyy-MM-dd"));
+      } else if (e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setDate((d) => format(addDays(parseISO(d), -1), "yyyy-MM-dd"));
+      } else if (e.key.toLowerCase() === "o") {
+        if (editingRoute) {
+          e.preventDefault();
+          optimizeRouteRef.current(editingRoute.id);
+        }
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [selectedStopId, view, history]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedStopId, view, history, editingRoute]);
 
   /* Når create-dialog åbnes, foreslå en ledig farve for den valgte dato */
   useEffect(() => {
@@ -2129,6 +2148,8 @@ const Planner = () => {
     const r = calendarRoutesRaw.find((x) => x.id === id);
     handleOptimize(id, r?.name ?? null);
   };
+  // Hold ref opdateret så keyboard-shortcut'en "O" kan kalde den seneste version.
+  optimizeRouteRef.current = handleCalendarOptimizeRoute;
 
   /** Tjekker om en flytning af et stop til en ny dato vil overlappe
    *  med en assignees øvrige stops på den dato. Returnerer en kort
@@ -3881,6 +3902,46 @@ const Planner = () => {
                   </div>
 
                   <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
+                    <UnassignedBulkBar
+                      selectedCount={selectedJobIds.size}
+                      totalCount={filteredUnassigned.length}
+                      onClear={() => setSelectedJobIds(new Set())}
+                      onSelectAll={() => setSelectedJobIds(new Set(filteredUnassigned.map((j: any) => j.id)))}
+                      busy={bulkBusy}
+                      onGeocode={async () => {
+                        if (!businessId || selectedJobIds.size === 0) return;
+                        const jobs = (unassigned as any[]).filter(
+                          (j) => selectedJobIds.has(j.id) && (j.address || j.zip_code || j.city)
+                            && (j.latitude == null || j.longitude == null),
+                        );
+                        if (jobs.length === 0) { toast.info("Valgte aftaler har allerede koordinater."); return; }
+                        setBulkBusy(true);
+                        let ok = 0, failed = 0;
+                        try {
+                          for (const job of jobs) {
+                            try {
+                              const res = await geocode.mutateAsync({
+                                address: job.address || undefined,
+                                zip_code: job.zip_code || undefined,
+                                city: job.city || undefined,
+                              });
+                              if (res.found && res.latitude != null && res.longitude != null) {
+                                await supabase.from("orders").update({
+                                  latitude: res.latitude, longitude: res.longitude,
+                                }).eq("id", job.id);
+                                ok++;
+                              } else failed++;
+                            } catch { failed++; }
+                          }
+                          qc.invalidateQueries({ queryKey: ["unassigned-jobs"] });
+                          if (ok > 0) toast.success(`Geokodet ${ok} aftale${ok === 1 ? "" : "r"}${failed > 0 ? ` · ${failed} fejlede` : ""}`);
+                          else toast.error("Ingen adresser kunne findes.");
+                        } finally {
+                          setBulkBusy(false);
+                          setSelectedJobIds(new Set());
+                        }
+                      }}
+                    />
                     {loadingUnassigned && unassigned.length === 0 && (
                       <div className="space-y-1.5">
                         {Array.from({ length: 5 }).map((_, i) => (
@@ -3919,6 +3980,30 @@ const Planner = () => {
                         job={job}
                         onClick={() => setSelectedJob(job)}
                         onSuggestRoute={() => setSuggestJob(job)}
+                        selected={selectedJobIds.has(job.id)}
+                        anySelected={selectedJobIds.size > 0}
+                        onToggleSelect={() => {
+                          setSelectedJobIds((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(job.id)) next.delete(job.id); else next.add(job.id);
+                            return next;
+                          });
+                        }}
+                        onFindFreeSlot={() => {
+                          const start = parseISO(date);
+                          for (let i = 1; i <= 90; i++) {
+                            const d = format(addDays(start, i), "yyyy-MM-dd");
+                            const cap = capacityByDate.get(d);
+                            if (!cap || cap.load_pct < 80) {
+                              setDate(d);
+                              toast.success(`Hopper til ${d}`, {
+                                description: cap ? `Belastning ${Math.round(cap.load_pct)}%` : "Ingen booket arbejde",
+                              });
+                              return;
+                            }
+                          }
+                          toast.message("Ingen ledige slots fundet de næste 90 dage");
+                        }}
                         compact={compactCards}
                       />
                     ))}

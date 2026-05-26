@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import {
   GripVertical, MapPin, CalendarClock, Clock, Phone,
-  StickyNote, ChevronDown, ChevronRight, Route as RouteIcon, Lock, Sparkles,
+  StickyNote, ChevronDown, ChevronRight, Route as RouteIcon, Lock, Sparkles, CalendarSearch,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format, parseISO, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
@@ -46,6 +46,15 @@ type Props = {
   };
   onClick?: () => void;
   onSuggestRoute?: () => void;
+  /** Hopper kalenderen til første dag med ledig kapacitet. */
+  onFindFreeSlot?: () => void;
+  /** Multi-select: aktuel valg-tilstand for dette kort. */
+  selected?: boolean;
+  /** Multi-select: true når mindst ét kort er valgt — bruges til at vise
+   *  checkbox-affordance på alle kort så brugeren ser at de også kan vælges. */
+  anySelected?: boolean;
+  /** Toggle bulk-valg af dette kort. */
+  onToggleSelect?: (e: React.MouseEvent) => void;
   /** Kompakt visning — skjuler varighed/badges og holder skema-banner på én linje. */
   compact?: boolean;
 };
@@ -88,7 +97,10 @@ const getSchedule = (d?: string | null) => {
   return { dayLabel, relative, tone };
 };
 
-export const UnassignedJobCard = ({ job, onClick, onSuggestRoute, compact = false }: Props) => {
+export const UnassignedJobCard = ({
+  job, onClick, onSuggestRoute, onFindFreeSlot,
+  selected, anySelected, onToggleSelect, compact = false,
+}: Props) => {
   const [expanded, setExpanded] = useState(false);
   const isPending = job.status === "pending";
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
@@ -147,10 +159,27 @@ export const UnassignedJobCard = ({ job, onClick, onSuggestRoute, compact = fals
     <div
       ref={setNodeRef}
       style={{ opacity: isDragging ? 0.4 : 1 }}
-      className={`group rounded-lg border bg-card hover:shadow-md transition-all overflow-hidden ${isPending ? "border-amber-300 bg-amber-50/40" : "hover:border-primary/60"}`}
+      className={`group rounded-lg border bg-card hover:shadow-md transition-all overflow-hidden ${isPending ? "border-amber-300 bg-amber-50/40" : "hover:border-primary/60"} ${selected ? "ring-2 ring-primary border-primary" : ""}`}
     >
       {/* Top row: drag handle + clickable content */}
       <div className={`flex items-start gap-2 ${compact ? "p-2" : "p-3"}`}>
+        {onToggleSelect && !isPending && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onToggleSelect(e); }}
+            aria-label={selected ? "Fravælg aftale" : "Vælg aftale"}
+            title={selected ? "Fravælg" : "Vælg"}
+            className={`shrink-0 mt-1 h-4 w-4 rounded border flex items-center justify-center transition-colors ${
+              selected
+                ? "bg-primary border-primary text-primary-foreground"
+                : anySelected
+                  ? "border-primary/60 hover:bg-primary/10"
+                  : "border-border opacity-0 group-hover:opacity-100 hover:bg-secondary"
+            }`}
+          >
+            {selected && <span className="text-[10px] leading-none">✓</span>}
+          </button>
+        )}
         {/* Kun grip-håndtaget initierer drag — så kortet selv kan klikkes */}
         <button
           type="button"
@@ -277,15 +306,28 @@ export const UnassignedJobCard = ({ job, onClick, onSuggestRoute, compact = fals
       </div>
 
       {onSuggestRoute && !isPending && !compact && (
+        <div className="flex border-t border-border/50">
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); onSuggestRoute(); }}
-          className="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 text-[11px] font-medium text-foreground hover:bg-accent/10 border-t border-border/50 transition-colors"
+          className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-[11px] font-medium text-foreground hover:bg-accent/10 transition-colors"
           title="Foreslå bedste rute baseret på afstand, kapacitet og færdigheder"
         >
           <Sparkles className="h-3 w-3 text-accent" />
           Foreslå rute
         </button>
+        {onFindFreeSlot && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onFindFreeSlot(); }}
+            className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-[11px] font-medium text-foreground hover:bg-accent/10 border-l border-border/50 transition-colors"
+            title="Spring til første dag med ledig kapacitet"
+          >
+            <CalendarSearch className="h-3 w-3 text-foreground/70" />
+            Næste ledige
+          </button>
+        )}
+        </div>
       )}
 
       {/* Expandable details */}
