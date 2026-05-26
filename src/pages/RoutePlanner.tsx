@@ -3980,6 +3980,15 @@ const Planner = () => {
                         job={job}
                         onClick={() => setSelectedJob(job)}
                         onSuggestRoute={() => setSuggestJob(job)}
+                        selected={selectedJobIds.has(job.id)}
+                        anySelected={selectedJobIds.size > 0}
+                        onToggleSelect={() => {
+                          setSelectedJobIds((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(job.id)) next.delete(job.id); else next.add(job.id);
+                            return next;
+                          });
+                        }}
                         onFindFreeSlot={() => {
                           const start = parseISO(date);
                           for (let i = 1; i <= 90; i++) {
