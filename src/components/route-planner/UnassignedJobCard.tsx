@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import {
-  GripVertical, MapPin, Clock, Phone,
+  MapPin, Clock, Phone,
   StickyNote, ChevronDown, ChevronRight, Route as RouteIcon, Lock, Sparkles,
-  Info, CheckSquare,
+  Info, Check,
 } from "lucide-react";
 import { format, parseISO, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
 import { da } from "date-fns/locale";
@@ -194,8 +194,8 @@ export const UnassignedJobCard = ({
         : schedule.dotTone === "bg-orange-500" ? "bg-orange-500"
         : schedule.dotTone === "bg-amber-500" ? "bg-amber-500"
         : schedule.dotTone === "bg-primary" ? "bg-primary"
-        : "bg-muted-foreground/30")
-      : "bg-muted-foreground/20";
+        : "bg-muted-foreground/50")
+      : "bg-muted-foreground/40";
 
   return (
     <div
@@ -222,62 +222,40 @@ export const UnassignedJobCard = ({
         aria-hidden
         className={`absolute left-0 top-0 bottom-0 w-1 ${selected && !isPending ? "bg-accent" : accentBar}`}
       />
-      {/* Top row: status-affordance (lås / checkbox / diskret grip) + indhold.
-          Hele kortet er draggable — venstre-elementet er KUN til status og
-          multi-select, aldrig en separat drag-handle. */}
-      <div className={`flex items-start gap-2 ${compact ? "p-2 pl-3" : "p-3 pl-3.5"}`}>
-        {isPending ? (
-          <div
-            className="shrink-0 mt-0.5 h-5 w-5 inline-flex items-center justify-center rounded text-amber-500"
-            title="Aftalen skal godkendes før den kan lægges på en rute"
-            aria-label={`${job.customer_name} skal godkendes før den kan flyttes`}
-          >
-            <Lock className="h-3.5 w-3.5" />
-          </div>
-        ) : onToggleSelect && (selected || anySelected) ? (
-          // Bulk-mode aktiv ELLER kortet er valgt: vis checkbox i stedet for grip.
-          // Når mindst ét kort er valgt, gør vi checkboksen permanent synlig på
-          // alle kort, så brugeren let kan vælge flere uden at gætte sig frem.
-          <button
-            type="button"
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => { e.stopPropagation(); onToggleSelect(e); }}
-            aria-label={selected ? "Fravælg aftale" : "Vælg aftale"}
-            aria-pressed={selected}
-            title={selected ? "Fravælg" : "Vælg"}
-            className={`shrink-0 mt-0.5 h-5 w-5 rounded border flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${
-              selected
-                ? "bg-accent border-accent text-accent-foreground"
-                : "border-accent/60 hover:bg-accent/10"
-            }`}
-          >
-            {selected && <span className="text-[10px] leading-none">✓</span>}
-          </button>
-        ) : (
-          // Default: diskret grip som visuel påmindelse om at kortet kan trækkes.
-          // På hover/fokus skifter den til en tydelig checkbox-knap så brugeren
-          // kan starte bulk-vælg uden at gætte sig frem.
-          <div className="shrink-0 mt-0.5 relative h-5 w-5">
-            <span
-              aria-hidden
-              className={`absolute inset-0 inline-flex items-center justify-center text-muted-foreground/60 transition-opacity ${onToggleSelect ? "group-hover:opacity-0 group-focus-within:opacity-0" : ""}`}
-            >
-              <GripVertical className="h-4 w-4" />
-            </span>
-            {onToggleSelect && (
-              <button
-                type="button"
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={(e) => { e.stopPropagation(); onToggleSelect(e); }}
-                aria-label="Vælg aftale (start multi-vælg)"
-                title="Vælg flere aftaler"
-                className="absolute inset-0 inline-flex items-center justify-center rounded text-muted-foreground hover:text-accent hover:bg-accent/10 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-              >
-                <CheckSquare className="h-3.5 w-3.5" />
-              </button>
-            )}
-          </div>
-        )}
+      {/* Pending lås — overlay i toppen højre hjørne (erstatter venstre kolonne). */}
+      {isPending && (
+        <div
+          aria-hidden
+          className="absolute top-2 right-2 h-5 w-5 inline-flex items-center justify-center rounded text-amber-600 bg-amber-100/80"
+          title="Aftalen skal godkendes før den kan lægges på en rute"
+        >
+          <Lock className="h-3 w-3" />
+        </div>
+      )}
+
+      {/* Multi-select knap — overlay i top-venstre hjørne så den ikke stjæler indholdsplads.
+          Vises permanent når kortet er valgt eller bulk-tilstand er aktiv, ellers kun på hover. */}
+      {!isPending && onToggleSelect && (
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => { e.stopPropagation(); onToggleSelect(e); }}
+          aria-label={selected ? "Fravælg aftale" : "Vælg aftale"}
+          aria-pressed={selected}
+          title={selected ? "Fravælg" : "Vælg flere aftaler"}
+          className={`absolute top-1.5 left-2.5 z-10 h-4 w-4 rounded border flex items-center justify-center transition-all focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${
+            selected
+              ? "bg-accent border-accent text-accent-foreground opacity-100"
+              : anySelected
+                ? "bg-card border-accent/60 hover:bg-accent/10 opacity-100"
+                : "bg-card border-border hover:border-accent opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
+          }`}
+        >
+          {selected && <Check className="h-2.5 w-2.5" strokeWidth={3} />}
+        </button>
+      )}
+
+      <div className={`${compact ? "p-2 pl-3" : "p-3 pl-3.5"}`}>
         <div
           {...(isPending ? {} : {
             role: "button",
@@ -288,7 +266,7 @@ export const UnassignedJobCard = ({
             },
             "aria-label": `Åbn detaljer for ${job.customer_name}`,
           })}
-          className={`flex-1 min-w-0 text-left rounded-md ${isPending ? "" : "cursor-pointer focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"} ${compact ? "space-y-1" : "space-y-1.5"}`}
+          className={`min-w-0 text-left rounded-md ${isPending ? "" : "cursor-pointer focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"} ${compact ? "space-y-1" : "space-y-1.5"}`}
         >
           {/* HIERARKI:
               1) Dag-label (lille caps) — wayfinding-etiket: hvornår skal det ske?
@@ -300,19 +278,20 @@ export const UnassignedJobCard = ({
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
               {schedule && (
-                <div className={`flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider leading-none ${schedule.tone}`}>
+                <div className={`flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider leading-none ${schedule.tone}`}>
+                  <span className={`h-1.5 w-1.5 rounded-full ${schedule.dotTone}`} aria-hidden />
                   <span>{schedule.dayLabel}</span>
                   {schedule.relative && !compact && (
                     <span className="font-normal normal-case tracking-normal text-muted-foreground">· {schedule.relative}</span>
                   )}
                 </div>
               )}
-              <p className={`${compact ? "text-[13px]" : "text-[14px]"} font-semibold leading-tight text-foreground truncate ${schedule ? "mt-1" : ""}`}>
+              <p className={`${compact ? "text-[13px]" : "text-[14px]"} font-semibold leading-tight text-foreground truncate capitalize ${schedule ? "mt-1" : ""}`}>
                 {job.customer_name}
               </p>
             </div>
-            <span className={`shrink-0 ${compact ? "text-[12px]" : "text-[13px]"} font-semibold text-foreground tabular-nums tracking-tight tabular-nums leading-tight`}>
-              {Math.round(Number(displayAmount || 0))} kr
+            <span className={`shrink-0 ${compact ? "text-[12px]" : "text-[13.5px]"} font-bold text-foreground tabular-nums tracking-tight leading-tight`}>
+              {Math.round(Number(displayAmount || 0))}<span className="ml-0.5 text-[10px] font-medium text-muted-foreground">kr</span>
             </span>
           </div>
 
