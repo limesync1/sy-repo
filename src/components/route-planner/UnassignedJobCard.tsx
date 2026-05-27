@@ -463,18 +463,21 @@ export const UnassignedJobCard = ({
         )}
       </div>
 
-      {/* Samlet actions-bar: "Foreslå rute" + "Detaljer" på én række i stedet for to */}
+      {/* ───────────────────────────────────────────────────────────────────
+          3) ACTION-BÅND — "Foreslå rute" som primær handling i accent,
+             sekundær "Mere info" som diskret toggle hvis der er data at vise.
+         ─────────────────────────────────────────────────────────────────── */}
       {!compact && !isPending && (onSuggestRoute || job.customer_phone || itemCount > 1 || job.notes) && (
-        <div className="flex border-t border-border/50 divide-x divide-border/50 text-[11px]">
+        <div className="flex border-t border-border/50 divide-x divide-border/50">
           {onSuggestRoute && (
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onSuggestRoute(); }}
               onPointerDown={(e) => e.stopPropagation()}
-              className="flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-1.5 font-medium text-foreground hover:bg-accent/10 transition-colors focus-visible:bg-accent/15 focus-visible:outline-none"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-2 text-[11px] font-bold uppercase tracking-wide text-accent hover:bg-accent/8 transition-colors focus-visible:bg-accent/10 focus-visible:outline-none"
               title="Foreslå bedste rute baseret på afstand, kapacitet og færdigheder"
             >
-              <Sparkles className="h-3 w-3 text-accent" />
+              <Sparkles className="h-3.5 w-3.5" />
               Foreslå rute
             </button>
           )}
@@ -485,10 +488,10 @@ export const UnassignedJobCard = ({
               onPointerDown={(e) => e.stopPropagation()}
               aria-expanded={expanded}
               title={expanded ? "Skjul ydelser, telefon og note" : "Vis ydelser, telefon og note"}
-              className="flex-1 inline-flex items-center justify-center gap-1 px-2 py-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors focus-visible:bg-secondary focus-visible:text-foreground focus-visible:outline-none"
+              className="flex-1 inline-flex items-center justify-center gap-1 px-2 py-2 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors focus-visible:bg-secondary focus-visible:text-foreground focus-visible:outline-none"
             >
               {expanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-              {expanded ? "Skjul mere" : "Mere info"}
+              {expanded ? "Skjul" : "Mere info"}
             </button>
           )}
         </div>
