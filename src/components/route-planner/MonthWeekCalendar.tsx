@@ -691,6 +691,20 @@ const RoutePillInner = ({
   const completedCount = route.stops.filter((s) => s.status === "completed").length;
   const travelMin = Number(route.total_duration_minutes || 0) || route.stops.reduce((sum, s) => sum + Number(s.travel_time_to_next_min || 0), 0);
   const revenue = route.stops.reduce((sum, s) => sum + Number((s as any).order_amount || 0), 0);
+  // Kapacitets-bjælke pr. rute: arbejdstid (stop + transport) vs. ~8t pr.
+  // tildelt medarbejder. Hurtig visuel indikator for overload uden ekstra
+  // server-rundtur — bruger felter vi allerede har.
+  const workMin = route.stops.reduce(
+    (sum, s) => sum + Math.max(Number((s as any).duration_minutes || 30), 0),
+    0,
+  ) + (travelMin || 0);
+  const empCount = Math.max(route.attachedEmployees.length || route.attachedEmployeeCount || 0, 1);
+  const capacityMin = empCount * 480; // 8 timer pr. medarbejder
+  const loadPct = workMin > 0 ? Math.min(150, Math.round((workMin / capacityMin) * 100)) : 0;
+  const loadColor =
+    loadPct >= 100 ? "bg-destructive"
+      : loadPct >= 85 ? "bg-amber-500"
+        : "bg-accent/70";
   // I månedsvisning er cellerne smalle (~110px). For at undgå at metadata-
   // rækken wrapper til 3-4 linjer (og dermed gør pillen + hele kalender-
   // rækken unødigt høj) viser vi færre felter og holder dem på én linje.
