@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import {
   MapPin, Clock, Phone,
-  StickyNote, ChevronDown, ChevronRight, Route as RouteIcon, Lock, Sparkles,
+  StickyNote, ChevronDown, ChevronRight, Route as RouteIcon, Lock,
   Info, Check, Repeat, Hourglass,
 } from "lucide-react";
 import { format, parseISO, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
@@ -452,8 +452,9 @@ export const UnassignedJobCard = ({
       </div>
 
       {/* ───────────────────────────────────────────────────────────────────
-          3) ACTION-BÅND — "Foreslå rute" som primær handling i accent,
-             sekundær "Mere info" som diskret toggle hvis der er data at vise.
+          3) ACTION-BÅND — "Vælg rute manuelt" åbner dialog hvor brugeren
+             selv vælger blandt forslag (modsat header-knappens auto-fordel).
+             Diskret styling så den ikke konkurrerer med auto-fordel-flowet.
          ─────────────────────────────────────────────────────────────────── */}
       {!compact && !isPending && (onSuggestRoute || job.customer_phone || itemCount > 1 || job.notes) && (
         <div className="flex border-t border-border/50 divide-x divide-border/50">
@@ -462,11 +463,11 @@ export const UnassignedJobCard = ({
               type="button"
               onClick={(e) => { e.stopPropagation(); onSuggestRoute(); }}
               onPointerDown={(e) => e.stopPropagation()}
-              className="flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-2 text-[11px] font-bold uppercase tracking-wide text-accent hover:bg-accent/8 transition-colors focus-visible:bg-accent/10 focus-visible:outline-none"
-              title="Foreslå bedste rute baseret på afstand, kapacitet og færdigheder"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-2 text-[11px] font-semibold text-foreground/80 hover:text-foreground hover:bg-secondary/60 transition-colors focus-visible:bg-secondary focus-visible:outline-none"
+              title="Se forslag til ruter og vælg selv hvilken aftalen skal lægges på"
             >
-              <Sparkles className="h-3.5 w-3.5" />
-              Foreslå rute
+              <RouteIcon className="h-3.5 w-3.5" />
+              Vælg rute manuelt
             </button>
           )}
           {(job.customer_phone || itemCount > 1 || job.notes) && (
