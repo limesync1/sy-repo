@@ -522,6 +522,7 @@ export const UnassignedJobCard = ({
           )}
         </div>
       )}
+      </div>
     </div>
   );
 };
