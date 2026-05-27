@@ -2324,6 +2324,22 @@ const Planner = () => {
         } else if (selectedStopId) {
           setSelectedStopId(null);
         }
+      } else if ((e.key === "Delete" || e.key === "Backspace") && selectedStopId) {
+        // Fjern det aktuelt valgte stop fra ruten. Virtuelle (projicerede)
+        // stops kan ikke slettes — de skal flyttes via basis-ruten.
+        if (selectedStopId.startsWith("virtual-stop:")) {
+          toast.message("Projicerede stops kan ikke slettes — åbn basis-ruten for at ændre.");
+          return;
+        }
+        e.preventDefault();
+        const id = selectedStopId;
+        deleteStop.mutate(id, {
+          onSuccess: () => {
+            toast.success("Stop fjernet fra rute");
+            setSelectedStopId(null);
+          },
+          onError: (err: any) => toast.error("Kunne ikke fjerne stoppet", { description: err?.message }),
+        });
       } else if (e.key === "?" || (e.shiftKey && e.key === "/")) {
         e.preventDefault();
         setShortcutsOpen(true);
