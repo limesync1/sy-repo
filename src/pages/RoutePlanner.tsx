@@ -123,7 +123,6 @@ import UndoBar from "@/components/route-planner/UndoBar";
 import PlannerSkeleton from "@/components/route-planner/PlannerSkeleton";
 import DensityToggle from "@/components/route-planner/DensityToggle";
 import ThemeToggle, { usePlannerTheme, useEnsureGlobalDarkRemoved } from "@/components/route-planner/ThemeToggle";
-import NextFreeSlotButton from "@/components/route-planner/NextFreeSlotButton";
 import RoutePrintDialog, { type PrintRoute } from "@/components/route-planner/RoutePrintDialog";
 import { Printer, ListOrdered } from "lucide-react";
 import EmptyState from "@/components/route-planner/EmptyState";
