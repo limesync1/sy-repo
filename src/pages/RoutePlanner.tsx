@@ -4439,6 +4439,22 @@ const Planner = () => {
                              {compactCards ? "Skift til fulde kort" : "Skift til kompakte kort"}
                            </TooltipContent>
                          </Tooltip>
+                          <UnassignedFiltersPopover
+                            urgencyValues={urgencyFilter}
+                            onUrgencyChange={(next) => setUrgencyFilterArr(Array.from(next))}
+                            postcodeValues={postcodeFilter}
+                            onPostcodeChange={(next) => setPostcodeFilterArr(Array.from(next))}
+                            serviceValues={serviceFilter}
+                            onServiceChange={(next) => setServiceFilterArr(Array.from(next))}
+                            postcodeFacets={postcodeFacets}
+                            serviceFacets={serviceFacets}
+                            activeCount={activeAdvancedFilterCount}
+                            onClearAll={() => {
+                              setUrgencyFilterArr([]);
+                              setPostcodeFilterArr([]);
+                              setServiceFilterArr([]);
+                            }}
+                          />
                       </div>
                     )}
                     {(() => {
