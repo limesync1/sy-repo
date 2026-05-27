@@ -169,66 +169,92 @@ export const UnassignedJobCard = ({
     <div
       ref={setNodeRef}
       style={{ opacity: isDragging ? 0.4 : 1 }}
-      className={`group relative rounded-lg border bg-card transition-colors overflow-hidden ${
+      className={`group relative rounded-lg border bg-card transition-all duration-150 overflow-hidden ${
         isPending
           ? "border-amber-300/70 bg-amber-50/40"
           : selected
-            ? "border-accent/60 bg-accent/5"
-            : "border-border/70 hover:border-foreground/20 hover:bg-secondary/30"
+            ? "border-accent/60 bg-accent/5 shadow-sm"
+            : "border-border/70 hover:border-foreground/25 hover:shadow-md hover:-translate-y-px"
       }`}
     >
       {selected && !isPending && (
         <span aria-hidden className="absolute left-0 top-0 bottom-0 w-0.5 bg-accent" />
       )}
       {/* Top row: drag handle + clickable content */}
-      <div className={`flex items-start gap-1.5 ${compact ? "p-2" : "p-2.5"}`}>
-        {onToggleSelect && !isPending && (
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onToggleSelect(e); }}
-            aria-label={selected ? "Fravælg aftale" : "Vælg aftale"}
-            aria-pressed={selected}
-            title={selected ? "Fravælg" : "Vælg"}
-            className={`shrink-0 mt-1 h-4 w-4 rounded border flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${
-              selected
-                ? "bg-accent border-accent text-accent-foreground"
-                : anySelected
-                  ? "border-accent/60 hover:bg-accent/10"
-                  : "border-border opacity-0 group-hover:opacity-100 hover:bg-secondary"
-            }`}
+      <div className={`flex items-start gap-2 ${compact ? "p-2" : "p-2.5"}`}>
+        {/* Kombineret venstre-affordance: ét element til både drag og multi-select.
+            - Disabled (pending): låse-ikon
+            - Selected: udfyldt checkbox med accent
+            - anySelected (bulk-mode): tom checkbox synlig
+            - Default: grip-ikon, morpher til checkbox ved hover når onToggleSelect findes */}
+        {isPending ? (
+          <div
+            className="shrink-0 mt-0.5 h-5 w-5 inline-flex items-center justify-center rounded text-amber-500"
+            title="Aftalen skal godkendes før den kan lægges på en rute"
+            aria-label={`${job.customer_name} skal godkendes før den kan flyttes`}
           >
-            {selected && <span className="text-[10px] leading-none">✓</span>}
-          </button>
+            <Lock className="h-3.5 w-3.5" />
+          </div>
+        ) : (
+          <div className="shrink-0 mt-0.5 relative h-5 w-5">
+            {/* Drag handle — synligt som default, fader ud når bulk-mode er aktiv eller ved hover hvis onToggleSelect findes */}
+            <button
+              type="button"
+              {...listeners}
+              {...attributes}
+              aria-label={`Træk ${job.customer_name} ind på en rute eller dag i kalenderen`}
+              title="Træk ind i kalenderen for at planlægge"
+              className={`absolute inset-0 inline-flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-secondary cursor-grab active:cursor-grabbing transition-opacity focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${
+                onToggleSelect ? (selected || anySelected ? "opacity-0 pointer-events-none" : "opacity-100 group-hover:opacity-0") : "opacity-100"
+              }`}
+            >
+              <GripVertical className="h-4 w-4" />
+            </button>
+            {/* Checkbox-affordance — vises ved hover, bulk-mode eller når valgt */}
+            {onToggleSelect && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onToggleSelect(e); }}
+                aria-label={selected ? "Fravælg aftale" : "Vælg aftale"}
+                aria-pressed={selected}
+                title={selected ? "Fravælg" : "Vælg"}
+                className={`absolute inset-0 m-0.5 rounded border flex items-center justify-center transition-all focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${
+                  selected
+                    ? "bg-accent border-accent text-accent-foreground opacity-100"
+                    : anySelected
+                      ? "border-accent/60 hover:bg-accent/10 opacity-100"
+                      : "border-border hover:bg-secondary opacity-0 group-hover:opacity-100"
+                }`}
+              >
+                {selected && <span className="text-[10px] leading-none">✓</span>}
+              </button>
+            )}
+          </div>
         )}
-        {/* Kun grip-håndtaget initierer drag — så kortet selv kan klikkes */}
-        <button
-          type="button"
-          {...(isPending ? {} : listeners)}
-          {...(isPending ? {} : attributes)}
-          aria-label={isPending
-            ? `${job.customer_name} skal godkendes før den kan flyttes`
-            : `Træk ${job.customer_name} ind på en rute eller dag i kalenderen`}
-          title={isPending ? "Aftalen skal godkendes før den kan lægges på en rute" : "Træk ind i kalenderen for at planlægge"}
-          disabled={isPending}
-          className={`shrink-0 mt-0.5 h-6 w-5 inline-flex items-center justify-center rounded transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${
-            isPending
-              ? "text-amber-500 cursor-not-allowed"
-              : "text-muted-foreground hover:text-foreground hover:bg-secondary cursor-grab active:cursor-grabbing"
-          }`}
-        >
-          {isPending ? <Lock className="h-3.5 w-3.5" /> : <GripVertical className="h-4 w-4" />}
-        </button>
         <button
           type="button"
           onClick={onClick}
           aria-label={`Åbn detaljer for ${job.customer_name}`}
           className={`flex-1 min-w-0 text-left cursor-pointer rounded-md focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${compact ? "space-y-1" : "space-y-1.5"}`}
         >
-          {/* Header: navn + pris-chip. Ydelsen flyttes under for bedre adskillelse. */}
+          {/* Header: dag-pille (tydeligst signal) + navn + pris */}
           <div className="flex items-start justify-between gap-2 min-w-0">
-            <p className="text-[13px] font-semibold leading-snug text-foreground truncate min-w-0 flex-1">
-              {job.customer_name}
-            </p>
+            <div className="min-w-0 flex-1 flex items-center gap-1.5 flex-wrap">
+              {schedule && (
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${schedule.tone} bg-current/10`}
+                  style={{
+                    backgroundColor: "color-mix(in srgb, currentColor 12%, transparent)",
+                  }}
+                >
+                  <span className={`h-1 w-1 rounded-full ${schedule.dotTone}`} />
+                  {schedule.dayLabel}
+                </span>
+              )}
+              <p className="text-[13px] font-semibold leading-snug text-foreground truncate min-w-0">
+                {job.customer_name}
+              </p>
+            </div>
             <span className="shrink-0 text-[11px] font-medium text-muted-foreground tabular-nums tracking-tight">
               {Math.round(Number(displayAmount || 0))} kr
             </span>
@@ -243,42 +269,37 @@ export const UnassignedJobCard = ({
 
           {/* Pending-banner — gør tydeligt hvorfor aftalen ikke kan trækkes */}
           {isPending && (
-            <div className="flex items-center gap-1.5 rounded-md border border-amber-300 bg-amber-100/60 px-2 h-6 text-[11px] font-medium text-amber-800">
+            <div className="flex items-center gap-1.5 rounded-md bg-amber-100/70 px-2 py-1 text-[11px] font-medium text-amber-800">
               <Lock className="h-3 w-3 shrink-0" />
-              <span>Afventer godkendelse — kan ikke lægges på rute endnu</span>
+              <span className="truncate">Afventer godkendelse</span>
             </div>
           )}
 
-          {/* Adresse — emerald prik = vi har koordinater, orange = mangler */}
+          {/* Adresse — pin-farve signalerer GPS-status (tooltip forklarer) */}
           {fullAddress && (
-            <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1.5">
-              <MapPin className={`h-3 w-3 shrink-0 ${hasGps ? "text-emerald-500" : "text-orange-400"}`} />
+            <p
+              className="text-[11px] text-muted-foreground truncate flex items-center gap-1.5"
+              title={hasGps ? "Adressen er fundet på kortet" : "Adressen mangler GPS — ruten kan ikke vises på kort"}
+            >
+              <MapPin className={`h-3 w-3 shrink-0 ${hasGps ? "text-muted-foreground/70" : "text-orange-500"}`} />
               <span className="truncate">{fullAddress}</span>
             </p>
           )}
 
-          {/* Diskret meta-linje: dato-prik + dag + (tid) + (varighed).
-              Erstatter de tidligere store farvede bannere — kortet bliver roligere
-              og hierarkiet klarere: navn → ydelse → hvornår. */}
-          {(schedule || job.preferred_time_start || estimatedMin != null) && (
-            <div className="flex items-center gap-x-2 gap-y-0.5 flex-wrap text-[11px] min-w-0">
-              {schedule && (
-                <span className={`inline-flex items-center gap-1.5 font-medium min-w-0 ${schedule.tone}`}>
-                  <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${schedule.dotTone}`} />
-                  <span className="truncate">{schedule.dayLabel}</span>
-                  {schedule.relative && !compact && (
-                    <span className="opacity-70 truncate">· {schedule.relative}</span>
-                  )}
-                </span>
+          {/* Meta-linje: relativ tid + tid + varighed + interval — uden dag-prik (er nu i pillen øverst) */}
+          {((schedule?.relative && !compact) || job.preferred_time_start || estimatedMin != null || !compact) && (
+            <div className="flex items-center gap-x-2 gap-y-0.5 flex-wrap text-[11px] min-w-0 text-muted-foreground">
+              {schedule?.relative && !compact && (
+                <span className={`${schedule.tone} font-medium truncate`}>{schedule.relative}</span>
               )}
               {job.preferred_time_start && (
-                <span className="text-muted-foreground tabular-nums">
+                <span className="tabular-nums">
                   {job.preferred_time_start.slice(0, 5)}
                   {job.preferred_time_end && `–${job.preferred_time_end.slice(0, 5)}`}
                 </span>
               )}
               {!compact && estimatedMin != null && (
-                <span className="text-muted-foreground inline-flex items-center gap-1">
+                <span className="inline-flex items-center gap-1">
                   <Clock className="h-3 w-3" />
                   {formatDurationMin(estimatedMin)}
                 </span>
@@ -302,29 +323,32 @@ export const UnassignedJobCard = ({
         </button>
       </div>
 
-      {onSuggestRoute && !isPending && !compact && (
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); onSuggestRoute(); }}
-          className="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 text-[11px] font-semibold text-foreground hover:bg-accent/10 border-t border-border/50 transition-colors focus-visible:bg-accent/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
-          title="Foreslå bedste rute baseret på afstand, kapacitet og færdigheder"
-        >
-          <Sparkles className="h-3 w-3 text-accent" />
-          Foreslå bedste rute
-        </button>
-      )}
-
-      {/* Expandable details */}
-      {!compact && (job.customer_phone || itemCount > 1 || job.notes) && (
-        <button
-          type="button"
-          onClick={() => setExpanded((v) => !v)}
-          aria-expanded={expanded}
-          className="w-full flex items-center justify-center gap-1 px-2 py-1.5 text-[11px] text-muted-foreground hover:text-foreground hover:bg-secondary/60 border-t border-border/50 transition-colors focus-visible:bg-secondary focus-visible:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
-        >
-          {expanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-          {expanded ? "Skjul detaljer" : "Vis detaljer"}
-        </button>
+      {/* Samlet actions-bar: "Foreslå rute" + "Detaljer" på én række i stedet for to */}
+      {!compact && !isPending && (onSuggestRoute || job.customer_phone || itemCount > 1 || job.notes) && (
+        <div className="flex border-t border-border/50 divide-x divide-border/50 text-[11px]">
+          {onSuggestRoute && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onSuggestRoute(); }}
+              className="flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-1.5 font-medium text-foreground hover:bg-accent/10 transition-colors focus-visible:bg-accent/15 focus-visible:outline-none"
+              title="Foreslå bedste rute baseret på afstand, kapacitet og færdigheder"
+            >
+              <Sparkles className="h-3 w-3 text-accent" />
+              Foreslå rute
+            </button>
+          )}
+          {(job.customer_phone || itemCount > 1 || job.notes) && (
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              aria-expanded={expanded}
+              className="flex-1 inline-flex items-center justify-center gap-1 px-2 py-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors focus-visible:bg-secondary focus-visible:text-foreground focus-visible:outline-none"
+            >
+              {expanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+              {expanded ? "Skjul" : "Detaljer"}
+            </button>
+          )}
+        </div>
       )}
 
       {expanded && (
