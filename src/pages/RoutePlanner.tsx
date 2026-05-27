@@ -968,6 +968,32 @@ const Planner = () => {
         return j.status !== "pending" && hasGps && (j.preferred_date || j.next_service_date);
       });
     }
+    // Urgency-filter (relativt til i dag).
+    if (urgencyFilter.size > 0) {
+      const today = todayStr();
+      const tomorrow = format(addDays(parseISO(today), 1), "yyyy-MM-dd");
+      const weekEnd = format(addDays(parseISO(today), 7), "yyyy-MM-dd");
+      list = list.filter((j: any) => {
+        const d = effectiveJobDate(j);
+        let key: UrgencyKey;
+        if (!d) key = "later";
+        else if (d < today) key = "overdue";
+        else if (d === today) key = "today";
+        else if (d === tomorrow) key = "tomorrow";
+        else if (d <= weekEnd) key = "thisweek";
+        else key = "later";
+        return urgencyFilter.has(key);
+      });
+    }
+    if (postcodeFilter.size > 0) {
+      list = list.filter((j: any) => j.zip_code && postcodeFilter.has(String(j.zip_code)));
+    }
+    if (serviceFilter.size > 0) {
+      list = list.filter((j: any) => {
+        const items = effectiveJobItems(j) as any[];
+        return items.some((it) => serviceFilter.has(String(it.service_name || "").trim()));
+      });
+    }
     const sorted = [...list];
     if (sortBy === "date") {
       sorted.sort((a: any, b: any) => {
@@ -984,7 +1010,63 @@ const Planner = () => {
       sorted.sort((a: any, b: any) => (a.customer_name || "").localeCompare(b.customer_name || "", "da"));
     }
     return sorted;
-  }, [unassigned, search, sortBy, unassignedStatusFilter]);
+  }, [unassigned, search, sortBy, unassignedStatusFilter, urgencyFilter, postcodeFilter, serviceFilter]);
+
+  // Facets: postnumre + services i den nuværende pulje (uden urgency/postcode/service-
+  // filtre, så brugeren kan se totalen pr. værdi). Beregnes fra `unassigned`
+  // efter status+search, så facets viser hvad der reelt er at vælge mellem.
+  const facetBase = useMemo(() => {
+    let list = [...unassigned];
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter((j: any) =>
+        j.customer_name?.toLowerCase().includes(q) ||
+        j.address?.toLowerCase().includes(q) ||
+        j.city?.toLowerCase().includes(q),
+      );
+    }
+    if (unassignedStatusFilter !== "all") {
+      list = list.filter((j: any) => {
+        const hasGps = j.latitude != null && j.longitude != null;
+        if (unassignedStatusFilter === "pending") return j.status === "pending";
+        if (unassignedStatusFilter === "missing-gps") return !hasGps;
+        return j.status !== "pending" && hasGps && (j.preferred_date || j.next_service_date);
+      });
+    }
+    return list;
+  }, [unassigned, search, unassignedStatusFilter]);
+
+  const postcodeFacets = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const j of facetBase as any[]) {
+      const z = j.zip_code ? String(j.zip_code).trim() : "";
+      if (!z) continue;
+      counts.set(z, (counts.get(z) ?? 0) + 1);
+    }
+    return Array.from(counts.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([value, count]) => ({ value, label: value, count }));
+  }, [facetBase]);
+
+  const serviceFacets = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const j of facetBase as any[]) {
+      const items = effectiveJobItems(j) as any[];
+      const seen = new Set<string>();
+      for (const it of items) {
+        const name = String(it.service_name || "").trim();
+        if (!name || seen.has(name)) continue;
+        seen.add(name);
+        counts.set(name, (counts.get(name) ?? 0) + 1);
+      }
+    }
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([value, count]) => ({ value, label: value, count }));
+  }, [facetBase]);
+
+  const activeAdvancedFilterCount =
+    urgencyFilter.size + postcodeFilter.size + serviceFilter.size;
 
   const unassignedTotal = useMemo(
     () => filteredUnassigned.reduce((s: number, j: any) => s + Number(j.total_amount || 0), 0),
