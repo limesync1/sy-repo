@@ -2324,6 +2324,22 @@ const Planner = () => {
         } else if (selectedStopId) {
           setSelectedStopId(null);
         }
+      } else if ((e.key === "Delete" || e.key === "Backspace") && selectedStopId) {
+        // Fjern det aktuelt valgte stop fra ruten. Virtuelle (projicerede)
+        // stops kan ikke slettes — de skal flyttes via basis-ruten.
+        if (selectedStopId.startsWith("virtual-stop:")) {
+          toast.message("Projicerede stops kan ikke slettes — åbn basis-ruten for at ændre.");
+          return;
+        }
+        e.preventDefault();
+        const id = selectedStopId;
+        deleteStop.mutate(id, {
+          onSuccess: () => {
+            toast.success("Stop fjernet fra rute");
+            setSelectedStopId(null);
+          },
+          onError: (err: any) => toast.error("Kunne ikke fjerne stoppet", { description: err?.message }),
+        });
       } else if (e.key === "?" || (e.shiftKey && e.key === "/")) {
         e.preventDefault();
         setShortcutsOpen(true);
@@ -2349,7 +2365,7 @@ const Planner = () => {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedStopId, view, history, editingRoute, selectedJobIds]);
+  }, [selectedStopId, view, history, editingRoute, selectedJobIds, deleteStop]);
 
   /* Når create-dialog åbnes, foreslå en ledig farve for den valgte dato */
   useEffect(() => {
@@ -4324,11 +4340,11 @@ const Planner = () => {
                 <Card
                    data-tour="routes-unassigned"
                    className={cn(
-                     "flex flex-col h-full overflow-hidden transition-shadow",
-                     selectedJobIds.size > 0 && "ring-2 ring-accent/60 ring-offset-1 ring-offset-background shadow-md",
+                     "flex flex-col h-full overflow-hidden transition-all duration-200 rounded-xl border-border/60 shadow-sm",
+                     selectedJobIds.size > 0 && "ring-1 ring-accent/70 shadow-[0_8px_24px_-12px_hsl(var(--accent)/0.45)]",
                    )}
                  >
-                   <div className="px-3 pt-3 pb-2.5 border-b bg-card space-y-2.5">
+                   <div className="px-3 pt-3 pb-2.5 border-b border-border/60 bg-gradient-to-b from-secondary/30 to-card space-y-2.5">
                     <div className="flex items-center gap-2 pr-10 xl:pr-0">
                       <Inbox className="h-4 w-4 text-muted-foreground shrink-0" />
                       <h2 className="font-semibold text-sm leading-tight text-foreground truncate flex-1">
@@ -4622,7 +4638,7 @@ const Planner = () => {
                           <EmptyState
                             icon={<Inbox className="h-5 w-5" />}
                             title="Alle aftaler er planlagt 🎉"
-                            description="Nye bookinger lander her, så snart de oprettes."
+                            description="Nye aftaler lander her, så snart de oprettes."
                             compact
                           />
                         );
