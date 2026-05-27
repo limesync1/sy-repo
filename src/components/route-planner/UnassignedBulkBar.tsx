@@ -1,7 +1,7 @@
 // Bulk-handlingsbjælke for "Aftaler uden rute".
 // Sticky i bunden af aftalepoolen så den ikke spiser plads fra listen og
 // ikke overlapper kort i toppen. Vises kun når mindst én aftale er valgt.
-import { Sparkles, X, Trash2, Loader2, CalendarDays, Eye } from "lucide-react";
+import { X, Trash2, CalendarDays, Eye } from "lucide-react";
 
 type Props = {
   selectedCount: number;
@@ -14,7 +14,6 @@ type Props = {
   onSelectAll: () => void;
   /** Nulstil filter+søgning så skjulte valgte aftaler kommer i syne. */
   onShowHidden?: () => void;
-  onAutoAssign?: () => void;
   onCancel?: () => void;
   onShiftDate?: () => void;
   busy?: boolean;
@@ -22,7 +21,7 @@ type Props = {
 
 export default function UnassignedBulkBar({
   selectedCount, visibleCount, hiddenCount, totalCount, onClear, onSelectAll, onShowHidden,
-  onAutoAssign, onCancel, onShiftDate, busy,
+  onCancel, onShiftDate, busy,
 }: Props) {
   if (selectedCount === 0) return null;
   const allSelected = selectedCount >= totalCount;
@@ -82,17 +81,7 @@ export default function UnassignedBulkBar({
           )}
         </div>
       )}
-      <div className="grid grid-cols-3 divide-x divide-border/60">
-        <button
-          type="button"
-          onClick={onAutoAssign}
-          disabled={busy || !onAutoAssign}
-          className="flex flex-col items-center justify-center gap-0.5 px-1.5 py-2 text-[11px] font-semibold text-foreground hover:bg-accent/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:bg-accent/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
-          title="Fordel valgte aftaler til bedst matchende ruter"
-        >
-          {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5 text-accent" />}
-          <span>Auto-fordel</span>
-        </button>
+      <div className="grid grid-cols-2 divide-x divide-border/60">
         <button
           type="button"
           onClick={onShiftDate}
