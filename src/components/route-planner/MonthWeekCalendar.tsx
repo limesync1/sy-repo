@@ -95,10 +95,6 @@ type Props = {
   /** Sæt af rute-ids hvor mindst én tildelt medarbejder mangler den
    *  færdighed et stop kræver. Vises som lille ⚠-ikon på rute-pillen. */
   mismatchedRouteIds?: Set<string>;
-  /** Per-medarbejder kapacitetsgrænser (max timer/stop/km pr. dag).
-   *  Bruges til at vise en tynd belastnings-bar nederst i hver rute-pille
-   *  så planlæggeren ser overload på rute-niveau, ikke kun pr. dag. */
-  employeeMaxById?: Map<string, { max_hours_per_day: number | null; max_stops_per_day: number | null; max_km_per_day: number | null }>;
 };
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
@@ -120,7 +116,7 @@ export const MonthWeekCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
   onCreateRoute, onOptimizeRoute, onDeleteRoute, onShowHistory, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
   loadingRoutes, loadingWeather, weatherError, busyTargets, dateAlerts,
-  selectedRouteIds, onToggleRouteSelection, capacityByDate, mismatchedRouteIds, employeeMaxById,
+  selectedRouteIds, onToggleRouteSelection, capacityByDate, mismatchedRouteIds,
 }: Props) => {
   const anchor = parseISO(anchorDate);
 
