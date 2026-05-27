@@ -736,8 +736,8 @@ const RoutePillInner = ({
         onSelect();
       }}
       className={cn(
-        "relative rounded-md border-l-[3px] cursor-pointer transition-all overflow-hidden bg-card hover:shadow-sm",
-        "border border-border/60",
+        "relative rounded-lg border-l-[3px] cursor-pointer overflow-hidden bg-card",
+        "border border-border/50 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-150 hover:-translate-y-[1px] hover:shadow-md hover:border-border",
         isDragging && "opacity-40",
         isVirtual && "border-dashed",
         isPast && "opacity-50 saturate-50 hover:opacity-90",
