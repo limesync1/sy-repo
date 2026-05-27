@@ -262,11 +262,15 @@ export const UnassignedJobCard = ({
           className={`flex-1 min-w-0 text-left cursor-pointer rounded-md focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${compact ? "space-y-1" : "space-y-1.5"}`}
         >
           {/* Header: dag-pille (tydeligst signal) + navn + pris */}
-          <div className="flex items-start justify-between gap-2 min-w-0">
-            <div className="min-w-0 flex-1 flex items-center gap-1.5 flex-wrap">
+          {/* Header layout:
+              - Lille skærm: dag-pille + pris på linje 1, navn på linje 2 (ingen overlap).
+              - Bredere kort: alt på én linje med navn der truncater.
+              Dag-pille og pris er begge shrink-0 så navnet altid giver plads først. */}
+          <div className="space-y-0.5 min-w-0">
+            <div className="flex items-center gap-1.5 min-w-0">
               {schedule && (
                 <span
-                  className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${schedule.tone} bg-current/10`}
+                  className={`shrink-0 inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${schedule.tone}`}
                   style={{
                     backgroundColor: "color-mix(in srgb, currentColor 12%, transparent)",
                   }}
@@ -275,13 +279,13 @@ export const UnassignedJobCard = ({
                   {schedule.dayLabel}
                 </span>
               )}
-              <p className="text-[13px] font-semibold leading-snug text-foreground truncate min-w-0">
+              <p className="text-[13px] font-semibold leading-snug text-foreground truncate min-w-0 flex-1">
                 {job.customer_name}
               </p>
+              <span className="shrink-0 text-[11px] font-medium text-muted-foreground tabular-nums tracking-tight">
+                {Math.round(Number(displayAmount || 0))} kr
+              </span>
             </div>
-            <span className="shrink-0 text-[11px] font-medium text-muted-foreground tabular-nums tracking-tight">
-              {Math.round(Number(displayAmount || 0))} kr
-            </span>
           </div>
           {itemCount > 0 && (
             <p className="text-[11px] text-muted-foreground truncate">
@@ -291,11 +295,27 @@ export const UnassignedJobCard = ({
             </p>
           )}
 
-          {/* Pending-banner — gør tydeligt hvorfor aftalen ikke kan trækkes */}
+          {/* Pending-banner — kort forklaring + tydelig handling.
+              Brugeren forstår både HVORFOR aftalen er låst og HVAD han kan gøre. */}
           {isPending && (
-            <div className="flex items-center gap-1.5 rounded-md bg-amber-100/70 px-2 py-1 text-[11px] font-medium text-amber-800">
-              <Lock className="h-3 w-3 shrink-0" />
-              <span className="truncate">Afventer godkendelse</span>
+            <div className="rounded-md bg-amber-100/70 border border-amber-300/60 px-2 py-1.5 space-y-1">
+              <div className="flex items-center gap-1.5 text-[11px] font-semibold text-amber-900">
+                <Lock className="h-3 w-3 shrink-0" />
+                <span>Venter på kundens svar</span>
+              </div>
+              <p className="text-[10px] leading-snug text-amber-800/90">
+                Aftalen kan først planlægges når kunden har godkendt tilbuddet.
+              </p>
+              {onClick && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); onClick(); }}
+                  className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-900 hover:text-amber-950 underline underline-offset-2"
+                >
+                  <Info className="h-3 w-3" />
+                  Se årsag og send påmindelse
+                </button>
+              )}
             </div>
           )}
 
