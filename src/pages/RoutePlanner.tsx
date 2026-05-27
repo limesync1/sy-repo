@@ -4420,6 +4420,7 @@ const Planner = () => {
                              <SelectItem value="none" className="text-xs">Ingen gruppering</SelectItem>
                              <SelectItem value="week" className="text-xs">Gruppér efter uge</SelectItem>
                              <SelectItem value="status" className="text-xs">Gruppér efter status</SelectItem>
+                              <SelectItem value="postcode" className="text-xs">Gruppér efter postnummer</SelectItem>
                              <SelectItem value="route" className="text-xs">Gruppér efter foretrukken rute</SelectItem>
                            </SelectContent>
                          </Select>
