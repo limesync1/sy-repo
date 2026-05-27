@@ -3,7 +3,7 @@ import { useDraggable } from "@dnd-kit/core";
 import {
   GripVertical, MapPin, Clock, Phone,
   StickyNote, ChevronDown, ChevronRight, Route as RouteIcon, Lock, Sparkles,
-  Info,
+  Info, CheckSquare,
 } from "lucide-react";
 import { format, parseISO, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
 import { da } from "date-fns/locale";
