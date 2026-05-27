@@ -2316,8 +2316,14 @@ const Planner = () => {
         // hvis kun én er klar). Springer over hvis intet er klar.
         e.preventDefault();
         void runAutoAssignRef.current();
-      } else if (e.key === "Escape" && selectedStopId) {
-        setSelectedStopId(null);
+      } else if (e.key === "Escape") {
+        // Prioritet: 1) ryd bulk-valg (oftest brugt) 2) luk stop-panel.
+        if (selectedJobIds.size > 0) {
+          setSelectedJobIds(new Set());
+          lastSelectedJobIdRef.current = null;
+        } else if (selectedStopId) {
+          setSelectedStopId(null);
+        }
       } else if (e.key === "?" || (e.shiftKey && e.key === "/")) {
         e.preventDefault();
         setShortcutsOpen(true);
