@@ -123,7 +123,6 @@ import UndoBar from "@/components/route-planner/UndoBar";
 import PlannerSkeleton from "@/components/route-planner/PlannerSkeleton";
 import DensityToggle from "@/components/route-planner/DensityToggle";
 import ThemeToggle, { usePlannerTheme, useEnsureGlobalDarkRemoved } from "@/components/route-planner/ThemeToggle";
-import NextFreeSlotButton from "@/components/route-planner/NextFreeSlotButton";
 import RoutePrintDialog, { type PrintRoute } from "@/components/route-planner/RoutePrintDialog";
 import { Printer, ListOrdered } from "lucide-react";
 import EmptyState from "@/components/route-planner/EmptyState";
@@ -4678,11 +4677,30 @@ const Planner = () => {
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
-                    <span className="text-xs font-medium capitalize min-w-[140px] text-center tabular-nums">
-                      {view === "week"
-                        ? `Uge ${format(parseISO(date), "I", { locale: da })} · ${format(parseISO(date), "MMM yyyy", { locale: da })}`
-                        : format(parseISO(date), "MMMM yyyy", { locale: da })}
-                    </span>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 px-2 text-xs font-medium capitalize min-w-[150px] gap-1.5 tabular-nums"
+                          aria-label="Spring til dato"
+                        >
+                          <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                          {view === "week"
+                            ? `Uge ${format(parseISO(date), "I", { locale: da })} · ${format(parseISO(date), "MMM yyyy", { locale: da })}`
+                            : format(parseISO(date), "MMMM yyyy", { locale: da })}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent align="start" className="w-auto p-0">
+                        <CalendarPicker
+                          mode="single"
+                          selected={parseISO(date)}
+                          onSelect={(d) => d && setDate(format(d, "yyyy-MM-dd"))}
+                          weekStartsOn={1}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
                     <Button
                       variant="outline"
                       size="icon"
@@ -4773,11 +4791,6 @@ const Planner = () => {
                         filterAssigneeIds={filterAssigneeIds}
                         onFilterAssigneeIds={setFilterAssigneeIds}
                         unassignedCount={unassigned.length}
-                      />
-                      <NextFreeSlotButton
-                        fromDate={date}
-                        capacityByDate={capacityByDate}
-                        onGoTo={(d) => setDate(d)}
                       />
                       <Tooltip>
                         <TooltipTrigger asChild>

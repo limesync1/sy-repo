@@ -169,14 +169,19 @@ export const UnassignedJobCard = ({
     <div
       ref={setNodeRef}
       style={{ opacity: isDragging ? 0.4 : 1 }}
-      className={`group rounded-lg border bg-card transition-all overflow-hidden ${
+      className={`group relative rounded-lg border bg-card transition-colors overflow-hidden ${
         isPending
-          ? "border-amber-300 bg-amber-50/40"
-          : "hover:shadow-sm hover:border-foreground/20"
-      } ${selected ? "ring-2 ring-accent border-accent shadow-sm" : ""}`}
+          ? "border-amber-300/70 bg-amber-50/40"
+          : selected
+            ? "border-accent/60 bg-accent/5"
+            : "border-border/70 hover:border-foreground/20 hover:bg-secondary/30"
+      }`}
     >
+      {selected && !isPending && (
+        <span aria-hidden className="absolute left-0 top-0 bottom-0 w-0.5 bg-accent" />
+      )}
       {/* Top row: drag handle + clickable content */}
-      <div className={`flex items-start gap-2 ${compact ? "p-2" : "p-3"}`}>
+      <div className={`flex items-start gap-1.5 ${compact ? "p-2" : "p-2.5"}`}>
         {onToggleSelect && !isPending && (
           <button
             type="button"
@@ -217,27 +222,24 @@ export const UnassignedJobCard = ({
           type="button"
           onClick={onClick}
           aria-label={`Åbn detaljer for ${job.customer_name}`}
-          className={`flex-1 min-w-0 text-left cursor-pointer rounded-md focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${compact ? "space-y-1" : "space-y-2"}`}
+          className={`flex-1 min-w-0 text-left cursor-pointer rounded-md focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${compact ? "space-y-1" : "space-y-1.5"}`}
         >
-          {/* Header: navn + første ydelse som sub-label + pris. Ingen ikon foran
-              navnet — kortet er allerede tydeligt en kunde, og ikonet stjal plads. */}
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold leading-tight truncate text-foreground">
-                {job.customer_name}
-              </p>
-              {itemCount > 0 && (
-                <p className="text-[11px] text-muted-foreground truncate mt-0.5">
-                  {items[0].quantity > 1 && <span>{items[0].quantity}× </span>}
-                  {items[0].service_name}
-                  {itemCount > 1 && <span> · +{itemCount - 1} mere</span>}
-                </p>
-              )}
-            </div>
-            <span className="text-xs font-semibold text-muted-foreground shrink-0 tabular-nums">
+          {/* Header: navn + pris-chip. Ydelsen flyttes under for bedre adskillelse. */}
+          <div className="flex items-start justify-between gap-2 min-w-0">
+            <p className="text-[13px] font-semibold leading-snug text-foreground truncate min-w-0 flex-1">
+              {job.customer_name}
+            </p>
+            <span className="shrink-0 text-[11px] font-medium text-muted-foreground tabular-nums tracking-tight">
               {Math.round(Number(displayAmount || 0))} kr
             </span>
           </div>
+          {itemCount > 0 && (
+            <p className="text-[11px] text-muted-foreground truncate">
+              {items[0].quantity > 1 && <span className="text-foreground/70">{items[0].quantity}× </span>}
+              {items[0].service_name}
+              {itemCount > 1 && <span className="opacity-70"> · +{itemCount - 1} mere</span>}
+            </p>
+          )}
 
           {/* Pending-banner — gør tydeligt hvorfor aftalen ikke kan trækkes */}
           {isPending && (
