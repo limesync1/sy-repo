@@ -19,6 +19,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { invalidateRouteSyncQueries } from "@/hooks/useRoutes";
 import { DatePickerField } from "./DatePickerField";
 import { cn } from "@/lib/utils";
+import { pushRouteUndo } from "@/lib/route-history";
+import { toastSuccessWithUndo } from "@/lib/toast-undo";
 
 type Job = {
   id: string;
@@ -86,14 +88,42 @@ export default function BulkShiftDateDialog({ open, onOpenChange, jobs, onDone }
         if (error) throw error;
       }
       invalidateRouteSyncQueries(qc);
-      toast.success(
-        `Flyttede opstartsdato for ${willUpdate.length} aftale${willUpdate.length === 1 ? "" : "r"}`,
-        {
-          description: willSkip > 0
-            ? `${willSkip} sprunget over (manglede dato).`
-            : undefined,
+      // Fortryd: gendan oprindelige preferred_date pr. aftale i én batch.
+      const prevByDate = new Map<string | "null", string[]>();
+      for (const p of willUpdate) {
+        const k = p.current ?? "null";
+        const list = prevByDate.get(k) ?? [];
+        list.push(p.job.id);
+        prevByDate.set(k, list);
+      }
+      const label = `Flyt opstartsdato for ${willUpdate.length} aftale${willUpdate.length === 1 ? "" : "r"}`;
+      pushRouteUndo({
+        label,
+        undo: async () => {
+          for (const [date, ids] of prevByDate.entries()) {
+            const { error } = await supabase
+              .from("orders")
+              .update({ preferred_date: date === "null" ? null : date })
+              .in("id", ids);
+            if (error) throw error;
+          }
+          invalidateRouteSyncQueries(qc);
         },
-      );
+        redo: async () => {
+          for (const [date, ids] of byDate.entries()) {
+            const { error } = await supabase
+              .from("orders")
+              .update({ preferred_date: date })
+              .in("id", ids);
+            if (error) throw error;
+          }
+          invalidateRouteSyncQueries(qc);
+        },
+      });
+      toastSuccessWithUndo({
+        message: label,
+        description: willSkip > 0 ? `${willSkip} sprunget over (manglede dato).` : undefined,
+      });
       onOpenChange(false);
       onDone?.();
     } catch (e: any) {
