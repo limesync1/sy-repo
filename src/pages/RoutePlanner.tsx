@@ -4340,11 +4340,11 @@ const Planner = () => {
                 <Card
                    data-tour="routes-unassigned"
                    className={cn(
-                     "flex flex-col h-full overflow-hidden transition-shadow",
-                     selectedJobIds.size > 0 && "ring-2 ring-accent/60 ring-offset-1 ring-offset-background shadow-md",
+                     "flex flex-col h-full overflow-hidden transition-all duration-200 rounded-xl border-border/60 shadow-sm",
+                     selectedJobIds.size > 0 && "ring-1 ring-accent/70 shadow-[0_8px_24px_-12px_hsl(var(--accent)/0.45)]",
                    )}
                  >
-                   <div className="px-3 pt-3 pb-2.5 border-b bg-card space-y-2.5">
+                   <div className="px-3 pt-3 pb-2.5 border-b border-border/60 bg-gradient-to-b from-secondary/30 to-card space-y-2.5">
                     <div className="flex items-center gap-2 pr-10 xl:pr-0">
                       <Inbox className="h-4 w-4 text-muted-foreground shrink-0" />
                       <h2 className="font-semibold text-sm leading-tight text-foreground truncate flex-1">
