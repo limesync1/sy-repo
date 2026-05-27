@@ -4215,7 +4215,28 @@ const Planner = () => {
           // Sidebar: Aftaler uden rute — genbruges i lg+ ResizablePanel og i
           // mobil/tablet Sheet-drawer, så drag-and-drop fungerer på alle enheder.
           const unassignedCard = (
-                <Card data-tour="routes-unassigned" className="flex flex-col h-full overflow-hidden">
+                <Card
+                  data-tour="routes-unassigned"
+                  className={cn(
+                    "flex flex-col h-full overflow-hidden transition-shadow",
+                    selectedJobIds.size > 0 && "ring-2 ring-accent/60 ring-offset-1 ring-offset-background shadow-md",
+                  )}
+                >
+                  {selectedJobIds.size > 0 && (
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-accent/10 border-b border-accent/30 text-[11px] font-semibold text-accent">
+                      <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-accent text-accent-foreground text-[10px]">
+                        ✓
+                      </span>
+                      <span>Multi-vælg aktiv · {selectedJobIds.size} valgt</span>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedJobIds(new Set())}
+                        className="ml-auto text-[10px] font-medium text-accent/80 hover:text-accent hover:underline underline-offset-2"
+                      >
+                        Afslut
+                      </button>
+                    </div>
+                  )}
                   <div className="px-3 pt-3 pb-2.5 border-b bg-card space-y-2.5">
                     <div className="flex items-center gap-2 pr-10 xl:pr-0">
                       <Inbox className="h-4 w-4 text-muted-foreground shrink-0" />
