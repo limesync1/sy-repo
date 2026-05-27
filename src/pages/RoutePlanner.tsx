@@ -4514,6 +4514,31 @@ const Planner = () => {
                         <div key={key} className="space-y-1.5">
                           <div className="sticky top-0 z-[1] flex items-center gap-2 px-1 py-1 bg-card/95 backdrop-blur text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
                             <span className="truncate">{g.label}</span>
+                            {selectedJobIds.size > 0 && (() => {
+                              const selectable = g.items.filter((j: any) => j.status !== "pending");
+                              if (selectable.length === 0) return null;
+                              const allSelected = selectable.every((j: any) => selectedJobIds.has(j.id));
+                              return (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedJobIds((prev) => {
+                                      const next = new Set(prev);
+                                      if (allSelected) {
+                                        selectable.forEach((j: any) => next.delete(j.id));
+                                      } else {
+                                        selectable.forEach((j: any) => next.add(j.id));
+                                      }
+                                      return next;
+                                    });
+                                  }}
+                                  className="normal-case tracking-normal text-[10px] font-semibold text-accent hover:text-accent/80 hover:underline underline-offset-2"
+                                  title={allSelected ? "Fravælg alle i denne gruppe" : "Vælg alle i denne gruppe"}
+                                >
+                                  {allSelected ? "Fravælg alle" : `Vælg alle ${selectable.length}`}
+                                </button>
+                              );
+                            })()}
                             <span className="ml-auto tabular-nums text-foreground/70">{g.items.length}</span>
                           </div>
                           {g.items.map(renderCard)}
