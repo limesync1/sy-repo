@@ -264,9 +264,13 @@ export const UnassignedJobCard = ({
             )}
           </div>
         )}
-        <button
-          type="button"
+        <div
+          role="button"
+          tabIndex={0}
           onClick={onClick}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick?.(); }
+          }}
           aria-label={`Åbn detaljer for ${job.customer_name}`}
           className={`flex-1 min-w-0 text-left cursor-pointer rounded-md focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${compact ? "space-y-1" : "space-y-1.5"}`}
         >
@@ -373,7 +377,7 @@ export const UnassignedJobCard = ({
               <span className="truncate">Tidligere på <span className="font-medium text-foreground">{job.preferred_route_name}</span></span>
             </p>
           )}
-        </button>
+        </div>
       </div>
 
       {/* Samlet actions-bar: "Foreslå rute" + "Detaljer" på én række i stedet for to */}
