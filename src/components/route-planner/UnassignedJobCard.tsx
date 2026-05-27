@@ -17,8 +17,8 @@ import { Skeleton } from "@/components/ui/skeleton";
  *  rigtige kort kommer ind. */
 export const UnassignedJobCardSkeleton = ({ compact = false }: { compact?: boolean }) => (
   <div className="relative rounded-xl border border-border/70 bg-card overflow-hidden flex">
-    <div className="w-1 bg-secondary shrink-0" />
-    <div className={`flex-1 ${compact ? "p-2.5" : "p-3"} space-y-2`}>
+    <div className="w-0.5 bg-secondary shrink-0" />
+    <div className={`flex-1 ${compact ? "p-2.5 pl-8" : "p-3 pl-9"} space-y-2`}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0 space-y-1.5">
           <Skeleton className="h-4 w-32 rounded" />
@@ -292,7 +292,7 @@ export const UnassignedJobCard = ({
          ─────────────────────────────────────────────────────────────────── */}
       <div
         aria-hidden
-        className={`w-1.5 shrink-0 ${selected ? "bg-accent" : urgency.rail} ${urgency.pulse ? "animate-pulse" : ""}`}
+        className={`w-0.5 shrink-0 ${selected ? "bg-accent" : urgency.rail} ${urgency.pulse ? "animate-pulse" : ""}`}
       />
 
       {/* MULTI-SELECT — stor, altid-synlig dedikeret zone i venstre side.
@@ -308,7 +308,7 @@ export const UnassignedJobCard = ({
           aria-label={selected ? "Fravælg aftale" : "Vælg aftale"}
           aria-pressed={selected}
           title={selected ? "Fravælg aftale" : "Vælg flere aftaler"}
-          className={`absolute top-2.5 left-3.5 z-10 h-5 w-5 rounded-md border-2 flex items-center justify-center transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:outline-none ${
+          className={`absolute top-2.5 left-2.5 z-10 h-5 w-5 rounded-md border-2 flex items-center justify-center transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:outline-none ${
             selected
               ? "bg-accent border-accent text-accent-foreground opacity-100 shadow-sm"
               : anySelected
@@ -335,7 +335,7 @@ export const UnassignedJobCard = ({
           },
           "aria-label": `Åbn detaljer for ${job.customer_name}`,
         })}
-        className={`${compact ? "p-2.5 pl-9" : "p-3 pl-10"} ${compact ? "space-y-2" : "space-y-2.5"} ${isPending ? "" : "cursor-pointer focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent focus-visible:outline-none"}`}
+        className={`${compact ? "p-2.5 pl-8" : "p-3 pl-9"} ${compact ? "space-y-2" : "space-y-2.5"} ${isPending ? "" : "cursor-pointer focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent focus-visible:outline-none"}`}
       >
         {/* TOP-LINJE: navn + dato-pille. Navn er stærkeste typografi.
             Dato-pillen ankrer urgency i højre side uden tungt bånd. */}

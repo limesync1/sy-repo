@@ -101,7 +101,7 @@ export default function UnassignedBulkBar({
           title="Flyt opstartsdato for de valgte aftaler"
         >
           <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
-          <span>Flyt dato</span>
+          <span>Flyt opstartsdato</span>
         </button>
         <button
           type="button"

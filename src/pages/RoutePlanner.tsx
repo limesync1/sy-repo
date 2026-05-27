@@ -4403,7 +4403,7 @@ const Planner = () => {
                               {autoAssigning
                                 ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Fordeler {canAutoAssign}…</>
                                 : canAutoAssign === 1
-                                  ? <><Sparkles className="h-3.5 w-3.5 text-accent" />Find bedste rute</>
+                                  ? <><Sparkles className="h-3.5 w-3.5 text-accent" />Auto-fordel 1 aftale</>
                                   : <><Sparkles className="h-3.5 w-3.5" />Auto-fordel {canAutoAssign} aftaler</>}
                             </button>
                           )}
