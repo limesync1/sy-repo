@@ -28,6 +28,15 @@ const SECTIONS: { title: string; rows: { keys: string[]; label: string }[] }[] =
       { keys: ["?"], label: "Vis denne hjælp" },
     ],
   },
+  {
+    title: "Valg af aftaler",
+    rows: [
+      { keys: ["Klik"], label: "Vælg / fravælg én aftale" },
+      { keys: ["⇧", "Klik"], label: "Vælg interval mellem to aftaler" },
+      { keys: ["Esc"], label: "Ryd valg / luk panel" },
+      { keys: ["Delete"], label: "Fjern valgt stop fra rute" },
+    ],
+  },
 ];
 
 export default function RoutePlannerShortcutsHelp({
