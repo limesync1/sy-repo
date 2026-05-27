@@ -4703,10 +4703,11 @@ const Planner = () => {
 
           return (
             <div className="flex-1 overflow-hidden p-2 sm:p-3" style={{ height: "calc(100vh - 56px)" }}>
-              {/* Desktop (lg+): resizable side-by-side med aftalepool venstre + kalender højre.
-                  Topbaren har ikke plads til alle handlinger før 2xl, så vi viser en kompakt
-                  toolbar oven på split-layoutet ved lg/xl. */}
-              <div className="hidden h-full lg:flex lg:flex-col lg:gap-2">
+              {/* Desktop (xl+, ≥1280px): resizable side-by-side med aftalepool venstre + kalender højre.
+                  Under 1280px presses 7-kolonners grid + 225px aftalepool sammen til ulæseligt — så vi
+                  bruger agenda-visningen i stedet (≤1279px). Topbaren har ikke plads til alle handlinger
+                  før 2xl, så vi viser en kompakt toolbar oven på split-layoutet ved xl. */}
+              <div className="hidden h-full xl:flex xl:flex-col xl:gap-2">
                 <div className="shrink-0 rounded-lg border bg-card p-2 shadow-sm 2xl:hidden">
                   <div className="flex flex-wrap items-center gap-1.5">
                     <Button
@@ -4932,10 +4933,10 @@ const Planner = () => {
                 </div>
               </div>
 
-              {/* Mobil/tablet/narrow desktop (<xl): dedikeret toolbar + agenda-kalender fuld bredde.
-                  Vi har bumpet breakpointet fra lg→xl så 1024–1279px viewports ikke længere
+              {/* Mobil/tablet/narrow desktop (<xl, <1280px): dedikeret toolbar + agenda-kalender fuld
+                  bredde. Vi har bumpet breakpointet fra lg→xl så 1024–1279px viewports ikke længere
                   presses ind i et 7-kolonners grid hvor hver dagcelle bliver < 120px. */}
-              <div className="flex h-full flex-col gap-2 lg:hidden">
+              <div className="flex h-full flex-col gap-2 xl:hidden">
                 <div className="shrink-0 space-y-2 rounded-lg border bg-card p-2 shadow-sm">
                   <div className="flex items-center gap-1.5">
                     <Button
