@@ -4631,12 +4631,36 @@ const Planner = () => {
                         onSuggestRoute={() => setSuggestJob(job)}
                         selected={selectedJobIds.has(job.id)}
                         anySelected={selectedJobIds.size > 0}
-                        onToggleSelect={() => {
+                        onToggleSelect={(e) => {
+                          // Shift+klik = range-select fra sidste valgte aftale til
+                          // denne, baseret på den synlige rækkefølge i listen.
+                          const useShift =
+                            e?.shiftKey && lastSelectedJobIdRef.current && lastSelectedJobIdRef.current !== job.id;
+                          if (useShift) {
+                            const order = filteredUnassigned as any[];
+                            const fromIdx = order.findIndex((j) => j.id === lastSelectedJobIdRef.current);
+                            const toIdx = order.findIndex((j) => j.id === job.id);
+                            if (fromIdx !== -1 && toIdx !== -1) {
+                              const [lo, hi] = fromIdx < toIdx ? [fromIdx, toIdx] : [toIdx, fromIdx];
+                              setSelectedJobIds((prev) => {
+                                const next = new Set(prev);
+                                for (let i = lo; i <= hi; i++) {
+                                  const j = order[i];
+                                  // Spring pending-aftaler over — de er ikke valgbare.
+                                  if (j.status !== "pending") next.add(j.id);
+                                }
+                                return next;
+                              });
+                              return;
+                            }
+                          }
                           setSelectedJobIds((prev) => {
                             const next = new Set(prev);
-                            if (next.has(job.id)) next.delete(job.id); else next.add(job.id);
+                            if (next.has(job.id)) next.delete(job.id);
+                            else next.add(job.id);
                             return next;
                           });
+                          lastSelectedJobIdRef.current = job.id;
                         }}
                         onFindFreeSlot={() => {
                           const start = parseISO(date);
