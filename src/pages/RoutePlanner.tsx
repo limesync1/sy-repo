@@ -4353,6 +4353,19 @@ const Planner = () => {
                       const canAutoAssign = scope.filter(
                         (j) => j.status !== "pending" && j.latitude != null && j.longitude != null && (j.preferred_date || j.next_service_date),
                       ).length;
+                      // Når brugeren har valgt aftaler bliver knappen kontekstuel:
+                      // den fordeler kun de valgte (samme som bulk-baren tidligere).
+                      // Det fjerner duplikatet hvor 3 knapper konkurrerede om samme handling.
+                      const selectedCount = selectedJobIds.size;
+                      const selectionMode = selectedCount > 0;
+                      const selectedReady = selectionMode
+                        ? (unassigned as any[]).filter((j: any) =>
+                            selectedJobIds.has(j.id)
+                            && j.status !== "pending"
+                            && j.latitude != null && j.longitude != null
+                            && (j.preferred_date || j.next_service_date),
+                          ).length
+                        : 0;
                       if (geocoding) {
                         return (
                           <p className="text-[10px] text-muted-foreground flex items-center gap-1">
@@ -4360,7 +4373,7 @@ const Planner = () => {
                           </p>
                         );
                       }
-                      if (canAutoAssign === 0) {
+                      if (canAutoAssign === 0 && !selectionMode) {
                         // GPS-koordinater hentes automatisk i baggrunden — vi viser
                         // kun en stille statuslinje når noget mangler, ingen knap.
                         if (missing > 0) {
@@ -4381,11 +4394,32 @@ const Planner = () => {
                               {missing} uden GPS — hentes automatisk
                             </p>
                           )}
-                          {canAutoAssign > 0 && (
-                            // Når der kun er én aftale tilbage er det sjældent værd
-                            // at "auto-fordele" — brugeren kan lige så hurtigt trække
-                            // kortet eller bruge "Foreslå bedste rute" på kortet selv.
-                            // Derfor: stille outline-knap ved 1, fuld accent ved 2+.
+                          {selectionMode ? (
+                            // Selektions-tilstand: knappen fordeler KUN de valgte.
+                            // Disabled hvis ingen valgte aftaler opfylder kravene.
+                            <button
+                              type="button"
+                              onClick={runBulkAutoAssign}
+                              disabled={bulkBusy || selectedReady === 0}
+                              className={cn(
+                                "w-full inline-flex items-center justify-center gap-1.5 h-8 rounded-md text-xs font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:outline-none",
+                                selectedReady > 0
+                                  ? "bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm"
+                                  : "border border-border bg-background text-muted-foreground",
+                              )}
+                              title={selectedReady === 0
+                                ? "Valgte aftaler mangler adresse på kortet eller ønsket dato"
+                                : `Fordel ${selectedReady} valgte aftale${selectedReady === 1 ? "" : "r"} til de bedst matchende ruter`}
+                            >
+                              {bulkBusy
+                                ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Fordeler {selectedReady}…</>
+                                : selectedReady === 0
+                                  ? <><Sparkles className="h-3.5 w-3.5" />Ingen valgte er klar</>
+                                  : <><Sparkles className="h-3.5 w-3.5" />Auto-fordel {selectedReady} valgte</>}
+                            </button>
+                          ) : canAutoAssign > 0 && (
+                            // Ingen valgt: fordeler ALLE klar-aftaler i listen.
+                            // Ved 1 aftale er knappen diskret outline — træk/per-kort er ofte hurtigere.
                             <button
                               type="button"
                               onClick={runAutoAssign}
@@ -4398,13 +4432,13 @@ const Planner = () => {
                               )}
                               title={canAutoAssign === 1
                                 ? "Lad systemet finde den bedste rute til denne aftale"
-                                : "Fordel alle aftaler til de bedst matchende ruter"}
+                                : "Fordel alle klar-aftaler til de bedst matchende ruter"}
                             >
                               {autoAssigning
                                 ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Fordeler {canAutoAssign}…</>
                                 : canAutoAssign === 1
                                   ? <><Sparkles className="h-3.5 w-3.5 text-accent" />Auto-fordel 1 aftale</>
-                                  : <><Sparkles className="h-3.5 w-3.5" />Auto-fordel {canAutoAssign} aftaler</>}
+                                  : <><Sparkles className="h-3.5 w-3.5" />Auto-fordel alle {canAutoAssign}</>}
                             </button>
                           )}
                         </div>
@@ -4589,7 +4623,6 @@ const Planner = () => {
                         setSearch("");
                         setUnassignedStatusFilter("all");
                       } : undefined}
-                      onAutoAssign={runBulkAutoAssign}
                       onCancel={runBulkCancel}
                       onShiftDate={() => setBulkShiftOpen(true)}
                       busy={bulkBusy}
