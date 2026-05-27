@@ -4622,7 +4622,7 @@ const Planner = () => {
                           <EmptyState
                             icon={<Inbox className="h-5 w-5" />}
                             title="Alle aftaler er planlagt 🎉"
-                            description="Nye bookinger lander her, så snart de oprettes."
+                            description="Nye aftaler lander her, så snart de oprettes."
                             compact
                           />
                         );
