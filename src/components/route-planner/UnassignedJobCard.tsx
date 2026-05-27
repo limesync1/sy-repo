@@ -402,12 +402,14 @@ export const UnassignedJobCard = ({
           {(job.customer_phone || itemCount > 1 || job.notes) && (
             <button
               type="button"
-              onClick={() => setExpanded((v) => !v)}
+              onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
+              onPointerDown={(e) => e.stopPropagation()}
               aria-expanded={expanded}
+              title={expanded ? "Skjul ydelser, telefon og note" : "Vis ydelser, telefon og note"}
               className="flex-1 inline-flex items-center justify-center gap-1 px-2 py-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors focus-visible:bg-secondary focus-visible:text-foreground focus-visible:outline-none"
             >
               {expanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-              {expanded ? "Skjul" : "Detaljer"}
+              {expanded ? "Skjul mere" : "Mere info"}
             </button>
           )}
         </div>
