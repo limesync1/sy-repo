@@ -119,6 +119,7 @@ import { toastSuccessWithUndo } from "@/lib/toast-undo";
 import { estimateOptimizationGain, markOptimizeDismissed } from "@/lib/optimize-savings-estimate";
 import { BulkMoveRoutesDialog, type BulkMoveRouteItem } from "@/components/route-planner/BulkMoveRoutesDialog";
 import RoutePlannerShortcutsHelp from "@/components/route-planner/RoutePlannerShortcutsHelp";
+import UnassignedFiltersPopover, { type UrgencyKey } from "@/components/route-planner/UnassignedFiltersPopover";
 import UndoBar from "@/components/route-planner/UndoBar";
 import PlannerSkeleton from "@/components/route-planner/PlannerSkeleton";
 import DensityToggle from "@/components/route-planner/DensityToggle";
@@ -322,8 +323,25 @@ const Planner = () => {
     "all" | "ready" | "pending" | "missing-gps"
   >("route-planner:unassignedStatus", "all");
   const [unassignedGroupBy, setUnassignedGroupBy] = usePersistentState<
-    "none" | "status" | "route" | "week"
+    "none" | "status" | "route" | "week" | "postcode"
   >("route-planner:unassignedGroupBy", "none");
+  // Avancerede filtre (urgency / postnumre / services). Persistent som arrays
+  // siden Set ikke kan serialiseres til JSON.
+  const [urgencyFilterArr, setUrgencyFilterArr] = usePersistentState<UrgencyKey[]>(
+    "route-planner:filter:urgency", [],
+  );
+  const [postcodeFilterArr, setPostcodeFilterArr] = usePersistentState<string[]>(
+    "route-planner:filter:postcode", [],
+  );
+  const [serviceFilterArr, setServiceFilterArr] = usePersistentState<string[]>(
+    "route-planner:filter:service", [],
+  );
+  const urgencyFilter = useMemo(() => new Set(urgencyFilterArr), [urgencyFilterArr]);
+  const postcodeFilter = useMemo(() => new Set(postcodeFilterArr), [postcodeFilterArr]);
+  const serviceFilter = useMemo(() => new Set(serviceFilterArr), [serviceFilterArr]);
+  /** Sidst-klikkede aftale (uden shift) — bruges som anker for Shift+klik
+   *  range-select i "Aftaler uden rute". */
+  const lastSelectedJobIdRef = useRef<string | null>(null);
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [suggestJob, setSuggestJob] = useState<any | null>(null);
@@ -950,6 +968,32 @@ const Planner = () => {
         return j.status !== "pending" && hasGps && (j.preferred_date || j.next_service_date);
       });
     }
+    // Urgency-filter (relativt til i dag).
+    if (urgencyFilter.size > 0) {
+      const today = todayStr();
+      const tomorrow = format(addDays(parseISO(today), 1), "yyyy-MM-dd");
+      const weekEnd = format(addDays(parseISO(today), 7), "yyyy-MM-dd");
+      list = list.filter((j: any) => {
+        const d = effectiveJobDate(j);
+        let key: UrgencyKey;
+        if (!d) key = "later";
+        else if (d < today) key = "overdue";
+        else if (d === today) key = "today";
+        else if (d === tomorrow) key = "tomorrow";
+        else if (d <= weekEnd) key = "thisweek";
+        else key = "later";
+        return urgencyFilter.has(key);
+      });
+    }
+    if (postcodeFilter.size > 0) {
+      list = list.filter((j: any) => j.zip_code && postcodeFilter.has(String(j.zip_code)));
+    }
+    if (serviceFilter.size > 0) {
+      list = list.filter((j: any) => {
+        const items = effectiveJobItems(j) as any[];
+        return items.some((it) => serviceFilter.has(String(it.service_name || "").trim()));
+      });
+    }
     const sorted = [...list];
     if (sortBy === "date") {
       sorted.sort((a: any, b: any) => {
@@ -966,7 +1010,63 @@ const Planner = () => {
       sorted.sort((a: any, b: any) => (a.customer_name || "").localeCompare(b.customer_name || "", "da"));
     }
     return sorted;
-  }, [unassigned, search, sortBy, unassignedStatusFilter]);
+  }, [unassigned, search, sortBy, unassignedStatusFilter, urgencyFilter, postcodeFilter, serviceFilter]);
+
+  // Facets: postnumre + services i den nuværende pulje (uden urgency/postcode/service-
+  // filtre, så brugeren kan se totalen pr. værdi). Beregnes fra `unassigned`
+  // efter status+search, så facets viser hvad der reelt er at vælge mellem.
+  const facetBase = useMemo(() => {
+    let list = [...unassigned];
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter((j: any) =>
+        j.customer_name?.toLowerCase().includes(q) ||
+        j.address?.toLowerCase().includes(q) ||
+        j.city?.toLowerCase().includes(q),
+      );
+    }
+    if (unassignedStatusFilter !== "all") {
+      list = list.filter((j: any) => {
+        const hasGps = j.latitude != null && j.longitude != null;
+        if (unassignedStatusFilter === "pending") return j.status === "pending";
+        if (unassignedStatusFilter === "missing-gps") return !hasGps;
+        return j.status !== "pending" && hasGps && (j.preferred_date || j.next_service_date);
+      });
+    }
+    return list;
+  }, [unassigned, search, unassignedStatusFilter]);
+
+  const postcodeFacets = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const j of facetBase as any[]) {
+      const z = j.zip_code ? String(j.zip_code).trim() : "";
+      if (!z) continue;
+      counts.set(z, (counts.get(z) ?? 0) + 1);
+    }
+    return Array.from(counts.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([value, count]) => ({ value, label: value, count }));
+  }, [facetBase]);
+
+  const serviceFacets = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const j of facetBase as any[]) {
+      const items = effectiveJobItems(j) as any[];
+      const seen = new Set<string>();
+      for (const it of items) {
+        const name = String(it.service_name || "").trim();
+        if (!name || seen.has(name)) continue;
+        seen.add(name);
+        counts.set(name, (counts.get(name) ?? 0) + 1);
+      }
+    }
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([value, count]) => ({ value, label: value, count }));
+  }, [facetBase]);
+
+  const activeAdvancedFilterCount =
+    urgencyFilter.size + postcodeFilter.size + serviceFilter.size;
 
   const unassignedTotal = useMemo(
     () => filteredUnassigned.reduce((s: number, j: any) => s + Number(j.total_amount || 0), 0),
@@ -2216,8 +2316,14 @@ const Planner = () => {
         // hvis kun én er klar). Springer over hvis intet er klar.
         e.preventDefault();
         void runAutoAssignRef.current();
-      } else if (e.key === "Escape" && selectedStopId) {
-        setSelectedStopId(null);
+      } else if (e.key === "Escape") {
+        // Prioritet: 1) ryd bulk-valg (oftest brugt) 2) luk stop-panel.
+        if (selectedJobIds.size > 0) {
+          setSelectedJobIds(new Set());
+          lastSelectedJobIdRef.current = null;
+        } else if (selectedStopId) {
+          setSelectedStopId(null);
+        }
       } else if (e.key === "?" || (e.shiftKey && e.key === "/")) {
         e.preventDefault();
         setShortcutsOpen(true);
@@ -2243,7 +2349,7 @@ const Planner = () => {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedStopId, view, history, editingRoute]);
+  }, [selectedStopId, view, history, editingRoute, selectedJobIds]);
 
   /* Når create-dialog åbnes, foreslå en ledig farve for den valgte dato */
   useEffect(() => {
@@ -4320,6 +4426,7 @@ const Planner = () => {
                              <SelectItem value="none" className="text-xs">Ingen gruppering</SelectItem>
                              <SelectItem value="week" className="text-xs">Gruppér efter uge</SelectItem>
                              <SelectItem value="status" className="text-xs">Gruppér efter status</SelectItem>
+                              <SelectItem value="postcode" className="text-xs">Gruppér efter postnummer</SelectItem>
                              <SelectItem value="route" className="text-xs">Gruppér efter foretrukken rute</SelectItem>
                            </SelectContent>
                          </Select>
@@ -4339,6 +4446,22 @@ const Planner = () => {
                              {compactCards ? "Skift til fulde kort" : "Skift til kompakte kort"}
                            </TooltipContent>
                          </Tooltip>
+                          <UnassignedFiltersPopover
+                            urgencyValues={urgencyFilter}
+                            onUrgencyChange={(next) => setUrgencyFilterArr(Array.from(next))}
+                            postcodeValues={postcodeFilter}
+                            onPostcodeChange={(next) => setPostcodeFilterArr(Array.from(next))}
+                            serviceValues={serviceFilter}
+                            onServiceChange={(next) => setServiceFilterArr(Array.from(next))}
+                            postcodeFacets={postcodeFacets}
+                            serviceFacets={serviceFacets}
+                            activeCount={activeAdvancedFilterCount}
+                            onClearAll={() => {
+                              setUrgencyFilterArr([]);
+                              setPostcodeFilterArr([]);
+                              setServiceFilterArr([]);
+                            }}
+                          />
                       </div>
                     )}
                     {(() => {
@@ -4514,12 +4637,36 @@ const Planner = () => {
                         onSuggestRoute={() => setSuggestJob(job)}
                         selected={selectedJobIds.has(job.id)}
                         anySelected={selectedJobIds.size > 0}
-                        onToggleSelect={() => {
+                        onToggleSelect={(e) => {
+                          // Shift+klik = range-select fra sidste valgte aftale til
+                          // denne, baseret på den synlige rækkefølge i listen.
+                          const useShift =
+                            e?.shiftKey && lastSelectedJobIdRef.current && lastSelectedJobIdRef.current !== job.id;
+                          if (useShift) {
+                            const order = filteredUnassigned as any[];
+                            const fromIdx = order.findIndex((j) => j.id === lastSelectedJobIdRef.current);
+                            const toIdx = order.findIndex((j) => j.id === job.id);
+                            if (fromIdx !== -1 && toIdx !== -1) {
+                              const [lo, hi] = fromIdx < toIdx ? [fromIdx, toIdx] : [toIdx, fromIdx];
+                              setSelectedJobIds((prev) => {
+                                const next = new Set(prev);
+                                for (let i = lo; i <= hi; i++) {
+                                  const j = order[i];
+                                  // Spring pending-aftaler over — de er ikke valgbare.
+                                  if (j.status !== "pending") next.add(j.id);
+                                }
+                                return next;
+                              });
+                              return;
+                            }
+                          }
                           setSelectedJobIds((prev) => {
                             const next = new Set(prev);
-                            if (next.has(job.id)) next.delete(job.id); else next.add(job.id);
+                            if (next.has(job.id)) next.delete(job.id);
+                            else next.add(job.id);
                             return next;
                           });
+                          lastSelectedJobIdRef.current = job.id;
                         }}
                         onFindFreeSlot={() => {
                           const start = parseISO(date);
@@ -4556,6 +4703,12 @@ const Planner = () => {
                           return name
                             ? { key: `r-${name}`, label: `Ønsker: ${name}` }
                             : { key: "z-no-route", label: "Ingen foretrukken rute" };
+                        }
+                        if (unassignedGroupBy === "postcode") {
+                          const z = job.zip_code ? String(job.zip_code).trim() : "";
+                          const city = (job.city || "").trim();
+                          if (!z) return { key: "z-no-zip", label: "Ingen postnummer" };
+                          return { key: `p-${z}`, label: city ? `${z} ${city}` : z };
                         }
                         // week
                         const iso = job.preferred_date || job.next_service_date;
@@ -4614,7 +4767,7 @@ const Planner = () => {
                       visibleCount={selectedVisibleCount}
                       hiddenCount={selectedHiddenCount}
                       totalCount={filteredUnassigned.length}
-                      onClear={() => setSelectedJobIds(new Set())}
+                      onClear={() => { setSelectedJobIds(new Set()); lastSelectedJobIdRef.current = null; }}
                       onSelectAll={() => setSelectedJobIds(new Set(filteredUnassigned.map((j: any) => j.id)))}
                       onShowHidden={selectedHiddenCount > 0 ? () => {
                         // Nulstil filtre/søgning så de skjulte valgte aftaler
