@@ -4794,8 +4794,18 @@ const Planner = () => {
                       />
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => void history.undo()} disabled={!history.canUndo} aria-label="Fortryd seneste handling">
-                            {history.isUndoing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Undo2 className="h-3.5 w-3.5" />}
+                          <Button
+                            variant={history.canUndo ? "outline" : "ghost"}
+                            size="sm"
+                            className="h-8 gap-1.5 px-2 text-xs max-w-[200px]"
+                            onClick={() => void history.undo()}
+                            disabled={!history.canUndo}
+                            aria-label={history.canUndo ? `Fortryd: ${history.lastLabel}` : "Intet at fortryde"}
+                          >
+                            {history.isUndoing ? <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0" /> : <Undo2 className="h-3.5 w-3.5 shrink-0" />}
+                            <span className="truncate">
+                              {history.canUndo ? `Fortryd: ${history.lastLabel}` : "Fortryd"}
+                            </span>
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent side="bottom" className="text-xs">
