@@ -4296,7 +4296,24 @@ const Planner = () => {
                           </SelectContent>
                         </Select>
                          <Select value={unassignedGroupBy} onValueChange={(v) => setUnassignedGroupBy(v as any)}>
-                           <SelectTrigger className="h-7 w-7 p-0 justify-center bg-background text-muted-foreground [&>svg:last-child]:hidden shrink-0" aria-label="Gruppering">
+                           <SelectTrigger
+                             className={cn(
+                               "h-7 w-7 p-0 justify-center bg-background hover:bg-secondary transition-colors [&>svg:last-child]:hidden shrink-0",
+                               unassignedGroupBy !== "none"
+                                 ? "text-accent border-accent/60"
+                                 : "text-muted-foreground",
+                             )}
+                             aria-label="Gruppering"
+                             title={
+                               unassignedGroupBy === "none"
+                                 ? "Gruppér listen (uge, status, rute)"
+                                 : unassignedGroupBy === "week"
+                                   ? "Grupperet efter uge — klik for at ændre"
+                                   : unassignedGroupBy === "status"
+                                     ? "Grupperet efter status — klik for at ændre"
+                                     : "Grupperet efter foretrukken rute — klik for at ændre"
+                             }
+                           >
                              <Layers className="h-3.5 w-3.5" />
                            </SelectTrigger>
                            <SelectContent align="end">
@@ -4325,10 +4342,15 @@ const Planner = () => {
                       </div>
                     )}
                     {(() => {
-                      const missing = (unassigned as any[]).filter(
+                      // Når filteret er aktivt, taler vi om de aftaler brugeren faktisk
+                      // ser i listen — ellers er tallet i knappen forvirrende.
+                      const scope: any[] = unassignedStatusFilter === "all"
+                        ? (unassigned as any[])
+                        : (filteredUnassigned as any[]);
+                      const missing = scope.filter(
                         (j) => (j.address || j.zip_code || j.city) && (j.latitude == null || j.longitude == null),
                       ).length;
-                      const canAutoAssign = (unassigned as any[]).filter(
+                      const canAutoAssign = scope.filter(
                         (j) => j.status !== "pending" && j.latitude != null && j.longitude != null && (j.preferred_date || j.next_service_date),
                       ).length;
                       if (geocoding) {

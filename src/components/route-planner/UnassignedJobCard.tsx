@@ -3,7 +3,7 @@ import { useDraggable } from "@dnd-kit/core";
 import {
   GripVertical, MapPin, Clock, Phone,
   StickyNote, ChevronDown, ChevronRight, Route as RouteIcon, Lock, Sparkles,
-  Info,
+  Info, CheckSquare,
 } from "lucide-react";
 import { format, parseISO, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
 import { da } from "date-fns/locale";
@@ -195,7 +195,9 @@ export const UnassignedJobCard = ({
       {...(isPending ? {} : listeners)}
       {...(isPending ? {} : attributes)}
       style={{ opacity: isDragging ? 0.4 : 1 }}
-      title={isPending ? undefined : "Tip: Træk overalt på kortet for at flytte aftalen til en dag eller rute"}
+      aria-label={isPending
+        ? `${job.customer_name} — afventer kundens godkendelse`
+        : `${job.customer_name} — træk for at planlægge, klik for detaljer`}
       className={`group relative rounded-lg border bg-card transition-all duration-150 overflow-hidden ${
         isPending ? "" : "cursor-grab active:cursor-grabbing touch-none"
       } ${
@@ -241,14 +243,13 @@ export const UnassignedJobCard = ({
             {selected && <span className="text-[10px] leading-none">✓</span>}
           </button>
         ) : (
-          // Default: diskret grip kun som visuel påmindelse om at kortet kan
-          // trækkes — IKKE et separat drag-target. Hele kortet er draggable.
-          // Lille checkbox-knap vises kun mens man hover'er, så man kan starte
-          // bulk-select uden at den fylder i normal visning.
-          <div className="shrink-0 mt-0.5 relative h-5 w-5 pointer-events-none">
+          // Default: diskret grip som visuel påmindelse om at kortet kan trækkes.
+          // På hover/fokus skifter den til en tydelig checkbox-knap så brugeren
+          // kan starte bulk-vælg uden at gætte sig frem.
+          <div className="shrink-0 mt-0.5 relative h-5 w-5">
             <span
               aria-hidden
-              className="absolute inset-0 inline-flex items-center justify-center text-muted-foreground/60 group-hover:opacity-0 transition-opacity"
+              className={`absolute inset-0 inline-flex items-center justify-center text-muted-foreground/60 transition-opacity ${onToggleSelect ? "group-hover:opacity-0 group-focus-within:opacity-0" : ""}`}
             >
               <GripVertical className="h-4 w-4" />
             </span>
@@ -257,22 +258,26 @@ export const UnassignedJobCard = ({
                 type="button"
                 onPointerDown={(e) => e.stopPropagation()}
                 onClick={(e) => { e.stopPropagation(); onToggleSelect(e); }}
-                aria-label="Vælg aftale"
-                title="Vælg"
-                className="pointer-events-auto absolute inset-0 m-0.5 rounded border border-border hover:bg-secondary opacity-0 group-hover:opacity-100 transition-opacity focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-              />
+                aria-label="Vælg aftale (start multi-vælg)"
+                title="Vælg flere aftaler"
+                className="absolute inset-0 inline-flex items-center justify-center rounded text-muted-foreground hover:text-accent hover:bg-accent/10 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+              >
+                <CheckSquare className="h-3.5 w-3.5" />
+              </button>
             )}
           </div>
         )}
         <div
-          role="button"
-          tabIndex={0}
-          onClick={onClick}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick?.(); }
-          }}
-          aria-label={`Åbn detaljer for ${job.customer_name}`}
-          className={`flex-1 min-w-0 text-left cursor-pointer rounded-md focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${compact ? "space-y-1" : "space-y-1.5"}`}
+          {...(isPending ? {} : {
+            role: "button",
+            tabIndex: 0,
+            onClick,
+            onKeyDown: (e: React.KeyboardEvent) => {
+              if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick?.(); }
+            },
+            "aria-label": `Åbn detaljer for ${job.customer_name}`,
+          })}
+          className={`flex-1 min-w-0 text-left rounded-md ${isPending ? "" : "cursor-pointer focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"} ${compact ? "space-y-1" : "space-y-1.5"}`}
         >
           {/* Header: dag-pille (tydeligst signal) + navn + pris */}
           {/* Header layout:
@@ -387,6 +392,7 @@ export const UnassignedJobCard = ({
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onSuggestRoute(); }}
+              onPointerDown={(e) => e.stopPropagation()}
               className="flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-1.5 font-medium text-foreground hover:bg-accent/10 transition-colors focus-visible:bg-accent/15 focus-visible:outline-none"
               title="Foreslå bedste rute baseret på afstand, kapacitet og færdigheder"
             >
@@ -397,12 +403,14 @@ export const UnassignedJobCard = ({
           {(job.customer_phone || itemCount > 1 || job.notes) && (
             <button
               type="button"
-              onClick={() => setExpanded((v) => !v)}
+              onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
+              onPointerDown={(e) => e.stopPropagation()}
               aria-expanded={expanded}
+              title={expanded ? "Skjul ydelser, telefon og note" : "Vis ydelser, telefon og note"}
               className="flex-1 inline-flex items-center justify-center gap-1 px-2 py-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors focus-visible:bg-secondary focus-visible:text-foreground focus-visible:outline-none"
             >
               {expanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-              {expanded ? "Skjul" : "Detaljer"}
+              {expanded ? "Skjul mere" : "Mere info"}
             </button>
           )}
         </div>
