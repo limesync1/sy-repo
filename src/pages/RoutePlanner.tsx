@@ -4674,6 +4674,12 @@ const Planner = () => {
                             ? { key: `r-${name}`, label: `Ønsker: ${name}` }
                             : { key: "z-no-route", label: "Ingen foretrukken rute" };
                         }
+                        if (unassignedGroupBy === "postcode") {
+                          const z = job.zip_code ? String(job.zip_code).trim() : "";
+                          const city = (job.city || "").trim();
+                          if (!z) return { key: "z-no-zip", label: "Ingen postnummer" };
+                          return { key: `p-${z}`, label: city ? `${z} ${city}` : z };
+                        }
                         // week
                         const iso = job.preferred_date || job.next_service_date;
                         if (!iso) return { key: "z-no-date", label: "Uden dato" };
