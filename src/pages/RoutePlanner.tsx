@@ -323,8 +323,25 @@ const Planner = () => {
     "all" | "ready" | "pending" | "missing-gps"
   >("route-planner:unassignedStatus", "all");
   const [unassignedGroupBy, setUnassignedGroupBy] = usePersistentState<
-    "none" | "status" | "route" | "week"
+    "none" | "status" | "route" | "week" | "postcode"
   >("route-planner:unassignedGroupBy", "none");
+  // Avancerede filtre (urgency / postnumre / services). Persistent som arrays
+  // siden Set ikke kan serialiseres til JSON.
+  const [urgencyFilterArr, setUrgencyFilterArr] = usePersistentState<UrgencyKey[]>(
+    "route-planner:filter:urgency", [],
+  );
+  const [postcodeFilterArr, setPostcodeFilterArr] = usePersistentState<string[]>(
+    "route-planner:filter:postcode", [],
+  );
+  const [serviceFilterArr, setServiceFilterArr] = usePersistentState<string[]>(
+    "route-planner:filter:service", [],
+  );
+  const urgencyFilter = useMemo(() => new Set(urgencyFilterArr), [urgencyFilterArr]);
+  const postcodeFilter = useMemo(() => new Set(postcodeFilterArr), [postcodeFilterArr]);
+  const serviceFilter = useMemo(() => new Set(serviceFilterArr), [serviceFilterArr]);
+  /** Sidst-klikkede aftale (uden shift) — bruges som anker for Shift+klik
+   *  range-select i "Aftaler uden rute". */
+  const lastSelectedJobIdRef = useRef<string | null>(null);
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [suggestJob, setSuggestJob] = useState<any | null>(null);
