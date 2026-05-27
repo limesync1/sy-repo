@@ -16,21 +16,17 @@ import { Skeleton } from "@/components/ui/skeleton";
  *  Matcher kortets højde og indre struktur så listen ikke "hopper" når
  *  rigtige kort kommer ind. */
 export const UnassignedJobCardSkeleton = ({ compact = false }: { compact?: boolean }) => (
-  <div className={`rounded-lg border border-border/60 bg-card ${compact ? "p-2" : "p-2.5"} space-y-1.5`}>
-    <div className="flex items-start gap-2">
-      <Skeleton className="h-5 w-5 rounded shrink-0" />
+  <div className={`relative rounded-lg border border-border/60 bg-card overflow-hidden ${compact ? "p-2.5 pl-3" : "p-3 pl-3.5"} space-y-2`}>
+    <Skeleton className="absolute left-0 top-0 bottom-0 w-1 rounded-none" />
+    <div className="flex items-start justify-between gap-3">
       <div className="flex-1 min-w-0 space-y-1.5">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5 min-w-0 flex-1">
-            <Skeleton className="h-3.5 w-12 rounded-full" />
-            <Skeleton className="h-3.5 w-24 rounded" />
-          </div>
-          <Skeleton className="h-3 w-10 rounded shrink-0" />
-        </div>
-        <Skeleton className="h-2.5 w-3/4 rounded" />
-        <Skeleton className="h-2.5 w-2/3 rounded" />
+        <Skeleton className="h-3 w-20 rounded" />
+        <Skeleton className="h-4 w-40 rounded" />
       </div>
+      <Skeleton className="h-4 w-12 rounded shrink-0" />
     </div>
+    <Skeleton className="h-3 w-3/4 rounded" />
+    <Skeleton className="h-3 w-2/3 rounded" />
   </div>
 );
 
@@ -189,6 +185,18 @@ export const UnassignedJobCard = ({
     ? job.adjusted_amount ?? job.total_amount
     : job.total_amount;
 
+  // Accent-stribe i venstre kant signalerer dag-status (forsinket/i dag/i morgen/senere).
+  // Erstatter den støjende uppercase-pille øverst og gør status scannelig på 1 blik.
+  const accentBar = isPending
+    ? "bg-amber-400"
+    : schedule
+      ? (schedule.dotTone === "bg-destructive" ? "bg-destructive"
+        : schedule.dotTone === "bg-orange-500" ? "bg-orange-500"
+        : schedule.dotTone === "bg-amber-500" ? "bg-amber-500"
+        : schedule.dotTone === "bg-primary" ? "bg-primary"
+        : "bg-muted-foreground/30")
+      : "bg-muted-foreground/20";
+
   return (
     <div
       ref={setNodeRef}
@@ -208,13 +216,16 @@ export const UnassignedJobCard = ({
             : "border-border/70 hover:border-foreground/25 hover:shadow-md hover:-translate-y-px"
       }`}
     >
-      {selected && !isPending && (
-        <span aria-hidden className="absolute left-0 top-0 bottom-0 w-0.5 bg-accent" />
-      )}
+      {/* Venstre status-stribe: tydelig farvekode for hvornår aftalen skal udføres.
+          Når valgt: accent-farve overrider, så bulk-tilstand er entydig. */}
+      <span
+        aria-hidden
+        className={`absolute left-0 top-0 bottom-0 w-1 ${selected && !isPending ? "bg-accent" : accentBar}`}
+      />
       {/* Top row: status-affordance (lås / checkbox / diskret grip) + indhold.
           Hele kortet er draggable — venstre-elementet er KUN til status og
           multi-select, aldrig en separat drag-handle. */}
-      <div className={`flex items-start gap-2 ${compact ? "p-2" : "p-2.5"}`}>
+      <div className={`flex items-start gap-2 ${compact ? "p-2 pl-3" : "p-3 pl-3.5"}`}>
         {isPending ? (
           <div
             className="shrink-0 mt-0.5 h-5 w-5 inline-flex items-center justify-center rounded text-amber-500"
@@ -279,37 +290,37 @@ export const UnassignedJobCard = ({
           })}
           className={`flex-1 min-w-0 text-left rounded-md ${isPending ? "" : "cursor-pointer focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"} ${compact ? "space-y-1" : "space-y-1.5"}`}
         >
-          {/* Header: dag-pille (tydeligst signal) + navn + pris */}
-          {/* Header layout:
-              - Lille skærm: dag-pille + pris på linje 1, navn på linje 2 (ingen overlap).
-              - Bredere kort: alt på én linje med navn der truncater.
-              Dag-pille og pris er begge shrink-0 så navnet altid giver plads først. */}
-          <div className="space-y-0.5 min-w-0">
-            <div className="flex items-center gap-1.5 min-w-0">
+          {/* HIERARKI:
+              1) Dag-label (lille caps) — wayfinding-etiket: hvornår skal det ske?
+              2) Kunde-navn (stort, fed) — primært fokus: hvem er det?
+              3) Pris (højre, tabular) — sekundært fokus: hvad er værdien?
+              4) Service (1 linje, foreground/70) — kontekst
+              5) Adresse + meta (mindre, muted) — tertiær info
+              Den farvede venstre-stribe erstatter den gamle dag-pille som visuel ankerpunkt. */}
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
               {schedule && (
-                <span
-                  className={`shrink-0 inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${schedule.tone}`}
-                  style={{
-                    backgroundColor: "color-mix(in srgb, currentColor 12%, transparent)",
-                  }}
-                >
-                  <span className={`h-1 w-1 rounded-full ${schedule.dotTone}`} />
-                  {schedule.dayLabel}
-                </span>
+                <div className={`flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider leading-none ${schedule.tone}`}>
+                  <span>{schedule.dayLabel}</span>
+                  {schedule.relative && !compact && (
+                    <span className="font-normal normal-case tracking-normal text-muted-foreground">· {schedule.relative}</span>
+                  )}
+                </div>
               )}
-              <p className="text-[13px] font-semibold leading-snug text-foreground truncate min-w-0 flex-1">
+              <p className={`${compact ? "text-[13px]" : "text-[14px]"} font-semibold leading-tight text-foreground truncate ${schedule ? "mt-1" : ""}`}>
                 {job.customer_name}
               </p>
-              <span className="shrink-0 text-[11px] font-medium text-muted-foreground tabular-nums tracking-tight">
-                {Math.round(Number(displayAmount || 0))} kr
-              </span>
             </div>
+            <span className={`shrink-0 ${compact ? "text-[12px]" : "text-[13px]"} font-semibold text-foreground tabular-nums tracking-tight tabular-nums leading-tight`}>
+              {Math.round(Number(displayAmount || 0))} kr
+            </span>
           </div>
+
           {itemCount > 0 && (
-            <p className="text-[11px] text-muted-foreground truncate">
-              {items[0].quantity > 1 && <span className="text-foreground/70">{items[0].quantity}× </span>}
+            <p className="text-[12px] text-foreground/75 truncate leading-snug">
+              {items[0].quantity > 1 && <span className="text-muted-foreground">{items[0].quantity}× </span>}
               {items[0].service_name}
-              {itemCount > 1 && <span className="opacity-70"> · +{itemCount - 1} mere</span>}
+              {itemCount > 1 && <span className="text-muted-foreground"> · +{itemCount - 1} mere</span>}
             </p>
           )}
 
@@ -340,7 +351,7 @@ export const UnassignedJobCard = ({
           {/* Adresse — pin-farve signalerer GPS-status (tooltip forklarer) */}
           {fullAddress && (
             <p
-              className="text-[11px] text-muted-foreground truncate flex items-center gap-1.5"
+              className="text-[11px] text-muted-foreground truncate flex items-center gap-1.5 leading-snug"
               title={hasGps ? "Adressen er fundet på kortet" : "Adressen mangler GPS — ruten kan ikke vises på kort"}
             >
               <MapPin className={`h-3 w-3 shrink-0 ${hasGps ? "text-muted-foreground/70" : "text-orange-500"}`} />
@@ -348,12 +359,10 @@ export const UnassignedJobCard = ({
             </p>
           )}
 
-          {/* Meta-linje: relativ tid + tid + varighed + interval — uden dag-prik (er nu i pillen øverst) */}
-          {((schedule?.relative && !compact) || job.preferred_time_start || estimatedMin != null || !compact) && (
+          {/* Meta-linje: tid + varighed + interval. Relativ tid er flyttet op
+              ved siden af dag-labelet for at undgå duplikering. */}
+          {(job.preferred_time_start || estimatedMin != null || !compact) && (
             <div className="flex items-center gap-x-2 gap-y-0.5 flex-wrap text-[11px] min-w-0 text-muted-foreground">
-              {schedule?.relative && !compact && (
-                <span className={`${schedule.tone} font-medium truncate`}>{schedule.relative}</span>
-              )}
               {job.preferred_time_start && (
                 <span className="tabular-nums">
                   {job.preferred_time_start.slice(0, 5)}
