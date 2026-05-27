@@ -195,6 +195,7 @@ export const UnassignedJobCard = ({
       {...(isPending ? {} : listeners)}
       {...(isPending ? {} : attributes)}
       style={{ opacity: isDragging ? 0.4 : 1 }}
+      title={isPending ? undefined : "Tip: Træk overalt på kortet for at flytte aftalen til en dag eller rute"}
       className={`group relative rounded-lg border bg-card transition-all duration-150 overflow-hidden ${
         isPending ? "" : "cursor-grab active:cursor-grabbing touch-none"
       } ${
