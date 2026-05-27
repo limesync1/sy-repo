@@ -4296,30 +4296,26 @@ const Planner = () => {
                           </SelectContent>
                         </Select>
                          <Select value={unassignedGroupBy} onValueChange={(v) => setUnassignedGroupBy(v as any)}>
-                           <Tooltip>
-                             <TooltipTrigger asChild>
-                               <SelectTrigger
-                                 className={cn(
-                                   "h-7 w-7 p-0 justify-center bg-background hover:bg-secondary transition-colors [&>svg:last-child]:hidden shrink-0",
-                                   unassignedGroupBy !== "none"
-                                     ? "text-accent border-accent/60"
-                                     : "text-muted-foreground",
-                                 )}
-                                 aria-label="Gruppering"
-                               >
-                                 <Layers className="h-3.5 w-3.5" />
-                               </SelectTrigger>
-                             </TooltipTrigger>
-                             <TooltipContent side="bottom" className="text-xs">
-                               {unassignedGroupBy === "none"
+                           <SelectTrigger
+                             className={cn(
+                               "h-7 w-7 p-0 justify-center bg-background hover:bg-secondary transition-colors [&>svg:last-child]:hidden shrink-0",
+                               unassignedGroupBy !== "none"
+                                 ? "text-accent border-accent/60"
+                                 : "text-muted-foreground",
+                             )}
+                             aria-label="Gruppering"
+                             title={
+                               unassignedGroupBy === "none"
                                  ? "Gruppér listen (uge, status, rute)"
                                  : unassignedGroupBy === "week"
-                                   ? "Grupperet efter uge"
+                                   ? "Grupperet efter uge — klik for at ændre"
                                    : unassignedGroupBy === "status"
-                                     ? "Grupperet efter status"
-                                     : "Grupperet efter foretrukken rute"}
-                             </TooltipContent>
-                           </Tooltip>
+                                     ? "Grupperet efter status — klik for at ændre"
+                                     : "Grupperet efter foretrukken rute — klik for at ændre"
+                             }
+                           >
+                             <Layers className="h-3.5 w-3.5" />
+                           </SelectTrigger>
                            <SelectContent align="end">
                              <SelectItem value="none" className="text-xs">Ingen gruppering</SelectItem>
                              <SelectItem value="week" className="text-xs">Gruppér efter uge</SelectItem>
