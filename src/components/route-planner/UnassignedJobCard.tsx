@@ -3,30 +3,36 @@ import { useDraggable } from "@dnd-kit/core";
 import {
   MapPin, Clock, Phone,
   StickyNote, ChevronDown, ChevronRight, Route as RouteIcon, Lock, Sparkles,
-  Info, Check,
+  Info, Check, Repeat, Hourglass,
 } from "lucide-react";
 import { format, parseISO, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
 import { da } from "date-fns/locale";
 import { formatDurationMin } from "@/lib/duration-format";
 import { relativeFromNow } from "@/lib/relative-time";
-import { IntervalBadge } from "./IntervalBadge";
+import { parseInterval, formatInterval } from "@/lib/interval";
 import { Skeleton } from "@/components/ui/skeleton";
 
 /** Skeleton-version af kortet — bruges mens aftaler/GPS-status indlæses.
  *  Matcher kortets højde og indre struktur så listen ikke "hopper" når
  *  rigtige kort kommer ind. */
 export const UnassignedJobCardSkeleton = ({ compact = false }: { compact?: boolean }) => (
-  <div className={`relative rounded-lg border border-border/60 bg-card overflow-hidden ${compact ? "p-2.5 pl-3" : "p-3 pl-3.5"} space-y-2`}>
-    <Skeleton className="absolute left-0 top-0 bottom-0 w-1 rounded-none" />
-    <div className="flex items-start justify-between gap-3">
-      <div className="flex-1 min-w-0 space-y-1.5">
-        <Skeleton className="h-3 w-20 rounded" />
-        <Skeleton className="h-4 w-40 rounded" />
-      </div>
-      <Skeleton className="h-4 w-12 rounded shrink-0" />
+  <div className="relative rounded-xl border border-border/70 bg-card overflow-hidden">
+    {/* status header skeleton */}
+    <div className="flex items-center justify-between px-3 py-1.5 border-b border-border/50 bg-secondary/40">
+      <Skeleton className="h-3 w-16 rounded" />
+      <Skeleton className="h-3 w-14 rounded" />
     </div>
-    <Skeleton className="h-3 w-3/4 rounded" />
-    <Skeleton className="h-3 w-2/3 rounded" />
+    <div className={`${compact ? "p-2.5" : "p-3"} space-y-2.5`}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0 space-y-1.5">
+          <Skeleton className="h-4 w-28 rounded" />
+          <Skeleton className="h-3 w-20 rounded" />
+        </div>
+        <Skeleton className="h-4 w-12 rounded shrink-0" />
+      </div>
+      <Skeleton className="h-3 w-3/4 rounded" />
+      <Skeleton className="h-6 w-2/3 rounded-md" />
+    </div>
   </div>
 );
 
