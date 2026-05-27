@@ -192,8 +192,12 @@ export const UnassignedJobCard = ({
   return (
     <div
       ref={setNodeRef}
+      {...(isPending ? {} : listeners)}
+      {...(isPending ? {} : attributes)}
       style={{ opacity: isDragging ? 0.4 : 1 }}
       className={`group relative rounded-lg border bg-card transition-all duration-150 overflow-hidden ${
+        isPending ? "" : "cursor-grab active:cursor-grabbing touch-none"
+      } ${
         isPending
           ? "border-amber-300/70 bg-amber-50/40"
           : selected
@@ -204,13 +208,10 @@ export const UnassignedJobCard = ({
       {selected && !isPending && (
         <span aria-hidden className="absolute left-0 top-0 bottom-0 w-0.5 bg-accent" />
       )}
-      {/* Top row: drag handle + clickable content */}
+      {/* Top row: status-affordance (lås / checkbox / diskret grip) + indhold.
+          Hele kortet er draggable — venstre-elementet er KUN til status og
+          multi-select, aldrig en separat drag-handle. */}
       <div className={`flex items-start gap-2 ${compact ? "p-2" : "p-2.5"}`}>
-        {/* Kombineret venstre-affordance: ét element til både drag og multi-select.
-            - Disabled (pending): låse-ikon
-            - Selected: udfyldt checkbox med accent
-            - anySelected (bulk-mode): tom checkbox synlig
-            - Default: grip-ikon, morpher til checkbox ved hover når onToggleSelect findes */}
         {isPending ? (
           <div
             className="shrink-0 mt-0.5 h-5 w-5 inline-flex items-center justify-center rounded text-amber-500"
@@ -219,39 +220,46 @@ export const UnassignedJobCard = ({
           >
             <Lock className="h-3.5 w-3.5" />
           </div>
+        ) : onToggleSelect && (selected || anySelected) ? (
+          // Bulk-mode aktiv ELLER kortet er valgt: vis checkbox i stedet for grip.
+          // Når mindst ét kort er valgt, gør vi checkboksen permanent synlig på
+          // alle kort, så brugeren let kan vælge flere uden at gætte sig frem.
+          <button
+            type="button"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); onToggleSelect(e); }}
+            aria-label={selected ? "Fravælg aftale" : "Vælg aftale"}
+            aria-pressed={selected}
+            title={selected ? "Fravælg" : "Vælg"}
+            className={`shrink-0 mt-0.5 h-5 w-5 rounded border flex items-center justify-center transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${
+              selected
+                ? "bg-accent border-accent text-accent-foreground"
+                : "border-accent/60 hover:bg-accent/10"
+            }`}
+          >
+            {selected && <span className="text-[10px] leading-none">✓</span>}
+          </button>
         ) : (
-          <div className="shrink-0 mt-0.5 relative h-5 w-5">
-            {/* Drag handle — synligt som default, fader ud når bulk-mode er aktiv eller ved hover hvis onToggleSelect findes */}
-            <button
-              type="button"
-              {...listeners}
-              {...attributes}
-              aria-label={`Træk ${job.customer_name} ind på en rute eller dag i kalenderen`}
-              title="Træk ind i kalenderen for at planlægge"
-              className={`absolute inset-0 inline-flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-secondary cursor-grab active:cursor-grabbing transition-opacity focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${
-                onToggleSelect ? (selected || anySelected ? "opacity-0 pointer-events-none" : "opacity-100 group-hover:opacity-0") : "opacity-100"
-              }`}
+          // Default: diskret grip kun som visuel påmindelse om at kortet kan
+          // trækkes — IKKE et separat drag-target. Hele kortet er draggable.
+          // Lille checkbox-knap vises kun mens man hover'er, så man kan starte
+          // bulk-select uden at den fylder i normal visning.
+          <div className="shrink-0 mt-0.5 relative h-5 w-5 pointer-events-none">
+            <span
+              aria-hidden
+              className="absolute inset-0 inline-flex items-center justify-center text-muted-foreground/60 group-hover:opacity-0 transition-opacity"
             >
               <GripVertical className="h-4 w-4" />
-            </button>
-            {/* Checkbox-affordance — vises ved hover, bulk-mode eller når valgt */}
+            </span>
             {onToggleSelect && (
               <button
                 type="button"
+                onPointerDown={(e) => e.stopPropagation()}
                 onClick={(e) => { e.stopPropagation(); onToggleSelect(e); }}
-                aria-label={selected ? "Fravælg aftale" : "Vælg aftale"}
-                aria-pressed={selected}
-                title={selected ? "Fravælg" : "Vælg"}
-                className={`absolute inset-0 m-0.5 rounded border flex items-center justify-center transition-all focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${
-                  selected
-                    ? "bg-accent border-accent text-accent-foreground opacity-100"
-                    : anySelected
-                      ? "border-accent/60 hover:bg-accent/10 opacity-100"
-                      : "border-border hover:bg-secondary opacity-0 group-hover:opacity-100"
-                }`}
-              >
-                {selected && <span className="text-[10px] leading-none">✓</span>}
-              </button>
+                aria-label="Vælg aftale"
+                title="Vælg"
+                className="pointer-events-auto absolute inset-0 m-0.5 rounded border border-border hover:bg-secondary opacity-0 group-hover:opacity-100 transition-opacity focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+              />
             )}
           </div>
         )}
