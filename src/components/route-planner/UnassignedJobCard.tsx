@@ -451,8 +451,6 @@ export const UnassignedJobCard = ({
         )}
       </div>
 
-      </div>
-
       {/* ───────────────────────────────────────────────────────────────────
           3) ACTION-BÅND — "Foreslå rute" som primær handling i accent,
              sekundær "Mere info" som diskret toggle hvis der er data at vise.
