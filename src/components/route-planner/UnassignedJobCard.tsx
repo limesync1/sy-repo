@@ -16,21 +16,17 @@ import { Skeleton } from "@/components/ui/skeleton";
  *  Matcher kortets højde og indre struktur så listen ikke "hopper" når
  *  rigtige kort kommer ind. */
 export const UnassignedJobCardSkeleton = ({ compact = false }: { compact?: boolean }) => (
-  <div className={`rounded-lg border border-border/60 bg-card ${compact ? "p-2" : "p-2.5"} space-y-1.5`}>
-    <div className="flex items-start gap-2">
-      <Skeleton className="h-5 w-5 rounded shrink-0" />
+  <div className={`relative rounded-lg border border-border/60 bg-card overflow-hidden ${compact ? "p-2.5 pl-3" : "p-3 pl-3.5"} space-y-2`}>
+    <Skeleton className="absolute left-0 top-0 bottom-0 w-1 rounded-none" />
+    <div className="flex items-start justify-between gap-3">
       <div className="flex-1 min-w-0 space-y-1.5">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5 min-w-0 flex-1">
-            <Skeleton className="h-3.5 w-12 rounded-full" />
-            <Skeleton className="h-3.5 w-24 rounded" />
-          </div>
-          <Skeleton className="h-3 w-10 rounded shrink-0" />
-        </div>
-        <Skeleton className="h-2.5 w-3/4 rounded" />
-        <Skeleton className="h-2.5 w-2/3 rounded" />
+        <Skeleton className="h-3 w-20 rounded" />
+        <Skeleton className="h-4 w-40 rounded" />
       </div>
+      <Skeleton className="h-4 w-12 rounded shrink-0" />
     </div>
+    <Skeleton className="h-3 w-3/4 rounded" />
+    <Skeleton className="h-3 w-2/3 rounded" />
   </div>
 );
 
