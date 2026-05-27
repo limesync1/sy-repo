@@ -392,6 +392,7 @@ export const UnassignedJobCard = ({
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onSuggestRoute(); }}
+              onPointerDown={(e) => e.stopPropagation()}
               className="flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-1.5 font-medium text-foreground hover:bg-accent/10 transition-colors focus-visible:bg-accent/15 focus-visible:outline-none"
               title="Foreslå bedste rute baseret på afstand, kapacitet og færdigheder"
             >
