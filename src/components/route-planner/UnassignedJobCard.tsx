@@ -190,76 +190,69 @@ export const UnassignedJobCard = ({
     ? job.adjusted_amount ?? job.total_amount
     : job.total_amount;
 
-  // Status-tema for header-båndet øverst på kortet. Hver urgency-niveau har sin
-  // egen bg/border/tekst/dot-farve, så ejeren scanner status før alt andet.
-  // Det stærke bånd erstatter den gamle venstre-stribe — synligt selv i en lang liste.
-  type StatusTheme = {
-    headerBg: string;
-    headerBorder: string;
-    headerText: string;
-    metaText: string;
-    dot: string;
+  // Urgency-tema. Én farve, brugt på venstre-rail + dato-pille — ingen tunge
+  // farvebånd der konkurrerer med navn/pris. Brugeren scanner urgency via
+  // rail-farven, og læser konkret dato i pillen.
+  type UrgencyTheme = {
+    rail: string;
+    pillBg: string;
+    pillText: string;
+    pillBorder: string;
     pulse: boolean;
     label: string;
   };
-  const statusTheme: StatusTheme = isPending
+  const urgency: UrgencyTheme = isPending
     ? {
-        headerBg: "bg-amber-50",
-        headerBorder: "border-amber-200",
-        headerText: "text-amber-700",
-        metaText: "text-amber-600",
-        dot: "bg-amber-500",
+        rail: "bg-amber-400",
+        pillBg: "bg-amber-50 dark:bg-amber-500/10",
+        pillText: "text-amber-700 dark:text-amber-300",
+        pillBorder: "border-amber-200 dark:border-amber-500/30",
         pulse: false,
         label: "Afventer kunde",
       }
     : schedule?.dotTone === "bg-destructive"
     ? {
-        headerBg: "bg-destructive/10",
-        headerBorder: "border-destructive/30",
-        headerText: "text-destructive",
-        metaText: "text-destructive/80",
-        dot: "bg-destructive",
+        rail: "bg-destructive",
+        pillBg: "bg-destructive/10",
+        pillText: "text-destructive",
+        pillBorder: "border-destructive/30",
         pulse: true,
-        label: "Forsinket",
+        label: schedule?.relative ? schedule.relative.charAt(0).toUpperCase() + schedule.relative.slice(1) : "Forsinket",
       }
     : schedule?.dotTone === "bg-orange-500"
     ? {
-        headerBg: "bg-orange-50 dark:bg-orange-500/10",
-        headerBorder: "border-orange-200 dark:border-orange-500/30",
-        headerText: "text-orange-700 dark:text-orange-400",
-        metaText: "text-orange-600 dark:text-orange-400/80",
-        dot: "bg-orange-500",
+        rail: "bg-orange-500",
+        pillBg: "bg-orange-50 dark:bg-orange-500/10",
+        pillText: "text-orange-700 dark:text-orange-300",
+        pillBorder: "border-orange-200 dark:border-orange-500/30",
         pulse: true,
         label: "I dag",
       }
     : schedule?.dotTone === "bg-amber-500"
     ? {
-        headerBg: "bg-amber-50 dark:bg-amber-500/10",
-        headerBorder: "border-amber-200 dark:border-amber-500/30",
-        headerText: "text-amber-700 dark:text-amber-400",
-        metaText: "text-amber-600 dark:text-amber-400/80",
-        dot: "bg-amber-500",
+        rail: "bg-amber-500",
+        pillBg: "bg-amber-50 dark:bg-amber-500/10",
+        pillText: "text-amber-700 dark:text-amber-300",
+        pillBorder: "border-amber-200 dark:border-amber-500/30",
         pulse: false,
         label: "I morgen",
       }
     : schedule?.dotTone === "bg-primary"
     ? {
-        headerBg: "bg-primary/8",
-        headerBorder: "border-primary/20",
-        headerText: "text-foreground",
-        metaText: "text-muted-foreground",
-        dot: "bg-primary",
+        rail: "bg-primary",
+        pillBg: "bg-primary/10",
+        pillText: "text-foreground",
+        pillBorder: "border-primary/20",
         pulse: false,
-        label: "Denne uge",
+        label: schedule?.dayLabel ?? "Denne uge",
       }
     : {
-        headerBg: "bg-secondary/60",
-        headerBorder: "border-border",
-        headerText: "text-foreground/80",
-        metaText: "text-muted-foreground",
-        dot: "bg-muted-foreground/60",
+        rail: "bg-muted-foreground/30",
+        pillBg: "bg-secondary",
+        pillText: "text-muted-foreground",
+        pillBorder: "border-border",
         pulse: false,
-        label: schedule?.relative ? schedule.relative.charAt(0).toUpperCase() + schedule.relative.slice(1) : "Ikke planlagt",
+        label: schedule?.dayLabel ?? "Ikke planlagt",
       };
 
   // Interval-info — parsed til en enkelt linje. Vises som integreret chip-row
@@ -282,7 +275,7 @@ export const UnassignedJobCard = ({
       aria-label={isPending
         ? `${job.customer_name} — afventer kundens godkendelse`
         : `${job.customer_name} — træk for at planlægge, klik for detaljer`}
-      className={`group relative rounded-xl border bg-card transition-all duration-200 overflow-hidden ${
+      className={`group relative rounded-xl border bg-card transition-all duration-200 overflow-hidden flex ${
         isPending ? "" : "cursor-grab active:cursor-grabbing touch-none"
       } ${
         isPending
@@ -293,53 +286,41 @@ export const UnassignedJobCard = ({
       }`}
     >
       {/* ───────────────────────────────────────────────────────────────────
-          1) STATUS-BÅND øverst — kortets identitet. Farvekodet på urgency:
-             rød=forsinket, orange=i dag (pulserer), gul=i morgen,
-             primary=denne uge, neutral=senere, amber=afventer kunde.
-             Brugeren ved status før noget andet.
+          1) VENSTRE-RAIL — urgency som farvet stribe (rød/orange/gul/primary).
+             Når kortet er valgt, bliver railen accent-farvet.
+             Pulserer kun ved akutte tilfælde. Ingen tung header-bånd.
          ─────────────────────────────────────────────────────────────────── */}
-      <div className={`flex items-center justify-between gap-2 px-3 py-1.5 border-b ${statusTheme.headerBg} ${statusTheme.headerBorder}`}>
-        <div className={`flex items-center gap-1.5 min-w-0 ${statusTheme.headerText}`}>
-          {isPending ? (
-            <Lock className="h-3 w-3 shrink-0" />
-          ) : (
-            <span
-              aria-hidden
-              className={`h-2 w-2 rounded-full shrink-0 ${statusTheme.dot} ${statusTheme.pulse ? "animate-pulse" : ""}`}
-            />
-          )}
-          <span className="text-[10.5px] font-bold uppercase tracking-wider truncate">
-            {statusTheme.label}
-          </span>
-        </div>
-        {schedule && (
-          <span className={`shrink-0 text-[10.5px] font-medium tabular-nums ${statusTheme.metaText}`}>
-            {schedule.dayLabel}
-          </span>
-        )}
-      </div>
+      <div
+        aria-hidden
+        className={`w-1.5 shrink-0 ${selected ? "bg-accent" : urgency.rail} ${urgency.pulse ? "animate-pulse" : ""}`}
+      />
 
-      {/* Multi-select knap — overlay i top-venstre hjørne på header-båndet.
-          Vises permanent når valgt/bulk-mode, ellers kun på hover. */}
+      {/* MULTI-SELECT — stor, altid-synlig dedikeret zone i venstre side.
+          22×22px hit-area, opacity-100 når valg-mode er aktiv, ellers
+          synlig på hover med tydelig border. Stopper drag-listeners så
+          klikket aldrig misforstås som træk. */}
       {!isPending && onToggleSelect && (
         <button
           type="button"
           onPointerDown={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
           onClick={(e) => { e.stopPropagation(); onToggleSelect(e); }}
           aria-label={selected ? "Fravælg aftale" : "Vælg aftale"}
           aria-pressed={selected}
-          title={selected ? "Fravælg" : "Vælg flere aftaler"}
-          className={`absolute top-1.5 right-2 z-10 h-4 w-4 rounded border flex items-center justify-center transition-all focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${
+          title={selected ? "Fravælg aftale" : "Vælg flere aftaler"}
+          className={`absolute top-2.5 left-3.5 z-10 h-5 w-5 rounded-md border-2 flex items-center justify-center transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:outline-none ${
             selected
-              ? "bg-accent border-accent text-accent-foreground opacity-100"
+              ? "bg-accent border-accent text-accent-foreground opacity-100 shadow-sm"
               : anySelected
-                ? "bg-card border-accent/60 hover:bg-accent/10 opacity-100"
-                : "bg-card/80 backdrop-blur border-border hover:border-accent opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
+                ? "bg-card border-accent/70 hover:bg-accent/10 hover:border-accent opacity-100"
+                : "bg-card border-border hover:border-accent hover:bg-accent/5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
           }`}
         >
-          {selected && <Check className="h-2.5 w-2.5" strokeWidth={3} />}
+          {selected && <Check className="h-3.5 w-3.5" strokeWidth={3.5} />}
         </button>
       )}
+
+      <div className="flex-1 min-w-0 flex flex-col">
 
       {/* ───────────────────────────────────────────────────────────────────
           2) BODY — klikbart område for at åbne detaljer.
@@ -354,31 +335,39 @@ export const UnassignedJobCard = ({
           },
           "aria-label": `Åbn detaljer for ${job.customer_name}`,
         })}
-        className={`${compact ? "p-2.5" : "p-3"} ${compact ? "space-y-2" : "space-y-2.5"} ${isPending ? "" : "cursor-pointer focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent focus-visible:outline-none"}`}
+        className={`${compact ? "p-2.5 pl-9" : "p-3 pl-10"} ${compact ? "space-y-2" : "space-y-2.5"} ${isPending ? "" : "cursor-pointer focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent focus-visible:outline-none"}`}
       >
-        {/* WHO + PRICE — den primære identitet på kortet.
-            Navn er kortets stærkeste typografi; pris ankrer højre side.
-            Hover-tint på navn antyder at kortet er klikbart. */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <h3 className={`${compact ? "text-[14px]" : "text-[15px]"} font-bold leading-tight text-foreground truncate capitalize group-hover:text-accent transition-colors`}>
-              {job.customer_name}
-            </h3>
-            {itemCount > 0 && (
-              <p className="mt-0.5 text-[12px] font-medium text-muted-foreground truncate leading-snug">
-                {items[0].quantity > 1 && <span>{items[0].quantity}× </span>}
-                {items[0].service_name}
-                {itemCount > 1 && <span className="opacity-70"> · +{itemCount - 1} mere</span>}
-              </p>
-            )}
-          </div>
-          <div className="shrink-0 text-right leading-none">
-            <span className={`${compact ? "text-[14px]" : "text-[15px]"} font-bold text-foreground tabular-nums tracking-tight`}>
-              {Math.round(Number(displayAmount || 0))}
-            </span>
-            <span className="ml-0.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wide">kr</span>
-          </div>
+        {/* TOP-LINJE: navn + dato-pille. Navn er stærkeste typografi.
+            Dato-pillen ankrer urgency i højre side uden tungt bånd. */}
+        <div className="flex items-start justify-between gap-2">
+          <h3 className={`${compact ? "text-[14px]" : "text-[15.5px]"} font-bold leading-tight text-foreground truncate capitalize group-hover:text-accent transition-colors min-w-0 flex-1`}>
+            {isPending && <Lock className="inline h-3.5 w-3.5 mr-1 text-amber-600 align-[-2px]" />}
+            {job.customer_name}
+          </h3>
+          <span
+            className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[11px] font-semibold ${urgency.pillBg} ${urgency.pillText} ${urgency.pillBorder}`}
+          >
+            {urgency.pulse && <span aria-hidden className={`h-1.5 w-1.5 rounded-full ${urgency.rail} animate-pulse`} />}
+            {urgency.label}
+          </span>
         </div>
+
+        {/* SERVICE + PRIS — sekundær linje, baseline-justeret. */}
+        {itemCount > 0 && (
+          <div className="flex items-baseline justify-between gap-3">
+            <p className="text-[13px] font-medium text-foreground/80 truncate leading-snug min-w-0 flex-1">
+              {items[0].quantity > 1 && <span>{items[0].quantity}× </span>}
+              {items[0].service_name}
+              {itemCount > 1 && <span className="text-muted-foreground"> · +{itemCount - 1} mere</span>}
+            </p>
+            <div className="shrink-0 leading-none">
+              <span className={`${compact ? "text-[14px]" : "text-[15px]"} font-bold text-foreground tabular-nums tracking-tight`}>
+                {Math.round(Number(displayAmount || 0))}
+              </span>
+              <span className="ml-0.5 text-[10.5px] font-bold text-muted-foreground uppercase tracking-wide">kr</span>
+            </div>
+          </div>
+        )}
 
         {/* Pending-forklaring */}
         {isPending && (
@@ -460,6 +449,8 @@ export const UnassignedJobCard = ({
             )}
           </div>
         )}
+      </div>
+
       </div>
 
       {/* ───────────────────────────────────────────────────────────────────
