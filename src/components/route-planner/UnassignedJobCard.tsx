@@ -3,12 +3,36 @@ import { useDraggable } from "@dnd-kit/core";
 import {
   GripVertical, MapPin, Clock, Phone,
   StickyNote, ChevronDown, ChevronRight, Route as RouteIcon, Lock, Sparkles,
+  Info,
 } from "lucide-react";
 import { format, parseISO, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
 import { da } from "date-fns/locale";
 import { formatDurationMin } from "@/lib/duration-format";
 import { relativeFromNow } from "@/lib/relative-time";
 import { IntervalBadge } from "./IntervalBadge";
+import { Skeleton } from "@/components/ui/skeleton";
+
+/** Skeleton-version af kortet — bruges mens aftaler/GPS-status indlæses.
+ *  Matcher kortets højde og indre struktur så listen ikke "hopper" når
+ *  rigtige kort kommer ind. */
+export const UnassignedJobCardSkeleton = ({ compact = false }: { compact?: boolean }) => (
+  <div className={`rounded-lg border border-border/60 bg-card ${compact ? "p-2" : "p-2.5"} space-y-1.5`}>
+    <div className="flex items-start gap-2">
+      <Skeleton className="h-5 w-5 rounded shrink-0" />
+      <div className="flex-1 min-w-0 space-y-1.5">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 min-w-0 flex-1">
+            <Skeleton className="h-3.5 w-12 rounded-full" />
+            <Skeleton className="h-3.5 w-24 rounded" />
+          </div>
+          <Skeleton className="h-3 w-10 rounded shrink-0" />
+        </div>
+        <Skeleton className="h-2.5 w-3/4 rounded" />
+        <Skeleton className="h-2.5 w-2/3 rounded" />
+      </div>
+    </div>
+  </div>
+);
 
 type OrderItem = {
   service_name: string;
