@@ -4767,7 +4767,7 @@ const Planner = () => {
                       visibleCount={selectedVisibleCount}
                       hiddenCount={selectedHiddenCount}
                       totalCount={filteredUnassigned.length}
-                      onClear={() => setSelectedJobIds(new Set())}
+                      onClear={() => { setSelectedJobIds(new Set()); lastSelectedJobIdRef.current = null; }}
                       onSelectAll={() => setSelectedJobIds(new Set(filteredUnassigned.map((j: any) => j.id)))}
                       onShowHidden={selectedHiddenCount > 0 ? () => {
                         // Nulstil filtre/søgning så de skjulte valgte aftaler
