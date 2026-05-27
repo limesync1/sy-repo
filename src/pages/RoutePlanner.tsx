@@ -62,7 +62,7 @@ import {
   PointerSensor, MouseSensor, TouchSensor, KeyboardSensor,
 } from "@dnd-kit/core";
 import { createPortal } from "react-dom";
-import { UnassignedJobCard } from "@/components/route-planner/UnassignedJobCard";
+import { UnassignedJobCard, UnassignedJobCardSkeleton } from "@/components/route-planner/UnassignedJobCard";
 import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
 import { SuggestRouteDialog } from "@/components/route-planner/SuggestRouteDialog";
 import { MonthWeekCalendar, type CalendarRoute } from "@/components/route-planner/MonthWeekCalendar";
@@ -4388,17 +4388,7 @@ const Planner = () => {
                     {loadingUnassigned && unassigned.length === 0 && (
                       <div className="space-y-1.5">
                         {Array.from({ length: 5 }).map((_, i) => (
-                          <div
-                            key={i}
-                            className="rounded-md border border-border/60 bg-card p-2 space-y-1.5"
-                          >
-                            <div className="flex items-center gap-2">
-                              <div className="h-3 w-1/2 rounded bg-muted animate-pulse" />
-                              <div className="ml-auto h-3 w-12 rounded bg-muted animate-pulse" />
-                            </div>
-                            <div className="h-2.5 w-3/4 rounded bg-muted/70 animate-pulse" />
-                            <div className="h-2.5 w-2/3 rounded bg-muted/60 animate-pulse" />
-                          </div>
+                          <UnassignedJobCardSkeleton key={i} compact={compactCards} />
                         ))}
                       </div>
                     )}
@@ -4524,6 +4514,31 @@ const Planner = () => {
                         <div key={key} className="space-y-1.5">
                           <div className="sticky top-0 z-[1] flex items-center gap-2 px-1 py-1 bg-card/95 backdrop-blur text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
                             <span className="truncate">{g.label}</span>
+                            {selectedJobIds.size > 0 && (() => {
+                              const selectable = g.items.filter((j: any) => j.status !== "pending");
+                              if (selectable.length === 0) return null;
+                              const allSelected = selectable.every((j: any) => selectedJobIds.has(j.id));
+                              return (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedJobIds((prev) => {
+                                      const next = new Set(prev);
+                                      if (allSelected) {
+                                        selectable.forEach((j: any) => next.delete(j.id));
+                                      } else {
+                                        selectable.forEach((j: any) => next.add(j.id));
+                                      }
+                                      return next;
+                                    });
+                                  }}
+                                  className="normal-case tracking-normal text-[10px] font-semibold text-accent hover:text-accent/80 hover:underline underline-offset-2"
+                                  title={allSelected ? "Fravælg alle i denne gruppe" : "Vælg alle i denne gruppe"}
+                                >
+                                  {allSelected ? "Fravælg alle" : `Vælg alle ${selectable.length}`}
+                                </button>
+                              );
+                            })()}
                             <span className="ml-auto tabular-nums text-foreground/70">{g.items.length}</span>
                           </div>
                           {g.items.map(renderCard)}

@@ -356,12 +356,24 @@ const DayCellInner = ({
         // Når man hovrer over en gyldig dag — tydeligt highlight. Hvis
         // live-validering har en severity (grøn/gul/rød) trumfer den
         // standard-accent-ringen, så brugeren ser den korrekte status.
-        isOver && canReceiveDrop && !validation && "bg-accent/20 ring-2 ring-accent ring-inset shadow-inner",
+        isOver && canReceiveDrop && !validation && "bg-accent/25 ring-2 ring-accent ring-inset shadow-inner scale-[1.01]",
         isOver && canReceiveDrop && validation && ringForSeverity(validation.severity),
         busy && "opacity-90 cursor-wait",
       )}
       aria-busy={busy || undefined}
     >
+      {/* ─── Plads-markør under drag ─── */}
+      {/* Stiplet "slip her" placeholder i bunden af cellen viser præcis
+          hvor aftalen/ruten lander — gør drop-targettet håndgribeligt
+          uden at flytte eksisterende indhold. */}
+      {isOver && canReceiveDrop && !validation && (
+        <div
+          aria-hidden
+          className="absolute inset-x-1.5 bottom-1.5 z-10 pointer-events-none h-7 rounded-md border-2 border-dashed border-accent bg-accent/10 flex items-center justify-center animate-in fade-in zoom-in-95 duration-150"
+        >
+          <span className="text-[10px] font-semibold text-accent uppercase tracking-wide">Slip her</span>
+        </div>
+      )}
       {/* ─── Drop-target floating label ─── */}
       {/* Vises kun mens brugeren hovrer over en gyldig drop-dag. Fortæller
           eksplicit hvad der sker ved slip + præcis dato — så brugeren
