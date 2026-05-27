@@ -3,30 +3,36 @@ import { useDraggable } from "@dnd-kit/core";
 import {
   MapPin, Clock, Phone,
   StickyNote, ChevronDown, ChevronRight, Route as RouteIcon, Lock, Sparkles,
-  Info, Check,
+  Info, Check, Repeat, Hourglass,
 } from "lucide-react";
 import { format, parseISO, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
 import { da } from "date-fns/locale";
 import { formatDurationMin } from "@/lib/duration-format";
 import { relativeFromNow } from "@/lib/relative-time";
-import { IntervalBadge } from "./IntervalBadge";
+import { parseInterval, formatInterval } from "@/lib/interval";
 import { Skeleton } from "@/components/ui/skeleton";
 
 /** Skeleton-version af kortet — bruges mens aftaler/GPS-status indlæses.
  *  Matcher kortets højde og indre struktur så listen ikke "hopper" når
  *  rigtige kort kommer ind. */
 export const UnassignedJobCardSkeleton = ({ compact = false }: { compact?: boolean }) => (
-  <div className={`relative rounded-lg border border-border/60 bg-card overflow-hidden ${compact ? "p-2.5 pl-3" : "p-3 pl-3.5"} space-y-2`}>
-    <Skeleton className="absolute left-0 top-0 bottom-0 w-1 rounded-none" />
-    <div className="flex items-start justify-between gap-3">
-      <div className="flex-1 min-w-0 space-y-1.5">
-        <Skeleton className="h-3 w-20 rounded" />
-        <Skeleton className="h-4 w-40 rounded" />
-      </div>
-      <Skeleton className="h-4 w-12 rounded shrink-0" />
+  <div className="relative rounded-xl border border-border/70 bg-card overflow-hidden">
+    {/* status header skeleton */}
+    <div className="flex items-center justify-between px-3 py-1.5 border-b border-border/50 bg-secondary/40">
+      <Skeleton className="h-3 w-16 rounded" />
+      <Skeleton className="h-3 w-14 rounded" />
     </div>
-    <Skeleton className="h-3 w-3/4 rounded" />
-    <Skeleton className="h-3 w-2/3 rounded" />
+    <div className={`${compact ? "p-2.5" : "p-3"} space-y-2.5`}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0 space-y-1.5">
+          <Skeleton className="h-4 w-28 rounded" />
+          <Skeleton className="h-3 w-20 rounded" />
+        </div>
+        <Skeleton className="h-4 w-12 rounded shrink-0" />
+      </div>
+      <Skeleton className="h-3 w-3/4 rounded" />
+      <Skeleton className="h-6 w-2/3 rounded-md" />
+    </div>
   </div>
 );
 
@@ -185,17 +191,88 @@ export const UnassignedJobCard = ({
     ? job.adjusted_amount ?? job.total_amount
     : job.total_amount;
 
-  // Accent-stribe i venstre kant signalerer dag-status (forsinket/i dag/i morgen/senere).
-  // Erstatter den støjende uppercase-pille øverst og gør status scannelig på 1 blik.
-  const accentBar = isPending
-    ? "bg-amber-400"
-    : schedule
-      ? (schedule.dotTone === "bg-destructive" ? "bg-destructive"
-        : schedule.dotTone === "bg-orange-500" ? "bg-orange-500"
-        : schedule.dotTone === "bg-amber-500" ? "bg-amber-500"
-        : schedule.dotTone === "bg-primary" ? "bg-primary"
-        : "bg-muted-foreground/50")
-      : "bg-muted-foreground/40";
+  // Status-tema for header-båndet øverst på kortet. Hver urgency-niveau har sin
+  // egen bg/border/tekst/dot-farve, så ejeren scanner status før alt andet.
+  // Det stærke bånd erstatter den gamle venstre-stribe — synligt selv i en lang liste.
+  type StatusTheme = {
+    headerBg: string;
+    headerBorder: string;
+    headerText: string;
+    metaText: string;
+    dot: string;
+    pulse: boolean;
+    label: string;
+  };
+  const statusTheme: StatusTheme = isPending
+    ? {
+        headerBg: "bg-amber-50",
+        headerBorder: "border-amber-200",
+        headerText: "text-amber-700",
+        metaText: "text-amber-600",
+        dot: "bg-amber-500",
+        pulse: false,
+        label: "Afventer kunde",
+      }
+    : schedule?.dotTone === "bg-destructive"
+    ? {
+        headerBg: "bg-destructive/10",
+        headerBorder: "border-destructive/30",
+        headerText: "text-destructive",
+        metaText: "text-destructive/80",
+        dot: "bg-destructive",
+        pulse: true,
+        label: "Forsinket",
+      }
+    : schedule?.dotTone === "bg-orange-500"
+    ? {
+        headerBg: "bg-orange-50 dark:bg-orange-500/10",
+        headerBorder: "border-orange-200 dark:border-orange-500/30",
+        headerText: "text-orange-700 dark:text-orange-400",
+        metaText: "text-orange-600 dark:text-orange-400/80",
+        dot: "bg-orange-500",
+        pulse: true,
+        label: "I dag",
+      }
+    : schedule?.dotTone === "bg-amber-500"
+    ? {
+        headerBg: "bg-amber-50 dark:bg-amber-500/10",
+        headerBorder: "border-amber-200 dark:border-amber-500/30",
+        headerText: "text-amber-700 dark:text-amber-400",
+        metaText: "text-amber-600 dark:text-amber-400/80",
+        dot: "bg-amber-500",
+        pulse: false,
+        label: "I morgen",
+      }
+    : schedule?.dotTone === "bg-primary"
+    ? {
+        headerBg: "bg-primary/8",
+        headerBorder: "border-primary/20",
+        headerText: "text-foreground",
+        metaText: "text-muted-foreground",
+        dot: "bg-primary",
+        pulse: false,
+        label: "Denne uge",
+      }
+    : {
+        headerBg: "bg-secondary/60",
+        headerBorder: "border-border",
+        headerText: "text-foreground/80",
+        metaText: "text-muted-foreground",
+        dot: "bg-muted-foreground/60",
+        pulse: false,
+        label: schedule?.relative ? schedule.relative.charAt(0).toUpperCase() + schedule.relative.slice(1) : "Ikke planlagt",
+      };
+
+  // Interval-info — parsed til en enkelt linje. Vises som integreret chip-row
+  // (med subtil tinted bg) i stedet for en separat badge øverst.
+  const intervalRaw = items.find((it: any) => it.details?.interval)?.details?.interval;
+  const parsedInterval = parseInterval(intervalRaw);
+  const isRecurring = !!parsedInterval && !parsedInterval.once;
+  const intervalLabel = parsedInterval
+    ? (isRecurring
+        ? (isFirstOccurrence ? `Opstart · ${formatInterval(intervalRaw)}` : formatInterval(intervalRaw))
+        : "Engangsaftale")
+    : "Engangsaftale";
 
   return (
     <div
@@ -206,35 +283,45 @@ export const UnassignedJobCard = ({
       aria-label={isPending
         ? `${job.customer_name} — afventer kundens godkendelse`
         : `${job.customer_name} — træk for at planlægge, klik for detaljer`}
-      className={`group relative rounded-lg border bg-card transition-all duration-150 overflow-hidden ${
+      className={`group relative rounded-xl border bg-card transition-all duration-200 overflow-hidden ${
         isPending ? "" : "cursor-grab active:cursor-grabbing touch-none"
       } ${
         isPending
-          ? "border-amber-300/70 bg-amber-50/40"
+          ? "border-amber-300/60"
           : selected
-            ? "border-accent/60 bg-accent/5 shadow-sm"
-            : "border-border/70 hover:border-foreground/25 hover:shadow-md hover:-translate-y-px"
+            ? "border-accent ring-2 ring-accent/30 shadow-md"
+            : "border-border/70 hover:border-foreground/30 hover:shadow-md hover:-translate-y-px"
       }`}
     >
-      {/* Venstre status-stribe: tydelig farvekode for hvornår aftalen skal udføres.
-          Når valgt: accent-farve overrider, så bulk-tilstand er entydig. */}
-      <span
-        aria-hidden
-        className={`absolute left-0 top-0 bottom-0 w-1 ${selected && !isPending ? "bg-accent" : accentBar}`}
-      />
-      {/* Pending lås — overlay i toppen højre hjørne (erstatter venstre kolonne). */}
-      {isPending && (
-        <div
-          aria-hidden
-          className="absolute top-2 right-2 h-5 w-5 inline-flex items-center justify-center rounded text-amber-600 bg-amber-100/80"
-          title="Aftalen skal godkendes før den kan lægges på en rute"
-        >
-          <Lock className="h-3 w-3" />
+      {/* ───────────────────────────────────────────────────────────────────
+          1) STATUS-BÅND øverst — kortets identitet. Farvekodet på urgency:
+             rød=forsinket, orange=i dag (pulserer), gul=i morgen,
+             primary=denne uge, neutral=senere, amber=afventer kunde.
+             Brugeren ved status før noget andet.
+         ─────────────────────────────────────────────────────────────────── */}
+      <div className={`flex items-center justify-between gap-2 px-3 py-1.5 border-b ${statusTheme.headerBg} ${statusTheme.headerBorder}`}>
+        <div className={`flex items-center gap-1.5 min-w-0 ${statusTheme.headerText}`}>
+          {isPending ? (
+            <Lock className="h-3 w-3 shrink-0" />
+          ) : (
+            <span
+              aria-hidden
+              className={`h-2 w-2 rounded-full shrink-0 ${statusTheme.dot} ${statusTheme.pulse ? "animate-pulse" : ""}`}
+            />
+          )}
+          <span className="text-[10.5px] font-bold uppercase tracking-wider truncate">
+            {statusTheme.label}
+          </span>
         </div>
-      )}
+        {schedule && (
+          <span className={`shrink-0 text-[10.5px] font-medium tabular-nums ${statusTheme.metaText}`}>
+            {schedule.dayLabel}
+          </span>
+        )}
+      </div>
 
-      {/* Multi-select knap — overlay i top-venstre hjørne så den ikke stjæler indholdsplads.
-          Vises permanent når kortet er valgt eller bulk-tilstand er aktiv, ellers kun på hover. */}
+      {/* Multi-select knap — overlay i top-venstre hjørne på header-båndet.
+          Vises permanent når valgt/bulk-mode, ellers kun på hover. */}
       {!isPending && onToggleSelect && (
         <button
           type="button"
@@ -243,148 +330,154 @@ export const UnassignedJobCard = ({
           aria-label={selected ? "Fravælg aftale" : "Vælg aftale"}
           aria-pressed={selected}
           title={selected ? "Fravælg" : "Vælg flere aftaler"}
-          className={`absolute top-1.5 left-2.5 z-10 h-4 w-4 rounded border flex items-center justify-center transition-all focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${
+          className={`absolute top-1.5 right-2 z-10 h-4 w-4 rounded border flex items-center justify-center transition-all focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${
             selected
               ? "bg-accent border-accent text-accent-foreground opacity-100"
               : anySelected
                 ? "bg-card border-accent/60 hover:bg-accent/10 opacity-100"
-                : "bg-card border-border hover:border-accent opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
+                : "bg-card/80 backdrop-blur border-border hover:border-accent opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
           }`}
         >
           {selected && <Check className="h-2.5 w-2.5" strokeWidth={3} />}
         </button>
       )}
 
-      <div className={`${compact ? "p-2 pl-3" : "p-3 pl-3.5"}`}>
-        <div
-          {...(isPending ? {} : {
-            role: "button",
-            tabIndex: 0,
-            onClick,
-            onKeyDown: (e: React.KeyboardEvent) => {
-              if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick?.(); }
-            },
-            "aria-label": `Åbn detaljer for ${job.customer_name}`,
-          })}
-          className={`min-w-0 text-left rounded-md ${isPending ? "" : "cursor-pointer focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"} ${compact ? "space-y-1" : "space-y-1.5"}`}
-        >
-          {/* HIERARKI:
-              1) Dag-label (lille caps) — wayfinding-etiket: hvornår skal det ske?
-              2) Kunde-navn (stort, fed) — primært fokus: hvem er det?
-              3) Pris (højre, tabular) — sekundært fokus: hvad er værdien?
-              4) Service (1 linje, foreground/70) — kontekst
-              5) Adresse + meta (mindre, muted) — tertiær info
-              Den farvede venstre-stribe erstatter den gamle dag-pille som visuel ankerpunkt. */}
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              {schedule && (
-                <div className={`flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider leading-none ${schedule.tone}`}>
-                  <span className={`h-1.5 w-1.5 rounded-full ${schedule.dotTone}`} aria-hidden />
-                  <span>{schedule.dayLabel}</span>
-                  {schedule.relative && !compact && (
-                    <span className="font-normal normal-case tracking-normal text-muted-foreground">· {schedule.relative}</span>
-                  )}
-                </div>
-              )}
-              <p className={`${compact ? "text-[13px]" : "text-[14px]"} font-semibold leading-tight text-foreground truncate capitalize ${schedule ? "mt-1" : ""}`}>
-                {job.customer_name}
+      {/* ───────────────────────────────────────────────────────────────────
+          2) BODY — klikbart område for at åbne detaljer.
+         ─────────────────────────────────────────────────────────────────── */}
+      <div
+        {...(isPending ? {} : {
+          role: "button",
+          tabIndex: 0,
+          onClick,
+          onKeyDown: (e: React.KeyboardEvent) => {
+            if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick?.(); }
+          },
+          "aria-label": `Åbn detaljer for ${job.customer_name}`,
+        })}
+        className={`${compact ? "p-2.5" : "p-3"} ${compact ? "space-y-2" : "space-y-2.5"} ${isPending ? "" : "cursor-pointer focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent focus-visible:outline-none"}`}
+      >
+        {/* WHO + PRICE — den primære identitet på kortet.
+            Navn er kortets stærkeste typografi; pris ankrer højre side.
+            Hover-tint på navn antyder at kortet er klikbart. */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <h3 className={`${compact ? "text-[14px]" : "text-[15px]"} font-bold leading-tight text-foreground truncate capitalize group-hover:text-accent transition-colors`}>
+              {job.customer_name}
+            </h3>
+            {itemCount > 0 && (
+              <p className="mt-0.5 text-[12px] font-medium text-muted-foreground truncate leading-snug">
+                {items[0].quantity > 1 && <span>{items[0].quantity}× </span>}
+                {items[0].service_name}
+                {itemCount > 1 && <span className="opacity-70"> · +{itemCount - 1} mere</span>}
               </p>
-            </div>
-            <span className={`shrink-0 ${compact ? "text-[12px]" : "text-[13.5px]"} font-bold text-foreground tabular-nums tracking-tight leading-tight`}>
-              {Math.round(Number(displayAmount || 0))}<span className="ml-0.5 text-[10px] font-medium text-muted-foreground">kr</span>
-            </span>
+            )}
           </div>
-
-          {itemCount > 0 && (
-            <p className="text-[12px] text-foreground/75 truncate leading-snug">
-              {items[0].quantity > 1 && <span className="text-muted-foreground">{items[0].quantity}× </span>}
-              {items[0].service_name}
-              {itemCount > 1 && <span className="text-muted-foreground"> · +{itemCount - 1} mere</span>}
-            </p>
-          )}
-
-          {/* Pending-banner — kort forklaring + tydelig handling.
-              Brugeren forstår både HVORFOR aftalen er låst og HVAD han kan gøre. */}
-          {isPending && (
-            <div className="rounded-md bg-amber-100/70 border border-amber-300/60 px-2 py-1.5 space-y-1">
-              <div className="flex items-center gap-1.5 text-[11px] font-semibold text-amber-900">
-                <Lock className="h-3 w-3 shrink-0" />
-                <span>Venter på kundens svar</span>
-              </div>
-              <p className="text-[10px] leading-snug text-amber-800/90">
-                Aftalen kan først planlægges når kunden har godkendt tilbuddet.
-              </p>
-              {onClick && (
-                <button
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); onClick(); }}
-                  className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-900 hover:text-amber-950 underline underline-offset-2"
-                >
-                  <Info className="h-3 w-3" />
-                  Se årsag og send påmindelse
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* Adresse — pin-farve signalerer GPS-status (tooltip forklarer) */}
-          {fullAddress && (
-            <p
-              className="text-[11px] text-muted-foreground truncate flex items-center gap-1.5 leading-snug"
-              title={hasGps ? "Adressen er fundet på kortet" : "Adressen mangler GPS — ruten kan ikke vises på kort"}
-            >
-              <MapPin className={`h-3 w-3 shrink-0 ${hasGps ? "text-muted-foreground/70" : "text-orange-500"}`} />
-              <span className="truncate">{fullAddress}</span>
-            </p>
-          )}
-
-          {/* Meta-linje: tid + varighed + interval. Relativ tid er flyttet op
-              ved siden af dag-labelet for at undgå duplikering. */}
-          {(job.preferred_time_start || estimatedMin != null || !compact) && (
-            <div className="flex items-center gap-x-2 gap-y-0.5 flex-wrap text-[11px] min-w-0 text-muted-foreground">
-              {job.preferred_time_start && (
-                <span className="tabular-nums">
-                  {job.preferred_time_start.slice(0, 5)}
-                  {job.preferred_time_end && `–${job.preferred_time_end.slice(0, 5)}`}
-                </span>
-              )}
-              {!compact && estimatedMin != null && (
-                <span className="inline-flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  {formatDurationMin(estimatedMin)}
-                </span>
-              )}
-              {!compact && (
-                <IntervalBadge
-                  interval={items.find((it: any) => it.details?.interval)?.details?.interval}
-                  size="sm"
-                />
-              )}
-            </div>
-          )}
-
-          {/* Foreslået tidligere rute — diskret hint kun når relevant. */}
-          {job.preferred_route_name && !compact && (
-            <p className="text-[11px] text-muted-foreground flex items-center gap-1.5 min-w-0">
-              <RouteIcon className="h-3 w-3 shrink-0" />
-              <span className="truncate">Tidligere på <span className="font-medium text-foreground">{job.preferred_route_name}</span></span>
-            </p>
-          )}
+          <div className="shrink-0 text-right leading-none">
+            <span className={`${compact ? "text-[14px]" : "text-[15px]"} font-bold text-foreground tabular-nums tracking-tight`}>
+              {Math.round(Number(displayAmount || 0))}
+            </span>
+            <span className="ml-0.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wide">kr</span>
+          </div>
         </div>
+
+        {/* Pending-forklaring */}
+        {isPending && (
+          <div className="rounded-md bg-amber-50 border border-amber-200/70 px-2 py-1.5 space-y-1">
+            <p className="text-[11px] leading-snug text-amber-800">
+              Aftalen kan først planlægges når kunden har godkendt tilbuddet.
+            </p>
+            {onClick && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onClick(); }}
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-900 hover:text-amber-950 underline underline-offset-2"
+              >
+                <Info className="h-3 w-3" />
+                Se årsag og send påmindelse
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* INFO-STAK — adresse + interval-chip. Hver linje har sin egen rolle:
+            adresse svarer på HVOR, interval-chip svarer på HVOR OFTE. */}
+        {!isPending && (
+          <div className="space-y-1.5">
+            {fullAddress && (
+              <div
+                className="flex items-center gap-1.5 text-muted-foreground"
+                title={hasGps ? "Adressen er fundet på kortet" : "Adressen mangler GPS — ruten kan ikke vises på kort"}
+              >
+                <MapPin className={`h-3.5 w-3.5 shrink-0 ${hasGps ? "text-muted-foreground/60" : "text-orange-500"}`} />
+                <span className="text-[12px] truncate leading-tight">{fullAddress}</span>
+              </div>
+            )}
+
+            {/* Tid + varighed (kun hvis aftalen har et tidsvindue) */}
+            {(job.preferred_time_start || estimatedMin != null) && !compact && (
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Clock className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" />
+                <span className="text-[12px] tabular-nums leading-tight">
+                  {job.preferred_time_start && (
+                    <>
+                      {job.preferred_time_start.slice(0, 5)}
+                      {job.preferred_time_end && `–${job.preferred_time_end.slice(0, 5)}`}
+                    </>
+                  )}
+                  {job.preferred_time_start && estimatedMin != null && <span className="opacity-50"> · </span>}
+                  {estimatedMin != null && formatDurationMin(estimatedMin)}
+                </span>
+              </div>
+            )}
+
+            {/* Interval — integreret chip i stedet for løs badge.
+                Subtil tintet bg så den læses som metadata, ikke som handling. */}
+            {!compact && (
+              <div className={`flex items-center gap-1.5 px-2 py-1 rounded-md border ${
+                isRecurring
+                  ? "bg-primary/5 border-primary/15"
+                  : "bg-secondary/50 border-border/60"
+              }`}>
+                {isRecurring
+                  ? <Repeat className="h-3 w-3 shrink-0 text-primary" />
+                  : <Hourglass className="h-3 w-3 shrink-0 text-muted-foreground" />}
+                <span className={`text-[11px] font-semibold leading-none truncate ${
+                  isRecurring ? "text-foreground/80" : "text-muted-foreground"
+                }`}>
+                  {intervalLabel}
+                </span>
+              </div>
+            )}
+
+            {/* Foreslået tidligere rute — diskret kun når relevant */}
+            {job.preferred_route_name && !compact && (
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <RouteIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" />
+                <span className="text-[12px] truncate leading-tight">
+                  Tidligere på <span className="font-medium text-foreground/80">{job.preferred_route_name}</span>
+                </span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Samlet actions-bar: "Foreslå rute" + "Detaljer" på én række i stedet for to */}
+      {/* ───────────────────────────────────────────────────────────────────
+          3) ACTION-BÅND — "Foreslå rute" som primær handling i accent,
+             sekundær "Mere info" som diskret toggle hvis der er data at vise.
+         ─────────────────────────────────────────────────────────────────── */}
       {!compact && !isPending && (onSuggestRoute || job.customer_phone || itemCount > 1 || job.notes) && (
-        <div className="flex border-t border-border/50 divide-x divide-border/50 text-[11px]">
+        <div className="flex border-t border-border/50 divide-x divide-border/50">
           {onSuggestRoute && (
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onSuggestRoute(); }}
               onPointerDown={(e) => e.stopPropagation()}
-              className="flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-1.5 font-medium text-foreground hover:bg-accent/10 transition-colors focus-visible:bg-accent/15 focus-visible:outline-none"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-2 text-[11px] font-bold uppercase tracking-wide text-accent hover:bg-accent/8 transition-colors focus-visible:bg-accent/10 focus-visible:outline-none"
               title="Foreslå bedste rute baseret på afstand, kapacitet og færdigheder"
             >
-              <Sparkles className="h-3 w-3 text-accent" />
+              <Sparkles className="h-3.5 w-3.5" />
               Foreslå rute
             </button>
           )}
@@ -395,10 +488,10 @@ export const UnassignedJobCard = ({
               onPointerDown={(e) => e.stopPropagation()}
               aria-expanded={expanded}
               title={expanded ? "Skjul ydelser, telefon og note" : "Vis ydelser, telefon og note"}
-              className="flex-1 inline-flex items-center justify-center gap-1 px-2 py-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors focus-visible:bg-secondary focus-visible:text-foreground focus-visible:outline-none"
+              className="flex-1 inline-flex items-center justify-center gap-1 px-2 py-2 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors focus-visible:bg-secondary focus-visible:text-foreground focus-visible:outline-none"
             >
               {expanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-              {expanded ? "Skjul mere" : "Mere info"}
+              {expanded ? "Skjul" : "Mere info"}
             </button>
           )}
         </div>
