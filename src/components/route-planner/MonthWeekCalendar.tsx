@@ -933,6 +933,19 @@ const RoutePillInner = ({
         )}
       </div>
 
+      {/* Kapacitets-bar: tynd stribe der viser belastning. Skjul ved 0 stops. */}
+      {stopCount > 0 && (
+        <div
+          className="h-[3px] w-full bg-muted/60 overflow-hidden"
+          title={`Belastning ${loadPct}% — ${Math.round(workMin / 60 * 10) / 10} t af ~${Math.round(capacityMin / 60)} t (${empCount} medarbejder${empCount === 1 ? "" : "e"})`}
+          aria-label={`Belastning ${loadPct} procent`}
+        >
+          <div
+            className={cn("h-full transition-all", loadColor)}
+            style={{ width: `${Math.min(100, loadPct)}%` }}
+          />
+        </div>
+      )}
       {/* Stops vises ikke under rute-pillen — åbn ruten ved at klikke for at se aftaler. */}
     </div>
   );
