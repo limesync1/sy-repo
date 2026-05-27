@@ -265,7 +265,6 @@ export const UnassignedJobCard = ({
         )}
         <button
           type="button"
-          onPointerDown={(e) => e.stopPropagation()}
           onClick={onClick}
           aria-label={`Åbn detaljer for ${job.customer_name}`}
           className={`flex-1 min-w-0 text-left cursor-pointer rounded-md focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${compact ? "space-y-1" : "space-y-1.5"}`}
