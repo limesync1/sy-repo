@@ -2365,7 +2365,7 @@ const Planner = () => {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedStopId, view, history, editingRoute, selectedJobIds]);
+  }, [selectedStopId, view, history, editingRoute, selectedJobIds, deleteStop]);
 
   /* Når create-dialog åbnes, foreslå en ledig farve for den valgte dato */
   useEffect(() => {
