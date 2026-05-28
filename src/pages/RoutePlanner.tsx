@@ -313,7 +313,14 @@ const Planner = () => {
   const [view, setView] = usePersistentState<"month" | "week">("route-planner:view", "month");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = usePersistentState<"date" | "price" | "name">("route-planner:sortBy", "date");
-  const [compactCards, setCompactCards] = usePersistentState<boolean>("route-planner:compactCards", false);
+  const [density, setDensity] = useDensity();
+  // Bagudkompatibel afledt værdi — `compactCards` styrer kompakt-render i
+  // aftalekortene. Den følger nu tæthedsvælgeren, så ét sted styrer alt.
+  const compactCards = density === "compact";
+  const setCompactCards = (v: boolean | ((p: boolean) => boolean)) => {
+    const next = typeof v === "function" ? (v as (p: boolean) => boolean)(compactCards) : v;
+    setDensity(next ? "compact" : "cozy");
+  };
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [printOpen, setPrintOpen] = useState(false);
   const [dayDetailOpen, setDayDetailOpen] = useState(false);
