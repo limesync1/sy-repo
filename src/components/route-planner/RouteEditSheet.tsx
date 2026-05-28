@@ -828,7 +828,7 @@ export const RouteEditSheet = ({
                         </span>
                         {directionsFetching && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
                         {isEstimate && !directionsFetching && (
-                          <span className="text-[10px] text-muted-foreground">(grovskøn)</span>
+                          <span className="text-[10px] text-muted-foreground">(cirka)</span>
                         )}
                       </p>
                       <div className="mt-2 flex flex-wrap gap-1.5">
