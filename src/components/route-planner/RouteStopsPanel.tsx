@@ -317,7 +317,9 @@ const SortableStopRow = ({
       style={style}
       className={cn(
         CARD_BASE,
-        isDragging ? CARD_DRAGGING : cn(CARD_BORDER, CARD_HOVER),
+        isDragging
+          ? "z-20 border-dashed border-accent/60 bg-secondary/40 opacity-60 shadow-none ring-0"
+          : cn(CARD_BORDER, CARD_HOVER),
       )}
     >
       {/* Tynd accent-stribe i venstre kant i rutens farve — binder kortet visuelt til kalender-pillen */}
