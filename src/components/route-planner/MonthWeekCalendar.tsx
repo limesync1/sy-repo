@@ -228,8 +228,11 @@ export const MonthWeekCalendar = ({
               style={{ gridTemplateColumns: "44px repeat(7, minmax(0, 1fr))" }}
             >
               {/* Ugenummer */}
-              <div className="border-r border-border/70 bg-secondary/15 flex items-start justify-center pt-3 text-[10.5px] font-semibold text-muted-foreground/60 tabular-nums">
-                <span className="inline-flex items-center justify-center min-w-[22px] h-[20px] px-1 rounded text-muted-foreground/65">
+              <div className="border-r border-border/70 bg-secondary/20 flex flex-col items-center justify-start pt-3 gap-0.5 text-muted-foreground/55 tabular-nums">
+                <span className="text-[8.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/40 leading-none">
+                  uge
+                </span>
+                <span className="inline-flex items-center justify-center min-w-[22px] h-[18px] text-[11px] font-bold leading-none text-muted-foreground/70">
                   {weekNum}
                 </span>
               </div>
