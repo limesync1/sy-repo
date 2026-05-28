@@ -4769,7 +4769,7 @@ const Planner = () => {
                       const entries = Array.from(groups.entries()).sort((a, b) => a[0].localeCompare(b[0]));
                       return entries.map(([key, g]) => (
                         <div key={key} className="space-y-1.5">
-                          <div className="sticky top-0 z-[1] flex items-center gap-2 rounded-md border border-border/60 bg-card/95 px-2 py-1.5 text-[10px] uppercase tracking-[0.1em] font-bold text-muted-foreground shadow-sm backdrop-blur">
+                          <div className="sticky top-0 z-[1] flex items-center gap-2 rounded-md border border-border/70 bg-card/95 px-2 py-1.5 text-[10px] uppercase tracking-[0.1em] font-bold text-muted-foreground shadow-sm backdrop-blur">
                             <span className="truncate">{g.label}</span>
                             {selectedJobIds.size > 0 && (() => {
                               const selectable = g.items.filter((j: any) => j.status !== "pending");
