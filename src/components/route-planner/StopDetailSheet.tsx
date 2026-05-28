@@ -43,9 +43,15 @@ type Props = {
   readOnly?: boolean;
   /** Effektiv dato for det viste stop — bruges til at beregne korrekt "Næste besøg" også for projicerede ruter. */
   effectiveDate?: string | null;
+  /**
+   * Kaldes når den fjernede aftale var rutens sidste, og den tomme rute
+   * derved blev slettet. Forælderen bruger det til også at lukke et evt.
+   * åbent rute-panel for samme rute.
+   */
+  onRouteDeleted?: () => void;
 };
 
-export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequenceLabel, readOnly, effectiveDate }: Props) => {
+export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequenceLabel, readOnly, effectiveDate, onRouteDeleted }: Props) => {
   const isCompact = useIsBelowBreakpoint(1024);
   const { data: order, isLoading } = useOrderForStop(stop?.order_id);
   const updateStop = useUpdateStop();
@@ -175,6 +181,9 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
       });
       setConfirmDelete(false);
       onOpenChange(false);
+      // Var det rutens sidste aftale, blev ruten slettet — luk også et evt.
+      // åbent rute-panel for den nu-slettede rute.
+      if (res?.route_deleted) onRouteDeleted?.();
     } catch (err: any) {
       toast.error(err?.message || "Kunne ikke fjerne aftalen fra ruten");
     }
