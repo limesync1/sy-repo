@@ -21,13 +21,21 @@ export function usePlannerThemeEffect() {
   const [theme] = usePlannerTheme();
   useEffect(() => {
     const root = document.documentElement;
+    // Aktiver krydsfade på alle elementer kortvarigt, så skiftet ml.
+    // lys/mørk føles blødt og øjenvenligt. Vinduet matcher CSS-varigheden.
+    root.classList.add("theme-transitioning");
+    const t = window.setTimeout(() => {
+      root.classList.remove("theme-transitioning");
+    }, 320);
     if (theme === "dark") {
       root.classList.add("dark");
     } else {
       root.classList.remove("dark");
     }
     return () => {
+      window.clearTimeout(t);
       root.classList.remove("dark");
+      root.classList.remove("theme-transitioning");
     };
   }, [theme]);
   return theme;
