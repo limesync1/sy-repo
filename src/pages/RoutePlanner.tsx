@@ -5453,15 +5453,16 @@ const Planner = () => {
         {activeDragId && activeDragData?.type === "route" && routeDragPoint && createPortal(
           <div
             ref={routeOverlayRef}
-            className="fixed z-[1000] w-[160px] pointer-events-none rounded-md border-l-[3px] border bg-card px-2 py-1 shadow-xl"
+            className="fixed z-[1000] w-[170px] pointer-events-none rounded-lg border-l-[3px] border border-border/60 bg-card/95 backdrop-blur-sm px-2.5 py-1.5"
             style={{
               left: routeDragPoint.x,
               top: routeDragPoint.y,
-              transform: "translate(-50%, -50%) rotate(-2deg)",
+              transform: "translate(-50%, -50%) rotate(-2deg) scale(1.02)",
               borderLeftColor: activeDragData.route?.color || "hsl(var(--accent))",
+              boxShadow: `0 12px 32px -8px ${activeDragData.route?.color || "rgba(0,0,0,0.3)"}55, 0 4px 12px -2px rgba(0,0,0,0.18)`,
             }}
           >
-            <p className="text-[11px] font-semibold truncate">
+            <p className="text-[11px] font-semibold truncate text-foreground">
               {activeDragData.route?.name || "Rute"}
             </p>
           </div>,
