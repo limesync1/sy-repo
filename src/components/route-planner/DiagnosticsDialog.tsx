@@ -8,7 +8,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, ArrowRight } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle2 } from "lucide-react";
 import { describeUnprojectable, type UnprojectableReason } from "@/lib/route-suggestions";
 import { useNavigate } from "react-router-dom";
 
@@ -77,7 +77,13 @@ export function DiagnosticsDialog({ open, onOpenChange, items, onAssignRoute }: 
             );
           })}
           {items.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-6">Ingen aftaler at vise.</p>
+            <div className="flex flex-col items-center justify-center gap-2 px-6 py-8 text-center">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                <CheckCircle2 className="h-5 w-5" />
+              </div>
+              <p className="text-sm font-semibold text-foreground">Alt ser godt ud</p>
+              <p className="text-xs text-muted-foreground max-w-xs">Der er ingen aftaler, der kræver din opmærksomhed lige nu.</p>
+            </div>
           )}
         </div>
 
