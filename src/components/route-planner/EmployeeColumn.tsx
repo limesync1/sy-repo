@@ -47,22 +47,22 @@ export const EmployeeColumn = ({
   return (
     <Card
       ref={setNodeRef}
-      className={`group/col relative flex flex-col p-3 rounded-xl border-border/60 shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-all duration-200 ${
+      className={`group/col relative flex flex-col p-3 rounded-lg border-border/70 bg-card shadow-[0_2px_10px_-6px_hsl(var(--foreground)/0.18)] transition-all duration-200 ${
         isOver
           ? "border-accent/70 bg-accent/[0.04] ring-2 ring-accent/25 shadow-[0_8px_24px_-12px_hsl(var(--accent)/0.35)]"
-          : "hover:border-border hover:shadow-[0_2px_6px_-2px_rgba(0,0,0,0.06)]"
+          : "hover:border-foreground/25 hover:shadow-[0_6px_16px_-6px_hsl(var(--foreground)/0.18)]"
       }`}
     >
       {/* Top accent stripe matches route color */}
       <span
         aria-hidden
-        className="absolute inset-x-0 top-0 h-[3px] rounded-t-xl opacity-80"
+        className="absolute inset-x-0 top-0 h-1 rounded-t-lg opacity-90"
         style={{ background: color }}
       />
       {/* Header */}
-      <header className="flex items-start gap-2.5 mb-3 mt-1">
+      <header className="flex items-start gap-2.5 mb-3.5 mt-1">
         <div
-          className="h-7 w-7 rounded-full shrink-0 ring-2 ring-background shadow-[0_2px_6px_-2px_rgba(0,0,0,0.25)] flex items-center justify-center"
+          className="h-8 w-8 rounded-md shrink-0 ring-2 ring-background shadow-[0_2px_6px_-2px_rgba(0,0,0,0.25)] flex items-center justify-center"
           style={{ background: color }}
         >
           <span className="text-[10px] font-bold text-white/95 leading-none">
@@ -71,16 +71,16 @@ export const EmployeeColumn = ({
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <p className="font-semibold text-sm truncate tracking-tight">{label}</p>
+            <p className="font-bold text-sm truncate tracking-tight">{label}</p>
             {isDispatched && (
               <Badge className="h-[18px] px-1.5 text-[9px] gap-0.5 bg-emerald-100 text-emerald-700 border-0 rounded-full shadow-sm">
                 <Send className="h-2.5 w-2.5" />Sendt
               </Badge>
             )}
           </div>
-          {subtitle && <p className="text-[11px] text-muted-foreground truncate mt-0.5">{subtitle}</p>}
+          {subtitle && <p className="text-[11px] text-muted-foreground truncate mt-0.5 leading-snug">{subtitle}</p>}
           <div className="mt-1.5 flex flex-wrap items-center gap-1">
-            <Badge variant="secondary" className="text-[10px] h-[18px] px-1.5 rounded-full font-semibold tabular-nums">
+            <Badge variant="secondary" className="text-[10px] h-5 px-1.5 rounded-md font-semibold tabular-nums">
               {completedCount > 0 ? `${completedCount}/${stops.length}` : `${stops.length}`} stop
             </Badge>
             {totalKm != null && totalKm > 0 && (
@@ -99,9 +99,9 @@ export const EmployeeColumn = ({
 
       {/* Action row */}
       {stops.length >= 1 && (onOptimize || onDispatch) && (
-        <div className="flex gap-1.5 mb-2.5">
+        <div className="flex gap-1.5 mb-3">
           {onOptimize && stops.length >= 2 && (
-            <Button size="sm" variant="outline" className="flex-1 h-7 text-xs gap-1 rounded-lg border-border/60 hover:border-accent/60 hover:text-accent" onClick={onOptimize} disabled={optimizing} title="AI-optimér rækkefølge">
+            <Button size="sm" variant="outline" className="flex-1 h-8 text-xs gap-1 rounded-md border-border/60 hover:border-accent/60 hover:text-accent" onClick={onOptimize} disabled={optimizing} title="AI-optimér rækkefølge">
               {optimizing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
               Optimér
             </Button>
@@ -110,7 +110,7 @@ export const EmployeeColumn = ({
             <Button
               size="sm"
               variant={isDispatched ? "outline" : "default"}
-              className={`flex-1 h-7 text-xs gap-1 rounded-lg ${isDispatched ? "border-border/60" : "shadow-[0_2px_6px_-2px_hsl(var(--accent)/0.5)]"}`}
+              className={`flex-1 h-8 text-xs gap-1 rounded-md ${isDispatched ? "border-border/60" : "shadow-[0_2px_6px_-2px_hsl(var(--accent)/0.5)]"}`}
               onClick={onDispatch}
               disabled={dispatching || stops.length === 0}
               title={isDispatched ? "Send opdateret rute igen" : "Send rute til medarbejderen via email"}
@@ -123,11 +123,11 @@ export const EmployeeColumn = ({
       )}
 
       {/* Stops list */}
-      <div className="flex-1 space-y-1.5 min-h-[100px]">
+      <div className="flex-1 space-y-2 min-h-[100px]">
         <SortableContext items={sortedIds} strategy={verticalListSortingStrategy}>
           {stops.length === 0 && (
             <div
-              className={`text-[11px] text-center py-8 px-3 border-2 border-dashed rounded-lg transition-all ${
+              className={`text-[11px] text-center py-8 px-3 border-2 border-dashed rounded-md transition-all ${
                 isOver
                   ? "border-accent/60 bg-accent/[0.06] text-accent font-medium"
                   : "border-border/50 text-muted-foreground/70 hover:border-border hover:bg-secondary/20"
@@ -179,19 +179,19 @@ const SortableStopCard = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`group relative rounded-lg border bg-card p-2 pl-2.5 transition-all duration-150 cursor-pointer overflow-hidden ${
+      className={`group relative rounded-md border bg-card p-2.5 pl-3 transition-all duration-150 cursor-pointer overflow-hidden ${
         isSelected
           ? "border-accent/60 ring-2 ring-accent/25 shadow-[0_4px_12px_-4px_hsl(var(--accent)/0.35)] -translate-y-px"
           : isDone
           ? "border-emerald-200/70 bg-emerald-50/40 opacity-80"
-          : "border-border/60 hover:border-border hover:shadow-[0_2px_6px_-2px_rgba(0,0,0,0.08)] hover:-translate-y-px"
+          : "border-border/70 hover:border-foreground/25 hover:shadow-[0_6px_14px_-6px_hsl(var(--foreground)/0.18)] hover:-translate-y-px"
       }`}
       onClick={onSelect}
     >
       {/* Left color rail */}
       <span
         aria-hidden
-        className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full opacity-90"
+        className="absolute left-0 top-0 bottom-0 w-1 opacity-90"
         style={{ background: isDone ? "hsl(var(--muted-foreground) / 0.4)" : color }}
       />
       <div className="flex items-start gap-2">
@@ -199,7 +199,7 @@ const SortableStopCard = ({
           {...listeners}
           {...attributes}
           onClick={(e) => e.stopPropagation()}
-          className={`flex h-6 w-6 items-center justify-center rounded-full text-white text-[11px] font-bold shrink-0 cursor-grab active:cursor-grabbing ring-2 ring-background shadow-[0_2px_4px_-1px_rgba(0,0,0,0.2)] transition-transform hover:scale-105 active:scale-95 ${
+          className={`flex h-6 w-6 items-center justify-center rounded-md text-white text-[11px] font-bold shrink-0 cursor-grab active:cursor-grabbing ring-2 ring-background shadow-[0_2px_4px_-1px_rgba(0,0,0,0.2)] transition-transform hover:scale-105 active:scale-95 ${
             isDone ? "opacity-50" : ""
           }`}
           style={{ background: color }}
@@ -208,7 +208,7 @@ const SortableStopCard = ({
         </span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
-            <p className={`text-xs font-semibold truncate flex-1 ${isDone ? "line-through text-muted-foreground" : ""}`}>
+            <p className={`text-xs font-bold truncate flex-1 ${isDone ? "line-through text-muted-foreground" : ""}`}>
               {stop.customer_name || "Stop"}
             </p>
             {isInProgress && (

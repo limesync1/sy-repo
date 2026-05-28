@@ -52,14 +52,14 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-md flex flex-col bg-gradient-to-b from-secondary/20 to-background">
-        <SheetHeader className="space-y-2 pb-3 border-b border-border/50">
-          <SheetTitle className="text-base capitalize tracking-tight">
+      <SheetContent side="right" className="w-full sm:max-w-md flex flex-col bg-background p-0">
+        <SheetHeader className="space-y-2 px-5 pt-5 pb-4 border-b border-border/70 bg-card">
+          <SheetTitle className="text-base capitalize tracking-tight font-bold">
             {date ? format(parseISO(date), "EEEE d. MMMM yyyy", { locale: da }) : "Dag"}
           </SheetTitle>
           {sorted.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-card border border-border/60 shadow-sm font-medium">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-background border border-border/70 shadow-sm font-semibold">
                 <MapPin className="h-3 w-3" />
                 {sorted.length} {sorted.length === 1 ? "stop" : "stop"}
               </span>
@@ -70,7 +70,7 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
                 </span>
               )}
               {routes.length > 1 && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-card border border-border/60 shadow-sm font-medium">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-background border border-border/70 shadow-sm font-semibold">
                   {routes.slice(0, 4).map(([name, color]) => (
                     <span
                       key={name}
@@ -85,7 +85,7 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
           )}
         </SheetHeader>
 
-        <div className="mt-4 flex-1 overflow-auto pr-1">
+        <div className="flex-1 overflow-auto px-5 py-4 bg-secondary/[0.16]">
           {sorted.length === 0 ? (
             <EmptyState
               icon={<Clock className="h-5 w-5" />}
@@ -94,7 +94,7 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
               compact
             />
           ) : (
-            <ol className="relative ml-3 border-l-2 border-border/50 space-y-3 py-1">
+            <ol className="relative ml-3 border-l-2 border-border/60 space-y-3 py-1">
               {sorted.map((s, idx) => {
                 const prev = sorted[idx - 1];
                 const gap = (s.startTime && prev?.startTime && prev?.durationMin != null)
@@ -117,13 +117,13 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
                       </div>
                     )}
                     <div
-                      className="rounded-lg border border-border/60 bg-card p-2.5 border-l-[3px] hover:shadow-[0_2px_8px_-2px_rgba(0,0,0,0.08)] hover:-translate-y-px transition-all duration-150"
+                      className="rounded-md border border-border/70 bg-card p-2.5 border-l-[3px] shadow-[0_1px_2px_hsl(var(--foreground)/0.05)] hover:border-foreground/25 hover:shadow-[0_6px_14px_-6px_hsl(var(--foreground)/0.18)] hover:-translate-y-px transition-all duration-150"
                       style={{ borderLeftColor: s.routeColor ?? "hsl(var(--primary))" }}
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <p className="text-sm font-semibold truncate tracking-tight">{s.customerName}</p>
+                        <p className="text-sm font-bold truncate tracking-tight">{s.customerName}</p>
                         {s.startTime && (
-                          <span className="text-[11px] font-semibold tabular-nums text-foreground/80 bg-secondary/40 px-1.5 py-0.5 rounded-md">
+                          <span className="text-[11px] font-semibold tabular-nums text-foreground/80 bg-secondary px-1.5 py-0.5 rounded-md border border-border/60">
                             {s.startTime}
                           </span>
                         )}
