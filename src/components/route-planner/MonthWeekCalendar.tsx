@@ -746,7 +746,7 @@ const RoutePillInner = ({
       }}
       className={cn(
         "relative rounded-lg border-l-[3px] cursor-pointer overflow-hidden bg-card",
-        "border border-border/50 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-150 hover:-translate-y-[1px] hover:shadow-md hover:border-border",
+        "border border-border/50 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-200 ease-out hover:-translate-y-[1px] hover:shadow-[0_4px_12px_-3px_rgba(0,0,0,0.12)] hover:border-border",
         isDragging && "opacity-40",
         isVirtual && "border-dashed",
         isPast && "opacity-50 saturate-50 hover:opacity-90",
@@ -756,12 +756,12 @@ const RoutePillInner = ({
         jobDragActive && isPast && "opacity-25 pointer-events-none",
         // Når en aftale er ved at blive sluppet på pillen — markér tydeligt
         !isVirtual && jobDragActive && !isOver && "ring-1 shadow-sm",
-        !isVirtual && isOver && !validation && "ring-2 ring-accent shadow-md scale-[1.02]",
-        !isVirtual && isOver && validation && cn(ringForSeverity(validation.severity), "shadow-md scale-[1.02]"),
+        !isVirtual && isOver && !validation && "ring-2 ring-accent shadow-[0_6px_16px_-4px_hsl(var(--accent)/0.45)]",
+        !isVirtual && isOver && validation && cn(ringForSeverity(validation.severity), "shadow-[0_6px_16px_-4px_rgba(0,0,0,0.18)]"),
         // Når en ANDEN rute faktisk hovrer over denne pille, er det et merge.
         // Vi markerer derfor KUN ved reel hover, så en dato med en eksisterende
         // rute ikke fejlagtigt ligner et merge-target i sig selv.
-        isMergeTarget && isOver && "ring-2 ring-accent shadow-lg scale-[1.03] bg-accent/5",
+        isMergeTarget && isOver && "ring-2 ring-accent shadow-[0_8px_20px_-4px_hsl(var(--accent)/0.5)] bg-accent/5",
         // Hvis denne pille selv er kilde i en rute-drag: dæmp + crosshatch-look
         routeDragSourceId === route.id && "opacity-50",
         // Hvis denne pille IKKE er et gyldigt flette-mål under route-drag (fx projiceret/fortid),
@@ -771,7 +771,7 @@ const RoutePillInner = ({
         // Multi-select visuelt — tydelig accent-ring på valgte piller, og
         // svag dæmpning på ikke-valgte piller mens man er i valg-tilstand,
         // så valget altid er let at scanne i en travl kalender.
-        selected && "ring-2 ring-accent ring-offset-1 ring-offset-background shadow-sm",
+        selected && "ring-2 ring-accent ring-offset-1 ring-offset-card shadow-[0_4px_12px_-3px_hsl(var(--accent)/0.35)]",
         anySelected && !selected && !isVirtual && !isPast && "opacity-70 hover:opacity-100",
         anySelected && (isVirtual || isPast) && "opacity-30",
       )}
@@ -945,12 +945,12 @@ const RoutePillInner = ({
       {/* Kapacitets-bar: tynd stribe der viser belastning. Skjul ved 0 stops. */}
       {stopCount > 0 && (
         <div
-          className="h-[3px] w-full bg-muted/60 overflow-hidden"
+          className="h-[3px] w-full bg-muted/40 overflow-hidden"
           title={`Belastning ${loadPct}% — ${Math.round(workMin / 60 * 10) / 10} t af ~${Math.round(capacityMin / 60)} t (${empCount} medarbejder${empCount === 1 ? "" : "e"})`}
           aria-label={`Belastning ${loadPct} procent`}
         >
           <div
-            className={cn("h-full transition-all", loadColor)}
+            className={cn("h-full transition-all duration-500 rounded-r-full", loadColor)}
             style={{ width: `${Math.min(100, loadPct)}%` }}
           />
         </div>
