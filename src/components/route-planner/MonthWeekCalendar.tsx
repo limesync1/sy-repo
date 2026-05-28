@@ -479,9 +479,9 @@ const DayCellInner = ({
             // cellen er klikbar — uden at + tegnet konkurrerer med
             // selve indholdet i kalenderen. Tydeligere på direkte hover.
             className={cn(
-              "h-6 w-6 inline-flex items-center justify-center rounded-md border border-transparent transition-all focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 hover:bg-secondary hover:text-foreground",
+              "h-6 w-6 inline-flex items-center justify-center rounded-md border border-transparent transition-all focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 hover:bg-foreground hover:text-background hover:border-foreground hover:shadow-sm",
               emptyDay && inMonth && !isPast
-                ? "opacity-25 text-muted-foreground/70 group-hover:opacity-100 group-hover:text-foreground"
+                ? "opacity-0 text-muted-foreground/80 group-hover:opacity-100"
                 : "opacity-0 group-hover:opacity-90 text-muted-foreground",
             )}
             aria-label={`Opret rute den ${format(date, "d. MMMM", { locale: da })}`}
