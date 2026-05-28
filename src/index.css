@@ -116,6 +116,21 @@
     text-rendering: optimizeLegibility;
   }
 
+  /* ─── Blødt skift mellem lys og mørk tilstand ───
+     Når brugeren toggler tema sætter ThemeToggle midlertidigt klassen
+     `theme-transitioning` på <html>. I det vindue lader vi ALLE elementer
+     krydsfade deres baggrunds-, tekst-, border- og shadow-farver, så øjet
+     ikke får et hårdt "blink". Effekten fjernes igen efter ~320ms så
+     hover-states og UI-animationer ellers bevarer deres normale tempo. */
+  html.theme-transitioning,
+  html.theme-transitioning *,
+  html.theme-transitioning *::before,
+  html.theme-transitioning *::after {
+    transition: background-color 260ms ease, color 260ms ease,
+      border-color 260ms ease, fill 260ms ease, stroke 260ms ease,
+      box-shadow 260ms ease !important;
+  }
+
   h1,
   h2,
   h3,
