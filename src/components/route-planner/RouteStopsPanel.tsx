@@ -309,20 +309,17 @@ const SortableStopRow = ({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group relative rounded-xl border border-border/60 bg-card overflow-hidden",
-        "shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-[box-shadow,transform,border-color] duration-200 ease-out",
-        isDragging
-          ? "shadow-xl opacity-90 ring-2 ring-accent scale-[1.01]"
-          : "hover:-translate-y-[1px] hover:shadow-[0_6px_14px_-6px_rgba(0,0,0,0.12)] hover:border-border",
+        CARD_BASE,
+        isDragging ? CARD_DRAGGING : cn(CARD_BORDER, CARD_HOVER),
       )}
     >
       {/* Tynd accent-stribe i venstre kant i rutens farve — binder kortet visuelt til kalender-pillen */}
       <span
         aria-hidden
-        className="absolute left-0 top-0 bottom-0 w-[3px]"
+        className={cn("absolute left-0 top-0 bottom-0 z-10", CARD_RAIL_WIDTH)}
         style={{ background: color }}
       />
-      <div className="grid min-h-[2.5rem] grid-cols-[1.25rem_2.25rem_minmax(0,1fr)] sm:min-h-[3rem] sm:grid-cols-[1.5rem_2.5rem_minmax(0,1fr)_auto] pl-[3px]">
+      <div className="grid min-h-[2.5rem] grid-cols-[1.25rem_2.25rem_minmax(0,1fr)] sm:min-h-[3rem] sm:grid-cols-[1.5rem_2.5rem_minmax(0,1fr)_auto] pl-1">
         {/* Drag handle — skjult på projicerede ruter (read-only) */}
         {!isProjection ? (
           <button
