@@ -644,7 +644,14 @@ export const RouteEditSheet = ({
           onPointerDownOutside={(e) => { if (!isCompact) e.preventDefault(); }}
           onInteractOutside={(e) => { if (!isCompact) e.preventDefault(); }}
         >
-          <SheetHeader className="px-4 py-3 pr-14 border-b shrink-0 space-y-0 text-left">
+          <SheetHeader
+            className="relative px-4 py-3.5 pr-14 border-b shrink-0 space-y-0 text-left bg-gradient-to-b from-secondary/40 to-card"
+          >
+            <span
+              aria-hidden
+              className="absolute left-0 top-0 bottom-0 w-[3px]"
+              style={{ background: color }}
+            />
             <SheetHeaderBlock
               icon={<Pencil className="h-4 w-4" />}
               accent={color}
@@ -667,7 +674,7 @@ export const RouteEditSheet = ({
             />
           </SheetHeader>
 
-          <div className="flex-1 overflow-y-auto px-3 py-2 space-y-1.5 bg-secondary/20">
+          <div className="flex-1 overflow-y-auto px-3.5 py-3 space-y-3 bg-secondary/15">
             {/* Navn */}
             <Section
               icon={<Pencil className="h-3.5 w-3.5" />}
