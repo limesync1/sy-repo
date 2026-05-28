@@ -1,18 +1,24 @@
 // Bottom-sheet med detaljer for én rute på mobil: stop-liste i rækkefølge,
-// optimér-knap og tap på et stop åbner stop-detaljer med handlinger
-// (ring, kort, markér udført, fjern).
-import { useState } from "react";
+// optimér-knap, manuel om-sortering, rute-indstillinger (omdøb, farve,
+// slet) og tap på et stop åbner stop-detaljer med handlinger
+// (ring, kort, medarbejder, markér udført, fjern).
+import { useEffect, useState } from "react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import {
+  ArrowDown,
+  ArrowUp,
+  Check,
   CheckCircle2,
   Loader2,
   MapPin,
   Navigation,
   Phone,
   RotateCcw,
+  Settings2,
   Sparkles,
   Trash2,
+  User,
 } from "lucide-react";
 
 import {
@@ -33,14 +39,21 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import {
+  useDeleteRoute,
   useDeleteStop,
   useOptimizeRoute,
+  useReorderStops,
+  useSetStopAssignees,
+  useUpdateRoute,
   useUpdateStopStatus,
   type Route,
   type RouteStop,
 } from "@/hooks/useRoutes";
+import { ROUTE_COLORS } from "@/components/route-planner/RouteEditSheet";
 import { toast } from "sonner";
 
 const mapsUrl = (stop: RouteStop) => {
@@ -68,15 +81,31 @@ export function MobileRouteDetailSheet({
 }) {
   const [activeStop, setActiveStop] = useState<RouteStop | null>(null);
   const [confirmRemove, setConfirmRemove] = useState<RouteStop | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [confirmDeleteRoute, setConfirmDeleteRoute] = useState(false);
+  const [reorderingId, setReorderingId] = useState<string | null>(null);
 
   const optimize = useOptimizeRoute();
   const updateStatus = useUpdateStopStatus();
   const deleteStop = useDeleteStop();
+  const reorderStops = useReorderStops();
+  const setAssignees = useSetStopAssignees();
+  const updateRoute = useUpdateRoute();
+  const deleteRoute = useDeleteRoute();
 
   const doneCount = stops.filter((s) => s.status === "completed").length;
 
+  const activeEmployees = (employees || []).filter((e) => e.is_active !== false);
   const empName = (id: string | null | undefined) =>
     employees.find((e) => e.id === id)?.name || null;
+
+  // Hold den synlige version af aktivt stop i sync med opdateret cache-data,
+  // så medarbejder/status slår igennem efter mutationer uden at lukke sheet'en.
+  useEffect(() => {
+    if (!activeStop) return;
+    const fresh = stops.find((s) => s.id === activeStop.id);
+    if (fresh && fresh !== activeStop) setActiveStop(fresh);
+  }, [stops]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleOptimize = async () => {
     try {
@@ -86,6 +115,39 @@ export function MobileRouteDetailSheet({
       });
     } catch (err: any) {
       toast.error("Kunne ikke optimere", { description: err?.message });
+    }
+  };
+
+  const moveStop = async (index: number, dir: -1 | 1) => {
+    const target = index + dir;
+    if (target < 0 || target >= stops.length || reorderStops.isPending) return;
+    const reordered = [...stops];
+    const [item] = reordered.splice(index, 1);
+    reordered.splice(target, 0, item);
+    setReorderingId(item.id);
+    try {
+      await reorderStops.mutateAsync(reordered.map((s, i) => ({ id: s.id, sequence: i })));
+    } catch (err: any) {
+      toast.error("Kunne ikke ændre rækkefølge", { description: err?.message });
+    } finally {
+      setReorderingId(null);
+    }
+  };
+
+  const assignEmployee = async (stop: RouteStop, employeeId: string | null) => {
+    const current = stop.assigned_employee_id ?? null;
+    const next = current === employeeId ? null : employeeId;
+    try {
+      await setAssignees.mutateAsync({
+        stop_id: stop.id,
+        employee_ids: next ? [next] : [],
+        lead_id: next,
+      });
+      setActiveStop((prev) =>
+        prev?.id === stop.id ? ({ ...prev, assigned_employee_id: next } as RouteStop) : prev,
+      );
+    } catch (err: any) {
+      toast.error("Kunne ikke tildele medarbejder", { description: err?.message });
     }
   };
 
@@ -111,6 +173,18 @@ export function MobileRouteDetailSheet({
     }
   };
 
+  const handleDeleteRoute = async () => {
+    try {
+      await deleteRoute.mutateAsync(route.id);
+      toast.success("Rute slettet");
+      setConfirmDeleteRoute(false);
+      setSettingsOpen(false);
+      onOpenChange(false);
+    } catch (err: any) {
+      toast.error("Kunne ikke slette rute", { description: err?.message });
+    }
+  };
+
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
@@ -122,7 +196,7 @@ export function MobileRouteDetailSheet({
                 style={{ backgroundColor: route.color }}
                 aria-hidden
               />
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <SheetTitle className="truncate text-base">
                   {route.name || "Rute uden navn"}
                 </SheetTitle>
@@ -130,6 +204,15 @@ export function MobileRouteDetailSheet({
                   {format(parseISO(route.route_date), "EEEE d. MMM yyyy", { locale: da })}
                 </p>
               </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 shrink-0"
+                onClick={() => setSettingsOpen(true)}
+                aria-label="Rute-indstillinger"
+              >
+                <Settings2 className="h-5 w-5" />
+              </Button>
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
               <span className="inline-flex items-center gap-1">
@@ -180,40 +263,70 @@ export function MobileRouteDetailSheet({
                   const completed = stop.status === "completed";
                   return (
                     <li key={stop.id}>
-                      <button
-                        type="button"
-                        onClick={() => setActiveStop(stop)}
-                        className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-3 text-left transition-colors hover:bg-secondary/50 active:scale-[0.99]"
-                      >
-                        <span
-                          className={cn(
-                            "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
-                            completed
-                              ? "bg-emerald-600 text-white dark:bg-emerald-500"
-                              : "bg-secondary text-foreground",
-                          )}
+                      <div className="flex items-center gap-1.5 rounded-xl border border-border bg-card p-2 pl-3">
+                        <button
+                          type="button"
+                          onClick={() => setActiveStop(stop)}
+                          className="flex min-w-0 flex-1 items-center gap-3 text-left active:scale-[0.99]"
                         >
-                          {completed ? <CheckCircle2 className="h-4 w-4" /> : idx + 1}
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <p
+                          <span
                             className={cn(
-                              "truncate text-sm font-medium",
-                              completed ? "text-muted-foreground line-through" : "text-foreground",
+                              "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
+                              completed
+                                ? "bg-emerald-600 text-white dark:bg-emerald-500"
+                                : "bg-secondary text-foreground",
                             )}
                           >
-                            {stop.customer_name || "Ukendt kunde"}
-                          </p>
-                          <p className="truncate text-xs text-muted-foreground">
-                            {stop.full_address || stop.address || "Ingen adresse"}
-                          </p>
-                          {empName(stop.assigned_employee_id) && (
-                            <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
-                              {empName(stop.assigned_employee_id)}
+                            {completed ? <CheckCircle2 className="h-4 w-4" /> : idx + 1}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <p
+                              className={cn(
+                                "truncate text-sm font-medium",
+                                completed ? "text-muted-foreground line-through" : "text-foreground",
+                              )}
+                            >
+                              {stop.customer_name || "Ukendt kunde"}
                             </p>
-                          )}
-                        </div>
-                      </button>
+                            <p className="truncate text-xs text-muted-foreground">
+                              {stop.full_address || stop.address || "Ingen adresse"}
+                            </p>
+                            {empName(stop.assigned_employee_id) && (
+                              <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                                {empName(stop.assigned_employee_id)}
+                              </p>
+                            )}
+                          </div>
+                        </button>
+                        {stops.length > 1 && (
+                          <div className="flex shrink-0 flex-col">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-7"
+                              disabled={idx === 0 || reorderStops.isPending}
+                              onClick={() => moveStop(idx, -1)}
+                              aria-label="Flyt op"
+                            >
+                              {reorderingId === stop.id && reorderStops.isPending ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <ArrowUp className="h-3.5 w-3.5" />
+                              )}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-7"
+                              disabled={idx === stops.length - 1 || reorderStops.isPending}
+                              onClick={() => moveStop(idx, 1)}
+                              aria-label="Flyt ned"
+                            >
+                              <ArrowDown className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
                     </li>
                   );
                 })}
@@ -259,16 +372,37 @@ export function MobileRouteDetailSheet({
                     <p className="mt-0.5 text-sm text-foreground">{activeStop.service_summary}</p>
                   </div>
                 )}
-                {empName(activeStop.assigned_employee_id) && (
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      Medarbejder
-                    </p>
-                    <p className="mt-0.5 text-sm text-foreground">
-                      {empName(activeStop.assigned_employee_id)}
-                    </p>
-                  </div>
-                )}
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Medarbejder
+                  </p>
+                  {activeEmployees.length === 0 ? (
+                    <p className="mt-1 text-sm text-muted-foreground">Ingen medarbejdere oprettet.</p>
+                  ) : (
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      {activeEmployees.map((e) => {
+                        const selected = activeStop.assigned_employee_id === e.id;
+                        return (
+                          <button
+                            key={e.id}
+                            type="button"
+                            disabled={setAssignees.isPending}
+                            onClick={() => assignEmployee(activeStop, e.id)}
+                            className={cn(
+                              "inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-60",
+                              selected
+                                ? "border-accent bg-accent/10 text-foreground"
+                                : "border-border bg-card text-muted-foreground hover:bg-secondary/50",
+                            )}
+                          >
+                            {selected ? <Check className="h-3 w-3" /> : <User className="h-3 w-3" />}
+                            {e.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
 
                 <div className="grid grid-cols-2 gap-2">
                   {activeStop.customer_phone && (
@@ -340,6 +474,133 @@ export function MobileRouteDetailSheet({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Rute-indstillinger: omdøb, farve, slet */}
+      <RouteSettingsSheet
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        route={route}
+        onSave={async (name, color) => {
+          try {
+            await updateRoute.mutateAsync({ id: route.id, name: name || null, color });
+            toast.success("Rute opdateret");
+            setSettingsOpen(false);
+          } catch (err: any) {
+            toast.error("Kunne ikke gemme", { description: err?.message });
+          }
+        }}
+        saving={updateRoute.isPending}
+        onRequestDelete={() => setConfirmDeleteRoute(true)}
+      />
+
+      <AlertDialog open={confirmDeleteRoute} onOpenChange={(o) => !o && setConfirmDeleteRoute(false)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Slet hele ruten?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {route.name || "Ruten"} slettes. Aftaler med historik arkiveres, og tomme ruter
+              fjernes helt.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annullér</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleDeleteRoute}
+            >
+              Slet rute
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
+  );
+}
+
+/* ──────────────── Rute-indstillinger (omdøb / farve / slet) ──────────────── */
+function RouteSettingsSheet({
+  open,
+  onOpenChange,
+  route,
+  onSave,
+  saving,
+  onRequestDelete,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  route: Route;
+  onSave: (name: string, color: string) => void;
+  saving: boolean;
+  onRequestDelete: () => void;
+}) {
+  const [name, setName] = useState(route.name || "");
+  const [color, setColor] = useState(route.color);
+
+  useEffect(() => {
+    if (open) {
+      setName(route.name || "");
+      setColor(route.color);
+    }
+  }, [open, route.name, route.color]);
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="bottom" className="flex max-h-[85vh] flex-col gap-0 rounded-t-2xl p-0">
+        <SheetHeader className="border-b border-border px-4 py-3 text-left">
+          <SheetTitle className="text-base">Rute-indstillinger</SheetTitle>
+        </SheetHeader>
+        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="mobile-route-name" className="text-xs uppercase tracking-wide text-muted-foreground">
+              Navn
+            </Label>
+            <Input
+              id="mobile-route-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Rute uden navn"
+              className="h-11"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs uppercase tracking-wide text-muted-foreground">Farve</Label>
+            <div className="grid grid-cols-8 gap-2">
+              {ROUTE_COLORS.map((c) => {
+                const selected = color === c.value;
+                return (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => setColor(c.value)}
+                    aria-label={c.name}
+                    className={cn(
+                      "flex h-9 w-9 items-center justify-center rounded-full transition-transform active:scale-95",
+                      selected && "ring-2 ring-offset-2 ring-offset-background ring-foreground",
+                    )}
+                    style={{ backgroundColor: c.value }}
+                  >
+                    {selected && <Check className="h-4 w-4 text-white" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+        <div className="space-y-2 border-t border-border p-4">
+          <Button className="w-full gap-2" onClick={() => onSave(name.trim(), color)} disabled={saving}>
+            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+            Gem ændringer
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            onClick={onRequestDelete}
+          >
+            <Trash2 className="h-4 w-4" />
+            Slet rute
+          </Button>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
