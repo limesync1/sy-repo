@@ -115,6 +115,7 @@ import { validateStopAssignment, validateRouteMove } from "@/lib/route-validatio
 import { cn } from "@/lib/utils";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { Monitor, MousePointer2, Map as MapIcon, LayoutGrid, ArrowLeft, Copy, Check, Rows3, MoreHorizontal, Layers } from "lucide-react";
+import RoutePlannerMobile from "@/components/route-planner/mobile/RoutePlannerMobile";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { pushRouteUndo, routeHistory } from "@/lib/route-history";
 import { useRouteHistory } from "@/hooks/useRouteHistory";
@@ -198,7 +199,9 @@ const RoutePlanner = () => {
   const isSmallScreen = useIsBelowBreakpoint(900);
   if (loading) return <ShellSkeleton />;
   if (!user) return <Navigate to="/log-ind" replace />;
-  if (isSmallScreen) return <RoutePlannerDesktopOnly />;
+  // Under 900px (telefon / tablet i portræt) viser vi den fingervenlige,
+  // tap-baserede mobil-planlægger i stedet for drag-and-drop-desktopen.
+  if (isSmallScreen) return <RoutePlannerMobile />;
   return <Planner />;
 };
 
