@@ -433,7 +433,7 @@ const SortableStopRow = ({
         </button>
 
         {/* Right-side actions: assignee toggle + remove */}
-        <div className="col-span-3 flex items-stretch justify-end border-t border-border/50 bg-secondary/25 sm:col-span-1 sm:border-l sm:border-border/50 sm:border-t-0 sm:bg-transparent sm:items-center sm:gap-0.5 sm:pr-1.5">
+        <div className="col-span-3 flex items-stretch justify-end border-t border-border/60 bg-secondary/25 sm:col-span-1 sm:border-l sm:border-border/60 sm:border-t-0 sm:bg-transparent sm:items-center sm:gap-0.5 sm:pr-1.5">
           <AssigneeToggle
             employees={employees}
             selectedIds={assigneeIds}
