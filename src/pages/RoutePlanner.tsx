@@ -5412,16 +5412,19 @@ const Planner = () => {
 
         {createPortal(
         <DragOverlay
-          dropAnimation={{ duration: 180, easing: "cubic-bezier(0.18, 0.67, 0.6, 1)" }}
+          dropAnimation={{ duration: 220, easing: "cubic-bezier(0.22, 0.61, 0.36, 1)" }}
         >
           {activeDragId && activeDragData?.type === "job" && (
             <div
-              className="rounded-md border border-accent/70 bg-card px-2 py-1 shadow-xl w-[140px] cursor-grabbing"
-              style={{ transform: "rotate(-2deg)" }}
+              className="rounded-lg border border-accent/60 bg-card/95 backdrop-blur-sm px-2.5 py-1.5 w-[160px] cursor-grabbing ring-1 ring-accent/20"
+              style={{
+                transform: "rotate(-2deg) scale(1.02)",
+                boxShadow: "0 12px 32px -8px hsl(var(--accent) / 0.45), 0 4px 12px -2px rgba(0,0,0,0.18)",
+              }}
             >
               <div className="flex items-center justify-between gap-1.5">
-                <p className="text-[11px] font-semibold truncate">{activeDragData.job.customer_name}</p>
-                <span className="text-[9px] font-bold text-accent shrink-0 tabular-nums">
+                <p className="text-[11px] font-semibold truncate text-foreground">{activeDragData.job.customer_name}</p>
+                <span className="text-[10px] font-bold text-accent shrink-0 tabular-nums">
                   {Math.round(Number(activeDragData.job.total_amount || 0))} kr
                 </span>
               </div>
@@ -5429,11 +5432,14 @@ const Planner = () => {
           )}
           {activeDragId && activeDragData?.type === "stop" && (
             <div
-              className="rounded-md border bg-background px-2 py-1 shadow-xl w-[160px] opacity-95 border-l-[3px] border-l-primary"
-              style={{ transform: "rotate(-1.5deg)" }}
+              className="rounded-lg border border-border/60 bg-card/95 backdrop-blur-sm px-2.5 py-1.5 w-[170px] border-l-[3px] border-l-primary"
+              style={{
+                transform: "rotate(-1.5deg) scale(1.02)",
+                boxShadow: "0 12px 32px -8px rgba(0,0,0,0.25), 0 4px 12px -2px rgba(0,0,0,0.15)",
+              }}
             >
-              <p className="text-[11px] font-semibold truncate">{activeDragData.stop.customer_name}</p>
-              <p className="text-[9px] text-muted-foreground leading-tight">
+              <p className="text-[11px] font-semibold truncate text-foreground">{activeDragData.stop.customer_name}</p>
+              <p className="text-[10px] text-muted-foreground leading-tight tabular-nums">
                 {activeDragData.stop.duration_minutes} min
               </p>
             </div>
