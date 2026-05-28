@@ -178,7 +178,7 @@ export const MonthWeekCalendar = ({
         className="grid border-b border-border/70 bg-card shrink-0"
         style={{ gridTemplateColumns: "44px repeat(7, minmax(0, 1fr))" }}
       >
-        <div className="border-r border-border/60 p-2 text-[10px] uppercase text-muted-foreground/60 font-bold tracking-[0.12em] flex items-center justify-center bg-secondary/25">
+        <div className="border-r border-border/70 p-2 text-[10px] uppercase text-muted-foreground/60 font-bold tracking-[0.12em] flex items-center justify-center bg-secondary/25">
           Uge
         </div>
         {weekdayLabels.map((wd, i) => {
@@ -187,7 +187,7 @@ export const MonthWeekCalendar = ({
             <div
               key={wd}
               className={cn(
-                "p-2 text-[10.5px] font-bold tracking-[0.12em] uppercase text-center border-r border-border/60 last:border-r-0",
+                "p-2 text-[10.5px] font-bold tracking-[0.12em] uppercase text-center border-r border-border/70 last:border-r-0",
                 isWeekend ? "text-muted-foreground/50" : "text-foreground/70",
               )}
             >
@@ -203,11 +203,11 @@ export const MonthWeekCalendar = ({
           return (
             <div
               key={wi}
-              className="grid border-b border-border/60 last:border-b-0"
+              className="grid border-b border-border/70 last:border-b-0"
               style={{ gridTemplateColumns: "44px repeat(7, minmax(0, 1fr))" }}
             >
               {/* Ugenummer */}
-              <div className="border-r border-border/60 bg-secondary/20 flex items-start justify-center pt-3 text-[10.5px] font-bold text-muted-foreground/70 tabular-nums tracking-wide">
+              <div className="border-r border-border/70 bg-secondary/20 flex items-start justify-center pt-3 text-[10.5px] font-bold text-muted-foreground/70 tabular-nums tracking-wide">
                 <span className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1 rounded-md bg-card ring-1 ring-border/60 shadow-sm">
                   {weekNum}
                 </span>
@@ -344,7 +344,7 @@ const DayCellInner = ({
       ref={setNodeRef}
       data-route-drop-date={canReceiveDrop ? dateStr : undefined}
       className={cn(
-        "border-r border-border/60 last:border-r-0 relative group flex flex-col gap-1.5 p-2.5 transition-all duration-200",
+        "border-r border-border/70 last:border-r-0 relative group flex flex-col gap-1.5 p-2.5 transition-all duration-200",
         compact ? "min-h-[118px]" : "min-h-[170px]",
         !inMonth && "bg-muted/10",
         inMonth && isWeekend && !isPast && "bg-secondary/[0.12]",
