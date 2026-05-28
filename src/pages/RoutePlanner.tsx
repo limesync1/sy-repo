@@ -4102,15 +4102,20 @@ const Planner = () => {
                 <ChevronRight className="h-3.5 w-3.5" />
               </Button>
             </div>
-            <Button
-              data-tour="routes-today"
-              variant="outline"
-              size="sm"
-              className="h-8 text-[11px] font-semibold rounded-md border-border/70 hover:border-border hover:bg-secondary/70 hover:text-foreground active:scale-[0.97] transition-[background-color,color,border-color,transform] duration-150"
-              onClick={() => setDate(todayStr())}
-            >
-              I dag
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  data-tour="routes-today"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-[11px] font-semibold rounded-md border-border/70 hover:border-border hover:bg-secondary/70 hover:text-foreground active:scale-[0.97] transition-[background-color,color,border-color,transform] duration-150"
+                  onClick={() => setDate(todayStr())}
+                >
+                  I dag
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">Hop tilbage til dags dato</TooltipContent>
+            </Tooltip>
 
             <PlanningPanel
               businessId={businessId}
