@@ -1181,7 +1181,7 @@ const CompletedRouteSummary = ({ routeId }: { routeId: string }) => {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-bold tabular-nums text-emerald-600">
+                    <p className="text-sm font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
                       {Math.round(info.earnings).toLocaleString("da-DK")} kr
                     </p>
                     <p className="text-[10px] text-muted-foreground">indtjening</p>

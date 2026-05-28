@@ -287,7 +287,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
               {stop.status === "completed" && (
                 <div className="rounded-lg border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-900 px-4 py-3">
                   <div className="flex items-start gap-2.5">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600 mt-0.5 shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0" />
                     <div className="min-w-0 flex-1 text-sm">
                       <p className="font-semibold text-emerald-900 dark:text-emerald-100">
                         Aftalen er udført
