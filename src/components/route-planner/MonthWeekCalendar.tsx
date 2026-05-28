@@ -373,7 +373,7 @@ const DayCellInner = ({
       {/* Stiplet "slip her" placeholder i bunden af cellen viser præcis
           hvor aftalen/ruten lander — gør drop-targettet håndgribeligt
           uden at flytte eksisterende indhold. */}
-      {isOver && canReceiveDrop && !validation && (
+      {isOver && canReceiveDrop && !validation && emptyDay && (
         <div
           aria-hidden
           className="absolute inset-x-1.5 bottom-1.5 z-10 pointer-events-none h-7 rounded-lg border-2 border-dashed border-accent/80 bg-accent/15 flex items-center justify-center gap-1 animate-in fade-in zoom-in-95 duration-200 shadow-[0_2px_8px_-2px_hsl(var(--accent)/0.4)]"
