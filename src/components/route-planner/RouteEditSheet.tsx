@@ -824,11 +824,10 @@ export const RouteEditSheet = ({
           </div>
 
           {/* Footer actions */}
-          <SheetFooterBar className="space-y-2">
+          <SheetFooterBar className="space-y-2 bg-gradient-to-t from-secondary/30 to-card">
             {!isProjection && stopCount >= 2 && (
               <Button
-                variant="outline"
-                className="w-full"
+                className="w-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm"
                 onClick={handleOptimize}
                 disabled={optimize.isPending}
               >
@@ -838,43 +837,44 @@ export const RouteEditSheet = ({
                 Optimér rækkefølge
               </Button>
             )}
-            {!isProjection && stopCount >= 1 && (
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => setMoveStopsOpen(true)}
-              >
-                <CalendarRange className="h-4 w-4 mr-2" />
-                Flyt aftaler
-              </Button>
-            )}
-            {!isProjection && (
-            <Button
-              variant="outline"
-              className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
-              onClick={() => {
-                if (stopCount > 0) {
-                  // Ruter med aftaler kan ikke slettes direkte — flyt aftalerne
-                  // først, så ingen aftaler bliver væk og medarbejder-tilknytninger
-                  // bevares.
-                  toast.info("Flyt aftalerne først", {
-                    description: "Vælg en ny dato for aftalerne — ruten slettes automatisk når den er tom.",
-                  });
-                  setMoveStopsOpen(true);
-                } else {
-                  setConfirmDelete(true);
-                }
-              }}
-            >
-              <Trash2 className="h-4 w-4 mr-1.5" />
-              {stopCount > 0 ? "Slet (flyt aftaler først)" : "Slet rute"}
-            </Button>
+            {!isProjection && (stopCount >= 1 || true) && (
+              <div className="grid grid-cols-2 gap-2">
+                {stopCount >= 1 && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setMoveStopsOpen(true)}
+                  >
+                    <CalendarRange className="h-4 w-4 mr-2" />
+                    Flyt aftaler
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30",
+                    stopCount < 1 && "col-span-2",
+                  )}
+                  onClick={() => {
+                    if (stopCount > 0) {
+                      toast.info("Flyt aftalerne først", {
+                        description: "Vælg en ny dato for aftalerne — ruten slettes automatisk når den er tom.",
+                      });
+                      setMoveStopsOpen(true);
+                    } else {
+                      setConfirmDelete(true);
+                    }
+                  }}
+                >
+                  <Trash2 className="h-4 w-4 mr-1.5" />
+                  {stopCount > 0 ? "Slet rute" : "Slet rute"}
+                </Button>
+              </div>
             )}
             {!isProjection && route?.id && (
               <Button
                 variant="ghost"
                 size="sm"
-                className="w-full text-muted-foreground"
+                className="w-full text-muted-foreground hover:text-foreground"
                 onClick={() => setHistoryOpen(true)}
               >
                 <History className="h-3.5 w-3.5 mr-1.5" />
@@ -883,8 +883,8 @@ export const RouteEditSheet = ({
             )}
             {isProjection && (
               <>
-                <div className="flex items-start gap-2 rounded-md border border-dashed border-muted-foreground/40 bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-                  <Lock className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                <div className="flex items-start gap-2 rounded-lg border border-dashed border-muted-foreground/40 bg-muted/50 px-3 py-2.5 text-xs text-muted-foreground">
+                  <Lock className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground/70" />
                   <div>
                     <div className="font-semibold text-foreground mb-0.5">Projiceret forekomst</div>
                     Denne rute er automatisk genereret ud fra basisruten. Ændringer i rækkefølge,
@@ -895,7 +895,7 @@ export const RouteEditSheet = ({
                 {stops.some((s) => (s as any).agreement_id) && (
                   <Button
                     variant="outline"
-                    className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+                    className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
                     onClick={() => setCancelOccurrenceOpen(true)}
                   >
                     <Ban className="h-4 w-4 mr-1.5" />
