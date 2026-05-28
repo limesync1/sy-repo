@@ -3942,18 +3942,18 @@ const Planner = () => {
               <PopoverContent align="end" className="w-72 p-3 space-y-3">
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <Label className="text-xs font-semibold">Medarbejdere</Label>
+                    <Label className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Medarbejdere</Label>
                     {filterAssigneeIds.length > 0 && (
                       <button
                         type="button"
                         onClick={() => setFilterAssigneeIds([])}
-                        className="text-[10px] text-muted-foreground hover:text-foreground"
+                        className="text-[10px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary rounded px-1.5 py-0.5 transition-colors"
                       >
                         Ryd
                       </button>
                     )}
                   </div>
-                  <div className="max-h-48 overflow-y-auto space-y-1 rounded border p-1.5">
+                  <div className="max-h-48 overflow-y-auto space-y-0.5 rounded-md border border-border/60 p-1.5">
                     {activeEmployees.length === 0 && (
                       <p className="text-[11px] text-muted-foreground px-1.5 py-1">Ingen medarbejdere</p>
                     )}
@@ -3962,7 +3962,7 @@ const Planner = () => {
                       return (
                         <label
                           key={emp.id}
-                          className="flex items-center gap-2 px-1.5 py-1 rounded hover:bg-secondary cursor-pointer text-xs"
+                          className="flex items-center gap-2 px-1.5 py-1 rounded-md hover:bg-secondary cursor-pointer text-xs transition-colors"
                         >
                           <Checkbox
                             checked={checked}
@@ -3982,24 +3982,24 @@ const Planner = () => {
 
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <Label className="text-xs font-semibold">Status</Label>
+                    <Label className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Status</Label>
                     {filterStatuses.length > 0 && (
                       <button
                         type="button"
                         onClick={() => setFilterStatuses([])}
-                        className="text-[10px] text-muted-foreground hover:text-foreground"
+                        className="text-[10px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary rounded px-1.5 py-0.5 transition-colors"
                       >
                         Ryd
                       </button>
                     )}
                   </div>
-                  <div className="space-y-1 rounded border p-1.5">
+                  <div className="space-y-0.5 rounded-md border border-border/60 p-1.5">
                     {STATUS_OPTIONS.map((opt) => {
                       const checked = filterStatuses.includes(opt.value);
                       return (
                         <label
                           key={opt.value}
-                          className="flex items-center gap-2 px-1.5 py-1 rounded hover:bg-secondary cursor-pointer text-xs"
+                          className="flex items-center gap-2 px-1.5 py-1 rounded-md hover:bg-secondary cursor-pointer text-xs transition-colors"
                         >
                           <Checkbox
                             checked={checked}
@@ -4020,7 +4020,7 @@ const Planner = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="w-full h-7 text-xs"
+                    className="w-full h-7 text-xs hover:bg-secondary active:scale-[0.99] transition-[background-color,transform] duration-150"
                     onClick={() => { setFilterAssigneeIds([]); setFilterStatuses([]); }}
                   >
                     Nulstil alle filtre
