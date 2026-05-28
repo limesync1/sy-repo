@@ -4747,9 +4747,7 @@ const Planner = () => {
                       const groups = new Map<string, { label: string; items: any[] }>();
                       const keyFor = (job: any): { key: string; label: string } => {
                         if (unassignedGroupBy === "status") {
-                          const hasGps = job.latitude != null && job.longitude != null;
                           if (job.status === "pending") return { key: "1-pending", label: "Afventer godkendelse" };
-                          if (!hasGps) return { key: "2-gps", label: "Mangler GPS" };
                           if (job.preferred_date || job.next_service_date) return { key: "0-ready", label: "Klar til auto-fordel" };
                           return { key: "3-other", label: "Andet" };
                         }
