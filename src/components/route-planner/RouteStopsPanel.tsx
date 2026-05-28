@@ -171,7 +171,10 @@ export const RouteStopsPanel = ({
           onInteractOutside={(e) => { if (!isCompact) e.preventDefault(); }}
         >
           <SheetHeader
-            className="relative px-4 py-3.5 pr-14 border-b shrink-0 text-left bg-gradient-to-b from-secondary/40 to-card"
+            className={cn(
+              "relative px-4 py-3.5 border-b shrink-0 text-left bg-gradient-to-b from-secondary/40 to-card",
+              isCompact && "pr-14",
+            )}
           >
             {/* Tynd farvet stribe der binder header'en til rutens farve */}
             <span
@@ -179,16 +182,16 @@ export const RouteStopsPanel = ({
               className="absolute left-0 top-0 bottom-0 w-[3px]"
               style={{ background: route.color }}
             />
-            <SheetTitle className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5 text-base leading-tight">
+            <SheetTitle className="flex items-center gap-2.5 text-base leading-tight">
               <span
-                className="inline-flex h-7 w-7 items-center justify-center rounded-lg shadow-sm ring-1 ring-black/5"
+                className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg shadow-sm ring-1 ring-black/5"
                 style={{ background: route.color }}
                 aria-hidden
               >
                 <MapPin className="h-3.5 w-3.5 text-white drop-shadow-sm" />
               </span>
-              <span className="min-w-0 truncate font-semibold">Stops på ruten</span>
-              <span className="shrink-0 inline-flex h-6 min-w-[1.75rem] items-center justify-center rounded-full bg-foreground/5 text-foreground px-2 text-xs font-semibold tabular-nums ring-1 ring-border/60">
+              <span className="min-w-0 flex-1 truncate font-semibold">Stops på ruten</span>
+              <span className="shrink-0 inline-flex h-6 min-w-[1.75rem] items-center justify-center rounded-full px-2 text-xs font-bold tabular-nums text-white shadow-sm ring-1 ring-black/5">
                 {items.length}
               </span>
             </SheetTitle>
