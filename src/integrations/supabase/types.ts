@@ -3999,6 +3999,15 @@ export type Database = {
         Args: { _occurrence_id: string }
         Returns: undefined
       }
+      _unique_route_name: {
+        Args: {
+          _business_id: string
+          _ignore_route_id?: string
+          _name: string
+          _route_date: string
+        }
+        Returns: string
+      }
       _worker_materialize_occurrence: {
         Args: { _occurrence_id: string; _target_route_id: string }
         Returns: string
