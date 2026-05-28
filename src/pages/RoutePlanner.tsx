@@ -5549,6 +5549,12 @@ const Planner = () => {
           })()}
           open={!!selectedStopId}
           onOpenChange={(o) => !o && setSelectedStopId(null)}
+          onRouteDeleted={() => {
+            // Rutens sidste aftale blev fjernet — luk også rute-panelet.
+            setEditingRoute(null);
+            setEditingProjectedContext(null);
+            setSelectedStopId(null);
+          }}
           effectiveDate={(() => {
             // Projicerede klik: brug forekomstens dato fra editingProjectedContext.
             if (editingProjectedContext?.projectedDate) {
@@ -5737,6 +5743,7 @@ const Planner = () => {
                 open={!!activeEditingRoute}
                 onOpenChange={(o) => !o && closeAll()}
                 stops={stopsForActive}
+                onRouteDeleted={closeAll}
           onSelectStop={(s) => setSelectedStopId(s.id)}
           employees={activeEmployees.map((e: any) => ({
             id: e.id, name: e.name, avatar_url: e.avatar_url, color: e.color,
