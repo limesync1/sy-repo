@@ -41,7 +41,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon,
   Loader2, Search, Plus, Inbox, ArrowUpDown, X, Keyboard, Filter,
-  ShoppingBag, Route as RouteIcon, Tag, Palette, ListChecks, AlertTriangle, Undo2, Redo2, Sparkles, MapPin,
+  ShoppingBag, Route as RouteIcon, Tag, Palette, ListChecks, AlertTriangle, Undo2, Redo2, Sparkles, MapPin, Clock,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarPicker } from "@/components/ui/calendar";
@@ -102,6 +102,7 @@ import {
   applyProjectedOccurrenceShifts,
 } from "@/lib/recurring-projection";
 import { intervalToCadence } from "@/lib/interval";
+import { formatDurationMin } from "@/lib/duration-format";
 import { useAgreementPauses } from "@/hooks/useAgreementPauses";
 import { useBusinessHolidays } from "@/hooks/useBusinessHolidays";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -1110,8 +1111,12 @@ const Planner = () => {
   const periodSummary = useMemo(() => {
     const routeCount = calendarRoutesRaw.length;
     const stopCount = calendarStops.length;
-    return { routeCount, stopCount };
-  }, [calendarRoutesRaw.length, calendarStops.length]);
+    const workMinutes = (calendarStops as any[]).reduce(
+      (sum, s) => sum + (Number(s.duration_minutes) || 0),
+      0,
+    );
+    return { routeCount, stopCount, workMinutes };
+  }, [calendarRoutesRaw.length, calendarStops]);
 
   /* Stop assignment handler */
   /* Build CalendarRoute[] for MonthWeekCalendar (range covers month/week view) */
@@ -3891,10 +3896,10 @@ const Planner = () => {
             {/* Slank topbar: kun de handlinger der bruges dagligt ligger frit fremme.
                 Print, tidslinje, planlægning, opret bestilling, tæthed, tema og
                 genveje er flyttet ind i "Mere"-menuen for at reducere visuel støj. */}
-            {periodSummary.routeCount > 0 && (
+            {(periodSummary.routeCount > 0 || unassigned.length > 0) && (
               <div
                 className="hidden md:inline-flex items-center gap-2 h-8 pl-2.5 pr-3 rounded-md bg-secondary/40 border border-border/60 text-[11px] tabular-nums"
-                title={`${periodSummary.routeCount} ${periodSummary.routeCount === 1 ? "rute" : "ruter"} og ${periodSummary.stopCount} stop i visningen`}
+                title={`${periodSummary.routeCount} ${periodSummary.routeCount === 1 ? "rute" : "ruter"}, ${periodSummary.stopCount} stop og ca. ${formatDurationMin(periodSummary.workMinutes)} arbejde i visningen${unassigned.length > 0 ? ` · ${unassigned.length} aftale${unassigned.length === 1 ? "" : "r"} mangler en rute` : ""}`}
               >
                 <span className="inline-flex items-center gap-1">
                   <RouteIcon className="h-3 w-3 text-muted-foreground/70" />
@@ -3907,6 +3912,25 @@ const Planner = () => {
                   <span className="font-bold text-foreground">{periodSummary.stopCount}</span>
                   <span className="text-muted-foreground/80">stop</span>
                 </span>
+                {periodSummary.workMinutes > 0 && (
+                  <>
+                    <span className="h-3 w-px bg-border/80" />
+                    <span className="hidden xl:inline-flex items-center gap-1">
+                      <Clock className="h-3 w-3 text-muted-foreground/70" />
+                      <span className="font-bold text-foreground">{formatDurationMin(periodSummary.workMinutes, { short: true })}</span>
+                    </span>
+                  </>
+                )}
+                {unassigned.length > 0 && (
+                  <>
+                    <span className="h-3 w-px bg-border/80" />
+                    <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400" title={`${unassigned.length} aftale${unassigned.length === 1 ? "" : "r"} mangler en rute`}>
+                      <Inbox className="h-3 w-3" />
+                      <span className="font-bold">{unassigned.length}</span>
+                      <span className="opacity-80">uplanlagt{unassigned.length === 1 ? "" : "e"}</span>
+                    </span>
+                  </>
+                )}
               </div>
             )}
 
@@ -4078,15 +4102,20 @@ const Planner = () => {
                 <ChevronRight className="h-3.5 w-3.5" />
               </Button>
             </div>
-            <Button
-              data-tour="routes-today"
-              variant="outline"
-              size="sm"
-              className="h-8 text-[11px] font-semibold rounded-md border-border/70 hover:border-border hover:bg-secondary/70 hover:text-foreground active:scale-[0.97] transition-[background-color,color,border-color,transform] duration-150"
-              onClick={() => setDate(todayStr())}
-            >
-              I dag
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  data-tour="routes-today"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-[11px] font-semibold rounded-md border-border/70 hover:border-border hover:bg-secondary/70 hover:text-foreground active:scale-[0.97] transition-[background-color,color,border-color,transform] duration-150"
+                  onClick={() => setDate(todayStr())}
+                >
+                  I dag
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">Hop tilbage til dags dato</TooltipContent>
+            </Tooltip>
 
             <PlanningPanel
               businessId={businessId}
@@ -4667,8 +4696,9 @@ const Planner = () => {
                           return (
                             <EmptyState
                               icon={<Inbox className="h-5 w-5" />}
-                              title="Ingen ruter endnu"
-                              description="Træk en aftale ind på en dag i kalenderen — så opretter vi automatisk en rute for dig."
+                              title="Kom godt i gang"
+                              description="Du har ingen aftaler eller ruter endnu. Opret en bestilling, så kan du planlægge den på kalenderen."
+                              action={{ label: "Opret bestilling", icon: <Plus className="h-4 w-4" />, onClick: () => setCreateOrderOpen(true) }}
                               compact
                             />
                           );
