@@ -175,7 +175,7 @@ export const PlanningPanel = ({
         <Button
           variant="outline"
           size="sm"
-          className="h-7 gap-1.5 rounded-lg border-border/60 hover:border-accent/60 hover:text-accent transition-colors"
+          className="h-8 gap-1.5 rounded-md border-border/70 font-semibold hover:border-accent/60 hover:text-accent transition-colors"
           title="Overblik over uge, kapacitet og uplanlagte aftaler"
         >
           <BarChart3 className="h-3.5 w-3.5" />
@@ -187,14 +187,14 @@ export const PlanningPanel = ({
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-[340px] sm:max-w-sm p-0 overflow-y-auto bg-gradient-to-b from-secondary/25 via-background to-background">
-        <SheetHeader className="px-5 pt-5 pb-3 border-b border-border/50 bg-gradient-to-b from-secondary/40 to-transparent">
+      <SheetContent side="right" className="w-[360px] sm:max-w-sm p-0 overflow-y-auto bg-background">
+        <SheetHeader className="px-5 pt-5 pb-4 border-b border-border/70 bg-card">
           <div className="flex items-center gap-2">
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-foreground/[0.06] ring-1 ring-border/60">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-secondary ring-1 ring-border/70">
               <BarChart3 className="h-3.5 w-3.5 text-foreground" />
             </span>
             <div>
-              <SheetTitle className="text-base tracking-tight leading-none">Overblik</SheetTitle>
+              <SheetTitle className="text-base tracking-tight leading-none font-bold">Overblik</SheetTitle>
               <SheetDescription className="text-[11px] mt-1 capitalize">
                 {format(parseISO(anchorDate), "MMMM yyyy", { locale: da })}
               </SheetDescription>
@@ -202,13 +202,13 @@ export const PlanningPanel = ({
           </div>
         </SheetHeader>
 
-        <div className="px-5 py-4 space-y-5">
+        <div className="px-5 py-4 space-y-5 bg-secondary/[0.12]">
           {/* Hurtigt overblik øverst — viser umiddelbart hvad der kræver
               opmærksomhed (uplanlagte aftaler, overbookede dage). */}
           {(unassignedCount > 0 || stats.overbookedDays.length > 0) && (
             <section className="space-y-2">
               {unassignedCount > 0 && (
-                <div className="flex items-center gap-2 rounded-lg border border-feature-warm/40 bg-feature-warm/10 px-3 py-2 text-xs">
+                <div className="flex items-center gap-2 rounded-md border border-feature-warm/40 bg-feature-warm/10 px-3 py-2 text-xs">
                   <Inbox className="h-4 w-4 shrink-0 text-feature-warm-foreground" />
                   <span className="flex-1 text-foreground">
                     <strong className="font-semibold">{unassignedCount}</strong> aftale{unassignedCount === 1 ? "" : "r"} venter på en rute
@@ -216,7 +216,7 @@ export const PlanningPanel = ({
                 </div>
               )}
               {stats.overbookedDays.length > 0 && (
-                <div className="flex items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs">
+                <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs">
                   <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
                   <div className="flex-1">
                     <p className="font-semibold text-foreground">
@@ -398,7 +398,7 @@ const LegendDot = ({ color, label }: { color: string; label: string }) => (
 );
 
 const MiniStat = ({ label, value }: { label: string; value: string }) => (
-  <div className="rounded-xl border border-border/60 bg-card px-2.5 py-2 shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:border-border hover:shadow-[0_2px_6px_-2px_rgba(0,0,0,0.06)] transition-all">
+  <div className="rounded-lg border border-border/70 bg-card px-2.5 py-2.5 shadow-[0_1px_2px_hsl(var(--foreground)/0.03)] hover:border-foreground/25 hover:shadow-[0_6px_14px_-6px_hsl(var(--foreground)/0.18)] transition-all">
     <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">{label}</p>
     <p className="mt-0.5 text-base font-bold tabular-nums text-foreground tracking-tight">{value}</p>
   </div>
@@ -432,7 +432,7 @@ const EmployeeAvatarChip = ({ employee }: { employee: PlanningPanelEmployee }) =
   }
   return (
     <span
-      className="inline-flex h-5 w-5 items-center justify-center rounded-full ring-1 ring-border text-white text-[9px] font-semibold"
+      className="inline-flex h-5 w-5 items-center justify-center rounded-full ring-1 ring-border text-background text-[9px] font-semibold"
       style={{ background: employee.color || "hsl(220 13% 46%)" }}
       aria-hidden
     >

@@ -3886,7 +3886,7 @@ const Planner = () => {
                 Print, tidslinje, planlægning, opret bestilling, tæthed, tema og
                 genveje er flyttet ind i "Mere"-menuen for at reducere visuel støj. */}
             {periodSummary.routeCount > 0 && (
-              <div className="hidden md:inline-flex items-center gap-1.5 h-7 px-3 rounded-full bg-secondary/60 border border-border/60 text-[11px] tabular-nums shadow-[inset_0_1px_0_rgba(255,255,255,0.4)]">
+              <div className="hidden md:inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-card border border-border/70 text-[11px] tabular-nums shadow-[0_1px_2px_hsl(var(--foreground)/0.05)]">
                 <span className="font-bold text-foreground">{periodSummary.routeCount}</span>
                 <span className="text-muted-foreground">{periodSummary.routeCount === 1 ? "rute" : "ruter"}</span>
                 <span className="h-3 w-px bg-border" />
@@ -3896,7 +3896,7 @@ const Planner = () => {
             )}
 
             <Tabs value={view} onValueChange={(v) => setView(v as any)}>
-              <TabsList className="h-7 p-0.5">
+              <TabsList className="h-8 p-0.5 rounded-md">
                 <TabsTrigger value="month" className="text-[11px] font-semibold h-6 px-2.5 rounded-md">Måned</TabsTrigger>
                 <TabsTrigger value="week" className="text-[11px] font-semibold h-6 px-2.5 rounded-md">Uge</TabsTrigger>
               </TabsList>
@@ -3909,7 +3909,7 @@ const Planner = () => {
                   variant="outline"
                   size="sm"
                   className={cn(
-                    "h-7 gap-1.5 rounded-lg border-border/60 transition-colors",
+                    "h-8 gap-1.5 rounded-md border-border/70 font-semibold transition-colors",
                     filtersActive
                       ? "border-accent/60 bg-accent/[0.08] text-accent hover:bg-accent/[0.12]"
                       : "hover:border-border hover:text-foreground"
@@ -4014,7 +4014,7 @@ const Planner = () => {
               </PopoverContent>
             </Popover>
 
-            <div className="flex items-center gap-0.5 rounded-lg border border-border/60 bg-background p-0.5">
+            <div className="flex items-center gap-0.5 rounded-md border border-border/70 bg-background p-0.5 shadow-[0_1px_2px_hsl(var(--foreground)/0.04)]">
               <Button
                 variant="ghost"
                 size="icon"
@@ -4067,7 +4067,7 @@ const Planner = () => {
               data-tour="routes-today"
               variant="outline"
               size="sm"
-              className="h-7 text-[11px] font-semibold rounded-lg border-border/60 hover:border-accent/60 hover:text-accent"
+              className="h-8 text-[11px] font-semibold rounded-md border-border/70 hover:border-accent/60 hover:text-accent"
               onClick={() => setDate(todayStr())}
             >
               I dag
@@ -4090,7 +4090,7 @@ const Planner = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7"
+                    className="h-8 w-8 rounded-md"
                     onClick={() => void history.undo()}
                     disabled={!history.canUndo}
                     aria-label="Fortryd seneste handling"
@@ -4112,7 +4112,7 @@ const Planner = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7"
+                    className="h-8 w-8 rounded-md"
                     onClick={() => void history.redo()}
                     disabled={!history.canRedo}
                     aria-label="Gentag seneste fortryd"
@@ -4131,7 +4131,7 @@ const Planner = () => {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Flere handlinger">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-md" aria-label="Flere handlinger">
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -4169,7 +4169,7 @@ const Planner = () => {
 
               <Dialog open={createOpen} onOpenChange={setCreateOpen}>
                 <DialogTrigger asChild>
-                  <Button data-tour="routes-create-button" size="sm" className="h-7 gap-1">
+                  <Button data-tour="routes-create-button" size="sm" className="h-8 gap-1.5 rounded-md font-semibold">
                     <Plus className="h-3.5 w-3.5" />Opret rute
                   </Button>
                 </DialogTrigger>
@@ -4361,32 +4361,32 @@ const Planner = () => {
                 <Card
                    data-tour="routes-unassigned"
                    className={cn(
-                     "flex flex-col h-full overflow-hidden transition-all duration-200 rounded-xl border-border/60 shadow-[0_1px_3px_rgba(0,0,0,0.04)]",
+                     "flex flex-col h-full overflow-hidden transition-all duration-200 rounded-lg border-border/70 bg-card shadow-[0_2px_10px_-6px_hsl(var(--foreground)/0.18)]",
                      selectedJobIds.size > 0 && "ring-1 ring-accent/60 shadow-[0_10px_28px_-12px_hsl(var(--accent)/0.5)]",
                    )}
                  >
-                   <div className="relative px-3 pt-3 pb-2.5 border-b border-border/60 bg-gradient-to-b from-secondary/40 via-secondary/15 to-card space-y-2">
-                    <div aria-hidden className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-accent/70 via-accent/30 to-transparent" />
-                    <div className="flex items-center gap-2 pr-10 xl:pr-0">
-                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-foreground/[0.06] ring-1 ring-border/60 shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]">
-                        <Inbox className="h-3.5 w-3.5 text-foreground/80" />
+                   <div className="relative px-3.5 pt-3.5 pb-3 border-b border-border/70 bg-card space-y-3">
+                    <div aria-hidden className="absolute left-0 top-0 bottom-0 w-[3px] bg-foreground/80" />
+                    <div className="flex items-start gap-2.5 pr-10 xl:pr-0">
+                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-secondary text-foreground ring-1 ring-border/70 shrink-0">
+                        <Inbox className="h-4 w-4 text-foreground" />
                       </span>
                       <div className="flex-1 min-w-0">
-                        <h2 className="font-semibold text-[13px] leading-tight text-foreground truncate tracking-tight">
+                        <h2 className="font-bold text-sm leading-tight text-foreground truncate tracking-tight">
                           Aftaler uden rute
                         </h2>
                         {filteredUnassigned.length > 0 ? (
-                          <p className="text-[10.5px] text-muted-foreground leading-tight mt-0.5 truncate">
+                          <p className="text-[11px] text-muted-foreground leading-snug mt-0.5 truncate">
                             <span className="tabular-nums font-semibold text-foreground/80">{Math.round(unassignedTotal).toLocaleString("da-DK")} kr</span> samlet
                           </p>
                         ) : (
-                          <p className="text-[10.5px] text-muted-foreground leading-tight mt-0.5 truncate">
+                          <p className="text-[11px] text-muted-foreground leading-snug mt-0.5 truncate">
                             Træk aftaler ind i kalenderen
                           </p>
                         )}
                       </div>
                       {filteredUnassigned.length > 0 && (
-                        <span className="inline-flex items-center justify-center min-w-[24px] h-6 px-2 rounded-full bg-foreground text-background text-[11px] font-bold tabular-nums shrink-0 shadow-[0_2px_6px_-2px_rgba(0,0,0,0.3)]">
+                        <span className="inline-flex items-center justify-center min-w-7 h-7 px-2 rounded-md bg-foreground text-background text-[11px] font-bold tabular-nums shrink-0 shadow-sm">
                           {filteredUnassigned.length}
                         </span>
                       )}
@@ -4399,7 +4399,7 @@ const Planner = () => {
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         onKeyDown={(e) => { if (e.key === "Escape") { setSearch(""); (e.target as HTMLInputElement).blur(); } }}
-                        className="h-8 pl-7 pr-12 text-xs bg-background"
+                        className="h-8 pl-7 pr-12 text-xs bg-background border-border/70 rounded-md shadow-[inset_0_1px_2px_hsl(var(--foreground)/0.04)]"
                       />
                       {search ? (
                         <button
@@ -4421,7 +4421,7 @@ const Planner = () => {
                     {filteredUnassigned.length > 0 && (
                       <div className="flex items-center gap-1.5">
                         <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
-                          <SelectTrigger className="h-7 text-[11px] flex-1 bg-background gap-1.5" aria-label="Sortering">
+                          <SelectTrigger className="h-8 text-[11px] flex-1 bg-background gap-1.5 rounded-md border-border/70" aria-label="Sortering">
                             <ArrowUpDown className="h-3 w-3 text-muted-foreground shrink-0" />
                             <SelectValue />
                           </SelectTrigger>
@@ -4432,7 +4432,7 @@ const Planner = () => {
                           </SelectContent>
                         </Select>
                         <Select value={unassignedStatusFilter} onValueChange={(v) => setUnassignedStatusFilter(v as any)}>
-                          <SelectTrigger className="h-7 text-[11px] flex-1 bg-background gap-1.5" aria-label="Filtrér">
+                          <SelectTrigger className="h-8 text-[11px] flex-1 bg-background gap-1.5 rounded-md border-border/70" aria-label="Filtrér">
                             <Filter className="h-3 w-3 text-muted-foreground shrink-0" />
                             <SelectValue />
                           </SelectTrigger>
@@ -4446,7 +4446,7 @@ const Planner = () => {
                          <Select value={unassignedGroupBy} onValueChange={(v) => setUnassignedGroupBy(v as any)}>
                            <SelectTrigger
                              className={cn(
-                               "h-7 w-7 p-0 justify-center bg-background hover:bg-secondary transition-colors [&>svg:last-child]:hidden shrink-0",
+                               "h-8 w-8 p-0 justify-center bg-background hover:bg-secondary transition-colors [&>svg:last-child]:hidden shrink-0 rounded-md border-border/70",
                                unassignedGroupBy !== "none"
                                  ? "text-accent border-accent/60"
                                  : "text-muted-foreground",
@@ -4479,7 +4479,7 @@ const Planner = () => {
                                onClick={() => setCompactCards((v) => !v)}
                                aria-label={compactCards ? "Skift til fulde kort" : "Skift til kompakte kort"}
                                aria-pressed={compactCards}
-                               className="h-7 w-7 inline-flex items-center justify-center rounded-md border border-border bg-background text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none shrink-0"
+                               className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-border/70 bg-background text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none shrink-0"
                              >
                                {compactCards ? <Rows3 className="h-3.5 w-3.5" /> : <LayoutGrid className="h-3.5 w-3.5" />}
                              </button>
@@ -4567,7 +4567,7 @@ const Planner = () => {
                               onClick={runBulkAutoAssign}
                               disabled={bulkBusy || selectedReady === 0}
                               className={cn(
-                                "w-full inline-flex items-center justify-center gap-1.5 h-8 rounded-md text-xs font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:outline-none",
+                                "w-full inline-flex items-center justify-center gap-1.5 h-9 rounded-md text-xs font-bold transition-colors disabled:opacity-60 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:outline-none",
                                 selectedReady > 0
                                   ? "bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm"
                                   : "border border-border bg-background text-muted-foreground",
@@ -4590,7 +4590,7 @@ const Planner = () => {
                               onClick={runAutoAssign}
                               disabled={autoAssigning}
                               className={cn(
-                                "w-full inline-flex items-center justify-center gap-1.5 h-8 rounded-md text-xs font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:outline-none",
+                                "w-full inline-flex items-center justify-center gap-1.5 h-9 rounded-md text-xs font-bold transition-colors disabled:opacity-60 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:outline-none",
                                 canAutoAssign === 1
                                   ? "border border-border bg-background text-foreground hover:bg-secondary"
                                   : "bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm",
@@ -4611,7 +4611,7 @@ const Planner = () => {
                     })()}
                   </div>
 
-                  <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
+                  <div className="flex-1 overflow-y-auto p-2.5 space-y-2 bg-secondary/[0.16]">
                     {loadingUnassigned && unassigned.length === 0 && (
                       <div className="space-y-1.5">
                         {Array.from({ length: 5 }).map((_, i) => (
@@ -4769,7 +4769,7 @@ const Planner = () => {
                       const entries = Array.from(groups.entries()).sort((a, b) => a[0].localeCompare(b[0]));
                       return entries.map(([key, g]) => (
                         <div key={key} className="space-y-1.5">
-                          <div className="sticky top-0 z-[1] flex items-center gap-2 px-1 py-1 bg-card/95 backdrop-blur text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
+                          <div className="sticky top-0 z-[1] flex items-center gap-2 rounded-md border border-border/70 bg-card/95 px-2 py-1.5 text-[10px] uppercase tracking-[0.1em] font-bold text-muted-foreground shadow-sm backdrop-blur">
                             <span className="truncate">{g.label}</span>
                             {selectedJobIds.size > 0 && (() => {
                               const selectable = g.items.filter((j: any) => j.status !== "pending");
@@ -4936,12 +4936,12 @@ const Planner = () => {
                   bruger agenda-visningen i stedet (≤1279px). Topbaren har ikke plads til alle handlinger
                   før 2xl, så vi viser en kompakt toolbar oven på split-layoutet ved xl. */}
               <div className="hidden h-full xl:flex xl:flex-col xl:gap-2">
-                <div className="shrink-0 rounded-lg border bg-card p-2 shadow-sm 2xl:hidden">
+                <div className="shrink-0 rounded-lg border border-border/70 bg-card p-2 shadow-[0_2px_10px_-6px_hsl(var(--foreground)/0.18)] 2xl:hidden">
                   <div className="flex flex-wrap items-center gap-1.5">
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8 shrink-0"
+                      className="h-8 w-8 shrink-0 rounded-md border-border/70"
                       onClick={() =>
                         setDate(format(view === "week" ? addWeeks(parseISO(date), -1) : addMonths(parseISO(date), -1), "yyyy-MM-dd"))
                       }
@@ -4954,7 +4954,7 @@ const Planner = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-8 px-2 text-xs font-medium capitalize min-w-[150px] gap-1.5 tabular-nums"
+                          className="h-8 px-2.5 text-xs font-semibold capitalize min-w-[150px] gap-1.5 tabular-nums rounded-md hover:bg-secondary"
                           aria-label="Spring til dato"
                         >
                           <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
@@ -4976,7 +4976,7 @@ const Planner = () => {
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8 shrink-0"
+                      className="h-8 w-8 shrink-0 rounded-md border-border/70"
                       onClick={() =>
                         setDate(format(view === "week" ? addWeeks(parseISO(date), 1) : addMonths(parseISO(date), 1), "yyyy-MM-dd"))
                       }
@@ -4984,18 +4984,27 @@ const Planner = () => {
                     >
                       <ChevronRight className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs" onClick={() => setDate(todayStr())}>
+                    <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs font-semibold rounded-md border-border/70 hover:border-accent/60 hover:text-accent" onClick={() => setDate(todayStr())}>
                       I dag
                     </Button>
                     <Tabs value={view} onValueChange={(v) => setView(v as any)}>
                       <TabsList className="h-8">
-                        <TabsTrigger value="month" className="h-6 text-xs px-2">Måned</TabsTrigger>
-                        <TabsTrigger value="week" className="h-6 text-xs px-2">Uge</TabsTrigger>
+                        <TabsTrigger value="month" className="h-6 text-[11px] font-semibold px-2.5 rounded-md">Måned</TabsTrigger>
+                        <TabsTrigger value="week" className="h-6 text-[11px] font-semibold px-2.5 rounded-md">Uge</TabsTrigger>
                       </TabsList>
                     </Tabs>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant={filtersActive ? "default" : "outline"} size="sm" className="h-8 gap-1.5 text-xs">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className={cn(
+                            "h-8 gap-1.5 text-xs font-semibold rounded-md border-border/70 transition-colors",
+                            filtersActive
+                              ? "border-accent/60 bg-accent/[0.08] text-accent hover:bg-accent/[0.12]"
+                              : "hover:border-border hover:text-foreground",
+                          )}
+                        >
                           <Filter className="h-3.5 w-3.5" />
                           Filtre
                           {filtersActive && (
@@ -5458,7 +5467,7 @@ const Planner = () => {
           )}
           {activeDragId && activeDragData?.type === "stop" && (
             <div
-              className="rounded-lg border border-border/60 bg-card/95 backdrop-blur-sm px-2.5 py-1.5 w-[170px] border-l-[3px] border-l-primary"
+              className="rounded-md border border-border/70 bg-card/95 backdrop-blur-sm px-2.5 py-1.5 w-[170px] border-l-[3px] border-l-primary"
               style={{
                 transform: "rotate(-1.5deg) scale(1.02)",
                 boxShadow: "0 12px 32px -8px rgba(0,0,0,0.25), 0 4px 12px -2px rgba(0,0,0,0.15)",
@@ -5479,7 +5488,7 @@ const Planner = () => {
         {activeDragId && activeDragData?.type === "route" && routeDragPoint && createPortal(
           <div
             ref={routeOverlayRef}
-            className="fixed z-[1000] w-[170px] pointer-events-none rounded-lg border-l-[3px] border border-border/60 bg-card/95 backdrop-blur-sm px-2.5 py-1.5"
+            className="fixed z-[1000] w-[170px] pointer-events-none rounded-md border-l-[3px] border border-border/70 bg-card/95 backdrop-blur-sm px-2.5 py-1.5"
             style={{
               left: routeDragPoint.x,
               top: routeDragPoint.y,
@@ -6256,7 +6265,7 @@ const FilterEmpAvatar = ({ emp }: { emp: { name?: string | null; color?: string 
   const initials = name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
   return (
     <span
-      className="inline-flex h-4 w-4 items-center justify-center rounded-full ring-1 ring-border text-white text-[8px] font-semibold shrink-0"
+      className="inline-flex h-4 w-4 items-center justify-center rounded-full ring-1 ring-border text-background text-[8px] font-semibold shrink-0"
       style={{ background: emp?.color || "hsl(220 13% 46%)" }}
       aria-hidden
     >
