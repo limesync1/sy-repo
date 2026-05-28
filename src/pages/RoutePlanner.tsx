@@ -4212,17 +4212,25 @@ const Planner = () => {
                       title="Farve"
                       hint={ROUTE_COLORS.find((c) => c.value === newRouteColor)?.name || "Brugerdefineret"}
                     >
-                      <div className="grid grid-cols-12 gap-1.5">
+                      <div className="grid grid-cols-12 gap-2">
                         {ROUTE_COLORS.map((c) => (
                           <button
                             key={c.value}
                             type="button"
                             onClick={() => setNewRouteColor(c.value)}
                             title={c.name}
-                            className={`relative aspect-square rounded transition-all hover:scale-110 ring-offset-1 ring-offset-background ${newRouteColor === c.value ? "ring-2 ring-foreground shadow-sm" : "hover:ring-1 hover:ring-foreground/30"}`}
+                            className={`relative aspect-square rounded-md transition-all duration-150 hover:scale-110 ring-offset-2 ring-offset-background shadow-[0_1px_2px_rgba(0,0,0,0.08)] ${
+                              newRouteColor === c.value
+                                ? "ring-2 ring-foreground scale-105 shadow-[0_3px_8px_-2px_rgba(0,0,0,0.25)]"
+                                : "hover:ring-2 hover:ring-foreground/40"
+                            }`}
                             style={{ background: c.value }}
                             aria-label={`Vælg farve ${c.name}`}
-                          />
+                          >
+                            {newRouteColor === c.value && (
+                              <Check className="absolute inset-0 m-auto h-3.5 w-3.5 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]" />
+                            )}
+                          </button>
                         ))}
                       </div>
                     </Section>
