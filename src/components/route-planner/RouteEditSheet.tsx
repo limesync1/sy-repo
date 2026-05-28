@@ -251,6 +251,39 @@ export const RouteEditSheet = ({
   const { data: seriesInfo } = useRouteSeriesInfo(route?.id ?? null, route?.route_date ?? null);
   const qc = useQueryClient();
 
+  // Henter navnene på alle andre aktive ruter samme dag i samme virksomhed,
+  // så vi kan blokere brugeren i at omdøbe denne rute til et navn der allerede
+  // er taget. Database-indekset er den hårde garanti — det her er den venlige
+  // UX der fanger fejlen FØR den når serveren.
+  const sameDayNamesQ = useQuery({
+    queryKey: ["route-names-same-day", route?.business_id, route?.route_date, route?.id],
+    enabled: !!route?.business_id && !!route?.route_date,
+    staleTime: 15_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("routes")
+        .select("id, name")
+        .eq("business_id", route!.business_id)
+        .eq("route_date", route!.route_date)
+        .is("archived_at", null)
+        .is("deleted_at", null)
+        .neq("id", route!.id);
+      if (error) throw error;
+      return (data || [])
+        .map((r: any) => (r.name ? String(r.name).trim().toLowerCase() : ""))
+        .filter(Boolean);
+    },
+  });
+  const sameDayNameSet = useMemo(
+    () => new Set(sameDayNamesQ.data ?? []),
+    [sameDayNamesQ.data],
+  );
+  const nameDuplicate = useMemo(() => {
+    const t = name.trim().toLowerCase();
+    if (!t) return false;
+    return sameDayNameSet.has(t);
+  }, [name, sameDayNameSet]);
+
   useEffect(() => {
     if (!pendingProjectedDate) {
       setProjectedMoveSyncStart(false);
