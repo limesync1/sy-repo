@@ -322,7 +322,7 @@ const Planner = () => {
   // Filter + gruppering for "Aftaler uden rute" — gør store puljer
   // overskuelige uden at brugeren skal scrolle gennem alt.
   const [unassignedStatusFilter, setUnassignedStatusFilter] = usePersistentState<
-    "all" | "ready" | "pending" | "missing-gps"
+    "all" | "ready" | "pending"
   >("route-planner:unassignedStatus", "all");
   const [unassignedGroupBy, setUnassignedGroupBy] = usePersistentState<
     "none" | "status" | "route" | "week" | "postcode"
