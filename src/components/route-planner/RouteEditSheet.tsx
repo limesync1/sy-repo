@@ -732,10 +732,19 @@ export const RouteEditSheet = ({
                 value={name}
                 onChange={(e) => { userEditedRef.current = true; setName(e.target.value); }}
                 placeholder="fx Nord, Aarhus C, Mandag-team..."
-                className="h-9"
+                className={cn(
+                  "h-9",
+                  nameDuplicate && "border-destructive focus-visible:ring-destructive/40",
+                )}
                 disabled={isProjection}
                 readOnly={isProjection}
+                aria-invalid={nameDuplicate || undefined}
               />
+              {nameDuplicate && (
+                <p className="mt-1.5 text-[11.5px] font-medium text-destructive">
+                  Der findes allerede en rute der hedder &ldquo;{name.trim()}&rdquo; denne dag. Vælg et andet navn.
+                </p>
+              )}
             </Section>
 
             {/* Farve */}
