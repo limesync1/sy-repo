@@ -2714,6 +2714,7 @@ const Planner = () => {
     const hasDropTarget = activeDataAtDrop?.type === "route" || activeDataAtDrop?.type === "job" ? !!preferredRouteTarget : !!over;
     setActiveDragId(null);
     setActiveDragData(null);
+    stopDragAutoScroll();
     activeDragPointRef.current = null;
     activeDragOriginRef.current = null;
     setRouteDragPoint(null);
