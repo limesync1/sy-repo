@@ -398,9 +398,9 @@ const LegendDot = ({ color, label }: { color: string; label: string }) => (
 );
 
 const MiniStat = ({ label, value }: { label: string; value: string }) => (
-  <div className="rounded-lg border border-border bg-card px-2.5 py-2">
-    <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
-    <p className="mt-0.5 text-sm font-semibold tabular-nums text-foreground">{value}</p>
+  <div className="rounded-xl border border-border/60 bg-card px-2.5 py-2 shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:border-border hover:shadow-[0_2px_6px_-2px_rgba(0,0,0,0.06)] transition-all">
+    <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">{label}</p>
+    <p className="mt-0.5 text-base font-bold tabular-nums text-foreground tracking-tight">{value}</p>
   </div>
 );
 
