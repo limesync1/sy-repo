@@ -479,7 +479,7 @@ const DayCellInner = ({
             // cellen er klikbar — uden at + tegnet konkurrerer med
             // selve indholdet i kalenderen. Tydeligere på direkte hover.
             className={cn(
-              "h-6 w-6 inline-flex items-center justify-center rounded-md border border-transparent transition-all focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 hover:bg-foreground hover:text-background hover:border-foreground hover:shadow-sm",
+              "h-6 w-6 inline-flex items-center justify-center rounded-md border border-transparent transition-[background-color,color,border-color,transform] duration-150 active:scale-[0.92] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-1 hover:bg-accent/10 hover:text-accent hover:border-accent/30",
               emptyDay && inMonth && !isPast
                 ? "opacity-0 text-muted-foreground/80 group-hover:opacity-100"
                 : "opacity-0 group-hover:opacity-90 text-muted-foreground",
