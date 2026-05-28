@@ -1,8 +1,10 @@
 // 3-trins tæthed-toggle for kalender/lister i ruteplanlæggeren.
-// Cyklus: comfortable → cozy → compact → comfortable …
-// Persisteres i localStorage så valget overlever reload.
+// Et synligt segmenteret valg med tre knapper (Luftig/Standard/Tæt) så
+// brugeren altid kan se hvilken tilstand der er aktiv. Valget gemmes i
+// localStorage og påvirker både aftalekort og kalender-celler via
+// data-density-attributten på planner-rod-elementet (se index.css).
 import { Rows3, Rows2, AlignJustify } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePersistentState } from "@/hooks/usePersistentState";
 
@@ -13,6 +15,11 @@ const LABEL: Record<Density, string> = {
   cozy: "Standard",
   compact: "Tæt",
 };
+const ICONS: Record<Density, typeof Rows3> = {
+  comfortable: Rows3,
+  cozy: Rows2,
+  compact: AlignJustify,
+};
 
 export function useDensity() {
   return usePersistentState<Density>("route-planner:density", "cozy");
@@ -20,16 +27,40 @@ export function useDensity() {
 
 export default function DensityToggle() {
   const [d, setD] = useDensity();
-  const next = () => setD(ORDER[(ORDER.indexOf(d) + 1) % ORDER.length]);
-  const Icon = d === "compact" ? AlignJustify : d === "cozy" ? Rows2 : Rows3;
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={next} aria-label={`Tæthed: ${LABEL[d]}`}>
-          <Icon className="h-3.5 w-3.5" />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent side="bottom" className="text-xs">Tæthed: <span className="font-medium">{LABEL[d]}</span> — klik for at skifte</TooltipContent>
-    </Tooltip>
+    <div
+      role="radiogroup"
+      aria-label="Tæthed"
+      className="inline-flex h-7 items-center gap-0.5 rounded-md border border-border bg-background p-0.5"
+    >
+      {ORDER.map((opt) => {
+        const Icon = ICONS[opt];
+        const active = d === opt;
+        return (
+          <Tooltip key={opt}>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={active}
+                onClick={() => setD(opt)}
+                className={cn(
+                  "inline-flex h-6 w-7 items-center justify-center rounded-[5px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+                  active
+                    ? "bg-foreground text-background"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                )}
+                aria-label={`Tæthed: ${LABEL[opt]}`}
+              >
+                <Icon className="h-3.5 w-3.5" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              {LABEL[opt]}
+            </TooltipContent>
+          </Tooltip>
+        );
+      })}
+    </div>
   );
 }

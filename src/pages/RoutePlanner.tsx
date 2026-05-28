@@ -126,7 +126,7 @@ import RoutePlannerShortcutsHelp from "@/components/route-planner/RoutePlannerSh
 import UnassignedFiltersPopover, { type UrgencyKey } from "@/components/route-planner/UnassignedFiltersPopover";
 import UndoBar from "@/components/route-planner/UndoBar";
 import PlannerSkeleton from "@/components/route-planner/PlannerSkeleton";
-import DensityToggle from "@/components/route-planner/DensityToggle";
+import DensityToggle, { useDensity } from "@/components/route-planner/DensityToggle";
 import ThemeToggle, { usePlannerTheme, usePlannerThemeEffect } from "@/components/route-planner/ThemeToggle";
 import RoutePrintDialog, { type PrintRoute } from "@/components/route-planner/RoutePrintDialog";
 import { Printer, ListOrdered } from "lucide-react";
@@ -312,7 +312,14 @@ const Planner = () => {
   const [view, setView] = usePersistentState<"month" | "week">("route-planner:view", "month");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = usePersistentState<"date" | "price" | "name">("route-planner:sortBy", "date");
-  const [compactCards, setCompactCards] = usePersistentState<boolean>("route-planner:compactCards", false);
+  const [density, setDensity] = useDensity();
+  // Bagudkompatibel afledt værdi — `compactCards` styrer kompakt-render i
+  // aftalekortene. Den følger nu tæthedsvælgeren, så ét sted styrer alt.
+  const compactCards = density === "compact";
+  const setCompactCards = (v: boolean | ((p: boolean) => boolean)) => {
+    const next = typeof v === "function" ? (v as (p: boolean) => boolean)(compactCards) : v;
+    setDensity(next ? "compact" : "cozy");
+  };
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [printOpen, setPrintOpen] = useState(false);
   const [dayDetailOpen, setDayDetailOpen] = useState(false);
@@ -3859,7 +3866,7 @@ const Planner = () => {
   };
 
   return (
-    <div className={cn(plannerTheme === "dark" && "dark")}>
+    <div className={cn(plannerTheme === "dark" && "dark")} data-density={density}>
     <DndContext
       sensors={sensors}
       collisionDetection={routePlannerCollisionDetection}
@@ -4656,7 +4663,10 @@ const Planner = () => {
                     })()}
                   </div>
 
-                  <div className="flex-1 overflow-y-auto p-2.5 space-y-2 bg-secondary/[0.16]">
+                  <div
+                    data-density-target="list"
+                    className="flex-1 overflow-y-auto p-2.5 space-y-2 bg-secondary/[0.16]"
+                  >
                     {loadingUnassigned && unassigned.length === 0 && (
                       <div className="space-y-1.5">
                         {Array.from({ length: 5 }).map((_, i) => (

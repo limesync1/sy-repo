@@ -131,6 +131,44 @@
       box-shadow 260ms ease !important;
   }
 
+  /* ─── Tæthedsvælger i ruteplanlæggeren ───
+     `data-density` sættes på planner-rod-elementet og styrer her hvor
+     meget luft kalender-celler, dage og lister får. Tre niveauer:
+     "comfortable" (luftig), "cozy" (standard) og "compact" (tæt).
+     Vi rører kun padding/gap og overlader farver+typografi til Tailwind. */
+  [data-density="comfortable"] [data-density-target="list"] > * + * {
+    margin-top: 0.625rem;
+  }
+  [data-density="cozy"] [data-density-target="list"] > * + * {
+    margin-top: 0.4rem;
+  }
+  [data-density="compact"] [data-density-target="list"] > * + * {
+    margin-top: 0.2rem;
+  }
+
+  [data-density="comfortable"] [data-density-target="day"] {
+    padding: 0.55rem 0.5rem;
+    min-height: 7.5rem;
+  }
+  [data-density="cozy"] [data-density-target="day"] {
+    padding: 0.35rem 0.4rem;
+    min-height: 6.25rem;
+  }
+  [data-density="compact"] [data-density-target="day"] {
+    padding: 0.2rem 0.3rem;
+    min-height: 5rem;
+    line-height: 1.1;
+  }
+
+  [data-density="comfortable"] [data-density-target="stop"] {
+    padding-top: 0.55rem;
+    padding-bottom: 0.55rem;
+  }
+  [data-density="compact"] [data-density-target="stop"] {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+  }
+
   h1,
   h2,
   h3,

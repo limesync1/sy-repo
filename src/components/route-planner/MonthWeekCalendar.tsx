@@ -364,6 +364,7 @@ const DayCellInner = ({
     <div
       ref={setNodeRef}
       data-route-drop-date={canReceiveDrop ? dateStr : undefined}
+      data-density-target="day"
       className={cn(
         "border-r border-border/70 last:border-r-0 relative group flex flex-col gap-1.5 p-2.5 transition-all duration-200",
         compact ? "min-h-[118px]" : "min-h-[170px]",
