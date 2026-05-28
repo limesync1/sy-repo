@@ -963,7 +963,7 @@ const RoutePillInner = ({
       {/* Kapacitets-bar: tynd stribe der viser belastning. Skjul ved 0 stops. */}
       {stopCount > 0 && (
         <div
-          className="h-1 w-full bg-muted/30 overflow-hidden ring-1 ring-inset ring-border/20"
+          className="h-1 w-full bg-muted/25 overflow-hidden"
           title={`Belastning ${loadPct}% — ${Math.round(workMin / 60 * 10) / 10} t af ~${Math.round(capacityMin / 60)} t (${empCount} medarbejder${empCount === 1 ? "" : "e"})`}
           aria-label={`Belastning ${loadPct} procent`}
         >
