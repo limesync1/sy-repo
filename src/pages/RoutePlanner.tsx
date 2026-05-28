@@ -199,7 +199,9 @@ const RoutePlanner = () => {
   const isSmallScreen = useIsBelowBreakpoint(900);
   if (loading) return <ShellSkeleton />;
   if (!user) return <Navigate to="/log-ind" replace />;
-  if (isSmallScreen) return <RoutePlannerDesktopOnly />;
+  // Under 900px (telefon / tablet i portræt) viser vi den fingervenlige,
+  // tap-baserede mobil-planlægger i stedet for drag-and-drop-desktopen.
+  if (isSmallScreen) return <RoutePlannerMobile />;
   return <Planner />;
 };
 
