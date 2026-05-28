@@ -42,7 +42,7 @@ export const DatePickerField = ({ value, onChange, className, minDate }: Props) 
           variant="outline"
           className={cn(
             "w-full justify-start text-left font-normal h-9 bg-background",
-            "hover:bg-accent/10 hover:text-foreground hover:border-accent/40",
+            "hover:bg-secondary hover:text-foreground hover:border-border",
             !date && "text-muted-foreground",
             className,
           )}

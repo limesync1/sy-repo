@@ -530,7 +530,7 @@ const AssigneeToggle = ({
                   key={e.id}
                   className={cn(
                     "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors",
-                    selected ? "bg-accent/10" : "hover:bg-accent/5",
+                    selected ? "bg-accent/10" : "hover:bg-secondary",
                   )}
                 >
                   <button
