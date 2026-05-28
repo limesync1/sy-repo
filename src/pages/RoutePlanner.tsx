@@ -4995,7 +4995,16 @@ const Planner = () => {
                     </Tabs>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant={filtersActive ? "default" : "outline"} size="sm" className="h-8 gap-1.5 text-xs font-semibold rounded-md border-border/70 transition-colors">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className={cn(
+                            "h-8 gap-1.5 text-xs font-semibold rounded-md border-border/70 transition-colors",
+                            filtersActive
+                              ? "border-accent/60 bg-accent/[0.08] text-accent hover:bg-accent/[0.12]"
+                              : "hover:border-border hover:text-foreground",
+                          )}
+                        >
                           <Filter className="h-3.5 w-3.5" />
                           Filtre
                           {filtersActive && (
