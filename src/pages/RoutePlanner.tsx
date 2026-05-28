@@ -5467,7 +5467,7 @@ const Planner = () => {
           )}
           {activeDragId && activeDragData?.type === "stop" && (
             <div
-              className="rounded-lg border border-border/60 bg-card/95 backdrop-blur-sm px-2.5 py-1.5 w-[170px] border-l-[3px] border-l-primary"
+              className="rounded-md border border-border/70 bg-card/95 backdrop-blur-sm px-2.5 py-1.5 w-[170px] border-l-[3px] border-l-primary"
               style={{
                 transform: "rotate(-1.5deg) scale(1.02)",
                 boxShadow: "0 12px 32px -8px rgba(0,0,0,0.25), 0 4px 12px -2px rgba(0,0,0,0.15)",
@@ -5488,7 +5488,7 @@ const Planner = () => {
         {activeDragId && activeDragData?.type === "route" && routeDragPoint && createPortal(
           <div
             ref={routeOverlayRef}
-            className="fixed z-[1000] w-[170px] pointer-events-none rounded-lg border-l-[3px] border border-border/60 bg-card/95 backdrop-blur-sm px-2.5 py-1.5"
+            className="fixed z-[1000] w-[170px] pointer-events-none rounded-md border-l-[3px] border border-border/70 bg-card/95 backdrop-blur-sm px-2.5 py-1.5"
             style={{
               left: routeDragPoint.x,
               top: routeDragPoint.y,
@@ -6265,7 +6265,7 @@ const FilterEmpAvatar = ({ emp }: { emp: { name?: string | null; color?: string 
   const initials = name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
   return (
     <span
-      className="inline-flex h-4 w-4 items-center justify-center rounded-full ring-1 ring-border text-white text-[8px] font-semibold shrink-0"
+      className="inline-flex h-4 w-4 items-center justify-center rounded-full ring-1 ring-border text-background text-[8px] font-semibold shrink-0"
       style={{ background: emp?.color || "hsl(220 13% 46%)" }}
       aria-hidden
     >
