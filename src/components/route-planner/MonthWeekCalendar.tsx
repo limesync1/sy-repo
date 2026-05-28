@@ -454,14 +454,14 @@ const DayCellInner = ({
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onCreateRoute(dateStr); }}
-            // Tomme dage i indeværende måned får en let synlig prik så
-            // brugeren ved at cellen er klikbar. Travle dage / fortid /
-            // udenfor-måned holder vi diskrete (kun ved hover).
+            // Tomme dage får et meget diskret hint så brugeren ved at
+            // cellen er klikbar — uden at + tegnet konkurrerer med
+            // selve indholdet i kalenderen. Tydeligere på direkte hover.
             className={cn(
-              "h-6 w-6 inline-flex items-center justify-center rounded-md border border-transparent transition-all focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 hover:border-border hover:bg-secondary hover:text-foreground",
+              "h-6 w-6 inline-flex items-center justify-center rounded-md border border-transparent transition-all focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 hover:bg-secondary hover:text-foreground",
               emptyDay && inMonth && !isPast
-                ? "opacity-55 text-muted-foreground group-hover:opacity-100"
-                : "opacity-0 group-hover:opacity-100 text-muted-foreground",
+                ? "opacity-25 text-muted-foreground/70 group-hover:opacity-100 group-hover:text-foreground"
+                : "opacity-0 group-hover:opacity-90 text-muted-foreground",
             )}
             aria-label={`Opret rute den ${format(date, "d. MMMM", { locale: da })}`}
             title="Opret tom rute denne dag"
