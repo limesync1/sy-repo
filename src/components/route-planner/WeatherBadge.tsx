@@ -40,12 +40,12 @@ const codeToIconLabel = (
 
 /** Farve-tokens i HSL — matcher resten af appen. */
 const TONE_BG: Record<string, string> = {
-  sun: "bg-amber-100 text-amber-700 ring-amber-200",
-  cloud: "bg-slate-100 text-slate-600 ring-slate-200",
-  rain: "bg-sky-100 text-sky-700 ring-sky-200",
-  snow: "bg-blue-100 text-blue-700 ring-blue-200",
-  storm: "bg-purple-100 text-purple-700 ring-purple-200",
-  fog: "bg-zinc-100 text-zinc-600 ring-zinc-200",
+  sun: "bg-amber-100 text-amber-700 ring-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-amber-500/25",
+  cloud: "bg-slate-100 text-slate-600 ring-slate-200 dark:bg-slate-500/15 dark:text-slate-300 dark:ring-slate-500/25",
+  rain: "bg-sky-100 text-sky-700 ring-sky-200 dark:bg-sky-500/15 dark:text-sky-300 dark:ring-sky-500/25",
+  snow: "bg-blue-100 text-blue-700 ring-blue-200 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-500/25",
+  storm: "bg-purple-100 text-purple-700 ring-purple-200 dark:bg-purple-500/15 dark:text-purple-300 dark:ring-purple-500/25",
+  fog: "bg-zinc-100 text-zinc-600 ring-zinc-200 dark:bg-zinc-500/15 dark:text-zinc-300 dark:ring-zinc-500/25",
 };
 
 type Props = {
