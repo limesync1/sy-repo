@@ -4664,7 +4664,10 @@ const Planner = () => {
                     })()}
                   </div>
 
-                  <div className="flex-1 overflow-y-auto p-2.5 space-y-2 bg-secondary/[0.16]">
+                  <div
+                    data-density-target="list"
+                    className="flex-1 overflow-y-auto p-2.5 space-y-2 bg-secondary/[0.16]"
+                  >
                     {loadingUnassigned && unassigned.length === 0 && (
                       <div className="space-y-1.5">
                         {Array.from({ length: 5 }).map((_, i) => (
