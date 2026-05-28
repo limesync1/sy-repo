@@ -42,7 +42,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { EmployeeAvatars, type EmpAvatar } from "./EmployeeAvatars";
-import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_DRAGGING, CARD_RAIL_WIDTH } from "./lib/card-styles";
+import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_RAIL_WIDTH } from "./lib/card-styles";
 import EmptyState from "./EmptyState";
 
 type Props = {
