@@ -62,10 +62,10 @@ export const EmployeeColumn = ({
       {/* Header */}
       <header className="flex items-start gap-2.5 mb-3.5 mt-1">
         <div
-          className="h-8 w-8 rounded-md shrink-0 ring-2 ring-background shadow-[0_2px_6px_-2px_rgba(0,0,0,0.25)] flex items-center justify-center"
+          className="h-8 w-8 rounded-md shrink-0 ring-2 ring-background shadow-[0_2px_6px_-2px_hsl(var(--foreground)/0.25)] flex items-center justify-center"
           style={{ background: color }}
         >
-          <span className="text-[10px] font-bold text-white/95 leading-none">
+          <span className="text-[10px] font-bold text-background leading-none">
             {label.charAt(0).toUpperCase()}
           </span>
         </div>
@@ -84,12 +84,12 @@ export const EmployeeColumn = ({
               {completedCount > 0 ? `${completedCount}/${stops.length}` : `${stops.length}`} stop
             </Badge>
             {totalKm != null && totalKm > 0 && (
-              <Badge variant="outline" className="text-[10px] h-[18px] px-1.5 gap-0.5 rounded-full tabular-nums border-border/60">
+              <Badge variant="outline" className="text-[10px] h-5 px-1.5 gap-0.5 rounded-md tabular-nums border-border/70">
                 <Navigation className="h-2.5 w-2.5" />{totalKm.toFixed(1)} km
               </Badge>
             )}
             {totalMin != null && totalMin > 0 && (
-              <Badge variant="outline" className="text-[10px] h-[18px] px-1.5 gap-0.5 rounded-full tabular-nums border-border/60">
+              <Badge variant="outline" className="text-[10px] h-5 px-1.5 gap-0.5 rounded-md tabular-nums border-border/70">
                 <Clock className="h-2.5 w-2.5" />{formatDurationMin(totalMin, { short: true })}
               </Badge>
             )}
