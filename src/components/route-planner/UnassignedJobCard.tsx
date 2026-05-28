@@ -12,7 +12,7 @@ import { relativeFromNow } from "@/lib/relative-time";
 import { parseInterval, formatInterval } from "@/lib/interval";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_SELECTED } from "./lib/card-styles";
+import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_SELECTED, SEGMENT_BTN } from "./lib/card-styles";
 
 /** Skeleton-version af kortet — bruges mens aftaler/GPS-status indlæses.
  *  Matcher kortets højde og indre struktur så listen ikke "hopper" når
@@ -468,7 +468,7 @@ export const UnassignedJobCard = ({
               type="button"
               onClick={(e) => { e.stopPropagation(); onSuggestRoute(); }}
               onPointerDown={(e) => e.stopPropagation()}
-              className="flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-2.5 text-[11px] font-bold text-foreground/80 hover:text-foreground hover:bg-secondary/60 transition-colors focus-visible:bg-secondary focus-visible:outline-none"
+              className={`flex-1 px-2 py-2.5 text-[11px] font-bold ${SEGMENT_BTN}`}
               title="Se forslag til ruter og vælg selv hvilken aftalen skal lægges på"
             >
               <RouteIcon className="h-3.5 w-3.5" />
@@ -482,7 +482,7 @@ export const UnassignedJobCard = ({
               onPointerDown={(e) => e.stopPropagation()}
               aria-expanded={expanded}
               title={expanded ? "Skjul ydelser, telefon og note" : "Vis ydelser, telefon og note"}
-              className="flex-1 inline-flex items-center justify-center gap-1 px-2 py-2.5 text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors focus-visible:bg-secondary focus-visible:text-foreground focus-visible:outline-none"
+              className={`flex-1 px-2 py-2.5 text-[11px] font-semibold ${SEGMENT_BTN}`}
             >
               {expanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
               {expanded ? "Skjul" : "Mere info"}
