@@ -502,13 +502,13 @@ const DayCellInner = ({
             {/* Vis 1–2 realistiske skeleton-piller pr. dag — varieret bredde
                 så kalenderen ligner rigtigt indhold mens data hentes, og
                 layoutet ikke pop'er når ruterne lander. */}
-            <div className="flex items-center gap-1 rounded-md border border-border/70 bg-card px-2 py-1 shadow-sm">
+            <div className="flex items-center gap-1 rounded-lg border border-border/60 bg-card px-2 py-1 shadow-sm">
               <div className="h-2.5 w-2 rounded-sm bg-muted-foreground/20" />
               <div className="h-2.5 flex-1 rounded bg-muted/70 animate-pulse" />
               <div className="h-3 w-3 rounded-full bg-muted/70 animate-pulse" />
             </div>
             {!compact && (
-              <div className="flex items-center gap-1 rounded-md border border-border/70 bg-card px-2 py-1 shadow-sm w-4/5">
+              <div className="flex items-center gap-1 rounded-lg border border-border/60 bg-card px-2 py-1 shadow-sm w-4/5">
                 <div className="h-2.5 w-2 rounded-sm bg-muted-foreground/20" />
                 <div className="h-2.5 flex-1 rounded bg-muted/60 animate-pulse" />
               </div>
@@ -587,7 +587,7 @@ const DayCellInner = ({
           medarbejdere), helt tomme dage og fortid. */}
       {capacity && capacity.minutes_capacity > 0 && inMonth && !isPast && (
         <div
-          className="absolute bottom-0 left-0 right-0 h-1.5 bg-muted/30 overflow-hidden group/cap rounded-b-lg ring-1 ring-inset ring-border/20"
+          className="absolute bottom-0 left-0 right-0 h-1.5 bg-muted/25 overflow-hidden group/cap rounded-b-lg"
           title={`Belastning: ${Math.round(capacity.load_pct)}% — ${Math.round(capacity.minutes_booked / 60 * 10) / 10} af ${Math.round(capacity.minutes_capacity / 60)} timer booket`}
           aria-label={`Dagens belastning: ${Math.round(capacity.load_pct)} procent`}
         >
@@ -763,8 +763,8 @@ const RoutePillInner = ({
         onSelect();
       }}
       className={cn(
-        "relative rounded-md border-l-[3px] cursor-pointer overflow-hidden bg-card",
-        "border border-border/70 shadow-[0_1px_2px_hsl(var(--foreground)/0.05)] transition-[transform,box-shadow,border-color,opacity] duration-200 ease-out hover:-translate-y-[1px] hover:shadow-[0_6px_14px_-5px_hsl(var(--foreground)/0.18)] hover:border-foreground/25",
+        "relative rounded-lg border-l-[3px] cursor-pointer overflow-hidden bg-card",
+        "border border-border/60 shadow-[0_1px_2px_hsl(var(--foreground)/0.04)] transition-[transform,box-shadow,border-color,opacity] duration-200 ease-out hover:-translate-y-[1.5px] hover:shadow-[0_8px_18px_-6px_hsl(var(--foreground)/0.22)] hover:border-foreground/20",
         isDragging && "opacity-40",
         isVirtual && "border-dashed",
         isPast && "opacity-50 saturate-50 hover:opacity-90",
@@ -963,7 +963,7 @@ const RoutePillInner = ({
       {/* Kapacitets-bar: tynd stribe der viser belastning. Skjul ved 0 stops. */}
       {stopCount > 0 && (
         <div
-          className="h-1 w-full bg-muted/30 overflow-hidden ring-1 ring-inset ring-border/20"
+          className="h-1 w-full bg-muted/25 overflow-hidden"
           title={`Belastning ${loadPct}% — ${Math.round(workMin / 60 * 10) / 10} t af ~${Math.round(capacityMin / 60)} t (${empCount} medarbejder${empCount === 1 ? "" : "e"})`}
           aria-label={`Belastning ${loadPct} procent`}
         >
