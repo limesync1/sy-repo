@@ -299,18 +299,27 @@ const SortableStopRow = ({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group rounded-lg border bg-card transition-shadow overflow-hidden",
-        isDragging ? "shadow-lg opacity-80 ring-2 ring-accent" : "hover:shadow-sm hover:border-foreground/20",
+        "group relative rounded-xl border border-border/60 bg-card overflow-hidden",
+        "shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-[box-shadow,transform,border-color] duration-200 ease-out",
+        isDragging
+          ? "shadow-xl opacity-90 ring-2 ring-accent scale-[1.01]"
+          : "hover:-translate-y-[1px] hover:shadow-[0_6px_14px_-6px_rgba(0,0,0,0.12)] hover:border-border",
       )}
     >
-      <div className="grid min-h-[2.25rem] grid-cols-[1.25rem_2rem_minmax(0,1fr)] sm:min-h-[2.5rem] sm:grid-cols-[1.5rem_2.25rem_minmax(0,1fr)_auto]">
+      {/* Tynd accent-stribe i venstre kant i rutens farve — binder kortet visuelt til kalender-pillen */}
+      <span
+        aria-hidden
+        className="absolute left-0 top-0 bottom-0 w-[3px]"
+        style={{ background: color }}
+      />
+      <div className="grid min-h-[2.5rem] grid-cols-[1.25rem_2.25rem_minmax(0,1fr)] sm:min-h-[3rem] sm:grid-cols-[1.5rem_2.5rem_minmax(0,1fr)_auto] pl-[3px]">
         {/* Drag handle — skjult på projicerede ruter (read-only) */}
         {!isProjection ? (
           <button
             type="button"
             {...attributes}
             {...listeners}
-            className="flex items-center justify-center px-1 cursor-grab active:cursor-grabbing text-muted-foreground/60 hover:text-foreground hover:bg-secondary/60 sm:px-1.5"
+            className="flex items-center justify-center px-1 cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-foreground hover:bg-secondary/60 transition-colors sm:px-1.5"
             aria-label="Træk for at omrangere"
           >
             <GripVertical className="h-4 w-4" />
@@ -325,19 +334,22 @@ const SortableStopRow = ({
           </span>
         )}
 
-        {/* Sekvens-nummer — rutens farve gør hvert stop nemt at koble til kalender/kort. */}
-        <div
-          className="flex items-center justify-center w-7 text-[11px] font-bold text-white tabular-nums shrink-0 sm:w-8 sm:text-xs"
-          style={{ background: color }}
-        >
-          {index}
+        {/* Sekvens-nummer — rund "chip" i rutens farve. Roundet og elevated i stedet for flad firkant. */}
+        <div className="flex items-center justify-center shrink-0 self-center">
+          <span
+            className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[12px] font-bold text-white tabular-nums shadow-[0_1px_3px_rgba(0,0,0,0.18)] ring-2 ring-card sm:h-8 sm:w-8 sm:text-sm"
+            style={{ background: color }}
+            aria-label={`Stop ${index}`}
+          >
+            {index}
+          </span>
         </div>
 
         {/* Content — clickable */}
         <button
           type="button"
           onClick={onSelect}
-          className="min-w-0 text-left px-2 py-1 hover:bg-accent/5 space-y-0.5 sm:px-2.5 sm:py-1.5 sm:space-y-0.5"
+          className="min-w-0 text-left px-2.5 py-2 hover:bg-accent/[0.04] transition-colors space-y-0.5 sm:px-3 sm:py-2"
         >
           {/* Header: kundenavn (primær) + medarbejder-avatars + åbn-pil */}
           <div className="flex items-center gap-1.5">
