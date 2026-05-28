@@ -5549,6 +5549,12 @@ const Planner = () => {
           })()}
           open={!!selectedStopId}
           onOpenChange={(o) => !o && setSelectedStopId(null)}
+          onRouteDeleted={() => {
+            // Rutens sidste aftale blev fjernet — luk også rute-panelet.
+            setEditingRoute(null);
+            setEditingProjectedContext(null);
+            setSelectedStopId(null);
+          }}
           effectiveDate={(() => {
             // Projicerede klik: brug forekomstens dato fra editingProjectedContext.
             if (editingProjectedContext?.projectedDate) {
