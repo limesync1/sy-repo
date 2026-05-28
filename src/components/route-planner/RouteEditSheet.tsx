@@ -862,6 +862,7 @@ export const RouteEditSheet = ({
               <Section
                 icon={<Wallet className="h-3.5 w-3.5" />}
                 title="Omsætning"
+                tone="emerald"
                 hint={`${stops.length} ${stops.length === 1 ? "aftale" : "aftaler"}`}
               >
                 <RouteRevenueBreakdown
