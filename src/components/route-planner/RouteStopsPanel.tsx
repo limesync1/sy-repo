@@ -52,6 +52,12 @@ type Props = {
   /** Aktive medarbejdere for virksomheden — bruges til inline assignee-picker. */
   employees: EmpAvatar[];
   /**
+   * Kaldes når rutens sidste aftale blev fjernet, og den tomme rute derved
+   * blev slettet på serveren. Forælderen bruger det til at lukke panelet —
+   * ellers ville det blive hængende og vise en rute der ikke længere findes.
+   */
+  onRouteDeleted?: () => void;
+  /**
    * Sand når panelet er åbnet via en projiceret rute-forekomst. Projicerede
    * ruter er view-only afledninger af en originalrute — at fjerne et stop
    * eller omrangere her ville mutere selve basisruten og dermed ALLE
@@ -66,7 +72,7 @@ type Props = {
 };
 
 export const RouteStopsPanel = ({
-  route, stops, open, onOpenChange, onSelectStop, employees, isProjection = false,
+  route, stops, open, onOpenChange, onSelectStop, employees, onRouteDeleted, isProjection = false,
 }: Props) => {
   const reorder = useReorderStops();
   const deleteStop = useDeleteStop();
@@ -128,6 +134,9 @@ export const RouteStopsPanel = ({
         routeDeleted: !!res?.route_deleted,
         qc,
       });
+      // Hvis det var rutens sidste aftale, blev ruten slettet — luk panelet
+      // så brugeren ikke står tilbage med en modal for en rute der er væk.
+      if (res?.route_deleted) onRouteDeleted?.();
     } catch (err: any) {
       toast.error(err.message || "Kunne ikke fjerne stop");
     }
