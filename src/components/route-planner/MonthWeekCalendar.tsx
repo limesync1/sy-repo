@@ -405,24 +405,19 @@ const DayCellInner = ({
       )}
       {/* Dato-header */}
       <div className="flex items-center justify-between mb-0.5">
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           <span
             className={cn(
-              "inline-flex items-center justify-center rounded-full text-xs font-semibold tabular-nums transition-all duration-200",
+              "inline-flex items-center justify-center rounded-full text-[12px] font-semibold tabular-nums transition-all duration-200",
               today
-                ? "h-6 w-6 bg-accent text-accent-foreground shadow-[0_2px_6px_-1px_hsl(var(--accent)/0.5)] ring-2 ring-accent/20 ring-offset-1 ring-offset-card"
-                : "h-6 w-6 text-foreground/90 group-hover:bg-secondary/60",
+                ? "h-6 w-6 bg-accent text-accent-foreground shadow-[0_2px_8px_-2px_hsl(var(--accent)/0.55)]"
+                : "h-6 w-6 text-foreground/85 group-hover:bg-secondary/70",
               !inMonth && !today && "text-muted-foreground/50",
               isPast && !today && "text-muted-foreground/60",
             )}
           >
             {format(date, "d")}
           </span>
-          {today && (
-            <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-accent">
-              I dag
-            </span>
-          )}
           {alert && inMonth && (
             <span
               className={cn(
