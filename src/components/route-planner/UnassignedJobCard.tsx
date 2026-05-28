@@ -425,7 +425,7 @@ export const UnassignedJobCard = ({
               <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border ${
                 isRecurring
                   ? "bg-primary/5 border-primary/15"
-                  : "bg-secondary/50 border-border/60"
+                  : "bg-secondary/50 border-border/70"
               }`}>
                 {isRecurring
                   ? <Repeat className="h-3 w-3 shrink-0 text-primary" />
@@ -457,7 +457,7 @@ export const UnassignedJobCard = ({
              Diskret styling så den ikke konkurrerer med auto-fordel-flowet.
          ─────────────────────────────────────────────────────────────────── */}
       {!compact && !isPending && (onSuggestRoute || job.customer_phone || itemCount > 1 || job.notes) && (
-        <div className="flex border-t border-border/60 divide-x divide-border/60 bg-card">
+        <div className="flex border-t border-border/70 divide-x divide-border/70 bg-card">
           {onSuggestRoute && (
             <button
               type="button"
@@ -487,7 +487,7 @@ export const UnassignedJobCard = ({
       )}
 
       {expanded && (
-        <div className="px-2.5 pb-2.5 pt-2 space-y-1.5 border-t border-border/60 bg-secondary/25">
+        <div className="px-2.5 pb-2.5 pt-2 space-y-1.5 border-t border-border/70 bg-secondary/25">
           {job.customer_phone && (
             <a
               href={`tel:${job.customer_phone}`}
@@ -514,7 +514,7 @@ export const UnassignedJobCard = ({
             </div>
           )}
           {job.notes && (
-            <div className="flex items-start gap-1.5 text-[11px] text-foreground/70 italic bg-background rounded-md border border-border/60 px-2 py-1.5">
+            <div className="flex items-start gap-1.5 text-[11px] text-foreground/70 italic bg-background rounded-md border border-border/70 px-2 py-1.5">
               <StickyNote className="h-3 w-3 shrink-0 mt-0.5 text-muted-foreground" />
               <span className="leading-snug">{job.notes}</span>
             </div>
