@@ -103,7 +103,7 @@ export const EmployeeColumn = ({
       {stops.length >= 1 && (onOptimize || onDispatch) && (
         <div className="flex gap-1.5 mb-3">
           {onOptimize && stops.length >= 2 && (
-            <Button size="sm" variant="outline" className="flex-1 h-8 text-xs gap-1 rounded-md border-border/70 hover:border-accent/60 hover:text-accent" onClick={onOptimize} disabled={optimizing} title="AI-optimér rækkefølge">
+            <Button size="sm" variant="outline" className="flex-1 h-8 text-xs gap-1 rounded-md border-border/70 hover:bg-secondary hover:text-foreground" onClick={onOptimize} disabled={optimizing} title="AI-optimér rækkefølge">
               {optimizing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
               Optimér
             </Button>
