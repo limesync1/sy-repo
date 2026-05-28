@@ -170,6 +170,19 @@ export const MonthWeekCalendar = ({
   }, [routes]);
 
   const weekdayLabels = ["Man", "Tir", "Ons", "Tor", "Fre", "Lør", "Søn"];
+  // Indeks (0–6) for "i dag" i mandags-uge — bruges til at fremhæve dagens
+  // kolonne i header'en så brugerens øje straks finder den rigtige spalte.
+  const todayDow = (() => {
+    const now = new Date();
+    if (view === "month" && !isSameMonth(now, anchor)) return -1;
+    if (view === "week") {
+      const start = startOfWeek(anchor, { weekStartsOn: 1 });
+      const end = addDays(start, 6);
+      if (now < start || now > end) return -1;
+    }
+    const d = now.getDay(); // 0=Sun..6=Sat
+    return d === 0 ? 6 : d - 1;
+  })();
 
   return (
     <Card className="overflow-hidden flex flex-col h-full rounded-lg border-border/70 bg-card shadow-[0_2px_10px_-6px_hsl(var(--foreground)/0.18)]">
@@ -183,15 +196,23 @@ export const MonthWeekCalendar = ({
         </div>
         {weekdayLabels.map((wd, i) => {
           const isWeekend = i >= 5;
+          const isTodayCol = i === todayDow;
           return (
             <div
               key={wd}
               className={cn(
-                "p-2 text-[10px] font-semibold tracking-[0.18em] uppercase text-center border-r border-border/70 last:border-r-0",
+                "p-2 text-[10px] font-semibold tracking-[0.18em] uppercase text-center border-r border-border/70 last:border-r-0 relative",
                 isWeekend ? "text-muted-foreground/45" : "text-muted-foreground/75",
+                isTodayCol && "text-foreground bg-foreground/[0.04]",
               )}
             >
               {wd}
+              {isTodayCol && (
+                <span
+                  aria-hidden
+                  className="absolute left-1/2 -translate-x-1/2 bottom-0 h-[2px] w-6 rounded-full bg-foreground"
+                />
+              )}
             </div>
           );
         })}
@@ -207,8 +228,8 @@ export const MonthWeekCalendar = ({
               style={{ gridTemplateColumns: "44px repeat(7, minmax(0, 1fr))" }}
             >
               {/* Ugenummer */}
-              <div className="border-r border-border/70 bg-secondary/15 flex items-start justify-center pt-3 text-[10.5px] font-semibold text-muted-foreground/60 tabular-nums">
-                <span className="inline-flex items-center justify-center min-w-[22px] h-[20px] px-1 rounded text-muted-foreground/65">
+              <div className="border-r border-border/70 bg-secondary/20 flex items-start justify-center pt-3 tabular-nums">
+                <span className="inline-flex items-center justify-center min-w-[24px] h-[22px] px-1 rounded-md text-[11.5px] font-bold leading-none text-muted-foreground/70 bg-background/60 ring-1 ring-border/50">
                   {weekNum}
                 </span>
               </div>
@@ -349,7 +370,7 @@ const DayCellInner = ({
         !inMonth && "bg-muted/10",
         inMonth && isWeekend && !isPast && "bg-secondary/[0.12]",
         isPast && "bg-muted/15",
-        today && "bg-foreground/[0.03]",
+        today && "bg-foreground/[0.045] ring-1 ring-inset ring-foreground/15 shadow-[inset_0_2px_0_0_hsl(var(--foreground))]",
         inMonth && !isPast && !isDragActive && "hover:bg-secondary/30",
         // Når en aftale/rute trækkes:
         //  - Gyldige drop-dage (i måneden, ikke fortid, ikke optaget) får
@@ -458,9 +479,9 @@ const DayCellInner = ({
             // cellen er klikbar — uden at + tegnet konkurrerer med
             // selve indholdet i kalenderen. Tydeligere på direkte hover.
             className={cn(
-              "h-6 w-6 inline-flex items-center justify-center rounded-md border border-transparent transition-all focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 hover:bg-secondary hover:text-foreground",
+              "h-6 w-6 inline-flex items-center justify-center rounded-md border border-transparent transition-all focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 hover:bg-foreground hover:text-background hover:border-foreground hover:shadow-sm",
               emptyDay && inMonth && !isPast
-                ? "opacity-25 text-muted-foreground/70 group-hover:opacity-100 group-hover:text-foreground"
+                ? "opacity-0 text-muted-foreground/80 group-hover:opacity-100"
                 : "opacity-0 group-hover:opacity-90 text-muted-foreground",
             )}
             aria-label={`Opret rute den ${format(date, "d. MMMM", { locale: da })}`}
