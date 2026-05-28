@@ -344,12 +344,13 @@ const DayCellInner = ({
       ref={setNodeRef}
       data-route-drop-date={canReceiveDrop ? dateStr : undefined}
       className={cn(
-        "border-r border-border/50 last:border-r-0 relative group flex flex-col gap-1 p-1.5 transition-all duration-200",
+        "border-r border-border/50 last:border-r-0 relative group flex flex-col gap-1 p-2 transition-all duration-200",
         compact ? "min-h-[110px]" : "min-h-[160px]",
-        !inMonth && "bg-secondary/10",
-        inMonth && isWeekend && !isPast && "bg-secondary/[0.06]",
-        isPast && "bg-muted/15",
-        inMonth && !isPast && !isDragActive && "hover:bg-secondary/20",
+        !inMonth && "bg-muted/10",
+        inMonth && isWeekend && !isPast && "bg-secondary/[0.05]",
+        isPast && "bg-muted/20",
+        today && "bg-accent/[0.04]",
+        inMonth && !isPast && !isDragActive && "hover:bg-secondary/25",
         // Når en aftale/rute trækkes:
         //  - Gyldige drop-dage (i måneden, ikke fortid, ikke optaget) får
         //    en subtil accent-ring så brugeren ser hvor der KAN droppes.
@@ -406,14 +407,14 @@ const DayCellInner = ({
         </div>
       )}
       {/* Dato-header */}
-      <div className="flex items-center justify-between mb-0.5">
+      <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-1">
           <span
             className={cn(
-              "inline-flex items-center justify-center rounded-full text-[12px] font-semibold tabular-nums transition-all duration-200",
+              "inline-flex items-center justify-center rounded-full text-[12.5px] font-semibold tabular-nums transition-all duration-200",
               today
-                ? "h-6 w-6 bg-accent text-accent-foreground shadow-[0_2px_8px_-2px_hsl(var(--accent)/0.55)]"
-                : "h-6 w-6 text-foreground/85 group-hover:bg-secondary/70",
+                ? "h-7 w-7 bg-accent text-accent-foreground shadow-[0_2px_8px_-2px_hsl(var(--accent)/0.6)] ring-2 ring-accent/15"
+                : "h-7 w-7 text-foreground/85 group-hover:bg-secondary/70",
               !inMonth && !today && "text-muted-foreground/50",
               isPast && !today && "text-muted-foreground/60",
             )}
