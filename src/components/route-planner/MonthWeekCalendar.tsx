@@ -764,7 +764,7 @@ const RoutePillInner = ({
       }}
       className={cn(
         "relative rounded-md border-l-[3px] cursor-pointer overflow-hidden bg-card",
-        "border border-border/70 shadow-[0_1px_2px_hsl(var(--foreground)/0.05)] transition-[transform,box-shadow,border-color,opacity] duration-200 ease-out hover:-translate-y-[1px] hover:shadow-[0_6px_14px_-5px_hsl(var(--foreground)/0.18)] hover:border-foreground/25",
+        "border border-border/60 shadow-[0_1px_2px_hsl(var(--foreground)/0.04)] transition-[transform,box-shadow,border-color,opacity] duration-200 ease-out hover:-translate-y-[1.5px] hover:shadow-[0_8px_18px_-6px_hsl(var(--foreground)/0.22)] hover:border-foreground/20",
         isDragging && "opacity-40",
         isVirtual && "border-dashed",
         isPast && "opacity-50 saturate-50 hover:opacity-90",
