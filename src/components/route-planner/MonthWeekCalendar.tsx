@@ -567,18 +567,18 @@ const DayCellInner = ({
           medarbejdere), helt tomme dage og fortid. */}
       {capacity && capacity.minutes_capacity > 0 && inMonth && !isPast && (
         <div
-          className="absolute bottom-0 left-0 right-0 h-1 bg-muted/40 overflow-hidden group/cap"
+          className="absolute bottom-0 left-0 right-0 h-1.5 bg-muted/30 overflow-hidden group/cap rounded-b-[3px]"
           title={`Belastning: ${Math.round(capacity.load_pct)}% — ${Math.round(capacity.minutes_booked / 60 * 10) / 10} af ${Math.round(capacity.minutes_capacity / 60)} timer booket`}
           aria-label={`Dagens belastning: ${Math.round(capacity.load_pct)} procent`}
         >
           <div
             className={cn(
-              "h-full transition-all duration-500 rounded-r-full",
+              "h-full transition-all duration-500 rounded-r-full relative",
               capacity.load_pct >= 100
-                ? "bg-destructive shadow-[0_0_6px_hsl(var(--destructive)/0.5)]"
+                ? "bg-gradient-to-r from-destructive/80 to-destructive shadow-[0_0_8px_hsl(var(--destructive)/0.55)]"
                 : capacity.load_pct >= 70
-                ? "bg-amber-500"
-                : "bg-emerald-500/80",
+                ? "bg-gradient-to-r from-amber-400 to-amber-500"
+                : "bg-gradient-to-r from-emerald-400/70 to-emerald-500/85",
             )}
             style={{ width: `${Math.min(100, capacity.load_pct)}%` }}
           />
