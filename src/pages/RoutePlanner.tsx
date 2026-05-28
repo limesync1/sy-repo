@@ -3881,24 +3881,24 @@ const Planner = () => {
         contentPadding={false}
         contentClassName="flex flex-col overflow-hidden"
         topbarRight={
-          <div className="hidden 2xl:flex items-center gap-1.5 flex-wrap justify-end">
+          <div className="hidden 2xl:flex items-center gap-2 flex-wrap justify-end">
             {/* Slank topbar: kun de handlinger der bruges dagligt ligger frit fremme.
                 Print, tidslinje, planlægning, opret bestilling, tæthed, tema og
                 genveje er flyttet ind i "Mere"-menuen for at reducere visuel støj. */}
             {periodSummary.routeCount > 0 && (
-              <div className="hidden md:inline-flex items-center gap-2 h-7 px-2.5 rounded-md bg-secondary/60 border border-border/60 text-[11px] tabular-nums">
-                <span className="font-semibold text-foreground">{periodSummary.routeCount}</span>
+              <div className="hidden md:inline-flex items-center gap-1.5 h-7 px-3 rounded-full bg-secondary/60 border border-border/60 text-[11px] tabular-nums shadow-[inset_0_1px_0_rgba(255,255,255,0.4)]">
+                <span className="font-bold text-foreground">{periodSummary.routeCount}</span>
                 <span className="text-muted-foreground">{periodSummary.routeCount === 1 ? "rute" : "ruter"}</span>
-                <span className="text-border">·</span>
-                <span className="font-semibold text-foreground">{periodSummary.stopCount}</span>
+                <span className="h-3 w-px bg-border" />
+                <span className="font-bold text-foreground">{periodSummary.stopCount}</span>
                 <span className="text-muted-foreground">stop</span>
               </div>
             )}
 
             <Tabs value={view} onValueChange={(v) => setView(v as any)}>
-              <TabsList className="h-7">
-                <TabsTrigger value="month" className="text-xs h-5 px-2">Måned</TabsTrigger>
-                <TabsTrigger value="week" className="text-xs h-5 px-2">Uge</TabsTrigger>
+              <TabsList className="h-7 p-0.5">
+                <TabsTrigger value="month" className="text-[11px] font-semibold h-6 px-2.5 rounded-md">Måned</TabsTrigger>
+                <TabsTrigger value="week" className="text-[11px] font-semibold h-6 px-2.5 rounded-md">Uge</TabsTrigger>
               </TabsList>
             </Tabs>
 
@@ -3906,14 +3906,19 @@ const Planner = () => {
             <Popover>
               <PopoverTrigger asChild>
                 <Button
-                  variant={filtersActive ? "default" : "outline"}
+                  variant="outline"
                   size="sm"
-                  className="h-7 gap-1.5"
+                  className={cn(
+                    "h-7 gap-1.5 rounded-lg border-border/60 transition-colors",
+                    filtersActive
+                      ? "border-accent/60 bg-accent/[0.08] text-accent hover:bg-accent/[0.12]"
+                      : "hover:border-border hover:text-foreground"
+                  )}
                 >
                   <Filter className="h-3.5 w-3.5" />
                   Filtre
                   {filtersActive && (
-                    <Badge variant="secondary" className="h-4 px-1 text-[10px] tabular-nums">
+                    <Badge className="h-4 min-w-[16px] px-1 text-[10px] font-bold tabular-nums bg-accent text-accent-foreground border-0 rounded-full">
                       {filterAssigneeIds.length + filterStatuses.length}
                     </Badge>
                   )}
@@ -4009,11 +4014,11 @@ const Planner = () => {
               </PopoverContent>
             </Popover>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-0.5 rounded-lg border border-border/60 bg-background p-0.5">
               <Button
-                variant="outline"
+                variant="ghost"
                 size="icon"
-                className="h-7 w-7"
+                className="h-6 w-6 rounded-md hover:bg-secondary"
                 onClick={() =>
                   setDate(format(view === "week" ? addWeeks(parseISO(date), -1) : addMonths(parseISO(date), -1), "yyyy-MM-dd"))
                 }
@@ -4025,7 +4030,7 @@ const Planner = () => {
                 <PopoverTrigger asChild>
                   <button
                     type="button"
-                    className="text-xs font-medium capitalize min-w-[110px] text-center tabular-nums px-2 h-7 rounded-md hover:bg-secondary focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                    className="text-[13px] font-semibold capitalize min-w-[140px] text-center tabular-nums px-2.5 h-6 rounded-md hover:bg-secondary tracking-tight focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                     aria-label="Vælg dato"
                     title="Spring til specifik dato"
                   >
@@ -4047,9 +4052,9 @@ const Planner = () => {
                 </PopoverContent>
               </Popover>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="icon"
-                className="h-7 w-7"
+                className="h-6 w-6 rounded-md hover:bg-secondary"
                 onClick={() =>
                   setDate(format(view === "week" ? addWeeks(parseISO(date), 1) : addMonths(parseISO(date), 1), "yyyy-MM-dd"))
                 }
@@ -4057,8 +4062,16 @@ const Planner = () => {
               >
                 <ChevronRight className="h-3.5 w-3.5" />
               </Button>
-              <Button data-tour="routes-today" variant="outline" size="sm" className="h-7" onClick={() => setDate(todayStr())}>I dag</Button>
             </div>
+            <Button
+              data-tour="routes-today"
+              variant="outline"
+              size="sm"
+              className="h-7 text-[11px] font-semibold rounded-lg border-border/60 hover:border-accent/60 hover:text-accent"
+              onClick={() => setDate(todayStr())}
+            >
+              I dag
+            </Button>
 
             <PlanningPanel
               businessId={businessId}
@@ -4199,17 +4212,25 @@ const Planner = () => {
                       title="Farve"
                       hint={ROUTE_COLORS.find((c) => c.value === newRouteColor)?.name || "Brugerdefineret"}
                     >
-                      <div className="grid grid-cols-12 gap-1.5">
+                      <div className="grid grid-cols-12 gap-2">
                         {ROUTE_COLORS.map((c) => (
                           <button
                             key={c.value}
                             type="button"
                             onClick={() => setNewRouteColor(c.value)}
                             title={c.name}
-                            className={`relative aspect-square rounded transition-all hover:scale-110 ring-offset-1 ring-offset-background ${newRouteColor === c.value ? "ring-2 ring-foreground shadow-sm" : "hover:ring-1 hover:ring-foreground/30"}`}
+                            className={`relative aspect-square rounded-md transition-all duration-150 hover:scale-110 ring-offset-2 ring-offset-background shadow-[0_1px_2px_rgba(0,0,0,0.08)] ${
+                              newRouteColor === c.value
+                                ? "ring-2 ring-foreground scale-105 shadow-[0_3px_8px_-2px_rgba(0,0,0,0.25)]"
+                                : "hover:ring-2 hover:ring-foreground/40"
+                            }`}
                             style={{ background: c.value }}
                             aria-label={`Vælg farve ${c.name}`}
-                          />
+                          >
+                            {newRouteColor === c.value && (
+                              <Check className="absolute inset-0 m-auto h-3.5 w-3.5 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]" />
+                            )}
+                          </button>
                         ))}
                       </div>
                     </Section>
@@ -4344,30 +4365,32 @@ const Planner = () => {
                      selectedJobIds.size > 0 && "ring-1 ring-accent/60 shadow-[0_10px_28px_-12px_hsl(var(--accent)/0.5)]",
                    )}
                  >
-                   <div className="relative px-3 pt-3 pb-2.5 border-b border-border/60 bg-gradient-to-b from-secondary/40 via-secondary/15 to-card space-y-2.5">
+                   <div className="relative px-3 pt-3 pb-2.5 border-b border-border/60 bg-gradient-to-b from-secondary/40 via-secondary/15 to-card space-y-2">
                     <div aria-hidden className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-accent/70 via-accent/30 to-transparent" />
                     <div className="flex items-center gap-2 pr-10 xl:pr-0">
-                      <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-foreground/5 ring-1 ring-border/60 shrink-0">
-                        <Inbox className="h-3.5 w-3.5 text-foreground/70" />
+                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-foreground/[0.06] ring-1 ring-border/60 shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]">
+                        <Inbox className="h-3.5 w-3.5 text-foreground/80" />
                       </span>
-                      <h2 className="font-semibold text-sm leading-tight text-foreground truncate flex-1 tracking-tight">
-                        Aftaler uden rute
-                      </h2>
+                      <div className="flex-1 min-w-0">
+                        <h2 className="font-semibold text-[13px] leading-tight text-foreground truncate tracking-tight">
+                          Aftaler uden rute
+                        </h2>
+                        {filteredUnassigned.length > 0 ? (
+                          <p className="text-[10.5px] text-muted-foreground leading-tight mt-0.5 truncate">
+                            <span className="tabular-nums font-semibold text-foreground/80">{Math.round(unassignedTotal).toLocaleString("da-DK")} kr</span> samlet
+                          </p>
+                        ) : (
+                          <p className="text-[10.5px] text-muted-foreground leading-tight mt-0.5 truncate">
+                            Træk aftaler ind i kalenderen
+                          </p>
+                        )}
+                      </div>
                       {filteredUnassigned.length > 0 && (
-                        <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-foreground text-background text-[11px] font-bold tabular-nums shrink-0 shadow-sm">
+                        <span className="inline-flex items-center justify-center min-w-[24px] h-6 px-2 rounded-full bg-foreground text-background text-[11px] font-bold tabular-nums shrink-0 shadow-[0_2px_6px_-2px_rgba(0,0,0,0.3)]">
                           {filteredUnassigned.length}
                         </span>
                       )}
                     </div>
-                    {filteredUnassigned.length > 0 ? (
-                      <p className="text-[11px] text-muted-foreground -mt-1">
-                        <span className="tabular-nums font-medium text-foreground">{Math.round(unassignedTotal).toLocaleString("da-DK")} kr</span> samlet · træk ind i kalenderen
-                      </p>
-                    ) : (
-                      <p className="text-[11px] text-muted-foreground -mt-1">
-                        Træk aftaler ind i kalenderen for at planlægge
-                      </p>
-                    )}
                     <div className="relative">
                       <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                       <Input
