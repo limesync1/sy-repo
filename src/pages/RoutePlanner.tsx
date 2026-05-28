@@ -4995,7 +4995,7 @@ const Planner = () => {
                     >
                       <ChevronRight className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs font-semibold rounded-md border-border/70 hover:border-accent/60 hover:text-accent" onClick={() => setDate(todayStr())}>
+                    <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs font-semibold rounded-md border-border/70 hover:bg-secondary hover:text-foreground" onClick={() => setDate(todayStr())}>
                       I dag
                     </Button>
                     <Tabs value={view} onValueChange={(v) => setView(v as any)}>

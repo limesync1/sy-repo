@@ -479,7 +479,7 @@ const ColumnHeader = ({ col }: { col: CalendarColumn }) => {
             <Button
               size="sm"
               variant="outline"
-              className="h-6 text-[10px] gap-1 px-1.5 flex-1 border-border/70 hover:border-accent/60 hover:bg-accent/10 hover:text-accent active:scale-[0.97] transition-[background-color,color,border-color,transform] duration-150"
+              className="h-6 text-[10px] gap-1 px-1.5 flex-1 border-border/70 hover:bg-secondary hover:text-foreground active:scale-[0.97] transition-[background-color,color,border-color,transform] duration-150"
               onClick={col.onAutoAssign}
               disabled={col.autoAssigning}
               title={`Fordel ${unassignedCount} utildelte stops jævnt mellem medarbejdere`}
@@ -492,7 +492,7 @@ const ColumnHeader = ({ col }: { col: CalendarColumn }) => {
             <Button
               size="sm"
               variant="outline"
-              className="h-6 text-[10px] gap-1 px-1.5 flex-1 border-border/70 hover:border-accent/60 hover:bg-accent/10 hover:text-accent active:scale-[0.97] transition-[background-color,color,border-color,transform] duration-150"
+              className="h-6 text-[10px] gap-1 px-1.5 flex-1 border-border/70 hover:bg-secondary hover:text-foreground active:scale-[0.97] transition-[background-color,color,border-color,transform] duration-150"
               onClick={col.onOptimize}
               disabled={col.optimizing}
               title="Optimerer rækkefølgen for hver medarbejder på denne rute, baseret på live trafik"

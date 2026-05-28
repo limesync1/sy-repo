@@ -175,7 +175,7 @@ export const PlanningPanel = ({
         <Button
           variant="outline"
           size="sm"
-          className="h-8 gap-1.5 rounded-md border-border/70 font-semibold hover:border-accent/60 hover:text-accent transition-colors"
+          className="h-8 gap-1.5 rounded-md border-border/70 font-semibold hover:bg-secondary hover:text-foreground transition-colors"
           title="Overblik over uge, kapacitet og uplanlagte aftaler"
         >
           <BarChart3 className="h-3.5 w-3.5" />
