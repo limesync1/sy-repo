@@ -17,6 +17,7 @@ import type { Route, RouteStop } from "@/hooks/useRoutes";
 import { WeatherBadge } from "./WeatherBadge";
 import type { WeatherDay } from "@/hooks/useWeather";
 import { Skeleton } from "@/components/ui/skeleton";
+import EmptyState from "./EmptyState";
 import { memo, useMemo } from "react";
 import type { CalendarRoute } from "./MonthWeekCalendar";
 import { useTargetValidation, ringForSeverity, chipBgForSeverity } from "./drag-validation-context";
@@ -149,10 +150,11 @@ export const AgendaCalendar = ({
         </div>
       ))}
       {grouped.length === 0 && (
-        <div className="flex flex-col items-center justify-center gap-2 px-6 py-12 text-center">
-          <Inbox className="h-8 w-8 text-muted-foreground" />
-          <p className="text-xs text-muted-foreground">Ingen dage at vise i denne periode.</p>
-        </div>
+        <EmptyState
+          icon={<Inbox className="h-5 w-5" />}
+          title="Ingen planlagte dage"
+          description="Der er ingen ruter i denne periode endnu. Skift periode, eller træk en aftale ind på en dag for at komme i gang."
+        />
       )}
     </div>
   );
