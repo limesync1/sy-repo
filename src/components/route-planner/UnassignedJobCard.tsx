@@ -273,7 +273,7 @@ export const UnassignedJobCard = ({
       ref={setNodeRef}
       {...(isPending ? {} : listeners)}
       {...(isPending ? {} : attributes)}
-      style={{ opacity: isDragging ? 0.4 : 1 }}
+      style={isDragging ? { opacity: 0.45 } : undefined}
       aria-label={isPending
         ? `${job.customer_name} — afventer kundens godkendelse`
         : `${job.customer_name} — træk for at planlægge, klik for detaljer`}
@@ -281,7 +281,9 @@ export const UnassignedJobCard = ({
         CARD_BASE,
         "flex",
         isPending ? "" : "cursor-grab active:cursor-grabbing touch-none",
-        isPending
+        isDragging
+          ? "border-dashed border-accent/60 bg-secondary/30 shadow-none ring-0"
+          : isPending
           ? "border-amber-300/60"
           : selected
             ? CARD_SELECTED
