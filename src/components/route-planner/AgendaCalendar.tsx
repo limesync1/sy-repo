@@ -448,7 +448,7 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
         </div>
         <div className="mt-0.5 flex items-center gap-2 text-[10px] text-muted-foreground tabular-nums">
           <span className="inline-flex items-center gap-0.5"><MapPin className="h-2.5 w-2.5" />{stopCount} stop</span>
-          {completedCount > 0 && <span className="text-emerald-600">{completedCount}✓</span>}
+          {completedCount > 0 && <span className="text-emerald-600 dark:text-emerald-400">{completedCount}✓</span>}
           {(route as any).planned_start_time && (
             <span>kl. {String((route as any).planned_start_time).slice(0,5)}</span>
           )}

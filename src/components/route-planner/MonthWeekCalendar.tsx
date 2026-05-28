@@ -890,7 +890,7 @@ const RoutePillInner = ({
                 <MapPin className="h-3 w-3" />
                 <span>
                   {completedCount > 0 && (
-                    <span className="text-emerald-600 font-semibold">{completedCount}/</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{completedCount}/</span>
                   )}
                   {stopCount} {stopCount === 1 ? "stop" : "stop"}
                 </span>

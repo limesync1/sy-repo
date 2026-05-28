@@ -270,7 +270,7 @@ const RoutePlannerDesktopOnly = () => {
               </span>
               <span className={cn(
                 "inline-flex items-center gap-1 shrink-0 text-xs font-medium transition-colors",
-                copied ? "text-emerald-600" : "text-foreground group-hover:text-accent",
+                copied ? "text-emerald-600 dark:text-emerald-400" : "text-foreground group-hover:text-accent",
               )}>
                 {copied ? <><Check className="h-3.5 w-3.5" />Kopieret</> : <><Copy className="h-3.5 w-3.5" />Kopiér</>}
               </span>
@@ -5840,13 +5840,13 @@ const Planner = () => {
                       </div>
                       <div className="flex items-center justify-between">
                         <span>Efter optimering</span>
-                        <span className="font-semibold text-emerald-600">
+                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                           ≈ {pendingOptimizePrompt.estimate.suggestedKm} km
                         </span>
                       </div>
                       <div className="mt-1 border-t pt-1 flex items-center justify-between text-xs">
                         <span>Besparelse</span>
-                        <span className="font-semibold text-emerald-600">
+                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                           {pendingOptimizePrompt.estimate.savingsKm} km ({pendingOptimizePrompt.estimate.savingsPct}%)
                         </span>
                       </div>
