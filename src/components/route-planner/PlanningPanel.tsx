@@ -398,7 +398,7 @@ const LegendDot = ({ color, label }: { color: string; label: string }) => (
 );
 
 const MiniStat = ({ label, value }: { label: string; value: string }) => (
-  <div className="rounded-lg border border-border/70 bg-card px-2.5 py-2.5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:border-foreground/25 hover:shadow-[0_6px_14px_-6px_hsl(var(--foreground)/0.18)] transition-all">
+  <div className="rounded-lg border border-border/70 bg-card px-2.5 py-2.5 shadow-[0_1px_2px_hsl(var(--foreground)/0.03)] hover:border-foreground/25 hover:shadow-[0_6px_14px_-6px_hsl(var(--foreground)/0.18)] transition-all">
     <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">{label}</p>
     <p className="mt-0.5 text-base font-bold tabular-nums text-foreground tracking-tight">{value}</p>
   </div>
@@ -432,7 +432,7 @@ const EmployeeAvatarChip = ({ employee }: { employee: PlanningPanelEmployee }) =
   }
   return (
     <span
-      className="inline-flex h-5 w-5 items-center justify-center rounded-full ring-1 ring-border text-white text-[9px] font-semibold"
+      className="inline-flex h-5 w-5 items-center justify-center rounded-full ring-1 ring-border text-background text-[9px] font-semibold"
       style={{ background: employee.color || "hsl(220 13% 46%)" }}
       aria-hidden
     >
