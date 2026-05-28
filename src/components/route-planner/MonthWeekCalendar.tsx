@@ -949,7 +949,7 @@ const RoutePillInner = ({
             type="button"
             onClick={(e) => { e.stopPropagation(); onOptimize(); }}
             disabled={optimizing}
-            className="shrink-0 h-6 w-6 inline-flex items-center justify-center rounded-md text-muted-foreground/65 hover:text-foreground hover:bg-secondary disabled:opacity-50 transition-colors"
+            className="shrink-0 h-6 w-6 inline-flex items-center justify-center rounded-md text-muted-foreground/65 hover:text-accent hover:bg-accent/10 active:scale-[0.92] disabled:opacity-50 transition-[background-color,color,transform] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
             aria-label="Optimér rækkefølge"
             title="Optimér rækkefølge — ændrer kun rækkefølgen, ikke medarbejdere"
           >
