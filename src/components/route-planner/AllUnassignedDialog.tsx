@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Calendar as CalIcon } from "lucide-react";
+import { Loader2, Calendar as CalIcon, Search } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { useQueryClient } from "@tanstack/react-query";
@@ -84,7 +84,15 @@ export const AllUnassignedDialog = ({
 
         <div className="max-h-[60vh] overflow-y-auto -mx-2">
           {filtered.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-8">Ingen aftaler matcher.</p>
+            <div className="flex flex-col items-center justify-center gap-2 px-6 py-10 text-center">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-secondary text-muted-foreground">
+                <Search className="h-5 w-5" />
+              </div>
+              <p className="text-sm font-semibold text-foreground">Ingen aftaler matcher</p>
+              <p className="text-xs text-muted-foreground max-w-xs">
+                {search ? "Prøv et andet søgeord." : "Der er ingen aftaler uden rute lige nu."}
+              </p>
+            </div>
           )}
           <div className="divide-y">
             {filtered.map((j) => {
