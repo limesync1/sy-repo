@@ -407,16 +407,16 @@ const DayCellInner = ({
         </div>
       )}
       {/* Dato-header */}
-      <div className="flex items-center justify-between mb-1">
+      <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-1">
           <span
             className={cn(
               "inline-flex items-center justify-center rounded-full text-[12.5px] font-semibold tabular-nums transition-all duration-200",
               today
-                ? "h-7 w-7 bg-accent text-accent-foreground shadow-[0_2px_8px_-2px_hsl(var(--accent)/0.6)] ring-2 ring-accent/15"
-                : "h-7 w-7 text-foreground/85 group-hover:bg-secondary/70",
-              !inMonth && !today && "text-muted-foreground/50",
-              isPast && !today && "text-muted-foreground/60",
+                ? "h-7 w-7 bg-accent text-accent-foreground shadow-[0_2px_8px_-2px_hsl(var(--accent)/0.6)] ring-2 ring-accent/15 font-bold"
+                : "h-6 w-6 text-foreground/90 group-hover:bg-secondary/60 group-hover:text-foreground",
+              !inMonth && !today && "text-muted-foreground/40",
+              isPast && !today && "text-muted-foreground/55",
             )}
           >
             {format(date, "d")}
@@ -530,12 +530,11 @@ const DayCellInner = ({
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); onSelectRoute(routes[MAX_VISIBLE]); }}
-                  className="inline-flex items-center gap-1 self-start text-[11px] font-semibold text-foreground bg-secondary/70 hover:bg-secondary rounded-md px-2 py-1 transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                  className="inline-flex items-center gap-1 self-start text-[10.5px] font-semibold text-muted-foreground hover:text-foreground bg-transparent hover:bg-secondary/60 border border-dashed border-border/60 hover:border-border rounded-md px-2 py-0.5 transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                   aria-label={`Vis ${overflow} flere ruter`}
                   title={routes.slice(MAX_VISIBLE).map((r) => r.name || "Rute").join(", ")}
                 >
-                  <span className="text-[10px] opacity-60">+</span>
-                  {overflow} {overflow === 1 ? "rute mere" : "ruter mere"}
+                  +{overflow} {overflow === 1 ? "rute" : "ruter"}
                 </button>
               )}
             </>
@@ -929,7 +928,7 @@ const RoutePillInner = ({
             type="button"
             onClick={(e) => { e.stopPropagation(); onOptimize(); }}
             disabled={optimizing}
-            className="shrink-0 h-6 w-6 inline-flex items-center justify-center rounded hover:bg-accent/10 text-muted-foreground hover:text-accent disabled:opacity-50 transition-colors"
+            className="shrink-0 h-5 w-5 inline-flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-accent hover:bg-accent/10 disabled:opacity-50 transition-colors"
             aria-label="Optimér rækkefølge"
             title="Optimér rækkefølge — ændrer kun rækkefølgen, ikke medarbejdere"
           >
@@ -943,12 +942,19 @@ const RoutePillInner = ({
       {/* Kapacitets-bar: tynd stribe der viser belastning. Skjul ved 0 stops. */}
       {stopCount > 0 && (
         <div
-          className="h-[3px] w-full bg-muted/40 overflow-hidden"
+          className="h-[3px] w-full bg-muted/30 overflow-hidden ring-1 ring-inset ring-border/20"
           title={`Belastning ${loadPct}% — ${Math.round(workMin / 60 * 10) / 10} t af ~${Math.round(capacityMin / 60)} t (${empCount} medarbejder${empCount === 1 ? "" : "e"})`}
           aria-label={`Belastning ${loadPct} procent`}
         >
           <div
-            className={cn("h-full transition-all duration-500 rounded-r-full", loadColor)}
+            className={cn(
+              "h-full transition-all duration-500 rounded-r-full",
+              loadPct >= 100
+                ? "bg-gradient-to-r from-destructive/80 to-destructive shadow-[0_0_6px_hsl(var(--destructive)/0.6)]"
+                : loadPct >= 85
+                ? "bg-gradient-to-r from-amber-500/80 to-amber-500"
+                : "bg-gradient-to-r from-accent/60 to-accent/80",
+            )}
             style={{ width: `${Math.min(100, loadPct)}%` }}
           />
         </div>
