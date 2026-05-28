@@ -26,3 +26,44 @@ export const CARD_DRAGGING =
 
 /** Bredde på venstre-accent-stribe — ens på tværs af alle kort. */
 export const CARD_RAIL_WIDTH = "w-1";
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Delte knap-stilarter — ét sted at definere hover/active/focus så alle
+   interaktive knapper i ruteplanlæggeren føles ens og moderne.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/** Fritstående ikon-knap (firkantet hit-area). Blød hover-flade + tydeligt
+ *  tryk-feedback (active:scale) og synligt fokus-ring kun ved tastatur. */
+export const ICON_BTN =
+  "inline-flex items-center justify-center rounded-md text-muted-foreground " +
+  "transition-[background-color,color,transform] duration-150 " +
+  "hover:bg-secondary hover:text-foreground " +
+  "active:scale-[0.92] " +
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-1 focus-visible:ring-offset-card " +
+  "disabled:opacity-40 disabled:pointer-events-none";
+
+/** Accent-variant af ikon-knappen (fx tildel/aktiv-handling). */
+export const ICON_BTN_ACCENT =
+  "inline-flex items-center justify-center rounded-md text-muted-foreground " +
+  "transition-[background-color,color,transform] duration-150 " +
+  "hover:bg-accent/10 hover:text-accent " +
+  "active:scale-[0.92] " +
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-1 focus-visible:ring-offset-card " +
+  "disabled:opacity-40 disabled:pointer-events-none";
+
+/** Destruktiv variant (fjern/slet). */
+export const ICON_BTN_DESTRUCTIVE =
+  "inline-flex items-center justify-center rounded-md text-muted-foreground " +
+  "transition-[background-color,color,transform] duration-150 " +
+  "hover:bg-destructive/10 hover:text-destructive " +
+  "active:scale-[0.92] " +
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/50 focus-visible:ring-offset-1 focus-visible:ring-offset-card " +
+  "disabled:opacity-40 disabled:pointer-events-none";
+
+/** Segment-knap i en delt række (fx kort-footer). Ingen scale (fuld-bredde),
+ *  blød hover-flade og fokus uden hård outline. */
+export const SEGMENT_BTN =
+  "inline-flex items-center justify-center gap-1.5 transition-colors duration-150 " +
+  "text-muted-foreground hover:text-foreground hover:bg-secondary/70 " +
+  "focus-visible:outline-none focus-visible:bg-secondary focus-visible:text-foreground " +
+  "active:bg-secondary";
