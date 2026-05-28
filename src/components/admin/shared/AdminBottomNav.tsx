@@ -41,12 +41,20 @@ export default function AdminBottomNav({ activeTab, routePlanningEnabled, onSele
                 type="button"
                 onClick={() => onSelect(it.key)}
                 className={cn(
-                  "flex w-full flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium transition-colors",
-                  active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+                  "relative flex w-full flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium transition-colors",
+                  active
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:text-foreground active:text-foreground",
                 )}
                 aria-current={active ? "page" : undefined}
               >
-                <Icon className={cn("h-5 w-5", active && "text-accent")} />
+                {active && (
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute inset-x-4 top-0 h-0.5 rounded-full bg-foreground"
+                  />
+                )}
+                <Icon className="h-5 w-5" />
                 <span className="leading-tight">{it.label}</span>
               </button>
             </li>
@@ -56,7 +64,7 @@ export default function AdminBottomNav({ activeTab, routePlanningEnabled, onSele
           <button
             type="button"
             onClick={onOpenMenu}
-            className="flex w-full flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+            className="flex w-full flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium text-muted-foreground transition-colors hover:text-foreground active:text-foreground"
             aria-label="Åbn fuld menu"
           >
             <Menu className="h-5 w-5" />

@@ -4552,11 +4552,11 @@ const Planner = () => {
                       </div>
                     )}
                     {(() => {
-                      // Når filteret er aktivt, taler vi om de aftaler brugeren faktisk
-                      // ser i listen — ellers er tallet i knappen forvirrende.
-                      const scope: any[] = unassignedStatusFilter === "all"
-                        ? (unassigned as any[])
-                        : (filteredUnassigned as any[]);
+                       // Tallet i auto-fordel-knappen skal altid matche det
+                       // brugeren faktisk ser i listen — ellers kan der stå
+                       // "Auto-fordel 5" uden at en eneste aftale er synlig
+                       // (når andre filtre — urgency/postnr/ydelse — gemmer dem).
+                       const scope: any[] = filteredUnassigned as any[];
                       const missing = scope.filter(
                         (j) => (j.address || j.zip_code || j.city) && (j.latitude == null || j.longitude == null),
                       ).length;
