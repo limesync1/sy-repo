@@ -438,8 +438,8 @@ const SortableStopRow = ({
           </div>
         </button>
 
-        {/* Right-side actions: assignee toggle + remove */}
-        <div className="col-span-3 flex items-stretch justify-end border-t border-border/60 bg-secondary/25 sm:col-span-1 sm:border-l sm:border-border/60 sm:border-t-0 sm:bg-transparent sm:items-center sm:gap-0.5 sm:pr-1.5">
+        {/* Right-side actions: assignee toggle + remove — fuld-højde divider */}
+        <div className="flex shrink-0 items-stretch self-stretch border-l border-border/50 bg-secondary/20">
           <AssigneeToggle
             employees={employees}
             selectedIds={assigneeIds}
@@ -450,7 +450,7 @@ const SortableStopRow = ({
             <button
               type="button"
               onClick={onRemove}
-              className="flex h-10 w-10 items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-r-xl transition-colors sm:h-8 sm:w-8 sm:rounded-md sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+              className="flex w-9 items-center justify-center text-muted-foreground/70 hover:text-destructive hover:bg-destructive/10 transition-colors sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
               aria-label="Fjern stop"
               title="Fjern stop fra rute"
             >
