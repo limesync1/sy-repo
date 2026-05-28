@@ -502,13 +502,13 @@ const DayCellInner = ({
             {/* Vis 1–2 realistiske skeleton-piller pr. dag — varieret bredde
                 så kalenderen ligner rigtigt indhold mens data hentes, og
                 layoutet ikke pop'er når ruterne lander. */}
-            <div className="flex items-center gap-1 rounded-md border border-border/70 bg-card px-2 py-1 shadow-sm">
+            <div className="flex items-center gap-1 rounded-lg border border-border/60 bg-card px-2 py-1 shadow-sm">
               <div className="h-2.5 w-2 rounded-sm bg-muted-foreground/20" />
               <div className="h-2.5 flex-1 rounded bg-muted/70 animate-pulse" />
               <div className="h-3 w-3 rounded-full bg-muted/70 animate-pulse" />
             </div>
             {!compact && (
-              <div className="flex items-center gap-1 rounded-md border border-border/70 bg-card px-2 py-1 shadow-sm w-4/5">
+              <div className="flex items-center gap-1 rounded-lg border border-border/60 bg-card px-2 py-1 shadow-sm w-4/5">
                 <div className="h-2.5 w-2 rounded-sm bg-muted-foreground/20" />
                 <div className="h-2.5 flex-1 rounded bg-muted/60 animate-pulse" />
               </div>
