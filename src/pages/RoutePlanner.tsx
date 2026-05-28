@@ -83,6 +83,7 @@ import { supabase } from "@/integrations/supabase/client";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
 import { renameFreshSplitRoutes } from "@/components/route-planner/MoveStopsDialog";
 import { dragMetrics } from "@/lib/drag-metrics";
+import { startDragAutoScroll, stopDragAutoScroll } from "@/components/route-planner/lib/drag-auto-scroll";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
 import { AdminShell } from "@/components/admin/shared/AdminShell";
 import { useWeatherForecast, type WeatherDay } from "@/hooks/useWeather";
@@ -2450,6 +2451,8 @@ const Planner = () => {
     const origin = getDragPoint(e.activatorEvent);
     activeDragOriginRef.current = origin;
     activeDragPointRef.current = origin;
+    // Auto-scroll: ruller lister/kalender når kortet trækkes mod en kant.
+    startDragAutoScroll(() => activeDragPointRef.current);
     if (data?.type === "route") {
       activeRouteDragOriginRef.current = origin;
       activeRouteDragPointRef.current = origin;
@@ -2711,6 +2714,7 @@ const Planner = () => {
     const hasDropTarget = activeDataAtDrop?.type === "route" || activeDataAtDrop?.type === "job" ? !!preferredRouteTarget : !!over;
     setActiveDragId(null);
     setActiveDragData(null);
+    stopDragAutoScroll();
     activeDragPointRef.current = null;
     activeDragOriginRef.current = null;
     setRouteDragPoint(null);
@@ -3863,6 +3867,7 @@ const Planner = () => {
         dragMetrics.end(false);
         setActiveDragId(null);
         setActiveDragData(null);
+        stopDragAutoScroll();
         activeDragPointRef.current = null;
         activeDragOriginRef.current = null;
         setRouteDragPoint(null);
