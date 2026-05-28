@@ -486,7 +486,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
 
                             {/* Customer note on this specific line */}
                             {customNote && (
-                              <p className="text-[11px] mt-2 rounded-md bg-amber-50 border border-amber-200 px-2.5 py-1.5 text-amber-900">
+                              <p className="text-[11px] mt-2 rounded-md bg-amber-50 border border-amber-200 px-2.5 py-1.5 text-amber-900 dark:bg-amber-500/10 dark:border-amber-500/25 dark:text-amber-200">
                                 <span className="font-semibold">Note:</span> {customNote}
                               </p>
                             )}

@@ -75,7 +75,7 @@ export const EmployeeColumn = ({
           <div className="flex items-center gap-1.5 flex-wrap">
             <p className="font-bold text-sm truncate tracking-tight">{label}</p>
             {isDispatched && (
-              <Badge className="h-[18px] px-1.5 text-[9px] gap-0.5 bg-emerald-100 text-emerald-700 border-0 rounded-full shadow-sm">
+              <Badge className="h-[18px] px-1.5 text-[9px] gap-0.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border-0 rounded-full shadow-sm">
                 <Send className="h-2.5 w-2.5" />Sendt
               </Badge>
             )}
@@ -187,7 +187,7 @@ const SortableStopCard = ({
         isSelected
           ? "border-accent/60 ring-2 ring-accent/25 shadow-[0_4px_12px_-4px_hsl(var(--accent)/0.35)] -translate-y-px"
           : isDone
-          ? "border-emerald-200/70 bg-emerald-50/40 opacity-80"
+          ? "border-emerald-200/70 bg-emerald-50/40 dark:border-emerald-500/25 dark:bg-emerald-500/10 opacity-80"
           : cn(CARD_BORDER, CARD_HOVER),
       )}
       onClick={onSelect}

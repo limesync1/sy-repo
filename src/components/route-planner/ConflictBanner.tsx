@@ -58,7 +58,7 @@ export const ConflictBanner = ({ capacityByDate, mismatchedRouteIds, rangeStart,
     + (overbookedDates.length > 4 ? ` +${overbookedDates.length - 4}` : "");
 
   return (
-    <div className="m-2 mb-0 shrink-0 flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50/80 px-3 py-2 text-xs text-amber-900">
+    <div className="m-2 mb-0 shrink-0 flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50/80 px-3 py-2 text-xs text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
       <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
       <div className="flex-1 min-w-0 space-y-0.5">
         <p className="font-semibold leading-tight">
@@ -72,7 +72,7 @@ export const ConflictBanner = ({ capacityByDate, mismatchedRouteIds, rangeStart,
       <button
         type="button"
         onClick={() => setDismissed(dismissKey)}
-        className="shrink-0 -m-1 p-1 rounded hover:bg-amber-100 text-amber-700"
+        className="shrink-0 -m-1 p-1 rounded hover:bg-amber-100 text-amber-700 dark:hover:bg-amber-500/20 dark:text-amber-300"
         aria-label="Skjul advarsel"
         title="Skjul indtil næste ændring"
       >

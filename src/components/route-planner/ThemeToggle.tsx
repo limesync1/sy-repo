@@ -1,8 +1,9 @@
-// Letvægts mørk/lys toggle — KUN scoped til ruteplanlæggeren.
-// Tidligere sattes `class="dark"` på <html>, hvilket smittede af på resten
-// af appen. Nu eksponerer vi en hook (`usePlannerTheme`) som Planner-roden
-// kan læse og applicere på sit eget wrapper-element, så mørk-tilstand kun
-// gælder på siden "Ruter".
+// Letvægts mørk/lys toggle for ruteplanlæggeren.
+// Mørk-tilstand skal gælde HELE siden mens man er på ruteplanlæggeren —
+// inkl. sidebar, topbar og alt portal-indhold (dialoger, sheets, popovers,
+// dropdowns, tooltips). Derfor sætter vi `class="dark"` på <html> mens
+// Planner er monteret, og fjerner den igen ved unmount, så andre sider
+// forbliver i lys tilstand.
 import { useEffect } from "react";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,12 +14,23 @@ export function usePlannerTheme() {
   return usePersistentState<"light" | "dark">("route-planner:theme", "light");
 }
 
-/** Sikrer at en eventuel legacy `dark` klasse på <html> fjernes, så
- *  mørk-tilstand ikke utilsigtet ryger ud på andre sider. */
-export function useEnsureGlobalDarkRemoved() {
+/** Anvender ruteplanlæggerens tema på <html> mens siden er monteret.
+ *  Sikrer at portal-indhold (dialoger, popovers, sheets m.m.) og hele
+ *  app-rammen følger temaet. Rydder altid op ved unmount. */
+export function usePlannerThemeEffect() {
+  const [theme] = usePlannerTheme();
   useEffect(() => {
-    document.documentElement.classList.remove("dark");
-  }, []);
+    const root = document.documentElement;
+    if (theme === "dark") {
+      root.classList.add("dark");
+    } else {
+      root.classList.remove("dark");
+    }
+    return () => {
+      root.classList.remove("dark");
+    };
+  }, [theme]);
+  return theme;
 }
 
 export default function ThemeToggle() {

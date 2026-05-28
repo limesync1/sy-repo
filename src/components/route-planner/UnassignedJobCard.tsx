@@ -376,7 +376,7 @@ export const UnassignedJobCard = ({
 
         {/* Pending-forklaring */}
         {isPending && (
-          <div className="rounded-md bg-amber-50 border border-amber-200/70 px-2.5 py-2 space-y-1">
+          <div className="rounded-md bg-amber-50 border border-amber-200/70 px-2.5 py-2 space-y-1 dark:bg-amber-500/10 dark:border-amber-500/25">
             <p className="text-[11px] leading-snug text-amber-800">
               Aftalen kan først planlægges når kunden har godkendt tilbuddet.
             </p>

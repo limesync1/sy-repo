@@ -126,7 +126,7 @@ import UnassignedFiltersPopover, { type UrgencyKey } from "@/components/route-pl
 import UndoBar from "@/components/route-planner/UndoBar";
 import PlannerSkeleton from "@/components/route-planner/PlannerSkeleton";
 import DensityToggle from "@/components/route-planner/DensityToggle";
-import ThemeToggle, { usePlannerTheme, useEnsureGlobalDarkRemoved } from "@/components/route-planner/ThemeToggle";
+import ThemeToggle, { usePlannerTheme, usePlannerThemeEffect } from "@/components/route-planner/ThemeToggle";
 import RoutePrintDialog, { type PrintRoute } from "@/components/route-planner/RoutePrintDialog";
 import { Printer, ListOrdered } from "lucide-react";
 import EmptyState from "@/components/route-planner/EmptyState";
@@ -301,11 +301,10 @@ const Planner = () => {
   const { data: business, isLoading: loadingBusiness } = useMyBusiness();
   const isCompactRouteLayout = useIsBelowBreakpoint(1024);
   const qc = useQueryClient();
-  // Scoped dark-mode: kun gældende inde i ruteplanlæggerens DOM-træ.
-  // Vi læser temaet her og applicerer .dark på wrapper-divet — så vi ikke
-  // farver hele appen sort når brugeren skifter tema her på siden.
-  const [plannerTheme] = usePlannerTheme();
-  useEnsureGlobalDarkRemoved();
+  // Mørk-tilstand gælder hele siden mens ruteplanlæggeren er åben, så
+  // sidebar, topbar og alt portal-indhold (dialoger, sheets, popovers,
+  // dropdowns) følger temaet. Ryddes op ved unmount.
+  const plannerTheme = usePlannerThemeEffect();
   const [date, setDate] = useState<string>(todayStr());
   const [view, setView] = usePersistentState<"month" | "week">("route-planner:view", "month");
   const [search, setSearch] = useState("");

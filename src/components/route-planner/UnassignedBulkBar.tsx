@@ -65,7 +65,7 @@ export default function UnassignedBulkBar({
         </button>
       </div>
       {hidden > 0 && (
-        <div className="flex items-center gap-2 px-2.5 py-1.5 border-b border-amber-300/60 bg-amber-50/70 text-[11px] text-amber-900">
+        <div className="flex items-center gap-2 px-2.5 py-1.5 border-b border-amber-300/60 bg-amber-50/70 text-[11px] text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
           <Eye className="h-3 w-3 shrink-0" />
           <span className="flex-1 leading-tight">
             {hidden} valgt {hidden === 1 ? "aftale ligger" : "aftaler ligger"} udenfor dit filter — handlingen rammer alle {selectedCount}.
