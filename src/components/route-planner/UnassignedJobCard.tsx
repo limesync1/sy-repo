@@ -18,7 +18,7 @@ import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_SELECTED, CARD_DRAGGING, CARD_
  *  Matcher kortets højde og indre struktur så listen ikke "hopper" når
  *  rigtige kort kommer ind. */
 export const UnassignedJobCardSkeleton = ({ compact = false }: { compact?: boolean }) => (
-  <div className="relative rounded-lg border border-border/70 bg-card overflow-hidden flex shadow-[0_1px_2px_hsl(var(--foreground)/0.05)]">
+  <div className="relative rounded-xl border border-border/70 bg-card overflow-hidden flex shadow-[0_1px_2px_hsl(var(--foreground)/0.05)]">
     <div className="w-1 bg-secondary shrink-0" />
     <div className={`flex-1 ${compact ? "p-2.5 pl-8" : "p-3 pl-9"} space-y-2`}>
       <div className="flex items-start justify-between gap-3">
