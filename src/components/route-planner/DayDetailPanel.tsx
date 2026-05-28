@@ -8,6 +8,8 @@ import { Clock, MapPin, ArrowRight } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { formatDurationMin } from "@/lib/duration-format";
 import EmptyState from "./EmptyState";
+import { cn } from "@/lib/utils";
+import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_RAIL_WIDTH } from "./lib/card-styles";
 
 export type DayStop = {
   id: string;
@@ -117,9 +119,13 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
                       </div>
                     )}
                     <div
-                      className="rounded-md border border-border/70 bg-card p-2.5 border-l-[3px] shadow-[0_1px_2px_hsl(var(--foreground)/0.05)] hover:border-foreground/25 hover:shadow-[0_6px_14px_-6px_hsl(var(--foreground)/0.18)] hover:-translate-y-px transition-all duration-150"
-                      style={{ borderLeftColor: s.routeColor ?? "hsl(var(--primary))" }}
+                      className={cn(CARD_BASE, CARD_BORDER, CARD_HOVER, "p-2.5 pl-3.5")}
                     >
+                      <span
+                        aria-hidden
+                        className={cn("absolute left-0 top-0 bottom-0", CARD_RAIL_WIDTH)}
+                        style={{ background: s.routeColor ?? "hsl(var(--primary))" }}
+                      />
                       <div className="flex items-center justify-between gap-2">
                         <p className="text-sm font-bold truncate tracking-tight">{s.customerName}</p>
                         {s.startTime && (
