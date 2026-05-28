@@ -3867,7 +3867,7 @@ const Planner = () => {
   };
 
   return (
-    <div className={cn(plannerTheme === "dark" && "dark")}>
+    <div className={cn(plannerTheme === "dark" && "dark")} data-density={density}>
     <DndContext
       sensors={sensors}
       collisionDetection={routePlannerCollisionDetection}
