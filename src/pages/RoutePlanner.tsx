@@ -3888,12 +3888,21 @@ const Planner = () => {
                 Print, tidslinje, planlægning, opret bestilling, tæthed, tema og
                 genveje er flyttet ind i "Mere"-menuen for at reducere visuel støj. */}
             {periodSummary.routeCount > 0 && (
-              <div className="hidden md:inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-card border border-border/70 text-[11px] tabular-nums shadow-[0_1px_2px_hsl(var(--foreground)/0.05)]">
-                <span className="font-bold text-foreground">{periodSummary.routeCount}</span>
-                <span className="text-muted-foreground">{periodSummary.routeCount === 1 ? "rute" : "ruter"}</span>
-                <span className="h-3 w-px bg-border" />
-                <span className="font-bold text-foreground">{periodSummary.stopCount}</span>
-                <span className="text-muted-foreground">stop</span>
+              <div
+                className="hidden md:inline-flex items-center gap-2 h-8 pl-2.5 pr-3 rounded-md bg-secondary/40 border border-border/60 text-[11px] tabular-nums"
+                title={`${periodSummary.routeCount} ${periodSummary.routeCount === 1 ? "rute" : "ruter"} og ${periodSummary.stopCount} stop i visningen`}
+              >
+                <span className="inline-flex items-center gap-1">
+                  <RouteIcon className="h-3 w-3 text-muted-foreground/70" />
+                  <span className="font-bold text-foreground">{periodSummary.routeCount}</span>
+                  <span className="text-muted-foreground/80">{periodSummary.routeCount === 1 ? "rute" : "ruter"}</span>
+                </span>
+                <span className="h-3 w-px bg-border/80" />
+                <span className="inline-flex items-center gap-1">
+                  <MapPin className="h-3 w-3 text-muted-foreground/70" />
+                  <span className="font-bold text-foreground">{periodSummary.stopCount}</span>
+                  <span className="text-muted-foreground/80">stop</span>
+                </span>
               </div>
             )}
 

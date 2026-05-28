@@ -178,7 +178,7 @@ export const MonthWeekCalendar = ({
         className="grid border-b border-border/70 bg-card shrink-0"
         style={{ gridTemplateColumns: "44px repeat(7, minmax(0, 1fr))" }}
       >
-        <div className="border-r border-border/70 p-2 text-[10px] uppercase text-muted-foreground/60 font-bold tracking-[0.12em] flex items-center justify-center bg-secondary/25">
+        <div className="border-r border-border/70 p-2 text-[9.5px] uppercase text-muted-foreground/45 font-semibold tracking-[0.16em] flex items-center justify-center bg-secondary/20">
           Uge
         </div>
         {weekdayLabels.map((wd, i) => {
@@ -187,8 +187,8 @@ export const MonthWeekCalendar = ({
             <div
               key={wd}
               className={cn(
-                "p-2 text-[10.5px] font-bold tracking-[0.12em] uppercase text-center border-r border-border/70 last:border-r-0",
-                isWeekend ? "text-muted-foreground/50" : "text-foreground/70",
+                "p-2 text-[10px] font-semibold tracking-[0.18em] uppercase text-center border-r border-border/70 last:border-r-0",
+                isWeekend ? "text-muted-foreground/45" : "text-muted-foreground/75",
               )}
             >
               {wd}
@@ -207,8 +207,8 @@ export const MonthWeekCalendar = ({
               style={{ gridTemplateColumns: "44px repeat(7, minmax(0, 1fr))" }}
             >
               {/* Ugenummer */}
-              <div className="border-r border-border/70 bg-secondary/20 flex items-start justify-center pt-3 text-[10.5px] font-bold text-muted-foreground/70 tabular-nums tracking-wide">
-                <span className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1 rounded-md bg-card ring-1 ring-border/60 shadow-sm">
+              <div className="border-r border-border/70 bg-secondary/15 flex items-start justify-center pt-3 text-[10.5px] font-semibold text-muted-foreground/60 tabular-nums">
+                <span className="inline-flex items-center justify-center min-w-[22px] h-[20px] px-1 rounded text-muted-foreground/65">
                   {weekNum}
                 </span>
               </div>
@@ -454,14 +454,14 @@ const DayCellInner = ({
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onCreateRoute(dateStr); }}
-            // Tomme dage i indeværende måned får en let synlig prik så
-            // brugeren ved at cellen er klikbar. Travle dage / fortid /
-            // udenfor-måned holder vi diskrete (kun ved hover).
+            // Tomme dage får et meget diskret hint så brugeren ved at
+            // cellen er klikbar — uden at + tegnet konkurrerer med
+            // selve indholdet i kalenderen. Tydeligere på direkte hover.
             className={cn(
-              "h-6 w-6 inline-flex items-center justify-center rounded-md border border-transparent transition-all focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 hover:border-border hover:bg-secondary hover:text-foreground",
+              "h-6 w-6 inline-flex items-center justify-center rounded-md border border-transparent transition-all focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 hover:bg-secondary hover:text-foreground",
               emptyDay && inMonth && !isPast
-                ? "opacity-55 text-muted-foreground group-hover:opacity-100"
-                : "opacity-0 group-hover:opacity-100 text-muted-foreground",
+                ? "opacity-25 text-muted-foreground/70 group-hover:opacity-100 group-hover:text-foreground"
+                : "opacity-0 group-hover:opacity-90 text-muted-foreground",
             )}
             aria-label={`Opret rute den ${format(date, "d. MMMM", { locale: da })}`}
             title="Opret tom rute denne dag"
