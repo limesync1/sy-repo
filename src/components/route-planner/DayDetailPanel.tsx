@@ -94,7 +94,7 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
               compact
             />
           ) : (
-            <ol className="relative ml-3 border-l-2 border-border/60 space-y-3 py-1">
+            <ol className="relative ml-3 border-l-2 border-border/70 space-y-3 py-1">
               {sorted.map((s, idx) => {
                 const prev = sorted[idx - 1];
                 const gap = (s.startTime && prev?.startTime && prev?.durationMin != null)
