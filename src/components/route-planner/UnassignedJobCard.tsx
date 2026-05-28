@@ -377,14 +377,14 @@ export const UnassignedJobCard = ({
         {/* Pending-forklaring */}
         {isPending && (
           <div className="rounded-md bg-amber-50 border border-amber-200/70 px-2.5 py-2 space-y-1 dark:bg-amber-500/10 dark:border-amber-500/25">
-            <p className="text-[11px] leading-snug text-amber-800">
+            <p className="text-[11px] leading-snug text-amber-800 dark:text-amber-200">
               Aftalen kan først planlægges når kunden har godkendt tilbuddet.
             </p>
             {onClick && (
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); onClick(); }}
-                className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-900 hover:text-amber-950 underline underline-offset-2"
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-900 hover:text-amber-950 dark:text-amber-200 dark:hover:text-amber-100 underline underline-offset-2"
               >
                 <Info className="h-3 w-3" />
                 Se årsag og send påmindelse
