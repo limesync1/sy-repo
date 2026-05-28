@@ -407,16 +407,16 @@ const DayCellInner = ({
         </div>
       )}
       {/* Dato-header */}
-      <div className="flex items-center justify-between mb-1">
+      <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-1">
           <span
             className={cn(
               "inline-flex items-center justify-center rounded-full text-[12.5px] font-semibold tabular-nums transition-all duration-200",
               today
-                ? "h-7 w-7 bg-accent text-accent-foreground shadow-[0_2px_8px_-2px_hsl(var(--accent)/0.6)] ring-2 ring-accent/15"
-                : "h-7 w-7 text-foreground/85 group-hover:bg-secondary/70",
-              !inMonth && !today && "text-muted-foreground/50",
-              isPast && !today && "text-muted-foreground/60",
+                ? "h-7 w-7 bg-accent text-accent-foreground shadow-[0_2px_8px_-2px_hsl(var(--accent)/0.6)] ring-2 ring-accent/15 font-bold"
+                : "h-6 w-6 text-foreground/90 group-hover:bg-secondary/60 group-hover:text-foreground",
+              !inMonth && !today && "text-muted-foreground/40",
+              isPast && !today && "text-muted-foreground/55",
             )}
           >
             {format(date, "d")}
@@ -943,12 +943,19 @@ const RoutePillInner = ({
       {/* Kapacitets-bar: tynd stribe der viser belastning. Skjul ved 0 stops. */}
       {stopCount > 0 && (
         <div
-          className="h-[3px] w-full bg-muted/40 overflow-hidden"
+          className="h-[3px] w-full bg-muted/30 overflow-hidden ring-1 ring-inset ring-border/20"
           title={`Belastning ${loadPct}% — ${Math.round(workMin / 60 * 10) / 10} t af ~${Math.round(capacityMin / 60)} t (${empCount} medarbejder${empCount === 1 ? "" : "e"})`}
           aria-label={`Belastning ${loadPct} procent`}
         >
           <div
-            className={cn("h-full transition-all duration-500 rounded-r-full", loadColor)}
+            className={cn(
+              "h-full transition-all duration-500 rounded-r-full",
+              loadPct >= 100
+                ? "bg-gradient-to-r from-destructive/80 to-destructive shadow-[0_0_6px_hsl(var(--destructive)/0.6)]"
+                : loadPct >= 85
+                ? "bg-gradient-to-r from-amber-500/80 to-amber-500"
+                : "bg-gradient-to-r from-accent/60 to-accent/80",
+            )}
             style={{ width: `${Math.min(100, loadPct)}%` }}
           />
         </div>
