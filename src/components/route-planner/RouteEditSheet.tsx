@@ -921,13 +921,14 @@ export const RouteEditSheet = ({
             )}
             {!isProjection && route?.id && (
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                className="w-full text-muted-foreground hover:text-foreground"
+                className="w-full justify-center gap-2 text-muted-foreground hover:text-foreground border-border/70"
                 onClick={() => setHistoryOpen(true)}
+                title="Se en liste over ændringer der er lavet på ruten — fx flytninger, tilføjede stop og optimeringer"
               >
-                <History className="h-3.5 w-3.5 mr-1.5" />
-                Vis historik
+                <History className="h-3.5 w-3.5" />
+                Se ændringer på ruten
               </Button>
             )}
             {isProjection && (
