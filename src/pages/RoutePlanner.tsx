@@ -4696,8 +4696,9 @@ const Planner = () => {
                           return (
                             <EmptyState
                               icon={<Inbox className="h-5 w-5" />}
-                              title="Ingen ruter endnu"
-                              description="Træk en aftale ind på en dag i kalenderen — så opretter vi automatisk en rute for dig."
+                              title="Kom godt i gang"
+                              description="Du har ingen aftaler eller ruter endnu. Opret en bestilling, så kan du planlægge den på kalenderen."
+                              action={{ label: "Opret bestilling", icon: <Plus className="h-4 w-4" />, onClick: () => setCreateOrderOpen(true) }}
                               compact
                             />
                           );
