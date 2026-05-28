@@ -172,17 +172,34 @@ export const PlanningPanel = ({
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" size="sm" className="h-7 gap-1.5" title="Overblik over uge, kapacitet og uplanlagte aftaler">
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-7 gap-1.5 rounded-lg border-border/60 hover:border-accent/60 hover:text-accent transition-colors"
+          title="Overblik over uge, kapacitet og uplanlagte aftaler"
+        >
           <BarChart3 className="h-3.5 w-3.5" />
           Overblik
+          {(unassignedCount > 0) && (
+            <span className="ml-0.5 inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-feature-warm/15 text-feature-warm-foreground text-[10px] font-bold tabular-nums">
+              {unassignedCount}
+            </span>
+          )}
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-[320px] sm:max-w-sm p-0 overflow-y-auto">
-        <SheetHeader className="px-5 pt-5 pb-3 border-b">
-          <SheetTitle className="text-base">Overblik</SheetTitle>
-          <SheetDescription className="text-xs">
-            Overblik for {format(parseISO(anchorDate), "MMMM yyyy", { locale: da })}
-          </SheetDescription>
+      <SheetContent side="right" className="w-[340px] sm:max-w-sm p-0 overflow-y-auto bg-gradient-to-b from-secondary/25 via-background to-background">
+        <SheetHeader className="px-5 pt-5 pb-3 border-b border-border/50 bg-gradient-to-b from-secondary/40 to-transparent">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-foreground/[0.06] ring-1 ring-border/60">
+              <BarChart3 className="h-3.5 w-3.5 text-foreground" />
+            </span>
+            <div>
+              <SheetTitle className="text-base tracking-tight leading-none">Overblik</SheetTitle>
+              <SheetDescription className="text-[11px] mt-1 capitalize">
+                {format(parseISO(anchorDate), "MMMM yyyy", { locale: da })}
+              </SheetDescription>
+            </div>
+          </div>
         </SheetHeader>
 
         <div className="px-5 py-4 space-y-5">
@@ -259,11 +276,15 @@ export const PlanningPanel = ({
                           {formatDurationMin(totalMin, { short: true })} · {d.stopCount} stop
                         </span>
                       </div>
-                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-secondary/60 ring-1 ring-inset ring-border/30">
                         <div
                           className={cn(
                             "h-full rounded-full transition-all",
-                            over ? "bg-destructive" : pct > 75 ? "bg-feature-warm" : "bg-foreground",
+                            over
+                              ? "bg-gradient-to-r from-destructive/80 to-destructive shadow-[0_0_8px_hsl(var(--destructive)/0.55)]"
+                              : pct > 75
+                              ? "bg-gradient-to-r from-feature-warm/80 to-feature-warm"
+                              : "bg-gradient-to-r from-foreground/70 to-foreground",
                           )}
                           style={{ width: `${pct}%` }}
                         />
