@@ -65,7 +65,7 @@ const formatDur = (min: number) => {
 export default function RoutePlannerMobile() {
   // Mørk-tilstand for hele siden mens planlæggeren er åben.
   usePlannerThemeEffect();
-  const { data: business } = useMyBusiness();
+  const { data: business, isLoading: loadingBusiness } = useMyBusiness();
   const businessId = business?.id;
 
   const [date, setDate] = useState<string>(todayStr());
@@ -157,6 +157,18 @@ export default function RoutePlannerMobile() {
   };
 
   const weekLabel = `Uge ${format(parseISO(date), "I", { locale: da })} · ${format(parseISO(date), "MMM yyyy", { locale: da })}`;
+
+  // AdminShell forventer en indlæst virksomhed — vis skeleton imens.
+  if (loadingBusiness || !business) {
+    return (
+      <div className="flex min-h-dvh flex-col gap-3 p-4">
+        <Skeleton className="h-16 w-full rounded-xl" />
+        <Skeleton className="h-10 w-full rounded-lg" />
+        <Skeleton className="h-24 w-full rounded-xl" />
+        <Skeleton className="h-24 w-full rounded-xl" />
+      </div>
+    );
+  }
 
   return (
     <>
