@@ -2451,6 +2451,8 @@ const Planner = () => {
     const origin = getDragPoint(e.activatorEvent);
     activeDragOriginRef.current = origin;
     activeDragPointRef.current = origin;
+    // Auto-scroll: ruller lister/kalender når kortet trækkes mod en kant.
+    startDragAutoScroll(() => activeDragPointRef.current);
     if (data?.type === "route") {
       activeRouteDragOriginRef.current = origin;
       activeRouteDragPointRef.current = origin;
