@@ -322,7 +322,7 @@ const Planner = () => {
   // Filter + gruppering for "Aftaler uden rute" — gør store puljer
   // overskuelige uden at brugeren skal scrolle gennem alt.
   const [unassignedStatusFilter, setUnassignedStatusFilter] = usePersistentState<
-    "all" | "ready" | "pending" | "missing-gps"
+    "all" | "ready" | "pending"
   >("route-planner:unassignedStatus", "all");
   const [unassignedGroupBy, setUnassignedGroupBy] = usePersistentState<
     "none" | "status" | "route" | "week" | "postcode"
@@ -967,7 +967,6 @@ const Planner = () => {
       list = list.filter((j: any) => {
         const hasGps = j.latitude != null && j.longitude != null;
         if (unassignedStatusFilter === "pending") return j.status === "pending";
-        if (unassignedStatusFilter === "missing-gps") return !hasGps;
         // "ready" = klar til auto-fordel: ikke pending, har GPS, har dato.
         return j.status !== "pending" && hasGps && (j.preferred_date || j.next_service_date);
       });
@@ -1033,7 +1032,6 @@ const Planner = () => {
       list = list.filter((j: any) => {
         const hasGps = j.latitude != null && j.longitude != null;
         if (unassignedStatusFilter === "pending") return j.status === "pending";
-        if (unassignedStatusFilter === "missing-gps") return !hasGps;
         return j.status !== "pending" && hasGps && (j.preferred_date || j.next_service_date);
       });
     }
@@ -4457,7 +4455,6 @@ const Planner = () => {
                             <SelectItem value="all" className="text-xs">Vis alle</SelectItem>
                             <SelectItem value="ready" className="text-xs">Klar til auto-fordel</SelectItem>
                             <SelectItem value="pending" className="text-xs">Afventer godkendelse</SelectItem>
-                            <SelectItem value="missing-gps" className="text-xs">Mangler GPS</SelectItem>
                           </SelectContent>
                         </Select>
                          <Select value={unassignedGroupBy} onValueChange={(v) => setUnassignedGroupBy(v as any)}>
@@ -4643,7 +4640,6 @@ const Planner = () => {
                           all: "alle",
                           ready: "klar til auto-fordel",
                           pending: "afventer godkendelse",
-                          "missing-gps": "mangler GPS",
                         } as any;
                         if (search) {
                           return (
@@ -4751,9 +4747,7 @@ const Planner = () => {
                       const groups = new Map<string, { label: string; items: any[] }>();
                       const keyFor = (job: any): { key: string; label: string } => {
                         if (unassignedGroupBy === "status") {
-                          const hasGps = job.latitude != null && job.longitude != null;
                           if (job.status === "pending") return { key: "1-pending", label: "Afventer godkendelse" };
-                          if (!hasGps) return { key: "2-gps", label: "Mangler GPS" };
                           if (job.preferred_date || job.next_service_date) return { key: "0-ready", label: "Klar til auto-fordel" };
                           return { key: "3-other", label: "Andet" };
                         }
