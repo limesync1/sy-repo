@@ -259,7 +259,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                   <div className="mt-2 flex items-center gap-1.5 flex-wrap">
                     {statusBadge()}
                     {pausedSub && (
-                      <Badge variant="outline" className="text-orange-600 border-orange-300 gap-1 text-[10px]">
+                      <Badge variant="outline" className="text-orange-600 border-orange-300 dark:text-orange-300 dark:border-orange-500/40 gap-1 text-[10px]">
                         <PauseCircle className="h-2.5 w-2.5" />Abonnement på pause
                       </Badge>
                     )}
@@ -785,7 +785,7 @@ const TimeSpentSection = ({
                   {e.is_team_fallback && " · team-fallback"}
                 </p>
               </div>
-              <span className={cn("text-sm font-semibold tabular-nums", inProg ? "text-blue-600" : "text-foreground")}>
+              <span className={cn("text-sm font-semibold tabular-nums", inProg ? "text-blue-600 dark:text-blue-400" : "text-foreground")}>
                 {inProg ? "—" : fmtMinutes(e.duration_minutes)}
               </span>
             </div>
