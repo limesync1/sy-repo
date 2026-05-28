@@ -52,29 +52,29 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-md flex flex-col">
-        <SheetHeader className="space-y-2">
-          <SheetTitle className="text-base capitalize">
+      <SheetContent side="right" className="w-full sm:max-w-md flex flex-col bg-gradient-to-b from-secondary/20 to-background">
+        <SheetHeader className="space-y-2 pb-3 border-b border-border/50">
+          <SheetTitle className="text-base capitalize tracking-tight">
             {date ? format(parseISO(date), "EEEE d. MMMM yyyy", { locale: da }) : "Dag"}
           </SheetTitle>
           {sorted.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/50 border border-border">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-card border border-border/60 shadow-sm font-medium">
                 <MapPin className="h-3 w-3" />
                 {sorted.length} {sorted.length === 1 ? "stop" : "stop"}
               </span>
               {totalMinutes > 0 && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/50 border border-border tabular-nums">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-card border border-border/60 shadow-sm tabular-nums font-medium">
                   <Clock className="h-3 w-3" />
                   {formatDurationMin(totalMinutes)}
                 </span>
               )}
               {routes.length > 1 && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/50 border border-border">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-card border border-border/60 shadow-sm font-medium">
                   {routes.slice(0, 4).map(([name, color]) => (
                     <span
                       key={name}
-                      className="h-2 w-2 rounded-full"
+                      className="h-2 w-2 rounded-full ring-1 ring-background"
                       style={{ background: color || "hsl(var(--primary))" }}
                     />
                   ))}
@@ -85,7 +85,7 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
           )}
         </SheetHeader>
 
-        <div className="mt-3 flex-1 overflow-auto pr-1">
+        <div className="mt-4 flex-1 overflow-auto pr-1">
           {sorted.length === 0 ? (
             <EmptyState
               icon={<Clock className="h-5 w-5" />}
@@ -94,7 +94,7 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
               compact
             />
           ) : (
-            <ol className="relative ml-3 border-l border-border space-y-3 py-1">
+            <ol className="relative ml-3 border-l-2 border-border/50 space-y-3 py-1">
               {sorted.map((s, idx) => {
                 const prev = sorted[idx - 1];
                 const gap = (s.startTime && prev?.startTime && prev?.durationMin != null)
@@ -103,35 +103,41 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
                 return (
                   <li key={s.id} className="pl-4 relative">
                     <span
-                      className="absolute -left-[7px] top-1.5 h-3 w-3 rounded-full border-2 border-background"
+                      className="absolute -left-[8px] top-2 h-3.5 w-3.5 rounded-full border-2 border-background shadow-[0_2px_4px_-1px_rgba(0,0,0,0.2)]"
                       style={{ backgroundColor: s.routeColor ?? "hsl(var(--primary))" }}
                     />
                     {gap != null && gap > 0 && (
-                      <div className="mb-1 text-[11px] text-muted-foreground flex items-center gap-1">
-                        <ArrowRight className="h-3 w-3" /> {formatDurationMin(gap)} hul
+                      <div className="mb-1.5 text-[10.5px] text-muted-foreground/80 flex items-center gap-1 italic">
+                        <ArrowRight className="h-3 w-3" /> {formatDurationMin(gap)} ledig tid
                       </div>
                     )}
                     {gap != null && gap < 0 && (
-                      <div className="mb-1 text-[11px] text-destructive font-medium">
-                        Overlap med foregående stop ({formatDurationMin(Math.abs(gap))})
+                      <div className="mb-1.5 inline-flex items-center gap-1 text-[10.5px] text-destructive font-semibold bg-destructive/10 px-2 py-0.5 rounded-full">
+                        ⚠ Overlap ({formatDurationMin(Math.abs(gap))})
                       </div>
                     )}
                     <div
-                      className="rounded-md border border-border bg-card p-2.5 border-l-[3px] hover:bg-muted/30 transition-colors"
+                      className="rounded-lg border border-border/60 bg-card p-2.5 border-l-[3px] hover:shadow-[0_2px_8px_-2px_rgba(0,0,0,0.08)] hover:-translate-y-px transition-all duration-150"
                       style={{ borderLeftColor: s.routeColor ?? "hsl(var(--primary))" }}
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <p className="text-sm font-medium truncate">{s.customerName}</p>
-                        {s.startTime && <span className="text-xs tabular-nums text-muted-foreground">{s.startTime}</span>}
+                        <p className="text-sm font-semibold truncate tracking-tight">{s.customerName}</p>
+                        {s.startTime && (
+                          <span className="text-[11px] font-semibold tabular-nums text-foreground/80 bg-secondary/40 px-1.5 py-0.5 rounded-md">
+                            {s.startTime}
+                          </span>
+                        )}
                       </div>
                       {s.address && (
-                        <p className="mt-0.5 text-xs text-muted-foreground flex items-center gap-1 truncate">
+                        <p className="mt-1 text-[11px] text-muted-foreground flex items-center gap-1 truncate">
                           <MapPin className="h-3 w-3 shrink-0" /> {s.address}
                         </p>
                       )}
-                      <div className="mt-1 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
-                        {s.routeName && <span className="truncate">{s.routeName}</span>}
-                        {s.durationMin != null && <span className="tabular-nums">{formatDurationMin(s.durationMin)}</span>}
+                      <div className="mt-1.5 flex items-center justify-between gap-2 text-[10.5px] text-muted-foreground">
+                        {s.routeName && <span className="truncate font-medium">{s.routeName}</span>}
+                        {s.durationMin != null && (
+                          <span className="tabular-nums font-semibold">{formatDurationMin(s.durationMin)}</span>
+                        )}
                       </div>
                     </div>
                   </li>
