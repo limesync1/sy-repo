@@ -390,8 +390,8 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
       data-route-drop-date={!isVirtual && !isPast ? route.route_date : undefined}
       onClick={(e) => { e.stopPropagation(); if (!isDragging) onSelect(); }}
       className={cn(
-        "relative flex items-center gap-2 rounded-md border bg-card px-2.5 py-2 cursor-pointer transition-all overflow-hidden",
-        "border-l-[3px]",
+        "relative flex items-center gap-2 rounded-lg border border-border/60 bg-card px-2.5 py-2 cursor-pointer transition-all overflow-hidden",
+        "border-l-[3px] shadow-[0_1px_2px_hsl(var(--foreground)/0.04)] active:scale-[0.99]",
         isDragging && "opacity-40",
         isVirtual && "border-dashed",
         isPast && "opacity-60 saturate-50",
