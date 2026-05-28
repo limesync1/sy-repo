@@ -102,7 +102,7 @@ export const Section = ({
       {required && null}
       {hint && <span className="ml-auto text-[10px] text-muted-foreground">{hint}</span>}
     </div>
-    <div className="rounded-lg border border-border bg-card p-2">
+    <div className="rounded-xl border border-border/60 bg-card p-2.5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
       {children}
     </div>
   </div>
