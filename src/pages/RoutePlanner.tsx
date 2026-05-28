@@ -3867,6 +3867,7 @@ const Planner = () => {
         dragMetrics.end(false);
         setActiveDragId(null);
         setActiveDragData(null);
+        stopDragAutoScroll();
         activeDragPointRef.current = null;
         activeDragOriginRef.current = null;
         setRouteDragPoint(null);
