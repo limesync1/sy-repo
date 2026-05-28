@@ -856,8 +856,10 @@ const Planner = () => {
   // detektere drop-targets i `Aftaler uden rute`-flowet, fordi nogle
   // browsere ikke lod pointer-koordinaterne lække igennem til
   // `pointerWithin` når aktivatoren brugte pointer-capture.
-  //  - MouseSensor: lille distance (4px) → hurtig responsiv aktivering
-  //    og klassisk `mouseup` på window som collision-detection kan stole på.
+  //  - MouseSensor: 8px aktiverings-tærskel → drag starter først efter en
+  //    bevidst håndbevægelse. Det betyder at klik på tekst, knapper og
+  //    expand-toggles i aftalekortet aldrig misforstås som drag, selv hvis
+  //    musen rykker sig et par pixels mellem mousedown og mouseup.
   //  - TouchSensor: kort delay (120 ms) + tolerance (8 px) — så et tap
   //    stadig fungerer som klik på mobil/tablet.
   //  - KeyboardSensor: tilgængelighed (Space/Enter + piletaster).
@@ -865,7 +867,7 @@ const Planner = () => {
   // aktiv — Mouse/Touch dækker alle scenarier stabilt.
   void PointerSensor;
   const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 8 } }),
     useSensor(KeyboardSensor),
   );
