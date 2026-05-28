@@ -3886,7 +3886,7 @@ const Planner = () => {
                 Print, tidslinje, planlægning, opret bestilling, tæthed, tema og
                 genveje er flyttet ind i "Mere"-menuen for at reducere visuel støj. */}
             {periodSummary.routeCount > 0 && (
-              <div className="hidden md:inline-flex items-center gap-1.5 h-7 px-3 rounded-full bg-secondary/60 border border-border/60 text-[11px] tabular-nums shadow-[inset_0_1px_0_rgba(255,255,255,0.4)]">
+              <div className="hidden md:inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-card border border-border/70 text-[11px] tabular-nums shadow-[0_1px_2px_hsl(var(--foreground)/0.05)]">
                 <span className="font-bold text-foreground">{periodSummary.routeCount}</span>
                 <span className="text-muted-foreground">{periodSummary.routeCount === 1 ? "rute" : "ruter"}</span>
                 <span className="h-3 w-px bg-border" />
@@ -3896,7 +3896,7 @@ const Planner = () => {
             )}
 
             <Tabs value={view} onValueChange={(v) => setView(v as any)}>
-              <TabsList className="h-7 p-0.5">
+              <TabsList className="h-8 p-0.5 rounded-md">
                 <TabsTrigger value="month" className="text-[11px] font-semibold h-6 px-2.5 rounded-md">Måned</TabsTrigger>
                 <TabsTrigger value="week" className="text-[11px] font-semibold h-6 px-2.5 rounded-md">Uge</TabsTrigger>
               </TabsList>
@@ -3909,7 +3909,7 @@ const Planner = () => {
                   variant="outline"
                   size="sm"
                   className={cn(
-                    "h-7 gap-1.5 rounded-lg border-border/60 transition-colors",
+                    "h-8 gap-1.5 rounded-md border-border/70 font-semibold transition-colors",
                     filtersActive
                       ? "border-accent/60 bg-accent/[0.08] text-accent hover:bg-accent/[0.12]"
                       : "hover:border-border hover:text-foreground"
@@ -4014,7 +4014,7 @@ const Planner = () => {
               </PopoverContent>
             </Popover>
 
-            <div className="flex items-center gap-0.5 rounded-lg border border-border/60 bg-background p-0.5">
+            <div className="flex items-center gap-0.5 rounded-md border border-border/70 bg-background p-0.5 shadow-[0_1px_2px_hsl(var(--foreground)/0.04)]">
               <Button
                 variant="ghost"
                 size="icon"
@@ -4067,7 +4067,7 @@ const Planner = () => {
               data-tour="routes-today"
               variant="outline"
               size="sm"
-              className="h-7 text-[11px] font-semibold rounded-lg border-border/60 hover:border-accent/60 hover:text-accent"
+              className="h-8 text-[11px] font-semibold rounded-md border-border/70 hover:border-accent/60 hover:text-accent"
               onClick={() => setDate(todayStr())}
             >
               I dag
