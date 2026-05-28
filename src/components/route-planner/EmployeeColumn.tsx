@@ -47,32 +47,49 @@ export const EmployeeColumn = ({
   return (
     <Card
       ref={setNodeRef}
-      className={`flex flex-col p-3 transition-all ${isOver ? "border-primary bg-primary/5 ring-2 ring-primary/20" : ""}`}
+      className={`group/col relative flex flex-col p-3 rounded-xl border-border/60 shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-all duration-200 ${
+        isOver
+          ? "border-accent/70 bg-accent/[0.04] ring-2 ring-accent/25 shadow-[0_8px_24px_-12px_hsl(var(--accent)/0.35)]"
+          : "hover:border-border hover:shadow-[0_2px_6px_-2px_rgba(0,0,0,0.06)]"
+      }`}
     >
+      {/* Top accent stripe matches route color */}
+      <span
+        aria-hidden
+        className="absolute inset-x-0 top-0 h-[3px] rounded-t-xl opacity-80"
+        style={{ background: color }}
+      />
       {/* Header */}
-      <header className="flex items-start gap-2 mb-3">
-        <div className="h-3 w-3 rounded-full mt-1.5 shrink-0" style={{ background: color }} />
+      <header className="flex items-start gap-2.5 mb-3 mt-1">
+        <div
+          className="h-7 w-7 rounded-full shrink-0 ring-2 ring-background shadow-[0_2px_6px_-2px_rgba(0,0,0,0.25)] flex items-center justify-center"
+          style={{ background: color }}
+        >
+          <span className="text-[10px] font-bold text-white/95 leading-none">
+            {label.charAt(0).toUpperCase()}
+          </span>
+        </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <p className="font-semibold text-sm truncate">{label}</p>
+            <p className="font-semibold text-sm truncate tracking-tight">{label}</p>
             {isDispatched && (
-              <Badge className="h-4 px-1.5 text-[9px] gap-0.5 bg-emerald-100 text-emerald-700 border-0">
+              <Badge className="h-[18px] px-1.5 text-[9px] gap-0.5 bg-emerald-100 text-emerald-700 border-0 rounded-full shadow-sm">
                 <Send className="h-2.5 w-2.5" />Sendt
               </Badge>
             )}
           </div>
-          {subtitle && <p className="text-xs text-muted-foreground truncate">{subtitle}</p>}
-          <div className="mt-1 flex flex-wrap items-center gap-1">
-            <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
+          {subtitle && <p className="text-[11px] text-muted-foreground truncate mt-0.5">{subtitle}</p>}
+          <div className="mt-1.5 flex flex-wrap items-center gap-1">
+            <Badge variant="secondary" className="text-[10px] h-[18px] px-1.5 rounded-full font-semibold tabular-nums">
               {completedCount > 0 ? `${completedCount}/${stops.length}` : `${stops.length}`} stop
             </Badge>
             {totalKm != null && totalKm > 0 && (
-              <Badge variant="outline" className="text-[10px] h-4 px-1.5 gap-0.5">
+              <Badge variant="outline" className="text-[10px] h-[18px] px-1.5 gap-0.5 rounded-full tabular-nums border-border/60">
                 <Navigation className="h-2.5 w-2.5" />{totalKm.toFixed(1)} km
               </Badge>
             )}
             {totalMin != null && totalMin > 0 && (
-              <Badge variant="outline" className="text-[10px] h-4 px-1.5 gap-0.5">
+              <Badge variant="outline" className="text-[10px] h-[18px] px-1.5 gap-0.5 rounded-full tabular-nums border-border/60">
                 <Clock className="h-2.5 w-2.5" />{formatDurationMin(totalMin, { short: true })}
               </Badge>
             )}
@@ -82,9 +99,9 @@ export const EmployeeColumn = ({
 
       {/* Action row */}
       {stops.length >= 1 && (onOptimize || onDispatch) && (
-        <div className="flex gap-1 mb-2">
+        <div className="flex gap-1.5 mb-2.5">
           {onOptimize && stops.length >= 2 && (
-            <Button size="sm" variant="outline" className="flex-1 h-7 text-xs gap-1" onClick={onOptimize} disabled={optimizing} title="AI-optimér rækkefølge">
+            <Button size="sm" variant="outline" className="flex-1 h-7 text-xs gap-1 rounded-lg border-border/60 hover:border-accent/60 hover:text-accent" onClick={onOptimize} disabled={optimizing} title="AI-optimér rækkefølge">
               {optimizing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
               Optimér
             </Button>
@@ -93,7 +110,7 @@ export const EmployeeColumn = ({
             <Button
               size="sm"
               variant={isDispatched ? "outline" : "default"}
-              className="flex-1 h-7 text-xs gap-1"
+              className={`flex-1 h-7 text-xs gap-1 rounded-lg ${isDispatched ? "border-border/60" : "shadow-[0_2px_6px_-2px_hsl(var(--accent)/0.5)]"}`}
               onClick={onDispatch}
               disabled={dispatching || stops.length === 0}
               title={isDispatched ? "Send opdateret rute igen" : "Send rute til medarbejderen via email"}
@@ -109,8 +126,14 @@ export const EmployeeColumn = ({
       <div className="flex-1 space-y-1.5 min-h-[100px]">
         <SortableContext items={sortedIds} strategy={verticalListSortingStrategy}>
           {stops.length === 0 && (
-            <div className="text-xs text-muted-foreground italic text-center py-8 border-2 border-dashed rounded-md">
-              Slip aftaler her
+            <div
+              className={`text-[11px] text-center py-8 px-3 border-2 border-dashed rounded-lg transition-all ${
+                isOver
+                  ? "border-accent/60 bg-accent/[0.06] text-accent font-medium"
+                  : "border-border/50 text-muted-foreground/70 hover:border-border hover:bg-secondary/20"
+              }`}
+            >
+              {isOver ? "Slip for at tildele" : "Træk aftaler hertil"}
             </div>
           )}
           {sortedStops.map((s, i) => (
@@ -156,20 +179,28 @@ const SortableStopCard = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`group rounded-md border bg-background p-2 transition-all cursor-pointer ${
-        isSelected ? "border-primary ring-2 ring-primary/30 shadow-sm"
-          : isDone ? "border-green-200 bg-green-50/30 opacity-75"
-          : "hover:border-primary/60"
+      className={`group relative rounded-lg border bg-card p-2 pl-2.5 transition-all duration-150 cursor-pointer overflow-hidden ${
+        isSelected
+          ? "border-accent/60 ring-2 ring-accent/25 shadow-[0_4px_12px_-4px_hsl(var(--accent)/0.35)] -translate-y-px"
+          : isDone
+          ? "border-emerald-200/70 bg-emerald-50/40 opacity-80"
+          : "border-border/60 hover:border-border hover:shadow-[0_2px_6px_-2px_rgba(0,0,0,0.08)] hover:-translate-y-px"
       }`}
       onClick={onSelect}
     >
+      {/* Left color rail */}
+      <span
+        aria-hidden
+        className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full opacity-90"
+        style={{ background: isDone ? "hsl(var(--muted-foreground) / 0.4)" : color }}
+      />
       <div className="flex items-start gap-2">
         <span
           {...listeners}
           {...attributes}
           onClick={(e) => e.stopPropagation()}
-          className={`flex h-6 w-6 items-center justify-center rounded-full text-white text-[11px] font-bold shrink-0 cursor-grab active:cursor-grabbing ${
-            isDone ? "opacity-60" : ""
+          className={`flex h-6 w-6 items-center justify-center rounded-full text-white text-[11px] font-bold shrink-0 cursor-grab active:cursor-grabbing ring-2 ring-background shadow-[0_2px_4px_-1px_rgba(0,0,0,0.2)] transition-transform hover:scale-105 active:scale-95 ${
+            isDone ? "opacity-50" : ""
           }`}
           style={{ background: color }}
         >
