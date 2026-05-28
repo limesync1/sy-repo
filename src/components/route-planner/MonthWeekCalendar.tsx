@@ -530,12 +530,11 @@ const DayCellInner = ({
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); onSelectRoute(routes[MAX_VISIBLE]); }}
-                  className="inline-flex items-center gap-1 self-start text-[11px] font-semibold text-foreground bg-secondary/70 hover:bg-secondary rounded-md px-2 py-1 transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                  className="inline-flex items-center gap-1 self-start text-[10.5px] font-semibold text-muted-foreground hover:text-foreground bg-transparent hover:bg-secondary/60 border border-dashed border-border/60 hover:border-border rounded-md px-2 py-0.5 transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                   aria-label={`Vis ${overflow} flere ruter`}
                   title={routes.slice(MAX_VISIBLE).map((r) => r.name || "Rute").join(", ")}
                 >
-                  <span className="text-[10px] opacity-60">+</span>
-                  {overflow} {overflow === 1 ? "rute mere" : "ruter mere"}
+                  +{overflow} {overflow === 1 ? "rute" : "ruter"}
                 </button>
               )}
             </>
