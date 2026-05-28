@@ -476,7 +476,6 @@ export const RouteEditSheet = ({
     // Optimistiske patches fra useUpdateRoute.onMutate sørger for at både
     // kalender, basisrute-cache og projicerede ruter opdaterer øjeblikkeligt
     // — uden at brugeren behøver at lukke sheet'et.
-    const colorChanged = route.color !== color;
     const delay = colorChanged ? 0 : 120;
     pendingFlushRef.current = pendingPayload;
     const timeout = window.setTimeout(() => {
