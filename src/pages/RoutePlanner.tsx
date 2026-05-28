@@ -4090,7 +4090,7 @@ const Planner = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7"
+                    className="h-8 w-8 rounded-md"
                     onClick={() => void history.undo()}
                     disabled={!history.canUndo}
                     aria-label="Fortryd seneste handling"
@@ -4112,7 +4112,7 @@ const Planner = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7"
+                    className="h-8 w-8 rounded-md"
                     onClick={() => void history.redo()}
                     disabled={!history.canRedo}
                     aria-label="Gentag seneste fortryd"
@@ -4131,7 +4131,7 @@ const Planner = () => {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Flere handlinger">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-md" aria-label="Flere handlinger">
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -4169,7 +4169,7 @@ const Planner = () => {
 
               <Dialog open={createOpen} onOpenChange={setCreateOpen}>
                 <DialogTrigger asChild>
-                  <Button data-tour="routes-create-button" size="sm" className="h-7 gap-1">
+                  <Button data-tour="routes-create-button" size="sm" className="h-8 gap-1.5 rounded-md font-semibold">
                     <Plus className="h-3.5 w-3.5" />Opret rute
                   </Button>
                 </DialogTrigger>
