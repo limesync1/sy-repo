@@ -1032,7 +1032,6 @@ const Planner = () => {
       list = list.filter((j: any) => {
         const hasGps = j.latitude != null && j.longitude != null;
         if (unassignedStatusFilter === "pending") return j.status === "pending";
-        if (unassignedStatusFilter === "missing-gps") return !hasGps;
         return j.status !== "pending" && hasGps && (j.preferred_date || j.next_service_date);
       });
     }
