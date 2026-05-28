@@ -8,6 +8,8 @@ import { MapPin, Clock, Sparkles, Navigation, Loader2, Send, AlertCircle, Refres
 import type { RouteStop } from "@/hooks/useRoutes";
 import { formatDurationMin } from "@/lib/duration-format";
 import { formatInterval } from "@/lib/interval";
+import { cn } from "@/lib/utils";
+import { CARD_BASE, CARD_BORDER, CARD_HOVER } from "./lib/card-styles";
 import { formatCycleLabel } from "@/lib/cycle-label";
 
 type Props = {
