@@ -4640,7 +4640,6 @@ const Planner = () => {
                           all: "alle",
                           ready: "klar til auto-fordel",
                           pending: "afventer godkendelse",
-                          "missing-gps": "mangler GPS",
                         } as any;
                         if (search) {
                           return (
