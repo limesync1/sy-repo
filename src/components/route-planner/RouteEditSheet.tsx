@@ -446,19 +446,27 @@ export const RouteEditSheet = ({
   }
   const colorChanged = route?.color !== color;
   const dirty = nameChange.changed || colorChanged;
+  // Hvis brugeren har skrevet et navn der allerede findes på en anden rute
+  // samme dag, må vi ikke autosave navnet — så vi skipper hele autosaven
+  // mens duplikatet står. Farve-ændringer er stadig OK.
+  const blockNameSave = nameChange.changed && nameChange.value !== null && nameDuplicate;
 
   const pendingPayload = useMemo(() => {
     const payload: { id: string; name?: string | null; color?: string } = {
       id: route?.id ?? "",
     };
-    if (nameChange.changed) payload.name = nameChange.value;
+    if (nameChange.changed && !blockNameSave) payload.name = nameChange.value;
     if (colorChanged) payload.color = color;
     return payload;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [route?.id, nameChange.changed, (nameChange as any).value, colorChanged, color]);
+  }, [route?.id, nameChange.changed, (nameChange as any).value, colorChanged, color, blockNameSave]);
 
   useEffect(() => {
     if (!route || !open || !dirty) return;
+    // Hvis navne-ændringen er en dublet og der ikke er andre ændringer at
+    // gemme, så stop her — undgå unødvendige mutations som alligevel ville
+    // blive afvist af databasen.
+    if (blockNameSave && !colorChanged) return;
     // Skip autosave hvis brugeren ikke selv har ændret noget — så undgår
     // vi at overskrive server-opdateringer der kom ind mens sheet'et var
     // åbent.
