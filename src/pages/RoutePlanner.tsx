@@ -4014,11 +4014,11 @@ const Planner = () => {
               </PopoverContent>
             </Popover>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-0.5 rounded-lg border border-border/60 bg-background p-0.5">
               <Button
-                variant="outline"
+                variant="ghost"
                 size="icon"
-                className="h-7 w-7"
+                className="h-6 w-6 rounded-md hover:bg-secondary"
                 onClick={() =>
                   setDate(format(view === "week" ? addWeeks(parseISO(date), -1) : addMonths(parseISO(date), -1), "yyyy-MM-dd"))
                 }
@@ -4030,7 +4030,7 @@ const Planner = () => {
                 <PopoverTrigger asChild>
                   <button
                     type="button"
-                    className="text-xs font-medium capitalize min-w-[110px] text-center tabular-nums px-2 h-7 rounded-md hover:bg-secondary focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                    className="text-[13px] font-semibold capitalize min-w-[140px] text-center tabular-nums px-2.5 h-6 rounded-md hover:bg-secondary tracking-tight focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                     aria-label="Vælg dato"
                     title="Spring til specifik dato"
                   >
@@ -4052,9 +4052,9 @@ const Planner = () => {
                 </PopoverContent>
               </Popover>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="icon"
-                className="h-7 w-7"
+                className="h-6 w-6 rounded-md hover:bg-secondary"
                 onClick={() =>
                   setDate(format(view === "week" ? addWeeks(parseISO(date), 1) : addMonths(parseISO(date), 1), "yyyy-MM-dd"))
                 }
@@ -4062,8 +4062,16 @@ const Planner = () => {
               >
                 <ChevronRight className="h-3.5 w-3.5" />
               </Button>
-              <Button data-tour="routes-today" variant="outline" size="sm" className="h-7" onClick={() => setDate(todayStr())}>I dag</Button>
             </div>
+            <Button
+              data-tour="routes-today"
+              variant="outline"
+              size="sm"
+              className="h-7 text-[11px] font-semibold rounded-lg border-border/60 hover:border-accent/60 hover:text-accent"
+              onClick={() => setDate(todayStr())}
+            >
+              I dag
+            </Button>
 
             <PlanningPanel
               businessId={businessId}
