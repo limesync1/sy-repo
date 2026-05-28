@@ -191,7 +191,10 @@ export const RouteStopsPanel = ({
                 <MapPin className="h-3.5 w-3.5 text-white drop-shadow-sm" />
               </span>
               <span className="min-w-0 flex-1 truncate font-semibold">Stops på ruten</span>
-              <span className="shrink-0 inline-flex h-6 min-w-[1.75rem] items-center justify-center rounded-full px-2 text-xs font-bold tabular-nums text-white shadow-sm ring-1 ring-black/5">
+              <span
+                className="shrink-0 inline-flex h-6 min-w-[1.75rem] items-center justify-center rounded-full px-2 text-xs font-bold tabular-nums text-white shadow-sm ring-1 ring-black/5"
+                style={{ background: route.color }}
+              >
                 {items.length}
               </span>
             </SheetTitle>
