@@ -928,13 +928,13 @@ const RoutePillInner = ({
             type="button"
             onClick={(e) => { e.stopPropagation(); onOptimize(); }}
             disabled={optimizing}
-            className="shrink-0 h-5 w-5 inline-flex items-center justify-center rounded-md text-muted-foreground/70 hover:text-accent hover:bg-accent/10 disabled:opacity-50 transition-colors opacity-0 group-hover/pill:opacity-100 focus-visible:opacity-100"
+            className="shrink-0 h-5 w-5 inline-flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-accent hover:bg-accent/10 disabled:opacity-50 transition-colors"
             aria-label="Optimér rækkefølge"
             title="Optimér rækkefølge — ændrer kun rækkefølgen, ikke medarbejdere"
           >
             {optimizing
-              ? <Loader2 className="h-2.5 w-2.5 animate-spin opacity-100" />
-              : <Sparkles className="h-2.5 w-2.5" />}
+              ? <Loader2 className="h-3 w-3 animate-spin" />
+              : <Sparkles className="h-3 w-3" />}
           </button>
         )}
       </div>
