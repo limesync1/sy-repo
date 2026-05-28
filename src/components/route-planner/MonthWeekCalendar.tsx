@@ -172,10 +172,13 @@ export const MonthWeekCalendar = ({
   const weekdayLabels = ["Man", "Tir", "Ons", "Tor", "Fre", "Lør", "Søn"];
 
   return (
-    <Card className="overflow-hidden flex flex-col h-full">
+    <Card className="overflow-hidden flex flex-col h-full rounded-xl border-border/60 shadow-sm">
       {/* Weekday header */}
-      <div className="grid border-b bg-gradient-to-b from-secondary/60 to-secondary/30 shrink-0" style={{ gridTemplateColumns: "48px repeat(7, minmax(0, 1fr))" }}>
-        <div className="border-r p-2 text-[10px] uppercase text-muted-foreground font-bold tracking-wider flex items-center justify-center">
+      <div
+        className="grid border-b border-border/60 bg-gradient-to-b from-secondary/40 to-background shrink-0"
+        style={{ gridTemplateColumns: "48px repeat(7, minmax(0, 1fr))" }}
+      >
+        <div className="border-r border-border/50 p-2 text-[10px] uppercase text-muted-foreground/70 font-semibold tracking-[0.14em] flex items-center justify-center">
           Uge
         </div>
         {weekdayLabels.map((wd, i) => {
@@ -184,8 +187,8 @@ export const MonthWeekCalendar = ({
             <div
               key={wd}
               className={cn(
-                "p-2 text-[11px] uppercase font-bold tracking-wider text-center border-r last:border-r-0",
-                isWeekend ? "text-muted-foreground/70" : "text-foreground/80",
+                "p-2 text-[11px] font-semibold tracking-[0.12em] uppercase text-center border-r border-border/50 last:border-r-0",
+                isWeekend ? "text-muted-foreground/60" : "text-foreground/70",
               )}
             >
               {wd}
@@ -200,11 +203,11 @@ export const MonthWeekCalendar = ({
           return (
             <div
               key={wi}
-              className="grid border-b last:border-b-0"
+              className="grid border-b border-border/50 last:border-b-0"
               style={{ gridTemplateColumns: "48px repeat(7, minmax(0, 1fr))" }}
             >
               {/* Ugenummer */}
-              <div className="border-r bg-secondary/20 flex items-start justify-center pt-2 text-xs font-bold text-muted-foreground tabular-nums">
+              <div className="border-r border-border/50 bg-secondary/15 flex items-start justify-center pt-2.5 text-[11px] font-semibold text-muted-foreground/70 tabular-nums">
                 {weekNum}
               </div>
               {week.map((day) => {
