@@ -979,7 +979,7 @@ const AssigneePicker = ({
                 key={emp.id}
                 type="button"
                 onClick={() => toggle(emp.id)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-dashed bg-background pl-0.5 pr-2 py-0.5 text-xs hover:border-foreground/40 hover:bg-accent/5 transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-full border border-dashed bg-background pl-0.5 pr-2 py-0.5 text-xs hover:border-foreground/40 hover:bg-secondary transition-colors"
               >
                 {emp.avatar_url ? (
                   <img
