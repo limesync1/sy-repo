@@ -277,15 +277,17 @@ export const UnassignedJobCard = ({
       aria-label={isPending
         ? `${job.customer_name} — afventer kundens godkendelse`
         : `${job.customer_name} — træk for at planlægge, klik for detaljer`}
-      className={`group relative rounded-lg border bg-card transition-[transform,box-shadow,border-color] duration-200 overflow-hidden flex shadow-[0_1px_2px_hsl(var(--foreground)/0.05)] ${
-        isPending ? "" : "cursor-grab active:cursor-grabbing touch-none"
-      } ${
+      className={cn(
+        CARD_BASE,
+        "flex",
+        isPending ? "" : "cursor-grab active:cursor-grabbing touch-none",
+        isDragging && CARD_DRAGGING,
         isPending
           ? "border-amber-300/60"
           : selected
-            ? "border-accent ring-2 ring-accent/25 shadow-[0_6px_18px_-6px_hsl(var(--accent)/0.45)]"
-            : "border-border/70 hover:border-foreground/25 hover:shadow-[0_6px_16px_-6px_hsl(var(--foreground)/0.18)] hover:-translate-y-[1px]"
-      }`}
+            ? CARD_SELECTED
+            : cn(CARD_BORDER, CARD_HOVER),
+      )}
     >
       {/* ───────────────────────────────────────────────────────────────────
           1) VENSTRE-RAIL — urgency som farvet stribe (rød/orange/gul/primary).
