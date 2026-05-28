@@ -62,17 +62,17 @@ const fmtCap = (used: number, max: number | null, unit: string) => {
 const matchLevel = (score: number): { label: string; cls: string; dot: string } => {
   if (score >= 75) return {
     label: "Passer rigtig godt",
-    cls: "text-emerald-700 bg-emerald-50 border-emerald-200",
+    cls: "text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-300 dark:bg-emerald-500/10 dark:border-emerald-500/25",
     dot: "bg-emerald-500",
   };
   if (score >= 50) return {
     label: "Passer rimeligt",
-    cls: "text-amber-800 bg-amber-50 border-amber-200",
+    cls: "text-amber-800 bg-amber-50 border-amber-200 dark:text-amber-300 dark:bg-amber-500/10 dark:border-amber-500/25",
     dot: "bg-amber-500",
   };
   return {
     label: "Passer dårligt",
-    cls: "text-rose-700 bg-rose-50 border-rose-200",
+    cls: "text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-300 dark:bg-rose-500/10 dark:border-rose-500/25",
     dot: "bg-rose-500",
   };
 };
@@ -213,7 +213,7 @@ export const SuggestRouteDialog = ({
 
         {noCoords ? (
           <div className="space-y-3">
-            <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 flex items-start gap-3">
+            <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200 flex items-start gap-3">
               {geocode.isPending ? <Loader2 className="h-4 w-4 mt-0.5 shrink-0 animate-spin" /> : <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />}
               <div className="flex-1 space-y-2">
                 <p>
@@ -273,7 +273,7 @@ export const SuggestRouteDialog = ({
             ) : null}
           </div>
         ) : matchInfo && !matchAccepted ? (
-          <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 space-y-3">
+          <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200 space-y-3">
             <div className="flex items-start gap-2">
               <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
               <div className="space-y-1">
@@ -437,21 +437,21 @@ const SuggestionCard = ({
               </Badge>
             )}
             {s.has_skill ? (
-              <Badge variant="outline" className="gap-1 border-emerald-200 bg-emerald-50 text-emerald-700">
+              <Badge variant="outline" className="gap-1 border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-300">
                 <Wrench className="h-3 w-3" /> Kan opgaven
               </Badge>
             ) : (
-              <Badge variant="outline" className="gap-1 border-rose-200 bg-rose-50 text-rose-700">
+              <Badge variant="outline" className="gap-1 border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/25 dark:bg-rose-500/10 dark:text-rose-300">
                 <Wrench className="h-3 w-3" /> Har ikke prøvet ydelsen før
               </Badge>
             )}
             {s.same_zone && (
-              <Badge variant="outline" className="gap-1 border-sky-200 bg-sky-50 text-sky-700">
+              <Badge variant="outline" className="gap-1 border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-500/25 dark:bg-sky-500/10 dark:text-sky-300">
                 <MapPinned className="h-3 w-3" /> Tæt på området
               </Badge>
             )}
             {overCapacity && (
-              <Badge variant="outline" className="gap-1 border-amber-200 bg-amber-50 text-amber-800">
+              <Badge variant="outline" className="gap-1 border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/25 dark:bg-amber-500/10 dark:text-amber-300">
                 <AlertTriangle className="h-3 w-3" /> Dagen er fuld
               </Badge>
             )}
