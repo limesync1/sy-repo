@@ -23,13 +23,13 @@ import {
 } from "lucide-react";
 
 import { AdminShell } from "@/components/admin/shared/AdminShell";
-import { SEO } from "@/components/SEO";
+import SEO from "@/components/SEO";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { useMyBusiness } from "@/hooks/useMyBusiness";
+import { useMyBusiness } from "@/hooks/useDatabase";
 import { useEmployees } from "@/hooks/useEmployees";
 import {
   useCalendarData,
