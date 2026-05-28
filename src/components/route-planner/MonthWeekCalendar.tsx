@@ -548,13 +548,13 @@ const DayCellInner = ({
         {isJobDragActive && emptyDay && canReceiveDrop && (
           <div
             className={cn(
-              "flex-1 flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed transition-all min-h-[60px]",
+              "flex-1 flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed transition-all duration-200 min-h-[60px]",
               isOver
-                ? "border-accent bg-accent/20 text-accent scale-[1.03] shadow-md"
-                : "border-accent/50 bg-accent/5 text-accent/80 hover:bg-accent/10",
+                ? "border-accent bg-accent/15 text-accent shadow-[0_4px_16px_-4px_hsl(var(--accent)/0.45)]"
+                : "border-accent/40 bg-accent/[0.04] text-accent/70 hover:border-accent/60 hover:bg-accent/[0.08]",
             )}
           >
-            <ArrowDown className={cn("h-5 w-5", isOver && "animate-bounce")} />
+            <ArrowDown className={cn("h-5 w-5 transition-transform", isOver && "animate-bounce")} />
             <span className="text-[11px] font-semibold leading-tight text-center px-1.5">
               {isOver
                 ? `Opret rute · ${format(date, "EEEE d. MMM", { locale: da })}`
@@ -569,18 +569,18 @@ const DayCellInner = ({
           medarbejdere), helt tomme dage og fortid. */}
       {capacity && capacity.minutes_capacity > 0 && inMonth && !isPast && (
         <div
-          className="absolute bottom-0 left-0 right-0 h-1.5 bg-muted/50 overflow-hidden group/cap"
+          className="absolute bottom-0 left-0 right-0 h-1 bg-muted/40 overflow-hidden group/cap"
           title={`Belastning: ${Math.round(capacity.load_pct)}% — ${Math.round(capacity.minutes_booked / 60 * 10) / 10} af ${Math.round(capacity.minutes_capacity / 60)} timer booket`}
           aria-label={`Dagens belastning: ${Math.round(capacity.load_pct)} procent`}
         >
           <div
             className={cn(
-              "h-full transition-all duration-500",
+              "h-full transition-all duration-500 rounded-r-full",
               capacity.load_pct >= 100
-                ? "bg-destructive"
+                ? "bg-destructive shadow-[0_0_6px_hsl(var(--destructive)/0.5)]"
                 : capacity.load_pct >= 70
                 ? "bg-amber-500"
-                : "bg-emerald-500",
+                : "bg-emerald-500/80",
             )}
             style={{ width: `${Math.min(100, capacity.load_pct)}%` }}
           />
