@@ -127,6 +127,7 @@ import UnassignedFiltersPopover, { type UrgencyKey } from "@/components/route-pl
 import UndoBar from "@/components/route-planner/UndoBar";
 import PlannerSkeleton from "@/components/route-planner/PlannerSkeleton";
 import DensityToggle from "@/components/route-planner/DensityToggle";
+import { useDensity } from "@/components/route-planner/DensityToggle";
 import ThemeToggle, { usePlannerTheme, usePlannerThemeEffect } from "@/components/route-planner/ThemeToggle";
 import RoutePrintDialog, { type PrintRoute } from "@/components/route-planner/RoutePrintDialog";
 import { Printer, ListOrdered } from "lucide-react";
