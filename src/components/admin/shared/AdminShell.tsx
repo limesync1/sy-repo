@@ -339,12 +339,23 @@ export const AdminShell = ({
             <img
               src="/serviceydere-logo-dark.webp"
               alt="Serviceydere"
-              className={cn("w-auto", collapsed ? "h-8" : "h-9")}
+              className={cn("w-auto dark:hidden", collapsed ? "h-8" : "h-9")}
               width={1920}
               height={539}
               decoding="async"
               fetchPriority="high"
              loading="lazy"/>
+            {/* Mørk tilstand (kun ruteplanlæggeren): logo med hvid tekst så det
+                er synligt på den mørke baggrund. */}
+            <img
+              src="/serviceydere-logo.webp"
+              alt="Serviceydere"
+              className={cn("w-auto hidden dark:block", collapsed ? "h-8" : "h-9")}
+              width={1920}
+              height={539}
+              decoding="async"
+              loading="lazy"
+            />
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}
