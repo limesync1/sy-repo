@@ -178,7 +178,7 @@ export const MonthWeekCalendar = ({
         className="grid border-b border-border/60 bg-gradient-to-b from-secondary/50 via-secondary/20 to-background shrink-0"
         style={{ gridTemplateColumns: "48px repeat(7, minmax(0, 1fr))" }}
       >
-        <div className="border-r border-border/50 p-2 text-[10px] uppercase text-muted-foreground/60 font-semibold tracking-[0.16em] flex items-center justify-center">
+        <div className="border-r border-border/50 p-2 text-[10px] uppercase text-muted-foreground/50 font-semibold tracking-[0.18em] flex items-center justify-center">
           Uge
         </div>
         {weekdayLabels.map((wd, i) => {
@@ -187,8 +187,8 @@ export const MonthWeekCalendar = ({
             <div
               key={wd}
               className={cn(
-                "p-2 text-[11px] font-semibold tracking-[0.14em] uppercase text-center border-r border-border/50 last:border-r-0",
-                isWeekend ? "text-muted-foreground/55" : "text-foreground/75",
+                "p-2 text-[10.5px] font-semibold tracking-[0.18em] uppercase text-center border-r border-border/50 last:border-r-0",
+                isWeekend ? "text-muted-foreground/50" : "text-foreground/70",
               )}
             >
               {wd}
@@ -207,8 +207,10 @@ export const MonthWeekCalendar = ({
               style={{ gridTemplateColumns: "48px repeat(7, minmax(0, 1fr))" }}
             >
               {/* Ugenummer */}
-              <div className="border-r border-border/50 bg-secondary/15 flex items-start justify-center pt-2.5 text-[11px] font-semibold text-muted-foreground/70 tabular-nums">
-                {weekNum}
+              <div className="border-r border-border/50 bg-secondary/20 flex items-start justify-center pt-3 text-[10.5px] font-bold text-muted-foreground/60 tabular-nums tracking-wide">
+                <span className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1 rounded-md bg-background/60 ring-1 ring-border/50">
+                  {weekNum}
+                </span>
               </div>
               {week.map((day) => {
                 const dateStr = ymd(day);
@@ -342,12 +344,13 @@ const DayCellInner = ({
       ref={setNodeRef}
       data-route-drop-date={canReceiveDrop ? dateStr : undefined}
       className={cn(
-        "border-r border-border/50 last:border-r-0 relative group flex flex-col gap-1 p-1.5 transition-all duration-200",
+        "border-r border-border/50 last:border-r-0 relative group flex flex-col gap-1 p-2 transition-all duration-200",
         compact ? "min-h-[110px]" : "min-h-[160px]",
-        !inMonth && "bg-secondary/10",
-        inMonth && isWeekend && !isPast && "bg-secondary/[0.06]",
-        isPast && "bg-muted/15",
-        inMonth && !isPast && !isDragActive && "hover:bg-secondary/20",
+        !inMonth && "bg-muted/10",
+        inMonth && isWeekend && !isPast && "bg-secondary/[0.05]",
+        isPast && "bg-muted/20",
+        today && "bg-accent/[0.04]",
+        inMonth && !isPast && !isDragActive && "hover:bg-secondary/25",
         // Når en aftale/rute trækkes:
         //  - Gyldige drop-dage (i måneden, ikke fortid, ikke optaget) får
         //    en subtil accent-ring så brugeren ser hvor der KAN droppes.
@@ -404,14 +407,14 @@ const DayCellInner = ({
         </div>
       )}
       {/* Dato-header */}
-      <div className="flex items-center justify-between mb-0.5">
+      <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-1">
           <span
             className={cn(
-              "inline-flex items-center justify-center rounded-full text-[12px] font-semibold tabular-nums transition-all duration-200",
+              "inline-flex items-center justify-center rounded-full text-[12.5px] font-semibold tabular-nums transition-all duration-200",
               today
-                ? "h-6 w-6 bg-accent text-accent-foreground shadow-[0_2px_8px_-2px_hsl(var(--accent)/0.55)]"
-                : "h-6 w-6 text-foreground/85 group-hover:bg-secondary/70",
+                ? "h-7 w-7 bg-accent text-accent-foreground shadow-[0_2px_8px_-2px_hsl(var(--accent)/0.6)] ring-2 ring-accent/15"
+                : "h-7 w-7 text-foreground/85 group-hover:bg-secondary/70",
               !inMonth && !today && "text-muted-foreground/50",
               isPast && !today && "text-muted-foreground/60",
             )}
@@ -564,18 +567,18 @@ const DayCellInner = ({
           medarbejdere), helt tomme dage og fortid. */}
       {capacity && capacity.minutes_capacity > 0 && inMonth && !isPast && (
         <div
-          className="absolute bottom-0 left-0 right-0 h-1 bg-muted/40 overflow-hidden group/cap"
+          className="absolute bottom-0 left-0 right-0 h-1.5 bg-muted/30 overflow-hidden group/cap rounded-b-[3px]"
           title={`Belastning: ${Math.round(capacity.load_pct)}% — ${Math.round(capacity.minutes_booked / 60 * 10) / 10} af ${Math.round(capacity.minutes_capacity / 60)} timer booket`}
           aria-label={`Dagens belastning: ${Math.round(capacity.load_pct)} procent`}
         >
           <div
             className={cn(
-              "h-full transition-all duration-500 rounded-r-full",
+              "h-full transition-all duration-500 rounded-r-full relative",
               capacity.load_pct >= 100
-                ? "bg-destructive shadow-[0_0_6px_hsl(var(--destructive)/0.5)]"
+                ? "bg-gradient-to-r from-destructive/80 to-destructive shadow-[0_0_8px_hsl(var(--destructive)/0.55)]"
                 : capacity.load_pct >= 70
-                ? "bg-amber-500"
-                : "bg-emerald-500/80",
+                ? "bg-gradient-to-r from-amber-400 to-amber-500"
+                : "bg-gradient-to-r from-emerald-400/70 to-emerald-500/85",
             )}
             style={{ width: `${Math.min(100, capacity.load_pct)}%` }}
           />

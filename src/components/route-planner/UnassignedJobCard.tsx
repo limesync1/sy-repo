@@ -275,14 +275,14 @@ export const UnassignedJobCard = ({
       aria-label={isPending
         ? `${job.customer_name} — afventer kundens godkendelse`
         : `${job.customer_name} — træk for at planlægge, klik for detaljer`}
-      className={`group relative rounded-xl border bg-card transition-all duration-200 overflow-hidden flex ${
+      className={`group relative rounded-xl border bg-card transition-[transform,box-shadow,border-color] duration-200 overflow-hidden flex ${
         isPending ? "" : "cursor-grab active:cursor-grabbing touch-none"
       } ${
         isPending
           ? "border-amber-300/60"
           : selected
-            ? "border-accent ring-2 ring-accent/30 shadow-md"
-            : "border-border/70 hover:border-foreground/30 hover:shadow-md hover:-translate-y-px"
+            ? "border-accent ring-2 ring-accent/25 shadow-[0_6px_18px_-6px_hsl(var(--accent)/0.45)]"
+            : "border-border/60 hover:border-foreground/25 hover:shadow-[0_6px_16px_-6px_rgba(0,0,0,0.12)] hover:-translate-y-[1px]"
       }`}
     >
       {/* ───────────────────────────────────────────────────────────────────
@@ -292,7 +292,7 @@ export const UnassignedJobCard = ({
          ─────────────────────────────────────────────────────────────────── */}
       <div
         aria-hidden
-        className={`w-0.5 shrink-0 ${selected ? "bg-accent" : urgency.rail} ${urgency.pulse ? "animate-pulse" : ""}`}
+        className={`w-[3px] shrink-0 ${selected ? "bg-accent" : urgency.rail} ${urgency.pulse ? "animate-pulse" : ""}`}
       />
 
       {/* MULTI-SELECT — stor, altid-synlig dedikeret zone i venstre side.
@@ -345,7 +345,7 @@ export const UnassignedJobCard = ({
             {job.customer_name}
           </h3>
           <span
-            className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[11px] font-semibold ${urgency.pillBg} ${urgency.pillText} ${urgency.pillBorder}`}
+            className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10.5px] font-bold uppercase tracking-wide ${urgency.pillBg} ${urgency.pillText} ${urgency.pillBorder}`}
           >
             {urgency.pulse && <span aria-hidden className={`h-1.5 w-1.5 rounded-full ${urgency.rail} animate-pulse`} />}
             {urgency.label}
