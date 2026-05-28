@@ -808,6 +808,7 @@ export const RouteEditSheet = ({
               <Section
                 icon={<Gauge className="h-3.5 w-3.5" />}
                 title="Estimeret rejsetid"
+                tone="sky"
                 hint={directionsFetching ? "Genberegner…" : undefined}
               >
                 {(() => {
