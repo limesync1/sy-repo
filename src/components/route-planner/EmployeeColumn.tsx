@@ -101,7 +101,7 @@ export const EmployeeColumn = ({
       {stops.length >= 1 && (onOptimize || onDispatch) && (
         <div className="flex gap-1.5 mb-3">
           {onOptimize && stops.length >= 2 && (
-            <Button size="sm" variant="outline" className="flex-1 h-8 text-xs gap-1 rounded-md border-border/60 hover:border-accent/60 hover:text-accent" onClick={onOptimize} disabled={optimizing} title="AI-optimér rækkefølge">
+            <Button size="sm" variant="outline" className="flex-1 h-8 text-xs gap-1 rounded-md border-border/70 hover:border-accent/60 hover:text-accent" onClick={onOptimize} disabled={optimizing} title="AI-optimér rækkefølge">
               {optimizing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
               Optimér
             </Button>
@@ -110,7 +110,7 @@ export const EmployeeColumn = ({
             <Button
               size="sm"
               variant={isDispatched ? "outline" : "default"}
-              className={`flex-1 h-8 text-xs gap-1 rounded-md ${isDispatched ? "border-border/60" : "shadow-[0_2px_6px_-2px_hsl(var(--accent)/0.5)]"}`}
+              className={`flex-1 h-8 text-xs gap-1 rounded-md font-semibold ${isDispatched ? "border-border/70" : "shadow-[0_2px_6px_-2px_hsl(var(--accent)/0.5)]"}`}
               onClick={onDispatch}
               disabled={dispatching || stops.length === 0}
               title={isDispatched ? "Send opdateret rute igen" : "Send rute til medarbejderen via email"}
@@ -199,7 +199,7 @@ const SortableStopCard = ({
           {...listeners}
           {...attributes}
           onClick={(e) => e.stopPropagation()}
-          className={`flex h-6 w-6 items-center justify-center rounded-md text-white text-[11px] font-bold shrink-0 cursor-grab active:cursor-grabbing ring-2 ring-background shadow-[0_2px_4px_-1px_rgba(0,0,0,0.2)] transition-transform hover:scale-105 active:scale-95 ${
+          className={`flex h-6 w-6 items-center justify-center rounded-md text-background text-[11px] font-bold shrink-0 cursor-grab active:cursor-grabbing ring-2 ring-background shadow-[0_2px_4px_-1px_hsl(var(--foreground)/0.2)] transition-transform hover:scale-105 active:scale-95 ${
             isDone ? "opacity-50" : ""
           }`}
           style={{ background: color }}
