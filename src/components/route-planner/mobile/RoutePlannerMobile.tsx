@@ -327,7 +327,7 @@ export default function RoutePlannerMobile() {
         <MobileRouteDetailSheet
           open={!!openRoute}
           onOpenChange={(o) => !o && setOpenRoute(null)}
-          route={openRoute}
+          route={allRoutes.find((r) => r.id === openRoute.id) ?? openRoute}
           businessId={businessId}
           employees={employees as any[]}
           stops={stopsByRoute.get(openRoute.id) ?? []}
