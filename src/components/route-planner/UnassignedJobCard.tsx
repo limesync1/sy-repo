@@ -281,7 +281,6 @@ export const UnassignedJobCard = ({
         CARD_BASE,
         "flex",
         isPending ? "" : "cursor-grab active:cursor-grabbing touch-none",
-        isDragging && CARD_DRAGGING,
         isPending
           ? "border-amber-300/60"
           : selected
