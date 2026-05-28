@@ -178,7 +178,7 @@ export const MonthWeekCalendar = ({
         className="grid border-b border-border/60 bg-gradient-to-b from-secondary/50 via-secondary/20 to-background shrink-0"
         style={{ gridTemplateColumns: "48px repeat(7, minmax(0, 1fr))" }}
       >
-        <div className="border-r border-border/50 p-2 text-[10px] uppercase text-muted-foreground/60 font-semibold tracking-[0.16em] flex items-center justify-center">
+        <div className="border-r border-border/50 p-2 text-[10px] uppercase text-muted-foreground/50 font-semibold tracking-[0.18em] flex items-center justify-center">
           Uge
         </div>
         {weekdayLabels.map((wd, i) => {
@@ -187,8 +187,8 @@ export const MonthWeekCalendar = ({
             <div
               key={wd}
               className={cn(
-                "p-2 text-[11px] font-semibold tracking-[0.14em] uppercase text-center border-r border-border/50 last:border-r-0",
-                isWeekend ? "text-muted-foreground/55" : "text-foreground/75",
+                "p-2 text-[10.5px] font-semibold tracking-[0.18em] uppercase text-center border-r border-border/50 last:border-r-0",
+                isWeekend ? "text-muted-foreground/50" : "text-foreground/70",
               )}
             >
               {wd}
@@ -207,8 +207,10 @@ export const MonthWeekCalendar = ({
               style={{ gridTemplateColumns: "48px repeat(7, minmax(0, 1fr))" }}
             >
               {/* Ugenummer */}
-              <div className="border-r border-border/50 bg-secondary/15 flex items-start justify-center pt-2.5 text-[11px] font-semibold text-muted-foreground/70 tabular-nums">
-                {weekNum}
+              <div className="border-r border-border/50 bg-secondary/20 flex items-start justify-center pt-3 text-[10.5px] font-bold text-muted-foreground/60 tabular-nums tracking-wide">
+                <span className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1 rounded-md bg-background/60 ring-1 ring-border/50">
+                  {weekNum}
+                </span>
               </div>
               {week.map((day) => {
                 const dateStr = ymd(day);
