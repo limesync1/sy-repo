@@ -419,7 +419,7 @@ const SortableStopRow = ({
             {stop.status === "completed" && (
               <Badge
                 variant="outline"
-                className="h-5 text-[11px] px-2 gap-1 border-emerald-300 text-emerald-700 bg-emerald-50 font-medium"
+                className="h-5 text-[11px] px-2 gap-1 border-emerald-300 text-emerald-700 bg-emerald-50 dark:border-emerald-500/30 dark:text-emerald-300 dark:bg-emerald-500/10 font-medium"
               >
                 <Check className="h-3 w-3" />
                 Færdig
@@ -573,8 +573,8 @@ const AssigneeToggle = ({
                       className={cn(
                         "shrink-0 h-6 w-6 inline-flex items-center justify-center rounded transition-colors",
                         isLead
-                          ? "text-amber-600 bg-amber-50"
-                          : "text-muted-foreground hover:text-amber-600 hover:bg-amber-50",
+                          ? "text-amber-600 bg-amber-50 dark:text-amber-300 dark:bg-amber-500/10"
+                          : "text-muted-foreground hover:text-amber-600 hover:bg-amber-50 dark:hover:text-amber-300 dark:hover:bg-amber-500/10",
                       )}
                       title={isLead ? "Lead-medarbejder" : "Sæt som lead"}
                       aria-label="Sæt som lead"
