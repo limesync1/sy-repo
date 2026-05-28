@@ -1111,8 +1111,12 @@ const Planner = () => {
   const periodSummary = useMemo(() => {
     const routeCount = calendarRoutesRaw.length;
     const stopCount = calendarStops.length;
-    return { routeCount, stopCount };
-  }, [calendarRoutesRaw.length, calendarStops.length]);
+    const workMinutes = (calendarStops as any[]).reduce(
+      (sum, s) => sum + (Number(s.duration_minutes) || 0),
+      0,
+    );
+    return { routeCount, stopCount, workMinutes };
+  }, [calendarRoutesRaw.length, calendarStops]);
 
   /* Stop assignment handler */
   /* Build CalendarRoute[] for MonthWeekCalendar (range covers month/week view) */
