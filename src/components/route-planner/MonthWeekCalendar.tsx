@@ -370,7 +370,7 @@ const DayCellInner = ({
         !inMonth && "bg-muted/10",
         inMonth && isWeekend && !isPast && "bg-secondary/[0.12]",
         isPast && "bg-muted/15",
-        today && "bg-foreground/[0.045] ring-1 ring-inset ring-foreground/15 shadow-[inset_0_2px_0_0_hsl(var(--foreground))]",
+        today && "bg-foreground/[0.035] ring-1 ring-inset ring-foreground/20",
         inMonth && !isPast && !isDragActive && "hover:bg-secondary/30",
         // Når en aftale/rute trækkes:
         //  - Gyldige drop-dage (i måneden, ikke fortid, ikke optaget) får
