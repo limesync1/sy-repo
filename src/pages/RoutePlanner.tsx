@@ -62,6 +62,7 @@ import {
   PointerSensor, MouseSensor, TouchSensor, KeyboardSensor,
 } from "@dnd-kit/core";
 import { createPortal } from "react-dom";
+import { snapCenterToCursor } from "@dnd-kit/modifiers";
 import { UnassignedJobCard, UnassignedJobCardSkeleton } from "@/components/route-planner/UnassignedJobCard";
 import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
 import { SuggestRouteDialog } from "@/components/route-planner/SuggestRouteDialog";
