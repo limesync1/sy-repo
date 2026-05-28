@@ -8,6 +8,8 @@ import { MapPin, Clock, Sparkles, Navigation, Loader2, Send, AlertCircle, Refres
 import type { RouteStop } from "@/hooks/useRoutes";
 import { formatDurationMin } from "@/lib/duration-format";
 import { formatInterval } from "@/lib/interval";
+import { cn } from "@/lib/utils";
+import { CARD_BASE, CARD_BORDER, CARD_HOVER } from "./lib/card-styles";
 import { formatCycleLabel } from "@/lib/cycle-label";
 
 type Props = {
@@ -179,13 +181,15 @@ const SortableStopCard = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`group relative rounded-md border bg-card p-2.5 pl-3 transition-all duration-150 cursor-pointer overflow-hidden ${
+      className={cn(
+        CARD_BASE,
+        "p-2.5 pl-3 cursor-pointer",
         isSelected
           ? "border-accent/60 ring-2 ring-accent/25 shadow-[0_4px_12px_-4px_hsl(var(--accent)/0.35)] -translate-y-px"
           : isDone
           ? "border-emerald-200/70 bg-emerald-50/40 opacity-80"
-          : "border-border/70 hover:border-foreground/25 hover:shadow-[0_6px_14px_-6px_hsl(var(--foreground)/0.18)] hover:-translate-y-px"
-      }`}
+          : cn(CARD_BORDER, CARD_HOVER),
+      )}
       onClick={onSelect}
     >
       {/* Left color rail */}
