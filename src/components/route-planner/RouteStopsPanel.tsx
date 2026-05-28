@@ -42,7 +42,8 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { EmployeeAvatars, type EmpAvatar } from "./EmployeeAvatars";
-import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_DRAGGING, CARD_RAIL_WIDTH } from "./lib/card-styles";
+import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_RAIL_WIDTH } from "./lib/card-styles";
+import EmptyState from "./EmptyState";
 
 type Props = {
   route: Route | null;
@@ -207,13 +208,13 @@ export const RouteStopsPanel = ({
 
           <div className="flex-1 overflow-y-auto p-2 bg-secondary/15">
             {items.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-center gap-2 px-4">
-                <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center">
-                  <Inbox className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <p className="text-xs text-muted-foreground italic">
-                  Ingen stops endnu. Træk aftaler fra aftalepoolen ind på ruten.
-                </p>
+              <div className="flex h-full items-center justify-center">
+                <EmptyState
+                  compact
+                  icon={<Inbox className="h-5 w-5" />}
+                  title="Ingen stops endnu"
+                  description="Træk aftaler fra aftalepoolen ind på ruten."
+                />
               </div>
             ) : (
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -316,7 +317,9 @@ const SortableStopRow = ({
       style={style}
       className={cn(
         CARD_BASE,
-        isDragging ? CARD_DRAGGING : cn(CARD_BORDER, CARD_HOVER),
+        isDragging
+          ? "z-20 border-dashed border-accent/60 bg-secondary/40 opacity-60 shadow-none ring-0"
+          : cn(CARD_BORDER, CARD_HOVER),
       )}
     >
       {/* Tynd accent-stribe i venstre kant i rutens farve — binder kortet visuelt til kalender-pillen */}
