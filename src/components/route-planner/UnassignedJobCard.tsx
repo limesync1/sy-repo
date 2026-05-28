@@ -11,6 +11,8 @@ import { formatDurationMin } from "@/lib/duration-format";
 import { relativeFromNow } from "@/lib/relative-time";
 import { parseInterval, formatInterval } from "@/lib/interval";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_SELECTED, CARD_DRAGGING, CARD_RAIL_WIDTH } from "./lib/card-styles";
 
 /** Skeleton-version af kortet — bruges mens aftaler/GPS-status indlæses.
  *  Matcher kortets højde og indre struktur så listen ikke "hopper" når
