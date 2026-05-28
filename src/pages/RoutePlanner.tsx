@@ -3881,24 +3881,24 @@ const Planner = () => {
         contentPadding={false}
         contentClassName="flex flex-col overflow-hidden"
         topbarRight={
-          <div className="hidden 2xl:flex items-center gap-1.5 flex-wrap justify-end">
+          <div className="hidden 2xl:flex items-center gap-2 flex-wrap justify-end">
             {/* Slank topbar: kun de handlinger der bruges dagligt ligger frit fremme.
                 Print, tidslinje, planlægning, opret bestilling, tæthed, tema og
                 genveje er flyttet ind i "Mere"-menuen for at reducere visuel støj. */}
             {periodSummary.routeCount > 0 && (
-              <div className="hidden md:inline-flex items-center gap-2 h-7 px-2.5 rounded-md bg-secondary/60 border border-border/60 text-[11px] tabular-nums">
-                <span className="font-semibold text-foreground">{periodSummary.routeCount}</span>
+              <div className="hidden md:inline-flex items-center gap-1.5 h-7 px-3 rounded-full bg-secondary/60 border border-border/60 text-[11px] tabular-nums shadow-[inset_0_1px_0_rgba(255,255,255,0.4)]">
+                <span className="font-bold text-foreground">{periodSummary.routeCount}</span>
                 <span className="text-muted-foreground">{periodSummary.routeCount === 1 ? "rute" : "ruter"}</span>
-                <span className="text-border">·</span>
-                <span className="font-semibold text-foreground">{periodSummary.stopCount}</span>
+                <span className="h-3 w-px bg-border" />
+                <span className="font-bold text-foreground">{periodSummary.stopCount}</span>
                 <span className="text-muted-foreground">stop</span>
               </div>
             )}
 
             <Tabs value={view} onValueChange={(v) => setView(v as any)}>
-              <TabsList className="h-7">
-                <TabsTrigger value="month" className="text-xs h-5 px-2">Måned</TabsTrigger>
-                <TabsTrigger value="week" className="text-xs h-5 px-2">Uge</TabsTrigger>
+              <TabsList className="h-7 p-0.5">
+                <TabsTrigger value="month" className="text-[11px] font-semibold h-6 px-2.5 rounded-md">Måned</TabsTrigger>
+                <TabsTrigger value="week" className="text-[11px] font-semibold h-6 px-2.5 rounded-md">Uge</TabsTrigger>
               </TabsList>
             </Tabs>
 
@@ -3906,14 +3906,19 @@ const Planner = () => {
             <Popover>
               <PopoverTrigger asChild>
                 <Button
-                  variant={filtersActive ? "default" : "outline"}
+                  variant="outline"
                   size="sm"
-                  className="h-7 gap-1.5"
+                  className={cn(
+                    "h-7 gap-1.5 rounded-lg border-border/60 transition-colors",
+                    filtersActive
+                      ? "border-accent/60 bg-accent/[0.08] text-accent hover:bg-accent/[0.12]"
+                      : "hover:border-border hover:text-foreground"
+                  )}
                 >
                   <Filter className="h-3.5 w-3.5" />
                   Filtre
                   {filtersActive && (
-                    <Badge variant="secondary" className="h-4 px-1 text-[10px] tabular-nums">
+                    <Badge className="h-4 min-w-[16px] px-1 text-[10px] font-bold tabular-nums bg-accent text-accent-foreground border-0 rounded-full">
                       {filterAssigneeIds.length + filterStatuses.length}
                     </Badge>
                   )}
