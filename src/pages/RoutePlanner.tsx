@@ -4708,6 +4708,7 @@ const Planner = () => {
                             icon={<Inbox className="h-5 w-5" />}
                             title="Alle aftaler er planlagt 🎉"
                             description="Nye aftaler lander her, så snart de oprettes."
+                            action={{ label: "Opret bestilling", icon: <Plus className="h-4 w-4" />, onClick: () => setCreateOrderOpen(true) }}
                             compact
                           />
                         );
