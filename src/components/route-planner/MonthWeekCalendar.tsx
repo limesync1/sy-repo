@@ -300,6 +300,8 @@ const DayCellInner = ({
 }: DayCellProps) => {
   const todayIso = format(new Date(), "yyyy-MM-dd");
   const isPast = dateStr < todayIso;
+  const dow = date.getDay(); // 0=Sun, 6=Sat
+  const isWeekend = dow === 0 || dow === 6;
   const { setNodeRef, isOver } = useDroppable({
     id: `day:${dateStr}`,
     data: { type: "day", date: dateStr },
@@ -340,16 +342,18 @@ const DayCellInner = ({
       ref={setNodeRef}
       data-route-drop-date={canReceiveDrop ? dateStr : undefined}
       className={cn(
-        "border-r last:border-r-0 relative group flex flex-col gap-1 p-1.5 transition-colors",
+        "border-r border-border/50 last:border-r-0 relative group flex flex-col gap-1 p-1.5 transition-all duration-200",
         compact ? "min-h-[110px]" : "min-h-[160px]",
         !inMonth && "bg-secondary/10",
-        isPast && "bg-muted/20",
+        inMonth && isWeekend && !isPast && "bg-secondary/[0.06]",
+        isPast && "bg-muted/15",
+        inMonth && !isPast && !isDragActive && "hover:bg-secondary/20",
         // Når en aftale/rute trækkes:
         //  - Gyldige drop-dage (i måneden, ikke fortid, ikke optaget) får
         //    en subtil accent-ring så brugeren ser hvor der KAN droppes.
         //  - Fortid/udenfor-måned dæmpes så de visuelt træder i baggrunden
         //    og ikke konkurrerer om opmærksomheden under drag.
-        canReceiveDrop && !isOver && "ring-1 ring-accent/40 ring-inset",
+        canReceiveDrop && !isOver && "ring-1 ring-accent/30 ring-inset bg-accent/[0.03]",
         isDragActive && isPast && "opacity-40",
         isDragActive && !inMonth && "opacity-50",
         // Eksplicit cursor-feedback: brugeren kan se INDEN drop om dagen
@@ -359,7 +363,7 @@ const DayCellInner = ({
         // Når man hovrer over en gyldig dag — tydeligt highlight. Hvis
         // live-validering har en severity (grøn/gul/rød) trumfer den
         // standard-accent-ringen, så brugeren ser den korrekte status.
-        isOver && canReceiveDrop && !validation && "bg-accent/25 ring-2 ring-accent ring-inset shadow-inner scale-[1.01]",
+        isOver && canReceiveDrop && !validation && "bg-accent/15 ring-2 ring-accent ring-inset shadow-[inset_0_0_0_1px_hsl(var(--accent)/0.3)]",
         isOver && canReceiveDrop && validation && ringForSeverity(validation.severity),
         busy && "opacity-90 cursor-wait",
       )}
@@ -372,9 +376,10 @@ const DayCellInner = ({
       {isOver && canReceiveDrop && !validation && (
         <div
           aria-hidden
-          className="absolute inset-x-1.5 bottom-1.5 z-10 pointer-events-none h-7 rounded-md border-2 border-dashed border-accent bg-accent/10 flex items-center justify-center animate-in fade-in zoom-in-95 duration-150"
+          className="absolute inset-x-1.5 bottom-1.5 z-10 pointer-events-none h-7 rounded-lg border-2 border-dashed border-accent/80 bg-accent/15 flex items-center justify-center gap-1 animate-in fade-in zoom-in-95 duration-200 shadow-[0_2px_8px_-2px_hsl(var(--accent)/0.4)]"
         >
-          <span className="text-[10px] font-semibold text-accent uppercase tracking-wide">Slip her</span>
+          <ArrowDown className="h-3 w-3 text-accent animate-bounce" />
+          <span className="text-[10px] font-bold text-accent uppercase tracking-wider">Slip her</span>
         </div>
       )}
       {/* ─── Drop-target floating label ─── */}
@@ -403,17 +408,18 @@ const DayCellInner = ({
         <div className="flex items-center gap-1.5">
           <span
             className={cn(
-              "inline-flex items-center justify-center rounded-full text-xs font-semibold tabular-nums transition-colors",
+              "inline-flex items-center justify-center rounded-full text-xs font-semibold tabular-nums transition-all duration-200",
               today
-                ? "h-6 w-6 bg-accent text-accent-foreground shadow-sm ring-2 ring-accent/30"
-                : "h-6 w-6 text-foreground",
+                ? "h-6 w-6 bg-accent text-accent-foreground shadow-[0_2px_6px_-1px_hsl(var(--accent)/0.5)] ring-2 ring-accent/20 ring-offset-1 ring-offset-card"
+                : "h-6 w-6 text-foreground/90 group-hover:bg-secondary/60",
               !inMonth && !today && "text-muted-foreground/50",
+              isPast && !today && "text-muted-foreground/60",
             )}
           >
             {format(date, "d")}
           </span>
           {today && (
-            <span className="text-[10px] font-bold uppercase tracking-wider text-accent">
+            <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-accent">
               I dag
             </span>
           )}
