@@ -171,7 +171,10 @@ export const RouteStopsPanel = ({
           onInteractOutside={(e) => { if (!isCompact) e.preventDefault(); }}
         >
           <SheetHeader
-            className="relative px-4 py-3.5 pr-14 border-b shrink-0 text-left bg-gradient-to-b from-secondary/40 to-card"
+            className={cn(
+              "relative px-4 py-3.5 border-b shrink-0 text-left bg-gradient-to-b from-secondary/40 to-card",
+              isCompact && "pr-14",
+            )}
           >
             {/* Tynd farvet stribe der binder header'en til rutens farve */}
             <span
@@ -179,16 +182,19 @@ export const RouteStopsPanel = ({
               className="absolute left-0 top-0 bottom-0 w-[3px]"
               style={{ background: route.color }}
             />
-            <SheetTitle className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5 text-base leading-tight">
+            <SheetTitle className="flex items-center gap-2.5 text-base leading-tight">
               <span
-                className="inline-flex h-7 w-7 items-center justify-center rounded-lg shadow-sm ring-1 ring-black/5"
+                className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg shadow-sm ring-1 ring-black/5"
                 style={{ background: route.color }}
                 aria-hidden
               >
                 <MapPin className="h-3.5 w-3.5 text-white drop-shadow-sm" />
               </span>
-              <span className="min-w-0 truncate font-semibold">Stops på ruten</span>
-              <span className="shrink-0 inline-flex h-6 min-w-[1.75rem] items-center justify-center rounded-full bg-foreground/5 text-foreground px-2 text-xs font-semibold tabular-nums ring-1 ring-border/60">
+              <span className="min-w-0 flex-1 truncate font-semibold">Stops på ruten</span>
+              <span
+                className="shrink-0 inline-flex h-6 min-w-[1.75rem] items-center justify-center rounded-full px-2 text-xs font-bold tabular-nums text-white shadow-sm ring-1 ring-black/5"
+                style={{ background: route.color }}
+              >
                 {items.length}
               </span>
             </SheetTitle>
@@ -319,21 +325,21 @@ const SortableStopRow = ({
         className={cn("absolute left-0 top-0 bottom-0 z-10", CARD_RAIL_WIDTH)}
         style={{ background: color }}
       />
-      <div className="grid min-h-[2.5rem] grid-cols-[1.25rem_2.25rem_minmax(0,1fr)] sm:min-h-[3rem] sm:grid-cols-[1.5rem_2.5rem_minmax(0,1fr)_auto] pl-1">
+      <div className="flex items-stretch min-h-[3rem] pl-1">
         {/* Drag handle — skjult på projicerede ruter (read-only) */}
         {!isProjection ? (
           <button
             type="button"
             {...attributes}
             {...listeners}
-            className="flex items-center justify-center px-1 cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-foreground hover:bg-secondary/60 transition-colors sm:px-1.5"
+            className="flex shrink-0 items-center justify-center w-6 cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-foreground transition-colors sm:w-7"
             aria-label="Træk for at omrangere"
           >
             <GripVertical className="h-4 w-4" />
           </button>
         ) : (
           <span
-            className="flex items-center justify-center px-1.5 text-muted-foreground/40"
+            className="flex shrink-0 items-center justify-center w-6 text-muted-foreground/25 sm:w-7"
             aria-hidden
             title="Projiceret rute — låst rækkefølge"
           >
@@ -342,7 +348,7 @@ const SortableStopRow = ({
         )}
 
         {/* Sekvens-nummer — rund "chip" i rutens farve. Roundet og elevated i stedet for flad firkant. */}
-        <div className="flex items-center justify-center shrink-0 self-center">
+        <div className="flex shrink-0 items-center pr-1.5">
           <span
             className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[12px] font-bold text-white tabular-nums shadow-[0_1px_3px_rgba(0,0,0,0.18)] ring-2 ring-card sm:h-8 sm:w-8 sm:text-sm"
             style={{ background: color }}
@@ -356,7 +362,7 @@ const SortableStopRow = ({
         <button
           type="button"
           onClick={onSelect}
-          className="min-w-0 text-left px-2.5 py-2 hover:bg-accent/[0.04] transition-colors space-y-0.5 sm:px-3 sm:py-2"
+          className="min-w-0 flex-1 text-left pr-2 py-2 space-y-0.5"
         >
           {/* Header: kundenavn (primær) + medarbejder-avatars + åbn-pil */}
           <div className="flex items-center gap-1.5">
@@ -432,8 +438,8 @@ const SortableStopRow = ({
           </div>
         </button>
 
-        {/* Right-side actions: assignee toggle + remove */}
-        <div className="col-span-3 flex items-stretch justify-end border-t border-border/60 bg-secondary/25 sm:col-span-1 sm:border-l sm:border-border/60 sm:border-t-0 sm:bg-transparent sm:items-center sm:gap-0.5 sm:pr-1.5">
+        {/* Right-side actions: assignee toggle + remove — fuld-højde divider */}
+        <div className="flex shrink-0 items-stretch self-stretch border-l border-border/50 bg-secondary/20">
           <AssigneeToggle
             employees={employees}
             selectedIds={assigneeIds}
@@ -444,7 +450,7 @@ const SortableStopRow = ({
             <button
               type="button"
               onClick={onRemove}
-              className="flex h-10 w-10 items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-r-xl transition-colors sm:h-8 sm:w-8 sm:rounded-md sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+              className="flex w-9 items-center justify-center text-muted-foreground/70 hover:text-destructive hover:bg-destructive/10 transition-colors sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
               aria-label="Fjern stop"
               title="Fjern stop fra rute"
             >
@@ -488,7 +494,7 @@ const AssigneeToggle = ({
         <button
           type="button"
           className={cn(
-            "flex h-10 w-10 items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-colors sm:h-8 sm:w-8 sm:rounded-md",
+            "flex w-9 items-center justify-center text-muted-foreground/70 hover:text-foreground hover:bg-accent/10 transition-colors",
             selectedIds.length > 0 && "text-accent",
           )}
           aria-label="Tildel medarbejdere"
