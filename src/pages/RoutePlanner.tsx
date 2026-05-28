@@ -4082,7 +4082,7 @@ const Planner = () => {
               data-tour="routes-today"
               variant="outline"
               size="sm"
-              className="h-8 text-[11px] font-semibold rounded-md border-border/70 hover:border-accent/60 hover:text-accent"
+              className="h-8 text-[11px] font-semibold rounded-md border-border/70 hover:border-border hover:bg-secondary/70 hover:text-foreground active:scale-[0.97] transition-[background-color,color,border-color,transform] duration-150"
               onClick={() => setDate(todayStr())}
             >
               I dag
@@ -4105,7 +4105,7 @@ const Planner = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 rounded-md"
+                    className="h-8 w-8 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground active:scale-[0.92] transition-[background-color,color,transform] duration-150"
                     onClick={() => void history.undo()}
                     disabled={!history.canUndo}
                     aria-label="Fortryd seneste handling"
@@ -4127,7 +4127,7 @@ const Planner = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 rounded-md"
+                    className="h-8 w-8 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground active:scale-[0.92] transition-[background-color,color,transform] duration-150"
                     onClick={() => void history.redo()}
                     disabled={!history.canRedo}
                     aria-label="Gentag seneste fortryd"
@@ -4146,7 +4146,7 @@ const Planner = () => {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-md" aria-label="Flere handlinger">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground active:scale-[0.92] transition-[background-color,color,transform] duration-150" aria-label="Flere handlinger">
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
