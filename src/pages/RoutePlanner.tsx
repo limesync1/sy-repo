@@ -41,7 +41,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import {
   ChevronLeft, ChevronRight, Calendar as CalendarIcon,
   Loader2, Search, Plus, Inbox, ArrowUpDown, X, Keyboard, Filter,
-  ShoppingBag, Route as RouteIcon, Tag, Palette, ListChecks, AlertTriangle, Undo2, Redo2, Sparkles, MapPin,
+  ShoppingBag, Route as RouteIcon, Tag, Palette, ListChecks, AlertTriangle, Undo2, Redo2, Sparkles, MapPin, Clock,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarPicker } from "@/components/ui/calendar";
@@ -102,6 +102,7 @@ import {
   applyProjectedOccurrenceShifts,
 } from "@/lib/recurring-projection";
 import { intervalToCadence } from "@/lib/interval";
+import { formatDurationMin } from "@/lib/duration-format";
 import { useAgreementPauses } from "@/hooks/useAgreementPauses";
 import { useBusinessHolidays } from "@/hooks/useBusinessHolidays";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
