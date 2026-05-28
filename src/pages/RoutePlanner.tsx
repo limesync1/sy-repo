@@ -4455,7 +4455,6 @@ const Planner = () => {
                             <SelectItem value="all" className="text-xs">Vis alle</SelectItem>
                             <SelectItem value="ready" className="text-xs">Klar til auto-fordel</SelectItem>
                             <SelectItem value="pending" className="text-xs">Afventer godkendelse</SelectItem>
-                            <SelectItem value="missing-gps" className="text-xs">Mangler GPS</SelectItem>
                           </SelectContent>
                         </Select>
                          <Select value={unassignedGroupBy} onValueChange={(v) => setUnassignedGroupBy(v as any)}>
