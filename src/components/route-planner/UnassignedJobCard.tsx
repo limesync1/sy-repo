@@ -275,14 +275,14 @@ export const UnassignedJobCard = ({
       aria-label={isPending
         ? `${job.customer_name} — afventer kundens godkendelse`
         : `${job.customer_name} — træk for at planlægge, klik for detaljer`}
-      className={`group relative rounded-xl border bg-card transition-all duration-200 overflow-hidden flex ${
+      className={`group relative rounded-xl border bg-card transition-[transform,box-shadow,border-color] duration-200 overflow-hidden flex ${
         isPending ? "" : "cursor-grab active:cursor-grabbing touch-none"
       } ${
         isPending
           ? "border-amber-300/60"
           : selected
-            ? "border-accent ring-2 ring-accent/30 shadow-md"
-            : "border-border/70 hover:border-foreground/30 hover:shadow-md hover:-translate-y-px"
+            ? "border-accent ring-2 ring-accent/25 shadow-[0_6px_18px_-6px_hsl(var(--accent)/0.45)]"
+            : "border-border/60 hover:border-foreground/25 hover:shadow-[0_6px_16px_-6px_rgba(0,0,0,0.12)] hover:-translate-y-[1px]"
       }`}
     >
       {/* ───────────────────────────────────────────────────────────────────
@@ -292,7 +292,7 @@ export const UnassignedJobCard = ({
          ─────────────────────────────────────────────────────────────────── */}
       <div
         aria-hidden
-        className={`w-0.5 shrink-0 ${selected ? "bg-accent" : urgency.rail} ${urgency.pulse ? "animate-pulse" : ""}`}
+        className={`w-[3px] shrink-0 ${selected ? "bg-accent" : urgency.rail} ${urgency.pulse ? "animate-pulse" : ""}`}
       />
 
       {/* MULTI-SELECT — stor, altid-synlig dedikeret zone i venstre side.
