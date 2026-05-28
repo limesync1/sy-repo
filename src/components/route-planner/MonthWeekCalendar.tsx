@@ -175,10 +175,10 @@ export const MonthWeekCalendar = ({
     <Card className="overflow-hidden flex flex-col h-full rounded-xl border-border/60 shadow-sm">
       {/* Weekday header */}
       <div
-        className="grid border-b border-border/60 bg-gradient-to-b from-secondary/40 to-background shrink-0"
+        className="grid border-b border-border/60 bg-gradient-to-b from-secondary/50 via-secondary/20 to-background shrink-0"
         style={{ gridTemplateColumns: "48px repeat(7, minmax(0, 1fr))" }}
       >
-        <div className="border-r border-border/50 p-2 text-[10px] uppercase text-muted-foreground/70 font-semibold tracking-[0.14em] flex items-center justify-center">
+        <div className="border-r border-border/50 p-2 text-[10px] uppercase text-muted-foreground/60 font-semibold tracking-[0.16em] flex items-center justify-center">
           Uge
         </div>
         {weekdayLabels.map((wd, i) => {
@@ -187,8 +187,8 @@ export const MonthWeekCalendar = ({
             <div
               key={wd}
               className={cn(
-                "p-2 text-[11px] font-semibold tracking-[0.12em] uppercase text-center border-r border-border/50 last:border-r-0",
-                isWeekend ? "text-muted-foreground/60" : "text-foreground/70",
+                "p-2 text-[11px] font-semibold tracking-[0.14em] uppercase text-center border-r border-border/50 last:border-r-0",
+                isWeekend ? "text-muted-foreground/55" : "text-foreground/75",
               )}
             >
               {wd}
@@ -373,7 +373,7 @@ const DayCellInner = ({
       {/* Stiplet "slip her" placeholder i bunden af cellen viser præcis
           hvor aftalen/ruten lander — gør drop-targettet håndgribeligt
           uden at flytte eksisterende indhold. */}
-      {isOver && canReceiveDrop && !validation && (
+      {isOver && canReceiveDrop && !validation && emptyDay && (
         <div
           aria-hidden
           className="absolute inset-x-1.5 bottom-1.5 z-10 pointer-events-none h-7 rounded-lg border-2 border-dashed border-accent/80 bg-accent/15 flex items-center justify-center gap-1 animate-in fade-in zoom-in-95 duration-200 shadow-[0_2px_8px_-2px_hsl(var(--accent)/0.4)]"
@@ -405,24 +405,19 @@ const DayCellInner = ({
       )}
       {/* Dato-header */}
       <div className="flex items-center justify-between mb-0.5">
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           <span
             className={cn(
-              "inline-flex items-center justify-center rounded-full text-xs font-semibold tabular-nums transition-all duration-200",
+              "inline-flex items-center justify-center rounded-full text-[12px] font-semibold tabular-nums transition-all duration-200",
               today
-                ? "h-6 w-6 bg-accent text-accent-foreground shadow-[0_2px_6px_-1px_hsl(var(--accent)/0.5)] ring-2 ring-accent/20 ring-offset-1 ring-offset-card"
-                : "h-6 w-6 text-foreground/90 group-hover:bg-secondary/60",
+                ? "h-6 w-6 bg-accent text-accent-foreground shadow-[0_2px_8px_-2px_hsl(var(--accent)/0.55)]"
+                : "h-6 w-6 text-foreground/85 group-hover:bg-secondary/70",
               !inMonth && !today && "text-muted-foreground/50",
               isPast && !today && "text-muted-foreground/60",
             )}
           >
             {format(date, "d")}
           </span>
-          {today && (
-            <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-accent">
-              I dag
-            </span>
-          )}
           {alert && inMonth && (
             <span
               className={cn(
@@ -746,7 +741,7 @@ const RoutePillInner = ({
       }}
       className={cn(
         "relative rounded-lg border-l-[3px] cursor-pointer overflow-hidden bg-card",
-        "border border-border/50 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-200 ease-out hover:-translate-y-[1px] hover:shadow-[0_4px_12px_-3px_rgba(0,0,0,0.12)] hover:border-border",
+        "border border-border/40 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-[transform,box-shadow,border-color,opacity] duration-200 ease-out hover:-translate-y-[1px] hover:shadow-[0_6px_14px_-4px_rgba(0,0,0,0.14)] hover:border-border/80",
         isDragging && "opacity-40",
         isVirtual && "border-dashed",
         isPast && "opacity-50 saturate-50 hover:opacity-90",
