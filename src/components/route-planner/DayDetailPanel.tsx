@@ -64,7 +64,7 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
                 {sorted.length} {sorted.length === 1 ? "stop" : "stop"}
               </span>
               {totalMinutes > 0 && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-card border border-border/60 shadow-sm tabular-nums font-medium">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-background border border-border/70 shadow-sm tabular-nums font-semibold">
                   <Clock className="h-3 w-3" />
                   {formatDurationMin(totalMinutes)}
                 </span>
@@ -103,7 +103,7 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
                 return (
                   <li key={s.id} className="pl-4 relative">
                     <span
-                      className="absolute -left-[8px] top-2 h-3.5 w-3.5 rounded-full border-2 border-background shadow-[0_2px_4px_-1px_rgba(0,0,0,0.2)]"
+                      className="absolute -left-[8px] top-2 h-3.5 w-3.5 rounded-full border-2 border-background shadow-[0_2px_4px_-1px_hsl(var(--foreground)/0.2)]"
                       style={{ backgroundColor: s.routeColor ?? "hsl(var(--primary))" }}
                     />
                     {gap != null && gap > 0 && (
@@ -123,7 +123,7 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
                       <div className="flex items-center justify-between gap-2">
                         <p className="text-sm font-bold truncate tracking-tight">{s.customerName}</p>
                         {s.startTime && (
-                          <span className="text-[11px] font-semibold tabular-nums text-foreground/80 bg-secondary px-1.5 py-0.5 rounded-md border border-border/60">
+                          <span className="text-[11px] font-semibold tabular-nums text-foreground/80 bg-secondary px-1.5 py-0.5 rounded-md border border-border/70">
                             {s.startTime}
                           </span>
                         )}
