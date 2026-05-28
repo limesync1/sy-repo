@@ -329,7 +329,7 @@ const DayRowInner = ({
           <button
             type="button"
             onClick={() => onCreateRoute(dateStr)}
-            className="flex items-center justify-center gap-1.5 rounded-md border border-dashed border-border py-2 text-[11px] text-muted-foreground hover:border-accent hover:text-accent transition-colors"
+            className="flex items-center justify-center gap-1.5 rounded-md border border-dashed border-border py-2 text-[11px] text-muted-foreground hover:border-foreground/40 hover:bg-secondary hover:text-foreground transition-colors"
           >
             <Plus className="h-3.5 w-3.5" />
             Opret rute
@@ -475,7 +475,7 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
           type="button"
           onClick={(e) => { e.stopPropagation(); onOptimize(); }}
           disabled={optimizing}
-          className="shrink-0 h-7 w-7 inline-flex items-center justify-center rounded hover:bg-accent/10 text-muted-foreground hover:text-accent disabled:opacity-50"
+          className="shrink-0 h-7 w-7 inline-flex items-center justify-center rounded hover:bg-secondary text-muted-foreground hover:text-foreground disabled:opacity-50"
           aria-label="Optimér rækkefølge"
           title="Optimér rækkefølge"
         >
