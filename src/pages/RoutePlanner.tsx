@@ -4082,7 +4082,7 @@ const Planner = () => {
               data-tour="routes-today"
               variant="outline"
               size="sm"
-              className="h-8 text-[11px] font-semibold rounded-md border-border/70 hover:border-accent/60 hover:text-accent"
+              className="h-8 text-[11px] font-semibold rounded-md border-border/70 hover:border-border hover:bg-secondary/70 hover:text-foreground active:scale-[0.97] transition-[background-color,color,border-color,transform] duration-150"
               onClick={() => setDate(todayStr())}
             >
               I dag
