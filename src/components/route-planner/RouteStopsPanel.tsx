@@ -325,21 +325,21 @@ const SortableStopRow = ({
         className={cn("absolute left-0 top-0 bottom-0 z-10", CARD_RAIL_WIDTH)}
         style={{ background: color }}
       />
-      <div className="grid min-h-[2.5rem] grid-cols-[1.25rem_2.25rem_minmax(0,1fr)] sm:min-h-[3rem] sm:grid-cols-[1.5rem_2.5rem_minmax(0,1fr)_auto] pl-1">
+      <div className="flex items-stretch min-h-[3rem] pl-1">
         {/* Drag handle — skjult på projicerede ruter (read-only) */}
         {!isProjection ? (
           <button
             type="button"
             {...attributes}
             {...listeners}
-            className="flex items-center justify-center px-1 cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-foreground hover:bg-secondary/60 transition-colors sm:px-1.5"
+            className="flex shrink-0 items-center justify-center w-6 cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-foreground transition-colors sm:w-7"
             aria-label="Træk for at omrangere"
           >
             <GripVertical className="h-4 w-4" />
           </button>
         ) : (
           <span
-            className="flex items-center justify-center px-1.5 text-muted-foreground/40"
+            className="flex shrink-0 items-center justify-center w-6 text-muted-foreground/25 sm:w-7"
             aria-hidden
             title="Projiceret rute — låst rækkefølge"
           >
@@ -348,7 +348,7 @@ const SortableStopRow = ({
         )}
 
         {/* Sekvens-nummer — rund "chip" i rutens farve. Roundet og elevated i stedet for flad firkant. */}
-        <div className="flex items-center justify-center shrink-0 self-center">
+        <div className="flex shrink-0 items-center pr-1.5">
           <span
             className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[12px] font-bold text-white tabular-nums shadow-[0_1px_3px_rgba(0,0,0,0.18)] ring-2 ring-card sm:h-8 sm:w-8 sm:text-sm"
             style={{ background: color }}
@@ -362,7 +362,7 @@ const SortableStopRow = ({
         <button
           type="button"
           onClick={onSelect}
-          className="min-w-0 text-left px-2.5 py-2 hover:bg-accent/[0.04] transition-colors space-y-0.5 sm:px-3 sm:py-2"
+          className="min-w-0 flex-1 text-left pr-2 py-2 space-y-0.5"
         >
           {/* Header: kundenavn (primær) + medarbejder-avatars + åbn-pil */}
           <div className="flex items-center gap-1.5">
