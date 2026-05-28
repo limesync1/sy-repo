@@ -42,7 +42,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { EmployeeAvatars, type EmpAvatar } from "./EmployeeAvatars";
-import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_RAIL_WIDTH } from "./lib/card-styles";
+import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_RAIL_WIDTH, ICON_BTN_ACCENT, ICON_BTN_DESTRUCTIVE } from "./lib/card-styles";
 import EmptyState from "./EmptyState";
 
 type Props = {
@@ -453,7 +453,11 @@ const SortableStopRow = ({
             <button
               type="button"
               onClick={onRemove}
-              className="flex w-9 items-center justify-center text-muted-foreground/70 hover:text-destructive hover:bg-destructive/10 transition-colors sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+              className={cn(
+                "flex w-9 rounded-none",
+                ICON_BTN_DESTRUCTIVE,
+                "sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100",
+              )}
               aria-label="Fjern stop"
               title="Fjern stop fra rute"
             >
