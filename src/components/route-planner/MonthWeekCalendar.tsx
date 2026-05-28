@@ -172,13 +172,13 @@ export const MonthWeekCalendar = ({
   const weekdayLabels = ["Man", "Tir", "Ons", "Tor", "Fre", "Lør", "Søn"];
 
   return (
-    <Card className="overflow-hidden flex flex-col h-full rounded-xl border-border/60 shadow-sm">
+    <Card className="overflow-hidden flex flex-col h-full rounded-lg border-border/70 bg-card shadow-[0_2px_10px_-6px_hsl(var(--foreground)/0.18)]">
       {/* Weekday header */}
       <div
-        className="grid border-b border-border/60 bg-gradient-to-b from-secondary/50 via-secondary/20 to-background shrink-0"
-        style={{ gridTemplateColumns: "48px repeat(7, minmax(0, 1fr))" }}
+        className="grid border-b border-border/70 bg-card shrink-0"
+        style={{ gridTemplateColumns: "44px repeat(7, minmax(0, 1fr))" }}
       >
-        <div className="border-r border-border/50 p-2 text-[10px] uppercase text-muted-foreground/50 font-semibold tracking-[0.18em] flex items-center justify-center">
+        <div className="border-r border-border/60 p-2 text-[10px] uppercase text-muted-foreground/60 font-bold tracking-[0.12em] flex items-center justify-center bg-secondary/25">
           Uge
         </div>
         {weekdayLabels.map((wd, i) => {
@@ -187,7 +187,7 @@ export const MonthWeekCalendar = ({
             <div
               key={wd}
               className={cn(
-                "p-2 text-[10.5px] font-semibold tracking-[0.18em] uppercase text-center border-r border-border/50 last:border-r-0",
+                "p-2 text-[10.5px] font-bold tracking-[0.12em] uppercase text-center border-r border-border/60 last:border-r-0",
                 isWeekend ? "text-muted-foreground/50" : "text-foreground/70",
               )}
             >
@@ -203,12 +203,12 @@ export const MonthWeekCalendar = ({
           return (
             <div
               key={wi}
-              className="grid border-b border-border/50 last:border-b-0"
-              style={{ gridTemplateColumns: "48px repeat(7, minmax(0, 1fr))" }}
+              className="grid border-b border-border/60 last:border-b-0"
+              style={{ gridTemplateColumns: "44px repeat(7, minmax(0, 1fr))" }}
             >
               {/* Ugenummer */}
-              <div className="border-r border-border/50 bg-secondary/20 flex items-start justify-center pt-3 text-[10.5px] font-bold text-muted-foreground/60 tabular-nums tracking-wide">
-                <span className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1 rounded-md bg-background/60 ring-1 ring-border/50">
+              <div className="border-r border-border/60 bg-secondary/20 flex items-start justify-center pt-3 text-[10.5px] font-bold text-muted-foreground/70 tabular-nums tracking-wide">
+                <span className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1 rounded-md bg-card ring-1 ring-border/60 shadow-sm">
                   {weekNum}
                 </span>
               </div>
@@ -344,13 +344,13 @@ const DayCellInner = ({
       ref={setNodeRef}
       data-route-drop-date={canReceiveDrop ? dateStr : undefined}
       className={cn(
-        "border-r border-border/50 last:border-r-0 relative group flex flex-col gap-1 p-2 transition-all duration-200",
-        compact ? "min-h-[110px]" : "min-h-[160px]",
+        "border-r border-border/60 last:border-r-0 relative group flex flex-col gap-1.5 p-2.5 transition-all duration-200",
+        compact ? "min-h-[118px]" : "min-h-[170px]",
         !inMonth && "bg-muted/10",
-        inMonth && isWeekend && !isPast && "bg-secondary/[0.05]",
-        isPast && "bg-muted/20",
-        today && "bg-accent/[0.04]",
-        inMonth && !isPast && !isDragActive && "hover:bg-secondary/25",
+        inMonth && isWeekend && !isPast && "bg-secondary/[0.12]",
+        isPast && "bg-muted/15",
+        today && "bg-foreground/[0.03]",
+        inMonth && !isPast && !isDragActive && "hover:bg-secondary/30",
         // Når en aftale/rute trækkes:
         //  - Gyldige drop-dage (i måneden, ikke fortid, ikke optaget) får
         //    en subtil accent-ring så brugeren ser hvor der KAN droppes.
@@ -411,10 +411,10 @@ const DayCellInner = ({
         <div className="flex items-center gap-1">
           <span
             className={cn(
-              "inline-flex items-center justify-center rounded-full text-[12.5px] font-semibold tabular-nums transition-all duration-200",
+              "inline-flex items-center justify-center rounded-md text-[12.5px] font-bold tabular-nums transition-all duration-200",
               today
-                ? "h-7 w-7 bg-accent text-accent-foreground shadow-[0_2px_8px_-2px_hsl(var(--accent)/0.6)] ring-2 ring-accent/15 font-bold"
-                : "h-6 w-6 text-foreground/90 group-hover:bg-secondary/60 group-hover:text-foreground",
+                ? "h-7 w-7 bg-foreground text-background shadow-sm ring-1 ring-foreground/10"
+                : "h-6 w-6 text-foreground/90 group-hover:bg-secondary/70 group-hover:text-foreground",
               !inMonth && !today && "text-muted-foreground/40",
               isPast && !today && "text-muted-foreground/55",
             )}
@@ -458,9 +458,9 @@ const DayCellInner = ({
             // brugeren ved at cellen er klikbar. Travle dage / fortid /
             // udenfor-måned holder vi diskrete (kun ved hover).
             className={cn(
-              "h-6 w-6 inline-flex items-center justify-center rounded-md transition-all focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 hover:bg-accent hover:text-accent-foreground",
+              "h-6 w-6 inline-flex items-center justify-center rounded-md border border-transparent transition-all focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 hover:border-border hover:bg-secondary hover:text-foreground",
               emptyDay && inMonth && !isPast
-                ? "opacity-40 text-muted-foreground group-hover:opacity-100"
+                ? "opacity-55 text-muted-foreground group-hover:opacity-100"
                 : "opacity-0 group-hover:opacity-100 text-muted-foreground",
             )}
             aria-label={`Opret rute den ${format(date, "d. MMMM", { locale: da })}`}
@@ -472,7 +472,7 @@ const DayCellInner = ({
       </div>
 
       {/* Rute-piller */}
-      <div className="flex-1 flex flex-col gap-1 min-h-0">
+      <div className="flex-1 flex flex-col gap-1.5 min-h-0">
         {/* Skeleton pille mens vi henter ruter — kun synlig på dage i den
             aktive måned, så "udenfor"-dage ikke larmer.  Holder layoutet
             stabilt mellem måned/uge-skift. */}
@@ -481,13 +481,13 @@ const DayCellInner = ({
             {/* Vis 1–2 realistiske skeleton-piller pr. dag — varieret bredde
                 så kalenderen ligner rigtigt indhold mens data hentes, og
                 layoutet ikke pop'er når ruterne lander. */}
-            <div className="flex items-center gap-1 rounded-md border border-border/60 bg-card/80 px-2 py-1">
+            <div className="flex items-center gap-1 rounded-md border border-border/70 bg-card px-2 py-1 shadow-sm">
               <div className="h-2.5 w-2 rounded-sm bg-muted-foreground/20" />
               <div className="h-2.5 flex-1 rounded bg-muted/70 animate-pulse" />
               <div className="h-3 w-3 rounded-full bg-muted/70 animate-pulse" />
             </div>
             {!compact && (
-              <div className="flex items-center gap-1 rounded-md border border-border/60 bg-card/80 px-2 py-1 w-4/5">
+              <div className="flex items-center gap-1 rounded-md border border-border/70 bg-card px-2 py-1 shadow-sm w-4/5">
                 <div className="h-2.5 w-2 rounded-sm bg-muted-foreground/20" />
                 <div className="h-2.5 flex-1 rounded bg-muted/60 animate-pulse" />
               </div>
@@ -530,7 +530,7 @@ const DayCellInner = ({
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); onSelectRoute(routes[MAX_VISIBLE]); }}
-                  className="inline-flex items-center gap-1 self-start text-[10.5px] font-semibold text-muted-foreground hover:text-foreground bg-transparent hover:bg-secondary/60 border border-dashed border-border/60 hover:border-border rounded-md px-2 py-0.5 transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                  className="inline-flex items-center gap-1 self-start text-[10.5px] font-bold text-muted-foreground hover:text-foreground bg-card hover:bg-secondary border border-dashed border-border/70 hover:border-border rounded-md px-2 py-1 transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none shadow-sm"
                   aria-label={`Vis ${overflow} flere ruter`}
                   title={routes.slice(MAX_VISIBLE).map((r) => r.name || "Rute").join(", ")}
                 >
@@ -566,7 +566,7 @@ const DayCellInner = ({
           medarbejdere), helt tomme dage og fortid. */}
       {capacity && capacity.minutes_capacity > 0 && inMonth && !isPast && (
         <div
-          className="absolute bottom-0 left-0 right-0 h-1.5 bg-muted/30 overflow-hidden group/cap rounded-b-[3px]"
+          className="absolute bottom-0 left-0 right-0 h-1.5 bg-muted/30 overflow-hidden group/cap rounded-b-lg ring-1 ring-inset ring-border/20"
           title={`Belastning: ${Math.round(capacity.load_pct)}% — ${Math.round(capacity.minutes_booked / 60 * 10) / 10} af ${Math.round(capacity.minutes_capacity / 60)} timer booket`}
           aria-label={`Dagens belastning: ${Math.round(capacity.load_pct)} procent`}
         >
@@ -742,8 +742,8 @@ const RoutePillInner = ({
         onSelect();
       }}
       className={cn(
-        "relative rounded-lg border-l-[3px] cursor-pointer overflow-hidden bg-card",
-        "border border-border/40 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-[transform,box-shadow,border-color,opacity] duration-200 ease-out hover:-translate-y-[1px] hover:shadow-[0_6px_14px_-4px_rgba(0,0,0,0.14)] hover:border-border/80",
+        "relative rounded-md border-l-[3px] cursor-pointer overflow-hidden bg-card",
+        "border border-border/70 shadow-[0_1px_2px_hsl(var(--foreground)/0.05)] transition-[transform,box-shadow,border-color,opacity] duration-200 ease-out hover:-translate-y-[1px] hover:shadow-[0_6px_14px_-5px_hsl(var(--foreground)/0.18)] hover:border-foreground/25",
         isDragging && "opacity-40",
         isVirtual && "border-dashed",
         isPast && "opacity-50 saturate-50 hover:opacity-90",
@@ -832,12 +832,12 @@ const RoutePillInner = ({
         {...(dragLocked ? {} : listeners)}
         {...(dragLocked ? {} : attributes)}
         className={cn(
-          "px-2 py-1 flex items-center justify-between gap-1",
+          "px-2.5 py-1.5 flex items-center justify-between gap-1.5",
           dragLocked ? "cursor-pointer" : "cursor-grab active:cursor-grabbing",
         )}
       >
         <div className="min-w-0 flex-1">
-          <div className="text-[12px] font-semibold truncate text-foreground leading-tight flex items-center gap-1">
+          <div className="text-[12.5px] font-bold truncate text-foreground leading-tight flex items-center gap-1">
             {isVirtual && (
               <span
                 className="inline-flex items-center gap-0.5 rounded-sm bg-muted px-1 py-px text-[9px] font-bold uppercase tracking-wide text-muted-foreground shrink-0"
@@ -860,7 +860,7 @@ const RoutePillInner = ({
           </div>
           <div
             className={cn(
-              "mt-0.5 flex items-center gap-x-2 text-[11px] text-muted-foreground tabular-nums overflow-hidden",
+              "mt-1 flex items-center gap-x-2 text-[11px] text-muted-foreground tabular-nums overflow-hidden",
               compact ? "flex-nowrap whitespace-nowrap" : "flex-wrap gap-y-0.5",
             )}
           >
@@ -899,12 +899,12 @@ const RoutePillInner = ({
                   alt={emp.name}
                   title={emp.name}
                   loading="lazy"
-                  className="h-5 w-5 rounded-full object-cover ring-1 ring-background"
+                  className="h-5 w-5 rounded-full object-cover ring-2 ring-card"
                 />
               ) : (
                 <span
                   key={emp.id}
-                  className="inline-block h-5 w-5 rounded-full ring-1 ring-background"
+                  className="inline-block h-5 w-5 rounded-full ring-2 ring-card"
                   style={{ background: emp.color || "#64748b" }}
                   title={emp.name}
                   aria-label={emp.name}
@@ -912,7 +912,7 @@ const RoutePillInner = ({
               ),
             )}
             {extraEmployees > 0 && (
-              <span className="inline-flex items-center justify-center h-5 min-w-[1.25rem] px-0.5 rounded-full text-[9px] font-bold ring-1 ring-background bg-muted text-muted-foreground">
+              <span className="inline-flex items-center justify-center h-5 min-w-[1.25rem] px-0.5 rounded-full text-[9px] font-bold ring-2 ring-card bg-muted text-muted-foreground">
                 +{extraEmployees}
               </span>
             )}
@@ -928,7 +928,7 @@ const RoutePillInner = ({
             type="button"
             onClick={(e) => { e.stopPropagation(); onOptimize(); }}
             disabled={optimizing}
-            className="shrink-0 h-5 w-5 inline-flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-accent hover:bg-accent/10 disabled:opacity-50 transition-colors"
+            className="shrink-0 h-6 w-6 inline-flex items-center justify-center rounded-md text-muted-foreground/65 hover:text-foreground hover:bg-secondary disabled:opacity-50 transition-colors"
             aria-label="Optimér rækkefølge"
             title="Optimér rækkefølge — ændrer kun rækkefølgen, ikke medarbejdere"
           >
@@ -942,7 +942,7 @@ const RoutePillInner = ({
       {/* Kapacitets-bar: tynd stribe der viser belastning. Skjul ved 0 stops. */}
       {stopCount > 0 && (
         <div
-          className="h-[3px] w-full bg-muted/30 overflow-hidden ring-1 ring-inset ring-border/20"
+          className="h-1 w-full bg-muted/30 overflow-hidden ring-1 ring-inset ring-border/20"
           title={`Belastning ${loadPct}% — ${Math.round(workMin / 60 * 10) / 10} t af ~${Math.round(capacityMin / 60)} t (${empCount} medarbejder${empCount === 1 ? "" : "e"})`}
           aria-label={`Belastning ${loadPct} procent`}
         >
