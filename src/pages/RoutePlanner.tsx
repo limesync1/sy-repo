@@ -4340,18 +4340,21 @@ const Planner = () => {
                 <Card
                    data-tour="routes-unassigned"
                    className={cn(
-                     "flex flex-col h-full overflow-hidden transition-all duration-200 rounded-xl border-border/60 shadow-sm",
-                     selectedJobIds.size > 0 && "ring-1 ring-accent/70 shadow-[0_8px_24px_-12px_hsl(var(--accent)/0.45)]",
+                     "flex flex-col h-full overflow-hidden transition-all duration-200 rounded-xl border-border/60 shadow-[0_1px_3px_rgba(0,0,0,0.04)]",
+                     selectedJobIds.size > 0 && "ring-1 ring-accent/60 shadow-[0_10px_28px_-12px_hsl(var(--accent)/0.5)]",
                    )}
                  >
-                   <div className="px-3 pt-3 pb-2.5 border-b border-border/60 bg-gradient-to-b from-secondary/30 to-card space-y-2.5">
+                   <div className="relative px-3 pt-3 pb-2.5 border-b border-border/60 bg-gradient-to-b from-secondary/40 via-secondary/15 to-card space-y-2.5">
+                    <div aria-hidden className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-accent/70 via-accent/30 to-transparent" />
                     <div className="flex items-center gap-2 pr-10 xl:pr-0">
-                      <Inbox className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <h2 className="font-semibold text-sm leading-tight text-foreground truncate flex-1">
+                      <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-foreground/5 ring-1 ring-border/60 shrink-0">
+                        <Inbox className="h-3.5 w-3.5 text-foreground/70" />
+                      </span>
+                      <h2 className="font-semibold text-sm leading-tight text-foreground truncate flex-1 tracking-tight">
                         Aftaler uden rute
                       </h2>
                       {filteredUnassigned.length > 0 && (
-                        <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-foreground text-background text-[11px] font-semibold tabular-nums shrink-0">
+                        <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-foreground text-background text-[11px] font-bold tabular-nums shrink-0 shadow-sm">
                           {filteredUnassigned.length}
                         </span>
                       )}
