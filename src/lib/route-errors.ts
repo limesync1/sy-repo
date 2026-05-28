@@ -183,8 +183,10 @@ const SPECS: Record<RouteErrorCode, Spec> = {
   DUPLICATE_ROUTE_SAME_DATE: {
     severity: "error", title: "Dublet rute",
     build: (c) => ({
-      message: `Der findes allerede en rute med samme navn på ${dk(c.date)}.`,
-      hint: "Brug den eksisterende rute eller giv den et andet navn.",
+      message: c.name
+        ? `Der findes allerede en rute der hedder "${c.name}" på ${dk(c.date)}.`
+        : `Der findes allerede en rute med samme navn på ${dk(c.date)}.`,
+      hint: "Giv ruten et andet navn — to ruter må ikke hedde det samme på samme dag.",
     }),
   },
   GEOGRAPHIC_GAP_TOO_LARGE: {
@@ -298,6 +300,9 @@ export function mapPostgresError(err: any): Issue {
   if (code === "23505" || /duplicate key|unique constraint/i.test(msg)) {
     if (/route_stops_route_order|route_stops_route_subscription|route_stops_route_occurrence/i.test(detail + msg)) {
       return makeIssue("DUPLICATE_STOP_ON_ROUTE");
+    }
+    if (/routes_unique_name_per_business_date/i.test(detail + msg)) {
+      return makeIssue("DUPLICATE_ROUTE_SAME_DATE", { date: new Date().toISOString().slice(0, 10) });
     }
     if (/routes_base_route_id_route_date/i.test(detail + msg)) {
       return makeIssue("DUPLICATE_ROUTE_SAME_DATE", { date: new Date().toISOString().slice(0, 10) });

@@ -251,6 +251,39 @@ export const RouteEditSheet = ({
   const { data: seriesInfo } = useRouteSeriesInfo(route?.id ?? null, route?.route_date ?? null);
   const qc = useQueryClient();
 
+  // Henter navnene på alle andre aktive ruter samme dag i samme virksomhed,
+  // så vi kan blokere brugeren i at omdøbe denne rute til et navn der allerede
+  // er taget. Database-indekset er den hårde garanti — det her er den venlige
+  // UX der fanger fejlen FØR den når serveren.
+  const sameDayNamesQ = useQuery({
+    queryKey: ["route-names-same-day", route?.business_id, route?.route_date, route?.id],
+    enabled: !!route?.business_id && !!route?.route_date,
+    staleTime: 15_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("routes")
+        .select("id, name")
+        .eq("business_id", route!.business_id)
+        .eq("route_date", route!.route_date)
+        .is("archived_at", null)
+        .is("deleted_at", null)
+        .neq("id", route!.id);
+      if (error) throw error;
+      return (data || [])
+        .map((r: any) => (r.name ? String(r.name).trim().toLowerCase() : ""))
+        .filter(Boolean);
+    },
+  });
+  const sameDayNameSet = useMemo(
+    () => new Set(sameDayNamesQ.data ?? []),
+    [sameDayNamesQ.data],
+  );
+  const nameDuplicate = useMemo(() => {
+    const t = name.trim().toLowerCase();
+    if (!t) return false;
+    return sameDayNameSet.has(t);
+  }, [name, sameDayNameSet]);
+
   useEffect(() => {
     if (!pendingProjectedDate) {
       setProjectedMoveSyncStart(false);
@@ -413,19 +446,27 @@ export const RouteEditSheet = ({
   }
   const colorChanged = route?.color !== color;
   const dirty = nameChange.changed || colorChanged;
+  // Hvis brugeren har skrevet et navn der allerede findes på en anden rute
+  // samme dag, må vi ikke autosave navnet — så vi skipper hele autosaven
+  // mens duplikatet står. Farve-ændringer er stadig OK.
+  const blockNameSave = nameChange.changed && nameChange.value !== null && nameDuplicate;
 
   const pendingPayload = useMemo(() => {
     const payload: { id: string; name?: string | null; color?: string } = {
       id: route?.id ?? "",
     };
-    if (nameChange.changed) payload.name = nameChange.value;
+    if (nameChange.changed && !blockNameSave) payload.name = nameChange.value;
     if (colorChanged) payload.color = color;
     return payload;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [route?.id, nameChange.changed, (nameChange as any).value, colorChanged, color]);
+  }, [route?.id, nameChange.changed, (nameChange as any).value, colorChanged, color, blockNameSave]);
 
   useEffect(() => {
     if (!route || !open || !dirty) return;
+    // Hvis navne-ændringen er en dublet og der ikke er andre ændringer at
+    // gemme, så stop her — undgå unødvendige mutations som alligevel ville
+    // blive afvist af databasen.
+    if (blockNameSave && !colorChanged) return;
     // Skip autosave hvis brugeren ikke selv har ændret noget — så undgår
     // vi at overskrive server-opdateringer der kom ind mens sheet'et var
     // åbent.
@@ -435,7 +476,6 @@ export const RouteEditSheet = ({
     // Optimistiske patches fra useUpdateRoute.onMutate sørger for at både
     // kalender, basisrute-cache og projicerede ruter opdaterer øjeblikkeligt
     // — uden at brugeren behøver at lukke sheet'et.
-    const colorChanged = route.color !== color;
     const delay = colorChanged ? 0 : 120;
     pendingFlushRef.current = pendingPayload;
     const timeout = window.setTimeout(() => {
@@ -692,10 +732,19 @@ export const RouteEditSheet = ({
                 value={name}
                 onChange={(e) => { userEditedRef.current = true; setName(e.target.value); }}
                 placeholder="fx Nord, Aarhus C, Mandag-team..."
-                className="h-9"
+                className={cn(
+                  "h-9",
+                  nameDuplicate && "border-destructive focus-visible:ring-destructive/40",
+                )}
                 disabled={isProjection}
                 readOnly={isProjection}
+                aria-invalid={nameDuplicate || undefined}
               />
+              {nameDuplicate && (
+                <p className="mt-1.5 text-[11.5px] font-medium text-destructive">
+                  Der findes allerede en rute der hedder &ldquo;{name.trim()}&rdquo; denne dag. Vælg et andet navn.
+                </p>
+              )}
             </Section>
 
             {/* Farve */}
