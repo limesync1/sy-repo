@@ -62,6 +62,7 @@ import {
   PointerSensor, MouseSensor, TouchSensor, KeyboardSensor,
 } from "@dnd-kit/core";
 import { createPortal } from "react-dom";
+import { snapCenterToCursor } from "@dnd-kit/modifiers";
 import { UnassignedJobCard, UnassignedJobCardSkeleton } from "@/components/route-planner/UnassignedJobCard";
 import { StopDetailSheet } from "@/components/route-planner/StopDetailSheet";
 import { SuggestRouteDialog } from "@/components/route-planner/SuggestRouteDialog";
@@ -5458,36 +5459,44 @@ const Planner = () => {
 
         {createPortal(
         <DragOverlay
+          modifiers={[snapCenterToCursor]}
           dropAnimation={{ duration: 220, easing: "cubic-bezier(0.22, 0.61, 0.36, 1)" }}
         >
           {activeDragId && activeDragData?.type === "job" && (
             <div
-              className="rounded-lg border border-accent/60 bg-card/95 backdrop-blur-sm px-2.5 py-1.5 w-[160px] cursor-grabbing ring-1 ring-accent/20"
+              className="relative w-[184px] overflow-hidden rounded-xl border border-accent/50 bg-card/95 backdrop-blur-md pl-3 pr-2.5 py-2 cursor-grabbing"
               style={{
-                transform: "rotate(-2deg) scale(1.02)",
-                boxShadow: "0 12px 32px -8px hsl(var(--accent) / 0.45), 0 4px 12px -2px rgba(0,0,0,0.18)",
+                transform: "rotate(-2deg) scale(1.03)",
+                boxShadow: "0 18px 40px -10px hsl(var(--accent) / 0.5), 0 6px 16px -4px rgba(0,0,0,0.22)",
               }}
             >
-              <div className="flex items-center justify-between gap-1.5">
-                <p className="text-[11px] font-semibold truncate text-foreground">{activeDragData.job.customer_name}</p>
-                <span className="text-[10px] font-bold text-accent shrink-0 tabular-nums">
+              <span aria-hidden className="absolute left-0 top-0 bottom-0 w-1 bg-accent" />
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[12px] font-bold truncate text-foreground capitalize">{activeDragData.job.customer_name}</p>
+                <span className="text-[11px] font-bold text-accent shrink-0 tabular-nums">
                   {Math.round(Number(activeDragData.job.total_amount || 0))} kr
                 </span>
               </div>
+              {activeDragData.job.address && (
+                <p className="mt-0.5 text-[10px] text-muted-foreground truncate">{activeDragData.job.address}</p>
+              )}
             </div>
           )}
           {activeDragId && activeDragData?.type === "stop" && (
             <div
-              className="rounded-md border border-border/70 bg-card/95 backdrop-blur-sm px-2.5 py-1.5 w-[170px] border-l-[3px] border-l-primary"
+              className="relative w-[184px] overflow-hidden rounded-xl border border-border/70 bg-card/95 backdrop-blur-md pl-3 pr-2.5 py-2 cursor-grabbing"
               style={{
-                transform: "rotate(-1.5deg) scale(1.02)",
-                boxShadow: "0 12px 32px -8px rgba(0,0,0,0.25), 0 4px 12px -2px rgba(0,0,0,0.15)",
+                transform: "rotate(-1.5deg) scale(1.03)",
+                boxShadow: "0 18px 40px -10px rgba(0,0,0,0.28), 0 6px 16px -4px rgba(0,0,0,0.18)",
               }}
             >
-              <p className="text-[11px] font-semibold truncate text-foreground">{activeDragData.stop.customer_name}</p>
-              <p className="text-[10px] text-muted-foreground leading-tight tabular-nums">
-                {activeDragData.stop.duration_minutes} min
-              </p>
+              <span aria-hidden className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
+              <p className="text-[12px] font-bold truncate text-foreground capitalize">{activeDragData.stop.customer_name}</p>
+              {activeDragData.stop.duration_minutes != null && (
+                <p className="text-[10px] text-muted-foreground leading-tight tabular-nums">
+                  {activeDragData.stop.duration_minutes} min
+                </p>
+              )}
             </div>
           )}
         </DragOverlay>,
