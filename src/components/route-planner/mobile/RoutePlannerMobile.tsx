@@ -374,7 +374,8 @@ function RoutesTab({
           </div>
           <p className="text-sm font-semibold text-foreground">Ingen ruter denne dag</p>
           <p className="mt-1 max-w-[18rem] text-xs leading-snug text-muted-foreground">
-            Opret en rute, eller tildel aftaler fra panelet "Uden rute" nederst.
+            Tryk på "Ny rute" for at oprette dagens første rute. Har du
+            aftaler uden rute dukker de op som en knap nederst.
           </p>
         </div>
       ) : (
