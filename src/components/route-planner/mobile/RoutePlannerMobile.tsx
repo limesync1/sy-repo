@@ -372,7 +372,8 @@ function RoutesTab({
   stopsByRoute,
   onOpenRoute,
   onCreate,
-  creating,
+  hasUnassigned,
+  onGoToUnassigned,
 }: {
   loading: boolean;
   date: string;
@@ -380,7 +381,8 @@ function RoutesTab({
   stopsByRoute: Map<string, RouteStop[]>;
   onOpenRoute: (r: Route) => void;
   onCreate: () => void;
-  creating: boolean;
+  hasUnassigned: boolean;
+  onGoToUnassigned: () => void;
 }) {
   if (loading) {
     return (
@@ -404,7 +406,7 @@ function RoutesTab({
             {format(parseISO(date), "EEEE d. MMM", { locale: da })}
           </p>
         </div>
-        <Button onClick={onCreate} disabled={creating} size="sm" className="gap-1.5 rounded-full">
+        <Button onClick={onCreate} size="sm" className="gap-1.5 rounded-full">
           <Plus className="h-4 w-4" />
           Ny rute
         </Button>
@@ -417,9 +419,21 @@ function RoutesTab({
           </div>
           <p className="text-sm font-semibold text-foreground">Ingen ruter denne dag</p>
           <p className="mt-1 max-w-[18rem] text-xs leading-snug text-muted-foreground">
-            Tryk på "Ny rute" for at oprette dagens første rute. Har du
-            aftaler uden rute dukker de op som en knap nederst.
+            Tryk på "Ny rute" for at oprette dagens første rute — vælg
+            samtidig hvilke aftaler den skal indeholde.
           </p>
+          {hasUnassigned && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onGoToUnassigned}
+              className="mt-4 rounded-full"
+            >
+              <Inbox className="h-4 w-4" />
+              Se aftaler uden rute
+            </Button>
+          )}
         </div>
       ) : (
         routes.map((r) => {
