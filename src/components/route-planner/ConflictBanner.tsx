@@ -8,11 +8,15 @@ import { cn } from "@/lib/utils";
 // over kapacitet før vi alarmerer — dels for at undgå falske alarmer ved
 // små afrundinger i RPC'en, dels fordi en arbejdsdag i praksis kan rumme
 // lidt buffer uden problemer.
-const OVERBOOK_PCT_THRESHOLD = 115;
+// Tolerance før en dag kategoriseres som overbooket. Vi tillader op til
+// 30 % over nominel kapacitet — i praksis svarer det til ca. 10½ timers
+// arbejde for en 8-timers dag, hvilket de fleste medarbejdere fint kan
+// nå en travl dag uden at "overbooking" er reelt et problem.
+const OVERBOOK_PCT_THRESHOLD = 130;
 // Kræv også at der faktisk er booket meningsfuldt arbejde — så en dag
 // med en lille kapacitet (fx 1 medarbejder med 2 timer) ikke straks
 // vises som "overbooked" når der lægges en enkelt aftale ind.
-const OVERBOOK_MIN_BOOKED_MIN = 360;
+const OVERBOOK_MIN_BOOKED_MIN = 480;
 
 /**
  * Vedvarende konflikt-banner øverst i rute-kalenderen.
@@ -70,8 +74,10 @@ export const ConflictBanner = ({ capacityByDate, mismatchedRouteIds, rangeStart,
   return (
     <div
       className={cn(
-        "mx-2 mt-2 mb-0 shrink-0 rounded-lg border border-amber-300/80 bg-amber-50/90 px-3 py-2 text-amber-900 shadow-[0_1px_2px_hsl(var(--foreground)/0.04)]",
-        "dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100",
+        // Integreret strip — fylder hele kalenderens bredde og hænger
+        // sammen med toolbar/kalender (ingen flydende kort-margin).
+        "shrink-0 border-y border-amber-300/70 bg-amber-50/85 px-3 py-1.5 text-amber-900",
+        "dark:border-amber-500/25 dark:bg-amber-500/10 dark:text-amber-100",
       )}
       role="status"
     >
