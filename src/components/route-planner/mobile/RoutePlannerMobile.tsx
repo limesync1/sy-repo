@@ -1,11 +1,12 @@
 // Mobil ruteplanlægger — tap-baseret alternativ til desktop drag-and-drop.
-// Aktiveres under 768px (telefoner). Layoutet er bygget op om en
-// segmenteret kontrol ("Dagens ruter" / "Uden rute") så begge views
-// altid kan tilgås med ét tap — uden skjulte bund-sheets eller peek-
-// drawere der gemmer aftalerne. "Ny rute" åbner en bekræftelses-dialog
-// hvor man vælger mindst én aftale, så vi aldrig opretter tomme ruter
-// bare ved at åbne/lukke modal.
-import { useMemo, useState } from "react";
+// Aktiveres under 768px (telefoner). Layoutet matcher computerversionen:
+// ruterne for dagen vises øverst (med deres stop indeni) og en altid-
+// synlig "Uden rute"-dock i bunden. Long-press på en aftale eller et
+// stop løfter den op til drag-and-drop — så man kan trække aftaler ind
+// i ruter, flytte stop mellem ruter eller trække stop tilbage til
+// "Uden rute" for at fjerne. "Ny rute" åbner en bekræftelses-dialog så
+// der aldrig oprettes tomme ruter.
+import { useMemo, useRef, useState } from "react";
 import {
   addDays,
   format,
@@ -22,7 +23,24 @@ import {
   MapPin,
   Plus,
   Search,
+  GripVertical,
+  Trash2,
 } from "lucide-react";
+import {
+  DndContext,
+  DragOverlay,
+  TouchSensor,
+  MouseSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  useDraggable,
+  useDroppable,
+  pointerWithin,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
+import { createPortal } from "react-dom";
 
 import { AdminShell } from "@/components/admin/shared/AdminShell";
 import SEO from "@/components/SEO";
@@ -46,6 +64,8 @@ import {
   useAddStop,
   useCalendarData,
   useCreateRoute,
+  useReorderStops,
+  useDeleteStop,
   useUnassignedJobs,
   type Route,
   type RouteStop,
