@@ -6,7 +6,7 @@
 // i ruter, flytte stop mellem ruter eller trække stop tilbage til
 // "Uden rute" for at fjerne. "Ny rute" åbner en bekræftelses-dialog så
 // der aldrig oprettes tomme ruter.
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   addDays,
   format,
