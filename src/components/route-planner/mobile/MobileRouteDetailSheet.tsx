@@ -303,30 +303,30 @@ export function MobileRouteDetailSheet({
                           </div>
                         </button>
                         {stops.length > 1 && (
-                          <div className="flex shrink-0 flex-col">
+                          <div className="flex shrink-0 flex-col gap-0.5">
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-6 w-7"
+                              className="h-9 w-9"
                               disabled={idx === 0 || reorderStops.isPending}
                               onClick={() => moveStop(idx, -1)}
                               aria-label="Flyt op"
                             >
                               {reorderingId === stop.id && reorderStops.isPending ? (
-                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                <Loader2 className="h-4 w-4 animate-spin" />
                               ) : (
-                                <ArrowUp className="h-3.5 w-3.5" />
+                                <ArrowUp className="h-4 w-4" />
                               )}
                             </Button>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-6 w-7"
+                              className="h-9 w-9"
                               disabled={idx === stops.length - 1 || reorderStops.isPending}
                               onClick={() => moveStop(idx, 1)}
                               aria-label="Flyt ned"
                             >
-                              <ArrowDown className="h-3.5 w-3.5" />
+                              <ArrowDown className="h-4 w-4" />
                             </Button>
                           </div>
                         )}
