@@ -2,6 +2,17 @@ import { useMemo, useState } from "react";
 import { format, parseISO, isWithinInterval } from "date-fns";
 import { da } from "date-fns/locale";
 import { AlertTriangle, Wrench, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+// Tolerance før en dag kategoriseres som overbooket. Vi accepterer 15 %
+// over kapacitet før vi alarmerer — dels for at undgå falske alarmer ved
+// små afrundinger i RPC'en, dels fordi en arbejdsdag i praksis kan rumme
+// lidt buffer uden problemer.
+const OVERBOOK_PCT_THRESHOLD = 115;
+// Kræv også at der faktisk er booket meningsfuldt arbejde — så en dag
+// med en lille kapacitet (fx 1 medarbejder med 2 timer) ikke straks
+// vises som "overbooked" når der lægges en enkelt aftale ind.
+const OVERBOOK_MIN_BOOKED_MIN = 360;
 
 /**
  * Vedvarende konflikt-banner øverst i rute-kalenderen.
@@ -29,7 +40,12 @@ export const ConflictBanner = ({ capacityByDate, mismatchedRouteIds, rangeStart,
       try {
         const d = parseISO(k);
         if (!isWithinInterval(d, { start, end })) return;
-        if ((v.load_pct ?? 0) > 100) out.push(k);
+        if (
+          (v.load_pct ?? 0) >= OVERBOOK_PCT_THRESHOLD &&
+          (v.minutes_booked ?? 0) >= OVERBOOK_MIN_BOOKED_MIN
+        ) {
+          out.push(k);
+        }
       } catch { /* ignore */ }
     });
     return out.sort();
@@ -44,40 +60,76 @@ export const ConflictBanner = ({ capacityByDate, mismatchedRouteIds, rangeStart,
   if (overCount === 0 && mismatchCount === 0) return null;
   if (dismissed === dismissKey) return null;
 
-  const overLabel = overCount > 0
-    ? `${overCount} overbooket dag${overCount === 1 ? "" : "e"}`
-    : null;
-  const mismatchLabel = mismatchCount > 0
-    ? `${mismatchCount} rute${mismatchCount === 1 ? "" : "r"} med manglende færdighed`
-    : null;
-
-  // Vis op til 4 datoer som hint
-  const dateHints = overbookedDates.slice(0, 4)
-    .map((d) => format(parseISO(d), "EEE d.", { locale: da }))
-    .join(", ")
-    + (overbookedDates.length > 4 ? ` +${overbookedDates.length - 4}` : "");
+  // Vis op til 3 datoer som chips
+  const dateChips = overbookedDates.slice(0, 3).map((d) => ({
+    key: d,
+    label: format(parseISO(d), "EEE d. MMM", { locale: da }),
+  }));
+  const extraDates = overbookedDates.length - dateChips.length;
 
   return (
-    <div className="m-2 mb-0 shrink-0 flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50/80 px-3 py-2 text-xs text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
-      <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-      <div className="flex-1 min-w-0 space-y-0.5">
-        <p className="font-semibold leading-tight">
-          {[overLabel, mismatchLabel].filter(Boolean).join(" · ")}
-        </p>
-        <p className="text-amber-900/80 leading-tight">
-          {overCount > 0 && <>Over kapacitet: <span className="font-medium">{dateHints}</span>. </>}
-          {mismatchCount > 0 && <span className="inline-flex items-center gap-1"><Wrench className="h-3 w-3" /> Tjek medarbejder-tildelinger på markerede ruter.</span>}
-        </p>
+    <div
+      className={cn(
+        "mx-2 mt-2 mb-0 shrink-0 rounded-lg border border-amber-300/80 bg-amber-50/90 px-3 py-2 text-amber-900 shadow-[0_1px_2px_hsl(var(--foreground)/0.04)]",
+        "dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100",
+      )}
+      role="status"
+    >
+      <div className="flex items-center gap-2.5 min-w-0">
+        <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-200/70 text-amber-800 dark:bg-amber-500/20 dark:text-amber-200">
+          <AlertTriangle className="h-3.5 w-3.5" />
+        </span>
+
+        <div className="flex-1 min-w-0 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+          {overCount > 0 && (
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="font-semibold whitespace-nowrap">
+                {overCount === 1 ? "1 overbooket dag" : `${overCount} overbookede dage`}
+              </span>
+              <div className="flex flex-wrap items-center gap-1 min-w-0">
+                {dateChips.map((d) => (
+                  <span
+                    key={d.key}
+                    className="inline-flex items-center rounded-md bg-amber-100 px-1.5 py-0.5 text-[10.5px] font-medium capitalize tabular-nums dark:bg-amber-500/20"
+                  >
+                    {d.label}
+                  </span>
+                ))}
+                {extraDates > 0 && (
+                  <span className="inline-flex items-center rounded-md bg-amber-100/70 px-1.5 py-0.5 text-[10.5px] font-medium tabular-nums dark:bg-amber-500/15">
+                    +{extraDates}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {overCount > 0 && mismatchCount > 0 && (
+            <span aria-hidden className="hidden sm:inline h-3 w-px bg-amber-400/40 dark:bg-amber-300/30" />
+          )}
+
+          {mismatchCount > 0 && (
+            <div className="flex items-center gap-1.5 whitespace-nowrap">
+              <Wrench className="h-3 w-3 shrink-0" />
+              <span className="font-semibold">
+                {mismatchCount === 1
+                  ? "1 rute mangler færdighed"
+                  : `${mismatchCount} ruter mangler færdighed`}
+              </span>
+            </div>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setDismissed(dismissKey)}
+          className="shrink-0 inline-flex h-6 w-6 items-center justify-center rounded-md text-amber-700/80 hover:bg-amber-100 hover:text-amber-900 dark:text-amber-300 dark:hover:bg-amber-500/20 dark:hover:text-amber-100 transition-colors"
+          aria-label="Skjul advarsel"
+          title="Skjul indtil næste ændring"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
       </div>
-      <button
-        type="button"
-        onClick={() => setDismissed(dismissKey)}
-        className="shrink-0 -m-1 p-1 rounded hover:bg-amber-100 text-amber-700 dark:hover:bg-amber-500/20 dark:text-amber-300"
-        aria-label="Skjul advarsel"
-        title="Skjul indtil næste ændring"
-      >
-        <X className="h-3.5 w-3.5" />
-      </button>
     </div>
   );
 };

@@ -70,6 +70,10 @@ export const PlanningPanel = ({
   businessId, anchorDate, stops, routes, employees, filterAssigneeIds, onFilterAssigneeIds,
   unassignedCount = 0, dailyCapacityMin = 480,
 }: Props) => {
+  // Samme tolerance som ConflictBanner — 15 % over kapacitet før vi
+  // alarmerer, og kun dage med meningsfuldt booket arbejde (>6 timer).
+  const OVERBOOK_FACTOR = 1.15;
+  const OVERBOOK_MIN_MIN = 360;
   const [open, setOpen] = useState(false);
   // Forklaringer er åbnet by-default — brugeren skal kunne se farve-
   // legenden uden et ekstra klik hver gang planlægningspanelet åbnes.
@@ -151,7 +155,9 @@ export const PlanningPanel = ({
     const activeDays = drivePerDay.filter((d) => d.stopCount > 0).length;
     const avgStopsPerDay = activeDays > 0 ? weekStopCount / activeDays : 0;
     const overbookedDays = drivePerDay.filter(
-      (d) => d.driveMin + d.workMin > dailyCapacityMin,
+      (d) =>
+        d.driveMin + d.workMin > dailyCapacityMin * OVERBOOK_FACTOR &&
+        d.driveMin + d.workMin >= OVERBOOK_MIN_MIN,
     );
     const weekWorkTotal = drivePerDay.reduce((acc, d) => acc + d.workMin, 0);
 
