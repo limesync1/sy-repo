@@ -2508,6 +2508,11 @@ export const useDirections = (
     // ikke flimrer eller forsvinder under refetch (fx ved drag/optimer).
     placeholderData: keepPreviousData,
     queryFn: async () => {
+      // Defensiv guard: hvis vi kun har 1 waypoint (eller færre) returnerer
+      // edge-function 400. Det er aldrig nyttigt at kalde, så vi springer
+      // det over og returnerer null — UI'et viser så bare ingen rute-linje
+      // i stedet for at trigge en error-boundary / blank skærm.
+      if (!waypoints || waypoints.length < 2) return null;
       const { data, error } = await supabase.functions.invoke("route-directions", {
         body: {
           waypoints,
@@ -2515,7 +2520,12 @@ export const useDirections = (
           ...(options?.businessId ? { business_id: options.businessId } : {}),
         },
       });
-      if (error) throw error;
+      if (error) {
+        // Log men kast ikke — en fejlet directions-kald må aldrig blanke
+        // hele siden. Komponenter falder tilbage til straight-line.
+        console.warn("route-directions failed:", error);
+        return null;
+      }
       return data as {
         ok: boolean;
         provider: "mapbox" | "fallback";
