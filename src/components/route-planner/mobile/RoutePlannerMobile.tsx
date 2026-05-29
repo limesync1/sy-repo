@@ -1,10 +1,10 @@
 // Mobil ruteplanlægger — tap-baseret alternativ til desktop drag-and-drop.
-// Aktiveres under 768px (telefoner). Genbruger de samme data- og
-// mutations-hooks som desktop, men med en fingervenlig UI: dato-strip,
-// dagens ruter fylder skærmen, og en fast bund-knap åbner en bottom-sheet
-// med alle uplanlagte aftaler. Mønstret følger almindelige iOS/Android
-// "action bar + bottom sheet" konventioner i stedet for en peek-drawer
-// der konstant ændrer layoutet.
+// Aktiveres under 768px (telefoner). Layoutet er bygget op om en
+// segmenteret kontrol ("Dagens ruter" / "Uden rute") så begge views
+// altid kan tilgås med ét tap — uden skjulte bund-sheets eller peek-
+// drawere der gemmer aftalerne. "Ny rute" åbner en bekræftelses-dialog
+// hvor man vælger mindst én aftale, så vi aldrig opretter tomme ruter
+// bare ved at åbne/lukke modal.
 import { useMemo, useState } from "react";
 import {
   addDays,
@@ -18,6 +18,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Inbox,
+  Loader2,
   MapPin,
   Plus,
   Search,
@@ -27,13 +28,22 @@ import { AdminShell } from "@/components/admin/shared/AdminShell";
 import SEO from "@/components/SEO";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useMyBusiness } from "@/hooks/useDatabase";
 import { useEmployees } from "@/hooks/useEmployees";
 import {
+  useAddStop,
   useCalendarData,
   useCreateRoute,
   useUnassignedJobs,
@@ -48,6 +58,7 @@ import {
   effectiveJobDate,
   isJobPending,
   jobAddress,
+  linkAgreementToRoute,
   serviceSummaryForJob,
 } from "./mobile-helpers";
 import { MobileAssignSheet } from "./MobileAssignSheet";
@@ -74,10 +85,10 @@ export default function RoutePlannerMobile() {
   const [search, setSearch] = useState("");
   const [assignJob, setAssignJob] = useState<any | null>(null);
   const [openRoute, setOpenRoute] = useState<Route | null>(null);
-  const [creating, setCreating] = useState(false);
-  // Bottom-sheet for uplanlagte aftaler. Lukket som standard; en fast
-  // bund-knap viser antallet og åbner sheeten.
-  const [unassignedOpen, setUnassignedOpen] = useState(false);
+  // Segmenteret kontrol: hvilken liste vises lige nu?
+  const [tab, setTab] = useState<"routes" | "unassigned">("routes");
+  // "Ny rute"-dialog — opretter først rute når brugeren bekræfter.
+  const [createOpen, setCreateOpen] = useState(false);
 
   const { data: employees = [] } = useEmployees(businessId);
 
@@ -139,26 +150,6 @@ export default function RoutePlannerMobile() {
         j.zip_code?.toLowerCase().includes(q),
     );
   }, [unassigned, search]);
-
-  const handleCreateRoute = async () => {
-    if (!businessId || creating) return;
-    setCreating(true);
-    try {
-      const usedColors = dayRoutes.map((r) => r.color);
-      const created = await createRoute.mutateAsync({
-        business_id: businessId,
-        route_date: date,
-        name: null,
-        color: pickAvailableColor(usedColors),
-      });
-      toast.success("Ny rute oprettet");
-      setOpenRoute(created);
-    } catch (err: any) {
-      toast.error("Kunne ikke oprette rute", { description: err?.message });
-    } finally {
-      setCreating(false);
-    }
-  };
 
   const weekLabel = `Uge ${format(parseISO(date), "I", { locale: da })} · ${format(parseISO(date), "MMM yyyy", { locale: da })}`;
 
@@ -260,42 +251,94 @@ export default function RoutePlannerMobile() {
             </div>
           </div>
 
-          {/* Hovedindhold: dagens ruter — fylder pladsen mellem dato-strip og bund-knap */}
-          <div className="min-h-0 flex-1 overflow-y-auto px-3 pt-3 pb-24">
-            <RoutesTab
-              loading={loadingCalendar}
-              date={date}
-              routes={dayRoutes}
-              stopsByRoute={stopsByRoute}
-              onOpenRoute={setOpenRoute}
-              onCreate={handleCreateRoute}
-              creating={creating}
-            />
+          {/* Segmenteret kontrol — viser begge views med ét tap */}
+          <div className="shrink-0 px-3 pt-3">
+            <div className="grid grid-cols-2 gap-1 rounded-full border border-border bg-card p-1">
+              <button
+                type="button"
+                onClick={() => setTab("routes")}
+                className={cn(
+                  "flex items-center justify-center gap-1.5 rounded-full py-1.5 text-sm font-semibold transition-all",
+                  tab === "routes"
+                    ? "bg-foreground text-background shadow-sm"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                Dagens ruter
+                {dayRoutes.length > 0 && (
+                  <span className={cn(
+                    "rounded-full px-1.5 text-[10px] font-bold tabular-nums",
+                    tab === "routes" ? "bg-background/20 text-background" : "bg-secondary text-foreground",
+                  )}>
+                    {dayRoutes.length}
+                  </span>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setTab("unassigned")}
+                className={cn(
+                  "flex items-center justify-center gap-1.5 rounded-full py-1.5 text-sm font-semibold transition-all",
+                  tab === "unassigned"
+                    ? "bg-foreground text-background shadow-sm"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                Uden rute
+                {unassigned.length > 0 && (
+                  <span className={cn(
+                    "rounded-full px-1.5 text-[10px] font-bold tabular-nums",
+                    tab === "unassigned" ? "bg-background/20 text-background" : "bg-accent/15 text-accent",
+                  )}>
+                    {unassigned.length}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
 
-          {/* Fast bund-knap: åbner bottom-sheet med uplanlagte aftaler */}
-          <UnassignedBottomBar
-            total={unassigned.length}
-            loading={loadingUnassigned}
-            onOpen={() => setUnassignedOpen(true)}
-          />
+          {/* Hovedindhold */}
+          <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-6 pt-3">
+            {tab === "routes" ? (
+              <RoutesTab
+                loading={loadingCalendar}
+                date={date}
+                routes={dayRoutes}
+                stopsByRoute={stopsByRoute}
+                onOpenRoute={setOpenRoute}
+                onCreate={() => setCreateOpen(true)}
+                hasUnassigned={unassigned.length > 0}
+                onGoToUnassigned={() => setTab("unassigned")}
+              />
+            ) : (
+              <UnassignedTab
+                loading={loadingUnassigned}
+                search={search}
+                setSearch={setSearch}
+                jobs={filteredUnassigned}
+                total={unassigned.length}
+                onAssign={(job) => setAssignJob(job)}
+              />
+            )}
+          </div>
         </div>
       </AdminShell>
 
-      {/* Bottom-sheet med søgning + fuld liste */}
-      <UnassignedSheet
-        open={unassignedOpen}
-        onOpenChange={setUnassignedOpen}
-        loading={loadingUnassigned}
-        search={search}
-        setSearch={setSearch}
-        jobs={filteredUnassigned}
-        total={unassigned.length}
-        onAssign={(job) => {
-          setAssignJob(job);
-          setUnassignedOpen(false);
-        }}
-      />
+      {/* Ny-rute-dialog — kræver mindst én aftale */}
+      {businessId && (
+        <NewRouteDialog
+          open={createOpen}
+          onOpenChange={setCreateOpen}
+          businessId={businessId}
+          date={date}
+          usedColors={dayRoutes.map((r) => r.color)}
+          unassigned={unassigned as any[]}
+          onCreated={(r) => {
+            setCreateOpen(false);
+            setOpenRoute(r);
+          }}
+        />
+      )}
 
       {/* Sheets */}
       {assignJob && businessId && (
