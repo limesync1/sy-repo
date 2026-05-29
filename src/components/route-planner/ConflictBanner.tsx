@@ -16,7 +16,10 @@ const OVERBOOK_PCT_THRESHOLD = 130;
 // Kræv også at der faktisk er booket meningsfuldt arbejde — så en dag
 // med en lille kapacitet (fx 1 medarbejder med 2 timer) ikke straks
 // vises som "overbooked" når der lægges en enkelt aftale ind.
-const OVERBOOK_MIN_BOOKED_MIN = 480;
+// Mindst 13 timers reelt booket arbejde + kørsel før vi flagger dagen
+// som overbooket. Det giver plads til lange men håndterbare dage uden
+// at trigger advarsler unødigt.
+const OVERBOOK_MIN_BOOKED_MIN = 780;
 
 /**
  * Vedvarende konflikt-banner øverst i rute-kalenderen.
