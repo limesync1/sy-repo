@@ -20,7 +20,6 @@ import {
   Inbox,
   MapPin,
   Plus,
-  Route as RouteIcon,
   Search,
 } from "lucide-react";
 
@@ -476,7 +475,7 @@ function UnassignedDrawer({
         <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-muted-foreground/30" aria-hidden />
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-secondary">
-            <Inbox className="h-4.5 w-4.5 text-foreground" />
+            <Inbox className="h-4 w-4 text-foreground" />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
