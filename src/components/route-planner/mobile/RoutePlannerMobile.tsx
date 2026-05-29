@@ -186,21 +186,31 @@ export default function RoutePlannerMobile() {
         activeTab="routes"
         contentPadding={false}
         contentClassName="flex flex-col overflow-hidden"
-        topbarRight={<ThemeToggle />}
       >
         <div className="relative flex h-full min-h-0 flex-col bg-gradient-to-b from-background via-background to-secondary/20">
           {/* Dato-strip */}
           <div className="shrink-0 border-b border-border/60 bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/60 px-3 pt-3 pb-2.5">
             <div className="mb-2.5 flex items-center justify-between">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 rounded-full"
-                onClick={() => setDate(format(addDays(parseISO(date), -7), "yyyy-MM-dd"))}
-                aria-label="Forrige uge"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 rounded-full"
+                  onClick={() => setDate(format(addDays(parseISO(date), -7), "yyyy-MM-dd"))}
+                  aria-label="Forrige uge"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 rounded-full"
+                  onClick={() => setDate(format(addDays(parseISO(date), 7), "yyyy-MM-dd"))}
+                  aria-label="Næste uge"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
+              </div>
               <button
                 type="button"
                 onClick={() => setDate(todayStr())}
@@ -208,15 +218,7 @@ export default function RoutePlannerMobile() {
               >
                 {weekLabel}
               </button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 rounded-full"
-                onClick={() => setDate(format(addDays(parseISO(date), 7), "yyyy-MM-dd"))}
-                aria-label="Næste uge"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </Button>
+              <ThemeToggle />
             </div>
             <div className="grid grid-cols-7 gap-1.5">
               {weekRange.days.map((d) => {
