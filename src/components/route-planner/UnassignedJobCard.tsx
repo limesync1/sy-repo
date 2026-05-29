@@ -407,19 +407,13 @@ export const UnassignedJobCard = ({
               </div>
             )}
 
-            {/* Tid + varighed (kun hvis aftalen har et tidsvindue) */}
-            {(job.preferred_time_start || estimatedMin != null) && !compact && (
+            {/* Ønsket tidsrum (kun hvis aftalen har et tidsvindue) */}
+            {job.preferred_time_start && !compact && (
               <div className="flex items-center gap-1.5 text-muted-foreground min-w-0">
                 <Clock className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" />
                 <span className="text-[12px] tabular-nums leading-tight">
-                  {job.preferred_time_start && (
-                    <>
-                      {job.preferred_time_start.slice(0, 5)}
-                      {job.preferred_time_end && `–${job.preferred_time_end.slice(0, 5)}`}
-                    </>
-                  )}
-                  {job.preferred_time_start && estimatedMin != null && <span className="opacity-50"> · </span>}
-                  {estimatedMin != null && formatDurationMin(estimatedMin)}
+                  {job.preferred_time_start.slice(0, 5)}
+                  {job.preferred_time_end && `–${job.preferred_time_end.slice(0, 5)}`}
                 </span>
               </div>
             )}

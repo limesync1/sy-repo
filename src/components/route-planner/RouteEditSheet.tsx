@@ -1200,9 +1200,6 @@ const CompletedRouteSummary = ({ routeId }: { routeId: string }) => {
                         <p className="font-semibold tabular-nums">
                           {Math.round(Number(s.earnings || 0)).toLocaleString("da-DK")} kr
                         </p>
-                        {s.duration_minutes ? (
-                          <p className="text-[10px] text-muted-foreground">{s.duration_minutes} min</p>
-                        ) : null}
                       </div>
                     </li>
                   ))}

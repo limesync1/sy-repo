@@ -3908,7 +3908,7 @@ const Planner = () => {
             {(periodSummary.routeCount > 0 || unassigned.length > 0) && (
               <div
                 className="hidden md:inline-flex items-center gap-2 h-8 pl-2.5 pr-3 rounded-md bg-secondary/40 border border-border/60 text-[11px] tabular-nums"
-                title={`${periodSummary.routeCount} ${periodSummary.routeCount === 1 ? "rute" : "ruter"}, ${periodSummary.stopCount} stop og ca. ${formatDurationMin(periodSummary.workMinutes)} arbejde i visningen${unassigned.length > 0 ? ` · ${unassigned.length} aftale${unassigned.length === 1 ? "" : "r"} mangler en rute` : ""}`}
+                title={`${periodSummary.routeCount} ${periodSummary.routeCount === 1 ? "rute" : "ruter"}, ${periodSummary.stopCount} stop i visningen${unassigned.length > 0 ? ` · ${unassigned.length} aftale${unassigned.length === 1 ? "" : "r"} mangler en rute` : ""}`}
               >
                 <span className="inline-flex items-center gap-1">
                   <RouteIcon className="h-3 w-3 text-muted-foreground/70" />
@@ -3921,15 +3921,6 @@ const Planner = () => {
                   <span className="font-bold text-foreground">{periodSummary.stopCount}</span>
                   <span className="text-muted-foreground/80">stop</span>
                 </span>
-                {periodSummary.workMinutes > 0 && (
-                  <>
-                    <span className="h-3 w-px bg-border/80" />
-                    <span className="hidden xl:inline-flex items-center gap-1">
-                      <Clock className="h-3 w-3 text-muted-foreground/70" />
-                      <span className="font-bold text-foreground">{formatDurationMin(periodSummary.workMinutes, { short: true })}</span>
-                    </span>
-                  </>
-                )}
                 {unassigned.length > 0 && (
                   <>
                     <span className="h-3 w-px bg-border/80" />
@@ -5534,11 +5525,6 @@ const Planner = () => {
             >
               <span aria-hidden className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
               <p className="text-[12px] font-bold truncate text-foreground capitalize">{activeDragData.stop.customer_name}</p>
-              {activeDragData.stop.duration_minutes != null && (
-                <p className="text-[10px] text-muted-foreground leading-tight tabular-nums">
-                  {activeDragData.stop.duration_minutes} min
-                </p>
-              )}
             </div>
           )}
         </DragOverlay>,

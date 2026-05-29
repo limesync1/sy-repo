@@ -239,7 +239,6 @@ export const PlanningPanel = ({
             <div className="mt-2 grid grid-cols-2 gap-2">
               <MiniStat label="Aftaler" value={String(stats.weekStopCount)} />
               <MiniStat label="Snit/dag" value={stats.avgStopsPerDay > 0 ? stats.avgStopsPerDay.toFixed(1) : "—"} />
-              <MiniStat label="Arbejde" value={stats.weekWorkTotal > 0 ? formatDurationMin(stats.weekWorkTotal, { short: true }) : "—"} />
               <MiniStat label="Kørsel" value={stats.weekDriveTotal > 0 ? formatDurationMin(stats.weekDriveTotal, { short: true }) : "—"} />
             </div>
           </section>
