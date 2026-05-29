@@ -621,6 +621,8 @@ function RoutesPane({
   onOpenRoute,
   onCreate,
   dragActive,
+  onRefresh,
+  className,
 }: {
   loading: boolean;
   date: string;
@@ -629,9 +631,61 @@ function RoutesPane({
   onOpenRoute: (r: Route) => void;
   onCreate: () => void;
   dragActive: boolean;
+  onRefresh: () => Promise<void>;
+  className?: string;
 }) {
+  // Pull-to-refresh state — træk ned fra toppen for at gen-indlæse.
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [pull, setPull] = useState(0); // px trukket ned (0 = hvile)
+  const [refreshing, setRefreshing] = useState(false);
+  const startY = useRef<number | null>(null);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (refreshing) return;
+    const el = scrollRef.current;
+    if (!el || el.scrollTop > 0) { startY.current = null; return; }
+    startY.current = e.touches[0]?.clientY ?? null;
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (startY.current == null) return;
+    const dy = (e.touches[0]?.clientY ?? 0) - startY.current;
+    if (dy <= 0) { setPull(0); return; }
+    setPull(Math.min(90, dy * 0.5));
+  };
+  const onTouchEnd = async () => {
+    if (startY.current == null) { setPull(0); return; }
+    startY.current = null;
+    if (pull > 55) {
+      setRefreshing(true);
+      setPull(46);
+      try { await onRefresh(); } finally {
+        setRefreshing(false);
+        setPull(0);
+      }
+    } else {
+      setPull(0);
+    }
+  };
+
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-3 pt-3">
+    <div
+      ref={scrollRef}
+      className={cn("relative min-h-0 flex-1 overflow-y-auto px-3 pb-3 pt-3", className)}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      onTouchCancel={() => { startY.current = null; setPull(0); }}
+    >
+      {/* Pull-to-refresh indikator */}
+      {(pull > 0 || refreshing) && (
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-center text-muted-foreground"
+          style={{ height: pull, opacity: Math.min(1, pull / 40) }}
+        >
+          <RefreshCw className={cn("h-4 w-4", (refreshing || pull > 55) && "animate-spin text-accent")} />
+        </div>
+      )}
+      <div style={{ transform: pull ? `translateY(${pull}px)` : undefined, transition: pull === 0 ? "transform 200ms" : undefined }}>
       <div className="mb-2.5 flex items-center justify-between">
         <div className="min-w-0">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -676,6 +730,7 @@ function RoutesPane({
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 }
