@@ -1,8 +1,10 @@
 // Mobil ruteplanlægger — tap-baseret alternativ til desktop drag-and-drop.
 // Aktiveres under 768px (telefoner). Genbruger de samme data- og
 // mutations-hooks som desktop, men med en fingervenlig UI: dato-strip,
-// dagens ruter i hovedfladen, og en peek-able bunddrawer med alle
-// uplanlagte aftaler så brugeren altid kan se både ruter og inbox samtidig.
+// dagens ruter fylder skærmen, og en fast bund-knap åbner en bottom-sheet
+// med alle uplanlagte aftaler. Mønstret følger almindelige iOS/Android
+// "action bar + bottom sheet" konventioner i stedet for en peek-drawer
+// der konstant ændrer layoutet.
 import { useMemo, useState } from "react";
 import {
   addDays,
@@ -13,10 +15,8 @@ import {
 import { da } from "date-fns/locale";
 import {
   CalendarClock,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
-  ChevronUp,
   Inbox,
   MapPin,
   Plus,
@@ -29,6 +29,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useMyBusiness } from "@/hooks/useDatabase";
 import { useEmployees } from "@/hooks/useEmployees";
@@ -74,9 +75,9 @@ export default function RoutePlannerMobile() {
   const [assignJob, setAssignJob] = useState<any | null>(null);
   const [openRoute, setOpenRoute] = useState<Route | null>(null);
   const [creating, setCreating] = useState(false);
-  // Bunddraweren peeker som standard så brugeren altid kan se antallet af
-  // uplanlagte aftaler. Tap på headeren udvider den til ~70% af skærmen.
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  // Bottom-sheet for uplanlagte aftaler. Lukket som standard; en fast
+  // bund-knap viser antallet og åbner sheeten.
+  const [unassignedOpen, setUnassignedOpen] = useState(false);
 
   const { data: employees = [] } = useEmployees(businessId);
 
@@ -173,11 +174,6 @@ export default function RoutePlannerMobile() {
     );
   }
 
-  // Højde på den kollapsede bunddrawer — viser header + 1 peek-card.
-  // Når åben dækker den ~70% af skærmen så ruterne stadig kan ses ovenfor.
-  const drawerCollapsedH = "5.5rem";
-  const drawerExpandedH = "70vh";
-
   return (
     <>
       <SEO
@@ -262,11 +258,8 @@ export default function RoutePlannerMobile() {
             </div>
           </div>
 
-          {/* Hovedindhold: dagens ruter — fylder pladsen mellem dato-strip og bunddrawer */}
-          <div
-            className="min-h-0 flex-1 overflow-y-auto px-3 pt-3 transition-[padding] duration-300"
-            style={{ paddingBottom: `calc(${drawerOpen ? drawerExpandedH : drawerCollapsedH} + 0.75rem)` }}
-          >
+          {/* Hovedindhold: dagens ruter — fylder pladsen mellem dato-strip og bund-knap */}
+          <div className="min-h-0 flex-1 overflow-y-auto px-3 pt-3 pb-24">
             <RoutesTab
               loading={loadingCalendar}
               date={date}
@@ -278,24 +271,29 @@ export default function RoutePlannerMobile() {
             />
           </div>
 
-          {/* Bunddrawer: altid synlig — peeker med antal uplanlagte, swipe/tap for at se hele listen */}
-          <UnassignedDrawer
-            open={drawerOpen}
-            onToggle={() => setDrawerOpen((v) => !v)}
-            loading={loadingUnassigned}
-            search={search}
-            setSearch={setSearch}
-            jobs={filteredUnassigned}
+          {/* Fast bund-knap: åbner bottom-sheet med uplanlagte aftaler */}
+          <UnassignedBottomBar
             total={unassigned.length}
-            onAssign={(job) => {
-              setAssignJob(job);
-              setDrawerOpen(false);
-            }}
-            collapsedH={drawerCollapsedH}
-            expandedH={drawerExpandedH}
+            loading={loadingUnassigned}
+            onOpen={() => setUnassignedOpen(true)}
           />
         </div>
       </AdminShell>
+
+      {/* Bottom-sheet med søgning + fuld liste */}
+      <UnassignedSheet
+        open={unassignedOpen}
+        onOpenChange={setUnassignedOpen}
+        loading={loadingUnassigned}
+        search={search}
+        setSearch={setSearch}
+        jobs={filteredUnassigned}
+        total={unassigned.length}
+        onAssign={(job) => {
+          setAssignJob(job);
+          setUnassignedOpen(false);
+        }}
+      />
 
       {/* Sheets */}
       {assignJob && businessId && (
