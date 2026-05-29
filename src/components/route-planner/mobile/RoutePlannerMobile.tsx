@@ -1111,25 +1111,52 @@ function UnassignedDock({
   );
 }
 
-function DraggableJobCard({ job, onAssign }: { job: any; onAssign: (job: any) => void }) {
+function DraggableJobCard({
+  job,
+  onAssign,
+  selectMode,
+  selected,
+  onToggle,
+  fullWidth,
+}: {
+  job: any;
+  onAssign: (job: any) => void;
+  selectMode: boolean;
+  selected: boolean;
+  onToggle: () => void;
+  fullWidth: boolean;
+}) {
   const pending = isJobPending(job);
   const wishDate = effectiveJobDate(job);
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `job:${job.id}`,
     data: { type: "job", job },
-    disabled: pending,
+    disabled: pending || selectMode,
   });
   return (
     <div
       ref={setNodeRef}
+      onClick={selectMode && !pending ? onToggle : undefined}
       className={cn(
-        "flex w-52 shrink-0 flex-col rounded-2xl border border-border bg-background p-2.5 shadow-sm transition-opacity",
+        "flex shrink-0 flex-col rounded-2xl border bg-background p-2.5 shadow-sm transition-all",
+        fullWidth ? "w-full" : "w-52",
+        selectMode && !pending && "cursor-pointer",
+        selected ? "border-accent ring-2 ring-accent/40" : "border-border",
         isDragging && "opacity-30",
         pending && "opacity-90",
       )}
     >
       <div className="flex items-start gap-1.5">
-        {!pending && (
+        {selectMode && !pending ? (
+          <span
+            className={cn(
+              "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 transition-colors",
+              selected ? "border-accent bg-accent text-accent-foreground" : "border-muted-foreground/40",
+            )}
+          >
+            {selected && <CheckCircle2 className="h-3 w-3" />}
+          </span>
+        ) : !pending ? (
           <button
             type="button"
             {...listeners}
@@ -1139,7 +1166,7 @@ function DraggableJobCard({ job, onAssign }: { job: any; onAssign: (job: any) =>
           >
             <GripVertical className="h-4 w-4" />
           </button>
-        )}
+        ) : null}
         <div className="min-w-0 flex-1">
           <p className="truncate text-[12.5px] font-semibold text-foreground">
             {job.customer_name || "Ukendt kunde"}
@@ -1161,7 +1188,7 @@ function DraggableJobCard({ job, onAssign }: { job: any; onAssign: (job: any) =>
         <span className="mt-1.5 inline-flex w-fit items-center rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-800 dark:bg-amber-500/15 dark:text-amber-200">
           Afventer kunde
         </span>
-      ) : (
+      ) : !selectMode ? (
         <Button
           type="button"
           size="sm"
@@ -1171,7 +1198,7 @@ function DraggableJobCard({ job, onAssign }: { job: any; onAssign: (job: any) =>
         >
           Vælg rute
         </Button>
-      )}
+      ) : null}
     </div>
   );
 }
