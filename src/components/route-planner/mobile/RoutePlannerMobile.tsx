@@ -215,11 +215,23 @@ export default function RoutePlannerMobile() {
     const over = e.over.data.current as any;
     if (!over) return;
 
-    // Drop på rute
+    // Bestem target-rute + ønsket indsættelses-index
+    let targetRouteId: string | null = null;
+    let insertIndex: number | null = null;
     if (over.type === "route") {
-      const targetRouteId = over.routeId as string;
+      targetRouteId = over.routeId as string;
       const targetStops = stopsByRoute.get(targetRouteId) ?? [];
-      const nextSeq = targetStops.length;
+      insertIndex = targetStops.length; // tilføj i bunden
+    } else if (over.type === "stop") {
+      const overStop = over.stop as RouteStop;
+      targetRouteId = overStop.route_id;
+      const targetStops = stopsByRoute.get(targetRouteId) ?? [];
+      insertIndex = targetStops.findIndex((s) => s.id === overStop.id);
+      if (insertIndex < 0) insertIndex = targetStops.length;
+    }
+
+    if (targetRouteId && insertIndex !== null) {
+      const targetStops = stopsByRoute.get(targetRouteId) ?? [];
 
       if (active.kind === "job") {
         const job = active.job;
@@ -231,7 +243,7 @@ export default function RoutePlannerMobile() {
           await addStop.mutateAsync({
             route_id: targetRouteId,
             order_id: job.id,
-            sequence: nextSeq,
+            sequence: insertIndex,
             customer_name: job.customer_name,
             customer_phone: job.customer_phone,
             address: jobAddress(job),
@@ -256,11 +268,35 @@ export default function RoutePlannerMobile() {
       }
 
       if (active.kind === "stop") {
-        if (active.fromRouteId === targetRouteId) return;
+        // Same-route reorder
+        if (active.fromRouteId === targetRouteId) {
+          const fromIdx = targetStops.findIndex((s) => s.id === active.stop.id);
+          if (fromIdx === -1 || fromIdx === insertIndex) return;
+          const reordered = arrayMove(targetStops, fromIdx, insertIndex);
+          const updates = reordered.map((s, i) => ({ id: s.id, sequence: i }));
+          try {
+            await reorderStops.mutateAsync(updates);
+          } catch (err: any) {
+            toast.error("Kunne ikke flytte stop", { description: err?.message });
+          }
+          return;
+        }
+        // Cross-route move
         try {
-          await reorderStops.mutateAsync([
-            { id: active.stop.id, sequence: nextSeq, route_id: targetRouteId },
-          ]);
+          const fromStops = (stopsByRoute.get(active.fromRouteId) ?? []).filter(
+            (s) => s.id !== active.stop.id,
+          );
+          const inserted = [...targetStops];
+          inserted.splice(insertIndex, 0, { ...active.stop, route_id: targetRouteId } as RouteStop);
+          const updates = [
+            ...inserted.map((s, i) => ({
+              id: s.id,
+              sequence: i,
+              route_id: targetRouteId!,
+            })),
+            ...fromStops.map((s, i) => ({ id: s.id, sequence: i })),
+          ];
+          await reorderStops.mutateAsync(updates);
           toast.success("Stop flyttet");
         } catch (err: any) {
           toast.error("Kunne ikke flytte stop", { description: err?.message });
