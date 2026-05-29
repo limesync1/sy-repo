@@ -18,11 +18,13 @@ import {
   CalendarClock,
   ChevronLeft,
   ChevronRight,
+  Clock,
   Inbox,
   Loader2,
   MapPin,
   Plus,
   Search,
+  Sparkles,
   GripVertical,
   Trash2,
 } from "lucide-react";
@@ -40,6 +42,13 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { createPortal } from "react-dom";
 
 import { AdminShell } from "@/components/admin/shared/AdminShell";
@@ -66,6 +75,7 @@ import {
   useCreateRoute,
   useReorderStops,
   useDeleteStop,
+  useOptimizeRoute,
   useUnassignedJobs,
   type Route,
   type RouteStop,
