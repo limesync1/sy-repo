@@ -1,8 +1,8 @@
 // Mobil ruteplanlægger — tap-baseret alternativ til desktop drag-and-drop.
-// Aktiveres under 900px (telefon / tablet i portræt). Genbruger de samme
-// data- og mutations-hooks som desktop-planlæggeren, men med en
-// fingervenlig UI: dato-strip, faner for ruter/uden-rute, og bottom-sheets
-// til tildeling og detaljer.
+// Aktiveres under 768px (telefoner). Genbruger de samme data- og
+// mutations-hooks som desktop, men med en fingervenlig UI: dato-strip,
+// dagens ruter i hovedfladen, og en peek-able bunddrawer med alle
+// uplanlagte aftaler så brugeren altid kan se både ruter og inbox samtidig.
 import { useMemo, useState } from "react";
 import {
   addDays,
@@ -13,8 +13,10 @@ import {
 import { da } from "date-fns/locale";
 import {
   CalendarClock,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
   Inbox,
   MapPin,
   Plus,
@@ -69,11 +71,13 @@ export default function RoutePlannerMobile() {
   const businessId = business?.id;
 
   const [date, setDate] = useState<string>(todayStr());
-  const [tab, setTab] = useState<"routes" | "unassigned">("routes");
   const [search, setSearch] = useState("");
   const [assignJob, setAssignJob] = useState<any | null>(null);
   const [openRoute, setOpenRoute] = useState<Route | null>(null);
   const [creating, setCreating] = useState(false);
+  // Bunddraweren peeker som standard så brugeren altid kan se antallet af
+  // uplanlagte aftaler. Tap på headeren udvider den til ~70% af skærmen.
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const { data: employees = [] } = useEmployees(businessId);
 
@@ -170,6 +174,11 @@ export default function RoutePlannerMobile() {
     );
   }
 
+  // Højde på den kollapsede bunddrawer — viser header + 1 peek-card.
+  // Når åben dækker den ~70% af skærmen så ruterne stadig kan ses ovenfor.
+  const drawerCollapsedH = "5.5rem";
+  const drawerExpandedH = "70vh";
+
   return (
     <>
       <SEO
@@ -184,14 +193,14 @@ export default function RoutePlannerMobile() {
         contentClassName="flex flex-col overflow-hidden"
         topbarRight={<ThemeToggle />}
       >
-        <div className="flex h-full min-h-0 flex-col bg-background">
+        <div className="relative flex h-full min-h-0 flex-col bg-gradient-to-b from-background via-background to-secondary/20">
           {/* Dato-strip */}
-          <div className="shrink-0 border-b border-border bg-card px-3 pt-3 pb-2">
-            <div className="mb-2 flex items-center justify-between">
+          <div className="shrink-0 border-b border-border/60 bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/60 px-3 pt-3 pb-2.5">
+            <div className="mb-2.5 flex items-center justify-between">
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9"
+                className="h-9 w-9 rounded-full"
                 onClick={() => setDate(format(addDays(parseISO(date), -7), "yyyy-MM-dd"))}
                 aria-label="Forrige uge"
               >
@@ -200,21 +209,21 @@ export default function RoutePlannerMobile() {
               <button
                 type="button"
                 onClick={() => setDate(todayStr())}
-                className="text-sm font-semibold capitalize tabular-nums text-foreground"
+                className="rounded-full px-3 py-1 text-sm font-semibold capitalize tabular-nums text-foreground hover:bg-secondary transition-colors"
               >
                 {weekLabel}
               </button>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9"
+                className="h-9 w-9 rounded-full"
                 onClick={() => setDate(format(addDays(parseISO(date), 7), "yyyy-MM-dd"))}
                 aria-label="Næste uge"
               >
                 <ChevronRight className="h-5 w-5" />
               </Button>
             </div>
-            <div className="grid grid-cols-7 gap-1">
+            <div className="grid grid-cols-7 gap-1.5">
               {weekRange.days.map((d) => {
                 const dt = parseISO(d);
                 const isSel = d === date;
@@ -226,14 +235,16 @@ export default function RoutePlannerMobile() {
                     type="button"
                     onClick={() => setDate(d)}
                     className={cn(
-                      "flex flex-col items-center gap-0.5 rounded-lg py-1.5 transition-colors",
-                      isSel ? "bg-foreground text-background" : "hover:bg-secondary",
+                      "relative flex flex-col items-center gap-0.5 rounded-xl py-2 transition-all",
+                      isSel
+                        ? "bg-foreground text-background shadow-sm scale-[1.02]"
+                        : "hover:bg-secondary active:scale-95",
                     )}
                   >
                     <span className={cn("text-[10px] uppercase", isSel ? "text-background/70" : "text-muted-foreground")}>
                       {format(dt, "EEEEEE", { locale: da })}
                     </span>
-                    <span className={cn("text-sm font-semibold tabular-nums", isToday && !isSel && "text-accent")}>
+                    <span className={cn("text-[15px] font-semibold tabular-nums leading-none", isToday && !isSel && "text-accent")}>
                       {format(dt, "d")}
                     </span>
                     <span
@@ -252,64 +263,38 @@ export default function RoutePlannerMobile() {
             </div>
           </div>
 
-          {/* Faner */}
-          <div className="grid shrink-0 grid-cols-2 border-b border-border bg-card">
-            <button
-              type="button"
-              onClick={() => setTab("routes")}
-              className={cn(
-                "flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium transition-colors",
-                tab === "routes"
-                  ? "border-b-2 border-foreground text-foreground"
-                  : "border-b-2 border-transparent text-muted-foreground",
-              )}
-            >
-              <RouteIcon className="h-4 w-4" />
-              Ruter
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab("unassigned")}
-              className={cn(
-                "flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium transition-colors",
-                tab === "unassigned"
-                  ? "border-b-2 border-foreground text-foreground"
-                  : "border-b-2 border-transparent text-muted-foreground",
-              )}
-            >
-              <Inbox className="h-4 w-4" />
-              Uden rute
-              {unassigned.length > 0 && (
-                <Badge variant="secondary" className="ml-0.5 h-5 px-1.5 text-[11px] tabular-nums">
-                  {unassigned.length}
-                </Badge>
-              )}
-            </button>
+          {/* Hovedindhold: dagens ruter — fylder pladsen mellem dato-strip og bunddrawer */}
+          <div
+            className="min-h-0 flex-1 overflow-y-auto px-3 pt-3 transition-[padding] duration-300"
+            style={{ paddingBottom: `calc(${drawerOpen ? drawerExpandedH : drawerCollapsedH} + 0.75rem)` }}
+          >
+            <RoutesTab
+              loading={loadingCalendar}
+              date={date}
+              routes={dayRoutes}
+              stopsByRoute={stopsByRoute}
+              onOpenRoute={setOpenRoute}
+              onCreate={handleCreateRoute}
+              creating={creating}
+            />
           </div>
 
-          {/* Indhold */}
-          <div className="min-h-0 flex-1 overflow-y-auto p-3">
-            {tab === "routes" ? (
-              <RoutesTab
-                loading={loadingCalendar}
-                date={date}
-                routes={dayRoutes}
-                stopsByRoute={stopsByRoute}
-                onOpenRoute={setOpenRoute}
-                onCreate={handleCreateRoute}
-                creating={creating}
-              />
-            ) : (
-              <UnassignedTab
-                loading={loadingUnassigned}
-                search={search}
-                setSearch={setSearch}
-                jobs={filteredUnassigned}
-                total={unassigned.length}
-                onAssign={setAssignJob}
-              />
-            )}
-          </div>
+          {/* Bunddrawer: altid synlig — peeker med antal uplanlagte, swipe/tap for at se hele listen */}
+          <UnassignedDrawer
+            open={drawerOpen}
+            onToggle={() => setDrawerOpen((v) => !v)}
+            loading={loadingUnassigned}
+            search={search}
+            setSearch={setSearch}
+            jobs={filteredUnassigned}
+            total={unassigned.length}
+            onAssign={(job) => {
+              setAssignJob(job);
+              setDrawerOpen(false);
+            }}
+            collapsedH={drawerCollapsedH}
+            expandedH={drawerExpandedH}
+          />
         </div>
       </AdminShell>
 
@@ -357,9 +342,9 @@ function RoutesTab({
 }) {
   if (loading) {
     return (
-      <div className="space-y-2">
+      <div className="space-y-2.5">
         {[0, 1, 2].map((i) => (
-          <Skeleton key={i} className="h-20 w-full rounded-xl" />
+          <Skeleton key={i} className="h-24 w-full rounded-2xl" />
         ))}
       </div>
     );
@@ -367,55 +352,76 @@ function RoutesTab({
 
   return (
     <div className="space-y-2.5">
-      <Button onClick={onCreate} disabled={creating} className="w-full gap-2" size="lg">
-        <Plus className="h-4 w-4" />
-        Opret rute den {format(parseISO(date), "d. MMM", { locale: da })}
-      </Button>
+      {/* Dagsoverskrift */}
+      <div className="flex items-center justify-between pb-1">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Dagens ruter
+          </p>
+          <p className="mt-0.5 text-base font-semibold capitalize text-foreground">
+            {format(parseISO(date), "EEEE d. MMM", { locale: da })}
+          </p>
+        </div>
+        <Button onClick={onCreate} disabled={creating} size="sm" className="gap-1.5 rounded-full">
+          <Plus className="h-4 w-4" />
+          Ny rute
+        </Button>
+      </div>
 
       {routes.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-12 text-center">
-          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-secondary">
-            <CalendarClock className="h-6 w-6 text-muted-foreground" />
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/40 py-14 text-center">
+          <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary">
+            <CalendarClock className="h-7 w-7 text-muted-foreground" />
           </div>
-          <p className="text-sm font-medium text-foreground">Ingen ruter denne dag</p>
-          <p className="mt-1 max-w-[16rem] text-xs text-muted-foreground">
-            Opret en rute, eller tildel aftaler fra fanen "Uden rute".
+          <p className="text-sm font-semibold text-foreground">Ingen ruter denne dag</p>
+          <p className="mt-1 max-w-[18rem] text-xs leading-snug text-muted-foreground">
+            Opret en rute, eller tildel aftaler fra panelet "Uden rute" nederst.
           </p>
         </div>
       ) : (
         routes.map((r) => {
           const stops = stopsByRoute.get(r.id) ?? [];
           const done = stops.filter((s) => s.status === "completed").length;
+          const totalMin = r.total_duration_minutes ?? 0;
           return (
             <button
               key={r.id}
               type="button"
               onClick={() => onOpenRoute(r)}
-              className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-3 text-left transition-colors hover:bg-secondary/50 active:scale-[0.99]"
+              className="group flex w-full items-stretch gap-3 overflow-hidden rounded-2xl border border-border bg-card p-3 text-left shadow-sm transition-all hover:border-foreground/20 hover:shadow-md active:scale-[0.99]"
             >
               <span
-                className="h-10 w-1.5 shrink-0 rounded-full"
+                className="w-1.5 shrink-0 rounded-full"
                 style={{ backgroundColor: r.color }}
                 aria-hidden
               />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-foreground">
+              <div className="min-w-0 flex-1 py-0.5">
+                <p className="truncate text-[15px] font-semibold leading-tight text-foreground">
                   {r.name || "Rute uden navn"}
                 </p>
-                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
-                  <span className="inline-flex items-center gap-1">
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-foreground">
                     <MapPin className="h-3 w-3" />
                     {stops.length} stop
                   </span>
-                  {done > 0 && (
-                    <span className="text-emerald-600 dark:text-emerald-400">{done} udført</span>
-                  )}
                   {r.total_distance_km != null && r.total_distance_km > 0 && (
-                    <span className="tabular-nums">{Math.round(r.total_distance_km)} km</span>
+                    <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium tabular-nums text-foreground">
+                      {Math.round(r.total_distance_km)} km
+                    </span>
+                  )}
+                  {totalMin > 0 && (
+                    <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium tabular-nums text-foreground">
+                      {formatDur(totalMin)}
+                    </span>
+                  )}
+                  {done > 0 && (
+                    <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium tabular-nums text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
+                      {done} udført
+                    </span>
                   )}
                 </div>
               </div>
-              <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+              <ChevronRight className="h-5 w-5 shrink-0 self-center text-muted-foreground transition-transform group-hover:translate-x-0.5" />
             </button>
           );
         })
@@ -424,98 +430,163 @@ function RoutesTab({
   );
 }
 
-/* ──────────────────────── Uden-rute-fane ──────────────────────── */
-function UnassignedTab({
+/* ──────────────────────── Uden-rute bunddrawer ────────────────────────
+ * Altid synlig i bunden af skærmen. Peeker med antal + første aftale så
+ * brugeren med det samme ser hvor mange aftaler der venter på en rute.
+ * Tap på headeren udvider til ~70% af skærmen så hele listen kan ses
+ * uden at miste konteksten af dagens ruter ovenfor.
+ */
+function UnassignedDrawer({
+  open,
+  onToggle,
   loading,
   search,
   setSearch,
   jobs,
   total,
   onAssign,
+  collapsedH,
+  expandedH,
 }: {
+  open: boolean;
+  onToggle: () => void;
   loading: boolean;
   search: string;
   setSearch: (v: string) => void;
   jobs: any[];
   total: number;
   onAssign: (job: any) => void;
+  collapsedH: string;
+  expandedH: string;
 }) {
   return (
-    <div className="space-y-2.5">
-      <div className="relative">
-        <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Søg kunde eller adresse"
-          className="h-10 pl-8"
-        />
-      </div>
-
-      {loading ? (
-        <div className="space-y-2">
-          {[0, 1, 2].map((i) => (
-            <Skeleton key={i} className="h-24 w-full rounded-xl" />
-          ))}
-        </div>
-      ) : total === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-12 text-center">
-          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-secondary">
-            <Inbox className="h-6 w-6 text-muted-foreground" />
+    <div
+      className="absolute inset-x-0 bottom-0 z-30 flex flex-col rounded-t-3xl border-t border-border bg-card shadow-[0_-12px_32px_-8px_rgba(0,0,0,0.12)] transition-[height] duration-300 ease-out"
+      style={{ height: open ? expandedH : collapsedH }}
+      role="region"
+      aria-label="Aftaler uden rute"
+    >
+      {/* Drag-handle + header */}
+      <button
+        type="button"
+        onClick={onToggle}
+        className="shrink-0 px-4 pt-2 pb-3 text-left active:bg-secondary/40 rounded-t-3xl"
+        aria-expanded={open}
+      >
+        <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-muted-foreground/30" aria-hidden />
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-secondary">
+            <Inbox className="h-4.5 w-4.5 text-foreground" />
           </div>
-          <p className="text-sm font-medium text-foreground">Alle aftaler er planlagt</p>
-          <p className="mt-1 max-w-[16rem] text-xs text-muted-foreground">
-            Der er ingen aftaler uden en rute lige nu.
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Uden rute
+            </p>
+            <p className="text-sm font-semibold text-foreground">
+              {total === 0
+                ? "Alle aftaler er planlagt"
+                : `${total} ${total === 1 ? "aftale venter" : "aftaler venter"}`}
+            </p>
+          </div>
+          {total > 0 && (
+            <Badge variant="secondary" className="h-6 px-2 text-[12px] font-semibold tabular-nums">
+              {total}
+            </Badge>
+          )}
+          {open ? (
+            <ChevronDown className="h-5 w-5 shrink-0 text-muted-foreground" />
+          ) : (
+            <ChevronUp className="h-5 w-5 shrink-0 text-muted-foreground" />
+          )}
+        </div>
+      </button>
+
+      {/* Søgefelt — kun synligt når udvidet */}
+      {open && (
+        <div className="shrink-0 border-t border-border/60 px-4 py-2.5">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Søg kunde eller adresse"
+              className="h-10 rounded-full pl-8"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Liste */}
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-1">
+        {loading ? (
+          <div className="space-y-2 pt-2">
+            {[0, 1, 2].map((i) => (
+              <Skeleton key={i} className="h-24 w-full rounded-2xl" />
+            ))}
+          </div>
+        ) : total === 0 ? (
+          !open && (
+            <p className="px-1 text-xs text-muted-foreground">
+              Der er ingen aftaler uden en rute lige nu.
+            </p>
+          )
+        ) : jobs.length === 0 ? (
+          <div className="py-10 text-center text-sm text-muted-foreground">
+            Ingen aftaler matcher søgningen.
+          </div>
+        ) : (
+          <div className="space-y-2 pt-2">
+            {(open ? jobs : jobs.slice(0, 1)).map((job) => (
+              <UnassignedCard key={job.id} job={job} onAssign={onAssign} />
+            ))}
+            {!open && jobs.length > 1 && (
+              <p className="px-1 pt-0.5 text-[11px] text-muted-foreground">
+                Tap for at se {jobs.length - 1} {jobs.length - 1 === 1 ? "aftale mere" : "aftaler mere"}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function UnassignedCard({ job, onAssign }: { job: any; onAssign: (job: any) => void }) {
+  const pending = isJobPending(job);
+  const wishDate = effectiveJobDate(job);
+  return (
+    <div className="rounded-2xl border border-border bg-card p-3 shadow-sm">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-foreground">
+            {job.customer_name || "Ukendt kunde"}
+          </p>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">
+            {jobAddress(job)}
           </p>
         </div>
-      ) : jobs.length === 0 ? (
-        <div className="py-10 text-center text-sm text-muted-foreground">
-          Ingen aftaler matcher søgningen.
+        {wishDate && (
+          <Badge variant="outline" className="shrink-0 rounded-full px-2 text-[10px] font-medium tabular-nums">
+            Ønsket {format(parseISO(wishDate), "d. MMM", { locale: da })}
+          </Badge>
+        )}
+      </div>
+      <p className="mt-1.5 line-clamp-2 text-xs text-muted-foreground">
+        {serviceSummaryForJob(job)}
+      </p>
+      {pending ? (
+        <div className="mt-2.5 rounded-lg bg-amber-50 px-2.5 py-2 text-[11px] leading-snug text-amber-800 dark:bg-amber-500/10 dark:text-amber-200">
+          Aftalen kan først planlægges når kunden har godkendt tilbuddet.
         </div>
       ) : (
-        jobs.map((job) => {
-          const pending = isJobPending(job);
-          const wishDate = effectiveJobDate(job);
-          return (
-            <div
-              key={job.id}
-              className="rounded-xl border border-border bg-card p-3"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-foreground">
-                    {job.customer_name || "Ukendt kunde"}
-                  </p>
-                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                    {jobAddress(job)}
-                  </p>
-                </div>
-                {wishDate && (
-                  <Badge variant="outline" className="shrink-0 text-[10px] tabular-nums">
-                    {format(parseISO(wishDate), "d. MMM", { locale: da })}
-                  </Badge>
-                )}
-              </div>
-              <p className="mt-1.5 line-clamp-2 text-xs text-muted-foreground">
-                {serviceSummaryForJob(job)}
-              </p>
-              {pending ? (
-                <div className="mt-2.5 rounded-md bg-amber-50 px-2.5 py-2 text-[11px] leading-snug text-amber-800 dark:bg-amber-500/10 dark:text-amber-200">
-                  Aftalen kan først planlægges når kunden har godkendt tilbuddet.
-                </div>
-              ) : (
-                <Button
-                  onClick={() => onAssign(job)}
-                  className="mt-2.5 w-full gap-2"
-                  size="sm"
-                >
-                  <Plus className="h-4 w-4" />
-                  Tildel til rute
-                </Button>
-              )}
-            </div>
-          );
-        })
+        <Button
+          onClick={() => onAssign(job)}
+          className="mt-2.5 w-full gap-2 rounded-full"
+          size="sm"
+        >
+          <Plus className="h-4 w-4" />
+          Tildel til rute
+        </Button>
       )}
     </div>
   );
