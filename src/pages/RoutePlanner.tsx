@@ -5525,11 +5525,6 @@ const Planner = () => {
             >
               <span aria-hidden className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
               <p className="text-[12px] font-bold truncate text-foreground capitalize">{activeDragData.stop.customer_name}</p>
-              {activeDragData.stop.duration_minutes != null && (
-                <p className="text-[10px] text-muted-foreground leading-tight tabular-nums">
-                  {activeDragData.stop.duration_minutes} min
-                </p>
-              )}
             </div>
           )}
         </DragOverlay>,
