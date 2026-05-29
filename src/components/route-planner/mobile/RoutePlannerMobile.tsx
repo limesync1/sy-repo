@@ -834,6 +834,8 @@ function DroppableRouteCard({
 
       {/* Inline stop-liste — sorterbar inden for ruten */}
       <div className="border-t border-border/60 px-2 pb-2 pt-1.5">
+        {/* Mini-kort over rute-formen (hvis vi har koordinater) */}
+        <MiniMap stops={stops} color={route.color} className="mb-1.5 px-1" />
         {stops.length === 0 ? (
           <div
             className={cn(
