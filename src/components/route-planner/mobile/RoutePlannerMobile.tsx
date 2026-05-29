@@ -105,10 +105,14 @@ export default function RoutePlannerMobile() {
   const [search, setSearch] = useState("");
   const [assignJob, setAssignJob] = useState<any | null>(null);
   const [openRoute, setOpenRoute] = useState<Route | null>(null);
-  // Segmenteret kontrol: hvilken liste vises lige nu?
-  const [tab, setTab] = useState<"routes" | "unassigned">("routes");
   // "Ny rute"-dialog — opretter først rute når brugeren bekræfter.
   const [createOpen, setCreateOpen] = useState(false);
+  // Aktiv drag — bruges til DragOverlay og til at vise drop-zoner.
+  const [drag, setDrag] = useState<
+    | { kind: "job"; job: any }
+    | { kind: "stop"; stop: RouteStop; fromRouteId: string }
+    | null
+  >(null);
 
   const { data: employees = [] } = useEmployees(businessId);
 
@@ -130,6 +134,9 @@ export default function RoutePlannerMobile() {
   const { data: unassigned = [], isLoading: loadingUnassigned } = useUnassignedJobs(businessId);
 
   const createRoute = useCreateRoute();
+  const addStop = useAddStop();
+  const reorderStops = useReorderStops();
+  const deleteStop = useDeleteStop();
 
   const allRoutes = (calendarData?.routes ?? []).filter((r) => !(r as any).isVirtual);
   const allStops = calendarData?.stops ?? [];
@@ -173,6 +180,96 @@ export default function RoutePlannerMobile() {
 
   const weekLabel = `Uge ${format(parseISO(date), "I", { locale: da })} · ${format(parseISO(date), "MMM yyyy", { locale: da })}`;
 
+  // DnD: long-press for at trække (så scroll stadig fungerer), MouseSensor til tablet med mus.
+  const sensors = useSensors(
+    useSensor(TouchSensor, { activationConstraint: { delay: 220, tolerance: 8 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor),
+  );
+
+  const handleDragStart = (e: DragStartEvent) => {
+    const data = e.active.data.current as any;
+    if (!data) return;
+    if (data.type === "job") setDrag({ kind: "job", job: data.job });
+    if (data.type === "stop") setDrag({ kind: "stop", stop: data.stop, fromRouteId: data.fromRouteId });
+    // Haptik når drag starter
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      try { (navigator as any).vibrate?.(15); } catch {}
+    }
+  };
+
+  const handleDragEnd = async (e: DragEndEvent) => {
+    const active = drag;
+    setDrag(null);
+    if (!active || !e.over) return;
+    const over = e.over.data.current as any;
+    if (!over) return;
+
+    // Drop på rute
+    if (over.type === "route") {
+      const targetRouteId = over.routeId as string;
+      const targetStops = stopsByRoute.get(targetRouteId) ?? [];
+      const nextSeq = targetStops.length;
+
+      if (active.kind === "job") {
+        const job = active.job;
+        if (isJobPending(job)) {
+          toast.info("Kunden skal godkende tilbuddet før aftalen kan planlægges");
+          return;
+        }
+        try {
+          await addStop.mutateAsync({
+            route_id: targetRouteId,
+            order_id: job.id,
+            sequence: nextSeq,
+            customer_name: job.customer_name,
+            customer_phone: job.customer_phone,
+            address: jobAddress(job),
+            latitude: job.latitude,
+            longitude: job.longitude,
+            service_summary: serviceSummaryForJob(job),
+            duration_minutes: Number(job.estimated_duration_minutes) || 30,
+            time_window_start: job.preferred_time_start || null,
+            time_window_end: job.preferred_time_end || null,
+          });
+          void linkAgreementToRoute(job.id, targetRouteId);
+          toast.success("Aftale tilføjet til rute");
+        } catch (err: any) {
+          const msg = String(err?.message || "");
+          if (msg.includes("uniq_route_stops_route_order") || msg.includes("duplicate key")) {
+            toast.info("Aftalen ligger allerede på denne rute");
+          } else {
+            toast.error("Kunne ikke tilføje aftale", { description: err?.message });
+          }
+        }
+        return;
+      }
+
+      if (active.kind === "stop") {
+        if (active.fromRouteId === targetRouteId) return;
+        try {
+          await reorderStops.mutateAsync([
+            { id: active.stop.id, sequence: nextSeq, route_id: targetRouteId },
+          ]);
+          toast.success("Stop flyttet");
+        } catch (err: any) {
+          toast.error("Kunne ikke flytte stop", { description: err?.message });
+        }
+        return;
+      }
+    }
+
+    // Drop i "Uden rute"-dock fjerner et stop
+    if (over.type === "unassigned" && active.kind === "stop") {
+      try {
+        await deleteStop.mutateAsync(active.stop.id);
+        toast.success("Stop fjernet fra rute");
+      } catch (err: any) {
+        toast.error("Kunne ikke fjerne stop", { description: err?.message });
+      }
+    }
+  };
+
   // AdminShell forventer en indlæst virksomhed — vis skeleton imens.
   if (loadingBusiness || !business) {
     return (
@@ -198,6 +295,13 @@ export default function RoutePlannerMobile() {
         contentPadding={false}
         contentClassName="flex flex-col overflow-hidden"
       >
+        <DndContext
+          sensors={sensors}
+          collisionDetection={pointerWithin}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDragCancel={() => setDrag(null)}
+        >
         <div className="relative flex h-full min-h-0 flex-col bg-gradient-to-b from-background via-background to-secondary/20">
           {/* Dato-strip */}
           <div className="shrink-0 border-b border-border/60 bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/60 px-3 pt-3 pb-2.5">
@@ -271,77 +375,49 @@ export default function RoutePlannerMobile() {
             </div>
           </div>
 
-          {/* Segmenteret kontrol — viser begge views med ét tap */}
-          <div className="shrink-0 px-3 pt-3">
-            <div className="grid grid-cols-2 gap-1 rounded-full border border-border bg-card p-1">
-              <button
-                type="button"
-                onClick={() => setTab("routes")}
-                className={cn(
-                  "flex items-center justify-center gap-1.5 rounded-full py-1.5 text-sm font-semibold transition-all",
-                  tab === "routes"
-                    ? "bg-foreground text-background shadow-sm"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                Dagens ruter
-                {dayRoutes.length > 0 && (
-                  <span className={cn(
-                    "rounded-full px-1.5 text-[10px] font-bold tabular-nums",
-                    tab === "routes" ? "bg-background/20 text-background" : "bg-secondary text-foreground",
-                  )}>
-                    {dayRoutes.length}
-                  </span>
-                )}
-              </button>
-              <button
-                type="button"
-                onClick={() => setTab("unassigned")}
-                className={cn(
-                  "flex items-center justify-center gap-1.5 rounded-full py-1.5 text-sm font-semibold transition-all",
-                  tab === "unassigned"
-                    ? "bg-foreground text-background shadow-sm"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                Uden rute
-                {unassigned.length > 0 && (
-                  <span className={cn(
-                    "rounded-full px-1.5 text-[10px] font-bold tabular-nums",
-                    tab === "unassigned" ? "bg-background/20 text-background" : "bg-accent/15 text-accent",
-                  )}>
-                    {unassigned.length}
-                  </span>
-                )}
-              </button>
-            </div>
-          </div>
+          {/* Hovedindhold: Ruter for dagen (med drop-zoner) */}
+          <RoutesPane
+            loading={loadingCalendar}
+            date={date}
+            routes={dayRoutes}
+            stopsByRoute={stopsByRoute}
+            onOpenRoute={setOpenRoute}
+            onCreate={() => setCreateOpen(true)}
+            dragActive={!!drag}
+          />
 
-          {/* Hovedindhold */}
-          <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-6 pt-3">
-            {tab === "routes" ? (
-              <RoutesTab
-                loading={loadingCalendar}
-                date={date}
-                routes={dayRoutes}
-                stopsByRoute={stopsByRoute}
-                onOpenRoute={setOpenRoute}
-                onCreate={() => setCreateOpen(true)}
-                hasUnassigned={unassigned.length > 0}
-                onGoToUnassigned={() => setTab("unassigned")}
-              />
-            ) : (
-              <UnassignedTab
-                loading={loadingUnassigned}
-                search={search}
-                setSearch={setSearch}
-                jobs={filteredUnassigned}
-                total={unassigned.length}
-                onAssign={(job) => setAssignJob(job)}
+          {/* Bund-dock: Uden rute (altid synlig, drag herfra eller drop hertil) */}
+          <UnassignedDock
+            loading={loadingUnassigned}
+            search={search}
+            setSearch={setSearch}
+            jobs={filteredUnassigned}
+            total={unassigned.length}
+            onAssign={(job) => setAssignJob(job)}
+            dragActive={!!drag}
+            isStopDrag={drag?.kind === "stop"}
+          />
+        </div>
+
+        {/* Drag overlay — flyder under fingeren */}
+        {typeof document !== "undefined" && createPortal(
+          <DragOverlay dropAnimation={null}>
+            {drag?.kind === "job" && (
+              <FloatingChip
+                title={drag.job.customer_name || "Aftale"}
+                subtitle={jobAddress(drag.job)}
               />
             )}
-          </div>
-        </div>
+            {drag?.kind === "stop" && (
+              <FloatingChip
+                title={drag.stop.customer_name || "Stop"}
+                subtitle={drag.stop.address || drag.stop.full_address || ""}
+              />
+            )}
+          </DragOverlay>,
+          document.body,
+        )}
+        </DndContext>
       </AdminShell>
 
       {/* Ny-rute-dialog — kræver mindst én aftale */}
