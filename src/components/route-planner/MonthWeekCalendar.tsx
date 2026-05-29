@@ -595,9 +595,12 @@ const DayCellInner = ({
           <div
             className={cn(
               "h-full transition-all duration-500 rounded-r-full relative",
-              capacity.load_pct >= 100
+              // Tærskler matcher ConflictBanner: 115%+ = overbooked,
+              // 85-115% = travl, derunder = grøn. Tidligere "70% = gul"
+              // markerede helt normale dage som advarsel.
+              capacity.load_pct >= 115 && capacity.minutes_booked >= 360
                 ? "bg-gradient-to-r from-destructive/80 to-destructive shadow-[0_0_8px_hsl(var(--destructive)/0.55)]"
-                : capacity.load_pct >= 70
+                : capacity.load_pct >= 85
                 ? "bg-gradient-to-r from-amber-400 to-amber-500"
                 : "bg-gradient-to-r from-emerald-400/70 to-emerald-500/85",
             )}
