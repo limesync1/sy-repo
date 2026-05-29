@@ -444,48 +444,27 @@ function UnassignedBottomBar({
   onOpen: () => void;
 }) {
   const empty = !loading && total === 0;
+  // Skjul knappen helt når der ikke er noget — bottom-nav under viser stadig
+  // "Aftaler" hvis brugeren skal håndtere ordrer. Det fjerner det dobbelte
+  // tunge sort-på-sort layout når alt er planlagt.
+  if (empty) return null;
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 bg-gradient-to-t from-background via-background/85 to-transparent">
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 flex justify-center px-3 pb-3 pt-6 bg-gradient-to-t from-background via-background/70 to-transparent">
       <button
         type="button"
         onClick={onOpen}
-        disabled={empty}
-        aria-label={empty ? "Alle aftaler er planlagt" : `Åbn ${total} aftaler uden rute`}
-        className={cn(
-          "pointer-events-auto flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left shadow-lg transition-all active:scale-[0.99]",
-          empty
-            ? "border-border bg-card/80 text-muted-foreground"
-            : "border-foreground/10 bg-foreground text-background hover:bg-foreground/95",
-        )}
+        aria-label={`Åbn ${total} aftaler uden rute`}
+        className="pointer-events-auto inline-flex items-center gap-2.5 rounded-full border border-border bg-card pl-2 pr-4 py-1.5 text-left shadow-[0_12px_28px_-12px_hsl(var(--foreground)/0.35)] transition-all hover:shadow-[0_14px_32px_-12px_hsl(var(--foreground)/0.45)] active:scale-[0.98]"
       >
-        <div
-          className={cn(
-            "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
-            empty ? "bg-secondary text-muted-foreground" : "bg-background/15 text-background",
-          )}
-        >
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
           <Inbox className="h-4 w-4" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className={cn("text-[11px] font-semibold uppercase tracking-wider", empty ? "text-muted-foreground" : "text-background/70")}>
-            Aftaler uden rute
-          </p>
-          <p className="truncate text-sm font-semibold">
-            {loading
-              ? "Henter…"
-              : empty
-              ? "Alt er planlagt"
-              : `${total} ${total === 1 ? "aftale venter på en rute" : "aftaler venter på en rute"}`}
-          </p>
-        </div>
-        {!empty && !loading && (
-          <Badge
-            variant="secondary"
-            className="h-6 shrink-0 rounded-full bg-background/15 px-2.5 text-[12px] font-semibold tabular-nums text-background"
-          >
-            {total}
-          </Badge>
-        )}
+        </span>
+        <span className="text-sm font-semibold text-foreground">
+          {loading ? "Henter…" : `${total} uden rute`}
+        </span>
+        <span className="text-xs text-muted-foreground">
+          Tildel
+        </span>
       </button>
     </div>
   );
