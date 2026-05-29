@@ -826,7 +826,7 @@ function UnassignedDock({
           ? "border-destructive bg-destructive/5"
           : "border-border",
       )}
-      style={{ maxHeight: "42vh" }}
+      style={{ maxHeight: total === 0 && !isStopDrag ? "auto" : "42vh" }}
     >
       <div className="flex items-center justify-between gap-2 px-3 pt-2.5 pb-1.5">
         <div className="flex min-w-0 items-center gap-2">
@@ -846,7 +846,11 @@ function UnassignedDock({
                   : `${total} uden rute`}
             </p>
             <p className="truncate text-[10px] text-muted-foreground">
-              Hold inde og træk op i en rute
+              {total === 0
+                ? "Nye aftaler dukker op her"
+                : isStopDrag
+                  ? "Slip her for at fjerne stoppet"
+                  : "Hold inde og træk op i en rute"}
             </p>
           </div>
         </div>
@@ -869,34 +873,28 @@ function UnassignedDock({
         </div>
       )}
 
-      <div
-        className={cn(
-          "overflow-x-auto overflow-y-hidden px-3 pb-3 pt-1",
-          // Vis et "drop her"-hint hvis en aftale slæbes (men ikke nyttigt — kun stops kan droppes her)
-        )}
-      >
-        {loading ? (
-          <div className="flex gap-2">
-            {[0, 1, 2].map((i) => (
-              <Skeleton key={i} className="h-24 w-44 shrink-0 rounded-2xl" />
-            ))}
-          </div>
-        ) : total === 0 ? (
-          <div className="flex items-center justify-center py-4 text-center text-xs text-muted-foreground">
-            Nye aftaler dukker op her, klar til at blive trukket ind i en rute.
-          </div>
-        ) : jobs.length === 0 ? (
-          <div className="py-6 text-center text-xs text-muted-foreground">
-            Ingen aftaler matcher søgningen.
-          </div>
-        ) : (
-          <div className="flex gap-2 pb-1">
-            {jobs.map((job) => (
-              <DraggableJobCard key={job.id} job={job} onAssign={onAssign} />
-            ))}
-          </div>
-        )}
-      </div>
+      {/* Skjul scroll-area helt når der ingen aftaler er — sparer plads */}
+      {(total > 0 || loading) && (
+        <div className="overflow-x-auto overflow-y-hidden px-3 pb-3 pt-1">
+          {loading ? (
+            <div className="flex gap-2">
+              {[0, 1, 2].map((i) => (
+                <Skeleton key={i} className="h-24 w-44 shrink-0 rounded-2xl" />
+              ))}
+            </div>
+          ) : jobs.length === 0 ? (
+            <div className="py-6 text-center text-xs text-muted-foreground">
+              Ingen aftaler matcher søgningen.
+            </div>
+          ) : (
+            <div className="flex gap-2 pb-1">
+              {jobs.map((job) => (
+                <DraggableJobCard key={job.id} job={job} onAssign={onAssign} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
