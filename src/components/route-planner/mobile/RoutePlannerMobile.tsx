@@ -18,11 +18,13 @@ import {
   CalendarClock,
   ChevronLeft,
   ChevronRight,
+  Clock,
   Inbox,
   Loader2,
   MapPin,
   Plus,
   Search,
+  Sparkles,
   GripVertical,
   Trash2,
 } from "lucide-react";
@@ -40,6 +42,13 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { createPortal } from "react-dom";
 
 import { AdminShell } from "@/components/admin/shared/AdminShell";
@@ -66,6 +75,7 @@ import {
   useCreateRoute,
   useReorderStops,
   useDeleteStop,
+  useOptimizeRoute,
   useUnassignedJobs,
   type Route,
   type RouteStop,
@@ -205,11 +215,23 @@ export default function RoutePlannerMobile() {
     const over = e.over.data.current as any;
     if (!over) return;
 
-    // Drop på rute
+    // Bestem target-rute + ønsket indsættelses-index
+    let targetRouteId: string | null = null;
+    let insertIndex: number | null = null;
     if (over.type === "route") {
-      const targetRouteId = over.routeId as string;
+      targetRouteId = over.routeId as string;
       const targetStops = stopsByRoute.get(targetRouteId) ?? [];
-      const nextSeq = targetStops.length;
+      insertIndex = targetStops.length; // tilføj i bunden
+    } else if (over.type === "stop") {
+      const overStop = over.stop as RouteStop;
+      targetRouteId = overStop.route_id;
+      const targetStops = stopsByRoute.get(targetRouteId) ?? [];
+      insertIndex = targetStops.findIndex((s) => s.id === overStop.id);
+      if (insertIndex < 0) insertIndex = targetStops.length;
+    }
+
+    if (targetRouteId && insertIndex !== null) {
+      const targetStops = stopsByRoute.get(targetRouteId) ?? [];
 
       if (active.kind === "job") {
         const job = active.job;
@@ -221,7 +243,7 @@ export default function RoutePlannerMobile() {
           await addStop.mutateAsync({
             route_id: targetRouteId,
             order_id: job.id,
-            sequence: nextSeq,
+            sequence: insertIndex,
             customer_name: job.customer_name,
             customer_phone: job.customer_phone,
             address: jobAddress(job),
@@ -246,11 +268,35 @@ export default function RoutePlannerMobile() {
       }
 
       if (active.kind === "stop") {
-        if (active.fromRouteId === targetRouteId) return;
+        // Same-route reorder
+        if (active.fromRouteId === targetRouteId) {
+          const fromIdx = targetStops.findIndex((s) => s.id === active.stop.id);
+          if (fromIdx === -1 || fromIdx === insertIndex) return;
+          const reordered = arrayMove(targetStops, fromIdx, insertIndex);
+          const updates = reordered.map((s, i) => ({ id: s.id, sequence: i }));
+          try {
+            await reorderStops.mutateAsync(updates);
+          } catch (err: any) {
+            toast.error("Kunne ikke flytte stop", { description: err?.message });
+          }
+          return;
+        }
+        // Cross-route move
         try {
-          await reorderStops.mutateAsync([
-            { id: active.stop.id, sequence: nextSeq, route_id: targetRouteId },
-          ]);
+          const fromStops = (stopsByRoute.get(active.fromRouteId) ?? []).filter(
+            (s) => s.id !== active.stop.id,
+          );
+          const inserted = [...targetStops];
+          inserted.splice(insertIndex, 0, { ...active.stop, route_id: targetRouteId } as RouteStop);
+          const updates = [
+            ...inserted.map((s, i) => ({
+              id: s.id,
+              sequence: i,
+              route_id: targetRouteId!,
+            })),
+            ...fromStops.map((s, i) => ({ id: s.id, sequence: i })),
+          ];
+          await reorderStops.mutateAsync(updates);
           toast.success("Stop flyttet");
         } catch (err: any) {
           toast.error("Kunne ikke flytte stop", { description: err?.message });
@@ -549,6 +595,9 @@ function DroppableRouteCard({
   });
   const done = stops.filter((s) => s.status === "completed").length;
   const totalMin = route.total_duration_minutes ?? 0;
+  const optimize = useOptimizeRoute();
+  const optimizing = optimize.isPending && optimize.variables === route.id;
+  const stopIds = stops.map((s) => s.id);
 
   return (
     <div
@@ -556,84 +605,112 @@ function DroppableRouteCard({
       className={cn(
         "overflow-hidden rounded-2xl border bg-card shadow-sm transition-all",
         isOver
-          ? "border-accent ring-2 ring-accent/30 shadow-md"
+          ? "border-accent ring-2 ring-accent/40 shadow-lg scale-[1.005]"
           : dragActive
-            ? "border-dashed border-foreground/30"
+            ? "border-dashed border-accent/40 bg-accent/[0.02]"
             : "border-border",
       )}
     >
+      {/* Top farve-stribe */}
+      <span
+        aria-hidden
+        className="block h-1 w-full"
+        style={{ backgroundColor: route.color }}
+      />
       {/* Header — tap for at åbne detalje-sheet */}
-      <button
-        type="button"
-        onClick={() => onOpenRoute(route)}
-        className="flex w-full items-stretch gap-3 px-3 pt-3 pb-2 text-left active:bg-secondary/40"
-      >
-        <span
-          className="w-1.5 shrink-0 rounded-full"
-          style={{ backgroundColor: route.color }}
-          aria-hidden
-        />
-        <div className="min-w-0 flex-1 py-0.5">
-          <p className="truncate text-[15px] font-semibold leading-tight text-foreground">
-            {route.name || "Rute uden navn"}
-          </p>
-          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-            <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-foreground">
-              <MapPin className="h-3 w-3" />
-              {stops.length} stop
-            </span>
-            {route.total_distance_km != null && route.total_distance_km > 0 && (
-              <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium tabular-nums text-foreground">
-                {Math.round(route.total_distance_km)} km
+      <div className="flex items-stretch gap-2 px-3 pt-2.5 pb-2">
+        <button
+          type="button"
+          onClick={() => onOpenRoute(route)}
+          className="flex min-w-0 flex-1 items-start gap-2.5 text-left active:opacity-80"
+        >
+          <span
+            className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[13px] font-bold text-white shadow-sm ring-2 ring-background"
+            style={{ backgroundColor: route.color }}
+          >
+            {(route.name || "R").charAt(0).toUpperCase()}
+          </span>
+          <div className="min-w-0 flex-1 py-0.5">
+            <p className="truncate text-[15px] font-semibold leading-tight text-foreground">
+              {route.name || "Rute uden navn"}
+            </p>
+            <div className="mt-1 flex flex-wrap items-center gap-1">
+              <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[10.5px] font-medium tabular-nums text-foreground">
+                <MapPin className="h-3 w-3" />
+                {done > 0 ? `${done}/${stops.length}` : stops.length}
               </span>
-            )}
-            {totalMin > 0 && (
-              <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium tabular-nums text-foreground">
-                {formatDur(totalMin)}
-              </span>
-            )}
-            {done > 0 && (
-              <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium tabular-nums text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
-                {done} udført
-              </span>
-            )}
+              {route.total_distance_km != null && route.total_distance_km > 0 && (
+                <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[10.5px] font-medium tabular-nums text-foreground">
+                  {Math.round(route.total_distance_km)} km
+                </span>
+              )}
+              {totalMin > 0 && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[10.5px] font-medium tabular-nums text-foreground">
+                  <Clock className="h-3 w-3" />
+                  {formatDur(totalMin)}
+                </span>
+              )}
+            </div>
           </div>
-        </div>
-        <ChevronRight className="h-5 w-5 shrink-0 self-center text-muted-foreground" />
-      </button>
+        </button>
+        {stops.length >= 2 && (
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            className="h-8 shrink-0 gap-1 self-start rounded-full px-2.5 text-[11px] font-semibold"
+            onClick={async () => {
+              try {
+                await optimize.mutateAsync(route.id);
+                toast.success("Rute optimeret");
+              } catch (err: any) {
+                toast.error("Optimering fejlede", { description: err?.message });
+              }
+            }}
+            disabled={optimizing}
+          >
+            {optimizing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+            Optimér
+          </Button>
+        )}
+      </div>
 
-      {/* Inline stop-liste */}
+      {/* Inline stop-liste — sorterbar inden for ruten */}
       <div className="border-t border-border/60 px-2 pb-2 pt-1.5">
         {stops.length === 0 ? (
           <div
             className={cn(
-              "flex items-center justify-center rounded-xl border-2 border-dashed py-5 text-[11px]",
+              "flex items-center justify-center rounded-xl border-2 border-dashed py-5 text-[11px] transition-colors",
               isOver
-                ? "border-accent/60 bg-accent/5 text-accent"
-                : "border-border text-muted-foreground",
+                ? "border-accent/70 bg-accent/10 font-semibold text-accent"
+                : dragActive
+                  ? "border-accent/40 text-accent/80"
+                  : "border-border text-muted-foreground",
             )}
           >
             {isOver ? "Slip for at tilføje" : "Træk en aftale hertil"}
           </div>
         ) : (
-          <ol className="space-y-1">
-            {stops.map((s, idx) => (
-              <DraggableStopRow
-                key={s.id}
-                stop={s}
-                index={idx + 1}
-                routeColor={route.color}
-                onOpenRoute={() => onOpenRoute(route)}
-              />
-            ))}
-          </ol>
+          <SortableContext items={stopIds} strategy={verticalListSortingStrategy}>
+            <ol className="space-y-1">
+              {stops.map((s, idx) => (
+                <SortableStopRow
+                  key={s.id}
+                  stop={s}
+                  index={idx + 1}
+                  routeColor={route.color}
+                  onOpenRoute={() => onOpenRoute(route)}
+                />
+              ))}
+            </ol>
+          </SortableContext>
         )}
       </div>
     </div>
   );
 }
 
-function DraggableStopRow({
+function SortableStopRow({
   stop,
   index,
   routeColor,
@@ -644,17 +721,24 @@ function DraggableStopRow({
   routeColor: string;
   onOpenRoute: () => void;
 }) {
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: `stop:${stop.id}`,
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: stop.id,
     data: { type: "stop", stop, fromRouteId: stop.route_id },
   });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
   const completed = stop.status === "completed";
+  const dur = (stop as any).duration_minutes as number | undefined;
   return (
     <li
       ref={setNodeRef}
+      style={style}
       className={cn(
-        "flex items-center gap-1.5 rounded-xl border border-border/70 bg-background/60 p-1.5 transition-opacity",
-        isDragging && "opacity-30",
+        "flex items-center gap-1.5 rounded-xl border border-border/70 bg-background/60 p-1.5",
+        isDragging && "z-10 opacity-30",
+        completed && "bg-emerald-50/40 dark:bg-emerald-500/5",
       )}
     >
       {/* Drag-handle — long-press for at trække */}
@@ -695,6 +779,12 @@ function DraggableStopRow({
           </span>
         )}
       </button>
+      {dur ? (
+        <span className="ml-1 inline-flex shrink-0 items-center gap-0.5 rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-muted-foreground">
+          <Clock className="h-2.5 w-2.5" />
+          {dur}m
+        </span>
+      ) : null}
     </li>
   );
 }
@@ -736,7 +826,7 @@ function UnassignedDock({
           ? "border-destructive bg-destructive/5"
           : "border-border",
       )}
-      style={{ maxHeight: "42vh" }}
+      style={{ maxHeight: total === 0 && !isStopDrag ? "auto" : "42vh" }}
     >
       <div className="flex items-center justify-between gap-2 px-3 pt-2.5 pb-1.5">
         <div className="flex min-w-0 items-center gap-2">
@@ -756,7 +846,11 @@ function UnassignedDock({
                   : `${total} uden rute`}
             </p>
             <p className="truncate text-[10px] text-muted-foreground">
-              Hold inde og træk op i en rute
+              {total === 0
+                ? "Nye aftaler dukker op her"
+                : isStopDrag
+                  ? "Slip her for at fjerne stoppet"
+                  : "Hold inde og træk op i en rute"}
             </p>
           </div>
         </div>
@@ -779,34 +873,28 @@ function UnassignedDock({
         </div>
       )}
 
-      <div
-        className={cn(
-          "overflow-x-auto overflow-y-hidden px-3 pb-3 pt-1",
-          // Vis et "drop her"-hint hvis en aftale slæbes (men ikke nyttigt — kun stops kan droppes her)
-        )}
-      >
-        {loading ? (
-          <div className="flex gap-2">
-            {[0, 1, 2].map((i) => (
-              <Skeleton key={i} className="h-24 w-44 shrink-0 rounded-2xl" />
-            ))}
-          </div>
-        ) : total === 0 ? (
-          <div className="flex items-center justify-center py-4 text-center text-xs text-muted-foreground">
-            Nye aftaler dukker op her, klar til at blive trukket ind i en rute.
-          </div>
-        ) : jobs.length === 0 ? (
-          <div className="py-6 text-center text-xs text-muted-foreground">
-            Ingen aftaler matcher søgningen.
-          </div>
-        ) : (
-          <div className="flex gap-2 pb-1">
-            {jobs.map((job) => (
-              <DraggableJobCard key={job.id} job={job} onAssign={onAssign} />
-            ))}
-          </div>
-        )}
-      </div>
+      {/* Skjul scroll-area helt når der ingen aftaler er — sparer plads */}
+      {(total > 0 || loading) && (
+        <div className="overflow-x-auto overflow-y-hidden px-3 pb-3 pt-1">
+          {loading ? (
+            <div className="flex gap-2">
+              {[0, 1, 2].map((i) => (
+                <Skeleton key={i} className="h-24 w-44 shrink-0 rounded-2xl" />
+              ))}
+            </div>
+          ) : jobs.length === 0 ? (
+            <div className="py-6 text-center text-xs text-muted-foreground">
+              Ingen aftaler matcher søgningen.
+            </div>
+          ) : (
+            <div className="flex gap-2 pb-1">
+              {jobs.map((job) => (
+                <DraggableJobCard key={job.id} job={job} onAssign={onAssign} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
