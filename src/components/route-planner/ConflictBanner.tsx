@@ -74,8 +74,10 @@ export const ConflictBanner = ({ capacityByDate, mismatchedRouteIds, rangeStart,
   return (
     <div
       className={cn(
-        "mx-2 mt-2 mb-0 shrink-0 rounded-lg border border-amber-300/80 bg-amber-50/90 px-3 py-2 text-amber-900 shadow-[0_1px_2px_hsl(var(--foreground)/0.04)]",
-        "dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100",
+        // Integreret strip — fylder hele kalenderens bredde og hænger
+        // sammen med toolbar/kalender (ingen flydende kort-margin).
+        "shrink-0 border-y border-amber-300/70 bg-amber-50/85 px-3 py-1.5 text-amber-900",
+        "dark:border-amber-500/25 dark:bg-amber-500/10 dark:text-amber-100",
       )}
       role="status"
     >
