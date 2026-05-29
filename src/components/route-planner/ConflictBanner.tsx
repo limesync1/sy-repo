@@ -8,11 +8,15 @@ import { cn } from "@/lib/utils";
 // over kapacitet før vi alarmerer — dels for at undgå falske alarmer ved
 // små afrundinger i RPC'en, dels fordi en arbejdsdag i praksis kan rumme
 // lidt buffer uden problemer.
-const OVERBOOK_PCT_THRESHOLD = 115;
+// Tolerance før en dag kategoriseres som overbooket. Vi tillader op til
+// 30 % over nominel kapacitet — i praksis svarer det til ca. 10½ timers
+// arbejde for en 8-timers dag, hvilket de fleste medarbejdere fint kan
+// nå en travl dag uden at "overbooking" er reelt et problem.
+const OVERBOOK_PCT_THRESHOLD = 130;
 // Kræv også at der faktisk er booket meningsfuldt arbejde — så en dag
 // med en lille kapacitet (fx 1 medarbejder med 2 timer) ikke straks
 // vises som "overbooked" når der lægges en enkelt aftale ind.
-const OVERBOOK_MIN_BOOKED_MIN = 360;
+const OVERBOOK_MIN_BOOKED_MIN = 480;
 
 /**
  * Vedvarende konflikt-banner øverst i rute-kalenderen.
