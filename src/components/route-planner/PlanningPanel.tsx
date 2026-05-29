@@ -73,7 +73,9 @@ export const PlanningPanel = ({
   // Samme tolerance som ConflictBanner — 15 % over kapacitet før vi
   // alarmerer, og kun dage med meningsfuldt booket arbejde (>6 timer).
   const OVERBOOK_FACTOR = 1.3;
-  const OVERBOOK_MIN_MIN = 480;
+  // Mindst 13 timers booket arbejde + kørsel før dagen flagges
+  // overbooket — undgår alarm på normale, lange dage.
+  const OVERBOOK_MIN_MIN = 780;
   const [open, setOpen] = useState(false);
   // Forklaringer er åbnet by-default — brugeren skal kunne se farve-
   // legenden uden et ekstra klik hver gang planlægningspanelet åbnes.
