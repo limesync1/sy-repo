@@ -1,10 +1,10 @@
 // Mobil ruteplanlægger — tap-baseret alternativ til desktop drag-and-drop.
-// Aktiveres under 768px (telefoner). Genbruger de samme data- og
-// mutations-hooks som desktop, men med en fingervenlig UI: dato-strip,
-// dagens ruter fylder skærmen, og en fast bund-knap åbner en bottom-sheet
-// med alle uplanlagte aftaler. Mønstret følger almindelige iOS/Android
-// "action bar + bottom sheet" konventioner i stedet for en peek-drawer
-// der konstant ændrer layoutet.
+// Aktiveres under 768px (telefoner). Layoutet er bygget op om en
+// segmenteret kontrol ("Dagens ruter" / "Uden rute") så begge views
+// altid kan tilgås med ét tap — uden skjulte bund-sheets eller peek-
+// drawere der gemmer aftalerne. "Ny rute" åbner en bekræftelses-dialog
+// hvor man vælger mindst én aftale, så vi aldrig opretter tomme ruter
+// bare ved at åbne/lukke modal.
 import { useMemo, useState } from "react";
 import {
   addDays,
@@ -18,6 +18,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Inbox,
+  Loader2,
   MapPin,
   Plus,
   Search,
@@ -27,13 +28,22 @@ import { AdminShell } from "@/components/admin/shared/AdminShell";
 import SEO from "@/components/SEO";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useMyBusiness } from "@/hooks/useDatabase";
 import { useEmployees } from "@/hooks/useEmployees";
 import {
+  useAddStop,
   useCalendarData,
   useCreateRoute,
   useUnassignedJobs,
@@ -48,6 +58,7 @@ import {
   effectiveJobDate,
   isJobPending,
   jobAddress,
+  linkAgreementToRoute,
   serviceSummaryForJob,
 } from "./mobile-helpers";
 import { MobileAssignSheet } from "./MobileAssignSheet";
@@ -74,10 +85,10 @@ export default function RoutePlannerMobile() {
   const [search, setSearch] = useState("");
   const [assignJob, setAssignJob] = useState<any | null>(null);
   const [openRoute, setOpenRoute] = useState<Route | null>(null);
-  const [creating, setCreating] = useState(false);
-  // Bottom-sheet for uplanlagte aftaler. Lukket som standard; en fast
-  // bund-knap viser antallet og åbner sheeten.
-  const [unassignedOpen, setUnassignedOpen] = useState(false);
+  // Segmenteret kontrol: hvilken liste vises lige nu?
+  const [tab, setTab] = useState<"routes" | "unassigned">("routes");
+  // "Ny rute"-dialog — opretter først rute når brugeren bekræfter.
+  const [createOpen, setCreateOpen] = useState(false);
 
   const { data: employees = [] } = useEmployees(businessId);
 
@@ -139,26 +150,6 @@ export default function RoutePlannerMobile() {
         j.zip_code?.toLowerCase().includes(q),
     );
   }, [unassigned, search]);
-
-  const handleCreateRoute = async () => {
-    if (!businessId || creating) return;
-    setCreating(true);
-    try {
-      const usedColors = dayRoutes.map((r) => r.color);
-      const created = await createRoute.mutateAsync({
-        business_id: businessId,
-        route_date: date,
-        name: null,
-        color: pickAvailableColor(usedColors),
-      });
-      toast.success("Ny rute oprettet");
-      setOpenRoute(created);
-    } catch (err: any) {
-      toast.error("Kunne ikke oprette rute", { description: err?.message });
-    } finally {
-      setCreating(false);
-    }
-  };
 
   const weekLabel = `Uge ${format(parseISO(date), "I", { locale: da })} · ${format(parseISO(date), "MMM yyyy", { locale: da })}`;
 
@@ -260,42 +251,94 @@ export default function RoutePlannerMobile() {
             </div>
           </div>
 
-          {/* Hovedindhold: dagens ruter — fylder pladsen mellem dato-strip og bund-knap */}
-          <div className="min-h-0 flex-1 overflow-y-auto px-3 pt-3 pb-24">
-            <RoutesTab
-              loading={loadingCalendar}
-              date={date}
-              routes={dayRoutes}
-              stopsByRoute={stopsByRoute}
-              onOpenRoute={setOpenRoute}
-              onCreate={handleCreateRoute}
-              creating={creating}
-            />
+          {/* Segmenteret kontrol — viser begge views med ét tap */}
+          <div className="shrink-0 px-3 pt-3">
+            <div className="grid grid-cols-2 gap-1 rounded-full border border-border bg-card p-1">
+              <button
+                type="button"
+                onClick={() => setTab("routes")}
+                className={cn(
+                  "flex items-center justify-center gap-1.5 rounded-full py-1.5 text-sm font-semibold transition-all",
+                  tab === "routes"
+                    ? "bg-foreground text-background shadow-sm"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                Dagens ruter
+                {dayRoutes.length > 0 && (
+                  <span className={cn(
+                    "rounded-full px-1.5 text-[10px] font-bold tabular-nums",
+                    tab === "routes" ? "bg-background/20 text-background" : "bg-secondary text-foreground",
+                  )}>
+                    {dayRoutes.length}
+                  </span>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setTab("unassigned")}
+                className={cn(
+                  "flex items-center justify-center gap-1.5 rounded-full py-1.5 text-sm font-semibold transition-all",
+                  tab === "unassigned"
+                    ? "bg-foreground text-background shadow-sm"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                Uden rute
+                {unassigned.length > 0 && (
+                  <span className={cn(
+                    "rounded-full px-1.5 text-[10px] font-bold tabular-nums",
+                    tab === "unassigned" ? "bg-background/20 text-background" : "bg-accent/15 text-accent",
+                  )}>
+                    {unassigned.length}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
 
-          {/* Fast bund-knap: åbner bottom-sheet med uplanlagte aftaler */}
-          <UnassignedBottomBar
-            total={unassigned.length}
-            loading={loadingUnassigned}
-            onOpen={() => setUnassignedOpen(true)}
-          />
+          {/* Hovedindhold */}
+          <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-6 pt-3">
+            {tab === "routes" ? (
+              <RoutesTab
+                loading={loadingCalendar}
+                date={date}
+                routes={dayRoutes}
+                stopsByRoute={stopsByRoute}
+                onOpenRoute={setOpenRoute}
+                onCreate={() => setCreateOpen(true)}
+                hasUnassigned={unassigned.length > 0}
+                onGoToUnassigned={() => setTab("unassigned")}
+              />
+            ) : (
+              <UnassignedTab
+                loading={loadingUnassigned}
+                search={search}
+                setSearch={setSearch}
+                jobs={filteredUnassigned}
+                total={unassigned.length}
+                onAssign={(job) => setAssignJob(job)}
+              />
+            )}
+          </div>
         </div>
       </AdminShell>
 
-      {/* Bottom-sheet med søgning + fuld liste */}
-      <UnassignedSheet
-        open={unassignedOpen}
-        onOpenChange={setUnassignedOpen}
-        loading={loadingUnassigned}
-        search={search}
-        setSearch={setSearch}
-        jobs={filteredUnassigned}
-        total={unassigned.length}
-        onAssign={(job) => {
-          setAssignJob(job);
-          setUnassignedOpen(false);
-        }}
-      />
+      {/* Ny-rute-dialog — kræver mindst én aftale */}
+      {businessId && (
+        <NewRouteDialog
+          open={createOpen}
+          onOpenChange={setCreateOpen}
+          businessId={businessId}
+          date={date}
+          usedColors={dayRoutes.map((r) => r.color)}
+          unassigned={unassigned as any[]}
+          onCreated={(r) => {
+            setCreateOpen(false);
+            setOpenRoute(r);
+          }}
+        />
+      )}
 
       {/* Sheets */}
       {assignJob && businessId && (
@@ -329,7 +372,8 @@ function RoutesTab({
   stopsByRoute,
   onOpenRoute,
   onCreate,
-  creating,
+  hasUnassigned,
+  onGoToUnassigned,
 }: {
   loading: boolean;
   date: string;
@@ -337,7 +381,8 @@ function RoutesTab({
   stopsByRoute: Map<string, RouteStop[]>;
   onOpenRoute: (r: Route) => void;
   onCreate: () => void;
-  creating: boolean;
+  hasUnassigned: boolean;
+  onGoToUnassigned: () => void;
 }) {
   if (loading) {
     return (
@@ -361,7 +406,7 @@ function RoutesTab({
             {format(parseISO(date), "EEEE d. MMM", { locale: da })}
           </p>
         </div>
-        <Button onClick={onCreate} disabled={creating} size="sm" className="gap-1.5 rounded-full">
+        <Button onClick={onCreate} size="sm" className="gap-1.5 rounded-full">
           <Plus className="h-4 w-4" />
           Ny rute
         </Button>
@@ -374,9 +419,21 @@ function RoutesTab({
           </div>
           <p className="text-sm font-semibold text-foreground">Ingen ruter denne dag</p>
           <p className="mt-1 max-w-[18rem] text-xs leading-snug text-muted-foreground">
-            Tryk på "Ny rute" for at oprette dagens første rute. Har du
-            aftaler uden rute dukker de op som en knap nederst.
+            Tryk på "Ny rute" for at oprette dagens første rute — vælg
+            samtidig hvilke aftaler den skal indeholde.
           </p>
+          {hasUnassigned && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onGoToUnassigned}
+              className="mt-4 rounded-full"
+            >
+              <Inbox className="h-4 w-4" />
+              Se aftaler uden rute
+            </Button>
+          )}
         </div>
       ) : (
         routes.map((r) => {
@@ -430,51 +487,11 @@ function RoutesTab({
   );
 }
 
-/* ──────────────────────── Uden-rute bund-bar ────────────────────────
- * Fast knap nederst på skærmen der viser antallet af uplanlagte aftaler
- * og åbner en bottom-sheet med fuld liste + søgning. Et roligt, kendt
- * mobilmønster — ingen peek/expand-animationer der flytter layoutet.
+/* ──────────────────────── Uden-rute fane (inline) ────────────────────────
+ * Altid-synlig liste via segmenteret kontrol. Erstatter den tidligere
+ * skjulte bund-sheet så aftalerne aldrig "forsvinder".
  */
-function UnassignedBottomBar({
-  total,
-  loading,
-  onOpen,
-}: {
-  total: number;
-  loading: boolean;
-  onOpen: () => void;
-}) {
-  const empty = !loading && total === 0;
-  // Skjul knappen helt når der ikke er noget — bottom-nav under viser stadig
-  // "Aftaler" hvis brugeren skal håndtere ordrer. Det fjerner det dobbelte
-  // tunge sort-på-sort layout når alt er planlagt.
-  if (empty) return null;
-  return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 flex justify-center px-3 pb-3 pt-6 bg-gradient-to-t from-background via-background/70 to-transparent">
-      <button
-        type="button"
-        onClick={onOpen}
-        aria-label={`Åbn ${total} aftaler uden rute`}
-        className="pointer-events-auto inline-flex items-center gap-2.5 rounded-full border border-border bg-card pl-2 pr-4 py-1.5 text-left shadow-[0_12px_28px_-12px_hsl(var(--foreground)/0.35)] transition-all hover:shadow-[0_14px_32px_-12px_hsl(var(--foreground)/0.45)] active:scale-[0.98]"
-      >
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
-          <Inbox className="h-4 w-4" />
-        </span>
-        <span className="text-sm font-semibold text-foreground">
-          {loading ? "Henter…" : `${total} uden rute`}
-        </span>
-        <span className="text-xs text-muted-foreground">
-          Tildel
-        </span>
-      </button>
-    </div>
-  );
-}
-
-/* ──────────────────────── Uden-rute bottom-sheet ──────────────────────── */
-function UnassignedSheet({
-  open,
-  onOpenChange,
+function UnassignedTab({
   loading,
   search,
   setSearch,
@@ -482,8 +499,6 @@ function UnassignedSheet({
   total,
   onAssign,
 }: {
-  open: boolean;
-  onOpenChange: (o: boolean) => void;
   loading: boolean;
   search: string;
   setSearch: (v: string) => void;
@@ -492,72 +507,270 @@ function UnassignedSheet({
   onAssign: (job: any) => void;
 }) {
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="bottom"
-        className="flex h-[85dvh] flex-col gap-0 p-0"
-      >
-        <SheetHeader className="space-y-2 border-b border-border/60 px-4 pb-3 pt-5 text-left">
-          <div className="mx-auto -mt-2 mb-1 h-1 w-10 rounded-full bg-muted-foreground/30" aria-hidden />
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-secondary">
-              <Inbox className="h-4 w-4 text-foreground" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <SheetTitle className="text-base font-semibold leading-tight">
-                Aftaler uden rute
-              </SheetTitle>
-              <p className="text-xs text-muted-foreground">
-                {total === 0
-                  ? "Alle aftaler er planlagt"
-                  : `${total} ${total === 1 ? "aftale" : "aftaler"} mangler en rute`}
-              </p>
-            </div>
-          </div>
-          {total > 0 && (
-            <div className="relative pt-1">
-              <Search className="pointer-events-none absolute left-2.5 top-1/2 mt-0.5 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Søg kunde eller adresse"
-                className="h-10 rounded-full pl-8"
-              />
-            </div>
-          )}
-        </SheetHeader>
+    <div className="space-y-3">
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Aftaler uden rute
+        </p>
+        <p className="mt-0.5 text-base font-semibold text-foreground">
+          {total === 0
+            ? "Alt er planlagt"
+            : `${total} ${total === 1 ? "aftale" : "aftaler"} mangler en rute`}
+        </p>
+      </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-3">
-          {loading ? (
-            <div className="space-y-2">
-              {[0, 1, 2].map((i) => (
-                <Skeleton key={i} className="h-24 w-full rounded-2xl" />
-              ))}
-            </div>
-          ) : total === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary">
-                <Inbox className="h-7 w-7 text-muted-foreground" />
-              </div>
-              <p className="text-sm font-semibold text-foreground">Alle aftaler er planlagt</p>
-              <p className="mt-1 max-w-[18rem] text-xs text-muted-foreground">
-                Når nye aftaler kommer ind dukker de op her, klar til at blive tildelt en rute.
-              </p>
-            </div>
-          ) : jobs.length === 0 ? (
-            <div className="py-12 text-center text-sm text-muted-foreground">
-              Ingen aftaler matcher søgningen.
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {jobs.map((job) => (
-                <UnassignedCard key={job.id} job={job} onAssign={onAssign} />
-              ))}
-            </div>
-          )}
+      {total > 0 && (
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Søg kunde eller adresse"
+            className="h-10 rounded-full pl-8"
+          />
         </div>
-      </SheetContent>
-    </Sheet>
+      )}
+
+      {loading ? (
+        <div className="space-y-2">
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} className="h-24 w-full rounded-2xl" />
+          ))}
+        </div>
+      ) : total === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/40 py-14 text-center">
+          <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary">
+            <Inbox className="h-7 w-7 text-muted-foreground" />
+          </div>
+          <p className="text-sm font-semibold text-foreground">Alle aftaler er planlagt</p>
+          <p className="mt-1 max-w-[18rem] text-xs text-muted-foreground">
+            Når nye aftaler kommer ind dukker de op her, klar til at blive tildelt en rute.
+          </p>
+        </div>
+      ) : jobs.length === 0 ? (
+        <div className="py-12 text-center text-sm text-muted-foreground">
+          Ingen aftaler matcher søgningen.
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {jobs.map((job) => (
+            <UnassignedCard key={job.id} job={job} onAssign={onAssign} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ──────────────────────── Ny-rute dialog ────────────────────────
+ * Spørger om navn og hvilke aftaler ruten skal indeholde — opretter
+ * først rute (og tilføjer stops) når brugeren bekræfter. Lukker man
+ * dialogen uden at gemme, sker der intet.
+ */
+function NewRouteDialog({
+  open,
+  onOpenChange,
+  businessId,
+  date,
+  usedColors,
+  unassigned,
+  onCreated,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  businessId: string;
+  date: string;
+  usedColors: string[];
+  unassigned: any[];
+  onCreated: (r: Route) => void;
+}) {
+  const [name, setName] = useState("");
+  const [selected, setSelected] = useState<string[]>([]);
+  const [jobSearch, setJobSearch] = useState("");
+  const createRoute = useCreateRoute();
+  const addStop = useAddStop();
+  const [submitting, setSubmitting] = useState(false);
+
+  // Nulstil felter når dialogen åbner
+  const reset = () => {
+    setName("");
+    setSelected([]);
+    setJobSearch("");
+  };
+
+  const eligible = useMemo(
+    () => unassigned.filter((j) => j.status !== "pending"),
+    [unassigned],
+  );
+  const filtered = useMemo(() => {
+    const q = jobSearch.trim().toLowerCase();
+    if (!q) return eligible;
+    return eligible.filter(
+      (j) =>
+        j.customer_name?.toLowerCase().includes(q) ||
+        j.address?.toLowerCase().includes(q) ||
+        j.city?.toLowerCase().includes(q),
+    );
+  }, [eligible, jobSearch]);
+
+  const handleSubmit = async () => {
+    if (submitting || selected.length === 0) return;
+    setSubmitting(true);
+    try {
+      const created = await createRoute.mutateAsync({
+        business_id: businessId,
+        route_date: date,
+        name: name.trim() || null,
+        color: pickAvailableColor(usedColors),
+      });
+      // Tilføj valgte aftaler som stops
+      for (let i = 0; i < selected.length; i++) {
+        const job = eligible.find((j) => j.id === selected[i]);
+        if (!job) continue;
+        try {
+          await addStop.mutateAsync({
+            route_id: created.id,
+            order_id: job.id,
+            sequence: i,
+            customer_name: job.customer_name,
+            customer_phone: job.customer_phone,
+            address: jobAddress(job),
+            latitude: job.latitude,
+            longitude: job.longitude,
+            service_summary: serviceSummaryForJob(job),
+            duration_minutes: Number(job.estimated_duration_minutes) || 30,
+            time_window_start: job.preferred_time_start || null,
+            time_window_end: job.preferred_time_end || null,
+          });
+          void linkAgreementToRoute(job.id, created.id);
+        } catch (err) {
+          console.warn("Kunne ikke tilføje aftale", err);
+        }
+      }
+      toast.success(
+        `Ny rute oprettet med ${selected.length} ${selected.length === 1 ? "aftale" : "aftaler"}`,
+      );
+      reset();
+      onCreated(created);
+    } catch (err: any) {
+      toast.error("Kunne ikke oprette rute", { description: err?.message });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        if (!o) reset();
+        onOpenChange(o);
+      }}
+    >
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Ny rute</DialogTitle>
+          <DialogDescription>
+            {format(parseISO(date), "EEEE d. MMM yyyy", { locale: da })} — vælg
+            mindst én aftale.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-3">
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+              Navn (valgfrit)
+            </label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Fx 'Nord' eller 'Tirsdag'"
+              className="h-9"
+            />
+          </div>
+
+          <div>
+            <div className="mb-1 flex items-center justify-between">
+              <label className="text-xs font-semibold text-muted-foreground">
+                Aftaler ({selected.length} valgt)
+              </label>
+            </div>
+            {eligible.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-border bg-card/40 p-4 text-center text-xs text-muted-foreground">
+                Ingen aftaler uden rute. Opret en bestilling først.
+              </div>
+            ) : (
+              <>
+                <div className="relative mb-2">
+                  <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={jobSearch}
+                    onChange={(e) => setJobSearch(e.target.value)}
+                    placeholder="Søg…"
+                    className="h-8 pl-7 text-xs"
+                  />
+                </div>
+                <div className="max-h-56 divide-y overflow-y-auto rounded-lg border border-border bg-background">
+                  {filtered.slice(0, 50).map((j: any) => {
+                    const checked = selected.includes(j.id);
+                    return (
+                      <label
+                        key={j.id}
+                        className={cn(
+                          "flex cursor-pointer items-start gap-2 p-2 text-xs hover:bg-secondary/50",
+                          checked && "bg-accent/5",
+                        )}
+                      >
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(v) =>
+                            setSelected((prev) =>
+                              v ? [...prev, j.id] : prev.filter((x) => x !== j.id),
+                            )
+                          }
+                          className="mt-0.5"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-medium text-foreground">
+                            {j.customer_name || "Ukendt kunde"}
+                          </p>
+                          <p className="truncate text-[11px] text-muted-foreground">
+                            {jobAddress(j)}
+                          </p>
+                        </div>
+                      </label>
+                    );
+                  })}
+                  {filtered.length === 0 && (
+                    <div className="p-3 text-center text-xs text-muted-foreground">
+                      Ingen aftaler matcher.
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        <DialogFooter className="gap-2 sm:gap-2">
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={submitting}
+          >
+            Annullér
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={submitting || selected.length === 0}
+          >
+            {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+            Opret rute
+            {selected.length > 0 && ` med ${selected.length}`}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
