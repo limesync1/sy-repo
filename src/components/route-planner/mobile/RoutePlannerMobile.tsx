@@ -460,16 +460,19 @@ export default function RoutePlannerMobile() {
   );
 }
 
-/* ─────────────────────────── Ruter-fane ─────────────────────────── */
-function RoutesTab({
+/* ─────────────────────────── Ruter-pane (top) ───────────────────────────
+ * Viser dagens ruter som ekspanderede kort med stop-liste indeni.
+ * Hver rute er en drop-zone (træk en aftale eller stop hertil).
+ * Hver stop-række er en drag-handle (long-press for at flytte).
+ */
+function RoutesPane({
   loading,
   date,
   routes,
   stopsByRoute,
   onOpenRoute,
   onCreate,
-  hasUnassigned,
-  onGoToUnassigned,
+  dragActive,
 }: {
   loading: boolean;
   date: string;
@@ -477,23 +480,11 @@ function RoutesTab({
   stopsByRoute: Map<string, RouteStop[]>;
   onOpenRoute: (r: Route) => void;
   onCreate: () => void;
-  hasUnassigned: boolean;
-  onGoToUnassigned: () => void;
+  dragActive: boolean;
 }) {
-  if (loading) {
-    return (
-      <div className="space-y-2.5">
-        {[0, 1, 2].map((i) => (
-          <Skeleton key={i} className="h-24 w-full rounded-2xl" />
-        ))}
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-2.5">
-      {/* Dagsoverskrift */}
-      <div className="flex items-center justify-between pb-1">
+    <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-3 pt-3">
+      <div className="mb-2.5 flex items-center justify-between">
         <div className="min-w-0">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             Dagens ruter
@@ -508,92 +499,219 @@ function RoutesTab({
         </Button>
       </div>
 
-      {routes.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/40 py-14 text-center">
+      {loading ? (
+        <div className="space-y-2.5">
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} className="h-28 w-full rounded-2xl" />
+          ))}
+        </div>
+      ) : routes.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/40 py-12 text-center">
           <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary">
             <CalendarClock className="h-7 w-7 text-muted-foreground" />
           </div>
           <p className="text-sm font-semibold text-foreground">Ingen ruter denne dag</p>
           <p className="mt-1 max-w-[18rem] text-xs leading-snug text-muted-foreground">
-            Tryk på "Ny rute" for at oprette dagens første rute — vælg
-            samtidig hvilke aftaler den skal indeholde.
+            Tryk på "Ny rute" — eller hold en aftale i bunden inde og træk den herop.
           </p>
-          {hasUnassigned && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onGoToUnassigned}
-              className="mt-4 rounded-full"
-            >
-              <Inbox className="h-4 w-4" />
-              Se aftaler uden rute
-            </Button>
-          )}
         </div>
       ) : (
-        routes.map((r) => {
-          const stops = stopsByRoute.get(r.id) ?? [];
-          const done = stops.filter((s) => s.status === "completed").length;
-          const totalMin = r.total_duration_minutes ?? 0;
-          return (
-            <button
+        <div className="space-y-2.5">
+          {routes.map((r) => (
+            <DroppableRouteCard
               key={r.id}
-              type="button"
-              onClick={() => onOpenRoute(r)}
-              className="group flex w-full items-stretch gap-3 overflow-hidden rounded-2xl border border-border bg-card p-3 text-left shadow-sm transition-all hover:border-foreground/20 hover:shadow-md active:scale-[0.99]"
-            >
-              <span
-                className="w-1.5 shrink-0 rounded-full"
-                style={{ backgroundColor: r.color }}
-                aria-hidden
-              />
-              <div className="min-w-0 flex-1 py-0.5">
-                <p className="truncate text-[15px] font-semibold leading-tight text-foreground">
-                  {r.name || "Rute uden navn"}
-                </p>
-                <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-foreground">
-                    <MapPin className="h-3 w-3" />
-                    {stops.length} stop
-                  </span>
-                  {r.total_distance_km != null && r.total_distance_km > 0 && (
-                    <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium tabular-nums text-foreground">
-                      {Math.round(r.total_distance_km)} km
-                    </span>
-                  )}
-                  {totalMin > 0 && (
-                    <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium tabular-nums text-foreground">
-                      {formatDur(totalMin)}
-                    </span>
-                  )}
-                  {done > 0 && (
-                    <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium tabular-nums text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
-                      {done} udført
-                    </span>
-                  )}
-                </div>
-              </div>
-              <ChevronRight className="h-5 w-5 shrink-0 self-center text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-            </button>
-          );
-        })
+              route={r}
+              stops={stopsByRoute.get(r.id) ?? []}
+              onOpenRoute={onOpenRoute}
+              dragActive={dragActive}
+            />
+          ))}
+        </div>
       )}
     </div>
   );
 }
 
-/* ──────────────────────── Uden-rute fane (inline) ────────────────────────
- * Altid-synlig liste via segmenteret kontrol. Erstatter den tidligere
- * skjulte bund-sheet så aftalerne aldrig "forsvinder".
+function DroppableRouteCard({
+  route,
+  stops,
+  onOpenRoute,
+  dragActive,
+}: {
+  route: Route;
+  stops: RouteStop[];
+  onOpenRoute: (r: Route) => void;
+  dragActive: boolean;
+}) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `route:${route.id}`,
+    data: { type: "route", routeId: route.id },
+  });
+  const done = stops.filter((s) => s.status === "completed").length;
+  const totalMin = route.total_duration_minutes ?? 0;
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={cn(
+        "overflow-hidden rounded-2xl border bg-card shadow-sm transition-all",
+        isOver
+          ? "border-accent ring-2 ring-accent/30 shadow-md"
+          : dragActive
+            ? "border-dashed border-foreground/30"
+            : "border-border",
+      )}
+    >
+      {/* Header — tap for at åbne detalje-sheet */}
+      <button
+        type="button"
+        onClick={() => onOpenRoute(route)}
+        className="flex w-full items-stretch gap-3 px-3 pt-3 pb-2 text-left active:bg-secondary/40"
+      >
+        <span
+          className="w-1.5 shrink-0 rounded-full"
+          style={{ backgroundColor: route.color }}
+          aria-hidden
+        />
+        <div className="min-w-0 flex-1 py-0.5">
+          <p className="truncate text-[15px] font-semibold leading-tight text-foreground">
+            {route.name || "Rute uden navn"}
+          </p>
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+            <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-foreground">
+              <MapPin className="h-3 w-3" />
+              {stops.length} stop
+            </span>
+            {route.total_distance_km != null && route.total_distance_km > 0 && (
+              <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium tabular-nums text-foreground">
+                {Math.round(route.total_distance_km)} km
+              </span>
+            )}
+            {totalMin > 0 && (
+              <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium tabular-nums text-foreground">
+                {formatDur(totalMin)}
+              </span>
+            )}
+            {done > 0 && (
+              <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium tabular-nums text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
+                {done} udført
+              </span>
+            )}
+          </div>
+        </div>
+        <ChevronRight className="h-5 w-5 shrink-0 self-center text-muted-foreground" />
+      </button>
+
+      {/* Inline stop-liste */}
+      <div className="border-t border-border/60 px-2 pb-2 pt-1.5">
+        {stops.length === 0 ? (
+          <div
+            className={cn(
+              "flex items-center justify-center rounded-xl border-2 border-dashed py-5 text-[11px]",
+              isOver
+                ? "border-accent/60 bg-accent/5 text-accent"
+                : "border-border text-muted-foreground",
+            )}
+          >
+            {isOver ? "Slip for at tilføje" : "Træk en aftale hertil"}
+          </div>
+        ) : (
+          <ol className="space-y-1">
+            {stops.map((s, idx) => (
+              <DraggableStopRow
+                key={s.id}
+                stop={s}
+                index={idx + 1}
+                routeColor={route.color}
+                onOpenRoute={() => onOpenRoute(route)}
+              />
+            ))}
+          </ol>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DraggableStopRow({
+  stop,
+  index,
+  routeColor,
+  onOpenRoute,
+}: {
+  stop: RouteStop;
+  index: number;
+  routeColor: string;
+  onOpenRoute: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `stop:${stop.id}`,
+    data: { type: "stop", stop, fromRouteId: stop.route_id },
+  });
+  const completed = stop.status === "completed";
+  return (
+    <li
+      ref={setNodeRef}
+      className={cn(
+        "flex items-center gap-1.5 rounded-xl border border-border/70 bg-background/60 p-1.5 transition-opacity",
+        isDragging && "opacity-30",
+      )}
+    >
+      {/* Drag-handle — long-press for at trække */}
+      <button
+        type="button"
+        {...listeners}
+        {...attributes}
+        aria-label="Træk stop"
+        className="flex h-9 w-7 shrink-0 touch-none items-center justify-center rounded-md text-muted-foreground active:bg-secondary"
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <span
+        className={cn(
+          "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold",
+          completed ? "bg-emerald-600 text-white" : "text-white",
+        )}
+        style={!completed ? { backgroundColor: routeColor } : undefined}
+      >
+        {index}
+      </span>
+      <button
+        type="button"
+        onClick={onOpenRoute}
+        className="flex min-w-0 flex-1 flex-col items-start py-0.5 text-left"
+      >
+        <span
+          className={cn(
+            "truncate text-[13px] font-medium leading-tight",
+            completed ? "text-muted-foreground line-through" : "text-foreground",
+          )}
+        >
+          {stop.customer_name || "Stop"}
+        </span>
+        {(stop.address || stop.full_address) && (
+          <span className="truncate text-[11px] leading-tight text-muted-foreground">
+            {stop.address || stop.full_address}
+          </span>
+        )}
+      </button>
+    </li>
+  );
+}
+
+/* ─────────────────────── Uden-rute dock (bund) ───────────────────────
+ * Altid synlig under ruterne. Drop et stop hertil for at fjerne det
+ * fra ruten. Træk en aftale herfra op til en rute for at tildele.
  */
-function UnassignedTab({
+function UnassignedDock({
   loading,
   search,
   setSearch,
   jobs,
   total,
   onAssign,
+  dragActive,
+  isStopDrag,
 }: {
   loading: boolean;
   search: string;
@@ -601,59 +719,174 @@ function UnassignedTab({
   jobs: any[];
   total: number;
   onAssign: (job: any) => void;
+  dragActive: boolean;
+  isStopDrag: boolean;
 }) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: "unassigned-dock",
+    data: { type: "unassigned" },
+  });
+
   return (
-    <div className="space-y-3">
-      <div>
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-          Aftaler uden rute
-        </p>
-        <p className="mt-0.5 text-base font-semibold text-foreground">
-          {total === 0
-            ? "Alt er planlagt"
-            : `${total} ${total === 1 ? "aftale" : "aftaler"} mangler en rute`}
-        </p>
+    <div
+      ref={setNodeRef}
+      className={cn(
+        "shrink-0 border-t bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 transition-colors",
+        isStopDrag && isOver
+          ? "border-destructive bg-destructive/5"
+          : "border-border",
+      )}
+      style={{ maxHeight: "42vh" }}
+    >
+      <div className="flex items-center justify-between gap-2 px-3 pt-2.5 pb-1.5">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary">
+            {isStopDrag && isOver ? (
+              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+            ) : (
+              <Inbox className="h-3.5 w-3.5 text-foreground" />
+            )}
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-[13px] font-semibold text-foreground">
+              {isStopDrag && isOver
+                ? "Slip for at fjerne fra rute"
+                : total === 0
+                  ? "Alle aftaler er planlagt"
+                  : `${total} uden rute`}
+            </p>
+            <p className="truncate text-[10px] text-muted-foreground">
+              Hold inde og træk op i en rute
+            </p>
+          </div>
+        </div>
+        {total > 0 && (
+          <Badge variant="secondary" className="shrink-0 rounded-full px-2 tabular-nums">
+            {total}
+          </Badge>
+        )}
       </div>
 
       {total > 0 && (
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <div className="relative px-3 pb-2">
+          <Search className="pointer-events-none absolute left-5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Søg kunde eller adresse"
-            className="h-10 rounded-full pl-8"
+            className="h-8 rounded-full pl-7 text-xs"
           />
         </div>
       )}
 
-      {loading ? (
-        <div className="space-y-2">
-          {[0, 1, 2].map((i) => (
-            <Skeleton key={i} className="h-24 w-full rounded-2xl" />
-          ))}
-        </div>
-      ) : total === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/40 py-14 text-center">
-          <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary">
-            <Inbox className="h-7 w-7 text-muted-foreground" />
+      <div
+        className={cn(
+          "overflow-x-auto overflow-y-hidden px-3 pb-3 pt-1",
+          // Vis et "drop her"-hint hvis en aftale slæbes (men ikke nyttigt — kun stops kan droppes her)
+        )}
+      >
+        {loading ? (
+          <div className="flex gap-2">
+            {[0, 1, 2].map((i) => (
+              <Skeleton key={i} className="h-24 w-44 shrink-0 rounded-2xl" />
+            ))}
           </div>
-          <p className="text-sm font-semibold text-foreground">Alle aftaler er planlagt</p>
-          <p className="mt-1 max-w-[18rem] text-xs text-muted-foreground">
-            Når nye aftaler kommer ind dukker de op her, klar til at blive tildelt en rute.
+        ) : total === 0 ? (
+          <div className="flex items-center justify-center py-4 text-center text-xs text-muted-foreground">
+            Nye aftaler dukker op her, klar til at blive trukket ind i en rute.
+          </div>
+        ) : jobs.length === 0 ? (
+          <div className="py-6 text-center text-xs text-muted-foreground">
+            Ingen aftaler matcher søgningen.
+          </div>
+        ) : (
+          <div className="flex gap-2 pb-1">
+            {jobs.map((job) => (
+              <DraggableJobCard key={job.id} job={job} onAssign={onAssign} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DraggableJobCard({ job, onAssign }: { job: any; onAssign: (job: any) => void }) {
+  const pending = isJobPending(job);
+  const wishDate = effectiveJobDate(job);
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `job:${job.id}`,
+    data: { type: "job", job },
+    disabled: pending,
+  });
+  return (
+    <div
+      ref={setNodeRef}
+      className={cn(
+        "flex w-52 shrink-0 flex-col rounded-2xl border border-border bg-background p-2.5 shadow-sm transition-opacity",
+        isDragging && "opacity-30",
+        pending && "opacity-90",
+      )}
+    >
+      <div className="flex items-start gap-1.5">
+        {!pending && (
+          <button
+            type="button"
+            {...listeners}
+            {...attributes}
+            aria-label="Træk aftale"
+            className="-ml-1 flex h-7 w-5 shrink-0 touch-none items-center justify-center text-muted-foreground active:text-foreground"
+          >
+            <GripVertical className="h-4 w-4" />
+          </button>
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[12.5px] font-semibold text-foreground">
+            {job.customer_name || "Ukendt kunde"}
+          </p>
+          <p className="truncate text-[10.5px] text-muted-foreground">
+            {jobAddress(job)}
           </p>
         </div>
-      ) : jobs.length === 0 ? (
-        <div className="py-12 text-center text-sm text-muted-foreground">
-          Ingen aftaler matcher søgningen.
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {jobs.map((job) => (
-            <UnassignedCard key={job.id} job={job} onAssign={onAssign} />
-          ))}
-        </div>
+      </div>
+      <p className="mt-1 line-clamp-2 text-[10.5px] leading-snug text-muted-foreground">
+        {serviceSummaryForJob(job)}
+      </p>
+      {wishDate && (
+        <span className="mt-1.5 inline-flex w-fit items-center rounded-full bg-secondary px-1.5 py-0.5 text-[9.5px] font-medium tabular-nums text-foreground">
+          Ønsket {format(parseISO(wishDate), "d. MMM", { locale: da })}
+        </span>
       )}
+      {pending ? (
+        <span className="mt-1.5 inline-flex w-fit items-center rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-800 dark:bg-amber-500/15 dark:text-amber-200">
+          Afventer kunde
+        </span>
+      ) : (
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="mt-2 h-7 rounded-full text-[11px]"
+          onClick={() => onAssign(job)}
+        >
+          Vælg rute
+        </Button>
+      )}
+    </div>
+  );
+}
+
+/* DragOverlay-indhold — flyder under fingeren */
+function FloatingChip({ title, subtitle }: { title: string; subtitle?: string }) {
+  return (
+    <div className="pointer-events-none flex w-56 items-center gap-2 rounded-2xl border border-accent bg-card p-2.5 shadow-2xl ring-2 ring-accent/40">
+      <GripVertical className="h-4 w-4 shrink-0 text-accent" />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[13px] font-semibold text-foreground">{title}</p>
+        {subtitle && (
+          <p className="truncate text-[10.5px] text-muted-foreground">{subtitle}</p>
+        )}
+      </div>
     </div>
   );
 }
