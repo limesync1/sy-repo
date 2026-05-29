@@ -6,7 +6,7 @@
 // i ruter, flytte stop mellem ruter eller trække stop tilbage til
 // "Uden rute" for at fjerne. "Ny rute" åbner en bekræftelses-dialog så
 // der aldrig oprettes tomme ruter.
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   addDays,
   format,
@@ -27,6 +27,10 @@ import {
   Sparkles,
   GripVertical,
   Trash2,
+  CheckCircle2,
+  CheckSquare,
+  X,
+  RefreshCw,
 } from "lucide-react";
 import {
   DndContext,
@@ -50,6 +54,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { createPortal } from "react-dom";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { AdminShell } from "@/components/admin/shared/AdminShell";
 import SEO from "@/components/SEO";
@@ -83,6 +88,9 @@ import {
 import ThemeToggle, { usePlannerThemeEffect } from "@/components/route-planner/ThemeToggle";
 import { pickAvailableColor } from "@/components/route-planner/RouteEditSheet";
 import { toast } from "sonner";
+import { usePersistentState } from "@/hooks/usePersistentState";
+import { startDragAutoScroll, stopDragAutoScroll } from "@/components/route-planner/lib/drag-auto-scroll";
+import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 
 import {
   effectiveJobDate,
@@ -111,18 +119,41 @@ export default function RoutePlannerMobile() {
   const { data: business, isLoading: loadingBusiness } = useMyBusiness();
   const businessId = business?.id;
 
-  const [date, setDate] = useState<string>(todayStr());
+  // Persistér valgte dato på tværs af sessioner, men nulstil til i dag hvis
+  // gemt dato er ældre end "i går" (man vil sjældent fortsætte i fortiden).
+  const [date, setDate] = usePersistentState<string>(
+    "route-planner-mobile:date",
+    todayStr(),
+  );
+  useEffect(() => {
+    try {
+      const today = parseISO(todayStr());
+      const cur = parseISO(date);
+      if (cur < addDays(today, -1)) setDate(todayStr());
+    } catch { /* ignore */ }
+    // kun ved første mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [search, setSearch] = useState("");
   const [assignJob, setAssignJob] = useState<any | null>(null);
   const [openRoute, setOpenRoute] = useState<Route | null>(null);
   // "Ny rute"-dialog — opretter først rute når brugeren bekræfter.
   const [createOpen, setCreateOpen] = useState(false);
+  // Multi-select i dock — tap "Vælg flere" → checkboxes → bulk-tildel
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedJobs, setSelectedJobs] = useState<Set<string>>(new Set());
+  const [bulkAssignOpen, setBulkAssignOpen] = useState(false);
   // Aktiv drag — bruges til DragOverlay og til at vise drop-zoner.
   const [drag, setDrag] = useState<
     | { kind: "job"; job: any }
     | { kind: "stop"; stop: RouteStop; fromRouteId: string }
     | null
   >(null);
+  // Tablet (≥768 men <1024) → vis ruter + dock side om side.
+  const isTablet = !useIsBelowBreakpoint(640);
+  // Peger-position til auto-scroll under drag.
+  const pointerRef = useRef<{ x: number; y: number } | null>(null);
+  const qc = useQueryClient();
 
   const { data: employees = [] } = useEmployees(businessId);
 
@@ -206,11 +237,14 @@ export default function RoutePlannerMobile() {
     if (typeof navigator !== "undefined" && "vibrate" in navigator) {
       try { (navigator as any).vibrate?.(15); } catch {}
     }
+    // Start auto-scroll: følg pointer og scroll containere når man trækker nær kanten.
+    startDragAutoScroll(() => pointerRef.current);
   };
 
   const handleDragEnd = async (e: DragEndEvent) => {
     const active = drag;
     setDrag(null);
+    stopDragAutoScroll();
     if (!active || !e.over) return;
     const over = e.over.data.current as any;
     if (!over) return;
@@ -316,6 +350,47 @@ export default function RoutePlannerMobile() {
     }
   };
 
+  // Track pointer position for auto-scroll
+  useEffect(() => {
+    const onMove = (e: PointerEvent | TouchEvent) => {
+      if ("touches" in e) {
+        const t = e.touches[0] ?? e.changedTouches[0];
+        if (t) pointerRef.current = { x: t.clientX, y: t.clientY };
+      } else {
+        pointerRef.current = { x: e.clientX, y: e.clientY };
+      }
+    };
+    window.addEventListener("pointermove", onMove as any, { passive: true });
+    window.addEventListener("touchmove", onMove as any, { passive: true });
+    return () => {
+      window.removeEventListener("pointermove", onMove as any);
+      window.removeEventListener("touchmove", onMove as any);
+    };
+  }, []);
+
+  // Pull-to-refresh — gen-indlæser kalender + uden-rute uden at navigere væk.
+  const refresh = async () => {
+    await Promise.all([
+      qc.invalidateQueries({ queryKey: ["route-calendar", businessId] }),
+      qc.invalidateQueries({ queryKey: ["unassigned-jobs", businessId] }),
+    ]);
+  };
+
+  // Toggle multi-select mode
+  const toggleSelectMode = () => {
+    setSelectMode((v) => {
+      if (v) setSelectedJobs(new Set());
+      return !v;
+    });
+  };
+  const toggleJobSelected = (id: string) => {
+    setSelectedJobs((prev) => {
+      const n = new Set(prev);
+      if (n.has(id)) n.delete(id); else n.add(id);
+      return n;
+    });
+  };
+
   // AdminShell forventer en indlæst virksomhed — vis skeleton imens.
   if (loadingBusiness || !business) {
     return (
@@ -346,7 +421,7 @@ export default function RoutePlannerMobile() {
           collisionDetection={pointerWithin}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
-          onDragCancel={() => setDrag(null)}
+          onDragCancel={() => { setDrag(null); stopDragAutoScroll(); }}
         >
         <div className="relative flex h-full min-h-0 flex-col bg-gradient-to-b from-background via-background to-secondary/20">
           {/* Dato-strip */}
@@ -421,28 +496,39 @@ export default function RoutePlannerMobile() {
             </div>
           </div>
 
-          {/* Hovedindhold: Ruter for dagen (med drop-zoner) */}
-          <RoutesPane
-            loading={loadingCalendar}
-            date={date}
-            routes={dayRoutes}
-            stopsByRoute={stopsByRoute}
-            onOpenRoute={setOpenRoute}
-            onCreate={() => setCreateOpen(true)}
-            dragActive={!!drag}
-          />
-
-          {/* Bund-dock: Uden rute (altid synlig, drag herfra eller drop hertil) */}
-          <UnassignedDock
-            loading={loadingUnassigned}
-            search={search}
-            setSearch={setSearch}
-            jobs={filteredUnassigned}
-            total={unassigned.length}
-            onAssign={(job) => setAssignJob(job)}
-            dragActive={!!drag}
-            isStopDrag={drag?.kind === "stop"}
-          />
+          {/* Hovedindhold: split-view på tablet, stacked på telefon */}
+          <div className={cn(
+            "relative flex min-h-0 flex-1",
+            isTablet ? "flex-row" : "flex-col",
+          )}>
+            <RoutesPane
+              loading={loadingCalendar}
+              date={date}
+              routes={dayRoutes}
+              stopsByRoute={stopsByRoute}
+              onOpenRoute={setOpenRoute}
+              onCreate={() => setCreateOpen(true)}
+              dragActive={!!drag}
+              onRefresh={refresh}
+              className={isTablet ? "min-w-0 flex-1 border-r border-border/60" : ""}
+            />
+            <UnassignedDock
+              loading={loadingUnassigned}
+              search={search}
+              setSearch={setSearch}
+              jobs={filteredUnassigned}
+              total={unassigned.length}
+              onAssign={(job) => setAssignJob(job)}
+              dragActive={!!drag}
+              isStopDrag={drag?.kind === "stop"}
+              selectMode={selectMode}
+              onToggleSelectMode={toggleSelectMode}
+              selectedJobs={selectedJobs}
+              onToggleJob={toggleJobSelected}
+              onBulkAssign={() => setBulkAssignOpen(true)}
+              isTablet={isTablet}
+            />
+          </div>
         </div>
 
         {/* Drag overlay — flyder under fingeren */}
@@ -479,6 +565,22 @@ export default function RoutePlannerMobile() {
             setCreateOpen(false);
             setOpenRoute(r);
           }}
+        />
+      )}
+
+      {/* Bulk-tildel sheet (multi-select) */}
+      {bulkAssignOpen && businessId && (
+        <BulkAssignSheet
+          open={bulkAssignOpen}
+          onOpenChange={(o) => {
+            setBulkAssignOpen(o);
+            if (!o) { setSelectMode(false); setSelectedJobs(new Set()); }
+          }}
+          jobs={(unassigned as any[]).filter((j) => selectedJobs.has(j.id) && !isJobPending(j))}
+          businessId={businessId}
+          date={date}
+          existingRoutes={dayRoutes}
+          usedColors={dayRoutes.map((r) => r.color)}
         />
       )}
 
