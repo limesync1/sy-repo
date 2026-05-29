@@ -1431,3 +1431,159 @@ function NewRouteDialog({
 }
 
 export { formatDur };
+
+/* ──────────────────────── Mini-map ─────────────────────────
+ * Lille SVG-forhåndsvisning af rute-stoppene normaliseret til en
+ * bounding box. Ingen eksterne kort-API'er — viser ruteformen og
+ * antallet af stop som hurtigt visuelt overblik.
+ */
+function MiniMap({ stops, color, className }: { stops: RouteStop[]; color: string; className?: string }) {
+  const pts = stops
+    .map((s) => ({ x: Number(s.longitude), y: Number(s.latitude) }))
+    .filter((p) => Number.isFinite(p.x) && Number.isFinite(p.y));
+  if (pts.length < 2) return null;
+  const xs = pts.map((p) => p.x);
+  const ys = pts.map((p) => p.y);
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  const w = 100, h = 36;
+  const pad = 4;
+  const sx = maxX === minX ? 1 : (w - 2 * pad) / (maxX - minX);
+  const sy = maxY === minY ? 1 : (h - 2 * pad) / (maxY - minY);
+  const norm = pts.map((p) => ({
+    x: pad + (p.x - minX) * sx,
+    // Y inverteres (skærm vs. lat).
+    y: h - pad - (p.y - minY) * sy,
+  }));
+  const path = norm.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+  return (
+    <svg
+      viewBox={`0 0 ${w} ${h}`}
+      className={cn("h-9 w-full opacity-90", className)}
+      preserveAspectRatio="none"
+      aria-hidden
+    >
+      <path d={path} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+      {norm.map((p, i) => (
+        <circle key={i} cx={p.x} cy={p.y} r={1.5} fill={color} />
+      ))}
+    </svg>
+  );
+}
+
+/* ─────────────────── Bulk-tildel sheet ──────────────────── */
+function BulkAssignSheet({
+  open,
+  onOpenChange,
+  jobs,
+  businessId,
+  date,
+  existingRoutes,
+  usedColors,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  jobs: any[];
+  businessId: string;
+  date: string;
+  existingRoutes: Route[];
+  usedColors: string[];
+}) {
+  const addStop = useAddStop();
+  const createRoute = useCreateRoute();
+  const [busy, setBusy] = useState(false);
+
+  const assignTo = async (routeId: string) => {
+    if (busy) return;
+    setBusy(true);
+    let ok = 0, fail = 0;
+    for (const job of jobs) {
+      try {
+        await addStop.mutateAsync({
+          route_id: routeId,
+          order_id: job.id,
+          sequence: 9999, // bunden
+          customer_name: job.customer_name,
+          customer_phone: job.customer_phone,
+          address: jobAddress(job),
+          latitude: job.latitude,
+          longitude: job.longitude,
+          service_summary: serviceSummaryForJob(job),
+          duration_minutes: Number(job.estimated_duration_minutes) || 30,
+          time_window_start: job.preferred_time_start || null,
+          time_window_end: job.preferred_time_end || null,
+        });
+        void linkAgreementToRoute(job.id, routeId);
+        ok++;
+      } catch {
+        fail++;
+      }
+    }
+    setBusy(false);
+    if (ok > 0) toast.success(`${ok} aftaler tilføjet`);
+    if (fail > 0) toast.error(`${fail} aftaler kunne ikke tilføjes`);
+    onOpenChange(false);
+  };
+
+  const createAndAssign = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const r = await createRoute.mutateAsync({
+        business_id: businessId,
+        route_date: date,
+        name: null,
+        color: pickAvailableColor(usedColors),
+      });
+      await assignTo(r.id);
+    } catch (err: any) {
+      toast.error("Kunne ikke oprette rute", { description: err?.message });
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Tildel {jobs.length} aftaler</DialogTitle>
+          <DialogDescription>
+            {format(parseISO(date), "EEEE d. MMM yyyy", { locale: da })} — vælg en rute eller opret en ny.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-2">
+          {existingRoutes.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+              Ingen ruter på denne dag. Opret en ny.
+            </div>
+          ) : (
+            existingRoutes.map((r) => (
+              <button
+                key={r.id}
+                type="button"
+                disabled={busy}
+                onClick={() => assignTo(r.id)}
+                className="flex w-full items-center gap-2 rounded-xl border border-border bg-card p-2.5 text-left transition-colors hover:bg-secondary/50 disabled:opacity-50"
+              >
+                <span className="h-8 w-8 shrink-0 rounded-lg" style={{ backgroundColor: r.color }} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-foreground">{r.name || "Rute uden navn"}</p>
+                </div>
+              </button>
+            ))
+          )}
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full justify-start gap-2"
+            disabled={busy}
+            onClick={createAndAssign}
+          >
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+            Opret ny rute med disse aftaler
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
