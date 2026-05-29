@@ -1,8 +1,10 @@
 // Mobil ruteplanlægger — tap-baseret alternativ til desktop drag-and-drop.
 // Aktiveres under 768px (telefoner). Genbruger de samme data- og
 // mutations-hooks som desktop, men med en fingervenlig UI: dato-strip,
-// dagens ruter i hovedfladen, og en peek-able bunddrawer med alle
-// uplanlagte aftaler så brugeren altid kan se både ruter og inbox samtidig.
+// dagens ruter fylder skærmen, og en fast bund-knap åbner en bottom-sheet
+// med alle uplanlagte aftaler. Mønstret følger almindelige iOS/Android
+// "action bar + bottom sheet" konventioner i stedet for en peek-drawer
+// der konstant ændrer layoutet.
 import { useMemo, useState } from "react";
 import {
   addDays,
@@ -13,10 +15,8 @@ import {
 import { da } from "date-fns/locale";
 import {
   CalendarClock,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
-  ChevronUp,
   Inbox,
   MapPin,
   Plus,
@@ -29,6 +29,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useMyBusiness } from "@/hooks/useDatabase";
 import { useEmployees } from "@/hooks/useEmployees";
@@ -74,9 +75,9 @@ export default function RoutePlannerMobile() {
   const [assignJob, setAssignJob] = useState<any | null>(null);
   const [openRoute, setOpenRoute] = useState<Route | null>(null);
   const [creating, setCreating] = useState(false);
-  // Bunddraweren peeker som standard så brugeren altid kan se antallet af
-  // uplanlagte aftaler. Tap på headeren udvider den til ~70% af skærmen.
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  // Bottom-sheet for uplanlagte aftaler. Lukket som standard; en fast
+  // bund-knap viser antallet og åbner sheeten.
+  const [unassignedOpen, setUnassignedOpen] = useState(false);
 
   const { data: employees = [] } = useEmployees(businessId);
 
@@ -173,11 +174,6 @@ export default function RoutePlannerMobile() {
     );
   }
 
-  // Højde på den kollapsede bunddrawer — viser header + 1 peek-card.
-  // Når åben dækker den ~70% af skærmen så ruterne stadig kan ses ovenfor.
-  const drawerCollapsedH = "5.5rem";
-  const drawerExpandedH = "70vh";
-
   return (
     <>
       <SEO
@@ -262,11 +258,8 @@ export default function RoutePlannerMobile() {
             </div>
           </div>
 
-          {/* Hovedindhold: dagens ruter — fylder pladsen mellem dato-strip og bunddrawer */}
-          <div
-            className="min-h-0 flex-1 overflow-y-auto px-3 pt-3 transition-[padding] duration-300"
-            style={{ paddingBottom: `calc(${drawerOpen ? drawerExpandedH : drawerCollapsedH} + 0.75rem)` }}
-          >
+          {/* Hovedindhold: dagens ruter — fylder pladsen mellem dato-strip og bund-knap */}
+          <div className="min-h-0 flex-1 overflow-y-auto px-3 pt-3 pb-24">
             <RoutesTab
               loading={loadingCalendar}
               date={date}
@@ -278,24 +271,29 @@ export default function RoutePlannerMobile() {
             />
           </div>
 
-          {/* Bunddrawer: altid synlig — peeker med antal uplanlagte, swipe/tap for at se hele listen */}
-          <UnassignedDrawer
-            open={drawerOpen}
-            onToggle={() => setDrawerOpen((v) => !v)}
-            loading={loadingUnassigned}
-            search={search}
-            setSearch={setSearch}
-            jobs={filteredUnassigned}
+          {/* Fast bund-knap: åbner bottom-sheet med uplanlagte aftaler */}
+          <UnassignedBottomBar
             total={unassigned.length}
-            onAssign={(job) => {
-              setAssignJob(job);
-              setDrawerOpen(false);
-            }}
-            collapsedH={drawerCollapsedH}
-            expandedH={drawerExpandedH}
+            loading={loadingUnassigned}
+            onOpen={() => setUnassignedOpen(true)}
           />
         </div>
       </AdminShell>
+
+      {/* Bottom-sheet med søgning + fuld liste */}
+      <UnassignedSheet
+        open={unassignedOpen}
+        onOpenChange={setUnassignedOpen}
+        loading={loadingUnassigned}
+        search={search}
+        setSearch={setSearch}
+        jobs={filteredUnassigned}
+        total={unassigned.length}
+        onAssign={(job) => {
+          setAssignJob(job);
+          setUnassignedOpen(false);
+        }}
+      />
 
       {/* Sheets */}
       {assignJob && businessId && (
@@ -429,124 +427,155 @@ function RoutesTab({
   );
 }
 
-/* ──────────────────────── Uden-rute bunddrawer ────────────────────────
- * Altid synlig i bunden af skærmen. Peeker med antal + første aftale så
- * brugeren med det samme ser hvor mange aftaler der venter på en rute.
- * Tap på headeren udvider til ~70% af skærmen så hele listen kan ses
- * uden at miste konteksten af dagens ruter ovenfor.
+/* ──────────────────────── Uden-rute bund-bar ────────────────────────
+ * Fast knap nederst på skærmen der viser antallet af uplanlagte aftaler
+ * og åbner en bottom-sheet med fuld liste + søgning. Et roligt, kendt
+ * mobilmønster — ingen peek/expand-animationer der flytter layoutet.
  */
-function UnassignedDrawer({
+function UnassignedBottomBar({
+  total,
+  loading,
+  onOpen,
+}: {
+  total: number;
+  loading: boolean;
+  onOpen: () => void;
+}) {
+  const empty = !loading && total === 0;
+  return (
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 bg-gradient-to-t from-background via-background/85 to-transparent">
+      <button
+        type="button"
+        onClick={onOpen}
+        disabled={empty}
+        aria-label={empty ? "Alle aftaler er planlagt" : `Åbn ${total} aftaler uden rute`}
+        className={cn(
+          "pointer-events-auto flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left shadow-lg transition-all active:scale-[0.99]",
+          empty
+            ? "border-border bg-card/80 text-muted-foreground"
+            : "border-foreground/10 bg-foreground text-background hover:bg-foreground/95",
+        )}
+      >
+        <div
+          className={cn(
+            "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
+            empty ? "bg-secondary text-muted-foreground" : "bg-background/15 text-background",
+          )}
+        >
+          <Inbox className="h-4 w-4" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className={cn("text-[11px] font-semibold uppercase tracking-wider", empty ? "text-muted-foreground" : "text-background/70")}>
+            Aftaler uden rute
+          </p>
+          <p className="truncate text-sm font-semibold">
+            {loading
+              ? "Henter…"
+              : empty
+              ? "Alt er planlagt"
+              : `${total} ${total === 1 ? "aftale venter på en rute" : "aftaler venter på en rute"}`}
+          </p>
+        </div>
+        {!empty && !loading && (
+          <Badge
+            variant="secondary"
+            className="h-6 shrink-0 rounded-full bg-background/15 px-2.5 text-[12px] font-semibold tabular-nums text-background"
+          >
+            {total}
+          </Badge>
+        )}
+      </button>
+    </div>
+  );
+}
+
+/* ──────────────────────── Uden-rute bottom-sheet ──────────────────────── */
+function UnassignedSheet({
   open,
-  onToggle,
+  onOpenChange,
   loading,
   search,
   setSearch,
   jobs,
   total,
   onAssign,
-  collapsedH,
-  expandedH,
 }: {
   open: boolean;
-  onToggle: () => void;
+  onOpenChange: (o: boolean) => void;
   loading: boolean;
   search: string;
   setSearch: (v: string) => void;
   jobs: any[];
   total: number;
   onAssign: (job: any) => void;
-  collapsedH: string;
-  expandedH: string;
 }) {
   return (
-    <div
-      className="absolute inset-x-0 bottom-0 z-30 flex flex-col rounded-t-3xl border-t border-border bg-card shadow-[0_-12px_32px_-8px_rgba(0,0,0,0.12)] transition-[height] duration-300 ease-out"
-      style={{ height: open ? expandedH : collapsedH }}
-      role="region"
-      aria-label="Aftaler uden rute"
-    >
-      {/* Drag-handle + header */}
-      <button
-        type="button"
-        onClick={onToggle}
-        className="shrink-0 px-4 pt-2 pb-3 text-left active:bg-secondary/40 rounded-t-3xl"
-        aria-expanded={open}
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="bottom"
+        className="flex h-[85dvh] flex-col gap-0 p-0"
       >
-        <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-muted-foreground/30" aria-hidden />
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-secondary">
-            <Inbox className="h-4 w-4 text-foreground" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Uden rute
-            </p>
-            <p className="text-sm font-semibold text-foreground">
-              {total === 0
-                ? "Alle aftaler er planlagt"
-                : `${total} ${total === 1 ? "aftale venter" : "aftaler venter"}`}
-            </p>
+        <SheetHeader className="space-y-2 border-b border-border/60 px-4 pb-3 pt-5 text-left">
+          <div className="mx-auto -mt-2 mb-1 h-1 w-10 rounded-full bg-muted-foreground/30" aria-hidden />
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-secondary">
+              <Inbox className="h-4 w-4 text-foreground" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <SheetTitle className="text-base font-semibold leading-tight">
+                Aftaler uden rute
+              </SheetTitle>
+              <p className="text-xs text-muted-foreground">
+                {total === 0
+                  ? "Alle aftaler er planlagt"
+                  : `${total} ${total === 1 ? "aftale" : "aftaler"} mangler en rute`}
+              </p>
+            </div>
           </div>
           {total > 0 && (
-            <Badge variant="secondary" className="h-6 px-2 text-[12px] font-semibold tabular-nums">
-              {total}
-            </Badge>
+            <div className="relative pt-1">
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 mt-0.5 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Søg kunde eller adresse"
+                className="h-10 rounded-full pl-8"
+              />
+            </div>
           )}
-          {open ? (
-            <ChevronDown className="h-5 w-5 shrink-0 text-muted-foreground" />
-          ) : (
-            <ChevronUp className="h-5 w-5 shrink-0 text-muted-foreground" />
-          )}
-        </div>
-      </button>
+        </SheetHeader>
 
-      {/* Søgefelt — kun synligt når udvidet */}
-      {open && (
-        <div className="shrink-0 border-t border-border/60 px-4 py-2.5">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Søg kunde eller adresse"
-              className="h-10 rounded-full pl-8"
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Liste */}
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-1">
-        {loading ? (
-          <div className="space-y-2 pt-2">
-            {[0, 1, 2].map((i) => (
-              <Skeleton key={i} className="h-24 w-full rounded-2xl" />
-            ))}
-          </div>
-        ) : total === 0 ? (
-          !open && (
-            <p className="px-1 text-xs text-muted-foreground">
-              Der er ingen aftaler uden en rute lige nu.
-            </p>
-          )
-        ) : jobs.length === 0 ? (
-          <div className="py-10 text-center text-sm text-muted-foreground">
-            Ingen aftaler matcher søgningen.
-          </div>
-        ) : (
-          <div className="space-y-2 pt-2">
-            {(open ? jobs : jobs.slice(0, 1)).map((job) => (
-              <UnassignedCard key={job.id} job={job} onAssign={onAssign} />
-            ))}
-            {!open && jobs.length > 1 && (
-              <p className="px-1 pt-0.5 text-[11px] text-muted-foreground">
-                Tap for at se {jobs.length - 1} {jobs.length - 1 === 1 ? "aftale mere" : "aftaler mere"}
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-3">
+          {loading ? (
+            <div className="space-y-2">
+              {[0, 1, 2].map((i) => (
+                <Skeleton key={i} className="h-24 w-full rounded-2xl" />
+              ))}
+            </div>
+          ) : total === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary">
+                <Inbox className="h-7 w-7 text-muted-foreground" />
+              </div>
+              <p className="text-sm font-semibold text-foreground">Alle aftaler er planlagt</p>
+              <p className="mt-1 max-w-[18rem] text-xs text-muted-foreground">
+                Når nye aftaler kommer ind dukker de op her, klar til at blive tildelt en rute.
               </p>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
+            </div>
+          ) : jobs.length === 0 ? (
+            <div className="py-12 text-center text-sm text-muted-foreground">
+              Ingen aftaler matcher søgningen.
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {jobs.map((job) => (
+                <UnassignedCard key={job.id} job={job} onAssign={onAssign} />
+              ))}
+            </div>
+          )}
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
 
