@@ -1103,45 +1103,4 @@ function NewRouteDialog({
   );
 }
 
-function UnassignedCard({ job, onAssign }: { job: any; onAssign: (job: any) => void }) {
-  const pending = isJobPending(job);
-  const wishDate = effectiveJobDate(job);
-  return (
-    <div className="rounded-2xl border border-border bg-card p-3 shadow-sm">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-foreground">
-            {job.customer_name || "Ukendt kunde"}
-          </p>
-          <p className="mt-0.5 truncate text-xs text-muted-foreground">
-            {jobAddress(job)}
-          </p>
-        </div>
-        {wishDate && (
-          <Badge variant="outline" className="shrink-0 rounded-full px-2 text-[10px] font-medium tabular-nums">
-            Ønsket {format(parseISO(wishDate), "d. MMM", { locale: da })}
-          </Badge>
-        )}
-      </div>
-      <p className="mt-1.5 line-clamp-2 text-xs text-muted-foreground">
-        {serviceSummaryForJob(job)}
-      </p>
-      {pending ? (
-        <div className="mt-2.5 rounded-lg bg-amber-50 px-2.5 py-2 text-[11px] leading-snug text-amber-800 dark:bg-amber-500/10 dark:text-amber-200">
-          Aftalen kan først planlægges når kunden har godkendt tilbuddet.
-        </div>
-      ) : (
-        <Button
-          onClick={() => onAssign(job)}
-          className="mt-2.5 w-full gap-2 rounded-full"
-          size="sm"
-        >
-          <Plus className="h-4 w-4" />
-          Tildel til rute
-        </Button>
-      )}
-    </div>
-  );
-}
-
 export { formatDur };
