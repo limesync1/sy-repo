@@ -186,21 +186,31 @@ export default function RoutePlannerMobile() {
         activeTab="routes"
         contentPadding={false}
         contentClassName="flex flex-col overflow-hidden"
-        topbarRight={<ThemeToggle />}
       >
         <div className="relative flex h-full min-h-0 flex-col bg-gradient-to-b from-background via-background to-secondary/20">
           {/* Dato-strip */}
           <div className="shrink-0 border-b border-border/60 bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/60 px-3 pt-3 pb-2.5">
             <div className="mb-2.5 flex items-center justify-between">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 rounded-full"
-                onClick={() => setDate(format(addDays(parseISO(date), -7), "yyyy-MM-dd"))}
-                aria-label="Forrige uge"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 rounded-full"
+                  onClick={() => setDate(format(addDays(parseISO(date), -7), "yyyy-MM-dd"))}
+                  aria-label="Forrige uge"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 rounded-full"
+                  onClick={() => setDate(format(addDays(parseISO(date), 7), "yyyy-MM-dd"))}
+                  aria-label="Næste uge"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
+              </div>
               <button
                 type="button"
                 onClick={() => setDate(todayStr())}
@@ -208,15 +218,7 @@ export default function RoutePlannerMobile() {
               >
                 {weekLabel}
               </button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 rounded-full"
-                onClick={() => setDate(format(addDays(parseISO(date), 7), "yyyy-MM-dd"))}
-                aria-label="Næste uge"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </Button>
+              <ThemeToggle />
             </div>
             <div className="grid grid-cols-7 gap-1.5">
               {weekRange.days.map((d) => {
@@ -372,7 +374,8 @@ function RoutesTab({
           </div>
           <p className="text-sm font-semibold text-foreground">Ingen ruter denne dag</p>
           <p className="mt-1 max-w-[18rem] text-xs leading-snug text-muted-foreground">
-            Opret en rute, eller tildel aftaler fra panelet "Uden rute" nederst.
+            Tryk på "Ny rute" for at oprette dagens første rute. Har du
+            aftaler uden rute dukker de op som en knap nederst.
           </p>
         </div>
       ) : (
@@ -442,48 +445,27 @@ function UnassignedBottomBar({
   onOpen: () => void;
 }) {
   const empty = !loading && total === 0;
+  // Skjul knappen helt når der ikke er noget — bottom-nav under viser stadig
+  // "Aftaler" hvis brugeren skal håndtere ordrer. Det fjerner det dobbelte
+  // tunge sort-på-sort layout når alt er planlagt.
+  if (empty) return null;
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 bg-gradient-to-t from-background via-background/85 to-transparent">
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 flex justify-center px-3 pb-3 pt-6 bg-gradient-to-t from-background via-background/70 to-transparent">
       <button
         type="button"
         onClick={onOpen}
-        disabled={empty}
-        aria-label={empty ? "Alle aftaler er planlagt" : `Åbn ${total} aftaler uden rute`}
-        className={cn(
-          "pointer-events-auto flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left shadow-lg transition-all active:scale-[0.99]",
-          empty
-            ? "border-border bg-card/80 text-muted-foreground"
-            : "border-foreground/10 bg-foreground text-background hover:bg-foreground/95",
-        )}
+        aria-label={`Åbn ${total} aftaler uden rute`}
+        className="pointer-events-auto inline-flex items-center gap-2.5 rounded-full border border-border bg-card pl-2 pr-4 py-1.5 text-left shadow-[0_12px_28px_-12px_hsl(var(--foreground)/0.35)] transition-all hover:shadow-[0_14px_32px_-12px_hsl(var(--foreground)/0.45)] active:scale-[0.98]"
       >
-        <div
-          className={cn(
-            "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
-            empty ? "bg-secondary text-muted-foreground" : "bg-background/15 text-background",
-          )}
-        >
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
           <Inbox className="h-4 w-4" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className={cn("text-[11px] font-semibold uppercase tracking-wider", empty ? "text-muted-foreground" : "text-background/70")}>
-            Aftaler uden rute
-          </p>
-          <p className="truncate text-sm font-semibold">
-            {loading
-              ? "Henter…"
-              : empty
-              ? "Alt er planlagt"
-              : `${total} ${total === 1 ? "aftale venter på en rute" : "aftaler venter på en rute"}`}
-          </p>
-        </div>
-        {!empty && !loading && (
-          <Badge
-            variant="secondary"
-            className="h-6 shrink-0 rounded-full bg-background/15 px-2.5 text-[12px] font-semibold tabular-nums text-background"
-          >
-            {total}
-          </Badge>
-        )}
+        </span>
+        <span className="text-sm font-semibold text-foreground">
+          {loading ? "Henter…" : `${total} uden rute`}
+        </span>
+        <span className="text-xs text-muted-foreground">
+          Tildel
+        </span>
       </button>
     </div>
   );
