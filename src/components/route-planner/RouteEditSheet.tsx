@@ -927,10 +927,10 @@ export const RouteEditSheet = ({
                 size="sm"
                 className="w-full justify-center gap-2 text-muted-foreground hover:text-foreground border-border/70"
                 onClick={() => setHistoryOpen(true)}
-                title="Se en liste over ændringer der er lavet på ruten — fx flytninger, tilføjede stop og optimeringer"
+                title="Se hvem der har ændret ruten, og hvornår — fx flyttet, tilføjet stop eller optimeret"
               >
                 <History className="h-3.5 w-3.5" />
-                Se ændringer på ruten
+                Vis ændringshistorik
               </Button>
             )}
             {isProjection && (
