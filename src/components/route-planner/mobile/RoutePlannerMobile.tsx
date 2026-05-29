@@ -890,16 +890,70 @@ function SortableStopRow({
   };
   const completed = stop.status === "completed";
   const dur = (stop as any).duration_minutes as number | undefined;
+
+  // Swipe-to-delete — træk rækken til venstre for at afsløre Slet-knap.
+  // Brugeren slipper for at bekræfte; en lille tryk-undo følger ikke med,
+  // men handlingen er to-trins (træk + tap) så den er hård at trigge ved et uheld.
+  const [swipe, setSwipe] = useState(0);
+  const swipeStart = useRef<number | null>(null);
+  const deleteStop = useDeleteStop();
+  const REVEAL = 84;
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (isDragging) return;
+    swipeStart.current = e.touches[0]?.clientX ?? null;
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (swipeStart.current == null) return;
+    const dx = (e.touches[0]?.clientX ?? 0) - swipeStart.current;
+    if (dx > 0) { setSwipe(0); return; }
+    setSwipe(Math.max(-REVEAL - 20, dx));
+  };
+  const onTouchEnd = () => {
+    if (swipeStart.current == null) return;
+    swipeStart.current = null;
+    setSwipe(swipe < -REVEAL / 2 ? -REVEAL : 0);
+  };
+
   return (
     <li
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex items-center gap-1.5 rounded-xl border border-border/70 bg-background/60 p-1.5",
+        "relative overflow-hidden rounded-xl",
         isDragging && "z-10 opacity-30",
-        completed && "bg-emerald-50/40 dark:bg-emerald-500/5",
       )}
     >
+      {/* Bag-laget: Slet-knap der afsløres ved swipe-venstre */}
+      {swipe < -8 && !isDragging && (
+        <button
+          type="button"
+          aria-label="Fjern stop fra rute"
+          className="absolute inset-y-0 right-0 flex w-20 items-center justify-center gap-1 bg-destructive text-[11px] font-semibold text-destructive-foreground"
+          onClick={async () => {
+            try {
+              await deleteStop.mutateAsync(stop.id);
+              toast.success("Stop fjernet");
+            } catch (err: any) {
+              toast.error("Kunne ikke fjerne", { description: err?.message });
+            } finally {
+              setSwipe(0);
+            }
+          }}
+        >
+          <Trash2 className="h-3.5 w-3.5" /> Slet
+        </button>
+      )}
+      <div
+        className={cn(
+          "flex items-center gap-1.5 rounded-xl border border-border/70 bg-background/60 p-1.5 transition-transform",
+          completed && "bg-emerald-50/40 dark:bg-emerald-500/5",
+        )}
+        style={{ transform: swipe ? `translateX(${swipe}px)` : undefined }}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        onTouchCancel={() => { swipeStart.current = null; setSwipe(0); }}
+      >
       {/* Drag-handle — long-press for at trække */}
       <button
         type="button"
@@ -944,6 +998,7 @@ function SortableStopRow({
           {dur}m
         </span>
       ) : null}
+      </div>
     </li>
   );
 }
