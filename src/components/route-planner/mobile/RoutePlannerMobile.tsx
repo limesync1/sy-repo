@@ -959,6 +959,12 @@ function UnassignedDock({
   onAssign,
   dragActive,
   isStopDrag,
+  selectMode,
+  onToggleSelectMode,
+  selectedJobs,
+  onToggleJob,
+  onBulkAssign,
+  isTablet,
 }: {
   loading: boolean;
   search: string;
@@ -968,22 +974,32 @@ function UnassignedDock({
   onAssign: (job: any) => void;
   dragActive: boolean;
   isStopDrag: boolean;
+  selectMode: boolean;
+  onToggleSelectMode: () => void;
+  selectedJobs: Set<string>;
+  onToggleJob: (id: string) => void;
+  onBulkAssign: () => void;
+  isTablet: boolean;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: "unassigned-dock",
     data: { type: "unassigned" },
   });
+  const selectedCount = selectedJobs.size;
 
   return (
     <div
       ref={setNodeRef}
       className={cn(
-        "shrink-0 border-t bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 transition-colors",
+        "bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 transition-colors",
+        isTablet
+          ? "flex w-[320px] shrink-0 flex-col border-l"
+          : "shrink-0 border-t",
         isStopDrag && isOver
           ? "border-destructive bg-destructive/5"
           : "border-border",
       )}
-      style={{ maxHeight: total === 0 && !isStopDrag ? "auto" : "42vh" }}
+      style={isTablet ? undefined : { maxHeight: total === 0 && !isStopDrag ? "auto" : "42vh" }}
     >
       <div className="flex items-center justify-between gap-2 px-3 pt-2.5 pb-1.5">
         <div className="flex min-w-0 items-center gap-2">
@@ -1007,14 +1023,30 @@ function UnassignedDock({
                 ? "Nye aftaler dukker op her"
                 : isStopDrag
                   ? "Slip her for at fjerne stoppet"
-                  : "Hold inde og træk op i en rute"}
+                  : selectMode
+                    ? `${selectedCount} valgt`
+                    : "Hold inde og træk op i en rute"}
             </p>
           </div>
         </div>
         {total > 0 && (
-          <Badge variant="secondary" className="shrink-0 rounded-full px-2 tabular-nums">
-            {total}
-          </Badge>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <Button
+              type="button"
+              size="sm"
+              variant={selectMode ? "secondary" : "ghost"}
+              className="h-7 gap-1 rounded-full px-2 text-[11px]"
+              onClick={onToggleSelectMode}
+            >
+              {selectMode ? <X className="h-3 w-3" /> : <CheckSquare className="h-3 w-3" />}
+              {selectMode ? "Annullér" : "Vælg flere"}
+            </Button>
+            {!selectMode && (
+              <Badge variant="secondary" className="rounded-full px-2 tabular-nums">
+                {total}
+              </Badge>
+            )}
+          </div>
         )}
       </div>
 
@@ -1032,11 +1064,14 @@ function UnassignedDock({
 
       {/* Skjul scroll-area helt når der ingen aftaler er — sparer plads */}
       {(total > 0 || loading) && (
-        <div className="overflow-x-auto overflow-y-hidden px-3 pb-3 pt-1">
+        <div className={cn(
+          "px-3 pt-1",
+          isTablet ? "min-h-0 flex-1 overflow-y-auto pb-3" : "overflow-x-auto overflow-y-hidden pb-3",
+        )}>
           {loading ? (
-            <div className="flex gap-2">
+            <div className={cn(isTablet ? "space-y-2" : "flex gap-2")}>
               {[0, 1, 2].map((i) => (
-                <Skeleton key={i} className="h-24 w-44 shrink-0 rounded-2xl" />
+                <Skeleton key={i} className={cn("h-24 rounded-2xl", isTablet ? "w-full" : "w-44 shrink-0")} />
               ))}
             </div>
           ) : jobs.length === 0 ? (
@@ -1044,12 +1079,32 @@ function UnassignedDock({
               Ingen aftaler matcher søgningen.
             </div>
           ) : (
-            <div className="flex gap-2 pb-1">
+            <div className={cn(isTablet ? "space-y-2 pb-1" : "flex gap-2 pb-1")}>
               {jobs.map((job) => (
-                <DraggableJobCard key={job.id} job={job} onAssign={onAssign} />
+                <DraggableJobCard
+                  key={job.id}
+                  job={job}
+                  onAssign={onAssign}
+                  selectMode={selectMode}
+                  selected={selectedJobs.has(job.id)}
+                  onToggle={() => onToggleJob(job.id)}
+                  fullWidth={isTablet}
+                />
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Bulk-actions bar — vises når selectMode er aktiv og noget er valgt */}
+      {selectMode && selectedCount > 0 && (
+        <div className="sticky bottom-0 flex items-center justify-between gap-2 border-t border-border bg-card/95 px-3 py-2 backdrop-blur">
+          <span className="text-xs font-semibold text-foreground">
+            {selectedCount} valgt
+          </span>
+          <Button size="sm" className="h-8 rounded-full" onClick={onBulkAssign}>
+            Tildel rute
+          </Button>
         </div>
       )}
     </div>
