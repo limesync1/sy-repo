@@ -3869,6 +3869,9 @@ const Planner = () => {
 
   return (
     <div className={cn(plannerTheme === "dark" && "dark")} data-density={density}>
+    <span id="unassigned-drag-instructions" className="sr-only">
+      Tryk Mellemrum eller Enter for at tage aftalekortet op. Brug piletasterne til at flytte det. Tryk Mellemrum igen for at slippe, eller Escape for at annullere.
+    </span>
     <DndContext
       sensors={sensors}
       collisionDetection={routePlannerCollisionDetection}
