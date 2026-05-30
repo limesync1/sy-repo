@@ -1077,11 +1077,11 @@ function UnassignedDock({
       className={cn(
         "bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 transition-colors",
         isTablet
-          ? "flex w-[320px] shrink-0 flex-col border-l"
+          ? "flex w-[340px] shrink-0 flex-col border-l"
           : "shrink-0 border-t",
         isStopDrag && isOver
           ? "border-destructive bg-destructive/5"
-          : "border-border",
+          : "border-border/70",
       )}
       style={isTablet ? undefined : { maxHeight: total === 0 && !isStopDrag ? "auto" : "42vh" }}
     >
@@ -1332,8 +1332,8 @@ function DraggableJobCard({
           <Button
             type="button"
             size="sm"
-            variant="outline"
-            className="h-7 w-full rounded-md border-border/70 text-[11px]"
+            variant="ghost"
+            className="h-7 w-full justify-center rounded-md bg-secondary/60 text-[11px] font-medium text-foreground/80 hover:bg-secondary"
             onClick={(e) => { e.stopPropagation(); onAssign(job); }}
           >
             Vælg rute
