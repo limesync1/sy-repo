@@ -588,21 +588,21 @@ const DayCellInner = ({
           medarbejdere), helt tomme dage og fortid. */}
       {capacity && capacity.minutes_capacity > 0 && inMonth && !isPast && (
         <div
-          className="absolute bottom-0 left-0 right-0 h-1.5 bg-muted/25 overflow-hidden group/cap rounded-b-lg"
+          className="absolute bottom-0 left-0 right-0 h-[2px] bg-border/40 overflow-hidden group/cap"
           title={`Belastning: ${Math.round(capacity.load_pct)}% — ${Math.round(capacity.minutes_booked / 60 * 10) / 10} af ${Math.round(capacity.minutes_capacity / 60)} timer booket`}
           aria-label={`Dagens belastning: ${Math.round(capacity.load_pct)} procent`}
         >
           <div
             className={cn(
-              "h-full transition-all duration-500 rounded-r-full relative",
-              // Tærskler matcher ConflictBanner: 115%+ = overbooked,
-              // 85-115% = travl, derunder = grøn. Tidligere "70% = gul"
-              // markerede helt normale dage som advarsel.
+              "h-full transition-[width] duration-300",
+              // Flad, monokrom indikator — kun farve ved reelle problemer.
+              // Normale dage får en neutral foreground-tone, så bunden af
+              // celler ikke domineres af grønne/gule bånd.
               capacity.load_pct >= 130 && capacity.minutes_booked >= 780
-                ? "bg-gradient-to-r from-destructive/80 to-destructive shadow-[0_0_8px_hsl(var(--destructive)/0.55)]"
+                ? "bg-destructive"
                 : capacity.load_pct >= 100
-                ? "bg-gradient-to-r from-amber-400 to-amber-500"
-                : "bg-gradient-to-r from-emerald-400/70 to-emerald-500/85",
+                ? "bg-amber-500/80"
+                : "bg-foreground/25",
             )}
             style={{ width: `${Math.min(100, capacity.load_pct)}%` }}
           />
