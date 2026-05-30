@@ -763,52 +763,52 @@ function DroppableRouteCard({
     <div
       ref={setNodeRef}
       className={cn(
-        "relative overflow-hidden rounded-lg border bg-card shadow-[0_2px_10px_-6px_hsl(var(--foreground)/0.18)] transition-all",
+        "relative overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_hsl(var(--foreground)/0.04)] transition-all",
         isOver
-          ? "border-accent/70 bg-accent/[0.04] ring-2 ring-accent/25 shadow-[0_8px_24px_-12px_hsl(var(--accent)/0.35)]"
+          ? "border-accent/60 bg-accent/[0.03] ring-1 ring-accent/30"
           : dragActive
-            ? "border-dashed border-accent/40 bg-accent/[0.02]"
-            : "border-border/70 hover:border-foreground/25",
+            ? "border-dashed border-accent/35 bg-accent/[0.015]"
+            : "border-border/60 hover:border-foreground/20",
       )}
     >
-      {/* Top farve-stribe — matcher desktop EmployeeColumn */}
+      {/* Tynd venstre farve-rail — diskret, ikke dominerende */}
       <span
         aria-hidden
-        className="absolute inset-x-0 top-0 h-1 opacity-90"
+        className="absolute inset-y-0 left-0 w-[3px]"
         style={{ background: route.color }}
       />
       {/* Header — tap for at åbne detalje-sheet */}
-      <div className="flex items-stretch gap-2.5 px-3 pt-3.5 pb-2.5">
+      <div className="flex items-stretch gap-2.5 pl-3.5 pr-3 pt-3 pb-2.5">
         <button
           type="button"
           onClick={() => onOpenRoute(route)}
           className="flex min-w-0 flex-1 items-start gap-2.5 text-left active:opacity-80"
         >
           <span
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[10px] font-bold leading-none text-background ring-2 ring-background shadow-[0_2px_6px_-2px_hsl(var(--foreground)/0.25)]"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[11px] font-bold leading-none text-background"
             style={{ background: route.color }}
           >
             {(route.name || "R").charAt(0).toUpperCase()}
           </span>
           <div className="min-w-0 flex-1 py-0.5">
-            <p className="truncate text-sm font-bold leading-tight tracking-tight text-foreground">
+            <p className="truncate text-[15px] font-semibold leading-tight tracking-tight text-foreground">
               {route.name || "Rute uden navn"}
             </p>
-            <div className="mt-1.5 flex flex-wrap items-center gap-1">
-              <Badge variant="secondary" className="h-5 rounded-md px-1.5 text-[10px] font-semibold tabular-nums">
-                {done > 0 ? `${done}/${stops.length}` : `${stops.length}`} stop
-              </Badge>
+            <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[11px] tabular-nums text-muted-foreground">
+              <span className="font-medium text-foreground/80">
+                {done > 0 ? `${done}/${stops.length}` : stops.length} stop
+              </span>
               {route.total_distance_km != null && route.total_distance_km > 0 && (
-                <Badge variant="outline" className="h-5 gap-0.5 rounded-md border-border/70 px-1.5 text-[10px] tabular-nums">
-                  <MapPin className="h-2.5 w-2.5" />
+                <span className="inline-flex items-center gap-1">
+                  <span className="h-1 w-1 rounded-full bg-border" />
                   {route.total_distance_km.toFixed(1)} km
-                </Badge>
+                </span>
               )}
               {totalMin > 0 && (
-                <Badge variant="outline" className="h-5 gap-0.5 rounded-md border-border/70 px-1.5 text-[10px] tabular-nums">
-                  <Clock className="h-2.5 w-2.5" />
+                <span className="inline-flex items-center gap-1">
+                  <span className="h-1 w-1 rounded-full bg-border" />
                   {formatDur(totalMin)}
-                </Badge>
+                </span>
               )}
             </div>
           </div>
@@ -817,8 +817,8 @@ function DroppableRouteCard({
           <Button
             type="button"
             size="sm"
-            variant="outline"
-            className="h-8 shrink-0 gap-1 self-start rounded-md border-border/70 px-2.5 text-xs"
+            variant="ghost"
+            className="h-8 shrink-0 gap-1 self-start rounded-md px-2 text-xs text-muted-foreground hover:text-foreground"
             onClick={async () => {
               try {
                 await optimize.mutateAsync(route.id);
@@ -830,30 +830,30 @@ function DroppableRouteCard({
             disabled={optimizing}
             title="AI-optimér rækkefølge"
           >
-            {optimizing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+            {optimizing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
             Optimér
           </Button>
         )}
       </div>
 
       {/* Inline stop-liste — sorterbar inden for ruten */}
-      <div className="border-t border-border/60 px-2.5 pb-2.5 pt-2">
+      <div className="border-t border-border/50 bg-secondary/20 px-2 pb-2 pt-2">
         {stops.length === 0 ? (
           <div
             className={cn(
-              "flex items-center justify-center rounded-md border-2 border-dashed py-8 text-[11px] transition-all",
+              "flex items-center justify-center rounded-lg border border-dashed py-7 text-[11px] transition-all",
               isOver
-                ? "border-accent/60 bg-accent/[0.06] font-medium text-accent"
+                ? "border-accent/50 bg-accent/[0.05] font-medium text-accent"
                 : dragActive
-                  ? "border-accent/40 text-accent/80"
-                  : "border-border/50 text-muted-foreground/70",
+                  ? "border-accent/30 text-accent/80"
+                  : "border-border/40 text-muted-foreground/60",
             )}
           >
             {isOver ? "Slip for at tildele" : "Træk aftaler hertil"}
           </div>
         ) : (
           <SortableContext items={stopIds} strategy={verticalListSortingStrategy}>
-            <ol className="space-y-2">
+            <ol className="space-y-1.5">
               {stops.map((s, idx) => (
                 <SortableStopRow
                   key={s.id}
@@ -953,9 +953,9 @@ function SortableStopRow({
       <div
         className={cn(
           CARD_BASE,
-          "p-2.5 pl-3 transition-transform",
+          "p-2 pl-3 transition-transform",
           completed
-            ? "border-emerald-200/70 bg-emerald-50/40 opacity-80 dark:border-emerald-500/25 dark:bg-emerald-500/10"
+            ? "border-emerald-200/60 bg-emerald-50/30 opacity-80 dark:border-emerald-500/20 dark:bg-emerald-500/5"
             : cn(CARD_BORDER, CARD_HOVER),
         )}
         style={{ transform: swipe ? `translateX(${swipe}px)` : undefined }}
@@ -964,10 +964,10 @@ function SortableStopRow({
         onTouchEnd={onTouchEnd}
         onTouchCancel={() => { swipeStart.current = null; setSwipe(0); }}
       >
-        {/* Venstre farve-rail — matcher desktop SortableStopCard */}
+        {/* Tynd venstre farve-rail */}
         <span
           aria-hidden
-          className="absolute left-0 top-0 bottom-0 w-1 opacity-90"
+          className="absolute left-0 top-0 bottom-0 w-[2px]"
           style={{ background: completed ? "hsl(var(--muted-foreground) / 0.4)" : routeColor }}
         />
         <div className="flex items-start gap-2">
@@ -977,7 +977,7 @@ function SortableStopRow({
             {...attributes}
             aria-label="Træk stop"
             className={cn(
-              "flex h-6 w-6 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-[11px] font-bold leading-none text-background ring-2 ring-background shadow-[0_2px_4px_-1px_hsl(var(--foreground)/0.2)] transition-transform active:scale-95 active:cursor-grabbing",
+              "flex h-6 w-6 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-[11px] font-bold leading-none text-background transition-transform active:scale-95 active:cursor-grabbing",
               completed && "opacity-50",
             )}
             style={{ background: routeColor }}
@@ -1077,11 +1077,11 @@ function UnassignedDock({
       className={cn(
         "bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 transition-colors",
         isTablet
-          ? "flex w-[320px] shrink-0 flex-col border-l"
+          ? "flex w-[340px] shrink-0 flex-col border-l"
           : "shrink-0 border-t",
         isStopDrag && isOver
           ? "border-destructive bg-destructive/5"
-          : "border-border",
+          : "border-border/70",
       )}
       style={isTablet ? undefined : { maxHeight: total === 0 && !isStopDrag ? "auto" : "42vh" }}
     >
@@ -1222,21 +1222,21 @@ function DraggableJobCard({
   const wd = wishDate ? parseISO(wishDate) : null;
   const urgency = (() => {
     if (pending) {
-      return { rail: "bg-amber-400", pillBg: "bg-amber-50 dark:bg-amber-500/10", pillText: "text-amber-700 dark:text-amber-300", pillBorder: "border-amber-200 dark:border-amber-500/30", label: "Afventer kunde", pulse: false };
+      return { rail: "bg-amber-400", pillBg: "bg-amber-50 dark:bg-amber-500/10", pillText: "text-amber-700 dark:text-amber-300", label: "Afventer kunde" };
     }
     if (!wd) {
-      return { rail: "bg-muted-foreground/30", pillBg: "bg-secondary", pillText: "text-muted-foreground", pillBorder: "border-border", label: "Ikke planlagt", pulse: false };
+      return { rail: "bg-muted-foreground/30", pillBg: "bg-secondary", pillText: "text-muted-foreground", label: "Ikke planlagt" };
     }
     if (isPast(wd) && !isToday(wd)) {
-      return { rail: "bg-destructive", pillBg: "bg-destructive/10", pillText: "text-destructive", pillBorder: "border-destructive/30", label: `${Math.abs(differenceInDays(wd, new Date()))} dage forsinket`, pulse: true };
+      return { rail: "bg-destructive", pillBg: "bg-destructive/10", pillText: "text-destructive", label: `${Math.abs(differenceInDays(wd, new Date()))} dage forsinket` };
     }
     if (isToday(wd)) {
-      return { rail: "bg-orange-500", pillBg: "bg-orange-50 dark:bg-orange-500/10", pillText: "text-orange-700 dark:text-orange-300", pillBorder: "border-orange-200 dark:border-orange-500/30", label: "I dag", pulse: true };
+      return { rail: "bg-orange-500", pillBg: "bg-orange-50 dark:bg-orange-500/10", pillText: "text-orange-700 dark:text-orange-300", label: "I dag" };
     }
     if (isTomorrow(wd)) {
-      return { rail: "bg-amber-500", pillBg: "bg-amber-50 dark:bg-amber-500/10", pillText: "text-amber-700 dark:text-amber-300", pillBorder: "border-amber-200 dark:border-amber-500/30", label: "I morgen", pulse: false };
+      return { rail: "bg-amber-500", pillBg: "bg-amber-50 dark:bg-amber-500/10", pillText: "text-amber-700 dark:text-amber-300", label: "I morgen" };
     }
-    return { rail: "bg-primary", pillBg: "bg-primary/10", pillText: "text-foreground", pillBorder: "border-primary/20", label: format(wd, "d. MMM", { locale: da }), pulse: false };
+    return { rail: "bg-foreground/30", pillBg: "bg-secondary", pillText: "text-foreground/80", label: format(wd, "d. MMM", { locale: da }) };
   })();
 
   const items = (job.business_response === "adjusted" && job.customer_response === "accepted" && Array.isArray(job?.adjusted_details?.items))
@@ -1256,17 +1256,17 @@ function DraggableJobCard({
         fullWidth ? "w-full" : "w-64",
         selectMode && !pending && "cursor-pointer",
         selected
-          ? "border-accent ring-2 ring-accent/25 shadow-[0_6px_18px_-6px_hsl(var(--accent)/0.45)]"
+          ? "border-accent ring-1 ring-accent/30"
           : pending
-            ? "border-amber-300/60"
+            ? "border-amber-300/50"
             : cn(CARD_BORDER, CARD_HOVER),
         isDragging && "border-dashed border-accent/60 bg-secondary/30 opacity-45 shadow-none",
       )}
     >
-      {/* Venstre urgency-rail */}
-      <div aria-hidden className={cn("w-1 shrink-0", urgency.rail, urgency.pulse && "animate-pulse")} />
+      {/* Tynd venstre urgency-rail */}
+      <div aria-hidden className={cn("w-[3px] shrink-0", urgency.rail)} />
 
-      <div className="flex-1 min-w-0 p-2.5 space-y-1.5">
+      <div className="flex-1 min-w-0 p-2.5 pl-3 space-y-1.5">
         {/* Drag-handle/check + navn + dato-pille */}
         <div className="flex items-start gap-1.5">
           {selectMode && !pending ? (
@@ -1289,13 +1289,13 @@ function DraggableJobCard({
               <GripVertical className="h-4 w-4" />
             </button>
           ) : null}
-          <h3 className="min-w-0 flex-1 truncate text-[13.5px] font-bold capitalize leading-tight text-foreground">
+          <h3 className="min-w-0 flex-1 truncate text-[14px] font-semibold capitalize leading-tight text-foreground">
             {job.customer_name || "Ukendt kunde"}
           </h3>
           <span
             className={cn(
-              "shrink-0 inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[9.5px] font-bold tracking-wide",
-              urgency.pillBg, urgency.pillText, urgency.pillBorder,
+              "shrink-0 inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold tracking-wide",
+              urgency.pillBg, urgency.pillText,
             )}
           >
             {urgency.label}
@@ -1332,8 +1332,8 @@ function DraggableJobCard({
           <Button
             type="button"
             size="sm"
-            variant="outline"
-            className="h-7 w-full rounded-md border-border/70 text-[11px]"
+            variant="ghost"
+            className="h-7 w-full justify-center rounded-md bg-secondary/60 text-[11px] font-medium text-foreground/80 hover:bg-secondary"
             onClick={(e) => { e.stopPropagation(); onAssign(job); }}
           >
             Vælg rute
