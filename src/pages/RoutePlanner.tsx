@@ -3869,6 +3869,9 @@ const Planner = () => {
 
   return (
     <div className={cn(plannerTheme === "dark" && "dark")} data-density={density}>
+    <span id="unassigned-drag-instructions" className="sr-only">
+      Tryk Mellemrum eller Enter for at tage aftalekortet op. Brug piletasterne til at flytte det. Tryk Mellemrum igen for at slippe, eller Escape for at annullere.
+    </span>
     <DndContext
       sensors={sensors}
       collisionDetection={routePlannerCollisionDetection}
@@ -3937,9 +3940,15 @@ const Planner = () => {
             )}
 
             <Tabs value={view} onValueChange={(v) => setView(v as any)}>
-              <TabsList className="h-8 p-0.5 rounded-md">
-                <TabsTrigger value="month" className="text-[11px] font-semibold h-6 px-2.5 rounded-md">Måned</TabsTrigger>
-                <TabsTrigger value="week" className="text-[11px] font-semibold h-6 px-2.5 rounded-md">Uge</TabsTrigger>
+              <TabsList className="h-7 p-[2px] rounded-md bg-secondary/60 border border-border/60">
+                <TabsTrigger
+                  value="month"
+                  className="text-[11px] font-semibold h-[22px] px-3 rounded-[5px] tabular-nums data-[state=active]:bg-background data-[state=active]:shadow-[0_1px_2px_hsl(var(--foreground)/0.06)] data-[state=active]:text-foreground text-muted-foreground hover:text-foreground transition-colors"
+                >Måned</TabsTrigger>
+                <TabsTrigger
+                  value="week"
+                  className="text-[11px] font-semibold h-[22px] px-3 rounded-[5px] tabular-nums data-[state=active]:bg-background data-[state=active]:shadow-[0_1px_2px_hsl(var(--foreground)/0.06)] data-[state=active]:text-foreground text-muted-foreground hover:text-foreground transition-colors"
+                >Uge</TabsTrigger>
               </TabsList>
             </Tabs>
 
@@ -3950,16 +3959,16 @@ const Planner = () => {
                   variant="outline"
                   size="sm"
                   className={cn(
-                    "h-8 gap-1.5 rounded-md border-border/70 font-semibold transition-colors",
+                    "h-7 gap-1.5 rounded-md border-border/70 text-[11px] font-semibold transition-colors",
                     filtersActive
-                      ? "border-accent/60 bg-accent/[0.08] text-accent hover:bg-accent/[0.12]"
-                      : "hover:border-border hover:text-foreground"
+                      ? "border-foreground/80 bg-foreground text-background hover:bg-foreground/90"
+                      : "hover:border-border hover:bg-secondary/60 hover:text-foreground"
                   )}
                 >
                   <Filter className="h-3.5 w-3.5" />
                   Filtre
                   {filtersActive && (
-                    <Badge className="h-4 min-w-[16px] px-1 text-[10px] font-bold tabular-nums bg-accent text-accent-foreground border-0 rounded-full">
+                    <Badge className="h-4 min-w-[16px] px-1 text-[10px] font-bold tabular-nums bg-background text-foreground border-0 rounded-full">
                       {filterAssigneeIds.length + filterStatuses.length}
                     </Badge>
                   )}
@@ -4055,11 +4064,11 @@ const Planner = () => {
               </PopoverContent>
             </Popover>
 
-            <div className="flex items-center gap-0.5 rounded-md border border-border/70 bg-background p-0.5 shadow-[0_1px_2px_hsl(var(--foreground)/0.04)]">
+            <div className="flex items-center rounded-md border border-border/70 bg-background overflow-hidden divide-x divide-border/60">
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 rounded-md hover:bg-secondary"
+                className="h-7 w-7 rounded-none hover:bg-secondary text-muted-foreground hover:text-foreground"
                 onClick={() =>
                   setDate(format(view === "week" ? addWeeks(parseISO(date), -1) : addMonths(parseISO(date), -1), "yyyy-MM-dd"))
                 }
@@ -4071,7 +4080,7 @@ const Planner = () => {
                 <PopoverTrigger asChild>
                   <button
                     type="button"
-                    className="text-[13px] font-semibold capitalize min-w-[140px] text-center tabular-nums px-2.5 h-6 rounded-md hover:bg-secondary tracking-tight focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                    className="text-[12.5px] font-semibold capitalize min-w-[150px] text-center tabular-nums px-3 h-7 hover:bg-secondary tracking-tight focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent focus-visible:outline-none"
                     aria-label="Vælg dato"
                     title="Spring til specifik dato"
                   >
@@ -4095,7 +4104,7 @@ const Planner = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 rounded-md hover:bg-secondary"
+                className="h-7 w-7 rounded-none hover:bg-secondary text-muted-foreground hover:text-foreground"
                 onClick={() =>
                   setDate(format(view === "week" ? addWeeks(parseISO(date), 1) : addMonths(parseISO(date), 1), "yyyy-MM-dd"))
                 }
@@ -4110,7 +4119,7 @@ const Planner = () => {
                   data-tour="routes-today"
                   variant="outline"
                   size="sm"
-                  className="h-8 text-[11px] font-semibold rounded-md border-border/70 hover:border-border hover:bg-secondary/70 hover:text-foreground active:scale-[0.97] transition-[background-color,color,border-color,transform] duration-150"
+                  className="h-7 text-[11px] font-semibold rounded-md border-border/70 hover:border-border hover:bg-secondary/70 hover:text-foreground transition-colors"
                   onClick={() => setDate(todayStr())}
                 >
                   I dag

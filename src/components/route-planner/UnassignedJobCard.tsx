@@ -276,10 +276,13 @@ export const UnassignedJobCard = ({
       aria-label={isPending
         ? `${job.customer_name} — afventer kundens godkendelse`
         : `${job.customer_name} — træk for at planlægge, klik for detaljer`}
+      aria-roledescription={isPending ? undefined : "Aftalekort — kan trækkes"}
+      aria-describedby={isPending ? undefined : "unassigned-drag-instructions"}
       className={cn(
         CARD_BASE,
         "flex",
         isPending ? "" : "cursor-grab active:cursor-grabbing touch-none",
+        isPending ? "" : "focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:outline-none",
         isDragging
           ? "border-dashed border-accent/60 bg-secondary/30 shadow-none ring-0"
           : isPending
