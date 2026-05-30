@@ -459,7 +459,7 @@ export default function RoutePlannerMobile() {
               </button>
               <ThemeToggle />
             </div>
-            <div className="grid grid-cols-7 gap-1.5">
+            <div className="grid grid-cols-7 gap-1">
               {weekRange.days.map((d) => {
                 const dt = parseISO(d);
                 const isSel = d === date;
@@ -471,21 +471,21 @@ export default function RoutePlannerMobile() {
                     type="button"
                     onClick={() => setDate(d)}
                     className={cn(
-                      "relative flex flex-col items-center gap-0.5 rounded-xl py-2 transition-all",
+                      "relative flex flex-col items-center gap-0.5 rounded-md py-1.5 transition-colors",
                       isSel
-                        ? "bg-foreground text-background shadow-sm scale-[1.02]"
-                        : "hover:bg-secondary active:scale-95",
+                        ? "bg-foreground text-background"
+                        : "hover:bg-secondary",
                     )}
                   >
-                    <span className={cn("text-[10px] uppercase", isSel ? "text-background/70" : "text-muted-foreground")}>
+                    <span className={cn("text-[9.5px] uppercase tracking-wide font-medium", isSel ? "text-background/70" : "text-muted-foreground")}>
                       {format(dt, "EEEEEE", { locale: da })}
                     </span>
-                    <span className={cn("text-[15px] font-semibold tabular-nums leading-none", isToday && !isSel && "text-accent")}>
+                    <span className={cn("text-[14px] font-semibold tabular-nums leading-none", isToday && !isSel && "text-accent")}>
                       {format(dt, "d")}
                     </span>
                     <span
                       className={cn(
-                        "h-1.5 w-1.5 rounded-full",
+                        "h-1 w-1 rounded-full",
                         count > 0
                           ? isSel
                             ? "bg-background"
