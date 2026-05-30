@@ -837,23 +837,23 @@ function DroppableRouteCard({
       </div>
 
       {/* Inline stop-liste — sorterbar inden for ruten */}
-      <div className="border-t border-border/60 px-2.5 pb-2.5 pt-2">
+      <div className="border-t border-border/50 bg-secondary/20 px-2 pb-2 pt-2">
         {stops.length === 0 ? (
           <div
             className={cn(
-              "flex items-center justify-center rounded-md border-2 border-dashed py-8 text-[11px] transition-all",
+              "flex items-center justify-center rounded-lg border border-dashed py-7 text-[11px] transition-all",
               isOver
-                ? "border-accent/60 bg-accent/[0.06] font-medium text-accent"
+                ? "border-accent/50 bg-accent/[0.05] font-medium text-accent"
                 : dragActive
-                  ? "border-accent/40 text-accent/80"
-                  : "border-border/50 text-muted-foreground/70",
+                  ? "border-accent/30 text-accent/80"
+                  : "border-border/40 text-muted-foreground/60",
             )}
           >
             {isOver ? "Slip for at tildele" : "Træk aftaler hertil"}
           </div>
         ) : (
           <SortableContext items={stopIds} strategy={verticalListSortingStrategy}>
-            <ol className="space-y-2">
+            <ol className="space-y-1.5">
               {stops.map((s, idx) => (
                 <SortableStopRow
                   key={s.id}
@@ -953,9 +953,9 @@ function SortableStopRow({
       <div
         className={cn(
           CARD_BASE,
-          "p-2.5 pl-3 transition-transform",
+          "p-2 pl-3 transition-transform",
           completed
-            ? "border-emerald-200/70 bg-emerald-50/40 opacity-80 dark:border-emerald-500/25 dark:bg-emerald-500/10"
+            ? "border-emerald-200/60 bg-emerald-50/30 opacity-80 dark:border-emerald-500/20 dark:bg-emerald-500/5"
             : cn(CARD_BORDER, CARD_HOVER),
         )}
         style={{ transform: swipe ? `translateX(${swipe}px)` : undefined }}
@@ -964,10 +964,10 @@ function SortableStopRow({
         onTouchEnd={onTouchEnd}
         onTouchCancel={() => { swipeStart.current = null; setSwipe(0); }}
       >
-        {/* Venstre farve-rail — matcher desktop SortableStopCard */}
+        {/* Tynd venstre farve-rail */}
         <span
           aria-hidden
-          className="absolute left-0 top-0 bottom-0 w-1 opacity-90"
+          className="absolute left-0 top-0 bottom-0 w-[2px]"
           style={{ background: completed ? "hsl(var(--muted-foreground) / 0.4)" : routeColor }}
         />
         <div className="flex items-start gap-2">
@@ -977,7 +977,7 @@ function SortableStopRow({
             {...attributes}
             aria-label="Træk stop"
             className={cn(
-              "flex h-6 w-6 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-[11px] font-bold leading-none text-background ring-2 ring-background shadow-[0_2px_4px_-1px_hsl(var(--foreground)/0.2)] transition-transform active:scale-95 active:cursor-grabbing",
+              "flex h-6 w-6 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-[11px] font-bold leading-none text-background transition-transform active:scale-95 active:cursor-grabbing",
               completed && "opacity-50",
             )}
             style={{ background: routeColor }}
