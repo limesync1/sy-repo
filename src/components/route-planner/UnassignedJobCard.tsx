@@ -19,7 +19,7 @@ import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_SELECTED, SEGMENT_BTN } from "
  *  rigtige kort kommer ind. */
 export const UnassignedJobCardSkeleton = ({ compact = false }: { compact?: boolean }) => (
   <div className="relative rounded-xl border border-border/70 bg-card overflow-hidden flex shadow-[0_1px_2px_hsl(var(--foreground)/0.05)]">
-    <div className="w-1 bg-secondary shrink-0" />
+    <div className="w-[3px] bg-secondary shrink-0" />
     <div className={`flex-1 ${compact ? "p-2.5 pl-8" : "p-3 pl-9"} space-y-2`}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0 space-y-1.5">
@@ -297,7 +297,7 @@ export const UnassignedJobCard = ({
          ─────────────────────────────────────────────────────────────────── */}
       <div
         aria-hidden
-        className={`w-1 shrink-0 ${selected ? "bg-accent" : urgency.rail} ${urgency.pulse ? "animate-pulse" : ""}`}
+        className={`w-[3px] shrink-0 ${selected ? "bg-accent" : urgency.rail}`}
       />
 
       {/* MULTI-SELECT — stor, altid-synlig dedikeret zone i venstre side.
@@ -350,9 +350,9 @@ export const UnassignedJobCard = ({
             {job.customer_name}
           </h3>
           <span
-            className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[10.5px] font-bold tracking-wide ${urgency.pillBg} ${urgency.pillText} ${urgency.pillBorder}`}
+            className={`shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10.5px] font-semibold tracking-wide ${urgency.pillBg} ${urgency.pillText}`}
           >
-            {urgency.pulse && <span aria-hidden className={`h-1.5 w-1.5 rounded-full ${urgency.rail} animate-pulse`} />}
+            {urgency.pulse && <span aria-hidden className={`h-1.5 w-1.5 rounded-full ${urgency.rail}`} />}
             {urgency.label}
           </span>
         </div>
