@@ -765,12 +765,26 @@ function DroppableRouteCard({
       className={cn(
         "relative overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_hsl(var(--foreground)/0.04)] transition-all",
         isOver
-          ? "border-accent/60 bg-accent/[0.03] ring-1 ring-accent/30"
+          ? "border-accent bg-accent/10 ring-2 ring-accent shadow-[0_8px_24px_-8px_hsl(var(--accent)/0.5)] scale-[1.01]"
           : dragActive
-            ? "border-dashed border-accent/35 bg-accent/[0.015]"
+            ? "border-dashed border-2 border-accent/60 bg-accent/[0.04]"
             : "border-border/60 hover:border-foreground/20",
       )}
     >
+      {/* Tydelig "slip her"-badge under drag */}
+      {dragActive && (
+        <span
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute right-2 top-2 z-10 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide transition-all",
+            isOver
+              ? "bg-accent text-accent-foreground shadow-md scale-110"
+              : "bg-accent/15 text-accent border border-accent/40",
+          )}
+        >
+          {isOver ? "Slip her" : "Drop zone"}
+        </span>
+      )}
       {/* Tynd venstre farve-rail — diskret, ikke dominerende */}
       <span
         aria-hidden
@@ -841,15 +855,15 @@ function DroppableRouteCard({
         {stops.length === 0 ? (
           <div
             className={cn(
-              "flex items-center justify-center rounded-lg border border-dashed py-7 text-[11px] transition-all",
+              "flex items-center justify-center rounded-lg border-2 border-dashed py-8 text-xs font-medium transition-all",
               isOver
-                ? "border-accent/50 bg-accent/[0.05] font-medium text-accent"
+                ? "border-accent bg-accent/10 text-accent text-sm font-bold scale-[1.02]"
                 : dragActive
-                  ? "border-accent/30 text-accent/80"
+                  ? "border-accent/60 bg-accent/[0.04] text-accent"
                   : "border-border/40 text-muted-foreground/60",
             )}
           >
-            {isOver ? "Slip for at tildele" : "Træk aftaler hertil"}
+            {isOver ? "✓ Slip for at tildele" : dragActive ? "Slip aftalen her" : "Træk aftaler hertil"}
           </div>
         ) : (
           <SortableContext items={stopIds} strategy={verticalListSortingStrategy}>
