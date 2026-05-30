@@ -763,52 +763,52 @@ function DroppableRouteCard({
     <div
       ref={setNodeRef}
       className={cn(
-        "overflow-hidden rounded-2xl border bg-card shadow-sm transition-all",
+        "relative overflow-hidden rounded-lg border bg-card shadow-[0_2px_10px_-6px_hsl(var(--foreground)/0.18)] transition-all",
         isOver
-          ? "border-accent ring-2 ring-accent/40 shadow-lg scale-[1.005]"
+          ? "border-accent/70 bg-accent/[0.04] ring-2 ring-accent/25 shadow-[0_8px_24px_-12px_hsl(var(--accent)/0.35)]"
           : dragActive
             ? "border-dashed border-accent/40 bg-accent/[0.02]"
-            : "border-border",
+            : "border-border/70 hover:border-foreground/25",
       )}
     >
-      {/* Top farve-stribe */}
+      {/* Top farve-stribe — matcher desktop EmployeeColumn */}
       <span
         aria-hidden
-        className="block h-1 w-full"
-        style={{ backgroundColor: route.color }}
+        className="absolute inset-x-0 top-0 h-1 opacity-90"
+        style={{ background: route.color }}
       />
       {/* Header — tap for at åbne detalje-sheet */}
-      <div className="flex items-stretch gap-2 px-3 pt-2.5 pb-2">
+      <div className="flex items-stretch gap-2.5 px-3 pt-3.5 pb-2.5">
         <button
           type="button"
           onClick={() => onOpenRoute(route)}
           className="flex min-w-0 flex-1 items-start gap-2.5 text-left active:opacity-80"
         >
           <span
-            className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[13px] font-bold text-white shadow-sm ring-2 ring-background"
-            style={{ backgroundColor: route.color }}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[10px] font-bold leading-none text-background ring-2 ring-background shadow-[0_2px_6px_-2px_hsl(var(--foreground)/0.25)]"
+            style={{ background: route.color }}
           >
             {(route.name || "R").charAt(0).toUpperCase()}
           </span>
           <div className="min-w-0 flex-1 py-0.5">
-            <p className="truncate text-[15px] font-semibold leading-tight text-foreground">
+            <p className="truncate text-sm font-bold leading-tight tracking-tight text-foreground">
               {route.name || "Rute uden navn"}
             </p>
-            <div className="mt-1 flex flex-wrap items-center gap-1">
-              <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[10.5px] font-medium tabular-nums text-foreground">
-                <MapPin className="h-3 w-3" />
-                {done > 0 ? `${done}/${stops.length}` : stops.length}
-              </span>
+            <div className="mt-1.5 flex flex-wrap items-center gap-1">
+              <Badge variant="secondary" className="h-5 rounded-md px-1.5 text-[10px] font-semibold tabular-nums">
+                {done > 0 ? `${done}/${stops.length}` : `${stops.length}`} stop
+              </Badge>
               {route.total_distance_km != null && route.total_distance_km > 0 && (
-                <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[10.5px] font-medium tabular-nums text-foreground">
-                  {Math.round(route.total_distance_km)} km
-                </span>
+                <Badge variant="outline" className="h-5 gap-0.5 rounded-md border-border/70 px-1.5 text-[10px] tabular-nums">
+                  <MapPin className="h-2.5 w-2.5" />
+                  {route.total_distance_km.toFixed(1)} km
+                </Badge>
               )}
               {totalMin > 0 && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[10.5px] font-medium tabular-nums text-foreground">
-                  <Clock className="h-3 w-3" />
+                <Badge variant="outline" className="h-5 gap-0.5 rounded-md border-border/70 px-1.5 text-[10px] tabular-nums">
+                  <Clock className="h-2.5 w-2.5" />
                   {formatDur(totalMin)}
-                </span>
+                </Badge>
               )}
             </div>
           </div>
@@ -817,8 +817,8 @@ function DroppableRouteCard({
           <Button
             type="button"
             size="sm"
-            variant="ghost"
-            className="h-8 shrink-0 gap-1 self-start rounded-full px-2.5 text-[11px] font-semibold"
+            variant="outline"
+            className="h-8 shrink-0 gap-1 self-start rounded-md border-border/70 px-2.5 text-xs"
             onClick={async () => {
               try {
                 await optimize.mutateAsync(route.id);
@@ -828,33 +828,34 @@ function DroppableRouteCard({
               }
             }}
             disabled={optimizing}
+            title="AI-optimér rækkefølge"
           >
-            {optimizing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+            {optimizing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
             Optimér
           </Button>
         )}
       </div>
 
       {/* Inline stop-liste — sorterbar inden for ruten */}
-      <div className="border-t border-border/60 px-2 pb-2 pt-1.5">
+      <div className="border-t border-border/60 px-2.5 pb-2.5 pt-2">
         {/* Mini-kort over rute-formen (hvis vi har koordinater) */}
-        <MiniMap stops={stops} color={route.color} className="mb-1.5 px-1" />
+        <MiniMap stops={stops} color={route.color} className="mb-2 px-1" />
         {stops.length === 0 ? (
           <div
             className={cn(
-              "flex items-center justify-center rounded-xl border-2 border-dashed py-5 text-[11px] transition-colors",
+              "flex items-center justify-center rounded-md border-2 border-dashed py-8 text-[11px] transition-all",
               isOver
-                ? "border-accent/70 bg-accent/10 font-semibold text-accent"
+                ? "border-accent/60 bg-accent/[0.06] font-medium text-accent"
                 : dragActive
                   ? "border-accent/40 text-accent/80"
-                  : "border-border text-muted-foreground",
+                  : "border-border/50 text-muted-foreground/70",
             )}
           >
-            {isOver ? "Slip for at tilføje" : "Træk en aftale hertil"}
+            {isOver ? "Slip for at tildele" : "Træk aftaler hertil"}
           </div>
         ) : (
           <SortableContext items={stopIds} strategy={verticalListSortingStrategy}>
-            <ol className="space-y-1">
+            <ol className="space-y-2">
               {stops.map((s, idx) => (
                 <SortableStopRow
                   key={s.id}
