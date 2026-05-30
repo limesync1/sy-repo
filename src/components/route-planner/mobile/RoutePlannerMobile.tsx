@@ -1250,11 +1250,13 @@ function DraggableJobCard({
     <div
       ref={setNodeRef}
       onClick={selectMode && !pending ? onToggle : undefined}
+      {...(!pending && !selectMode ? { ...listeners, ...attributes } : {})}
       className={cn(
         CARD_BASE,
         "flex shrink-0",
         fullWidth ? "w-full" : "w-64",
         selectMode && !pending && "cursor-pointer",
+        !pending && !selectMode && "cursor-grab touch-none active:cursor-grabbing",
         selected
           ? "border-accent ring-1 ring-accent/30"
           : pending
@@ -1279,15 +1281,12 @@ function DraggableJobCard({
               {selected && <CheckCircle2 className="h-3 w-3" />}
             </span>
           ) : !pending ? (
-            <button
-              type="button"
-              {...listeners}
-              {...attributes}
-              aria-label="Træk aftale"
-              className="-ml-1 flex h-7 w-5 shrink-0 touch-none items-center justify-center text-muted-foreground active:text-foreground"
+            <span
+              aria-hidden
+              className="-ml-1 flex h-7 w-5 shrink-0 items-center justify-center text-muted-foreground/60"
             >
               <GripVertical className="h-4 w-4" />
-            </button>
+            </span>
           ) : null}
           <h3 className="min-w-0 flex-1 truncate text-[14px] font-semibold capitalize leading-tight text-foreground">
             {job.customer_name || "Ukendt kunde"}
@@ -1335,6 +1334,7 @@ function DraggableJobCard({
             variant="ghost"
             className="h-7 w-full justify-center rounded-md bg-secondary/60 text-[11px] font-medium text-foreground/80 hover:bg-secondary"
             onClick={(e) => { e.stopPropagation(); onAssign(job); }}
+            onPointerDown={(e) => e.stopPropagation()}
           >
             Vælg rute
           </Button>
