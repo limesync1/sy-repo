@@ -739,7 +739,7 @@ const RoutePillInner = ({
   const loadColor =
     loadPct >= 100 ? "bg-destructive"
       : loadPct >= 85 ? "bg-amber-500"
-        : "bg-accent/70";
+        : "bg-foreground/40";
   // I månedsvisning er cellerne smalle (~110px). For at undgå at metadata-
   // rækken wrapper til 3-4 linjer (og dermed gør pillen + hele kalender-
   // rækken unødigt høj) viser vi færre felter og holder dem på én linje.
@@ -771,8 +771,8 @@ const RoutePillInner = ({
         onSelect();
       }}
       className={cn(
-        "relative rounded-lg border-l-[3px] cursor-pointer overflow-hidden bg-card",
-        "border border-border/60 shadow-[0_1px_2px_hsl(var(--foreground)/0.04)] transition-[transform,box-shadow,border-color,opacity] duration-200 ease-out hover:-translate-y-[1.5px] hover:shadow-[0_8px_18px_-6px_hsl(var(--foreground)/0.22)] hover:border-foreground/20",
+        "relative rounded-md cursor-pointer overflow-hidden bg-card",
+        "border border-border/60 transition-[background-color,border-color,opacity] duration-150 ease-out hover:border-foreground/25 hover:bg-secondary/40",
         isDragging && "opacity-40",
         isVirtual && "border-dashed",
         isPast && "opacity-50 saturate-50 hover:opacity-90",
@@ -781,13 +781,13 @@ const RoutePillInner = ({
         // ikke visuelt invitere til drop.
         jobDragActive && isPast && "opacity-25 pointer-events-none",
         // Når en aftale er ved at blive sluppet på pillen — markér tydeligt
-        !isVirtual && jobDragActive && !isOver && "ring-1 shadow-sm",
-        !isVirtual && isOver && !validation && "ring-2 ring-accent shadow-[0_6px_16px_-4px_hsl(var(--accent)/0.45)]",
-        !isVirtual && isOver && validation && cn(ringForSeverity(validation.severity), "shadow-[0_6px_16px_-4px_rgba(0,0,0,0.18)]"),
+        !isVirtual && jobDragActive && !isOver && "border-dashed",
+        !isVirtual && isOver && !validation && "ring-1 ring-accent border-accent",
+        !isVirtual && isOver && validation && ringForSeverity(validation.severity),
         // Når en ANDEN rute faktisk hovrer over denne pille, er det et merge.
         // Vi markerer derfor KUN ved reel hover, så en dato med en eksisterende
         // rute ikke fejlagtigt ligner et merge-target i sig selv.
-        isMergeTarget && isOver && "ring-2 ring-accent shadow-[0_8px_20px_-4px_hsl(var(--accent)/0.5)] bg-accent/5",
+        isMergeTarget && isOver && "ring-1 ring-accent bg-accent/5",
         // Hvis denne pille selv er kilde i en rute-drag: dæmp + crosshatch-look
         routeDragSourceId === route.id && "opacity-50",
         // Hvis denne pille IKKE er et gyldigt flette-mål under route-drag (fx projiceret/fortid),
@@ -797,17 +797,10 @@ const RoutePillInner = ({
         // Multi-select visuelt — tydelig accent-ring på valgte piller, og
         // svag dæmpning på ikke-valgte piller mens man er i valg-tilstand,
         // så valget altid er let at scanne i en travl kalender.
-        selected && "ring-2 ring-accent ring-offset-1 ring-offset-card shadow-[0_4px_12px_-3px_hsl(var(--accent)/0.35)]",
+        selected && "ring-1 ring-accent border-accent",
         anySelected && !selected && !isVirtual && !isPast && "opacity-70 hover:opacity-100",
         anySelected && (isVirtual || isPast) && "opacity-30",
       )}
-      style={{
-        borderLeftColor: route.color,
-        borderLeftWidth: 3,
-        ...(!isVirtual && jobDragActive && !isOver
-          ? { boxShadow: `0 0 0 1px ${route.color}40, 0 1px 3px ${route.color}20` }
-          : {}),
-      }}
       title={
         validation?.topMessage
           ? validation.topMessage
@@ -819,6 +812,12 @@ const RoutePillInner = ({
       }
       aria-busy={busy || undefined}
     >
+      {/* Tynd venstre farve-rail — eneste sted ruten-farven bruges */}
+      <span
+        aria-hidden
+        className="absolute inset-y-0 left-0 w-[2px] pointer-events-none"
+        style={{ background: route.color }}
+      />
       {/* L2 — Live drop-validering chip på rute-pille.
           Vises kun mens et drag svæver over pillen og en validering er
           aktiv, så brugeren ser præcis hvorfor dropet er ok/advarsel/fejl
@@ -861,12 +860,12 @@ const RoutePillInner = ({
         {...(dragLocked ? {} : listeners)}
         {...(dragLocked ? {} : attributes)}
         className={cn(
-          "px-2.5 py-1.5 flex items-center justify-between gap-1.5",
+          "pl-3 pr-2 py-1.5 flex items-center justify-between gap-1.5",
           dragLocked ? "cursor-pointer" : "cursor-grab active:cursor-grabbing",
         )}
       >
         <div className="min-w-0 flex-1">
-          <div className="text-[12.5px] font-bold truncate text-foreground leading-tight flex items-center gap-1">
+          <div className="text-[12px] font-semibold truncate text-foreground leading-tight flex items-center gap-1 tracking-tight">
             {isVirtual && (
               <span
                 className="inline-flex items-center gap-0.5 rounded-sm bg-muted px-1 py-px text-[9px] font-bold uppercase tracking-wide text-muted-foreground shrink-0"
@@ -971,18 +970,18 @@ const RoutePillInner = ({
       {/* Kapacitets-bar: tynd stribe der viser belastning. Skjul ved 0 stops. */}
       {stopCount > 0 && (
         <div
-          className="h-1 w-full bg-muted/25 overflow-hidden"
+          className="h-0.5 w-full bg-muted/25 overflow-hidden"
           title={`Belastning ${loadPct}% — ${Math.round(workMin / 60 * 10) / 10} t af ~${Math.round(capacityMin / 60)} t (${empCount} medarbejder${empCount === 1 ? "" : "e"})`}
           aria-label={`Belastning ${loadPct} procent`}
         >
           <div
             className={cn(
-              "h-full transition-all duration-500 rounded-r-full",
+              "h-full transition-all duration-300",
               loadPct >= 100
-                ? "bg-gradient-to-r from-destructive/80 to-destructive shadow-[0_0_6px_hsl(var(--destructive)/0.6)]"
+                ? "bg-destructive"
                 : loadPct >= 85
-                ? "bg-gradient-to-r from-amber-500/80 to-amber-500"
-                : "bg-gradient-to-r from-accent/60 to-accent/80",
+                ? "bg-amber-500"
+                : "bg-foreground/35",
             )}
             style={{ width: `${Math.min(100, loadPct)}%` }}
           />
