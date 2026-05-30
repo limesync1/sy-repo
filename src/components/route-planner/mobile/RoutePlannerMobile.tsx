@@ -763,52 +763,52 @@ function DroppableRouteCard({
     <div
       ref={setNodeRef}
       className={cn(
-        "relative overflow-hidden rounded-lg border bg-card shadow-[0_2px_10px_-6px_hsl(var(--foreground)/0.18)] transition-all",
+        "relative overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_hsl(var(--foreground)/0.04)] transition-all",
         isOver
-          ? "border-accent/70 bg-accent/[0.04] ring-2 ring-accent/25 shadow-[0_8px_24px_-12px_hsl(var(--accent)/0.35)]"
+          ? "border-accent/60 bg-accent/[0.03] ring-1 ring-accent/30"
           : dragActive
-            ? "border-dashed border-accent/40 bg-accent/[0.02]"
-            : "border-border/70 hover:border-foreground/25",
+            ? "border-dashed border-accent/35 bg-accent/[0.015]"
+            : "border-border/60 hover:border-foreground/20",
       )}
     >
-      {/* Top farve-stribe — matcher desktop EmployeeColumn */}
+      {/* Tynd venstre farve-rail — diskret, ikke dominerende */}
       <span
         aria-hidden
-        className="absolute inset-x-0 top-0 h-1 opacity-90"
+        className="absolute inset-y-0 left-0 w-[3px]"
         style={{ background: route.color }}
       />
       {/* Header — tap for at åbne detalje-sheet */}
-      <div className="flex items-stretch gap-2.5 px-3 pt-3.5 pb-2.5">
+      <div className="flex items-stretch gap-2.5 pl-3.5 pr-3 pt-3 pb-2.5">
         <button
           type="button"
           onClick={() => onOpenRoute(route)}
           className="flex min-w-0 flex-1 items-start gap-2.5 text-left active:opacity-80"
         >
           <span
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[10px] font-bold leading-none text-background ring-2 ring-background shadow-[0_2px_6px_-2px_hsl(var(--foreground)/0.25)]"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[11px] font-bold leading-none text-background"
             style={{ background: route.color }}
           >
             {(route.name || "R").charAt(0).toUpperCase()}
           </span>
           <div className="min-w-0 flex-1 py-0.5">
-            <p className="truncate text-sm font-bold leading-tight tracking-tight text-foreground">
+            <p className="truncate text-[15px] font-semibold leading-tight tracking-tight text-foreground">
               {route.name || "Rute uden navn"}
             </p>
-            <div className="mt-1.5 flex flex-wrap items-center gap-1">
-              <Badge variant="secondary" className="h-5 rounded-md px-1.5 text-[10px] font-semibold tabular-nums">
-                {done > 0 ? `${done}/${stops.length}` : `${stops.length}`} stop
-              </Badge>
+            <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[11px] tabular-nums text-muted-foreground">
+              <span className="font-medium text-foreground/80">
+                {done > 0 ? `${done}/${stops.length}` : stops.length} stop
+              </span>
               {route.total_distance_km != null && route.total_distance_km > 0 && (
-                <Badge variant="outline" className="h-5 gap-0.5 rounded-md border-border/70 px-1.5 text-[10px] tabular-nums">
-                  <MapPin className="h-2.5 w-2.5" />
+                <span className="inline-flex items-center gap-1">
+                  <span className="h-1 w-1 rounded-full bg-border" />
                   {route.total_distance_km.toFixed(1)} km
-                </Badge>
+                </span>
               )}
               {totalMin > 0 && (
-                <Badge variant="outline" className="h-5 gap-0.5 rounded-md border-border/70 px-1.5 text-[10px] tabular-nums">
-                  <Clock className="h-2.5 w-2.5" />
+                <span className="inline-flex items-center gap-1">
+                  <span className="h-1 w-1 rounded-full bg-border" />
                   {formatDur(totalMin)}
-                </Badge>
+                </span>
               )}
             </div>
           </div>
@@ -817,8 +817,8 @@ function DroppableRouteCard({
           <Button
             type="button"
             size="sm"
-            variant="outline"
-            className="h-8 shrink-0 gap-1 self-start rounded-md border-border/70 px-2.5 text-xs"
+            variant="ghost"
+            className="h-8 shrink-0 gap-1 self-start rounded-md px-2 text-xs text-muted-foreground hover:text-foreground"
             onClick={async () => {
               try {
                 await optimize.mutateAsync(route.id);
@@ -830,7 +830,7 @@ function DroppableRouteCard({
             disabled={optimizing}
             title="AI-optimér rækkefølge"
           >
-            {optimizing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+            {optimizing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
             Optimér
           </Button>
         )}
