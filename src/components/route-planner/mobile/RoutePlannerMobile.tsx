@@ -1219,72 +1219,129 @@ function DraggableJobCard({
     data: { type: "job", job },
     disabled: pending || selectMode,
   });
+
+  // Urgency-tema: matcher desktop UnassignedJobCard's venstre-rail.
+  const wd = wishDate ? parseISO(wishDate) : null;
+  const urgency = (() => {
+    if (pending) {
+      return { rail: "bg-amber-400", pillBg: "bg-amber-50 dark:bg-amber-500/10", pillText: "text-amber-700 dark:text-amber-300", pillBorder: "border-amber-200 dark:border-amber-500/30", label: "Afventer kunde", pulse: false };
+    }
+    if (!wd) {
+      return { rail: "bg-muted-foreground/30", pillBg: "bg-secondary", pillText: "text-muted-foreground", pillBorder: "border-border", label: "Ikke planlagt", pulse: false };
+    }
+    if (isPast(wd) && !isToday(wd)) {
+      return { rail: "bg-destructive", pillBg: "bg-destructive/10", pillText: "text-destructive", pillBorder: "border-destructive/30", label: `${Math.abs(differenceInDays(wd, new Date()))} dage forsinket`, pulse: true };
+    }
+    if (isToday(wd)) {
+      return { rail: "bg-orange-500", pillBg: "bg-orange-50 dark:bg-orange-500/10", pillText: "text-orange-700 dark:text-orange-300", pillBorder: "border-orange-200 dark:border-orange-500/30", label: "I dag", pulse: true };
+    }
+    if (isTomorrow(wd)) {
+      return { rail: "bg-amber-500", pillBg: "bg-amber-50 dark:bg-amber-500/10", pillText: "text-amber-700 dark:text-amber-300", pillBorder: "border-amber-200 dark:border-amber-500/30", label: "I morgen", pulse: false };
+    }
+    return { rail: "bg-primary", pillBg: "bg-primary/10", pillText: "text-foreground", pillBorder: "border-primary/20", label: format(wd, "d. MMM", { locale: da }), pulse: false };
+  })();
+
+  const items = (job.business_response === "adjusted" && job.customer_response === "accepted" && Array.isArray(job?.adjusted_details?.items))
+    ? (job.adjusted_details.items as any[])
+    : (job.order_items || []);
+  const itemCount = items.length;
+  const displayAmount = job.customer_response === "accepted" ? (job.adjusted_amount ?? job.total_amount) : job.total_amount;
+  const fullAddress = [job.address, [job.zip_code, job.city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+
   return (
     <div
       ref={setNodeRef}
       onClick={selectMode && !pending ? onToggle : undefined}
       className={cn(
-        "flex shrink-0 flex-col rounded-2xl border bg-background p-2.5 shadow-sm transition-all",
-        fullWidth ? "w-full" : "w-52",
+        CARD_BASE,
+        "flex shrink-0",
+        fullWidth ? "w-full" : "w-64",
         selectMode && !pending && "cursor-pointer",
-        selected ? "border-accent ring-2 ring-accent/40" : "border-border",
-        isDragging && "opacity-30",
-        pending && "opacity-90",
+        selected
+          ? "border-accent ring-2 ring-accent/25 shadow-[0_6px_18px_-6px_hsl(var(--accent)/0.45)]"
+          : pending
+            ? "border-amber-300/60"
+            : cn(CARD_BORDER, CARD_HOVER),
+        isDragging && "border-dashed border-accent/60 bg-secondary/30 opacity-45 shadow-none",
       )}
     >
-      <div className="flex items-start gap-1.5">
-        {selectMode && !pending ? (
+      {/* Venstre urgency-rail */}
+      <div aria-hidden className={cn("w-1 shrink-0", urgency.rail, urgency.pulse && "animate-pulse")} />
+
+      <div className="flex-1 min-w-0 p-2.5 space-y-1.5">
+        {/* Drag-handle/check + navn + dato-pille */}
+        <div className="flex items-start gap-1.5">
+          {selectMode && !pending ? (
+            <span
+              className={cn(
+                "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 transition-colors",
+                selected ? "border-accent bg-accent text-accent-foreground" : "border-muted-foreground/40",
+              )}
+            >
+              {selected && <CheckCircle2 className="h-3 w-3" />}
+            </span>
+          ) : !pending ? (
+            <button
+              type="button"
+              {...listeners}
+              {...attributes}
+              aria-label="Træk aftale"
+              className="-ml-1 flex h-7 w-5 shrink-0 touch-none items-center justify-center text-muted-foreground active:text-foreground"
+            >
+              <GripVertical className="h-4 w-4" />
+            </button>
+          ) : null}
+          <h3 className="min-w-0 flex-1 truncate text-[13.5px] font-bold capitalize leading-tight text-foreground">
+            {job.customer_name || "Ukendt kunde"}
+          </h3>
           <span
             className={cn(
-              "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 transition-colors",
-              selected ? "border-accent bg-accent text-accent-foreground" : "border-muted-foreground/40",
+              "shrink-0 inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[9.5px] font-bold tracking-wide",
+              urgency.pillBg, urgency.pillText, urgency.pillBorder,
             )}
           >
-            {selected && <CheckCircle2 className="h-3 w-3" />}
+            {urgency.label}
           </span>
-        ) : !pending ? (
-          <button
-            type="button"
-            {...listeners}
-            {...attributes}
-            aria-label="Træk aftale"
-            className="-ml-1 flex h-7 w-5 shrink-0 touch-none items-center justify-center text-muted-foreground active:text-foreground"
-          >
-            <GripVertical className="h-4 w-4" />
-          </button>
-        ) : null}
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-[12.5px] font-semibold text-foreground">
-            {job.customer_name || "Ukendt kunde"}
-          </p>
-          <p className="truncate text-[10.5px] text-muted-foreground">
-            {jobAddress(job)}
-          </p>
         </div>
+
+        {/* Service + pris — matcher desktop UnassignedJobCard */}
+        {itemCount > 0 && (
+          <div className="flex items-baseline justify-between gap-2 rounded-md bg-secondary/30 px-1.5 py-1">
+            <p className="min-w-0 flex-1 truncate text-[11px] font-semibold leading-snug text-foreground/80">
+              {items[0].quantity > 1 && <span>{items[0].quantity}× </span>}
+              {items[0].service_name}
+              {itemCount > 1 && <span className="text-muted-foreground"> · +{itemCount - 1}</span>}
+            </p>
+            {displayAmount != null && (
+              <div className="shrink-0 leading-none">
+                <span className="text-[12px] font-bold tracking-tight text-foreground tabular-nums">
+                  {Math.round(Number(displayAmount || 0))}
+                </span>
+                <span className="ml-0.5 text-[9.5px] font-bold uppercase tracking-wide text-muted-foreground">kr</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {fullAddress && (
+          <p className="flex items-center gap-1 truncate text-[10.5px] leading-tight text-muted-foreground">
+            <MapPin className="h-2.5 w-2.5 shrink-0" />
+            <span className="truncate">{fullAddress}</span>
+          </p>
+        )}
+
+        {!pending && !selectMode && (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="h-7 w-full rounded-md border-border/70 text-[11px]"
+            onClick={(e) => { e.stopPropagation(); onAssign(job); }}
+          >
+            Vælg rute
+          </Button>
+        )}
       </div>
-      <p className="mt-1 line-clamp-2 text-[10.5px] leading-snug text-muted-foreground">
-        {serviceSummaryForJob(job)}
-      </p>
-      {wishDate && (
-        <span className="mt-1.5 inline-flex w-fit items-center rounded-full bg-secondary px-1.5 py-0.5 text-[9.5px] font-medium tabular-nums text-foreground">
-          Ønsket {format(parseISO(wishDate), "d. MMM", { locale: da })}
-        </span>
-      )}
-      {pending ? (
-        <span className="mt-1.5 inline-flex w-fit items-center rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-800 dark:bg-amber-500/15 dark:text-amber-200">
-          Afventer kunde
-        </span>
-      ) : !selectMode ? (
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          className="mt-2 h-7 rounded-full text-[11px]"
-          onClick={() => onAssign(job)}
-        >
-          Vælg rute
-        </Button>
-      ) : null}
     </div>
   );
 }
