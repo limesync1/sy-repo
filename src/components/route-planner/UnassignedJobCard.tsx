@@ -18,9 +18,9 @@ import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_SELECTED, SEGMENT_BTN } from "
  *  Matcher kortets højde og indre struktur så listen ikke "hopper" når
  *  rigtige kort kommer ind. */
 export const UnassignedJobCardSkeleton = ({ compact = false }: { compact?: boolean }) => (
-  <div className="relative rounded-xl border border-border/70 bg-card overflow-hidden flex shadow-[0_1px_2px_hsl(var(--foreground)/0.05)]">
-    <div className="w-[3px] bg-secondary shrink-0" />
-    <div className={`flex-1 ${compact ? "p-2.5 pl-8" : "p-3 pl-9"} space-y-2`}>
+  <div className="relative rounded-lg border border-border/70 bg-card overflow-hidden flex">
+    <div className="w-[2px] bg-secondary shrink-0" />
+    <div className={`flex-1 ${compact ? "p-2 pl-7" : "p-2.5 pl-8"} space-y-1.5`}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0 space-y-1.5">
           <Skeleton className="h-4 w-32 rounded" />
@@ -32,7 +32,6 @@ export const UnassignedJobCardSkeleton = ({ compact = false }: { compact?: boole
         </div>
       </div>
       <Skeleton className="h-3 w-3/4 rounded" />
-      <Skeleton className="h-6 w-2/3 rounded-md" />
     </div>
   </div>
 );
@@ -206,53 +205,53 @@ export const UnassignedJobCard = ({
   const urgency: UrgencyTheme = isPending
     ? {
         rail: "bg-amber-400",
-        pillBg: "bg-amber-50 dark:bg-amber-500/10",
+        pillBg: "bg-transparent",
         pillText: "text-amber-700 dark:text-amber-300",
-        pillBorder: "border-amber-200 dark:border-amber-500/30",
+        pillBorder: "border-transparent",
         pulse: false,
         label: "Afventer kunde",
       }
     : schedule?.dotTone === "bg-destructive"
     ? {
         rail: "bg-destructive",
-        pillBg: "bg-destructive/10",
+        pillBg: "bg-transparent",
         pillText: "text-destructive",
-        pillBorder: "border-destructive/30",
-        pulse: true,
+        pillBorder: "border-transparent",
+        pulse: false,
         label: schedule?.relative ? schedule.relative.charAt(0).toUpperCase() + schedule.relative.slice(1) : "Forsinket",
       }
     : schedule?.dotTone === "bg-orange-500"
     ? {
         rail: "bg-orange-500",
-        pillBg: "bg-orange-50 dark:bg-orange-500/10",
+        pillBg: "bg-transparent",
         pillText: "text-orange-700 dark:text-orange-300",
-        pillBorder: "border-orange-200 dark:border-orange-500/30",
-        pulse: true,
+        pillBorder: "border-transparent",
+        pulse: false,
         label: "I dag",
       }
     : schedule?.dotTone === "bg-amber-500"
     ? {
         rail: "bg-amber-500",
-        pillBg: "bg-amber-50 dark:bg-amber-500/10",
+        pillBg: "bg-transparent",
         pillText: "text-amber-700 dark:text-amber-300",
-        pillBorder: "border-amber-200 dark:border-amber-500/30",
+        pillBorder: "border-transparent",
         pulse: false,
         label: "I morgen",
       }
     : schedule?.dotTone === "bg-primary"
     ? {
-        rail: "bg-primary",
-        pillBg: "bg-primary/10",
-        pillText: "text-foreground",
-        pillBorder: "border-primary/20",
+        rail: "bg-foreground/40",
+        pillBg: "bg-transparent",
+        pillText: "text-foreground/70",
+        pillBorder: "border-transparent",
         pulse: false,
         label: schedule?.dayLabel ?? "Denne uge",
       }
     : {
-        rail: "bg-muted-foreground/30",
-        pillBg: "bg-secondary",
+        rail: "bg-muted-foreground/25",
+        pillBg: "bg-transparent",
         pillText: "text-muted-foreground",
-        pillBorder: "border-border",
+        pillBorder: "border-transparent",
         pulse: false,
         label: schedule?.dayLabel ?? "Ikke planlagt",
       };
@@ -297,7 +296,7 @@ export const UnassignedJobCard = ({
          ─────────────────────────────────────────────────────────────────── */}
       <div
         aria-hidden
-        className={`w-[3px] shrink-0 ${selected ? "bg-accent" : urgency.rail}`}
+        className={`w-[2px] shrink-0 ${selected ? "bg-accent" : urgency.rail}`}
       />
 
       {/* MULTI-SELECT — stor, altid-synlig dedikeret zone i venstre side.
@@ -313,15 +312,15 @@ export const UnassignedJobCard = ({
           aria-label={selected ? "Fravælg aftale" : "Vælg aftale"}
           aria-pressed={selected}
           title={selected ? "Fravælg aftale" : "Vælg flere aftaler"}
-          className={`absolute top-2.5 left-2.5 z-10 h-5 w-5 rounded-md border-2 flex items-center justify-center transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:outline-none ${
+          className={`absolute top-2 left-2 z-10 h-4 w-4 rounded border-2 flex items-center justify-center transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:outline-none ${
             selected
-              ? "bg-accent border-accent text-accent-foreground opacity-100 shadow-sm"
+              ? "bg-accent border-accent text-accent-foreground opacity-100"
               : anySelected
                 ? "bg-card border-accent/70 hover:bg-accent/10 hover:border-accent opacity-100"
                 : "bg-card border-border hover:border-accent hover:bg-accent/5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
           }`}
         >
-          {selected && <Check className="h-3.5 w-3.5" strokeWidth={3.5} />}
+          {selected && <Check className="h-3 w-3" strokeWidth={3.5} />}
         </button>
       )}
 
@@ -340,111 +339,92 @@ export const UnassignedJobCard = ({
           },
           "aria-label": `Åbn detaljer for ${job.customer_name}`,
         })}
-        className={`${compact ? "p-2.5 pl-8" : "p-3 pl-9"} ${compact ? "space-y-2" : "space-y-2.5"} ${isPending ? "" : "cursor-pointer focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent focus-visible:outline-none"}`}
+        className={`${compact ? "p-2 pl-7" : "p-2.5 pl-8"} space-y-1 ${isPending ? "" : "cursor-pointer focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent focus-visible:outline-none"}`}
       >
         {/* TOP-LINJE: navn + dato-pille. Navn er stærkeste typografi.
             Dato-pillen ankrer urgency i højre side uden tungt bånd. */}
-        <div className="flex items-start justify-between gap-2">
-          <h3 className={`${compact ? "text-[14px]" : "text-[15.5px]"} font-bold leading-tight text-foreground truncate capitalize group-hover:text-accent transition-colors min-w-0 flex-1`}>
-            {isPending && <Lock className="inline h-3.5 w-3.5 mr-1 text-amber-600 align-[-2px]" />}
+        <div className="flex items-baseline justify-between gap-2">
+          <h3 className={`${compact ? "text-[13px]" : "text-[14px]"} font-semibold leading-tight text-foreground truncate capitalize min-w-0 flex-1 tracking-tight`}>
+            {isPending && <Lock className="inline h-3 w-3 mr-1 text-amber-600 align-[-1px]" />}
             {job.customer_name}
           </h3>
-          <span
-            className={`shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10.5px] font-semibold tracking-wide ${urgency.pillBg} ${urgency.pillText}`}
-          >
-            {urgency.pulse && <span aria-hidden className={`h-1.5 w-1.5 rounded-full ${urgency.rail}`} />}
+          <span className={`shrink-0 inline-flex items-center gap-1 text-[10.5px] font-medium tabular-nums leading-none ${urgency.pillText}`}>
+            <span aria-hidden className={`h-1 w-1 rounded-full ${urgency.rail}`} />
             {urgency.label}
           </span>
         </div>
 
-        {/* SERVICE + PRIS — sekundær linje, baseline-justeret. */}
+        {/* SERVICE + PRIS — flad baseline-linje, ingen tinted bg-blok. */}
         {itemCount > 0 && (
-          <div className="flex items-baseline justify-between gap-3 rounded-md bg-secondary/30 px-2 py-1">
-            <p className="text-[12.5px] font-semibold text-foreground/80 truncate leading-snug min-w-0 flex-1">
-              {items[0].quantity > 1 && <span>{items[0].quantity}× </span>}
-              {items[0].service_name}
-              {itemCount > 1 && <span className="text-muted-foreground"> · +{itemCount - 1} mere</span>}
+          <div className="flex items-baseline justify-between gap-3">
+            <p className="text-[11.5px] text-muted-foreground truncate leading-snug min-w-0 flex-1">
+              {items[0].quantity > 1 && <span className="tabular-nums">{items[0].quantity}× </span>}
+              <span className="text-foreground/80 font-medium">{items[0].service_name}</span>
+              {itemCount > 1 && <span> · +{itemCount - 1}</span>}
             </p>
-            <div className="shrink-0 leading-none">
-              <span className={`${compact ? "text-[14px]" : "text-[15px]"} font-bold text-foreground tabular-nums tracking-tight`}>
+            {displayAmount != null && (
+              <span className="shrink-0 text-[12px] font-semibold text-foreground tabular-nums tracking-tight leading-none">
                 {Math.round(Number(displayAmount || 0))}
+                <span className="ml-0.5 text-[10px] font-medium text-muted-foreground">kr</span>
               </span>
-              <span className="ml-0.5 text-[10.5px] font-bold text-muted-foreground uppercase tracking-wide">kr</span>
-            </div>
+            )}
           </div>
         )}
 
         {/* Pending-forklaring */}
         {isPending && (
-          <div className="rounded-md bg-amber-50 border border-amber-200/70 px-2.5 py-2 space-y-1 dark:bg-amber-500/10 dark:border-amber-500/25">
-            <p className="text-[11px] leading-snug text-amber-800 dark:text-amber-200">
+          <div className="rounded-md border border-amber-200/60 px-2 py-1.5 space-y-1 dark:border-amber-500/25">
+            <p className="text-[10.5px] leading-snug text-amber-800 dark:text-amber-200">
               Aftalen kan først planlægges når kunden har godkendt tilbuddet.
             </p>
             {onClick && (
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); onClick(); }}
-                className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-900 hover:text-amber-950 dark:text-amber-200 dark:hover:text-amber-100 underline underline-offset-2"
+                className="inline-flex items-center gap-1 text-[10.5px] font-medium text-amber-900 hover:text-amber-950 dark:text-amber-200 dark:hover:text-amber-100 underline underline-offset-2"
               >
-                <Info className="h-3 w-3" />
+                <Info className="h-2.5 w-2.5" />
                 Se årsag og send påmindelse
               </button>
             )}
           </div>
         )}
 
-        {/* INFO-STAK — adresse + interval-chip. Hver linje har sin egen rolle:
-            adresse svarer på HVOR, interval-chip svarer på HVOR OFTE. */}
+        {/* INFO-LINJE — én samlet metadata-linje: adresse · interval · tid */}
         {!isPending && (
-          <div className="space-y-1.5">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground leading-tight tabular-nums">
             {fullAddress && (
-              <div
-                className="flex items-center gap-1.5 text-muted-foreground min-w-0"
+              <span
+                className="inline-flex items-center gap-1 min-w-0 max-w-full"
                 title={hasGps ? "Adressen er fundet på kortet" : "Adressen mangler GPS — ruten kan ikke vises på kort"}
               >
-                <MapPin className={`h-3.5 w-3.5 shrink-0 ${hasGps ? "text-muted-foreground/60" : "text-orange-500"}`} />
-                <span className="text-[12px] truncate leading-tight">{fullAddress}</span>
-              </div>
+                <MapPin className={`h-3 w-3 shrink-0 ${hasGps ? "text-muted-foreground/50" : "text-orange-500"}`} />
+                <span className="truncate">{fullAddress}</span>
+              </span>
             )}
 
-            {/* Ønsket tidsrum (kun hvis aftalen har et tidsvindue) */}
             {job.preferred_time_start && !compact && (
-              <div className="flex items-center gap-1.5 text-muted-foreground min-w-0">
-                <Clock className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" />
-                <span className="text-[12px] tabular-nums leading-tight">
-                  {job.preferred_time_start.slice(0, 5)}
-                  {job.preferred_time_end && `–${job.preferred_time_end.slice(0, 5)}`}
-                </span>
-              </div>
+              <span className="inline-flex items-center gap-1">
+                <Clock className="h-3 w-3 shrink-0 text-muted-foreground/50" />
+                {job.preferred_time_start.slice(0, 5)}
+                {job.preferred_time_end && `–${job.preferred_time_end.slice(0, 5)}`}
+              </span>
             )}
 
-            {/* Interval — integreret chip i stedet for løs badge.
-                Subtil tintet bg så den læses som metadata, ikke som handling. */}
             {!compact && (
-              <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border ${
-                isRecurring
-                  ? "bg-primary/5 border-primary/15"
-                  : "bg-secondary/50 border-border/70"
-              }`}>
+              <span className="inline-flex items-center gap-1">
                 {isRecurring
-                  ? <Repeat className="h-3 w-3 shrink-0 text-primary" />
-                  : <Hourglass className="h-3 w-3 shrink-0 text-muted-foreground" />}
-                <span className={`text-[11px] font-semibold leading-none truncate ${
-                  isRecurring ? "text-foreground/80" : "text-muted-foreground"
-                }`}>
-                  {intervalLabel}
-                </span>
-              </div>
+                  ? <Repeat className="h-3 w-3 shrink-0 text-muted-foreground/50" />
+                  : <Hourglass className="h-3 w-3 shrink-0 text-muted-foreground/50" />}
+                <span className="truncate">{intervalLabel}</span>
+              </span>
             )}
 
-            {/* Foreslået tidligere rute — diskret kun når relevant */}
             {job.preferred_route_name && !compact && (
-              <div className="flex items-center gap-1.5 text-muted-foreground min-w-0">
-                <RouteIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" />
-                <span className="text-[12px] truncate leading-tight">
-                  Tidligere på <span className="font-medium text-foreground/80">{job.preferred_route_name}</span>
-                </span>
-              </div>
+              <span className="inline-flex items-center gap-1 min-w-0">
+                <RouteIcon className="h-3 w-3 shrink-0 text-muted-foreground/50" />
+                <span className="truncate">{job.preferred_route_name}</span>
+              </span>
             )}
           </div>
         )}
@@ -456,16 +436,16 @@ export const UnassignedJobCard = ({
              Diskret styling så den ikke konkurrerer med auto-fordel-flowet.
          ─────────────────────────────────────────────────────────────────── */}
       {!compact && !isPending && (onSuggestRoute || job.customer_phone || itemCount > 1 || job.notes) && (
-        <div className="flex border-t border-border/70 divide-x divide-border/70 bg-card">
+        <div className="flex border-t border-border/60 divide-x divide-border/60 bg-card">
           {onSuggestRoute && (
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onSuggestRoute(); }}
               onPointerDown={(e) => e.stopPropagation()}
-              className={`flex-1 px-2 py-2.5 text-[11px] font-bold ${SEGMENT_BTN}`}
+              className={`flex-1 px-2 py-1.5 text-[10.5px] font-medium ${SEGMENT_BTN}`}
               title="Se forslag til ruter og vælg selv hvilken aftalen skal lægges på"
             >
-              <RouteIcon className="h-3.5 w-3.5" />
+              <RouteIcon className="h-3 w-3" />
               Vælg rute manuelt
             </button>
           )}
@@ -476,9 +456,9 @@ export const UnassignedJobCard = ({
               onPointerDown={(e) => e.stopPropagation()}
               aria-expanded={expanded}
               title={expanded ? "Skjul ydelser, telefon og note" : "Vis ydelser, telefon og note"}
-              className={`flex-1 px-2 py-2.5 text-[11px] font-semibold ${SEGMENT_BTN}`}
+              className={`flex-1 px-2 py-1.5 text-[10.5px] font-medium ${SEGMENT_BTN}`}
             >
-              {expanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+              {expanded ? <ChevronDown className="h-2.5 w-2.5" /> : <ChevronRight className="h-2.5 w-2.5" />}
               {expanded ? "Skjul" : "Mere info"}
             </button>
           )}
@@ -486,13 +466,13 @@ export const UnassignedJobCard = ({
       )}
 
       {expanded && (
-        <div className="px-2.5 pb-2.5 pt-2 space-y-1.5 border-t border-border/70 bg-secondary/25">
+        <div className="px-2.5 pb-2 pt-1.5 space-y-1 border-t border-border/60 bg-secondary/20">
           {job.customer_phone && (
             <a
               href={`tel:${job.customer_phone}`}
-              className="text-[11px] text-foreground hover:text-primary flex items-center gap-1.5"
+              className="text-[11px] text-foreground hover:text-foreground/70 flex items-center gap-1.5 tabular-nums"
             >
-              <Phone className="h-3 w-3 shrink-0" />
+              <Phone className="h-2.5 w-2.5 shrink-0 text-muted-foreground" />
               {job.customer_phone}
             </a>
           )}
