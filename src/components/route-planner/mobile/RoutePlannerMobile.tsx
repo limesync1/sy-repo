@@ -894,6 +894,11 @@ function SortableStopRow({
   };
   const completed = stop.status === "completed";
   const dur = (stop as any).duration_minutes as number | undefined;
+  const interval = (stop as any).agreement_interval as string | undefined;
+  const intervalLabel = interval ? formatInterval(interval) : null;
+  const distanceToNext = (stop as any).distance_to_next_km as number | undefined;
+  const serviceSummary = (stop as any).service_summary as string | undefined;
+  const addressLine = stop.address || (stop as any).full_address;
 
   // Swipe-to-delete — træk rækken til venstre for at afsløre Slet-knap.
   // Brugeren slipper for at bekræfte; en lille tryk-undo følger ikke med,
@@ -949,8 +954,11 @@ function SortableStopRow({
       )}
       <div
         className={cn(
-          "flex items-center gap-1.5 rounded-xl border border-border/70 bg-background/60 p-1.5 transition-transform",
-          completed && "bg-emerald-50/40 dark:bg-emerald-500/5",
+          CARD_BASE,
+          "p-2.5 pl-3 transition-transform",
+          completed
+            ? "border-emerald-200/70 bg-emerald-50/40 opacity-80 dark:border-emerald-500/25 dark:bg-emerald-500/10"
+            : cn(CARD_BORDER, CARD_HOVER),
         )}
         style={{ transform: swipe ? `translateX(${swipe}px)` : undefined }}
         onTouchStart={onTouchStart}
@@ -958,50 +966,67 @@ function SortableStopRow({
         onTouchEnd={onTouchEnd}
         onTouchCancel={() => { swipeStart.current = null; setSwipe(0); }}
       >
-      {/* Drag-handle — long-press for at trække */}
-      <button
-        type="button"
-        {...listeners}
-        {...attributes}
-        aria-label="Træk stop"
-        className="flex h-9 w-7 shrink-0 touch-none items-center justify-center rounded-md text-muted-foreground active:bg-secondary"
-      >
-        <GripVertical className="h-4 w-4" />
-      </button>
-      <span
-        className={cn(
-          "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold",
-          completed ? "bg-emerald-600 text-white" : "text-white",
-        )}
-        style={!completed ? { backgroundColor: routeColor } : undefined}
-      >
-        {index}
-      </span>
-      <button
-        type="button"
-        onClick={onOpenRoute}
-        className="flex min-w-0 flex-1 flex-col items-start py-0.5 text-left"
-      >
+        {/* Venstre farve-rail — matcher desktop SortableStopCard */}
         <span
-          className={cn(
-            "truncate text-[13px] font-medium leading-tight",
-            completed ? "text-muted-foreground line-through" : "text-foreground",
-          )}
-        >
-          {stop.customer_name || "Stop"}
-        </span>
-        {(stop.address || stop.full_address) && (
-          <span className="truncate text-[11px] leading-tight text-muted-foreground">
-            {stop.address || stop.full_address}
+          aria-hidden
+          className="absolute left-0 top-0 bottom-0 w-1 opacity-90"
+          style={{ background: completed ? "hsl(var(--muted-foreground) / 0.4)" : routeColor }}
+        />
+        <div className="flex items-start gap-2">
+          {/* Nummeret farve-badge — fungerer som drag-handle (long-press) */}
+          <span
+            {...listeners}
+            {...attributes}
+            aria-label="Træk stop"
+            className={cn(
+              "flex h-6 w-6 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-[11px] font-bold leading-none text-background ring-2 ring-background shadow-[0_2px_4px_-1px_hsl(var(--foreground)/0.2)] transition-transform active:scale-95 active:cursor-grabbing",
+              completed && "opacity-50",
+            )}
+            style={{ background: routeColor }}
+          >
+            {index}
           </span>
-        )}
-      </button>
-      {dur ? (
-        <span className="ml-1 inline-flex shrink-0 items-center gap-0.5 rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-muted-foreground">
-          <Clock className="h-2.5 w-2.5" />
-          {dur}m
-        </span>
-      ) : null}
+          <button
+            type="button"
+            onClick={onOpenRoute}
+            className="flex min-w-0 flex-1 flex-col items-start py-0.5 text-left"
+          >
+            <span className={cn(
+              "truncate text-xs font-bold leading-tight w-full",
+              completed && "text-muted-foreground line-through",
+            )}>
+              {stop.customer_name || "Stop"}
+            </span>
+            <span className={cn(
+              "truncate text-[10px] leading-tight mt-0.5 w-full",
+              serviceSummary ? "text-foreground/75 font-medium" : "italic text-muted-foreground",
+            )}>
+              {serviceSummary || "Ingen ydelser angivet"}
+            </span>
+            {intervalLabel && (
+              <span className="truncate text-[10px] leading-tight text-muted-foreground mt-0.5 w-full">
+                {intervalLabel}
+              </span>
+            )}
+            {addressLine && (
+              <span className="mt-0.5 flex w-full items-center gap-0.5 truncate text-[10px] leading-tight text-muted-foreground">
+                <MapPin className="h-2.5 w-2.5 shrink-0" />
+                <span className="truncate">{addressLine}</span>
+              </span>
+            )}
+            {distanceToNext != null && distanceToNext > 0 && (
+              <span className="mt-0.5 text-[10px] leading-tight text-muted-foreground">
+                → {distanceToNext.toFixed(1)} km
+              </span>
+            )}
+          </button>
+          {dur ? (
+            <span className="ml-1 inline-flex shrink-0 items-center gap-0.5 rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-muted-foreground">
+              <Clock className="h-2.5 w-2.5" />
+              {dur}m
+            </span>
+          ) : null}
+        </div>
       </div>
     </li>
   );
