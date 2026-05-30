@@ -91,6 +91,9 @@ import { toast } from "sonner";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { startDragAutoScroll, stopDragAutoScroll } from "@/components/route-planner/lib/drag-auto-scroll";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
+import { CARD_BASE, CARD_BORDER, CARD_HOVER } from "@/components/route-planner/lib/card-styles";
+import { formatInterval } from "@/lib/interval";
+import { isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
 
 import {
   effectiveJobDate,
@@ -760,52 +763,52 @@ function DroppableRouteCard({
     <div
       ref={setNodeRef}
       className={cn(
-        "overflow-hidden rounded-2xl border bg-card shadow-sm transition-all",
+        "relative overflow-hidden rounded-lg border bg-card shadow-[0_2px_10px_-6px_hsl(var(--foreground)/0.18)] transition-all",
         isOver
-          ? "border-accent ring-2 ring-accent/40 shadow-lg scale-[1.005]"
+          ? "border-accent/70 bg-accent/[0.04] ring-2 ring-accent/25 shadow-[0_8px_24px_-12px_hsl(var(--accent)/0.35)]"
           : dragActive
             ? "border-dashed border-accent/40 bg-accent/[0.02]"
-            : "border-border",
+            : "border-border/70 hover:border-foreground/25",
       )}
     >
-      {/* Top farve-stribe */}
+      {/* Top farve-stribe — matcher desktop EmployeeColumn */}
       <span
         aria-hidden
-        className="block h-1 w-full"
-        style={{ backgroundColor: route.color }}
+        className="absolute inset-x-0 top-0 h-1 opacity-90"
+        style={{ background: route.color }}
       />
       {/* Header — tap for at åbne detalje-sheet */}
-      <div className="flex items-stretch gap-2 px-3 pt-2.5 pb-2">
+      <div className="flex items-stretch gap-2.5 px-3 pt-3.5 pb-2.5">
         <button
           type="button"
           onClick={() => onOpenRoute(route)}
           className="flex min-w-0 flex-1 items-start gap-2.5 text-left active:opacity-80"
         >
           <span
-            className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[13px] font-bold text-white shadow-sm ring-2 ring-background"
-            style={{ backgroundColor: route.color }}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[10px] font-bold leading-none text-background ring-2 ring-background shadow-[0_2px_6px_-2px_hsl(var(--foreground)/0.25)]"
+            style={{ background: route.color }}
           >
             {(route.name || "R").charAt(0).toUpperCase()}
           </span>
           <div className="min-w-0 flex-1 py-0.5">
-            <p className="truncate text-[15px] font-semibold leading-tight text-foreground">
+            <p className="truncate text-sm font-bold leading-tight tracking-tight text-foreground">
               {route.name || "Rute uden navn"}
             </p>
-            <div className="mt-1 flex flex-wrap items-center gap-1">
-              <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[10.5px] font-medium tabular-nums text-foreground">
-                <MapPin className="h-3 w-3" />
-                {done > 0 ? `${done}/${stops.length}` : stops.length}
-              </span>
+            <div className="mt-1.5 flex flex-wrap items-center gap-1">
+              <Badge variant="secondary" className="h-5 rounded-md px-1.5 text-[10px] font-semibold tabular-nums">
+                {done > 0 ? `${done}/${stops.length}` : `${stops.length}`} stop
+              </Badge>
               {route.total_distance_km != null && route.total_distance_km > 0 && (
-                <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[10.5px] font-medium tabular-nums text-foreground">
-                  {Math.round(route.total_distance_km)} km
-                </span>
+                <Badge variant="outline" className="h-5 gap-0.5 rounded-md border-border/70 px-1.5 text-[10px] tabular-nums">
+                  <MapPin className="h-2.5 w-2.5" />
+                  {route.total_distance_km.toFixed(1)} km
+                </Badge>
               )}
               {totalMin > 0 && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[10.5px] font-medium tabular-nums text-foreground">
-                  <Clock className="h-3 w-3" />
+                <Badge variant="outline" className="h-5 gap-0.5 rounded-md border-border/70 px-1.5 text-[10px] tabular-nums">
+                  <Clock className="h-2.5 w-2.5" />
                   {formatDur(totalMin)}
-                </span>
+                </Badge>
               )}
             </div>
           </div>
@@ -814,8 +817,8 @@ function DroppableRouteCard({
           <Button
             type="button"
             size="sm"
-            variant="ghost"
-            className="h-8 shrink-0 gap-1 self-start rounded-full px-2.5 text-[11px] font-semibold"
+            variant="outline"
+            className="h-8 shrink-0 gap-1 self-start rounded-md border-border/70 px-2.5 text-xs"
             onClick={async () => {
               try {
                 await optimize.mutateAsync(route.id);
@@ -825,33 +828,34 @@ function DroppableRouteCard({
               }
             }}
             disabled={optimizing}
+            title="AI-optimér rækkefølge"
           >
-            {optimizing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+            {optimizing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
             Optimér
           </Button>
         )}
       </div>
 
       {/* Inline stop-liste — sorterbar inden for ruten */}
-      <div className="border-t border-border/60 px-2 pb-2 pt-1.5">
+      <div className="border-t border-border/60 px-2.5 pb-2.5 pt-2">
         {/* Mini-kort over rute-formen (hvis vi har koordinater) */}
-        <MiniMap stops={stops} color={route.color} className="mb-1.5 px-1" />
+        <MiniMap stops={stops} color={route.color} className="mb-2 px-1" />
         {stops.length === 0 ? (
           <div
             className={cn(
-              "flex items-center justify-center rounded-xl border-2 border-dashed py-5 text-[11px] transition-colors",
+              "flex items-center justify-center rounded-md border-2 border-dashed py-8 text-[11px] transition-all",
               isOver
-                ? "border-accent/70 bg-accent/10 font-semibold text-accent"
+                ? "border-accent/60 bg-accent/[0.06] font-medium text-accent"
                 : dragActive
                   ? "border-accent/40 text-accent/80"
-                  : "border-border text-muted-foreground",
+                  : "border-border/50 text-muted-foreground/70",
             )}
           >
-            {isOver ? "Slip for at tilføje" : "Træk en aftale hertil"}
+            {isOver ? "Slip for at tildele" : "Træk aftaler hertil"}
           </div>
         ) : (
           <SortableContext items={stopIds} strategy={verticalListSortingStrategy}>
-            <ol className="space-y-1">
+            <ol className="space-y-2">
               {stops.map((s, idx) => (
                 <SortableStopRow
                   key={s.id}
@@ -890,6 +894,11 @@ function SortableStopRow({
   };
   const completed = stop.status === "completed";
   const dur = (stop as any).duration_minutes as number | undefined;
+  const interval = (stop as any).agreement_interval as string | undefined;
+  const intervalLabel = interval ? formatInterval(interval) : null;
+  const distanceToNext = (stop as any).distance_to_next_km as number | undefined;
+  const serviceSummary = (stop as any).service_summary as string | undefined;
+  const addressLine = stop.address || (stop as any).full_address;
 
   // Swipe-to-delete — træk rækken til venstre for at afsløre Slet-knap.
   // Brugeren slipper for at bekræfte; en lille tryk-undo følger ikke med,
@@ -945,8 +954,11 @@ function SortableStopRow({
       )}
       <div
         className={cn(
-          "flex items-center gap-1.5 rounded-xl border border-border/70 bg-background/60 p-1.5 transition-transform",
-          completed && "bg-emerald-50/40 dark:bg-emerald-500/5",
+          CARD_BASE,
+          "p-2.5 pl-3 transition-transform",
+          completed
+            ? "border-emerald-200/70 bg-emerald-50/40 opacity-80 dark:border-emerald-500/25 dark:bg-emerald-500/10"
+            : cn(CARD_BORDER, CARD_HOVER),
         )}
         style={{ transform: swipe ? `translateX(${swipe}px)` : undefined }}
         onTouchStart={onTouchStart}
@@ -954,50 +966,67 @@ function SortableStopRow({
         onTouchEnd={onTouchEnd}
         onTouchCancel={() => { swipeStart.current = null; setSwipe(0); }}
       >
-      {/* Drag-handle — long-press for at trække */}
-      <button
-        type="button"
-        {...listeners}
-        {...attributes}
-        aria-label="Træk stop"
-        className="flex h-9 w-7 shrink-0 touch-none items-center justify-center rounded-md text-muted-foreground active:bg-secondary"
-      >
-        <GripVertical className="h-4 w-4" />
-      </button>
-      <span
-        className={cn(
-          "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold",
-          completed ? "bg-emerald-600 text-white" : "text-white",
-        )}
-        style={!completed ? { backgroundColor: routeColor } : undefined}
-      >
-        {index}
-      </span>
-      <button
-        type="button"
-        onClick={onOpenRoute}
-        className="flex min-w-0 flex-1 flex-col items-start py-0.5 text-left"
-      >
+        {/* Venstre farve-rail — matcher desktop SortableStopCard */}
         <span
-          className={cn(
-            "truncate text-[13px] font-medium leading-tight",
-            completed ? "text-muted-foreground line-through" : "text-foreground",
-          )}
-        >
-          {stop.customer_name || "Stop"}
-        </span>
-        {(stop.address || stop.full_address) && (
-          <span className="truncate text-[11px] leading-tight text-muted-foreground">
-            {stop.address || stop.full_address}
+          aria-hidden
+          className="absolute left-0 top-0 bottom-0 w-1 opacity-90"
+          style={{ background: completed ? "hsl(var(--muted-foreground) / 0.4)" : routeColor }}
+        />
+        <div className="flex items-start gap-2">
+          {/* Nummeret farve-badge — fungerer som drag-handle (long-press) */}
+          <span
+            {...listeners}
+            {...attributes}
+            aria-label="Træk stop"
+            className={cn(
+              "flex h-6 w-6 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-[11px] font-bold leading-none text-background ring-2 ring-background shadow-[0_2px_4px_-1px_hsl(var(--foreground)/0.2)] transition-transform active:scale-95 active:cursor-grabbing",
+              completed && "opacity-50",
+            )}
+            style={{ background: routeColor }}
+          >
+            {index}
           </span>
-        )}
-      </button>
-      {dur ? (
-        <span className="ml-1 inline-flex shrink-0 items-center gap-0.5 rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-muted-foreground">
-          <Clock className="h-2.5 w-2.5" />
-          {dur}m
-        </span>
-      ) : null}
+          <button
+            type="button"
+            onClick={onOpenRoute}
+            className="flex min-w-0 flex-1 flex-col items-start py-0.5 text-left"
+          >
+            <span className={cn(
+              "truncate text-xs font-bold leading-tight w-full",
+              completed && "text-muted-foreground line-through",
+            )}>
+              {stop.customer_name || "Stop"}
+            </span>
+            <span className={cn(
+              "truncate text-[10px] leading-tight mt-0.5 w-full",
+              serviceSummary ? "text-foreground/75 font-medium" : "italic text-muted-foreground",
+            )}>
+              {serviceSummary || "Ingen ydelser angivet"}
+            </span>
+            {intervalLabel && (
+              <span className="truncate text-[10px] leading-tight text-muted-foreground mt-0.5 w-full">
+                {intervalLabel}
+              </span>
+            )}
+            {addressLine && (
+              <span className="mt-0.5 flex w-full items-center gap-0.5 truncate text-[10px] leading-tight text-muted-foreground">
+                <MapPin className="h-2.5 w-2.5 shrink-0" />
+                <span className="truncate">{addressLine}</span>
+              </span>
+            )}
+            {distanceToNext != null && distanceToNext > 0 && (
+              <span className="mt-0.5 text-[10px] leading-tight text-muted-foreground">
+                → {distanceToNext.toFixed(1)} km
+              </span>
+            )}
+          </button>
+          {dur ? (
+            <span className="ml-1 inline-flex shrink-0 items-center gap-0.5 rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-muted-foreground">
+              <Clock className="h-2.5 w-2.5" />
+              {dur}m
+            </span>
+          ) : null}
+        </div>
       </div>
     </li>
   );
@@ -1190,72 +1219,129 @@ function DraggableJobCard({
     data: { type: "job", job },
     disabled: pending || selectMode,
   });
+
+  // Urgency-tema: matcher desktop UnassignedJobCard's venstre-rail.
+  const wd = wishDate ? parseISO(wishDate) : null;
+  const urgency = (() => {
+    if (pending) {
+      return { rail: "bg-amber-400", pillBg: "bg-amber-50 dark:bg-amber-500/10", pillText: "text-amber-700 dark:text-amber-300", pillBorder: "border-amber-200 dark:border-amber-500/30", label: "Afventer kunde", pulse: false };
+    }
+    if (!wd) {
+      return { rail: "bg-muted-foreground/30", pillBg: "bg-secondary", pillText: "text-muted-foreground", pillBorder: "border-border", label: "Ikke planlagt", pulse: false };
+    }
+    if (isPast(wd) && !isToday(wd)) {
+      return { rail: "bg-destructive", pillBg: "bg-destructive/10", pillText: "text-destructive", pillBorder: "border-destructive/30", label: `${Math.abs(differenceInDays(wd, new Date()))} dage forsinket`, pulse: true };
+    }
+    if (isToday(wd)) {
+      return { rail: "bg-orange-500", pillBg: "bg-orange-50 dark:bg-orange-500/10", pillText: "text-orange-700 dark:text-orange-300", pillBorder: "border-orange-200 dark:border-orange-500/30", label: "I dag", pulse: true };
+    }
+    if (isTomorrow(wd)) {
+      return { rail: "bg-amber-500", pillBg: "bg-amber-50 dark:bg-amber-500/10", pillText: "text-amber-700 dark:text-amber-300", pillBorder: "border-amber-200 dark:border-amber-500/30", label: "I morgen", pulse: false };
+    }
+    return { rail: "bg-primary", pillBg: "bg-primary/10", pillText: "text-foreground", pillBorder: "border-primary/20", label: format(wd, "d. MMM", { locale: da }), pulse: false };
+  })();
+
+  const items = (job.business_response === "adjusted" && job.customer_response === "accepted" && Array.isArray(job?.adjusted_details?.items))
+    ? (job.adjusted_details.items as any[])
+    : (job.order_items || []);
+  const itemCount = items.length;
+  const displayAmount = job.customer_response === "accepted" ? (job.adjusted_amount ?? job.total_amount) : job.total_amount;
+  const fullAddress = [job.address, [job.zip_code, job.city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+
   return (
     <div
       ref={setNodeRef}
       onClick={selectMode && !pending ? onToggle : undefined}
       className={cn(
-        "flex shrink-0 flex-col rounded-2xl border bg-background p-2.5 shadow-sm transition-all",
-        fullWidth ? "w-full" : "w-52",
+        CARD_BASE,
+        "flex shrink-0",
+        fullWidth ? "w-full" : "w-64",
         selectMode && !pending && "cursor-pointer",
-        selected ? "border-accent ring-2 ring-accent/40" : "border-border",
-        isDragging && "opacity-30",
-        pending && "opacity-90",
+        selected
+          ? "border-accent ring-2 ring-accent/25 shadow-[0_6px_18px_-6px_hsl(var(--accent)/0.45)]"
+          : pending
+            ? "border-amber-300/60"
+            : cn(CARD_BORDER, CARD_HOVER),
+        isDragging && "border-dashed border-accent/60 bg-secondary/30 opacity-45 shadow-none",
       )}
     >
-      <div className="flex items-start gap-1.5">
-        {selectMode && !pending ? (
+      {/* Venstre urgency-rail */}
+      <div aria-hidden className={cn("w-1 shrink-0", urgency.rail, urgency.pulse && "animate-pulse")} />
+
+      <div className="flex-1 min-w-0 p-2.5 space-y-1.5">
+        {/* Drag-handle/check + navn + dato-pille */}
+        <div className="flex items-start gap-1.5">
+          {selectMode && !pending ? (
+            <span
+              className={cn(
+                "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 transition-colors",
+                selected ? "border-accent bg-accent text-accent-foreground" : "border-muted-foreground/40",
+              )}
+            >
+              {selected && <CheckCircle2 className="h-3 w-3" />}
+            </span>
+          ) : !pending ? (
+            <button
+              type="button"
+              {...listeners}
+              {...attributes}
+              aria-label="Træk aftale"
+              className="-ml-1 flex h-7 w-5 shrink-0 touch-none items-center justify-center text-muted-foreground active:text-foreground"
+            >
+              <GripVertical className="h-4 w-4" />
+            </button>
+          ) : null}
+          <h3 className="min-w-0 flex-1 truncate text-[13.5px] font-bold capitalize leading-tight text-foreground">
+            {job.customer_name || "Ukendt kunde"}
+          </h3>
           <span
             className={cn(
-              "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 transition-colors",
-              selected ? "border-accent bg-accent text-accent-foreground" : "border-muted-foreground/40",
+              "shrink-0 inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[9.5px] font-bold tracking-wide",
+              urgency.pillBg, urgency.pillText, urgency.pillBorder,
             )}
           >
-            {selected && <CheckCircle2 className="h-3 w-3" />}
+            {urgency.label}
           </span>
-        ) : !pending ? (
-          <button
-            type="button"
-            {...listeners}
-            {...attributes}
-            aria-label="Træk aftale"
-            className="-ml-1 flex h-7 w-5 shrink-0 touch-none items-center justify-center text-muted-foreground active:text-foreground"
-          >
-            <GripVertical className="h-4 w-4" />
-          </button>
-        ) : null}
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-[12.5px] font-semibold text-foreground">
-            {job.customer_name || "Ukendt kunde"}
-          </p>
-          <p className="truncate text-[10.5px] text-muted-foreground">
-            {jobAddress(job)}
-          </p>
         </div>
+
+        {/* Service + pris — matcher desktop UnassignedJobCard */}
+        {itemCount > 0 && (
+          <div className="flex items-baseline justify-between gap-2 rounded-md bg-secondary/30 px-1.5 py-1">
+            <p className="min-w-0 flex-1 truncate text-[11px] font-semibold leading-snug text-foreground/80">
+              {items[0].quantity > 1 && <span>{items[0].quantity}× </span>}
+              {items[0].service_name}
+              {itemCount > 1 && <span className="text-muted-foreground"> · +{itemCount - 1}</span>}
+            </p>
+            {displayAmount != null && (
+              <div className="shrink-0 leading-none">
+                <span className="text-[12px] font-bold tracking-tight text-foreground tabular-nums">
+                  {Math.round(Number(displayAmount || 0))}
+                </span>
+                <span className="ml-0.5 text-[9.5px] font-bold uppercase tracking-wide text-muted-foreground">kr</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {fullAddress && (
+          <p className="flex items-center gap-1 truncate text-[10.5px] leading-tight text-muted-foreground">
+            <MapPin className="h-2.5 w-2.5 shrink-0" />
+            <span className="truncate">{fullAddress}</span>
+          </p>
+        )}
+
+        {!pending && !selectMode && (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="h-7 w-full rounded-md border-border/70 text-[11px]"
+            onClick={(e) => { e.stopPropagation(); onAssign(job); }}
+          >
+            Vælg rute
+          </Button>
+        )}
       </div>
-      <p className="mt-1 line-clamp-2 text-[10.5px] leading-snug text-muted-foreground">
-        {serviceSummaryForJob(job)}
-      </p>
-      {wishDate && (
-        <span className="mt-1.5 inline-flex w-fit items-center rounded-full bg-secondary px-1.5 py-0.5 text-[9.5px] font-medium tabular-nums text-foreground">
-          Ønsket {format(parseISO(wishDate), "d. MMM", { locale: da })}
-        </span>
-      )}
-      {pending ? (
-        <span className="mt-1.5 inline-flex w-fit items-center rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-800 dark:bg-amber-500/15 dark:text-amber-200">
-          Afventer kunde
-        </span>
-      ) : !selectMode ? (
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          className="mt-2 h-7 rounded-full text-[11px]"
-          onClick={() => onAssign(job)}
-        >
-          Vælg rute
-        </Button>
-      ) : null}
     </div>
   );
 }
