@@ -93,7 +93,7 @@ import { startDragAutoScroll, stopDragAutoScroll } from "@/components/route-plan
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { CARD_BASE, CARD_BORDER, CARD_HOVER } from "@/components/route-planner/lib/card-styles";
 import { parseInterval, formatInterval } from "@/lib/interval";
-import { format as fmtDate, parseISO as parseDate, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
+import { isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
 
 import {
   effectiveJobDate,
