@@ -91,6 +91,9 @@ import { toast } from "sonner";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { startDragAutoScroll, stopDragAutoScroll } from "@/components/route-planner/lib/drag-auto-scroll";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
+import { CARD_BASE, CARD_BORDER, CARD_HOVER } from "@/components/route-planner/lib/card-styles";
+import { parseInterval, formatInterval } from "@/lib/interval";
+import { format as fmtDate, parseISO as parseDate, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
 
 import {
   effectiveJobDate,
