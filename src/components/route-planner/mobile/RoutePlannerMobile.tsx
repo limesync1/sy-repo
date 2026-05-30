@@ -771,20 +771,6 @@ function DroppableRouteCard({
             : "border-border/60 hover:border-foreground/20",
       )}
     >
-      {/* Tydelig "slip her"-badge under drag */}
-      {dragActive && (
-        <span
-          aria-hidden
-          className={cn(
-            "pointer-events-none absolute right-2 top-2 z-10 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide transition-all",
-            isOver
-              ? "bg-accent text-accent-foreground shadow-md scale-110"
-              : "bg-accent/15 text-accent border border-accent/40",
-          )}
-        >
-          {isOver ? "Slip her" : "Drop zone"}
-        </span>
-      )}
       {/* Tynd venstre farve-rail — diskret, ikke dominerende */}
       <span
         aria-hidden
