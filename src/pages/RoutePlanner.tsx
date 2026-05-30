@@ -193,10 +193,12 @@ const RoutePlanner = () => {
   // planlægning, kortvisning og parallelle paneler kræver en stor skærm og
   // præcis pointer. På mobil/tablet viser vi en venlig "kun på computer"
   // forklaring i stedet for at hænge brugeren op med en uanvendelig UI.
-  // Sænket fra 900 → 768 så også iPad/tablet i portræt får den fulde
-  // desktop-planlægger (med kompakt-layout fra 1024 og ned). Under 768px
-  // (telefoner) viser vi den fingervenlige mobil-planlægger.
-  const isSmallScreen = useIsBelowBreakpoint(768);
+  // Tablets (<1024px) får den fingervenlige mobil-planlægger med fuld
+  // drag-and-drop — desktop-layoutet bliver for trangt og dets kompakte
+  // tablet-fallback viser kun "Kun på computer" for aftaler-uden-rute.
+  // Mobil-planlæggeren har nu samme funktionalitet (DnD, ruter, multi-
+  // select, optimering), så den er det bedre valg under 1024px.
+  const isSmallScreen = useIsBelowBreakpoint(1024);
   if (loading) return <ShellSkeleton />;
   if (!user) return <Navigate to="/log-ind" replace />;
   // Under 768px (telefoner) viser vi den fingervenlige mobil-planlægger
