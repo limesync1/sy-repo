@@ -1222,21 +1222,21 @@ function DraggableJobCard({
   const wd = wishDate ? parseISO(wishDate) : null;
   const urgency = (() => {
     if (pending) {
-      return { rail: "bg-amber-400", pillBg: "bg-amber-50 dark:bg-amber-500/10", pillText: "text-amber-700 dark:text-amber-300", pillBorder: "border-amber-200 dark:border-amber-500/30", label: "Afventer kunde", pulse: false };
+      return { rail: "bg-amber-400", pillBg: "bg-amber-50 dark:bg-amber-500/10", pillText: "text-amber-700 dark:text-amber-300", label: "Afventer kunde" };
     }
     if (!wd) {
-      return { rail: "bg-muted-foreground/30", pillBg: "bg-secondary", pillText: "text-muted-foreground", pillBorder: "border-border", label: "Ikke planlagt", pulse: false };
+      return { rail: "bg-muted-foreground/30", pillBg: "bg-secondary", pillText: "text-muted-foreground", label: "Ikke planlagt" };
     }
     if (isPast(wd) && !isToday(wd)) {
-      return { rail: "bg-destructive", pillBg: "bg-destructive/10", pillText: "text-destructive", pillBorder: "border-destructive/30", label: `${Math.abs(differenceInDays(wd, new Date()))} dage forsinket`, pulse: true };
+      return { rail: "bg-destructive", pillBg: "bg-destructive/10", pillText: "text-destructive", label: `${Math.abs(differenceInDays(wd, new Date()))} dage forsinket` };
     }
     if (isToday(wd)) {
-      return { rail: "bg-orange-500", pillBg: "bg-orange-50 dark:bg-orange-500/10", pillText: "text-orange-700 dark:text-orange-300", pillBorder: "border-orange-200 dark:border-orange-500/30", label: "I dag", pulse: true };
+      return { rail: "bg-orange-500", pillBg: "bg-orange-50 dark:bg-orange-500/10", pillText: "text-orange-700 dark:text-orange-300", label: "I dag" };
     }
     if (isTomorrow(wd)) {
-      return { rail: "bg-amber-500", pillBg: "bg-amber-50 dark:bg-amber-500/10", pillText: "text-amber-700 dark:text-amber-300", pillBorder: "border-amber-200 dark:border-amber-500/30", label: "I morgen", pulse: false };
+      return { rail: "bg-amber-500", pillBg: "bg-amber-50 dark:bg-amber-500/10", pillText: "text-amber-700 dark:text-amber-300", label: "I morgen" };
     }
-    return { rail: "bg-primary", pillBg: "bg-primary/10", pillText: "text-foreground", pillBorder: "border-primary/20", label: format(wd, "d. MMM", { locale: da }), pulse: false };
+    return { rail: "bg-foreground/30", pillBg: "bg-secondary", pillText: "text-foreground/80", label: format(wd, "d. MMM", { locale: da }) };
   })();
 
   const items = (job.business_response === "adjusted" && job.customer_response === "accepted" && Array.isArray(job?.adjusted_details?.items))
@@ -1256,17 +1256,17 @@ function DraggableJobCard({
         fullWidth ? "w-full" : "w-64",
         selectMode && !pending && "cursor-pointer",
         selected
-          ? "border-accent ring-2 ring-accent/25 shadow-[0_6px_18px_-6px_hsl(var(--accent)/0.45)]"
+          ? "border-accent ring-1 ring-accent/30"
           : pending
-            ? "border-amber-300/60"
+            ? "border-amber-300/50"
             : cn(CARD_BORDER, CARD_HOVER),
         isDragging && "border-dashed border-accent/60 bg-secondary/30 opacity-45 shadow-none",
       )}
     >
-      {/* Venstre urgency-rail */}
-      <div aria-hidden className={cn("w-1 shrink-0", urgency.rail, urgency.pulse && "animate-pulse")} />
+      {/* Tynd venstre urgency-rail */}
+      <div aria-hidden className={cn("w-[3px] shrink-0", urgency.rail)} />
 
-      <div className="flex-1 min-w-0 p-2.5 space-y-1.5">
+      <div className="flex-1 min-w-0 p-2.5 pl-3 space-y-1.5">
         {/* Drag-handle/check + navn + dato-pille */}
         <div className="flex items-start gap-1.5">
           {selectMode && !pending ? (
@@ -1289,13 +1289,13 @@ function DraggableJobCard({
               <GripVertical className="h-4 w-4" />
             </button>
           ) : null}
-          <h3 className="min-w-0 flex-1 truncate text-[13.5px] font-bold capitalize leading-tight text-foreground">
+          <h3 className="min-w-0 flex-1 truncate text-[14px] font-semibold capitalize leading-tight text-foreground">
             {job.customer_name || "Ukendt kunde"}
           </h3>
           <span
             className={cn(
-              "shrink-0 inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[9.5px] font-bold tracking-wide",
-              urgency.pillBg, urgency.pillText, urgency.pillBorder,
+              "shrink-0 inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold tracking-wide",
+              urgency.pillBg, urgency.pillText,
             )}
           >
             {urgency.label}
