@@ -4560,6 +4560,75 @@ const Planner = () => {
                           />
                       </div>
                     )}
+                    {(activeAdvancedFilterCount > 0 || search.trim() !== "" || unassignedStatusFilter !== "all") && (
+                      <div className="flex flex-wrap items-center gap-1 pt-0.5">
+                        {search.trim() !== "" && (
+                          <button
+                            type="button"
+                            onClick={() => setSearch("")}
+                            className="inline-flex items-center gap-1 h-5 rounded-full border border-border bg-secondary/60 px-1.5 text-[10px] text-foreground hover:bg-secondary"
+                            title="Fjern søgning"
+                          >
+                            <Search className="h-2.5 w-2.5" />
+                            <span className="max-w-[80px] truncate">{search}</span>
+                            <X className="h-2.5 w-2.5 opacity-70" />
+                          </button>
+                        )}
+                        {unassignedStatusFilter !== "all" && (
+                          <button
+                            type="button"
+                            onClick={() => setUnassignedStatusFilter("all")}
+                            className="inline-flex items-center gap-1 h-5 rounded-full border border-border bg-secondary/60 px-1.5 text-[10px] text-foreground hover:bg-secondary"
+                          >
+                            {unassignedStatusFilter === "ready" ? "Klar" : "Afventer"}
+                            <X className="h-2.5 w-2.5 opacity-70" />
+                          </button>
+                        )}
+                        {Array.from(urgencyFilter).map((u) => {
+                          const opt = URGENCY_OPTIONS.find((o) => o.key === u);
+                          if (!opt) return null;
+                          return (
+                            <button
+                              key={`u-${u}`}
+                              type="button"
+                              onClick={() => setUrgencyFilterArr(Array.from(urgencyFilter).filter((x) => x !== u))}
+                              className="inline-flex items-center gap-1 h-5 rounded-full border border-border bg-secondary/60 px-1.5 text-[10px] text-foreground hover:bg-secondary"
+                            >
+                              <span aria-hidden className={cn("h-1.5 w-1.5 rounded-full", opt.dot)} />
+                              {opt.label}
+                              <X className="h-2.5 w-2.5 opacity-70" />
+                            </button>
+                          );
+                        })}
+                        {Array.from(postcodeFilter).map((p) => (
+                          <button
+                            key={`p-${p}`}
+                            type="button"
+                            onClick={() => setPostcodeFilterArr(Array.from(postcodeFilter).filter((x) => x !== p))}
+                            className="inline-flex items-center gap-1 h-5 rounded-full border border-border bg-secondary/60 px-1.5 text-[10px] text-foreground hover:bg-secondary"
+                          >
+                            <MapPin className="h-2.5 w-2.5" />
+                            {p}
+                            <X className="h-2.5 w-2.5 opacity-70" />
+                          </button>
+                        ))}
+                        {Array.from(serviceFilter).map((s) => (
+                          <button
+                            key={`s-${s}`}
+                            type="button"
+                            onClick={() => setServiceFilterArr(Array.from(serviceFilter).filter((x) => x !== s))}
+                            className="inline-flex items-center gap-1 h-5 rounded-full border border-border bg-secondary/60 px-1.5 text-[10px] text-foreground hover:bg-secondary max-w-[140px]"
+                            title={s}
+                          >
+                            <span className="truncate">{s}</span>
+                            <X className="h-2.5 w-2.5 opacity-70 shrink-0" />
+                          </button>
+                        ))}
+                        <span className="ml-auto text-[10px] tabular-nums text-muted-foreground">
+                          {filteredUnassigned.length} af {unassigned.length}
+                        </span>
+                      </div>
+                    )}
                     {(() => {
                        // Tallet i auto-fordel-knappen skal altid matche det
                        // brugeren faktisk ser i listen — ellers kan der stå
