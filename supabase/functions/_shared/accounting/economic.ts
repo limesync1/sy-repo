@@ -937,7 +937,7 @@ export function makeEconomicAdapter(
         headers: {
           "X-AppSecretToken": creds.api_secret ?? "",
           "X-AgreementGrantToken": creds.api_token ?? "",
-          Accept: "application/octet-stream",
+          Accept: "application/octet-stream, application/pdf",
         },
       });
       if (!res.ok) {
