@@ -781,7 +781,11 @@ const RoutePillInner = ({
         // ikke visuelt invitere til drop.
         jobDragActive && isPast && "opacity-25 pointer-events-none",
         // Når en aftale er ved at blive sluppet på pillen — markér tydeligt
-        !isVirtual && jobDragActive && !isOver && "border-dashed",
+        // Trin 3 — alle gyldige drop-targets får ensartet subtil ring under drag,
+        //         så brugeren ser hvor man KAN slippe (ikke kun hvor man hovrer).
+        !isVirtual && jobDragActive && !isPast && !isOver && "border-dashed ring-1 ring-accent/25 ring-inset",
+        // Ugyldige pille-targets (projiceret/fortid) dæmpes klart under drag.
+        (isVirtual || isPast) && jobDragActive && "opacity-40",
         !isVirtual && isOver && !validation && "ring-1 ring-accent border-accent",
         !isVirtual && isOver && validation && ringForSeverity(validation.severity),
         // Når en ANDEN rute faktisk hovrer over denne pille, er det et merge.
