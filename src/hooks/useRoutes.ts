@@ -1916,7 +1916,11 @@ export const useMoveRouteSeries = () => {
     // Optimistisk patch: opdater route_date i alle cache-nøgler øjeblikkeligt
     // så ruten "lander" på den nye dato i kalenderen før server-roundtrippet
     // er færdigt. Det fjerner det 3-4 sek glimt brugeren oplevede.
-    onMutate: async ({ routeId, newDate }) => {
+    onMutate: async ({ routeId, newDate, scope }) => {
+      // Ved "kun denne gang" kan serveren bevare basisruten og oprette/flytte
+      // en separat forekomst. En optimistisk dato-patch på source-id'et ligner
+      // derfor en kopi i UI'et og kan efterlade forkert undo-kontekst.
+      if (scope === "single") return { snapshots: [] };
       await Promise.all([
         qc.cancelQueries({ queryKey: ["route-calendar"] }),
         qc.cancelQueries({ queryKey: ["routes"] }),
@@ -1957,12 +1961,13 @@ export const useMoveRouteSeries = () => {
       // updates, hvilket var den primære grund til at flytningen føltes
       // langsom selv om UI'et patchede optimistisk.
       void moveLinkedSubscriptions; // implicit ved "future"
-      const { error } = await supabase.rpc("move_route_to_date" as any, {
+      const { data, error } = await supabase.rpc("move_route_to_date" as any, {
         _route_id: routeId,
         _new_date: newDate,
         _scope: scope,
       });
       if (error) throw error;
+      return data as any;
     }),
     onSuccess: () => {
       invalidateRouteSyncQueries(qc);

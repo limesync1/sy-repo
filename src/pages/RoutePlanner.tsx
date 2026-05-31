@@ -3348,19 +3348,20 @@ const Planner = () => {
     const { route, newDate } = pendingRouteMove;
     const oldDate = route.route_date;
     try {
-      await moveRouteSeries.mutateAsync({
+      const result = await moveRouteSeries.mutateAsync({
         routeId: route.id,
         newDate,
         scope,
         moveLinkedSubscriptions,
       });
+      const movedRouteId = String((result as any)?.new_route_id || route.id);
       pushRouteUndo({
         label: scope === "future"
           ? `Forskydning af ruteserie til ${format(parseISO(newDate), "d. MMM", { locale: da })}`
           : `Flyt rute til ${format(parseISO(newDate), "d. MMM", { locale: da })}`,
         undo: async () => {
           await moveRouteSeries.mutateAsync({
-            routeId: route.id,
+            routeId: movedRouteId,
             newDate: oldDate,
             scope,
             moveLinkedSubscriptions,
@@ -3377,7 +3378,7 @@ const Planner = () => {
       // Klogt: spørg KUN om optimering hvis vores estimat viser at der
       // reelt er noget at vinde (≥5 km OG ≥20 % besparelse). Ellers
       // pester vi ikke brugeren — ruten er allerede fint planlagt.
-      tryPromptOptimize(route.id, route.name, "moved");
+      tryPromptOptimize(movedRouteId, route.name, "moved");
     } catch (err: any) {
       toast.error(err.message || "Kunne ikke flytte rute", {
         description: "Tjek at den nye dato er gyldig, og prøv igen.",
