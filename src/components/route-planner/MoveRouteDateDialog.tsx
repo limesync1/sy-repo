@@ -33,12 +33,20 @@ type Props = {
   loading?: boolean;
   /** Valgfri konflikt-advarsler vist over scope-valgene. */
   warnings?: string[];
+  /**
+   * Konkrete grunde til at "Fremtidige aftaler også" ikke kan vælges.
+   * Hvis tom/undefined falder vi tilbage til en generisk besked. Hvis udfyldt
+   * vises de som bullet-liste under den deaktiverede knap, så brugeren altid
+   * kan se HVORFOR de kun kan vælge "Kun denne gang".
+   */
+  disabledFutureReasons?: string[];
   onConfirm: (scope: MoveRouteScope, moveLinkedSubscriptions: boolean) => Promise<void> | void;
 };
 
 export const MoveRouteDateDialog = ({
   open, onOpenChange, routeName, fromDate, toDate,
-  recurringAppointmentCount, linkedSubscriptionCount, loading, warnings, onConfirm,
+  recurringAppointmentCount, linkedSubscriptionCount, loading, warnings,
+  disabledFutureReasons, onConfirm,
 }: Props) => {
   void linkedSubscriptionCount;
   const [scope, setScope] = useState<MoveRouteScope>("single");
@@ -62,7 +70,8 @@ export const MoveRouteDateDialog = ({
     catch { return d; }
   };
 
-  const canChooseFuture = recurringAppointmentCount >= 1;
+  const canChooseFuture =
+    recurringAppointmentCount >= 1 && (disabledFutureReasons?.length ?? 0) === 0;
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -125,6 +134,19 @@ export const MoveRouteDateDialog = ({
                 : "Ingen tilbagevendende aftaler på ruten at forskyde."
             }
             icon={<Repeat className="h-3.5 w-3.5" />}
+            extra={
+              !canChooseFuture && (disabledFutureReasons?.length ?? 0) > 0 ? (
+                <div className="mt-1.5 rounded-md border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 px-2 py-1.5">
+                  <div className="mb-0.5 flex items-center gap-1 text-[11px] font-semibold text-amber-900 dark:text-amber-200">
+                    <AlertTriangle className="h-3 w-3 shrink-0" />
+                    Hvorfor er denne mulighed låst?
+                  </div>
+                  <ul className="space-y-0.5 text-[11px] leading-snug text-amber-900/90 dark:text-amber-200/90">
+                    {disabledFutureReasons!.map((r, i) => <li key={i}>• {r}</li>)}
+                  </ul>
+                </div>
+              ) : null
+            }
           />
 
           {/* Linked-subscriptions checkbox fjernet: ved "fremtidige" forskydes
@@ -147,7 +169,7 @@ export const MoveRouteDateDialog = ({
 };
 
 const ScopeOption = ({
-  selected, onClick, disabled, title, description, icon,
+  selected, onClick, disabled, title, description, icon, extra,
 }: {
   selected: boolean;
   onClick: () => void;
@@ -155,6 +177,7 @@ const ScopeOption = ({
   title: string;
   description: string;
   icon?: React.ReactNode;
+  extra?: React.ReactNode;
 }) => (
   <button
     type="button"
@@ -177,5 +200,6 @@ const ScopeOption = ({
       <span className="min-w-0 text-sm font-semibold [overflow-wrap:anywhere]">{title}</span>
     </div>
     <p className="min-w-0 pl-5 text-[11px] leading-snug text-muted-foreground [overflow-wrap:anywhere]">{description}</p>
+    {extra && <div className="pl-5">{extra}</div>}
   </button>
 );
