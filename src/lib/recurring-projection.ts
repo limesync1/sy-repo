@@ -108,7 +108,6 @@ export const resolveProjectionExceptions = (
 
     const replId = ex.replacement_route_id ? String(ex.replacement_route_id) : null;
     if (!replId || replId === baseId) continue;
-    if (!realRouteIds.has(replId)) continue;
     suppressedProjectionKeys.add(`${baseId}|${date}`);
     movedReplacementRouteIds.add(replId);
   }
