@@ -103,6 +103,22 @@ Deno.serve(async (req) => {
       };
       if (!integ) return json({ ok: true, caps });
       const adapter = makeAdapter(integ.provider, integ as any, integ.settings ?? {});
+      // Hvis vi allerede har et faktura-ID gemt lokalt (enten på selve
+      // ordren eller via accounting_order_links), så ved vi at fakturaen
+      // findes hos udbyderen — selv hvis live-probe lige nu fejler pga.
+      // udløbet demo, manglende token eller andre brugerfejl. Vi tillader
+      // download/gensend baseret på det, og lader det egentlige kald give
+      // en meningsfuld fejl hvis credentials stadig mangler.
+      if (externalId) {
+        caps.exists_in_provider = true;
+        if (bookedInvoiceId || link?.external_type === "invoice_booked") {
+          caps.is_booked = true;
+          caps.can_resend = typeof adapter.resendInvoice === "function";
+        } else {
+          caps.is_draft = true;
+        }
+        caps.can_download_pdf = typeof adapter.getInvoicePdf === "function";
+      }
       try {
         if (externalId && typeof adapter.getInvoiceStates === "function") {
           const states = await adapter.getInvoiceStates([externalId]);
@@ -135,7 +151,7 @@ Deno.serve(async (req) => {
           caps.can_void = true;
           caps.can_download_pdf = typeof adapter.getInvoicePdf === "function";
         }
-      } catch { /* ignorer — caps forbliver false så knapper skjules */ }
+      } catch { /* ignorer — vi har stadig fallback-caps fra externalId-blokken ovenfor */ }
       return json({ ok: true, caps });
     }
 

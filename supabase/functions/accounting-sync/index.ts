@@ -22,9 +22,11 @@ const CUSTOMERS_ONLY = false;
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  let outerBusinessId: string | null = null;
   try {
     const body = await req.json().catch(() => ({}));
     const { mode = "queue", business_id, order_id, internal_mode } = body;
+    outerBusinessId = business_id ?? null;
 
     // Service-role client for actual DB work
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
@@ -113,6 +115,20 @@ Deno.serve(async (req) => {
     console.error("accounting-sync error", e);
     const message = e instanceof Error ? e.message : String(e);
     const userActionRequired = isUserActionableAccountingError(message);
+    // Hvis fejlen kræver brugerens handling (udløbet demo, manglende token,
+    // forbudt adgang osv.), så pauser vi integrationen i en time så cron'en
+    // ikke bliver ved med at hamre på en kendt-død forbindelse. Brugeren
+    // får besked via last_error/last_error_at i UI'et.
+    if (userActionRequired && outerBusinessId) {
+      try {
+        const admin = createClient(SUPABASE_URL, SERVICE_KEY);
+        await admin.from("accounting_integrations").update({
+          paused_until: new Date(Date.now() + 60 * 60_000).toISOString(),
+          last_error: message,
+          last_error_at: new Date().toISOString(),
+        }).eq("business_id", outerBusinessId);
+      } catch (_) { /* ignorer — top-level fejlhåndtering må ikke kaste */ }
+    }
     return json({ ok: false, error: message, user_action_required: userActionRequired }, userActionRequired ? 200 : 500);
   }
 });
@@ -829,7 +845,43 @@ async function drainQueue(admin: SupabaseClient, integ: Integration, adapter: Ac
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       const isProviderDown = /svarer ikke|503|502|504|timeout|ECONNRESET|rate.?limit|429/i.test(msg);
-      if (isProviderDown) providerDown = true;
+      // Behandl bruger-handlings-fejl (udløbet demo, manglende/forkert token,
+      // 401/403 fra udbyderen) som "provider down" så vi stopper resten af
+      // kørslen og pauser integrationen — ellers fejler alle 50 jobs
+      // identisk og spammer logget.
+      const needsUserFix = isUserActionableAccountingError(msg);
+      if (isProviderDown || needsUserFix) providerDown = true;
+      if (needsUserFix) {
+        // Pause integrationen i 1 time så cron'en ikke kalder den igen før
+        // brugeren har fixet credentials. Reset jobbet til pending uden at
+        // tælle det som et "rigtigt" forsøg, og spring DLQ over.
+        await admin.from("accounting_integrations").update({
+          paused_until: new Date(Date.now() + 60 * 60_000).toISOString(),
+          last_error: msg,
+          last_error_at: new Date().toISOString(),
+        }).eq("business_id", integ.business_id);
+        await admin.from("accounting_sync_queue").update({
+          status: "pending",
+          attempts: job.attempts, // ruller forsøget tilbage
+          last_error: msg,
+          scheduled_for: new Date(Date.now() + 60 * 60_000).toISOString(),
+        }).eq("id", job.id);
+        // Log kun én gang
+        const { count: dupCount } = await admin.from("accounting_sync_log")
+          .select("*", { count: "exact", head: true })
+          .eq("business_id", integ.business_id)
+          .eq("status", "error")
+          .eq("message", msg)
+          .gte("created_at", new Date(Date.now() - 60 * 60_000).toISOString());
+        if (!dupCount || dupCount === 0) {
+          await logSync(admin, {
+            business_id: integ.business_id, provider: integ.provider,
+            direction: "push", entity_type: "connection",
+            status: "error", message: msg,
+          });
+        }
+        continue;
+      }
       // Special-case: kunden findes ikke længere i e-conomic. Ryd det forældede
       // link så næste forsøg opretter kunden på ny — i stedet for at fejle igen.
       const staleCustomerMatch = msg.match(/ECONOMIC_CUSTOMER_NOT_FOUND:(\d+)/);
