@@ -234,6 +234,7 @@ export interface AccountingAdapter {
   }): Promise<{
     invoice_external_id: string;
     invoice_external_number?: string | null;
+    invoice_external_type?: "invoice_booked" | "invoice_draft";
     sent: boolean;
   }>;
 
