@@ -1525,7 +1525,7 @@ const Planner = () => {
       }
     }
     const realRouteIds = new Set(calendarRoutesRaw.map((r) => r.id));
-    const { suppressedProjectionKeys, shiftsByOriginal } = resolveProjectionExceptions(
+    const { suppressedProjectionKeys, shiftsByOriginal, movedReplacementRouteIds } = resolveProjectionExceptions(
       routeOccurrenceExceptions as any[],
       realRouteIds,
     );
@@ -1598,8 +1598,10 @@ const Planner = () => {
         // aftalen kører hver 14. dag.
         const baseMinDate = minDateByBaseRouteId.get(p.baseRouteId);
         const hasAnchoredSource = p.sourceKeys.some((key) => anchoredSourceKeys.has(key));
+        const hasMovedReplacementRoute = movedReplacementRouteIds.has(p.baseRouteId);
         const isShiftedOccurrence = shiftsByOriginal.get(`${p.baseRouteId}|${p.date}`) !== undefined
           || shiftedTargetDates.has(p.date);
+        if (hasMovedReplacementRoute && !isShiftedOccurrence) return null;
         if (baseMinDate && p.date < baseMinDate && !hasAnchoredSource && !isShiftedOccurrence) return null;
         // Filtrér source-keys der allerede er materialiseret som rigtige
         // stops på samme dato — så vi ikke får dubletter.
