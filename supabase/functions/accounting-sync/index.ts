@@ -1374,9 +1374,12 @@ async function bookInvoiceForOrder(
     }
   }
 
+  const invoiceExternalType = (result.invoice_external_type ?? "invoice_booked") as "invoice_booked" | "invoice_draft";
+  const invoiceStatus = result.sent ? "sent" : invoiceExternalType === "invoice_draft" ? "draft" : "booked";
+
   // Opdater orders med faktura-info
   const { error: orderUpdateError } = await admin.from("orders").update({
-    invoice_status: result.sent ? "sent" : "booked",
+    invoice_status: invoiceStatus,
     invoiced_at: new Date().toISOString(),
     invoice_external_id: result.invoice_external_id,
     invoice_external_number: result.invoice_external_number ?? null,
@@ -1384,13 +1387,14 @@ async function bookInvoiceForOrder(
   }).eq("id", orderId);
   if (orderUpdateError) throw orderUpdateError;
 
-  // Gem link til faktura (samme tabel, men nu external_type = invoice)
+  // Gem link til faktura. e-conomic efterlader fakturaen som kladde, mens
+  // Dinero bogfører direkte — typen styrer bl.a. korrekt PDF-endpoint.
   const { error: linkUpdateError } = await admin.from("accounting_order_links").update({
     external_id: result.invoice_external_id,
     external_number: result.invoice_external_number,
-    external_type: "invoice_booked",
+    external_type: invoiceExternalType,
     last_pushed_at: new Date().toISOString(),
-    last_status_synced: result.sent ? "sent" : "booked",
+    last_status_synced: invoiceStatus,
   })
     .eq("business_id", integ.business_id)
     .eq("provider", integ.provider)
@@ -1402,7 +1406,7 @@ async function bookInvoiceForOrder(
     entity_type: "invoice", entity_id: orderId,
     external_id: result.invoice_external_id,
     status: "success",
-    message: result.sent ? "Faktura bogført og sendt" : "Faktura bogført",
+    message: result.sent ? "Faktura bogført og sendt" : invoiceExternalType === "invoice_draft" ? "Faktura-kladde oprettet" : "Faktura bogført",
   });
 }
 
@@ -1593,8 +1597,11 @@ async function bookInvoiceForOccurrence(
     }
   }
 
+  const invoiceExternalType = (result.invoice_external_type ?? "invoice_booked") as "invoice_booked" | "invoice_draft";
+  const invoiceStatus = result.sent ? "sent" : invoiceExternalType === "invoice_draft" ? "draft" : "booked";
+
   const { error: occUpdateErr } = await admin.from("agreement_occurrences").update({
-    invoice_status: result.sent ? "sent" : "booked",
+    invoice_status: invoiceStatus,
     invoiced_at: new Date().toISOString(),
     invoice_external_id: result.invoice_external_id,
     invoice_external_number: result.invoice_external_number ?? null,
@@ -1605,9 +1612,9 @@ async function bookInvoiceForOccurrence(
   const { error: linkUpdErr } = await admin.from("accounting_order_links").update({
     external_id: result.invoice_external_id,
     external_number: result.invoice_external_number,
-    external_type: "invoice_booked",
+    external_type: invoiceExternalType,
     last_pushed_at: new Date().toISOString(),
-    last_status_synced: result.sent ? "sent" : "booked",
+    last_status_synced: invoiceStatus,
   })
     .eq("business_id", integ.business_id)
     .eq("provider", integ.provider)
@@ -1618,6 +1625,6 @@ async function bookInvoiceForOccurrence(
     business_id: integ.business_id, provider: integ.provider, direction: "push",
     entity_type: "invoice", entity_id: occurrenceId, external_id: result.invoice_external_id,
     status: "success",
-    message: result.sent ? "Faktura bogført og sendt" : "Faktura bogført",
+    message: result.sent ? "Faktura bogført og sendt" : invoiceExternalType === "invoice_draft" ? "Faktura-kladde oprettet" : "Faktura bogført",
   });
 }
