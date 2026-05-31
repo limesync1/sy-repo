@@ -972,6 +972,20 @@ const RoutePillInner = ({
       </div>
 
       {/* Kapacitets-bar: tynd stribe der viser belastning. Skjul ved 0 stops. */}
+      {/* Trin 4 — Hover-preview: når en aftale svæver over pillen viser vi et
+          floating "ghost stop" der indikerer indsættelses-position. Vises kun
+          for gyldige drop (ingen error-severity) for at undgå falske signaler. */}
+      {jobDragActive && isOver && !isVirtual && !isPast && validation?.severity !== "error" && (
+        <div
+          aria-hidden
+          className="px-2 pb-1 -mt-0.5 animate-in fade-in slide-in-from-top-1 duration-150"
+        >
+          <div className="flex items-center gap-1 rounded-sm border border-dashed border-accent/70 bg-accent/10 px-1.5 py-0.5 text-[10px] font-semibold text-accent">
+            <Plus className="h-2.5 w-2.5" />
+            <span className="truncate">Ny stop på rute</span>
+          </div>
+        </div>
+      )}
       {stopCount > 0 && (
         <div
           className="h-0.5 w-full bg-muted/25 overflow-hidden"
