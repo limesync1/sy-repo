@@ -22,9 +22,11 @@ const CUSTOMERS_ONLY = false;
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  let outerBusinessId: string | null = null;
   try {
     const body = await req.json().catch(() => ({}));
     const { mode = "queue", business_id, order_id, internal_mode } = body;
+    outerBusinessId = business_id ?? null;
 
     // Service-role client for actual DB work
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
@@ -117,17 +119,14 @@ Deno.serve(async (req) => {
     // forbudt adgang osv.), så pauser vi integrationen i en time så cron'en
     // ikke bliver ved med at hamre på en kendt-død forbindelse. Brugeren
     // får besked via last_error/last_error_at i UI'et.
-    if (userActionRequired) {
+    if (userActionRequired && outerBusinessId) {
       try {
         const admin = createClient(SUPABASE_URL, SERVICE_KEY);
-        const bizId = (await req.clone().json().catch(() => ({})))?.business_id;
-        if (bizId) {
-          await admin.from("accounting_integrations").update({
-            paused_until: new Date(Date.now() + 60 * 60_000).toISOString(),
-            last_error: message,
-            last_error_at: new Date().toISOString(),
-          }).eq("business_id", bizId);
-        }
+        await admin.from("accounting_integrations").update({
+          paused_until: new Date(Date.now() + 60 * 60_000).toISOString(),
+          last_error: message,
+          last_error_at: new Date().toISOString(),
+        }).eq("business_id", outerBusinessId);
       } catch (_) { /* ignorer — top-level fejlhåndtering må ikke kaste */ }
     }
     return json({ ok: false, error: message, user_action_required: userActionRequired }, userActionRequired ? 200 : 500);
