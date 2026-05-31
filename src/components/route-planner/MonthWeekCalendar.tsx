@@ -407,6 +407,15 @@ const DayCellInner = ({
           <span className="text-[10px] font-bold text-accent uppercase tracking-wider">Slip her</span>
         </div>
       )}
+      {/* Trin 3 — snap-linjer: tynd accent-linje i top + bund af cellen
+          når der hovres på en dag der allerede har ruter, så det er klart
+          hvor aftalen lander uden at flytte indholdet. */}
+      {isOver && canReceiveDrop && !validation && !emptyDay && (
+        <>
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-accent z-10" />
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-accent z-10" />
+        </>
+      )}
       {/* ─── Drop-target floating label ─── */}
       {/* Vises kun mens brugeren hovrer over en gyldig drop-dag. Fortæller
           eksplicit hvad der sker ved slip + præcis dato — så brugeren
