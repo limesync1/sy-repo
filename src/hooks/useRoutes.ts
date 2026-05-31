@@ -1764,10 +1764,13 @@ export const useRouteSeriesInfo = (
       //    (subscription_id på route_stops).
       const { data: stops } = await supabase
         .from("route_stops")
-        .select("subscription_id, agreement_occurrence_id")
+        .select("order_id, subscription_id, agreement_occurrence_id")
         .eq("route_id", routeId!)
         ;
 
+      const orderIdsFromStops = Array.from(
+        new Set((stops || []).map((s: any) => s.order_id).filter(Boolean)),
+      );
       const subIds = Array.from(
         new Set((stops || []).map((s: any) => s.subscription_id).filter(Boolean)),
       );
@@ -1778,12 +1781,20 @@ export const useRouteSeriesInfo = (
       // 2) Aftaler/abonnementer der har ruten som "preferred_route_id" — det
       //    er det signal kalender-projektionen bruger til at tegne fremtidige
       //    forekomster, så det er også den korrekte tæller her.
-      const [subsByStops, subsByPref, agreementsByPref, occRows, occsByRoute] = await Promise.all([
+      const [subsByStops, subsByStopOrders, subsByPref, agreementsByPref, occRows, occsByRoute] = await Promise.all([
         subIds.length > 0
           ? supabase
               .from("subscriptions")
                 .select("id, interval, status, next_service_date, order_id")
               .in("id", subIds)
+          : Promise.resolve({ data: [] as any[], error: null } as any),
+        orderIdsFromStops.length > 0
+          ? supabase
+              .from("subscriptions")
+              .select("id, interval, status, next_service_date, order_id")
+              .in("order_id", orderIdsFromStops)
+              .eq("status", "active")
+              .neq("interval", "engangskøb")
           : Promise.resolve({ data: [] as any[], error: null } as any),
         supabase
           .from("subscriptions")
@@ -1825,7 +1836,10 @@ export const useRouteSeriesInfo = (
             .neq("interval", "engangskøb")
         : { data: [] as any[], error: null } as any;
 
-      const recurringSubs = (subsByStops.data || []).filter(
+      const recurringSubs = [
+        ...(subsByStops.data || []),
+        ...(subsByStopOrders.data || []),
+      ].filter(
         (s: any) =>
           s.status === "active" &&
           s.interval &&
