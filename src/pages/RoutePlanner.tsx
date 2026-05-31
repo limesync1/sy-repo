@@ -1410,7 +1410,6 @@ const Planner = () => {
     // OG den nye dato samtidig.
     const movedBaseKeys = new Set<string>();
     {
-      const realIds = new Set(calendarRoutesRaw.map((r) => r.id));
       for (const ex of routeOccurrenceExceptions as any[]) {
         const type = (ex.exception_type as string | null) ?? "moved";
         if (type !== "moved") continue;
@@ -1418,7 +1417,10 @@ const Planner = () => {
         const baseId = ex.base_route_id as string;
         const date = String(ex.occurrence_date).slice(0, 10);
         if (!replId || replId === baseId) continue;
-        if (!realIds.has(replId)) continue;
+        // Undtagelser hentes nu for hele virksomheden, mens kalenderens rute-
+        // data kun dækker det aktuelle view. En gyldig erstatningsrute kan
+        // derfor ligge uden for viewet — basisruten skal stadig skjules på
+        // originaldatoen, ellers ses den både gammel og ny dato.
         movedBaseKeys.add(`${baseId}|${date}`);
       }
     }
@@ -1751,15 +1753,15 @@ const Planner = () => {
           viser en advarsel i UI'et — så fejlen aldrig bare "forsvinder".
      ──────────────────────────────────────────── */
   const projectionDiagnostics = useMemo(() => {
-    const realRouteIds = new Set(calendarRoutesRaw.map((r) => r.id));
     const staleExceptions: any[] = [];
     for (const ex of routeOccurrenceExceptions as any[]) {
       const baseId = ex.base_route_id as string;
       const replId = ex.replacement_route_id as string | null;
       if (!replId) continue;
-      // Self-replacement (samme rute) eller peger på en rute der ikke længere
-      // findes → stale data fra tidligere flyt/optimer-operationer.
-      if (replId === baseId || !realRouteIds.has(replId)) {
+      // Kun self-replacement kan afgøres ud fra klientens nuværende cache.
+      // Vi må ikke slette exceptions blot fordi replacement-ruten ikke er i
+      // det aktuelle kalender-view; den kan ligge på en anden uge/måned.
+      if (replId === baseId) {
         staleExceptions.push(ex);
       }
     }
@@ -1771,7 +1773,7 @@ const Planner = () => {
       if (!cad) unprojectable.push({ source: s, reason: "invalid_interval" });
     }
     return { staleExceptions, unprojectable };
-  }, [routeOccurrenceExceptions, calendarRoutesRaw, recurringSources]);
+  }, [routeOccurrenceExceptions, recurringSources]);
 
   /* Auto-cleanup af stale exceptions — best-effort, kører i baggrunden. */
   const cleanupAttemptedIdsRef = useRef<Set<string>>(new Set());
