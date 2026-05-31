@@ -597,8 +597,7 @@ export const useRouteOccurrenceExceptions = (
       const { data, error } = await supabase
         .from("route_occurrence_exceptions" as any)
         .select("id, base_route_id, occurrence_date, replacement_route_id, exception_type, shifted_to_date")
-        .eq("business_id", businessId!)
-        .or(`and(occurrence_date.gte.${from},occurrence_date.lte.${to}),and(shifted_to_date.gte.${from},shifted_to_date.lte.${to})`);
+        .eq("business_id", businessId!);
       if (error) throw error;
       return (data || []) as unknown as RouteOccurrenceException[];
     },
