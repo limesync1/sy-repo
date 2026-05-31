@@ -407,6 +407,15 @@ const DayCellInner = ({
           <span className="text-[10px] font-bold text-accent uppercase tracking-wider">Slip her</span>
         </div>
       )}
+      {/* Trin 3 — snap-linjer: tynd accent-linje i top + bund af cellen
+          når der hovres på en dag der allerede har ruter, så det er klart
+          hvor aftalen lander uden at flytte indholdet. */}
+      {isOver && canReceiveDrop && !validation && !emptyDay && (
+        <>
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-accent z-10" />
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-accent z-10" />
+        </>
+      )}
       {/* ─── Drop-target floating label ─── */}
       {/* Vises kun mens brugeren hovrer over en gyldig drop-dag. Fortæller
           eksplicit hvad der sker ved slip + præcis dato — så brugeren
@@ -781,7 +790,11 @@ const RoutePillInner = ({
         // ikke visuelt invitere til drop.
         jobDragActive && isPast && "opacity-25 pointer-events-none",
         // Når en aftale er ved at blive sluppet på pillen — markér tydeligt
-        !isVirtual && jobDragActive && !isOver && "border-dashed",
+        // Trin 3 — alle gyldige drop-targets får ensartet subtil ring under drag,
+        //         så brugeren ser hvor man KAN slippe (ikke kun hvor man hovrer).
+        !isVirtual && jobDragActive && !isPast && !isOver && "border-dashed ring-1 ring-accent/25 ring-inset",
+        // Ugyldige pille-targets (projiceret/fortid) dæmpes klart under drag.
+        (isVirtual || isPast) && jobDragActive && "opacity-40",
         !isVirtual && isOver && !validation && "ring-1 ring-accent border-accent",
         !isVirtual && isOver && validation && ringForSeverity(validation.severity),
         // Når en ANDEN rute faktisk hovrer over denne pille, er det et merge.
@@ -968,6 +981,20 @@ const RoutePillInner = ({
       </div>
 
       {/* Kapacitets-bar: tynd stribe der viser belastning. Skjul ved 0 stops. */}
+      {/* Trin 4 — Hover-preview: når en aftale svæver over pillen viser vi et
+          floating "ghost stop" der indikerer indsættelses-position. Vises kun
+          for gyldige drop (ingen error-severity) for at undgå falske signaler. */}
+      {jobDragActive && isOver && !isVirtual && !isPast && validation?.severity !== "error" && (
+        <div
+          aria-hidden
+          className="px-2 pb-1 -mt-0.5 animate-in fade-in slide-in-from-top-1 duration-150"
+        >
+          <div className="flex items-center gap-1 rounded-sm border border-dashed border-accent/70 bg-accent/10 px-1.5 py-0.5 text-[10px] font-semibold text-accent">
+            <Plus className="h-2.5 w-2.5" />
+            <span className="truncate">Ny stop på rute</span>
+          </div>
+        </div>
+      )}
       {stopCount > 0 && (
         <div
           className="h-0.5 w-full bg-muted/25 overflow-hidden"
