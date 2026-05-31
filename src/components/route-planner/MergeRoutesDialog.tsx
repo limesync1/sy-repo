@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
-import { Combine, Repeat, ArrowRight, Loader2 } from "lucide-react";
+import { Combine, Repeat, ArrowRight, Loader2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type MergeScope = "single" | "future";
@@ -28,12 +28,18 @@ type Props = {
   targetDate: string;
   recurringAppointmentCount: number;
   loading?: boolean;
+  /**
+   * Konkrete grunde til at "Fremtidige aftaler også" ikke kan vælges.
+   * Vises som bullet-liste under den deaktiverede knap så brugeren altid
+   * kan se HVORFOR det kun kan flettes for denne ene dato.
+   */
+  disabledFutureReasons?: string[];
   onConfirm: (scope: MergeScope) => Promise<void> | void;
 };
 
 export const MergeRoutesDialog = ({
   open, onOpenChange, sourceName, targetName, sourceDate, targetDate,
-  recurringAppointmentCount, loading, onConfirm,
+  recurringAppointmentCount, loading, disabledFutureReasons, onConfirm,
 }: Props) => {
   const [scope, setScope] = useState<MergeScope>("single");
 
@@ -44,7 +50,8 @@ export const MergeRoutesDialog = ({
     catch { return d; }
   };
 
-  const canChooseFuture = recurringAppointmentCount >= 1;
+  const canChooseFuture =
+    recurringAppointmentCount >= 1 && (disabledFutureReasons?.length ?? 0) === 0;
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -91,6 +98,19 @@ export const MergeRoutesDialog = ({
                 : "Ingen tilbagevendende aftaler på kilderuten at flytte med."
             }
             icon={<Repeat className="h-3.5 w-3.5" />}
+            extra={
+              !canChooseFuture && (disabledFutureReasons?.length ?? 0) > 0 ? (
+                <div className="mt-1.5 rounded-md border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 px-2 py-1.5">
+                  <div className="mb-0.5 flex items-center gap-1 text-[11px] font-semibold text-amber-900 dark:text-amber-200">
+                    <AlertTriangle className="h-3 w-3 shrink-0" />
+                    Hvorfor er denne mulighed låst?
+                  </div>
+                  <ul className="space-y-0.5 text-[11px] leading-snug text-amber-900/90 dark:text-amber-200/90">
+                    {disabledFutureReasons!.map((r, i) => <li key={i}>• {r}</li>)}
+                  </ul>
+                </div>
+              ) : null
+            }
           />
         </div>
 
@@ -110,7 +130,7 @@ export const MergeRoutesDialog = ({
 };
 
 const ScopeOption = ({
-  selected, onClick, disabled, title, description, icon,
+  selected, onClick, disabled, title, description, icon, extra,
 }: {
   selected: boolean;
   onClick: () => void;
@@ -118,6 +138,7 @@ const ScopeOption = ({
   title: string;
   description: string;
   icon?: React.ReactNode;
+  extra?: React.ReactNode;
 }) => (
   <button
     type="button"
@@ -140,5 +161,6 @@ const ScopeOption = ({
       <span className="min-w-0 text-sm font-semibold [overflow-wrap:anywhere]">{title}</span>
     </div>
     <p className="min-w-0 pl-5 text-[11px] leading-snug text-muted-foreground [overflow-wrap:anywhere]">{description}</p>
+    {extra && <div className="pl-5">{extra}</div>}
   </button>
 );
