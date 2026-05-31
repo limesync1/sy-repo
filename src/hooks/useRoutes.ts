@@ -1764,18 +1764,21 @@ export const useRouteSeriesInfo = (
       //    (subscription_id på route_stops).
       const { data: stops } = await supabase
         .from("route_stops")
-        .select("subscription_id")
+        .select("subscription_id, agreement_occurrence_id")
         .eq("route_id", routeId!)
-        .not("subscription_id", "is", null);
+        ;
 
       const subIds = Array.from(
         new Set((stops || []).map((s: any) => s.subscription_id).filter(Boolean)),
+      );
+      const occIdsFromStops = Array.from(
+        new Set((stops || []).map((s: any) => s.agreement_occurrence_id).filter(Boolean)),
       );
 
       // 2) Aftaler/abonnementer der har ruten som "preferred_route_id" — det
       //    er det signal kalender-projektionen bruger til at tegne fremtidige
       //    forekomster, så det er også den korrekte tæller her.
-      const [subsByStops, subsByPref, agreementsByPref] = await Promise.all([
+      const [subsByStops, subsByPref, agreementsByPref, occRows, occsByRoute] = await Promise.all([
         subIds.length > 0
           ? supabase
               .from("subscriptions")
@@ -1794,7 +1797,33 @@ export const useRouteSeriesInfo = (
           .eq("preferred_route_id", routeId!)
           .eq("status", "active")
           .neq("interval", "engangskøb"),
+        occIdsFromStops.length > 0
+          ? supabase
+              .from("agreement_occurrences")
+              .select("id, agreement_id")
+              .in("id", occIdsFromStops)
+          : Promise.resolve({ data: [] as any[], error: null } as any),
+        supabase
+          .from("agreement_occurrences")
+          .select("agreement_id")
+          .eq("route_id", routeId!),
       ]);
+
+      // 3) Hent agreements knyttet via agreement_occurrences på denne rute
+      //    (uanset om de er linket via preferred_route_id). Det er den korrekte
+      //    tæller for tilbagevendende aftaler der er materialiseret som stops.
+      const occAgreementIds = Array.from(new Set([
+        ...((occRows.data || []).map((o: any) => o.agreement_id).filter(Boolean)),
+        ...((occsByRoute.data || []).map((o: any) => o.agreement_id).filter(Boolean)),
+      ]));
+      const agreementsByOcc = occAgreementIds.length > 0
+        ? await supabase
+            .from("agreements")
+            .select("id, interval, status, start_date")
+            .in("id", occAgreementIds)
+            .eq("status", "active")
+            .neq("interval", "engangskøb")
+        : { data: [] as any[], error: null } as any;
 
       const recurringSubs = (subsByStops.data || []).filter(
         (s: any) =>
@@ -1811,6 +1840,7 @@ export const useRouteSeriesInfo = (
       for (const s of recurringSubs) ids.add(`sub:${s.id}`);
       for (const s of (subsByPref.data || [])) ids.add(`sub:${s.id}`);
       for (const a of (agreementsByPref.data || [])) ids.add(`agr:${a.id}`);
+      for (const a of (agreementsByOcc.data || [])) ids.add(`agr:${a.id}`);
       for (const s of recurringSubs) {
         if (s?.id) subscriptionIds.add(String(s.id));
       }
@@ -1818,6 +1848,9 @@ export const useRouteSeriesInfo = (
         if (s?.id) subscriptionIds.add(String(s.id));
       }
       for (const a of (agreementsByPref.data || [])) {
+        if (a?.id) agreementIds.add(String(a.id));
+      }
+      for (const a of (agreementsByOcc.data || [])) {
         if (a?.id) agreementIds.add(String(a.id));
       }
       for (const s of recurringSubs) {
@@ -1839,6 +1872,7 @@ export const useRouteSeriesInfo = (
       for (const s of recurringSubs) addVote((s as any).interval);
       for (const s of (subsByPref.data || [])) addVote((s as any).interval);
       for (const a of (agreementsByPref.data || [])) addVote((a as any).interval);
+      for (const a of (agreementsByOcc.data || [])) addVote((a as any).interval);
       let dominantIntervalDays: number | null = null;
       let bestVotes = 0;
       for (const [days, votes] of intervalVotes) {
