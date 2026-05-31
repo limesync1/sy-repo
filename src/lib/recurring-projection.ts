@@ -87,6 +87,7 @@ export const resolveProjectionExceptions = (
 ) => {
   const suppressedProjectionKeys = new Set<string>();
   const shiftsByOriginal = new Map<string, string>();
+  const movedReplacementRouteIds = new Set<string>();
 
   for (const ex of exceptions) {
     const baseId = String(ex.base_route_id || "");
@@ -107,11 +108,11 @@ export const resolveProjectionExceptions = (
 
     const replId = ex.replacement_route_id ? String(ex.replacement_route_id) : null;
     if (!replId || replId === baseId) continue;
-    if (!realRouteIds.has(replId)) continue;
     suppressedProjectionKeys.add(`${baseId}|${date}`);
+    movedReplacementRouteIds.add(replId);
   }
 
-  return { suppressedProjectionKeys, shiftsByOriginal };
+  return { suppressedProjectionKeys, shiftsByOriginal, movedReplacementRouteIds };
 };
 
 /**
