@@ -5881,6 +5881,29 @@ const Planner = () => {
           recurringAppointmentCount={pendingSeriesInfo?.recurringAppointmentCount ?? 0}
           linkedSubscriptionCount={pendingSeriesInfo?.linkedSubscriptionCount ?? 0}
           loading={moveRouteSeries.isPending}
+          disabledFutureReasons={(() => {
+            // Beregn HVORFOR "Fremtidige aftaler også" evt. er låst, så
+            // brugeren ikke står med en uforklaret deaktiveret knap.
+            const reasons: string[] = [];
+            const r: any = pendingRouteMove?.route;
+            const info = pendingSeriesInfo;
+            const newDate = pendingRouteMove?.newDate || "";
+            const today = new Date().toISOString().slice(0, 10);
+            if (!r) return reasons;
+            if ((info?.recurringAppointmentCount ?? 0) < 1) {
+              reasons.push("Ruten har ingen tilbagevendende aftaler — der er ingen serie at forskyde.");
+            }
+            if (r.base_route_id) {
+              reasons.push("Denne dato er allerede en enkelt-flytning fra en serie. Flyt grundruten i stedet for at justere alle fremtidige.");
+            }
+            if (newDate && newDate < today) {
+              reasons.push("Den nye dato ligger i fortiden — fremtidige aftaler kan ikke forskydes baglæns.");
+            }
+            if ((info?.recurringAppointmentCount ?? 0) >= 1 && !info?.dominantIntervalDays) {
+              reasons.push("Aftalerne på ruten har ingen fælles rytme (interval) at forskyde efter.");
+            }
+            return reasons;
+          })()}
           onConfirm={handleConfirmMoveRoute}
         />
 
