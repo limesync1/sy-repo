@@ -934,7 +934,11 @@ export function makeEconomicAdapter(
         ? `/invoices/drafts/${invoice_external_id}/pdf`
         : `/invoices/booked/${invoice_external_id}/pdf`;
       const res = await fetch(`${BASE}${path}`, {
-        headers: { ...makeHeaders(creds), Accept: "application/octet-stream" },
+        headers: {
+          "X-AppSecretToken": creds.api_secret ?? "",
+          "X-AgreementGrantToken": creds.api_token ?? "",
+          Accept: "application/octet-stream",
+        },
       });
       if (!res.ok) {
         const text = await res.text();
