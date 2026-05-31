@@ -2580,7 +2580,7 @@ const Planner = () => {
       if (activeData.type === "route" && overData.type === "day") {
         const route = activeData.route;
         if (!route) return clearDragValidation();
-        const baseId: string | null = route.base_route_id ?? route.baseRouteId ?? null;
+        const baseId: string | null = route.base_route_id ?? route.baseRouteId ?? route.id ?? null;
         const seriesRoutesOnTargetDate = calendarRoutesRaw.filter((r: any) =>
           String(r.route_date).slice(0, 10) === overData.date
           && r.id !== route.id
@@ -2589,10 +2589,22 @@ const Planner = () => {
             || (!baseId && r.id === route.id)
           )
         );
+        const projectedRoutesOnTargetDate = virtualCalendarRoutes.filter((r: any) =>
+          String(r.route_date).slice(0, 10) === overData.date
+          && r.baseRouteId === baseId
+          && r.id !== route.id,
+        );
+        const movedException = (routeOccurrenceExceptions as any[]).find((ex) =>
+          ex.exception_type === "moved"
+          && ex.replacement_route_id === route.id
+          && ex.base_route_id === baseId,
+        );
+        const isMovingMovedOccurrenceBack = !!movedException
+          && String(movedException.occurrence_date).slice(0, 10) === overData.date;
         const result = validateRouteMove(
           { id: route.id, route_date: route.route_date, isVirtual: route.isVirtual, baseRouteId: baseId },
           overData.date,
-          { seriesRoutesOnTargetDate },
+          { seriesRoutesOnTargetDate: isMovingMovedOccurrenceBack ? [] : [...seriesRoutesOnTargetDate, ...projectedRoutesOnTargetDate] },
         );
         const { severity, topMessage } = summarize(result);
         writeDragValidationDebounced({ targetId: `day:${overData.date}`, severity, topMessage, result });
