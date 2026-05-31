@@ -999,6 +999,23 @@ export const RouteEditSheet = ({
         linkedSubscriptionCount={seriesInfo?.linkedSubscriptionCount ?? 0}
         loading={moveRouteSeries.isPending}
         warnings={moveConflictWarnings}
+        disabledFutureReasons={(() => {
+          const reasons: string[] = [];
+          const today = new Date().toISOString().slice(0, 10);
+          if ((seriesInfo?.recurringAppointmentCount ?? 0) < 1) {
+            reasons.push("Ruten har ingen tilbagevendende aftaler — der er ingen serie at forskyde.");
+          }
+          if ((route as any).base_route_id) {
+            reasons.push("Denne dato er allerede en enkelt-flytning fra en serie. Flyt grundruten i stedet for at justere alle fremtidige.");
+          }
+          if (pendingDate && pendingDate < today) {
+            reasons.push("Den nye dato ligger i fortiden — fremtidige aftaler kan ikke forskydes baglæns.");
+          }
+          if ((seriesInfo?.recurringAppointmentCount ?? 0) >= 1 && !seriesInfo?.dominantIntervalDays) {
+            reasons.push("Aftalerne på ruten har ingen fælles rytme (interval) at forskyde efter.");
+          }
+          return reasons;
+        })()}
         onConfirm={handleConfirmMoveDate}
       />
 
