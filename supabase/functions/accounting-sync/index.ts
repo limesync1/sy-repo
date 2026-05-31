@@ -113,6 +113,23 @@ Deno.serve(async (req) => {
     console.error("accounting-sync error", e);
     const message = e instanceof Error ? e.message : String(e);
     const userActionRequired = isUserActionableAccountingError(message);
+    // Hvis fejlen kræver brugerens handling (udløbet demo, manglende token,
+    // forbudt adgang osv.), så pauser vi integrationen i en time så cron'en
+    // ikke bliver ved med at hamre på en kendt-død forbindelse. Brugeren
+    // får besked via last_error/last_error_at i UI'et.
+    if (userActionRequired) {
+      try {
+        const admin = createClient(SUPABASE_URL, SERVICE_KEY);
+        const bizId = (await req.clone().json().catch(() => ({})))?.business_id;
+        if (bizId) {
+          await admin.from("accounting_integrations").update({
+            paused_until: new Date(Date.now() + 60 * 60_000).toISOString(),
+            last_error: message,
+            last_error_at: new Date().toISOString(),
+          }).eq("business_id", bizId);
+        }
+      } catch (_) { /* ignorer — top-level fejlhåndtering må ikke kaste */ }
+    }
     return json({ ok: false, error: message, user_action_required: userActionRequired }, userActionRequired ? 200 : 500);
   }
 });
