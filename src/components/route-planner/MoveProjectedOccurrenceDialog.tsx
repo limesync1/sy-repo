@@ -61,9 +61,9 @@ export const MoveProjectedOccurrenceDialog = ({
   let deltaDays = 0;
   try { deltaDays = differenceInCalendarDays(parseISO(toDate), parseISO(fromDate)); } catch {}
 
-  const showSync =
-    recurringAppointmentCount > 0 &&
-    (onSyncNextChange !== undefined || onSyncStartChange !== undefined);
+  // Projicerede flytninger er altid “kun denne forekomst”. Rytme-/serie-sync
+  // hører kun til MoveRouteDateDialog for faktiske ruter.
+  const showSync = false;
 
   const showSuggestion = !!warnings?.length && !!suggestedFreeDate && suggestedFreeDate !== toDate;
 
@@ -73,12 +73,12 @@ export const MoveProjectedOccurrenceDialog = ({
         <AlertDialogHeader className="min-w-0 text-left">
           <AlertDialogTitle className="flex min-w-0 items-center gap-2">
             <CalendarRange className="h-4 w-4 text-accent" />
-            Flyt kun denne dag?
+            Flyt rute til ny dato
           </AlertDialogTitle>
           <AlertDialogDescription asChild>
             <div className="min-w-0 space-y-2 text-sm">
               <p className="text-muted-foreground">
-                Du flytter én enkelt dag fra den gentagne rute. Resten af serien rører vi ikke.
+                Du flytter kun denne ene forekomst. Resten af serien forbliver uændret.
               </p>
               <div className="min-w-0 text-foreground">
                 <span className="block min-w-0 [overflow-wrap:anywhere] rounded-md border border-border bg-secondary/30 px-2.5 py-2 font-medium sm:truncate">{routeName}</span>
@@ -111,7 +111,7 @@ export const MoveProjectedOccurrenceDialog = ({
                 {recurringAppointmentCount > 0 && (
                   <p className="flex items-center gap-1">
                     <Users className="h-3 w-3" />
-                    {recurringAppointmentCount} tilbagevendende aftale{recurringAppointmentCount === 1 ? "" : "r"} på ruten følger med til den nye dato.
+                    {recurringAppointmentCount} aftale{recurringAppointmentCount === 1 ? "" : "r"} flyttes kun for denne dato.
                   </p>
                 )}
               </div>
