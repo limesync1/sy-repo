@@ -676,9 +676,11 @@ export function makeEconomicAdapter(
       }
 
       // Bog IKKE fakturaen — den skal ligge som "Igangværende faktura" (kladde)
-      // i e-conomic, så brugeren selv kan gennemgå og bogføre den.
+      // i e-conomic, så brugeren selv kan gennemgå og bogføre den. Derfor må
+      // Serviceydere også gemme linket som invoice_draft; ellers prøver PDF-
+      // download at hente /invoices/booked/{nr}/pdf og skjuler/fejler knappen.
       const invNo = String(draftNumber);
-      return { invoice_external_id: invNo, invoice_external_number: invNo, sent: false };
+      return { invoice_external_id: invNo, invoice_external_number: invNo, invoice_external_type: "invoice_draft", sent: false };
     },
 
     async getInvoiceStates(externalIds: string[]): Promise<ExternalInvoiceState[]> {
