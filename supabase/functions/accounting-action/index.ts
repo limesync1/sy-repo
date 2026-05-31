@@ -83,8 +83,14 @@ Deno.serve(async (req) => {
         .eq("provider", integ.provider).eq("order_id", order_id).maybeSingle()
       : { data: null } as any;
 
-    const bookedInvoiceId = order.invoice_external_id ?? (link?.external_type === "invoice_booked" ? link.external_id : null);
-    const externalId = bookedInvoiceId ?? link?.external_id ?? null;
+    const localInvoiceType: "invoice_booked" | "invoice_draft" | null =
+      link?.external_type === "invoice_draft" || link?.external_type === "invoice_booked"
+        ? link.external_type
+        : order.invoice_external_id ? "invoice_booked" : null;
+    const bookedInvoiceId = localInvoiceType === "invoice_booked"
+      ? (order.invoice_external_id ?? link?.external_id ?? null)
+      : null;
+    const externalId = order.invoice_external_id ?? link?.external_id ?? null;
 
     // Capability probe — kaldes af UI for at afgøre om knapper kan vises.
     // Vi prøver at slå fakturaen op hos udbyderen; hvis den ikke findes
@@ -111,7 +117,7 @@ Deno.serve(async (req) => {
       // en meningsfuld fejl hvis credentials stadig mangler.
       if (externalId) {
         caps.exists_in_provider = true;
-        if (bookedInvoiceId || link?.external_type === "invoice_booked") {
+        if (localInvoiceType === "invoice_booked") {
           caps.is_booked = true;
           caps.can_resend = typeof adapter.resendInvoice === "function";
         } else {
@@ -165,8 +171,7 @@ Deno.serve(async (req) => {
       }
       const sendId = bookedInvoiceId ?? link?.external_id ?? null;
       if (!sendId) return json({ error: "Fakturaen findes ikke i regnskabsprogrammet endnu." }, 404);
-      const externalType: "invoice_booked" | "invoice_draft" =
-        bookedInvoiceId ? "invoice_booked" : "invoice_draft";
+      const externalType: "invoice_booked" | "invoice_draft" = localInvoiceType ?? (bookedInvoiceId ? "invoice_booked" : "invoice_draft");
       try {
         const res = await adapter.resendInvoice({
           invoice_external_id: sendId,
@@ -201,8 +206,7 @@ Deno.serve(async (req) => {
       }
       const pdfId = bookedInvoiceId ?? link?.external_id ?? null;
       if (!pdfId) return json({ error: "Fakturaen findes ikke i regnskabsprogrammet endnu." }, 404);
-      const externalType: "invoice_booked" | "invoice_draft" =
-        bookedInvoiceId ? "invoice_booked" : "invoice_draft";
+      const externalType: "invoice_booked" | "invoice_draft" = localInvoiceType ?? (bookedInvoiceId ? "invoice_booked" : "invoice_draft");
       try {
         const pdf = await adapter.getInvoicePdf({
           invoice_external_id: pdfId,
