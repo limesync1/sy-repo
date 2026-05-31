@@ -5568,6 +5568,28 @@ const Planner = () => {
           targetDate={pendingRouteMerge?.target.route_date || ""}
           recurringAppointmentCount={pendingMergeSeriesInfo?.recurringAppointmentCount ?? 0}
           loading={mergingRoute}
+          disabledFutureReasons={(() => {
+            // Beregn HVORFOR "Fremtidige aftaler også" evt. er låst ved fletning,
+            // så brugeren altid har en forklaring under den deaktiverede knap.
+            const reasons: string[] = [];
+            const src: any = pendingRouteMerge?.source;
+            const tgt: any = pendingRouteMerge?.target;
+            const info = pendingMergeSeriesInfo;
+            if (!src || !tgt) return reasons;
+            if ((info?.recurringAppointmentCount ?? 0) < 1) {
+              reasons.push("Kilderuten har ingen tilbagevendende aftaler — der er ingen serie at flytte permanent.");
+            }
+            if (src.base_route_id) {
+              reasons.push("Kilderuten er allerede en enkelt-flytning fra en serie. Flet grundruten i stedet for at omdirigere fremtidige aftaler.");
+            }
+            if (tgt.base_route_id) {
+              reasons.push("Målruten er en enkelt-flytning fra en serie og kan ikke modtage fremtidige aftaler permanent.");
+            }
+            if ((info?.recurringAppointmentCount ?? 0) >= 1 && !info?.dominantIntervalDays) {
+              reasons.push("Aftalerne på kilderuten har ingen fælles rytme (interval) at flytte permanent.");
+            }
+            return reasons;
+          })()}
           onConfirm={(scope) => handleConfirmRouteMerge(scope)}
         />
 
