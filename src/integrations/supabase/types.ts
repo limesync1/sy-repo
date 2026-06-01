@@ -3357,7 +3357,7 @@ export type Database = {
           archived_at: string | null
           base_route_id: string | null
           business_id: string
-          color: string
+          color: string | null
           created_at: string
           deleted_at: string | null
           employee_id: string | null
@@ -3383,7 +3383,7 @@ export type Database = {
           archived_at?: string | null
           base_route_id?: string | null
           business_id: string
-          color?: string
+          color?: string | null
           created_at?: string
           deleted_at?: string | null
           employee_id?: string | null
@@ -3409,7 +3409,7 @@ export type Database = {
           archived_at?: string | null
           base_route_id?: string | null
           business_id?: string
-          color?: string
+          color?: string | null
           created_at?: string
           deleted_at?: string | null
           employee_id?: string | null
@@ -4293,7 +4293,7 @@ export type Database = {
           archived_at: string | null
           base_route_id: string | null
           business_id: string
-          color: string
+          color: string | null
           created_at: string
           deleted_at: string | null
           employee_id: string | null
@@ -4522,7 +4522,7 @@ export type Database = {
           archived_at: string | null
           base_route_id: string | null
           business_id: string
-          color: string
+          color: string | null
           created_at: string
           deleted_at: string | null
           employee_id: string | null
@@ -4642,7 +4642,7 @@ export type Database = {
           archived_at: string | null
           base_route_id: string | null
           business_id: string
-          color: string
+          color: string | null
           created_at: string
           deleted_at: string | null
           employee_id: string | null
