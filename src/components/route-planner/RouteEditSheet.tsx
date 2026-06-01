@@ -619,21 +619,19 @@ export const RouteEditSheet = ({
     moveLinkedSubscriptions: boolean,
   ) => {
     if (!route || !pendingDate) return;
-    try {
-      await moveRouteSeries.mutateAsync({
-        routeId: route.id,
-        newDate: pendingDate,
-        scope,
-        moveLinkedSubscriptions,
-      });
-      setDate(pendingDate);
-      toast.success(
-        scope === "future" ? "Ruteserien flyttet" : "Rute flyttet til ny dato",
-      );
-      setPendingDate(null);
-    } catch (e: any) {
-      toastRouteError(e, toast.error, { titleFallback: "Kunne ikke flytte rute" });
-    }
+    // Lader fejl boble op til dialogens egen catch — så vises de inline i
+    // stedet for kun som flygtig toast samtidig med at dialogen lukker.
+    await moveRouteSeries.mutateAsync({
+      routeId: route.id,
+      newDate: pendingDate,
+      scope,
+      moveLinkedSubscriptions,
+    });
+    setDate(pendingDate);
+    toast.success(
+      scope === "future" ? "Ruteserien flyttet" : "Rute flyttet til ny dato",
+    );
+    setPendingDate(null);
   };
 
   const handleConfirmMoveProjected = async () => {
