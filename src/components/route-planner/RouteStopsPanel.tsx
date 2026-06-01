@@ -24,7 +24,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import {
   GripVertical, MapPin, Trash2, Inbox, ExternalLink, Loader2,
-  Crown, UserPlus, Check, PlayCircle,
+  Crown, UserPlus, Check, PlayCircle, ListOrdered,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
@@ -53,6 +53,11 @@ const readableTokenOn = (color?: string | null) => {
   const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
   return lum > 0.62 ? "hsl(var(--foreground))" : "hsl(var(--background))";
 };
+// Failsafe fallback så sekvens-chippen ALDRIG render­er usynligt selv hvis
+// ruten mangler en gemt farve. Bruger forgrunden så "1/2/3" altid har
+// kontrast mod kort-baggrunden.
+const safeChipBg = (c?: string | null) =>
+  c && /^#?[0-9a-f]{6}$/i.test(c.trim()) ? c : "hsl(var(--foreground))";
 
 type Props = {
   route: Route | null;
@@ -183,36 +188,35 @@ export const RouteStopsPanel = ({
         >
           <SheetHeader
             className={cn(
-              "relative px-4 py-4 border-b shrink-0 text-left bg-gradient-to-b from-secondary/50 via-card to-card",
+              "relative px-4 pl-5 py-3.5 border-b shrink-0 text-left bg-card",
               isCompact && "pr-14",
             )}
           >
-            {/* Tynd farvet stribe der binder header'en til rutens farve */}
+            {/* Venstre farve-rail binder panelet til ruten — ingen separat
+                ikon-klods som konkurrerer med titlen. */}
             <span
               aria-hidden
-              className="absolute left-0 top-0 bottom-0 w-[3px] rounded-r-sm"
+              className="absolute left-0 top-0 bottom-0 w-1"
               style={{ background: route.color }}
             />
-            <SheetTitle className="flex items-center gap-2.5 text-[15px] leading-tight">
-              <span
-                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] shadow-[0_2px_6px_-2px_hsl(var(--foreground)/0.25)] ring-1 ring-black/[0.04]"
-                style={{ background: route.color, color: readableTokenOn(route.color) }}
-                aria-hidden
-              >
-                <MapPin className="h-4 w-4 drop-shadow-sm" />
+            <SheetTitle className="flex items-center gap-2 text-[15px] leading-tight">
+              <span className="min-w-0 truncate font-semibold tracking-tight text-foreground">
+                Stops på ruten
               </span>
-              <span className="min-w-0 flex-1 truncate font-semibold tracking-tight">Stops på ruten</span>
               <span
-                className="shrink-0 inline-flex h-6 min-w-[1.75rem] items-center justify-center rounded-full px-2 text-[11px] font-bold tabular-nums bg-foreground text-background"
+                className="shrink-0 inline-flex h-[18px] min-w-[1.25rem] items-center justify-center rounded-full px-1.5 text-[10.5px] font-bold tabular-nums bg-foreground/[0.08] text-foreground/80 ring-1 ring-inset ring-foreground/10"
                 title={`${items.length} ${items.length === 1 ? "stop" : "stops"}`}
               >
                 {items.length}
               </span>
             </SheetTitle>
-            <SheetDescription className="text-[11.5px] leading-snug pl-[2.625rem] mt-1 text-muted-foreground/85">
-              {isProjection
-                ? "Projiceret forekomst · rediger originalruten for at omrangere eller fjerne aftaler"
-                : "Træk for at omrangere · Klik for detaljer"}
+            <SheetDescription className="text-[11.5px] leading-snug mt-1 text-muted-foreground/85 flex items-center gap-1.5">
+              <ListOrdered className="h-3 w-3 shrink-0 opacity-70" />
+              <span className="truncate">
+                {isProjection
+                  ? "Projiceret forekomst · rediger originalruten for at ændre rækkefølgen"
+                  : "Træk for at omrangere · klik for detaljer"}
+              </span>
             </SheetDescription>
           </SheetHeader>
 
@@ -364,7 +368,7 @@ const SortableStopRow = ({
         <div className="flex shrink-0 items-center pr-1.5">
           <span
             className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[12px] font-bold tabular-nums shadow-[0_1px_3px_rgba(0,0,0,0.18)] ring-2 ring-card sm:h-8 sm:w-8 sm:text-sm"
-            style={{ background: color, color: readableTokenOn(color) }}
+            style={{ background: safeChipBg(color), color: readableTokenOn(color) }}
             aria-label={`Stop ${index}`}
           >
             {index}
