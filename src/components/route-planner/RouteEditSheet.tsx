@@ -21,7 +21,7 @@ import { toast } from "sonner";
 import { toastRouteError } from "@/lib/route-errors";
 import { cn } from "@/lib/utils";
 import {
-  useUpdateRoute, useDeleteRoute, useOptimizeRoute, useDirections,
+  useDeleteRoute, useOptimizeRoute, useDirections,
   useRouteSeriesInfo, useMoveRouteSeries, useMoveProjectedOccurrence,
   useUpdateRouteSeriesAppearance,
   type Route, type RouteStop,
