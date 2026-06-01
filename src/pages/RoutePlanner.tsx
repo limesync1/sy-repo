@@ -3031,6 +3031,39 @@ const Planner = () => {
       const route: Route = activeData.route;
       const newDate: string = overData.date;
       if (route.route_date === newDate) { releaseDrop(); return; }
+      // Spær: hvis ruten flyttes til en dato hvor samme serie allerede har
+      // enten en faktisk rute (kollision) eller en projiceret forekomst
+      // (ville give to "kopier" af samme rute på samme dag) — blokér.
+      const baseId: string | null =
+        (route as any).base_route_id ?? (route as any).baseRouteId ?? route.id ?? null;
+      const collidingReal = calendarRoutesRaw.find((r: any) =>
+        String(r.route_date).slice(0, 10) === newDate
+        && r.id !== route.id
+        && (
+          (baseId && (r.id === baseId || r.base_route_id === baseId))
+          || (!baseId && r.id === route.id)
+        ),
+      );
+      if (collidingReal) {
+        toast.error("Der findes allerede en rute fra samme serie på den dato", {
+          description: "Flet i stedet ruterne, eller vælg en anden dato.",
+        });
+        releaseDrop();
+        return;
+      }
+      const collidingProjected = virtualCalendarRoutes.find((r: any) =>
+        String(r.route_date).slice(0, 10) === newDate
+        && baseId
+        && r.baseRouteId === baseId
+        && r.id !== route.id,
+      );
+      if (collidingProjected) {
+        toast.error("Der ligger allerede en projiceret forekomst af samme rute på den dato", {
+          description: "Flyt eller spring den projicerede forekomst over først — ellers vil der være to af samme rute på samme dag.",
+        });
+        releaseDrop();
+        return;
+      }
       // Åbn dialog — hvis ruten er del af en serie kan brugeren vælge scope.
       // For enkelt-ruter (uden template) viser dialogen kun "Kun denne gang".
       setPendingRouteMove({ route, newDate });
