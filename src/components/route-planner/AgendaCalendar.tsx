@@ -23,6 +23,14 @@ import type { CalendarRoute } from "./MonthWeekCalendar";
 import { useTargetValidation, ringForSeverity, chipBgForSeverity } from "./drag-validation-context";
 import RouteContextMenu from "./RouteContextMenu";
 
+const initials = (name: string) => name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
+const readableTokenOn = (color?: string | null) => {
+  const hex = color?.trim().match(/^#?([0-9a-f]{6})$/i)?.[1];
+  if (!hex) return "hsl(var(--background))";
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.62 ? "hsl(var(--foreground))" : "hsl(var(--background))";
+};
+
 type Props = {
   view: "month" | "week";
   anchorDate: string;
@@ -461,7 +469,15 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
             emp.avatar_url ? (
               <img key={emp.id} src={emp.avatar_url} alt={emp.name} loading="lazy" className="h-5 w-5 rounded-full object-cover ring-1 ring-background" />
             ) : (
-              <span key={emp.id} className="inline-block h-5 w-5 rounded-full ring-1 ring-background" style={{ background: emp.color || "#64748b" }} aria-label={emp.name} />
+              <span
+                key={emp.id}
+                className="inline-flex h-5 w-5 items-center justify-center rounded-full ring-1 ring-background text-[9px] font-bold leading-none"
+                style={{ background: emp.color || "hsl(var(--muted-foreground))", color: readableTokenOn(emp.color) }}
+                aria-label={emp.name}
+                title={emp.name}
+              >
+                {initials(emp.name)}
+              </span>
             ),
           )}
           {extraEmployees > 0 && (
