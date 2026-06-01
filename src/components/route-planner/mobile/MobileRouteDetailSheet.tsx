@@ -48,7 +48,7 @@ import {
   useOptimizeRoute,
   useReorderStops,
   useSetStopAssignees,
-  useUpdateRoute,
+  useUpdateRouteSeriesAppearance,
   useUpdateStopStatus,
   type Route,
   type RouteStop,
@@ -90,7 +90,8 @@ export function MobileRouteDetailSheet({
   const deleteStop = useDeleteStop();
   const reorderStops = useReorderStops();
   const setAssignees = useSetStopAssignees();
-  const updateRoute = useUpdateRoute();
+  // Navn/farve skrives gennem serien, så projicerede og søsterruter følger med.
+  const updateAppearance = useUpdateRouteSeriesAppearance();
   const deleteRoute = useDeleteRoute();
 
   const doneCount = stops.filter((s) => s.status === "completed").length;
@@ -486,14 +487,14 @@ export function MobileRouteDetailSheet({
         route={route}
         onSave={async (name, color) => {
           try {
-            await updateRoute.mutateAsync({ id: route.id, name: name || null, color });
+            await updateAppearance.mutateAsync({ route, name: name || null, color });
             toast.success("Rute opdateret");
             setSettingsOpen(false);
           } catch (err: any) {
             toast.error("Kunne ikke gemme", { description: err?.message });
           }
         }}
-        saving={updateRoute.isPending}
+        saving={updateAppearance.isPending}
         onRequestDelete={() => setConfirmDeleteRoute(true)}
       />
 

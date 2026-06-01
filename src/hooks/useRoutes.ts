@@ -1740,6 +1740,105 @@ export const useUpdateRoute = () => {
   });
 };
 
+/**
+ * Opdater navn/farve på en hel rute-serie.
+ *
+ * Brugere forventer at når de ændrer navn eller farve på "ruten" (uanset om de
+ * klikker på basisruten, en materialiseret forekomst eller åbner via et
+ * projiceret kort), så slår ændringen igennem på HELE serien — både basisruten,
+ * alle materialiserede børn (rows med `base_route_id`) og alle projicerede
+ * forekomster der arver fra basisruten.
+ *
+ * Tidligere ramte vi kun den enkelte route-row, så projicerede ruter aldrig
+ * fulgte med når basisruten skiftede farve, og materialiserede forekomster med
+ * gamle eksplicitte overrides blev "hængende" i den gamle farve. Denne hook
+ * fikser begge dele ved at:
+ *   1) Sætte navn/farve på basisruten (`baseId = route.base_route_id ?? route.id`).
+ *   2) Nulstille `name`/`color` på alle materialiserede børn af basisruten,
+ *      så de arver basisrutens nye værdi i stedet for at vise gamle overrides.
+ */
+export const useUpdateRouteSeriesAppearance = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    onMutate: async (vars: { route: Route; name?: string | null; color?: string }) => {
+      const baseId = (vars.route as any).base_route_id || vars.route.id;
+      const updates: Partial<Route> = {};
+      if (vars.name !== undefined) (updates as any).name = vars.name;
+      if (vars.color !== undefined) (updates as any).color = vars.color;
+      await qc.cancelQueries({ queryKey: ["routes"] });
+      await qc.cancelQueries({ queryKey: ["routes-range"] });
+      await qc.cancelQueries({ queryKey: ["route-calendar"] });
+      await qc.cancelQueries({ queryKey: ["recurring-base-routes"] });
+      const snapshots = [
+        ...qc.getQueriesData<Route[]>({ queryKey: ["routes"] }),
+        ...qc.getQueriesData<Route[]>({ queryKey: ["routes-range"] }),
+        ...qc.getQueriesData<{ routes: Route[]; stops: RouteStop[] }>({ queryKey: ["route-calendar"] }),
+        ...qc.getQueriesData<any[]>({ queryKey: ["recurring-base-routes"] }),
+      ];
+      // Patch basisruten + nulstil overrides på børn — så hele serien matcher.
+      const applyToRoute = (r: any) => {
+        if (!r) return r;
+        if (r.id === baseId) return { ...r, ...updates };
+        if (r.base_route_id === baseId) {
+          const cleared: any = { ...r };
+          if (vars.name !== undefined) cleared.name = null;
+          if (vars.color !== undefined) cleared.color = null;
+          return cleared;
+        }
+        return r;
+      };
+      qc.setQueriesData({ queryKey: ["routes"] }, (old: Route[] | undefined) =>
+        Array.isArray(old) ? old.map(applyToRoute) : old,
+      );
+      qc.setQueriesData({ queryKey: ["routes-range"] }, (old: Route[] | undefined) =>
+        Array.isArray(old) ? old.map(applyToRoute) : old,
+      );
+      qc.setQueriesData({ queryKey: ["route-calendar"] }, (old: { routes: Route[]; stops: RouteStop[] } | undefined) =>
+        old?.routes ? { ...old, routes: old.routes.map(applyToRoute) } : old,
+      );
+      qc.setQueriesData({ queryKey: ["recurring-base-routes"] }, (old: any[] | undefined) =>
+        Array.isArray(old) ? old.map(applyToRoute) : old,
+      );
+      return { snapshots, baseId, updates };
+    },
+    mutationFn: async (vars: { route: Route; name?: string | null; color?: string }) => {
+      const baseId = (vars.route as any).base_route_id || vars.route.id;
+      const updates: { name?: string | null; color?: string } = {};
+      if (vars.name !== undefined) updates.name = vars.name;
+      if (vars.color !== undefined) updates.color = vars.color;
+      // 1) Skriv navn/farve på basisruten.
+      const { error: baseErr } = await supabase
+        .from("routes")
+        .update(updates as any)
+        .eq("id", baseId);
+      if (baseErr) throw baseErr;
+      // 2) Nulstil overrides på alle materialiserede børn af basisruten, så de
+      //    arver de nye værdier i stedet for at vise gamle eksplicitte felter.
+      const childUpdates: { name?: string | null; color?: string | null } = {};
+      if (vars.name !== undefined) childUpdates.name = null;
+      if (vars.color !== undefined) childUpdates.color = null as any;
+      if (Object.keys(childUpdates).length > 0) {
+        const { error: childErr } = await supabase
+          .from("routes")
+          .update(childUpdates as any)
+          .eq("base_route_id", baseId);
+        if (childErr) throw childErr;
+      }
+      return { baseId, updates };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["routes"] });
+      qc.invalidateQueries({ queryKey: ["routes-range"] });
+      qc.invalidateQueries({ queryKey: ["route-calendar"] });
+      qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
+    },
+    onError: (e: any, _vars, ctx) => {
+      ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data));
+      toastRouteError(e, toast.error, { titleFallback: "Kunne ikke opdatere rute" });
+    },
+  });
+};
+
 /* ─── Recurring route series helpers ───
  *
  * En "rute-serie" er flere rute-instanser i `routes` der deler `route_template_id`.
