@@ -916,7 +916,7 @@ const RoutePillInner = ({
         {...(dragLocked ? {} : listeners)}
         {...(dragLocked ? {} : attributes)}
         className={cn(
-          "pl-3 pr-2 py-1.5 flex items-center justify-between gap-1.5",
+          "relative z-[1] pl-3 pr-2 py-1.5 flex items-center justify-between gap-1.5",
           dragLocked ? "cursor-pointer" : "cursor-grab active:cursor-grabbing",
         )}
       >
