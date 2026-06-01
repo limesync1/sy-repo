@@ -1,0 +1,1 @@
+ALTER TABLE public.routes ALTER COLUMN color DROP NOT NULL;
