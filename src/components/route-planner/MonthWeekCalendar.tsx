@@ -924,16 +924,16 @@ const RoutePillInner = ({
           <div className="text-[12px] font-semibold truncate text-foreground leading-tight flex items-center gap-1 tracking-tight">
             {isVirtual && (
               <span
-                className="inline-flex items-center gap-0.5 rounded-sm bg-muted px-1 py-px text-[9px] font-bold uppercase tracking-wide text-muted-foreground shrink-0"
+                className="inline-flex items-center gap-0.5 rounded-[3px] bg-foreground/[0.06] ring-1 ring-inset ring-foreground/10 px-1.5 py-px text-[9px] font-bold uppercase tracking-[0.06em] text-muted-foreground shrink-0"
                 title="Projiceret rute — låst forekomst af en gentagende originalrute"
               >
-                <Lock className="h-2 w-2" />
+                <Lock className="h-2 w-2 opacity-80" />
                 Projiceret
               </span>
             )}
             {isBaseRecurring && (
               <span
-                className="inline-flex items-center gap-0.5 rounded-sm bg-accent/15 text-accent px-1 py-px text-[9px] font-bold uppercase tracking-wide shrink-0"
+                className="inline-flex items-center gap-0.5 rounded-[3px] bg-foreground text-background px-1.5 py-px text-[9px] font-bold uppercase tracking-[0.06em] shadow-sm shrink-0"
                 title="Originalrute — kilde til en gentagende serie. Ændringer her arves af alle projicerede forekomster."
               >
                 <Repeat className="h-2 w-2" />
