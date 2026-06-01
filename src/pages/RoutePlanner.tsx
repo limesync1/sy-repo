@@ -402,6 +402,7 @@ const Planner = () => {
   const [newRouteJobIds, setNewRouteJobIds] = useState<string[]>([]);
   const [newRouteJobSearch, setNewRouteJobSearch] = useState("");
   const [editingRoute, setEditingRoute] = useState<Route | null>(null);
+  const [editingRoutePreview, setEditingRoutePreview] = useState<Partial<Route> | null>(null);
   /**
    * Når en projiceret rute åbnes (klik på virtuel pille i kalenderen) holder
    * vi fast i de aktive sourceKeys for netop den dato. Det bruges til at
@@ -1867,8 +1868,8 @@ const Planner = () => {
       ?? (recurringBaseRoutes as any[]).find((r) => r.id === editingRoute.id)
       ?? editingRoute
     );
-    return base;
-  }, [editingRoute, calendarRoutesRaw, recurringBaseRoutes]);
+    return editingRoutePreview ? { ...base, ...editingRoutePreview } : base;
+  }, [editingRoute, editingRoutePreview, calendarRoutesRaw, recurringBaseRoutes]);
 
   // Find det auto-genererede visningsnavn (fra calendarRoutes-transformen) så
   // edit-sheet kan pre-udfylde inputtet med det navn brugeren faktisk ser på
@@ -2674,6 +2675,7 @@ const Planner = () => {
       return;
     }
     setEditingProjectedContext(null);
+    setEditingRoutePreview(null);
     setEditingRoute(r);
   };
   const handleCalendarOptimizeRoute = (id: string) => {
