@@ -106,7 +106,7 @@ import { formatDurationMin } from "@/lib/duration-format";
 import { useAgreementPauses } from "@/hooks/useAgreementPauses";
 import { useBusinessHolidays } from "@/hooks/useBusinessHolidays";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { invalidateRouteSyncQueries } from "@/hooks/useRoutes";
+import { invalidateRouteSyncQueries, resyncRoutePlanner } from "@/hooks/useRoutes";
 import { routeMutationQueue } from "@/lib/mutation-queue";
 import { writeDragValidationDebounced, clearDragValidation, summarize } from "@/components/route-planner/drag-validation-context";
 import DragEtaOverlay, { setDragEta, clearDragEta } from "@/components/route-planner/DragEtaOverlay";
