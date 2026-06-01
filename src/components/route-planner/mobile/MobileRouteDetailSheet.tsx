@@ -49,6 +49,7 @@ import {
   useReorderStops,
   useSetStopAssignees,
   useUpdateRoute,
+  useUpdateRouteSeriesAppearance,
   useUpdateStopStatus,
   type Route,
   type RouteStop,
