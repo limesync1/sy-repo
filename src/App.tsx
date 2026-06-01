@@ -243,6 +243,9 @@ const App = () => (
               <Route path="/vilkaar" element={<Terms />} />
               <Route path="/cookies" element={<Cookies />} />
 
+              {/* ── Visual regression fixture (e2e only, ingen auth) ── */}
+              <Route path="/__visual/planner" element={<VisualTestPlanner />} />
+
               {/* ── Legacy redirects (preserve bookmarks & SEO) ── */}
               <Route path="/auth" element={<RedirectWithQuery to="/log-ind" />} />
               <Route path="/platform-admin" element={<RedirectWithQuery to="/admin" />} />
