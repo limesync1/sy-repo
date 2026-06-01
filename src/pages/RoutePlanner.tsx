@@ -3737,9 +3737,11 @@ const Planner = () => {
                 });
                 if (mvErr) throw mvErr;
               }
-              invalidateRouteSyncQueries(qc);
+              await resyncRoutePlanner(qc);
+              mergeLog("undo_complete");
               toast.success(`Fletning fortrudt — ${source.name || "rute"} gendannet`);
             } catch (e: any) {
+              mergeLog("undo_failed", { error: e?.message });
               toast.error("Kunne ikke fortryde fletning", {
                 description: e?.message ?? "Prøv at genindlæse siden.",
               });
@@ -3752,6 +3754,7 @@ const Planner = () => {
       // Rul optimistisk cache-patch tilbage hvis fletningen fejlede.
       calSnapshots.forEach(([key, data]) => qc.setQueryData(key, data));
       toast.dismiss(toastId);
+      mergeLog("error", { error: err?.message, code: err?.code });
       toastRouteError(err, toast.error, { titleFallback: "Kunne ikke flette ruterne" });
       // Behold dialogen åben så brugeren kan prøve igen eller annullere bevidst.
     } finally {
