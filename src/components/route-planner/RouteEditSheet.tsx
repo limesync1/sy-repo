@@ -485,16 +485,20 @@ export const RouteEditSheet = ({
     const delay = colorChanged ? 0 : 120;
     pendingFlushRef.current = pendingPayload;
     const timeout = window.setTimeout(() => {
-      if (updateRoute.isPending) {
+      if (updateAppearance.isPending) {
         // Mutation kører — skip nu; en ny dirty-cyklus trigger en ny effect.
         return;
       }
-      updateRoute.mutate(pendingPayload);
+      if (!route) return;
+      const vars: { route: Route; name?: string | null; color?: string } = { route };
+      if (pendingPayload.name !== undefined) vars.name = pendingPayload.name;
+      if (pendingPayload.color !== undefined) vars.color = pendingPayload.color;
+      updateAppearance.mutate(vars);
       pendingFlushRef.current = null;
     }, delay);
 
     return () => window.clearTimeout(timeout);
-  }, [route, open, dirty, pendingPayload, updateRoute]);
+  }, [route, open, dirty, pendingPayload, updateAppearance]);
 
   // Flush udestående ændringer øjeblikkeligt når sheet'et lukkes eller
   // unmounts — ellers ville ændringer foretaget i de sidste ~250 ms før
@@ -503,7 +507,11 @@ export const RouteEditSheet = ({
     const payload = pendingFlushRef.current;
     if (!payload || !payload.id) return;
     pendingFlushRef.current = null;
-    updateRoute.mutate(payload);
+    if (!route) return;
+    const vars: { route: Route; name?: string | null; color?: string } = { route };
+    if (payload.name !== undefined) vars.name = payload.name;
+    if (payload.color !== undefined) vars.color = payload.color;
+    updateAppearance.mutate(vars);
   };
   useEffect(() => {
     if (open) return;
