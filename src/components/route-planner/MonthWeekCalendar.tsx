@@ -118,6 +118,17 @@ const readableTokenOn = (color?: string | null) => {
   const [r, g, b] = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
   return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.62 ? "hsl(var(--foreground))" : "hsl(var(--background))";
 };
+// Tilføj en svag tint i rutens farve som baggrund på pillen — giver
+// kalenderen mere "farve-personlighed" uden at gå på kompromis med
+// læsbarhed. Bruger rgba med lav alpha så det fungerer ens i begge temaer.
+const tintBgFrom = (color?: string | null) => {
+  const hex = color?.trim().match(/^#?([0-9a-f]{6})$/i)?.[1];
+  if (!hex) return undefined;
+  const r = parseInt(hex.slice(0, 2), 16);
+  const g = parseInt(hex.slice(2, 4), 16);
+  const b = parseInt(hex.slice(4, 6), 16);
+  return `linear-gradient(90deg, rgba(${r},${g},${b},0.10) 0%, rgba(${r},${g},${b},0.04) 22%, transparent 60%)`;
+};
 
 export const MonthWeekCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
@@ -795,7 +806,9 @@ const RoutePillInner = ({
       }}
       className={cn(
         "relative rounded-md cursor-pointer overflow-hidden bg-card",
-        "border border-border/60 transition-[background-color,border-color,opacity] duration-150 ease-out hover:border-foreground/25 hover:bg-secondary/40",
+        "border border-border/60 shadow-[0_1px_2px_-1px_hsl(var(--foreground)/0.08)] " +
+        "transition-[background-color,border-color,opacity,box-shadow,transform] duration-150 ease-out " +
+        "hover:border-foreground/25 hover:shadow-[0_6px_18px_-8px_hsl(var(--foreground)/0.22)] hover:-translate-y-[1px]",
         isDragging && "opacity-40",
         // Projicerede ruter: kraftig visuel adskillelse — stiplet kant hele
         // vejen rundt, dæmpet baggrund og en diagonal-stribe så de aldrig
@@ -846,12 +859,21 @@ const RoutePillInner = ({
       }
       aria-busy={busy || undefined}
     >
-      {/* Tynd venstre farve-rail — eneste sted ruten-farven bruges */}
+      {/* Venstre farve-rail (3px, blød afslutning) + svag tint-glow indad —
+          giver ruten en tydelig farve-signatur uden at overdøve indholdet.
+          På projicerede ruter dropper vi tinten (stripes håndterer det). */}
       <span
         aria-hidden
-        className="absolute inset-y-0 left-0 w-[2px] pointer-events-none"
+        className="absolute inset-y-0 left-0 w-[3px] pointer-events-none rounded-l-md"
         style={{ background: route.color }}
       />
+      {!isVirtual && (
+        <span
+          aria-hidden
+          className="absolute inset-y-0 left-[3px] right-0 pointer-events-none opacity-90"
+          style={{ background: tintBgFrom(route.color) }}
+        />
+      )}
       {/* L2 — Live drop-validering chip på rute-pille.
           Vises kun mens et drag svæver over pillen og en validering er
           aktiv, så brugeren ser præcis hvorfor dropet er ok/advarsel/fejl
@@ -894,7 +916,7 @@ const RoutePillInner = ({
         {...(dragLocked ? {} : listeners)}
         {...(dragLocked ? {} : attributes)}
         className={cn(
-          "pl-3 pr-2 py-1.5 flex items-center justify-between gap-1.5",
+          "relative z-[1] pl-3 pr-2 py-1.5 flex items-center justify-between gap-1.5",
           dragLocked ? "cursor-pointer" : "cursor-grab active:cursor-grabbing",
         )}
       >
@@ -902,16 +924,16 @@ const RoutePillInner = ({
           <div className="text-[12px] font-semibold truncate text-foreground leading-tight flex items-center gap-1 tracking-tight">
             {isVirtual && (
               <span
-                className="inline-flex items-center gap-0.5 rounded-sm bg-muted px-1 py-px text-[9px] font-bold uppercase tracking-wide text-muted-foreground shrink-0"
+                className="inline-flex items-center gap-0.5 rounded-[3px] bg-foreground/[0.06] ring-1 ring-inset ring-foreground/10 px-1.5 py-px text-[9px] font-bold uppercase tracking-[0.06em] text-muted-foreground shrink-0"
                 title="Projiceret rute — låst forekomst af en gentagende originalrute"
               >
-                <Lock className="h-2 w-2" />
+                <Lock className="h-2 w-2 opacity-80" />
                 Projiceret
               </span>
             )}
             {isBaseRecurring && (
               <span
-                className="inline-flex items-center gap-0.5 rounded-sm bg-accent/15 text-accent px-1 py-px text-[9px] font-bold uppercase tracking-wide shrink-0"
+                className="inline-flex items-center gap-0.5 rounded-[3px] bg-foreground text-background px-1.5 py-px text-[9px] font-bold uppercase tracking-[0.06em] shadow-sm shrink-0"
                 title="Originalrute — kilde til en gentagende serie. Ændringer her arves af alle projicerede forekomster."
               >
                 <Repeat className="h-2 w-2" />

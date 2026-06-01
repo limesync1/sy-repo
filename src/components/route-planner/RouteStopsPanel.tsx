@@ -183,33 +183,33 @@ export const RouteStopsPanel = ({
         >
           <SheetHeader
             className={cn(
-              "relative px-4 py-3.5 border-b shrink-0 text-left bg-gradient-to-b from-secondary/40 to-card",
+              "relative px-4 py-4 border-b shrink-0 text-left bg-gradient-to-b from-secondary/50 via-card to-card",
               isCompact && "pr-14",
             )}
           >
             {/* Tynd farvet stribe der binder header'en til rutens farve */}
             <span
               aria-hidden
-              className="absolute left-0 top-0 bottom-0 w-[3px]"
+              className="absolute left-0 top-0 bottom-0 w-[3px] rounded-r-sm"
               style={{ background: route.color }}
             />
-            <SheetTitle className="flex items-center gap-2.5 text-base leading-tight">
+            <SheetTitle className="flex items-center gap-2.5 text-[15px] leading-tight">
               <span
-                className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg shadow-sm ring-1 ring-border/40"
+                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] shadow-[0_2px_6px_-2px_hsl(var(--foreground)/0.25)] ring-1 ring-black/[0.04]"
                 style={{ background: route.color, color: readableTokenOn(route.color) }}
                 aria-hidden
               >
-                <MapPin className="h-3.5 w-3.5 drop-shadow-sm" />
+                <MapPin className="h-4 w-4 drop-shadow-sm" />
               </span>
-              <span className="min-w-0 flex-1 truncate font-semibold">Stops på ruten</span>
+              <span className="min-w-0 flex-1 truncate font-semibold tracking-tight">Stops på ruten</span>
               <span
-                className="shrink-0 inline-flex h-6 min-w-[1.75rem] items-center justify-center rounded-full px-2 text-xs font-bold tabular-nums shadow-sm ring-1 ring-border/40"
-                style={{ background: route.color, color: readableTokenOn(route.color) }}
+                className="shrink-0 inline-flex h-6 min-w-[1.75rem] items-center justify-center rounded-full px-2 text-[11px] font-bold tabular-nums bg-foreground text-background"
+                title={`${items.length} ${items.length === 1 ? "stop" : "stops"}`}
               >
                 {items.length}
               </span>
             </SheetTitle>
-            <SheetDescription className="text-xs leading-snug pl-[2.375rem] mt-0.5 text-muted-foreground/85">
+            <SheetDescription className="text-[11.5px] leading-snug pl-[2.625rem] mt-1 text-muted-foreground/85">
               {isProjection
                 ? "Projiceret forekomst · rediger originalruten for at omrangere eller fjerne aftaler"
                 : "Træk for at omrangere · Klik for detaljer"}
