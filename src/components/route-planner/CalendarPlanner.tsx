@@ -9,6 +9,7 @@ import { useDroppable, useDraggable } from "@dnd-kit/core";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { readableTextOn } from "@/lib/utils";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel,
@@ -778,12 +779,12 @@ const StopBlock = ({
                   <button
                     className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium transition-colors ${
                       assignedEmp
-                        ? "text-white shadow-sm"
+                        ? "shadow-sm"
                         : isUnassigned
                           ? "bg-orange-50 border border-orange-300 text-orange-700 hover:bg-orange-100 dark:bg-orange-500/10 dark:border-orange-500/30 dark:text-orange-300 dark:hover:bg-orange-500/20"
                           : "border border-border text-muted-foreground hover:bg-secondary"
                     }`}
-                    style={assignedEmp ? { background: assignedEmp.color } : undefined}
+                    style={assignedEmp ? { background: assignedEmp.color, color: readableTextOn(assignedEmp.color) } : undefined}
                   >
                     <UserCheck className="h-2.5 w-2.5" />
                     <span className="truncate max-w-[80px]">
