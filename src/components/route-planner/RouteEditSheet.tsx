@@ -244,7 +244,6 @@ export const RouteEditSheet = ({
   // edits efterfulgt af et "klik udenfor"/luk gå tabt.
   const pendingFlushRef = useRef<{ id: string; name?: string | null; color?: string } | null>(null);
 
-  const updateRoute = useUpdateRoute();
   // Navn/farve skal altid slå igennem på hele serien (basisrute + alle
   // materialiserede børn + projicerede ruter). useUpdateRouteSeriesAppearance
   // skriver til basisruten OG nulstiller overrides på børnene, så alle
