@@ -3452,19 +3452,16 @@ const Planner = () => {
       `Fletter ${source.name || "rute"} → ${target.name || "rute"}…`,
       { description: scope === "future" ? "Inklusive fremtidige forekomster" : "Kun denne dato" },
     );
-    // Optimistisk: flyt stops til målruten og fjern kilderuten fra cachen
-    // med det samme, så UI'et reagerer øjeblikkeligt i stedet for at vente
-    // 3-4 sek på server-roundtrip + invalidate + refetch. Vi tager snapshots
-    // for at kunne rulle tilbage hvis serveren afviser.
+    // Optimistisk: flyt stops til målruten i cachen så UI'et reagerer
+    // øjeblikkeligt. Vi fjerner IKKE kilderuten optimistisk — om den slettes
+    // afgøres serverside ud fra om der stadig findes gentagne aftaler der
+    // peger på den (i scope=single). Snapshots gør rollback muligt.
     const calSnapshots = qc.getQueriesData<any>({ queryKey: ["route-calendar"] });
-    // Snapshot af kilderuten FØR vi fjerner den fra cachen, så undo kan
-    // genoprette den med samme id, navn, farve, dato osv.
     const sourceSnapshot: any = { ...source };
     qc.setQueriesData({ queryKey: ["route-calendar"] }, (old: any) => {
       if (!old?.routes || !old?.stops) return old;
       return {
         ...old,
-        routes: old.routes.filter((r: any) => r.id !== source.id),
         stops: old.stops.map((s: any) =>
           s.route_id === source.id ? { ...s, route_id: target.id } : s,
         ),
@@ -3549,27 +3546,56 @@ const Planner = () => {
         ]);
       }
 
-      // Auto-slet kilderute (den er nu tom efter et fuldt merge)
-      const { count } = await supabase
-        .from("route_stops")
-        .select("id", { count: "exact", head: true })
-        .eq("route_id", source.id);
-      if ((count ?? 0) === 0) {
+      // Auto-slet kilderute KUN hvis det er sikkert:
+      //   1) Den har 0 stops tilbage (alle aftaler er flyttet).
+      //   2) Ingen aktive gentagne aftaler/abonnementer henviser stadig til
+      //      den (ellers ville projicerede "spøgelses-ruter" med kildens
+      //      navn og farve fortsætte med at dukke op i kalenderen).
+      // For scope=single bevarer vi derfor kilderuten som en tom basis-rute
+      // hvis der findes gentagne aftaler — præcis som dialogteksten lover.
+      const [stopRes, agrRes, subRes] = await Promise.all([
+        supabase
+          .from("route_stops")
+          .select("id", { count: "exact", head: true })
+          .eq("route_id", source.id),
+        supabase
+          .from("agreements")
+          .select("id", { count: "exact", head: true })
+          .eq("preferred_route_id", source.id)
+          .eq("status", "active")
+          .neq("interval", "engangskøb"),
+        supabase
+          .from("subscriptions")
+          .select("id", { count: "exact", head: true })
+          .eq("preferred_route_id", source.id)
+          .eq("status", "active")
+          .neq("interval", "engangskøb"),
+      ]);
+      const stopsLeft = stopRes.count ?? 0;
+      const recurringRefs = (agrRes.count ?? 0) + (subRes.count ?? 0);
+      let sourceKept = false;
+      if (stopsLeft === 0 && recurringRefs === 0) {
         await supabase.from("routes").delete().eq("id", source.id);
+      } else if (stopsLeft === 0 && recurringRefs > 0 && scope === "single") {
+        // Behold kilderuten som tom basis så projektionerne stadig fungerer.
+        sourceKept = true;
       }
-      return { sourceStops, moved, alreadyMerged: false };
+      return { sourceStops, moved, alreadyMerged: false, sourceKept, recurringRefs };
       });
       const sourceStops = result?.sourceStops ?? [];
       const moved = result?.moved ?? 0;
       const successTitle = result?.alreadyMerged
         ? "Allerede flettet"
-        : sourceStops.length === 0
-          ? "Tom rute slettet"
-          : `${moved} aftale${moved === 1 ? "" : "r"} flettet ind i ${target.name || "rute"}`;
+        : result?.sourceKept
+          ? `${moved} aftale${moved === 1 ? "" : "r"} flettet — kilderuten beholdes`
+          : sourceStops.length === 0
+            ? "Tom rute slettet"
+            : `${moved} aftale${moved === 1 ? "" : "r"} flettet ind i ${target.name || "rute"}`;
       toast.success(successTitle, {
         id: toastId,
-        description:
-          scope === "future"
+        description: result?.sourceKept
+          ? `Kilderuten beholdes som basis for ${result.recurringRefs} gentagne aftale${result.recurringRefs === 1 ? "" : "r"}.`
+          : scope === "future"
             ? "Fremtidige forekomster af gentagne aftaler følger med."
             : "Kilderuten blev slettet automatisk.",
         duration: 8000,
