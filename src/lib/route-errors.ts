@@ -294,10 +294,15 @@ export function mapPostgresError(err: any): Issue {
   const msg = String(err?.message || "");
   const code = String(err?.code || "");
   const detail = String(err?.details || err?.detail || "");
+  const routeSeriesDate = detail.match(/routes_unique_series_per_date[\s\S]*?,\s*(\d{4}-\d{2}-\d{2})\)/i)
+    || detail.match(/COALESCE\(base_route_id, id\), route_date\)=\([^)]*,\s*(\d{4}-\d{2}-\d{2})\)/i);
   if (!navigator?.onLine) return makeIssue("NETWORK_ERROR");
   if (/jwt|not authenticated|28000/i.test(msg + " " + code)) return makeIssue("AUTH_REQUIRED");
   if (/forbidden|permission denied|42501/i.test(msg + " " + code)) return makeIssue("PERMISSION_DENIED");
   if (code === "23505" || /duplicate key|unique constraint/i.test(msg)) {
+    if (/routes_unique_series_per_date/i.test(detail + msg)) {
+      return makeIssue("SERIES_COLLISION_ON_DATE", { date: routeSeriesDate?.[1] ?? new Date().toISOString().slice(0, 10) });
+    }
     if (/route_stops_route_order|route_stops_route_subscription|route_stops_route_occurrence/i.test(detail + msg)) {
       return makeIssue("DUPLICATE_STOP_ON_ROUTE");
     }
