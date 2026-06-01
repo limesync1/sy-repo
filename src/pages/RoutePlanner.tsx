@@ -6264,8 +6264,8 @@ const Planner = () => {
             const agreementIds = pendingProjectedSeriesInfo?.agreementIds ?? [];
             const subscriptionIds = pendingProjectedSeriesInfo?.recurringSubscriptionIds ?? [];
             const orderIds = pendingProjectedSeriesInfo?.orderIds ?? [];
-            try {
-              const result = await shiftProjectedOccurrence.mutateAsync({
+            // Lader fejl boble op så dialogen viser dem inline.
+            const result = await shiftProjectedOccurrence.mutateAsync({
                 baseRouteId: pendingProjectedMove.baseRouteId,
                 fromDate: pendingProjectedMove.fromDate,
                 toDate: pendingProjectedMove.toDate,
@@ -6309,9 +6309,6 @@ const Planner = () => {
               if (newRouteId) {
                 tryPromptOptimize(newRouteId, pendingProjectedMove.routeName, "moved");
               }
-            } catch (e: any) {
-              toastRouteError(e, toast.error, { titleFallback: "Kunne ikke flytte den projicerede rute" });
-            }
           }}
         />
 
