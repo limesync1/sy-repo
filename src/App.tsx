@@ -89,6 +89,7 @@ const PrivacyPolicy          = lazyRoute("privacy", () => import("./pages/legal/
 const Terms                  = lazyRoute("terms", () => import("./pages/legal/Terms"));
 const Cookies                = lazyRoute("cookies", () => import("./pages/legal/Cookies"));
 const VisualTestPlanner      = lazyRoute("visual-test-planner", () => import("./pages/VisualTestPlanner"));
+const VisualTestLivechat     = lazyRoute("visual-test-livechat", () => import("./pages/VisualTestLivechat"));
 
 // Sensible cache defaults så fane-skift i virksomhedspanelet føles øjeblikkeligt
 // (cached data vises først, refetch i baggrunden) og vi ikke spammer DB ved hvert
@@ -245,6 +246,7 @@ const App = () => (
 
               {/* ── Visual regression fixture (e2e only, ingen auth) ── */}
               <Route path="/__visual/planner" element={<VisualTestPlanner />} />
+              <Route path="/__visual/livechat" element={<VisualTestLivechat />} />
 
               {/* ── Legacy redirects (preserve bookmarks & SEO) ── */}
               <Route path="/auth" element={<RedirectWithQuery to="/log-ind" />} />
