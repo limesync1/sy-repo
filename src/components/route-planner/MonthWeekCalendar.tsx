@@ -687,6 +687,13 @@ const RoutePillInner = ({
   busy, isPast, selected, anySelected, onToggleSelect, hasSkillMismatch,
 }: RoutePillProps) => {
   const isVirtual = !!route.isVirtual;
+  // En "basis"-rute er en rigtig rute der fungerer som skabelon for en
+  // gentagende serie: mindst ét stop er knyttet til et abonnement eller en
+  // aftale med interval. Vi markerer disse tydeligt så brugeren kan skelne
+  // basisruten (kilden) fra de projicerede forekomster (kopierne).
+  const isBaseRecurring = !isVirtual && route.stops.some(
+    (s: any) => !!(s?.subscription_id || s?.agreement_id || s?.agreement_interval),
+  );
   // Er denne pille et gyldigt flette-mål for den rute der pt. trækkes?
   // - kilden må aldrig være sit eget mål
   // - projicerede ruter må aldrig modtage en merge (de findes ikke fysisk endnu)
