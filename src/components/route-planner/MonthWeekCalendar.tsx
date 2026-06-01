@@ -687,6 +687,13 @@ const RoutePillInner = ({
   busy, isPast, selected, anySelected, onToggleSelect, hasSkillMismatch,
 }: RoutePillProps) => {
   const isVirtual = !!route.isVirtual;
+  // En "basis"-rute er en rigtig rute der fungerer som skabelon for en
+  // gentagende serie: mindst ét stop er knyttet til et abonnement eller en
+  // aftale med interval. Vi markerer disse tydeligt så brugeren kan skelne
+  // basisruten (kilden) fra de projicerede forekomster (kopierne).
+  const isBaseRecurring = !isVirtual && route.stops.some(
+    (s: any) => !!(s?.subscription_id || s?.agreement_id || s?.agreement_interval),
+  );
   // Er denne pille et gyldigt flette-mål for den rute der pt. trækkes?
   // - kilden må aldrig være sit eget mål
   // - projicerede ruter må aldrig modtage en merge (de findes ikke fysisk endnu)
@@ -783,7 +790,14 @@ const RoutePillInner = ({
         "relative rounded-md cursor-pointer overflow-hidden bg-card",
         "border border-border/60 transition-[background-color,border-color,opacity] duration-150 ease-out hover:border-foreground/25 hover:bg-secondary/40",
         isDragging && "opacity-40",
-        isVirtual && "border-dashed",
+        // Projicerede ruter: kraftig visuel adskillelse — stiplet kant hele
+        // vejen rundt, dæmpet baggrund og en diagonal-stribe så de aldrig
+        // forveksles med den rigtige basisrute.
+        isVirtual && "border-dashed border-foreground/30 bg-muted/40 [background-image:repeating-linear-gradient(135deg,transparent_0_6px,hsl(var(--muted-foreground)/0.06)_6px_7px)]",
+        // Basisruter (kilden til en gentagende serie) får en lille ring-
+        // accent så de tydeligt skiller sig ud fra både engangsruter og
+        // projicerede forekomster — uden at flytte indholdet i pillen.
+        isBaseRecurring && !isVirtual && "shadow-[inset_0_0_0_1px_hsl(var(--accent)/0.35)]",
         isPast && "opacity-50 saturate-50 hover:opacity-90",
         // Under drag dæmpes fortids-ruter yderligere — de er ikke gyldige
         // drop-targets (kalender-cellen er disabled), så de skal heller
@@ -888,7 +902,18 @@ const RoutePillInner = ({
                 Projiceret
               </span>
             )}
-            <span className="truncate">{route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}</span>
+            {isBaseRecurring && (
+              <span
+                className="inline-flex items-center gap-0.5 rounded-sm bg-accent/15 text-accent px-1 py-px text-[9px] font-bold uppercase tracking-wide shrink-0"
+                title="Basisrute — kilde til en gentagende serie. Ændringer her arves af alle projicerede forekomster."
+              >
+                <Repeat className="h-2 w-2" />
+                Basis
+              </span>
+            )}
+            <span className={cn("truncate", isVirtual && "italic text-muted-foreground")}>
+              {route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}
+            </span>
             {hasSkillMismatch && (
               <span
                 className="shrink-0 inline-flex"
