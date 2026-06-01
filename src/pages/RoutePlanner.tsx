@@ -2935,12 +2935,17 @@ const Planner = () => {
         && r.baseRouteId === baseRouteId
         && r.id !== activeData.route.id,
       );
-      // Hvis det er en NATURLIG kadence-forekomst af samme serie der ville
-      // ligge på mål-datoen, blokerer vi ikke længere. I stedet tilbyder vi
-      // brugeren at "auto-skippe" den dag, så der ikke ender to forekomster
-      // oven i hinanden. (En shifted-forekomst flyttet hertil tidligere er
-      // stadig en hård konflikt — server-RPC'en fanger den.)
-      const autoSkipCadence = !!collidingVirtual;
+      // Blokér: hvis der allerede ligger en projiceret forekomst af samme
+      // serie på mål-datoen, ville flytningen give to "kopier" af samme
+      // rute på samme dag. Brugeren må vælge en anden dato eller flytte
+      // den anden forekomst først.
+      if (collidingVirtual) {
+        toast.error("Der ligger allerede en projiceret forekomst af samme rute på den dato", {
+          description: "Vælg en anden dato — ellers vil der være to af samme rute på samme dag.",
+        });
+        return;
+      }
+      const autoSkipCadence = false;
       setPendingProjectedMove({
         baseRouteId,
         routeName: activeData.route.name || "Rute",
