@@ -1868,8 +1868,8 @@ const Planner = () => {
       ?? (recurringBaseRoutes as any[]).find((r) => r.id === editingRoute.id)
       ?? editingRoute
     );
-    return editingRoutePreview ? { ...base, ...editingRoutePreview } : base;
-  }, [editingRoute, editingRoutePreview, calendarRoutesRaw, recurringBaseRoutes]);
+    return base;
+  }, [editingRoute, calendarRoutesRaw, recurringBaseRoutes]);
 
   // Find det auto-genererede visningsnavn (fra calendarRoutes-transformen) så
   // edit-sheet kan pre-udfylde inputtet med det navn brugeren faktisk ser på
@@ -5901,7 +5901,7 @@ const Planner = () => {
                 onColorPreview={(previewColor) => setEditingRoutePreview((prev) => ({ ...(prev ?? {}), color: previewColor }))}
               />
               <RouteStopsPanel
-                route={activeEditingRoute}
+                route={activeEditingRoute && editingRoutePreview ? { ...activeEditingRoute, ...editingRoutePreview } : activeEditingRoute}
                 open={!!activeEditingRoute}
                 onOpenChange={(o) => !o && closeAll()}
                 stops={stopsForActive}
