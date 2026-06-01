@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import {
   useUpdateRoute, useDeleteRoute, useOptimizeRoute, useDirections,
   useRouteSeriesInfo, useMoveRouteSeries, useMoveProjectedOccurrence,
+  useUpdateRouteSeriesAppearance,
   type Route, type RouteStop,
 } from "@/hooks/useRoutes";
 import { useWeatherForecast } from "@/hooks/useWeather";
@@ -244,6 +245,11 @@ export const RouteEditSheet = ({
   const pendingFlushRef = useRef<{ id: string; name?: string | null; color?: string } | null>(null);
 
   const updateRoute = useUpdateRoute();
+  // Navn/farve skal altid slå igennem på hele serien (basisrute + alle
+  // materialiserede børn + projicerede ruter). useUpdateRouteSeriesAppearance
+  // skriver til basisruten OG nulstiller overrides på børnene, så alle
+  // instanser pludselig viser den samme nye farve/navn.
+  const updateAppearance = useUpdateRouteSeriesAppearance();
   const deleteRoute = useDeleteRoute();
   const optimize = useOptimizeRoute();
   const moveRouteSeries = useMoveRouteSeries();
