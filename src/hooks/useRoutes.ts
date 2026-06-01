@@ -1826,31 +1826,32 @@ export const useUpdateRouteSeriesAppearance = () => {
       );
       return { snapshots, baseId, updates };
     },
-    mutationFn: async (vars: { route: Route; name?: string | null; color?: string }) => {
-      const baseId = (vars.route as any).base_route_id || vars.route.id;
-      const updates: { name?: string | null; color?: string } = {};
-      if (vars.name !== undefined) updates.name = vars.name;
-      if (vars.color !== undefined) updates.color = vars.color;
-      // 1) Skriv navn/farve på basisruten.
-      const { error: baseErr } = await supabase
-        .from("routes")
-        .update(updates as any)
-        .eq("id", baseId);
-      if (baseErr) throw baseErr;
-      // 2) Nulstil overrides på alle materialiserede børn af basisruten, så de
-      //    arver de nye værdier i stedet for at vise gamle eksplicitte felter.
-      const childUpdates: { name?: string | null; color?: string | null } = {};
-      if (vars.name !== undefined) childUpdates.name = null;
-      if (vars.color !== undefined) childUpdates.color = null as any;
-      if (Object.keys(childUpdates).length > 0) {
-        const { error: childErr } = await supabase
+    mutationFn: async (vars: { route: Route; name?: string | null; color?: string }) =>
+      routeMutationQueue.run(async () => {
+        const baseId = (vars.route as any).base_route_id || vars.route.id;
+        const updates: { name?: string | null; color?: string } = {};
+        if (vars.name !== undefined) updates.name = vars.name;
+        if (vars.color !== undefined) updates.color = vars.color;
+        // 1) Skriv navn/farve på originalruten.
+        const { error: baseErr } = await supabase
           .from("routes")
-          .update(childUpdates as any)
-          .eq("base_route_id", baseId);
-        if (childErr) throw childErr;
-      }
-      return { baseId, updates };
-    },
+          .update(updates as any)
+          .eq("id", baseId);
+        if (baseErr) throw baseErr;
+        // 2) Nulstil overrides på alle materialiserede børn af originalruten,
+        //    så de arver de nye værdier i stedet for at vise gamle eksplicitte felter.
+        const childUpdates: { name?: string | null; color?: string | null } = {};
+        if (vars.name !== undefined) childUpdates.name = null;
+        if (vars.color !== undefined) childUpdates.color = null as any;
+        if (Object.keys(childUpdates).length > 0) {
+          const { error: childErr } = await supabase
+            .from("routes")
+            .update(childUpdates as any)
+            .eq("base_route_id", baseId);
+          if (childErr) throw childErr;
+        }
+        return { baseId, updates };
+      }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["routes"] });
       qc.invalidateQueries({ queryKey: ["routes-range"] });
