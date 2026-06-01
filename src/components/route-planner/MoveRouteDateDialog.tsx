@@ -17,7 +17,7 @@ import { differenceInCalendarDays, format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { CalendarRange, Repeat, ArrowRight, Loader2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { extractRouteError } from "@/lib/route-errors";
+import { mapPostgresError } from "@/lib/route-errors";
 
 export type MoveRouteScope = "single" | "future";
 
@@ -186,8 +186,11 @@ export const MoveRouteDateDialog = ({
               try {
                 await onConfirm(scope, scope === "future" ? moveLinked : false);
               } catch (e: any) {
-                const info = extractRouteError(e, "Kunne ikke flytte rute");
-                setSubmitError({ title: info.title, description: info.description });
+                const issue = mapPostgresError(e);
+                setSubmitError({
+                  title: issue.title || "Kunne ikke flytte rute",
+                  description: issue.hint ? `${issue.message}\n${issue.hint}` : issue.message,
+                });
               } finally {
                 setSubmitting(false);
               }
