@@ -3446,6 +3446,28 @@ const Planner = () => {
     if (mergingRoute) return; // dobbeltklik-beskyttelse
     const { source, target } = pendingRouteMerge;
     setMergingRoute(true);
+    // Struktureret diagnostik-event: gør det muligt at reproducere og
+    // efterforske spøgelses-ruter ved at have alle relevante ids og scope
+    // i én konsol-linje pr. fletning. mergeId binder log-linjerne sammen.
+    const mergeId =
+      (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    const mergeLog = (event: string, payload: Record<string, unknown> = {}) => {
+      try {
+        // eslint-disable-next-line no-console
+        console.info(`[route-merge ${mergeId}] ${event}`, {
+          mergeId,
+          scope,
+          source_id: source.id,
+          source_name: source.name,
+          source_date: source.route_date,
+          target_id: target.id,
+          target_name: target.name,
+          target_date: (target as any).route_date,
+          ...payload,
+        });
+      } catch { /* logging må aldrig fælde flow'et */ }
+    };
+    mergeLog("start");
     // Persistent loading-toast så brugeren får live feedback under flytningen.
     // Lukkes/erstattes i success eller error blok nedenfor.
     const toastId = toast.loading(
@@ -3470,6 +3492,10 @@ const Planner = () => {
     try {
       const result = await routeMutationQueue.run(async () => {
       const sourceStops = calendarStops.filter((s: any) => s.route_id === source.id);
+      mergeLog("snapshot", {
+        source_stop_count: sourceStops.length,
+        source_stop_ids: sourceStops.map((s: any) => s.id),
+      });
       // Idempotens: hvis kilderuten allerede er slettet (fx fra et tidligere
       // klik der nåede igennem), så er der intet at flette — bare returnér.
       const { data: existing } = await supabase
@@ -3477,16 +3503,23 @@ const Planner = () => {
         .select("id")
         .eq("id", source.id)
         .maybeSingle();
-      if (!existing) return { sourceStops, moved: 0, alreadyMerged: true };
+      if (!existing) {
+        mergeLog("idempotent_short_circuit");
+        return { sourceStops, moved: 0, alreadyMerged: true };
+      }
       let moved = 0;
       if (sourceStops.length > 0) {
         const { data, error } = await supabase.rpc("move_stops_to_route", {
           _stop_ids: sourceStops.map((s: any) => s.id),
           _target_route_id: target.id,
         });
-        if (error) throw error;
+        if (error) {
+          mergeLog("move_stops_failed", { error: error.message });
+          throw error;
+        }
         const row = Array.isArray(data) ? data[0] : data;
         moved = Number(row?.moved_count ?? 0);
+        mergeLog("stops_moved", { moved });
       }
 
       // "Fremtidige aftaler også": forskyd recurring aftaler/abonnementer
@@ -3573,12 +3606,39 @@ const Planner = () => {
       ]);
       const stopsLeft = stopRes.count ?? 0;
       const recurringRefs = (agrRes.count ?? 0) + (subRes.count ?? 0);
+      mergeLog("post_move_state", {
+        stops_left_on_source: stopsLeft,
+        recurring_agreements: agrRes.count ?? 0,
+        recurring_subscriptions: subRes.count ?? 0,
+      });
       let sourceKept = false;
       if (stopsLeft === 0 && recurringRefs === 0) {
-        await supabase.from("routes").delete().eq("id", source.id);
+        const { error: delErr } = await supabase.from("routes").delete().eq("id", source.id);
+        if (delErr) {
+          mergeLog("source_delete_failed", { error: delErr.message });
+          throw delErr;
+        }
+        mergeLog("source_deleted");
       } else if (stopsLeft === 0 && recurringRefs > 0 && scope === "single") {
         // Behold kilderuten som tom basis så projektionerne stadig fungerer.
         sourceKept = true;
+        mergeLog("source_kept_for_projections", { recurring_refs: recurringRefs });
+      }
+      // Server-side invariant-tjek: nægter at fortsætte hvis sletningen
+      // efterlod spøgelses-referencer. Raiser med detaljeret fejlbesked
+      // som vises til brugeren og logges struktureret.
+      try {
+        const { error: assertErr } = await supabase.rpc(
+          "assert_route_safely_deleted" as any,
+          { _route_id: source.id },
+        );
+        if (assertErr) {
+          mergeLog("assert_failed", { error: assertErr.message });
+          throw assertErr;
+        }
+      } catch (e: any) {
+        mergeLog("assert_threw", { error: e?.message });
+        throw e;
       }
       return { sourceStops, moved, alreadyMerged: false, sourceKept, recurringRefs };
       });
@@ -3612,10 +3672,19 @@ const Planner = () => {
         } : undefined,
       });
       setPendingRouteMerge(null);
-      invalidateRouteSyncQueries(qc);
-      qc.invalidateQueries({ queryKey: ["recurring-agreements-for-planner"] });
-      qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
-      qc.invalidateQueries({ queryKey: ["route-series-info"] });
+      // Fuld resync: vent på at alle kalender- og projektions-queries
+      // er refetchet før vi forlader handleren, så UI'et aldrig viser
+      // gamle rute-data der kunne ligne en spøgelses-rute.
+      try {
+        await resyncRoutePlanner(qc);
+        mergeLog("resync_complete");
+      } catch (e: any) {
+        mergeLog("resync_failed", { error: e?.message });
+      }
+      mergeLog("done", {
+        source_kept: !!result?.sourceKept,
+        moved: result?.moved ?? 0,
+      });
 
       // Efter en flet er målruten næsten altid blevet større. Spørg om vi
       // skal optimere stop-rækkefølgen så den nye samlede rute kører
