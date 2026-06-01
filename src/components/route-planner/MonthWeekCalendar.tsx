@@ -902,7 +902,18 @@ const RoutePillInner = ({
                 Projiceret
               </span>
             )}
-            <span className="truncate">{route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}</span>
+            {isBaseRecurring && (
+              <span
+                className="inline-flex items-center gap-0.5 rounded-sm bg-accent/15 text-accent px-1 py-px text-[9px] font-bold uppercase tracking-wide shrink-0"
+                title="Basisrute — kilde til en gentagende serie. Ændringer her arves af alle projicerede forekomster."
+              >
+                <Repeat className="h-2 w-2" />
+                Basis
+              </span>
+            )}
+            <span className={cn("truncate", isVirtual && "italic text-muted-foreground")}>
+              {route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}
+            </span>
             {hasSkillMismatch && (
               <span
                 className="shrink-0 inline-flex"
