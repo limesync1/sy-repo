@@ -230,6 +230,20 @@ export type StopAssignee = {
   is_lead: boolean;
 };
 
+const mergeStopAssignees = (stop: any, entry?: { ids: string[]; lead: string | null }): RouteStop => {
+  const rpcIds = Array.isArray(stop.assignee_ids) ? stop.assignee_ids.filter(Boolean) : [];
+  const ids = Array.from(new Set([
+    ...(entry?.ids ?? []),
+    ...rpcIds,
+    ...(stop.assigned_employee_id ? [stop.assigned_employee_id] : []),
+  ]));
+  return {
+    ...stop,
+    assignee_ids: ids,
+    lead_employee_id: entry?.lead ?? stop.lead_employee_id ?? stop.assigned_employee_id ?? ids[0] ?? null,
+  } as RouteStop;
+};
+
 /* ─── Tidsregistrering pr. stop (per medarbejder) ─── */
 export type StopTimeEntry = {
   id: string;
@@ -562,11 +576,22 @@ export const useCalendarData = (
         unassigned_jobs?: any[];
       };
       const routes = (payload.routes || []) as Route[];
-      const stops = (payload.stops || []).map((s: any) => ({
-        ...s,
-        assignee_ids: s.assignee_ids || [],
-        lead_employee_id: s.lead_employee_id ?? s.assigned_employee_id ?? null,
-      })) as RouteStop[];
+      const rawStops = payload.stops || [];
+      const stopIds = rawStops.map((s: any) => s.id).filter(Boolean);
+      const byStop = new Map<string, { ids: string[]; lead: string | null }>();
+      if (stopIds.length > 0) {
+        const { data: assignees } = await supabase
+          .from("route_stop_assignees")
+          .select("stop_id, employee_id, is_lead")
+          .in("stop_id", stopIds);
+        (assignees || []).forEach((a: any) => {
+          const entry = byStop.get(a.stop_id) || { ids: [], lead: null };
+          entry.ids.push(a.employee_id);
+          if (a.is_lead) entry.lead = a.employee_id;
+          byStop.set(a.stop_id, entry);
+        });
+      }
+      const stops = rawStops.map((s: any) => mergeStopAssignees(s, byStop.get(s.id))) as RouteStop[];
       return { routes, stops };
     },
   });
