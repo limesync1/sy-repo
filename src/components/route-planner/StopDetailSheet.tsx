@@ -235,6 +235,8 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
             "w-full p-0 flex flex-col",
             isCompact ? "h-[88vh] max-h-[88vh] rounded-t-xl" : "sm:max-w-2xl",
           )}
+          onPointerDownOutside={(e) => { if (!isCompact) e.preventDefault(); }}
+          onInteractOutside={(e) => { if (!isCompact) e.preventDefault(); }}
         >
           {/* Header — samme look som "Se detaljer" på kunder-siden:
               kompakt titel, lille beskrivelse og en række diskrete status-pills. */}
