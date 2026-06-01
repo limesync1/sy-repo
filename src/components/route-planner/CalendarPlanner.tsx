@@ -437,17 +437,17 @@ const ColumnHeader = ({ col }: { col: CalendarColumn }) => {
           {col.stops.length} stop
         </Badge>
         {completed > 0 && (
-          <Badge className="text-[9px] h-4 px-1 gap-0.5 bg-emerald-100 text-emerald-700 border-0 tabular-nums">
+          <Badge className="text-[9px] h-4 px-1 gap-0.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border-0 tabular-nums">
             <CheckCircle2 className="h-2.5 w-2.5" />{completed}
           </Badge>
         )}
         {inProgress > 0 && (
-          <Badge className="text-[9px] h-4 px-1 gap-0.5 bg-blue-100 text-blue-700 border-0 tabular-nums">
+          <Badge className="text-[9px] h-4 px-1 gap-0.5 bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300 border-0 tabular-nums">
             <PlayCircle className="h-2.5 w-2.5" />{inProgress}
           </Badge>
         )}
         {unassignedCount > 0 && col.attachedEmployees.length > 0 && (
-          <Badge variant="outline" className="text-[9px] h-4 px-1 gap-0.5 border-orange-300 text-orange-700 bg-orange-50 tabular-nums">
+          <Badge variant="outline" className="text-[9px] h-4 px-1 gap-0.5 border-orange-300 text-orange-700 bg-orange-50 dark:border-orange-500/30 dark:text-orange-300 dark:bg-orange-500/10 tabular-nums">
             <AlertCircle className="h-2.5 w-2.5" />{unassignedCount} utildelt
           </Badge>
         )}
@@ -780,7 +780,7 @@ const StopBlock = ({
                       assignedEmp
                         ? "text-white shadow-sm"
                         : isUnassigned
-                          ? "bg-orange-50 border border-orange-300 text-orange-700 hover:bg-orange-100"
+                          ? "bg-orange-50 border border-orange-300 text-orange-700 hover:bg-orange-100 dark:bg-orange-500/10 dark:border-orange-500/30 dark:text-orange-300 dark:hover:bg-orange-500/20"
                           : "border border-border text-muted-foreground hover:bg-secondary"
                     }`}
                     style={assignedEmp ? { background: assignedEmp.color } : undefined}
