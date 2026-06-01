@@ -1965,7 +1965,7 @@ const Planner = () => {
       await qc.invalidateQueries({ queryKey: ["route-planner-events"] });
     } catch (err: any) {
       setEditingProjectedContext(null);
-      toastRouteError(err, toast.error, { titleFallback: "Basisruten kunne ikke åbnes" });
+      toastRouteError(err, toast.error, { titleFallback: "Originalruten kunne ikke åbnes" });
       await logRoutePlannerEvent({
         businessId,
         eventType: "projected_route_open_failed_client",
@@ -2352,7 +2352,7 @@ const Planner = () => {
         // Fjern det aktuelt valgte stop fra ruten. Virtuelle (projicerede)
         // stops kan ikke slettes — de skal flyttes via basis-ruten.
         if (selectedStopId.startsWith("virtual-stop:")) {
-          toast.message("Projicerede stops kan ikke slettes — åbn basis-ruten for at ændre.");
+          toast.message("Projicerede stops kan ikke slettes — åbn originalruten for at ændre.");
           return;
         }
         e.preventDefault();
@@ -2916,7 +2916,7 @@ const Planner = () => {
       if (!fromDate || !toDate || fromDate === toDate) return;
       const baseRouteId: string | null = activeData.route.baseRouteId ?? null;
       if (!baseRouteId) {
-        toast.error("Kan ikke identificere basisruten for forekomsten");
+        toast.error("Kan ikke identificere originalruten for forekomsten");
         return;
       }
       // Klient-side guard: er der allerede en faktisk rute fra samme serie
@@ -3052,7 +3052,7 @@ const Planner = () => {
       const targetRoute = calendarRoutesRaw.find((r) => r.id === targetRouteId);
       if ((targetRoute as any)?.isVirtual) {
         toast.error("Kan ikke lægge aftaler på en projiceret rute", {
-          description: "Projicerede ruter er fremtidige forekomster — læg aftalen på basisruten eller en faktisk rute.",
+          description: "Projicerede ruter er fremtidige forekomster — læg aftalen på originalruten eller en faktisk rute.",
         });
         releaseDrop();
         return;
@@ -3236,7 +3236,7 @@ const Planner = () => {
       // ikke kunne flyttes direkte — kun via skift på basisruten.
       if ((stop as any)?.isVirtual || String(stop?.id || "").startsWith("virtual-stop:")) {
         toast.error("Projicerede stops kan ikke flyttes", {
-          description: "Åbn basisruten for at ændre rækkefølge eller dato for denne aftale.",
+          description: "Åbn originalruten for at ændre rækkefølge eller dato for denne aftale.",
         });
         releaseDrop();
         return;
