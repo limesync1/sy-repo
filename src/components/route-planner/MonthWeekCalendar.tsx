@@ -794,10 +794,10 @@ const RoutePillInner = ({
         // vejen rundt, dæmpet baggrund og en diagonal-stribe så de aldrig
         // forveksles med den rigtige basisrute.
         isVirtual && "border-dashed border-foreground/30 bg-muted/40 [background-image:repeating-linear-gradient(135deg,transparent_0_6px,hsl(var(--muted-foreground)/0.06)_6px_7px)]",
-        // Basisruter (kilden til en gentagende serie) får en lille farve-
-        // accent på venstre kant så de tydeligt skiller sig ud fra både
-        // engangsruter og projicerede forekomster.
-        isBaseRecurring && "border-l-2 border-l-accent",
+        // Basisruter (kilden til en gentagende serie) får en lille ring-
+        // accent så de tydeligt skiller sig ud fra både engangsruter og
+        // projicerede forekomster — uden at flytte indholdet i pillen.
+        isBaseRecurring && !isVirtual && "shadow-[inset_0_0_0_1px_hsl(var(--accent)/0.35)]",
         isPast && "opacity-50 saturate-50 hover:opacity-90",
         // Under drag dæmpes fortids-ruter yderligere — de er ikke gyldige
         // drop-targets (kalender-cellen er disabled), så de skal heller
