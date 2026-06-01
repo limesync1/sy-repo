@@ -53,6 +53,11 @@ const readableTokenOn = (color?: string | null) => {
   const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
   return lum > 0.62 ? "hsl(var(--foreground))" : "hsl(var(--background))";
 };
+// Failsafe fallback så sekvens-chippen ALDRIG render­er usynligt selv hvis
+// ruten mangler en gemt farve. Bruger forgrunden så "1/2/3" altid har
+// kontrast mod kort-baggrunden.
+const safeChipBg = (c?: string | null) =>
+  c && /^#?[0-9a-f]{6}$/i.test(c.trim()) ? c : "hsl(var(--foreground))";
 
 type Props = {
   route: Route | null;
@@ -363,7 +368,7 @@ const SortableStopRow = ({
         <div className="flex shrink-0 items-center pr-1.5">
           <span
             className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[12px] font-bold tabular-nums shadow-[0_1px_3px_rgba(0,0,0,0.18)] ring-2 ring-card sm:h-8 sm:w-8 sm:text-sm"
-            style={{ background: color, color: readableTokenOn(color) }}
+            style={{ background: safeChipBg(color), color: readableTokenOn(color) }}
             aria-label={`Stop ${index}`}
           >
             {index}
