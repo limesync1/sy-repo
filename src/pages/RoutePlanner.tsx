@@ -5937,6 +5937,39 @@ const Planner = () => {
                 projectedDate={projectionActive ? editingProjectedContext?.projectedDate ?? null : null}
                 onNamePreview={(previewName) => setEditingRoutePreview((prev) => ({ ...(prev ?? {}), name: previewName }))}
                 onColorPreview={(previewColor) => setEditingRoutePreview((prev) => ({ ...(prev ?? {}), color: previewColor }))}
+                validateMoveTo={({ routeId, baseRouteId, isProjection: isProj, newDate }) => {
+                  // Faktisk rute fra samme serie på mål-datoen?
+                  const collidingReal = calendarRoutesRaw.find((r: any) =>
+                    String(r.route_date).slice(0, 10) === newDate
+                    && r.id !== routeId
+                    && (
+                      (baseRouteId && (r.id === baseRouteId || r.base_route_id === baseRouteId))
+                      || (!baseRouteId && r.id === routeId)
+                    ),
+                  );
+                  if (collidingReal) {
+                    return {
+                      message: "Der findes allerede en rute fra samme serie på den dato",
+                      description: isProj
+                        ? "Vælg en anden dato — ellers vil der være to af samme rute på samme dag."
+                        : "Flet i stedet ruterne, eller vælg en anden dato.",
+                    };
+                  }
+                  // Projiceret forekomst af samme serie på mål-datoen?
+                  const collidingProjected = virtualCalendarRoutes.find((r: any) =>
+                    String(r.route_date).slice(0, 10) === newDate
+                    && baseRouteId
+                    && r.baseRouteId === baseRouteId
+                    && r.id !== routeId,
+                  );
+                  if (collidingProjected) {
+                    return {
+                      message: "Der ligger allerede en projiceret forekomst af samme rute på den dato",
+                      description: "Flyt eller spring den projicerede forekomst over først — ellers vil der være to af samme rute på samme dag.",
+                    };
+                  }
+                  return null;
+                }}
               />
               <RouteStopsPanel
                 route={activeEditingRoute && editingRoutePreview ? { ...activeEditingRoute, ...editingRoutePreview } : activeEditingRoute}
