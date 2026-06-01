@@ -17,6 +17,7 @@ import { differenceInCalendarDays, format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { CalendarRange, Repeat, ArrowRight, Loader2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { mapPostgresError } from "@/lib/route-errors";
 
 export type MoveRouteScope = "single" | "future";
 
@@ -51,11 +52,17 @@ export const MoveRouteDateDialog = ({
   void linkedSubscriptionCount;
   const [scope, setScope] = useState<MoveRouteScope>("single");
   const [moveLinked, setMoveLinked] = useState(true);
+  // Inline fejl — vises i selve dialogen så brugeren ikke skal jagte en
+  // forsvindende toast for at forstå hvad der gik galt.
+  const [submitError, setSubmitError] = useState<{ title: string; description?: string } | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (open) {
       setScope("single");
       setMoveLinked(true);
+      setSubmitError(null);
+      setSubmitting(false);
     }
   }, [open]);
 
@@ -153,13 +160,44 @@ export const MoveRouteDateDialog = ({
               de tilbagevendende aftalers next_service_date altid med samme delta. */}
         </div>
 
-        <AlertDialogFooter className="pt-1">
-          <AlertDialogCancel disabled={loading}>Annullér</AlertDialogCancel>
-          <Button
-            onClick={async () => { await onConfirm(scope, scope === "future" ? moveLinked : false); }}
-            disabled={loading}
+        {submitError && (
+          <div
+            role="alert"
+            className="rounded-md border border-destructive/40 bg-destructive/5 p-2.5 animate-in fade-in-0 slide-in-from-top-1 duration-200"
           >
-            {loading && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="h-3.5 w-3.5 text-destructive mt-0.5 shrink-0" />
+              <div className="min-w-0 text-[12px] leading-snug">
+                <div className="font-semibold text-destructive">{submitError.title}</div>
+                {submitError.description && (
+                  <p className="text-destructive/90 mt-0.5">{submitError.description}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        <AlertDialogFooter className="pt-1">
+          <AlertDialogCancel disabled={loading || submitting}>Annullér</AlertDialogCancel>
+          <Button
+            onClick={async () => {
+              setSubmitError(null);
+              setSubmitting(true);
+              try {
+                await onConfirm(scope, scope === "future" ? moveLinked : false);
+              } catch (e: any) {
+                const issue = mapPostgresError(e);
+                setSubmitError({
+                  title: issue.title || "Kunne ikke flytte rute",
+                  description: issue.hint ? `${issue.message}\n${issue.hint}` : issue.message,
+                });
+              } finally {
+                setSubmitting(false);
+              }
+            }}
+            disabled={loading || submitting}
+          >
+            {(loading || submitting) && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
             Flyt rute
           </Button>
         </AlertDialogFooter>

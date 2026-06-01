@@ -3404,13 +3404,13 @@ const Planner = () => {
     if (!pendingRouteMove) return;
     const { route, newDate } = pendingRouteMove;
     const oldDate = route.route_date;
-    try {
-      const result = await moveRouteSeries.mutateAsync({
-        routeId: route.id,
-        newDate,
-        scope,
-        moveLinkedSubscriptions,
-      });
+    // Lader fejl boble op så dialogen kan vise dem inline.
+    const result = await moveRouteSeries.mutateAsync({
+      routeId: route.id,
+      newDate,
+      scope,
+      moveLinkedSubscriptions,
+    });
       const movedRouteId = String((result as any)?.new_route_id || route.id);
       pushRouteUndo({
         label: scope === "future"
@@ -3433,14 +3433,8 @@ const Planner = () => {
       });
       setPendingRouteMove(null);
       // Klogt: spørg KUN om optimering hvis vores estimat viser at der
-      // reelt er noget at vinde (≥5 km OG ≥20 % besparelse). Ellers
-      // pester vi ikke brugeren — ruten er allerede fint planlagt.
+      // reelt er noget at vinde. Ellers pester vi ikke brugeren.
       tryPromptOptimize(movedRouteId, route.name, "moved");
-    } catch (err: any) {
-      toast.error(err.message || "Kunne ikke flytte rute", {
-        description: "Tjek at den nye dato er gyldig, og prøv igen.",
-      });
-    }
   };
 
   // Flet alle aftaler fra én rute over i en anden, og slet kilden.
@@ -6270,8 +6264,8 @@ const Planner = () => {
             const agreementIds = pendingProjectedSeriesInfo?.agreementIds ?? [];
             const subscriptionIds = pendingProjectedSeriesInfo?.recurringSubscriptionIds ?? [];
             const orderIds = pendingProjectedSeriesInfo?.orderIds ?? [];
-            try {
-              const result = await shiftProjectedOccurrence.mutateAsync({
+            // Lader fejl boble op så dialogen viser dem inline.
+            const result = await shiftProjectedOccurrence.mutateAsync({
                 baseRouteId: pendingProjectedMove.baseRouteId,
                 fromDate: pendingProjectedMove.fromDate,
                 toDate: pendingProjectedMove.toDate,
@@ -6315,9 +6309,6 @@ const Planner = () => {
               if (newRouteId) {
                 tryPromptOptimize(newRouteId, pendingProjectedMove.routeName, "moved");
               }
-            } catch (e: any) {
-              toastRouteError(e, toast.error, { titleFallback: "Kunne ikke flytte den projicerede rute" });
-            }
           }}
         />
 

@@ -619,44 +619,38 @@ export const RouteEditSheet = ({
     moveLinkedSubscriptions: boolean,
   ) => {
     if (!route || !pendingDate) return;
-    try {
-      await moveRouteSeries.mutateAsync({
-        routeId: route.id,
-        newDate: pendingDate,
-        scope,
-        moveLinkedSubscriptions,
-      });
-      setDate(pendingDate);
-      toast.success(
-        scope === "future" ? "Ruteserien flyttet" : "Rute flyttet til ny dato",
-      );
-      setPendingDate(null);
-    } catch (e: any) {
-      toastRouteError(e, toast.error, { titleFallback: "Kunne ikke flytte rute" });
-    }
+    // Lader fejl boble op til dialogens egen catch — så vises de inline i
+    // stedet for kun som flygtig toast samtidig med at dialogen lukker.
+    await moveRouteSeries.mutateAsync({
+      routeId: route.id,
+      newDate: pendingDate,
+      scope,
+      moveLinkedSubscriptions,
+    });
+    setDate(pendingDate);
+    toast.success(
+      scope === "future" ? "Ruteserien flyttet" : "Rute flyttet til ny dato",
+    );
+    setPendingDate(null);
   };
 
   const handleConfirmMoveProjected = async () => {
     if (!route || !projectedDate || !pendingProjectedDate) return;
-    try {
-      await moveProjected.mutateAsync({
-        baseRouteId: route.id,
-        fromDate: projectedDate,
-        toDate: pendingProjectedDate,
-        agreementIds: seriesInfo?.agreementIds ?? [],
-        subscriptionIds: seriesInfo?.recurringSubscriptionIds ?? [],
-        orderIds: seriesInfo?.orderIds ?? [],
-        moveStartDates: projectedMoveSyncStart,
-        moveNextDates: projectedMoveSyncNext,
-      });
-      toast.success("Den projicerede forekomst er flyttet til den nye dato");
-      setPendingProjectedDate(null);
-      // Luk sheet'et — den flyttede forekomst er stadig en projektion,
-      // blot på den nye dato. Brugeren kan åbne den fra kalenderen.
-      onOpenChange(false);
-    } catch (e: any) {
-      toastRouteError(e, toast.error, { titleFallback: "Kunne ikke flytte den projicerede rute" });
-    }
+    // Lader fejl boble op til dialogens egen catch — så vises de inline i
+    // stedet for kun som flygtig toast.
+    await moveProjected.mutateAsync({
+      baseRouteId: route.id,
+      fromDate: projectedDate,
+      toDate: pendingProjectedDate,
+      agreementIds: seriesInfo?.agreementIds ?? [],
+      subscriptionIds: seriesInfo?.recurringSubscriptionIds ?? [],
+      orderIds: seriesInfo?.orderIds ?? [],
+      moveStartDates: projectedMoveSyncStart,
+      moveNextDates: projectedMoveSyncNext,
+    });
+    toast.success("Den projicerede forekomst er flyttet til den nye dato");
+    setPendingProjectedDate(null);
+    onOpenChange(false);
   };
 
   const handleOptimize = async () => {

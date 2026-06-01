@@ -12,6 +12,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { differenceInCalendarDays, format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { CalendarRange, ArrowRight, Loader2, AlertTriangle, Info, Repeat, Sparkles, SkipForward, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { mapPostgresError } from "@/lib/route-errors";
 
 type Props = {
   open: boolean;
@@ -49,6 +51,9 @@ export const MoveProjectedOccurrenceDialog = ({
   reassignSuggestions,
   loading, onConfirm,
 }: Props) => {
+  const [submitError, setSubmitError] = useState<{ title: string; description?: string } | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  useEffect(() => { if (open) { setSubmitError(null); setSubmitting(false); } }, [open]);
   const fmt = (d: string) => {
     try { return format(parseISO(d), "EEEE d. MMM yyyy", { locale: da }); }
     catch { return d; }
@@ -232,9 +237,42 @@ export const MoveProjectedOccurrenceDialog = ({
         </div>
 
         <AlertDialogFooter className="pt-1">
-          <AlertDialogCancel disabled={loading}>Fortryd</AlertDialogCancel>
-          <Button onClick={async () => { await onConfirm(); }} disabled={loading}>
-            {loading && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
+          {submitError && (
+            <div
+              role="alert"
+              className="basis-full order-first w-full rounded-md border border-destructive/40 bg-destructive/5 p-2.5 animate-in fade-in-0 slide-in-from-top-1 duration-200"
+            >
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-3.5 w-3.5 text-destructive mt-0.5 shrink-0" />
+                <div className="min-w-0 text-[12px] leading-snug">
+                  <div className="font-semibold text-destructive">{submitError.title}</div>
+                  {submitError.description && (
+                    <p className="text-destructive/90 mt-0.5">{submitError.description}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+          <AlertDialogCancel disabled={loading || submitting}>Fortryd</AlertDialogCancel>
+          <Button
+            onClick={async () => {
+              setSubmitError(null);
+              setSubmitting(true);
+              try {
+                await onConfirm();
+              } catch (e: any) {
+                const issue = mapPostgresError(e);
+                setSubmitError({
+                  title: issue.title || "Kunne ikke flytte rute",
+                  description: issue.hint ? `${issue.message}\n${issue.hint}` : issue.message,
+                });
+              } finally {
+                setSubmitting(false);
+              }
+            }}
+            disabled={loading || submitting}
+          >
+            {(loading || submitting) && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
             Flyt denne dag
           </Button>
         </AlertDialogFooter>
