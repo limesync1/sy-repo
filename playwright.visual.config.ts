@@ -17,7 +17,9 @@ const isCI = !!process.env.CI;
 
 export default defineConfig({
   testDir: "./e2e",
-  testMatch: /dark-mode-planner\.spec\.ts$/,
+  // Kører både planner- og livechat-suiterne i samme run så CI rapporterer
+  // alle dark-mode regressions i én pass.
+  testMatch: /dark-mode-(planner|livechat)\.spec\.ts$/,
   fullyParallel: true,
   forbidOnly: isCI,
   maxFailures: 1,
