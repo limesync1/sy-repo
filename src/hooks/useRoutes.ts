@@ -1852,7 +1852,13 @@ export const useUpdateRouteSeriesAppearance = () => {
         }
         return { baseId, updates };
       }),
-    onSuccess: () => {
+    onSettled: async () => {
+      await Promise.all([
+        qc.cancelQueries({ queryKey: ["routes"] }),
+        qc.cancelQueries({ queryKey: ["routes-range"] }),
+        qc.cancelQueries({ queryKey: ["route-calendar"] }),
+        qc.cancelQueries({ queryKey: ["recurring-base-routes"] }),
+      ]);
       qc.invalidateQueries({ queryKey: ["routes"] });
       qc.invalidateQueries({ queryKey: ["routes-range"] });
       qc.invalidateQueries({ queryKey: ["route-calendar"] });
