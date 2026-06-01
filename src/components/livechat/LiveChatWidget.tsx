@@ -674,7 +674,7 @@ const LiveChatWidget = () => {
           >
             {/* Header — matcher Serviceydere hero (mørk navy + cyan glows) */}
             <div
-              className="relative overflow-hidden px-5 pb-5 pt-4 text-background"
+              className="relative overflow-hidden px-5 pb-5 pt-4 text-white"
               style={{ backgroundColor: "hsl(var(--hero-bg))" }}
             >
               <div aria-hidden className="pointer-events-none absolute inset-0">
@@ -694,15 +694,15 @@ const LiveChatWidget = () => {
                   }}
                 />
               </div>
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-background/10" />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-white/10" />
               <div className="relative flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-background/[0.1] backdrop-blur-sm">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm">
                     <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-7 w-7 object-contain" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-[15px] font-semibold leading-tight">Serviceydere Kundeservice</p>
-                    <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-background/65">
+                    <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-white/70">
                       <span className={`h-1.5 w-1.5 rounded-full ${closed ? "bg-muted-foreground" : "animate-pulse bg-success"}`} />
                       {closed ? "Samtalen er afsluttet" : "Vi svarer typisk inden 5 minutter."}
                     </p>
@@ -714,7 +714,7 @@ const LiveChatWidget = () => {
                       onClick={() => setShowInbox(true)}
                       aria-label="Vis mine samtaler"
                       title="Mine samtaler"
-                      className="relative rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
+                      className="relative rounded-md p-1.5 text-white/75 transition-colors hover:bg-white/10 hover:text-white"
                     >
                       <MessagesSquare className="h-4 w-4" />
                       {chats.length > 1 && (
@@ -730,7 +730,7 @@ const LiveChatWidget = () => {
                         <button
                           aria-label="Flere handlinger"
                           title="Handlinger"
-                          className="rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
+                          className="rounded-md p-1.5 text-white/75 transition-colors hover:bg-white/10 hover:text-white"
                         >
                           <MoreVertical className="h-4 w-4" />
                         </button>
@@ -766,14 +766,14 @@ const LiveChatWidget = () => {
                     onClick={toggleMute}
                     aria-label={muted ? "Slå lyd til" : "Slå lyd fra"}
                     title={muted ? "Slå lyd til" : "Slå lyd fra"}
-                    className="rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
+                    className="rounded-md p-1.5 text-white/75 transition-colors hover:bg-white/10 hover:text-white"
                   >
                     {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
                   </button>
                   <button
                     onClick={() => setOpen(false)}
                     aria-label="Luk chat"
-                    className="rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
+                    className="rounded-md p-1.5 text-white/75 transition-colors hover:bg-white/10 hover:text-white"
                   >
                     <ChevronDown className="h-4 w-4" />
                   </button>

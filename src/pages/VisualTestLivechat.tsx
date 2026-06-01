@@ -53,7 +53,7 @@ export default function VisualTestLivechat() {
         {/* ── Header (hero) ── */}
         <div
           data-testid="livechat-header"
-          className="relative shrink-0 overflow-hidden px-4 py-4 text-background"
+          className="relative shrink-0 overflow-hidden px-4 py-4 text-white"
           style={{
             backgroundImage:
               "linear-gradient(135deg, hsl(var(--hero-bg)) 0%, hsl(var(--hero-mid)) 100%)",
@@ -61,12 +61,12 @@ export default function VisualTestLivechat() {
         >
           <div className="relative flex items-start justify-between gap-2">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-background/10 backdrop-blur-sm">
-                <span className="text-background text-base font-bold">S</span>
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm">
+                <span className="text-white text-base font-bold">S</span>
               </div>
               <div className="min-w-0">
                 <p className="text-[15px] font-semibold leading-tight">Serviceydere Kundeservice</p>
-                <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-background/65">
+                <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-white/70">
                   <span className="h-1.5 w-1.5 rounded-full bg-success" />
                   Vi svarer typisk inden 5 minutter.
                 </p>
@@ -76,21 +76,21 @@ export default function VisualTestLivechat() {
               <button
                 data-testid="header-more"
                 aria-label="Flere handlinger"
-                className="rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
+                className="rounded-md p-1.5 text-white/75 transition-colors hover:bg-white/10 hover:text-white"
               >
                 <MoreVertical className="h-4 w-4" />
               </button>
               <button
                 data-testid="header-volume"
                 aria-label="Slå lyd fra"
-                className="rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
+                className="rounded-md p-1.5 text-white/75 transition-colors hover:bg-white/10 hover:text-white"
               >
                 <Volume2 className="h-4 w-4" />
               </button>
               <button
                 data-testid="header-close"
                 aria-label="Luk chat"
-                className="rounded-md p-1.5 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
+                className="rounded-md p-1.5 text-white/75 transition-colors hover:bg-white/10 hover:text-white"
               >
                 <ChevronDown className="h-4 w-4" />
               </button>
