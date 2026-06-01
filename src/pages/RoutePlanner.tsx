@@ -3573,31 +3573,24 @@ const Planner = () => {
       ]);
       const stopsLeft = stopRes.count ?? 0;
       const recurringRefs = (agrRes.count ?? 0) + (subRes.count ?? 0);
-      let sourceDeleted = false;
       let sourceKept = false;
       if (stopsLeft === 0 && recurringRefs === 0) {
-        const { error: delErr } = await supabase.from("routes").delete().eq("id", source.id);
-        if (!delErr) sourceDeleted = true;
+        await supabase.from("routes").delete().eq("id", source.id);
       } else if (stopsLeft === 0 && recurringRefs > 0 && scope === "single") {
         // Behold kilderuten som tom basis så projektionerne stadig fungerer.
         sourceKept = true;
       }
-      return { sourceStops, moved, alreadyMerged: false, sourceDeleted, sourceKept, recurringRefs };
+      return { sourceStops, moved, alreadyMerged: false, sourceKept, recurringRefs };
       });
       const sourceStops = result?.sourceStops ?? [];
       const moved = result?.moved ?? 0;
-      // Hvis kilderuten blev bevaret (for at undgå brudte projektioner),
-      // ruller vi den optimistiske stop-flytning tilbage så UI'et viser
-      // korrekt: kilden eksisterer stadig (tom), stops ligger på målet.
-      if (result?.sourceKept) {
-        // Genindsæt source-route i cache (den blev ikke fjernet, men vi
-        // sikrer at den tomme route stadig vises korrekt efter refetch).
-      }
       const successTitle = result?.alreadyMerged
         ? "Allerede flettet"
-        : sourceStops.length === 0
-          ? "Tom rute slettet"
-          : `${moved} aftale${moved === 1 ? "" : "r"} flettet ind i ${target.name || "rute"}`;
+        : result?.sourceKept
+          ? `${moved} aftale${moved === 1 ? "" : "r"} flettet — kilderuten beholdes`
+          : sourceStops.length === 0
+            ? "Tom rute slettet"
+            : `${moved} aftale${moved === 1 ? "" : "r"} flettet ind i ${target.name || "rute"}`;
       toast.success(successTitle, {
         id: toastId,
         description: result?.sourceKept
