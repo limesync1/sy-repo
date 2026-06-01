@@ -1,0 +1,66 @@
+name: Visual regression (dark mode)
+
+on:
+  pull_request:
+    paths:
+      - "src/**"
+      - "e2e/dark-mode-planner.spec.ts"
+      - "src/pages/VisualTestPlanner.tsx"
+      - "src/index.css"
+      - "tailwind.config.ts"
+      - "playwright.visual.config.ts"
+      - ".github/workflows/visual-regression.yml"
+      - "package.json"
+      - "bun.lockb"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Annullér tidligere kørsler på samme PR.
+concurrency:
+  group: visual-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  visual:
+    name: Playwright visual diff
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: pw-${{ runner.os }}-${{ hashFiles('package.json') }}
+
+      - name: Install Chromium
+        run: bunx playwright install --with-deps chromium
+
+      - name: Build production bundle
+        run: bun run build
+
+      - name: Run dark-mode visual regression (fail-fast)
+        run: bun run test:visual
+
+      - name: Upload diff report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-visual-report
+          path: |
+            playwright-report/visual
+            test-results/visual
+          retention-days: 14
