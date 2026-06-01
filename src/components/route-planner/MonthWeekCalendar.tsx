@@ -111,6 +111,13 @@ const fmtRouteKrCompact = (n: number) => {
   if (n >= 1_000) return `${(n / 1000).toFixed(1).replace(".", ",")}t kr`;
   return `${Math.round(n)} kr`;
 };
+const initials = (name: string) => name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
+const readableTokenOn = (color?: string | null) => {
+  const hex = color?.trim().match(/^#?([0-9a-f]{6})$/i)?.[1];
+  if (!hex) return "hsl(var(--background))";
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.62 ? "hsl(var(--foreground))" : "hsl(var(--background))";
+};
 
 export const MonthWeekCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
@@ -970,11 +977,13 @@ const RoutePillInner = ({
               ) : (
                 <span
                   key={emp.id}
-                  className="inline-block h-5 w-5 rounded-full ring-2 ring-card"
-                  style={{ background: emp.color || "#64748b" }}
+                  className="inline-flex h-5 w-5 items-center justify-center rounded-full ring-2 ring-card text-[9px] font-bold leading-none"
+                  style={{ background: emp.color || "hsl(var(--muted-foreground))", color: readableTokenOn(emp.color) }}
                   title={emp.name}
                   aria-label={emp.name}
-                />
+                >
+                  {initials(emp.name)}
+                </span>
               ),
             )}
             {extraEmployees > 0 && (
