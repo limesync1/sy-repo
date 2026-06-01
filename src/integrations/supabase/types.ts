@@ -4283,6 +4283,14 @@ export type Database = {
         Returns: boolean
       }
       cleanup_accounting_sync_log: { Args: never; Returns: undefined }
+      cleanup_ghost_routes: {
+        Args: never
+        Returns: {
+          deleted_empty_children: number
+          deleted_soft_deleted: number
+          deleted_stale_exceptions: number
+        }[]
+      }
       cleanup_route_after_stop_delete: {
         Args: { _route_id: string }
         Returns: Json
