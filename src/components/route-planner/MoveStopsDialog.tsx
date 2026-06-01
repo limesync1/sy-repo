@@ -159,18 +159,32 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("routes")
-        .select("id, route_date, name, color, route_stops(count)")
+        .select("id, route_date, name, color, deleted_at, archived_at, route_stops(count)")
         .eq("business_id", route!.business_id)
         .neq("id", route!.id)
+        .is("deleted_at", null)
+        .is("archived_at", null)
         .order("route_date", { ascending: true });
       if (error) throw error;
-      return (data || []).map((r: any) => ({
+      const mapped = (data || []).map((r: any) => ({
         id: r.id as string,
         route_date: r.route_date as string,
         name: (r.name as string | null) ?? null,
         color: r.color as string,
         stop_count: Number(r.route_stops?.[0]?.count ?? 0),
       }));
+      // Skjul tomme ruter — disse er reelt ikke "eksisterende ruter"
+      // brugeren kan flytte til; vælg "Ny dato" eller opret en ny rute.
+      const withStops = mapped.filter((r) => r.stop_count > 0);
+      // Dedupér på (dato + navn + farve) — viser kun den rute med flest stops
+      // hvis flere ruter ved et uheld er identiske.
+      const byKey = new Map<string, typeof withStops[number]>();
+      for (const r of withStops) {
+        const key = `${r.route_date}|${(r.name || "").trim().toLowerCase()}|${(r.color || "").toLowerCase()}`;
+        const existing = byKey.get(key);
+        if (!existing || r.stop_count > existing.stop_count) byKey.set(key, r);
+      }
+      return Array.from(byKey.values());
     },
   });
 
