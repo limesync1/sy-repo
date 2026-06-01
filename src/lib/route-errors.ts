@@ -120,22 +120,22 @@ const SPECS: Record<RouteErrorCode, Spec> = {
   PROJECTED_ROUTE_LOCKED: {
     severity: "error", title: "Projiceret rute er låst",
     build: () => ({
-      message: "Projicerede ruter kan ikke redigeres direkte — kun selve basisruten kan ændres.",
-      hint: "Åbn basisruten for at ændre navn, farve, stops eller medarbejder.",
+      message: "Projicerede ruter kan ikke redigeres direkte — kun selve originalruten kan ændres.",
+      hint: "Åbn originalruten for at ændre navn, farve, stops eller medarbejder.",
     }),
   },
   PROJECTED_STOP_LOCKED: {
     severity: "error", title: "Stoppet hører til en projiceret rute",
     build: () => ({
       message: "Stops i projicerede ruter er auto-genererede og kan ikke flyttes individuelt.",
-      hint: "Rediger basisruten i stedet — ændringen propagerer automatisk.",
+      hint: "Rediger originalruten i stedet — ændringen propagerer automatisk.",
     }),
   },
   MERGE_PROJECTION_INTO_PROJECTION: {
     severity: "error", title: "Kan ikke flette to projektioner",
     build: () => ({
       message: "Begge ruter er projicerede forekomster — de findes ikke fysisk endnu.",
-      hint: "Materialisér mindst én af ruterne først, eller rediger basisruten.",
+      hint: "Materialisér mindst én af ruterne først, eller rediger originalruten.",
     }),
   },
   MERGE_PROJECTION_INTO_REAL: {
@@ -219,10 +219,10 @@ const SPECS: Record<RouteErrorCode, Spec> = {
     }),
   },
   ROUTE_HAS_FUTURE_PROJECTIONS: {
-    severity: "warning", title: "Ruten er basis for fremtidige forekomster",
+    severity: "warning", title: "Ruten er original for fremtidige forekomster",
     build: (c) => ({
-      message: `${c.count ?? "Flere"} projicerede forekomster i serien forsvinder hvis basisruten arkiveres.`,
-      hint: "Bekræft at serien skal stoppes, eller flyt aftalerne til en anden basisrute.",
+      message: `${c.count ?? "Flere"} projicerede forekomster i serien forsvinder hvis originalruten arkiveres.`,
+      hint: "Bekræft at serien skal stoppes, eller flyt aftalerne til en anden originalrute.",
     }),
   },
   HOLIDAY_BLOCKED_DATE: {

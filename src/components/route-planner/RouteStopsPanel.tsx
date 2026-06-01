@@ -30,6 +30,7 @@ import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { toastRouteError } from "@/lib/route-errors";
 import {
   useReorderStops, useDeleteStop, useSetStopAssignees,
   type RouteStop, type Route,
@@ -44,6 +45,14 @@ import {
 import { EmployeeAvatars, type EmpAvatar } from "./EmployeeAvatars";
 import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_RAIL_WIDTH, ICON_BTN_ACCENT, ICON_BTN_DESTRUCTIVE } from "./lib/card-styles";
 import EmptyState from "./EmptyState";
+
+const readableTokenOn = (color?: string | null) => {
+  const hex = color?.trim().match(/^#?([0-9a-f]{6})$/i)?.[1];
+  if (!hex) return "hsl(var(--background))";
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+  const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return lum > 0.62 ? "hsl(var(--foreground))" : "hsl(var(--background))";
+};
 
 type Props = {
   route: Route | null;
@@ -114,9 +123,10 @@ export const RouteStopsPanel = ({
     try {
       await reorder.mutateAsync(next.map((s, i) => ({ id: s.id, sequence: i })));
       toast.success("Rækkefølge opdateret");
-    } catch {
+    } catch (err: any) {
       // Revert hvis fejl
       setItems([...stops].sort((a, b) => a.sequence - b.sequence));
+      toastRouteError(err, toast.error, { titleFallback: "Kunne ikke gemme rækkefølge" });
     }
   };
 
@@ -140,7 +150,7 @@ export const RouteStopsPanel = ({
       // så brugeren ikke står tilbage med en modal for en rute der er væk.
       if (res?.route_deleted) onRouteDeleted?.();
     } catch (err: any) {
-      toast.error(err.message || "Kunne ikke fjerne stop");
+      toastRouteError(err, toast.error, { titleFallback: "Kunne ikke fjerne stop" });
     }
     setConfirmDelete(null);
   };
@@ -185,16 +195,16 @@ export const RouteStopsPanel = ({
             />
             <SheetTitle className="flex items-center gap-2.5 text-base leading-tight">
               <span
-                className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg shadow-sm ring-1 ring-black/5"
-                style={{ background: route.color }}
+                className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg shadow-sm ring-1 ring-border/40"
+                style={{ background: route.color, color: readableTokenOn(route.color) }}
                 aria-hidden
               >
-                <MapPin className="h-3.5 w-3.5 text-white drop-shadow-sm" />
+                <MapPin className="h-3.5 w-3.5 drop-shadow-sm" />
               </span>
               <span className="min-w-0 flex-1 truncate font-semibold">Stops på ruten</span>
               <span
-                className="shrink-0 inline-flex h-6 min-w-[1.75rem] items-center justify-center rounded-full px-2 text-xs font-bold tabular-nums text-white shadow-sm ring-1 ring-black/5"
-                style={{ background: route.color }}
+                className="shrink-0 inline-flex h-6 min-w-[1.75rem] items-center justify-center rounded-full px-2 text-xs font-bold tabular-nums shadow-sm ring-1 ring-border/40"
+                style={{ background: route.color, color: readableTokenOn(route.color) }}
               >
                 {items.length}
               </span>
@@ -353,8 +363,8 @@ const SortableStopRow = ({
         {/* Sekvens-nummer — rund "chip" i rutens farve. Roundet og elevated i stedet for flad firkant. */}
         <div className="flex shrink-0 items-center pr-1.5">
           <span
-            className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[12px] font-bold text-white tabular-nums shadow-[0_1px_3px_rgba(0,0,0,0.18)] ring-2 ring-card sm:h-8 sm:w-8 sm:text-sm"
-            style={{ background: color }}
+            className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[12px] font-bold tabular-nums shadow-[0_1px_3px_rgba(0,0,0,0.18)] ring-2 ring-card sm:h-8 sm:w-8 sm:text-sm"
+            style={{ background: color, color: readableTokenOn(color) }}
             aria-label={`Stop ${index}`}
           >
             {index}
@@ -558,8 +568,8 @@ const AssigneeToggle = ({
                       />
                     ) : (
                       <span
-                        className="h-5 w-5 rounded-full inline-flex items-center justify-center text-[10px] font-bold text-white"
-                        style={{ background: e.color || "hsl(220 13% 46%)" }}
+                        className="h-5 w-5 rounded-full inline-flex items-center justify-center text-[10px] font-bold"
+                        style={{ background: e.color || "hsl(220 13% 46%)", color: readableTokenOn(e.color) }}
                       >
                         {e.name.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase()}
                       </span>

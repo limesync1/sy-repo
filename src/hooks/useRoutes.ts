@@ -230,6 +230,20 @@ export type StopAssignee = {
   is_lead: boolean;
 };
 
+const mergeStopAssignees = (stop: any, entry?: { ids: string[]; lead: string | null }): RouteStop => {
+  const rpcIds = Array.isArray(stop.assignee_ids) ? stop.assignee_ids.filter(Boolean) : [];
+  const ids = Array.from(new Set([
+    ...(entry?.ids ?? []),
+    ...rpcIds,
+    ...(stop.assigned_employee_id ? [stop.assigned_employee_id] : []),
+  ]));
+  return {
+    ...stop,
+    assignee_ids: ids,
+    lead_employee_id: entry?.lead ?? stop.lead_employee_id ?? stop.assigned_employee_id ?? ids[0] ?? null,
+  } as RouteStop;
+};
+
 /* ─── Tidsregistrering pr. stop (per medarbejder) ─── */
 export type StopTimeEntry = {
   id: string;
@@ -562,11 +576,22 @@ export const useCalendarData = (
         unassigned_jobs?: any[];
       };
       const routes = (payload.routes || []) as Route[];
-      const stops = (payload.stops || []).map((s: any) => ({
-        ...s,
-        assignee_ids: s.assignee_ids || [],
-        lead_employee_id: s.lead_employee_id ?? s.assigned_employee_id ?? null,
-      })) as RouteStop[];
+      const rawStops = payload.stops || [];
+      const stopIds = rawStops.map((s: any) => s.id).filter(Boolean);
+      const byStop = new Map<string, { ids: string[]; lead: string | null }>();
+      if (stopIds.length > 0) {
+        const { data: assignees } = await supabase
+          .from("route_stop_assignees")
+          .select("stop_id, employee_id, is_lead")
+          .in("stop_id", stopIds);
+        (assignees || []).forEach((a: any) => {
+          const entry = byStop.get(a.stop_id) || { ids: [], lead: null };
+          entry.ids.push(a.employee_id);
+          if (a.is_lead) entry.lead = a.employee_id;
+          byStop.set(a.stop_id, entry);
+        });
+      }
+      const stops = rawStops.map((s: any) => mergeStopAssignees(s, byStop.get(s.id))) as RouteStop[];
       return { routes, stops };
     },
   });
@@ -1801,32 +1826,39 @@ export const useUpdateRouteSeriesAppearance = () => {
       );
       return { snapshots, baseId, updates };
     },
-    mutationFn: async (vars: { route: Route; name?: string | null; color?: string }) => {
-      const baseId = (vars.route as any).base_route_id || vars.route.id;
-      const updates: { name?: string | null; color?: string } = {};
-      if (vars.name !== undefined) updates.name = vars.name;
-      if (vars.color !== undefined) updates.color = vars.color;
-      // 1) Skriv navn/farve på basisruten.
-      const { error: baseErr } = await supabase
-        .from("routes")
-        .update(updates as any)
-        .eq("id", baseId);
-      if (baseErr) throw baseErr;
-      // 2) Nulstil overrides på alle materialiserede børn af basisruten, så de
-      //    arver de nye værdier i stedet for at vise gamle eksplicitte felter.
-      const childUpdates: { name?: string | null; color?: string | null } = {};
-      if (vars.name !== undefined) childUpdates.name = null;
-      if (vars.color !== undefined) childUpdates.color = null as any;
-      if (Object.keys(childUpdates).length > 0) {
-        const { error: childErr } = await supabase
+    mutationFn: async (vars: { route: Route; name?: string | null; color?: string }) =>
+      routeMutationQueue.run(async () => {
+        const baseId = (vars.route as any).base_route_id || vars.route.id;
+        const updates: { name?: string | null; color?: string } = {};
+        if (vars.name !== undefined) updates.name = vars.name;
+        if (vars.color !== undefined) updates.color = vars.color;
+        // 1) Skriv navn/farve på originalruten.
+        const { error: baseErr } = await supabase
           .from("routes")
-          .update(childUpdates as any)
-          .eq("base_route_id", baseId);
-        if (childErr) throw childErr;
-      }
-      return { baseId, updates };
-    },
-    onSuccess: () => {
+          .update(updates as any)
+          .eq("id", baseId);
+        if (baseErr) throw baseErr;
+        // 2) Nulstil overrides på alle materialiserede børn af originalruten,
+        //    så de arver de nye værdier i stedet for at vise gamle eksplicitte felter.
+        const childUpdates: { name?: string | null; color?: string | null } = {};
+        if (vars.name !== undefined) childUpdates.name = null;
+        if (vars.color !== undefined) childUpdates.color = null as any;
+        if (Object.keys(childUpdates).length > 0) {
+          const { error: childErr } = await supabase
+            .from("routes")
+            .update(childUpdates as any)
+            .eq("base_route_id", baseId);
+          if (childErr) throw childErr;
+        }
+        return { baseId, updates };
+      }),
+    onSettled: async () => {
+      await Promise.all([
+        qc.cancelQueries({ queryKey: ["routes"] }),
+        qc.cancelQueries({ queryKey: ["routes-range"] }),
+        qc.cancelQueries({ queryKey: ["route-calendar"] }),
+        qc.cancelQueries({ queryKey: ["recurring-base-routes"] }),
+      ]);
       qc.invalidateQueries({ queryKey: ["routes"] });
       qc.invalidateQueries({ queryKey: ["routes-range"] });
       qc.invalidateQueries({ queryKey: ["route-calendar"] });

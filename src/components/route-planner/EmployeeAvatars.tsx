@@ -30,6 +30,14 @@ const initials = (name: string) =>
     .join("")
     .toUpperCase();
 
+const readableTokenOn = (color?: string | null) => {
+  const hex = color?.trim().match(/^#?([0-9a-f]{6})$/i)?.[1];
+  if (!hex) return "hsl(var(--background))";
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+  const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return lum > 0.62 ? "hsl(var(--foreground))" : "hsl(var(--background))";
+};
+
 export const EmployeeAvatars = ({
   employees, max = 3, size = 18, className, showEmpty,
 }: Props) => {
@@ -60,11 +68,12 @@ export const EmployeeAvatars = ({
         ) : (
           <span
             key={e.id}
-            className="inline-flex items-center justify-center rounded-full ring-2 ring-background text-white font-semibold leading-none"
+            className="inline-flex items-center justify-center rounded-full ring-2 ring-background font-semibold leading-none"
             style={{
               width: size,
               height: size,
               background: e.color || "hsl(220 13% 46%)",
+              color: readableTokenOn(e.color),
               fontSize,
             }}
             title={e.name}
