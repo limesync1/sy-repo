@@ -27,6 +27,32 @@ export const invalidateRouteSyncQueries = (qc: ReturnType<typeof useQueryClient>
   // bulk-handlinger som auto-fordel, annullér og dato-flytning.
   qc.invalidateQueries({ queryKey: ["daily-capacity"] });
   qc.invalidateQueries({ queryKey: ["route-stop-order-start-info"] });
+  // Projektioner skal også opdateres — uden disse blev gentagne kilder og
+  // basisruter cachet på tværs af mutationer og kunne efterlade
+  // "spøgelses-ruter" efter fx en fletning eller dato-flytning.
+  qc.invalidateQueries({ queryKey: ["recurring-agreements-for-planner"] });
+  qc.invalidateQueries({ queryKey: ["recurring-base-routes"] });
+  qc.invalidateQueries({ queryKey: ["route-series-info"] });
+  qc.invalidateQueries({ queryKey: ["agreement-occurrence-overrides"] });
+};
+
+/**
+ * Force-refetch ALLE rute- og projektions-queries og venter til de er færdige.
+ * Bruges efter destruktive operationer som fletning, hvor vi ABSOLUT ikke må
+ * vise stale data der kunne vise sig som spøgelses-ruter i kalenderen.
+ */
+export const resyncRoutePlanner = async (
+  qc: ReturnType<typeof useQueryClient>,
+): Promise<void> => {
+  invalidateRouteSyncQueries(qc);
+  await Promise.all([
+    qc.refetchQueries({ queryKey: ["route-calendar"], type: "active" }),
+    qc.refetchQueries({ queryKey: ["routes"], type: "active" }),
+    qc.refetchQueries({ queryKey: ["routes-range"], type: "active" }),
+    qc.refetchQueries({ queryKey: ["recurring-agreements-for-planner"], type: "active" }),
+    qc.refetchQueries({ queryKey: ["recurring-base-routes"], type: "active" }),
+    qc.refetchQueries({ queryKey: ["route-occurrence-exceptions"], type: "active" }),
+  ]);
 };
 
 /** Map Postgres-fejl fra route_stop_assignees til danske beskeder. */

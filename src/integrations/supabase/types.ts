@@ -4240,6 +4240,10 @@ export type Database = {
         }
         Returns: number
       }
+      assert_route_safely_deleted: {
+        Args: { _route_id: string }
+        Returns: undefined
+      }
       auto_recur_due_orders: {
         Args: never
         Returns: {
