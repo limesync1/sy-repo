@@ -806,7 +806,9 @@ const RoutePillInner = ({
       }}
       className={cn(
         "relative rounded-md cursor-pointer overflow-hidden bg-card",
-        "border border-border/60 transition-[background-color,border-color,opacity] duration-150 ease-out hover:border-foreground/25 hover:bg-secondary/40",
+        "border border-border/60 shadow-[0_1px_2px_-1px_hsl(var(--foreground)/0.08)] " +
+        "transition-[background-color,border-color,opacity,box-shadow,transform] duration-150 ease-out " +
+        "hover:border-foreground/25 hover:shadow-[0_6px_18px_-8px_hsl(var(--foreground)/0.22)] hover:-translate-y-[1px]",
         isDragging && "opacity-40",
         // Projicerede ruter: kraftig visuel adskillelse — stiplet kant hele
         // vejen rundt, dæmpet baggrund og en diagonal-stribe så de aldrig
@@ -857,12 +859,21 @@ const RoutePillInner = ({
       }
       aria-busy={busy || undefined}
     >
-      {/* Tynd venstre farve-rail — eneste sted ruten-farven bruges */}
+      {/* Venstre farve-rail (3px, blød afslutning) + svag tint-glow indad —
+          giver ruten en tydelig farve-signatur uden at overdøve indholdet.
+          På projicerede ruter dropper vi tinten (stripes håndterer det). */}
       <span
         aria-hidden
-        className="absolute inset-y-0 left-0 w-[2px] pointer-events-none"
+        className="absolute inset-y-0 left-0 w-[3px] pointer-events-none rounded-l-md"
         style={{ background: route.color }}
       />
+      {!isVirtual && (
+        <span
+          aria-hidden
+          className="absolute inset-y-0 left-[3px] right-0 pointer-events-none opacity-90"
+          style={{ background: tintBgFrom(route.color) }}
+        />
+      )}
       {/* L2 — Live drop-validering chip på rute-pille.
           Vises kun mens et drag svæver over pillen og en validering er
           aktiv, så brugeren ser præcis hvorfor dropet er ok/advarsel/fejl
