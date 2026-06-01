@@ -832,7 +832,7 @@ const RoutePillInner = ({
         validation?.topMessage
           ? validation.topMessage
           : isVirtual
-          ? "Projiceret rute — klik åbner basisruten. Træk til en anden dato for at flytte netop denne ene forekomst (basisruten røres ikke)."
+          ? "Projiceret rute — klik åbner originalruten. Træk til en anden dato for at flytte netop denne ene forekomst (originalruten røres ikke)."
           : isPast
             ? "Tidligere rute — kan ikke flyttes"
             : undefined
@@ -896,7 +896,7 @@ const RoutePillInner = ({
             {isVirtual && (
               <span
                 className="inline-flex items-center gap-0.5 rounded-sm bg-muted px-1 py-px text-[9px] font-bold uppercase tracking-wide text-muted-foreground shrink-0"
-                title="Projiceret rute — låst forekomst af en gentagende basisrute"
+                title="Projiceret rute — låst forekomst af en gentagende originalrute"
               >
                 <Lock className="h-2 w-2" />
                 Projiceret
@@ -905,10 +905,10 @@ const RoutePillInner = ({
             {isBaseRecurring && (
               <span
                 className="inline-flex items-center gap-0.5 rounded-sm bg-accent/15 text-accent px-1 py-px text-[9px] font-bold uppercase tracking-wide shrink-0"
-                title="Basisrute — kilde til en gentagende serie. Ændringer her arves af alle projicerede forekomster."
+                title="Originalrute — kilde til en gentagende serie. Ændringer her arves af alle projicerede forekomster."
               >
                 <Repeat className="h-2 w-2" />
-                Basis
+                Original
               </span>
             )}
             <span className={cn("truncate", isVirtual && "italic text-muted-foreground")}>
