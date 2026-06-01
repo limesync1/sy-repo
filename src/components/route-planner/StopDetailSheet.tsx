@@ -20,7 +20,7 @@ import {
   Timer, Hourglass, User, Package, CalendarClock, Users, Crown, X as XIcon,
   TimerReset, CheckCircle2,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, readableTextOn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { registerStopRestoreUndo } from "@/lib/stop-restore";
@@ -773,8 +773,8 @@ const TimeSpentSection = ({
                  loading="lazy" decoding="async"/>
               ) : (
                 <span
-                  className="h-7 w-7 rounded-full ring-1 ring-border inline-flex items-center justify-center text-[11px] font-semibold text-white"
-                  style={{ background: emp?.color || "hsl(var(--muted))" }}
+                  className="h-7 w-7 rounded-full ring-1 ring-border inline-flex items-center justify-center text-[11px] font-semibold"
+                  style={{ background: emp?.color || "hsl(var(--muted))", color: readableTextOn(emp?.color) }}
                 >
                   {(emp?.name || "?").trim().split(/\s+/).slice(0, 2).map((p: string) => p[0]).join("").toUpperCase()}
                 </span>
@@ -935,8 +935,8 @@ const AssigneePicker = ({
                   />
                 ) : (
                   <span
-                    className="h-6 w-6 rounded-full inline-flex items-center justify-center text-[10px] font-bold text-white shrink-0 ring-1 ring-border"
-                    style={{ background: emp.color || "hsl(220 13% 46%)" }}
+                    className="h-6 w-6 rounded-full inline-flex items-center justify-center text-[10px] font-bold shrink-0 ring-1 ring-border"
+                    style={{ background: emp.color || "hsl(220 13% 46%)", color: readableTextOn(emp.color) }}
                   >
                     {initials || "?"}
                   </span>
@@ -993,8 +993,8 @@ const AssigneePicker = ({
                   />
                 ) : (
                   <span
-                    className="h-6 w-6 rounded-full inline-flex items-center justify-center text-[10px] font-bold text-white ring-1 ring-border"
-                    style={{ background: emp.color || "hsl(220 13% 46%)" }}
+                    className="h-6 w-6 rounded-full inline-flex items-center justify-center text-[10px] font-bold ring-1 ring-border"
+                    style={{ background: emp.color || "hsl(220 13% 46%)", color: readableTextOn(emp.color) }}
                   >
                     {initials || "?"}
                   </span>

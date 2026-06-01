@@ -5,7 +5,7 @@
 //   • Field med lille muted label
 //   • Footer-stribe med to knapper (slet/gem)
 import * as React from "react";
-import { cn } from "@/lib/utils";
+import { cn, readableTextOn } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
 
 /* ───────── Header ─────────
@@ -28,12 +28,18 @@ export const SheetHeaderBlock = ({
   /** Ekstra indhold under description (fx status-badges). */
   children?: React.ReactNode;
 }) => {
+  // Når der ikke er angivet en eksplicit accent-farve falder vi tilbage
+  // på primary-tokenet. I light mode er det næsten sort (hvid ikon = ✓)
+  // — i dark mode er det næsten hvidt, så vi skal pege på
+  // primary-foreground for at undgå hvid-på-hvid.
+  const hasAccent = !!accent;
   const bg = accent || "hsl(var(--primary))";
+  const iconColor = hasAccent ? readableTextOn(accent!) : "hsl(var(--primary-foreground))";
   return (
     <div className="flex items-start gap-3">
       <span
-        className="flex h-10 w-10 items-center justify-center rounded-lg text-white text-sm font-bold shrink-0 shadow-sm"
-        style={{ background: bg }}
+        className="flex h-10 w-10 items-center justify-center rounded-lg text-sm font-bold shrink-0 shadow-sm"
+        style={{ background: bg, color: iconColor }}
         aria-hidden={!badge}
       >
         {badge ?? icon}
