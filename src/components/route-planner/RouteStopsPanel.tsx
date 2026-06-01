@@ -30,6 +30,7 @@ import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { toastRouteError } from "@/lib/route-errors";
 import {
   useReorderStops, useDeleteStop, useSetStopAssignees,
   type RouteStop, type Route,
@@ -122,9 +123,10 @@ export const RouteStopsPanel = ({
     try {
       await reorder.mutateAsync(next.map((s, i) => ({ id: s.id, sequence: i })));
       toast.success("Rækkefølge opdateret");
-    } catch {
+    } catch (err: any) {
       // Revert hvis fejl
       setItems([...stops].sort((a, b) => a.sequence - b.sequence));
+      toastRouteError(err, toast.error, { titleFallback: "Kunne ikke gemme rækkefølge" });
     }
   };
 
@@ -148,7 +150,7 @@ export const RouteStopsPanel = ({
       // så brugeren ikke står tilbage med en modal for en rute der er væk.
       if (res?.route_deleted) onRouteDeleted?.();
     } catch (err: any) {
-      toast.error(err.message || "Kunne ikke fjerne stop");
+      toastRouteError(err, toast.error, { titleFallback: "Kunne ikke fjerne stop" });
     }
     setConfirmDelete(null);
   };
