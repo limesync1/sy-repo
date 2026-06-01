@@ -468,12 +468,6 @@ export const RouteEditSheet = ({
   }, [route?.id, nameChange.changed, (nameChange as any).value, colorChanged, color, blockNameSave]);
 
   useEffect(() => {
-    if (!route || !open || !userEditedRef.current) return;
-    if (nameChange.changed && !blockNameSave) onNamePreview?.(nameChange.value);
-    if (colorChanged) onColorPreview?.(color);
-  }, [route, open, nameChange.changed, (nameChange as any).value, blockNameSave, colorChanged, color, onNamePreview, onColorPreview]);
-
-  useEffect(() => {
     if (!route || !open || !dirty) return;
     // Hvis navne-ændringen er en dublet og der ikke er andre ændringer at
     // gemme, så stop her — undgå unødvendige mutations som alligevel ville
@@ -754,7 +748,11 @@ export const RouteEditSheet = ({
               <Input
                 id="route-edit-name"
                 value={name}
-                onChange={(e) => { userEditedRef.current = true; setName(e.target.value); }}
+                onChange={(e) => {
+                  userEditedRef.current = true;
+                  setName(e.target.value);
+                  onNamePreview?.(e.target.value.trim() || null);
+                }}
                 placeholder="fx Nord, Aarhus C, Mandag-team..."
                 className={cn(
                   "h-9",
