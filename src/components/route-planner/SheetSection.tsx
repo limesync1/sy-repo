@@ -5,25 +5,8 @@
 //   • Field med lille muted label
 //   • Footer-stribe med to knapper (slet/gem)
 import * as React from "react";
-import { cn } from "@/lib/utils";
+import { cn, readableTextOn } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
-
-/* Lille hjælper: vurder om en hex-farve er "lys" så vi kan vælge mørk
-   ikon-farve i stedet for white-on-white. Bruges af SheetHeaderBlock
-   så badge-ikonet altid har læsbar kontrast — også i dark mode hvor
-   primary-tokenet er næsten hvidt. */
-const isLightColor = (hex: string): boolean => {
-  const m = hex.trim().match(/^#?([a-f\d]{3}|[a-f\d]{6})$/i);
-  if (!m) return false;
-  let h = m[1];
-  if (h.length === 3) h = h.split("").map((c) => c + c).join("");
-  const r = parseInt(h.slice(0, 2), 16);
-  const g = parseInt(h.slice(2, 4), 16);
-  const b = parseInt(h.slice(4, 6), 16);
-  // Relativ luminans (sRGB), enkel approksimation
-  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return lum > 0.62;
-};
 
 /* ───────── Header ─────────
    Bruges som indhold i SheetHeader/DialogHeader.
@@ -51,9 +34,7 @@ export const SheetHeaderBlock = ({
   // primary-foreground for at undgå hvid-på-hvid.
   const hasAccent = !!accent;
   const bg = accent || "hsl(var(--primary))";
-  const iconColor = hasAccent
-    ? (isLightColor(accent!) ? "hsl(var(--foreground))" : "#fff")
-    : "hsl(var(--primary-foreground))";
+  const iconColor = hasAccent ? readableTextOn(accent!) : "hsl(var(--primary-foreground))";
   return (
     <div className="flex items-start gap-3">
       <span
