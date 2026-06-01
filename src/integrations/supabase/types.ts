@@ -898,6 +898,13 @@ export type Database = {
             referencedRelation: "route_templates"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "agreements_preferred_route_id_fkey"
+            columns: ["preferred_route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
         ]
       }
       business_customers: {
