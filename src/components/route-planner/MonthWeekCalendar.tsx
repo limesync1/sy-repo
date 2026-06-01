@@ -118,6 +118,17 @@ const readableTokenOn = (color?: string | null) => {
   const [r, g, b] = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
   return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.62 ? "hsl(var(--foreground))" : "hsl(var(--background))";
 };
+// Tilføj en svag tint i rutens farve som baggrund på pillen — giver
+// kalenderen mere "farve-personlighed" uden at gå på kompromis med
+// læsbarhed. Bruger rgba med lav alpha så det fungerer ens i begge temaer.
+const tintBgFrom = (color?: string | null) => {
+  const hex = color?.trim().match(/^#?([0-9a-f]{6})$/i)?.[1];
+  if (!hex) return undefined;
+  const r = parseInt(hex.slice(0, 2), 16);
+  const g = parseInt(hex.slice(2, 4), 16);
+  const b = parseInt(hex.slice(4, 6), 16);
+  return `linear-gradient(90deg, rgba(${r},${g},${b},0.10) 0%, rgba(${r},${g},${b},0.04) 22%, transparent 60%)`;
+};
 
 export const MonthWeekCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
