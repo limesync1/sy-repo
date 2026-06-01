@@ -51,18 +51,28 @@ export function MobileAssignSheet({
   const addStop = useAddStop();
   const createRoute = useCreateRoute();
 
-  const routes = useMemo(
-    () =>
-      (calendarData?.routes ?? [])
-        .filter((r) => !(r as any).isVirtual && r.route_date === targetDate)
-        .sort((a, b) => (a.name || "").localeCompare(b.name || "")),
-    [calendarData, targetDate],
-  );
   const stopCountByRoute = useMemo(() => {
     const m = new Map<string, number>();
     for (const s of calendarData?.stops ?? []) m.set(s.route_id, (m.get(s.route_id) ?? 0) + 1);
     return m;
   }, [calendarData]);
+
+  const routes = useMemo(() => {
+    const list = (calendarData?.routes ?? [])
+      .filter((r) => !(r as any).isVirtual && r.route_date === targetDate)
+      .filter((r) => !(r as any).deleted_at && !(r as any).archived_at)
+      // Skjul tomme ruter — disse er ikke reelle "eksisterende ruter"
+      .filter((r) => (stopCountByRoute.get(r.id) ?? 0) > 0);
+    // Dedupér på (navn + farve) for den valgte dag
+    const byKey = new Map<string, typeof list[number]>();
+    for (const r of list) {
+      const key = `${(r.name || "").trim().toLowerCase()}|${(r.color || "").toLowerCase()}`;
+      const existing = byKey.get(key);
+      const stops = stopCountByRoute.get(r.id) ?? 0;
+      if (!existing || stops > (stopCountByRoute.get(existing.id) ?? 0)) byKey.set(key, r);
+    }
+    return Array.from(byKey.values()).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+  }, [calendarData, targetDate, stopCountByRoute]);
 
   const busy = !!busyRouteId || creating;
 
