@@ -12,6 +12,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { differenceInCalendarDays, format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { CalendarRange, ArrowRight, Loader2, AlertTriangle, Info, Repeat, Sparkles, SkipForward, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { mapPostgresError } from "@/lib/route-errors";
 
 type Props = {
   open: boolean;
@@ -49,6 +51,9 @@ export const MoveProjectedOccurrenceDialog = ({
   reassignSuggestions,
   loading, onConfirm,
 }: Props) => {
+  const [submitError, setSubmitError] = useState<{ title: string; description?: string } | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  useEffect(() => { if (open) { setSubmitError(null); setSubmitting(false); } }, [open]);
   const fmt = (d: string) => {
     try { return format(parseISO(d), "EEEE d. MMM yyyy", { locale: da }); }
     catch { return d; }
