@@ -48,7 +48,6 @@ import {
   useOptimizeRoute,
   useReorderStops,
   useSetStopAssignees,
-  useUpdateRoute,
   useUpdateRouteSeriesAppearance,
   useUpdateStopStatus,
   type Route,
@@ -91,7 +90,6 @@ export function MobileRouteDetailSheet({
   const deleteStop = useDeleteStop();
   const reorderStops = useReorderStops();
   const setAssignees = useSetStopAssignees();
-  const updateRoute = useUpdateRoute();
   // Navn/farve skrives gennem serien, så projicerede og søsterruter følger med.
   const updateAppearance = useUpdateRouteSeriesAppearance();
   const deleteRoute = useDeleteRoute();
