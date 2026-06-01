@@ -790,6 +790,17 @@ export const RouteEditSheet = ({
                         userEditedRef.current = true;
                         setColor(c.value);
                         onColorPreview?.(c.value);
+                        // Affyr farve-skiftet med det samme — ikke gennem
+                        // autosave-debouncen. Hurtige klik (blå → rød →
+                        // grøn) skal alle nå frem; mutation-køen serialiserer
+                        // dem i klikrækkefølgen og seneste optimistiske
+                        // patch vinder. Det forhindrer at en igangværende
+                        // mutation "spiser" det næste klik via isPending-
+                        // guarden i autosave-effekten.
+                        if (route && !isProjection && route.color !== c.value) {
+                          pendingFlushRef.current = null;
+                          updateAppearance.mutate({ route, color: c.value });
+                        }
                       }}
                       title={c.name}
                       className={cn(
