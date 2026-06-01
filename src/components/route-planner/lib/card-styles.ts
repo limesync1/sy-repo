@@ -5,14 +5,16 @@
 /** Basis-container for et aftalekort (kant-farve sættes separat, se nedenfor). */
 export const CARD_BASE =
   "group relative rounded-lg border bg-card overflow-hidden " +
-  "transition-[background-color,border-color] duration-150 ease-out";
+  "shadow-[0_1px_2px_-1px_hsl(var(--foreground)/0.06)] " +
+  "transition-[background-color,border-color,box-shadow,transform] duration-150 ease-out";
 
 /** Standard kant-farve for et hvilende kort. */
 export const CARD_BORDER = "border-border/70";
 
 /** Hover-løft — ens på alle kort (kun når kortet ikke er valgt/disabled). */
 export const CARD_HOVER =
-  "hover:border-foreground/20 hover:bg-secondary/30";
+  "hover:border-foreground/25 hover:bg-secondary/30 " +
+  "hover:shadow-[0_4px_14px_-6px_hsl(var(--foreground)/0.18)] hover:-translate-y-[1px]";
 
 /** Valgt tilstand (multi-select). */
 export const CARD_SELECTED =
@@ -23,7 +25,7 @@ export const CARD_DRAGGING =
   "ring-1 ring-accent opacity-95";
 
 /** Bredde på venstre-accent-stribe — ens på tværs af alle kort. */
-export const CARD_RAIL_WIDTH = "w-1";
+export const CARD_RAIL_WIDTH = "w-[3px]";
 
 /* ─────────────────────────────────────────────────────────────────────────
    Delte knap-stilarter — ét sted at definere hover/active/focus så alle
