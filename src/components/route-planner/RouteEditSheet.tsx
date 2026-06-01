@@ -588,6 +588,22 @@ export const RouteEditSheet = ({
       });
       return;
     }
+    // Samme serie-kollisions-checks som drag-drop på kalenderen, så datovælgeren
+    // ikke kan smutte uden om guarderne der forhindrer to af samme rute samme dag.
+    if (validateMoveTo) {
+      const baseId =
+        (route as any).base_route_id ?? (route as any).baseRouteId ?? route.id ?? null;
+      const issue = validateMoveTo({
+        routeId: route.id,
+        baseRouteId: baseId,
+        isProjection,
+        newDate: next,
+      });
+      if (issue) {
+        toast.error(issue.message, issue.description ? { description: issue.description } : undefined);
+        return;
+      }
+    }
     if (isProjection) {
       // Projicerede ruter: vis en simpel bekræftelses-dialog i stedet for
       // scope-dialogen — vi flytter ALDRIG basisruten, kun denne ene
