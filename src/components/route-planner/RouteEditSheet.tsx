@@ -485,7 +485,11 @@ export const RouteEditSheet = ({
     pendingFlushRef.current = pendingPayload;
     const timeout = window.setTimeout(() => {
       if (updateAppearance.isPending) {
-        // Mutation kører — skip nu; en ny dirty-cyklus trigger en ny effect.
+        // Mutation kører — vent. Vi behøver ikke gøre noget her: effect'en
+        // har `updateAppearance.isPending` i sin dep-liste, så den re-runs
+        // automatisk når mutationen er færdig og fyrer en ny timer der
+        // sender den ventende payload (incl. det navn brugeren nåede at
+        // skrive mens en farve-mutation lå undervejs).
         return;
       }
       if (!route) return;
@@ -497,7 +501,7 @@ export const RouteEditSheet = ({
     }, delay);
 
     return () => window.clearTimeout(timeout);
-  }, [route, open, dirty, pendingPayload, updateAppearance]);
+  }, [route, open, dirty, pendingPayload, updateAppearance, updateAppearance.isPending]);
 
   // Flush udestående ændringer øjeblikkeligt når sheet'et lukkes eller
   // unmounts — ellers ville ændringer foretaget i de sidste ~250 ms før
