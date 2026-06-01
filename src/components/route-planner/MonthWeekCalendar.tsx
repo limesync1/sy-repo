@@ -790,7 +790,14 @@ const RoutePillInner = ({
         "relative rounded-md cursor-pointer overflow-hidden bg-card",
         "border border-border/60 transition-[background-color,border-color,opacity] duration-150 ease-out hover:border-foreground/25 hover:bg-secondary/40",
         isDragging && "opacity-40",
-        isVirtual && "border-dashed",
+        // Projicerede ruter: kraftig visuel adskillelse — stiplet kant hele
+        // vejen rundt, dæmpet baggrund og en diagonal-stribe så de aldrig
+        // forveksles med den rigtige basisrute.
+        isVirtual && "border-dashed border-foreground/30 bg-muted/40 [background-image:repeating-linear-gradient(135deg,transparent_0_6px,hsl(var(--muted-foreground)/0.06)_6px_7px)]",
+        // Basisruter (kilden til en gentagende serie) får en lille farve-
+        // accent på venstre kant så de tydeligt skiller sig ud fra både
+        // engangsruter og projicerede forekomster.
+        isBaseRecurring && "border-l-2 border-l-accent",
         isPast && "opacity-50 saturate-50 hover:opacity-90",
         // Under drag dæmpes fortids-ruter yderligere — de er ikke gyldige
         // drop-targets (kalender-cellen er disabled), så de skal heller
