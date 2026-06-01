@@ -19,7 +19,7 @@ import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { toast } from "sonner";
 import { toastRouteError } from "@/lib/route-errors";
-import { cn } from "@/lib/utils";
+import { cn, readableTextOn } from "@/lib/utils";
 import {
   useDeleteRoute, useOptimizeRoute, useDirections,
   useRouteSeriesInfo, useMoveRouteSeries, useMoveProjectedOccurrence,
@@ -1242,8 +1242,8 @@ const CompletedRouteSummary = ({ routeId }: { routeId: string }) => {
                     <img src={emp.avatar_url} alt={emp.name} className="h-6 w-6 rounded-full object-cover" />
                   ) : (
                     <span
-                      className="inline-flex h-6 w-6 rounded-full items-center justify-center text-[10px] font-bold text-white"
-                      style={{ background: emp?.color || "#64748b" }}
+                      className="inline-flex h-6 w-6 rounded-full items-center justify-center text-[10px] font-bold"
+                      style={{ background: emp?.color || "#64748b", color: readableTextOn(emp?.color || "#64748b") }}
                     >
                       {(emp?.name || "?").slice(0, 1).toUpperCase()}
                     </span>
