@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Switch } from "@/components/ui/switch";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -933,7 +934,9 @@ const EmployeeRow = ({
         <DialogContent className="sm:max-w-xl p-0 gap-0 overflow-hidden">
           {/* Header med avatar — skaber visuel kontekst, så man med det samme
               ved hvilken medarbejder man redigerer. */}
-          <div className="flex items-center gap-3 border-b border-border bg-secondary/40 px-5 py-4">
+          {/* Status-badge er flyttet ned under titel, så den ikke kolliderer
+              med Dialog'ens luk-knap (X) i højre hjørne. */}
+          <div className="flex items-center gap-3 border-b border-border bg-secondary/40 px-5 py-4 pr-12">
             {employee.avatar_url ? (
               <img
                 src={employee.avatar_url}
@@ -959,19 +962,21 @@ const EmployeeRow = ({
                   Opdater kontaktoplysninger, rolle, provision og adgange.
                 </DialogDescription>
               </DialogHeader>
+              <div className="mt-1.5">
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium",
+                    linked
+                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                      : "border-border bg-background text-muted-foreground",
+                  )}
+                  title={linked ? "Medarbejderen har en aktiv login-konto" : "Medarbejderen er ikke koblet til en login-konto"}
+                >
+                  <span className={cn("h-1.5 w-1.5 rounded-full", linked ? "bg-emerald-500" : "bg-muted-foreground/40")} />
+                  {linked ? "Login aktiv" : "Uden login"}
+                </span>
+              </div>
             </div>
-            <span
-              className={cn(
-                "shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium",
-                linked
-                  ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                  : "border-border bg-background text-muted-foreground",
-              )}
-              title={linked ? "Medarbejderen har en aktiv login-konto" : "Medarbejderen er ikke koblet til en login-konto"}
-            >
-              <span className={cn("h-1.5 w-1.5 rounded-full", linked ? "bg-emerald-500" : "bg-muted-foreground/40")} />
-              {linked ? "Login aktiv" : "Uden login"}
-            </span>
           </div>
 
           {/* Sektioner — grupperet for at gøre det nemt at scanne */}
@@ -1077,27 +1082,34 @@ const EmployeeRow = ({
               </h4>
               <label
                 className={cn(
-                  "flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors",
+                  "flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition-colors",
                   editLivechat
                     ? "border-accent/40 bg-accent/5"
                     : "border-border bg-card hover:bg-secondary/40",
                 )}
               >
-                <input
-                  type="checkbox"
-                  checked={editLivechat}
-                  onChange={(e) => setEditLivechat(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded border-border text-accent focus:ring-accent"
-                />
+                <span
+                  className={cn(
+                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors",
+                    editLivechat ? "bg-accent/15 text-accent" : "bg-secondary text-muted-foreground",
+                  )}
+                >
+                  <MessageCircle className="h-4 w-4" />
+                </span>
                 <span className="flex-1 min-w-0">
-                  <span className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-                    <MessageCircle className="h-3.5 w-3.5 text-accent" />
+                  <span className="block text-sm font-medium text-foreground">
                     Adgang til livechat
                   </span>
-                  <span className="mt-1 block text-[11px] text-muted-foreground leading-relaxed">
+                  <span className="mt-0.5 block text-[11px] text-muted-foreground leading-relaxed">
                     Når aktiveret kan medarbejderen besvare livechat-henvendelser fra kunder i deres eget medarbejderpanel.
                   </span>
                 </span>
+                <Switch
+                  checked={editLivechat}
+                  onCheckedChange={setEditLivechat}
+                  aria-label="Adgang til livechat"
+                  className="shrink-0"
+                />
               </label>
             </section>
 
