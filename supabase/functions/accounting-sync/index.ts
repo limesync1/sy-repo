@@ -226,10 +226,18 @@ async function seedQueue(admin: SupabaseClient, business_id: string): Promise<nu
   }
 
   if (rows.length === 0) return 0;
-  for (let i = 0; i < rows.length; i += 200) {
-    await admin.from("accounting_sync_queue").insert(rows.slice(i, i + 200));
+  // Indsæt en ad gangen så en eksisterende aktiv (pending/processing) række
+  // for samme entitet ikke får hele batchen til at fejle via
+  // uq_sync_queue_active_entity. Duplicate-key (23505) ignoreres bevidst.
+  let inserted = 0;
+  for (const r of rows) {
+    const { error } = await admin.from("accounting_sync_queue").insert(r);
+    if (!error) inserted++;
+    else if ((error as any).code && (error as any).code !== "23505") {
+      console.warn("[accounting-sync] enqueue failed", error);
+    }
   }
-  return rows.length;
+  return inserted;
 }
 
 // Find services/customers/orders that never got pushed (no link row) and

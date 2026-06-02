@@ -1260,10 +1260,32 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   const handleRetryJob = async (jobId: string) => {
     setRetryingJobId(jobId);
     try {
-      const { error } = await supabase.from("accounting_sync_queue" as any)
-        .update({ status: "pending", scheduled_for: new Date().toISOString(), last_error: null })
-        .eq("id", jobId);
-      if (error) throw error;
+      // Hvis der allerede findes en aktiv (pending/processing) række for
+      // samme entitet, vil et flip til pending bryde
+      // uq_sync_queue_active_entity. Slet den fejlende række i stedet —
+      // den aktive overtager arbejdet.
+      const { data: jobRow } = await supabase.from("accounting_sync_queue" as any)
+        .select("business_id, entity_type, entity_id").eq("id", jobId).maybeSingle();
+      if (jobRow) {
+        const j = jobRow as any;
+        const { data: dup } = await supabase.from("accounting_sync_queue" as any)
+          .select("id")
+          .eq("business_id", j.business_id)
+          .eq("entity_type", j.entity_type)
+          .eq("entity_id", j.entity_id)
+          .in("status", ["pending", "processing"])
+          .neq("id", jobId)
+          .limit(1)
+          .maybeSingle();
+        if (dup) {
+          await supabase.from("accounting_sync_queue" as any).delete().eq("id", jobId);
+        } else {
+          const { error } = await supabase.from("accounting_sync_queue" as any)
+            .update({ status: "pending", scheduled_for: new Date().toISOString(), last_error: null })
+            .eq("id", jobId);
+          if (error) throw error;
+        }
+      }
       const r = await supabase.functions.invoke("accounting-sync", {
         body: { business_id: businessId, mode: "queue" },
       });
@@ -1279,9 +1301,30 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
     if (failedJobs.length === 0) return;
     setSyncing(true);
     try {
-      await supabase.from("accounting_sync_queue" as any)
-        .update({ status: "pending", scheduled_for: new Date().toISOString(), last_error: null })
+      // Slet først fejlede rækker hvis samme entitet allerede har en aktiv
+      // række — ellers ville flip til pending bryde uq_sync_queue_active_entity.
+      const { data: failed } = await supabase.from("accounting_sync_queue" as any)
+        .select("id, entity_type, entity_id")
         .eq("business_id", businessId).eq("status", "failed");
+      const { data: active } = await supabase.from("accounting_sync_queue" as any)
+        .select("entity_type, entity_id")
+        .eq("business_id", businessId)
+        .in("status", ["pending", "processing"]);
+      const activeKeys = new Set<string>((active ?? []).map((r: any) => `${r.entity_type}:${r.entity_id}`));
+      const dupIds: string[] = [];
+      const freshIds: string[] = [];
+      for (const f of (failed ?? []) as any[]) {
+        if (activeKeys.has(`${f.entity_type}:${f.entity_id}`)) dupIds.push(f.id);
+        else freshIds.push(f.id);
+      }
+      if (dupIds.length > 0) {
+        await supabase.from("accounting_sync_queue" as any).delete().in("id", dupIds);
+      }
+      if (freshIds.length > 0) {
+        await supabase.from("accounting_sync_queue" as any)
+          .update({ status: "pending", scheduled_for: new Date().toISOString(), last_error: null })
+          .in("id", freshIds);
+      }
       const r = await supabase.functions.invoke("accounting-sync", {
         body: { business_id: businessId, mode: "queue" },
       });
