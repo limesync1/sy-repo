@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
 import CustomerContactsSection from "./CustomerContactsSection";
 import CustomerDocumentsSection from "./CustomerDocumentsSection";
+import NotificationOverridesPanel from "./NotificationOverridesPanel";
 
 export type CustomerType = "private" | "business";
 
@@ -490,6 +491,23 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
                 businessCustomerId={initial?.id ?? null}
                 customerEmail={email}
               />
+            )}
+
+            {initial?.id && email && (
+              <div className="rounded-lg border bg-card p-3 space-y-3">
+                <div>
+                  <p className="text-xs font-medium text-foreground">Notifikationer for denne kunde</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    Tilsidesæt virksomhedens standard for SMS- og e-mail-påmindelser specifikt for denne kunde.
+                  </p>
+                </div>
+                <NotificationOverridesPanel
+                  businessId={businessId}
+                  scope="customer"
+                  customerEmail={email}
+                  compact
+                />
+              </div>
             )}
           </div>
 
