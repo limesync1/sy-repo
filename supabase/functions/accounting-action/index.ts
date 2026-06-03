@@ -120,10 +120,14 @@ Deno.serve(async (req) => {
         if (localInvoiceType === "invoice_booked") {
           caps.is_booked = true;
           caps.can_resend = typeof adapter.resendInvoice === "function";
-        } else {
+          caps.can_download_pdf = typeof adapter.getInvoicePdf === "function";
+        } else if (localInvoiceType === "invoice_draft") {
           caps.is_draft = true;
+          caps.can_download_pdf = typeof adapter.getInvoicePdf === "function";
+        } else {
+          // External link er en ordre/kladdeordre — der findes endnu ingen faktura
+          // at downloade. Vis ikke download-knappen.
         }
-        caps.can_download_pdf = typeof adapter.getInvoicePdf === "function";
       }
       try {
         if (externalId && typeof adapter.getInvoiceStates === "function") {
@@ -150,7 +154,7 @@ Deno.serve(async (req) => {
             caps.can_download_pdf = typeof adapter.getInvoicePdf === "function";
             caps.can_resend = isBooked && typeof adapter.resendInvoice === "function";
           }
-        } else if (link?.external_id && typeof adapter.voidDraft === "function") {
+        } else if (link?.external_id && link?.external_type?.startsWith("invoice") && typeof adapter.voidDraft === "function") {
           // Kladde — kan annulleres
           caps.exists_in_provider = true;
           caps.is_draft = true;
@@ -204,9 +208,12 @@ Deno.serve(async (req) => {
       if (typeof adapter.getInvoicePdf !== "function") {
         return json({ error: `${integ.provider} understøtter ikke PDF-download` }, 400);
       }
+      if (!localInvoiceType) {
+        return json({ error: "Der er endnu ingen faktura at downloade — aftalen er kun pushet som ordre. Markér aftalen som udført for at danne fakturaen." }, 404);
+      }
       const pdfId = bookedInvoiceId ?? link?.external_id ?? null;
       if (!pdfId) return json({ error: "Fakturaen findes ikke i regnskabsprogrammet endnu." }, 404);
-      const externalType: "invoice_booked" | "invoice_draft" = localInvoiceType ?? (bookedInvoiceId ? "invoice_booked" : "invoice_draft");
+      const externalType: "invoice_booked" | "invoice_draft" = localInvoiceType;
       try {
         const pdf = await adapter.getInvoicePdf({
           invoice_external_id: pdfId,
