@@ -557,3 +557,126 @@ function CustomizeSheet({
     </Sheet>
   );
 }
+
+/* ────────────── LeadTimePicker (inline) ────────────── */
+
+const LEAD_PRESETS = [
+  { v: 15, label: "15 min" },
+  { v: 30, label: "30 min" },
+  { v: 60, label: "1 t" },
+  { v: 120, label: "2 t" },
+  { v: 240, label: "4 t" },
+  { v: 1440, label: "1 dag" },
+] as const;
+
+function formatLead(mins: number): string {
+  if (mins < 60) return `${mins} min`;
+  if (mins < 1440) {
+    const h = mins / 60;
+    return Number.isInteger(h) ? `${h} t` : `${h.toFixed(1)} t`;
+  }
+  const d = mins / 1440;
+  return Number.isInteger(d) ? `${d} dag${d === 1 ? "" : "e"}` : `${d.toFixed(1)} dage`;
+}
+
+function LeadTimePicker({
+  value,
+  onChange,
+}: {
+  value: number | null;
+  onChange: (mins: number | null) => Promise<void> | void;
+}) {
+  const [customOpen, setCustomOpen] = useState(false);
+  const [custom, setCustom] = useState("");
+  const isPreset = value != null && LEAD_PRESETS.some((p) => p.v === value);
+  const isCustom = value != null && !isPreset;
+
+  return (
+    <div className="mt-3 rounded-lg border border-dashed border-border bg-muted/20 p-3">
+      <div className="mb-2 flex items-center justify-between">
+        <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          <Clock className="h-3 w-3" /> Hvornår
+        </div>
+        <span className="text-[11px] text-foreground/70">
+          {value == null ? "Bruger standard" : `${formatLead(value)} før`}
+        </span>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5">
+        <button
+          type="button"
+          onClick={() => { setCustomOpen(false); onChange(null); }}
+          className={cn(
+            "rounded-md border px-2.5 py-1 text-[11.5px] font-medium transition-colors",
+            value == null
+              ? "border-foreground bg-foreground text-background"
+              : "border-border bg-background text-foreground hover:border-foreground/40",
+          )}
+        >
+          Standard
+        </button>
+        {LEAD_PRESETS.map((p) => {
+          const active = value === p.v;
+          return (
+            <button
+              key={p.v}
+              type="button"
+              onClick={() => { setCustomOpen(false); onChange(p.v); }}
+              className={cn(
+                "rounded-md border px-2.5 py-1 text-[11.5px] font-medium transition-colors",
+                active
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border bg-background text-foreground hover:border-foreground/40",
+              )}
+            >
+              {p.label}
+            </button>
+          );
+        })}
+        <button
+          type="button"
+          onClick={() => {
+            setCustom(isCustom ? String(value) : "");
+            setCustomOpen((o) => !o);
+          }}
+          className={cn(
+            "rounded-md border px-2.5 py-1 text-[11.5px] font-medium transition-colors",
+            isCustom || customOpen
+              ? "border-foreground bg-foreground text-background"
+              : "border-border bg-background text-foreground hover:border-foreground/40",
+          )}
+        >
+          Eget…
+        </button>
+      </div>
+
+      {customOpen && (
+        <div className="mt-2 flex items-center gap-2">
+          <Input
+            type="number"
+            min={0}
+            max={20160}
+            value={custom}
+            onChange={(e) => setCustom(e.target.value)}
+            placeholder="Antal"
+            className="h-8 w-24 text-sm"
+            autoFocus
+          />
+          <span className="text-[11px] text-muted-foreground">minutter før</span>
+          <Button
+            type="button"
+            size="sm"
+            className="h-8 text-[11px] ml-auto"
+            onClick={async () => {
+              const n = Math.max(0, Math.min(20160, Number(custom) || 0));
+              await onChange(n);
+              setCustomOpen(false);
+            }}
+          >
+            Anvend
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
