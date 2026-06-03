@@ -138,11 +138,46 @@ Deno.serve(async (req) => {
         }).eq("id", job.id);
         continue;
       }
-      const subjectTpl = tpl?.subject ?? DEFAULTS[job.event_type]?.subject ?? "Besked";
+      // ─── Hent overrides: aftale-niveau (subscription) > kunde-niveau (email) ───
+      // Find tilknyttet abonnement (hvis aftale-override findes for det)
+      const { data: sub } = await admin
+        .from("subscriptions")
+        .select("id")
+        .eq("order_id", job.order_id)
+        .maybeSingle();
+
+      const recipientForOverride = job.recipient_email ?? order.customer_email ?? null;
+      const { data: overrides } = await admin
+        .from("notification_overrides")
+        .select("scope, enabled, subject, body, lead_time_minutes")
+        .eq("business_id", job.business_id)
+        .eq("event_type", job.event_type)
+        .eq("channel", channel)
+        .or([
+          sub?.id ? `and(scope.eq.agreement,subscription_id.eq.${sub.id})` : null,
+          recipientForOverride ? `and(scope.eq.customer,customer_email.eq.${recipientForOverride.toLowerCase()})` : null,
+        ].filter(Boolean).join(","));
+
+      const agreementOv = overrides?.find((o: any) => o.scope === "agreement") ?? null;
+      const customerOv  = overrides?.find((o: any) => o.scope === "customer")  ?? null;
+
+      // Effektiv enabled: aftale > kunde > skabelon
+      const effectiveEnabled = agreementOv?.enabled ?? customerOv?.enabled ?? (tpl?.enabled ?? true);
+      if (effectiveEnabled === false) {
+        await admin.from("customer_notification_queue").update({
+          status: "cancelled",
+          last_error: agreementOv?.enabled === false
+            ? "Slået fra på aftale-niveau"
+            : "Slået fra på kunde-niveau",
+        }).eq("id", job.id);
+        continue;
+      }
+
+      const subjectTpl = agreementOv?.subject ?? customerOv?.subject ?? tpl?.subject ?? DEFAULTS[job.event_type]?.subject ?? "Besked";
       const defaultBody = channel === "sms"
         ? (SMS_DEFAULTS[job.event_type]?.body ?? "")
         : (DEFAULTS[job.event_type]?.body ?? "");
-      const bodyTpl = tpl?.body ?? defaultBody;
+      const bodyTpl = agreementOv?.body ?? customerOv?.body ?? tpl?.body ?? defaultBody;
 
       // Understøt både dansk (nye) og engelsk (gamle) variabel-navne
       const customerName = order.customer_name ?? "kunde";

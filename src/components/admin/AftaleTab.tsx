@@ -5,6 +5,7 @@ import { useAdaptivePageSize } from "@/hooks/useAdaptivePageSize";
 import { PaginationFooter } from "@/components/admin/shared/PaginationFooter";
 import { useOrders, useServices, useBusinessSubscriptions } from "@/hooks/useDatabase";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
+import NotificationOverridesPanel from "./NotificationOverridesPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,6 +31,7 @@ import {
   Play, Pause, Search, Route as RouteIcon, MapPin, Plus as PlusIcon,
   GripVertical, Loader2, Tag, Palette, Trash2, ArrowUpDown, AlertCircle,
   Filter as FilterIcon, Inbox, Hourglass, ListChecks, CreditCard, Receipt,
+  Bell,
 } from "lucide-react";
 import {
   DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
@@ -673,7 +675,7 @@ const AdjustmentDisplay = ({ order }: { order: any }) => {
 };
 
 /* ─── Linked subscription info ─── */
-const LinkedSubscriptionInfo = ({ orderId, subscriptions }: { orderId: string; subscriptions: any[] }) => {
+const LinkedSubscriptionInfo = ({ orderId, subscriptions, businessId, customerEmail }: { orderId: string; subscriptions: any[]; businessId: string; customerEmail?: string | null }) => {
   const linked = subscriptions.filter(s => s.order_id === orderId && s.status !== "cancelled");
   if (linked.length === 0) return null;
 
@@ -724,6 +726,23 @@ const LinkedSubscriptionInfo = ({ orderId, subscriptions }: { orderId: string; s
                 </div>
               </div>
             )}
+            <details className="group border-t border-accent/10 px-4 py-2 text-xs">
+              <summary className="flex cursor-pointer items-center justify-between gap-2 list-none text-foreground font-medium">
+                <span className="inline-flex items-center gap-1.5">
+                  <Bell className="h-3.5 w-3.5 text-muted-foreground" /> Notifikationer for denne aftale
+                </span>
+                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform group-open:rotate-180" />
+              </summary>
+              <div className="mt-3 pb-1">
+                <NotificationOverridesPanel
+                  businessId={businessId}
+                  scope="agreement"
+                  subscriptionId={sub.id}
+                  customerEmail={customerEmail ?? null}
+                  compact
+                />
+              </div>
+            </details>
           </div>
         );
       })}
@@ -2383,7 +2402,7 @@ const AftaleTab = ({
                       </div>
                     )}
 
-                    <LinkedSubscriptionInfo orderId={order.id} subscriptions={allSubs} />
+                    <LinkedSubscriptionInfo orderId={order.id} subscriptions={allSubs} businessId={businessId} customerEmail={order.customer_email} />
                     <details className="group rounded-lg border border-border bg-card/60 px-3 py-2 text-xs">
                       <summary className="flex cursor-pointer items-center justify-between gap-2 list-none text-foreground font-medium">
                         <span className="inline-flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-muted-foreground" /> Tidslinje & historik</span>
