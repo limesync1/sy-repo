@@ -1,12 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Bell, CheckCircle2, Mail, MessageSquare, Loader2, RotateCcw, Info } from "lucide-react";
+import { Bell, CheckCircle2, Mail, MessageSquare, Loader2, RotateCcw, Settings2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -26,8 +33,8 @@ type Channel = "email" | "sms";
 type Scope = "customer" | "agreement";
 
 const EVENTS: { key: EventKey; label: string; help: string; Icon: typeof Bell }[] = [
-  { key: "service_upcoming",  label: "Påmindelse inden besøg", help: "Sendes inden vi kommer forbi.", Icon: Bell },
-  { key: "service_completed", label: "Kvittering efter besøg",  help: "Sendes når besøget er udført.", Icon: CheckCircle2 },
+  { key: "service_upcoming",  label: "Påmindelse inden besøg", help: "Sendes kort før vi kommer.", Icon: Bell },
+  { key: "service_completed", label: "Kvittering efter besøg",  help: "Sendes når opgaven er udført.", Icon: CheckCircle2 },
 ];
 
 type Row = {
@@ -150,19 +157,9 @@ export default function NotificationOverridesPanel(props: Props) {
   }
 
   return (
-    <div className={cn("space-y-3", compact ? "" : "space-y-4")}>
-      {!compact && (
-        <div className="flex items-start gap-2 rounded-lg border border-border bg-muted/30 p-3 text-[12px] leading-relaxed text-muted-foreground">
-          <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-foreground/60" />
-          <p>
-            {scope === "customer"
-              ? "Disse indstillinger tilsidesætter virksomhedens standard for denne kunde. Tom = arv standard."
-              : "Disse indstillinger gælder kun for denne aftale og tilsidesætter både virksomhedens standard og kundens overrides."}
-          </p>
-        </div>
-      )}
+    <div className="space-y-2">
       {EVENTS.map((ev) => (
-        <EventCard
+        <EventRow
           key={ev.key}
           event={ev}
           emailRow={findRow(ev.key, "email")}
@@ -171,267 +168,281 @@ export default function NotificationOverridesPanel(props: Props) {
           smsDefault={findDefault(ev.key, "sms")}
           onPatch={upsertOverride}
           onClear={clearOverride}
-          scope={scope}
           toggleOnly={toggleOnly}
         />
       ))}
+      <p className="pt-1 text-[11px] text-muted-foreground">
+        {scope === "agreement"
+          ? "Gælder kun denne aftale. Overstyrer kunde- og virksomheds­standard."
+          : "Gælder denne kunde. Overstyrer virksomheds­standard."}
+      </p>
     </div>
   );
 }
 
-/* ────────────── EventCard ────────────── */
+/* ────────────── EventRow (simpel) ────────────── */
 
-function EventCard({
-  event, emailRow, smsRow, emailDefault, smsDefault, onPatch, onClear, scope, toggleOnly,
+type DefaultTpl = { enabled: boolean; subject: string | null; body: string | null } | undefined;
+
+function EventRow({
+  event, emailRow, smsRow, emailDefault, smsDefault, onPatch, onClear, toggleOnly,
 }: {
   event: { key: EventKey; label: string; help: string; Icon: typeof Bell };
   emailRow: Row | null;
   smsRow: Row | null;
-  emailDefault?: { enabled: boolean; subject: string | null; body: string | null };
-  smsDefault?: { enabled: boolean; subject: string | null; body: string | null };
+  emailDefault: DefaultTpl;
+  smsDefault: DefaultTpl;
   onPatch: (e: EventKey, c: Channel, p: Partial<Row>) => Promise<void>;
   onClear: (e: EventKey, c: Channel) => Promise<void>;
-  scope: Scope;
   toggleOnly: boolean;
 }) {
   const { Icon } = event;
-  const [channel, setChannel] = useState<Channel>("email");
-  const row = channel === "email" ? emailRow : smsRow;
-  const def = channel === "email" ? emailDefault : smsDefault;
+  const [customizeChannel, setCustomizeChannel] = useState<Channel | null>(null);
 
-  const effectiveEnabled = row?.enabled ?? def?.enabled ?? true;
-  const status: "inherit" | "custom" | "off" =
-    row?.enabled === false ? "off"
-    : row && (row.enabled === true || row.subject || row.body) ? "custom"
-    : "inherit";
+  const emailEffective = emailRow?.enabled ?? emailDefault?.enabled ?? true;
+  const smsEffective   = smsRow?.enabled   ?? smsDefault?.enabled   ?? true;
 
-  return (
-    <div className="rounded-xl border border-border bg-card p-3.5 shadow-sm">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div className="flex items-start gap-2 min-w-0">
-          <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-muted">
-            <Icon className="h-3.5 w-3.5 text-foreground" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-[13px] font-semibold text-foreground leading-tight">{event.label}</p>
-            <p className="text-[11px] text-muted-foreground">{event.help}</p>
-          </div>
-        </div>
-        <StatusBadge status={status} scope={scope} />
-      </div>
+  const hasEmailCustom = !!(emailRow?.subject || emailRow?.body || emailRow?.lead_time_minutes != null);
+  const hasSmsCustom   = !!(smsRow?.body     || smsRow?.lead_time_minutes != null);
 
-      <Tabs value={channel} onValueChange={(v) => setChannel(v as Channel)} className="mt-3">
-        <TabsList className="grid h-8 w-full grid-cols-2">
-          <TabsTrigger value="email" className="gap-1.5 text-[11px]"><Mail className="h-3 w-3" /> E-mail</TabsTrigger>
-          <TabsTrigger value="sms" className="gap-1.5 text-[11px]"><MessageSquare className="h-3 w-3" /> SMS</TabsTrigger>
-        </TabsList>
-      </Tabs>
+  async function toggleChannel(channel: Channel, next: boolean) {
+    const row = channel === "email" ? emailRow : smsRow;
+    const def = channel === "email" ? emailDefault : smsDefault;
+    const defaultEnabled = def?.enabled ?? true;
+    const hasCustom = channel === "email" ? hasEmailCustom : hasSmsCustom;
 
-      <div className="mt-3 space-y-3">
-        {/* Tri-state toggle */}
-        <div className="grid grid-cols-3 gap-1.5">
-          {[
-            { v: "inherit" as const, label: "Arv standard" },
-            { v: "on" as const, label: "Tving til" },
-            { v: "off" as const, label: "Slå fra" },
-          ].map((opt) => {
-            const current =
-              row?.enabled === true ? "on"
-              : row?.enabled === false ? "off"
-              : "inherit";
-            const active = current === opt.v;
-            return (
-              <button
-                key={opt.v}
-                type="button"
-                onClick={async () => {
-                  if (opt.v === "inherit") {
-                    if (!row) return;
-                    // Hvis kun enabled er overridden → ryd helt; ellers nulstil til null
-                    if (!row.subject && !row.body && row.lead_time_minutes == null) {
-                      await onClear(event.key, channel);
-                    } else {
-                      await onPatch(event.key, channel, { enabled: null });
-                    }
-                  } else {
-                    await onPatch(event.key, channel, { enabled: opt.v === "on" });
-                  }
-                }}
-                className={cn(
-                  "rounded-md border px-2 py-1.5 text-[11px] font-medium transition-colors",
-                  active
-                    ? "border-foreground bg-foreground text-background"
-                    : "border-border bg-background text-foreground hover:border-foreground/50",
-                )}
-              >
-                {opt.label}
-              </button>
-            );
-          })}
-        </div>
-        <p className="text-[10.5px] text-muted-foreground">
-          Lige nu: <span className="font-medium text-foreground">
-            {effectiveEnabled ? "Sendes" : "Sendes ikke"}
-          </span>
-          {status === "inherit" && def && (
-            <> · Arvet fra {scope === "agreement" ? "kunde/virksomhed" : "virksomheden"}</>
-          )}
-        </p>
-
-        {!toggleOnly && (
-          <TemplateOverride
-            channel={channel}
-            row={row}
-            def={def}
-            onPatch={(p) => onPatch(event.key, channel, p)}
-            onClear={() => onClear(event.key, channel)}
-          />
-        )}
-      </div>
-    </div>
-  );
-}
-
-function StatusBadge({ status, scope }: { status: "inherit" | "custom" | "off"; scope: Scope }) {
-  const map = {
-    inherit: { label: "Arver", cls: "bg-muted text-muted-foreground border-border" },
-    custom: { label: scope === "agreement" ? "Tilpasset for aftalen" : "Tilpasset for kunden", cls: "bg-accent/10 text-accent border-accent/30" },
-    off: { label: "Slået fra", cls: "bg-destructive/10 text-destructive border-destructive/30" },
-  } as const;
-  const m = map[status];
-  return (
-    <span className={cn("rounded-full border px-2 py-0.5 text-[10.5px] font-medium", m.cls)}>
-      {m.label}
-    </span>
-  );
-}
-
-function TemplateOverride({
-  channel, row, def, onPatch, onClear,
-}: {
-  channel: Channel;
-  row: Row | null;
-  def?: { enabled: boolean; subject: string | null; body: string | null };
-  onPatch: (p: Partial<Row>) => Promise<void>;
-  onClear: () => Promise<void>;
-}) {
-  const [editing, setEditing] = useState(false);
-  const [subject, setSubject] = useState(row?.subject ?? "");
-  const [body, setBody] = useState(row?.body ?? "");
-  const [leadMins, setLeadMins] = useState<string>(row?.lead_time_minutes != null ? String(row.lead_time_minutes) : "");
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    setSubject(row?.subject ?? "");
-    setBody(row?.body ?? "");
-    setLeadMins(row?.lead_time_minutes != null ? String(row.lead_time_minutes) : "");
-  }, [row?.id]);
-
-  const hasOverride = !!(row?.subject || row?.body || row?.lead_time_minutes != null);
-
-  if (!editing) {
-    return (
-      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-border bg-muted/20 px-3 py-2">
-        <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-medium text-foreground">
-            {hasOverride ? "Tilpasset tekst aktiv" : "Bruger virksomhedens standard-tekst"}
-          </p>
-          <p className="text-[10.5px] text-muted-foreground truncate">
-            {hasOverride
-              ? (channel === "email" ? (row?.subject || def?.subject || "—") : (row?.body?.slice(0, 60) || "Tilpasset besked"))
-              : (def?.subject ?? "Standard fra virksomheden")}
-          </p>
-        </div>
-        <Button type="button" size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => setEditing(true)}>
-          {hasOverride ? "Rediger" : "Tilpas"}
-        </Button>
-        {hasOverride && (
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            className="h-7 text-[11px] text-muted-foreground"
-            onClick={onClear}
-            title="Nulstil til standard"
-          >
-            <RotateCcw className="h-3 w-3 mr-1" /> Nulstil
-          </Button>
-        )}
-      </div>
-    );
+    // Hvis ny værdi matcher standarden og der ikke er anden tilpasning → ryd row (arv)
+    if (next === defaultEnabled && !hasCustom) {
+      if (row) await onClear(event.key, channel);
+      return;
+    }
+    await onPatch(event.key, channel, { enabled: next });
   }
 
   return (
-    <div className="space-y-2 rounded-lg border border-border bg-muted/20 p-3">
-      {channel === "email" && (
-        <div>
-          <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Emne</p>
-          <Input
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-            placeholder={def?.subject ?? "Emne…"}
-            className="h-8 text-[12px]"
-          />
+    <div className="rounded-xl border border-border bg-card p-3">
+      <div className="flex items-start gap-3">
+        <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
+          <Icon className="h-4 w-4 text-foreground" />
         </div>
-      )}
-      <div>
-        <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Besked</p>
-        <Textarea
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          placeholder={def?.body ?? "Tekst…"}
-          rows={4}
-          className="text-[12px] bg-background resize-none"
-        />
-        <p className="mt-1 text-[10px] text-muted-foreground">
-          Brug fx <code>{"{{kundens_navn}}"}</code>, <code>{"{{service}}"}</code>, <code>{"{{tidspunkt}}"}</code>.
-        </p>
+        <div className="min-w-0 flex-1">
+          <p className="text-[13px] font-semibold text-foreground leading-tight">{event.label}</p>
+          <p className="text-[11px] text-muted-foreground">{event.help}</p>
+        </div>
       </div>
-      <div>
-        <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-          Minutter før besøg (kun "påmindelse")
-        </p>
-        <Input
-          type="number"
-          min={0}
-          max={20160}
-          value={leadMins}
-          onChange={(e) => setLeadMins(e.target.value)}
-          placeholder="Tomt = arv"
-          className="h-8 text-[12px] w-32"
+
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <ChannelToggle
+          icon={<Mail className="h-3.5 w-3.5" />}
+          label="E-mail"
+          enabled={emailEffective}
+          customized={hasEmailCustom || emailRow?.enabled != null}
+          onToggle={(v) => toggleChannel("email", v)}
+          onCustomize={toggleOnly ? undefined : () => setCustomizeChannel("email")}
+        />
+        <ChannelToggle
+          icon={<MessageSquare className="h-3.5 w-3.5" />}
+          label="SMS"
+          enabled={smsEffective}
+          customized={hasSmsCustom || smsRow?.enabled != null}
+          onToggle={(v) => toggleChannel("sms", v)}
+          onCustomize={toggleOnly ? undefined : () => setCustomizeChannel("sms")}
         />
       </div>
-      <div className="flex items-center justify-end gap-2 pt-1">
-        <Button type="button" size="sm" variant="ghost" className="h-7 text-[11px]" onClick={() => setEditing(false)} disabled={saving}>
-          Annullér
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          className="h-7 text-[11px]"
-          disabled={saving}
-          onClick={async () => {
-            setSaving(true);
-            try {
-              const mins = leadMins.trim() === "" ? null : Math.max(0, Math.min(20160, Number(leadMins) || 0));
-              await onPatch({
-                subject: channel === "email" ? (subject.trim() || null) : null,
-                body: body.trim() || null,
-                lead_time_minutes: mins,
-              });
-              toast.success("Tilpasning gemt");
-              setEditing(false);
-            } catch (e: any) {
-              toast.error(e?.message ?? "Kunne ikke gemme");
-            } finally {
-              setSaving(false);
-            }
-          }}
-        >
-          {saving ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : null}
-          Gem
-        </Button>
+
+      <CustomizeSheet
+        open={customizeChannel !== null}
+        onOpenChange={(o) => !o && setCustomizeChannel(null)}
+        channel={customizeChannel ?? "email"}
+        eventLabel={event.label}
+        eventKey={event.key}
+        row={customizeChannel === "email" ? emailRow : smsRow}
+        def={customizeChannel === "email" ? emailDefault : smsDefault}
+        onPatch={(p) => onPatch(event.key, customizeChannel!, p)}
+        onClear={() => onClear(event.key, customizeChannel!)}
+      />
+    </div>
+  );
+}
+
+function ChannelToggle({
+  icon, label, enabled, customized, onToggle, onCustomize,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  enabled: boolean;
+  customized: boolean;
+  onToggle: (v: boolean) => Promise<void> | void;
+  onCustomize?: () => void;
+}) {
+  return (
+    <div className={cn(
+      "flex items-center justify-between gap-2 rounded-lg border bg-background px-3 py-2",
+      enabled ? "border-border" : "border-border/70 opacity-80",
+    )}>
+      <div className="flex items-center gap-2 min-w-0">
+        <span className="text-foreground/70">{icon}</span>
+        <div className="min-w-0">
+          <p className="text-[12px] font-medium text-foreground leading-tight">{label}</p>
+          <p className="text-[10.5px] text-muted-foreground">
+            {enabled ? "Sendes" : "Sendes ikke"}
+            {customized && <span className="ml-1 text-accent">· tilpasset</span>}
+          </p>
+        </div>
+      </div>
+      <div className="flex items-center gap-1">
+        {onCustomize && (
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+            onClick={onCustomize}
+            title="Tilpas tekst"
+          >
+            <Settings2 className="h-3.5 w-3.5" />
+          </Button>
+        )}
+        <Switch checked={enabled} onCheckedChange={(v) => onToggle(v)} />
       </div>
     </div>
+  );
+}
+
+/* ────────────── Customize sheet (avanceret) ────────────── */
+
+function CustomizeSheet({
+  open, onOpenChange, channel, eventLabel, eventKey, row, def, onPatch, onClear,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  channel: Channel;
+  eventLabel: string;
+  eventKey: EventKey;
+  row: Row | null;
+  def: DefaultTpl;
+  onPatch: (p: Partial<Row>) => Promise<void>;
+  onClear: () => Promise<void>;
+}) {
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const [leadMins, setLeadMins] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    setSubject(row?.subject ?? "");
+    setBody(row?.body ?? "");
+    setLeadMins(row?.lead_time_minutes != null ? String(row.lead_time_minutes) : "");
+  }, [open, row?.id]);
+
+  const hasCustom = !!(row?.subject || row?.body || row?.lead_time_minutes != null);
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="w-full sm:max-w-md flex flex-col">
+        <SheetHeader>
+          <SheetTitle className="text-base">
+            Tilpas {channel === "email" ? "e-mail" : "SMS"}
+          </SheetTitle>
+          <SheetDescription className="text-xs">
+            {eventLabel} · Lad felter være tomme for at bruge virksomhedens standard.
+          </SheetDescription>
+        </SheetHeader>
+
+        <div className="flex-1 overflow-y-auto py-4 space-y-4">
+          {channel === "email" && (
+            <div>
+              <label className="mb-1 block text-[11px] font-medium text-muted-foreground">Emne</label>
+              <Input
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                placeholder={def?.subject ?? "Standard emne"}
+                className="h-9 text-sm"
+              />
+            </div>
+          )}
+          <div>
+            <label className="mb-1 block text-[11px] font-medium text-muted-foreground">Besked</label>
+            <Textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              placeholder={def?.body ?? "Standard tekst"}
+              rows={6}
+              className="text-sm resize-none"
+            />
+            <p className="mt-1 text-[10.5px] text-muted-foreground">
+              Variabler: <code className="text-foreground/80">{"{{kundens_navn}}"}</code>,{" "}
+              <code className="text-foreground/80">{"{{service}}"}</code>,{" "}
+              <code className="text-foreground/80">{"{{tidspunkt}}"}</code>
+            </p>
+          </div>
+          {eventKey === "service_upcoming" && (
+            <div>
+              <label className="mb-1 block text-[11px] font-medium text-muted-foreground">
+                Minutter før besøg
+              </label>
+              <Input
+                type="number"
+                min={0}
+                max={20160}
+                value={leadMins}
+                onChange={(e) => setLeadMins(e.target.value)}
+                placeholder="Tomt = standard"
+                className="h-9 text-sm w-40"
+              />
+            </div>
+          )}
+        </div>
+
+        <SheetFooter className="flex-row justify-between gap-2 sm:justify-between border-t pt-3">
+          {hasCustom ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground"
+              onClick={async () => {
+                await onClear();
+                toast.success("Nulstillet til standard");
+                onOpenChange(false);
+              }}
+            >
+              <RotateCcw className="h-3.5 w-3.5 mr-1.5" /> Nulstil
+            </Button>
+          ) : <span />}
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)} disabled={saving}>
+              Annullér
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              disabled={saving}
+              onClick={async () => {
+                setSaving(true);
+                try {
+                  const mins = leadMins.trim() === "" ? null : Math.max(0, Math.min(20160, Number(leadMins) || 0));
+                  await onPatch({
+                    subject: channel === "email" ? (subject.trim() || null) : null,
+                    body: body.trim() || null,
+                    lead_time_minutes: mins,
+                  });
+                  toast.success("Gemt");
+                  onOpenChange(false);
+                } catch (e: any) {
+                  toast.error(e?.message ?? "Kunne ikke gemme");
+                } finally {
+                  setSaving(false);
+                }
+              }}
+            >
+              {saving ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : null}
+              Gem
+            </Button>
+          </div>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }
