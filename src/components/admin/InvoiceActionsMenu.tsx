@@ -220,6 +220,21 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" sideOffset={6} className="w-60 bg-popover border-border shadow-xl rounded-lg p-1">
+              {canDownloadPdf && (
+                <DropdownMenuItem onSelect={downloadPdf} disabled={downloading} className="gap-2 cursor-pointer focus:bg-secondary focus:text-foreground">
+                  {downloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+                  Download faktura-PDF
+                </DropdownMenuItem>
+              )}
+              {canResendInvoice && (
+                <DropdownMenuItem onSelect={() => run("resend_invoice")} disabled={busy !== null} className="gap-2 cursor-pointer focus:bg-secondary focus:text-foreground">
+                  <Spinner a="resend_invoice" fallback={<Send className="h-3.5 w-3.5" />} />
+                  Gensend faktura
+                </DropdownMenuItem>
+              )}
+              {(canDownloadPdf || canResendInvoice) && (showMarkPaidInOverflow || showCreditInOverflow || showVoidInOverflow) && (
+                <DropdownMenuSeparator className="my-1" />
+              )}
               {showMarkPaidInOverflow && (
                 <DropdownMenuItem onSelect={() => setConfirm("mark_paid")} className="gap-2 cursor-pointer focus:bg-success focus:text-success-foreground">
                   <CheckCircle2 className="h-3.5 w-3.5" /> Markér som betalt
