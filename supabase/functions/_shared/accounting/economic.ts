@@ -937,7 +937,9 @@ export function makeEconomicAdapter(
         headers: {
           "X-AppSecretToken": creds.api_secret ?? "",
           "X-AgreementGrantToken": creds.api_token ?? "",
-          Accept: "application/pdf",
+          // e-conomic's PDF endpoint kun accepterer application/octet-stream
+          // — application/pdf giver "Compliant accept header not found".
+          Accept: "application/octet-stream",
         },
       });
       if (!res.ok) {
