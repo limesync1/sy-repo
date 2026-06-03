@@ -702,13 +702,10 @@ export function makeEconomicAdapter(
         try {
           let inv: any = null;
           let booked = true;
-          try {
-            inv = await ecRequest(creds, `/invoices/booked/${id}`, {}, { silent404: true });
-          } catch {
-            try {
-              inv = await ecRequest(creds, `/invoices/drafts/${id}`, {}, { silent404: true });
-              booked = false;
-            } catch { /* not found */ }
+          inv = await ecRequest(creds, `/invoices/booked/${id}`, {}, { silent404: true });
+          if (!inv) {
+            inv = await ecRequest(creds, `/invoices/drafts/${id}`, {}, { silent404: true });
+            booked = false;
           }
           if (!inv) continue;
           const total = Number(inv.grossAmount ?? inv.netAmount ?? 0);
@@ -945,18 +942,44 @@ export function makeEconomicAdapter(
       const path = external_type === "invoice_draft"
         ? `/invoices/drafts/${invoice_external_id}/pdf`
         : `/invoices/booked/${invoice_external_id}/pdf`;
-      const res = await fetch(`${BASE}${path}`, {
-        headers: {
+      const headerVariants: HeadersInit[] = [
+        {
           "X-AppSecretToken": creds.api_secret ?? "",
           "X-AgreementGrantToken": creds.api_token ?? "",
-          // e-conomic's PDF endpoint kun accepterer application/octet-stream
-          // — application/pdf giver "Compliant accept header not found".
-          Accept: "application/octet-stream",
+          "Content-Type": "application/json",
+          // E-conomic validerer stadig deres PDF-endpoints som en JSON REST
+          // request. `application/octet-stream` udløser fejlen
+          // "Compliant accept header not found in request".
+          Accept: "application/json",
         },
-      });
-      if (!res.ok) {
+        {
+          "X-AppSecretToken": creds.api_secret ?? "",
+          "X-AgreementGrantToken": creds.api_token ?? "",
+          "Content-Type": "application/json",
+          Accept: "application/pdf",
+        },
+        {
+          "X-AppSecretToken": creds.api_secret ?? "",
+          "X-AgreementGrantToken": creds.api_token ?? "",
+          "Content-Type": "application/json",
+          Accept: "*/*",
+        },
+      ];
+
+      let lastError = "";
+      let res: Response | null = null;
+      for (const headers of headerVariants) {
+        res = await fetch(`${BASE}${path}`, { headers });
+        if (res.ok) break;
         const text = await res.text();
-        throw new Error(friendlyEconomicError(res.status, text));
+        lastError = friendlyEconomicError(res.status, text);
+        if (!/Compliant accept header/i.test(text)) {
+          throw new Error(lastError);
+        }
+        res = null;
+      }
+      if (!res?.ok) {
+        throw new Error(lastError || "E-conomic kunne ikke levere faktura-PDF'en.");
       }
       const buf = new Uint8Array(await res.arrayBuffer());
       let bin = "";
