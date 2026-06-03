@@ -2402,7 +2402,7 @@ const AftaleTab = ({
                       </div>
                     )}
 
-                    <LinkedSubscriptionInfo orderId={order.id} subscriptions={allSubs} />
+                    <LinkedSubscriptionInfo orderId={order.id} subscriptions={allSubs} businessId={businessId} customerEmail={order.customer_email} />
                     <details className="group rounded-lg border border-border bg-card/60 px-3 py-2 text-xs">
                       <summary className="flex cursor-pointer items-center justify-between gap-2 list-none text-foreground font-medium">
                         <span className="inline-flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-muted-foreground" /> Tidslinje & historik</span>
