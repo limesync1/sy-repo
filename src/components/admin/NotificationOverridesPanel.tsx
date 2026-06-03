@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Bell, CheckCircle2, Mail, MessageSquare, Loader2, RotateCcw, Sparkles, Smartphone } from "lucide-react";
+import { Bell, CheckCircle2, Mail, MessageSquare, Loader2, RotateCcw, Sparkles, Smartphone, Clock } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -377,17 +377,15 @@ function CustomizeSheet({
 }) {
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
-  const [leadMins, setLeadMins] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     setSubject(row?.subject ?? "");
     setBody(row?.body ?? "");
-    setLeadMins(row?.lead_time_minutes != null ? String(row.lead_time_minutes) : "");
   }, [open, row?.id]);
 
-  const hasCustom = !!(row?.subject || row?.body || row?.lead_time_minutes != null);
+  const hasCustom = !!(row?.subject || row?.body);
 
   const isSms = channel === "sms";
   const effectiveSubject = subject || def?.subject || "";
@@ -399,13 +397,6 @@ function CustomizeSheet({
       .replace(/\{\{service\}\}/g, "Rengøring")
       .replace(/\{\{tidspunkt\}\}/g, "i morgen kl. 10:00")
       .replace(/\{\{virksomhed\}\}/g, "Ready2Clean");
-
-  const LEAD_PRESETS = [
-    { v: 15, label: "15 min" },
-    { v: 60, label: "1 time" },
-    { v: 120, label: "2 timer" },
-    { v: 1440, label: "1 dag" },
-  ];
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -509,55 +500,10 @@ function CustomizeSheet({
           </div>
 
           {eventKey === "service_upcoming" && (
-            <div className="space-y-1.5">
-              <label className="block text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                Send hvor lang tid inden?
-              </label>
-              <div className="flex flex-wrap gap-1.5">
-                {LEAD_PRESETS.map((p) => {
-                  const active = leadMins === String(p.v);
-                  return (
-                    <button
-                      key={p.v}
-                      type="button"
-                      onClick={() => setLeadMins(String(p.v))}
-                      className={cn(
-                        "rounded-md border px-2.5 py-1 text-[11.5px] font-medium transition-colors",
-                        active
-                          ? "border-foreground bg-foreground text-background"
-                          : "border-border bg-background text-foreground hover:border-foreground/40",
-                      )}
-                    >
-                      {p.label}
-                    </button>
-                  );
-                })}
-                <button
-                  type="button"
-                  onClick={() => setLeadMins("")}
-                  className={cn(
-                    "rounded-md border px-2.5 py-1 text-[11.5px] font-medium transition-colors",
-                    leadMins === ""
-                      ? "border-foreground bg-foreground text-background"
-                      : "border-dashed border-border bg-background text-muted-foreground hover:border-foreground/40",
-                  )}
-                >
-                  Brug standard
-                </button>
-              </div>
-              <div className="flex items-center gap-2 pt-1">
-                <Input
-                  type="number"
-                  min={0}
-                  max={20160}
-                  value={leadMins}
-                  onChange={(e) => setLeadMins(e.target.value)}
-                  placeholder="Eller skriv minutter"
-                  className="h-9 text-sm w-40"
-                />
-                <span className="text-[11px] text-muted-foreground">minutter før besøg</span>
-              </div>
-            </div>
+            <p className="rounded-md border border-dashed border-border bg-muted/30 px-3 py-2 text-[11px] text-muted-foreground">
+              <Clock className="inline h-3 w-3 mr-1 -mt-0.5" />
+              Tidspunktet for hvornår påmindelsen sendes vælges direkte i panelet under "Hvornår".
+            </p>
           )}
         </div>
 
@@ -589,11 +535,9 @@ function CustomizeSheet({
               onClick={async () => {
                 setSaving(true);
                 try {
-                  const mins = leadMins.trim() === "" ? null : Math.max(0, Math.min(20160, Number(leadMins) || 0));
                   await onPatch({
                     subject: channel === "email" ? (subject.trim() || null) : null,
                     body: body.trim() || null,
-                    lead_time_minutes: mins,
                   });
                   toast.success("Gemt");
                   onOpenChange(false);
