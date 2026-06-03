@@ -5,6 +5,7 @@ import { useAdaptivePageSize } from "@/hooks/useAdaptivePageSize";
 import { PaginationFooter } from "@/components/admin/shared/PaginationFooter";
 import { useOrders, useServices, useBusinessSubscriptions } from "@/hooks/useDatabase";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
+import NotificationOverridesPanel from "./NotificationOverridesPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
