@@ -974,6 +974,9 @@ async function pushCustomer(admin: SupabaseClient, integ: Integration, adapter: 
     .or(table === "business_customers"
       ? `business_customer_id.eq.${customerId}`
       : `private_customer_id.eq.${customerId}`).maybeSingle();
+  // Bemærk: historisk har vi haft duplicate links (samme intern kunde linket
+  // flere gange pga. tidligere bug i ensureCustomerLink). For at undgå at
+  // maybeSingle() fejler med "multiple rows returned" begrænser vi til 1.
 
   const fullPayload = {
     name: table === "business_customers" ? row.company_name : row.name,
