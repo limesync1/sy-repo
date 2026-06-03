@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Bell, CheckCircle2, Mail, MessageSquare, Loader2, RotateCcw, Sparkles, Smartphone } from "lucide-react";
+import { Bell, CheckCircle2, Mail, MessageSquare, Loader2, RotateCcw, Sparkles, Smartphone, Clock } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -148,6 +148,43 @@ export default function NotificationOverridesPanel(props: Props) {
     toast.success("Nulstillet — bruger nu standard");
   }
 
+  /**
+   * Lead time gælder for hele event'et (samme tidspunkt for både e-mail og SMS),
+   * så vi skriver værdien til BEGGE kanal-rækker samtidig. Hvis værdien sættes til
+   * null og rækken ikke har andre overrides, fjernes den helt.
+   */
+  async function setLeadTime(event: EventKey, minutes: number | null) {
+    for (const channel of ["email", "sms"] as Channel[]) {
+      const existing = findRow(event, channel);
+      if (existing) {
+        const willBeEmpty =
+          minutes == null &&
+          existing.enabled == null &&
+          !existing.subject &&
+          !existing.body;
+        if (willBeEmpty) {
+          await supabase.from("notification_overrides").delete().eq("id", existing.id);
+        } else {
+          await supabase
+            .from("notification_overrides")
+            .update({ lead_time_minutes: minutes })
+            .eq("id", existing.id);
+        }
+      } else if (minutes != null) {
+        await supabase.from("notification_overrides").insert({
+          business_id: businessId,
+          scope,
+          customer_email: scope === "customer" ? customerEmail : (props as AgreementScopeProps).customerEmail ?? null,
+          subscription_id: scope === "agreement" ? subscriptionId : null,
+          event_type: event,
+          channel,
+          lead_time_minutes: minutes,
+        });
+      }
+    }
+    qc.invalidateQueries({ queryKey });
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-6 text-xs text-muted-foreground">
@@ -168,6 +205,7 @@ export default function NotificationOverridesPanel(props: Props) {
           smsDefault={findDefault(ev.key, "sms")}
           onPatch={upsertOverride}
           onClear={clearOverride}
+          onSetLeadTime={setLeadTime}
           toggleOnly={toggleOnly}
         />
       ))}
@@ -185,7 +223,7 @@ export default function NotificationOverridesPanel(props: Props) {
 type DefaultTpl = { enabled: boolean; subject: string | null; body: string | null } | undefined;
 
 function EventRow({
-  event, emailRow, smsRow, emailDefault, smsDefault, onPatch, onClear, toggleOnly,
+  event, emailRow, smsRow, emailDefault, smsDefault, onPatch, onClear, onSetLeadTime, toggleOnly,
 }: {
   event: { key: EventKey; label: string; help: string; Icon: typeof Bell };
   emailRow: Row | null;
@@ -194,6 +232,7 @@ function EventRow({
   smsDefault: DefaultTpl;
   onPatch: (e: EventKey, c: Channel, p: Partial<Row>) => Promise<void>;
   onClear: (e: EventKey, c: Channel) => Promise<void>;
+  onSetLeadTime: (e: EventKey, minutes: number | null) => Promise<void>;
   toggleOnly: boolean;
 }) {
   const { Icon } = event;
@@ -204,6 +243,9 @@ function EventRow({
 
   const hasEmailCustom = !!(emailRow?.subject || emailRow?.body || emailRow?.lead_time_minutes != null);
   const hasSmsCustom   = !!(smsRow?.body     || smsRow?.lead_time_minutes != null);
+
+  // Lead time gælder hele event'et — vis den fra hvilken som helst kanal (de er synkroniserede)
+  const leadOverride = emailRow?.lead_time_minutes ?? smsRow?.lead_time_minutes ?? null;
 
   async function toggleChannel(channel: Channel, next: boolean) {
     const row = channel === "email" ? emailRow : smsRow;
@@ -249,6 +291,13 @@ function EventRow({
           onCustomize={toggleOnly ? undefined : () => setCustomizeChannel("sms")}
         />
       </div>
+
+      {event.key === "service_upcoming" && !toggleOnly && (
+        <LeadTimePicker
+          value={leadOverride}
+          onChange={(mins) => onSetLeadTime(event.key, mins)}
+        />
+      )}
 
       <CustomizeSheet
         open={customizeChannel !== null}
@@ -328,17 +377,15 @@ function CustomizeSheet({
 }) {
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
-  const [leadMins, setLeadMins] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     setSubject(row?.subject ?? "");
     setBody(row?.body ?? "");
-    setLeadMins(row?.lead_time_minutes != null ? String(row.lead_time_minutes) : "");
   }, [open, row?.id]);
 
-  const hasCustom = !!(row?.subject || row?.body || row?.lead_time_minutes != null);
+  const hasCustom = !!(row?.subject || row?.body);
 
   const isSms = channel === "sms";
   const effectiveSubject = subject || def?.subject || "";
@@ -350,13 +397,6 @@ function CustomizeSheet({
       .replace(/\{\{service\}\}/g, "Rengøring")
       .replace(/\{\{tidspunkt\}\}/g, "i morgen kl. 10:00")
       .replace(/\{\{virksomhed\}\}/g, "Ready2Clean");
-
-  const LEAD_PRESETS = [
-    { v: 15, label: "15 min" },
-    { v: 60, label: "1 time" },
-    { v: 120, label: "2 timer" },
-    { v: 1440, label: "1 dag" },
-  ];
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -460,55 +500,10 @@ function CustomizeSheet({
           </div>
 
           {eventKey === "service_upcoming" && (
-            <div className="space-y-1.5">
-              <label className="block text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                Send hvor lang tid inden?
-              </label>
-              <div className="flex flex-wrap gap-1.5">
-                {LEAD_PRESETS.map((p) => {
-                  const active = leadMins === String(p.v);
-                  return (
-                    <button
-                      key={p.v}
-                      type="button"
-                      onClick={() => setLeadMins(String(p.v))}
-                      className={cn(
-                        "rounded-md border px-2.5 py-1 text-[11.5px] font-medium transition-colors",
-                        active
-                          ? "border-foreground bg-foreground text-background"
-                          : "border-border bg-background text-foreground hover:border-foreground/40",
-                      )}
-                    >
-                      {p.label}
-                    </button>
-                  );
-                })}
-                <button
-                  type="button"
-                  onClick={() => setLeadMins("")}
-                  className={cn(
-                    "rounded-md border px-2.5 py-1 text-[11.5px] font-medium transition-colors",
-                    leadMins === ""
-                      ? "border-foreground bg-foreground text-background"
-                      : "border-dashed border-border bg-background text-muted-foreground hover:border-foreground/40",
-                  )}
-                >
-                  Brug standard
-                </button>
-              </div>
-              <div className="flex items-center gap-2 pt-1">
-                <Input
-                  type="number"
-                  min={0}
-                  max={20160}
-                  value={leadMins}
-                  onChange={(e) => setLeadMins(e.target.value)}
-                  placeholder="Eller skriv minutter"
-                  className="h-9 text-sm w-40"
-                />
-                <span className="text-[11px] text-muted-foreground">minutter før besøg</span>
-              </div>
-            </div>
+            <p className="rounded-md border border-dashed border-border bg-muted/30 px-3 py-2 text-[11px] text-muted-foreground">
+              <Clock className="inline h-3 w-3 mr-1 -mt-0.5" />
+              Tidspunktet for hvornår påmindelsen sendes vælges direkte i panelet under "Hvornår".
+            </p>
           )}
         </div>
 
@@ -540,11 +535,9 @@ function CustomizeSheet({
               onClick={async () => {
                 setSaving(true);
                 try {
-                  const mins = leadMins.trim() === "" ? null : Math.max(0, Math.min(20160, Number(leadMins) || 0));
                   await onPatch({
                     subject: channel === "email" ? (subject.trim() || null) : null,
                     body: body.trim() || null,
-                    lead_time_minutes: mins,
                   });
                   toast.success("Gemt");
                   onOpenChange(false);
@@ -562,5 +555,128 @@ function CustomizeSheet({
         </div>
       </SheetContent>
     </Sheet>
+  );
+}
+
+/* ────────────── LeadTimePicker (inline) ────────────── */
+
+const LEAD_PRESETS = [
+  { v: 15, label: "15 min" },
+  { v: 30, label: "30 min" },
+  { v: 60, label: "1 t" },
+  { v: 120, label: "2 t" },
+  { v: 240, label: "4 t" },
+  { v: 1440, label: "1 dag" },
+] as const;
+
+function formatLead(mins: number): string {
+  if (mins < 60) return `${mins} min`;
+  if (mins < 1440) {
+    const h = mins / 60;
+    return Number.isInteger(h) ? `${h} t` : `${h.toFixed(1)} t`;
+  }
+  const d = mins / 1440;
+  return Number.isInteger(d) ? `${d} dag${d === 1 ? "" : "e"}` : `${d.toFixed(1)} dage`;
+}
+
+function LeadTimePicker({
+  value,
+  onChange,
+}: {
+  value: number | null;
+  onChange: (mins: number | null) => Promise<void> | void;
+}) {
+  const [customOpen, setCustomOpen] = useState(false);
+  const [custom, setCustom] = useState("");
+  const isPreset = value != null && LEAD_PRESETS.some((p) => p.v === value);
+  const isCustom = value != null && !isPreset;
+
+  return (
+    <div className="mt-3 rounded-lg border border-dashed border-border bg-muted/20 p-3">
+      <div className="mb-2 flex items-center justify-between">
+        <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          <Clock className="h-3 w-3" /> Hvornår
+        </div>
+        <span className="text-[11px] text-foreground/70">
+          {value == null ? "Bruger standard" : `${formatLead(value)} før`}
+        </span>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5">
+        <button
+          type="button"
+          onClick={() => { setCustomOpen(false); onChange(null); }}
+          className={cn(
+            "rounded-md border px-2.5 py-1 text-[11.5px] font-medium transition-colors",
+            value == null
+              ? "border-foreground bg-foreground text-background"
+              : "border-border bg-background text-foreground hover:border-foreground/40",
+          )}
+        >
+          Standard
+        </button>
+        {LEAD_PRESETS.map((p) => {
+          const active = value === p.v;
+          return (
+            <button
+              key={p.v}
+              type="button"
+              onClick={() => { setCustomOpen(false); onChange(p.v); }}
+              className={cn(
+                "rounded-md border px-2.5 py-1 text-[11.5px] font-medium transition-colors",
+                active
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border bg-background text-foreground hover:border-foreground/40",
+              )}
+            >
+              {p.label}
+            </button>
+          );
+        })}
+        <button
+          type="button"
+          onClick={() => {
+            setCustom(isCustom ? String(value) : "");
+            setCustomOpen((o) => !o);
+          }}
+          className={cn(
+            "rounded-md border px-2.5 py-1 text-[11.5px] font-medium transition-colors",
+            isCustom || customOpen
+              ? "border-foreground bg-foreground text-background"
+              : "border-border bg-background text-foreground hover:border-foreground/40",
+          )}
+        >
+          Eget…
+        </button>
+      </div>
+
+      {customOpen && (
+        <div className="mt-2 flex items-center gap-2">
+          <Input
+            type="number"
+            min={0}
+            max={20160}
+            value={custom}
+            onChange={(e) => setCustom(e.target.value)}
+            placeholder="Antal"
+            className="h-8 w-24 text-sm"
+            autoFocus
+          />
+          <span className="text-[11px] text-muted-foreground">minutter før</span>
+          <Button
+            type="button"
+            size="sm"
+            className="h-8 text-[11px] ml-auto"
+            onClick={async () => {
+              const n = Math.max(0, Math.min(20160, Number(custom) || 0));
+              await onChange(n);
+              setCustomOpen(false);
+            }}
+          >
+            Anvend
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }
