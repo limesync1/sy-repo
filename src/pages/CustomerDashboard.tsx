@@ -146,7 +146,7 @@ const CustomerDashboard = () => {
     orders: { title: "Bestillinger", description: "Se og besvar dine bestillinger og forslag fra virksomheder." },
     onetime: { title: "Engangskøb", description: "Dine bestillinger der kun udføres én gang — uden tilbagevendende interval." },
     subscriptions: { title: "Abonnementer", description: "Administrer dine tilbagevendende services." },
-    invoices: { title: "Fakturaer", description: "Download dine fakturaer som PDF — direkte fra virksomhedens regnskabsprogram." },
+    invoices: { title: "Fakturaer", description: "Download dine fakturaer som PDF." },
     favorites: { title: "Favoritter", description: "Hurtig adgang til de virksomheder du har gemt." },
     reviews: { title: "Anmeldelser", description: "Anmeldelser du har skrevet — rediger eller slet dem her." },
     profile: { title: "Min profil", description: "Opdater dine kontaktoplysninger og notifikationer." },
