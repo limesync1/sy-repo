@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Receipt, Ban, CheckCircle2, Loader2, MoreHorizontal, Download } from "lucide-react";
+import { Receipt, Ban, CheckCircle2, Loader2, MoreHorizontal, Download, Send } from "lucide-react";
 
 type Order = {
   id: string;
@@ -23,7 +23,7 @@ type Order = {
   status?: string | null;
 };
 
-type Action = "credit_invoice" | "void_draft" | "mark_paid";
+type Action = "credit_invoice" | "void_draft" | "mark_paid" | "resend_invoice";
 
 /**
  * Faktura-handlinger der kalder accounting-action edge function.
@@ -60,7 +60,7 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
   });
   const caps = capsData as null | {
     can_credit: boolean; can_void: boolean; can_mark_paid: boolean;
-    can_download_pdf?: boolean;
+    can_download_pdf?: boolean; can_resend?: boolean;
     is_booked: boolean; is_draft: boolean; exists_in_provider: boolean;
   };
   // Indtil vi har caps: vis intet for at undgå "knap der fejler".
@@ -73,6 +73,7 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
   // tilkoblet (caps?.exists_in_provider) OG udbyderens adapter kan levere
   // en PDF. Uden integration er der ingen faktura at downloade.
   const canDownloadPdf = !!caps?.exists_in_provider && !!caps?.can_download_pdf;
+  const canResendInvoice = !!caps?.exists_in_provider && !!caps?.can_resend && !isCredited && !isCancelled;
   const [downloading, setDownloading] = useState(false);
 
   async function downloadPdf() {
@@ -150,6 +151,7 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
         credit_invoice: "Faktura krediteret",
         void_draft: "Kladde annulleret",
         mark_paid: "Faktura markeret som betalt",
+        resend_invoice: "Faktura gensendt til kunden",
       };
       const note = ((data as any)?.result?.note ?? (data as any)?.note) as string | undefined;
       toast.success(labels[action], note ? { description: note } : undefined);
@@ -171,7 +173,7 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
   const showCreditInOverflow = canCredit && primaryKind !== "credit_invoice";
   const showVoidInOverflow   = canVoid   && primaryKind !== "void_draft";
   const showMarkPaidInOverflow = canMarkPaid && primaryKind !== "mark_paid";
-  const hasOverflowItems = showCreditInOverflow || showVoidInOverflow || showMarkPaidInOverflow || canDownloadPdf;
+  const hasOverflowItems = showCreditInOverflow || showVoidInOverflow || showMarkPaidInOverflow || canDownloadPdf || canResendInvoice;
 
   if (compact) {
     if (!primary && !hasOverflowItems && !canDownloadPdf) return null;
@@ -218,6 +220,21 @@ export default function InvoiceActionsMenu({ order, compact = false }: { order: 
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" sideOffset={6} className="w-60 bg-popover border-border shadow-xl rounded-lg p-1">
+              {canDownloadPdf && (
+                <DropdownMenuItem onSelect={downloadPdf} disabled={downloading} className="gap-2 cursor-pointer focus:bg-secondary focus:text-foreground">
+                  {downloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+                  Download faktura-PDF
+                </DropdownMenuItem>
+              )}
+              {canResendInvoice && (
+                <DropdownMenuItem onSelect={() => run("resend_invoice")} disabled={busy !== null} className="gap-2 cursor-pointer focus:bg-secondary focus:text-foreground">
+                  <Spinner a="resend_invoice" fallback={<Send className="h-3.5 w-3.5" />} />
+                  Gensend faktura
+                </DropdownMenuItem>
+              )}
+              {(canDownloadPdf || canResendInvoice) && (showMarkPaidInOverflow || showCreditInOverflow || showVoidInOverflow) && (
+                <DropdownMenuSeparator className="my-1" />
+              )}
               {showMarkPaidInOverflow && (
                 <DropdownMenuItem onSelect={() => setConfirm("mark_paid")} className="gap-2 cursor-pointer focus:bg-success focus:text-success-foreground">
                   <CheckCircle2 className="h-3.5 w-3.5" /> Markér som betalt
