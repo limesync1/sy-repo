@@ -148,6 +148,43 @@ export default function NotificationOverridesPanel(props: Props) {
     toast.success("Nulstillet — bruger nu standard");
   }
 
+  /**
+   * Lead time gælder for hele event'et (samme tidspunkt for både e-mail og SMS),
+   * så vi skriver værdien til BEGGE kanal-rækker samtidig. Hvis værdien sættes til
+   * null og rækken ikke har andre overrides, fjernes den helt.
+   */
+  async function setLeadTime(event: EventKey, minutes: number | null) {
+    for (const channel of ["email", "sms"] as Channel[]) {
+      const existing = findRow(event, channel);
+      if (existing) {
+        const willBeEmpty =
+          minutes == null &&
+          existing.enabled == null &&
+          !existing.subject &&
+          !existing.body;
+        if (willBeEmpty) {
+          await supabase.from("notification_overrides").delete().eq("id", existing.id);
+        } else {
+          await supabase
+            .from("notification_overrides")
+            .update({ lead_time_minutes: minutes })
+            .eq("id", existing.id);
+        }
+      } else if (minutes != null) {
+        await supabase.from("notification_overrides").insert({
+          business_id: businessId,
+          scope,
+          customer_email: scope === "customer" ? customerEmail : (props as AgreementScopeProps).customerEmail ?? null,
+          subscription_id: scope === "agreement" ? subscriptionId : null,
+          event_type: event,
+          channel,
+          lead_time_minutes: minutes,
+        });
+      }
+    }
+    qc.invalidateQueries({ queryKey });
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-6 text-xs text-muted-foreground">
@@ -168,6 +205,7 @@ export default function NotificationOverridesPanel(props: Props) {
           smsDefault={findDefault(ev.key, "sms")}
           onPatch={upsertOverride}
           onClear={clearOverride}
+          onSetLeadTime={setLeadTime}
           toggleOnly={toggleOnly}
         />
       ))}
