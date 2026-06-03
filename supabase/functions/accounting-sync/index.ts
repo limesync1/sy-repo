@@ -969,11 +969,17 @@ async function pushCustomer(admin: SupabaseClient, integ: Integration, adapter: 
   }
   if (!row) return;
 
-  const { data: existingLink } = await admin.from("accounting_customer_links")
-    .select("external_id").eq("business_id", integ.business_id).eq("provider", integ.provider)
+  // Bemærk: historisk har vi haft duplicate links (samme interne kunde linket
+  // flere gange pga. tidligere bug i ensureCustomerLink). For at undgå at
+  // maybeSingle() fejler med "multiple rows returned" tager vi den nyeste.
+  const { data: existingLinkRows } = await admin.from("accounting_customer_links")
+    .select("external_id, created_at").eq("business_id", integ.business_id).eq("provider", integ.provider)
     .or(table === "business_customers"
       ? `business_customer_id.eq.${customerId}`
-      : `private_customer_id.eq.${customerId}`).maybeSingle();
+      : `private_customer_id.eq.${customerId}`)
+    .order("created_at", { ascending: false })
+    .limit(1);
+  const existingLink = existingLinkRows?.[0] ?? null;
 
   const fullPayload = {
     name: table === "business_customers" ? row.company_name : row.name,
@@ -1282,21 +1288,27 @@ async function ensureCustomerLink(admin: SupabaseClient, integ: Integration, ada
   if (!internalId) return null;
 
   // Existing accounting link?
-  const { data: link } = await admin.from("accounting_customer_links")
-    .select("external_id").eq("business_id", integ.business_id).eq("provider", integ.provider)
+  // Brug limit(1) + order i stedet for maybeSingle for at undgå PGRST 406
+  // hvis der findes duplicate links (legacy data).
+  const { data: linkRows } = await admin.from("accounting_customer_links")
+    .select("external_id, created_at").eq("business_id", integ.business_id).eq("provider", integ.provider)
     .or(table === "business_customers"
       ? `business_customer_id.eq.${internalId}`
-      : `private_customer_id.eq.${internalId}`).maybeSingle();
-  if (link) return link.external_id;
+      : `private_customer_id.eq.${internalId}`)
+    .order("created_at", { ascending: false })
+    .limit(1);
+  if (linkRows?.[0]) return linkRows[0].external_id;
 
   // Push to provider
   await pushCustomer(admin, integ, adapter, internalId);
-  const { data: link2 } = await admin.from("accounting_customer_links")
-    .select("external_id").eq("business_id", integ.business_id).eq("provider", integ.provider)
+  const { data: link2Rows } = await admin.from("accounting_customer_links")
+    .select("external_id, created_at").eq("business_id", integ.business_id).eq("provider", integ.provider)
     .or(table === "business_customers"
       ? `business_customer_id.eq.${internalId}`
-      : `private_customer_id.eq.${internalId}`).maybeSingle();
-  return link2?.external_id ?? null;
+      : `private_customer_id.eq.${internalId}`)
+    .order("created_at", { ascending: false })
+    .limit(1);
+  return link2Rows?.[0]?.external_id ?? null;
 }
 
 // ─── INVOICE BOOKING ─────────────────────────────────────────────────────

@@ -630,16 +630,28 @@ export function makeEconomicAdapter(
       }
 
       if (input.external_id) {
-        await ecRequest(creds, `${path}/${input.external_id}`, {
-          method: "PUT",
-          body: JSON.stringify(body),
-        });
-        return {
-          external_id: input.external_id,
-          external_number: input.external_id,
-          external_type: sendAs,
-        };
-      } else {
+        // Forsøg PUT først. Hvis ordren ikke længere findes i e-conomic
+        // (slettet manuelt, ryddet i demo-aftale el. lign.) falder vi tilbage
+        // til POST i stedet for at fejle hele pushet.
+        try {
+          await ecRequest(creds, `${path}/${input.external_id}`, {
+            method: "PUT",
+            body: JSON.stringify(body),
+          });
+          return {
+            external_id: input.external_id,
+            external_number: input.external_id,
+            external_type: sendAs,
+          };
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          if (!/not\s*found|404|does not exist|ikke fundet|kunne ikke finde/i.test(msg)) {
+            throw e;
+          }
+          // fall through til POST nedenfor
+        }
+      }
+      {
         const created = await ecRequest(creds, path, {
           method: "POST",
           body: JSON.stringify(body),
