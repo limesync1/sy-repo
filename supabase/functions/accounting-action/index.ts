@@ -216,7 +216,26 @@ Deno.serve(async (req) => {
       }
       const pdfId = bookedInvoiceId ?? link?.external_id ?? null;
       if (!pdfId) return json({ error: "Fakturaen findes ikke i regnskabsprogrammet endnu." }, 404);
-      const externalType: "invoice_booked" | "invoice_draft" = localInvoiceType;
+      let externalType: "invoice_booked" | "invoice_draft" = localInvoiceType;
+      if (typeof adapter.getInvoiceStates === "function") {
+        const states = await adapter.getInvoiceStates([pdfId]).catch(() => []);
+        const raw = (states?.[0] as any)?.raw ?? {};
+        const providerType: "invoice_booked" | "invoice_draft" | null = raw?.bookedInvoiceNumber != null
+          ? "invoice_booked"
+          : raw?.draftInvoiceNumber != null ? "invoice_draft" : null;
+        if (providerType) {
+          externalType = providerType;
+          if (providerType !== localInvoiceType) {
+            await admin.from("accounting_order_links").update({
+              external_type: providerType,
+              last_status_synced: providerType === "invoice_draft" ? "draft" : "booked",
+            }).eq("business_id", order.business_id).eq("provider", integ.provider).eq("order_id", order_id);
+            await admin.from("orders").update({
+              invoice_status: providerType === "invoice_draft" ? "draft" : "booked",
+            }).eq("id", order_id);
+          }
+        }
+      }
       try {
         const pdf = await adapter.getInvoicePdf({
           invoice_external_id: pdfId,
