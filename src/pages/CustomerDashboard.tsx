@@ -116,7 +116,7 @@ const EmptyPanel = ({
 
 const CustomerDashboard = () => {
   const { user, loading } = useAuth();
-  const [tab, setTab] = useState<"orders" | "onetime" | "subscriptions" | "favorites" | "reviews" | "profile">("orders");
+  const [tab, setTab] = useState<"orders" | "onetime" | "subscriptions" | "invoices" | "favorites" | "reviews" | "profile">("orders");
   const { data: orders } = useMyOrders();
   const proposalCount = (orders || []).filter(
     (o: any) => o.business_response === "adjusted" && !o.customer_response,
@@ -136,6 +136,7 @@ const CustomerDashboard = () => {
     { key: "orders", label: "Bestillinger", icon: ShoppingCart, badge: proposalCount },
     { key: "onetime", label: "Engangskøb", icon: Receipt },
     { key: "subscriptions", label: "Abonnementer", icon: Package },
+    { key: "invoices", label: "Fakturaer", icon: FileText },
     { key: "favorites", label: "Favoritter", icon: Heart },
     { key: "reviews", label: "Anmeldelser", icon: Star },
     { key: "profile", label: "Min profil", icon: Settings },
@@ -145,6 +146,7 @@ const CustomerDashboard = () => {
     orders: { title: "Bestillinger", description: "Se og besvar dine bestillinger og forslag fra virksomheder." },
     onetime: { title: "Engangskøb", description: "Dine bestillinger der kun udføres én gang — uden tilbagevendende interval." },
     subscriptions: { title: "Abonnementer", description: "Administrer dine tilbagevendende services." },
+    invoices: { title: "Fakturaer", description: "Download dine fakturaer som PDF — direkte fra virksomhedens regnskabsprogram." },
     favorites: { title: "Favoritter", description: "Hurtig adgang til de virksomheder du har gemt." },
     reviews: { title: "Anmeldelser", description: "Anmeldelser du har skrevet — rediger eller slet dem her." },
     profile: { title: "Min profil", description: "Opdater dine kontaktoplysninger og notifikationer." },
@@ -168,6 +170,7 @@ const CustomerDashboard = () => {
           {tab === "orders" && <OrdersView mode="all" />}
           {tab === "onetime" && <OrdersView mode="onetime" />}
           {tab === "subscriptions" && <SubscriptionsView />}
+          {tab === "invoices" && <InvoicesView />}
           {tab === "favorites" && <FavoritesView />}
           {tab === "reviews" && <MyReviewsView />}
           {tab === "profile" && <ProfileView />}
