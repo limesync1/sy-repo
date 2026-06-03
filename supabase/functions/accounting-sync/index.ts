@@ -969,14 +969,17 @@ async function pushCustomer(admin: SupabaseClient, integ: Integration, adapter: 
   }
   if (!row) return;
 
-  const { data: existingLink } = await admin.from("accounting_customer_links")
-    .select("external_id").eq("business_id", integ.business_id).eq("provider", integ.provider)
+  // Bemærk: historisk har vi haft duplicate links (samme interne kunde linket
+  // flere gange pga. tidligere bug i ensureCustomerLink). For at undgå at
+  // maybeSingle() fejler med "multiple rows returned" tager vi den nyeste.
+  const { data: existingLinkRows } = await admin.from("accounting_customer_links")
+    .select("external_id, created_at").eq("business_id", integ.business_id).eq("provider", integ.provider)
     .or(table === "business_customers"
       ? `business_customer_id.eq.${customerId}`
-      : `private_customer_id.eq.${customerId}`).maybeSingle();
-  // Bemærk: historisk har vi haft duplicate links (samme intern kunde linket
-  // flere gange pga. tidligere bug i ensureCustomerLink). For at undgå at
-  // maybeSingle() fejler med "multiple rows returned" begrænser vi til 1.
+      : `private_customer_id.eq.${customerId}`)
+    .order("created_at", { ascending: false })
+    .limit(1);
+  const existingLink = existingLinkRows?.[0] ?? null;
 
   const fullPayload = {
     name: table === "business_customers" ? row.company_name : row.name,
