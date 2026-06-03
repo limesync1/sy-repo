@@ -223,7 +223,7 @@ export default function NotificationOverridesPanel(props: Props) {
 type DefaultTpl = { enabled: boolean; subject: string | null; body: string | null } | undefined;
 
 function EventRow({
-  event, emailRow, smsRow, emailDefault, smsDefault, onPatch, onClear, toggleOnly,
+  event, emailRow, smsRow, emailDefault, smsDefault, onPatch, onClear, onSetLeadTime, toggleOnly,
 }: {
   event: { key: EventKey; label: string; help: string; Icon: typeof Bell };
   emailRow: Row | null;
@@ -232,6 +232,7 @@ function EventRow({
   smsDefault: DefaultTpl;
   onPatch: (e: EventKey, c: Channel, p: Partial<Row>) => Promise<void>;
   onClear: (e: EventKey, c: Channel) => Promise<void>;
+  onSetLeadTime: (e: EventKey, minutes: number | null) => Promise<void>;
   toggleOnly: boolean;
 }) {
   const { Icon } = event;
@@ -242,6 +243,9 @@ function EventRow({
 
   const hasEmailCustom = !!(emailRow?.subject || emailRow?.body || emailRow?.lead_time_minutes != null);
   const hasSmsCustom   = !!(smsRow?.body     || smsRow?.lead_time_minutes != null);
+
+  // Lead time gælder hele event'et — vis den fra hvilken som helst kanal (de er synkroniserede)
+  const leadOverride = emailRow?.lead_time_minutes ?? smsRow?.lead_time_minutes ?? null;
 
   async function toggleChannel(channel: Channel, next: boolean) {
     const row = channel === "email" ? emailRow : smsRow;
@@ -287,6 +291,13 @@ function EventRow({
           onCustomize={toggleOnly ? undefined : () => setCustomizeChannel("sms")}
         />
       </div>
+
+      {event.key === "service_upcoming" && !toggleOnly && (
+        <LeadTimePicker
+          value={leadOverride}
+          onChange={(mins) => onSetLeadTime(event.key, mins)}
+        />
+      )}
 
       <CustomizeSheet
         open={customizeChannel !== null}
