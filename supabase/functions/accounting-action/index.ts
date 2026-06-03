@@ -113,6 +113,12 @@ Deno.serve(async (req) => {
         is_draft: false,
         exists_in_provider: false,
       };
+      // Lokalt fallback — uden integration kan ejeren stadig markere
+      // ordren som betalt manuelt (gemmes i Serviceydere). Det sikrer at
+      // 3-prikker-menuen altid har mindst én handling at vise.
+      const isUnpaid = order.payment_status !== "paid" && order.payment_status !== "credited";
+      const isCancelled = order.status === "cancelled";
+      if (isOwner && isUnpaid && !isCancelled) caps.can_mark_paid = true;
       if (!integ) return json({ ok: true, caps });
       const adapter = makeAdapter(integ.provider, integ as any, integ.settings ?? {});
       // Hvis vi allerede har et faktura-ID gemt lokalt (enten på selve
