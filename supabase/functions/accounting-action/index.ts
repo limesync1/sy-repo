@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
 
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
     const { data: order } = await admin.from("orders")
-      .select("id, business_id, invoice_external_id, total_amount, customer_email")
+      .select("id, business_id, invoice_external_id, total_amount, customer_email, customer_id, payment_status, status")
       .eq("id", order_id).maybeSingle();
     if (!order) {
       // Capability-probes må ALDRIG bryde UI'et — hvis ordren ikke findes
@@ -69,8 +69,14 @@ Deno.serve(async (req) => {
         .maybeSingle();
       isEmployee = !!emp && emp.active !== false;
     }
-    if (!isOwner && !isEmployee) return json({ error: "Forbidden" }, 403);
-    if (!isOwner && action !== "resend_invoice" && action !== "check_capabilities") {
+    // Kunden der ejer ordren må også downloade sin egen faktura + probe caps.
+    const isCustomer = !!order.customer_id && order.customer_id === auth.userId;
+    if (!isOwner && !isEmployee && !isCustomer) return json({ error: "Forbidden" }, 403);
+    if (isCustomer && !isOwner && !isEmployee
+        && action !== "download_invoice" && action !== "check_capabilities") {
+      return json({ error: "Forbidden" }, 403);
+    }
+    if (!isOwner && !isCustomer && action !== "resend_invoice" && action !== "check_capabilities") {
       return json({ error: "Forbidden" }, 403);
     }
 
