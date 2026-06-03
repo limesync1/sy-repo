@@ -116,7 +116,7 @@ const EmptyPanel = ({
 
 const CustomerDashboard = () => {
   const { user, loading } = useAuth();
-  const [tab, setTab] = useState<"orders" | "onetime" | "subscriptions" | "favorites" | "reviews" | "profile">("orders");
+  const [tab, setTab] = useState<"orders" | "onetime" | "subscriptions" | "invoices" | "favorites" | "reviews" | "profile">("orders");
   const { data: orders } = useMyOrders();
   const proposalCount = (orders || []).filter(
     (o: any) => o.business_response === "adjusted" && !o.customer_response,
@@ -136,6 +136,7 @@ const CustomerDashboard = () => {
     { key: "orders", label: "Bestillinger", icon: ShoppingCart, badge: proposalCount },
     { key: "onetime", label: "Engangskøb", icon: Receipt },
     { key: "subscriptions", label: "Abonnementer", icon: Package },
+    { key: "invoices", label: "Fakturaer", icon: FileText },
     { key: "favorites", label: "Favoritter", icon: Heart },
     { key: "reviews", label: "Anmeldelser", icon: Star },
     { key: "profile", label: "Min profil", icon: Settings },
@@ -145,6 +146,7 @@ const CustomerDashboard = () => {
     orders: { title: "Bestillinger", description: "Se og besvar dine bestillinger og forslag fra virksomheder." },
     onetime: { title: "Engangskøb", description: "Dine bestillinger der kun udføres én gang — uden tilbagevendende interval." },
     subscriptions: { title: "Abonnementer", description: "Administrer dine tilbagevendende services." },
+    invoices: { title: "Fakturaer", description: "Download dine fakturaer som PDF — direkte fra virksomhedens regnskabsprogram." },
     favorites: { title: "Favoritter", description: "Hurtig adgang til de virksomheder du har gemt." },
     reviews: { title: "Anmeldelser", description: "Anmeldelser du har skrevet — rediger eller slet dem her." },
     profile: { title: "Min profil", description: "Opdater dine kontaktoplysninger og notifikationer." },
@@ -168,6 +170,7 @@ const CustomerDashboard = () => {
           {tab === "orders" && <OrdersView mode="all" />}
           {tab === "onetime" && <OrdersView mode="onetime" />}
           {tab === "subscriptions" && <SubscriptionsView />}
+          {tab === "invoices" && <InvoicesView />}
           {tab === "favorites" && <FavoritesView />}
           {tab === "reviews" && <MyReviewsView />}
           {tab === "profile" && <ProfileView />}
@@ -1256,11 +1259,67 @@ const InvoicesView = () => {
                 </div>
               </div>
               <span className="text-sm font-bold whitespace-nowrap">{Number(o.total_amount).toLocaleString("da-DK")} kr</span>
+              <CustomerInvoiceDownload orderId={o.id} hasInvoice={!!o.invoice_external_id} />
             </CardContent>
           </Card>
         );
       })}
     </div>
+  );
+};
+
+/** Kunde-side download af faktura-PDF.
+ *  Kalder accounting-action download_invoice som customer (RLS-gated til
+ *  customer_id = auth.uid()). Filen downloades øjeblikkeligt med foreslået
+ *  filnavn via <a download> — ingen "Gem som"-dialog når browser er sat
+ *  til standard download-mappe. */
+const CustomerInvoiceDownload = ({ orderId, hasInvoice }: { orderId: string; hasInvoice: boolean }) => {
+  const [busy, setBusy] = useState(false);
+  if (!hasInvoice) return null;
+
+  const download = async () => {
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("accounting-action", {
+        body: { order_id: orderId, action: "download_invoice" },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      const { pdf_base64, filename } = data as { pdf_base64: string; filename: string };
+      const bin = atob(pdf_base64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const blob = new Blob([bytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename ?? "faktura.pdf";
+      // rel=noopener for sikkerhed; ingen target → ingen ny fane → ingen preview
+      a.rel = "noopener";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      // Lille forsinkelse før revoke så browser når at starte download
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Kunne ikke hente faktura");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      className="h-8 gap-1.5 rounded-lg"
+      disabled={busy}
+      onClick={download}
+      aria-label="Download faktura som PDF"
+    >
+      {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+      <span className="hidden sm:inline text-xs">PDF</span>
+    </Button>
   );
 };
 
