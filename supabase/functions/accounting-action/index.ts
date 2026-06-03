@@ -130,7 +130,10 @@ Deno.serve(async (req) => {
         }
       }
       try {
-        if (externalId && typeof adapter.getInvoiceStates === "function") {
+        // Slå kun fakturatilstand op hvis vi rent faktisk har et FAKTURA-ID.
+        // Hvis link kun peger på en ordre/kladdeordre, ville et opslag mod
+        // /invoices/... give 404 og fejlagtigt tænde caps.
+        if (localInvoiceType && externalId && typeof adapter.getInvoiceStates === "function") {
           const states = await adapter.getInvoiceStates([externalId]);
           const s = states?.[0];
           if (s) {
