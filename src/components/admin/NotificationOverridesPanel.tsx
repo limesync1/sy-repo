@@ -346,10 +346,10 @@ function CustomizeSheet({
 
   const previewSample = (txt: string) =>
     (txt || "(tom)")
-      .replaceAll("{{kundens_navn}}", "Anna")
-      .replaceAll("{{service}}", "Rengøring")
-      .replaceAll("{{tidspunkt}}", "i morgen kl. 10:00")
-      .replaceAll("{{virksomhed}}", "Ready2Clean");
+      .replace(/\{\{kundens_navn\}\}/g, "Anna")
+      .replace(/\{\{service\}\}/g, "Rengøring")
+      .replace(/\{\{tidspunkt\}\}/g, "i morgen kl. 10:00")
+      .replace(/\{\{virksomhed\}\}/g, "Ready2Clean");
 
   const LEAD_PRESETS = [
     { v: 15, label: "15 min" },
