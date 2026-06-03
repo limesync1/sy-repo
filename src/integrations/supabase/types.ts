@@ -2125,6 +2125,69 @@ export type Database = {
           },
         ]
       }
+      notification_overrides: {
+        Row: {
+          body: string | null
+          business_id: string
+          channel: Database["public"]["Enums"]["notification_override_channel"]
+          created_at: string
+          customer_email: string | null
+          enabled: boolean | null
+          event_type: string
+          id: string
+          lead_time_minutes: number | null
+          scope: Database["public"]["Enums"]["notification_override_scope"]
+          subject: string | null
+          subscription_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          body?: string | null
+          business_id: string
+          channel: Database["public"]["Enums"]["notification_override_channel"]
+          created_at?: string
+          customer_email?: string | null
+          enabled?: boolean | null
+          event_type: string
+          id?: string
+          lead_time_minutes?: number | null
+          scope: Database["public"]["Enums"]["notification_override_scope"]
+          subject?: string | null
+          subscription_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          body?: string | null
+          business_id?: string
+          channel?: Database["public"]["Enums"]["notification_override_channel"]
+          created_at?: string
+          customer_email?: string | null
+          enabled?: boolean | null
+          event_type?: string
+          id?: string
+          lead_time_minutes?: number | null
+          scope?: Database["public"]["Enums"]["notification_override_scope"]
+          subject?: string | null
+          subscription_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_overrides_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_overrides_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           created_at: string
@@ -4871,6 +4934,8 @@ export type Database = {
         | "ended"
         | "cancelled"
       app_role: "admin" | "business_owner" | "user" | "employee"
+      notification_override_channel: "email" | "sms"
+      notification_override_scope: "customer" | "agreement"
       occurrence_status: "planned" | "completed" | "cancelled" | "skipped"
       order_payment_status:
         | "unpaid"
@@ -5033,6 +5098,8 @@ export const Constants = {
         "cancelled",
       ],
       app_role: ["admin", "business_owner", "user", "employee"],
+      notification_override_channel: ["email", "sms"],
+      notification_override_scope: ["customer", "agreement"],
       occurrence_status: ["planned", "completed", "cancelled", "skipped"],
       order_payment_status: [
         "unpaid",
