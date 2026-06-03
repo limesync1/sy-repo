@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Bell, CheckCircle2, Mail, MessageSquare, Loader2, RotateCcw, Settings2 } from "lucide-react";
+import { Bell, CheckCircle2, Mail, MessageSquare, Loader2, RotateCcw, Sparkles, Smartphone } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -276,10 +276,21 @@ function ChannelToggle({
   onCustomize?: () => void;
 }) {
   return (
-    <div className={cn(
-      "flex items-center justify-between gap-2 rounded-lg border bg-background px-3 py-2",
-      enabled ? "border-border" : "border-border/70 opacity-80",
-    )}>
+    <div
+      className={cn(
+        "group relative flex items-center justify-between gap-2 rounded-lg border bg-background px-3 py-2 transition-colors",
+        "border-border/80",
+        onCustomize && "cursor-pointer hover:border-foreground/30 hover:bg-muted/30",
+        !enabled && "opacity-70",
+      )}
+      onClick={onCustomize}
+      role={onCustomize ? "button" : undefined}
+      tabIndex={onCustomize ? 0 : undefined}
+      onKeyDown={(e) => {
+        if (!onCustomize) return;
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onCustomize(); }
+      }}
+    >
       <div className="flex items-center gap-2 min-w-0">
         <span className="text-foreground/70">{icon}</span>
         <div className="min-w-0">
@@ -290,19 +301,10 @@ function ChannelToggle({
           </p>
         </div>
       </div>
-      <div className="flex items-center gap-1">
-        {onCustomize && (
-          <Button
-            type="button"
-            size="icon"
-            variant="ghost"
-            className="h-7 w-7 text-muted-foreground hover:text-foreground"
-            onClick={onCustomize}
-            title="Tilpas tekst"
-          >
-            <Settings2 className="h-3.5 w-3.5" />
-          </Button>
-        )}
+      <div
+        className="flex items-center"
+        onClick={(e) => e.stopPropagation()}
+      >
         <Switch checked={enabled} onCheckedChange={(v) => onToggle(v)} />
       </div>
     </div>
@@ -338,64 +340,180 @@ function CustomizeSheet({
 
   const hasCustom = !!(row?.subject || row?.body || row?.lead_time_minutes != null);
 
+  const isSms = channel === "sms";
+  const effectiveSubject = subject || def?.subject || "";
+  const effectiveBody = body || def?.body || "";
+
+  const previewSample = (txt: string) =>
+    (txt || "(tom)")
+      .replaceAll("{{kundens_navn}}", "Anna")
+      .replaceAll("{{service}}", "Rengøring")
+      .replaceAll("{{tidspunkt}}", "i morgen kl. 10:00")
+      .replaceAll("{{virksomhed}}", "Ready2Clean");
+
+  const LEAD_PRESETS = [
+    { v: 15, label: "15 min" },
+    { v: 60, label: "1 time" },
+    { v: 120, label: "2 timer" },
+    { v: 1440, label: "1 dag" },
+  ];
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-md flex flex-col">
-        <SheetHeader>
-          <SheetTitle className="text-base">
-            Tilpas {channel === "email" ? "e-mail" : "SMS"}
+      <SheetContent side="right" className="w-full sm:max-w-lg flex flex-col p-0 gap-0">
+        {/* Header */}
+        <div className="border-b border-border px-6 pt-6 pb-4">
+          <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+            {isSms ? <Smartphone className="h-3.5 w-3.5" /> : <Mail className="h-3.5 w-3.5" />}
+            {isSms ? "SMS" : "E-mail"}
+          </div>
+          <SheetTitle className="mt-1 text-lg leading-tight">
+            Tilpas {isSms ? "SMS-besked" : "e-mail"}
           </SheetTitle>
           <SheetDescription className="text-xs">
-            {eventLabel} · Lad felter være tomme for at bruge virksomhedens standard.
+            {eventLabel}. Lad felter være tomme for at bruge virksomhedens standard.
           </SheetDescription>
-        </SheetHeader>
+        </div>
 
-        <div className="flex-1 overflow-y-auto py-4 space-y-4">
-          {channel === "email" && (
-            <div>
-              <label className="mb-1 block text-[11px] font-medium text-muted-foreground">Emne</label>
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+          {!isSms && (
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Emne</label>
               <Input
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 placeholder={def?.subject ?? "Standard emne"}
-                className="h-9 text-sm"
+                className="h-10 text-sm"
               />
             </div>
           )}
-          <div>
-            <label className="mb-1 block text-[11px] font-medium text-muted-foreground">Besked</label>
+
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="block text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                {isSms ? "SMS-tekst" : "Besked"}
+              </label>
+              {isSms && (
+                <span className={cn(
+                  "text-[10.5px] tabular-nums",
+                  body.length > 160 ? "text-destructive" : "text-muted-foreground",
+                )}>
+                  {body.length}/160 tegn
+                </span>
+              )}
+            </div>
             <Textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
               placeholder={def?.body ?? "Standard tekst"}
-              rows={6}
-              className="text-sm resize-none"
+              rows={isSms ? 4 : 7}
+              className="text-sm resize-none leading-relaxed"
             />
-            <p className="mt-1 text-[10.5px] text-muted-foreground">
-              Variabler: <code className="text-foreground/80">{"{{kundens_navn}}"}</code>,{" "}
-              <code className="text-foreground/80">{"{{service}}"}</code>,{" "}
-              <code className="text-foreground/80">{"{{tidspunkt}}"}</code>
-            </p>
+
+            {/* Variable chips */}
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              <span className="text-[10.5px] text-muted-foreground self-center mr-1">Indsæt:</span>
+              {[
+                { k: "{{kundens_navn}}", l: "Kundenavn" },
+                { k: "{{service}}", l: "Service" },
+                { k: "{{tidspunkt}}", l: "Tidspunkt" },
+                { k: "{{virksomhed}}", l: "Virksomhed" },
+              ].map((v) => (
+                <button
+                  key={v.k}
+                  type="button"
+                  onClick={() => setBody((b) => (b || def?.body || "") + " " + v.k)}
+                  className="rounded-full border border-border bg-background px-2 py-0.5 text-[10.5px] text-foreground/80 transition-colors hover:border-foreground/40 hover:bg-muted"
+                >
+                  + {v.l}
+                </button>
+              ))}
+            </div>
           </div>
+
+          {/* Live preview */}
+          <div>
+            <p className="mb-2 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+              <Sparkles className="h-3 w-3" /> Forhåndsvisning
+            </p>
+            {isSms ? (
+              <div className="rounded-2xl bg-muted/50 p-4">
+                <div className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-foreground px-3.5 py-2.5 text-[12.5px] leading-snug text-background shadow-sm whitespace-pre-wrap break-words">
+                  {previewSample(effectiveBody)}
+                </div>
+                <p className="mt-2 text-right text-[10px] text-muted-foreground">Sendes fra virksomhedens nummer</p>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-border bg-background">
+                <div className="border-b border-border px-3.5 py-2">
+                  <p className="text-[10.5px] text-muted-foreground">Emne</p>
+                  <p className="text-[13px] font-semibold text-foreground truncate">
+                    {previewSample(effectiveSubject) || "(tom)"}
+                  </p>
+                </div>
+                <div className="px-3.5 py-3 text-[12.5px] leading-relaxed text-foreground whitespace-pre-wrap">
+                  {previewSample(effectiveBody)}
+                </div>
+              </div>
+            )}
+          </div>
+
           {eventKey === "service_upcoming" && (
-            <div>
-              <label className="mb-1 block text-[11px] font-medium text-muted-foreground">
-                Minutter før besøg
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                Send hvor lang tid inden?
               </label>
-              <Input
-                type="number"
-                min={0}
-                max={20160}
-                value={leadMins}
-                onChange={(e) => setLeadMins(e.target.value)}
-                placeholder="Tomt = standard"
-                className="h-9 text-sm w-40"
-              />
+              <div className="flex flex-wrap gap-1.5">
+                {LEAD_PRESETS.map((p) => {
+                  const active = leadMins === String(p.v);
+                  return (
+                    <button
+                      key={p.v}
+                      type="button"
+                      onClick={() => setLeadMins(String(p.v))}
+                      className={cn(
+                        "rounded-md border px-2.5 py-1 text-[11.5px] font-medium transition-colors",
+                        active
+                          ? "border-foreground bg-foreground text-background"
+                          : "border-border bg-background text-foreground hover:border-foreground/40",
+                      )}
+                    >
+                      {p.label}
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  onClick={() => setLeadMins("")}
+                  className={cn(
+                    "rounded-md border px-2.5 py-1 text-[11.5px] font-medium transition-colors",
+                    leadMins === ""
+                      ? "border-foreground bg-foreground text-background"
+                      : "border-dashed border-border bg-background text-muted-foreground hover:border-foreground/40",
+                  )}
+                >
+                  Brug standard
+                </button>
+              </div>
+              <div className="flex items-center gap-2 pt-1">
+                <Input
+                  type="number"
+                  min={0}
+                  max={20160}
+                  value={leadMins}
+                  onChange={(e) => setLeadMins(e.target.value)}
+                  placeholder="Eller skriv minutter"
+                  className="h-9 text-sm w-40"
+                />
+                <span className="text-[11px] text-muted-foreground">minutter før besøg</span>
+              </div>
             </div>
           )}
         </div>
 
-        <SheetFooter className="flex-row justify-between gap-2 sm:justify-between border-t pt-3">
+        {/* Footer */}
+        <div className="flex items-center justify-between gap-2 border-t border-border px-6 py-3">
           {hasCustom ? (
             <Button
               type="button"
@@ -441,7 +559,7 @@ function CustomizeSheet({
               Gem
             </Button>
           </div>
-        </SheetFooter>
+        </div>
       </SheetContent>
     </Sheet>
   );
