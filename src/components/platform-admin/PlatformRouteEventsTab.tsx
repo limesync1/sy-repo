@@ -62,7 +62,7 @@ type RouteEventRow = {
 const eventVariant = (t: string): "default" | "secondary" | "destructive" | "outline" => {
   if (t.endsWith("_FAILED")) return "destructive";
   if (t === "STOP_COMPLETED" || t === "ACCOUNTING_SYNCED") return "default";
-  if (t === "INVOICE_ENQUEUED") return "secondary";
+  if (t === "INVOICE_ENQUEUED" || t === "ROUTE_SNAPSHOTTED") return "secondary";
   return "outline";
 };
 
