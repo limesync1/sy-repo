@@ -12,7 +12,7 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 import { useCallback, useRef, useState } from "react";
-import DragEtaOverlay, { setDragEta, clearDragEta } from "@/components/route-planner/DragEtaOverlay";
+import { setDragEta, clearDragEta } from "@/components/route-planner/DragEtaOverlay";
 import { clearDragValidation, summarize, writeDragValidationDebounced } from "@/components/route-planner/drag-validation-context";
 import { dragMetrics } from "@/lib/drag-metrics";
 import { startDragAutoScroll } from "@/components/route-planner/lib/drag-auto-scroll";
@@ -407,6 +407,3 @@ export function useRoutePlannerDnd(opts: {
     handleDragMove,
   };
 }
-
-// Re-export så DragEtaOverlay-importen ikke skal duplikeres.
-export { DragEtaOverlay };
