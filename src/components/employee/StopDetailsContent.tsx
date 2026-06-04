@@ -480,15 +480,22 @@ export const StopDetailsContent = ({
       {!readOnly && (
         <div className="border-t border-border bg-card p-4 shrink-0">
           {!isDone ? (
-            <Button
-              onClick={onComplete}
-              className="w-full gap-2 h-12 text-base font-semibold rounded-lg shadow-sm bg-foreground text-background hover:bg-foreground/90"
-              size="lg"
-              disabled={!!isPending}
-            >
-              {isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
-              Markér som udført
-            </Button>
+            <div className="space-y-2">
+              <Button
+                onClick={onComplete}
+                className="w-full gap-2 h-12 text-base font-semibold rounded-lg shadow-sm bg-foreground text-background hover:bg-foreground/90"
+                size="lg"
+                disabled={!!isPending || !canComplete}
+              >
+                {isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
+                Markér som udført
+              </Button>
+              {!canComplete && futureLabel && (
+                <p className="text-xs text-muted-foreground text-center">
+                  Kan først udføres {futureLabel}
+                </p>
+              )}
+            </div>
           ) : (
             <div className="space-y-2">
               {canResendInvoice && (
