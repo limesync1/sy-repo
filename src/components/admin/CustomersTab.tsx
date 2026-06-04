@@ -324,19 +324,29 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
     queryKey: ["customer-details", businessId, email],
     enabled: !!businessId && !!email,
     queryFn: async () => {
-      const [ordersRes, subsRes] = await Promise.all([
-        supabase
-          .from("orders")
-          .select("id, status, total_amount, preferred_date, created_at, notes, address, zip_code, city, payment_status, paid_at, payment_status_synced_at, due_date, invoice_external_id, invoiced_at, invoice_status, reminder_count, last_reminder_at, last_reminder_type, reminder_history, credited_at, voided_at, completed_cycles, order_items(service_name, quantity, total_price, details)")
-          .eq("business_id", businessId)
-          .ilike("customer_email", email!)
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("subscriptions")
-          .select("id, service_name, interval, status, next_service_date, total_price, preferred_route_id, order_id, customer_id, created_at")
-          .eq("business_id", businessId)
-          .order("created_at", { ascending: false }),
-      ]);
+      // 1) Hent kundens ordrer først så vi kan trække subscriptions for
+      //    netop denne kunde (i stedet for hele virksomhedens bestand —
+            // tidligere hentede vi ALLE abonnementer og frasorterede client-side,
+            // hvilket kunne være tusinder af rækker pr. åbning af en kundedetail).
+      const ordersRes = await supabase
+        .from("orders")
+        .select("id, status, total_amount, preferred_date, created_at, notes, address, zip_code, city, payment_status, paid_at, payment_status_synced_at, due_date, invoice_external_id, invoiced_at, invoice_status, reminder_count, last_reminder_at, last_reminder_type, reminder_history, credited_at, voided_at, completed_cycles, customer_id, order_items(service_name, quantity, total_price, details)")
+        .eq("business_id", businessId)
+        .ilike("customer_email", email!)
+        .order("created_at", { ascending: false });
+
+      const customerIdsForSubs = Array.from(
+        new Set((ordersRes.data || []).map((o: any) => o.customer_id).filter(Boolean)),
+      ) as string[];
+
+      const subsRes = customerIdsForSubs.length > 0
+        ? await supabase
+            .from("subscriptions")
+            .select("id, service_name, interval, status, next_service_date, total_price, preferred_route_id, order_id, customer_id, created_at")
+            .eq("business_id", businessId)
+            .in("customer_id", customerIdsForSubs)
+            .order("created_at", { ascending: false })
+        : { data: [] as any[], error: null };
 
       const orderIds = (ordersRes.data || []).map(o => o.id);
       let stops: RouteStopRow[] = [];
