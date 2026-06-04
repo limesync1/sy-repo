@@ -2991,6 +2991,50 @@ export type Database = {
           },
         ]
       }
+      route_events: {
+        Row: {
+          business_id: string
+          created_at: string
+          created_by: string | null
+          entity_id: string | null
+          entity_type: string
+          event_type: string
+          id: string
+          payload: Json
+          route_id: string | null
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string | null
+          entity_type: string
+          event_type: string
+          id?: string
+          payload?: Json
+          route_id?: string | null
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string | null
+          entity_type?: string
+          event_type?: string
+          id?: string
+          payload?: Json
+          route_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_events_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       route_materialization_jobs: {
         Row: {
           agreement_id: string | null
@@ -4577,6 +4621,18 @@ export type Database = {
           service_name: string
           suggested_minutes: number
         }[]
+      }
+      log_route_event: {
+        Args: {
+          _actor_id?: string
+          _business_id: string
+          _entity_id: string
+          _entity_type: string
+          _event_type: string
+          _payload?: Json
+          _route_id?: string
+        }
+        Returns: string
       }
       log_route_planner_event: {
         Args: {
