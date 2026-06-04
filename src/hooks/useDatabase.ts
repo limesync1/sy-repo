@@ -535,6 +535,7 @@ export const useMyProfile = () => {
       return data;
     },
     enabled: !!user,
+    staleTime: 300_000,
   });
 };
 
