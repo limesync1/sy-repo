@@ -123,6 +123,7 @@ import { useRouteDialogs } from "@/hooks/route-planner/useRouteDialogs";
 import { useRouteSelection } from "@/hooks/route-planner/useRouteSelection";
 import { useRoutePlannerWorkflowState } from "@/hooks/route-planner/useRoutePlannerWorkflowState";
 import { useRoutePlannerKeyboard } from "@/hooks/route-planner/useRoutePlannerKeyboard";
+import { useRoutePlannerDnd } from "@/hooks/route-planner/useRoutePlannerDnd";
 import { pushRouteUndo, routeHistory } from "@/lib/route-history";
 import { useRouteHistory } from "@/hooks/useRouteHistory";
 import { toastSuccessWithUndo } from "@/lib/toast-undo";
@@ -334,38 +335,6 @@ const Planner = () => {
   const [suggestJob, setSuggestJob] = useState<any | null>(null);
   // Ref til "Aftaler uden rute"-søgefeltet — så vi kan fokusere det med "/".
   const unassignedSearchRef = useRef<HTMLInputElement | null>(null);
-  const [activeDragId, setActiveDragId] = useState<string | null>(null);
-  const [activeDragData, setActiveDragData] = useState<any>(null);
-  // ID for det drop-target musen p.t. hovrer over — bruges af DragEtaOverlay
-  // til at vide hvilken validering + ETA der skal vises.
-  const [dragOverTargetId, setDragOverTargetId] = useState<string | null>(null);
-  const activeDragPointRef = useRef<DragPoint | null>(null);
-  const activeDragOriginRef = useRef<DragPoint | null>(null);
-  const [routeDragPoint, setRouteDragPoint] = useState<DragPoint | null>(null);
-  const activeRouteDragPointRef = useRef<DragPoint | null>(null);
-  const activeRouteDragOriginRef = useRef<DragPoint | null>(null);
-  const routeOverlayRef = useRef<HTMLDivElement | null>(null);
-  const applyRouteOverlayPosition = (point: DragPoint | null) => {
-    const el = routeOverlayRef.current;
-    if (!el || !point) return;
-    el.style.left = `${point.x}px`;
-    el.style.top = `${point.y}px`;
-  };
-  // Beskytter mod dobbelt-drop på samme kilde+mål — undgår dubletruter og
-  // "uniq_route_stops_route_order" race conditions.
-  const inFlightDropsRef = useRef<Set<string>>(new Set());
-  // Synlig "behandler"-tilstand pr. drop-target (route:<id> eller day:<date>).
-  // Bruges af kalenderen til at deaktivere drop og vise spinner mens en
-  // flytning er i gang — så brugeren ikke kan slippe igen ved et uheld.
-  const [busyTargets, setBusyTargets] = useState<Set<string>>(new Set());
-  const setTargetBusy = (target: string | null, busy: boolean) => {
-    if (!target) return;
-    setBusyTargets((prev) => {
-      const next = new Set(prev);
-      if (busy) next.add(target); else next.delete(target);
-      return next;
-    });
-  };
   const [geocoding, setGeocoding] = useState(false);
   const [newRouteName, setNewRouteName] = useState("");
   const [newRouteColor, setNewRouteColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
@@ -764,69 +733,6 @@ const Planner = () => {
   // PointerSensor importeres for bagudkompatibilitet men er bevidst ikke
   // aktiv — Mouse/Touch dækker alle scenarier stabilt.
   void PointerSensor;
-  const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 8 } }),
-    useSensor(KeyboardSensor),
-  );
-  const routePlannerCollisionDetection = useCallback<CollisionDetection>((args) => {
-    const activeType = args.active.data.current?.type;
-    const pointerCollisions = pointerWithin(args);
-    if (pointerCollisions.length > 0) {
-      // Når en aftale trækkes hen over en rute, kan dnd-kit nogle gange
-      // rapportere dag-cellen først (fordi den ligger som større parent).
-      // DOM-hit-testen afgør derfor rute-pillen eksplicit, så aftalen ender
-      // på den konkrete rute og ikke fejlagtigt som "ny rute på dagen".
-      if (activeType === "job") {
-        const pointTarget = getRouteDropPointTarget(activeDragPointRef.current, null);
-        if (pointTarget?.type === "route") {
-          const routeHit = args.droppableContainers.find((container) => container.id === `route-drop:${pointTarget.routeId}`);
-          if (routeHit) return [{ id: routeHit.id }];
-        }
-      }
-      // Ved rute-drag foretrækker vi altid en rute-droppable hvis pointeren
-      // er over både en dag-celle OG en rute i den celle — ellers bliver
-      // route→route merge fejlagtigt fortolket som route→day move (fordi
-      // pointerWithin nogle gange returnerer dag-cellen først).
-      if (activeType === "route") {
-        const sourceRouteId = routeIdFromDndId(args.active.id);
-        const routeHit = pointerCollisions.find((c) => {
-          const container = args.droppableContainers.find((d) => d.id === c.id);
-          return container?.data.current?.type === "route"
-            && container?.data.current?.routeId !== sourceRouteId;
-        });
-        if (routeHit) return [routeHit];
-        const nonSourceHits = pointerCollisions.filter((c) => {
-          const container = args.droppableContainers.find((d) => d.id === c.id);
-          return !(container?.data.current?.type === "route" && container?.data.current?.routeId === sourceRouteId);
-        });
-        if (nonSourceHits.length > 0) return nonSourceHits;
-      }
-      return pointerCollisions;
-    }
-
-    const dragPoint = activeType === "route" ? activeRouteDragPointRef.current : activeDragPointRef.current;
-    if (dragPoint && (activeType === "route" || activeType === "job")) {
-      const pointTarget = getRouteDropPointTarget(dragPoint, activeType === "route" ? routeIdFromDndId(args.active.id) : null);
-      const targetId = pointTarget?.type === "route"
-        ? `route-drop:${pointTarget.routeId}`
-        : pointTarget?.type === "day"
-          ? `day:${pointTarget.date}`
-          : null;
-      const routePointerCollision = targetId
-        ? args.droppableContainers.find((container) => container.id === targetId)
-        : null;
-      if (routePointerCollision) return [{ id: routePointerCollision.id }];
-    }
-
-    // Route-drag kan nogle gange miste pointer-hit på desktop, især når den
-    // trukne rute ligger over små kalenderceller. Fallback til overlap gør
-    // drop stabilt uden at ændre job/stop-drop adfærd.
-    return activeType === "route"
-      ? rectIntersection(args)
-      : pointerCollisions;
-  }, []);
-
   /** Kundens ønskede dato — preferred_date primært, ellers next_service_date (abonnement). */
   const effectiveJobDate = (j: any): string | null => {
     if (j.preferred_date) return j.preferred_date;
@@ -1409,6 +1315,47 @@ const Planner = () => {
       occupiedSeriesDates.has(iso) || conflictDates.has(iso),
     );
   }, [pendingProjectedMove, projectedTargetWarnings, calendarRoutesRaw, virtualCalendarRoutes]);
+
+  // ─── Drag-and-drop (Fase 2: udtrukket) ───────────────────────────────
+  // Hele DnD-overfladen — state, refs, sensors, collision-detection samt
+  // start/over/move-handlers — bor nu i en hook. `handleDragEnd` defineres
+  // stadig nedenfor i siden, da den indeholder ~660 linjer mutation-tung
+  // kode der er for vævet sammen med pending-dialog-setters til at flytte.
+  const dnd = useRoutePlannerDnd({
+    calendarRoutesRaw,
+    visibleCalendarStops,
+    calendarStops,
+    capacityByDate,
+    virtualCalendarRoutes,
+    routeOccurrenceExceptions,
+    todayStr,
+  });
+  const {
+    activeDragId,
+    setActiveDragId,
+    activeDragData,
+    setActiveDragData,
+    dragOverTargetId,
+    setDragOverTargetId,
+    routeDragPoint,
+    setRouteDragPoint,
+    busyTargets,
+    setBusyTargets,
+    activeDragPointRef,
+    activeDragOriginRef,
+    activeRouteDragPointRef,
+    activeRouteDragOriginRef,
+    routeOverlayRef,
+    inFlightDropsRef,
+    applyRouteOverlayPosition,
+    setTargetBusy,
+    detectAssigneeConflicts,
+    sensors,
+    routePlannerCollisionDetection,
+    handleDragStart,
+    handleDragOver,
+    handleDragMove,
+  } = dnd;
 
   /* ─── Projection sanity-check / diagnostik ───
      Kører FØR projektionen bruges i UI'et, så vi:
@@ -2050,219 +1997,6 @@ const Planner = () => {
     );
   }
 
-  /* ─── DnD ─── */
-  const handleDragStart = (e: DragStartEvent) => {
-    const data: any = e.active.data.current;
-    // ─── Metrics: start måling af drag-to-drop latency ───
-    // Sporer hvor lang tid brugeren bruger fra drag begynder til drop
-    // gennemføres. Sammen med klik-fejlraten (drag uden drop) kan vi
-    // sammenligne perf på Windows/Android vs. macOS/iOS.
-    const metricType: "job" | "route" | "stop" | "unknown" =
-      data?.type === "job" || data?.type === "route" || data?.type === "stop"
-        ? data.type
-        : "unknown";
-    dragMetrics.start(metricType);
-    // Virtuelle (projicerede) ruter er nu tilladt at trække — de håndteres
-    // separat i drag-end ved at registrere en shift-undtagelse i stedet for
-    // at flytte selve basisruten eller materialisere den.
-    setActiveDragId(e.active.id as string);
-    setActiveDragData(data);
-    const origin = getDragPoint(e.activatorEvent);
-    activeDragOriginRef.current = origin;
-    activeDragPointRef.current = origin;
-    // Auto-scroll: ruller lister/kalender når kortet trækkes mod en kant.
-    startDragAutoScroll(() => activeDragPointRef.current);
-    if (data?.type === "route") {
-      activeRouteDragOriginRef.current = origin;
-      activeRouteDragPointRef.current = origin;
-      setRouteDragPoint(origin);
-      applyRouteOverlayPosition(origin);
-    } else {
-      activeRouteDragOriginRef.current = null;
-      activeRouteDragPointRef.current = null;
-      setRouteDragPoint(null);
-    }
-  };
-
-  const handleDragOver = (e: DragOverEvent) => {
-    // ─── Live drag-validering ───
-    // Beregn et `ValidationResult` for det aktuelt hovrede target og
-    // skriv det til den globale drag-validation-store. MonthWeekCalendar's
-    // celler/rute-pillule læser status via `useTargetValidation` og
-    // ændrer ring-farve (grøn/gul/rød) + tooltip — INDEN drop.
-    const activeData: any = e.active.data.current;
-    const overData: any = e.over?.data.current;
-    if (!activeData || !overData) {
-      clearDragValidation();
-      setDragOverTargetId(null);
-      clearDragEta();
-      return;
-    }
-
-    try {
-      // ── JOB → ROUTE: tjek aftaledubletter på dagen + kapacitet ──
-      if (activeData.type === "job" && overData.type === "route") {
-        const targetRoute = calendarRoutesRaw.find((r) => r.id === overData.routeId);
-        if (!targetRoute) return clearDragValidation();
-        const sameDayStops = visibleCalendarStops.filter((s: any) => {
-          const r = calendarRoutesRaw.find((x) => x.id === s.route_id);
-          return r?.route_date === targetRoute.route_date;
-        });
-        const stopsOnRoute = visibleCalendarStops.filter((s) => s.route_id === targetRoute.id) as any[];
-        const job = activeData.job ?? {};
-        const result = validateStopAssignment(
-          {
-            order_id: job.id ?? null,
-            customer_id: job.customer_id ?? null,
-            customer_name: job.customer_name ?? null,
-            latitude: job.latitude ?? null,
-            longitude: job.longitude ?? null,
-          },
-          { id: targetRoute.id, route_date: targetRoute.route_date, isVirtual: (targetRoute as any).isVirtual },
-          {
-            otherStopsSameDay: sameDayStops as any[],
-            stopsOnTargetRoute: stopsOnRoute.map((s) => ({ id: s.id, latitude: s.latitude, longitude: s.longitude })),
-            estimatedStopCountAfter: stopsOnRoute.length + 1,
-          },
-        );
-        const { severity, topMessage } = summarize(result);
-        writeDragValidationDebounced({ targetId: `route:${targetRoute.id}`, severity, topMessage, result });
-        setDragOverTargetId(`route:${targetRoute.id}`);
-        // ── ETA-estimat: ekstra køretid (luftlinje × 1.3 ÷ 50 km/t) +
-        //    ny kapacitets-% baseret på job.duration_minutes. Grovt nok
-        //    til en live drag-preview uden ekstra netværkskald.
-        try {
-          const job = activeData.job ?? {};
-          let extraDriveMin: number | null = null;
-          if (job.latitude != null && job.longitude != null && stopsOnRoute.length) {
-            let nearestM = Infinity;
-            for (const s of stopsOnRoute) {
-              if (s.latitude == null || s.longitude == null) continue;
-              const d = haversineMeters(Number(job.latitude), Number(job.longitude), Number(s.latitude), Number(s.longitude));
-              if (d < nearestM) nearestM = d;
-            }
-            if (Number.isFinite(nearestM)) {
-              // tur/retur ~ 2× luftlinje × 1.3 omveje, 50 km/t snit
-              extraDriveMin = (nearestM * 2 * 1.3) / 1000 / 50 * 60;
-            }
-          }
-          const cap = capacityByDate.get(targetRoute.route_date);
-          let newLoadPct: number | null = null;
-          if (cap && cap.minutes_capacity > 0) {
-            const addMin = Number(job.duration_minutes) || 0;
-            newLoadPct = ((cap.minutes_booked + addMin) / cap.minutes_capacity) * 100;
-          }
-          setDragEta({ extraDriveMin, newLoadPct });
-        } catch { clearDragEta(); }
-        return;
-      }
-
-      // ── JOB → DAY (tom celle = ny rute): altid ok (men advar ved fortid) ──
-      if (activeData.type === "job" && overData.type === "day") {
-        const today = todayStr();
-        const result = overData.date < today
-          ? validateRouteMove({ id: "new", route_date: today }, overData.date)
-          : { ok: true, errors: [], warnings: [], suggestions: [] } as any;
-        const { severity, topMessage } = summarize(result);
-        writeDragValidationDebounced({ targetId: `day:${overData.date}`, severity, topMessage, result });
-        setDragOverTargetId(`day:${overData.date}`);
-        const cap = capacityByDate.get(overData.date);
-        const job = activeData.job ?? {};
-        let newLoadPct: number | null = null;
-        if (cap && cap.minutes_capacity > 0) {
-          const addMin = Number(job.duration_minutes) || 0;
-          newLoadPct = ((cap.minutes_booked + addMin) / cap.minutes_capacity) * 100;
-        }
-        setDragEta({ newLoadPct, message: "Opretter ny rute" });
-        return;
-      }
-
-      // ── ROUTE → DAY (flytning): tjek fortid, serie-kollision på datoen ──
-      if (activeData.type === "route" && overData.type === "day") {
-        const route = activeData.route;
-        if (!route) return clearDragValidation();
-        const baseId: string | null = route.base_route_id ?? route.baseRouteId ?? route.id ?? null;
-        const seriesRoutesOnTargetDate = calendarRoutesRaw.filter((r: any) =>
-          String(r.route_date).slice(0, 10) === overData.date
-          && r.id !== route.id
-          && (
-            (baseId && (r.id === baseId || r.base_route_id === baseId))
-            || (!baseId && r.id === route.id)
-          )
-        );
-        const projectedRoutesOnTargetDate = virtualCalendarRoutes.filter((r: any) =>
-          String(r.route_date).slice(0, 10) === overData.date
-          && r.baseRouteId === baseId
-          && r.id !== route.id,
-        );
-        const movedException = (routeOccurrenceExceptions as any[]).find((ex) =>
-          ex.exception_type === "moved"
-          && ex.replacement_route_id === route.id
-          && ex.base_route_id === baseId,
-        );
-        const isMovingMovedOccurrenceBack = !!movedException
-          && String(movedException.occurrence_date).slice(0, 10) === overData.date;
-        const result = validateRouteMove(
-          { id: route.id, route_date: route.route_date, isVirtual: route.isVirtual, baseRouteId: baseId },
-          overData.date,
-          { seriesRoutesOnTargetDate: isMovingMovedOccurrenceBack ? [] : [...seriesRoutesOnTargetDate, ...projectedRoutesOnTargetDate] },
-        );
-        const { severity, topMessage } = summarize(result);
-        writeDragValidationDebounced({ targetId: `day:${overData.date}`, severity, topMessage, result });
-        setDragOverTargetId(`day:${overData.date}`);
-        clearDragEta();
-        return;
-      }
-
-      // ── ROUTE → ROUTE (flet): blokér ved projection→projection ──
-      if (activeData.type === "route" && overData.type === "route") {
-        const source = activeData.route;
-        const target = calendarRoutesRaw.find((r) => r.id === overData.routeId) as any;
-        if (!source || !target) return clearDragValidation();
-        if (source.isVirtual && target.isVirtual) {
-          writeDragValidationDebounced({
-            targetId: `route:${target.id}`,
-            severity: "error",
-            topMessage: "Kan ikke flette to projicerede ruter",
-            result: { ok: false, errors: [], warnings: [], suggestions: [] } as any,
-          });
-          setDragOverTargetId(`route:${target.id}`);
-          clearDragEta();
-          return;
-        }
-        writeDragValidationDebounced({
-          targetId: `route:${target.id}`,
-          severity: "ok",
-          topMessage: "Slip her for at flette ruterne",
-          result: { ok: true, errors: [], warnings: [], suggestions: [] } as any,
-        });
-        setDragOverTargetId(`route:${target.id}`);
-        clearDragEta();
-        return;
-      }
-
-      clearDragValidation();
-      setDragOverTargetId(null);
-      clearDragEta();
-    } catch {
-      // Validering må ALDRIG kaste — ryd state stille og fald tilbage til
-      // den klassiske flow (drop-handler beholder sin egen guard).
-      clearDragValidation();
-      setDragOverTargetId(null);
-      clearDragEta();
-    }
-  };
-
-  const handleDragMove = (e: DragMoveEvent) => {
-    const origin = activeDragOriginRef.current;
-    if (!origin) return;
-    const point = { x: origin.x + e.delta.x, y: origin.y + e.delta.y };
-    activeDragPointRef.current = point;
-    if (e.active.data.current?.type === "route") {
-      activeRouteDragPointRef.current = point;
-      applyRouteOverlayPosition(point);
-    }
-  };
 
   // De øvrige kalender-callbacks afhænger af `openProjectedRoute` /
   // `handleOptimize` som er defineret nedenfor, så de bliver almindelige
@@ -2285,48 +2019,6 @@ const Planner = () => {
   // Hold ref opdateret så keyboard-shortcut'en "O" kan kalde den seneste version.
   optimizeRouteRef.current = handleCalendarOptimizeRoute;
 
-  /** Tjekker om en flytning af et stop til en ny dato vil overlappe
-   *  med en assignees øvrige stops på den dato. Returnerer en kort
-   *  beskrivende tekst (eller null hvis ingen konflikt). */
-  const detectAssigneeConflicts = (
-    stop: any,
-    targetDate: string,
-  ): string | null => {
-    const assignees: string[] = stop.assignee_ids || (stop.assigned_employee_id ? [stop.assigned_employee_id] : []);
-    if (assignees.length === 0) return null;
-    const dur = Number(stop.duration_minutes || 30);
-    const startMin = stop.planned_arrival
-      ? (() => { const d = new Date(stop.planned_arrival); return d.getHours() * 60 + d.getMinutes(); })()
-      : (stop.time_window_start ? toMin(stop.time_window_start) : null);
-    if (startMin == null) return null;
-    const endMin = startMin + dur;
-
-    // Find route_ids på targetDate
-    const targetRouteIds = new Set(
-      calendarRoutesRaw.filter((r) => r.route_date === targetDate).map((r) => r.id),
-    );
-    if (targetRouteIds.size === 0) return null;
-
-    const conflicts: string[] = [];
-    for (const other of calendarStops) {
-      if (other.id === stop.id) continue;
-      if (!targetRouteIds.has(other.route_id)) continue;
-      const otherIds: string[] = (other as any).assignee_ids || [];
-      const overlap = otherIds.some((id) => assignees.includes(id));
-      if (!overlap) continue;
-      const oStart = (other as any).planned_arrival
-        ? (() => { const d = new Date((other as any).planned_arrival); return d.getHours() * 60 + d.getMinutes(); })()
-        : (other.time_window_start ? toMin(other.time_window_start) : null);
-      if (oStart == null) continue;
-      const oEnd = oStart + Number(other.duration_minutes || 30);
-      if (startMin < oEnd && oStart < endMin) {
-        conflicts.push(other.customer_name || "Stop");
-      }
-    }
-    return conflicts.length === 0
-      ? null
-      : `Overlapper med ${conflicts.length === 1 ? conflicts[0] : `${conflicts.length} andre stops`}`;
-  };
 
   const handleDragEnd = async (e: DragEndEvent) => {
     const { active, over } = e;
