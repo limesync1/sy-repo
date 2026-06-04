@@ -1621,27 +1621,10 @@ const SettingsTab = ({ business }: { business: any }) => {
                     ) : (
                       <>
                         <p className="text-sm font-semibold text-foreground">
-                          {(() => {
-                            const ms = plan.trial_ends_at ? new Date(plan.trial_ends_at).getTime() - Date.now() : null;
-                            if (ms !== null && ms > 0) {
-                              const tot = Math.max(1, Math.floor(ms / 60_000));
-                              const d = Math.floor(tot / (60 * 24));
-                              const h = Math.floor((tot % (60 * 24)) / 60);
-                              const m = tot % 60;
-                              const parts: string[] = [];
-                              if (d > 0) parts.push(`${d} ${d === 1 ? "dag" : "dage"}`);
-                              if (h > 0) parts.push(`${h} ${h === 1 ? "time" : "timer"}`);
-                              if (m > 0 && d === 0) parts.push(`${m} min`);
-                              if (parts.length === 0) parts.push(`${m} min`);
-                              const joined = parts.length > 1
-                                ? `${parts.slice(0, -1).join(", ")} og ${parts[parts.length - 1]}`
-                                : parts[0];
-                              return `${joined} tilbage af din prøveperiode`;
-                            }
-                            const dl = plan.days_left;
-                            if (dl === null) return "Din prøveperiode er aktiv";
-                            return `${dl} dage tilbage af din prøveperiode`;
-                          })()}
+                          <TrialCountdownText
+                            trialEndsAt={plan.trial_ends_at}
+                            daysLeft={plan.days_left}
+                          />
                         </p>
                         <p className="mt-1 text-xs text-muted-foreground">
                           Husk at tilføje et betalingskort inden 3 dage — ellers bliver din virksomhed deaktiveret fra Serviceydere.
