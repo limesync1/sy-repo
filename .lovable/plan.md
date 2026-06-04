@@ -1,82 +1,111 @@
-# Plan: Occurrence-baseret ruteflow — fase 2
+## Mål
 
-Bygger videre på den eksisterende `agreement_occurrences`-infrastruktur og den allerede synlige historik i ruteplanlæggeren. Fire delopgaver, hver med tydelig DB- og UI-effekt.
+Reducere teknisk gæld i ruteplanlæggeren uden at ændre datamodel eller forretningslogik. Flytte domænelogik ud af `RoutePlanner.tsx` til testbare moduler, gøre projekteringen eksplicit, dokumentere trigger-flowet, og indføre hybrid materialisering for nær-fremtidige ruter.
 
-## 1. Redigerbare fremtidige projektioner (Kørsel 2+)
+Arbejdet leveres i 5 faser, hvor hver fase kan rulles ud uafhængigt og verificeres for sig. Ingen UI-ændringer for slutbrugeren; alle eksisterende tests og guards skal fortsat passere.
 
-**DB**
-- Sikr at `agreement_occurrence_overrides` har felterne: `agreement_id`, `original_date`, `new_date`, `new_time`, `status` (`moved` | `skipped`), `created_by`. Tilføj unique `(agreement_id, original_date)`.
-- RLS: business-medlemmer kan CRUD egne overrides.
-- Trigger: ved insert/update, hvis `new_date < today` → afvis (kan ikke ændre fortid).
-- Trigger: hvis der findes en `agreement_occurrence` med `status='completed'` og samme `occurrence_date` → afvis (historik er låst).
+---
 
-**Frontend**
-- `recurring-projection.ts`: læs overrides og anvend dem på projicerede datoer (flyt/skip), uden at røre completed occurrences.
-- I `RouteStopsPanel` / `CalendarPlanner`: projicerede stops får et "flyt"-ikon, der åbner `MoveProjectedOccurrenceDialog` (eksisterer allerede).
-- Bekræft-knap kalder ny RPC `move_projected_occurrence(agreement_id, original_date, new_date, new_time)`.
+## Fase 1 — Projection engine (isoleret, testbart modul)
 
-## 2. Server-side guard mod for tidlig udførelse
+**Ny mappe:** `src/lib/route-projection/`
 
-**DB-trigger på `route_stops` BEFORE UPDATE**
-```sql
-if NEW.status = 'completed' and OLD.status <> 'completed' then
-  if (route_date + coalesce(planned_arrival, '00:00')) > now() then
-    raise exception 'OCCURRENCE_NOT_YET_DUE'
-      using hint = 'Kan først udføres ' || to_char(...);
-  end if;
-end if;
-```
-- Placeres som første step i `handle_route_stop_completion` (eller dedikeret guard-trigger der fyrer før).
-- UI fanger fejlen via `mapPostgresError` og viser dansk besked.
-
-## 3. Tidslinje på basisruten
-
-**Frontend kun** — ingen DB-ændringer.
-- Nyt komponent `RouteOccurrenceTimeline.tsx` i `src/components/route-planner/`:
-  - Vandret tidslinje øverst i basisrute-visningen.
-  - Viser én node pr. kørsel: ✓ Udført (dato+tid), ⏳ Næste (dato+tid, evt. "låst indtil X"), … fremtidige projektioner.
-  - Læser fra `agreement_occurrences` + projektioner.
-- Integreres i `RouteStopsPanel` når den valgte rute har tilbagevendende aftaler.
-
-## 4. Idempotent fakturering pr. occurrence
-
-**DB**
-- Tilføj kolonne `invoice_jobs.occurrence_id uuid` + unique index `(occurrence_id) where occurrence_id is not null`.
-- Opdatér `enqueue_invoice_when_route_stop_completed`:
-  - Slå `occurrence_id` op fra det netop completede stop.
-  - `insert ... on conflict (occurrence_id) do nothing` → garanterer kun én job pr. kørsel.
-- Tilsvarende guard i edge function `accounting-sync`: før ordreoprettelse, tjek `accounting_orders` for eksisterende `occurrence_id`.
-- Tilføj `accounting_orders.occurrence_id` med samme unique constraint.
-
-**Retry-sikkerhed**
-- Edge function wrappes i transaktion med `select … for update` på job-rækken.
-- Ved exception sættes `status='failed'`, men `occurrence_id` ligger stadig som unique → en evt. retry kan ikke skabe duplikat.
-
-## Teknisk ændringssæt
+Opdel den nuværende projekteringslogik (i dag spredt mellem `recurring-projection.ts` og inline-blokke i `RoutePlanner.tsx` ca. linje 1530–1700) i navngivne trin, hver som ren funktion:
 
 ```text
-DB migrations (ny)
-├── agreement_occurrence_overrides: constraints + trigger (fortid/completed)
-├── route_stops BEFORE UPDATE guard: OCCURRENCE_NOT_YET_DUE
-├── invoice_jobs.occurrence_id + unique index
-├── accounting_orders.occurrence_id + unique index
-├── enqueue_invoice_when_route_stop_completed → on conflict do nothing
-└── RPC move_projected_occurrence(...)
-
-Edge functions
-└── accounting-sync: pre-check + for-update lock
-
-Frontend
-├── src/lib/recurring-projection.ts: anvend overrides
-├── src/components/route-planner/RouteOccurrenceTimeline.tsx (ny)
-├── src/components/route-planner/RouteStopsPanel.tsx: integrér timeline + flyt-knap
-├── src/components/route-planner/MoveProjectedOccurrenceDialog.tsx: kald ny RPC
-└── src/lib/route-errors.ts: mapping for OCCURRENCE_NOT_YET_DUE
+buildRecurringSources()
+  → expandCadence()        // raw datoer fra basisrute
+  → applyOverrides()       // moves / cancels fra agreement_occurrence_overrides
+  → applyPauses()          // pause-perioder
+  → applyHolidays()        // helligdage
+  → applyOccurrenceShifts()// projected shifts
+  → dedupeAgainstRealRoutes()
+  → filterStopsByOccurrenceDate()
+→ ProjectedRoute[]
 ```
 
-## Forventet resultat
+Hver funktion får signaturen `(input, ctx) => output` uden side effects. En `runProjection(sources, ctx)` orkestrerer kæden.
 
-- Kørsel 2+ kan flyttes/skippes direkte fra planlæggeren; Kørsel 1 (udført) er låst.
-- Selv hvis nogen manipulerer UI'et, afviser DB at markere en occurrence udført før dens tidspunkt.
-- Basisruten har en visuel tidslinje der gør "hvad er gjort / hvad mangler / hvornår låses næste op" øjeblikkeligt forståeligt.
-- Faktura + regnskabsordre kan aldrig oprettes to gange for samme occurrence — heller ikke ved retries eller race conditions.
+**Tests:** `src/lib/route-projection/__tests__/` med vitest — én testfil pr. trin, plus end-to-end-cases (override + pause + helligdag samtidigt, kollision med ægte rute, mv.).
+
+**Acceptkriterium:** `useCalendarData` kalder kun `runProjection(...)` og udleder ikke længere logik selv. Snapshot-tests viser at output er identisk med før refaktoreringen for et sæt produktion-lignende inputs.
+
+---
+
+## Fase 2 — Opdeling af RoutePlanner.tsx
+
+Nuværende `src/pages/RoutePlanner.tsx` (~6.600 linjer, ~80 useState, ~40 useMemo) splittes i dedikerede hooks og en slank container.
+
+**Nye hooks under `src/hooks/route-planner/`:**
+
+- `useProjectedCalendar()` — wrapper omkring projection engine + `useCalendarData`, returnerer `calendarRoutes`, `loading`, `refetch`.
+- `useRoutePlannerSelection()` — markerede ruter/stop, multi-select, fokus.
+- `useRoutePlannerDnd()` — `@dnd-kit` sensorer, kollisionsdetektion, drag-validation, drop-handlers.
+- `useRouteDialogs()` — åbn/luk-state for `MoveRouteDateDialog`, `MoveProjectedOccurrenceDialog`, `RouteEditSheet`, etc.
+- `useRoutePlannerUndo()` — undo/redo-stak for flytninger og aflysninger.
+- `useRoutePlannerFilters()` — medarbejder, status, søgning, dato-range.
+
+Container `RoutePlanner.tsx` reduceres til layout + komposition af hooks (mål: under 800 linjer). Ingen forretningslogik i selve komponenten.
+
+**Acceptkriterium:** Eksisterende E2E-flow (planlæg, flyt, udfør, undo) virker uændret. Linjetælling i `RoutePlanner.tsx` < 800.
+
+---
+
+## Fase 3 — Samlet UI-state via reducer
+
+Erstat fragmenteret `useState`-mængde med én `useReducer` pr. hook fra Fase 2, eller en let zustand-store hvis state krydser hooks (selektion + dialog + dnd samtidig).
+
+Actions navngives eksplicit: `SELECT_STOP`, `OPEN_MOVE_DIALOG`, `COMMIT_MOVE`, `UNDO_LAST`, etc. Hver action har en pure reducer-test.
+
+**Acceptkriterium:** Ingen `useState` tilbage i `RoutePlanner.tsx`. Reducer-tests dækker alle actions.
+
+---
+
+## Fase 4 — Trigger-dokumentation og diagram
+
+Opret `docs/route-stops-triggers.md` med:
+
+- Tabel over alle 17 triggers på `route_stops` (navn, BEFORE/AFTER, event, formål, rækkefølge).
+- Mermaid-diagram af flowet ved `UPDATE status='completed'`: guard → completion-handler → next-occurrence → invoice-enqueue → accounting-sync → unique-constraint-checks.
+- Sektion "Hvad sker der hvis trigger X fejler" pr. trigger.
+- Link fra `RoutePlanner.tsx`-header-kommentar og fra migration-mappen.
+
+Ingen kodeændringer i denne fase — kun dokumentation. Forberedende skridt for evt. senere migration til eksplicit event-bus.
+
+**Acceptkriterium:** Dokumentet review'es; udvikler kan på 5 minutter forklare hvad der sker når et stop markeres udført.
+
+---
+
+## Fase 5 — Hybrid materialisering (30-60 dages vindue)
+
+Ny cron + RPC der pre-materialiserer projicerede occurrences for et rullende vindue:
+
+- `materialize_upcoming_occurrences(window_days int)` — indsætter manglende `agreement_occurrences` for alle aktive recurring sources hvor `planned_arrival` ligger i `[now, now + window_days]`.
+- Kører dagligt via eksisterende `recurring-orders` cron (eller ny separat schedule).
+- Idempotent via eksisterende unique constraint `(agreement_id, sequence_index)`.
+- Projection engine får ny ctx-flag `materializedRange` så `dedupeAgainstRealRoutes()` ved at alt i vinduet kommer fra DB.
+
+**Acceptkriterium:** Efter cron-kørsel findes DB-rækker for alle forekomster i de næste 30 dage. Drag-and-drop i nær-fremtid rammer ægte rækker (ingen lazy `useMoveProjectedOccurrence`-sti). Projektion længere ude virker uændret.
+
+**Note:** Vinduesstørrelse (30 vs. 60 dage) gøres til konfig-værdi; default 30.
+
+---
+
+## Teknisk detalje
+
+**Filer der røres (forventet):**
+- Nye: `src/lib/route-projection/*`, `src/hooks/route-planner/*`, `docs/route-stops-triggers.md`, migration for `materialize_upcoming_occurrences` RPC + cron.
+- Ændres: `src/pages/RoutePlanner.tsx` (krymper kraftigt), `src/hooks/useCalendarData.ts`, `src/lib/recurring-projection.ts` (flyttes ind under nyt modul).
+- Uændret: datamodel, triggers, RLS, edge functions, alle UI-komponenter under `src/components/route-planner/`.
+
+**Test-strategi:** Vitest til projection engine + reducers. Eksisterende `completion-guard.test.ts` udvides ikke. Manuel røgtest af planlægger-UI efter hver fase.
+
+**Rollback:** Hver fase er bagudkompatibel; feature-flag `useNewProjectionEngine` i fase 1 tillader øjeblikkelig tilbagerulning hvis snapshot-tests afviger i produktion.
+
+---
+
+## Rækkefølge og uafhængighed
+
+Fase 1 og 4 kan startes parallelt (engine + dokumentation). Fase 2 kræver Fase 1. Fase 3 kræver Fase 2. Fase 5 kan ske når som helst efter Fase 1, men giver mest værdi efter Fase 2.
+
+Anbefalet leveringsrækkefølge: **1 → 4 → 2 → 3 → 5**.
