@@ -129,7 +129,6 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
   const [tplDraft, setTplDraft] = useState<{ id?: string; title: string; content: string }>({ title: "", content: "" });
   const [previewTpl, setPreviewTpl] = useState<Template | null>(null);
   const [employees, setEmployees] = useState<EmployeeOption[]>([]);
-  const [tick, setTick] = useState(0); // bruges til at re-rendere SLA-pillen hvert minut
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -146,12 +145,6 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
   // efterfølgende load. Sættes i activeId-effekten, ryddes når vi har
   // scrollet for den pågældende samtale.
   const forceBottomOnNextRenderRef = useRef(false);
-
-  // SLA-tæller — opdater 1× pr. 30s for at holde "X min uden svar" frisk
-  useEffect(() => {
-    const id = window.setInterval(() => setTick((t) => t + 1), 30_000);
-    return () => window.clearInterval(id);
-  }, []);
 
   // Hold afsendernavnet i sync med virksomhedens navn (i tilfælde af at det
   // ændres mens fanen er åben). Vi henter IKKE længere brugerens eget navn.
