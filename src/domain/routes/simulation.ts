@@ -123,3 +123,57 @@ export const simulate = (
     diffCount: allChanges.length,
   };
 };
+
+/* ─── Hjælpere til UI ─────────────────────────────────────────────────── */
+
+export type SimulationSummary = {
+  movedCount: number;
+  reassignedCount: number;
+  cancelledCount: number;
+  conflictCount: number;
+  errorCount: number;
+  warningCount: number;
+  affectedEmployees: string[];
+  affectedDates: string[];
+};
+
+/**
+ * Komprimerer et `SimulationResult` til tal/lister der nemt kan vises i en
+ * "What-if"-toast eller diff-panel uden ekstra mapping i UI'et.
+ */
+export const summarizeResult = (result: SimulationResult): SimulationSummary => {
+  const emp = new Set<string>();
+  const dates = new Set<string>();
+  let moved = 0, reassigned = 0, cancelled = 0;
+  for (const ch of result.changes) {
+    if (ch.kind === "moved") moved += 1;
+    else if (ch.kind === "reassigned") reassigned += 1;
+    else if (ch.kind === "cancelled") cancelled += 1;
+    for (const id of [...ch.before.employeeIds, ...ch.after.employeeIds]) emp.add(id);
+    if (ch.before.date) dates.add(ch.before.date);
+    if (ch.after.date) dates.add(ch.after.date);
+  }
+  let errors = 0, warnings = 0;
+  for (const c of result.conflicts) {
+    if (c.severity === "error") errors += 1;
+    else if (c.severity === "warning") warnings += 1;
+  }
+  return {
+    movedCount: moved,
+    reassignedCount: reassigned,
+    cancelledCount: cancelled,
+    conflictCount: result.conflicts.length,
+    errorCount: errors,
+    warningCount: warnings,
+    affectedEmployees: [...emp].sort(),
+    affectedDates: [...dates].sort(),
+  };
+};
+
+/**
+ * Bekvemmeligheds-check: er actionen sikker at committe? Returnerer false hvis
+ * simulationen forudsiger error-konflikter. Warnings blokerer ikke.
+ */
+export const isSafeToCommit = (result: SimulationResult): boolean => {
+  return !result.conflicts.some((c) => c.severity === "error");
+};
