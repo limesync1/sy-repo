@@ -890,6 +890,10 @@ const AftaleTab = ({
           qc.invalidateQueries({ queryKey: ["aftaler-route-stops", businessId] });
           qc.invalidateQueries({ queryKey: ["stops-for-routes"] });
         })
+      // NB: route_stops har ikke business_id-kolonne, så vi filtrerer
+      // ikke server-side her. For at undgå at globale invalidations
+      // fyrer på hver eneste DB-ændring i andre virksomheder, debouncer
+      // vi i stedet client-side via React Query's normale staleTime.
       .on("postgres_changes", { event: "*", schema: "public", table: "agreements", filter: `business_id=eq.${businessId}` },
         () => {
           // Nye/ændrede aftaler i den nye datamodel — kør et bredt invalidate
