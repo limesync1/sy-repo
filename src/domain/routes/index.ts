@@ -37,6 +37,30 @@ export { detectConflicts } from "@/lib/route-conflicts";
 export type { Conflict, ConflictStop } from "@/lib/route-conflicts";
 
 export { runProjection } from "@/lib/route-projection";
+export type {
+  ProjectionInput,
+  ProjectionResult,
+  ProjectionSource,
+  ProjectedRoute,
+  AgreementOccurrenceOverride,
+  AgreementPauseRange,
+  RouteOccurrenceExceptionLike,
+} from "@/lib/route-projection";
+
+export {
+  expandRecurringRoutes,
+  expandProjectionWindowForShiftedOccurrences,
+  resolveProjectionExceptions,
+  applyProjectedOccurrenceShifts,
+  recurringSourceKeysForStop,
+  intervalToDays,
+} from "@/lib/recurring-projection";
+
+export {
+  estimateOptimizationGain,
+  markOptimizeDismissed,
+} from "@/lib/optimize-savings-estimate";
+export type { OptimizeEstimate } from "@/lib/optimize-savings-estimate";
 
 export {
   classifyDrop,
