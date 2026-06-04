@@ -4599,6 +4599,10 @@ export type Database = {
         Args: { _business_id: string; _from: string; _to: string }
         Returns: undefined
       }
+      materialize_upcoming_occurrences: {
+        Args: { _window_days?: number }
+        Returns: Json
+      }
       materialize_virtual_route: {
         Args: { _base_route_id: string; _date: string }
         Returns: {
