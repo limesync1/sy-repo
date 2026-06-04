@@ -105,6 +105,7 @@ import {
   resolveProjectionExceptions,
   applyProjectedOccurrenceShifts,
 } from "@/lib/recurring-projection";
+import { runProjection } from "@/lib/route-projection";
 import { intervalToCadence } from "@/lib/interval";
 import { formatDurationMin } from "@/lib/duration-format";
 import { useAgreementPauses } from "@/hooks/useAgreementPauses";
