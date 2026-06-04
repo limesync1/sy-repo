@@ -1,7 +1,6 @@
 import { differenceInCalendarDays, parseISO } from "date-fns";
 import { useEffect, useState } from "react";
-import { useRouteSeriesInfo } from "@/hooks/useRouteSeriesInfo";
-import type { Route } from "@/hooks/useRoutes";
+import { useRouteSeriesInfo, type Route } from "@/hooks/useRoutes";
 
 /**
  * useRoutePlannerWorkflowState
