@@ -4,7 +4,7 @@ import { Navigate, Link } from "react-router-dom";
 import { useState, lazy, Suspense, useEffect } from "react";
 import {
   LayoutDashboard, Building2, Users, ShoppingCart, Star,
-  LogOut, Menu, X, Repeat, Settings, MessageCircle, ExternalLink, Globe, History, Search, HeartPulse, Mail, Shield, Keyboard, AlertTriangle,
+  LogOut, Menu, X, Repeat, Settings, MessageCircle, ExternalLink, Globe, History, Search, HeartPulse, Mail, Shield, Keyboard, AlertTriangle, Activity,
 } from "lucide-react";
 import SEO from "@/components/SEO";
 import { cn } from "@/lib/utils";
@@ -42,6 +42,7 @@ const PlatformLiveChatTab = lazy(() => import("@/components/platform-admin/Platf
 const PlatformDomainsTab = lazy(() => import("@/components/platform-admin/PlatformDomainsTab"));
 const PlatformAuditLogTab = lazy(() => import("@/components/platform-admin/PlatformAuditLogTab"));
 const PlatformRouteErrorsTab = lazy(() => import("@/components/platform-admin/PlatformRouteErrorsTab"));
+const PlatformRouteEventsTab = lazy(() => import("@/components/platform-admin/PlatformRouteEventsTab"));
 const PlatformHealthTab = lazy(() => import("@/components/platform-admin/PlatformHealthTab"));
 const PlatformMailsTab = lazy(() => import("@/components/platform-admin/PlatformMailsTab"));
 const PlatformSecurityTab = lazy(() => import("@/components/platform-admin/PlatformSecurityTab"));
@@ -68,6 +69,7 @@ const NAV_GROUPS: { label: string; items: { value: string; label: string; icon: 
       { value: "domains", label: "Domæner", icon: Globe },
       { value: "audit", label: "Aktivitetslog", icon: History },
       { value: "route-errors", label: "Rutefejl", icon: AlertTriangle },
+      { value: "route-events", label: "Domæne-events", icon: Activity },
       { value: "health", label: "Sundhed", icon: HeartPulse },
       { value: "mails", label: "Mails", icon: Mail },
       { value: "security", label: "Sikkerhed", icon: Shield },
@@ -91,6 +93,7 @@ const TAB_PREFETCH: Record<string, () => Promise<unknown>> = {
   domains: () => import("@/components/platform-admin/PlatformDomainsTab"),
   audit: () => import("@/components/platform-admin/PlatformAuditLogTab"),
   "route-errors": () => import("@/components/platform-admin/PlatformRouteErrorsTab"),
+  "route-events": () => import("@/components/platform-admin/PlatformRouteEventsTab"),
   health: () => import("@/components/platform-admin/PlatformHealthTab"),
   mails: () => import("@/components/platform-admin/PlatformMailsTab"),
   security: () => import("@/components/platform-admin/PlatformSecurityTab"),
@@ -353,6 +356,7 @@ const PlatformAdmin = () => {
                   {tab === "domains" && <PlatformDomainsTab />}
                   {tab === "audit" && <PlatformAuditLogTab />}
                   {tab === "route-errors" && <PlatformRouteErrorsTab />}
+                  {tab === "route-events" && <PlatformRouteEventsTab />}
                   {tab === "health" && <PlatformHealthTab />}
                   {tab === "mails" && <PlatformMailsTab />}
                   {tab === "security" && <PlatformSecurityTab />}
