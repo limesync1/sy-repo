@@ -733,69 +733,6 @@ const Planner = () => {
   // PointerSensor importeres for bagudkompatibilitet men er bevidst ikke
   // aktiv — Mouse/Touch dækker alle scenarier stabilt.
   void PointerSensor;
-  const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 8 } }),
-    useSensor(KeyboardSensor),
-  );
-  const routePlannerCollisionDetection = useCallback<CollisionDetection>((args) => {
-    const activeType = args.active.data.current?.type;
-    const pointerCollisions = pointerWithin(args);
-    if (pointerCollisions.length > 0) {
-      // Når en aftale trækkes hen over en rute, kan dnd-kit nogle gange
-      // rapportere dag-cellen først (fordi den ligger som større parent).
-      // DOM-hit-testen afgør derfor rute-pillen eksplicit, så aftalen ender
-      // på den konkrete rute og ikke fejlagtigt som "ny rute på dagen".
-      if (activeType === "job") {
-        const pointTarget = getRouteDropPointTarget(activeDragPointRef.current, null);
-        if (pointTarget?.type === "route") {
-          const routeHit = args.droppableContainers.find((container) => container.id === `route-drop:${pointTarget.routeId}`);
-          if (routeHit) return [{ id: routeHit.id }];
-        }
-      }
-      // Ved rute-drag foretrækker vi altid en rute-droppable hvis pointeren
-      // er over både en dag-celle OG en rute i den celle — ellers bliver
-      // route→route merge fejlagtigt fortolket som route→day move (fordi
-      // pointerWithin nogle gange returnerer dag-cellen først).
-      if (activeType === "route") {
-        const sourceRouteId = routeIdFromDndId(args.active.id);
-        const routeHit = pointerCollisions.find((c) => {
-          const container = args.droppableContainers.find((d) => d.id === c.id);
-          return container?.data.current?.type === "route"
-            && container?.data.current?.routeId !== sourceRouteId;
-        });
-        if (routeHit) return [routeHit];
-        const nonSourceHits = pointerCollisions.filter((c) => {
-          const container = args.droppableContainers.find((d) => d.id === c.id);
-          return !(container?.data.current?.type === "route" && container?.data.current?.routeId === sourceRouteId);
-        });
-        if (nonSourceHits.length > 0) return nonSourceHits;
-      }
-      return pointerCollisions;
-    }
-
-    const dragPoint = activeType === "route" ? activeRouteDragPointRef.current : activeDragPointRef.current;
-    if (dragPoint && (activeType === "route" || activeType === "job")) {
-      const pointTarget = getRouteDropPointTarget(dragPoint, activeType === "route" ? routeIdFromDndId(args.active.id) : null);
-      const targetId = pointTarget?.type === "route"
-        ? `route-drop:${pointTarget.routeId}`
-        : pointTarget?.type === "day"
-          ? `day:${pointTarget.date}`
-          : null;
-      const routePointerCollision = targetId
-        ? args.droppableContainers.find((container) => container.id === targetId)
-        : null;
-      if (routePointerCollision) return [{ id: routePointerCollision.id }];
-    }
-
-    // Route-drag kan nogle gange miste pointer-hit på desktop, især når den
-    // trukne rute ligger over små kalenderceller. Fallback til overlap gør
-    // drop stabilt uden at ændre job/stop-drop adfærd.
-    return activeType === "route"
-      ? rectIntersection(args)
-      : pointerCollisions;
-  }, []);
-
   /** Kundens ønskede dato — preferred_date primært, ellers next_service_date (abonnement). */
   const effectiveJobDate = (j: any): string | null => {
     if (j.preferred_date) return j.preferred_date;
