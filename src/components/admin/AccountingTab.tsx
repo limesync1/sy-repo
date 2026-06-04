@@ -1758,11 +1758,11 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               <dl className="mt-3 space-y-1.5 text-xs">
                 <div className="flex justify-between gap-2">
                   <dt className="text-muted-foreground">Sidst lykkedes</dt>
-                  <dd className="text-foreground tabular-nums">{formatRelativeDanish(lastSuccessPush)}</dd>
+                  <dd className="text-foreground tabular-nums"><RelativeTime iso={lastSuccessPush} /></dd>
                 </div>
                 <div className="flex justify-between gap-2">
                   <dt className="text-muted-foreground">Sidste forsøg</dt>
-                  <dd className="text-foreground tabular-nums">{formatRelativeDanish(integration.last_push_at)}</dd>
+                  <dd className="text-foreground tabular-nums"><RelativeTime iso={integration.last_push_at} /></dd>
                 </div>
                 <div className="flex justify-between gap-2">
                   <dt className="text-muted-foreground">Sendt seneste 24 t.</dt>
@@ -1802,11 +1802,11 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               <dl className="mt-3 space-y-1.5 text-xs">
                 <div className="flex justify-between gap-2">
                   <dt className="text-muted-foreground">Sidst lykkedes</dt>
-                  <dd className="text-foreground tabular-nums">{formatRelativeDanish(lastSuccessPull)}</dd>
+                  <dd className="text-foreground tabular-nums"><RelativeTime iso={lastSuccessPull} /></dd>
                 </div>
                 <div className="flex justify-between gap-2">
                   <dt className="text-muted-foreground">Sidste forsøg</dt>
-                  <dd className="text-foreground tabular-nums">{formatRelativeDanish(integration.last_pull_at)}</dd>
+                  <dd className="text-foreground tabular-nums"><RelativeTime iso={integration.last_pull_at} /></dd>
                 </div>
                 <div className="flex justify-between gap-2">
                   <dt className="text-muted-foreground">Hentet seneste 24 t.</dt>
@@ -1868,7 +1868,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                         {operationDanish(job.operation)} ikke
                       </span>
                       <span className="text-xs text-muted-foreground tabular-nums">
-                        {formatRelativeDanish(job.updated_at)}
+                        <RelativeTime iso={job.updated_at} />
                       </span>
                     </div>
                     <div className="break-words rounded-md border border-destructive/20 bg-destructive/5 px-2.5 py-1.5 text-xs text-destructive">
@@ -1928,7 +1928,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                         {ENTITY_LABEL[job.entity_type] ?? job.entity_type}
                       </Badge>
                       <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                        {operationDanish(job.operation)} ikke · {formatRelativeDanish(job.moved_to_dlq_at)}
+                        {operationDanish(job.operation)} ikke · <RelativeTime iso={job.moved_to_dlq_at} />
                       </span>
                     </div>
                     <div className="break-words rounded-md border border-destructive/20 bg-destructive/5 px-2.5 py-1.5 text-xs text-destructive">
