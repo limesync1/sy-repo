@@ -119,6 +119,7 @@ import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { Monitor, MousePointer2, Map as MapIcon, LayoutGrid, ArrowLeft, Copy, Check, Rows3, MoreHorizontal, Layers } from "lucide-react";
 import RoutePlannerMobile from "@/components/route-planner/mobile/RoutePlannerMobile";
 import { usePersistentState } from "@/hooks/usePersistentState";
+import { useRouteDialogs } from "@/hooks/route-planner/useRouteDialogs";
 import { pushRouteUndo, routeHistory } from "@/lib/route-history";
 import { useRouteHistory } from "@/hooks/useRouteHistory";
 import { toastSuccessWithUndo } from "@/lib/toast-undo";
