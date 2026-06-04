@@ -114,17 +114,16 @@ const LeadsTab = ({ businessId }: { businessId: string }) => {
     if (toFetch.length === 0) return;
     let cancelled = false;
     (async () => {
-      const results = await Promise.all(
-        toFetch.map(async (l) => {
-          const { data } = await supabase.rpc("get_quote_request_contact", {
-            p_quote_request_id: l.quote_request!.id,
-          });
-          const row = Array.isArray(data) ? data[0] : data;
-          return { id: l.quote_request!.id, row };
-        })
-      );
+      // Ét batched RPC i stedet for ét pr. lead (N+1 → 1).
+      const ids = Array.from(new Set(toFetch.map((l) => l.quote_request!.id)));
+      const { data } = await (supabase as any).rpc("get_quote_request_contacts", {
+        p_ids: ids,
+      });
       if (cancelled) return;
-      const byId = new Map(results.map((r) => [r.id, r.row]));
+      const byId = new Map<string, any>();
+      for (const row of (data || []) as any[]) {
+        byId.set(row.quote_request_id, row);
+      }
       setLeads((prev) =>
         (prev ?? []).map((l) => {
           const qr = l.quote_request;

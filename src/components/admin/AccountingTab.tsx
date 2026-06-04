@@ -182,6 +182,22 @@ const formatRelativeDanish = (iso: string | null): string => {
   return new Date(iso).toLocaleDateString("da-DK");
 };
 
+/**
+ * Lille selvstændig komponent der re-renderer sig selv hvert minut for at
+ * holde "X min siden"-teksten retvisende. Det erstatter en tidligere
+ * setInterval i hele AccountingTab-komponenten, der hvert minut tvang ~2500
+ * linjers JSX til at re-render bare for at opdatere et par små spans.
+ */
+const RelativeTime: React.FC<{ iso: string | null }> = React.memo(({ iso }) => {
+  const [, tick] = React.useState(0);
+  React.useEffect(() => {
+    const t = setInterval(() => tick((n) => n + 1), 60_000);
+    return () => clearInterval(t);
+  }, []);
+  return <>{formatRelativeDanish(iso)}</>;
+});
+RelativeTime.displayName = "RelativeTime";
+
 // Cron-jobbet kører hver hele time (HH:00). Beregn hvornår næste kørsel er.
 const nextHourlyRun = (): Date => {
   const d = new Date();
@@ -568,12 +584,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   }>({ customer_groups: [], product_groups: [], income_accounts: [], labels: {} });
   const [groupsLoading, setGroupsLoading] = useState(false);
   const [lastSuccessPull, setLastSuccessPull] = useState<string | null>(null);
-  // Re-render hvert minut så "om X min"-tæller forbliver retvisende
-  const [, setNowTick] = useState(0);
-  useEffect(() => {
-    const t = setInterval(() => setNowTick(n => n + 1), 60_000);
-    return () => clearInterval(t);
-  }, []);
+  // Tidligere stod der her en setInterval(60s) som re-renderede hele fanen
+  // for at opdatere "X min siden"-tekster. Det er nu flyttet ind i den lille
+  // <RelativeTime/> komponent øverst, så kun de enkelte spans re-renderer.
   const [confirmDisable, setConfirmDisable] = useState(false);
   const setupRunRef = useRef(0);
   const [retryingJobId, setRetryingJobId] = useState<string | null>(null);
@@ -1745,11 +1758,11 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               <dl className="mt-3 space-y-1.5 text-xs">
                 <div className="flex justify-between gap-2">
                   <dt className="text-muted-foreground">Sidst lykkedes</dt>
-                  <dd className="text-foreground tabular-nums">{formatRelativeDanish(lastSuccessPush)}</dd>
+                  <dd className="text-foreground tabular-nums"><RelativeTime iso={lastSuccessPush} /></dd>
                 </div>
                 <div className="flex justify-between gap-2">
                   <dt className="text-muted-foreground">Sidste forsøg</dt>
-                  <dd className="text-foreground tabular-nums">{formatRelativeDanish(integration.last_push_at)}</dd>
+                  <dd className="text-foreground tabular-nums"><RelativeTime iso={integration.last_push_at} /></dd>
                 </div>
                 <div className="flex justify-between gap-2">
                   <dt className="text-muted-foreground">Sendt seneste 24 t.</dt>
@@ -1789,11 +1802,11 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
               <dl className="mt-3 space-y-1.5 text-xs">
                 <div className="flex justify-between gap-2">
                   <dt className="text-muted-foreground">Sidst lykkedes</dt>
-                  <dd className="text-foreground tabular-nums">{formatRelativeDanish(lastSuccessPull)}</dd>
+                  <dd className="text-foreground tabular-nums"><RelativeTime iso={lastSuccessPull} /></dd>
                 </div>
                 <div className="flex justify-between gap-2">
                   <dt className="text-muted-foreground">Sidste forsøg</dt>
-                  <dd className="text-foreground tabular-nums">{formatRelativeDanish(integration.last_pull_at)}</dd>
+                  <dd className="text-foreground tabular-nums"><RelativeTime iso={integration.last_pull_at} /></dd>
                 </div>
                 <div className="flex justify-between gap-2">
                   <dt className="text-muted-foreground">Hentet seneste 24 t.</dt>
@@ -1855,7 +1868,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                         {operationDanish(job.operation)} ikke
                       </span>
                       <span className="text-xs text-muted-foreground tabular-nums">
-                        {formatRelativeDanish(job.updated_at)}
+                        <RelativeTime iso={job.updated_at} />
                       </span>
                     </div>
                     <div className="break-words rounded-md border border-destructive/20 bg-destructive/5 px-2.5 py-1.5 text-xs text-destructive">
@@ -1915,7 +1928,7 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
                         {ENTITY_LABEL[job.entity_type] ?? job.entity_type}
                       </Badge>
                       <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                        {operationDanish(job.operation)} ikke · {formatRelativeDanish(job.moved_to_dlq_at)}
+                        {operationDanish(job.operation)} ikke · <RelativeTime iso={job.moved_to_dlq_at} />
                       </span>
                     </div>
                     <div className="break-words rounded-md border border-destructive/20 bg-destructive/5 px-2.5 py-1.5 text-xs text-destructive">

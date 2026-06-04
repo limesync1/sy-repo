@@ -30,6 +30,7 @@ export const useEmployeeSkills = (employeeId?: string) =>
       if (error) throw error;
       return (data ?? []) as EmployeeSkill[];
     },
+    staleTime: 60_000,
   });
 
 /** Alle skills for et firma — bruges til at vise hvem kan hvad i forslag. */
@@ -45,6 +46,7 @@ export const useAllEmployeeSkills = (businessId?: string) =>
       if (error) throw error;
       return (data ?? []) as EmployeeSkill[];
     },
+    staleTime: 60_000,
   });
 
 /** Erstatter hele skill-sættet for en medarbejder. Skills er brancher, ikke services. */

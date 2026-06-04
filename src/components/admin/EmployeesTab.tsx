@@ -22,7 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ROUTE_COLORS } from "@/components/route-planner/RouteEditSheet";
 import { cn } from "@/lib/utils";
 import { useMyBusiness } from "@/hooks/useDatabase";
-import { useEmployeeSkills, useSetEmployeeSkills } from "@/hooks/useRoutePlannerSmarts";
+import { useSetEmployeeSkills, useAllEmployeeSkills, type EmployeeSkill } from "@/hooks/useRoutePlannerSmarts";
 import {
   startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear,
   subMonths, format, parseISO,
@@ -91,6 +91,19 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
     "6m": "Seneste 6 mdr", ytd: "I år", all: "I alt",
   };
   const { data: earningsMap } = useEmployeeEarnings(businessId, from, to);
+  // Hent ALLE skills én gang for hele virksomheden i stedet for én query
+  // pr. EmployeeRow (N+1). Vi grupperer pr. employee_id og sender det
+  // færdige sæt ned som prop.
+  const { data: allSkills = [] } = useAllEmployeeSkills(businessId);
+  const skillsByEmployee = useMemo(() => {
+    const m = new Map<string, EmployeeSkill[]>();
+    for (const s of allSkills) {
+      const arr = m.get(s.employee_id) || [];
+      arr.push(s);
+      m.set(s.employee_id, arr);
+    }
+    return m;
+  }, [allSkills]);
 
   const resetForm = () => {
     setName(""); setEmail(""); setPhone(""); setTitle(""); setCommissionPct("");
@@ -494,6 +507,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                     onRemove={remove}
                     earning={earningsMap?.get(emp.id) ?? null}
                     rangeLabel={RANGE_LABELS[earnRange]}
+                    currentSkills={skillsByEmployee.get(emp.id) ?? []}
                   />
                 ))}
               </div>
@@ -524,6 +538,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                     onRemove={remove}
                     earning={earningsMap?.get(emp.id) ?? null}
                     rangeLabel={RANGE_LABELS[earnRange]}
+                    currentSkills={skillsByEmployee.get(emp.id) ?? []}
                   />
                 ))}
               </div>
@@ -536,7 +551,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
 };
 
 const EmployeeRow = ({
-  employee, businessId, businessSkillOptions, onUpdate, onRemove, earning, rangeLabel,
+  employee, businessId, businessSkillOptions, onUpdate, onRemove, earning, rangeLabel, currentSkills,
 }: {
   employee: any;
   businessId: string;
@@ -545,6 +560,7 @@ const EmployeeRow = ({
   onRemove: ReturnType<typeof useDeleteEmployee>;
   earning: { earnings: number; stopsCompleted: number; revenue: number } | null;
   rangeLabel: string;
+  currentSkills: EmployeeSkill[];
 }) => {
   const linked = !!employee.user_id;
   const [uploading, setUploading] = useState(false);
@@ -568,7 +584,6 @@ const EmployeeRow = ({
   const [editMaxStops, setEditMaxStops] = useState<string>(
     (employee as any).max_stops_per_day != null ? String((employee as any).max_stops_per_day) : "",
   );
-  const { data: currentSkills = [] } = useEmployeeSkills(employee.id);
   const setSkills = useSetEmployeeSkills();
   const [editSkillKeys, setEditSkillKeys] = useState<string[]>([]);
   React.useEffect(() => {
