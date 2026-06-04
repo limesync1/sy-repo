@@ -734,7 +734,6 @@ const Planner = () => {
   // dialogen — ruter med konflikter springes pænt over uden at blokere de
   // andre.
   const [selectedRouteIds, setSelectedRouteIds] = useState<Set<string>>(new Set());
-  const [bulkMoveOpen, setBulkMoveOpen] = useState(false);
   const [bulkMoveInProgress, setBulkMoveInProgress] = useState(false);
   const [bulkMoveProgress, setBulkMoveProgress] = useState<{ done: number; total: number } | null>(null);
 
