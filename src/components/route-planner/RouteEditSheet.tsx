@@ -41,6 +41,8 @@ import { logRouteAudit } from "@/lib/route-audit";
 import { useSeriesImpact } from "@/hooks/useSeriesImpact";
 import { useDayConflicts } from "@/hooks/useDayConflicts";
 import { Ban } from "lucide-react";
+import { useCreateRouteSnapshot, useRouteSnapshots } from "@/hooks/useRouteSnapshots";
+import { Camera } from "lucide-react";
 
 export type RouteEmployeeOption = { id: string; name: string };
 
@@ -995,6 +997,9 @@ export const RouteEditSheet = ({
                 <History className="h-3.5 w-3.5" />
                 Vis ændringshistorik
               </Button>
+            )}
+            {!isProjection && route?.id && (
+              <RouteSnapshotButton routeId={route.id} />
             )}
             {isProjection && (
               <>
