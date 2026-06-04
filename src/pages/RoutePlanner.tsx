@@ -292,22 +292,6 @@ const Planner = () => {
   };
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [historyRoute, setHistoryRoute] = useState<{ id: string; name: string } | null>(null);
-  const {
-    printOpen,
-    setPrintOpen,
-    dayDetailOpen,
-    setDayDetailOpen,
-    bulkShiftOpen,
-    setBulkShiftOpen,
-    createOrderOpen,
-    setCreateOrderOpen,
-    createOpen,
-    setCreateOpen,
-    diagnosticsOpen,
-    setDiagnosticsOpen,
-    bulkMoveOpen,
-    setBulkMoveOpen,
-  } = useRouteDialogs();
   // Filter + gruppering for "Aftaler uden rute" — gør store puljer
   // overskuelige uden at brugeren skal scrolle gennem alt.
   const [unassignedStatusFilter, setUnassignedStatusFilter] = usePersistentState<
@@ -316,16 +300,6 @@ const Planner = () => {
   const [unassignedGroupBy, setUnassignedGroupBy] = usePersistentState<
     "none" | "status" | "route" | "week" | "postcode"
   >("route-planner:unassignedGroupBy", "none");
-  // Avancerede filtre (urgency / postnumre / services) — Fase 2: udtrukket
-  // til dedikeret hook. Tilstanden er stadig persistent i localStorage.
-  const {
-    urgencyFilter,
-    postcodeFilter,
-    serviceFilter,
-    setUrgencyFilterArr,
-    setPostcodeFilterArr,
-    setServiceFilterArr,
-  } = useRoutePlannerFilters();
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [suggestJob, setSuggestJob] = useState<any | null>(null);
