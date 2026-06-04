@@ -55,6 +55,40 @@ export const StopDetailsContent = ({
   const { data: meEmployee } = useMyEmployee();
   const isDone = stop.status === "completed";
 
+  // Lås "Markér udført" indtil stoppets dato/tidspunkt er aktuelt — så en
+  // medarbejder ikke kan udføre en fremtidig forekomst før tid.
+  // Brug planned_arrival (præcis tidsstempel) hvis sat, ellers route.date.
+  const { canComplete, futureLabel } = useMemo(() => {
+    const now = new Date();
+    const planned = (stop as any).planned_arrival
+      ? new Date((stop as any).planned_arrival)
+      : null;
+    if (planned && !isNaN(planned.getTime())) {
+      if (planned.getTime() > now.getTime()) {
+        return {
+          canComplete: false,
+          futureLabel: format(planned, "d. MMM 'kl.' HH:mm", { locale: da }),
+        };
+      }
+      return { canComplete: true, futureLabel: null as string | null };
+    }
+    if (route?.date) {
+      const d = new Date(route.date);
+      if (!isNaN(d.getTime())) {
+        // Sammenlign rene datoer (midnat) — fremtidige rutedatoer låses.
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const routeDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        if (routeDay.getTime() > today.getTime()) {
+          return {
+            canComplete: false,
+            futureLabel: format(d, "d. MMM yyyy", { locale: da }),
+          };
+        }
+      }
+    }
+    return { canComplete: true, futureLabel: null as string | null };
+  }, [stop, route?.date]);
+
   // Fuld adresse: vej + postnr + by — vi viser ALDRIG kun gaden uden
   // postnr/by, da flere danske vejnavne findes i flere byer.
   const fullAddress = useMemo(() => {
@@ -446,15 +480,22 @@ export const StopDetailsContent = ({
       {!readOnly && (
         <div className="border-t border-border bg-card p-4 shrink-0">
           {!isDone ? (
-            <Button
-              onClick={onComplete}
-              className="w-full gap-2 h-12 text-base font-semibold rounded-lg shadow-sm bg-foreground text-background hover:bg-foreground/90"
-              size="lg"
-              disabled={!!isPending}
-            >
-              {isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
-              Markér som udført
-            </Button>
+            <div className="space-y-2">
+              <Button
+                onClick={onComplete}
+                className="w-full gap-2 h-12 text-base font-semibold rounded-lg shadow-sm bg-foreground text-background hover:bg-foreground/90"
+                size="lg"
+                disabled={!!isPending || !canComplete}
+              >
+                {isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
+                Markér som udført
+              </Button>
+              {!canComplete && futureLabel && (
+                <p className="text-xs text-muted-foreground text-center">
+                  Kan først udføres {futureLabel}
+                </p>
+              )}
+            </div>
           ) : (
             <div className="space-y-2">
               {canResendInvoice && (
