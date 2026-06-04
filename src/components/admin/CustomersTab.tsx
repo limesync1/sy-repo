@@ -724,21 +724,24 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
       if (privIds.length) promises.push(Promise.resolve(supabase.from("private_customers").delete().in("id", privIds)));
       if (bizIds.length) promises.push(Promise.resolve(supabase.from("business_customers").delete().in("id", bizIds)));
 
-      // Slet ordrer + ordre-linjer + abonnementer for ALLE valgte kunder
-      // hos denne virksomhed, så de forsvinder helt fra listen i ét tryk.
-      for (const email of allEmails) {
-        // Find ordrer for kunden hos denne virksomhed
+      // Slet ordrer + ordre-linjer + abonnementer for ALLE valgte kunder hos
+      // denne virksomhed på én gang. Tidligere kørte vi en sekventiel for-løkke
+      // pr. email (4 round-trips pr. kunde) — ved bulk-sletning af 20 kunder
+      // var det 80 sekventielle requests. Vi henter nu ordrer for alle emails
+      // i ét opslag og sletter relaterede rækker batched.
+      if (allEmails.length > 0) {
         const { data: customerOrders } = await supabase
           .from("orders")
-          .select("id")
+          .select("id, customer_email")
           .eq("business_id", businessId)
-          .ilike("customer_email", email);
+          .in("customer_email", allEmails);
         const orderIds = (customerOrders || []).map((o: any) => o.id);
         if (orderIds.length > 0) {
-          // Slet abonnementer der er knyttet til ordrerne først
-          await supabase.from("subscriptions").delete().in("order_id", orderIds);
-          // Order_items ryddes via cascade i de fleste tilfælde, ellers manuelt
-          await supabase.from("order_items").delete().in("order_id", orderIds);
+          // Subs/items ligger i andre tabeller — slet før orders så FK'er ikke fejler.
+          await Promise.all([
+            supabase.from("subscriptions").delete().in("order_id", orderIds),
+            supabase.from("order_items").delete().in("order_id", orderIds),
+          ]);
           await supabase.from("orders").delete().in("id", orderIds);
         }
       }
