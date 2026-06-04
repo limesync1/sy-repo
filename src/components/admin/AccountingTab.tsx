@@ -584,12 +584,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
   }>({ customer_groups: [], product_groups: [], income_accounts: [], labels: {} });
   const [groupsLoading, setGroupsLoading] = useState(false);
   const [lastSuccessPull, setLastSuccessPull] = useState<string | null>(null);
-  // Re-render hvert minut så "om X min"-tæller forbliver retvisende
-  const [, setNowTick] = useState(0);
-  useEffect(() => {
-    const t = setInterval(() => setNowTick(n => n + 1), 60_000);
-    return () => clearInterval(t);
-  }, []);
+  // Tidligere stod der her en setInterval(60s) som re-renderede hele fanen
+  // for at opdatere "X min siden"-tekster. Det er nu flyttet ind i den lille
+  // <RelativeTime/> komponent øverst, så kun de enkelte spans re-renderer.
   const [confirmDisable, setConfirmDisable] = useState(false);
   const setupRunRef = useRef(0);
   const [retryingJobId, setRetryingJobId] = useState<string | null>(null);
