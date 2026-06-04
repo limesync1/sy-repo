@@ -141,49 +141,14 @@ import DayDetailPanel, { type DayStop } from "@/components/route-planner/DayDeta
 import RouteHistoryDialog from "@/components/route-planner/RouteHistoryDialog";
 import UnassignedBulkBar from "@/components/route-planner/UnassignedBulkBar";
 import BulkShiftDateDialog from "@/components/route-planner/BulkShiftDateDialog";
+import {
+  type DragPoint,
+  getDragPoint,
+  getRouteDropPointTarget,
+  routeIdFromDndId,
+} from "@/lib/route-planner/dnd";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
-
-type DragPoint = { x: number; y: number };
-type RouteDropPointTarget =
-  | { type: "route"; routeId: string; date?: string | null }
-  | { type: "day"; date: string };
-
-const getDragPoint = (event: Event | null): DragPoint | null => {
-  if (!event) return null;
-  if ("clientX" in event && typeof (event as MouseEvent).clientX === "number") {
-    const { clientX, clientY } = event as MouseEvent;
-    return { x: clientX, y: clientY };
-  }
-  const touchEvent = event as TouchEvent;
-  const touch = touchEvent.touches?.[0] ?? touchEvent.changedTouches?.[0];
-  return touch ? { x: touch.clientX, y: touch.clientY } : null;
-};
-
-const routeIdFromDndId = (id: unknown) => String(id ?? "").replace(/^route:/, "");
-
-const getRouteDropPointTarget = (point: DragPoint | null, sourceRouteId?: string | null): RouteDropPointTarget | null => {
-  if (!point || typeof document === "undefined") return null;
-  const elements = typeof document.elementsFromPoint === "function"
-    ? document.elementsFromPoint(point.x, point.y)
-    : [document.elementFromPoint(point.x, point.y)].filter(Boolean) as Element[];
-
-  for (const element of elements) {
-    const routeEl = element.closest<HTMLElement>("[data-route-drop-route-id]");
-    const routeId = routeEl?.dataset.routeDropRouteId;
-    if (routeId && routeId !== sourceRouteId) {
-      return { type: "route", routeId, date: routeEl.dataset.routeDropDate ?? null };
-    }
-  }
-
-  for (const element of elements) {
-    const dayEl = element.closest<HTMLElement>("[data-route-drop-date]");
-    const date = dayEl?.dataset.routeDropDate;
-    if (date) return { type: "day", date };
-  }
-
-  return null;
-};
 
 /** Konverterer "HH:MM[:SS]" til minutter siden midnat (eller null). */
 const toMin = (t: string | null | undefined): number | null => {
