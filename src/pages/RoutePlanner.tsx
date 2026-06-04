@@ -112,6 +112,7 @@ import { invalidateRouteSyncQueries, resyncRoutePlanner } from "@/hooks/useRoute
 import { routeMutationQueue } from "@/lib/mutation-queue";
 import { writeDragValidationDebounced, clearDragValidation, summarize } from "@/components/route-planner/drag-validation-context";
 import DragEtaOverlay, { setDragEta, clearDragEta } from "@/components/route-planner/DragEtaOverlay";
+import { SimulationPreviewOverlay } from "@/components/route-planner/SimulationPreviewOverlay";
 import { haversineMeters } from "@/lib/geo-distance";
 import { validateStopAssignment, validateRouteMove } from "@/lib/route-validation";
 import { cn } from "@/lib/utils";
@@ -4438,6 +4439,9 @@ const Planner = () => {
 
         {/* Floating ETA-chip — viser severity + ekstra køretid + ny load% */}
         {activeDragId && <DragEtaOverlay targetId={dragOverTargetId} />}
+
+        {/* Bølge 5.1 — "What-if" simulations-preview under drag */}
+        {activeDragId ? <SimulationPreviewOverlay /> : null}
 
         {activeDragId && activeDragData?.type === "route" && routeDragPoint && createPortal(
           <div

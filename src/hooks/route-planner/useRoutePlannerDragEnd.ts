@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { dragMetrics } from "@/lib/drag-metrics";
 import { stopDragAutoScroll } from "@/components/route-planner/lib/drag-auto-scroll";
 import { clearDragValidation } from "@/components/route-planner/drag-validation-context";
+import { clearSimulationPreview } from "@/components/route-planner/simulation-preview-context";
 import { clearDragEta } from "@/components/route-planner/DragEtaOverlay";
 import { getRouteDropPointTarget, type DragPoint } from "@/lib/route-planner/dnd";
 import { invalidateRouteSyncQueries } from "@/hooks/useRoutes";
@@ -118,6 +119,7 @@ export function useRoutePlannerDragEnd(deps: DragEndDeps) {
     activeRouteDragPointRef.current = null;
     activeRouteDragOriginRef.current = null;
     clearDragValidation();
+    clearSimulationPreview();
     dragMetrics.end(hasDropTarget);
     setDragOverTargetId(null);
     clearDragEta();
