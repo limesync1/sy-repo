@@ -341,20 +341,16 @@ const Planner = () => {
   const [unassignedGroupBy, setUnassignedGroupBy] = usePersistentState<
     "none" | "status" | "route" | "week" | "postcode"
   >("route-planner:unassignedGroupBy", "none");
-  // Avancerede filtre (urgency / postnumre / services). Persistent som arrays
-  // siden Set ikke kan serialiseres til JSON.
-  const [urgencyFilterArr, setUrgencyFilterArr] = usePersistentState<UrgencyKey[]>(
-    "route-planner:filter:urgency", [],
-  );
-  const [postcodeFilterArr, setPostcodeFilterArr] = usePersistentState<string[]>(
-    "route-planner:filter:postcode", [],
-  );
-  const [serviceFilterArr, setServiceFilterArr] = usePersistentState<string[]>(
-    "route-planner:filter:service", [],
-  );
-  const urgencyFilter = useMemo(() => new Set(urgencyFilterArr), [urgencyFilterArr]);
-  const postcodeFilter = useMemo(() => new Set(postcodeFilterArr), [postcodeFilterArr]);
-  const serviceFilter = useMemo(() => new Set(serviceFilterArr), [serviceFilterArr]);
+  // Avancerede filtre (urgency / postnumre / services) — Fase 2: udtrukket
+  // til dedikeret hook. Tilstanden er stadig persistent i localStorage.
+  const {
+    urgencyFilter,
+    postcodeFilter,
+    serviceFilter,
+    setUrgencyFilterArr,
+    setPostcodeFilterArr,
+    setServiceFilterArr,
+  } = useRoutePlannerFilters();
   /** Sidst-klikkede aftale (uden shift) — bruges som anker for Shift+klik
    *  range-select i "Aftaler uden rute". */
   const lastSelectedJobIdRef = useRef<string | null>(null);
