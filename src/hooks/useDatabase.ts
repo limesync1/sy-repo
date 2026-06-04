@@ -27,6 +27,7 @@ export const useBusinessBySlug = (slug: string) => {
       return data;
     },
     enabled: !!slug,
+    staleTime: 60_000,
   });
 };
 
@@ -128,6 +129,7 @@ export const useAllBusinesses = (
 
       return rows;
     },
+    staleTime: 60_000,
   });
 };
 
@@ -148,6 +150,7 @@ export const useMyBusiness = () => {
       return data;
     },
     enabled: !!user,
+    staleTime: 300_000,
   });
 };
 
@@ -165,6 +168,7 @@ export const useServices = (businessId: string | undefined) => {
       return data;
     },
     enabled: !!businessId,
+    staleTime: 300_000,
   });
 };
 
@@ -207,6 +211,7 @@ export const useReviews = (businessId: string | undefined) => {
       return data;
     },
     enabled: !!businessId,
+    staleTime: 60_000,
   });
 };
 
@@ -385,6 +390,7 @@ export const useQuoteRequests = (categories?: string[] | null) => {
       return data;
     },
     enabled: !!categories && categories.length > 0,
+    staleTime: 60_000,
   });
 };
 
@@ -415,6 +421,7 @@ export const useMyQuotes = (businessId: string | undefined) => {
       return data;
     },
     enabled: !!businessId,
+    staleTime: 60_000,
   });
 };
 
@@ -528,6 +535,7 @@ export const useMyProfile = () => {
       return data;
     },
     enabled: !!user,
+    staleTime: 300_000,
   });
 };
 

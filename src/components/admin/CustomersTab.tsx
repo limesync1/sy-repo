@@ -324,19 +324,29 @@ const useCustomerDetails = (businessId: string, email: string | null) => {
     queryKey: ["customer-details", businessId, email],
     enabled: !!businessId && !!email,
     queryFn: async () => {
-      const [ordersRes, subsRes] = await Promise.all([
-        supabase
-          .from("orders")
-          .select("id, status, total_amount, preferred_date, created_at, notes, address, zip_code, city, payment_status, paid_at, payment_status_synced_at, due_date, invoice_external_id, invoiced_at, invoice_status, reminder_count, last_reminder_at, last_reminder_type, reminder_history, credited_at, voided_at, completed_cycles, order_items(service_name, quantity, total_price, details)")
-          .eq("business_id", businessId)
-          .ilike("customer_email", email!)
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("subscriptions")
-          .select("id, service_name, interval, status, next_service_date, total_price, preferred_route_id, order_id, customer_id, created_at")
-          .eq("business_id", businessId)
-          .order("created_at", { ascending: false }),
-      ]);
+      // 1) Hent kundens ordrer først så vi kan trække subscriptions for
+      //    netop denne kunde (i stedet for hele virksomhedens bestand —
+            // tidligere hentede vi ALLE abonnementer og frasorterede client-side,
+            // hvilket kunne være tusinder af rækker pr. åbning af en kundedetail).
+      const ordersRes = await supabase
+        .from("orders")
+        .select("id, status, total_amount, preferred_date, created_at, notes, address, zip_code, city, payment_status, paid_at, payment_status_synced_at, due_date, invoice_external_id, invoiced_at, invoice_status, reminder_count, last_reminder_at, last_reminder_type, reminder_history, credited_at, voided_at, completed_cycles, customer_id, order_items(service_name, quantity, total_price, details)")
+        .eq("business_id", businessId)
+        .ilike("customer_email", email!)
+        .order("created_at", { ascending: false });
+
+      const customerIdsForSubs = Array.from(
+        new Set((ordersRes.data || []).map((o: any) => o.customer_id).filter(Boolean)),
+      ) as string[];
+
+      const subsRes = customerIdsForSubs.length > 0
+        ? await supabase
+            .from("subscriptions")
+            .select("id, service_name, interval, status, next_service_date, total_price, preferred_route_id, order_id, customer_id, created_at")
+            .eq("business_id", businessId)
+            .in("customer_id", customerIdsForSubs)
+            .order("created_at", { ascending: false })
+        : { data: [] as any[], error: null };
 
       const orderIds = (ordersRes.data || []).map(o => o.id);
       let stops: RouteStopRow[] = [];
@@ -714,21 +724,24 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
       if (privIds.length) promises.push(Promise.resolve(supabase.from("private_customers").delete().in("id", privIds)));
       if (bizIds.length) promises.push(Promise.resolve(supabase.from("business_customers").delete().in("id", bizIds)));
 
-      // Slet ordrer + ordre-linjer + abonnementer for ALLE valgte kunder
-      // hos denne virksomhed, så de forsvinder helt fra listen i ét tryk.
-      for (const email of allEmails) {
-        // Find ordrer for kunden hos denne virksomhed
+      // Slet ordrer + ordre-linjer + abonnementer for ALLE valgte kunder hos
+      // denne virksomhed på én gang. Tidligere kørte vi en sekventiel for-løkke
+      // pr. email (4 round-trips pr. kunde) — ved bulk-sletning af 20 kunder
+      // var det 80 sekventielle requests. Vi henter nu ordrer for alle emails
+      // i ét opslag og sletter relaterede rækker batched.
+      if (allEmails.length > 0) {
         const { data: customerOrders } = await supabase
           .from("orders")
-          .select("id")
+          .select("id, customer_email")
           .eq("business_id", businessId)
-          .ilike("customer_email", email);
+          .in("customer_email", allEmails);
         const orderIds = (customerOrders || []).map((o: any) => o.id);
         if (orderIds.length > 0) {
-          // Slet abonnementer der er knyttet til ordrerne først
-          await supabase.from("subscriptions").delete().in("order_id", orderIds);
-          // Order_items ryddes via cascade i de fleste tilfælde, ellers manuelt
-          await supabase.from("order_items").delete().in("order_id", orderIds);
+          // Subs/items ligger i andre tabeller — slet før orders så FK'er ikke fejler.
+          await Promise.all([
+            supabase.from("subscriptions").delete().in("order_id", orderIds),
+            supabase.from("order_items").delete().in("order_id", orderIds),
+          ]);
           await supabase.from("orders").delete().in("id", orderIds);
         }
       }
