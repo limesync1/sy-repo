@@ -551,7 +551,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
 };
 
 const EmployeeRow = ({
-  employee, businessId, businessSkillOptions, onUpdate, onRemove, earning, rangeLabel,
+  employee, businessId, businessSkillOptions, onUpdate, onRemove, earning, rangeLabel, currentSkills,
 }: {
   employee: any;
   businessId: string;
@@ -560,6 +560,7 @@ const EmployeeRow = ({
   onRemove: ReturnType<typeof useDeleteEmployee>;
   earning: { earnings: number; stopsCompleted: number; revenue: number } | null;
   rangeLabel: string;
+  currentSkills: EmployeeSkill[];
 }) => {
   const linked = !!employee.user_id;
   const [uploading, setUploading] = useState(false);
@@ -583,7 +584,6 @@ const EmployeeRow = ({
   const [editMaxStops, setEditMaxStops] = useState<string>(
     (employee as any).max_stops_per_day != null ? String((employee as any).max_stops_per_day) : "",
   );
-  const { data: currentSkills = [] } = useEmployeeSkills(employee.id);
   const setSkills = useSetEmployeeSkills();
   const [editSkillKeys, setEditSkillKeys] = useState<string[]>([]);
   React.useEffect(() => {
