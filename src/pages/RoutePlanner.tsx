@@ -712,109 +712,39 @@ const Planner = () => {
   // mutation der ændrer en rute eller forekomst.
   const history = useRouteHistory();
 
-  // Pending route-move: viser MoveRouteDateDialog. Hvis ruten er del af en
-  // serie spørger vi brugeren om kun denne ene eller alle fremtidige skal flyttes.
-  const [pendingRouteMove, setPendingRouteMove] = useState<{
-    route: Route;
-    newDate: string;
-  } | null>(null);
-
-  // Efter en vellykket flytning/merge spørger vi om brugeren vil køre
-  // auto-optimering af stop-rækkefølgen på den berørte rute. Vi optimerer
-  // ALDRIG uden brugerens aktive ja — så rækkefølgen ikke pludselig ændrer
-  // sig "i baggrunden" efter en flytning.
-  const [pendingOptimizePrompt, setPendingOptimizePrompt] = useState<{
-    routeId: string;
-    routeName: string;
-    reason: "moved" | "merged";
-    /** Estimat fra `estimateOptimizationGain` — bruges til at vise konkrete
-     *  tal i dialogen så brugeren ved HVORFOR vi spørger ("kan spare 12 km"). */
-    estimate: { savingsKm: number; savingsPct: number; currentKm: number; suggestedKm: number };
-  } | null>(null);
-
-  // Pending drag-and-drop af en projiceret rute → ny dato.
-  // Vises som en bekræftelsesdialog så brugeren aktivt skal sige ja
-  // før forekomsten flyttes — en utilsigtet drag/drop må aldrig flytte
-  // en fremtidig forekomst uden bekræftelse.
-  const [pendingProjectedMove, setPendingProjectedMove] = useState<{
-    baseRouteId: string;
-    routeName: string;
-    fromDate: string;
-    toDate: string;
-    autoSkipCadence?: boolean;
-  } | null>(null);
-
-  // Pending start-date konflikt: vises når brugeren dropper en aftale på en
-  // dato der ikke matcher aftalens opstartsdato. Brugeren bekræfter om
-  // opstartsdatoen skal flyttes — først derefter eksekveres `execute()`.
-  const [pendingStartDateChange, setPendingStartDateChange] = useState<{
-    job: any;
-    currentStart: string;
-    targetDate: string;
-    isBefore: boolean;
-    targetLabel: string;
-    execute: () => Promise<void>;
-  } | null>(null);
-  const [confirmingStartDate, setConfirmingStartDate] = useState(false);
-  // Bulk-konflikt: når brugeren opretter en rute med flere aftaler hvis
-  // opstartsdatoer ikke matcher rutens dato, beder vi om bekræftelse på at
-  // flytte ALLE de pågældende opstartsdatoer i én operation.
-  const [pendingBulkStartDateChange, setPendingBulkStartDateChange] = useState<{
-    targetDate: string;
-    mismatches: Array<{ job: any; currentStart: string }>;
-    execute: () => Promise<void>;
-  } | null>(null);
-  const [confirmingBulkStartDate, setConfirmingBulkStartDate] = useState(false);
-  const { data: pendingSeriesInfo } = useRouteSeriesInfo(
-    pendingRouteMove?.route.id ?? null,
-    pendingRouteMove?.route.route_date ?? null,
-  );
-  // Serie-info for den projicerede flytning, så vi kan tilbyde brugeren at
-  // synkronisere aftalens opstartsdato / næste-udførsel med den nye dato.
-  const { data: pendingProjectedSeriesInfo } = useRouteSeriesInfo(
-    pendingProjectedMove?.baseRouteId ?? null,
-    pendingProjectedMove?.fromDate ?? null,
-  );
-  const [projectedMoveSyncStart, setProjectedMoveSyncStart] = useState(false);
-  const [projectedMoveSyncNext, setProjectedMoveSyncNext] = useState(false);
-  useEffect(() => {
-    if (!pendingProjectedMove) {
-      setProjectedMoveSyncStart(false);
-      setProjectedMoveSyncNext(false);
-      return;
-    }
-    // Smart sync-default: bestem ud fra hvor langt brugeren flytter ift.
-    // seriens dominerende interval. Små flytninger (inden for halvdelen af
-    // intervallet) → "kun næste besøg". Store flytninger (≥ ét helt interval)
-    // → "forskyd hele rytmen". Mellem-store: lad begge være afkrydsede så
-    //  brugeren selv vælger. Defaultet kan altid overskrives manuelt.
-    const intv = pendingProjectedSeriesInfo?.dominantIntervalDays;
-    if (!intv || intv <= 0) {
-      setProjectedMoveSyncStart(false);
-      setProjectedMoveSyncNext(true);
-      return;
-    }
-    let delta = 0;
-    try {
-      delta = Math.abs(differenceInCalendarDays(
-        parseISO(pendingProjectedMove.toDate),
-        parseISO(pendingProjectedMove.fromDate),
-      ));
-    } catch {}
-    if (delta >= intv) {
-      setProjectedMoveSyncStart(true);
-      setProjectedMoveSyncNext(false);
-    } else {
-      setProjectedMoveSyncStart(false);
-      setProjectedMoveSyncNext(true);
-    }
-  }, [pendingProjectedMove, pendingProjectedSeriesInfo?.dominantIntervalDays]);
-  // Serie-info for kilde-ruten i en igangværende fletning, så fletteren
-  // også kan tilbyde "fremtidige aftaler også" når kilden har gentagne aftaler.
-  const { data: pendingMergeSeriesInfo } = useRouteSeriesInfo(
-    pendingRouteMerge?.source.id ?? null,
-    pendingRouteMerge?.source.route_date ?? null,
-  );
+  // ─── Pending-dialog workflow state (Fase 3) ─────────────────────────────
+  // Alle pending-dialog states + tilhørende serie-info-queries + smart-default-
+  // effekt for projiceret flytning bor nu i en dedikeret hook. Selve confirm-
+  // handlerne bor stadig nedenfor fordi de er dybt vævet sammen med mutationer
+  // og toasts, men deres call-sites er uændrede da hooken eksponerer settere
+  // 1:1.
+  const {
+    pendingRouteMove,
+    setPendingRouteMove,
+    pendingOptimizePrompt,
+    setPendingOptimizePrompt,
+    pendingProjectedMove,
+    setPendingProjectedMove,
+    pendingRouteMerge,
+    setPendingRouteMerge,
+    mergingRoute,
+    setMergingRoute,
+    pendingStartDateChange,
+    setPendingStartDateChange,
+    confirmingStartDate,
+    setConfirmingStartDate,
+    pendingBulkStartDateChange,
+    setPendingBulkStartDateChange,
+    confirmingBulkStartDate,
+    setConfirmingBulkStartDate,
+    pendingSeriesInfo,
+    pendingProjectedSeriesInfo,
+    pendingMergeSeriesInfo,
+    projectedMoveSyncStart,
+    setProjectedMoveSyncStart,
+    projectedMoveSyncNext,
+    setProjectedMoveSyncNext,
+  } = useRoutePlannerWorkflowState();
 
   // Pr-rute "pending" state — kun den rute der faktisk optimeres viser spinner
   const [optimizingRouteId, setOptimizingRouteId] = useState<string | null>(null);
