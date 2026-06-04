@@ -101,7 +101,7 @@ import {
   projectedStopMatchesSources,
   recurringSourceKeysForStop,
 } from "@/lib/recurring-projection";
-import { runProjection } from "@/lib/route-projection";
+import { useProjectedCalendar } from "@/hooks/route-planner/useProjectedCalendar";
 import { intervalToCadence } from "@/lib/interval";
 import { formatDurationMin } from "@/lib/duration-format";
 import { useAgreementPauses } from "@/hooks/useAgreementPauses";
