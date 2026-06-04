@@ -102,6 +102,7 @@ import {
   recurringSourceKeysForStop,
 } from "@/lib/recurring-projection";
 import { useProjectedCalendar } from "@/hooks/route-planner/useProjectedCalendar";
+import { useRoutePlannerFilters } from "@/hooks/route-planner/useRoutePlannerFilters";
 import { intervalToCadence } from "@/lib/interval";
 import { formatDurationMin } from "@/lib/duration-format";
 import { useAgreementPauses } from "@/hooks/useAgreementPauses";
