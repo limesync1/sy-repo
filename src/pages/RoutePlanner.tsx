@@ -388,6 +388,15 @@ const Planner = () => {
     return { start: format(ms, "yyyy-MM-dd"), end: format(me, "yyyy-MM-dd") };
   }, [date, view]);
   // Bulk-multi-select for ruter + aftaler (Fase 2: udtrukket).
+  // ─── Bølge 1 (.lovable/plan.md): central planner-store ──────────────────
+  // Ét call site for hele klient-side state-overfladen: selection, filters,
+  // dialogs, workflow, history + action-log. Hver gruppe destruktureres
+  // herunder så de eksisterende variabelnavne nedenfor er uændrede.
+  const plannerStore = usePlannerStore({
+    calendarRangeStart: calendarRange.start,
+    calendarRangeEnd: calendarRange.end,
+    view,
+  });
   const {
     selectedRouteIds,
     setSelectedRouteIds,
@@ -402,11 +411,31 @@ const Planner = () => {
     bulkBusy,
     setBulkBusy,
     lastSelectedJobIdRef,
-  } = useRouteSelection({
-    calendarRangeStart: calendarRange.start,
-    calendarRangeEnd: calendarRange.end,
-    view,
-  });
+  } = plannerStore.selection;
+  const {
+    urgencyFilter,
+    postcodeFilter,
+    serviceFilter,
+    setUrgencyFilterArr,
+    setPostcodeFilterArr,
+    setServiceFilterArr,
+  } = plannerStore.filters;
+  const {
+    printOpen,
+    setPrintOpen,
+    dayDetailOpen,
+    setDayDetailOpen,
+    bulkShiftOpen,
+    setBulkShiftOpen,
+    createOrderOpen,
+    setCreateOrderOpen,
+    createOpen,
+    setCreateOpen,
+    diagnosticsOpen,
+    setDiagnosticsOpen,
+    bulkMoveOpen,
+    setBulkMoveOpen,
+  } = plannerStore.dialogs;
   const { data: calendarData, isLoading: loadingCalendar } = useCalendarData(
     businessId,
     calendarRange.start,
@@ -609,7 +638,7 @@ const Planner = () => {
   // Undo-stak (Rutekalender 3.0 — Fase B.3). Sidste 50 handlinger kan
   // fortrydes via Cmd/Ctrl+Z eller toolbar-knap. Pushes lokalt fra hver
   // mutation der ændrer en rute eller forekomst.
-  const history = useRouteHistory();
+  const history = plannerStore.history;
 
   // ─── Pending-dialog workflow state (Fase 3) ─────────────────────────────
   // Alle pending-dialog states + tilhørende serie-info-queries + smart-default-
@@ -643,7 +672,7 @@ const Planner = () => {
     setProjectedMoveSyncStart,
     projectedMoveSyncNext,
     setProjectedMoveSyncNext,
-  } = useRoutePlannerWorkflowState();
+  } = plannerStore.workflow;
 
   // Pr-rute "pending" state — kun den rute der faktisk optimeres viser spinner
   const [optimizingRouteId, setOptimizingRouteId] = useState<string | null>(null);
