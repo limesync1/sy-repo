@@ -1279,6 +1279,7 @@ const Planner = () => {
     routeOccurrenceExceptions,
     calendarRangeStart: calendarRange.start,
     calendarRangeEnd: calendarRange.end,
+    businessId,
   });
 
   // ── Soft target-konflikter + foreslået fri dato for projiceret-flyt ──

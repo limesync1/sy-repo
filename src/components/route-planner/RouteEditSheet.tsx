@@ -42,7 +42,8 @@ import { useSeriesImpact } from "@/hooks/useSeriesImpact";
 import { useDayConflicts } from "@/hooks/useDayConflicts";
 import { Ban } from "lucide-react";
 import { useCreateRouteSnapshot, useRouteSnapshots } from "@/hooks/useRouteSnapshots";
-import { Camera } from "lucide-react";
+import { Camera, ChevronDown } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 
 export type RouteEmployeeOption = { id: string; name: string };
 
@@ -999,7 +1000,7 @@ export const RouteEditSheet = ({
               </Button>
             )}
             {!isProjection && route?.id && (
-              <RouteSnapshotButton routeId={route.id} />
+              <RouteSnapshotSection routeId={route.id} />
             )}
             {isProjection && (
               <>
@@ -1374,9 +1375,10 @@ const RouteRevenueBreakdown = ({
  * point-in-time payload. Bruges af reklamationer + audit-spor. Viser
  * antallet af eksisterende snapshots så brugeren ved om ruten allerede er låst.
  */
-const RouteSnapshotButton = ({ routeId }: { routeId: string }) => {
+const RouteSnapshotSection = ({ routeId }: { routeId: string }) => {
   const { data: snapshots } = useRouteSnapshots(routeId);
   const create = useCreateRouteSnapshot();
+  const [expanded, setExpanded] = useState(false);
   const count = snapshots?.length ?? 0;
   const onClick = async () => {
     try {
@@ -1388,17 +1390,44 @@ const RouteSnapshotButton = ({ routeId }: { routeId: string }) => {
     }
   };
   return (
-    <Button
-      variant="outline"
-      size="sm"
-      className="w-full justify-center gap-2 text-muted-foreground hover:text-foreground border-border/70"
-      onClick={onClick}
-      disabled={create.isPending}
-      title="Gem en uforanderlig kopi af ruten og dens stops — bruges hvis du senere skal dokumentere hvad planen var"
-    >
-      {create.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
-      Lås rute som snapshot
-      {count > 0 && <span className="text-[11px] text-muted-foreground">({count})</span>}
-    </Button>
+    <div className="flex flex-col gap-1.5">
+      <Button
+        variant="outline"
+        size="sm"
+        className="w-full justify-center gap-2 text-muted-foreground hover:text-foreground border-border/70"
+        onClick={onClick}
+        disabled={create.isPending}
+        title="Gem en uforanderlig kopi af ruten og dens stops — bruges hvis du senere skal dokumentere hvad planen var"
+      >
+        {create.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
+        Lås rute som snapshot
+        {count > 0 && <span className="text-[11px] text-muted-foreground">({count})</span>}
+      </Button>
+      {count > 0 && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="flex items-center justify-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ChevronDown className={cn("h-3 w-3 transition-transform", expanded && "rotate-180")} />
+          {expanded ? "Skjul snapshots" : `Vis ${count} snapshot${count === 1 ? "" : "s"}`}
+        </button>
+      )}
+      {expanded && snapshots && (
+        <ul className="flex flex-col gap-1 rounded-md border border-border/60 bg-muted/30 p-2 text-[11px]">
+          {snapshots.map((s) => (
+            <li key={s.id} className="flex items-center justify-between gap-2">
+              <span className="font-medium text-foreground/90">
+                {format(parseISO(s.snapshot_date), "d. MMM yyyy", { locale: da })}
+              </span>
+              <span className="text-muted-foreground truncate">{s.reason}</span>
+              <span className="text-muted-foreground/80 tabular-nums shrink-0">
+                {formatDistanceToNow(parseISO(s.locked_at), { addSuffix: true, locale: da })}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 };
