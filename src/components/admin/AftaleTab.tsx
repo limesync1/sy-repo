@@ -870,6 +870,18 @@ const AftaleTab = ({
   // (fx hvis en aftale flyttes til en rute, eller en kunde godkender et forslag).
   useEffect(() => {
     if (!businessId) return;
+    // Lille debounce så bulk-opdateringer (fx import af 200 stops eller
+    // route-optimering) ikke fyrer 200 invalidations i træk og blokerer
+    // UI'en. Vi samler signaler op i 150 ms og kører ét invalidate.
+    let stopsTimer: number | null = null;
+    const invalidateStops = () => {
+      if (stopsTimer != null) return;
+      stopsTimer = window.setTimeout(() => {
+        stopsTimer = null;
+        qc.invalidateQueries({ queryKey: ["aftaler-route-stops", businessId] });
+        qc.invalidateQueries({ queryKey: ["stops-for-routes"] });
+      }, 150);
+    };
     const channel = supabase
       .channel(`aftale-tab-${businessId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "orders", filter: `business_id=eq.${businessId}` },
@@ -886,14 +898,9 @@ const AftaleTab = ({
           qc.invalidateQueries({ queryKey: ["routes-for-range"] });
         })
       .on("postgres_changes", { event: "*", schema: "public", table: "route_stops" },
-        () => {
-          qc.invalidateQueries({ queryKey: ["aftaler-route-stops", businessId] });
-          qc.invalidateQueries({ queryKey: ["stops-for-routes"] });
-        })
-      // NB: route_stops har ikke business_id-kolonne, så vi filtrerer
-      // ikke server-side her. For at undgå at globale invalidations
-      // fyrer på hver eneste DB-ændring i andre virksomheder, debouncer
-      // vi i stedet client-side via React Query's normale staleTime.
+        invalidateStops)
+      // NB: route_stops har ikke business_id-kolonne, så vi kan ikke
+      // filtrere server-side. Vi batcher derfor invalidations (se ovenfor).
       .on("postgres_changes", { event: "*", schema: "public", table: "agreements", filter: `business_id=eq.${businessId}` },
         () => {
           // Nye/ændrede aftaler i den nye datamodel — kør et bredt invalidate
@@ -910,7 +917,10 @@ const AftaleTab = ({
           qc.invalidateQueries({ queryKey: ["aftaler-all-routes", businessId] });
         })
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      if (stopsTimer != null) { window.clearTimeout(stopsTimer); stopsTimer = null; }
+      supabase.removeChannel(channel);
+    };
   }, [businessId, qc]);
 
   const { data: activeAccountingIntegration } = useQuery({
