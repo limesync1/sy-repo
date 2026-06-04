@@ -1411,6 +1411,47 @@ const Planner = () => {
     );
   }, [pendingProjectedMove, projectedTargetWarnings, calendarRoutesRaw, virtualCalendarRoutes]);
 
+  // ─── Drag-and-drop (Fase 2: udtrukket) ───────────────────────────────
+  // Hele DnD-overfladen — state, refs, sensors, collision-detection samt
+  // start/over/move-handlers — bor nu i en hook. `handleDragEnd` defineres
+  // stadig nedenfor i siden, da den indeholder ~660 linjer mutation-tung
+  // kode der er for vævet sammen med pending-dialog-setters til at flytte.
+  const dnd = useRoutePlannerDnd({
+    calendarRoutesRaw,
+    visibleCalendarStops,
+    calendarStops,
+    capacityByDate,
+    virtualCalendarRoutes,
+    routeOccurrenceExceptions,
+    todayStr,
+  });
+  const {
+    activeDragId,
+    setActiveDragId,
+    activeDragData,
+    setActiveDragData,
+    dragOverTargetId,
+    setDragOverTargetId,
+    routeDragPoint,
+    setRouteDragPoint,
+    busyTargets,
+    setBusyTargets,
+    activeDragPointRef,
+    activeDragOriginRef,
+    activeRouteDragPointRef,
+    activeRouteDragOriginRef,
+    routeOverlayRef,
+    inFlightDropsRef,
+    applyRouteOverlayPosition,
+    setTargetBusy,
+    detectAssigneeConflicts,
+    sensors,
+    routePlannerCollisionDetection,
+    handleDragStart,
+    handleDragOver,
+    handleDragMove,
+  } = dnd;
+
   /* ─── Projection sanity-check / diagnostik ───
      Kører FØR projektionen bruges i UI'et, så vi:
        1) Auto-fjerner inkonsistente `route_occurrence_exceptions`
