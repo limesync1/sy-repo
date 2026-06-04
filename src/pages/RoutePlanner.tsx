@@ -405,8 +405,6 @@ const Planner = () => {
     });
   };
   const [geocoding, setGeocoding] = useState(false);
-  const [createOrderOpen, setCreateOrderOpen] = useState(false);
-  const [createOpen, setCreateOpen] = useState(false);
   const [newRouteName, setNewRouteName] = useState("");
   const [newRouteColor, setNewRouteColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
   const [newRouteDate, setNewRouteDate] = useState(todayStr());
@@ -427,7 +425,6 @@ const Planner = () => {
     previewStops?: RouteStop[];
   } | null>(null);
   const [routeToDelete, setRouteToDelete] = useState<{ id: string; name: string } | null>(null);
-  const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
   const [pendingRouteMerge, setPendingRouteMerge] = useState<{
     source: Route;
     target: Route;
