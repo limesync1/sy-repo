@@ -1,5 +1,5 @@
 import { addDays, addMonths, addWeeks, format, parseISO } from "date-fns";
-import { useEffect, type MutableRefObject } from "react";
+import { useEffect, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
 import { toast } from "sonner";
 
 /**
@@ -13,8 +13,7 @@ import { toast } from "sonner";
 export function useRoutePlannerKeyboard(opts: {
   history: { undo: () => void | Promise<void>; redo: () => void | Promise<void> };
   view: string;
-  setDate: (updater: (d: string) => string) => void;
-  setDateValue: (d: string) => void;
+  setDate: Dispatch<SetStateAction<string>>;
   todayStr: () => string;
   selectedJobIds: Set<string>;
   setSelectedJobIds: (s: Set<string>) => void;
@@ -35,7 +34,6 @@ export function useRoutePlannerKeyboard(opts: {
     history,
     view,
     setDate,
-    setDateValue,
     todayStr,
     selectedJobIds,
     setSelectedJobIds,
@@ -82,7 +80,7 @@ export function useRoutePlannerKeyboard(opts: {
         e.preventDefault();
         setDate((d) => format(view === "week" ? addWeeks(parseISO(d), 1) : addMonths(parseISO(d), 1), "yyyy-MM-dd"));
       } else if (e.key.toLowerCase() === "t") {
-        setDateValue(todayStr());
+        setDate(todayStr());
       } else if (e.key.toLowerCase() === "n") {
         setCreateOpen(true);
       } else if (e.key.toLowerCase() === "a") {
