@@ -121,6 +121,7 @@ import RoutePlannerMobile from "@/components/route-planner/mobile/RoutePlannerMo
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { useRoutePlannerKeyboard } from "@/hooks/route-planner/useRoutePlannerKeyboard";
 import { useRoutePlannerDnd } from "@/hooks/route-planner/useRoutePlannerDnd";
+import { useRoutePlannerDragEnd } from "@/hooks/route-planner/useRoutePlannerDragEnd";
 import { pushRouteUndo, routeHistory } from "@/lib/route-history";
 import { toastSuccessWithUndo } from "@/lib/toast-undo";
 import { estimateOptimizationGain, markOptimizeDismissed } from "@/lib/optimize-savings-estimate";
@@ -2018,7 +2019,37 @@ const Planner = () => {
   // Hold ref opdateret så keyboard-shortcut'en "O" kan kalde den seneste version.
   optimizeRouteRef.current = handleCalendarOptimizeRoute;
 
-
+  // ─── Bølge 1 / 1.3: handleDragEnd udtrukket til dedikeret hook ───
+  // Den tidligere 666-linjers inline funktion bor nu i useRoutePlannerDragEnd
+  // og er delt op pr. drop-kind (job-to-route, job-to-day, stop-to-day osv.)
+  // hvor hver branch følger validate → commit → rollback mønstret.
+  const handleDragEnd = useRoutePlannerDragEnd({
+    businessId,
+    qc,
+    calendarRoutesRaw,
+    calendarRoutes,
+    calendarStops,
+    virtualCalendarRoutes,
+    addStop,
+    createRoute,
+    setPendingProjectedMove,
+    setPendingRouteMerge,
+    setPendingRouteMove,
+    setPendingStartDateChange,
+    setActiveDragId,
+    setActiveDragData,
+    setRouteDragPoint,
+    setDragOverTargetId,
+    setTargetBusy,
+    activeDragPointRef,
+    activeDragOriginRef,
+    activeRouteDragPointRef,
+    activeRouteDragOriginRef,
+    inFlightDropsRef,
+    detectAssigneeConflicts,
+    serviceSummaryForJob,
+    todayStr,
+  });
 
   const handleConfirmMoveRoute = async (
     scope: MoveRouteScope,
