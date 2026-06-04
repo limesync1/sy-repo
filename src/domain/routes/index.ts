@@ -10,6 +10,8 @@
  */
 
 export * from "./drop-decision";
+export * from "./projection-engine";
+export * from "./conflict-engine";
 
 // Re-eksport af eksisterende rene moduler (uændret adfærd).
 export {
