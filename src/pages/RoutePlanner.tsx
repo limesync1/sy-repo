@@ -113,7 +113,6 @@ import { routeMutationQueue } from "@/lib/mutation-queue";
 import { writeDragValidationDebounced, clearDragValidation, summarize } from "@/components/route-planner/drag-validation-context";
 import DragEtaOverlay, { setDragEta, clearDragEta } from "@/components/route-planner/DragEtaOverlay";
 import { SimulationPreviewOverlay } from "@/components/route-planner/SimulationPreviewOverlay";
-import { clearSimulationPreview } from "@/components/route-planner/simulation-preview-context";
 import { haversineMeters } from "@/lib/geo-distance";
 import { validateStopAssignment, validateRouteMove } from "@/lib/route-validation";
 import { cn } from "@/lib/utils";
