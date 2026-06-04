@@ -20,8 +20,6 @@ import type { Route } from "@/hooks/useRoutes";
 import type { QueryClient } from "@tanstack/react-query";
 
 import {
-  classifyDrop,
-  computeTargetDateForGuard,
   dropKeyFor,
   targetKeyFor,
 } from "@/lib/route-planner/drop-classifier";
