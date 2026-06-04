@@ -364,9 +364,6 @@ const Planner = () => {
     setPostcodeFilterArr,
     setServiceFilterArr,
   } = useRoutePlannerFilters();
-  /** Sidst-klikkede aftale (uden shift) — bruges som anker for Shift+klik
-   *  range-select i "Aftaler uden rute". */
-  const lastSelectedJobIdRef = useRef<string | null>(null);
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [suggestJob, setSuggestJob] = useState<any | null>(null);
