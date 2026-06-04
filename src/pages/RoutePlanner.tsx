@@ -122,6 +122,7 @@ import RoutePlannerMobile from "@/components/route-planner/mobile/RoutePlannerMo
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { useRoutePlannerKeyboard } from "@/hooks/route-planner/useRoutePlannerKeyboard";
 import { useRoutePlannerDnd } from "@/hooks/route-planner/useRoutePlannerDnd";
+import { useRoutePlannerSimulation } from "@/hooks/route-planner/useRoutePlannerSimulation";
 import { useRoutePlannerDragEnd } from "@/hooks/route-planner/useRoutePlannerDragEnd";
 import { pushRouteUndo, routeHistory } from "@/lib/route-history";
 import { toastSuccessWithUndo } from "@/lib/toast-undo";
