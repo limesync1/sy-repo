@@ -16,6 +16,7 @@ import {
   recurringSourceKeysForStop,
 } from "@/lib/recurring-projection";
 import { runProjection } from "@/lib/route-projection";
+import { runProjectionCached } from "@/lib/route-projection/cache";
 import type { CalendarRoute } from "@/components/route-planner/MonthWeekCalendar";
 
 type AnyRoute = Record<string, any>;
@@ -34,6 +35,12 @@ export type UseProjectedCalendarInput = {
   routeOccurrenceExceptions: any[];
   calendarRangeStart: string;
   calendarRangeEnd: string;
+  /**
+   * Valgfri `businessId`. Når angivet bruger hook'en `runProjectionCached(...)`
+   * (LRU) — ellers falder den tilbage til `runProjection(...)`. Backwards-
+   * kompatibelt: call-sites uden businessId mister blot cache-laget.
+   */
+  businessId?: string | null;
 };
 
 export const useProjectedCalendar = (input: UseProjectedCalendarInput): CalendarRoute[] => {
@@ -50,6 +57,7 @@ export const useProjectedCalendar = (input: UseProjectedCalendarInput): Calendar
     routeOccurrenceExceptions,
     calendarRangeStart,
     calendarRangeEnd,
+    businessId,
   } = input;
 
   return useMemo<CalendarRoute[]>(() => {
@@ -120,7 +128,7 @@ export const useProjectedCalendar = (input: UseProjectedCalendarInput): Calendar
       return eff !== "completed" && eff !== "cancelled";
     };
 
-    const { projections: shifted, movedReplacementRouteIds, shiftsByOriginal } = runProjection({
+    const projectionInput = {
       sources: recurringSources as any,
       rangeStart: calendarRangeStart,
       rangeEnd: calendarRangeEnd,
@@ -135,7 +143,10 @@ export const useProjectedCalendar = (input: UseProjectedCalendarInput): Calendar
       })),
       holidayDates: businessHolidays.map((h) => h.holiday_date),
       exceptions: routeOccurrenceExceptions as any[],
-    });
+    };
+    const { projections: shifted, movedReplacementRouteIds, shiftsByOriginal } = businessId
+      ? runProjectionCached(projectionInput, { businessId })
+      : runProjection(projectionInput);
     const shiftedTargetDates = new Set(Array.from(shiftsByOriginal.values()));
 
     return shifted
@@ -242,5 +253,6 @@ export const useProjectedCalendar = (input: UseProjectedCalendarInput): Calendar
     agreementPauses,
     businessHolidays,
     visibleCalendarStops,
+    businessId,
   ]);
 };
