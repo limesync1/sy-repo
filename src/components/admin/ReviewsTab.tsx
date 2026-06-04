@@ -15,10 +15,24 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
   const [search, setSearch] = useState("");
   const [ratingFilter, setRatingFilter] = useState<"all" | 1 | 2 | 3 | 4 | 5>("all");
 
-  const avgRating = reviews.length > 0
-    ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-    : 0;
-  const verifiedCount = reviews.filter((r) => r.is_verified).length;
+  // Memoiseret samlet aggregat — én pass over reviews i stedet for 8.
+  const aggregate = useMemo(() => {
+    let sum = 0;
+    let verified = 0;
+    const counts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    for (const r of reviews) {
+      sum += r.rating || 0;
+      if (r.is_verified) verified += 1;
+      if (r.rating >= 1 && r.rating <= 5) counts[r.rating] += 1;
+    }
+    return {
+      avg: reviews.length > 0 ? sum / reviews.length : 0,
+      verified,
+      counts,
+    };
+  }, [reviews]);
+  const avgRating = aggregate.avg;
+  const verifiedCount = aggregate.verified;
 
   const filtered = useMemo(() => {
     let list = reviews;
