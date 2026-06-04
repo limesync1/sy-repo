@@ -4069,6 +4069,7 @@ export type Database = {
         Args: { _occurrence_id: string }
         Returns: undefined
       }
+      _test_completion_guard: { Args: { _planned: string }; Returns: Json }
       _unique_route_name: {
         Args: {
           _business_id: string
