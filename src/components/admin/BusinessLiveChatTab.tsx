@@ -67,6 +67,35 @@ const slaState = (c: Conversation): { label: string; tone: "ok" | "warn" | "brea
   return { label: `${min} min siden start`, tone: "ok" };
 };
 
+/**
+ * Isoleret SLA-pill + relativ tid — har sin egen 30s tick så vi ikke
+ * re-renderer hele 870-linjers chat-komponenten hvert halve minut.
+ */
+const ConversationMeta = memo(function ConversationMeta({ conversation }: { conversation: Conversation }) {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = window.setInterval(() => setTick((t) => t + 1), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
+  const sla = slaState(conversation);
+  const slaClass =
+    sla.tone === "breach" ? "bg-destructive/10 text-destructive" :
+    sla.tone === "warn"   ? "bg-amber-500/15 text-amber-700 dark:text-amber-400" :
+    sla.tone === "done"   ? "bg-success/10 text-success" :
+    sla.tone === "closed" ? "bg-muted text-muted-foreground" :
+                            "bg-secondary text-muted-foreground";
+  return (
+    <div className="mt-0.5 flex items-center gap-1.5">
+      <span className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${slaClass}`} title="Svartid">
+        <Clock className="h-2.5 w-2.5" />{sla.label}
+      </span>
+      <span className="truncate text-[10px] text-muted-foreground">
+        {formatDistanceToNow(new Date(conversation.last_message_at), { locale: da, addSuffix: true })}
+      </span>
+    </div>
+  );
+});
+
 const formatTime = (iso: string) => {
   const d = new Date(iso);
   const sameDay = d.toDateString() === new Date().toDateString();
