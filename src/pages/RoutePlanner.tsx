@@ -98,13 +98,10 @@ import { ShellSkeleton } from "@/components/admin/shared/Skeletons";
 import { useQuery } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  expandRecurringRoutes,
-  expandProjectionWindowForShiftedOccurrences,
   projectedStopMatchesSources,
   recurringSourceKeysForStop,
-  resolveProjectionExceptions,
-  applyProjectedOccurrenceShifts,
 } from "@/lib/recurring-projection";
+import { runProjection } from "@/lib/route-projection";
 import { intervalToCadence } from "@/lib/interval";
 import { formatDurationMin } from "@/lib/duration-format";
 import { useAgreementPauses } from "@/hooks/useAgreementPauses";
@@ -1525,12 +1522,6 @@ const Planner = () => {
         realKeys.add(`${(r as any).base_route_id}|${r.route_date}`);
       }
     }
-    const realRouteIds = new Set(calendarRoutesRaw.map((r) => r.id));
-    const { suppressedProjectionKeys, shiftsByOriginal, movedReplacementRouteIds } = resolveProjectionExceptions(
-      routeOccurrenceExceptions as any[],
-      realRouteIds,
-    );
-    for (const key of suppressedProjectionKeys) realKeys.add(key);
     // Pr. basis-rute: den dato hvor den RIGTIGE rute-row faktisk ligger lige nu.
     // Vi bruger den til at klippe projektioner væk der ellers ville dukke op
     // FØR rutens nuværende dato — fx hvis brugeren har flyttet ruten frem i
@@ -1544,43 +1535,29 @@ const Planner = () => {
       const existing = minDateByBaseRouteId.get(baseId);
       if (!existing || d > existing) minDateByBaseRouteId.set(baseId, d);
     }
-    // Robust dedup: hvis en aftale (agreement/subscription/order) allerede
-    // findes som rigtigt stop på en given dato, skal vi IKKE også vise
-    // den som projiceret rute på samme dato — uanset om stoppet ligger
-    // på basisruten eller en helt anden materialiseret rute. Uden dette
-    // ender den projicerede rute med at dukke op "bagved" den rigtige.
-    const realSourceKeysByDate = new Map<string, Set<string>>();
-    for (const s of visibleCalendarStops as any[]) {
-      const route = calendarRoutesRaw.find((r) => r.id === s.route_id);
-      if (!route) continue;
-      const d = String(route.route_date).slice(0, 10);
-      const keys = recurringSourceKeysForStop(s);
-      if (keys.length === 0) continue;
-      const set = realSourceKeysByDate.get(d) || new Set<string>();
-      keys.forEach((k) => set.add(k));
-      realSourceKeysByDate.set(d, set);
+    // Map route_id → route_date for dedup-trinet i projection engine.
+    const realRouteDateById = new Map<string, string>();
+    for (const r of calendarRoutesRaw) {
+      realRouteDateById.set(r.id, String(r.route_date).slice(0, 10));
     }
     const isLiveProjectedStop = (s: any) => {
       const eff = (s.occurrence_status as string | null | undefined) ?? s.status;
       return eff !== "completed" && eff !== "cancelled";
     };
-    // Hver aftale beholder sit eget interval, men bruger basisrutens route_date
-    // som stabil kalender-anker når den findes. Det gør projektionen robust i
-    // begge retninger: en 14-dages aftale på en basisrute d. 28 viser også d.
-    // 14, mens månedlige/ugentlige aftaler stadig beregnes med deres egen cadence.
-    const sourcesWithRouteSeed = recurringSources;
-    const projectionWindow = expandProjectionWindowForShiftedOccurrences(
-      calendarRange.start,
-      calendarRange.end,
-      routeOccurrenceExceptions as any[],
-    );
-    const projections = expandRecurringRoutes({
-      sources: sourcesWithRouteSeed,
-      // Hvis en shifted forekomst lander i viewet men originaldatoen ligger
-      // lige udenfor, udvider vi projektionen nok til at kunne flytte den ind.
-      rangeStart: projectionWindow.rangeStart,
-      rangeEnd: projectionWindow.rangeEnd,
+    // Hele projekterings-kæden er nu samlet i `runProjection` (Fase 1 af
+    // refaktorerings-planen). Den orkestrerer window-expansion, cadence,
+    // overrides, pauser, helligdage, shifts og dedup mod rigtige stops.
+    const {
+      projections: shifted,
+      movedReplacementRouteIds,
+      shiftsByOriginal,
+    } = runProjection({
+      sources: recurringSources as any,
+      rangeStart: calendarRange.start,
+      rangeEnd: calendarRange.end,
       realRouteDates: realKeys,
+      realStops: visibleCalendarStops as any[],
+      realRouteDateById,
       overrides: occurrenceOverrides as any[],
       pauses: agreementPauses.map((p) => ({
         agreement_id: p.agreement_id,
@@ -1588,8 +1565,8 @@ const Planner = () => {
         end_date: p.end_date,
       })),
       holidayDates: businessHolidays.map((h) => h.holiday_date),
+      exceptions: routeOccurrenceExceptions as any[],
     });
-    const shifted = applyProjectedOccurrenceShifts(projections, shiftsByOriginal, realKeys);
     const shiftedTargetDates = new Set(Array.from(shiftsByOriginal.values()));
     return shifted
       .map((p) => {
@@ -1604,14 +1581,7 @@ const Planner = () => {
           || shiftedTargetDates.has(p.date);
         if (hasMovedReplacementRoute && !isShiftedOccurrence) return null;
         if (baseMinDate && p.date < baseMinDate && !hasAnchoredSource && !isShiftedOccurrence) return null;
-        // Filtrér source-keys der allerede er materialiseret som rigtige
-        // stops på samme dato — så vi ikke får dubletter.
-        const dateRealKeys = realSourceKeysByDate.get(p.date);
-        if (dateRealKeys && dateRealKeys.size > 0) {
-          const remaining = p.sourceKeys.filter((k) => !dateRealKeys.has(k));
-          if (remaining.length === 0) return null;
-          p = { ...p, sourceKeys: remaining };
-        }
+        // Dedup mod rigtige stops er allerede håndteret i runProjection.
         const base = baseById.get(p.baseRouteId);
         if (!base) return null;
         const sourceSet = new Set(p.sourceKeys);
