@@ -56,7 +56,11 @@ export {
   intervalToDays,
 } from "@/lib/recurring-projection";
 
-export { evaluateSavingsPotential } from "@/lib/optimize-savings-estimate";
+export {
+  estimateOptimizationGain,
+  markOptimizeDismissed,
+} from "@/lib/optimize-savings-estimate";
+export type { OptimizeEstimate } from "@/lib/optimize-savings-estimate";
 
 export {
   classifyDrop,
