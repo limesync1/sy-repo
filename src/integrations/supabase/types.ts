@@ -3235,6 +3235,39 @@ export type Database = {
         }
         Relationships: []
       }
+      route_snapshots: {
+        Row: {
+          business_id: string
+          created_by: string | null
+          id: string
+          locked_at: string
+          payload: Json
+          reason: string
+          route_id: string
+          snapshot_date: string
+        }
+        Insert: {
+          business_id: string
+          created_by?: string | null
+          id?: string
+          locked_at?: string
+          payload: Json
+          reason?: string
+          route_id: string
+          snapshot_date: string
+        }
+        Update: {
+          business_id?: string
+          created_by?: string | null
+          id?: string
+          locked_at?: string
+          payload?: Json
+          reason?: string
+          route_id?: string
+          snapshot_date?: string
+        }
+        Relationships: []
+      }
       route_stop_assignees: {
         Row: {
           created_at: string
@@ -4954,6 +4987,10 @@ export type Database = {
               isSetofReturn: false
             }
           }
+      snapshot_route: {
+        Args: { _reason?: string; _route_id: string }
+        Returns: string
+      }
       suggest_routes_for_stop:
         | {
             Args: {
