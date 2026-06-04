@@ -1366,3 +1366,39 @@ const RouteRevenueBreakdown = ({
     </div>
   );
 };
+
+/**
+ * RouteSnapshotButton — Bølge 4 / 4.3 i .lovable/plan.md
+ * -----------------------------------------------------------------------------
+ * Knappe-affordance til at låse ("snapshot'e") en rute som immutable
+ * point-in-time payload. Bruges af reklamationer + audit-spor. Viser
+ * antallet af eksisterende snapshots så brugeren ved om ruten allerede er låst.
+ */
+const RouteSnapshotButton = ({ routeId }: { routeId: string }) => {
+  const { data: snapshots } = useRouteSnapshots(routeId);
+  const create = useCreateRouteSnapshot();
+  const count = snapshots?.length ?? 0;
+  const onClick = async () => {
+    try {
+      const id = await create.mutateAsync({ routeId, reason: "manual_lock" });
+      if (id) toast.success("Rute låst — snapshot gemt");
+      else toast.info("Ruten er allerede låst i dag");
+    } catch (err) {
+      toastRouteError(err, toast.error, { titleFallback: "Kunne ikke låse rute" });
+    }
+  };
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      className="w-full justify-center gap-2 text-muted-foreground hover:text-foreground border-border/70"
+      onClick={onClick}
+      disabled={create.isPending}
+      title="Gem en uforanderlig kopi af ruten og dens stops — bruges hvis du senere skal dokumentere hvad planen var"
+    >
+      {create.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
+      Lås rute som snapshot
+      {count > 0 && <span className="text-[11px] text-muted-foreground">({count})</span>}
+    </Button>
+  );
+};
