@@ -44,6 +44,7 @@ const EVENT_TYPES = [
   "INVOICE_ENQUEUED",
   "ACCOUNTING_SYNCED",
   "ACCOUNTING_FAILED",
+  "ROUTE_SNAPSHOTTED",
 ] as const;
 
 type RouteEventRow = {
