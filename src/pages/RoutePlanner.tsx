@@ -346,9 +346,6 @@ const Planner = () => {
     bulkMoveOpen,
     setBulkMoveOpen,
   } = useRouteDialogs();
-  // Bulk-valg i "Aftaler uden rute": Sæt af ordre-ids der pt. er markeret.
-  const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(new Set());
-  const [bulkBusy, setBulkBusy] = useState(false);
   // Filter + gruppering for "Aftaler uden rute" — gør store puljer
   // overskuelige uden at brugeren skal scrolle gennem alt.
   const [unassignedStatusFilter, setUnassignedStatusFilter] = usePersistentState<
