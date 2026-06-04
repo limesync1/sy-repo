@@ -4627,6 +4627,16 @@ export type Database = {
           share_contact: boolean
         }[]
       }
+      get_quote_request_contacts: {
+        Args: { p_ids: string[] }
+        Returns: {
+          customer_email: string
+          customer_name: string
+          customer_phone: string
+          quote_request_id: string
+          share_contact: boolean
+        }[]
+      }
       get_route_calendar: {
         Args: { p_business_id: string; p_from: string; p_to: string }
         Returns: Json
