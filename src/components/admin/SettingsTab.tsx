@@ -27,6 +27,37 @@ import { DangerZoneCard } from "@/components/admin/DangerZoneCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+
+/**
+ * Lille selvopdaterende komponent — tikker hvert minut og holder
+ * "X dage, Y timer, Z min tilbage"-tællingen frisk uden at re-rendere
+ * hele SettingsTab (2300 linjer).
+ */
+function TrialCountdownText({ trialEndsAt, daysLeft }: { trialEndsAt: string | null; daysLeft: number | null }) {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const i = setInterval(() => setTick((t) => t + 1), 60_000);
+    return () => clearInterval(i);
+  }, []);
+  const ms = trialEndsAt ? new Date(trialEndsAt).getTime() - Date.now() : null;
+  if (ms !== null && ms > 0) {
+    const tot = Math.max(1, Math.floor(ms / 60_000));
+    const d = Math.floor(tot / (60 * 24));
+    const h = Math.floor((tot % (60 * 24)) / 60);
+    const m = tot % 60;
+    const parts: string[] = [];
+    if (d > 0) parts.push(`${d} ${d === 1 ? "dag" : "dage"}`);
+    if (h > 0) parts.push(`${h} ${h === 1 ? "time" : "timer"}`);
+    if (m > 0 && d === 0) parts.push(`${m} min`);
+    if (parts.length === 0) parts.push(`${m} min`);
+    const joined = parts.length > 1
+      ? `${parts.slice(0, -1).join(", ")} og ${parts[parts.length - 1]}`
+      : parts[0];
+    return <>{`${joined} tilbage af din prøveperiode`}</>;
+  }
+  if (daysLeft === null) return <>Din prøveperiode er aktiv</>;
+  return <>{`${daysLeft} dage tilbage af din prøveperiode`}</>;
+}
 import {
   useBusinessPlan, useReactivateBusinessPlan,
   usePlatformPricing, useUpdateBusinessPlan, useRemovePaymentMethod,
