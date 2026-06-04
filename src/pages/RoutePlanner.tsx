@@ -335,38 +335,6 @@ const Planner = () => {
   const [suggestJob, setSuggestJob] = useState<any | null>(null);
   // Ref til "Aftaler uden rute"-søgefeltet — så vi kan fokusere det med "/".
   const unassignedSearchRef = useRef<HTMLInputElement | null>(null);
-  const [activeDragId, setActiveDragId] = useState<string | null>(null);
-  const [activeDragData, setActiveDragData] = useState<any>(null);
-  // ID for det drop-target musen p.t. hovrer over — bruges af DragEtaOverlay
-  // til at vide hvilken validering + ETA der skal vises.
-  const [dragOverTargetId, setDragOverTargetId] = useState<string | null>(null);
-  const activeDragPointRef = useRef<DragPoint | null>(null);
-  const activeDragOriginRef = useRef<DragPoint | null>(null);
-  const [routeDragPoint, setRouteDragPoint] = useState<DragPoint | null>(null);
-  const activeRouteDragPointRef = useRef<DragPoint | null>(null);
-  const activeRouteDragOriginRef = useRef<DragPoint | null>(null);
-  const routeOverlayRef = useRef<HTMLDivElement | null>(null);
-  const applyRouteOverlayPosition = (point: DragPoint | null) => {
-    const el = routeOverlayRef.current;
-    if (!el || !point) return;
-    el.style.left = `${point.x}px`;
-    el.style.top = `${point.y}px`;
-  };
-  // Beskytter mod dobbelt-drop på samme kilde+mål — undgår dubletruter og
-  // "uniq_route_stops_route_order" race conditions.
-  const inFlightDropsRef = useRef<Set<string>>(new Set());
-  // Synlig "behandler"-tilstand pr. drop-target (route:<id> eller day:<date>).
-  // Bruges af kalenderen til at deaktivere drop og vise spinner mens en
-  // flytning er i gang — så brugeren ikke kan slippe igen ved et uheld.
-  const [busyTargets, setBusyTargets] = useState<Set<string>>(new Set());
-  const setTargetBusy = (target: string | null, busy: boolean) => {
-    if (!target) return;
-    setBusyTargets((prev) => {
-      const next = new Set(prev);
-      if (busy) next.add(target); else next.delete(target);
-      return next;
-    });
-  };
   const [geocoding, setGeocoding] = useState(false);
   const [newRouteName, setNewRouteName] = useState("");
   const [newRouteColor, setNewRouteColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
