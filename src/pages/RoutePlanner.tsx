@@ -122,6 +122,7 @@ import RoutePlannerMobile from "@/components/route-planner/mobile/RoutePlannerMo
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { useRoutePlannerKeyboard } from "@/hooks/route-planner/useRoutePlannerKeyboard";
 import { useRoutePlannerDnd } from "@/hooks/route-planner/useRoutePlannerDnd";
+import { useRoutePlannerSimulation } from "@/hooks/route-planner/useRoutePlannerSimulation";
 import { useRoutePlannerDragEnd } from "@/hooks/route-planner/useRoutePlannerDragEnd";
 import { pushRouteUndo, routeHistory } from "@/lib/route-history";
 import { toastSuccessWithUndo } from "@/lib/toast-undo";
@@ -1358,6 +1359,16 @@ const Planner = () => {
     handleDragOver,
     handleDragMove,
   } = dnd;
+
+  // Bølge 5.1: "What-if"-simulation under drag. Skriver et `SimulationSummary`
+  // ind i `simulation-preview-context` hver gang drop-target skifter, så
+  // `SimulationPreviewOverlay` kan vise diff + konflikter inden commit.
+  useRoutePlannerSimulation({
+    calendarStops,
+    calendarRoutesRaw,
+    activeDragData,
+    dragOverTargetId,
+  });
 
   /* ─── Projection sanity-check / diagnostik ───
      Kører FØR projektionen bruges i UI'et, så vi:
