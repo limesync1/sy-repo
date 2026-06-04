@@ -1,3 +1,7 @@
+// Ruteplanlægger — orkestrerer kalender, projektion, DnD og dialoger.
+// Refaktoreringsplan: .lovable/plan.md (Fase 1–5).
+// Trigger-flow ved completion: docs/route-stops-triggers.md.
+// Projection engine: src/lib/route-projection/ (Fase 1 — orchestrator klar).
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
