@@ -102,7 +102,7 @@ import {
   recurringSourceKeysForStop,
 } from "@/lib/recurring-projection";
 import { useProjectedCalendar } from "@/hooks/route-planner/useProjectedCalendar";
-import { useRoutePlannerFilters } from "@/hooks/route-planner/useRoutePlannerFilters";
+import { usePlannerStore } from "@/hooks/route-planner/usePlannerStore";
 import { intervalToCadence } from "@/lib/interval";
 import { formatDurationMin } from "@/lib/duration-format";
 import { useAgreementPauses } from "@/hooks/useAgreementPauses";
@@ -119,13 +119,9 @@ import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { Monitor, MousePointer2, Map as MapIcon, LayoutGrid, ArrowLeft, Copy, Check, Rows3, MoreHorizontal, Layers } from "lucide-react";
 import RoutePlannerMobile from "@/components/route-planner/mobile/RoutePlannerMobile";
 import { usePersistentState } from "@/hooks/usePersistentState";
-import { useRouteDialogs } from "@/hooks/route-planner/useRouteDialogs";
-import { useRouteSelection } from "@/hooks/route-planner/useRouteSelection";
-import { useRoutePlannerWorkflowState } from "@/hooks/route-planner/useRoutePlannerWorkflowState";
 import { useRoutePlannerKeyboard } from "@/hooks/route-planner/useRoutePlannerKeyboard";
 import { useRoutePlannerDnd } from "@/hooks/route-planner/useRoutePlannerDnd";
 import { pushRouteUndo, routeHistory } from "@/lib/route-history";
-import { useRouteHistory } from "@/hooks/useRouteHistory";
 import { toastSuccessWithUndo } from "@/lib/toast-undo";
 import { estimateOptimizationGain, markOptimizeDismissed } from "@/lib/optimize-savings-estimate";
 import { BulkMoveRoutesDialog, type BulkMoveRouteItem } from "@/components/route-planner/BulkMoveRoutesDialog";
