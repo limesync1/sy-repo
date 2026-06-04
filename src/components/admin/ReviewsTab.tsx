@@ -15,10 +15,24 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
   const [search, setSearch] = useState("");
   const [ratingFilter, setRatingFilter] = useState<"all" | 1 | 2 | 3 | 4 | 5>("all");
 
-  const avgRating = reviews.length > 0
-    ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-    : 0;
-  const verifiedCount = reviews.filter((r) => r.is_verified).length;
+  // Memoiseret samlet aggregat — én pass over reviews i stedet for 8.
+  const aggregate = useMemo(() => {
+    let sum = 0;
+    let verified = 0;
+    const counts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    for (const r of reviews) {
+      sum += r.rating || 0;
+      if (r.is_verified) verified += 1;
+      if (r.rating >= 1 && r.rating <= 5) counts[r.rating] += 1;
+    }
+    return {
+      avg: reviews.length > 0 ? sum / reviews.length : 0,
+      verified,
+      counts,
+    };
+  }, [reviews]);
+  const avgRating = aggregate.avg;
+  const verifiedCount = aggregate.verified;
 
   const filtered = useMemo(() => {
     let list = reviews;
@@ -81,11 +95,11 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
         <div className="flex flex-wrap gap-1">
           {([
             { key: "all" as const, label: "Alle", count: reviews.length },
-            { key: 5 as const, label: "5 ★", count: reviews.filter(r => r.rating === 5).length },
-            { key: 4 as const, label: "4 ★", count: reviews.filter(r => r.rating === 4).length },
-            { key: 3 as const, label: "3 ★", count: reviews.filter(r => r.rating === 3).length },
-            { key: 2 as const, label: "2 ★", count: reviews.filter(r => r.rating === 2).length },
-            { key: 1 as const, label: "1 ★", count: reviews.filter(r => r.rating === 1).length },
+            { key: 5 as const, label: "5 ★", count: aggregate.counts[5] },
+            { key: 4 as const, label: "4 ★", count: aggregate.counts[4] },
+            { key: 3 as const, label: "3 ★", count: aggregate.counts[3] },
+            { key: 2 as const, label: "2 ★", count: aggregate.counts[2] },
+            { key: 1 as const, label: "1 ★", count: aggregate.counts[1] },
           ]).map(({ key, label, count }) => (
             <button
               key={key}

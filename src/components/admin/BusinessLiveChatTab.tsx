@@ -1,7 +1,7 @@
 // BusinessLiveChatTab — virksomhedens egen indbakke for samtaler startet
 // fra deres offentlige side. Bruger samme designsprog som platform-admin
 // versionen, men er filtreret på business_id og uden canned responses.
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { memo, useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -67,6 +67,35 @@ const slaState = (c: Conversation): { label: string; tone: "ok" | "warn" | "brea
   return { label: `${min} min siden start`, tone: "ok" };
 };
 
+/**
+ * Isoleret SLA-pill + relativ tid — har sin egen 30s tick så vi ikke
+ * re-renderer hele 870-linjers chat-komponenten hvert halve minut.
+ */
+const ConversationMeta = memo(function ConversationMeta({ conversation }: { conversation: Conversation }) {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = window.setInterval(() => setTick((t) => t + 1), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
+  const sla = slaState(conversation);
+  const slaClass =
+    sla.tone === "breach" ? "bg-destructive/10 text-destructive" :
+    sla.tone === "warn"   ? "bg-amber-500/15 text-amber-700 dark:text-amber-400" :
+    sla.tone === "done"   ? "bg-success/10 text-success" :
+    sla.tone === "closed" ? "bg-muted text-muted-foreground" :
+                            "bg-secondary text-muted-foreground";
+  return (
+    <div className="mt-0.5 flex items-center gap-1.5">
+      <span className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${slaClass}`} title="Svartid">
+        <Clock className="h-2.5 w-2.5" />{sla.label}
+      </span>
+      <span className="truncate text-[10px] text-muted-foreground">
+        {formatDistanceToNow(new Date(conversation.last_message_at), { locale: da, addSuffix: true })}
+      </span>
+    </div>
+  );
+});
+
 const formatTime = (iso: string) => {
   const d = new Date(iso);
   const sameDay = d.toDateString() === new Date().toDateString();
@@ -100,7 +129,6 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
   const [tplDraft, setTplDraft] = useState<{ id?: string; title: string; content: string }>({ title: "", content: "" });
   const [previewTpl, setPreviewTpl] = useState<Template | null>(null);
   const [employees, setEmployees] = useState<EmployeeOption[]>([]);
-  const [tick, setTick] = useState(0); // bruges til at re-rendere SLA-pillen hvert minut
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -117,12 +145,6 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
   // efterfølgende load. Sættes i activeId-effekten, ryddes når vi har
   // scrollet for den pågældende samtale.
   const forceBottomOnNextRenderRef = useRef(false);
-
-  // SLA-tæller — opdater 1× pr. 30s for at holde "X min uden svar" frisk
-  useEffect(() => {
-    const id = window.setInterval(() => setTick((t) => t + 1), 30_000);
-    return () => window.clearInterval(id);
-  }, []);
 
   // Hold afsendernavnet i sync med virksomhedens navn (i tilfælde af at det
   // ændres mens fanen er åben). Vi henter IKKE længere brugerens eget navn.
@@ -312,7 +334,7 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
       return true;
     });
     return [...list].sort((a, b) => +new Date(b.last_message_at) - +new Date(a.last_message_at));
-  }, [conversations, filter, search, dateFilter, tick]);
+  }, [conversations, filter, search, dateFilter]);
 
   const totalUnread = conversations.reduce((s, c) => s + (c.unread_admin_count || 0), 0);
 
@@ -511,13 +533,6 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
               </div>
             ) : (
               filtered.map((c) => {
-                const sla = slaState(c);
-                const slaClass =
-                  sla.tone === "breach" ? "bg-destructive/10 text-destructive" :
-                  sla.tone === "warn"   ? "bg-amber-500/15 text-amber-700 dark:text-amber-400" :
-                  sla.tone === "done"   ? "bg-success/10 text-success" :
-                  sla.tone === "closed" ? "bg-muted text-muted-foreground" :
-                                          "bg-secondary text-muted-foreground";
                 return (
                 <button
                   key={c.id}
@@ -537,14 +552,7 @@ const BusinessLiveChatTab = ({ businessId, businessName }: { businessId: string;
                       )}
                     </div>
                     <p className="truncate text-[11px] text-muted-foreground">{c.subject || c.visitor_email}</p>
-                    <div className="mt-0.5 flex items-center gap-1.5">
-                      <span className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${slaClass}`} title="Svartid">
-                        <Clock className="h-2.5 w-2.5" />{sla.label}
-                      </span>
-                      <span className="truncate text-[10px] text-muted-foreground">
-                        {formatDistanceToNow(new Date(c.last_message_at), { locale: da, addSuffix: true })}
-                      </span>
-                    </div>
+                    <ConversationMeta conversation={c} />
                   </div>
                 </button>
                 );
