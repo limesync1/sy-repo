@@ -4101,6 +4101,18 @@ export type Database = {
         }
         Returns: boolean
       }
+      _apply_completion_duration: {
+        Args: { _new: Database["public"]["Tables"]["route_stops"]["Row"] }
+        Returns: undefined
+      }
+      _apply_completion_handle: {
+        Args: { _new: Database["public"]["Tables"]["route_stops"]["Row"] }
+        Returns: undefined
+      }
+      _apply_completion_invoice: {
+        Args: { _new: Database["public"]["Tables"]["route_stops"]["Row"] }
+        Returns: undefined
+      }
       _generate_occurrences_for_agreement: {
         Args: { _agreement_id: string; _until_date: string }
         Returns: number
