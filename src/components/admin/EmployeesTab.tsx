@@ -22,7 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ROUTE_COLORS } from "@/components/route-planner/RouteEditSheet";
 import { cn } from "@/lib/utils";
 import { useMyBusiness } from "@/hooks/useDatabase";
-import { useEmployeeSkills, useSetEmployeeSkills } from "@/hooks/useRoutePlannerSmarts";
+import { useEmployeeSkills, useSetEmployeeSkills, useAllEmployeeSkills, type EmployeeSkill } from "@/hooks/useRoutePlannerSmarts";
 import {
   startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear,
   subMonths, format, parseISO,
