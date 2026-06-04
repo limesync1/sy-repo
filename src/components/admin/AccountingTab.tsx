@@ -182,6 +182,22 @@ const formatRelativeDanish = (iso: string | null): string => {
   return new Date(iso).toLocaleDateString("da-DK");
 };
 
+/**
+ * Lille selvstændig komponent der re-renderer sig selv hvert minut for at
+ * holde "X min siden"-teksten retvisende. Det erstatter en tidligere
+ * setInterval i hele AccountingTab-komponenten, der hvert minut tvang ~2500
+ * linjers JSX til at re-render bare for at opdatere et par små spans.
+ */
+const RelativeTime: React.FC<{ iso: string | null }> = React.memo(({ iso }) => {
+  const [, tick] = React.useState(0);
+  React.useEffect(() => {
+    const t = setInterval(() => tick((n) => n + 1), 60_000);
+    return () => clearInterval(t);
+  }, []);
+  return <>{formatRelativeDanish(iso)}</>;
+});
+RelativeTime.displayName = "RelativeTime";
+
 // Cron-jobbet kører hver hele time (HH:00). Beregn hvornår næste kørsel er.
 const nextHourlyRun = (): Date => {
   const d = new Date();
