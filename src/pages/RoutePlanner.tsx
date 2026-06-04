@@ -1360,6 +1360,16 @@ const Planner = () => {
     handleDragMove,
   } = dnd;
 
+  // Bølge 5.1: "What-if"-simulation under drag. Skriver et `SimulationSummary`
+  // ind i `simulation-preview-context` hver gang drop-target skifter, så
+  // `SimulationPreviewOverlay` kan vise diff + konflikter inden commit.
+  useRoutePlannerSimulation({
+    calendarStops,
+    calendarRoutesRaw,
+    activeDragData,
+    dragOverTargetId,
+  });
+
   /* ─── Projection sanity-check / diagnostik ───
      Kører FØR projektionen bruges i UI'et, så vi:
        1) Auto-fjerner inkonsistente `route_occurrence_exceptions`
