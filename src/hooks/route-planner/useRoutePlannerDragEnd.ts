@@ -20,11 +20,10 @@ import type { Route } from "@/hooks/useRoutes";
 import type { QueryClient } from "@tanstack/react-query";
 
 import {
-  classifyDrop,
-  computeTargetDateForGuard,
   dropKeyFor,
   targetKeyFor,
 } from "@/lib/route-planner/drop-classifier";
+import { decideDrop, type DropDecision, type DropOp } from "@/domain/routes";
 
 /**
  * useRoutePlannerDragEnd — Bølge 1 / pkt. 1.3 i .lovable/plan.md
@@ -185,60 +184,24 @@ export function useRoutePlannerDragEnd(deps: DragEndDeps) {
       ? preferredRouteTarget
       : over?.data.current;
 
-    // ─── Hård guard: aldrig drop på dato før i dag ───
-    const routesById = new Map<string, any>(calendarRoutesRaw.map((r) => [r.id, r]));
-    const targetDateForGuard = computeTargetDateForGuard(overData, routesById);
+    // ─── Bølge 2: validate → commit → rollback pipeline ───
+    // decideDrop er en ren funktion; alle DB-/UI-/toast-effekter sker herunder.
     const todayLocal = todayStr();
-    if (targetDateForGuard && targetDateForGuard < todayLocal) {
-      toast.error("Kan ikke flytte til en dato før i dag", {
-        description: `Dags dato er ${format(new Date(), "EEEE d. MMM yyyy", { locale: da })} — ruter og aftaler kan kun planlægges fra i dag og frem.`,
-      });
+    const decision: DropDecision = decideDrop(activeData, overData, {
+      todayLocal,
+      calendarRoutesRaw,
+      virtualCalendarRoutes,
+    });
+
+    if (decision.kind === "noop") return;
+
+    if (decision.kind === "blocked") {
+      const fn = decision.severity === "info" ? toast.info : toast.error;
+      fn(decision.title, decision.description ? { description: decision.description } : undefined);
       return;
     }
 
-    const kind = classifyDrop(activeData, overData);
-    if (kind === "noop") return;
-
-    // ─── Drop-kind: projected-route-to-route (blokeret) ───
-    if (kind === "projected-route-to-route") {
-      toast.error("Kan ikke flette en projiceret rute", {
-        description: "Åbn den projicerede rute først, eller flyt en faktisk rute i stedet.",
-      });
-      return;
-    }
-
-    // ─── Drop-kind: projected-route-to-day (åbner dialog) ───
-    if (kind === "projected-route-to-day") {
-      const fromDate = String(activeData.route.route_date || "").slice(0, 10);
-      const toDate = String(overData.date || "").slice(0, 10);
-      if (!fromDate || !toDate || fromDate === toDate) return;
-      const baseRouteId: string | null = activeData.route.baseRouteId ?? null;
-      if (!baseRouteId) { toast.error("Kan ikke identificere originalruten for forekomsten"); return; }
-      const collidingReal = calendarRoutesRaw.find((r: any) =>
-        String(r.route_date).slice(0, 10) === toDate
-        && (r.id === baseRouteId || r.base_route_id === baseRouteId),
-      );
-      if (collidingReal) { toast.error("Der findes allerede en rute fra samme serie på den dato"); return; }
-      const collidingVirtual = virtualCalendarRoutes.find((r: any) =>
-        String(r.route_date).slice(0, 10) === toDate
-        && r.baseRouteId === baseRouteId
-        && r.id !== activeData.route.id,
-      );
-      if (collidingVirtual) {
-        toast.error("Der ligger allerede en projiceret forekomst af samme rute på den dato", {
-          description: "Vælg en anden dato — ellers vil der være to af samme rute på samme dag.",
-        });
-        return;
-      }
-      setPendingProjectedMove({
-        baseRouteId,
-        routeName: activeData.route.name || "Rute",
-        fromDate, toDate, autoSkipCadence: false,
-      });
-      return;
-    }
-
-    // ─── Re-entrancy guard + idempotency claim (deles af resten) ───
+    // ─── Re-entrancy guard + idempotency claim (deles af dialog- og commit-grene) ───
     const dropKey = dropKeyFor(activeData, overData);
     if (dropKey) {
       if (inFlightDropsRef.current.has(dropKey)) return;
@@ -264,83 +227,31 @@ export function useRoutePlannerDragEnd(deps: DragEndDeps) {
       } catch (err) { console.warn("idempotency claim threw", err); return true; }
     };
 
-    // ─── Drop-kind: route-to-route (merge dialog) ───
-    if (kind === "route-to-route") {
-      const source: Route = activeData.route;
-      const targetRouteId: string = overData.routeId;
-      if (source.id === targetRouteId) { releaseDrop(); return; }
-      const target = calendarRoutesRaw.find((r) => r.id === targetRouteId);
-      if (!target) { releaseDrop(); return; }
-      if ((target as any).isVirtual) {
-        toast.error("Kan ikke flette ind i en projiceret rute", {
-          description: "Vælg en faktisk rute som mål — eller flyt den projicerede forekomst først.",
+    // ─── Decision: dialog ──────────────────────────────────────────────
+    if (decision.kind === "dialog") {
+      const d = decision.dialog;
+      if (d.type === "projected-move") {
+        setPendingProjectedMove({
+          baseRouteId: d.baseRouteId,
+          routeName: d.routeName,
+          fromDate: d.fromDate,
+          toDate: d.toDate,
+          autoSkipCadence: false,
         });
-        releaseDrop();
-        return;
+      } else if (d.type === "route-merge") {
+        setPendingRouteMerge({ source: d.source as Route, target: d.target as unknown as Route });
+      } else if (d.type === "route-move") {
+        setPendingRouteMove({ route: d.route as Route, newDate: d.newDate });
       }
-      setPendingRouteMerge({ source, target: target as unknown as Route });
       releaseDrop();
       return;
     }
 
-    // ─── Drop-kind: route-to-day (move dialog) ───
-    if (kind === "route-to-day") {
-      const route: Route = activeData.route;
-      const newDate: string = overData.date;
-      if (route.route_date === newDate) { releaseDrop(); return; }
-      const baseId: string | null =
-        (route as any).base_route_id ?? (route as any).baseRouteId ?? route.id ?? null;
-      const collidingReal = calendarRoutesRaw.find((r: any) =>
-        String(r.route_date).slice(0, 10) === newDate
-        && r.id !== route.id
-        && (
-          (baseId && (r.id === baseId || r.base_route_id === baseId))
-          || (!baseId && r.id === route.id)
-        ),
-      );
-      if (collidingReal) {
-        toast.error("Der findes allerede en rute fra samme serie på den dato", {
-          description: "Flet i stedet ruterne, eller vælg en anden dato.",
-        });
-        releaseDrop();
-        return;
-      }
-      const collidingProjected = virtualCalendarRoutes.find((r: any) =>
-        String(r.route_date).slice(0, 10) === newDate
-        && baseId
-        && r.baseRouteId === baseId
-        && r.id !== route.id,
-      );
-      if (collidingProjected) {
-        toast.error("Der ligger allerede en projiceret forekomst af samme rute på den dato", {
-          description: "Flyt eller spring den projicerede forekomst over først — ellers vil der være to af samme rute på samme dag.",
-        });
-        releaseDrop();
-        return;
-      }
-      setPendingRouteMove({ route, newDate });
-      releaseDrop();
-      return;
-    }
+    // ─── Decision: commit ──────────────────────────────────────────────
+    const op: DropOp = decision.op;
 
-    // ─── Drop-kind: job-to-route ───
-    if (kind === "job-to-route") {
-      const job = activeData.job;
-      if (job.status === "pending") {
-        toast.error("Aftalen skal godkendes først", {
-          description: "Aftalen er endnu ikke bekræftet af jer eller kunden — godkend den før den kan lægges på en rute.",
-        });
-        releaseDrop(); return;
-      }
-      const targetRouteId: string = overData.routeId;
-      const targetRoute = calendarRoutesRaw.find((r) => r.id === targetRouteId);
-      if ((targetRoute as any)?.isVirtual) {
-        toast.error("Kan ikke lægge aftaler på en projiceret rute", {
-          description: "Projicerede ruter er fremtidige forekomster — læg aftalen på originalruten eller en faktisk rute.",
-        });
-        releaseDrop(); return;
-      }
-      const targetDate = targetRoute?.route_date || (targetRoute as any)?.date;
+    if (op.type === "add-stop-to-route") {
+      const { routeId: targetRouteId, job, targetDate, targetLabel } = op;
       if (!(await claimIdempotency())) {
         toast.info("Aftalen er allerede ved at blive tilføjet");
         releaseDrop(); return;
@@ -367,8 +278,7 @@ export function useRoutePlannerDragEnd(deps: DragEndDeps) {
         void linkAgreementToRoute(job.id, targetRouteId);
       };
       if (targetDate && !ensureStartDateMatches(
-        job, targetDate,
-        targetRoute?.name ? `ruten "${targetRoute.name}"` : "ruten",
+        job, targetDate, targetLabel,
         async () => { await shiftJobStartDate(job.id, targetDate); await performAddToRoute(); },
       )) { releaseDrop(); return; }
       try {
@@ -387,16 +297,8 @@ export function useRoutePlannerDragEnd(deps: DragEndDeps) {
       return;
     }
 
-    // ─── Drop-kind: job-to-day ───
-    if (kind === "job-to-day") {
-      const job = activeData.job;
-      if (job.status === "pending") {
-        toast.error("Aftalen skal godkendes først", {
-          description: "Aftalen er endnu ikke bekræftet af jer eller kunden — godkend den før den kan lægges på en rute.",
-        });
-        releaseDrop(); return;
-      }
-      const newDate: string = overData.date;
+    if (op.type === "create-route-with-stop") {
+      const { job, newDate } = op;
       if (!(await claimIdempotency())) {
         toast.info("Aftalen er allerede ved at blive lagt på den dag");
         releaseDrop(); return;
@@ -460,18 +362,8 @@ export function useRoutePlannerDragEnd(deps: DragEndDeps) {
       return;
     }
 
-    // ─── Drop-kind: stop-to-day ───
-    if (kind === "stop-to-day") {
-      const stop = activeData.stop;
-      if ((stop as any)?.isVirtual || String(stop?.id || "").startsWith("virtual-stop:")) {
-        toast.error("Projicerede stops kan ikke flyttes", {
-          description: "Åbn originalruten for at ændre rækkefølge eller dato for denne aftale.",
-        });
-        releaseDrop(); return;
-      }
-      const newDate: string = overData.date;
-      const currentRoute = calendarRoutesRaw.find((r) => r.id === stop.route_id);
-      if (currentRoute && currentRoute.route_date === newDate) { releaseDrop(); return; }
+    if (op.type === "move-stop-to-day") {
+      const { stop, newDate, currentRouteDate } = op;
       if (!(await claimIdempotency())) {
         toast.info("Stoppet er allerede ved at blive flyttet");
         releaseDrop(); return;
@@ -488,7 +380,7 @@ export function useRoutePlannerDragEnd(deps: DragEndDeps) {
         if (moved > 0) {
           try { await renameFreshSplitRoutes([stop.id], newDate); }
           catch (err) { console.warn("renameFreshSplitRoutes", err); }
-          const originalDate = currentRoute?.route_date;
+          const originalDate = currentRouteDate;
           if (originalDate && originalDate !== newDate) {
             pushRouteUndo({
               label: `Flyt stop tilbage til ${format(parseISO(originalDate), "d. MMM", { locale: da })}`,
