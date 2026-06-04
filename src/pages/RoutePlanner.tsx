@@ -2004,94 +2004,26 @@ const Planner = () => {
   // uden at vi skal hejse hele runAutoAssign op før effekten.
   const runAutoAssignRef = useRef<() => void | Promise<void>>(() => {});
   const focusSearchRef = useRef<() => void>(() => {});
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      // Ignore when typing in inputs
-      const t = e.target as HTMLElement;
-      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
-      // Undo/redo (skal håndteres FØR den generelle modifier-guard nedenfor).
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z") {
-        e.preventDefault();
-        if (e.shiftKey) void history.redo();
-        else void history.undo();
-        return;
-      }
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "y") {
-        // Windows-konvention for redo.
-        e.preventDefault();
-        void history.redo();
-        return;
-      }
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
-      if (e.key === "/") {
-        // "/" — som GitHub/Linear: hop til søgefeltet i "Aftaler uden rute".
-        e.preventDefault();
-        focusSearchRef.current();
-      } else if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        setDate((d) => format(view === "week" ? addWeeks(parseISO(d), -1) : addMonths(parseISO(d), -1), "yyyy-MM-dd"));
-      } else if (e.key === "ArrowRight") {
-        e.preventDefault();
-        setDate((d) => format(view === "week" ? addWeeks(parseISO(d), 1) : addMonths(parseISO(d), 1), "yyyy-MM-dd"));
-      } else if (e.key.toLowerCase() === "t") {
-        setDate(todayStr());
-      } else if (e.key.toLowerCase() === "n") {
-        setCreateOpen(true);
-      } else if (e.key.toLowerCase() === "a") {
-        // "A" — auto-fordel alle aftaler uden rute (eller find bedste rute
-        // hvis kun én er klar). Springer over hvis intet er klar.
-        e.preventDefault();
-        void runAutoAssignRef.current();
-      } else if (e.key === "Escape") {
-        // Prioritet: 1) ryd bulk-valg (oftest brugt) 2) luk stop-panel.
-        if (selectedJobIds.size > 0) {
-          setSelectedJobIds(new Set());
-          lastSelectedJobIdRef.current = null;
-        } else if (selectedStopId) {
-          setSelectedStopId(null);
-        }
-      } else if ((e.key === "Delete" || e.key === "Backspace") && selectedStopId) {
-        // Fjern det aktuelt valgte stop fra ruten. Virtuelle (projicerede)
-        // stops kan ikke slettes — de skal flyttes via basis-ruten.
-        if (selectedStopId.startsWith("virtual-stop:")) {
-          toast.message("Projicerede stops kan ikke slettes — åbn originalruten for at ændre.");
-          return;
-        }
-        e.preventDefault();
-        const id = selectedStopId;
-        deleteStop.mutate(id, {
-          onSuccess: () => {
-            toast.success("Stop fjernet fra rute");
-            setSelectedStopId(null);
-          },
-          onError: (err: any) => toast.error("Kunne ikke fjerne stoppet", { description: err?.message }),
-        });
-      } else if (e.key === "?" || (e.shiftKey && e.key === "/")) {
-        e.preventDefault();
-        setShortcutsOpen(true);
-      } else if (e.key.toLowerCase() === "p") {
-        e.preventDefault();
-        setPrintOpen(true);
-      } else if (e.key.toLowerCase() === "d") {
-        e.preventDefault();
-        setDayDetailOpen(true);
-      } else if (e.key.toLowerCase() === "j") {
-        e.preventDefault();
-        setDate((d) => format(addDays(parseISO(d), 1), "yyyy-MM-dd"));
-      } else if (e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        setDate((d) => format(addDays(parseISO(d), -1), "yyyy-MM-dd"));
-      } else if (e.key.toLowerCase() === "o") {
-        if (editingRoute) {
-          e.preventDefault();
-          optimizeRouteRef.current(editingRoute.id);
-        }
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedStopId, view, history, editingRoute, selectedJobIds, deleteStop]);
+  useRoutePlannerKeyboard({
+    history,
+    view,
+    setDate,
+    todayStr,
+    selectedJobIds,
+    setSelectedJobIds,
+    lastSelectedJobIdRef,
+    selectedStopId,
+    setSelectedStopId,
+    deleteStop,
+    editingRoute,
+    setCreateOpen,
+    setShortcutsOpen,
+    setPrintOpen,
+    setDayDetailOpen,
+    focusSearchRef,
+    runAutoAssignRef,
+    optimizeRouteRef,
+  });
 
   /* Når create-dialog åbnes, foreslå en ledig farve for den valgte dato */
   useEffect(() => {
