@@ -10,7 +10,7 @@ import { useCallback, useMemo } from "react";
 import { useDragSimulation } from "./useDragSimulation";
 import type { Plan, SimulationAction } from "@/domain/routes";
 
-const HHMM = (raw: string | null | undefined): string | null => {
+export const HHMM = (raw: string | null | undefined): string | null => {
   if (!raw) return null;
   // accept "HH:mm[:ss]" or ISO timestamp
   if (/^\d{2}:\d{2}/.test(raw)) return raw.slice(0, 5);
@@ -19,7 +19,7 @@ const HHMM = (raw: string | null | undefined): string | null => {
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 };
 
-const addMinutes = (hhmm: string | null, minutes: number): string | null => {
+export const addMinutes = (hhmm: string | null, minutes: number): string | null => {
   if (!hhmm) return null;
   const [h, m] = hhmm.split(":").map((n) => parseInt(n, 10));
   if (Number.isNaN(h) || Number.isNaN(m)) return null;
@@ -29,7 +29,66 @@ const addMinutes = (hhmm: string | null, minutes: number): string | null => {
   return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
 };
 
-type AnyRoute = { id: string; route_date: string };
+export type AnyRoute = { id: string; route_date: string };
+
+/** Pure: byg `Plan["stops"]` ud fra RoutePlanners rå kalender-data. Testbar. */
+export const buildPlanStops = (
+  calendarStops: any[],
+  calendarRoutesRaw: AnyRoute[],
+): Plan["stops"] => {
+  const routeById = new Map(calendarRoutesRaw.map((r) => [r.id, r]));
+  return (calendarStops || []).map((s: any) => {
+    const start = HHMM(s.planned_arrival) ?? HHMM(s.time_window_start);
+    const end = HHMM(s.planned_departure)
+      ?? HHMM(s.time_window_end)
+      ?? addMinutes(start, Number(s.duration_minutes || 30));
+    const ids: string[] = Array.isArray(s.assignee_ids) && s.assignee_ids.length
+      ? s.assignee_ids
+      : (s.assigned_employee_id ? [s.assigned_employee_id] : []);
+    return {
+      id: String(s.id),
+      route_id: String(s.route_id ?? ""),
+      route_date: String(routeById.get(s.route_id)?.route_date ?? s.route_date ?? ""),
+      employee_ids: ids,
+      start_time: start,
+      end_time: end,
+      label: s.customer_name ?? null,
+    } as Plan["stops"][number];
+  });
+};
+
+/** Pure: mapper aktiv dnd-data + drop-target til en SimulationAction. */
+export const mapDragToAction = (
+  data: any,
+  overTargetId: string | null,
+  calendarRoutesRaw: AnyRoute[],
+): SimulationAction | null => {
+  if (!data || !overTargetId) return null;
+  const [kind, ...rest] = overTargetId.split(":");
+  const targetVal = rest.join(":");
+
+  if (data.type === "stop" && data.stop?.id) {
+    const current: string[] = Array.isArray(data.stop.assignee_ids) && data.stop.assignee_ids.length
+      ? data.stop.assignee_ids
+      : (data.stop.assigned_employee_id ? [data.stop.assigned_employee_id] : []);
+    const toEmp = current[0] ?? null;
+    if (kind === "day") {
+      return { type: "MOVE_STOP", stopId: String(data.stop.id), toEmployeeId: toEmp, toDate: targetVal };
+    }
+    if (kind === "route" || kind === "route-drop") {
+      const route = calendarRoutesRaw.find((r) => r.id === targetVal);
+      if (!route) return null;
+      return { type: "MOVE_STOP", stopId: String(data.stop.id), toEmployeeId: toEmp, toDate: route.route_date };
+    }
+  }
+
+  if (data.type === "route" && data.route?.id && kind === "day") {
+    return { type: "MOVE_ROUTE", routeId: String(data.route.id), toDate: targetVal };
+  }
+
+  // Nye jobs (type "job") findes ikke i planen → ingen simulation.
+  return null;
+};
 
 export const useRoutePlannerSimulation = (opts: {
   calendarStops: any[];
@@ -40,53 +99,11 @@ export const useRoutePlannerSimulation = (opts: {
   const { calendarStops, calendarRoutesRaw, activeDragData, dragOverTargetId } = opts;
 
   const stops = useMemo<Plan["stops"]>(() => {
-    const routeById = new Map(calendarRoutesRaw.map((r) => [r.id, r]));
-    return (calendarStops || []).map((s: any) => {
-      const start = HHMM(s.planned_arrival) ?? HHMM(s.time_window_start);
-      const end = HHMM(s.planned_departure)
-        ?? HHMM(s.time_window_end)
-        ?? addMinutes(start, Number(s.duration_minutes || 30));
-      const ids: string[] = Array.isArray(s.assignee_ids) && s.assignee_ids.length
-        ? s.assignee_ids
-        : (s.assigned_employee_id ? [s.assigned_employee_id] : []);
-      return {
-        id: String(s.id),
-        route_id: String(s.route_id ?? ""),
-        route_date: String(routeById.get(s.route_id)?.route_date ?? s.route_date ?? ""),
-        employee_ids: ids,
-        start_time: start,
-        end_time: end,
-        label: s.customer_name ?? null,
-      };
-    });
+    return buildPlanStops(calendarStops, calendarRoutesRaw);
   }, [calendarStops, calendarRoutesRaw]);
 
   const toAction = useCallback((data: any, overTargetId: string): SimulationAction | null => {
-    if (!data || !overTargetId) return null;
-    const [kind, ...rest] = overTargetId.split(":");
-    const targetVal = rest.join(":");
-
-    if (data.type === "stop" && data.stop?.id) {
-      const current: string[] = Array.isArray(data.stop.assignee_ids) && data.stop.assignee_ids.length
-        ? data.stop.assignee_ids
-        : (data.stop.assigned_employee_id ? [data.stop.assigned_employee_id] : []);
-      const toEmp = current[0] ?? null;
-      if (kind === "day") {
-        return { type: "MOVE_STOP", stopId: String(data.stop.id), toEmployeeId: toEmp, toDate: targetVal };
-      }
-      if (kind === "route" || kind === "route-drop") {
-        const route = calendarRoutesRaw.find((r) => r.id === targetVal);
-        if (!route) return null;
-        return { type: "MOVE_STOP", stopId: String(data.stop.id), toEmployeeId: toEmp, toDate: route.route_date };
-      }
-    }
-
-    if (data.type === "route" && data.route?.id && kind === "day") {
-      return { type: "MOVE_ROUTE", routeId: String(data.route.id), toDate: targetVal };
-    }
-
-    // Nye jobs (type "job") findes ikke i planen → ingen simulation.
-    return null;
+    return mapDragToAction(data, overTargetId, calendarRoutesRaw);
   }, [calendarRoutesRaw]);
 
   const labelFor = useCallback((data: any, overTargetId: string): string | undefined => {
