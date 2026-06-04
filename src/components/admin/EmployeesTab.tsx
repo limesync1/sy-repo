@@ -91,6 +91,19 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
     "6m": "Seneste 6 mdr", ytd: "I år", all: "I alt",
   };
   const { data: earningsMap } = useEmployeeEarnings(businessId, from, to);
+  // Hent ALLE skills én gang for hele virksomheden i stedet for én query
+  // pr. EmployeeRow (N+1). Vi grupperer pr. employee_id og sender det
+  // færdige sæt ned som prop.
+  const { data: allSkills = [] } = useAllEmployeeSkills(businessId);
+  const skillsByEmployee = useMemo(() => {
+    const m = new Map<string, EmployeeSkill[]>();
+    for (const s of allSkills) {
+      const arr = m.get(s.employee_id) || [];
+      arr.push(s);
+      m.set(s.employee_id, arr);
+    }
+    return m;
+  }, [allSkills]);
 
   const resetForm = () => {
     setName(""); setEmail(""); setPhone(""); setTitle(""); setCommissionPct("");
