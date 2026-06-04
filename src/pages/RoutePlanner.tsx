@@ -120,6 +120,9 @@ import { Monitor, MousePointer2, Map as MapIcon, LayoutGrid, ArrowLeft, Copy, Ch
 import RoutePlannerMobile from "@/components/route-planner/mobile/RoutePlannerMobile";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { useRouteDialogs } from "@/hooks/route-planner/useRouteDialogs";
+import { useRouteSelection } from "@/hooks/route-planner/useRouteSelection";
+import { useRoutePlannerWorkflowState } from "@/hooks/route-planner/useRoutePlannerWorkflowState";
+import { useRoutePlannerKeyboard } from "@/hooks/route-planner/useRoutePlannerKeyboard";
 import { pushRouteUndo, routeHistory } from "@/lib/route-history";
 import { useRouteHistory } from "@/hooks/useRouteHistory";
 import { toastSuccessWithUndo } from "@/lib/toast-undo";
@@ -138,49 +141,14 @@ import DayDetailPanel, { type DayStop } from "@/components/route-planner/DayDeta
 import RouteHistoryDialog from "@/components/route-planner/RouteHistoryDialog";
 import UnassignedBulkBar from "@/components/route-planner/UnassignedBulkBar";
 import BulkShiftDateDialog from "@/components/route-planner/BulkShiftDateDialog";
+import {
+  type DragPoint,
+  getDragPoint,
+  getRouteDropPointTarget,
+  routeIdFromDndId,
+} from "@/lib/route-planner/dnd";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
-
-type DragPoint = { x: number; y: number };
-type RouteDropPointTarget =
-  | { type: "route"; routeId: string; date?: string | null }
-  | { type: "day"; date: string };
-
-const getDragPoint = (event: Event | null): DragPoint | null => {
-  if (!event) return null;
-  if ("clientX" in event && typeof (event as MouseEvent).clientX === "number") {
-    const { clientX, clientY } = event as MouseEvent;
-    return { x: clientX, y: clientY };
-  }
-  const touchEvent = event as TouchEvent;
-  const touch = touchEvent.touches?.[0] ?? touchEvent.changedTouches?.[0];
-  return touch ? { x: touch.clientX, y: touch.clientY } : null;
-};
-
-const routeIdFromDndId = (id: unknown) => String(id ?? "").replace(/^route:/, "");
-
-const getRouteDropPointTarget = (point: DragPoint | null, sourceRouteId?: string | null): RouteDropPointTarget | null => {
-  if (!point || typeof document === "undefined") return null;
-  const elements = typeof document.elementsFromPoint === "function"
-    ? document.elementsFromPoint(point.x, point.y)
-    : [document.elementFromPoint(point.x, point.y)].filter(Boolean) as Element[];
-
-  for (const element of elements) {
-    const routeEl = element.closest<HTMLElement>("[data-route-drop-route-id]");
-    const routeId = routeEl?.dataset.routeDropRouteId;
-    if (routeId && routeId !== sourceRouteId) {
-      return { type: "route", routeId, date: routeEl.dataset.routeDropDate ?? null };
-    }
-  }
-
-  for (const element of elements) {
-    const dayEl = element.closest<HTMLElement>("[data-route-drop-date]");
-    const date = dayEl?.dataset.routeDropDate;
-    if (date) return { type: "day", date };
-  }
-
-  return null;
-};
 
 /** Konverterer "HH:MM[:SS]" til minutter siden midnat (eller null). */
 const toMin = (t: string | null | undefined): number | null => {
@@ -343,9 +311,6 @@ const Planner = () => {
     bulkMoveOpen,
     setBulkMoveOpen,
   } = useRouteDialogs();
-  // Bulk-valg i "Aftaler uden rute": Sæt af ordre-ids der pt. er markeret.
-  const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(new Set());
-  const [bulkBusy, setBulkBusy] = useState(false);
   // Filter + gruppering for "Aftaler uden rute" — gør store puljer
   // overskuelige uden at brugeren skal scrolle gennem alt.
   const [unassignedStatusFilter, setUnassignedStatusFilter] = usePersistentState<
@@ -364,9 +329,6 @@ const Planner = () => {
     setPostcodeFilterArr,
     setServiceFilterArr,
   } = useRoutePlannerFilters();
-  /** Sidst-klikkede aftale (uden shift) — bruges som anker for Shift+klik
-   *  range-select i "Aftaler uden rute". */
-  const lastSelectedJobIdRef = useRef<string | null>(null);
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [suggestJob, setSuggestJob] = useState<any | null>(null);
@@ -425,11 +387,6 @@ const Planner = () => {
     previewStops?: RouteStop[];
   } | null>(null);
   const [routeToDelete, setRouteToDelete] = useState<{ id: string; name: string } | null>(null);
-  const [pendingRouteMerge, setPendingRouteMerge] = useState<{
-    source: Route;
-    target: Route;
-  } | null>(null);
-  const [mergingRoute, setMergingRoute] = useState(false);
   const [distributing, setDistributing] = useState(false);
   const businessId = business?.id;
   const routePlanningEnabled = !!(business?.settings as any)?.route_planning_enabled;
@@ -491,6 +448,26 @@ const Planner = () => {
     const me = endOfWeek(endOfMonth(anchor), { weekStartsOn: 1 });
     return { start: format(ms, "yyyy-MM-dd"), end: format(me, "yyyy-MM-dd") };
   }, [date, view]);
+  // Bulk-multi-select for ruter + aftaler (Fase 2: udtrukket).
+  const {
+    selectedRouteIds,
+    setSelectedRouteIds,
+    toggleRouteSelection,
+    clearRouteSelection,
+    bulkMoveInProgress,
+    setBulkMoveInProgress,
+    bulkMoveProgress,
+    setBulkMoveProgress,
+    selectedJobIds,
+    setSelectedJobIds,
+    bulkBusy,
+    setBulkBusy,
+    lastSelectedJobIdRef,
+  } = useRouteSelection({
+    calendarRangeStart: calendarRange.start,
+    calendarRangeEnd: calendarRange.end,
+    view,
+  });
   const { data: calendarData, isLoading: loadingCalendar } = useCalendarData(
     businessId,
     calendarRange.start,
@@ -695,134 +672,39 @@ const Planner = () => {
   // mutation der ændrer en rute eller forekomst.
   const history = useRouteHistory();
 
-  // Pending route-move: viser MoveRouteDateDialog. Hvis ruten er del af en
-  // serie spørger vi brugeren om kun denne ene eller alle fremtidige skal flyttes.
-  const [pendingRouteMove, setPendingRouteMove] = useState<{
-    route: Route;
-    newDate: string;
-  } | null>(null);
-
-  // Efter en vellykket flytning/merge spørger vi om brugeren vil køre
-  // auto-optimering af stop-rækkefølgen på den berørte rute. Vi optimerer
-  // ALDRIG uden brugerens aktive ja — så rækkefølgen ikke pludselig ændrer
-  // sig "i baggrunden" efter en flytning.
-  const [pendingOptimizePrompt, setPendingOptimizePrompt] = useState<{
-    routeId: string;
-    routeName: string;
-    reason: "moved" | "merged";
-    /** Estimat fra `estimateOptimizationGain` — bruges til at vise konkrete
-     *  tal i dialogen så brugeren ved HVORFOR vi spørger ("kan spare 12 km"). */
-    estimate: { savingsKm: number; savingsPct: number; currentKm: number; suggestedKm: number };
-  } | null>(null);
-
-  // Pending drag-and-drop af en projiceret rute → ny dato.
-  // Vises som en bekræftelsesdialog så brugeren aktivt skal sige ja
-  // før forekomsten flyttes — en utilsigtet drag/drop må aldrig flytte
-  // en fremtidig forekomst uden bekræftelse.
-  const [pendingProjectedMove, setPendingProjectedMove] = useState<{
-    baseRouteId: string;
-    routeName: string;
-    fromDate: string;
-    toDate: string;
-    autoSkipCadence?: boolean;
-  } | null>(null);
-
-  // ─── Bulk-multi-select: flyt flere ruter med ét tryk ─────────────────
-  // Brugeren ⌘/Ctrl/Shift-klikker rute-piller i kalenderen for at samle et
-  // valg, og kan så åbne en bulk-flyt dialog der forskyder alle valgte med
-  // samme antal dage. Per-rute konflikt-check og fortidsfilter sker live i
-  // dialogen — ruter med konflikter springes pænt over uden at blokere de
-  // andre.
-  const [selectedRouteIds, setSelectedRouteIds] = useState<Set<string>>(new Set());
-  const [bulkMoveInProgress, setBulkMoveInProgress] = useState(false);
-  const [bulkMoveProgress, setBulkMoveProgress] = useState<{ done: number; total: number } | null>(null);
-
-  const toggleRouteSelection = useCallback((id: string) => {
-    setSelectedRouteIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  }, []);
-  const clearRouteSelection = useCallback(() => setSelectedRouteIds(new Set()), []);
-
-  // Når brugeren skifter ugen/måneden eller skifter view rydder vi valget —
-  // ellers risikerer vi at brugeren bulk-flytter ruter de ikke længere kan se.
-  useEffect(() => {
-    setSelectedRouteIds(new Set());
-  }, [calendarRange.start, calendarRange.end, view]);
-
-  // Pending start-date konflikt: vises når brugeren dropper en aftale på en
-  // dato der ikke matcher aftalens opstartsdato. Brugeren bekræfter om
-  // opstartsdatoen skal flyttes — først derefter eksekveres `execute()`.
-  const [pendingStartDateChange, setPendingStartDateChange] = useState<{
-    job: any;
-    currentStart: string;
-    targetDate: string;
-    isBefore: boolean;
-    targetLabel: string;
-    execute: () => Promise<void>;
-  } | null>(null);
-  const [confirmingStartDate, setConfirmingStartDate] = useState(false);
-  // Bulk-konflikt: når brugeren opretter en rute med flere aftaler hvis
-  // opstartsdatoer ikke matcher rutens dato, beder vi om bekræftelse på at
-  // flytte ALLE de pågældende opstartsdatoer i én operation.
-  const [pendingBulkStartDateChange, setPendingBulkStartDateChange] = useState<{
-    targetDate: string;
-    mismatches: Array<{ job: any; currentStart: string }>;
-    execute: () => Promise<void>;
-  } | null>(null);
-  const [confirmingBulkStartDate, setConfirmingBulkStartDate] = useState(false);
-  const { data: pendingSeriesInfo } = useRouteSeriesInfo(
-    pendingRouteMove?.route.id ?? null,
-    pendingRouteMove?.route.route_date ?? null,
-  );
-  // Serie-info for den projicerede flytning, så vi kan tilbyde brugeren at
-  // synkronisere aftalens opstartsdato / næste-udførsel med den nye dato.
-  const { data: pendingProjectedSeriesInfo } = useRouteSeriesInfo(
-    pendingProjectedMove?.baseRouteId ?? null,
-    pendingProjectedMove?.fromDate ?? null,
-  );
-  const [projectedMoveSyncStart, setProjectedMoveSyncStart] = useState(false);
-  const [projectedMoveSyncNext, setProjectedMoveSyncNext] = useState(false);
-  useEffect(() => {
-    if (!pendingProjectedMove) {
-      setProjectedMoveSyncStart(false);
-      setProjectedMoveSyncNext(false);
-      return;
-    }
-    // Smart sync-default: bestem ud fra hvor langt brugeren flytter ift.
-    // seriens dominerende interval. Små flytninger (inden for halvdelen af
-    // intervallet) → "kun næste besøg". Store flytninger (≥ ét helt interval)
-    // → "forskyd hele rytmen". Mellem-store: lad begge være afkrydsede så
-    //  brugeren selv vælger. Defaultet kan altid overskrives manuelt.
-    const intv = pendingProjectedSeriesInfo?.dominantIntervalDays;
-    if (!intv || intv <= 0) {
-      setProjectedMoveSyncStart(false);
-      setProjectedMoveSyncNext(true);
-      return;
-    }
-    let delta = 0;
-    try {
-      delta = Math.abs(differenceInCalendarDays(
-        parseISO(pendingProjectedMove.toDate),
-        parseISO(pendingProjectedMove.fromDate),
-      ));
-    } catch {}
-    if (delta >= intv) {
-      setProjectedMoveSyncStart(true);
-      setProjectedMoveSyncNext(false);
-    } else {
-      setProjectedMoveSyncStart(false);
-      setProjectedMoveSyncNext(true);
-    }
-  }, [pendingProjectedMove, pendingProjectedSeriesInfo?.dominantIntervalDays]);
-  // Serie-info for kilde-ruten i en igangværende fletning, så fletteren
-  // også kan tilbyde "fremtidige aftaler også" når kilden har gentagne aftaler.
-  const { data: pendingMergeSeriesInfo } = useRouteSeriesInfo(
-    pendingRouteMerge?.source.id ?? null,
-    pendingRouteMerge?.source.route_date ?? null,
-  );
+  // ─── Pending-dialog workflow state (Fase 3) ─────────────────────────────
+  // Alle pending-dialog states + tilhørende serie-info-queries + smart-default-
+  // effekt for projiceret flytning bor nu i en dedikeret hook. Selve confirm-
+  // handlerne bor stadig nedenfor fordi de er dybt vævet sammen med mutationer
+  // og toasts, men deres call-sites er uændrede da hooken eksponerer settere
+  // 1:1.
+  const {
+    pendingRouteMove,
+    setPendingRouteMove,
+    pendingOptimizePrompt,
+    setPendingOptimizePrompt,
+    pendingProjectedMove,
+    setPendingProjectedMove,
+    pendingRouteMerge,
+    setPendingRouteMerge,
+    mergingRoute,
+    setMergingRoute,
+    pendingStartDateChange,
+    setPendingStartDateChange,
+    confirmingStartDate,
+    setConfirmingStartDate,
+    pendingBulkStartDateChange,
+    setPendingBulkStartDateChange,
+    confirmingBulkStartDate,
+    setConfirmingBulkStartDate,
+    pendingSeriesInfo,
+    pendingProjectedSeriesInfo,
+    pendingMergeSeriesInfo,
+    projectedMoveSyncStart,
+    setProjectedMoveSyncStart,
+    projectedMoveSyncNext,
+    setProjectedMoveSyncNext,
+  } = useRoutePlannerWorkflowState();
 
   // Pr-rute "pending" state — kun den rute der faktisk optimeres viser spinner
   const [optimizingRouteId, setOptimizingRouteId] = useState<string | null>(null);
@@ -2087,94 +1969,26 @@ const Planner = () => {
   // uden at vi skal hejse hele runAutoAssign op før effekten.
   const runAutoAssignRef = useRef<() => void | Promise<void>>(() => {});
   const focusSearchRef = useRef<() => void>(() => {});
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      // Ignore when typing in inputs
-      const t = e.target as HTMLElement;
-      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
-      // Undo/redo (skal håndteres FØR den generelle modifier-guard nedenfor).
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z") {
-        e.preventDefault();
-        if (e.shiftKey) void history.redo();
-        else void history.undo();
-        return;
-      }
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "y") {
-        // Windows-konvention for redo.
-        e.preventDefault();
-        void history.redo();
-        return;
-      }
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
-      if (e.key === "/") {
-        // "/" — som GitHub/Linear: hop til søgefeltet i "Aftaler uden rute".
-        e.preventDefault();
-        focusSearchRef.current();
-      } else if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        setDate((d) => format(view === "week" ? addWeeks(parseISO(d), -1) : addMonths(parseISO(d), -1), "yyyy-MM-dd"));
-      } else if (e.key === "ArrowRight") {
-        e.preventDefault();
-        setDate((d) => format(view === "week" ? addWeeks(parseISO(d), 1) : addMonths(parseISO(d), 1), "yyyy-MM-dd"));
-      } else if (e.key.toLowerCase() === "t") {
-        setDate(todayStr());
-      } else if (e.key.toLowerCase() === "n") {
-        setCreateOpen(true);
-      } else if (e.key.toLowerCase() === "a") {
-        // "A" — auto-fordel alle aftaler uden rute (eller find bedste rute
-        // hvis kun én er klar). Springer over hvis intet er klar.
-        e.preventDefault();
-        void runAutoAssignRef.current();
-      } else if (e.key === "Escape") {
-        // Prioritet: 1) ryd bulk-valg (oftest brugt) 2) luk stop-panel.
-        if (selectedJobIds.size > 0) {
-          setSelectedJobIds(new Set());
-          lastSelectedJobIdRef.current = null;
-        } else if (selectedStopId) {
-          setSelectedStopId(null);
-        }
-      } else if ((e.key === "Delete" || e.key === "Backspace") && selectedStopId) {
-        // Fjern det aktuelt valgte stop fra ruten. Virtuelle (projicerede)
-        // stops kan ikke slettes — de skal flyttes via basis-ruten.
-        if (selectedStopId.startsWith("virtual-stop:")) {
-          toast.message("Projicerede stops kan ikke slettes — åbn originalruten for at ændre.");
-          return;
-        }
-        e.preventDefault();
-        const id = selectedStopId;
-        deleteStop.mutate(id, {
-          onSuccess: () => {
-            toast.success("Stop fjernet fra rute");
-            setSelectedStopId(null);
-          },
-          onError: (err: any) => toast.error("Kunne ikke fjerne stoppet", { description: err?.message }),
-        });
-      } else if (e.key === "?" || (e.shiftKey && e.key === "/")) {
-        e.preventDefault();
-        setShortcutsOpen(true);
-      } else if (e.key.toLowerCase() === "p") {
-        e.preventDefault();
-        setPrintOpen(true);
-      } else if (e.key.toLowerCase() === "d") {
-        e.preventDefault();
-        setDayDetailOpen(true);
-      } else if (e.key.toLowerCase() === "j") {
-        e.preventDefault();
-        setDate((d) => format(addDays(parseISO(d), 1), "yyyy-MM-dd"));
-      } else if (e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        setDate((d) => format(addDays(parseISO(d), -1), "yyyy-MM-dd"));
-      } else if (e.key.toLowerCase() === "o") {
-        if (editingRoute) {
-          e.preventDefault();
-          optimizeRouteRef.current(editingRoute.id);
-        }
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedStopId, view, history, editingRoute, selectedJobIds, deleteStop]);
+  useRoutePlannerKeyboard({
+    history,
+    view,
+    setDate,
+    todayStr,
+    selectedJobIds,
+    setSelectedJobIds,
+    lastSelectedJobIdRef,
+    selectedStopId,
+    setSelectedStopId,
+    deleteStop,
+    editingRoute,
+    setCreateOpen,
+    setShortcutsOpen,
+    setPrintOpen,
+    setDayDetailOpen,
+    focusSearchRef,
+    runAutoAssignRef,
+    optimizeRouteRef,
+  });
 
   /* Når create-dialog åbnes, foreslå en ledig farve for den valgte dato */
   useEffect(() => {
