@@ -119,6 +119,7 @@ import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { Monitor, MousePointer2, Map as MapIcon, LayoutGrid, ArrowLeft, Copy, Check, Rows3, MoreHorizontal, Layers } from "lucide-react";
 import RoutePlannerMobile from "@/components/route-planner/mobile/RoutePlannerMobile";
 import { usePersistentState } from "@/hooks/usePersistentState";
+import { useRouteDialogs } from "@/hooks/route-planner/useRouteDialogs";
 import { pushRouteUndo, routeHistory } from "@/lib/route-history";
 import { useRouteHistory } from "@/hooks/useRouteHistory";
 import { toastSuccessWithUndo } from "@/lib/toast-undo";
@@ -325,14 +326,26 @@ const Planner = () => {
     setDensity(next ? "compact" : "cozy");
   };
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
-  const [printOpen, setPrintOpen] = useState(false);
-  const [dayDetailOpen, setDayDetailOpen] = useState(false);
   const [historyRoute, setHistoryRoute] = useState<{ id: string; name: string } | null>(null);
+  const {
+    printOpen,
+    setPrintOpen,
+    dayDetailOpen,
+    setDayDetailOpen,
+    bulkShiftOpen,
+    setBulkShiftOpen,
+    createOrderOpen,
+    setCreateOrderOpen,
+    createOpen,
+    setCreateOpen,
+    diagnosticsOpen,
+    setDiagnosticsOpen,
+    bulkMoveOpen,
+    setBulkMoveOpen,
+  } = useRouteDialogs();
   // Bulk-valg i "Aftaler uden rute": Sæt af ordre-ids der pt. er markeret.
   const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
-  // Bulk-flyt dato: åbner dialog der viser forhåndsvisning før udførsel.
-  const [bulkShiftOpen, setBulkShiftOpen] = useState(false);
   // Filter + gruppering for "Aftaler uden rute" — gør store puljer
   // overskuelige uden at brugeren skal scrolle gennem alt.
   const [unassignedStatusFilter, setUnassignedStatusFilter] = usePersistentState<
@@ -392,8 +405,6 @@ const Planner = () => {
     });
   };
   const [geocoding, setGeocoding] = useState(false);
-  const [createOrderOpen, setCreateOrderOpen] = useState(false);
-  const [createOpen, setCreateOpen] = useState(false);
   const [newRouteName, setNewRouteName] = useState("");
   const [newRouteColor, setNewRouteColor] = useState<string>(ROUTE_COLOR_PALETTE[0]);
   const [newRouteDate, setNewRouteDate] = useState(todayStr());
@@ -414,7 +425,6 @@ const Planner = () => {
     previewStops?: RouteStop[];
   } | null>(null);
   const [routeToDelete, setRouteToDelete] = useState<{ id: string; name: string } | null>(null);
-  const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
   const [pendingRouteMerge, setPendingRouteMerge] = useState<{
     source: Route;
     target: Route;
@@ -724,7 +734,6 @@ const Planner = () => {
   // dialogen — ruter med konflikter springes pænt over uden at blokere de
   // andre.
   const [selectedRouteIds, setSelectedRouteIds] = useState<Set<string>>(new Set());
-  const [bulkMoveOpen, setBulkMoveOpen] = useState(false);
   const [bulkMoveInProgress, setBulkMoveInProgress] = useState(false);
   const [bulkMoveProgress, setBulkMoveProgress] = useState<{ done: number; total: number } | null>(null);
 
