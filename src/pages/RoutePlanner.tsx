@@ -102,7 +102,7 @@ import {
   recurringSourceKeysForStop,
 } from "@/lib/recurring-projection";
 import { useProjectedCalendar } from "@/hooks/route-planner/useProjectedCalendar";
-import { useRoutePlannerFilters } from "@/hooks/route-planner/useRoutePlannerFilters";
+import { usePlannerStore } from "@/hooks/route-planner/usePlannerStore";
 import { intervalToCadence } from "@/lib/interval";
 import { formatDurationMin } from "@/lib/duration-format";
 import { useAgreementPauses } from "@/hooks/useAgreementPauses";
@@ -119,13 +119,9 @@ import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { Monitor, MousePointer2, Map as MapIcon, LayoutGrid, ArrowLeft, Copy, Check, Rows3, MoreHorizontal, Layers } from "lucide-react";
 import RoutePlannerMobile from "@/components/route-planner/mobile/RoutePlannerMobile";
 import { usePersistentState } from "@/hooks/usePersistentState";
-import { useRouteDialogs } from "@/hooks/route-planner/useRouteDialogs";
-import { useRouteSelection } from "@/hooks/route-planner/useRouteSelection";
-import { useRoutePlannerWorkflowState } from "@/hooks/route-planner/useRoutePlannerWorkflowState";
 import { useRoutePlannerKeyboard } from "@/hooks/route-planner/useRoutePlannerKeyboard";
 import { useRoutePlannerDnd } from "@/hooks/route-planner/useRoutePlannerDnd";
 import { pushRouteUndo, routeHistory } from "@/lib/route-history";
-import { useRouteHistory } from "@/hooks/useRouteHistory";
 import { toastSuccessWithUndo } from "@/lib/toast-undo";
 import { estimateOptimizationGain, markOptimizeDismissed } from "@/lib/optimize-savings-estimate";
 import { BulkMoveRoutesDialog, type BulkMoveRouteItem } from "@/components/route-planner/BulkMoveRoutesDialog";
@@ -296,22 +292,6 @@ const Planner = () => {
   };
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [historyRoute, setHistoryRoute] = useState<{ id: string; name: string } | null>(null);
-  const {
-    printOpen,
-    setPrintOpen,
-    dayDetailOpen,
-    setDayDetailOpen,
-    bulkShiftOpen,
-    setBulkShiftOpen,
-    createOrderOpen,
-    setCreateOrderOpen,
-    createOpen,
-    setCreateOpen,
-    diagnosticsOpen,
-    setDiagnosticsOpen,
-    bulkMoveOpen,
-    setBulkMoveOpen,
-  } = useRouteDialogs();
   // Filter + gruppering for "Aftaler uden rute" — gør store puljer
   // overskuelige uden at brugeren skal scrolle gennem alt.
   const [unassignedStatusFilter, setUnassignedStatusFilter] = usePersistentState<
@@ -320,16 +300,6 @@ const Planner = () => {
   const [unassignedGroupBy, setUnassignedGroupBy] = usePersistentState<
     "none" | "status" | "route" | "week" | "postcode"
   >("route-planner:unassignedGroupBy", "none");
-  // Avancerede filtre (urgency / postnumre / services) — Fase 2: udtrukket
-  // til dedikeret hook. Tilstanden er stadig persistent i localStorage.
-  const {
-    urgencyFilter,
-    postcodeFilter,
-    serviceFilter,
-    setUrgencyFilterArr,
-    setPostcodeFilterArr,
-    setServiceFilterArr,
-  } = useRoutePlannerFilters();
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [suggestJob, setSuggestJob] = useState<any | null>(null);
@@ -418,6 +388,15 @@ const Planner = () => {
     return { start: format(ms, "yyyy-MM-dd"), end: format(me, "yyyy-MM-dd") };
   }, [date, view]);
   // Bulk-multi-select for ruter + aftaler (Fase 2: udtrukket).
+  // ─── Bølge 1 (.lovable/plan.md): central planner-store ──────────────────
+  // Ét call site for hele klient-side state-overfladen: selection, filters,
+  // dialogs, workflow, history + action-log. Hver gruppe destruktureres
+  // herunder så de eksisterende variabelnavne nedenfor er uændrede.
+  const plannerStore = usePlannerStore({
+    calendarRangeStart: calendarRange.start,
+    calendarRangeEnd: calendarRange.end,
+    view,
+  });
   const {
     selectedRouteIds,
     setSelectedRouteIds,
@@ -432,11 +411,31 @@ const Planner = () => {
     bulkBusy,
     setBulkBusy,
     lastSelectedJobIdRef,
-  } = useRouteSelection({
-    calendarRangeStart: calendarRange.start,
-    calendarRangeEnd: calendarRange.end,
-    view,
-  });
+  } = plannerStore.selection;
+  const {
+    urgencyFilter,
+    postcodeFilter,
+    serviceFilter,
+    setUrgencyFilterArr,
+    setPostcodeFilterArr,
+    setServiceFilterArr,
+  } = plannerStore.filters;
+  const {
+    printOpen,
+    setPrintOpen,
+    dayDetailOpen,
+    setDayDetailOpen,
+    bulkShiftOpen,
+    setBulkShiftOpen,
+    createOrderOpen,
+    setCreateOrderOpen,
+    createOpen,
+    setCreateOpen,
+    diagnosticsOpen,
+    setDiagnosticsOpen,
+    bulkMoveOpen,
+    setBulkMoveOpen,
+  } = plannerStore.dialogs;
   const { data: calendarData, isLoading: loadingCalendar } = useCalendarData(
     businessId,
     calendarRange.start,
@@ -639,7 +638,7 @@ const Planner = () => {
   // Undo-stak (Rutekalender 3.0 — Fase B.3). Sidste 50 handlinger kan
   // fortrydes via Cmd/Ctrl+Z eller toolbar-knap. Pushes lokalt fra hver
   // mutation der ændrer en rute eller forekomst.
-  const history = useRouteHistory();
+  const history = plannerStore.history;
 
   // ─── Pending-dialog workflow state (Fase 3) ─────────────────────────────
   // Alle pending-dialog states + tilhørende serie-info-queries + smart-default-
@@ -673,7 +672,7 @@ const Planner = () => {
     setProjectedMoveSyncStart,
     projectedMoveSyncNext,
     setProjectedMoveSyncNext,
-  } = useRoutePlannerWorkflowState();
+  } = plannerStore.workflow;
 
   // Pr-rute "pending" state — kun den rute der faktisk optimeres viser spinner
   const [optimizingRouteId, setOptimizingRouteId] = useState<string | null>(null);
