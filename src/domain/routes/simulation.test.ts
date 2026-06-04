@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { simulate } from "./simulation";
+import { simulate, summarizeResult, isSafeToCommit } from "./simulation";
 import type { Plan } from "./conflict-engine";
 
 const stop = (id: string, opts: Partial<any> = {}) => ({
@@ -55,5 +55,28 @@ describe("simulate", () => {
     const p = plan();
     simulate(p, { type: "MOVE_STOP", stopId: "s1", toEmployeeId: "e2" });
     expect(p.stops[0].employee_ids).toEqual(["e1"]);
+  });
+
+  it("summarizeResult aggregerer counts og affected", () => {
+    const r = simulate(plan(), [
+      { type: "MOVE_STOP", stopId: "s2", toEmployeeId: "e2" },
+      { type: "CANCEL_STOP", stopId: "s1" },
+    ]);
+    const s = summarizeResult(r);
+    expect(s.movedCount).toBe(1);
+    expect(s.cancelledCount).toBe(1);
+    expect(s.affectedEmployees).toContain("e2");
+  });
+
+  it("isSafeToCommit er false ved error-konflikter", () => {
+    const p: Plan = {
+      stops: [
+        { id: "a", route_date: "2026-06-04", start_time: "08:00", end_time: "09:00", employee_ids: ["e1"] } as any,
+        { id: "b", route_date: "2026-06-04", start_time: "08:30", end_time: "09:30", employee_ids: ["e2"] } as any,
+      ],
+      employees: [{ id: "e1" }, { id: "e2" }],
+    };
+    const r = simulate(p, { type: "REASSIGN", stopId: "b", employeeIds: ["e1"] });
+    expect(isSafeToCommit(r)).toBe(false);
   });
 });
