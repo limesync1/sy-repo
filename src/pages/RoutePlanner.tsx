@@ -422,11 +422,6 @@ const Planner = () => {
     previewStops?: RouteStop[];
   } | null>(null);
   const [routeToDelete, setRouteToDelete] = useState<{ id: string; name: string } | null>(null);
-  const [pendingRouteMerge, setPendingRouteMerge] = useState<{
-    source: Route;
-    target: Route;
-  } | null>(null);
-  const [mergingRoute, setMergingRoute] = useState(false);
   const [distributing, setDistributing] = useState(false);
   const businessId = business?.id;
   const routePlanningEnabled = !!(business?.settings as any)?.route_planning_enabled;
