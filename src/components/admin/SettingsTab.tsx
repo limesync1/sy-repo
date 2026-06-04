@@ -317,13 +317,7 @@ const SettingsTab = ({ business }: { business: any }) => {
   // Stripe Embedded Checkout-dialog samt loading-state for "Administrér kort".
   const [showCheckout, setShowCheckout] = useState(false);
   const [openingPortal, setOpeningPortal] = useState(false);
-  const [, setTrialTick] = useState(0);
   const location = useLocation();
-
-  useEffect(() => {
-    const i = setInterval(() => setTrialTick((t) => t + 1), 60_000);
-    return () => clearInterval(i);
-  }, []);
 
   // Hvis brugeren ankommer fra prøveperiode-banneret med ?openCheckout=1,
   // åbner vi automatisk Stripe Embedded Checkout — men kun hvis virksomheden
