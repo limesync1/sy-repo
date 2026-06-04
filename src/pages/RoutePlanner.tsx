@@ -491,6 +491,26 @@ const Planner = () => {
     const me = endOfWeek(endOfMonth(anchor), { weekStartsOn: 1 });
     return { start: format(ms, "yyyy-MM-dd"), end: format(me, "yyyy-MM-dd") };
   }, [date, view]);
+  // Bulk-multi-select for ruter + aftaler (Fase 2: udtrukket).
+  const {
+    selectedRouteIds,
+    setSelectedRouteIds,
+    toggleRouteSelection,
+    clearRouteSelection,
+    bulkMoveInProgress,
+    setBulkMoveInProgress,
+    bulkMoveProgress,
+    setBulkMoveProgress,
+    selectedJobIds,
+    setSelectedJobIds,
+    bulkBusy,
+    setBulkBusy,
+    lastSelectedJobIdRef,
+  } = useRouteSelection({
+    calendarRangeStart: calendarRange.start,
+    calendarRangeEnd: calendarRange.end,
+    view,
+  });
   const { data: calendarData, isLoading: loadingCalendar } = useCalendarData(
     businessId,
     calendarRange.start,
