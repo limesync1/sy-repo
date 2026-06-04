@@ -1,7 +1,7 @@
 // BusinessLiveChatTab — virksomhedens egen indbakke for samtaler startet
 // fra deres offentlige side. Bruger samme designsprog som platform-admin
 // versionen, men er filtreret på business_id og uden canned responses.
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { memo, useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import {
