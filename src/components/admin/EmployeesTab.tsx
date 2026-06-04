@@ -507,6 +507,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                     onRemove={remove}
                     earning={earningsMap?.get(emp.id) ?? null}
                     rangeLabel={RANGE_LABELS[earnRange]}
+                    currentSkills={skillsByEmployee.get(emp.id) ?? []}
                   />
                 ))}
               </div>
@@ -537,6 +538,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
                     onRemove={remove}
                     earning={earningsMap?.get(emp.id) ?? null}
                     rangeLabel={RANGE_LABELS[earnRange]}
+                    currentSkills={skillsByEmployee.get(emp.id) ?? []}
                   />
                 ))}
               </div>
