@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format, parseISO, isFuture } from "date-fns";
 import { da } from "date-fns/locale";
-import { CheckCircle2, Clock, Lock, Repeat } from "lucide-react";
+import { CheckCircle2, Clock, Lock, Repeat, Receipt, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Props = { routeId: string };
@@ -19,6 +19,10 @@ type Occurrence = {
   status: string;
   completed_at: string | null;
   planned_arrival: string | null;
+  invoice_external_id: string | null;
+  invoice_external_number: string | null;
+  invoice_status: string | null;
+  external_order_number: string | null;
 };
 
 type AgreementRow = {
@@ -49,7 +53,7 @@ export const RouteOccurrenceTimeline = ({ routeId }: Props) => {
 
       const { data: occs } = await supabase
         .from("agreement_occurrences")
-        .select("id, agreement_id, occurrence_date, sequence_index, status, completed_at, planned_arrival")
+        .select("id, agreement_id, occurrence_date, sequence_index, status, completed_at, planned_arrival, invoice_external_id, invoice_external_number, invoice_status, external_order_number")
         .in("agreement_id", agreementIds)
         .order("sequence_index", { ascending: true });
 
@@ -92,17 +96,17 @@ export const RouteOccurrenceTimeline = ({ routeId }: Props) => {
           const projected = row.occurrences.filter(
             (o) => o.status !== "completed" && o.id !== next?.id,
           ).slice(0, 2);
-          const items: Array<{ key: string; n: number; kind: "done" | "next" | "future"; date: string; planned: string | null; locked?: boolean }> = [];
+          const items: Array<{ key: string; n: number; kind: "done" | "next" | "future"; date: string; planned: string | null; locked?: boolean; occ?: Occurrence }> = [];
           // Vis sidste 2 udførte for kontekst
           const completedList = row.occurrences.filter((o) => o.status === "completed").slice(-2);
-          for (const c of completedList) items.push({ key: c.id, n: c.sequence_index + 1, kind: "done", date: c.occurrence_date, planned: c.planned_arrival });
+          for (const c of completedList) items.push({ key: c.id, n: c.sequence_index + 1, kind: "done", date: c.occurrence_date, planned: c.planned_arrival, occ: c });
           if (next) {
             const locked = next.planned_arrival
               ? isFuture(parseISO(next.planned_arrival))
               : isFuture(parseISO(next.occurrence_date));
-            items.push({ key: next.id, n: next.sequence_index + 1, kind: "next", date: next.occurrence_date, planned: next.planned_arrival, locked });
+            items.push({ key: next.id, n: next.sequence_index + 1, kind: "next", date: next.occurrence_date, planned: next.planned_arrival, locked, occ: next });
           }
-          for (const p of projected) items.push({ key: p.id, n: p.sequence_index + 1, kind: "future", date: p.occurrence_date, planned: p.planned_arrival });
+          for (const p of projected) items.push({ key: p.id, n: p.sequence_index + 1, kind: "future", date: p.occurrence_date, planned: p.planned_arrival, occ: p });
 
           return (
             <div key={row.agreement_id} className="space-y-1.5">
@@ -138,6 +142,38 @@ export const RouteOccurrenceTimeline = ({ routeId }: Props) => {
                         )}
                         {it.kind === "next" && !it.locked && (
                           <div className="text-[9px] text-foreground font-medium">Klar</div>
+                        )}
+                        {it.occ && (it.occ.invoice_external_number || it.occ.external_order_number) && (
+                          <div className="mt-1 flex flex-col items-center gap-0.5">
+                            {it.occ.invoice_external_number && (
+                              <span
+                                title={`Faktura ${it.occ.invoice_external_number} · status ${it.occ.invoice_status ?? "—"}`}
+                                className={cn(
+                                  "inline-flex items-center gap-0.5 rounded-sm border px-1 py-px text-[9px] font-medium",
+                                  it.occ.invoice_status === "booked" || it.occ.invoice_status === "paid"
+                                    ? "border-accent/40 bg-accent/10 text-accent"
+                                    : "border-border bg-muted text-muted-foreground",
+                                )}
+                              >
+                                <Receipt className="h-2.5 w-2.5" />
+                                #{it.occ.invoice_external_number}
+                              </span>
+                            )}
+                            {it.occ.external_order_number && (
+                              <span
+                                title={`Regnskabsordre ${it.occ.external_order_number}`}
+                                className="inline-flex items-center gap-0.5 rounded-sm border border-border bg-muted px-1 py-px text-[9px] font-medium text-muted-foreground"
+                              >
+                                <FileText className="h-2.5 w-2.5" />
+                                #{it.occ.external_order_number}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {it.kind === "done" && it.occ && !it.occ.invoice_external_number && !it.occ.external_order_number && (
+                          <div className="mt-1 text-[9px] text-amber-600 font-medium" title="Faktura ikke genereret endnu">
+                            ⏳ Faktura venter
+                          </div>
                         )}
                       </div>
                     </li>
