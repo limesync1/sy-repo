@@ -1968,6 +1968,37 @@ const Planner = () => {
     return null;
   }, [activeDragData?.type]);
 
+  // ─── Bølge 1 / 1.3: handleDragEnd udtrukket til dedikeret hook ───
+  // VIGTIGT: Skal stå før de tidlige `if (!business) return …` nedenfor,
+  // ellers ændrer hook-rækkefølgen sig mellem renders ("Rendered more hooks").
+  const handleDragEnd = useRoutePlannerDragEnd({
+    businessId,
+    qc,
+    calendarRoutesRaw,
+    calendarRoutes,
+    calendarStops,
+    virtualCalendarRoutes,
+    addStop,
+    createRoute,
+    setPendingProjectedMove,
+    setPendingRouteMerge,
+    setPendingRouteMove,
+    setPendingStartDateChange,
+    setActiveDragId,
+    setActiveDragData,
+    setRouteDragPoint,
+    setDragOverTargetId,
+    setTargetBusy,
+    activeDragPointRef,
+    activeDragOriginRef,
+    activeRouteDragPointRef,
+    activeRouteDragOriginRef,
+    inFlightDropsRef,
+    detectAssigneeConflicts,
+    serviceSummaryForJob,
+    todayStr,
+  });
+
   if (loadingBusiness) {
     // Planner-specifik skeleton (sidebar + kalender-grid) — virker mere
     // "rigtig" end den generiske ShellSkeleton fordi formen matcher.
@@ -2018,38 +2049,6 @@ const Planner = () => {
   };
   // Hold ref opdateret så keyboard-shortcut'en "O" kan kalde den seneste version.
   optimizeRouteRef.current = handleCalendarOptimizeRoute;
-
-  // ─── Bølge 1 / 1.3: handleDragEnd udtrukket til dedikeret hook ───
-  // Den tidligere 666-linjers inline funktion bor nu i useRoutePlannerDragEnd
-  // og er delt op pr. drop-kind (job-to-route, job-to-day, stop-to-day osv.)
-  // hvor hver branch følger validate → commit → rollback mønstret.
-  const handleDragEnd = useRoutePlannerDragEnd({
-    businessId,
-    qc,
-    calendarRoutesRaw,
-    calendarRoutes,
-    calendarStops,
-    virtualCalendarRoutes,
-    addStop,
-    createRoute,
-    setPendingProjectedMove,
-    setPendingRouteMerge,
-    setPendingRouteMove,
-    setPendingStartDateChange,
-    setActiveDragId,
-    setActiveDragData,
-    setRouteDragPoint,
-    setDragOverTargetId,
-    setTargetBusy,
-    activeDragPointRef,
-    activeDragOriginRef,
-    activeRouteDragPointRef,
-    activeRouteDragOriginRef,
-    inFlightDropsRef,
-    detectAssigneeConflicts,
-    serviceSummaryForJob,
-    todayStr,
-  });
 
   const handleConfirmMoveRoute = async (
     scope: MoveRouteScope,
