@@ -98,12 +98,8 @@ import { ShellSkeleton } from "@/components/admin/shared/Skeletons";
 import { useQuery } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  expandRecurringRoutes,
-  expandProjectionWindowForShiftedOccurrences,
   projectedStopMatchesSources,
   recurringSourceKeysForStop,
-  resolveProjectionExceptions,
-  applyProjectedOccurrenceShifts,
 } from "@/lib/recurring-projection";
 import { runProjection } from "@/lib/route-projection";
 import { intervalToCadence } from "@/lib/interval";
