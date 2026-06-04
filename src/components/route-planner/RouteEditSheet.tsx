@@ -42,7 +42,8 @@ import { useSeriesImpact } from "@/hooks/useSeriesImpact";
 import { useDayConflicts } from "@/hooks/useDayConflicts";
 import { Ban } from "lucide-react";
 import { useCreateRouteSnapshot, useRouteSnapshots } from "@/hooks/useRouteSnapshots";
-import { Camera } from "lucide-react";
+import { Camera, ChevronDown } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 
 export type RouteEmployeeOption = { id: string; name: string };
 
@@ -999,7 +1000,7 @@ export const RouteEditSheet = ({
               </Button>
             )}
             {!isProjection && route?.id && (
-              <RouteSnapshotButton routeId={route.id} />
+              <RouteSnapshotSection routeId={route.id} />
             )}
             {isProjection && (
               <>
