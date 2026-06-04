@@ -5,7 +5,7 @@ const baseInput = (): ProjectionInput => ({
   sources: [
     {
       id: "src-1",
-      interval: "weekly",
+      interval: "ugentlig",
       seed_date: "2026-06-01",
       anchor_date: "2026-06-01",
       preferred_route_id: "route-A",
