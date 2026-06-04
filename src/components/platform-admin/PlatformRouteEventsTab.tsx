@@ -124,8 +124,11 @@ export default function PlatformRouteEventsTab() {
   return (
     <div className="space-y-4">
       <PageHeader
-        icon={Activity}
-        title="Domæne-events"
+        title={
+          <span className="inline-flex items-center gap-2">
+            <Activity className="h-4 w-4" /> Domæne-events
+          </span>
+        }
         description="Tidslinje af hvad rute-triggerne har gjort. Læser fra route_events — ingen mutationer."
       />
 
@@ -162,7 +165,7 @@ export default function PlatformRouteEventsTab() {
         <ListCardSkeleton rows={6} />
       ) : rows.length === 0 ? (
         <EmptyState
-          icon={Activity}
+          icon={<Activity />}
           title="Ingen events i intervallet"
           description="Prøv at udvide tidsrummet eller fjern filtre."
         />
