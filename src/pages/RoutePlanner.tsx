@@ -326,14 +326,10 @@ const Planner = () => {
     setDensity(next ? "compact" : "cozy");
   };
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
-  const [printOpen, setPrintOpen] = useState(false);
-  const [dayDetailOpen, setDayDetailOpen] = useState(false);
   const [historyRoute, setHistoryRoute] = useState<{ id: string; name: string } | null>(null);
   // Bulk-valg i "Aftaler uden rute": Sæt af ordre-ids der pt. er markeret.
   const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
-  // Bulk-flyt dato: åbner dialog der viser forhåndsvisning før udførsel.
-  const [bulkShiftOpen, setBulkShiftOpen] = useState(false);
   // Filter + gruppering for "Aftaler uden rute" — gør store puljer
   // overskuelige uden at brugeren skal scrolle gennem alt.
   const [unassignedStatusFilter, setUnassignedStatusFilter] = usePersistentState<
