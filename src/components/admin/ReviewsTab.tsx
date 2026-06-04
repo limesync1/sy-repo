@@ -95,11 +95,11 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
         <div className="flex flex-wrap gap-1">
           {([
             { key: "all" as const, label: "Alle", count: reviews.length },
-            { key: 5 as const, label: "5 ★", count: reviews.filter(r => r.rating === 5).length },
-            { key: 4 as const, label: "4 ★", count: reviews.filter(r => r.rating === 4).length },
-            { key: 3 as const, label: "3 ★", count: reviews.filter(r => r.rating === 3).length },
-            { key: 2 as const, label: "2 ★", count: reviews.filter(r => r.rating === 2).length },
-            { key: 1 as const, label: "1 ★", count: reviews.filter(r => r.rating === 1).length },
+            { key: 5 as const, label: "5 ★", count: aggregate.counts[5] },
+            { key: 4 as const, label: "4 ★", count: aggregate.counts[4] },
+            { key: 3 as const, label: "3 ★", count: aggregate.counts[3] },
+            { key: 2 as const, label: "2 ★", count: aggregate.counts[2] },
+            { key: 1 as const, label: "1 ★", count: aggregate.counts[1] },
           ]).map(({ key, label, count }) => (
             <button
               key={key}
