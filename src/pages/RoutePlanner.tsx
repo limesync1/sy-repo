@@ -327,6 +327,22 @@ const Planner = () => {
   };
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [historyRoute, setHistoryRoute] = useState<{ id: string; name: string } | null>(null);
+  const {
+    printOpen,
+    setPrintOpen,
+    dayDetailOpen,
+    setDayDetailOpen,
+    bulkShiftOpen,
+    setBulkShiftOpen,
+    createOrderOpen,
+    setCreateOrderOpen,
+    createOpen,
+    setCreateOpen,
+    diagnosticsOpen,
+    setDiagnosticsOpen,
+    bulkMoveOpen,
+    setBulkMoveOpen,
+  } = useRouteDialogs();
   // Bulk-valg i "Aftaler uden rute": Sæt af ordre-ids der pt. er markeret.
   const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
