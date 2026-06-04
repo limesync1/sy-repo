@@ -25,6 +25,7 @@ import {
   dropKeyFor,
   targetKeyFor,
 } from "@/lib/route-planner/drop-classifier";
+import { decideDrop, type DropDecision, type DropOp } from "@/domain/routes";
 
 /**
  * useRoutePlannerDragEnd — Bølge 1 / pkt. 1.3 i .lovable/plan.md
