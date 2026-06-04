@@ -35,6 +35,7 @@ import { MoveRouteDateDialog, type MoveRouteScope } from "./MoveRouteDateDialog"
 import { MoveProjectedOccurrenceDialog } from "./MoveProjectedOccurrenceDialog";
 import { MoveStopsDialog } from "./MoveStopsDialog";
 import RouteHistoryDialog from "./RouteHistoryDialog";
+import { RouteOccurrenceTimeline } from "./RouteOccurrenceTimeline";
 import { SeriesScopeDialog, type SeriesScope } from "./SeriesScopeDialog";
 import { logRouteAudit } from "@/lib/route-audit";
 import { useSeriesImpact } from "@/hooks/useSeriesImpact";
@@ -757,6 +758,11 @@ export const RouteEditSheet = ({
           </SheetHeader>
 
           <div className="flex-1 overflow-y-auto px-3.5 py-3 space-y-3 bg-secondary/15">
+            {/* Tidslinje: viser udførte kørsler + næste planlagte for tilbagevendende
+                aftaler på basisruten. Skjules på projektioner (de viser kun én dag). */}
+            {!isProjection && route?.id && (seriesInfo?.recurringAppointmentCount ?? 0) > 0 && (
+              <RouteOccurrenceTimeline routeId={route.id} />
+            )}
             {/* Navn */}
             <Section
               icon={<Pencil className="h-3.5 w-3.5" />}

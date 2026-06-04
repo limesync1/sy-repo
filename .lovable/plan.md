@@ -1,104 +1,82 @@
+# Plan: Occurrence-baseret ruteflow — fase 2
 
-## Sådan fungerer det nu
+Bygger videre på den eksisterende `agreement_occurrences`-infrastruktur og den allerede synlige historik i ruteplanlæggeren. Fire delopgaver, hver med tydelig DB- og UI-effekt.
 
-Når en medarbejder markerer et stop som "udført" på en rute med en aftale på 10‑minutters interval, sker følgende kæde:
+## 1. Redigerbare fremtidige projektioner (Kørsel 2+)
 
-1. **Stoppet opdateres** til `status = 'completed'` (fra `EmployeeRoute.tsx` via `updateStatus.mutateAsync`).
-2. **Trigger `handle_route_stop_completion`** (sidst rørt i migration `20260419125146…`) fyrer på `route_stops` og:
-   - finder dominerende interval på ordren,
-   - sætter `orders.next_service_date = now() + interval` (for 10‑min: nu + 10 min),
-   - bumper `completed_cycles + 1`,
-   - sætter `subscriptions.preferred_route_id` og `next_service_date` tilsvarende,
-   - lader ordren stå som `confirmed` så den genbruges.
-3. **Trigger `enqueue_invoice_when_route_stop_completed`** lægger en faktura‑opgave i kø.
-4. **Cron `recurring-orders` → RPC `auto_recur_due_orders`** kører løbende og materialiserer næste forekomst som et nyt `route_stop` — men med `now()` som dato i stedet for den beregnede kalenderdato.
+**DB**
+- Sikr at `agreement_occurrence_overrides` har felterne: `agreement_id`, `original_date`, `new_date`, `new_time`, `status` (`moved` | `skipped`), `created_by`. Tilføj unique `(agreement_id, original_date)`.
+- RLS: business-medlemmer kan CRUD egne overrides.
+- Trigger: ved insert/update, hvis `new_date < today` → afvis (kan ikke ændre fortid).
+- Trigger: hvis der findes en `agreement_occurrence` med `status='completed'` og samme `occurrence_date` → afvis (historik er låst).
 
-### Hvorfor "hele basisruten forsvinder"
+**Frontend**
+- `recurring-projection.ts`: læs overrides og anvend dem på projicerede datoer (flyt/skip), uden at røre completed occurrences.
+- I `RouteStopsPanel` / `CalendarPlanner`: projicerede stops får et "flyt"-ikon, der åbner `MoveProjectedOccurrenceDialog` (eksisterer allerede).
+- Bekræft-knap kalder ny RPC `move_projected_occurrence(agreement_id, original_date, new_date, new_time)`.
 
-- Det udførte stop er stadig på basisruten, men UI'et filtrerer completed stops væk, så ruten ser tom ud.
-- `auto_recur_due_orders` sprøjter løbende nye stops ind på basisruten med `now()`, hvilket forvirrer `expandRecurringRoutes` — datoer hvor der allerede er et "rigtigt" route_stop springes over, så de virtuelle gentagelses‑markeringer forsvinder fra kalenderen.
-- 10‑min intervallet udstiller en eksisterende svaghed: kæden er designet til uge/måned‑cadences, ikke minut‑cadences.
+## 2. Server-side guard mod for tidlig udførelse
 
-## Sådan skal det fungere fremover
+**DB-trigger på `route_stops` BEFORE UPDATE**
+```sql
+if NEW.status = 'completed' and OLD.status <> 'completed' then
+  if (route_date + coalesce(planned_arrival, '00:00')) > now() then
+    raise exception 'OCCURRENCE_NOT_YET_DUE'
+      using hint = 'Kan først udføres ' || to_char(...);
+  end if;
+end if;
+```
+- Placeres som første step i `handle_route_stop_completion` (eller dedikeret guard-trigger der fyrer før).
+- UI fanger fejlen via `mapPostgresError` og viser dansk besked.
 
-### 1. Udfør én forekomst ad gangen — knyttet til dato/tidspunkt
-- Stoppet sættes `completed` (uændret).
-- Der upsertes en `agreement_occurrences`‑række for præcis det tidspunkt med `status = 'completed'` og `sequence_index = N` (kørselsnummer).
-- Samme dato/tidspunkt kan ikke udføres igen — unique constraint på (agreement_id, occurrence_date).
+## 3. Tidslinje på basisruten
 
-### 2. Faktura + regnskabsordre pr. kørsel
-- `enqueue_invoice_when_route_stop_completed` udvides med `occurrence_id` + `cycle_number`.
-- Regnskabseksporten danner én ordre pr. kørsel (ikke pr. master‑ordre).
+**Frontend kun** — ingen DB-ændringer.
+- Nyt komponent `RouteOccurrenceTimeline.tsx` i `src/components/route-planner/`:
+  - Vandret tidslinje øverst i basisrute-visningen.
+  - Viser én node pr. kørsel: ✓ Udført (dato+tid), ⏳ Næste (dato+tid, evt. "låst indtil X"), … fremtidige projektioner.
+  - Læser fra `agreement_occurrences` + projektioner.
+- Integreres i `RouteStopsPanel` når den valgte rute har tilbagevendende aftaler.
 
-### 3. Udførte kørsler bliver SYNLIGE i ruteplanlæggeren som "fortid"
-**Dette er centralt — basisruten må aldrig "tømmes".**
-- Completed stops filtreres IKKE længere væk fra basisrutens visning.
-- Hver udført forekomst vises som en låst/dæmpet række med tydelig markør:
-  - badge "Kørsel N · Udført"
-  - tidsstempel for udførelse
-  - "fortids"‑styling (muted baggrund, gennemstreget, evt. ikon ✓)
-  - klik åbner detaljer med faktura‑/regnskabs‑status, ikke redigering
-- Dette gælder både på den aktuelle dag og når man scroller tilbage i kalenderen — basisruten bevarer sin historik visuelt.
+## 4. Idempotent fakturering pr. occurrence
 
-### 4. Næste kørsel oprettes med det samme — men låst til sin egen dato
-**Når en kørsel markeres udført:**
-- `handle_route_stop_completion` opretter straks næste `agreement_occurrence` (kørsel N+1) med:
-  - `occurrence_date` = sidste udførelses tidspunkt + interval (for 10‑min: completed_at + 10 min)
-  - `status = 'pending'`
-  - `sequence_index = N+1`
-- `auto_recur_due_orders` materialiserer occurrencen som et nyt `route_stop` på samme basisrute — **men placeret på den beregnede kalenderdato**, ikke `now()`.
-- Stoppet vises straks i ruteplanlæggeren som "Kørsel N+1 · Planlagt".
+**DB**
+- Tilføj kolonne `invoice_jobs.occurrence_id uuid` + unique index `(occurrence_id) where occurrence_id is not null`.
+- Opdatér `enqueue_invoice_when_route_stop_completed`:
+  - Slå `occurrence_id` op fra det netop completede stop.
+  - `insert ... on conflict (occurrence_id) do nothing` → garanterer kun én job pr. kørsel.
+- Tilsvarende guard i edge function `accounting-sync`: før ordreoprettelse, tjek `accounting_orders` for eksisterende `occurrence_id`.
+- Tilføj `accounting_orders.occurrence_id` med samme unique constraint.
 
-**Udførelse er låst indtil dagen er aktuel:**
-- Medarbejder‑UI'et (`EmployeeRoute.tsx` / `StopDetailsContent.tsx`) deaktiverer "Marker udført"‑knappen hvis `route_date > today` (eller for 10‑min: hvis `occurrence_date > now()`).
-- Server‑side guard i `handle_route_stop_completion` afviser completion hvis `now() < occurrence_date` (returnerer fejl, ruller status tilbage).
-- UI viser tydeligt: "Kan først udføres [tidspunkt/dato]".
+**Retry-sikkerhed**
+- Edge function wrappes i transaktion med `select … for update` på job-rækken.
+- Ved exception sættes `status='failed'`, men `occurrence_id` ligger stadig som unique → en evt. retry kan ikke skabe duplikat.
 
-### 5. Fremtidige projicerede kørsler kan stadig redigeres
-- Virtuelle forekomster (`expandRecurringRoutes`) vises uændret for datoer ud over den næste materialiserede.
-- Bruger kan flytte/aflyse enkelte forekomster via `agreement_occurrence_overrides` — uden at røre serien.
-
-## Tekniske ændringer
+## Teknisk ændringssæt
 
 ```text
-DB / triggers
-├── handle_route_stop_completion
-│   • upsert agreement_occurrences(occurrence_date, status='completed',
-│     sequence_index=N, completed_at=now())
-│   • opret NÆSTE occurrence (N+1) med dato = completed_at + interval
-│   • bump completed_cycles på AFTALEN
-│   • ingen ændring af preferred_route_id hvis allerede sat
-│   • guard: afvis hvis now() < NEW.occurrence_date
-│
-├── auto_recur_due_orders (RPC)
-│   • opret stop kun hvis (route_id, occurrence_date) ikke findes
-│   • placer stop på occurrence_date — ikke CURRENT_DATE
-│   • link via agreement_occurrence_id
-│
-└── enqueue_invoice_when_route_stop_completed
-    • payload: + occurrence_id, cycle_number
-    • regnskabseksport: én ordre pr. kørsel
+DB migrations (ny)
+├── agreement_occurrence_overrides: constraints + trigger (fortid/completed)
+├── route_stops BEFORE UPDATE guard: OCCURRENCE_NOT_YET_DUE
+├── invoice_jobs.occurrence_id + unique index
+├── accounting_orders.occurrence_id + unique index
+├── enqueue_invoice_when_route_stop_completed → on conflict do nothing
+└── RPC move_projected_occurrence(...)
+
+Edge functions
+└── accounting-sync: pre-check + for-update lock
 
 Frontend
-├── RouteStopsPanel / CalendarPlanner / MobileRouteDetailSheet
-│   • behold completed stops i visningen
-│   • render "fortid"‑variant: muted, badge "Kørsel N · Udført",
-│     tidsstempel, ikke‑interaktiv
-│
-├── EmployeeRoute / StopDetailsContent
-│   • disable "Marker udført" hvis occurrence_date > now()
-│   • vis hint: "Kan først udføres [dato/tid]"
-│
-├── recurring-projection.ts
-│   • lad ikke completed stops fjerne projektion af fremtidige datoer
-│
-└── cycle-label.ts
-    • brug sequence_index fra agreement_occurrences som autoritativ kilde
+├── src/lib/recurring-projection.ts: anvend overrides
+├── src/components/route-planner/RouteOccurrenceTimeline.tsx (ny)
+├── src/components/route-planner/RouteStopsPanel.tsx: integrér timeline + flyt-knap
+├── src/components/route-planner/MoveProjectedOccurrenceDialog.tsx: kald ny RPC
+└── src/lib/route-errors.ts: mapping for OCCURRENCE_NOT_YET_DUE
 ```
 
 ## Forventet resultat
 
-- 10‑min‑testruten forbliver synlig i ruteplanlæggeren — med fuld historik over udførte kørsler.
-- Hver udførelse: faktura + regnskabsordre pr. kørsel; samme tidspunkt kan ikke udføres igen.
-- Næste kørsel dukker op øjeblikkeligt som "Kørsel N+1 · Planlagt" på basisruten, men kan først markeres udført når dens dato/tidspunkt er aktuel.
-- Fremtidige projicerede kørsler kan stadig flyttes/redigeres uden at bryde serien.
+- Kørsel 2+ kan flyttes/skippes direkte fra planlæggeren; Kørsel 1 (udført) er låst.
+- Selv hvis nogen manipulerer UI'et, afviser DB at markere en occurrence udført før dens tidspunkt.
+- Basisruten har en visuel tidslinje der gør "hvad er gjort / hvad mangler / hvornår låses næste op" øjeblikkeligt forståeligt.
+- Faktura + regnskabsordre kan aldrig oprettes to gange for samme occurrence — heller ikke ved retries eller race conditions.
