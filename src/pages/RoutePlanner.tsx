@@ -123,6 +123,7 @@ import { useRouteDialogs } from "@/hooks/route-planner/useRouteDialogs";
 import { useRouteSelection } from "@/hooks/route-planner/useRouteSelection";
 import { useRoutePlannerWorkflowState } from "@/hooks/route-planner/useRoutePlannerWorkflowState";
 import { useRoutePlannerKeyboard } from "@/hooks/route-planner/useRoutePlannerKeyboard";
+import { useRoutePlannerDnd } from "@/hooks/route-planner/useRoutePlannerDnd";
 import { pushRouteUndo, routeHistory } from "@/lib/route-history";
 import { useRouteHistory } from "@/hooks/useRouteHistory";
 import { toastSuccessWithUndo } from "@/lib/toast-undo";
