@@ -54,7 +54,7 @@ describe("ProjectionEngine — property-based invariants", () => {
         .build().projections;
       const seen = new Set<string>();
       for (const p of projs) {
-        const key = `${p.preferred_route_id}|${p.date}`;
+        const key = `${p.baseRouteId}|${p.date}`;
         expect(seen.has(key)).toBe(false);
         seen.add(key);
       }
