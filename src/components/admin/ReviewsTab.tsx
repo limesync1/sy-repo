@@ -55,6 +55,13 @@ const ReviewsTab = ({ reviews, isLoading }: Props) => {
       <div className="space-y-4">
         <PageHeader title="Anmeldelser" description="Henter anmeldelser…" />
         <StatGridSkeleton count={3} cols="sm:grid-cols-3" />
+        {/* Filter-chip-rækken vises også her så indholdet ikke hopper når data lander. */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="h-3 w-16 rounded bg-secondary/70 animate-pulse" />
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-7 w-14 rounded-md bg-secondary/70 animate-pulse" />
+          ))}
+        </div>
         <ListCardSkeleton rows={4} />
       </div>
     );
