@@ -1448,18 +1448,25 @@ const AftaleTab = ({
   //  • ordren ikke er annulleret eller udført
   //  • næste service-dato ligger i fremtiden (eller højst 6 timer i fortiden,
   //    så aftaler "i dag" stadig vises selvom klokken er passeret).
-  const ordersById = new Map((orders || []).map((o: any) => [o.id, o]));
-  const cutoff = Date.now() - 6 * 60 * 60 * 1000;
-  const upcomingSubs = allSubs
-    .filter(s => {
-      if (s.status !== "active" || !s.next_service_date) return false;
-      if (new Date(s.next_service_date).getTime() < cutoff) return false;
-      const linked = (s as any).order_id ? ordersById.get((s as any).order_id) : null;
-      if ((s as any).order_id && !linked) return false; // ordren er slettet
-      if (linked && ["cancelled", "completed"].includes((linked as any).status)) return false;
-      return true;
-    })
-    .sort((a, b) => new Date(a.next_service_date!).getTime() - new Date(b.next_service_date!).getTime());
+  // Memoiseret så vi ikke rebuilder Map'en og loop'er hele abonnement-listen
+  // ved hver re-render (fx når en dialog åbnes eller filteret skifter).
+  const ordersById = useMemo(
+    () => new Map((orders || []).map((o: any) => [o.id, o])),
+    [orders]
+  );
+  const upcomingSubs = useMemo(() => {
+    const cutoff = Date.now() - 6 * 60 * 60 * 1000;
+    return allSubs
+      .filter(s => {
+        if (s.status !== "active" || !s.next_service_date) return false;
+        if (new Date(s.next_service_date).getTime() < cutoff) return false;
+        const linked = (s as any).order_id ? ordersById.get((s as any).order_id) : null;
+        if ((s as any).order_id && !linked) return false; // ordren er slettet
+        if (linked && ["cancelled", "completed"].includes((linked as any).status)) return false;
+        return true;
+      })
+      .sort((a, b) => new Date(a.next_service_date!).getTime() - new Date(b.next_service_date!).getTime());
+  }, [allSubs, ordersById]);
 
   // ─── Tilføj aftale til en eksisterende rute (drag-drop fra aftalekort) ───
   // Finder næste sekvensnummer på den valgte rute, geocoder evt. hvis ordren
