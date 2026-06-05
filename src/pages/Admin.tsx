@@ -24,6 +24,7 @@ const SettingsTab = lazy(() => import("@/components/admin/SettingsTab"));
 const LeadsTab = lazy(() => import("@/components/admin/LeadsTab"));
 const BusinessLiveChatTab = lazy(() => import("@/components/admin/BusinessLiveChatTab"));
 const AccountingTab = lazy(() => import("@/components/admin/AccountingTab"));
+const DataImportTab = lazy(() => import("@/components/admin/DataImportTab"));
 // ServicesTab er ~1700 linjer (formular, prisberegner, regnskab) — split ud
 // så det kun loades når brugeren faktisk åbner Services-fanen.
 const ServicesTab = lazy(() => import("@/components/admin/ServicesTab"));
@@ -136,7 +137,7 @@ const AdminDashboard = () => {
   const initialTab = ((): AdminTabKey => {
     if (typeof window === "undefined") return "dashboard";
     const t = new URLSearchParams(window.location.search).get("tab") as AdminTabKey | null;
-    const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","leads","livechat","accounting","settings"];
+    const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","leads","livechat","accounting","import","settings"];
     return t && allowed.includes(t) ? t : "dashboard";
   })();
   const [activeTab, setActiveTab] = useState<AdminTabKey>(initialTab);
@@ -147,7 +148,7 @@ const AdminDashboard = () => {
     if (typeof window === "undefined") return;
     const onPop = () => {
       const t = new URLSearchParams(window.location.search).get("tab") as AdminTabKey | null;
-      const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","leads","livechat","accounting","settings"];
+      const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","leads","livechat","accounting","import","settings"];
       setActiveTab(t && allowed.includes(t) ? t : "dashboard");
     };
     window.addEventListener("popstate", onPop);
@@ -159,7 +160,7 @@ const AdminDashboard = () => {
   // bliver fanen ikke skiftet, fordi React Router ikke fyrer popstate.
   useEffect(() => {
     const t = new URLSearchParams(location.search).get("tab") as AdminTabKey | null;
-    const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","leads","livechat","accounting","settings"];
+    const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","leads","livechat","accounting","import","settings"];
     const next = t && allowed.includes(t) ? t : "dashboard";
     setActiveTab((curr) => (curr === next ? curr : next));
   }, [location.search]);
@@ -204,6 +205,7 @@ const AdminDashboard = () => {
       case "leads": return <LeadsTab businessId={business.id} />;
       case "livechat": return <BusinessLiveChatTab businessId={business.id} businessName={business.name} />;
       case "accounting": return <AccountingTab businessId={business.id} businessName={business.name} />;
+      case "import": return <DataImportTab businessId={business.id} businessName={business.name} />;
       case "settings": return <SettingsTab business={business} />;
       default: return null;
     }
