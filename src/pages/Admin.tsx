@@ -50,16 +50,13 @@ import {
 const TabFallback = ({ tab }: { tab: string }) => {
   switch (tab) {
     case "dashboard":
+      // Brug den rigtige DashboardSkeleton (med hero-form) så chunk-load og
+      // data-load viser samme silhuet — ellers ser brugeren to forskellige
+      // skeletons inden indholdet kommer.
       return (
-        <div className="w-full space-y-4 sm:space-y-5 animate-fade-in">
-          <PageHeaderSkeleton />
-          <StatGridSkeleton count={4} />
-          <div className="grid gap-4 lg:grid-cols-2">
-            <ChartSkeleton height={220} />
-            <ChartSkeleton height={220} />
-          </div>
-          <ListCardSkeleton rows={5} />
-        </div>
+        <Suspense fallback={<div className="h-[60vh]" />}>
+          <DashboardSkeleton />
+        </Suspense>
       );
     case "leads":
     case "aftale":
