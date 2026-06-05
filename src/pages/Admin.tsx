@@ -59,11 +59,19 @@ const TabFallback = ({ tab }: { tab: string }) => {
         </Suspense>
       );
     case "leads":
-    case "aftale":
     case "customers":
       return <PageSkeleton statsCount={4} rows={6} withFilters />;
-    case "aftale-disabled":
-      return null;
+    case "orders":
+      // Aftaler bruger 3-kolonne AftaleStatsStrip (ikke 4) — match silhuetten
+      // så der ikke er hop når rigtigt indhold rendreres.
+      return (
+        <div className="w-full space-y-4 sm:space-y-5 animate-fade-in">
+          <PageHeaderSkeleton />
+          <StatGridSkeleton count={3} cols="lg:grid-cols-3" />
+          <FilterBarSkeleton chips={2} withAction={false} />
+          <ListCardSkeleton rows={6} />
+        </div>
+      );
     case "employees":
       return <PageSkeleton statsCount={3} rows={4} />;
     case "reviews":
@@ -96,17 +104,6 @@ const TabFallback = ({ tab }: { tab: string }) => {
           <PageHeaderSkeleton />
           <FilterBarSkeleton chips={2} withAction />
           <ListCardSkeleton rows={5} />
-        </div>
-      );
-    case "routes":
-      return (
-        <div className="space-y-4 animate-fade-in">
-          <PageHeaderSkeleton withAction />
-          <FilterBarSkeleton chips={3} />
-          <div className="grid gap-3 lg:grid-cols-[360px_1fr]">
-            <ListCardSkeleton rows={4} />
-            <div className="rounded-xl border border-border/80 bg-card h-[60vh] animate-pulse" />
-          </div>
         </div>
       );
     default:
