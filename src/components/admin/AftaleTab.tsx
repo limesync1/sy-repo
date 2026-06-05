@@ -1110,6 +1110,25 @@ const AftaleTab = ({
     [filteredOrders, aftalePage, aftalePageSize],
   );
 
+  // SKAL stå før eventuel early return så hook-rækkefølgen er konsistent.
+  const ordersById = useMemo(
+    () => new Map((orders || []).map((o: any) => [o.id, o])),
+    [orders]
+  );
+  const upcomingSubs = useMemo(() => {
+    const cutoff = Date.now() - 6 * 60 * 60 * 1000;
+    return allSubs
+      .filter(s => {
+        if (s.status !== "active" || !s.next_service_date) return false;
+        if (new Date(s.next_service_date).getTime() < cutoff) return false;
+        const linked = (s as any).order_id ? ordersById.get((s as any).order_id) : null;
+        if ((s as any).order_id && !linked) return false;
+        if (linked && ["cancelled", "completed"].includes((linked as any).status)) return false;
+        return true;
+      })
+      .sort((a, b) => new Date(a.next_service_date!).getTime() - new Date(b.next_service_date!).getTime());
+  }, [allSubs, ordersById]);
+
   if (isLoading) return <ListCardSkeleton rows={6} />;
 
   const initAdjustedItems = (order: any) => {
@@ -1450,23 +1469,8 @@ const AftaleTab = ({
   //    så aftaler "i dag" stadig vises selvom klokken er passeret).
   // Memoiseret så vi ikke rebuilder Map'en og loop'er hele abonnement-listen
   // ved hver re-render (fx når en dialog åbnes eller filteret skifter).
-  const ordersById = useMemo(
-    () => new Map((orders || []).map((o: any) => [o.id, o])),
-    [orders]
-  );
-  const upcomingSubs = useMemo(() => {
-    const cutoff = Date.now() - 6 * 60 * 60 * 1000;
-    return allSubs
-      .filter(s => {
-        if (s.status !== "active" || !s.next_service_date) return false;
-        if (new Date(s.next_service_date).getTime() < cutoff) return false;
-        const linked = (s as any).order_id ? ordersById.get((s as any).order_id) : null;
-        if ((s as any).order_id && !linked) return false; // ordren er slettet
-        if (linked && ["cancelled", "completed"].includes((linked as any).status)) return false;
-        return true;
-      })
-      .sort((a, b) => new Date(a.next_service_date!).getTime() - new Date(b.next_service_date!).getTime());
-  }, [allSubs, ordersById]);
+  // (ordersById/upcomingSubs er flyttet op før early-return for at holde
+  // hook-rækkefølgen stabil.)
 
   // ─── Tilføj aftale til en eksisterende rute (drag-drop fra aftalekort) ───
   // Finder næste sekvensnummer på den valgte rute, geocoder evt. hvis ordren
