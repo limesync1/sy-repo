@@ -62,6 +62,8 @@ const TabFallback = ({ tab }: { tab: string }) => {
     case "aftale":
     case "customers":
       return <PageSkeleton statsCount={4} rows={6} withFilters />;
+    case "aftale-disabled":
+      return null;
     case "employees":
       return <PageSkeleton statsCount={3} rows={4} />;
     case "reviews":
