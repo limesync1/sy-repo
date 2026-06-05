@@ -65,7 +65,7 @@ const RoleSwitchFooterItem = ({
 
 export type AdminTabKey =
   | "dashboard" | "services" | "orders" | "customers"
-  | "routes" | "employees" | "reviews" | "leads" | "livechat" | "accounting" | "settings";
+  | "routes" | "employees" | "reviews" | "leads" | "livechat" | "accounting" | "import" | "settings";
 
 /**
  * Animeret sidebar-item: collapser stille ind/ud når en feature toggles
@@ -167,6 +167,7 @@ const TAB_PREFETCH: Partial<Record<AdminTabKey, () => Promise<unknown>>> = {
   settings:  () => import("@/components/admin/SettingsTab"),
   routes:    () => import("@/pages/RoutePlanner"),
   accounting: () => import("@/components/admin/AccountingTab"),
+  import:     () => import("@/components/admin/DataImportTab"),
 };
 const prefetched = new Set<AdminTabKey>();
 const prefetchTab = (key: AdminTabKey) => {
@@ -197,6 +198,7 @@ const NAV_ITEMS: NavItem[] = [
   { value: "reviews", label: "Anmeldelser", icon: Star },
   { value: "livechat", label: "Livechat", icon: MessageCircle, requiresLivechat: true },
   { value: "accounting", label: "Regnskab", icon: Calculator, requiresAccounting: true },
+  { value: "import", label: "Import", icon: Upload },
   { value: "settings", label: "Indstillinger", icon: Settings },
 ];
 
