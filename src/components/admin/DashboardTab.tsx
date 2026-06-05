@@ -344,7 +344,7 @@ const DashboardTab = ({
     } catch { toast.error("Kunne ikke kopiere"); }
   };
 
-  const primaryActions = useMemo(() => {
+  const { actions, primaryActions } = useMemo(() => {
     const arr: Action[] = [];
     if (pendingOrders > 0) arr.push({
       key: "pending", label: `Svar ${pendingOrders} afventende ${pendingOrders === 1 ? "bestilling" : "bestillinger"}`,
@@ -374,7 +374,7 @@ const DashboardTab = ({
     arr.push({ key: "team", label: "Medarbejdere", meta: "Inviter dit team", icon: Users, tab: "employees", priority: 20, tone: "muted" });
     arr.push({ key: "settings", label: "Indstillinger", meta: "Profil, kontakt, åbningstider", icon: SettingsIcon, tab: "settings", priority: 10, tone: "muted" });
     arr.sort((a, b) => b.priority - a.priority);
-    return arr.slice(0, 4);
+    return { actions: arr, primaryActions: arr.slice(0, 4) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingOrders, servicesCount, completeness.pct, missingItems.length, reviewsCount, ordersCount, newReviews, shareUrl, copied]);
 
