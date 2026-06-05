@@ -212,7 +212,6 @@ const AdminDashboard = () => {
       case "leads": return <LeadsTab businessId={business.id} />;
       case "livechat": return <BusinessLiveChatTab businessId={business.id} businessName={business.name} />;
       case "accounting": return <AccountingTab businessId={business.id} businessName={business.name} />;
-      case "import": return <DataImportTab businessId={business.id} businessName={business.name} />;
       case "settings": return <SettingsTab business={business} />;
       default: return null;
     }
