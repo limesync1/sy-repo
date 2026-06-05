@@ -26,7 +26,7 @@ export function usePlannerThemeEffect() {
     root.classList.add("theme-transitioning");
     const t = window.setTimeout(() => {
       root.classList.remove("theme-transitioning");
-    }, 320);
+    }, 560);
     if (theme === "dark") {
       root.classList.add("dark");
     } else {
