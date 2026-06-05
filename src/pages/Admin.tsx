@@ -24,7 +24,6 @@ const SettingsTab = lazy(() => import("@/components/admin/SettingsTab"));
 const LeadsTab = lazy(() => import("@/components/admin/LeadsTab"));
 const BusinessLiveChatTab = lazy(() => import("@/components/admin/BusinessLiveChatTab"));
 const AccountingTab = lazy(() => import("@/components/admin/AccountingTab"));
-const DataImportTab = lazy(() => import("@/components/admin/DataImportTab"));
 // ServicesTab er ~1700 linjer (formular, prisberegner, regnskab) — split ud
 // så det kun loades når brugeren faktisk åbner Services-fanen.
 const ServicesTab = lazy(() => import("@/components/admin/ServicesTab"));
