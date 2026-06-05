@@ -89,13 +89,12 @@ const TabFallback = ({ tab }: { tab: string }) => {
         </div>
       );
     case "employees":
-      // Medarbejdere har ingen stats — kun header + login-tæller-banner + liste.
+      // Medarbejdere: header + 4 stat-kort (samme grid som Kunder) + liste.
       return (
-        <div className="space-y-4 animate-fade-in">
+        <div className="w-full space-y-4 sm:space-y-5 animate-fade-in">
           <PageHeaderSkeleton />
-          <div className="rounded-xl border border-border/80 bg-card p-3.5">
-            <FormSkeleton fields={1} />
-          </div>
+          <StatGridSkeleton count={4} cols="sm:grid-cols-2 lg:grid-cols-4" />
+          <FilterBarSkeleton chips={2} />
           <ListCardSkeleton rows={4} />
         </div>
       );
