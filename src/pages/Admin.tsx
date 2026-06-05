@@ -59,8 +59,15 @@ const TabFallback = ({ tab }: { tab: string }) => {
         </Suspense>
       );
     case "leads":
-      return <PageSkeleton statsCount={4} rows={6} withFilters />;
-      // (uden withAction — Leads har ingen "Opret"-knap i headeren)
+      // Leads: 3 stat-kort, ingen action-knap i headeren.
+      return (
+        <div className="w-full space-y-4 sm:space-y-5 animate-fade-in">
+          <PageHeaderSkeleton withAction={false} />
+          <StatGridSkeleton count={3} cols="sm:grid-cols-3" />
+          <FilterBarSkeleton chips={2} withAction={false} />
+          <ListCardSkeleton rows={6} />
+        </div>
+      );
     case "customers":
       return <PageSkeleton statsCount={4} rows={6} withFilters />;
     case "orders":
