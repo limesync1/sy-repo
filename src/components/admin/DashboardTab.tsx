@@ -311,10 +311,13 @@ const DashboardTab = ({
     const doneCount = checks.filter(c => c.done).length;
     return { checks, doneCount, total: checks.length, pct: Math.round((doneCount / checks.length) * 100) };
   }, [business, servicesCount]);
-  const missingItems = completeness.checks.filter(c => !c.done);
+  const missingItems = useMemo(
+    () => completeness.checks.filter(c => !c.done),
+    [completeness]
+  );
 
   // ── Auto-insight — én smart sætning baseret på state ────────────────
-  const insight = (() => {
+  const insight = useMemo(() => {
     if (servicesCount === 0) return "Tilføj din første service — det er det eneste, der mangler før kunder kan booke.";
     if (pendingOrders >= 3) return `${pendingOrders} bestillinger venter på svar — hver time tæller for konvertering.`;
     if (ordersCount === 0 && completeness.pct >= 70) return "Profilen er klar. Del jeres link for at få de første bestillinger.";
@@ -323,7 +326,7 @@ const DashboardTab = ({
     if (reviewsCount === 0 && ordersCount > 0) return "I har afsluttede opgaver uden anmeldelser endnu — bed jeres glade kunder om en stjerne.";
     if (averageRating >= 4.5 && reviewsCount >= 3) return `${averageRating.toFixed(1)}★ over ${reviewsCount} anmeldelser — stærk profil. Vis den frem.`;
     return "Hold svartid lav og profilen opdateret — det er de to ting der flytter mest på konverteringen.";
-  })();
+  }, [servicesCount, pendingOrders, ordersCount, completeness.pct, revTrend, stats.revenue7, stats.revenuePrev7, reviewsCount, averageRating]);
 
   // ── Smart prioriteret handlingskø ───────────────────────────────────
   type Action = {
@@ -341,36 +344,39 @@ const DashboardTab = ({
     } catch { toast.error("Kunne ikke kopiere"); }
   };
 
-  const actions: Action[] = [];
-  if (pendingOrders > 0) actions.push({
-    key: "pending", label: `Svar ${pendingOrders} afventende ${pendingOrders === 1 ? "bestilling" : "bestillinger"}`,
-    meta: "Hurtigt svar fordobler konverteringen", icon: Zap, tab: "orders", priority: 100, badge: String(pendingOrders), tone: "primary",
-  });
-  if (servicesCount === 0) actions.push({
-    key: "first-service", label: "Opret din første service",
-    meta: "Kunder kan ikke booke uden services", icon: Briefcase, tab: "services", priority: 95, tone: "primary",
-  });
-  if (completeness.pct < 80) actions.push({
-    key: "complete", label: "Fuldfør profil",
-    meta: `${completeness.pct}% færdig · ${missingItems.length} ting tilbage`, icon: Target, tab: "settings", priority: 80, tone: "accent",
-  });
-  if (reviewsCount === 0 && ordersCount > 0) actions.push({
-    key: "ask-review", label: "Bed kunder om anmeldelse",
-    meta: "Anmeldelser hæver konvertering markant", icon: Star, tab: "reviews", priority: 70, tone: "accent",
-  });
-  if (newReviews > 0) actions.push({
-    key: "new-reviews", label: `${newReviews} ${newReviews === 1 ? "ny anmeldelse" : "nye anmeldelser"}`,
-    meta: "Kvittér og vis at I lytter", icon: MessageSquare, tab: "reviews", priority: 65, badge: String(newReviews), tone: "accent",
-  });
-  if (shareUrl) actions.push({
-    key: "share", label: copied ? "Link kopieret" : "Del din profil",
-    meta: "Kopiér linket til jeres offentlige profil", icon: copied ? Check : Link2, onClick: copyLink, priority: 50, tone: "muted",
-  });
-  actions.push({ key: "new-service", label: "Tilføj service", meta: "Udvid jeres tilbud", icon: Briefcase, tab: "services", priority: 30, tone: "muted" });
-  actions.push({ key: "team", label: "Medarbejdere", meta: "Inviter dit team", icon: Users, tab: "employees", priority: 20, tone: "muted" });
-  actions.push({ key: "settings", label: "Indstillinger", meta: "Profil, kontakt, åbningstider", icon: SettingsIcon, tab: "settings", priority: 10, tone: "muted" });
-  actions.sort((a, b) => b.priority - a.priority);
-  const primaryActions = actions.slice(0, 4);
+  const primaryActions = useMemo(() => {
+    const arr: Action[] = [];
+    if (pendingOrders > 0) arr.push({
+      key: "pending", label: `Svar ${pendingOrders} afventende ${pendingOrders === 1 ? "bestilling" : "bestillinger"}`,
+      meta: "Hurtigt svar fordobler konverteringen", icon: Zap, tab: "orders", priority: 100, badge: String(pendingOrders), tone: "primary",
+    });
+    if (servicesCount === 0) arr.push({
+      key: "first-service", label: "Opret din første service",
+      meta: "Kunder kan ikke booke uden services", icon: Briefcase, tab: "services", priority: 95, tone: "primary",
+    });
+    if (completeness.pct < 80) arr.push({
+      key: "complete", label: "Fuldfør profil",
+      meta: `${completeness.pct}% færdig · ${missingItems.length} ting tilbage`, icon: Target, tab: "settings", priority: 80, tone: "accent",
+    });
+    if (reviewsCount === 0 && ordersCount > 0) arr.push({
+      key: "ask-review", label: "Bed kunder om anmeldelse",
+      meta: "Anmeldelser hæver konvertering markant", icon: Star, tab: "reviews", priority: 70, tone: "accent",
+    });
+    if (newReviews > 0) arr.push({
+      key: "new-reviews", label: `${newReviews} ${newReviews === 1 ? "ny anmeldelse" : "nye anmeldelser"}`,
+      meta: "Kvittér og vis at I lytter", icon: MessageSquare, tab: "reviews", priority: 65, badge: String(newReviews), tone: "accent",
+    });
+    if (shareUrl) arr.push({
+      key: "share", label: copied ? "Link kopieret" : "Del din profil",
+      meta: "Kopiér linket til jeres offentlige profil", icon: copied ? Check : Link2, onClick: copyLink, priority: 50, tone: "muted",
+    });
+    arr.push({ key: "new-service", label: "Tilføj service", meta: "Udvid jeres tilbud", icon: Briefcase, tab: "services", priority: 30, tone: "muted" });
+    arr.push({ key: "team", label: "Medarbejdere", meta: "Inviter dit team", icon: Users, tab: "employees", priority: 20, tone: "muted" });
+    arr.push({ key: "settings", label: "Indstillinger", meta: "Profil, kontakt, åbningstider", icon: SettingsIcon, tab: "settings", priority: 10, tone: "muted" });
+    arr.sort((a, b) => b.priority - a.priority);
+    return arr.slice(0, 4);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingOrders, servicesCount, completeness.pct, missingItems.length, reviewsCount, ordersCount, newReviews, shareUrl, copied]);
 
   return (
     <div className="w-full max-w-full min-w-0 space-y-3 overflow-x-hidden pb-[calc(env(safe-area-inset-bottom)+1rem)] sm:space-y-5">
