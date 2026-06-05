@@ -31,7 +31,7 @@ import BusinessOnboarding from "@/components/admin/BusinessOnboarding";
 import OnboardingHub from "@/components/admin/onboarding/OnboardingHub";
 import SEO from "@/components/SEO";
 import { AdminShell, type AdminTabKey } from "@/components/admin/shared/AdminShell";
-import { ShellSkeleton, ListCardSkeleton, StatGridSkeleton, PageSkeleton, FormSkeleton, FilterBarSkeleton, PageHeaderSkeleton, ChartSkeleton } from "@/components/admin/shared/Skeletons";
+import { ShellSkeleton, ListCardSkeleton, StatGridSkeleton, PageSkeleton, FormSkeleton, FilterBarSkeleton, PageHeaderSkeleton } from "@/components/admin/shared/Skeletons";
 import { TabErrorBoundary } from "@/components/admin/shared/TabErrorBoundary";
 import { TabPerfTracker } from "@/components/admin/shared/usePerfMark";
 import TrialBanner from "@/components/admin/TrialBanner";
