@@ -2,7 +2,7 @@
 // This entire module (~1700 lines) loads only when the user opens
 // the Services tab in their business panel, removing it from the
 // initial /virksomhed chunk.
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useAdaptivePageSize } from "@/hooks/useAdaptivePageSize";
 import { PaginationFooter } from "@/components/admin/shared/PaginationFooter";
@@ -248,28 +248,45 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
   const selectedSubcategoriesByIndustry: Record<string, string[]> =
     ((business?.settings as any)?.selected_subcategories as Record<string, string[]>) || {};
 
-  // Count orders per service
-  const orderCountByService: Record<string, number> = {};
-  orders?.forEach((o: any) => {
-    o.order_items?.forEach((item: any) => {
-      if (item.service_id) {
-        orderCountByService[item.service_id] = (orderCountByService[item.service_id] || 0) + item.quantity;
-      }
+  // Count orders per service — memoiseret så vi ikke loop'er hele
+  // ordrelisten ved hver re-render (fx hver gang en dialog åbnes).
+  const orderCountByService = useMemo(() => {
+    const counts: Record<string, number> = {};
+    orders?.forEach((o: any) => {
+      o.order_items?.forEach((item: any) => {
+        if (item.service_id) {
+          counts[item.service_id] = (counts[item.service_id] || 0) + item.quantity;
+        }
+      });
     });
-  });
+    return counts;
+  }, [orders]);
 
-  const uniqueCategories = [...new Set((services || []).map((s: any) => s.service_category).filter(Boolean))];
-  const filtered = filterCategory
-    ? services?.filter((s: any) => s.service_category === filterCategory)
-    : services;
+  const uniqueCategories = useMemo(
+    () => [...new Set((services || []).map((s: any) => s.service_category).filter(Boolean))],
+    [services]
+  );
+  const filtered = useMemo(
+    () => (filterCategory ? services?.filter((s: any) => s.service_category === filterCategory) : services),
+    [services, filterCategory]
+  );
   // Paginering — adaptiv sidestørrelse afhængigt af enheden.
   const pageSize = useAdaptivePageSize(25);
   const [page, setPage] = useState(0);
   useEffect(() => { setPage(0); }, [filterCategory, services?.length]);
   const filteredList = filtered ?? [];
-  const paged = filteredList.slice(page * pageSize, (page + 1) * pageSize);
-  const activeServices = (services || []).filter((s: any) => s.is_active !== false).length;
-  const totalOrders = Object.values(orderCountByService).reduce((a, b) => a + b, 0);
+  const paged = useMemo(
+    () => filteredList.slice(page * pageSize, (page + 1) * pageSize),
+    [filteredList, page, pageSize]
+  );
+  const activeServices = useMemo(
+    () => (services || []).filter((s: any) => s.is_active !== false).length,
+    [services]
+  );
+  const totalOrders = useMemo(
+    () => Object.values(orderCountByService).reduce((a, b) => a + b, 0),
+    [orderCountByService]
+  );
 
   if (isLoading) return (
     <div className="space-y-4">
