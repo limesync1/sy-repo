@@ -13,26 +13,34 @@ import { cn } from "@/lib/utils";
 /* ─────────── PageHeader-skeleton ─────────── */
 /** Matcher `<PageHeader title=... description=... action=...>` */
 export const PageHeaderSkeleton = ({ withAction = true }: { withAction?: boolean }) => (
-  <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-    <div className="space-y-2">
-      <Skeleton className="h-7 w-44" />
-      <Skeleton className="h-3.5 w-60" />
+  // Matcher PageHeader: flex-wrap så action på mobil kan wrappe under titlen
+  // (w-full) og på sm+ ligge i højre side (w-auto). Højde h-9 = PrimaryButton.
+  <div className="flex items-start justify-between gap-3 flex-wrap">
+    <div className="min-w-0 space-y-2">
+      <Skeleton className="h-6 w-44" />
+      <Skeleton className="h-3.5 w-60 max-w-[80vw]" />
     </div>
-    {withAction && <Skeleton className="h-10 w-full rounded-xl sm:w-64" />}
+    {withAction && (
+      <div className="w-full sm:w-auto sm:shrink-0">
+        <Skeleton className="h-9 w-full rounded-lg sm:w-44" />
+      </div>
+    )}
   </div>
 );
 
 /* ─────────── StatCard-skeleton ─────────── */
 /** Matcher `StatCard` fra `AdminUI.tsx`. */
 export const StatCardSkeleton = ({ className }: { className?: string }) => (
-  <Card className={cn("rounded-xl border-border/80 p-3 shadow-sm sm:p-4", className)}>
-    <div className="flex items-start justify-between gap-2">
-      <div className="min-w-0 flex-1 space-y-2">
+  // Matcher StatCard: ikon-badge h-8 (mobil) → h-10 (sm+), value h-6 → h-7,
+  // padding p-3 → p-4. Ikonet sidder til venstre, ikke højre.
+  <Card className={cn("rounded-xl border-border shadow-sm", className)}>
+    <div className="flex items-start gap-2.5 p-3 sm:gap-3 sm:p-4">
+      <Skeleton className="h-8 w-8 shrink-0 rounded-lg sm:h-10 sm:w-10" />
+      <div className="min-w-0 flex-1 space-y-1.5 sm:space-y-2">
         <Skeleton className="h-3 w-16" />
-        <Skeleton className="h-6 w-20" />
+        <Skeleton className="h-6 w-20 sm:h-7 sm:w-24" />
         <Skeleton className="h-3 w-24" />
       </div>
-      <Skeleton className="h-8 w-8 rounded-lg" />
     </div>
   </Card>
 );
@@ -42,7 +50,7 @@ export const StatGridSkeleton = ({
   count = 4,
   cols = "lg:grid-cols-4",
 }: { count?: number; cols?: string }) => (
-  <div className={cn("grid grid-cols-2 gap-2 sm:gap-3", cols)}>
+  <div className={cn("grid grid-cols-2 gap-2.5 sm:gap-3", cols)}>
     {Array.from({ length: count }).map((_, i) => (
       <StatCardSkeleton key={i} />
     ))}
