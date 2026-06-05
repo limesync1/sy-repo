@@ -31,7 +31,7 @@ import BusinessOnboarding from "@/components/admin/BusinessOnboarding";
 import OnboardingHub from "@/components/admin/onboarding/OnboardingHub";
 import SEO from "@/components/SEO";
 import { AdminShell, type AdminTabKey } from "@/components/admin/shared/AdminShell";
-import { ShellSkeleton, ListCardSkeleton, StatGridSkeleton, PageSkeleton, FormSkeleton, FilterBarSkeleton, PageHeaderSkeleton, ChartSkeleton } from "@/components/admin/shared/Skeletons";
+import { ShellSkeleton, ListCardSkeleton, StatGridSkeleton, PageSkeleton, FormSkeleton, FilterBarSkeleton, PageHeaderSkeleton } from "@/components/admin/shared/Skeletons";
 import { TabErrorBoundary } from "@/components/admin/shared/TabErrorBoundary";
 import { TabPerfTracker } from "@/components/admin/shared/usePerfMark";
 import TrialBanner from "@/components/admin/TrialBanner";
@@ -59,6 +59,15 @@ const TabFallback = ({ tab }: { tab: string }) => {
         </Suspense>
       );
     case "leads":
+      // Leads: 3 stat-kort, ingen action-knap i headeren.
+      return (
+        <div className="w-full space-y-4 sm:space-y-5 animate-fade-in">
+          <PageHeaderSkeleton withAction={false} />
+          <StatGridSkeleton count={3} cols="sm:grid-cols-3" />
+          <FilterBarSkeleton chips={2} withAction={false} />
+          <ListCardSkeleton rows={6} />
+        </div>
+      );
     case "customers":
       return <PageSkeleton statsCount={4} rows={6} withFilters />;
     case "orders":
@@ -73,7 +82,16 @@ const TabFallback = ({ tab }: { tab: string }) => {
         </div>
       );
     case "employees":
-      return <PageSkeleton statsCount={3} rows={4} />;
+      // Medarbejdere har ingen stats — kun header + login-tæller-banner + liste.
+      return (
+        <div className="space-y-4 animate-fade-in">
+          <PageHeaderSkeleton />
+          <div className="rounded-xl border border-border/80 bg-card p-3.5">
+            <FormSkeleton fields={1} />
+          </div>
+          <ListCardSkeleton rows={4} />
+        </div>
+      );
     case "reviews":
       return (
         <div className="space-y-4 animate-fade-in">
@@ -85,23 +103,50 @@ const TabFallback = ({ tab }: { tab: string }) => {
       );
     case "livechat":
       return (
-        <div className="grid h-[calc(100vh-180px)] gap-4 lg:grid-cols-[320px_1fr] animate-fade-in">
-          <ListCardSkeleton rows={6} />
-          <ListCardSkeleton rows={8} />
+        <div className="space-y-4 animate-fade-in">
+          <PageHeaderSkeleton withAction={false} />
+          <div className="grid gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
+            <ListCardSkeleton rows={6} />
+            <ListCardSkeleton rows={8} />
+          </div>
         </div>
       );
     case "accounting":
-    case "settings":
       return (
-        <div className="space-y-5 animate-fade-in">
+        <div className="space-y-6 animate-fade-in">
           <PageHeaderSkeleton />
-          <FormSkeleton fields={6} />
+          {/* Match AccountingTab's interne loading: hero-banner + 4 udbyder-kort */}
+          <div className="rounded-2xl border border-border/80 bg-card p-6 sm:p-8 h-[140px] animate-pulse" />
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-[180px] rounded-2xl border border-border/80 bg-card animate-pulse" />
+            ))}
+          </div>
+        </div>
+      );
+    case "settings":
+      // Indstillinger har en custom header (progress-ring + titel + status-pill),
+      // ikke en standard PageHeader. Match silhuetten så der ikke er hop.
+      return (
+        <div className="space-y-6 animate-fade-in">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-full bg-secondary/70 animate-pulse" />
+              <div className="space-y-2">
+                <div className="h-7 w-44 rounded bg-secondary/70 animate-pulse" />
+                <div className="h-3.5 w-64 rounded bg-secondary/70 animate-pulse" />
+              </div>
+            </div>
+            <div className="h-8 w-32 rounded-full bg-secondary/70 animate-pulse" />
+          </div>
+          <FormSkeleton fields={5} />
         </div>
       );
     case "services":
       return (
         <div className="space-y-4 animate-fade-in">
           <PageHeaderSkeleton />
+          <StatGridSkeleton count={3} cols="sm:grid-cols-3" />
           <FilterBarSkeleton chips={2} withAction />
           <ListCardSkeleton rows={5} />
         </div>
