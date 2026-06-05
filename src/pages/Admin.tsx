@@ -91,14 +91,6 @@ const TabFallback = ({ tab }: { tab: string }) => {
           <FormSkeleton fields={6} />
         </div>
       );
-    case "import":
-      return (
-        <div className="space-y-4 animate-fade-in">
-          <PageHeaderSkeleton />
-          <FormSkeleton fields={3} />
-          <ListCardSkeleton rows={4} />
-        </div>
-      );
     case "services":
       return (
         <div className="space-y-4 animate-fade-in">
