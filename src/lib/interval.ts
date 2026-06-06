@@ -106,6 +106,17 @@ export function buildInterval(n: number, unit: IntervalUnit): string {
  * - 0:   "Engangskøb"
  */
 export function formatInterval(value: string | null | undefined): string {
+  // Special-case: minut-baserede test-/teknisk-intervaller (fx "10_min").
+  // Vi understøtter dem ikke i kalender-projektionen (behandles som
+  // "daglig" dér), men i UI skal de vises korrekt så ejeren ikke bliver
+  // forvirret af et "Dagligt"-label på et 10-minutters interval.
+  if (value) {
+    const mm = String(value).trim().match(/^(\d+)[_ ]?min(?:ut(?:ter)?)?$/i);
+    if (mm) {
+      const n = Math.max(1, parseInt(mm[1], 10) || 1);
+      return n === 1 ? "Hvert minut" : `Hvert ${n}. minut`;
+    }
+  }
   const p = parseInterval(value);
   if (!p) return value ? String(value) : "Engangskøb";
   if (p.once) return "Engangskøb";
