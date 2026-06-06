@@ -64,6 +64,16 @@ export function parseInterval(value: string | null | undefined): ParsedInterval 
   if (!v || v === "engangskøb" || v === "engangskob" || v === "once") {
     return { n: 0, unit: "day", once: true, raw: v };
   }
+  // Minut-cadence (fx "10_min", "5 min", "every_15_minute"). Kalenderen
+  // arbejder pr. dag, så vi behandler enhver minut-cadence som "daglig"
+  // i projekteringen — UI-laget viser fortsat "Hvert N. minut" via
+  // `formatInterval` (special-case nederst i den funktion).
+  const minuteMatch =
+    v.match(/^(\d+)[_ ]?min(?:ut(?:ter)?)?$/i) ||
+    v.match(/^every[_:](\d+)[_:]min(?:ute)?s?$/i);
+  if (minuteMatch) {
+    return { n: 1, unit: "day", once: false, raw: v };
+  }
   // Nyt format: every_<N>_<unit>
   const m = v.match(/^every[_:](\d+)[_:](day|week|month|year)s?$/i);
   if (m) {
