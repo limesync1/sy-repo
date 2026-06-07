@@ -1372,6 +1372,9 @@ async function bookInvoiceForOrder(
     .eq("order_id", orderId)
     .maybeSingle();
   if (!link) {
+    link = await recoverOrderLinkFromStoredExternalNumber(admin, integ, orderId);
+  }
+  if (!link) {
     await pushOrder(admin, integ, adapter, orderId, "upsert");
     const reread = await admin.from("accounting_order_links")
       .select("external_id, external_type")
