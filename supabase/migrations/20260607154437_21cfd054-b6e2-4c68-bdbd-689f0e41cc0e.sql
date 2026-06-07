@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS public.accounting_order_links_business_provider_type_external_uniq;

@@ -124,6 +124,10 @@ export const useProjectedCalendar = (input: UseProjectedCalendarInput): Calendar
     }
 
     const isLiveProjectedStop = (s: any) => {
+      // Base-route/template stops are the source for future projections. Their
+      // linked occurrence may already be completed on the original date, but
+      // that must not remove all future virtual routes for the same agreement.
+      if (s.agreement_occurrence_id && s.route_id && baseById.has(s.route_id)) return true;
       const eff = (s.occurrence_status as string | null | undefined) ?? s.status;
       return eff !== "completed" && eff !== "cancelled";
     };
