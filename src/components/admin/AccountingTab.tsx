@@ -30,6 +30,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import economicLogo from "@/assets/accounting/economic.png";
 import dineroLogo from "@/assets/accounting/dinero.png";
+import { AccountingLogsPanel } from "@/components/admin/accounting/AccountingLogsPanel";
 
 /**
  * AccountingTab — virksomhedens regnskabs-integration.
