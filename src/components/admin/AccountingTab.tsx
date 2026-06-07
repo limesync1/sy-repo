@@ -30,6 +30,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import economicLogo from "@/assets/accounting/economic.png";
 import dineroLogo from "@/assets/accounting/dinero.png";
+import { AccountingLogsPanel } from "@/components/admin/accounting/AccountingLogsPanel";
 
 /**
  * AccountingTab — virksomhedens regnskabs-integration.
@@ -2190,48 +2191,9 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           </Button>
         </div>
 
-        {showAdvanced && (logs.length > 0 ? (
-          <SectionCard
-            title="Hvad er der sket på det seneste?"
-            icon={<RefreshCw />}
-            description="Her ser du de seneste 15 gange vi har sendt eller hentet noget. Det er en god hjælp hvis du vil tjekke om noget bestemt er kommet med."
-          >
-            <div className="divide-y divide-border text-sm">
-              {logs.map(l => (
-                <div key={l.id} className="flex flex-wrap items-center gap-2 py-2 first:pt-0 last:pb-0">
-                  <Badge
-                    variant={l.status === "success" ? "secondary" : l.status === "error" ? "destructive" : "outline"}
-                    className="shrink-0 capitalize"
-                  >
-                    {l.status === "success" ? "Lykkedes" : l.status === "error" ? "Mislykkedes" : l.status}
-                  </Badge>
-                  <span className="text-xs text-muted-foreground tabular-nums">
-                    {new Date(l.created_at).toLocaleString("da-DK")}
-                  </span>
-                  <span className="text-foreground">
-                    {ENTITY_LABEL[l.entity_type] ?? l.entity_type}
-                    {" "}
-                    {l.direction === "push" ? `sendt til ${activeDef.label}` : l.direction === "pull" ? `hentet fra ${activeDef.label}` : l.direction}
-                  </span>
-                  {l.message && (
-                    <span className="min-w-0 flex-1 truncate text-muted-foreground" title={l.message}>
-                      {l.message}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </SectionCard>
-        ) : (
-          <SectionCard
-            title="Hvad er der sket på det seneste?"
-            icon={<RefreshCw />}
-          >
-            <p className="text-sm text-muted-foreground">
-              Der er ikke sket noget endnu. Så snart du opretter eller ændrer en kunde, en service eller en aftale, går det i gang helt af sig selv — du behøver ikke trykke på noget.
-            </p>
-          </SectionCard>
-        ))}
+        {showAdvanced && (
+          <AccountingLogsPanel businessId={businessId} providerLabel={activeDef.label} />
+        )}
 
         {/* Bekræftelses-modaler */}
         <AlertDialog open={confirmDisable} onOpenChange={setConfirmDisable}>

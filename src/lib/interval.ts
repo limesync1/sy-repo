@@ -35,6 +35,7 @@ export const INTERVAL_UNITS: { value: IntervalUnit; singular: string; plural: st
 /** Tilbagefald for legacy-nøgler → {n, unit}. */
 const LEGACY_MAP: Record<string, { n: number; unit: IntervalUnit }> = {
   "10_min":      { n: 1,  unit: "day" }, // teknisk test-værdi; vi behandler den som "daglig" for projektion
+  "every_1_hour": { n: 1, unit: "day" }, // time-baseret test/teknisk værdi — projektion = daglig (cap 1/dag)
   daglig:        { n: 1,  unit: "day" },
   hver_2_dag:    { n: 2,  unit: "day" },
   ugentlig:      { n: 1,  unit: "week" },
@@ -72,6 +73,14 @@ export function parseInterval(value: string | null | undefined): ParsedInterval 
     v.match(/^(\d+)[_ ]?min(?:ut(?:ter)?)?$/i) ||
     v.match(/^every[_:](\d+)[_:]min(?:ute)?s?$/i);
   if (minuteMatch) {
+    return { n: 1, unit: "day", once: false, raw: v };
+  }
+  // Time-cadence (fx "every_1_hour", "1 time", "hver 2 time"). Cappes
+  // som "daglig" i projektionen — én forekomst pr. dag, uanset interval.
+  const hourMatch =
+    v.match(/^(\d+)[_ ]?(?:time(?:r)?|hour(?:s)?)$/i) ||
+    v.match(/^every[_:](\d+)[_:](?:hour|time)s?$/i);
+  if (hourMatch) {
     return { n: 1, unit: "day", once: false, raw: v };
   }
   // Nyt format: every_<N>_<unit>
@@ -125,6 +134,14 @@ export function formatInterval(value: string | null | undefined): string {
     if (mm) {
       const n = Math.max(1, parseInt(mm[1], 10) || 1);
       return n === 1 ? "Hvert minut" : `Hvert ${n}. minut`;
+    }
+    // Time-baserede intervaller: "every_1_hour", "1 time", "hver 2 time".
+    const hh =
+      String(value).trim().match(/^(\d+)[_ ]?(?:time(?:r)?|hour(?:s)?)$/i) ||
+      String(value).trim().match(/^every[_:](\d+)[_:](?:hour|time)s?$/i);
+    if (hh) {
+      const n = Math.max(1, parseInt(hh[1], 10) || 1);
+      return n === 1 ? "Hver 1 time" : `Hver ${n}. time`;
     }
   }
   const p = parseInterval(value);
