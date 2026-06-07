@@ -2190,7 +2190,6 @@ export default function AccountingTab({ businessId }: { businessId: string; busi
           </Button>
         </div>
 
-        {showAdvanced && (logs.length > 0 ? (
         {showAdvanced && (
           <AccountingLogsPanel businessId={businessId} providerLabel={activeDef.label} />
         )}
