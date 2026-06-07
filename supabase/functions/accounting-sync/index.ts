@@ -308,18 +308,39 @@ async function loadIntegration(admin: SupabaseClient, business_id: string): Prom
   return data as Integration | null;
 }
 
+async function recoverOrderLinkFromStoredExternalNumber(
+  admin: SupabaseClient,
+  integ: Integration,
+  orderId: string,
+): Promise<{ external_id: string; external_type: "order" } | null> {
+  const { data: order } = await admin.from("orders")
+    .select("external_order_number, invoice_external_id")
+    .eq("id", orderId)
+    .maybeSingle();
+  if (!order?.external_order_number || order.invoice_external_id) return null;
+
+  const externalId = String(order.external_order_number);
+  const { error } = await admin.from("accounting_order_links").upsert({
+    business_id: integ.business_id,
+    provider: integ.provider,
+    order_id: orderId,
+    external_id: externalId,
+    external_number: externalId,
+    external_type: "order",
+    last_pushed_at: new Date().toISOString(),
+    last_status_synced: "recovered",
+  }, { onConflict: "business_id,provider,order_id" });
+  if (error) throw error;
+  return { external_id: externalId, external_type: "order" };
+}
+
 async function logSync(admin: SupabaseClient, opts: {
   business_id: string; provider: string; direction: "push"|"pull";
   entity_type: "customer"|"product"|"order"|"invoice"|"connection";
   entity_id?: string|null; external_id?: string|null;
   status: "success"|"error"|"skipped"; message?: string|null; payload?: any;
 }) {
-  // Reducér log-spam: vi skriver KUN errors og pull-/connection-summaries.
-  // Successful per-entity-pushes (customer/product/order) genererer ellers
-  // hundredevis af log-rækker pr. synk og er sjældent nyttigt at læse.
-  if (opts.status === "success" && opts.entity_type !== "connection") {
-    return;
-  }
+  // Log alle regnskabs-hændelser; den nye logvisning filtrerer støjen i UI'et.
   await admin.from("accounting_sync_log").insert(opts);
 }
 
