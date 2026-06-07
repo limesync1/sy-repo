@@ -1126,6 +1126,7 @@ async function pushOrder(admin: SupabaseClient, integ: Integration, adapter: Acc
   const { data: existing } = await admin.from("accounting_order_links")
     .select("external_id, external_type").eq("business_id", integ.business_id)
     .eq("provider", integ.provider).eq("order_id", orderId).maybeSingle();
+  const recoveredExisting = existing ?? await recoverOrderLinkFromStoredExternalNumber(admin, integ, orderId);
 
   // Skygge-ordrer importeret fra regnskabsprogrammet er allerede fakturaer og
   // må aldrig pushes tilbage som nye ordrekladder.
@@ -1143,7 +1144,7 @@ async function pushOrder(admin: SupabaseClient, integ: Integration, adapter: Acc
   // pushes igen som en ordrekladde. Det kunne overskrive linket fra
   // invoice_booked → order og gav efterfølgende 404 på /orders/drafts/{nr}.
   if (order.invoice_external_id) {
-    if (!existing || existing.external_type !== "invoice_booked" || existing.external_id !== order.invoice_external_id) {
+    if (!recoveredExisting || recoveredExisting.external_type !== "invoice_booked" || recoveredExisting.external_id !== order.invoice_external_id) {
       await admin.from("accounting_order_links").upsert({
         business_id: integ.business_id,
         provider: integ.provider,
@@ -1209,12 +1210,16 @@ async function pushOrder(admin: SupabaseClient, integ: Integration, adapter: Acc
 
   // Når ordren allerede er bogført som faktura, må vi ikke længere forsøge at
   // opdatere den som ordrekladde i e-conomic — bogførte fakturaer er låste.
-  if (existing?.external_type === "invoice_booked") return;
+  if (recoveredExisting?.external_type === "invoice_booked") return;
 
   if (operation === "delete") {
-    if (existing && adapter.deleteOrder) {
-      try { await adapter.deleteOrder(existing.external_id); } catch (_) { /* ignore */ }
-      await admin.from("accounting_order_links").delete().eq("id", existing.external_id);
+    if (recoveredExisting && adapter.deleteOrder) {
+      try { await adapter.deleteOrder(recoveredExisting.external_id); } catch (_) { /* ignore */ }
+      await admin.from("accounting_order_links")
+        .delete()
+        .eq("business_id", integ.business_id)
+        .eq("provider", integ.provider)
+        .eq("order_id", orderId);
     }
     return;
   }
@@ -1222,7 +1227,7 @@ async function pushOrder(admin: SupabaseClient, integ: Integration, adapter: Acc
   const sendAs = (integ.settings?.send_order_as ?? "order") as "order"|"invoice_draft"|"quote";
   const result = await adapter.upsertOrder({
     internal_id: orderId,
-    external_id: existing?.external_id,
+    external_id: recoveredExisting?.external_id,
     external_type: sendAs,
     customer_external_id: customerExtId,
     customer_name: order.customer_name,
