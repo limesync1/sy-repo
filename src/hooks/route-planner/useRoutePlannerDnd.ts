@@ -292,9 +292,16 @@ export function useRoutePlannerDnd(opts: {
           { seriesRoutesOnTargetDate: isMovingMovedOccurrenceBack ? [] : seriesRoutesOnTargetDate },
         );
         if (!isMovingMovedOccurrenceBack && projectedRoutesOnTargetDate.length > 0 && result.ok) {
+          // Vi tilføjer en let advarsel — UI'et viser blot top-meddelelsen,
+          // så vi behøver ikke fuld Issue-struktur her udover de obligatoriske
+          // felter på Issue-typen.
           result.warnings = [
             ...(result.warnings || []),
-            "Der ligger en projiceret forekomst på dagen — du vælger scope ved slip.",
+            {
+              code: "INFO",
+              severity: "warning",
+              message: "Der ligger en projiceret forekomst på dagen — du vælger scope ved slip.",
+            } as any,
           ];
         }
         const { severity, topMessage } = summarize(result);
