@@ -10,7 +10,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Sparkles, Trash2, Check, CalendarRange, History, Award, Lock } from "lucide-react";
+import { Loader2, Sparkles, Trash2, Check, CalendarRange, History, Award, Lock, RotateCcw, CheckCircle2 } from "lucide-react";
 import { Palette, CalendarDays, Pencil, Gauge } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -26,6 +26,7 @@ import {
   useUpdateRouteSeriesAppearance,
   type Route, type RouteStop,
 } from "@/hooks/useRoutes";
+import { useReopenRoute } from "@/hooks/useRoutes";
 import { useWeatherForecast } from "@/hooks/useWeather";
 import { Wallet, CloudRain, CloudSnow, Wind, TrafficCone, type LucideIcon } from "lucide-react";
 import { DatePickerField } from "./DatePickerField";
@@ -271,6 +272,7 @@ export const RouteEditSheet = ({
   const optimize = useOptimizeRoute();
   const moveRouteSeries = useMoveRouteSeries();
   const moveProjected = useMoveProjectedOccurrence();
+  const reopenRoute = useReopenRoute();
   const { data: seriesInfo } = useRouteSeriesInfo(route?.id ?? null, route?.route_date ?? null);
   const qc = useQueryClient();
 
@@ -998,6 +1000,36 @@ export const RouteEditSheet = ({
                 <History className="h-3.5 w-3.5" />
                 Vis ændringshistorik
               </Button>
+            )}
+            {!isProjection && route?.id && (route as any)?.status === "completed" && (
+              <div className="flex items-start gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-2.5 text-xs text-foreground">
+                <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold mb-0.5">Ruten er udført</div>
+                  <div className="text-muted-foreground mb-2">
+                    Alle stop er markeret som færdige. Genåbn ruten hvis noget skal rettes eller udføres igen.
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 border-emerald-500/40 hover:bg-emerald-500/10"
+                    disabled={reopenRoute.isPending}
+                    onClick={async () => {
+                      try {
+                        await reopenRoute.mutateAsync(route!.id);
+                        toast.success("Ruten er genåbnet");
+                      } catch {/* hook viser toast */}
+                    }}
+                  >
+                    {reopenRoute.isPending ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <RotateCcw className="h-3.5 w-3.5" />
+                    )}
+                    Genåbn rute
+                  </Button>
+                </div>
+              </div>
             )}
             {!isProjection && route?.id && (
               <RouteSnapshotSection routeId={route.id} />

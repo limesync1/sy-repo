@@ -273,13 +273,12 @@ function decideRouteToDay(
       r.baseRouteId === baseId &&
       r.id !== route.id,
   );
-  if (collidingProjected) {
-    return blocked(
-      "error",
-      "Der ligger allerede en projiceret forekomst af samme rute på den dato",
-      "Flyt eller spring den projicerede forekomst over først — ellers vil der være to af samme rute på samme dag.",
-    );
-  }
+  // Vi BLOKERER ikke længere når der ligger en projiceret forekomst på
+  // måldagen — i stedet åbnes scope-dialogen (single/future) og lader
+  // brugeren vælge. Server-siden (`move_route_to_date`) håndterer at
+  // forskyde/undertrykke den projicerede forekomst korrekt så vi ikke
+  // ender med to af samme serie på samme dag.
+  void collidingProjected;
 
   return { kind: "dialog", dialog: { type: "route-move", route, newDate } };
 }

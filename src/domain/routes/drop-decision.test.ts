@@ -100,6 +100,24 @@ describe("decideDrop", () => {
     expect(d.kind).toBe("blocked");
   });
 
+  it("åbner route-move dialog (ikke blokeret) når der er en projiceret forekomst på måldagen", () => {
+    // Regression: tidligere blokerede vi flytning af basisruten til en dato
+    // hvor en projiceret forekomst af samme serie lå. Nu skal scope-dialogen
+    // åbnes så brugeren selv vælger single/future — server-siden håndterer
+    // at undertrykke den projicerede forekomst korrekt.
+    const d = decideDrop(
+      { type: "route", route: { id: "r1", route_date: TODAY, base_route_id: "b1" } },
+      { type: "day", date: "2026-06-10" },
+      baseCtx({
+        virtualCalendarRoutes: [
+          { id: "v-proj", route_date: "2026-06-10", baseRouteId: "b1" } as any,
+        ],
+      }),
+    );
+    expect(d.kind).toBe("dialog");
+    if (d.kind === "dialog") expect(d.dialog.type).toBe("route-move");
+  });
+
   it("blokerer job-til-rute hvis aftalen er pending", () => {
     const d = decideDrop(
       { type: "job", job: { id: "j1", status: "pending" } },

@@ -284,8 +284,26 @@ export function useRoutePlannerDnd(opts: {
         const result = validateRouteMove(
           { id: route.id, route_date: route.route_date, isVirtual: route.isVirtual, baseRouteId: baseId },
           overData.date,
-          { seriesRoutesOnTargetDate: isMovingMovedOccurrenceBack ? [] : [...seriesRoutesOnTargetDate, ...projectedRoutesOnTargetDate] },
+          // Projicerede forekomster på måldagen er IKKE en hård fejl mere —
+          // scope-dialogen (single/future) håndterer dem. Vi sender derfor
+          // kun reelle, materialiserede ruter som "kolliderende" så
+          // validation forbliver en advarsel/ok i stedet for en blokerende
+          // fejl, men beholder rigtige rute-kollisioner som fejl.
+          { seriesRoutesOnTargetDate: isMovingMovedOccurrenceBack ? [] : seriesRoutesOnTargetDate },
         );
+        if (!isMovingMovedOccurrenceBack && projectedRoutesOnTargetDate.length > 0 && result.ok) {
+          // Vi tilføjer en let advarsel — UI'et viser blot top-meddelelsen,
+          // så vi behøver ikke fuld Issue-struktur her udover de obligatoriske
+          // felter på Issue-typen.
+          result.warnings = [
+            ...(result.warnings || []),
+            {
+              code: "INFO",
+              severity: "warning",
+              message: "Der ligger en projiceret forekomst på dagen — du vælger scope ved slip.",
+            } as any,
+          ];
+        }
         const { severity, topMessage } = summarize(result);
         writeDragValidationDebounced({ targetId: `day:${overData.date}`, severity, topMessage, result });
         setDragOverTargetId(`day:${overData.date}`);

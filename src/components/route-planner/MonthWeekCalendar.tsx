@@ -754,6 +754,14 @@ const RoutePillInner = ({
 
   const stopCount = route.stops.length;
   const completedCount = route.stops.filter((s) => s.status === "completed").length;
+  // Hele ruten markeret som udført (server-side status). Vises med grønt
+  // badge så brugeren straks kan se den ikke skal udføres igen. Den
+  // forbliver i kalenderen — vi fjerner den IKKE.
+  const isRouteCompleted = (route as any).status === "completed";
+  // Projicerede ruter der ligger fremme i tid er "låst" indtil deres
+  // aktuelle dag — vises med et lille hængelås-ikon + tooltip.
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const isFutureProjected = isVirtual && route.route_date > todayStr;
   const travelMin = Number(route.total_duration_minutes || 0) || route.stops.reduce((sum, s) => sum + Number(s.travel_time_to_next_min || 0), 0);
   const revenue = route.stops.reduce((sum, s) => sum + Number((s as any).order_amount || 0), 0);
   // Kapacitets-bjælke pr. rute: arbejdstid (stop + transport) vs. ~8t pr.
@@ -946,6 +954,31 @@ const RoutePillInner = ({
               >
                 <Repeat className="h-2 w-2" />
                 {!compact && "Original"}
+              </span>
+            )}
+            {isRouteCompleted && (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-0.5 rounded-[3px] bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 ring-1 ring-inset ring-emerald-500/30 text-[9px] font-bold uppercase tracking-[0.06em] shrink-0",
+                  compact ? "px-1 py-px" : "px-1.5 py-px",
+                )}
+                title="Ruten er udført — åbn for at se detaljer eller genåbn"
+                aria-label="Udført"
+              >
+                <CheckCircle2 className="h-2 w-2" />
+                {!compact && "Udført"}
+              </span>
+            )}
+            {isFutureProjected && (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-0.5 rounded-[3px] bg-foreground/[0.06] ring-1 ring-inset ring-foreground/10 text-[9px] font-bold uppercase tracking-[0.06em] text-muted-foreground shrink-0",
+                  compact ? "px-1 py-px" : "px-1.5 py-px",
+                )}
+                title={`Låst — oplåses ${format(parseISO(route.route_date), "d. MMM yyyy", { locale: da })}`}
+                aria-label={`Låst til ${route.route_date}`}
+              >
+                <Lock className="h-2 w-2" />
               </span>
             )}
             <span className={cn("truncate", isVirtual && "italic text-muted-foreground")}>

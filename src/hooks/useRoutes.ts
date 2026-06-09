@@ -1504,6 +1504,26 @@ export const useUpdateStopStatus = () => {
   });
 };
 
+/**
+ * Genåbn en udført rute. Sætter routes.status → 'planned', nulstiller
+ * `completed_at` på selve ruten OG alle stops der var markeret som
+ * `completed`, og skriver en `route.reopen` linje i `route_audit_log`
+ * atomart via `reopen_route(_route_id)` RPC.
+ */
+export const useReopenRoute = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (routeId: string) => {
+      const { error } = await supabase.rpc("reopen_route" as any, { _route_id: routeId });
+      if (error) throw error;
+      return { routeId };
+    },
+    onSuccess: () => invalidateRouteSyncQueries(qc),
+    onError: (e: any) =>
+      toastRouteError(e, toast.error, { titleFallback: "Kunne ikke genåbne rute" }),
+  });
+};
+
 export const useOptimizeRoute = () => {
   const qc = useQueryClient();
   return useMutation({
