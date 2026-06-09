@@ -35,6 +35,7 @@ type Enrichment = {
   customerName?: string | null;
   serviceName?: string | null;
   agreementId?: string | null;
+  legacySubscriptionId?: string | null;
   agreementInterval?: string | null;
   agreementPrice?: number | null;
   routeName?: string | null;
@@ -43,6 +44,9 @@ type Enrichment = {
   employeeNames?: string[];
   occurrenceDate?: string | null;
   occurrencePlannedArrival?: string | null;
+  orderId?: string | null;
+  externalOrderNumber?: string | null;
+  triggerReason?: string | null;
 };
 
 const ENTITY_LABEL: Record<string, string> = {
@@ -175,7 +179,7 @@ export function AccountingLogsPanel({
         ? supabase
             .from("agreements")
             .select(
-              "id, customer_name, interval, interval_days, total_amount, preferred_route_id, employee_ids",
+              "id, legacy_subscription_id, customer_name, interval, interval_days, total_amount, preferred_route_id, employee_ids",
             )
             .in("id", Array.from(agreementIds))
         : Promise.resolve({ data: [] as any[] }),
@@ -220,6 +224,24 @@ export function AccountingLogsPanel({
     const next: Record<string, Enrichment> = {};
     for (const r of rows) {
       const e: Enrichment = {};
+      // Trigger-grund: aflæses fra payload hvis edge-funktionen har sat
+      // den, ellers udledt af direction (push/pull) og status.
+      const payload = (r.payload || {}) as any;
+      e.triggerReason =
+        payload.trigger ||
+        payload.reason ||
+        (r.direction === "push"
+          ? payload.created
+            ? "Oprettet i regnskab"
+            : payload.deleted
+              ? "Slettet i regnskab"
+              : payload.updated
+                ? "Opdateret i regnskab"
+                : "Pushed til regnskab"
+          : r.direction === "pull"
+            ? "Hentet fra regnskab"
+            : null);
+      if (r.external_id) e.externalOrderNumber = String(r.external_id);
       if (r.entity_type === "customer" && r.entity_id) {
         e.customerName = custById.get(r.entity_id)?.name ?? null;
       } else if (r.entity_type === "product" && r.entity_id) {
@@ -230,6 +252,7 @@ export function AccountingLogsPanel({
         (r.entity_type === "order" || r.entity_type === "agreement_occurrence") &&
         r.entity_id
       ) {
+        e.orderId = r.entity_id;
         const occ = occById.get(r.entity_id);
         const agr = occ ? agreementById.get(occ.agreement_id) : agreementById.get(r.entity_id);
         if (occ) {
@@ -245,6 +268,7 @@ export function AccountingLogsPanel({
         }
         if (agr) {
           e.agreementId = agr.id;
+          e.legacySubscriptionId = agr.legacy_subscription_id ?? null;
           e.customerName = agr.customer_name;
           e.agreementInterval = agr.interval ?? null;
           if (e.agreementPrice == null) e.agreementPrice = agr.total_amount ?? null;
@@ -397,6 +421,11 @@ export function AccountingLogsPanel({
                       <span className="truncate text-sm font-semibold text-foreground">
                         {headline}
                       </span>
+                      {e.triggerReason && (
+                        <span className="inline-flex h-5 items-center rounded-full bg-secondary px-2 text-[10px] font-medium text-foreground/70">
+                          {e.triggerReason}
+                        </span>
+                      )}
                       {e.agreementInterval && (
                         <span
                           className={`inline-flex h-5 items-center rounded-full border px-2 text-[10px] font-medium ${intervalBadgeClass(e.agreementInterval)}`}
@@ -474,6 +503,19 @@ export function AccountingLogsPanel({
                       )}
                       {l.entity_id && (
                         <Field label="Intern reference">{l.entity_id}</Field>
+                      )}
+                      {e.orderId && <Field label="Ordre-ID">{e.orderId}</Field>}
+                      {e.externalOrderNumber && (
+                        <Field label="Eksternt ordrenummer">{e.externalOrderNumber}</Field>
+                      )}
+                      {e.agreementId && (
+                        <Field label="Aftale-ID (nyt)">{e.agreementId}</Field>
+                      )}
+                      {e.legacySubscriptionId && (
+                        <Field label="Aftale-ID (legacy)">{e.legacySubscriptionId}</Field>
+                      )}
+                      {e.triggerReason && (
+                        <Field label="Udløst af">{e.triggerReason}</Field>
                       )}
                     </dl>
                     {l.message && (
