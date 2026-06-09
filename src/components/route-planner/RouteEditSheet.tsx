@@ -1001,6 +1001,36 @@ export const RouteEditSheet = ({
                 Vis ændringshistorik
               </Button>
             )}
+            {!isProjection && route?.id && (route as any)?.status === "completed" && (
+              <div className="flex items-start gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-2.5 text-xs text-foreground">
+                <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold mb-0.5">Ruten er udført</div>
+                  <div className="text-muted-foreground mb-2">
+                    Alle stop er markeret som færdige. Genåbn ruten hvis noget skal rettes eller udføres igen.
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 border-emerald-500/40 hover:bg-emerald-500/10"
+                    disabled={reopenRoute.isPending}
+                    onClick={async () => {
+                      try {
+                        await reopenRoute.mutateAsync(route!.id);
+                        toast.success("Ruten er genåbnet");
+                      } catch {/* hook viser toast */}
+                    }}
+                  >
+                    {reopenRoute.isPending ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <RotateCcw className="h-3.5 w-3.5" />
+                    )}
+                    Genåbn rute
+                  </Button>
+                </div>
+              </div>
+            )}
             {!isProjection && route?.id && (
               <RouteSnapshotSection routeId={route.id} />
             )}
