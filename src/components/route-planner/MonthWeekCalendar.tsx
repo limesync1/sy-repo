@@ -936,11 +936,13 @@ const RoutePillInner = ({
                   "inline-flex items-center gap-0.5 rounded-[3px] bg-foreground/[0.06] ring-1 ring-inset ring-foreground/10 text-[9px] font-bold uppercase tracking-[0.06em] text-muted-foreground shrink-0",
                   compact ? "px-1 py-px" : "px-1.5 py-px",
                 )}
-                title="Projiceret rute — låst forekomst af en gentagende originalrute"
-                aria-label="Projiceret"
+                title={isFutureProjected
+                  ? `Projiceret rute — låst indtil ${format(parseISO(route.route_date), "d. MMM yyyy", { locale: da })}`
+                  : "Projiceret rute — låst forekomst af en gentagende originalrute"}
+                aria-label={isFutureProjected ? `Projiceret, låst til ${route.route_date}` : "Projiceret"}
               >
                 <Lock className="h-2 w-2 opacity-80" />
-                {!compact && "Projiceret"}
+                {!compact && (isFutureProjected ? "Låst" : "Projiceret")}
               </span>
             )}
             {isBaseRecurring && (
@@ -967,18 +969,6 @@ const RoutePillInner = ({
               >
                 <CheckCircle2 className="h-2 w-2" />
                 {!compact && "Udført"}
-              </span>
-            )}
-            {isFutureProjected && (
-              <span
-                className={cn(
-                  "inline-flex items-center gap-0.5 rounded-[3px] bg-foreground/[0.06] ring-1 ring-inset ring-foreground/10 text-[9px] font-bold uppercase tracking-[0.06em] text-muted-foreground shrink-0",
-                  compact ? "px-1 py-px" : "px-1.5 py-px",
-                )}
-                title={`Låst — oplåses ${format(parseISO(route.route_date), "d. MMM yyyy", { locale: da })}`}
-                aria-label={`Låst til ${route.route_date}`}
-              >
-                <Lock className="h-2 w-2" />
               </span>
             )}
             <span className={cn("truncate", isVirtual && "italic text-muted-foreground")}>
