@@ -754,6 +754,14 @@ const RoutePillInner = ({
 
   const stopCount = route.stops.length;
   const completedCount = route.stops.filter((s) => s.status === "completed").length;
+  // Hele ruten markeret som udført (server-side status). Vises med grønt
+  // badge så brugeren straks kan se den ikke skal udføres igen. Den
+  // forbliver i kalenderen — vi fjerner den IKKE.
+  const isRouteCompleted = (route as any).status === "completed";
+  // Projicerede ruter der ligger fremme i tid er "låst" indtil deres
+  // aktuelle dag — vises med et lille hængelås-ikon + tooltip.
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const isFutureProjected = isVirtual && route.route_date > todayStr;
   const travelMin = Number(route.total_duration_minutes || 0) || route.stops.reduce((sum, s) => sum + Number(s.travel_time_to_next_min || 0), 0);
   const revenue = route.stops.reduce((sum, s) => sum + Number((s as any).order_amount || 0), 0);
   // Kapacitets-bjælke pr. rute: arbejdstid (stop + transport) vs. ~8t pr.
