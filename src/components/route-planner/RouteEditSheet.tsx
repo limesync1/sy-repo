@@ -272,6 +272,7 @@ export const RouteEditSheet = ({
   const optimize = useOptimizeRoute();
   const moveRouteSeries = useMoveRouteSeries();
   const moveProjected = useMoveProjectedOccurrence();
+  const reopenRoute = useReopenRoute();
   const { data: seriesInfo } = useRouteSeriesInfo(route?.id ?? null, route?.route_date ?? null);
   const qc = useQueryClient();
 
