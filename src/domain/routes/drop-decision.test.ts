@@ -110,7 +110,7 @@ describe("decideDrop", () => {
       { type: "day", date: "2026-06-10" },
       baseCtx({
         virtualCalendarRoutes: [
-          { id: "v-proj", route_date: "2026-06-10", baseRouteId: "b1", isVirtual: true },
+          { id: "v-proj", route_date: "2026-06-10", baseRouteId: "b1" } as any,
         ],
       }),
     );
