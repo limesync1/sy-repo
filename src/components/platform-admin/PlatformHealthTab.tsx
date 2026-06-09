@@ -15,6 +15,7 @@ import EmailHealthSection from "./health/EmailHealthSection";
 import QueuesSection from "./health/QueuesSection";
 import TopActionsSection from "./health/TopActionsSection";
 import InfrastructureSections from "./health/InfrastructureSections";
+import AccountingHealthSection from "./health/AccountingHealthSection";
 
 export default function PlatformHealthTab() {
   const { data, isLoading, refetch, isFetching } = useQuery({
@@ -81,6 +82,7 @@ export default function PlatformHealthTab() {
         <>
           <EmailHealthSection data={data} />
           <QueuesSection data={data} />
+          <AccountingHealthSection />
           <TopActionsSection data={data} />
         </>
       )}
