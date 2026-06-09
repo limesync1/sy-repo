@@ -26,6 +26,7 @@ import {
   useUpdateRouteSeriesAppearance,
   type Route, type RouteStop,
 } from "@/hooks/useRoutes";
+import { useReopenRoute } from "@/hooks/useRoutes";
 import { useWeatherForecast } from "@/hooks/useWeather";
 import { Wallet, CloudRain, CloudSnow, Wind, TrafficCone, type LucideIcon } from "lucide-react";
 import { DatePickerField } from "./DatePickerField";
