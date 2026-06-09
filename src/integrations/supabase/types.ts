@@ -104,6 +104,65 @@ export type Database = {
         }
         Relationships: []
       }
+      accounting_health_alerts: {
+        Row: {
+          business_id: string
+          created_at: string
+          dedupe_key: string
+          details: Json
+          first_seen_at: string
+          id: string
+          kind: string
+          last_seen_at: string
+          occurrence_count: number
+          resolved_at: string | null
+          severity: string
+          status: string
+          summary: string
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          dedupe_key: string
+          details?: Json
+          first_seen_at?: string
+          id?: string
+          kind: string
+          last_seen_at?: string
+          occurrence_count?: number
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          summary: string
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          dedupe_key?: string
+          details?: Json
+          first_seen_at?: string
+          id?: string
+          kind?: string
+          last_seen_at?: string
+          occurrence_count?: number
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          summary?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_health_alerts_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accounting_integrations: {
         Row: {
           agreement_number: string | null
@@ -4108,6 +4167,17 @@ export type Database = {
       }
     }
     Functions: {
+      _acct_health_record: {
+        Args: {
+          p_business_id: string
+          p_dedupe_key: string
+          p_details: Json
+          p_kind: string
+          p_severity: string
+          p_summary: string
+        }
+        Returns: string
+      }
       _admin_log: {
         Args: {
           p_action: string
@@ -4172,6 +4242,8 @@ export type Database = {
         Args: { _occurrence_id: string; _target_route_id: string }
         Returns: string
       }
+      accounting_health_check_run: { Args: never; Returns: Json }
+      accounting_health_summary: { Args: never; Returns: Json }
       add_route_stop_idempotent: {
         Args: { _payload: Json }
         Returns: {
