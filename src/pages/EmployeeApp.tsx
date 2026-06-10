@@ -194,6 +194,7 @@ const EmployeeApp = () => {
   const completedStops = stops.filter((s) => s.status === "completed").length;
   const dateObj = parseISO(date);
   const isCurrentDay = isToday(dateObj);
+  const isFutureDay = date > todayStr();
   const dayStarted = !!workday?.started_at && !workday?.ended_at;
   const dayEnded = !!workday?.ended_at;
   const elapsedLabel = workday?.started_at && !workday?.ended_at
@@ -596,7 +597,7 @@ const EmployeeApp = () => {
             employeeMode,
             businessDefault: businessEarlyDefault,
           });
-          const dateLocked = !isCurrentDay && !earlyAllowed;
+          const dateLocked = isFutureDay && !earlyAllowed;
           const isLocked = total > 0 && (
             dateLocked
             || (!allDone && firstActiveId !== null && r.id !== firstActiveId)
@@ -726,7 +727,7 @@ const EmployeeApp = () => {
                     <span className="tabular-nums">{total > 0 ? `${done} af ${total} stop færdige` : "Ingen stop"}</span>
                   </p>
                 </div>
-                {!isCurrentDay && (
+                {isFutureDay && (
                   earlyAllowed ? (
                     <span className="inline-flex items-center gap-1 rounded-full border border-feature-cool/40 bg-feature-cool/10 px-2 py-0.5 text-[10px] font-semibold text-feature-cool-foreground shrink-0">
                       <UnlockIcon className="h-2.5 w-2.5" /> Låst op
