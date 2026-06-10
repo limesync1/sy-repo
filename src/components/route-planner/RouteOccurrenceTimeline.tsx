@@ -12,6 +12,18 @@ import { occurrenceStatusBadge, type OccurrenceBadgeKind } from "@/lib/statusCol
 
 type Props = { routeId: string };
 
+const OCC_BADGE_ICON: Record<OccurrenceBadgeKind, typeof CheckCircle2> = {
+  locked: Lock,
+  planned: Clock,
+  ready: PlayCircle,
+  confirmed: CheckCircle2,
+  in_progress: PlayCircle,
+  completed: CheckCheck,
+  invoiced: Receipt,
+  invoice_pending: Hourglass,
+  cancelled: XCircle,
+};
+
 type Occurrence = {
   id: string;
   agreement_id: string;
