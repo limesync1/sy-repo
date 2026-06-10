@@ -209,11 +209,11 @@ export const StopDetailsContent = ({
     : null;
   const accent = route?.color || "hsl(var(--primary))";
 
-  // Gensend faktura — kun synlig når aftalen er markeret udført OG der findes
-  // en bogført faktura i regnskabsprogrammet som adapter'en kan gensende.
+  // Send/gensend faktura — kun synlig når aftalen er markeret udført OG der
+  // findes en bogført faktura i regnskabsprogrammet som adapter'en kan sende.
   const { data: invoiceCaps } = useQuery({
     queryKey: ["invoice-caps", stop.order_id, isDone],
-    enabled: !readOnly && isDone && !!stop.order_id,
+    enabled: isDone && !!stop.order_id,
     staleTime: 60_000,
     retry: false,
     queryFn: async () => {
@@ -236,9 +236,9 @@ export const StopDetailsContent = ({
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
-      toast.success("Faktura gensendt til kunden");
+      toast.success("Faktura sendt til kunden");
     } catch (e: any) {
-      toast.error(e?.message ?? "Kunne ikke gensende faktura");
+      toast.error(e?.message ?? "Kunne ikke sende faktura");
     } finally {
       setResending(false);
     }
@@ -477,9 +477,9 @@ export const StopDetailsContent = ({
         )}
       </div>
 
-      {!readOnly && (
+      {(!readOnly || canResendInvoice) && (
         <div className="border-t border-border bg-card p-4 shrink-0">
-          {!isDone ? (
+          {!readOnly && !isDone ? (
             <div className="space-y-2">
               <Button
                 onClick={onComplete}
@@ -505,12 +505,14 @@ export const StopDetailsContent = ({
                   className="w-full gap-2 h-11 rounded-lg bg-foreground text-background hover:bg-foreground/90"
                 >
                   {resending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                  Gensend faktura til kunden
+                  Send faktura til kunden
                 </Button>
               )}
-              <Button onClick={onUndo} variant="outline" className="w-full h-11 rounded-lg">
-                Fortryd udført
-              </Button>
+              {!readOnly && (
+                <Button onClick={onUndo} variant="outline" className="w-full h-11 rounded-lg">
+                  Fortryd udført
+                </Button>
+              )}
             </div>
           )}
         </div>
