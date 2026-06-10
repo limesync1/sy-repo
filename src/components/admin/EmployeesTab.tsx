@@ -60,6 +60,8 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
   const create = useCreateEmployee();
   const update = useUpdateEmployee();
   const remove = useDeleteEmployee();
+  const updateBusiness = useUpdateBusiness();
+  const allowEarlyCompletionDefault = !!(business as any)?.allow_early_completion_default;
 
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
