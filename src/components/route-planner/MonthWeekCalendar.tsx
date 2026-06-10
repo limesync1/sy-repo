@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Filter, X as XIcon, Check } from "lucide-react";
+import { toast } from "sonner";
 import {
   Sheet,
   SheetContent,
@@ -1611,24 +1612,50 @@ const RoutePillInner = ({
                 type="button"
                 onClick={(e) => e.stopPropagation()}
                 onPointerDown={(e) => e.stopPropagation()}
+                disabled={busy}
                 className="shrink-0 h-6 w-6 inline-flex items-center justify-center rounded-md text-muted-foreground/70 hover:text-foreground hover:bg-secondary active:scale-[0.92] transition-[background-color,color,transform,opacity] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100 [@media(hover:none)]:opacity-100"
                 aria-label="Flere handlinger"
                 title="Flere handlinger"
               >
-                <MoreHorizontal className="h-3.5 w-3.5" />
+                {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <MoreHorizontal className="h-3.5 w-3.5" />}
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48" onClick={(e) => e.stopPropagation()}>
-              <DropdownMenuItem onSelect={() => onSelect()}>
+              <DropdownMenuItem
+                onSelect={() => {
+                  try { onSelect(); } catch (err) {
+                    console.error(err);
+                    toast.error("Kunne ikke åbne ruten");
+                  }
+                }}
+              >
                 <Eye className="h-3.5 w-3.5 mr-2" /> Åbn rute
               </DropdownMenuItem>
               {canOptimize && (
-                <DropdownMenuItem onSelect={() => onOptimize()}>
-                  <Sparkles className="h-3.5 w-3.5 mr-2" /> Optimér rækkefølge
+                <DropdownMenuItem
+                  disabled={optimizing}
+                  onSelect={() => {
+                    try { onOptimize(); } catch (err) {
+                      console.error(err);
+                      toast.error("Kunne ikke optimere ruten");
+                    }
+                  }}
+                >
+                  {optimizing
+                    ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />
+                    : <Sparkles className="h-3.5 w-3.5 mr-2" />}
+                  {optimizing ? "Optimerer …" : "Optimér rækkefølge"}
                 </DropdownMenuItem>
               )}
               {canHistory && (
-                <DropdownMenuItem onSelect={() => onShowHistory!()}>
+                <DropdownMenuItem
+                  onSelect={() => {
+                    try { onShowHistory!(); } catch (err) {
+                      console.error(err);
+                      toast.error("Kunne ikke åbne historik");
+                    }
+                  }}
+                >
                   <History className="h-3.5 w-3.5 mr-2" /> Vis historik
                 </DropdownMenuItem>
               )}
@@ -1637,7 +1664,12 @@ const RoutePillInner = ({
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     className="text-destructive focus:text-destructive"
-                    onSelect={() => onDelete!()}
+                    onSelect={() => {
+                      try { onDelete!(); } catch (err) {
+                        console.error(err);
+                        toast.error("Kunne ikke slette ruten");
+                      }
+                    }}
                   >
                     <Trash2 className="h-3.5 w-3.5 mr-2" /> Slet rute…
                   </DropdownMenuItem>
