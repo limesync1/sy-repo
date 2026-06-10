@@ -4276,9 +4276,30 @@ export type Database = {
         Args: { _occurrence_id: string }
         Returns: undefined
       }
+      _materialize_subscription_stop_on_route: {
+        Args: {
+          _occurrence_date: string
+          _route_id: string
+          _subscription_id: string
+        }
+        Returns: undefined
+      }
       _next_occurrence_date_for_base_route: {
         Args: { _after: string; _base_route_id: string }
         Returns: string
+      }
+      _recurrence_interval_duration: {
+        Args: { _custom_days?: number; _interval: string }
+        Returns: string
+      }
+      _recurs_on_route_date: {
+        Args: {
+          _anchor_date: string
+          _custom_days: number
+          _interval: string
+          _target_date: string
+        }
+        Returns: boolean
       }
       _route_is_fully_done: { Args: { _route_id: string }; Returns: boolean }
       _test_completion_guard: { Args: { _planned: string }; Returns: Json }
