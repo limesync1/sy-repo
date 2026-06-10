@@ -1745,21 +1745,42 @@ const RoutePillInner = ({
       )}
       {stopCount > 0 && (
         <div
-          className="h-0.5 w-full bg-muted/25 overflow-hidden"
-          title={`Belastning ${loadPct}% — ${Math.round(workMin / 60 * 10) / 10} t af ~${Math.round(capacityMin / 60)} t (${empCount} medarbejder${empCount === 1 ? "" : "e"})`}
-          aria-label={`Belastning ${loadPct} procent`}
+          className={cn(
+            "relative h-1 w-full overflow-hidden bg-muted/40",
+            // Lidt højere bar når ruten har fremdrift, så den er let at se på
+            // afstand. Helt udførte ruter får emerald-stribe.
+            completedCount > 0 && "h-1.5",
+          )}
+          title={
+            completedCount > 0
+              ? `${completedCount} af ${stopCount} stop udført (${Math.round((completedCount / stopCount) * 100)}%) · Belastning ${loadPct}%`
+              : `Belastning ${loadPct}% — ${Math.round(workMin / 60 * 10) / 10} t af ~${Math.round(capacityMin / 60)} t (${empCount} medarbejder${empCount === 1 ? "" : "e"})`
+          }
+          aria-label={
+            completedCount > 0
+              ? `${completedCount} af ${stopCount} stop udført`
+              : `Belastning ${loadPct} procent`
+          }
         >
+          {/* Belastnings-baggrund (subtil) */}
           <div
             className={cn(
-              "h-full transition-all duration-300",
+              "absolute inset-y-0 left-0 transition-all duration-300 opacity-50",
               loadPct >= 100
                 ? "bg-destructive"
                 : loadPct >= 85
                 ? "bg-amber-500"
-                : "bg-foreground/35",
+                : "bg-foreground/25",
             )}
             style={{ width: `${Math.min(100, loadPct)}%` }}
           />
+          {/* Fremdrift OVER belastning — emerald, så "udført" er det tydeligste. */}
+          {completedCount > 0 && (
+            <div
+              className="absolute inset-y-0 left-0 bg-emerald-500 transition-all duration-300"
+              style={{ width: `${Math.min(100, Math.round((completedCount / stopCount) * 100))}%` }}
+            />
+          )}
         </div>
       )}
       {/* Stops vises ikke under rute-pillen — åbn ruten ved at klikke for at se aftaler. */}
