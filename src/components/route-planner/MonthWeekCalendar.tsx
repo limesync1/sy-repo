@@ -533,13 +533,16 @@ export const MonthWeekCalendar = ({
     <>
     <Card className="overflow-hidden flex flex-col h-full rounded-lg border-border/70 bg-card shadow-[0_2px_10px_-6px_hsl(var(--foreground)/0.18)]">
       {/* ─── Hurtig filtrering ───
-          Status-chips + medarbejder-popover. Kompakt så den ikke æder
-          plads fra selve kalenderen. Når filteret er aktivt vises også
-          en lille "X ruter skjult"-tæller + nulstil-knap. */}
-      <div className="shrink-0 flex items-center gap-1.5 px-2 py-1.5 border-b border-border/70 bg-card/80 text-[11px]">
-        <span className="inline-flex items-center gap-1 text-muted-foreground font-semibold uppercase tracking-wider text-[9.5px] pr-1">
+          Status-chips + medarbejder-popover. Ensartet chip/dropdown-stil:
+          alle triggere har samme højde (h-7), pill-form (rounded-full),
+          ring-1 i hvile og ring-2/accent når aktiv. Aktive piller bruger
+          accent (jf. design-memory: accent kun til emphasis som aktive
+          filter-piller, links og focus-rings — ikke generel hover). */}
+      <div className="shrink-0 flex items-center flex-wrap gap-2 px-3 py-2 border-b border-border/70 bg-gradient-to-b from-secondary/25 to-card text-[11.5px]">
+        <span className="inline-flex items-center gap-1.5 text-muted-foreground font-semibold uppercase tracking-[0.12em] text-[10px] pr-1 select-none">
           <Filter className="h-3 w-3" /> Filter
         </span>
+        <div className="inline-flex items-center gap-1 rounded-full bg-background/60 ring-1 ring-border/70 p-0.5 shadow-[0_1px_2px_-1px_hsl(var(--foreground)/0.06)]">
         {([
           { key: "all", label: "Alle" },
           { key: "planned", label: "Planlagt" },
@@ -554,10 +557,10 @@ export const MonthWeekCalendar = ({
               type="button"
               onClick={() => setStatusFilter(opt.key)}
               className={cn(
-                "h-6 px-2 rounded-full font-semibold transition-colors border",
+                "h-6 px-2.5 rounded-full text-[11px] font-semibold transition-[background-color,color,box-shadow,transform] duration-150 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
                 active
-                  ? "bg-foreground text-background border-foreground shadow-sm"
-                  : "bg-background text-muted-foreground border-border/70 hover:bg-secondary hover:text-foreground",
+                  ? "bg-accent text-accent-foreground shadow-[0_1px_3px_-1px_hsl(var(--accent)/0.55)]"
+                  : "text-muted-foreground hover:text-foreground hover:bg-secondary",
               )}
               aria-pressed={active}
             >
@@ -565,22 +568,24 @@ export const MonthWeekCalendar = ({
             </button>
           );
         })}
-        <span className="h-4 w-px bg-border/70 mx-1" aria-hidden />
+        </div>
+        <span className="h-5 w-px bg-border/70" aria-hidden />
         <Popover>
           <PopoverTrigger asChild>
             <button
               type="button"
               className={cn(
-                "h-6 px-2 rounded-full font-semibold transition-colors border inline-flex items-center gap-1",
+                "h-7 pl-2.5 pr-2 rounded-full text-[11px] font-semibold transition-[background-color,color,box-shadow,transform] duration-150 active:scale-[0.97] inline-flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
                 employeeFilter.size > 0
-                  ? "bg-foreground text-background border-foreground"
-                  : "bg-background text-muted-foreground border-border/70 hover:bg-secondary hover:text-foreground",
+                  ? "bg-accent text-accent-foreground ring-0 shadow-[0_1px_3px_-1px_hsl(var(--accent)/0.55)]"
+                  : "bg-background/60 text-muted-foreground ring-1 ring-border/70 hover:text-foreground hover:bg-secondary",
               )}
               aria-label="Filtrer på medarbejder"
             >
+              <Users className="h-3 w-3" />
               Medarbejder
               {employeeFilter.size > 0 && (
-                <span className="inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-background/20 text-[10px] tabular-nums">
+                <span className="inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-accent-foreground/20 text-[10px] tabular-nums font-bold">
                   {employeeFilter.size}
                 </span>
               )}
@@ -648,13 +653,15 @@ export const MonthWeekCalendar = ({
         </Popover>
         {activeFilterCount > 0 && (
           <>
-            <span className="text-muted-foreground text-[10.5px] ml-auto">
-              {hiddenCount > 0 ? `${hiddenCount} ${hiddenCount === 1 ? "rute" : "ruter"} skjult` : "Ingen skjult"}
+            <span className="text-muted-foreground text-[11px] ml-auto tabular-nums">
+              {hiddenCount > 0 ? (
+                <><span className="font-semibold text-foreground">{hiddenCount}</span> {hiddenCount === 1 ? "rute" : "ruter"} skjult</>
+              ) : "Ingen skjult"}
             </span>
             <button
               type="button"
               onClick={() => { setStatusFilter("all"); setEmployeeFilter(new Set()); }}
-              className="inline-flex items-center gap-1 h-6 px-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-secondary border border-transparent hover:border-border/70 transition-colors"
+              className="inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
               title="Nulstil alle filtre"
             >
               <XIcon className="h-3 w-3" /> Nulstil
@@ -1588,12 +1595,17 @@ const RoutePillInner = ({
             <Users className="h-3 w-3" />0
           </span>
         )}
+        {/* Handlings-cluster: optimér + ⋯-menu vises i en samlet ramme på
+            hover, så de fremstår som ÉN handlingsgruppe og ikke som løse
+            ikoner spredt langs højre kant. */}
+        {(canOptimize || canDelete || canHistory) && (
+          <div className="shrink-0 flex items-center gap-px rounded-md opacity-0 group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity duration-150">
         {!isVirtual && stopCount >= 2 && (
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onOptimize(); }}
             disabled={optimizing}
-            className="shrink-0 h-6 w-6 inline-flex items-center justify-center rounded-md text-muted-foreground/65 hover:text-foreground hover:bg-secondary active:scale-[0.92] disabled:opacity-50 transition-[background-color,color,transform] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+            className="shrink-0 h-6 w-6 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary active:scale-[0.92] disabled:opacity-50 transition-[background-color,color,transform] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
             aria-label="Optimér rækkefølge"
             title="Optimér rækkefølge — ændrer kun rækkefølgen, ikke medarbejdere"
           >
@@ -1603,17 +1615,15 @@ const RoutePillInner = ({
           </button>
         )}
         {/* ⋯-menu: synlig hurtig-handlingstrigger så brugeren ikke skal højre-
-            klikke. Vises altid på touch (via @media hover:none) og dukker op
-            ved hover på desktop. Samme handlinger som højreklik-menuen. */}
-        {(canOptimize || canDelete || canHistory) && (
-          <DropdownMenu>
+            klikke. Samme handlinger som højreklik-menuen. */}
+        <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
                 onClick={(e) => e.stopPropagation()}
                 onPointerDown={(e) => e.stopPropagation()}
                 disabled={busy}
-                className="shrink-0 h-6 w-6 inline-flex items-center justify-center rounded-md text-muted-foreground/70 hover:text-foreground hover:bg-secondary active:scale-[0.92] transition-[background-color,color,transform,opacity] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100 [@media(hover:none)]:opacity-100"
+                className="shrink-0 h-6 w-6 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary active:scale-[0.92] transition-[background-color,color,transform] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 data-[state=open]:bg-secondary data-[state=open]:text-foreground"
                 aria-label="Flere handlinger"
                 title="Flere handlinger"
               >
@@ -1676,7 +1686,8 @@ const RoutePillInner = ({
                 </>
               )}
             </DropdownMenuContent>
-          </DropdownMenu>
+        </DropdownMenu>
+          </div>
         )}
       </div>
 
