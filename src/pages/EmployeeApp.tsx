@@ -872,7 +872,13 @@ const EmployeeApp = () => {
                     title={isLocked ? lockReason : undefined}
                   >
                     {isLocked ? (
-                      <><LockIcon className="h-4 w-4 sm:h-5 sm:w-5" /> {needsStartDay ? "Start dag først" : "Låst — afslut forrige"}</>
+                      <><LockIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                        {dateLocked
+                          ? `Låst indtil ${format(dateObj, "d. MMM", { locale: da })}`
+                          : needsStartDay
+                            ? "Start dag først"
+                            : "Låst — afslut forrige"}
+                      </>
                     ) : total > 0 ? (
                       <Link to={`/medarbejder/rute/${r.id}`}>
                         {done > 0 ? (
