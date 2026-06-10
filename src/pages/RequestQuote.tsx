@@ -353,7 +353,7 @@ const RequestQuote = () => {
                               active ? "bg-secondary text-foreground" : "text-foreground hover:bg-secondary/60"
                             }`}
                           >
-                            <span aria-hidden className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-base">{icon}</span>
+                            <IndustryIcon category={key} className="h-7 w-7 shrink-0" alt={label} />
                             <span className="flex-1 font-medium">{label}</span>
                             {active && <Check className="h-4 w-4 text-accent" />}
                           </button>
