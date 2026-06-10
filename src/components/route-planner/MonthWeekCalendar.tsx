@@ -1059,7 +1059,11 @@ const RoutePillInner = ({
   // Hele ruten markeret som udført (server-side status). Vises med grønt
   // badge så brugeren straks kan se den ikke skal udføres igen. Den
   // forbliver i kalenderen — vi fjerner den IKKE.
-  const isRouteCompleted = (route as any).status === "completed";
+  // Virtuelle/projicerede forekomster må aldrig vise "Udført" — hver
+  // projiceret dato er en frisk udførsel selvom basisrutens
+  // status kan have være sat til completed (vi rydder også feltet
+  // i useProjectedCalendar, men gardere os her som backup).
+  const isRouteCompleted = !isVirtual && (route as any).status === "completed";
   // Tre tilstande for projicerede (virtuelle) ruter:
   //  - future  → låst indtil dagen er aktuel (vises med hængelås)
   //  - today   → aktiv projektion, kan udføres eller flyttes nu
