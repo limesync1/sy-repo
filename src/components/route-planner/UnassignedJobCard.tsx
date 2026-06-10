@@ -348,11 +348,33 @@ export const UnassignedJobCard = ({
       >
         {/* TOP-LINJE: navn + dato-pille. Navn er stærkeste typografi.
             Dato-pillen ankrer urgency i højre side uden tungt bånd. */}
-        <div className="flex items-baseline justify-between gap-2">
-          <h3 className={`${compact ? "text-[13px]" : "text-[14px]"} font-semibold leading-tight text-foreground truncate capitalize min-w-0 flex-1 tracking-tight`}>
-            {isPending && <Lock className="inline h-3 w-3 mr-1 text-amber-600 align-[-1px]" />}
-            {job.customer_name}
-          </h3>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            {/* Stor, tintet branche-ikon-tile foran kundenavnet — gør det
+                muligt at scanne aftalens type (rengøring/vinduer/have/...)
+                uden at læse teksten. Bruger samme ikon-pakke som services
+                og ordrer. */}
+            {!isPending && items[0]?.service_name && (
+              <span
+                aria-hidden
+                title={items[0].service_name}
+                className={cn(
+                  "shrink-0 inline-flex items-center justify-center rounded-md bg-secondary/70 ring-1 ring-border/60",
+                  compact ? "h-7 w-7 p-1" : "h-8 w-8 p-1.5",
+                )}
+              >
+                <IndustryIcon
+                  name={items[0].service_name}
+                  className="h-full w-full object-contain"
+                  alt=""
+                />
+              </span>
+            )}
+            <h3 className={`${compact ? "text-[13px]" : "text-[14px]"} font-semibold leading-tight text-foreground truncate capitalize min-w-0 flex-1 tracking-tight`}>
+              {isPending && <Lock className="inline h-3 w-3 mr-1 text-amber-600 align-[-1px]" />}
+              {job.customer_name}
+            </h3>
+          </div>
           <span className={`shrink-0 inline-flex items-center gap-1 text-[10.5px] font-medium tabular-nums leading-none ${urgency.pillText}`}>
             <span aria-hidden className={`h-1 w-1 rounded-full ${urgency.rail}`} />
             {urgency.label}
