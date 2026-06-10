@@ -726,6 +726,17 @@ const EmployeeApp = () => {
                     <span className="tabular-nums">{total > 0 ? `${done} af ${total} stop færdige` : "Ingen stop"}</span>
                   </p>
                 </div>
+                {!isCurrentDay && (
+                  earlyAllowed ? (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-feature-cool/40 bg-feature-cool/10 px-2 py-0.5 text-[10px] font-semibold text-feature-cool-foreground shrink-0">
+                      <UnlockIcon className="h-2.5 w-2.5" /> Låst op
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground shrink-0">
+                      <LockIcon className="h-2.5 w-2.5" /> Låst
+                    </span>
+                  )
+                )}
               </div>
 
               {/* Kort-preview */}
