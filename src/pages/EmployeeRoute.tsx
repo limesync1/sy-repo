@@ -306,6 +306,13 @@ const formatClock = (d: Date): string =>
 const formatDayDate = (d: Date): string =>
   d.toLocaleDateString("da-DK", { weekday: "short", day: "numeric", month: "short" });
 
+const localDateKey = (d = new Date()): string => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+
 /* ─────────────────────────────────────────────────────────── */
 const EmployeeRoute = () => {
   const { user, loading } = useAuth();
@@ -487,6 +494,13 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   const route = data?.route as (Route & { businesses?: { name?: string } }) | undefined;
   const stops = data?.stops || [];
+  const routeDateKey = route?.route_date ? String(route.route_date).slice(0, 10) : null;
+  const earlyAllowedForRoute = canCompleteEarly({
+    routeAllow: (route as any)?.allow_early_completion,
+    employeeMode: empMode,
+    businessDefault: bizEarlyDefault,
+  });
+  const routeDateLocked = !!routeDateKey && routeDateKey > localDateKey() && !earlyAllowedForRoute;
 
   const sortedStops = useMemo(() => [...stops].sort((a, b) => a.sequence - b.sequence), [stops]);
   const validStops = useMemo(
@@ -1030,6 +1044,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   };
 
   const handleComplete = async (s: RouteStop) => {
+    if (routeDateLocked) {
+      toast.error("Ruten kan først udføres på selve dagen");
+      return;
+    }
     try {
       // Stop tidsregistrering for den loggede medarbejder på denne opgave
       try {
@@ -1065,6 +1083,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   };
 
   const handleStartRoute = () => {
+    if (routeDateLocked) {
+      toast.error("Ruten kan først startes på selve dagen");
+      return;
+    }
     unlockAudio();
     setRouteStarted(true);
     setFollowMode(true);
