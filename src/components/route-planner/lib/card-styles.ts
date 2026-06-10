@@ -32,6 +32,42 @@ export const CARD_DRAGGING =
 export const CARD_RAIL_WIDTH = "w-[3px]";
 
 /* ─────────────────────────────────────────────────────────────────────────
+   FÆLLES PILL/CARD DESIGN-TOKENS
+
+   Ét og kun ÉT sted definerer vi radius, kant, skygge og hover for ALLE
+   rute-piller og aftalekort i planneren — kalenderens rute-pille,
+   pool-kortene (UnassignedJobCard), stop-rækkerne i RouteStopsPanel og
+   dag-detalje. Skift en token her → ens look hele vejen igennem.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/** Fælles radius for alle piller/kort i planneren. */
+export const PILL_RADIUS = "rounded-xl";
+/** Mindre radius (bruges hvor rounded-xl er for kraftigt, fx kalender-celler). */
+export const PILL_RADIUS_SM = "rounded-lg";
+/** Standard kant. */
+export const PILL_BORDER = "border border-border/55";
+/** Standard skygge — multi-layer, blød elevation. */
+export const PILL_SHADOW =
+  "shadow-[0_1px_0_0_hsl(var(--foreground)/0.02),0_1px_3px_-1px_hsl(var(--foreground)/0.08)]";
+/** Hover-skygge — dybere elevation. */
+export const PILL_SHADOW_HOVER =
+  "hover:shadow-[0_2px_4px_-2px_hsl(var(--foreground)/0.08),0_8px_24px_-10px_hsl(var(--foreground)/0.22)]";
+/** Standard transition for pille/kort-stilarter. */
+export const PILL_TRANSITION =
+  "transition-[background-color,border-color,opacity,box-shadow,transform] duration-200 ease-out";
+/** Standard hover-løft. */
+export const PILL_HOVER_LIFT = "hover:-translate-y-[1.5px] hover:border-foreground/25";
+/** Bredde på venstre farve-rail (fælles for rute-pille og stop-kort). */
+export const PILL_RAIL_WIDTH = "w-[3px]";
+/** Aktiv multi-select-tilstand for piller (samme som kort, lille variant). */
+export const PILL_SELECTED = "ring-1 ring-accent border-accent";
+
+/** Komplet base-klassesæt for en pille (kalender-rute-pille). Brug som
+ *  første argument til `cn(...)` så alle piller deler nøjagtigt samme
+ *  fundamental-stil. */
+export const PILL_BASE = `group relative ${PILL_RADIUS_SM} cursor-pointer overflow-hidden bg-card ${PILL_BORDER} ${PILL_SHADOW} ${PILL_TRANSITION} ${PILL_SHADOW_HOVER} ${PILL_HOVER_LIFT}`;
+
+/* ─────────────────────────────────────────────────────────────────────────
    Delte knap-stilarter — ét sted at definere hover/active/focus så alle
    interaktive knapper i ruteplanlæggeren føles ens og moderne.
    ───────────────────────────────────────────────────────────────────────── */
