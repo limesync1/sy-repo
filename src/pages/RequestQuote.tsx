@@ -22,12 +22,13 @@ import { useUserLocation } from "@/contexts/LocationContext";
 import { useAuth } from "@/contexts/AuthContext";
 import PageHero from "@/components/landing/PageHero";
 import Footer from "@/components/landing/Footer";
-import { topCategories } from "@/lib/service-taxonomy";
+import { topCategories, ALL_INDUSTRIES, searchIndustries } from "@/lib/service-taxonomy";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-/** Brug det kanoniske branchekatalog så /tilbud altid matcher
- *  præcis det virksomheder kan registrere sig under. */
-const CATEGORIES = topCategories();
+/** Hele branchekataloget (ikke kun top-listen) — så brugeren kan søge
+ *  efter ALLE brancher inkl. underbrancher og nøgleord. Top-listen
+ *  vises stadig som de populære kategorier ved tomt søgefelt. */
+const CATEGORIES = ALL_INDUSTRIES;
 
 const EXAMPLE_PROMPTS: Record<string, string> = {
   "Rengøring": "Fx: Rengøring af 3-værelses lejlighed på 85 m², hver 14. dag i København NV.",
