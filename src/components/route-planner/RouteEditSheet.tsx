@@ -1,7 +1,7 @@
 // RouteEditSheet — rediger en rute: navn, farve, dato, medarbejdere.
 // Bruges fra den nye måned/uge kalender.
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -35,7 +35,6 @@ import { pickDuration } from "@/components/route/EtaBreakdown";
 import { MoveRouteDateDialog, type MoveRouteScope } from "./MoveRouteDateDialog";
 import { MoveProjectedOccurrenceDialog } from "./MoveProjectedOccurrenceDialog";
 import { MoveStopsDialog } from "./MoveStopsDialog";
-import { lazy, Suspense } from "react";
 const RouteHistoryDialog = lazy(() => import("./RouteHistoryDialog"));
 import { RouteOccurrenceTimeline } from "./RouteOccurrenceTimeline";
 import { SeriesScopeDialog, type SeriesScope } from "./SeriesScopeDialog";
