@@ -937,7 +937,16 @@ const EmployeeApp = () => {
               stop={detailsStop.stop}
               index={detailsStop.index}
               themeColor={detailsStop.routeColor || "hsl(var(--foreground))"}
-              route={{ name: detailsStop.routeName, color: detailsStop.routeColor, date: detailsStop.routeDate }}
+              route={{
+                name: detailsStop.routeName,
+                color: detailsStop.routeColor,
+                date: detailsStop.routeDate,
+                allowEarly: canCompleteEarly({
+                  routeAllow: (routes.find((r) => r.id === detailsStop.stop.route_id) as any)?.allow_early_completion,
+                  employeeMode,
+                  businessDefault: businessEarlyDefault,
+                }),
+              }}
               readOnly
             />
           )}
