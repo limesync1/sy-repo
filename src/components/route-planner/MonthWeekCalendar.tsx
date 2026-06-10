@@ -531,6 +531,136 @@ export const MonthWeekCalendar = ({
   return (
     <>
     <Card className="overflow-hidden flex flex-col h-full rounded-lg border-border/70 bg-card shadow-[0_2px_10px_-6px_hsl(var(--foreground)/0.18)]">
+      {/* ─── Hurtig filtrering ───
+          Status-chips + medarbejder-popover. Kompakt så den ikke æder
+          plads fra selve kalenderen. Når filteret er aktivt vises også
+          en lille "X ruter skjult"-tæller + nulstil-knap. */}
+      <div className="shrink-0 flex items-center gap-1.5 px-2 py-1.5 border-b border-border/70 bg-card/80 text-[11px]">
+        <span className="inline-flex items-center gap-1 text-muted-foreground font-semibold uppercase tracking-wider text-[9.5px] pr-1">
+          <Filter className="h-3 w-3" /> Filter
+        </span>
+        {([
+          { key: "all", label: "Alle" },
+          { key: "planned", label: "Planlagt" },
+          { key: "ready", label: "Klar" },
+          { key: "in_progress", label: "I gang" },
+          { key: "completed", label: "Udført" },
+        ] as { key: StatusFilter; label: string }[]).map((opt) => {
+          const active = statusFilter === opt.key;
+          return (
+            <button
+              key={opt.key}
+              type="button"
+              onClick={() => setStatusFilter(opt.key)}
+              className={cn(
+                "h-6 px-2 rounded-full font-semibold transition-colors border",
+                active
+                  ? "bg-foreground text-background border-foreground shadow-sm"
+                  : "bg-background text-muted-foreground border-border/70 hover:bg-secondary hover:text-foreground",
+              )}
+              aria-pressed={active}
+            >
+              {opt.label}
+            </button>
+          );
+        })}
+        <span className="h-4 w-px bg-border/70 mx-1" aria-hidden />
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className={cn(
+                "h-6 px-2 rounded-full font-semibold transition-colors border inline-flex items-center gap-1",
+                employeeFilter.size > 0
+                  ? "bg-foreground text-background border-foreground"
+                  : "bg-background text-muted-foreground border-border/70 hover:bg-secondary hover:text-foreground",
+              )}
+              aria-label="Filtrer på medarbejder"
+            >
+              Medarbejder
+              {employeeFilter.size > 0 && (
+                <span className="inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-background/20 text-[10px] tabular-nums">
+                  {employeeFilter.size}
+                </span>
+              )}
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-64 p-1.5 max-h-72 overflow-auto">
+            {allEmployees.length === 0 ? (
+              <p className="px-2 py-2 text-xs text-muted-foreground">Ingen medarbejdere på ruterne</p>
+            ) : (
+              <ul className="space-y-0.5">
+                {allEmployees.map((emp) => {
+                  const checked = employeeFilter.has(emp.id);
+                  return (
+                    <li key={emp.id}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEmployeeFilter((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(emp.id)) next.delete(emp.id);
+                            else next.add(emp.id);
+                            return next;
+                          });
+                        }}
+                        className={cn(
+                          "w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs text-left transition-colors",
+                          checked ? "bg-secondary text-foreground" : "hover:bg-secondary/60",
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "h-4 w-4 rounded border flex items-center justify-center shrink-0",
+                            checked ? "bg-foreground border-foreground text-background" : "border-border",
+                          )}
+                        >
+                          {checked && <Check className="h-3 w-3" />}
+                        </span>
+                        {emp.avatar_url ? (
+                          <img src={emp.avatar_url} alt="" className="h-5 w-5 rounded-full object-cover" />
+                        ) : (
+                          <span
+                            className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold"
+                            style={{ background: emp.color || "hsl(var(--muted-foreground))", color: readableTokenOn(emp.color) }}
+                          >
+                            {initials(emp.name)}
+                          </span>
+                        )}
+                        <span className="truncate font-medium">{emp.name}</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            {employeeFilter.size > 0 && (
+              <button
+                type="button"
+                onClick={() => setEmployeeFilter(new Set())}
+                className="mt-1 w-full text-xs text-muted-foreground hover:text-foreground py-1.5 rounded-md hover:bg-secondary"
+              >
+                Nulstil
+              </button>
+            )}
+          </PopoverContent>
+        </Popover>
+        {activeFilterCount > 0 && (
+          <>
+            <span className="text-muted-foreground text-[10.5px] ml-auto">
+              {hiddenCount > 0 ? `${hiddenCount} ${hiddenCount === 1 ? "rute" : "ruter"} skjult` : "Ingen skjult"}
+            </span>
+            <button
+              type="button"
+              onClick={() => { setStatusFilter("all"); setEmployeeFilter(new Set()); }}
+              className="inline-flex items-center gap-1 h-6 px-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-secondary border border-transparent hover:border-border/70 transition-colors"
+              title="Nulstil alle filtre"
+            >
+              <XIcon className="h-3 w-3" /> Nulstil
+            </button>
+          </>
+        )}
+      </div>
       {/* Weekday header */}
       <div
         className="grid border-b border-border/70 bg-card shrink-0"
