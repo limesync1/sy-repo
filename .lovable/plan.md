@@ -1,78 +1,66 @@
-# Plan: Rute- og medarbejderforbedringer
+# Mål
 
-## 1. Auto-opdatér ruteplanlægger når aftaler slettes
-Når en aftale slettes (i `CustomersTab`/`OrderTimeline`/agreement-flow), invalideres `["agreements"]` / `["orders"]`, men **ikke** `["routes"]`, `["route-stops"]`, `["unassigned-jobs"]` eller projection-cachen. Derfor forsvinder ruterne først ved hard reload.
+Pr. basisrute må der **maks. eksistere 1 ikke-udført fremtidig forekomst** ad gangen. Når den aktuelle markeres udført, materialiseres næste automatisk og bliver klar til (eventuel) tidlig udførelse. Ordrer pushes til regnskabsprogrammet **først ved udførelse** (uændret).
 
-**Fix:** Find alle steder hvor aftaler/ordrer slettes og kald `invalidateRouteSyncQueries(qc)` (eksisterer allerede i `useRoutes.ts`). Tilføj samme invalidering på `agreement_occurrences`-sletninger og på den realtime-kanal for `agreements`/`orders` så åbne planlægger-faner opdateres automatisk uden F5.
+# Ændringer
 
-## 2. "Åben rute" lukker straks + lag på historik
-- "Åben rute" via `RouteContextMenu` triggers Radix `DropdownMenu`'s `onSelect`. Eventet bobler ud som `pointerdown-outside` på det netop-åbnede `Sheet` (samme klasse problem som vi fiksede sidst, men context-menu-pathen mangler). **Fix:** I `RouteContextMenu` kald `e.preventDefault()` på `onSelect` og åbn `Sheet` i en `setTimeout(0)`/`requestAnimationFrame` så menuens close-event ikke når den nye sheet. Alternativt: udvid `onPointerDownOutside`-guarden i `RouteEditSheet` til også at ignorere `[role="menuitem"]` / `[data-radix-dropdown-menu-content]`.
-- `RouteHistoryDialog` lagger fordi den henter alt audit-log + snapshots synkront og re-renderer ved hvert keystroke. **Fix:** Memoisér listen, virtualiser med `react-window` (eller paginer 50 ad gangen), og lazy-load dialogen via `React.lazy` så koden ikke parses før brugeren åbner den.
+## 1) Database-migration
 
-## 3. "Lås rute som snapshot" — gør betydningen klar eller fjern
-`RouteSnapshotSection` i `RouteEditSheet.tsx` lader brugeren fryse den aktuelle rute-tilstand som immutable historik. Det er en intern audit-feature, ikke noget den almindelige bruger har brug for.
+**Ny hjælpefunktion**
+- `_next_occurrence_date_for_base_route(_base_route_id, _after date)` → returnerer næste dato (≥ `_after`, inden for 365 dage) hvor mindst én tilknyttet aftale ville forekomme på basisruten. Bruger eksisterende `_agreement_occurs_on_route_date` og respekterer `route_occurrence_exceptions`.
 
-**Beslutning:** Skjul knappen bag en "Avanceret"-toggle og omdøb den til **"Gem som referencepunkt"** med en kort hjælpetekst: *"Gemmer et øjebliksbillede du senere kan sammenligne med — bruges til revision."* For ikke-admin roller skjules sektionen helt.
+**Ny RPC**
+- `materialize_next_occurrence_for_base_route(_base_route_id)`
+  - Finder seneste konkrete `routes`-række med `base_route_id = _base_route_id`.
+  - Hvis ALLE stops på den seneste forekomst er `completed`/`cancelled` (eller ingen stops eksisterer) → beregn næste forekomst-dato og kald `materialize_virtual_route(_base_route_id, _next)`.
+  - Hvis seneste forekomst stadig har åbne stops → no-op (én ad gangen-reglen).
 
-## 4. Tydeligere "udført"-status på rutekort
-I dag vises kun et lille grønt `"3/5"`-tal. **Forbedringer i `MonthWeekCalendar.tsx` (RoutePill) + `AgendaCalendar.tsx`:**
-- Tilføj en tynd **progress-bar** i bunden af pillen (`completed/total`) i emerald.
-- Når 100% udført: pille får emerald venstre-rail + lille `CheckCircle2`-ikon + dæmpet baggrund + badge "Udført".
-- I uge/måned-grid: vis cirkulær progress-ring rundt om stop-tæller.
-- Samme behandling i `UnassignedJobCard` / `RouteStopsPanel` for konsistens.
+**Trigger på `route_stops`**
+- `AFTER UPDATE OF status` → når et stop bliver `completed`: hvis alle øvrige stops på samme rute også er afsluttede, og ruten har `base_route_id`, kald `materialize_next_occurrence_for_base_route(base_route_id)`. `SECURITY DEFINER`, `search_path=public`, swallow-exception så stop-opdatering aldrig fejler pga. materialisering.
 
-## 5. Medarbejder: kunne se men ikke udføre fremtidige/forrige dage
-`EmployeeApp.tsx` viser allerede andre datoer (date-navigator findes), men CTA'er (`Start dag`, `Start stop`, `Marker udført`) er kun aktive når `isCurrentDay`. Sektionen omkring linje 537 nævner allerede "låst"-tilstand.
+**Tilpas `materialize_my_day_routes_for_employee(_date)`**
+- For hver kandidat-basisrute: udregn "next ready occurrence" = seneste ikke-afsluttede konkrete forekomst, ellers `_next_occurrence_date_for_base_route(base, today)`.
+- Materialisér KUN hvis `_date == next_ready_date`. Ellers spring over (forhindrer at en medarbejder der hopper 3 uger frem får 3 forekomster oprettet).
 
-**Fix:**
-- Gør ALT data-visning (rute, stops, kort, statistikker) tilgængelig for alle datoer — ingen tomme states pga. dato.
-- For `!isCurrentDay`: vis read-only-tilstand med tydeligt lås-badge ("Låst — kun visning. Bliver tilgængelig [dato]") og deaktiver alle handlings-knapper.
-- For fortid: vis statistikker (varighed, antal udførte stop, omsætning) i en kompakt "Dagsrapport"-card øverst.
+## 2) Sikkerhedsnet — natligt cron
 
-## 6. Tillad tidlig udførelse — generel + per-medarbejder + per-rute
-Ny indstilling: **"Tidlig udførelse"** med 3 lag i prioritetsorden (mest specifikke vinder):
+Ny edge function `materialize-next-occurrences` (verify_jwt=false, service-role):
+- Itererer alle aktive `routes` med `base_route_id IS NULL` (basisruter) som har mindst én aktiv aftale med `preferred_route_id = base.id`.
+- Kalder `materialize_next_occurrence_for_base_route(base.id)` for hver.
 
-1. **Rute-niveau** (`routes.allow_early_completion boolean`) — togglede i `RouteEditSheet`.
-2. **Medarbejder-niveau** (`employees.early_completion_mode enum: 'inherit' | 'always' | 'never'`) — vises i `EmployeesTab` som dropdown pr. medarbejder.
-3. **Virksomheds-niveau** (`businesses.allow_early_completion_default boolean`) — global toggle i Indstillinger → Medarbejdere.
+Schedules via `pg_cron` dagligt kl. 03:00 (via `supabase--insert`, da URL/anon-key er projektspecifikke).
 
-**Resolution-funktion** (`canCompleteEarly(routeId, employeeId)`):
-```
-route.allow_early_completion === true  → tillad
-employee.early_completion_mode === 'always' → tillad
-employee.early_completion_mode === 'never'  → afvis
-business.allow_early_completion_default     → fallback
-```
+## 3) Automatiseret test
 
-**UI i EmployeesTab:** Ny sektion "Tilladelser" pr. medarbejder-kort med segmenteret kontrol (`Arv fra virksomhed` / `Altid tilladt` / `Aldrig tilladt`) + tooltip-forklaring.
+**`src/lib/early-completion.test.ts`** (ny) — Vitest-enheder for `canCompleteEarly`:
+- route on → tilladt uanset employee/business.
+- route null + employee `always` → tilladt.
+- route null + employee `never` → afvist (selv hvis business default `true`).
+- route null + employee `inherit` + business `true` → tilladt.
+- route null + employee `inherit` + business `false/null` → afvist.
+- Inkluderer dansk-tekst-snapshots fra `earlyCompletionReason`.
 
-**UI i RouteEditSheet:** Lille switch "Lås op for tidlig udførelse" i rute-indstillinger.
+**`src/domain/routes/next-occurrence-readiness.test.ts`** (ny) — ren TS-enhedstest for en udtrukket hjælper `computeNextReadyDate({ latestOccurrence, nextProjectedDate, today })`:
+- Returnerer `null` (no-op) hvis seneste forekomst stadig har åbne stops.
+- Returnerer `nextProjectedDate` hvis seneste er fuldt udført.
+- Returnerer `nextProjectedDate` hvis ingen seneste forekomst findes.
+- Respekterer `today` (returnerer aldrig fortid).
 
-**UI i EmployeeApp:** Når `canCompleteEarly` er true for fremtidig dato → vis et `Unlock`-badge "Låst op af virksomhed" og aktiver CTA'erne på den dato.
+Helper-funktionen placeres i `src/lib/route-readiness.ts` så samme logik bruges af hooks/UI (server-side er den i SQL — testen sikrer parity med en kort kommentar).
 
-## Teknisk
+# Sådan virker det ende-til-ende
 
-### Migration
-```sql
-ALTER TABLE businesses    ADD COLUMN allow_early_completion_default boolean NOT NULL DEFAULT false;
-ALTER TABLE employees     ADD COLUMN early_completion_mode text NOT NULL DEFAULT 'inherit'
-  CHECK (early_completion_mode IN ('inherit','always','never'));
-ALTER TABLE routes        ADD COLUMN allow_early_completion boolean NOT NULL DEFAULT false;
-```
-RLS uændret — felterne arver eksisterende politikker.
+1. William åbner medarbejder-panelet på en fremtidig dato.
+2. `useMyDayRoutes(date)` → `materialize_my_day_routes_for_employee(date)`.
+3. RPC opretter konkret rute for basisruten **kun hvis** `date` er næste ready-dato.
+4. Ruten vises altid. Knappen "Markér udført" er låst medmindre `canCompleteEarly(...)` → `true`.
+5. Når sidste stop på den nuværende forekomst markeres udført, fyrer trigger og næste forekomst materialiseres med det samme.
+6. Natlige cron sikrer at hver basisrute har præcis 1 fremtidig forekomst klar (selvkorrigerende ved fejl/efterslæb).
 
-### Filer der redigeres
-- `src/hooks/useRoutes.ts` — tilføj invalidering på agreement-delete + nye SQL-felter i selects
-- `src/components/admin/CustomersTab.tsx`, `OrderTimeline.tsx`, `RouteEditSheet.tsx` — kald `invalidateRouteSyncQueries` ved aftale-delete
-- `src/components/route-planner/RouteContextMenu.tsx` — `preventDefault` + deferred open
-- `src/components/route-planner/RouteEditSheet.tsx` — udvid outside-guard; ny `RouteEarlyCompletionToggle`; gating af snapshot-sektion
-- `src/components/route-planner/RouteHistoryDialog.tsx` — virtualisering + lazy import
-- `src/components/route-planner/MonthWeekCalendar.tsx`, `AgendaCalendar.tsx`, `UnassignedJobCard.tsx`, `RouteStopsPanel.tsx` — progress-bar + completed-styling
-- `src/components/admin/EmployeesTab.tsx` — ny "Tilladelser"-kontrol
-- `src/pages/Admin.tsx` (settings-sektion) — global toggle
-- `src/pages/EmployeeApp.tsx` — read-only-tilstand for andre datoer + `canCompleteEarly`-resolver + lås-badges
-- Ny `src/lib/early-completion.ts` — resolver-funktion
+# Bemærkninger
 
-### Tests
-- Unit-tests for `canCompleteEarly` resolver med alle 3*3 kombinationer
-- Integration: slet aftale → forventer ruter invalideret uden reload
+- Regnskabs-push forbliver uændret (sker via `accounting_sync_queue` ved ordre-udførelse — ingen ekstra ordrer skabes ved materialisering).
+- Migrationen er bagudkompatibel: eksisterende konkrete fremtidige ruter slettes ikke.
+- Trigger fejler aldrig stop-opdatering (try/except).
+
+Skal jeg gå i gang?
