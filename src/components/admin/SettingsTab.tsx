@@ -3,6 +3,7 @@
 // PageHeader, surface-admin cards, sub-nav chips og konsistent spacing.
 import { useState, useMemo, useEffect, useRef, useCallback, forwardRef, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
+import { IndustryIcon } from "@/components/IndustryIcon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";

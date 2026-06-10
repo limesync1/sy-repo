@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { IndustryIcon } from "@/components/IndustryIcon";
 import {
   useMyBusiness, useServices, useOrders, useCreateBusiness,
   useReviews,

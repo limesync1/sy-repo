@@ -63,14 +63,14 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
     const term = q.trim().toLowerCase();
     if (!term) {
       // Empty — show top categories
-      return CATEGORIES.slice(0, 6).map((c) => ({ type: "category" as const, label: c.label, icon: c.icon, key: c.key }));
+      return CATEGORIES.slice(0, 6).map((c) => ({ type: "category" as const, label: c.label, key: c.key }));
     }
     const results: Suggestion[] = [];
 
     // Category matches
     CATEGORIES.filter((c) => c.label.toLowerCase().includes(term))
       .slice(0, 3)
-      .forEach((c) => results.push({ type: "category", label: c.label, icon: c.icon, key: c.key }));
+      .forEach((c) => results.push({ type: "category", label: c.label, key: c.key }));
 
     // City matches
     (index?.cities || [])

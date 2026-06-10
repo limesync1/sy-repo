@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { useSearchParams, Link } from "react-router-dom";
+import { IndustryIcon } from "@/components/IndustryIcon";
 import { useAllBusinesses, type SortOption } from "@/hooks/useDatabase";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
