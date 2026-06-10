@@ -4276,6 +4276,11 @@ export type Database = {
         Args: { _occurrence_id: string }
         Returns: undefined
       }
+      _next_occurrence_date_for_base_route: {
+        Args: { _after: string; _base_route_id: string }
+        Returns: string
+      }
+      _route_is_fully_done: { Args: { _route_id: string }; Returns: boolean }
       _test_completion_guard: { Args: { _planned: string }; Returns: Json }
       _unique_route_name: {
         Args: {
@@ -4828,6 +4833,11 @@ export type Database = {
         Returns: {
           route_id: string
         }[]
+      }
+      materialize_next_for_all_base_routes: { Args: never; Returns: number }
+      materialize_next_occurrence_for_base_route: {
+        Args: { _base_route_id: string }
+        Returns: string
       }
       materialize_occurrence_to_route: {
         Args: { _occurrence_id: string; _target_route_id: string }
