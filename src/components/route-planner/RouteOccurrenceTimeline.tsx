@@ -23,11 +23,13 @@ type Occurrence = {
   invoice_external_number: string | null;
   invoice_status: string | null;
   external_order_number: string | null;
+  occurrence_number: string | null;
 };
 
 type AgreementRow = {
   agreement_id: string;
   label: string;
+  agreement_number: string | null;
   occurrences: Occurrence[];
 };
 
@@ -53,9 +55,18 @@ export const RouteOccurrenceTimeline = ({ routeId }: Props) => {
 
       const { data: occs } = await supabase
         .from("agreement_occurrences")
-        .select("id, agreement_id, occurrence_date, sequence_index, status, completed_at, planned_arrival, invoice_external_id, invoice_external_number, invoice_status, external_order_number")
+        .select("id, agreement_id, occurrence_date, sequence_index, status, completed_at, planned_arrival, invoice_external_id, invoice_external_number, invoice_status, external_order_number, occurrence_number")
         .in("agreement_id", agreementIds)
         .order("sequence_index", { ascending: true });
+
+      const { data: agreementRows } = await supabase
+        .from("agreements")
+        .select("id, agreement_number")
+        .in("id", agreementIds);
+      const agreementNumberById = new Map<string, string | null>();
+      for (const a of (agreementRows ?? []) as any[]) {
+        agreementNumberById.set(a.id, a.agreement_number ?? null);
+      }
 
       const byAgreement = new Map<string, Occurrence[]>();
       for (const o of (occs ?? []) as Occurrence[]) {
@@ -74,6 +85,7 @@ export const RouteOccurrenceTimeline = ({ routeId }: Props) => {
       return agreementIds.map((aid) => ({
         agreement_id: aid,
         label: labelByAgreement.get(aid) ?? "Aftale",
+        agreement_number: agreementNumberById.get(aid) ?? null,
         occurrences: byAgreement.get(aid) ?? [],
       }));
     },
@@ -110,7 +122,17 @@ export const RouteOccurrenceTimeline = ({ routeId }: Props) => {
 
           return (
             <div key={row.agreement_id} className="space-y-1.5">
-              <div className="text-[11px] font-medium text-muted-foreground truncate">{row.label}</div>
+              <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground truncate">
+                <span className="truncate">{row.label}</span>
+                {row.agreement_number && (
+                  <span
+                    className="inline-flex items-center rounded-sm border border-border bg-muted px-1 py-px text-[9px] font-semibold text-foreground"
+                    title="Aftalenummer"
+                  >
+                    {row.agreement_number}
+                  </span>
+                )}
+              </div>
               <div className="relative">
                 <div className="absolute left-0 right-0 top-3 h-px bg-border" aria-hidden />
                 <ul className="relative flex items-start gap-3 overflow-x-auto pb-1">
@@ -131,6 +153,14 @@ export const RouteOccurrenceTimeline = ({ routeId }: Props) => {
                       </div>
                       <div className="text-center">
                         <div className="text-[10px] font-semibold text-foreground leading-tight">{it.n}. kørsel</div>
+                        {it.occ?.occurrence_number && (
+                          <div
+                            className="text-[9px] font-mono text-muted-foreground leading-tight"
+                            title="Kørselsnummer"
+                          >
+                            {it.occ.occurrence_number}
+                          </div>
+                        )}
                         <div className="text-[10px] text-muted-foreground leading-tight capitalize">
                           {format(parseISO(it.planned ?? it.date), it.planned ? "d. MMM HH:mm" : "d. MMM", { locale: da })}
                         </div>
