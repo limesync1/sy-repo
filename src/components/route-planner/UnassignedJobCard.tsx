@@ -361,18 +361,10 @@ export const UnassignedJobCard = ({
         {/* SERVICE + PRIS — flad baseline-linje, ingen tinted bg-blok. */}
         {itemCount > 0 && (
           <div className="flex items-baseline justify-between gap-3">
-            <p className="text-[11.5px] text-muted-foreground truncate leading-snug min-w-0 flex-1 inline-flex items-center gap-1.5">
-              {/* Branchespecifikt service-ikon — gør det muligt at scanne hvad
-                  aftalen handler om uden at læse teksten. Bruger samme icon-
-                  pakke som services/ordrer. */}
-              <IndustryIcon
-                name={items[0].service_name}
-                className="h-4 w-4 shrink-0 opacity-80"
-                alt=""
-              />
+            <p className="text-[11.5px] text-muted-foreground truncate leading-snug min-w-0 flex-1">
               {items[0].quantity > 1 && <span className="tabular-nums">{items[0].quantity}× </span>}
-              <span className="text-foreground/80 font-medium truncate">{items[0].service_name}</span>
-              {itemCount > 1 && <span className="shrink-0"> · +{itemCount - 1}</span>}
+              <span className="text-foreground/80 font-medium">{items[0].service_name}</span>
+              {itemCount > 1 && <span> · +{itemCount - 1}</span>}
             </p>
             {displayAmount != null && (
               <span className="shrink-0 text-[12px] font-semibold text-foreground tabular-nums tracking-tight leading-none">
