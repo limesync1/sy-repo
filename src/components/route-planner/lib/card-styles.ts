@@ -2,34 +2,26 @@
 // stops-på-ruten og dag-detalje deler præcis samme radius, kant, skygge og
 // hover-opførsel. Ét sted at justere → ens design overalt.
 
-/** Basis-container for et aftalekort. Moderne lookout med større radius,
- *  blødere multi-layer skygge og subtil gradient-hint så kortet løfter sig
- *  let fra baggrunden uden at virke tungt. */
-export const CARD_BASE =
-  "group relative rounded-xl border bg-card overflow-hidden " +
-  "shadow-[0_1px_0_0_hsl(var(--foreground)/0.02),0_1px_3px_-1px_hsl(var(--foreground)/0.08)] " +
-  "transition-[background-color,border-color,box-shadow,transform] duration-200 ease-out";
-
-/** Standard kant-farve for et hvilende kort. */
-export const CARD_BORDER = "border-border/60";
-
-/** Hover-løft — ens på alle kort (kun når kortet ikke er valgt/disabled).
- *  Lidt mere udtalt løft + dybere skygge for tydeligere feedback. */
+/* Aftalekort-aliasser (bagudkompatibilitet). Pege på de fælles PILL-tokens
+ * herunder — så ALT kører på samme design-token-pakke. */
+export const CARD_BORDER = "border-border/55";
 export const CARD_HOVER =
   "hover:border-foreground/20 hover:bg-card " +
   "hover:shadow-[0_2px_4px_-2px_hsl(var(--foreground)/0.08),0_8px_24px_-10px_hsl(var(--foreground)/0.22)] " +
   "hover:-translate-y-[2px]";
-
-/** Valgt tilstand (multi-select). */
 export const CARD_SELECTED =
   "border-accent ring-2 ring-accent/30 shadow-[0_0_0_1px_hsl(var(--accent)/0.15),0_4px_14px_-6px_hsl(var(--accent)/0.35)]";
-
-/** Aktiv drag-tilstand. */
-export const CARD_DRAGGING =
-  "ring-1 ring-accent opacity-95";
-
+export const CARD_DRAGGING = "ring-1 ring-accent opacity-95";
 /** Bredde på venstre-accent-stribe — ens på tværs af alle kort. */
 export const CARD_RAIL_WIDTH = "w-[3px]";
+
+/** Basis-container for et aftalekort — bygget oven på de fælles PILL-tokens
+ *  så aftalekort og rute-piller deler præcis samme radius, kant, skygge og
+ *  transition. */
+export const CARD_BASE =
+  `group relative ${"rounded-xl"} border bg-card overflow-hidden ` +
+  "shadow-[0_1px_0_0_hsl(var(--foreground)/0.02),0_1px_3px_-1px_hsl(var(--foreground)/0.08)] " +
+  "transition-[background-color,border-color,box-shadow,transform] duration-200 ease-out";
 
 /* ─────────────────────────────────────────────────────────────────────────
    FÆLLES PILL/CARD DESIGN-TOKENS
