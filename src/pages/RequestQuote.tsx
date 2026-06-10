@@ -298,7 +298,7 @@ const RequestQuote = () => {
                     <span className="flex min-w-0 items-center gap-2">
                       {selectedCategory ? (
                         <>
-                          <span aria-hidden className="text-lg leading-none">{selectedCategory.icon}</span>
+                          <IndustryIcon category={selectedCategory.key} className="h-5 w-5" alt={selectedCategory.label} />
                           <span className="truncate">{selectedCategory.label}</span>
                         </>
                       ) : (

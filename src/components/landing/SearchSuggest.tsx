@@ -6,17 +6,17 @@ import { Search, MapPin, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUserLocation } from "@/contexts/LocationContext";
 import { topCategories } from "@/lib/service-taxonomy";
+import { IndustryIcon } from "@/components/IndustryIcon";
 
 /** Top-brancher hentes fra det kanoniske taksonomi-katalog så landing, søgning
  *  og virksomhedspanelet altid viser præcis de samme brancher. */
 const CATEGORIES = topCategories().map((ind) => ({
   label: ind.label,
   key: ind.key,
-  icon: ind.icon,
 }));
 
 type Suggestion =
-  | { type: "category"; label: string; icon: string; key: string }
+  | { type: "category"; label: string; key: string }
   | { type: "business"; label: string; slug: string; city: string | null; logo: string | null }
   | { type: "city"; label: string };
 
@@ -231,8 +231,8 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
                   >
                     {s.type === "category" && (
                       <>
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-base transition-transform duration-200 group-hover:scale-105">
-                          <span aria-hidden>{s.icon}</span>
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 transition-transform duration-200 group-hover:scale-105">
+                          <IndustryIcon category={s.key} className="h-6 w-6" alt={s.label} />
                         </span>
                         <span className="flex-1">
                           <div className="font-semibold text-foreground">{s.label}</div>
