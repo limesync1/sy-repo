@@ -729,8 +729,32 @@ export const RouteEditSheet = ({
           hideOverlay={!isCompact}
           hideCloseButton={false}
           onOpenAutoFocus={(e) => e.preventDefault()}
-          /* Tillad luk via klik udenfor + Esc (Radix default). Tidligere
-             blokerede vi det på desktop, men det forvirrede brugere. */
+          /* Når sheet'en er non-modal (desktop) registrerer Radix klik på
+             portal'ede børn (dropdowns, popovers, tooltips, datepicker) som
+             "klik udenfor" og lukker. Det betød at brugere ikke kunne klikke
+             på menupunkter, kalenderdage osv. i sheet'en. Vi blokerer derfor
+             outside-close når target er inde i et Radix portal — Esc og X
+             lukker stadig som forventet. */
+          onPointerDownOutside={(e) => {
+            const t = e.target as Element | null;
+            if (
+              t?.closest(
+                '[data-radix-popper-content-wrapper],[data-radix-portal],[role="menu"],[role="listbox"],[role="dialog"],[role="tooltip"],[data-sonner-toaster]',
+              )
+            ) {
+              e.preventDefault();
+            }
+          }}
+          onInteractOutside={(e) => {
+            const t = e.target as Element | null;
+            if (
+              t?.closest(
+                '[data-radix-popper-content-wrapper],[data-radix-portal],[role="menu"],[role="listbox"],[role="dialog"],[role="tooltip"],[data-sonner-toaster]',
+              )
+            ) {
+              e.preventDefault();
+            }
+          }}
         >
           <SheetHeader
             className="relative px-4 py-3.5 pr-14 border-b shrink-0 space-y-0 text-left bg-gradient-to-b from-secondary/40 to-card"

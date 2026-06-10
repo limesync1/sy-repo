@@ -184,7 +184,29 @@ export const RouteStopsPanel = ({
           hideCloseButton={!isCompact}
           // Vis ved siden af RouteEditSheet (som er sm:max-w-md ≈ 28rem bred)
           onOpenAutoFocus={(e) => e.preventDefault()}
-          /* Tillad luk via klik udenfor + Esc (Radix default). */
+          /* Non-modal sheet: forhindr Radix i at lukke når brugeren klikker
+             på portal'ede børn (dropdowns, popovers, tooltips, datepicker
+             osv.) — ellers virker menupunkter i sheet'en ikke. */
+          onPointerDownOutside={(e) => {
+            const t = e.target as Element | null;
+            if (
+              t?.closest(
+                '[data-radix-popper-content-wrapper],[data-radix-portal],[role="menu"],[role="listbox"],[role="dialog"],[role="tooltip"],[data-sonner-toaster]',
+              )
+            ) {
+              e.preventDefault();
+            }
+          }}
+          onInteractOutside={(e) => {
+            const t = e.target as Element | null;
+            if (
+              t?.closest(
+                '[data-radix-popper-content-wrapper],[data-radix-portal],[role="menu"],[role="listbox"],[role="dialog"],[role="tooltip"],[data-sonner-toaster]',
+              )
+            ) {
+              e.preventDefault();
+            }
+          }}
         >
           <SheetHeader
             className={cn(
