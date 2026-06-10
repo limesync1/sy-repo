@@ -1333,6 +1333,10 @@ const AftaleTab = ({
       qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
       qc.invalidateQueries({ queryKey: ["routes-for-range"] });
       qc.invalidateQueries({ queryKey: ["stops-for-routes"] });
+      // Sørg for at åbne ruteplanlægger-faner opdateres uden F5 — ruten
+      // mister sit stop og må projektioner/cache invalidere så pillen
+      // forsvinder med det samme.
+      invalidateRouteSyncQueries(qc);
     } catch (e: any) {
       toast.error(toDanishError(e, "Kunne ikke slette aftalen. Prøv igen."));
     } finally {
@@ -1367,6 +1371,7 @@ const AftaleTab = ({
       qc.invalidateQueries({ queryKey: ["routes"] });
       qc.invalidateQueries({ queryKey: ["routes-for-range"] });
       qc.invalidateQueries({ queryKey: ["stops-for-routes"] });
+      invalidateRouteSyncQueries(qc);
     } catch (e: any) {
       toast.error(toDanishError(e, "Kunne ikke slette aftalen. Prøv igen."));
     } finally {
