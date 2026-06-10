@@ -471,18 +471,22 @@ const DayCellInner = ({
       {/* Dato-header */}
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-1">
-          <span
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onOpenDayOverview(dateStr); }}
+            aria-label={`Vis dagens overblik for ${format(date, "EEEE d. MMMM", { locale: da })}`}
+            title="Åbn dagens overblik"
             className={cn(
-              "inline-flex items-center justify-center rounded-md text-[12.5px] font-bold tabular-nums transition-all duration-200",
+              "inline-flex items-center justify-center rounded-md text-[12.5px] font-bold tabular-nums transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
               today
                 ? "h-7 w-7 bg-foreground text-background shadow-sm ring-1 ring-foreground/10"
-                : "h-6 w-6 text-foreground/90 group-hover:bg-secondary/70 group-hover:text-foreground",
+                : "h-6 w-6 text-foreground/90 hover:bg-secondary group-hover:bg-secondary/70 group-hover:text-foreground",
               !inMonth && !today && "text-muted-foreground/40",
               isPast && !today && "text-muted-foreground/55",
             )}
           >
             {format(date, "d")}
-          </span>
+          </button>
           {alert && inMonth && (
             <span
               className={cn(
