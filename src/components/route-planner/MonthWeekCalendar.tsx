@@ -11,7 +11,7 @@ import { useDroppable, useDraggable } from "@dnd-kit/core";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Plus, Users, MapPin, ArrowDown, Repeat, Clock, Wallet, Lock, GitMerge } from "lucide-react";
+import { Loader2, Sparkles, Plus, Users, MapPin, ArrowDown, Repeat, Clock, Wallet, Lock, GitMerge, History } from "lucide-react";
 import { CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { CloudOff } from "lucide-react";
 import {
@@ -758,10 +758,22 @@ const RoutePillInner = ({
   // badge så brugeren straks kan se den ikke skal udføres igen. Den
   // forbliver i kalenderen — vi fjerner den IKKE.
   const isRouteCompleted = (route as any).status === "completed";
-  // Projicerede ruter der ligger fremme i tid er "låst" indtil deres
-  // aktuelle dag — vises med et lille hængelås-ikon + tooltip.
+  // Tre tilstande for projicerede (virtuelle) ruter:
+  //  - future  → låst indtil dagen er aktuel (vises med hængelås)
+  //  - today   → aktiv projektion, kan udføres eller flyttes nu
+  //  - past    → historisk projektion (allerede passeret, kun til indsigt)
+  // De skal aldrig vise modstridende ikoner/tekster (fx "låst" på en
+  // forrige dato), så vi beregner én kanonisk tilstand her og bruger den
+  // konsekvent til badge, tooltip og aria-label.
   const todayStr = new Date().toISOString().slice(0, 10);
-  const isFutureProjected = isVirtual && route.route_date > todayStr;
+  const projectedKind: "future" | "today" | "past" | null = isVirtual
+    ? route.route_date > todayStr
+      ? "future"
+      : route.route_date === todayStr
+        ? "today"
+        : "past"
+    : null;
+  const isFutureProjected = projectedKind === "future";
   const travelMin = Number(route.total_duration_minutes || 0) || route.stops.reduce((sum, s) => sum + Number(s.travel_time_to_next_min || 0), 0);
   const revenue = route.stops.reduce((sum, s) => sum + Number((s as any).order_amount || 0), 0);
   // Kapacitets-bjælke pr. rute: arbejdstid (stop + transport) vs. ~8t pr.
@@ -859,9 +871,13 @@ const RoutePillInner = ({
       title={
         validation?.topMessage
           ? validation.topMessage
-          : isVirtual
-          ? "Projiceret rute — klik åbner originalruten. Træk til en anden dato for at flytte netop denne ene forekomst (originalruten røres ikke)."
-          : isPast
+          : projectedKind === "future"
+            ? `Låst projektion — oplåses ${format(parseISO(route.route_date), "d. MMM yyyy", { locale: da })}. Klik åbner originalruten; træk for at flytte netop denne forekomst.`
+            : projectedKind === "today"
+              ? "Projiceret forekomst — aktiv i dag. Klik åbner originalruten; træk for at flytte netop denne forekomst."
+              : projectedKind === "past"
+                ? "Historisk projektion — datoen er passeret. Klik åbner originalruten."
+                : isPast
             ? "Tidligere rute — kan ikke flyttes"
             : undefined
       }
@@ -930,21 +946,43 @@ const RoutePillInner = ({
       >
         <div className="min-w-0 flex-1">
           <div className="text-[12px] font-semibold truncate text-foreground leading-tight flex items-center gap-1 tracking-tight">
-            {isVirtual && (
-              <span
-                className={cn(
-                  "inline-flex items-center gap-0.5 rounded-[3px] bg-foreground/[0.06] ring-1 ring-inset ring-foreground/10 text-[9px] font-bold uppercase tracking-[0.06em] text-muted-foreground shrink-0",
-                  compact ? "px-1 py-px" : "px-1.5 py-px",
-                )}
-                title={isFutureProjected
-                  ? `Projiceret rute — låst indtil ${format(parseISO(route.route_date), "d. MMM yyyy", { locale: da })}`
-                  : "Projiceret rute — låst forekomst af en gentagende originalrute"}
-                aria-label={isFutureProjected ? `Projiceret, låst til ${route.route_date}` : "Projiceret"}
-              >
-                <Lock className="h-2 w-2 opacity-80" />
-                {!compact && (isFutureProjected ? "Låst" : "Projiceret")}
-              </span>
-            )}
+            {projectedKind && (() => {
+              const unlockLabel = format(parseISO(route.route_date), "d. MMM yyyy", { locale: da });
+              const meta = projectedKind === "future"
+                ? {
+                    Icon: Lock,
+                    text: "Låst",
+                    title: `Projiceret rute — låst indtil ${unlockLabel}. Oplåses automatisk på dagen og kan derefter udføres af tildelt medarbejder.`,
+                    aria: `Projiceret, låst indtil ${unlockLabel}`,
+                  }
+                : projectedKind === "today"
+                ? {
+                    Icon: Sparkles,
+                    text: "I dag",
+                    title: "Projiceret forekomst — aktiv i dag. Kan udføres af tildelt medarbejder eller flyttes til en anden dato.",
+                    aria: "Projiceret, aktiv i dag",
+                  }
+                : {
+                    Icon: History,
+                    text: "Historisk",
+                    title: "Historisk projektion — datoen er passeret. Vises kun til indsigt; udførsel/ændring skal ske på originalruten.",
+                    aria: "Historisk projiceret forekomst",
+                  };
+              const { Icon, text, title: t, aria } = meta;
+              return (
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-0.5 rounded-[3px] bg-foreground/[0.06] ring-1 ring-inset ring-foreground/10 text-[9px] font-bold uppercase tracking-[0.06em] text-muted-foreground shrink-0",
+                    compact ? "px-1 py-px" : "px-1.5 py-px",
+                  )}
+                  title={t}
+                  aria-label={aria}
+                >
+                  <Icon className="h-2 w-2 opacity-80" />
+                  {!compact && text}
+                </span>
+              );
+            })()}
             {isBaseRecurring && (
               <span
                 className={cn(
