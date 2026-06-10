@@ -799,3 +799,79 @@ export const TOP_CATEGORY_KEYS: string[] = [
 /** Returnér Industry-objekter for top-kategorierne (filtrerer ukendte). */
 export const topCategories = (): Industry[] =>
   TOP_CATEGORY_KEYS.map((k) => findIndustry(k)).filter((i): i is Industry => !!i);
+
+/* ───────────── Søgning i hele branchekataloget ─────────────
+ * Bruges af SearchSuggest, /tilbud, /virksomheder mfl. så brugere kan
+ * finde EN HVER branche — også dem der ikke er på top-listen — ved at
+ * skrive et label, en underbranche, et service-navn eller et nøgleord.
+ * Returnerer altid hele branche-objektet (så filtre/navigation kan
+ * fortsætte med branche-keyen) plus den valgfri match-grund så vi kan
+ * vise "via 'tagrens'" eller "via 'Trappevask'" i autocomplete. */
+export type IndustrySearchHit = {
+  industry: Industry;
+  /** Det undertekst-match som førte til hittet (subcategory- eller
+   *  service-label, eller keyword). Tom hvis det er selve branche-labelen
+   *  der matchede. */
+  matchedVia?: string;
+  /** Højere = mere relevant — bruges til at sortere resultater. */
+  score: number;
+};
+
+const _norm = (s: string) => s.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
+
+export const searchIndustries = (
+  query: string,
+  opts: { limit?: number; preferTopKeys?: boolean } = {},
+): IndustrySearchHit[] => {
+  const term = _norm(query.trim());
+  if (!term) return [];
+  const limit = opts.limit ?? 20;
+  const topSet = new Set(TOP_CATEGORY_KEYS);
+  const hits = new Map<string, IndustrySearchHit>();
+
+  const consider = (industry: Industry, matchedVia: string | undefined, baseScore: number) => {
+    const existing = hits.get(industry.key);
+    const bonus = opts.preferTopKeys && topSet.has(industry.key) ? 5 : 0;
+    const score = baseScore + bonus;
+    if (!existing || existing.score < score) {
+      hits.set(industry.key, { industry, matchedVia, score });
+    }
+  };
+
+  for (const ind of ALL_INDUSTRIES) {
+    const label = _norm(ind.label);
+    const key = _norm(ind.key);
+    if (label.startsWith(term)) { consider(ind, undefined, 100); continue; }
+    if (label.includes(term)) { consider(ind, undefined, 80); continue; }
+    if (key.includes(term)) { consider(ind, undefined, 70); continue; }
+
+    for (const sub of ind.subcategories) {
+      const subLabel = _norm(sub.label);
+      if (subLabel.includes(term)) {
+        consider(ind, sub.label, subLabel.startsWith(term) ? 60 : 50);
+        break;
+      }
+      const serviceMatch = sub.services?.find((svc) => _norm(svc).includes(term));
+      if (serviceMatch) {
+        consider(ind, serviceMatch, 40);
+        break;
+      }
+    }
+
+    const stepTemplates = STEP_TEMPLATES_BY_INDUSTRY[ind.key] ?? [];
+    for (const tpl of stepTemplates) {
+      if (tpl.keywords?.some((kw) => _norm(kw).includes(term))) {
+        consider(ind, tpl.label, 30);
+        break;
+      }
+      if (_norm(tpl.label).includes(term)) {
+        consider(ind, tpl.label, 35);
+        break;
+      }
+    }
+  }
+
+  return Array.from(hits.values())
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit);
+};
