@@ -45,6 +45,7 @@ import {
 import { EmployeeAvatars, type EmpAvatar } from "./EmployeeAvatars";
 import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_RAIL_WIDTH, ICON_BTN_ACCENT, ICON_BTN_DESTRUCTIVE } from "./lib/card-styles";
 import EmptyState from "./EmptyState";
+import { IndustryIcon } from "@/components/IndustryIcon";
 
 const readableTokenOn = (color?: string | null) => {
   const hex = color?.trim().match(/^#?([0-9a-f]{6})$/i)?.[1];
@@ -393,8 +394,16 @@ const SortableStopRow = ({
 
           {/* Ydelse — sekundær linje */}
           {stop.service_summary ? (
-            <p className="text-[10px] text-muted-foreground truncate sm:text-[11px]">
-              {stop.service_summary}
+            <p className="text-[10px] text-muted-foreground truncate sm:text-[11px] inline-flex items-center gap-1.5 max-w-full">
+              {/* Branchespecifikt ikon — gør det muligt at scanne hvilken
+                  service aftalen drejer sig om uden at læse hele teksten.
+                  Bruger samme ikon-pakke som services og ordrer. */}
+              <IndustryIcon
+                name={stop.service_summary}
+                className="h-3.5 w-3.5 shrink-0 opacity-80"
+                alt=""
+              />
+              <span className="truncate">{stop.service_summary}</span>
             </p>
           ) : (
             <p className="text-[10px] text-muted-foreground/60 truncate italic sm:text-[11px]">

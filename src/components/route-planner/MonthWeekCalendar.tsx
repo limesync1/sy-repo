@@ -27,6 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { memo, useMemo, useState } from "react";
 import { useTargetValidation, ringForSeverity, chipBgForSeverity } from "./drag-validation-context";
 import RouteContextMenu from "./RouteContextMenu";
+import { PILL_BASE } from "./lib/card-styles";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -1331,10 +1332,10 @@ const RoutePillInner = ({
         onSelect();
       }}
       className={cn(
-        "group relative rounded-lg cursor-pointer overflow-hidden bg-card",
-        "border border-border/55 shadow-[0_1px_0_0_hsl(var(--foreground)/0.02),0_1px_3px_-1px_hsl(var(--foreground)/0.08)] " +
-        "transition-[background-color,border-color,opacity,box-shadow,transform] duration-200 ease-out " +
-        "hover:border-foreground/25 hover:shadow-[0_2px_4px_-2px_hsl(var(--foreground)/0.08),0_8px_22px_-10px_hsl(var(--foreground)/0.24)] hover:-translate-y-[1.5px]",
+        // Fælles design-tokens — deles 1:1 med UnassignedJobCard og stop-rækker
+        // i RouteStopsPanel. Justér ét sted (card-styles.ts) → ens look overalt.
+        PILL_BASE,
+        "cursor-pointer",
         isDragging && "opacity-40",
         // Projicerede ruter: kraftig visuel adskillelse — stiplet kant hele
         // vejen rundt, dæmpet baggrund og en diagonal-stribe så de aldrig
