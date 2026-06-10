@@ -67,10 +67,16 @@ const RouteEarlyCompletionToggle = ({ route }: { route: Route }) => {
         .update({ allow_early_completion: next } as any)
         .eq("id", route.id);
       if (error) throw error;
+      await supabase
+        .from("routes")
+        .update({ allow_early_completion: next } as any)
+        .eq("base_route_id", route.id);
       toast.success(next ? "Ruten kan nu udføres på forhånd" : "Ruten følger igen den planlagte dato");
       qc.invalidateQueries({ queryKey: ["routes"] });
       qc.invalidateQueries({ queryKey: ["routes-range"] });
       qc.invalidateQueries({ queryKey: ["route-calendar"] });
+      qc.invalidateQueries({ queryKey: ["my-day-routes"] });
+      qc.invalidateQueries({ queryKey: ["my-day-stops"] });
     } catch (e: any) {
       toast.error(e?.message || "Kunne ikke opdatere ruten");
     } finally {

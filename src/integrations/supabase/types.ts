@@ -4823,6 +4823,12 @@ export type Database = {
         }
         Returns: undefined
       }
+      materialize_my_day_routes_for_employee: {
+        Args: { _date: string }
+        Returns: {
+          route_id: string
+        }[]
+      }
       materialize_occurrence_to_route: {
         Args: { _occurrence_id: string; _target_route_id: string }
         Returns: string
