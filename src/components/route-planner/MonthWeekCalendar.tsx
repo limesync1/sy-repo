@@ -304,6 +304,19 @@ export const MonthWeekCalendar = ({
         })}
       </div>
     </Card>
+    {overviewDate && (
+      <DayOverviewSheet
+        date={overviewDate}
+        routes={routesByDate.get(overviewDate) || []}
+        capacity={capacityByDate?.get(overviewDate) ?? null}
+        weather={weatherByDate?.get(overviewDate) ?? null}
+        onClose={() => setOverviewDate(null)}
+        onSelectRoute={(r) => { setOverviewDate(null); onSelectRoute(r); }}
+        onSelectStop={(s) => { setOverviewDate(null); onSelectStop(s); }}
+        onCreateRoute={(d) => { setOverviewDate(null); onCreateRoute(d); }}
+      />
+    )}
+    </>
   );
 };
 
