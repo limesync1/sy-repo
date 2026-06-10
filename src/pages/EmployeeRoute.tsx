@@ -1947,7 +1947,16 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 stop={s}
                 index={idx}
                 themeColor={themeColor}
-                route={route ? { name: route.name, color: route.color, date: route.route_date } : undefined}
+                route={route ? {
+                  name: route.name,
+                  color: route.color,
+                  date: route.route_date,
+                  allowEarly: canCompleteEarly({
+                    routeAllow: (route as any).allow_early_completion,
+                    employeeMode: empMode,
+                    businessDefault: bizEarlyDefault,
+                  }),
+                } : undefined}
                 noteDraft={noteDraft[s.id] ?? s.notes ?? ""}
                 onNoteChange={(v) => setNoteDraft((d) => ({ ...d, [s.id]: v }))}
                 onComplete={() => handleComplete(s)}
