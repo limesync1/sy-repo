@@ -43,14 +43,22 @@ const localDateKey = (d = new Date()): string => {
   return `${y}-${m}-${day}`;
 };
 
+const employeeDayMaterialization = new Map<string, Promise<void>>();
+
 const materializeMyEmployeeDayRoutes = async (date: string) => {
   const day = String(date || "").slice(0, 10);
   if (!day || day < localDateKey()) return;
-  try {
-    await supabase.rpc("materialize_my_day_routes_for_employee" as any, { _date: day });
-  } catch (err) {
-    console.warn("Kunne ikke gøre fremtidige medarbejderruter klar", err);
-  }
+  const existing = employeeDayMaterialization.get(day);
+  if (existing) return existing;
+  const promise = supabase
+    .rpc("materialize_my_day_routes_for_employee" as any, { _date: day })
+    .then(() => undefined)
+    .catch((err) => {
+      console.warn("Kunne ikke gøre fremtidige medarbejderruter klar", err);
+    })
+    .finally(() => employeeDayMaterialization.delete(day));
+  employeeDayMaterialization.set(day, promise);
+  return promise;
 };
 
 /**
