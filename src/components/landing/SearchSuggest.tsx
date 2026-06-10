@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Search, MapPin, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUserLocation } from "@/contexts/LocationContext";
-import { topCategories } from "@/lib/service-taxonomy";
+import { topCategories, searchIndustries } from "@/lib/service-taxonomy";
 import { IndustryIcon } from "@/components/IndustryIcon";
 
 /** Top-brancher hentes fra det kanoniske taksonomi-katalog så landing, søgning
@@ -16,7 +16,7 @@ const CATEGORIES = topCategories().map((ind) => ({
 }));
 
 type Suggestion =
-  | { type: "category"; label: string; key: string }
+  | { type: "category"; label: string; key: string; matchedVia?: string }
   | { type: "business"; label: string; slug: string; city: string | null; logo: string | null }
   | { type: "city"; label: string };
 
@@ -67,10 +67,18 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
     }
     const results: Suggestion[] = [];
 
-    // Category matches
-    CATEGORIES.filter((c) => c.label.toLowerCase().includes(term))
-      .slice(0, 3)
-      .forEach((c) => results.push({ type: "category", label: c.label, key: c.key }));
+    // Branche-match: kig i HELE branchekataloget (alle brancher,
+    // underbrancher, service-navne og nøgleord) — så "tagrens",
+    // "trappevask", "flytning" osv. også giver kategori-forslag.
+    // `preferTopKeys` rangerer top-brancher højst ved tie.
+    searchIndustries(term, { limit: 5, preferTopKeys: true }).forEach((hit) =>
+      results.push({
+        type: "category",
+        label: hit.industry.label,
+        key: hit.industry.key,
+        matchedVia: hit.matchedVia,
+      }),
+    );
 
     // City matches
     (index?.cities || [])
@@ -234,7 +242,9 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
                         <IndustryIcon category={s.key} className="h-8 w-8 shrink-0" alt={s.label} />
                         <span className="flex-1">
                           <div className="font-semibold text-foreground">{s.label}</div>
-                          <div className="text-xs text-muted-foreground">Kategori</div>
+                          <div className="text-xs text-muted-foreground">
+                            {s.matchedVia ? `Kategori · via "${s.matchedVia}"` : "Kategori"}
+                          </div>
                         </span>
                       </>
                     )}
