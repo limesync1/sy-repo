@@ -1,71 +1,59 @@
-# Aftalenumre & frisk ordrenr pr. udførsel
+## 1. Tydelig status-etiket på tidslinjen
 
-## Mål
-1. Hver aftale skal have et synligt **aftalenummer** (internt) der tildeles når aftalen bliver klar til kørsel, og kobles til et **eksternt ordrenummer** fra regnskabsprogrammet når den synkroniseres.
-2. Når en kørsel (fx "Trane Lukhans", interval = hver time) udføres i dag, skal næste forekomst (i morgen kl. samme tid + interval) automatisk få **sit eget nye ordre-/fakturanummer** i regnskabsprogrammet, så der oprettes en helt ny faktura ved næste udførsel.
+På `RouteOccurrenceTimeline` har hver `agreement_occurrence` allerede en status (`planned`, `ready`, `confirmed`, `in_progress`, `completed`, `cancelled` osv.) + en låst/klar afledt tilstand baseret på `planned_arrival`. I dag vises kun "Udført", "Låst", "Klar" som lille tekst. Vi gør den til en rigtig **status-badge** der altid er synlig pr. occurrence, og dækker hele livscyklussen:
 
-## 1) Internt aftalenummer
+| Tilstand | Badge | Hvornår |
+|---|---|---|
+| Låst (fremtidig) | grå "Låst" + låse-ikon | `planned_arrival` ligger i fremtiden ud over låse-vindue |
+| Planlagt | blå "Planlagt" | status `planned` og inden for vinduet |
+| Klar til kørsel | accent "Klar" | status `ready` / dagen er i dag og medarbejder kan starte |
+| Bekræftet | violet "Bekræftet" | status `confirmed` (kunden har godkendt) |
+| I gang | amber "I gang" | status `in_progress` |
+| Udført | grøn "Udført" + ✓ | status `completed` |
+| Faktura sendt | grøn outline "Faktureret #1234" | `invoice_external_number` findes |
+| Faktura venter | gul "Faktura venter" | completed men ingen `invoice_external_number` |
+| Annulleret | rød "Annulleret" | status `cancelled` |
 
-Tilføj felter:
-- `agreements.agreement_number` (text, unik pr. business, format `AFT-YYYY-00001`)
-- `agreement_occurrences.occurrence_number` (text, format `<agreement_number>-<seq+1>` fx `AFT-2026-00042-03`)
+Implementering:
+- Ny lille helper `occurrenceStatusBadge(occ)` i `src/lib/statusColors.ts` der returnerer `{label, className, icon}` baseret på status + afledte felter (planned_arrival, invoice_*).
+- I `RouteOccurrenceTimeline.tsx` erstattes de tre ad‑hoc tekstlinjer (`Udført`/`Låst`/`Klar`) af én konsistent `<span>` med klassen fra helperen + ikon. Faktura-/ordre-chips beholdes nedenunder.
+- Samme helper bruges også i `StopDetailsContent.tsx` og `RouteEditSheet.tsx` (hvor occurrencen vises i toppen) for konsistens.
 
-Trigger-logik:
-- Når en aftale går fra status `draft`/`pending_approval` → `active` (= "klar til kørsel"), tildeles næste `agreement_number` via en sekvens pr. business.
-- Når en `agreement_occurrence` indsættes (også fra `ensure_next_agreement_occurrence` og `materialize_*`), tildeles `occurrence_number` automatisk hvis tomt.
-- Backfill: eksisterende aktive aftaler og forekomster får numre i samme migration.
+## 2. Ruteplanlæggerens UI/UX – konkrete forbedringer
 
-Eksisterende `agreements` (UUID) bruges fortsat som teknisk id; nummeret er kun visningsfeltet.
+### 2a. "+N ruter" skal vise ruterne inline, ikke åbne en sheet
+I `MonthWeekCalendar.tsx` (linje ~880) udvider `+N ruter`-knappen i dag dagens overblik. Vi ændrer den til at **toggle "vis alle" pr. celle** via lokal state (`expandedDays: Set<string>`). Når klikket: `MAX_VISIBLE` ignoreres for den dag, knappen bliver "− skjul". Dagens overblik åbnes stadig hvis man klikker selve dato-tallet (eksplicit handling). 
 
-## 2) Visning af aftalenumre
+### 2b. Modaler skal kunne lukkes på flere måder
+Audit alle dialoger/sheets i `src/components/route-planner/`:
+- `RouteEditSheet`, `StopDetailSheet`, `AllUnassignedDialog`, `BulkMoveRoutesDialog`, `BulkShiftDateDialog`, `MergeRoutesDialog`, `MoveProjectedOccurrenceDialog`, `MoveRouteDateDialog`, `MoveStopsDialog`, `DeleteRouteDialog`, `RouteHistoryDialog`, `RoutePrintDialog`, `SeriesScopeDialog`, `SuggestRouteDialog`, `CreateManualOrderDialog`, `DiagnosticsDialog`, `DayDetailPanel`.
 
-Vis `agreement_number` + `occurrence_number` ved siden af den eksisterende `external_order_number`/`invoice_external_number` her:
-- `RouteOccurrenceTimeline.tsx` (badge under hver kørsel)
-- `StopDetailsContent.tsx` (header på stop-dialogen)
-- `AftaleTab.tsx` (aftale-listen i admin)
-- `CustomerDashboard.tsx` (kundens ordreoversigt)
-- Print-visningen `EmployeeRoutePrint.tsx`
+Vores `Dialog`/`Sheet` (Radix) understøtter allerede **Esc** og **klik på overlay** by default. Vi tjekker at:
+- Ingen bruger `onPointerDownOutside={(e)=>e.preventDefault()}` eller `onEscapeKeyDown` uden grund — fjernes hvor det ikke er kritisk.
+- Destruktive dialoger (delete) får en explicit "Annullér"-knap i footeren.
+- Sheets på mobile har et tydeligt swipe-down / "Færdig"-knap i bunden.
+- Tilføj en synlig "Annullér" / "Færdig"-footerknap i alle sheets der i dag kun har "X" i hjørnet (`RouteEditSheet`, `StopDetailSheet`, `DayDetailPanel`).
 
-Format: `Aftale AFT-2026-00042 · Kørsel #3`.
+### 2c. Bredere UX-strømlining
+1. **Konsekvent toolbar-sprog**: erstat blandede CTA-labels ("Gem ændringer" / "Opdatér" / "OK") med konsekvent "Gem" + "Annullér".
+2. **Tydeligere drag-affordance**: når man holder en aftale, vis kun gyldige drop-mål — øvrige dage får `opacity-40` i stedet for den nuværende subtile tint, så det er åbenlyst hvor man kan slippe.
+3. **Synlig kontekstmenu-trigger**: rute-piller har i dag højre-klik kontekstmenu (skjult for de fleste). Tilføj en lille `⋯`-knap der er synlig ved hover på desktop og altid på touch.
+4. **Forklarende tooltips på badges/ikoner**: låste ruter, projicerede (stiplede) ruter, skill-mismatch-prik — alle får en forklarende `title`/`<Tooltip>` så førstegangsbrugere forstår hvad symbolet betyder.
+5. **Tom-tilstand for dage**: i stedet for kun "Slip her" ved drag, vis en diskret "+ Opret rute"-affordance når man hover'er på en tom dag (kun fremtid).
+6. **Dagens overblik (`DayDetailPanel`)**: tilføj en kort header med antal ruter, antal stops, samlet varighed og første/sidste afgang — i dag skal man læse listen for at få overblikket.
+7. **Tastaturgenveje**: shortcuts-help (`RoutePlannerShortcutsHelp`) findes allerede; tilføj en synlig "?"-knap øverst i planneren der åbner den, så de er opdagelige.
+8. **Loading-feedback**: erstat skeletons med en lille spinner + tekst ("Henter ruter …") i tomme uger så det er klart om data mangler vs. ingen ruter findes.
 
-## 3) Frisk ordrenr i regnskab pr. udførsel (kerneproblemet)
+## Filer der ændres
 
-Roden til problemet i dag: `enqueue_invoice_for_completed_order` kører kun når en **`orders`-række** går til `completed`. For en time-/dag-recurring aftale skal hver ny forekomst blive sin egen `orders`-række (eller direkte sin egen faktura) — ellers genbruger regnskabsprogrammet det samme ordrenr og kan ikke oprette en ny faktura.
+- `src/lib/statusColors.ts` — ny `occurrenceStatusBadge` helper
+- `src/components/route-planner/RouteOccurrenceTimeline.tsx` — brug ny badge
+- `src/components/employee/StopDetailsContent.tsx`, `src/components/route-planner/RouteEditSheet.tsx` — vis samme badge
+- `src/components/route-planner/MonthWeekCalendar.tsx` — toggle "+N ruter" inline + drag-affordance + tom-dag CTA + tooltips
+- `src/components/route-planner/DayDetailPanel.tsx` — header med overblik
+- Alle modal/sheet-komponenter i `route-planner/` — verificér Esc/overlay-luk, tilføj footer "Annullér"-knapper hvor de mangler, ensret CTA-labels
+- `src/components/route-planner/CalendarPlanner.tsx` (eller wrapper) — synlig "?"-knap til shortcuts
 
-Plan:
-1. **Sikre 1:1 mellem `agreement_occurrence` og `orders`-række.** I `ensure_next_agreement_occurrence` (og `_materialize_single_occurrence`) tilføjes oprettelse af en `orders`-række kopieret fra aftalens skabelon — med tom `external_order_number`, `invoice_external_id` og status `planned`. `agreement_occurrences.legacy_order_id` peger på den nye række.
-2. **Ved kørsel-udførsel** (medarbejder markerer stop som `completed`):
-   - Sæt det tilhørende `orders.status = 'completed'` (allerede sat for engangs-ordrer i dag — udvid til at finde ordren via `agreement_occurrences.legacy_order_id` for recurring).
-   - `enqueue_invoice_for_completed_order`-triggeren fyrer som normalt og lægger en `invoice/create`-job i `accounting_sync_queue` for **netop denne** nye ordre → regnskabsprogrammet allokerer et nyt ordre-/fakturanummer.
-3. **Sync-callback**: `accounting-sync` skriver det nye `external_order_number` + `invoice_external_number` tilbage på både `orders` og `agreement_occurrences` (sidstnævnte sker allerede via `accounting_order_links`).
-
-## 4) Robusthed (rettelser fundet under analyse)
-
-- `useProjectedCalendar.ts:118` – kommentar siger "laveste dato", men koden gemmer den **højeste**. Skift til `d < existing` (eller drop helt for ankrede serier) så fremtidige projektioner ikke skjules når der findes en materialiseret rute længere ude i fremtiden.
-- I `runProjection`-dedup: tjek at vi ikke deduplikerer på `agreement_id+date` når intervallet er kortere end et døgn (time-intervaller) — sammenlign på fuld timestamp.
-- `ensure_next_agreement_occurrence` arbejder i dag med `date` + `interval`. For interval `hver_time` bliver `v_next_date := occurrence_date + 1 dag` (pga. fallback når durationen er < 1 dag). Tilføj `planned_arrival = planned_arrival + interval` så time-intervaller flytter sig korrekt og opretter flere forekomster pr. dag.
-
-## 5) Tests
-
-- DB-test: opret aftale med `interval='hver_time'`, marker stop completed, verificér at ny `agreement_occurrence` + ny `orders`-række med tom `external_order_number` oprettes for næste time.
-- Sync-test: stub `accounting-sync` og bekræft at to udførsler giver to forskellige `external_order_number`.
-- UI-snapshot: `RouteOccurrenceTimeline` viser `AFT-...-N` korrekt.
-
-## Tekniske ændringer (filer)
-
-**Migration**
-- Nye kolonner `agreements.agreement_number`, `agreement_occurrences.occurrence_number`, sekvens pr. business.
-- Triggers `assign_agreement_number_on_activate`, `assign_occurrence_number_on_insert`.
-- Opdater `ensure_next_agreement_occurrence` og `_materialize_single_occurrence` til at oprette ledsagende `orders`-række.
-- Backfill `UPDATE` for eksisterende rækker.
-
-**Frontend**
-- `src/components/route-planner/RouteOccurrenceTimeline.tsx`
-- `src/components/employee/StopDetailsContent.tsx`
-- `src/components/admin/AftaleTab.tsx`
-- `src/pages/CustomerDashboard.tsx`
-- `src/pages/EmployeeRoutePrint.tsx`
-- `src/hooks/route-planner/useProjectedCalendar.ts` (datofilter-fix)
-- `src/lib/route-projection/index.ts` (time-interval dedup-fix)
-
-Ingen ændringer i selve regnskabsadaptere (`dinero.ts`/`economic.ts`) — de allokerer nummer automatisk når en ny ordre/faktura sendes.
+## Out of scope
+- Ingen ændringer i database-skema eller backend-status-flow. Status-værdier eksisterer allerede.
+- Ingen ændring i selve fakturerings-/ordre-flowet — kun visning af badge.
