@@ -1127,6 +1127,9 @@ const RoutePillInner = ({
   const visibleEmployees = route.attachedEmployees.slice(0, compact ? 2 : 3);
   const extraEmployees = route.attachedEmployees.length - visibleEmployees.length;
   // Fjernet: grøn bundkant og "klar til udførelse"-logik efter ønske.
+  const canDelete = !!onDelete && !isVirtual && !busy;
+  const canOptimize = !isVirtual && stopCount >= 2 && !busy;
+  const canHistory = !!onShowHistory && !isVirtual;
 
   const pill = (
     <div
@@ -1514,10 +1517,6 @@ const RoutePillInner = ({
       {/* Stops vises ikke under rute-pillen — åbn ruten ved at klikke for at se aftaler. */}
     </div>
   );
-
-  const canDelete = !!onDelete && !isVirtual && !busy;
-  const canOptimize = !isVirtual && stopCount >= 2 && !busy;
-  const canHistory = !!onShowHistory && !isVirtual;
 
   return (
     <RouteContextMenu
