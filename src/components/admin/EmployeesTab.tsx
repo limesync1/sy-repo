@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { IndustryIcon } from "@/components/IndustryIcon";
 import {
   useEmployees, useCreateEmployee,
   useUpdateEmployee, useDeleteEmployee, useResetEmployeePassword,
@@ -1186,6 +1187,7 @@ const EmployeeRow = ({
                           )}
                         >
                           {selected && <span aria-hidden>✓</span>}
+                          <IndustryIcon category={key} className="h-3.5 w-3.5" alt={key} />
                           {key}
                         </button>
                       );

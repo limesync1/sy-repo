@@ -3,6 +3,7 @@
 // PageHeader, surface-admin cards, sub-nav chips og konsistent spacing.
 import { useState, useMemo, useEffect, useRef, useCallback, forwardRef, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
+import { IndustryIcon } from "@/components/IndustryIcon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -2054,7 +2055,7 @@ const IndustryPicker = ({
                 onClick={() => onToggle(k)}
                 className="group inline-flex items-center gap-1.5 rounded-full border border-foreground/20 bg-foreground/5 px-2.5 py-1 text-xs font-medium text-foreground transition-all hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
               >
-                <span>{ind.icon}</span>
+                <IndustryIcon category={ind.key} className="h-4 w-4" alt={ind.label} />
                 <span>{ind.label}</span>
                 <span aria-hidden className="text-muted-foreground transition-colors group-hover:text-destructive">×</span>
               </button>
@@ -2098,7 +2099,7 @@ const IndustryPicker = ({
                         : "border-border bg-card hover:border-foreground/40 hover:bg-secondary/40"
                     }`}
                   >
-                    <span className="text-xl leading-none">{i.icon}</span>
+                    <IndustryIcon category={i.key} className="h-6 w-6" alt={i.label} />
                     <span className="min-w-0 flex-1">
                       <span className="block text-[13px] font-medium leading-tight text-foreground break-words">
                         {i.label}
@@ -2157,7 +2158,9 @@ const SubcategoryPicker = ({
             className="rounded-xl border border-border bg-card p-3.5 shadow-sm transition-shadow hover:shadow-md"
           >
             <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-foreground/5 text-base leading-none">{ind.icon}</span>
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-foreground/5">
+                <IndustryIcon category={ind.key} className="h-5 w-5" alt={ind.label} />
+              </span>
               <span className="text-sm font-semibold text-foreground">{ind.label}</span>
               <span className="ml-auto inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold text-foreground tabular-nums">
                 {picked.length}/{total}

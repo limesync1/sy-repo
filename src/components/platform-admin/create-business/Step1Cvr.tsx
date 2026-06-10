@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { INDUSTRY_GROUPS } from "@/lib/service-taxonomy";
 import { Field } from "./shared";
+import { IndustryIcon } from "@/components/IndustryIcon";
 
 export default function Step1Cvr(p: any) {
   return (
@@ -84,7 +85,7 @@ export default function Step1Cvr(p: any) {
                           : "border-border bg-background text-foreground hover:border-foreground/40"
                       )}
                     >
-                      <span>{ind.icon}</span>
+                      <IndustryIcon category={ind.key} className="h-4 w-4" alt={ind.label} />
                       <span>{ind.label}</span>
                       {active && <Check className="h-3 w-3" />}
                     </button>

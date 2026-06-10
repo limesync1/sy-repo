@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { useSearchParams, Link } from "react-router-dom";
+import { IndustryIcon } from "@/components/IndustryIcon";
 import { useAllBusinesses, type SortOption } from "@/hooks/useDatabase";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -338,7 +339,7 @@ const SearchPage = () => {
                       : "border-border bg-card text-foreground hover:border-foreground/40 hover:bg-secondary active:bg-secondary/70"
                   }`}
                 >
-                  <span aria-hidden className="text-base leading-none">{cat.icon}</span>
+                  <IndustryIcon category={cat.key} className="h-4 w-4" alt={cat.label} />
                   {cat.label}
                   {active && <X className="h-3 w-3 ml-0.5 opacity-70" />}
                 </button>

@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { IndustryIcon } from "@/components/IndustryIcon";
 import {
   useMyBusiness, useServices, useOrders, useCreateBusiness,
   useReviews,
@@ -396,7 +397,7 @@ const CreateBusinessForm = () => {
                             ? "border-foreground bg-foreground/5 shadow-sm"
                             : "border-border bg-card hover:border-foreground/30"
                         }`}>
-                        <span className="text-base leading-none">{ind.icon}</span>
+                        <IndustryIcon category={ind.key} className="h-5 w-5" alt={ind.label} />
                         <span className="truncate text-xs font-medium text-foreground">{ind.label}</span>
                       </button>
                     ))}
