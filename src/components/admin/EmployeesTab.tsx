@@ -1187,7 +1187,7 @@ const EmployeeRow = ({
                           )}
                         >
                           {selected && <span aria-hidden>✓</span>}
-                          <IndustryIcon category={key} className="h-3.5 w-3.5" alt={key} />
+                          <IndustryIcon category={key} className="h-4 w-4" alt={key} />
                           {key}
                         </button>
                       );

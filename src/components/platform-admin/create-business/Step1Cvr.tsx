@@ -85,7 +85,7 @@ export default function Step1Cvr(p: any) {
                           : "border-border bg-background text-foreground hover:border-foreground/40"
                       )}
                     >
-                      <IndustryIcon category={ind.key} className="h-4 w-4" alt={ind.label} />
+                      <IndustryIcon category={ind.key} className="h-5 w-5" alt={ind.label} />
                       <span>{ind.label}</span>
                       {active && <Check className="h-3 w-3" />}
                     </button>

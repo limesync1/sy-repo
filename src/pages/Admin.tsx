@@ -397,7 +397,7 @@ const CreateBusinessForm = () => {
                             ? "border-foreground bg-foreground/5 shadow-sm"
                             : "border-border bg-card hover:border-foreground/30"
                         }`}>
-                        <IndustryIcon category={ind.key} className="h-5 w-5" alt={ind.label} />
+                        <IndustryIcon category={ind.key} className="h-6 w-6" alt={ind.label} />
                         <span className="truncate text-xs font-medium text-foreground">{ind.label}</span>
                       </button>
                     ))}
