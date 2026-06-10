@@ -1331,10 +1331,10 @@ const RoutePillInner = ({
         onSelect();
       }}
       className={cn(
-        "group relative rounded-md cursor-pointer overflow-hidden bg-card",
-        "border border-border/60 shadow-[0_1px_2px_-1px_hsl(var(--foreground)/0.08)] " +
-        "transition-[background-color,border-color,opacity,box-shadow,transform] duration-150 ease-out " +
-        "hover:border-foreground/25 hover:shadow-[0_6px_18px_-8px_hsl(var(--foreground)/0.22)] hover:-translate-y-[1px]",
+        "group relative rounded-lg cursor-pointer overflow-hidden bg-card",
+        "border border-border/55 shadow-[0_1px_0_0_hsl(var(--foreground)/0.02),0_1px_3px_-1px_hsl(var(--foreground)/0.08)] " +
+        "transition-[background-color,border-color,opacity,box-shadow,transform] duration-200 ease-out " +
+        "hover:border-foreground/25 hover:shadow-[0_2px_4px_-2px_hsl(var(--foreground)/0.08),0_8px_22px_-10px_hsl(var(--foreground)/0.24)] hover:-translate-y-[1.5px]",
         isDragging && "opacity-40",
         // Projicerede ruter: kraftig visuel adskillelse — stiplet kant hele
         // vejen rundt, dæmpet baggrund og en diagonal-stribe så de aldrig
@@ -1394,7 +1394,7 @@ const RoutePillInner = ({
           På projicerede ruter dropper vi tinten (stripes håndterer det). */}
       <span
         aria-hidden
-        className="absolute inset-y-0 left-0 w-[3px] pointer-events-none rounded-l-md"
+        className="absolute inset-y-0 left-0 w-[3px] pointer-events-none rounded-l-lg"
         style={{ background: route.color }}
       />
       {!isVirtual && (
