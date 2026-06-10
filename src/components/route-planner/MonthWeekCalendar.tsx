@@ -452,7 +452,25 @@ export const MonthWeekCalendar = ({
     // Projicerede forekomster har ingen rigtig server-status; tæl dem som
     // "planned" så de ikke forsvinder ved status-filter på fremtidige dage.
     if (r.isVirtual) return statusFilter === "planned";
-    if (statusFilter === "ready") return status === "ready" || status === "confirmed";
+    // Afled også status fra stop-fremdrift, da route.status ikke altid
+    // sættes til "completed"/"in_progress" når alle stops er færdige.
+    const stopCount = r.stops.length;
+    const doneCount = r.stops.filter((s) => s.status === "completed").length;
+    const allDone = stopCount > 0 && doneCount === stopCount;
+    const anyDone = doneCount > 0 && !allDone;
+    if (statusFilter === "completed") {
+      return status === "completed" || allDone;
+    }
+    if (statusFilter === "in_progress") {
+      return status === "in_progress" || anyDone;
+    }
+    if (statusFilter === "ready") {
+      return status === "ready" || status === "confirmed";
+    }
+    // "planned" = ikke startet og ikke udført
+    if (statusFilter === "planned") {
+      return (status === "planned" || status === "") && doneCount === 0;
+    }
     return status === statusFilter;
   };
   const routeMatchesEmployee = (r: CalendarRoute): boolean => {

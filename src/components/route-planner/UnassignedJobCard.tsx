@@ -330,6 +330,7 @@ export const UnassignedJobCard = ({
 
       <div className="flex-1 min-w-0 flex flex-col">
 
+
       {/* ───────────────────────────────────────────────────────────────────
           2) BODY — klikbart område for at åbne detaljer.
          ─────────────────────────────────────────────────────────────────── */}
@@ -347,11 +348,33 @@ export const UnassignedJobCard = ({
       >
         {/* TOP-LINJE: navn + dato-pille. Navn er stærkeste typografi.
             Dato-pillen ankrer urgency i højre side uden tungt bånd. */}
-        <div className="flex items-baseline justify-between gap-2">
-          <h3 className={`${compact ? "text-[13px]" : "text-[14px]"} font-semibold leading-tight text-foreground truncate capitalize min-w-0 flex-1 tracking-tight`}>
-            {isPending && <Lock className="inline h-3 w-3 mr-1 text-amber-600 align-[-1px]" />}
-            {job.customer_name}
-          </h3>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            {/* Stor, tintet branche-ikon-tile foran kundenavnet — gør det
+                muligt at scanne aftalens type (rengøring/vinduer/have/...)
+                uden at læse teksten. Bruger samme ikon-pakke som services
+                og ordrer. */}
+            {!isPending && items[0]?.service_name && (
+              <span
+                aria-hidden
+                title={items[0].service_name}
+                className={cn(
+                  "shrink-0 inline-flex items-center justify-center rounded-md bg-secondary/70 ring-1 ring-border/60",
+                  compact ? "h-7 w-7 p-1" : "h-8 w-8 p-1.5",
+                )}
+              >
+                <IndustryIcon
+                  name={items[0].service_name}
+                  className="h-full w-full object-contain"
+                  alt=""
+                />
+              </span>
+            )}
+            <h3 className={`${compact ? "text-[13px]" : "text-[14px]"} font-semibold leading-tight text-foreground truncate capitalize min-w-0 flex-1 tracking-tight`}>
+              {isPending && <Lock className="inline h-3 w-3 mr-1 text-amber-600 align-[-1px]" />}
+              {job.customer_name}
+            </h3>
+          </div>
           <span className={`shrink-0 inline-flex items-center gap-1 text-[10.5px] font-medium tabular-nums leading-none ${urgency.pillText}`}>
             <span aria-hidden className={`h-1 w-1 rounded-full ${urgency.rail}`} />
             {urgency.label}
@@ -361,18 +384,10 @@ export const UnassignedJobCard = ({
         {/* SERVICE + PRIS — flad baseline-linje, ingen tinted bg-blok. */}
         {itemCount > 0 && (
           <div className="flex items-baseline justify-between gap-3">
-            <p className="text-[11.5px] text-muted-foreground truncate leading-snug min-w-0 flex-1 inline-flex items-center gap-1.5">
-              {/* Branchespecifikt service-ikon — gør det muligt at scanne hvad
-                  aftalen handler om uden at læse teksten. Bruger samme icon-
-                  pakke som services/ordrer. */}
-              <IndustryIcon
-                name={items[0].service_name}
-                className="h-4 w-4 shrink-0 opacity-80"
-                alt=""
-              />
+            <p className="text-[11.5px] text-muted-foreground truncate leading-snug min-w-0 flex-1">
               {items[0].quantity > 1 && <span className="tabular-nums">{items[0].quantity}× </span>}
-              <span className="text-foreground/80 font-medium truncate">{items[0].service_name}</span>
-              {itemCount > 1 && <span className="shrink-0"> · +{itemCount - 1}</span>}
+              <span className="text-foreground/80 font-medium">{items[0].service_name}</span>
+              {itemCount > 1 && <span> · +{itemCount - 1}</span>}
             </p>
             {displayAmount != null && (
               <span className="shrink-0 text-[12px] font-semibold text-foreground tabular-nums tracking-tight leading-none">
