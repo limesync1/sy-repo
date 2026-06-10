@@ -136,6 +136,277 @@ const tintBgFrom = (color?: string | null) => {
   return `linear-gradient(90deg, rgba(${r},${g},${b},0.10) 0%, rgba(${r},${g},${b},0.04) 22%, transparent 60%)`;
 };
 
+/* ─── Dagens overblik (sheet) ─── */
+/** Klik på et dato-tal eller "+N ruter"-knappen åbner denne sheet, så
+ *  brugeren kan se alle dagens ruter, en samlet opsummering og hurtigt
+ *  navigere ind på en konkret rute eller oprette en ny.  Denne komponent
+ *  er bevidst frakoblet dnd — den genbruger ikke RoutePill (som er
+ *  drag-source) for at undgå at trække ruter ud af sheet'en ved et uheld. */
+const DayOverviewSheet = ({
+  date, routes, capacity, weather, onClose, onSelectRoute, onSelectStop, onCreateRoute,
+}: {
+  date: string;
+  routes: CalendarRoute[];
+  capacity: { load_pct: number; minutes_booked: number; minutes_capacity: number } | null;
+  weather: WeatherDay | null;
+  onClose: () => void;
+  onSelectRoute: (route: Route) => void;
+  onSelectStop: (stop: RouteStop) => void;
+  onCreateRoute: (date: string) => void;
+}) => {
+  const day = parseISO(date);
+  const todayIso = format(new Date(), "yyyy-MM-dd");
+  const isPast = date < todayIso;
+  const isToday = date === todayIso;
+
+  // Aggregeret opsummering — så brugeren får et tal-overblik over hele
+  // dagen uden at skulle scanne hver pille.
+  const totalStops = routes.reduce((sum, r) => sum + r.stops.length, 0);
+  const completedStops = routes.reduce(
+    (sum, r) => sum + r.stops.filter((s) => s.status === "completed").length,
+    0,
+  );
+  const pendingStops = totalStops - completedStops;
+  const totalRevenue = routes.reduce(
+    (sum, r) => sum + r.stops.reduce((s2, s) => s2 + Number((s as any).order_amount || 0), 0),
+    0,
+  );
+  const totalMinutes = routes.reduce(
+    (sum, r) => sum + (Number(r.total_duration_minutes || 0) ||
+      r.stops.reduce((s2, s) => s2 + Number(s.travel_time_to_next_min || 0), 0)),
+    0,
+  );
+  const employees = (() => {
+    const m = new Map<string, { id: string; name: string; color?: string | null; avatar_url?: string | null }>();
+    for (const r of routes) for (const e of r.attachedEmployees) if (!m.has(e.id)) m.set(e.id, e);
+    return Array.from(m.values());
+  })();
+
+  return (
+    <Sheet open onOpenChange={(o) => { if (!o) onClose(); }}>
+      <SheetContent side="right" className="w-full sm:max-w-lg p-0 flex flex-col">
+        <SheetHeader className="px-5 pt-5 pb-3 border-b border-border/70 space-y-1">
+          <div className="flex items-center gap-2">
+            <span className={cn(
+              "inline-flex h-9 w-9 items-center justify-center rounded-lg text-base font-bold tabular-nums",
+              isToday ? "bg-foreground text-background" : "bg-secondary text-foreground",
+            )}>
+              {format(day, "d")}
+            </span>
+            <div className="min-w-0">
+              <SheetTitle className="text-lg leading-tight">
+                {format(day, "EEEE d. MMMM yyyy", { locale: da })}
+              </SheetTitle>
+              <div className="text-[11px] text-muted-foreground flex items-center gap-2">
+                <span>Uge {getISOWeek(day)}</span>
+                {isToday && <span className="text-foreground font-semibold">· I dag</span>}
+                {isPast && !isToday && <span>· Tidligere dag</span>}
+                {weather && (
+                  <span className="inline-flex items-center gap-1">
+                    · {Math.round(weather.temp_max ?? weather.temp_min ?? 0)}°
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </SheetHeader>
+
+        {/* Opsummering */}
+        <div className="px-5 py-4 grid grid-cols-2 gap-2 border-b border-border/70">
+          <div className="rounded-lg border border-border/70 bg-card p-3">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Ruter</div>
+            <div className="text-xl font-bold tabular-nums">{routes.length}</div>
+          </div>
+          <div className="rounded-lg border border-border/70 bg-card p-3">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Stop</div>
+            <div className="text-xl font-bold tabular-nums">
+              {completedStops > 0 && (
+                <span className="text-emerald-600 dark:text-emerald-400">{completedStops}/</span>
+              )}
+              {totalStops}
+            </div>
+            {pendingStops > 0 && completedStops > 0 && (
+              <div className="text-[10px] text-muted-foreground">{pendingStops} mangler</div>
+            )}
+          </div>
+          <div className="rounded-lg border border-border/70 bg-card p-3">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Omsætning</div>
+            <div className="text-xl font-bold tabular-nums">{fmtRouteKr(totalRevenue)}</div>
+          </div>
+          <div className="rounded-lg border border-border/70 bg-card p-3">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Arbejdstid</div>
+            <div className="text-xl font-bold tabular-nums">{totalMinutes > 0 ? fmtRouteMin(totalMinutes) : "—"}</div>
+          </div>
+        </div>
+
+        {capacity && capacity.minutes_capacity > 0 && (
+          <div className="px-5 py-3 border-b border-border/70 space-y-1">
+            <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+              <span>Dagens belastning</span>
+              <span className="tabular-nums font-semibold text-foreground">
+                {Math.round(capacity.load_pct)}% ·{" "}
+                {Math.round((capacity.minutes_booked / 60) * 10) / 10}t /{" "}
+                {Math.round(capacity.minutes_capacity / 60)}t
+              </span>
+            </div>
+            <div className="h-1.5 rounded-full bg-border/40 overflow-hidden">
+              <div
+                className={cn(
+                  "h-full transition-[width] duration-300",
+                  capacity.load_pct >= 100 ? "bg-destructive"
+                    : capacity.load_pct >= 85 ? "bg-amber-500"
+                    : "bg-foreground/40",
+                )}
+                style={{ width: `${Math.min(100, capacity.load_pct)}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {employees.length > 0 && (
+          <div className="px-5 py-3 border-b border-border/70">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1.5">
+              Medarbejdere på dagen ({employees.length})
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {employees.map((e) => (
+                <span
+                  key={e.id}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium"
+                >
+                  {e.avatar_url ? (
+                    <img src={e.avatar_url} alt={e.name} className="h-4 w-4 rounded-full object-cover" />
+                  ) : (
+                    <span
+                      className="inline-flex h-4 w-4 items-center justify-center rounded-full text-[8px] font-bold"
+                      style={{ background: e.color || "hsl(var(--muted-foreground))", color: readableTokenOn(e.color) }}
+                    >
+                      {initials(e.name)}
+                    </span>
+                  )}
+                  <span className="truncate max-w-[140px]">{e.name}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Liste over dagens ruter — i planlagt rækkefølge */}
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-2">
+          {routes.length === 0 ? (
+            <div className="text-center text-sm text-muted-foreground py-12">
+              Ingen ruter på denne dag endnu.
+            </div>
+          ) : (
+            routes.map((r) => {
+              const stopCount = r.stops.length;
+              const completed = r.stops.filter((s) => s.status === "completed").length;
+              const revenue = r.stops.reduce((sum, s) => sum + Number((s as any).order_amount || 0), 0);
+              const isVirtual = !!r.isVirtual;
+              const isCompleted = (r as any).status === "completed";
+              return (
+                <button
+                  key={r.id}
+                  type="button"
+                  onClick={() => onSelectRoute(r)}
+                  className={cn(
+                    "group w-full text-left rounded-lg border border-border/70 bg-card p-3 hover:border-foreground/30 hover:shadow-sm transition-all relative overflow-hidden",
+                    isVirtual && "border-dashed bg-muted/40",
+                  )}
+                >
+                  <span aria-hidden className="absolute inset-y-0 left-0 w-[3px]" style={{ background: r.color }} />
+                  <div className="pl-2 flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {isVirtual && (
+                          <span className="inline-flex items-center gap-0.5 rounded bg-foreground/[0.06] ring-1 ring-inset ring-foreground/10 px-1 py-px text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+                            <Lock className="h-2 w-2" />
+                            {date > todayIso ? "Låst" : date === todayIso ? "I dag" : "Historisk"}
+                          </span>
+                        )}
+                        {isCompleted && (
+                          <span className="inline-flex items-center gap-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 ring-1 ring-inset ring-emerald-500/30 px-1 py-px text-[9px] font-bold uppercase tracking-wider">
+                            <CheckCircle2 className="h-2 w-2" /> Udført
+                          </span>
+                        )}
+                        <span className={cn("text-sm font-semibold truncate", isVirtual && "italic text-muted-foreground")}>
+                          {r.name || `Rute (${format(parseISO(r.route_date), "d. MMM", { locale: da })})`}
+                        </span>
+                      </div>
+                      <div className="mt-1 flex items-center gap-x-3 gap-y-0.5 flex-wrap text-[11px] text-muted-foreground tabular-nums">
+                        <span className="inline-flex items-center gap-1">
+                          <MapPin className="h-3 w-3" />
+                          {completed > 0 && (
+                            <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{completed}/</span>
+                          )}
+                          {stopCount} stop
+                        </span>
+                        {revenue > 0 && (
+                          <span className="inline-flex items-center gap-1 font-semibold text-foreground/80">
+                            <Wallet className="h-3 w-3" /> {fmtRouteKr(revenue)}
+                          </span>
+                        )}
+                        {r.attachedEmployees.length > 0 && (
+                          <span className="inline-flex items-center gap-1">
+                            <Users className="h-3 w-3" /> {r.attachedEmployees.length}
+                          </span>
+                        )}
+                      </div>
+                      {/* Hurtigt stop-overblik (max 4) */}
+                      {r.stops.length > 0 && (
+                        <ul className="mt-2 space-y-1">
+                          {r.stops.slice(0, 4).map((s, i) => (
+                            <li
+                              key={s.id}
+                              role="button"
+                              tabIndex={0}
+                              onClick={(e) => { e.stopPropagation(); onSelectStop(s); }}
+                              onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); onSelectStop(s); } }}
+                              className="flex items-center gap-2 text-[11px] text-muted-foreground hover:text-foreground rounded px-1 -mx-1 py-0.5 hover:bg-secondary/60 cursor-pointer"
+                            >
+                              <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-secondary text-[9px] font-bold text-foreground shrink-0">
+                                {i + 1}
+                              </span>
+                              <span className="truncate flex-1">
+                                {(s as any).customer_name || (s as any).address || "Stop"}
+                              </span>
+                              {s.status === "completed" && (
+                                <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0" />
+                              )}
+                            </li>
+                          ))}
+                          {r.stops.length > 4 && (
+                            <li className="text-[10.5px] text-muted-foreground/80 italic pl-6">
+                              + {r.stops.length - 4} flere stop…
+                            </li>
+                          )}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              );
+            })
+          )}
+        </div>
+
+        {!isPast && (
+          <div className="border-t border-border/70 px-5 py-3 bg-card">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => onCreateRoute(date)}
+            >
+              <Plus className="h-4 w-4 mr-2" /> Opret ny rute denne dag
+            </Button>
+          </div>
+        )}
+      </SheetContent>
+    </Sheet>
+  );
+};
+
 export const MonthWeekCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
   onCreateRoute, onOptimizeRoute, onDeleteRoute, onShowHistory, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
