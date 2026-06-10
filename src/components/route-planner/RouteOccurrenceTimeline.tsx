@@ -153,6 +153,14 @@ export const RouteOccurrenceTimeline = ({ routeId }: Props) => {
                       </div>
                       <div className="text-center">
                         <div className="text-[10px] font-semibold text-foreground leading-tight">{it.n}. kørsel</div>
+                        {it.occ?.occurrence_number && (
+                          <div
+                            className="text-[9px] font-mono text-muted-foreground leading-tight"
+                            title="Kørselsnummer"
+                          >
+                            {it.occ.occurrence_number}
+                          </div>
+                        )}
                         <div className="text-[10px] text-muted-foreground leading-tight capitalize">
                           {format(parseISO(it.planned ?? it.date), it.planned ? "d. MMM HH:mm" : "d. MMM", { locale: da })}
                         </div>
