@@ -1967,16 +1967,6 @@ const SettingsTab = ({ business }: { business: any }) => {
                     inactiveLabel="Ikke aktivt — slå til for at lade besøgende skrive til jer"
                     onToggle={() => setLivechatEnabled((v) => !v)}
                   />
-                  <FeatureRow
-                    icon={<Unlock />}
-                    title="Tillad tidlig udførelse af ruter"
-                    badge={<span className="rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">Gratis</span>}
-                    description="Som standard kan medarbejdere først starte en rute på dens planlagte dato. Slå til for at lade alle medarbejdere udføre ruter før eller efter datoen. Du kan stadig overstyre pr. medarbejder (Medarbejdere → Tidlig udførelse) eller pr. rute (Ruteplanlægger → ”Tillad tidlig udførelse”)."
-                    active={allowEarlyCompletionDefault}
-                    activeLabel="Aktivt — alle medarbejdere kan udføre ruter på enhver dato"
-                    inactiveLabel="Ikke aktivt — ruter er låst til den planlagte dato"
-                    onToggle={() => setAllowEarlyCompletionDefault((v) => !v)}
-                  />
                 </div>
               </div>
             </div>
