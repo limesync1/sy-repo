@@ -339,7 +339,7 @@ const SearchPage = () => {
                       : "border-border bg-card text-foreground hover:border-foreground/40 hover:bg-secondary active:bg-secondary/70"
                   }`}
                 >
-                  <IndustryIcon category={cat.key} className="h-4 w-4" alt={cat.label} />
+                  <IndustryIcon category={cat.key} className="h-5 w-5" alt={cat.label} />
                   {cat.label}
                   {active && <X className="h-3 w-3 ml-0.5 opacity-70" />}
                 </button>
