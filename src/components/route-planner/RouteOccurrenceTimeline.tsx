@@ -23,11 +23,13 @@ type Occurrence = {
   invoice_external_number: string | null;
   invoice_status: string | null;
   external_order_number: string | null;
+  occurrence_number: string | null;
 };
 
 type AgreementRow = {
   agreement_id: string;
   label: string;
+  agreement_number: string | null;
   occurrences: Occurrence[];
 };
 
@@ -53,9 +55,18 @@ export const RouteOccurrenceTimeline = ({ routeId }: Props) => {
 
       const { data: occs } = await supabase
         .from("agreement_occurrences")
-        .select("id, agreement_id, occurrence_date, sequence_index, status, completed_at, planned_arrival, invoice_external_id, invoice_external_number, invoice_status, external_order_number")
+        .select("id, agreement_id, occurrence_date, sequence_index, status, completed_at, planned_arrival, invoice_external_id, invoice_external_number, invoice_status, external_order_number, occurrence_number")
         .in("agreement_id", agreementIds)
         .order("sequence_index", { ascending: true });
+
+      const { data: agreementRows } = await supabase
+        .from("agreements")
+        .select("id, agreement_number")
+        .in("id", agreementIds);
+      const agreementNumberById = new Map<string, string | null>();
+      for (const a of (agreementRows ?? []) as any[]) {
+        agreementNumberById.set(a.id, a.agreement_number ?? null);
+      }
 
       const byAgreement = new Map<string, Occurrence[]>();
       for (const o of (occs ?? []) as Occurrence[]) {
@@ -74,6 +85,7 @@ export const RouteOccurrenceTimeline = ({ routeId }: Props) => {
       return agreementIds.map((aid) => ({
         agreement_id: aid,
         label: labelByAgreement.get(aid) ?? "Aftale",
+        agreement_number: agreementNumberById.get(aid) ?? null,
         occurrences: byAgreement.get(aid) ?? [],
       }));
     },
