@@ -3038,6 +3038,18 @@ const Planner = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
 
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0 rounded-md"
+                onClick={() => setShortcutsOpen(true)}
+                aria-label="Tastatur-genveje"
+                title="Tastatur-genveje (tryk ?)"
+              >
+                <Keyboard className="h-3.5 w-3.5" />
+              </Button>
+
               <Dialog open={createOpen} onOpenChange={setCreateOpen}>
                 <DialogTrigger asChild>
                   <Button data-tour="routes-create-button" size="sm" className="h-8 gap-1.5 rounded-md font-semibold">
