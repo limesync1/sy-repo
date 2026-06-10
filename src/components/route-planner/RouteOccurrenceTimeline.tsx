@@ -122,7 +122,17 @@ export const RouteOccurrenceTimeline = ({ routeId }: Props) => {
 
           return (
             <div key={row.agreement_id} className="space-y-1.5">
-              <div className="text-[11px] font-medium text-muted-foreground truncate">{row.label}</div>
+              <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground truncate">
+                <span className="truncate">{row.label}</span>
+                {row.agreement_number && (
+                  <span
+                    className="inline-flex items-center rounded-sm border border-border bg-muted px-1 py-px text-[9px] font-semibold text-foreground"
+                    title="Aftalenummer"
+                  >
+                    {row.agreement_number}
+                  </span>
+                )}
+              </div>
               <div className="relative">
                 <div className="absolute left-0 right-0 top-3 h-px bg-border" aria-hidden />
                 <ul className="relative flex items-start gap-3 overflow-x-auto pb-1">
