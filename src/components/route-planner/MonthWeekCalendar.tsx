@@ -317,6 +317,8 @@ type DayCellProps = {
   onSelectRoute: (route: Route) => void;
   onSelectStop: (stop: RouteStop) => void;
   onCreateRoute: (date: string) => void;
+  /** Åbner "dagens overblik"-sheet med alle ruter for datoen. */
+  onOpenDayOverview: (date: string) => void;
   onOptimizeRoute: (routeId: string) => void;
   onDeleteRoute?: (route: CalendarRoute) => void;
   onShowHistory?: (route: CalendarRoute) => void;
@@ -346,7 +348,7 @@ type DayCellProps = {
 
 const DayCellInner = ({
   date, dateStr, routes, inMonth, today,
-  onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, onDeleteRoute, onShowHistory, optimizingRouteId, compact, draggingType, draggingRouteId, weather,
+  onSelectRoute, onSelectStop, onCreateRoute, onOpenDayOverview, onOptimizeRoute, onDeleteRoute, onShowHistory, optimizingRouteId, compact, draggingType, draggingRouteId, weather,
   loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds, alert,
   selectedRouteIds, onToggleRouteSelection, capacity, mismatchedRouteIds,
 }: DayCellProps) => {
