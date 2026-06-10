@@ -755,6 +755,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     categories: selectedCategories,
     opening_hours: openHours,
     notification_settings: notifSettings,
+    allow_early_completion_default: allowEarlyCompletionDefault,
     settings: {
       ...((business.settings as any) || {}),
       route_planning_enabled: routePlanningEnabled,
@@ -783,6 +784,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     name, description, phone, email, address, city, zipCode,
     logoUrl, coverUrl, selectedCategories, selectedSubcategories,
     openHours, notifSettings, routePlanningEnabled, accountingIntegrationEnabled, leadsEnabled, livechatEnabled, customDomain, customerNotifUpcomingMinutes,
+    allowEarlyCompletionDefault,
   ]);
 
   useEffect(() => {
