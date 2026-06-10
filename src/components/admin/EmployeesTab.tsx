@@ -280,6 +280,54 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
         )}
       </div>
 
+      {/* ─── Tidlig udførelse — virksomhedens standard ───
+          Tidligere boede denne kontakt i Indstillinger → Gratis tilvalg, men
+          den hører naturligt til hos medarbejderne, fordi den styrer hvornår
+          deres ruter låses op. Værdien gemmes som
+          `allow_early_completion_default` på virksomheden og kan stadig
+          overstyres per medarbejder længere nede, eller per rute i
+          Ruteplanlæggeren. */}
+      {routePlanningEnabled && (
+        <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3.5 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+          <div className="flex items-start gap-2 min-w-0">
+            <Unlock className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-foreground">
+                Tillad tidlig udførelse af ruter
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground leading-relaxed">
+                Som standard kan medarbejdere først starte en rute på dens planlagte dato. Slå til for at lade alle medarbejdere udføre ruter før eller efter datoen. Du kan stadig overstyre pr. medarbejder nedenfor, eller pr. rute i Ruteplanlæggeren.
+              </p>
+              <p className="mt-1 text-[11px] font-medium text-muted-foreground">
+                {allowEarlyCompletionDefault
+                  ? "Aktivt — alle medarbejdere kan udføre ruter på enhver dato"
+                  : "Ikke aktivt — ruter er låst til den planlagte dato"}
+              </p>
+            </div>
+          </div>
+          <div className="shrink-0 self-end sm:self-center">
+            <Switch
+              checked={allowEarlyCompletionDefault}
+              disabled={!business || updateBusiness.isPending}
+              onCheckedChange={async (checked) => {
+                if (!business) return;
+                try {
+                  await updateBusiness.mutateAsync({
+                    id: business.id,
+                    allow_early_completion_default: checked,
+                  } as any);
+                  toast.success(checked
+                    ? "Tidlig udførelse slået til for alle medarbejdere"
+                    : "Tidlig udførelse slået fra");
+                } catch (e: any) {
+                  toast.error(e?.message || "Kunne ikke gemme ændring");
+                }
+              }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Stats + filter — samme layout som Kunder/Aftaler */}
       <div data-tour="employees-stats" className="grid gap-2.5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
         <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
