@@ -349,7 +349,7 @@ const RequestQuote = () => {
                     {filteredCategories.length === 0 && (
                       <li className="px-4 py-3 text-sm text-muted-foreground">Ingen kategorier matcher.</li>
                     )}
-                    {filteredCategories.map(({ label, key, icon }) => {
+                    {filteredCategories.map(({ label, key, matchedVia }) => {
                       const active = category === key;
                       return (
                         <li key={key}>
@@ -365,7 +365,12 @@ const RequestQuote = () => {
                             }`}
                           >
                             <IndustryIcon category={key} className="h-7 w-7 shrink-0" alt={label} />
-                            <span className="flex-1 font-medium">{label}</span>
+                            <span className="flex-1 min-w-0">
+                              <div className="font-medium truncate">{label}</div>
+                              {matchedVia && (
+                                <div className="text-[11px] text-muted-foreground truncate">via "{matchedVia}"</div>
+                              )}
+                            </span>
                             {active && <Check className="h-4 w-4 text-accent" />}
                           </button>
                         </li>
