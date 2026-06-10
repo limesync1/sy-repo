@@ -34,6 +34,9 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Filter, X as XIcon, Check } from "lucide-react";
+import { toast } from "sonner";
 import {
   Sheet,
   SheetContent,
@@ -426,6 +429,42 @@ export const MonthWeekCalendar = ({
    *  klikker på dato-tallet eller "+N ruter"-knappen. */
   const [overviewDate, setOverviewDate] = useState<string | null>(null);
 
+  // ─── Hurtig filtrering (status + medarbejder) ───
+  // Lokal state — overlever ikke reload (med vilje: en filtrering på "klar"
+  // skal ikke forvirre næste gang man åbner planneren). Filteret anvendes
+  // KUN i kalender-visningen og påvirker ikke det data RoutePlanner ser.
+  type StatusFilter = "all" | "planned" | "ready" | "in_progress" | "completed";
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [employeeFilter, setEmployeeFilter] = useState<Set<string>>(new Set());
+
+  // Saml unikke medarbejdere på tværs af alle synlige ruter — bruges til
+  // medarbejder-filterets multi-select. Beregnes kun når routes ændrer sig.
+  const allEmployees = useMemo(() => {
+    const map = new Map<string, { id: string; name: string; color?: string | null; avatar_url?: string | null }>();
+    for (const r of routes) for (const e of r.attachedEmployees) if (!map.has(e.id)) map.set(e.id, e);
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, "da"));
+  }, [routes]);
+
+  const routeMatchesStatus = (r: CalendarRoute): boolean => {
+    if (statusFilter === "all") return true;
+    const status = ((r as any).status || "planned").toLowerCase();
+    // Projicerede forekomster har ingen rigtig server-status; tæl dem som
+    // "planned" så de ikke forsvinder ved status-filter på fremtidige dage.
+    if (r.isVirtual) return statusFilter === "planned";
+    if (statusFilter === "ready") return status === "ready" || status === "confirmed";
+    return status === statusFilter;
+  };
+  const routeMatchesEmployee = (r: CalendarRoute): boolean => {
+    if (employeeFilter.size === 0) return true;
+    return r.attachedEmployees.some((e) => employeeFilter.has(e.id));
+  };
+  const filteredRoutes = useMemo(
+    () => routes.filter((r) => routeMatchesStatus(r) && routeMatchesEmployee(r)),
+    [routes, statusFilter, employeeFilter],
+  );
+  const activeFilterCount = (statusFilter === "all" ? 0 : 1) + employeeFilter.size;
+  const hiddenCount = routes.length - filteredRoutes.length;
+
   // Memo: beregn synlige uger og rute-mapping kun når input ændrer sig.  Tidligere
   // blev disse rebygget hver render (= hver gang vejret eller drag-tilstand
   // ændrede sig), hvilket gjorde at hele kalenderen rerender'ede selv ved
@@ -446,7 +485,7 @@ export const MonthWeekCalendar = ({
 
   const routesByDate = useMemo(() => {
     const m = new Map<string, CalendarRoute[]>();
-    for (const r of routes) {
+    for (const r of filteredRoutes) {
       const arr = m.get(r.route_date) || [];
       arr.push(r);
       m.set(r.route_date, arr);
@@ -473,7 +512,7 @@ export const MonthWeekCalendar = ({
       m.set(k, arr);
     }
     return m;
-  }, [routes]);
+  }, [filteredRoutes]);
 
   const weekdayLabels = ["Man", "Tir", "Ons", "Tor", "Fre", "Lør", "Søn"];
   // Indeks (0–6) for "i dag" i mandags-uge — bruges til at fremhæve dagens
@@ -493,6 +532,136 @@ export const MonthWeekCalendar = ({
   return (
     <>
     <Card className="overflow-hidden flex flex-col h-full rounded-lg border-border/70 bg-card shadow-[0_2px_10px_-6px_hsl(var(--foreground)/0.18)]">
+      {/* ─── Hurtig filtrering ───
+          Status-chips + medarbejder-popover. Kompakt så den ikke æder
+          plads fra selve kalenderen. Når filteret er aktivt vises også
+          en lille "X ruter skjult"-tæller + nulstil-knap. */}
+      <div className="shrink-0 flex items-center gap-1.5 px-2 py-1.5 border-b border-border/70 bg-card/80 text-[11px]">
+        <span className="inline-flex items-center gap-1 text-muted-foreground font-semibold uppercase tracking-wider text-[9.5px] pr-1">
+          <Filter className="h-3 w-3" /> Filter
+        </span>
+        {([
+          { key: "all", label: "Alle" },
+          { key: "planned", label: "Planlagt" },
+          { key: "ready", label: "Klar" },
+          { key: "in_progress", label: "I gang" },
+          { key: "completed", label: "Udført" },
+        ] as { key: StatusFilter; label: string }[]).map((opt) => {
+          const active = statusFilter === opt.key;
+          return (
+            <button
+              key={opt.key}
+              type="button"
+              onClick={() => setStatusFilter(opt.key)}
+              className={cn(
+                "h-6 px-2 rounded-full font-semibold transition-colors border",
+                active
+                  ? "bg-foreground text-background border-foreground shadow-sm"
+                  : "bg-background text-muted-foreground border-border/70 hover:bg-secondary hover:text-foreground",
+              )}
+              aria-pressed={active}
+            >
+              {opt.label}
+            </button>
+          );
+        })}
+        <span className="h-4 w-px bg-border/70 mx-1" aria-hidden />
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className={cn(
+                "h-6 px-2 rounded-full font-semibold transition-colors border inline-flex items-center gap-1",
+                employeeFilter.size > 0
+                  ? "bg-foreground text-background border-foreground"
+                  : "bg-background text-muted-foreground border-border/70 hover:bg-secondary hover:text-foreground",
+              )}
+              aria-label="Filtrer på medarbejder"
+            >
+              Medarbejder
+              {employeeFilter.size > 0 && (
+                <span className="inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-background/20 text-[10px] tabular-nums">
+                  {employeeFilter.size}
+                </span>
+              )}
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-64 p-1.5 max-h-72 overflow-auto">
+            {allEmployees.length === 0 ? (
+              <p className="px-2 py-2 text-xs text-muted-foreground">Ingen medarbejdere på ruterne</p>
+            ) : (
+              <ul className="space-y-0.5">
+                {allEmployees.map((emp) => {
+                  const checked = employeeFilter.has(emp.id);
+                  return (
+                    <li key={emp.id}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEmployeeFilter((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(emp.id)) next.delete(emp.id);
+                            else next.add(emp.id);
+                            return next;
+                          });
+                        }}
+                        className={cn(
+                          "w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs text-left transition-colors",
+                          checked ? "bg-secondary text-foreground" : "hover:bg-secondary/60",
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "h-4 w-4 rounded border flex items-center justify-center shrink-0",
+                            checked ? "bg-foreground border-foreground text-background" : "border-border",
+                          )}
+                        >
+                          {checked && <Check className="h-3 w-3" />}
+                        </span>
+                        {emp.avatar_url ? (
+                          <img src={emp.avatar_url} alt="" className="h-5 w-5 rounded-full object-cover" />
+                        ) : (
+                          <span
+                            className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold"
+                            style={{ background: emp.color || "hsl(var(--muted-foreground))", color: readableTokenOn(emp.color) }}
+                          >
+                            {initials(emp.name)}
+                          </span>
+                        )}
+                        <span className="truncate font-medium">{emp.name}</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            {employeeFilter.size > 0 && (
+              <button
+                type="button"
+                onClick={() => setEmployeeFilter(new Set())}
+                className="mt-1 w-full text-xs text-muted-foreground hover:text-foreground py-1.5 rounded-md hover:bg-secondary"
+              >
+                Nulstil
+              </button>
+            )}
+          </PopoverContent>
+        </Popover>
+        {activeFilterCount > 0 && (
+          <>
+            <span className="text-muted-foreground text-[10.5px] ml-auto">
+              {hiddenCount > 0 ? `${hiddenCount} ${hiddenCount === 1 ? "rute" : "ruter"} skjult` : "Ingen skjult"}
+            </span>
+            <button
+              type="button"
+              onClick={() => { setStatusFilter("all"); setEmployeeFilter(new Set()); }}
+              className="inline-flex items-center gap-1 h-6 px-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-secondary border border-transparent hover:border-border/70 transition-colors"
+              title="Nulstil alle filtre"
+            >
+              <XIcon className="h-3 w-3" /> Nulstil
+            </button>
+          </>
+        )}
+      </div>
       {/* Weekday header */}
       <div
         className="grid border-b border-border/70 bg-card shrink-0"
@@ -1443,24 +1612,50 @@ const RoutePillInner = ({
                 type="button"
                 onClick={(e) => e.stopPropagation()}
                 onPointerDown={(e) => e.stopPropagation()}
+                disabled={busy}
                 className="shrink-0 h-6 w-6 inline-flex items-center justify-center rounded-md text-muted-foreground/70 hover:text-foreground hover:bg-secondary active:scale-[0.92] transition-[background-color,color,transform,opacity] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100 [@media(hover:none)]:opacity-100"
                 aria-label="Flere handlinger"
                 title="Flere handlinger"
               >
-                <MoreHorizontal className="h-3.5 w-3.5" />
+                {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <MoreHorizontal className="h-3.5 w-3.5" />}
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48" onClick={(e) => e.stopPropagation()}>
-              <DropdownMenuItem onSelect={() => onSelect()}>
+              <DropdownMenuItem
+                onSelect={() => {
+                  try { onSelect(); } catch (err) {
+                    console.error(err);
+                    toast.error("Kunne ikke åbne ruten");
+                  }
+                }}
+              >
                 <Eye className="h-3.5 w-3.5 mr-2" /> Åbn rute
               </DropdownMenuItem>
               {canOptimize && (
-                <DropdownMenuItem onSelect={() => onOptimize()}>
-                  <Sparkles className="h-3.5 w-3.5 mr-2" /> Optimér rækkefølge
+                <DropdownMenuItem
+                  disabled={optimizing}
+                  onSelect={() => {
+                    try { onOptimize(); } catch (err) {
+                      console.error(err);
+                      toast.error("Kunne ikke optimere ruten");
+                    }
+                  }}
+                >
+                  {optimizing
+                    ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />
+                    : <Sparkles className="h-3.5 w-3.5 mr-2" />}
+                  {optimizing ? "Optimerer …" : "Optimér rækkefølge"}
                 </DropdownMenuItem>
               )}
               {canHistory && (
-                <DropdownMenuItem onSelect={() => onShowHistory!()}>
+                <DropdownMenuItem
+                  onSelect={() => {
+                    try { onShowHistory!(); } catch (err) {
+                      console.error(err);
+                      toast.error("Kunne ikke åbne historik");
+                    }
+                  }}
+                >
                   <History className="h-3.5 w-3.5 mr-2" /> Vis historik
                 </DropdownMenuItem>
               )}
@@ -1469,7 +1664,12 @@ const RoutePillInner = ({
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     className="text-destructive focus:text-destructive"
-                    onSelect={() => onDelete!()}
+                    onSelect={() => {
+                      try { onDelete!(); } catch (err) {
+                        console.error(err);
+                        toast.error("Kunne ikke slette ruten");
+                      }
+                    }}
                   >
                     <Trash2 className="h-3.5 w-3.5 mr-2" /> Slet rute…
                   </DropdownMenuItem>
