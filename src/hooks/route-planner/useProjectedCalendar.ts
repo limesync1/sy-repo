@@ -110,12 +110,16 @@ export const useProjectedCalendar = (input: UseProjectedCalendarInput): Calendar
 
     // Pr. basisrute: laveste dato hvor en rigtig rute ligger — klipper
     // projektioner væk der ellers ville dukke op før basisrutens egen dato.
+    // VIGTIGT: Det skal være den ALLERFØRSTE materialiserede dato (min),
+    // ikke den seneste. En tidligere bug brugte `d > existing` hvilket fik
+    // alle fremtidige projektioner mellem i dag og en senere materialiseret
+    // rute til at forsvinde efter en udførsel.
     const minDateByBaseRouteId = new Map<string, string>();
     for (const r of calendarRoutesRaw) {
       const baseId = (r as any).base_route_id || r.id;
       const d = String(r.route_date).slice(0, 10);
       const existing = minDateByBaseRouteId.get(baseId);
-      if (!existing || d > existing) minDateByBaseRouteId.set(baseId, d);
+      if (!existing || d < existing) minDateByBaseRouteId.set(baseId, d);
     }
 
     const realRouteDateById = new Map<string, string>();
