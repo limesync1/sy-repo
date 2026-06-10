@@ -213,6 +213,7 @@ export const MonthWeekCalendar = ({
   })();
 
   return (
+    <>
     <Card className="overflow-hidden flex flex-col h-full rounded-lg border-border/70 bg-card shadow-[0_2px_10px_-6px_hsl(var(--foreground)/0.18)]">
       {/* Weekday header */}
       <div
