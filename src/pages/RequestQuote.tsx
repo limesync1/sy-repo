@@ -123,12 +123,22 @@ const RequestQuote = () => {
    *  overvælder, men brugeren stadig kan klikke direkte. Når der søges,
    *  vises alle matches. */
   const POPULAR_KEYS = ["Rengøring", "Haveservice", "Vinduespudsning"];
-  const trimmedQuery = categoryQuery.trim().toLowerCase();
-  const filteredCategories = trimmedQuery
-    ? CATEGORIES.filter((c) => c.label.toLowerCase().includes(trimmedQuery))
+  const trimmedQuery = categoryQuery.trim();
+  /** Når der søges: brug det rige branche-søg (label + underbranche +
+   *  nøgleord) så fx "tagrens", "trappevask", "flytning" osv. også
+   *  giver hits — ikke kun de 18 top-labels. Hver hit kender også
+   *  hvad det matchede via, så vi kan vise det som hint i listen. */
+  const filteredCategories: { label: string; key: string; icon: string; matchedVia?: string }[] = trimmedQuery
+    ? searchIndustries(trimmedQuery, { limit: 25, preferTopKeys: true }).map((h) => ({
+        label: h.industry.label,
+        key: h.industry.key,
+        icon: h.industry.icon,
+        matchedVia: h.matchedVia,
+      }))
     : (POPULAR_KEYS
         .map((k) => CATEGORIES.find((c) => c.key === k))
-        .filter(Boolean) as typeof CATEGORIES);
+        .filter(Boolean) as typeof CATEGORIES)
+      .map((c) => ({ label: c.label, key: c.key, icon: c.icon }));
 
   const handleFind = async (e: React.FormEvent) => {
     e.preventDefault();
