@@ -36,6 +36,23 @@ export const invalidateRouteSyncQueries = (qc: ReturnType<typeof useQueryClient>
   qc.invalidateQueries({ queryKey: ["agreement-occurrence-overrides"] });
 };
 
+const localDateKey = (d = new Date()): string => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+
+const materializeMyEmployeeDayRoutes = async (date: string) => {
+  const day = String(date || "").slice(0, 10);
+  if (!day || day < localDateKey()) return;
+  try {
+    await supabase.rpc("materialize_my_day_routes_for_employee" as any, { _date: day });
+  } catch (err) {
+    console.warn("Kunne ikke gøre fremtidige medarbejderruter klar", err);
+  }
+};
+
 /**
  * Force-refetch ALLE rute- og projektions-queries og venter til de er færdige.
  * Bruges efter destruktive operationer som fletning, hvor vi ABSOLUT ikke må
