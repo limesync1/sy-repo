@@ -331,6 +331,31 @@ export const UnassignedJobCard = ({
       <div className="flex-1 min-w-0 flex flex-col">
 
       {/* ───────────────────────────────────────────────────────────────────
+          LEADING SERVICE-IKON — stor, tintet ikon-tile øverst-venstre i
+          kortets body. Gør det muligt at scanne kortet for hvad aftalen
+          handler om (rengøring/vinduer/have/...) på et splitsekund uden
+          at læse teksten. Bruger samme branche-pakke som services/ordrer.
+         ─────────────────────────────────────────────────────────────────── */}
+      {!isPending && items[0]?.service_name && (
+        <div
+          aria-hidden
+          className={cn(
+            "absolute z-[1] flex items-center justify-center rounded-md bg-secondary/70 ring-1 ring-border/60 shadow-[0_1px_2px_-1px_hsl(var(--foreground)/0.08)]",
+            compact
+              ? "top-2 right-2 h-8 w-8 p-1"
+              : "top-2.5 right-2.5 h-9 w-9 p-1.5",
+          )}
+          title={items[0].service_name}
+        >
+          <IndustryIcon
+            name={items[0].service_name}
+            className="h-full w-full object-contain"
+            alt=""
+          />
+        </div>
+      )}
+
+      {/* ───────────────────────────────────────────────────────────────────
           2) BODY — klikbart område for at åbne detaljer.
          ─────────────────────────────────────────────────────────────────── */}
       <div
