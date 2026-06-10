@@ -327,6 +327,23 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const startStopTime = useStartStopTime();
   const endStopTime = useEndStopTime();
   const navigate = useNavigate();
+  // Tidlig udførelse — afgør om "Markér udført" må trykkes på fremtidige
+  // rutedatoer. Samme resolver som EmployeeApp bruger på dagslisten.
+  const { data: meEmp } = useMyEmployee();
+  const empMode = ((meEmp as any)?.early_completion_mode || "inherit") as EarlyCompletionMode;
+  const { data: bizEarlyDefault = false } = useQuery({
+    queryKey: ["business-early-default", meEmp?.business_id],
+    enabled: !!meEmp?.business_id,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("businesses")
+        .select("allow_early_completion_default")
+        .eq("id", meEmp!.business_id!)
+        .maybeSingle();
+      return !!(data as any)?.allow_early_completion_default;
+    },
+  });
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState<Record<string, string>>({});
   const [listOpen, setListOpen] = useState(false);
