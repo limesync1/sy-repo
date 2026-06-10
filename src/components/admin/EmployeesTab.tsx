@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { IndustryIcon } from "@/components/IndustryIcon";
 import {
   useEmployees, useCreateEmployee,
   useUpdateEmployee, useDeleteEmployee, useResetEmployeePassword,
