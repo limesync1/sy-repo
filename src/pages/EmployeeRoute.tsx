@@ -1670,9 +1670,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 <Button
                   onClick={handleStartRoute}
                   size="lg"
+                  disabled={routeDateLocked}
                   className="w-full gap-2 h-12 text-base font-semibold rounded-xl shadow-md hover:shadow-lg active:scale-[0.99] transition-all bg-foreground text-background hover:bg-foreground/90"
                 >
-                  <Play className="h-5 w-5 fill-current" /> Start dagens rute
+                  <Play className="h-5 w-5 fill-current" /> {routeDateLocked ? "Låst til rutedagen" : "Start dagens rute"}
                 </Button>
               </div>
             </Card>
@@ -1778,7 +1779,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                         ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-md shadow-emerald-500/25"
                         : "bg-foreground text-background hover:bg-foreground/90"
                     }`}
-                    disabled={updateStatus.isPending}
+                    disabled={updateStatus.isPending || routeDateLocked}
                   >
                     {updateStatus.isPending ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -1973,11 +1974,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   name: route.name,
                   color: route.color,
                   date: route.route_date,
-                  allowEarly: canCompleteEarly({
-                    routeAllow: (route as any).allow_early_completion,
-                    employeeMode: empMode,
-                    businessDefault: bizEarlyDefault,
-                  }),
+                  allowEarly: earlyAllowedForRoute,
                 } : undefined}
                 noteDraft={noteDraft[s.id] ?? s.notes ?? ""}
                 onNoteChange={(v) => setNoteDraft((d) => ({ ...d, [s.id]: v }))}
