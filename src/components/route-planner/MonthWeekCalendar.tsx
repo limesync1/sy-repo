@@ -203,7 +203,7 @@ const DayOverviewSheet = ({
                 {isPast && !isToday && <span>· Tidligere dag</span>}
                 {weather && (
                   <span className="inline-flex items-center gap-1">
-                    · {Math.round(weather.temp_max ?? weather.temp_min ?? 0)}°
+                    · {Math.round(weather.tempMax ?? weather.tempMin ?? 0)}°
                   </span>
                 )}
               </div>
