@@ -144,6 +144,10 @@ export const MonthWeekCalendar = ({
 }: Props) => {
   const anchor = parseISO(anchorDate);
 
+  /** Dato (yyyy-MM-dd) for "dagens overblik"-sheet. Sat når brugeren
+   *  klikker på dato-tallet eller "+N ruter"-knappen. */
+  const [overviewDate, setOverviewDate] = useState<string | null>(null);
+
   // Memo: beregn synlige uger og rute-mapping kun når input ændrer sig.  Tidligere
   // blev disse rebygget hver render (= hver gang vejret eller drag-tilstand
   // ændrede sig), hvilket gjorde at hele kalenderen rerender'ede selv ved
@@ -273,6 +277,7 @@ export const MonthWeekCalendar = ({
                     onSelectRoute={onSelectRoute}
                     onSelectStop={onSelectStop}
                     onCreateRoute={onCreateRoute}
+                    onOpenDayOverview={setOverviewDate}
                     onOptimizeRoute={onOptimizeRoute}
                     onDeleteRoute={onDeleteRoute}
                     onShowHistory={onShowHistory}
