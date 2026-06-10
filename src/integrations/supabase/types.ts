@@ -4264,6 +4264,15 @@ export type Database = {
         Args: { _new: Database["public"]["Tables"]["route_stops"]["Row"] }
         Returns: undefined
       }
+      _ensure_subscription_order_for_occurrence: {
+        Args: {
+          _occurrence_date: string
+          _planned_at?: string
+          _route_id?: string
+          _subscription_id: string
+        }
+        Returns: string
+      }
       _generate_occurrences_for_agreement: {
         Args: { _agreement_id: string; _until_date: string }
         Returns: number
