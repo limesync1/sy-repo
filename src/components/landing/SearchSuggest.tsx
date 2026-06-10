@@ -231,9 +231,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
                   >
                     {s.type === "category" && (
                       <>
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 transition-transform duration-200 group-hover:scale-105">
-                          <IndustryIcon category={s.key} className="h-6 w-6" alt={s.label} />
-                        </span>
+                        <IndustryIcon category={s.key} className="h-8 w-8 shrink-0" alt={s.label} />
                         <span className="flex-1">
                           <div className="font-semibold text-foreground">{s.label}</div>
                           <div className="text-xs text-muted-foreground">Kategori</div>

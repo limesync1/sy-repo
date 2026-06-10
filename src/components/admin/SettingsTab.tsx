@@ -2158,9 +2158,7 @@ const SubcategoryPicker = ({
             className="rounded-xl border border-border bg-card p-3.5 shadow-sm transition-shadow hover:shadow-md"
           >
             <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-foreground/5">
-                <IndustryIcon category={ind.key} className="h-5 w-5" alt={ind.label} />
-              </span>
+              <IndustryIcon category={ind.key} className="h-6 w-6 shrink-0" alt={ind.label} />
               <span className="text-sm font-semibold text-foreground">{ind.label}</span>
               <span className="ml-auto inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold text-foreground tabular-nums">
                 {picked.length}/{total}

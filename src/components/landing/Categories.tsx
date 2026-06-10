@@ -62,9 +62,7 @@ const Categories = () => {
             >
               {/* Subtil glow ved hover */}
               <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-background/30 opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100" />
-              <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-background/40 bg-background/90 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-                <IndustryIcon category={cat.key} className="h-8 w-8" alt={cat.label} />
-              </div>
+              <IndustryIcon category={cat.key} className="h-10 w-10" alt={cat.label} />
               <div className="relative">
                 <div className="text-[15px] font-semibold leading-tight">{cat.label}</div>
                 {cat.hint && (
@@ -90,9 +88,7 @@ const Categories = () => {
                 to={`/search?category=${encodeURIComponent(cat.key)}`}
                 className={`flex w-[170px] shrink-0 snap-start flex-col gap-4 rounded-[24px] border border-border/60 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] ${cat.tone}`}
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-background/40 bg-background/90 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-                  <IndustryIcon category={cat.key} className="h-8 w-8" alt={cat.label} />
-                </div>
+                <IndustryIcon category={cat.key} className="h-10 w-10" alt={cat.label} />
                 <div>
                   <div className="text-sm font-semibold leading-tight">{cat.label}</div>
                   {cat.hint && (
