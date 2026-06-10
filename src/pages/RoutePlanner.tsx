@@ -2,7 +2,7 @@
 // Refaktoreringsplan: .lovable/plan.md (Fase 1–5).
 // Trigger-flow ved completion: docs/route-stops-triggers.md.
 // Projection engine: src/lib/route-projection/ (Fase 1 — orchestrator klar).
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
 import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyBusiness } from "@/hooks/useDatabase";
@@ -138,7 +138,7 @@ import RoutePrintDialog, { type PrintRoute } from "@/components/route-planner/Ro
 import { Printer, ListOrdered } from "lucide-react";
 import EmptyState from "@/components/route-planner/EmptyState";
 import DayDetailPanel, { type DayStop } from "@/components/route-planner/DayDetailPanel";
-import RouteHistoryDialog from "@/components/route-planner/RouteHistoryDialog";
+const RouteHistoryDialog = lazy(() => import("@/components/route-planner/RouteHistoryDialog"));
 import UnassignedBulkBar from "@/components/route-planner/UnassignedBulkBar";
 import BulkShiftDateDialog from "@/components/route-planner/BulkShiftDateDialog";
 import {
@@ -5278,12 +5278,16 @@ const Planner = () => {
               }))
           ))}
       />
-      <RouteHistoryDialog
-        open={!!historyRoute}
-        onOpenChange={(o) => { if (!o) setHistoryRoute(null); }}
-        routeId={historyRoute?.id ?? null}
-        routeName={historyRoute?.name}
-      />
+      {historyRoute && (
+        <Suspense fallback={null}>
+          <RouteHistoryDialog
+            open={!!historyRoute}
+            onOpenChange={(o) => { if (!o) setHistoryRoute(null); }}
+            routeId={historyRoute?.id ?? null}
+            routeName={historyRoute?.name}
+          />
+        </Suspense>
+      )}
     </DndContext>
     </div>
   );
