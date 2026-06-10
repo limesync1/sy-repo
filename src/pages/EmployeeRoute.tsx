@@ -306,6 +306,13 @@ const formatClock = (d: Date): string =>
 const formatDayDate = (d: Date): string =>
   d.toLocaleDateString("da-DK", { weekday: "short", day: "numeric", month: "short" });
 
+const localDateKey = (d = new Date()): string => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+
 /* ─────────────────────────────────────────────────────────── */
 const EmployeeRoute = () => {
   const { user, loading } = useAuth();
@@ -487,6 +494,13 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   const route = data?.route as (Route & { businesses?: { name?: string } }) | undefined;
   const stops = data?.stops || [];
+  const routeDateKey = route?.route_date ? String(route.route_date).slice(0, 10) : null;
+  const earlyAllowedForRoute = canCompleteEarly({
+    routeAllow: (route as any)?.allow_early_completion,
+    employeeMode: empMode,
+    businessDefault: bizEarlyDefault,
+  });
+  const routeDateLocked = !!routeDateKey && routeDateKey > localDateKey() && !earlyAllowedForRoute;
 
   const sortedStops = useMemo(() => [...stops].sort((a, b) => a.sequence - b.sequence), [stops]);
   const validStops = useMemo(
@@ -1030,6 +1044,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   };
 
   const handleComplete = async (s: RouteStop) => {
+    if (routeDateLocked) {
+      toast.error("Ruten kan først udføres på selve dagen");
+      return;
+    }
     try {
       // Stop tidsregistrering for den loggede medarbejder på denne opgave
       try {
@@ -1065,6 +1083,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   };
 
   const handleStartRoute = () => {
+    if (routeDateLocked) {
+      toast.error("Ruten kan først startes på selve dagen");
+      return;
+    }
     unlockAudio();
     setRouteStarted(true);
     setFollowMode(true);
@@ -1648,9 +1670,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 <Button
                   onClick={handleStartRoute}
                   size="lg"
+                  disabled={routeDateLocked}
                   className="w-full gap-2 h-12 text-base font-semibold rounded-xl shadow-md hover:shadow-lg active:scale-[0.99] transition-all bg-foreground text-background hover:bg-foreground/90"
                 >
-                  <Play className="h-5 w-5 fill-current" /> Start dagens rute
+                  <Play className="h-5 w-5 fill-current" /> {routeDateLocked ? "Låst til rutedagen" : "Start dagens rute"}
                 </Button>
               </div>
             </Card>
@@ -1756,7 +1779,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                         ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-md shadow-emerald-500/25"
                         : "bg-foreground text-background hover:bg-foreground/90"
                     }`}
-                    disabled={updateStatus.isPending}
+                    disabled={updateStatus.isPending || routeDateLocked}
                   >
                     {updateStatus.isPending ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -1951,11 +1974,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   name: route.name,
                   color: route.color,
                   date: route.route_date,
-                  allowEarly: canCompleteEarly({
-                    routeAllow: (route as any).allow_early_completion,
-                    employeeMode: empMode,
-                    businessDefault: bizEarlyDefault,
-                  }),
+                  allowEarly: earlyAllowedForRoute,
                 } : undefined}
                 noteDraft={noteDraft[s.id] ?? s.notes ?? ""}
                 onNoteChange={(v) => setNoteDraft((d) => ({ ...d, [s.id]: v }))}
