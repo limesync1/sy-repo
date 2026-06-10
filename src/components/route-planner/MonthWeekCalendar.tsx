@@ -1595,12 +1595,17 @@ const RoutePillInner = ({
             <Users className="h-3 w-3" />0
           </span>
         )}
+        {/* Handlings-cluster: optimér + ⋯-menu vises i en samlet ramme på
+            hover, så de fremstår som ÉN handlingsgruppe og ikke som løse
+            ikoner spredt langs højre kant. */}
+        {(canOptimize || canDelete || canHistory) && (
+          <div className="shrink-0 flex items-center gap-px rounded-md opacity-0 group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity duration-150">
         {!isVirtual && stopCount >= 2 && (
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onOptimize(); }}
             disabled={optimizing}
-            className="shrink-0 h-6 w-6 inline-flex items-center justify-center rounded-md text-muted-foreground/65 hover:text-foreground hover:bg-secondary active:scale-[0.92] disabled:opacity-50 transition-[background-color,color,transform] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+            className="shrink-0 h-6 w-6 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary active:scale-[0.92] disabled:opacity-50 transition-[background-color,color,transform] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
             aria-label="Optimér rækkefølge"
             title="Optimér rækkefølge — ændrer kun rækkefølgen, ikke medarbejdere"
           >
@@ -1610,17 +1615,15 @@ const RoutePillInner = ({
           </button>
         )}
         {/* ⋯-menu: synlig hurtig-handlingstrigger så brugeren ikke skal højre-
-            klikke. Vises altid på touch (via @media hover:none) og dukker op
-            ved hover på desktop. Samme handlinger som højreklik-menuen. */}
-        {(canOptimize || canDelete || canHistory) && (
-          <DropdownMenu>
+            klikke. Samme handlinger som højreklik-menuen. */}
+        <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
                 onClick={(e) => e.stopPropagation()}
                 onPointerDown={(e) => e.stopPropagation()}
                 disabled={busy}
-                className="shrink-0 h-6 w-6 inline-flex items-center justify-center rounded-md text-muted-foreground/70 hover:text-foreground hover:bg-secondary active:scale-[0.92] transition-[background-color,color,transform,opacity] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100 [@media(hover:none)]:opacity-100"
+                className="shrink-0 h-6 w-6 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary active:scale-[0.92] transition-[background-color,color,transform] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 data-[state=open]:bg-secondary data-[state=open]:text-foreground"
                 aria-label="Flere handlinger"
                 title="Flere handlinger"
               >
@@ -1683,7 +1686,8 @@ const RoutePillInner = ({
                 </>
               )}
             </DropdownMenuContent>
-          </DropdownMenu>
+        </DropdownMenu>
+          </div>
         )}
       </div>
 
