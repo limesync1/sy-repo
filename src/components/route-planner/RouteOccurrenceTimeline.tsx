@@ -6,8 +6,9 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format, parseISO, isFuture } from "date-fns";
 import { da } from "date-fns/locale";
-import { CheckCircle2, Clock, Lock, Repeat, Receipt, FileText } from "lucide-react";
+import { CheckCircle2, Clock, Lock, Repeat, Receipt, FileText, PlayCircle, CheckCheck, XCircle, Hourglass } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { occurrenceStatusBadge, type OccurrenceBadgeKind } from "@/lib/statusColors";
 
 type Props = { routeId: string };
 
@@ -164,45 +165,31 @@ export const RouteOccurrenceTimeline = ({ routeId }: Props) => {
                         <div className="text-[10px] text-muted-foreground leading-tight capitalize">
                           {format(parseISO(it.planned ?? it.date), it.planned ? "d. MMM HH:mm" : "d. MMM", { locale: da })}
                         </div>
-                        {it.kind === "done" && (
-                          <div className="text-[9px] text-accent font-medium">Udført</div>
-                        )}
-                        {it.kind === "next" && it.locked && (
-                          <div className="text-[9px] text-amber-600 font-medium">Låst</div>
-                        )}
-                        {it.kind === "next" && !it.locked && (
-                          <div className="text-[9px] text-foreground font-medium">Klar</div>
-                        )}
-                        {it.occ && (it.occ.invoice_external_number || it.occ.external_order_number) && (
-                          <div className="mt-1 flex flex-col items-center gap-0.5">
-                            {it.occ.invoice_external_number && (
-                              <span
-                                title={`Faktura ${it.occ.invoice_external_number} · status ${it.occ.invoice_status ?? "—"}`}
-                                className={cn(
-                                  "inline-flex items-center gap-0.5 rounded-sm border px-1 py-px text-[9px] font-medium",
-                                  it.occ.invoice_status === "booked" || it.occ.invoice_status === "paid"
-                                    ? "border-accent/40 bg-accent/10 text-accent"
-                                    : "border-border bg-muted text-muted-foreground",
-                                )}
-                              >
-                                <Receipt className="h-2.5 w-2.5" />
-                                #{it.occ.invoice_external_number}
-                              </span>
-                            )}
-                            {it.occ.external_order_number && (
-                              <span
-                                title={`Regnskabsordre ${it.occ.external_order_number}`}
-                                className="inline-flex items-center gap-0.5 rounded-sm border border-border bg-muted px-1 py-px text-[9px] font-medium text-muted-foreground"
-                              >
-                                <FileText className="h-2.5 w-2.5" />
-                                #{it.occ.external_order_number}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                        {it.kind === "done" && it.occ && !it.occ.invoice_external_number && !it.occ.external_order_number && (
-                          <div className="mt-1 text-[9px] text-amber-600 font-medium" title="Faktura ikke genereret endnu">
-                            ⏳ Faktura venter
+                        {it.occ && (() => {
+                          const badge = occurrenceStatusBadge(it.occ);
+                          const Icon = OCC_BADGE_ICON[badge.kind];
+                          return (
+                            <span
+                              title={`Status: ${badge.label}`}
+                              className={cn(
+                                "mt-1 inline-flex items-center gap-0.5 rounded-sm border px-1 py-px text-[9px] font-semibold",
+                                badge.className,
+                              )}
+                            >
+                              <Icon className="h-2.5 w-2.5" />
+                              {badge.label}
+                            </span>
+                          );
+                        })()}
+                        {it.occ?.external_order_number && (
+                          <div className="mt-0.5 flex justify-center">
+                            <span
+                              title={`Regnskabsordre ${it.occ.external_order_number}`}
+                              className="inline-flex items-center gap-0.5 rounded-sm border border-border bg-muted px-1 py-px text-[9px] font-medium text-muted-foreground"
+                            >
+                              <FileText className="h-2.5 w-2.5" />
+                              #{it.occ.external_order_number}
+                            </span>
                           </div>
                         )}
                       </div>
