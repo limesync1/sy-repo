@@ -1280,6 +1280,11 @@ const RoutePillInner = ({
   // status kan have være sat til completed (vi rydder også feltet
   // i useProjectedCalendar, men gardere os her som backup).
   const isRouteCompleted = !isVirtual && (route as any).status === "completed";
+  // Lokal "alle stop udført"-tilstand: bruges KUN visuelt på piller i kalenderen,
+  // så en rute der reelt er fuldført (men hvis server-status endnu ikke er
+  // sat til 'completed') også fremstår tydeligt færdig.
+  const allStopsDone = !isVirtual && stopCount > 0 && completedCount === stopCount;
+  const showAsCompleted = isRouteCompleted || allStopsDone;
   // Tre tilstande for projicerede (virtuelle) ruter:
   //  - future  → låst indtil dagen er aktuel (vises med hængelås)
   //  - today   → aktiv projektion, kan udføres eller flyttes nu
@@ -1364,6 +1369,9 @@ const RoutePillInner = ({
         // projicerede forekomster — uden at flytte indholdet i pillen.
         isBaseRecurring && !isVirtual && "shadow-[inset_0_0_0_1px_hsl(var(--accent)/0.35)]",
         isPast && "opacity-50 saturate-50 hover:opacity-90",
+        // Helt udført rute: emerald-tint på baggrunden, dæmpet skrift —
+        // gør "færdig" til den klart mest scanbare tilstand i kalenderen.
+        showAsCompleted && !isPast && "bg-emerald-500/[0.07] hover:bg-emerald-500/[0.12]",
         // Under drag dæmpes fortids-ruter yderligere — de er ikke gyldige
         // drop-targets (kalender-cellen er disabled), så de skal heller
         // ikke visuelt invitere til drop.
