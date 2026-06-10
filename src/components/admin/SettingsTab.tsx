@@ -17,6 +17,7 @@ import {
   CheckCircle2, AlertCircle, ArrowRight, Building2, Search, Calculator,
   CreditCard, XCircle, MessageCircle, Globe, ExternalLink, Link2, Loader2, Copy,
   UploadCloud, ShoppingCart, CalendarClock, RefreshCcw, Star, Inbox, Mail, Phone, MapPin,
+  Unlock,
 } from "lucide-react";
 import ImageUpload from "@/components/business/ImageUpload";
 import { PageHeader, SectionCard, FieldLabel } from "@/components/admin/shared/AdminUI";
@@ -489,6 +490,14 @@ const SettingsTab = ({ business }: { business: any }) => {
   const [smsEnabled, setSmsEnabled] = useState<boolean>(
     !!(business.settings as any)?.sms_enabled
   );
+  // "Tidlig udførelse" — global default for hele virksomheden. Slår
+  // medarbejderens evne til at starte/afslutte ruter UDEN at dagen er
+  // aktuel TIL eller FRA. Kan stadig override'es per medarbejder
+  // (EmployeesTab) eller per rute (RouteEditSheet → "Tillad tidlig
+  // udførelse"). Resolver: src/lib/early-completion.ts.
+  const [allowEarlyCompletionDefault, setAllowEarlyCompletionDefault] = useState<boolean>(
+    !!(business as any).allow_early_completion_default
+  );
   // Custom domæne — virksomhedens eget domæne (fx "ready2clean.dk") som
   // bruges som kanonisk URL på den offentlige virksomhedsside, så Google
   // indekserer deres eget domæne fremfor serviceydere.dk/v/slug. Selve
@@ -747,6 +756,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     categories: selectedCategories,
     opening_hours: openHours,
     notification_settings: notifSettings,
+    allow_early_completion_default: allowEarlyCompletionDefault,
     settings: {
       ...((business.settings as any) || {}),
       route_planning_enabled: routePlanningEnabled,
@@ -775,6 +785,7 @@ const SettingsTab = ({ business }: { business: any }) => {
     name, description, phone, email, address, city, zipCode,
     logoUrl, coverUrl, selectedCategories, selectedSubcategories,
     openHours, notifSettings, routePlanningEnabled, accountingIntegrationEnabled, leadsEnabled, livechatEnabled, customDomain, customerNotifUpcomingMinutes,
+    allowEarlyCompletionDefault,
   ]);
 
   useEffect(() => {
@@ -1955,6 +1966,16 @@ const SettingsTab = ({ business }: { business: any }) => {
                     activeLabel="Aktivt — chat-knappen er synlig på jeres profilside"
                     inactiveLabel="Ikke aktivt — slå til for at lade besøgende skrive til jer"
                     onToggle={() => setLivechatEnabled((v) => !v)}
+                  />
+                  <FeatureRow
+                    icon={<Unlock />}
+                    title="Tillad tidlig udførelse af ruter"
+                    badge={<span className="rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">Gratis</span>}
+                    description="Som standard kan medarbejdere først starte en rute på dens planlagte dato. Slå til for at lade alle medarbejdere udføre ruter før eller efter datoen. Du kan stadig overstyre pr. medarbejder (Medarbejdere → Tidlig udførelse) eller pr. rute (Ruteplanlægger → ”Tillad tidlig udførelse”)."
+                    active={allowEarlyCompletionDefault}
+                    activeLabel="Aktivt — alle medarbejdere kan udføre ruter på enhver dato"
+                    inactiveLabel="Ikke aktivt — ruter er låst til den planlagte dato"
+                    onToggle={() => setAllowEarlyCompletionDefault((v) => !v)}
                   />
                 </div>
               </div>

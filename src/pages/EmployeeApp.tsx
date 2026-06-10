@@ -3,6 +3,10 @@ import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyDayRoutes, useMyDayStops, type RouteStop } from "@/hooks/useRoutes";
 import { useMyWorkday, useStartWorkday, useEndWorkday } from "@/hooks/useRoutes";
+import { useMyEmployee } from "@/hooks/useMyEmployee";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { canCompleteEarly, earlyCompletionReason, type EarlyCompletionMode } from "@/lib/early-completion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
@@ -14,6 +18,7 @@ import {
   Calendar as CalendarIcon, Play, Printer, MapPin, Clock, CheckCircle2,
   ChevronLeft, ChevronRight, Route as RouteIcon, Navigation, PlayCircle, StopCircle,
   Users, User as UserIcon, Info, CalendarCheck, Sparkles, ArrowRight, Eye, Lock as LockIcon,
+  Unlock as UnlockIcon,
 } from "lucide-react";
 import { format, addDays, parseISO, isToday, formatDistanceStrict } from "date-fns";
 import { da } from "date-fns/locale";
@@ -149,6 +154,23 @@ const EmployeeApp = () => {
   const { data: workday } = useMyWorkday(date);
   const startDay = useStartWorkday();
   const endDay = useEndWorkday();
+  // Tidlig udførelse — hent medarbejderens egen indstilling og virksomhedens
+  // default. Resolver: src/lib/early-completion.ts.
+  const { data: me } = useMyEmployee();
+  const employeeMode = ((me as any)?.early_completion_mode || "inherit") as EarlyCompletionMode;
+  const { data: businessEarlyDefault = false } = useQuery({
+    queryKey: ["business-early-default", me?.business_id],
+    enabled: !!me?.business_id,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("businesses")
+        .select("allow_early_completion_default")
+        .eq("id", me!.business_id!)
+        .maybeSingle();
+      return !!(data as any)?.allow_early_completion_default;
+    },
+  });
 
   if (loading) {
     // Vis shell med skeleton fra første millisekund — ingen blank
@@ -567,13 +589,28 @@ const EmployeeApp = () => {
           // ELLER (b) brugeren endnu ikke har trykket "Start dag".
           // Vi tillader stadig start hvis dagen er afsluttet (efter-arbejde).
           const needsStartDay = isCurrentDay && !dayStarted && !dayEnded;
+          // Datolås: ruter kan kun udføres på selve dagen — medmindre
+          // virksomhed/medarbejder/rute har låst tidlig udførelse op.
+          const earlyAllowed = canCompleteEarly({
+            routeAllow: (r as any).allow_early_completion,
+            employeeMode,
+            businessDefault: businessEarlyDefault,
+          });
+          const dateLocked = !isCurrentDay && !earlyAllowed;
           const isLocked = total > 0 && (
-            (!allDone && firstActiveId !== null && r.id !== firstActiveId)
+            dateLocked
+            || (!allDone && firstActiveId !== null && r.id !== firstActiveId)
             || needsStartDay
           );
-          const lockReason = needsStartDay
-            ? "Tryk \"Start dag\" øverst før du kan starte en rute"
-            : "Tilgængelig efter forrige rute er gennemført";
+          const lockReason = dateLocked
+            ? earlyCompletionReason({
+                routeAllow: (r as any).allow_early_completion,
+                employeeMode,
+                businessDefault: businessEarlyDefault,
+              })
+            : needsStartDay
+              ? "Tryk \"Start dag\" øverst før du kan starte en rute"
+              : "Tilgængelig efter forrige rute er gennemført";
           const progress = total > 0 ? Math.round((done / total) * 100) : 0;
           const color = r.color || "hsl(var(--accent))";
           const startCoord: [number, number] | null =
@@ -689,6 +726,17 @@ const EmployeeApp = () => {
                     <span className="tabular-nums">{total > 0 ? `${done} af ${total} stop færdige` : "Ingen stop"}</span>
                   </p>
                 </div>
+                {!isCurrentDay && (
+                  earlyAllowed ? (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-feature-cool/40 bg-feature-cool/10 px-2 py-0.5 text-[10px] font-semibold text-feature-cool-foreground shrink-0">
+                      <UnlockIcon className="h-2.5 w-2.5" /> Låst op
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground shrink-0">
+                      <LockIcon className="h-2.5 w-2.5" /> Låst
+                    </span>
+                  )
+                )}
               </div>
 
               {/* Kort-preview */}
@@ -835,7 +883,13 @@ const EmployeeApp = () => {
                     title={isLocked ? lockReason : undefined}
                   >
                     {isLocked ? (
-                      <><LockIcon className="h-4 w-4 sm:h-5 sm:w-5" /> {needsStartDay ? "Start dag først" : "Låst — afslut forrige"}</>
+                      <><LockIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                        {dateLocked
+                          ? `Låst indtil ${format(dateObj, "d. MMM", { locale: da })}`
+                          : needsStartDay
+                            ? "Start dag først"
+                            : "Låst — afslut forrige"}
+                      </>
                     ) : total > 0 ? (
                       <Link to={`/medarbejder/rute/${r.id}`}>
                         {done > 0 ? (

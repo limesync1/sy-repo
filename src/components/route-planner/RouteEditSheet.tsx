@@ -43,10 +43,58 @@ import { useSeriesImpact } from "@/hooks/useSeriesImpact";
 import { useDayConflicts } from "@/hooks/useDayConflicts";
 import { Ban } from "lucide-react";
 import { useCreateRouteSnapshot, useRouteSnapshots } from "@/hooks/useRouteSnapshots";
-import { Camera, ChevronDown } from "lucide-react";
+import { Camera, ChevronDown, Unlock } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { formatDistanceToNow } from "date-fns";
 
 export type RouteEmployeeOption = { id: string; name: string };
+
+/**
+ * Toggle pr. rute: tillad medarbejdere at udføre ruten FØR den faktiske dato
+ * (eller efter). Tre-lags resolver i `src/lib/early-completion.ts` lader
+ * også virksomhedens default eller medarbejderens egen indstilling slå
+ * igennem — denne switch er den mest specifikke override.
+ */
+const RouteEarlyCompletionToggle = ({ route }: { route: Route }) => {
+  const qc = useQueryClient();
+  const [pending, setPending] = useState(false);
+  const enabled = !!(route as any).allow_early_completion;
+  const onToggle = async (next: boolean) => {
+    setPending(true);
+    try {
+      const { error } = await supabase
+        .from("routes")
+        .update({ allow_early_completion: next } as any)
+        .eq("id", route.id);
+      if (error) throw error;
+      toast.success(next ? "Ruten kan nu udføres på forhånd" : "Ruten følger igen den planlagte dato");
+      qc.invalidateQueries({ queryKey: ["routes"] });
+      qc.invalidateQueries({ queryKey: ["routes-range"] });
+      qc.invalidateQueries({ queryKey: ["route-calendar"] });
+    } catch (e: any) {
+      toast.error(e?.message || "Kunne ikke opdatere ruten");
+    } finally {
+      setPending(false);
+    }
+  };
+  return (
+    <div className="flex items-start justify-between gap-3 rounded-lg border border-border bg-card px-3 py-2.5">
+      <div className="flex min-w-0 items-start gap-2.5">
+        <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-secondary text-foreground">
+          <Unlock className="h-3.5 w-3.5" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-xs font-semibold text-foreground">Tillad tidlig udførelse</p>
+          <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
+            Lås ruten op, så medarbejderen kan starte og afslutte den på en anden dag end den planlagte.
+          </p>
+        </div>
+      </div>
+      <Switch checked={enabled} onCheckedChange={onToggle} disabled={pending} />
+    </div>
+  );
+};
+
 
 type Props = {
   route: Route | null;
@@ -1056,7 +1104,10 @@ export const RouteEditSheet = ({
               </div>
             )}
             {!isProjection && route?.id && (
-              <RouteSnapshotSection routeId={route.id} />
+              <>
+                <RouteEarlyCompletionToggle route={route} />
+                <RouteSnapshotSection routeId={route.id} />
+              </>
             )}
             {isProjection && (
               <>
