@@ -489,6 +489,14 @@ const SettingsTab = ({ business }: { business: any }) => {
   const [smsEnabled, setSmsEnabled] = useState<boolean>(
     !!(business.settings as any)?.sms_enabled
   );
+  // "Tidlig udførelse" — global default for hele virksomheden. Slår
+  // medarbejderens evne til at starte/afslutte ruter UDEN at dagen er
+  // aktuel TIL eller FRA. Kan stadig override'es per medarbejder
+  // (EmployeesTab) eller per rute (RouteEditSheet → "Tillad tidlig
+  // udførelse"). Resolver: src/lib/early-completion.ts.
+  const [allowEarlyCompletionDefault, setAllowEarlyCompletionDefault] = useState<boolean>(
+    !!(business as any).allow_early_completion_default
+  );
   // Custom domæne — virksomhedens eget domæne (fx "ready2clean.dk") som
   // bruges som kanonisk URL på den offentlige virksomhedsside, så Google
   // indekserer deres eget domæne fremfor serviceydere.dk/v/slug. Selve
