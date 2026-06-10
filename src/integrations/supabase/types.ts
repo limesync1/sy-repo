@@ -683,6 +683,7 @@ export type Database = {
           legacy_order_id: string | null
           notes: string | null
           occurrence_date: string
+          occurrence_number: string | null
           paid_amount: number | null
           paid_at: string | null
           payment_status:
@@ -710,6 +711,7 @@ export type Database = {
           legacy_order_id?: string | null
           notes?: string | null
           occurrence_date: string
+          occurrence_number?: string | null
           paid_amount?: number | null
           paid_at?: string | null
           payment_status?:
@@ -737,6 +739,7 @@ export type Database = {
           legacy_order_id?: string | null
           notes?: string | null
           occurrence_date?: string
+          occurrence_number?: string | null
           paid_amount?: number | null
           paid_at?: string | null
           payment_status?:
@@ -813,6 +816,7 @@ export type Database = {
           address: string | null
           adjusted_amount: number | null
           adjusted_details: Json | null
+          agreement_number: string | null
           approval_expires_at: string | null
           approval_token: string | null
           billing_model: Database["public"]["Enums"]["agreement_billing_model"]
@@ -855,6 +859,7 @@ export type Database = {
           address?: string | null
           adjusted_amount?: number | null
           adjusted_details?: Json | null
+          agreement_number?: string | null
           approval_expires_at?: string | null
           approval_token?: string | null
           billing_model?: Database["public"]["Enums"]["agreement_billing_model"]
@@ -897,6 +902,7 @@ export type Database = {
           address?: string | null
           adjusted_amount?: number | null
           adjusted_details?: Json | null
+          agreement_number?: string | null
           approval_expires_at?: string | null
           approval_token?: string | null
           billing_model?: Database["public"]["Enums"]["agreement_billing_model"]
@@ -962,6 +968,35 @@ export type Database = {
             columns: ["preferred_route_id"]
             isOneToOne: false
             referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_agreement_counters: {
+        Row: {
+          business_id: string
+          last_seq: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          business_id: string
+          last_seq?: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          business_id?: string
+          last_seq?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_agreement_counters_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
         ]
@@ -4203,6 +4238,10 @@ export type Database = {
           _target_date: string
         }
         Returns: boolean
+      }
+      _allocate_agreement_number: {
+        Args: { _business_id: string }
+        Returns: string
       }
       _apply_completion_duration: {
         Args: { _new: Database["public"]["Tables"]["route_stops"]["Row"] }
