@@ -2395,6 +2395,7 @@ export const useMyDayRoutes = (date: string) => {
     staleTime: 30_000,
     queryFn: async () => {
       if (!employeeId) return [];
+      await materializeMyEmployeeDayRoutes(date);
       // Find ruter via junction-tabel (nye ruter, evt. team) ELLER legacy
       // routes.employee_id-kolonne (ældre ruter / demo-data).
       // Ét request pr. tabel — ingen duplikater.
@@ -2471,6 +2472,7 @@ export const useMyDayStops = (date: string) => {
     staleTime: 30_000,
     queryFn: async () => {
       if (!employeeId) return [];
+      await materializeMyEmployeeDayRoutes(date);
       // Fremtidige stops vises også — medarbejderen skal kunne se sin
       // kommende dag, og hvis "Tillad tidlig udførelse" er aktiveret kan
       // de udføres før tid. Lås på "udfør"-knappen håndteres i UI'et via
