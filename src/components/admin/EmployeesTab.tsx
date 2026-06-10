@@ -17,7 +17,7 @@ import {
   Mail, Phone, Briefcase, UserPlus,
   Trash2, Power, PowerOff, Pencil, KeyRound, Users, Percent, MessageCircle,
   Wallet, TrendingUp, ListChecks, MapPin, CheckCircle2, Clock, CalendarDays,
-  MoreHorizontal,
+  MoreHorizontal, Unlock,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ROUTE_COLORS } from "@/components/route-planner/RouteEditSheet";
