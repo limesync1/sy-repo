@@ -1155,7 +1155,7 @@ const RoutePillInner = ({
         onSelect();
       }}
       className={cn(
-        "relative rounded-md cursor-pointer overflow-hidden bg-card",
+        "group relative rounded-md cursor-pointer overflow-hidden bg-card",
         "border border-border/60 shadow-[0_1px_2px_-1px_hsl(var(--foreground)/0.08)] " +
         "transition-[background-color,border-color,opacity,box-shadow,transform] duration-150 ease-out " +
         "hover:border-foreground/25 hover:shadow-[0_6px_18px_-8px_hsl(var(--foreground)/0.22)] hover:-translate-y-[1px]",
