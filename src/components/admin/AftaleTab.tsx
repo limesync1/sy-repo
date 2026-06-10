@@ -41,7 +41,7 @@ import {
 import { INTERVAL_LABELS } from "@/types/service";
 import { EmptyState, PageHeader, PrimaryButton } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton } from "@/components/admin/shared/Skeletons";
-import { useCalendarData, useAddStop, useCreateRoute, useDeleteRoute } from "@/hooks/useRoutes";
+import { useCalendarData, useAddStop, useCreateRoute, useDeleteRoute, invalidateRouteSyncQueries } from "@/hooks/useRoutes";
 import { ROUTE_COLORS, ROUTE_COLOR_PALETTE, pickAvailableColor } from "@/components/route-planner/RouteEditSheet";
 import { DatePickerField } from "@/components/route-planner/DatePickerField";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
@@ -1333,6 +1333,10 @@ const AftaleTab = ({
       qc.invalidateQueries({ queryKey: ["aftaler-route-stops"] });
       qc.invalidateQueries({ queryKey: ["routes-for-range"] });
       qc.invalidateQueries({ queryKey: ["stops-for-routes"] });
+      // Sørg for at åbne ruteplanlægger-faner opdateres uden F5 — ruten
+      // mister sit stop og må projektioner/cache invalidere så pillen
+      // forsvinder med det samme.
+      invalidateRouteSyncQueries(qc);
     } catch (e: any) {
       toast.error(toDanishError(e, "Kunne ikke slette aftalen. Prøv igen."));
     } finally {
@@ -1367,6 +1371,7 @@ const AftaleTab = ({
       qc.invalidateQueries({ queryKey: ["routes"] });
       qc.invalidateQueries({ queryKey: ["routes-for-range"] });
       qc.invalidateQueries({ queryKey: ["stops-for-routes"] });
+      invalidateRouteSyncQueries(qc);
     } catch (e: any) {
       toast.error(toDanishError(e, "Kunne ikke slette aftalen. Prøv igen."));
     } finally {

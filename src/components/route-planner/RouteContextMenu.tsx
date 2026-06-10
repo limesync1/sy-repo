@@ -16,45 +16,53 @@ type Props = {
 };
 
 export default function RouteContextMenu({ children, onAction, hide }: Props) {
+  // Defer alle actions én animation-frame så Radix' context-menu-luknings-
+  // event ALDRIG når den nyåbnede dialog/sheet. Uden dette opfattes
+  // menuens egen pointer-up som et "klik udenfor" og lukker fx
+  // "Åbn rute"-sheet'en med det samme.
+  const defer = (action: RouteAction) => (e: Event) => {
+    e.preventDefault();
+    requestAnimationFrame(() => onAction(action));
+  };
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
       <ContextMenuContent className="w-52">
         {!hide?.view && (
-          <ContextMenuItem onSelect={() => onAction("view")}>
+          <ContextMenuItem onSelect={defer("view")}>
             <Eye className="h-3.5 w-3.5 mr-2" /> Åbn rute
           </ContextMenuItem>
         )}
         {!hide?.optimize && (
-          <ContextMenuItem onSelect={() => onAction("optimize")}>
+          <ContextMenuItem onSelect={defer("optimize")}>
             <Sparkles className="h-3.5 w-3.5 mr-2" /> Optimér rækkefølge
           </ContextMenuItem>
         )}
         {!hide?.["show-on-map"] && (
-          <ContextMenuItem onSelect={() => onAction("show-on-map")}>
+          <ContextMenuItem onSelect={defer("show-on-map")}>
             <MapPin className="h-3.5 w-3.5 mr-2" /> Vis på kort
           </ContextMenuItem>
         )}
         {!hide?.history && (
-          <ContextMenuItem onSelect={() => onAction("history")}>
+          <ContextMenuItem onSelect={defer("history")}>
             <History className="h-3.5 w-3.5 mr-2" /> Vis historik
           </ContextMenuItem>
         )}
         <ContextMenuSeparator />
         {!hide?.duplicate && (
-          <ContextMenuItem onSelect={() => onAction("duplicate")}>
+          <ContextMenuItem onSelect={defer("duplicate")}>
             <Copy className="h-3.5 w-3.5 mr-2" /> Dupliker
           </ContextMenuItem>
         )}
         {!hide?.move && (
-          <ContextMenuItem onSelect={() => onAction("move")}>
+          <ContextMenuItem onSelect={defer("move")}>
             <ArrowRightLeft className="h-3.5 w-3.5 mr-2" /> Flyt til dato…
           </ContextMenuItem>
         )}
         {!hide?.delete && (
           <>
             <ContextMenuSeparator />
-            <ContextMenuItem className="text-destructive focus:text-destructive" onSelect={() => onAction("delete")}>
+            <ContextMenuItem className="text-destructive focus:text-destructive" onSelect={defer("delete")}>
               <Trash2 className="h-3.5 w-3.5 mr-2" /> Slet rute…
             </ContextMenuItem>
           </>

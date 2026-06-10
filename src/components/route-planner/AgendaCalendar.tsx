@@ -390,6 +390,13 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
 
   const stopCount = route.stops.length;
   const completedCount = route.stops.filter((s) => s.status === "completed").length;
+  // Konsistent "udført"-visualisering ligesom MonthWeekCalendar's RoutePill:
+  // 100% færdig (eller server-status = completed) → emerald baggrund + venstre-
+  // rail + lille badge. Ellers vises en tynd progress-bar i bunden.
+  const allStopsDone = !isVirtual && stopCount > 0 && completedCount === stopCount;
+  const isRouteCompleted = !isVirtual && (route as any).status === "completed";
+  const showAsCompleted = isRouteCompleted || allStopsDone;
+  const progressPct = stopCount > 0 ? Math.round((completedCount / stopCount) * 100) : 0;
   const visibleEmployees = route.attachedEmployees.slice(0, 3);
   const extraEmployees = route.attachedEmployees.length - visibleEmployees.length;
 
@@ -405,6 +412,7 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
         isDragging && "opacity-40",
         isVirtual && "border-dashed",
         isPast && "opacity-60 saturate-50",
+        showAsCompleted && !isPast && "bg-emerald-500/[0.07] hover:bg-emerald-500/[0.12]",
         jobDragActive && isPast && "opacity-25 pointer-events-none",
         !isVirtual && isOver && !validation && "ring-2 ring-accent shadow-md",
         !isVirtual && isOver && validation && ringForSeverity(validation.severity),
@@ -412,7 +420,10 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
         routeDragSourceId && !isMergeTarget && routeDragSourceId !== route.id && "opacity-40 pointer-events-none",
         busy && "cursor-wait",
       )}
-      style={{ borderLeftColor: route.color, borderLeftWidth: 3 }}
+      style={{
+        borderLeftColor: showAsCompleted ? "hsl(var(--feature-cool-foreground))" : route.color,
+        borderLeftWidth: 3,
+      }}
       aria-busy={busy || undefined}
     >
       {isOver && validation && (
@@ -456,7 +467,14 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
         </div>
         <div className="mt-0.5 flex items-center gap-2 text-[10px] text-muted-foreground tabular-nums">
           <span className="inline-flex items-center gap-0.5"><MapPin className="h-2.5 w-2.5" />{stopCount} stop</span>
-          {completedCount > 0 && <span className="text-emerald-600 dark:text-emerald-400">{completedCount}✓</span>}
+          {completedCount > 0 && !showAsCompleted && (
+            <span className="text-emerald-600 dark:text-emerald-400">{completedCount}/{stopCount}</span>
+          )}
+          {showAsCompleted && (
+            <span className="inline-flex items-center gap-0.5 rounded-full border border-feature-cool/40 bg-feature-cool/10 px-1 py-px text-[9px] font-bold uppercase tracking-wide text-feature-cool-foreground">
+              ✓ Udført
+            </span>
+          )}
           {(route as any).planned_start_time && (
             <span>kl. {String((route as any).planned_start_time).slice(0,5)}</span>
           )}
@@ -504,6 +522,14 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
       )}
 
       <ChevronDown className="h-3.5 w-3.5 -rotate-90 text-muted-foreground shrink-0" />
+      {stopCount > 0 && !showAsCompleted && completedCount > 0 && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-secondary">
+          <div
+            className="h-full bg-emerald-500 transition-all duration-500"
+            style={{ width: `${progressPct}%` }}
+          />
+        </div>
+      )}
     </div>
   );
 
