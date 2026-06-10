@@ -232,6 +232,12 @@ export const useProjectedCalendar = (input: UseProjectedCalendarInput): Calendar
           baseRouteId: p.baseRouteId,
           sourceKeys: p.sourceKeys,
           route_date: p.date,
+          // VIGTIGT: virtuelle/projicerede forekomster må ALDRIG arve
+          // basisrutens status. Når basisruten markeres som "completed"
+          // efter en udførsel, vil hver fremtidig projektion ellers
+          // fejlagtigt fremstå som allerede udført. Hver projiceret dato
+          // er en frisk forekomst der skal kunne udføres som ny.
+          status: "planned",
           name:
             (resolved?.name && resolved.name.trim()) ||
             (base.name && String(base.name).trim()) ||

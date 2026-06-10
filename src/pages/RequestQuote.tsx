@@ -22,12 +22,13 @@ import { useUserLocation } from "@/contexts/LocationContext";
 import { useAuth } from "@/contexts/AuthContext";
 import PageHero from "@/components/landing/PageHero";
 import Footer from "@/components/landing/Footer";
-import { topCategories } from "@/lib/service-taxonomy";
+import { topCategories, ALL_INDUSTRIES, searchIndustries } from "@/lib/service-taxonomy";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-/** Brug det kanoniske branchekatalog så /tilbud altid matcher
- *  præcis det virksomheder kan registrere sig under. */
-const CATEGORIES = topCategories();
+/** Hele branchekataloget (ikke kun top-listen) — så brugeren kan søge
+ *  efter ALLE brancher inkl. underbrancher og nøgleord. Top-listen
+ *  vises stadig som de populære kategorier ved tomt søgefelt. */
+const CATEGORIES = ALL_INDUSTRIES;
 
 const EXAMPLE_PROMPTS: Record<string, string> = {
   "Rengøring": "Fx: Rengøring af 3-værelses lejlighed på 85 m², hver 14. dag i København NV.",
@@ -122,12 +123,22 @@ const RequestQuote = () => {
    *  overvælder, men brugeren stadig kan klikke direkte. Når der søges,
    *  vises alle matches. */
   const POPULAR_KEYS = ["Rengøring", "Haveservice", "Vinduespudsning"];
-  const trimmedQuery = categoryQuery.trim().toLowerCase();
-  const filteredCategories = trimmedQuery
-    ? CATEGORIES.filter((c) => c.label.toLowerCase().includes(trimmedQuery))
+  const trimmedQuery = categoryQuery.trim();
+  /** Når der søges: brug det rige branche-søg (label + underbranche +
+   *  nøgleord) så fx "tagrens", "trappevask", "flytning" osv. også
+   *  giver hits — ikke kun de 18 top-labels. Hver hit kender også
+   *  hvad det matchede via, så vi kan vise det som hint i listen. */
+  const filteredCategories: { label: string; key: string; icon: string; matchedVia?: string }[] = trimmedQuery
+    ? searchIndustries(trimmedQuery, { limit: 25, preferTopKeys: true }).map((h) => ({
+        label: h.industry.label,
+        key: h.industry.key,
+        icon: h.industry.icon,
+        matchedVia: h.matchedVia,
+      }))
     : (POPULAR_KEYS
         .map((k) => CATEGORIES.find((c) => c.key === k))
-        .filter(Boolean) as typeof CATEGORIES);
+        .filter(Boolean) as typeof CATEGORIES)
+      .map((c) => ({ label: c.label, key: c.key, icon: c.icon }));
 
   const handleFind = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -338,7 +349,7 @@ const RequestQuote = () => {
                     {filteredCategories.length === 0 && (
                       <li className="px-4 py-3 text-sm text-muted-foreground">Ingen kategorier matcher.</li>
                     )}
-                    {filteredCategories.map(({ label, key, icon }) => {
+                    {filteredCategories.map(({ label, key, matchedVia }) => {
                       const active = category === key;
                       return (
                         <li key={key}>
@@ -354,7 +365,12 @@ const RequestQuote = () => {
                             }`}
                           >
                             <IndustryIcon category={key} className="h-7 w-7 shrink-0" alt={label} />
-                            <span className="flex-1 font-medium">{label}</span>
+                            <span className="flex-1 min-w-0">
+                              <div className="font-medium truncate">{label}</div>
+                              {matchedVia && (
+                                <div className="text-[11px] text-muted-foreground truncate">via "{matchedVia}"</div>
+                              )}
+                            </span>
                             {active && <Check className="h-4 w-4 text-accent" />}
                           </button>
                         </li>
