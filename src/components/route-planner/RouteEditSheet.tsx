@@ -729,8 +729,8 @@ export const RouteEditSheet = ({
           hideOverlay={!isCompact}
           hideCloseButton={false}
           onOpenAutoFocus={(e) => e.preventDefault()}
-          onPointerDownOutside={(e) => { if (!isCompact) e.preventDefault(); }}
-          onInteractOutside={(e) => { if (!isCompact) e.preventDefault(); }}
+          /* Tillad luk via klik udenfor + Esc (Radix default). Tidligere
+             blokerede vi det på desktop, men det forvirrede brugere. */
         >
           <SheetHeader
             className="relative px-4 py-3.5 pr-14 border-b shrink-0 space-y-0 text-left bg-gradient-to-b from-secondary/40 to-card"
