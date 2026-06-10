@@ -299,7 +299,7 @@ export const UnassignedJobCard = ({
          ─────────────────────────────────────────────────────────────────── */}
       <div
         aria-hidden
-        className={`w-[2px] shrink-0 ${selected ? "bg-accent" : urgency.rail}`}
+        className={`w-[3px] shrink-0 ${selected ? "bg-accent" : urgency.rail}`}
       />
 
       {/* MULTI-SELECT — stor, altid-synlig dedikeret zone i venstre side.
