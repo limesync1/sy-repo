@@ -30,6 +30,8 @@ type RouteContext = {
   name: string | null;
   color?: string | null;
   date?: string | null;
+  /** Hvis true: medarbejderen må udføre stop selvom dato er fremtidig. */
+  allowEarly?: boolean;
 };
 
 type Props = {
@@ -59,6 +61,11 @@ export const StopDetailsContent = ({
   // medarbejder ikke kan udføre en fremtidig forekomst før tid.
   // Brug planned_arrival (præcis tidsstempel) hvis sat, ellers route.date.
   const { canComplete, futureLabel } = useMemo(() => {
+    // Hvis virksomheden/medarbejderen/ruten tillader tidlig udførelse,
+    // er stoppet altid eksekverbart — uanset planned_arrival / route.date.
+    if (route?.allowEarly) {
+      return { canComplete: true, futureLabel: null as string | null };
+    }
     const now = new Date();
     const planned = (stop as any).planned_arrival
       ? new Date((stop as any).planned_arrival)

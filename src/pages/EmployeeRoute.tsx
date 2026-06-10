@@ -30,9 +30,11 @@ import { useSmoothPosition } from "@/components/employee-route/useSmoothPosition
 import { useGpsFilter, type FilteredFix } from "@/components/employee-route/useGpsFilter";
 import { smoothPolyline } from "@/components/employee-route/smoothPolyline";
 import { useSmoothZoom } from "@/components/employee-route/useSmoothZoom";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { pickDuration } from "@/components/route/EtaBreakdown";
 import { StopDetailsContent } from "@/components/employee/StopDetailsContent";
+import { useMyEmployee } from "@/hooks/useMyEmployee";
+import { canCompleteEarly, type EarlyCompletionMode } from "@/lib/early-completion";
 
 /* ── Map icons ──────────────────────────────────────────────── */
 const startIcon = L.divIcon({
@@ -325,6 +327,23 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const startStopTime = useStartStopTime();
   const endStopTime = useEndStopTime();
   const navigate = useNavigate();
+  // Tidlig udførelse — afgør om "Markér udført" må trykkes på fremtidige
+  // rutedatoer. Samme resolver som EmployeeApp bruger på dagslisten.
+  const { data: meEmp } = useMyEmployee();
+  const empMode = ((meEmp as any)?.early_completion_mode || "inherit") as EarlyCompletionMode;
+  const { data: bizEarlyDefault = false } = useQuery({
+    queryKey: ["business-early-default", meEmp?.business_id],
+    enabled: !!meEmp?.business_id,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("businesses")
+        .select("allow_early_completion_default")
+        .eq("id", meEmp!.business_id!)
+        .maybeSingle();
+      return !!(data as any)?.allow_early_completion_default;
+    },
+  });
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState<Record<string, string>>({});
   const [listOpen, setListOpen] = useState(false);
@@ -1928,7 +1947,16 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 stop={s}
                 index={idx}
                 themeColor={themeColor}
-                route={route ? { name: route.name, color: route.color, date: route.route_date } : undefined}
+                route={route ? {
+                  name: route.name,
+                  color: route.color,
+                  date: route.route_date,
+                  allowEarly: canCompleteEarly({
+                    routeAllow: (route as any).allow_early_completion,
+                    employeeMode: empMode,
+                    businessDefault: bizEarlyDefault,
+                  }),
+                } : undefined}
                 noteDraft={noteDraft[s.id] ?? s.notes ?? ""}
                 onNoteChange={(v) => setNoteDraft((d) => ({ ...d, [s.id]: v }))}
                 onComplete={() => handleComplete(s)}

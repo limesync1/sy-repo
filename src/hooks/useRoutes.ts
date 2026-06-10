@@ -2454,11 +2454,10 @@ export const useMyDayStops = (date: string) => {
     staleTime: 30_000,
     queryFn: async () => {
       if (!employeeId) return [];
-      // Sikkerheds-guard: medarbejder-appen viser ALDRIG fremtidige stops.
-      // Dette undgår at en bug i klienten (fx forkert dato-state) viser
-      // morgendagens ruter — kun aktuelle eller historiske dage tillades.
-      const today = new Date().toISOString().slice(0, 10);
-      if (date > today) return [];
+      // Fremtidige stops vises også — medarbejderen skal kunne se sin
+      // kommende dag, og hvis "Tillad tidlig udførelse" er aktiveret kan
+      // de udføres før tid. Lås på "udfør"-knappen håndteres i UI'et via
+      // canCompleteEarly (src/lib/early-completion.ts).
       const [linksRes, legacyRes, stopAssignRes] = await Promise.all([
         supabase.from("route_employees").select("route_id").eq("employee_id", employeeId),
         supabase.from("routes").select("id").eq("employee_id", employeeId).eq("route_date", date),
