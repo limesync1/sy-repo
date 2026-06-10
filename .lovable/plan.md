@@ -1,82 +1,71 @@
+# Aftalenumre & frisk ordrenr pr. udførsel
+
 ## Mål
+1. Hver aftale skal have et synligt **aftalenummer** (internt) der tildeles når aftalen bliver klar til kørsel, og kobles til et **eksternt ordrenummer** fra regnskabsprogrammet når den synkroniseres.
+2. Når en kørsel (fx "Trane Lukhans", interval = hver time) udføres i dag, skal næste forekomst (i morgen kl. samme tid + interval) automatisk få **sit eget nye ordre-/fakturanummer** i regnskabsprogrammet, så der oprettes en helt ny faktura ved næste udførsel.
 
-1. Tillad at en basisrute flyttes til en dato hvor der ligger en projiceret forekomst af samme serie. Eksisterende "Spørg ved flyt"-dialog bestemmer scope (`single` vs `future`).
-2. Stop med at fjerne udførte ruter og deres fremtidige projektioner fra ruteplanlæggeren. Vis dem i stedet med korrekt status og handlinger.
+## 1) Internt aftalenummer
 
-## Ændringer
+Tilføj felter:
+- `agreements.agreement_number` (text, unik pr. business, format `AFT-YYYY-00001`)
+- `agreement_occurrences.occurrence_number` (text, format `<agreement_number>-<seq+1>` fx `AFT-2026-00042-03`)
 
-### 1. Flyt basisrute hen over projiceret forekomst
-**Fil:** `src/domain/routes/drop-decision.ts` (`decideRouteToDay`)
+Trigger-logik:
+- Når en aftale går fra status `draft`/`pending_approval` → `active` (= "klar til kørsel"), tildeles næste `agreement_number` via en sekvens pr. business.
+- Når en `agreement_occurrence` indsættes (også fra `ensure_next_agreement_occurrence` og `materialize_*`), tildeles `occurrence_number` automatisk hvis tomt.
+- Backfill: eksisterende aktive aftaler og forekomster får numre i samme migration.
 
-- Fjern hard-blocket for `collidingProjected`. Behold blot blokering når der ligger en **rigtig** materialiseret rute fra samme serie på måldagen (det er en ægte konflikt).
-- Når der ligger en projiceret forekomst på måldagen → fortsæt direkte til "spørg ved flyt"-dialogen.
-  - `scope: "single"` → flyt kun denne rute; den projicerede forekomst på samme dag undertrykkes for den ene dag (skriv `route_occurrence_exception` af typen `cancelled` for den projicerede dato, så vi ikke får to af samme serie på samme dag).
-  - `scope: "future"` → flyt serien fremad; eksisterende RPC `move_route_to_date(..., 'future')` rykker fremtidige cadence-anker, så de projicerede forekomster naturligt forskydes.
-- Validation i `useRoutePlannerDnd.ts` opdateres tilsvarende (advarsel i stedet for fejl, message: "Der ligger en projiceret forekomst — vælg scope ved slip").
+Eksisterende `agreements` (UUID) bruges fortsat som teknisk id; nummeret er kun visningsfeltet.
 
-### 2. Vis udførte ruter (ikke fjern dem)
-**Filer:** `src/components/route-planner/MonthWeekCalendar.tsx`, `AgendaCalendar.tsx`, `CalendarPlanner.tsx`, `RouteEditSheet.tsx`
+## 2) Visning af aftalenumre
 
-- Render rute-kort med `status === "completed"` med:
-  - Grøn "Udført"-badge + `CheckCircle2`-ikon.
-  - Disabled "Start rute" / "Optimér" knapper.
-  - Ny "Genåbn rute"-knap (admin) → kalder ny mutation `useReopenRoute` der sætter `routes.status = 'planned'` og nulstiller `completed_at`; samtidig sættes alle stops på ruten fra `completed` → `planned` via eksisterende `_apply_completion_handle`-modgang (ny SQL-funktion `reopen_route(_route_id)` der gør det atomart og logger til `route_audit_log`).
-- Sikre at routes-query (`useRoutes`/`routes-range`) IKKE filtrerer udførte ruter væk i ruteplanlæggerens vindue.
+Vis `agreement_number` + `occurrence_number` ved siden af den eksisterende `external_order_number`/`invoice_external_number` her:
+- `RouteOccurrenceTimeline.tsx` (badge under hver kørsel)
+- `StopDetailsContent.tsx` (header på stop-dialogen)
+- `AftaleTab.tsx` (aftale-listen i admin)
+- `CustomerDashboard.tsx` (kundens ordreoversigt)
+- Print-visningen `EmployeeRoutePrint.tsx`
 
-### 3. Bevar fremtidige projicerede ruter efter completion
-**Filer:** `src/hooks/route-planner/useProjectedCalendar.ts`, `src/lib/recurring-projection.ts`
+Format: `Aftale AFT-2026-00042 · Kørsel #3`.
 
-- `isLiveProjectedStop` blev tidligere fixet, men når selve basisruten er `completed` overlever stop'ene måske ikke. Tilføj: basisruter med `status="completed"` skal stadig fungere som projektionskilde for fremtidige datoer (`> baseRoute.route_date`).
-- Verificér i `useProjectedCalendar` at `baseById`-fallback ikke smider basisrute væk hvis den er `completed`.
+## 3) Frisk ordrenr i regnskab pr. udførsel (kerneproblemet)
 
-### 4. Lås for fremtidige projicerede ruter
-**Filer:** `MonthWeekCalendar.tsx`, `CalendarPlanner.tsx`, `AgendaCalendar.tsx`
+Roden til problemet i dag: `enqueue_invoice_for_completed_order` kører kun når en **`orders`-række** går til `completed`. For en time-/dag-recurring aftale skal hver ny forekomst blive sin egen `orders`-række (eller direkte sin egen faktura) — ellers genbruger regnskabsprogrammet det samme ordrenr og kan ikke oprette en ny faktura.
 
-- Tilføj `Lock`-ikon (lucide-react) i hjørnet af projicerede rute-kort hvor `route_date > i dag`.
-- Tooltip: "Oplåses [dato]".
-- Disable "Start rute" / "Materialisér + start" actions; "Åbn"/redigér forbliver tilgængelig (planlægning skal stadig kunne ske).
-- Ingen ændringer i medarbejder-appen — den blokerer allerede ved dato-check.
+Plan:
+1. **Sikre 1:1 mellem `agreement_occurrence` og `orders`-række.** I `ensure_next_agreement_occurrence` (og `_materialize_single_occurrence`) tilføjes oprettelse af en `orders`-række kopieret fra aftalens skabelon — med tom `external_order_number`, `invoice_external_id` og status `planned`. `agreement_occurrences.legacy_order_id` peger på den nye række.
+2. **Ved kørsel-udførsel** (medarbejder markerer stop som `completed`):
+   - Sæt det tilhørende `orders.status = 'completed'` (allerede sat for engangs-ordrer i dag — udvid til at finde ordren via `agreement_occurrences.legacy_order_id` for recurring).
+   - `enqueue_invoice_for_completed_order`-triggeren fyrer som normalt og lægger en `invoice/create`-job i `accounting_sync_queue` for **netop denne** nye ordre → regnskabsprogrammet allokerer et nyt ordre-/fakturanummer.
+3. **Sync-callback**: `accounting-sync` skriver det nye `external_order_number` + `invoice_external_number` tilbage på både `orders` og `agreement_occurrences` (sidstnævnte sker allerede via `accounting_order_links`).
 
-### 5. Tests
+## 4) Robusthed (rettelser fundet under analyse)
 
-**Nye/udvidede tests:**
-- `src/domain/routes/drop-decision.test.ts`: Drop af basisrute på dato med projiceret forekomst → returnerer `dialog: route-move` (ikke blocked).
-- `src/lib/interval.minute-hour-cadence.test.ts` (eller ny fil): Efter completion af én forekomst forbliver fremtidige projektioner synlige.
-- E2E (`e2e/route-planner-completion.spec.ts`): Komplettér en rute, verificér at fremtidige uger stadig har projicerede kort + lock-ikon.
+- `useProjectedCalendar.ts:118` – kommentar siger "laveste dato", men koden gemmer den **højeste**. Skift til `d < existing` (eller drop helt for ankrede serier) så fremtidige projektioner ikke skjules når der findes en materialiseret rute længere ude i fremtiden.
+- I `runProjection`-dedup: tjek at vi ikke deduplikerer på `agreement_id+date` når intervallet er kortere end et døgn (time-intervaller) — sammenlign på fuld timestamp.
+- `ensure_next_agreement_occurrence` arbejder i dag med `date` + `interval`. For interval `hver_time` bliver `v_next_date := occurrence_date + 1 dag` (pga. fallback når durationen er < 1 dag). Tilføj `planned_arrival = planned_arrival + interval` så time-intervaller flytter sig korrekt og opretter flere forekomster pr. dag.
 
-### Tekniske detaljer
+## 5) Tests
 
-```text
-drop-decision.ts:
-  decideRouteToDay()
-    └─ if collidingProjected → REMOVED
-       (faldt før igennem til dialog)
+- DB-test: opret aftale med `interval='hver_time'`, marker stop completed, verificér at ny `agreement_occurrence` + ny `orders`-række med tom `external_order_number` oprettes for næste time.
+- Sync-test: stub `accounting-sync` og bekræft at to udførsler giver to forskellige `external_order_number`.
+- UI-snapshot: `RouteOccurrenceTimeline` viser `AFT-...-N` korrekt.
 
-MonthWeekCalendar route-card:
-  ├─ status="completed"  → grøn badge + Reopen-knap
-  ├─ projected && future → Lock-ikon + disabled start
-  └─ default             → som i dag
-```
+## Tekniske ændringer (filer)
 
-```sql
--- Ny RPC: atomar genåbning
-CREATE OR REPLACE FUNCTION public.reopen_route(_route_id uuid)
-RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
-BEGIN
-  UPDATE public.routes SET status='planned', completed_at=NULL WHERE id=_route_id;
-  UPDATE public.route_stops SET status='planned', completed_at=NULL
-    WHERE route_id=_route_id AND status='completed';
-  INSERT INTO public.route_audit_log(business_id, route_id, action, affected_count)
-  SELECT business_id, _route_id, 'route.reopen', 1 FROM public.routes WHERE id=_route_id;
-END $$;
-```
+**Migration**
+- Nye kolonner `agreements.agreement_number`, `agreement_occurrences.occurrence_number`, sekvens pr. business.
+- Triggers `assign_agreement_number_on_activate`, `assign_occurrence_number_on_insert`.
+- Opdater `ensure_next_agreement_occurrence` og `_materialize_single_occurrence` til at oprette ledsagende `orders`-række.
+- Backfill `UPDATE` for eksisterende rækker.
 
-### Filer der ændres
-- `src/domain/routes/drop-decision.ts` + test
-- `src/hooks/route-planner/useRoutePlannerDnd.ts` (validation message)
-- `src/hooks/route-planner/useProjectedCalendar.ts` (completed base routes som kilde)
-- `src/components/route-planner/MonthWeekCalendar.tsx`, `AgendaCalendar.tsx`, `CalendarPlanner.tsx`
-- `src/components/route-planner/RouteEditSheet.tsx` (Reopen-knap)
-- `src/hooks/useRoutes.ts` (ny `useReopenRoute`)
-- Ny SQL-migration: `reopen_route` RPC + audit-action
-- Ny E2E test
+**Frontend**
+- `src/components/route-planner/RouteOccurrenceTimeline.tsx`
+- `src/components/employee/StopDetailsContent.tsx`
+- `src/components/admin/AftaleTab.tsx`
+- `src/pages/CustomerDashboard.tsx`
+- `src/pages/EmployeeRoutePrint.tsx`
+- `src/hooks/route-planner/useProjectedCalendar.ts` (datofilter-fix)
+- `src/lib/route-projection/index.ts` (time-interval dedup-fix)
+
+Ingen ændringer i selve regnskabsadaptere (`dinero.ts`/`economic.ts`) — de allokerer nummer automatisk når en ny ordre/faktura sendes.
