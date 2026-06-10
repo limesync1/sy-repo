@@ -30,12 +30,11 @@ import { useSmoothPosition } from "@/components/employee-route/useSmoothPosition
 import { useGpsFilter, type FilteredFix } from "@/components/employee-route/useGpsFilter";
 import { smoothPolyline } from "@/components/employee-route/smoothPolyline";
 import { useSmoothZoom } from "@/components/employee-route/useSmoothZoom";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { pickDuration } from "@/components/route/EtaBreakdown";
 import { StopDetailsContent } from "@/components/employee/StopDetailsContent";
 import { useMyEmployee } from "@/hooks/useMyEmployee";
 import { canCompleteEarly, type EarlyCompletionMode } from "@/lib/early-completion";
-import { useQuery } from "@tanstack/react-query";
 
 /* ── Map icons ──────────────────────────────────────────────── */
 const startIcon = L.divIcon({
