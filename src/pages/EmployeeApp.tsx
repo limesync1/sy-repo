@@ -154,6 +154,23 @@ const EmployeeApp = () => {
   const { data: workday } = useMyWorkday(date);
   const startDay = useStartWorkday();
   const endDay = useEndWorkday();
+  // Tidlig udførelse — hent medarbejderens egen indstilling og virksomhedens
+  // default. Resolver: src/lib/early-completion.ts.
+  const { data: me } = useMyEmployee();
+  const employeeMode = ((me as any)?.early_completion_mode || "inherit") as EarlyCompletionMode;
+  const { data: businessEarlyDefault = false } = useQuery({
+    queryKey: ["business-early-default", me?.business_id],
+    enabled: !!me?.business_id,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("businesses")
+        .select("allow_early_completion_default")
+        .eq("id", me!.business_id!)
+        .maybeSingle();
+      return !!(data as any)?.allow_early_completion_default;
+    },
+  });
 
   if (loading) {
     // Vis shell med skeleton fra første millisekund — ingen blank
