@@ -1280,6 +1280,11 @@ const RoutePillInner = ({
   // status kan have være sat til completed (vi rydder også feltet
   // i useProjectedCalendar, men gardere os her som backup).
   const isRouteCompleted = !isVirtual && (route as any).status === "completed";
+  // Lokal "alle stop udført"-tilstand: bruges KUN visuelt på piller i kalenderen,
+  // så en rute der reelt er fuldført (men hvis server-status endnu ikke er
+  // sat til 'completed') også fremstår tydeligt færdig.
+  const allStopsDone = !isVirtual && stopCount > 0 && completedCount === stopCount;
+  const showAsCompleted = isRouteCompleted || allStopsDone;
   // Tre tilstande for projicerede (virtuelle) ruter:
   //  - future  → låst indtil dagen er aktuel (vises med hængelås)
   //  - today   → aktiv projektion, kan udføres eller flyttes nu
@@ -1364,6 +1369,9 @@ const RoutePillInner = ({
         // projicerede forekomster — uden at flytte indholdet i pillen.
         isBaseRecurring && !isVirtual && "shadow-[inset_0_0_0_1px_hsl(var(--accent)/0.35)]",
         isPast && "opacity-50 saturate-50 hover:opacity-90",
+        // Helt udført rute: emerald-tint på baggrunden, dæmpet skrift —
+        // gør "færdig" til den klart mest scanbare tilstand i kalenderen.
+        showAsCompleted && !isPast && "bg-emerald-500/[0.07] hover:bg-emerald-500/[0.12]",
         // Under drag dæmpes fortids-ruter yderligere — de er ikke gyldige
         // drop-targets (kalender-cellen er disabled), så de skal heller
         // ikke visuelt invitere til drop.
@@ -1521,7 +1529,7 @@ const RoutePillInner = ({
                 {!compact && "Original"}
               </span>
             )}
-            {isRouteCompleted && (
+            {showAsCompleted && (
               <span
                 className={cn(
                   "inline-flex items-center gap-0.5 rounded-[3px] bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 ring-1 ring-inset ring-emerald-500/30 text-[9px] font-bold uppercase tracking-[0.06em] shrink-0",
@@ -1651,11 +1659,20 @@ const RoutePillInner = ({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48" onClick={(e) => e.stopPropagation()}>
               <DropdownMenuItem
-                onSelect={() => {
-                  try { onSelect(); } catch (err) {
-                    console.error(err);
-                    toast.error("Kunne ikke åbne ruten");
-                  }
+                onSelect={(e) => {
+                  // FIX: når brugeren vælger "Åbn rute" via dropdown'en,
+                  // lukker Radix-menuen og bobler et pointer-event op til
+                  // den netop åbnede Sheet — som derefter tolker det som
+                  // "klik udenfor" og lukker sig selv igen. Vi udskyder
+                  // åbningen ét frame så menuens close-event er færdig
+                  // FØR sheet'en mountes.
+                  e.preventDefault();
+                  requestAnimationFrame(() => {
+                    try { onSelect(); } catch (err) {
+                      console.error(err);
+                      toast.error("Kunne ikke åbne ruten");
+                    }
+                  });
                 }}
               >
                 <Eye className="h-3.5 w-3.5 mr-2" /> Åbn rute
@@ -1663,11 +1680,14 @@ const RoutePillInner = ({
               {canOptimize && (
                 <DropdownMenuItem
                   disabled={optimizing}
-                  onSelect={() => {
-                    try { onOptimize(); } catch (err) {
-                      console.error(err);
-                      toast.error("Kunne ikke optimere ruten");
-                    }
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    requestAnimationFrame(() => {
+                      try { onOptimize(); } catch (err) {
+                        console.error(err);
+                        toast.error("Kunne ikke optimere ruten");
+                      }
+                    });
                   }}
                 >
                   {optimizing
@@ -1678,11 +1698,14 @@ const RoutePillInner = ({
               )}
               {canHistory && (
                 <DropdownMenuItem
-                  onSelect={() => {
-                    try { onShowHistory!(); } catch (err) {
-                      console.error(err);
-                      toast.error("Kunne ikke åbne historik");
-                    }
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    requestAnimationFrame(() => {
+                      try { onShowHistory!(); } catch (err) {
+                        console.error(err);
+                        toast.error("Kunne ikke åbne historik");
+                      }
+                    });
                   }}
                 >
                   <History className="h-3.5 w-3.5 mr-2" /> Vis historik
@@ -1693,11 +1716,14 @@ const RoutePillInner = ({
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     className="text-destructive focus:text-destructive"
-                    onSelect={() => {
-                      try { onDelete!(); } catch (err) {
-                        console.error(err);
-                        toast.error("Kunne ikke slette ruten");
-                      }
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      requestAnimationFrame(() => {
+                        try { onDelete!(); } catch (err) {
+                          console.error(err);
+                          toast.error("Kunne ikke slette ruten");
+                        }
+                      });
                     }}
                   >
                     <Trash2 className="h-3.5 w-3.5 mr-2" /> Slet rute…
@@ -1727,21 +1753,42 @@ const RoutePillInner = ({
       )}
       {stopCount > 0 && (
         <div
-          className="h-0.5 w-full bg-muted/25 overflow-hidden"
-          title={`Belastning ${loadPct}% — ${Math.round(workMin / 60 * 10) / 10} t af ~${Math.round(capacityMin / 60)} t (${empCount} medarbejder${empCount === 1 ? "" : "e"})`}
-          aria-label={`Belastning ${loadPct} procent`}
+          className={cn(
+            "relative h-1 w-full overflow-hidden bg-muted/40",
+            // Lidt højere bar når ruten har fremdrift, så den er let at se på
+            // afstand. Helt udførte ruter får emerald-stribe.
+            completedCount > 0 && "h-1.5",
+          )}
+          title={
+            completedCount > 0
+              ? `${completedCount} af ${stopCount} stop udført (${Math.round((completedCount / stopCount) * 100)}%) · Belastning ${loadPct}%`
+              : `Belastning ${loadPct}% — ${Math.round(workMin / 60 * 10) / 10} t af ~${Math.round(capacityMin / 60)} t (${empCount} medarbejder${empCount === 1 ? "" : "e"})`
+          }
+          aria-label={
+            completedCount > 0
+              ? `${completedCount} af ${stopCount} stop udført`
+              : `Belastning ${loadPct} procent`
+          }
         >
+          {/* Belastnings-baggrund (subtil) */}
           <div
             className={cn(
-              "h-full transition-all duration-300",
+              "absolute inset-y-0 left-0 transition-all duration-300 opacity-50",
               loadPct >= 100
                 ? "bg-destructive"
                 : loadPct >= 85
                 ? "bg-amber-500"
-                : "bg-foreground/35",
+                : "bg-foreground/25",
             )}
             style={{ width: `${Math.min(100, loadPct)}%` }}
           />
+          {/* Fremdrift OVER belastning — emerald, så "udført" er det tydeligste. */}
+          {completedCount > 0 && (
+            <div
+              className="absolute inset-y-0 left-0 bg-emerald-500 transition-all duration-300"
+              style={{ width: `${Math.min(100, Math.round((completedCount / stopCount) * 100))}%` }}
+            />
+          )}
         </div>
       )}
       {/* Stops vises ikke under rute-pillen — åbn ruten ved at klikke for at se aftaler. */}

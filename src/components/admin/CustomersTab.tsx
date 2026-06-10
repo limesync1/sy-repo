@@ -752,6 +752,13 @@ const CustomersTab = ({ businessId, businessName }: Props) => {
       qc.invalidateQueries({ queryKey: ["customers", businessId] });
       qc.invalidateQueries({ queryKey: ["saved-customers", businessId] });
       qc.invalidateQueries({ queryKey: ["orders"] });
+      // Når aftaler/ordrer slettes skal ruteplanlæggeren også opdateres
+      // automatisk — ellers bliver "spøgelses-ruter" hængende indtil hard
+      // reload. Importeres inline for at undgå cirkulær afhængighed.
+      try {
+        const { invalidateRouteSyncQueries } = await import("@/hooks/useRoutes");
+        invalidateRouteSyncQueries(qc);
+      } catch { /* hvis modulet ikke kan loades skal sletning stadig lykkes */ }
       toast.success(targets.length === 1 ? "Kunde slettet" : `${targets.length} kunder slettet`);
       setSelectedIds(new Set());
       setConfirmDelete(null);

@@ -1307,6 +1307,7 @@ export type Database = {
       businesses: {
         Row: {
           address: string | null
+          allow_early_completion_default: boolean
           categories: string[] | null
           category: string | null
           city: string | null
@@ -1332,6 +1333,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          allow_early_completion_default?: boolean
           categories?: string[] | null
           category?: string | null
           city?: string | null
@@ -1357,6 +1359,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          allow_early_completion_default?: boolean
           categories?: string[] | null
           category?: string | null
           city?: string | null
@@ -2108,6 +2111,7 @@ export type Database = {
           color: string
           commission_pct: number
           created_at: string
+          early_completion_mode: string
           email: string
           employee_group: string | null
           employee_number: string | null
@@ -2134,6 +2138,7 @@ export type Database = {
           color?: string
           commission_pct?: number
           created_at?: string
+          early_completion_mode?: string
           email: string
           employee_group?: string | null
           employee_number?: string | null
@@ -2160,6 +2165,7 @@ export type Database = {
           color?: string
           commission_pct?: number
           created_at?: string
+          early_completion_mode?: string
           email?: string
           employee_group?: string | null
           employee_number?: string | null
@@ -3595,6 +3601,7 @@ export type Database = {
       }
       routes: {
         Row: {
+          allow_early_completion: boolean
           archived_at: string | null
           base_route_id: string | null
           business_id: string
@@ -3621,6 +3628,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          allow_early_completion?: boolean
           archived_at?: string | null
           base_route_id?: string | null
           business_id: string
@@ -3647,6 +3655,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          allow_early_completion?: boolean
           archived_at?: string | null
           base_route_id?: string | null
           business_id?: string
@@ -4573,6 +4582,7 @@ export type Database = {
           _route_date: string
         }
         Returns: {
+          allow_early_completion: boolean
           archived_at: string | null
           base_route_id: string | null
           business_id: string
@@ -4828,6 +4838,7 @@ export type Database = {
       materialize_virtual_route: {
         Args: { _base_route_id: string; _date: string }
         Returns: {
+          allow_early_completion: boolean
           archived_at: string | null
           base_route_id: string | null
           business_id: string
@@ -4948,6 +4959,7 @@ export type Database = {
           _projected_date: string
         }
         Returns: {
+          allow_early_completion: boolean
           archived_at: string | null
           base_route_id: string | null
           business_id: string

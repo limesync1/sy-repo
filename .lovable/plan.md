@@ -1,59 +1,78 @@
-## 1. Tydelig status-etiket på tidslinjen
+# Plan: Rute- og medarbejderforbedringer
 
-På `RouteOccurrenceTimeline` har hver `agreement_occurrence` allerede en status (`planned`, `ready`, `confirmed`, `in_progress`, `completed`, `cancelled` osv.) + en låst/klar afledt tilstand baseret på `planned_arrival`. I dag vises kun "Udført", "Låst", "Klar" som lille tekst. Vi gør den til en rigtig **status-badge** der altid er synlig pr. occurrence, og dækker hele livscyklussen:
+## 1. Auto-opdatér ruteplanlægger når aftaler slettes
+Når en aftale slettes (i `CustomersTab`/`OrderTimeline`/agreement-flow), invalideres `["agreements"]` / `["orders"]`, men **ikke** `["routes"]`, `["route-stops"]`, `["unassigned-jobs"]` eller projection-cachen. Derfor forsvinder ruterne først ved hard reload.
 
-| Tilstand | Badge | Hvornår |
-|---|---|---|
-| Låst (fremtidig) | grå "Låst" + låse-ikon | `planned_arrival` ligger i fremtiden ud over låse-vindue |
-| Planlagt | blå "Planlagt" | status `planned` og inden for vinduet |
-| Klar til kørsel | accent "Klar" | status `ready` / dagen er i dag og medarbejder kan starte |
-| Bekræftet | violet "Bekræftet" | status `confirmed` (kunden har godkendt) |
-| I gang | amber "I gang" | status `in_progress` |
-| Udført | grøn "Udført" + ✓ | status `completed` |
-| Faktura sendt | grøn outline "Faktureret #1234" | `invoice_external_number` findes |
-| Faktura venter | gul "Faktura venter" | completed men ingen `invoice_external_number` |
-| Annulleret | rød "Annulleret" | status `cancelled` |
+**Fix:** Find alle steder hvor aftaler/ordrer slettes og kald `invalidateRouteSyncQueries(qc)` (eksisterer allerede i `useRoutes.ts`). Tilføj samme invalidering på `agreement_occurrences`-sletninger og på den realtime-kanal for `agreements`/`orders` så åbne planlægger-faner opdateres automatisk uden F5.
 
-Implementering:
-- Ny lille helper `occurrenceStatusBadge(occ)` i `src/lib/statusColors.ts` der returnerer `{label, className, icon}` baseret på status + afledte felter (planned_arrival, invoice_*).
-- I `RouteOccurrenceTimeline.tsx` erstattes de tre ad‑hoc tekstlinjer (`Udført`/`Låst`/`Klar`) af én konsistent `<span>` med klassen fra helperen + ikon. Faktura-/ordre-chips beholdes nedenunder.
-- Samme helper bruges også i `StopDetailsContent.tsx` og `RouteEditSheet.tsx` (hvor occurrencen vises i toppen) for konsistens.
+## 2. "Åben rute" lukker straks + lag på historik
+- "Åben rute" via `RouteContextMenu` triggers Radix `DropdownMenu`'s `onSelect`. Eventet bobler ud som `pointerdown-outside` på det netop-åbnede `Sheet` (samme klasse problem som vi fiksede sidst, men context-menu-pathen mangler). **Fix:** I `RouteContextMenu` kald `e.preventDefault()` på `onSelect` og åbn `Sheet` i en `setTimeout(0)`/`requestAnimationFrame` så menuens close-event ikke når den nye sheet. Alternativt: udvid `onPointerDownOutside`-guarden i `RouteEditSheet` til også at ignorere `[role="menuitem"]` / `[data-radix-dropdown-menu-content]`.
+- `RouteHistoryDialog` lagger fordi den henter alt audit-log + snapshots synkront og re-renderer ved hvert keystroke. **Fix:** Memoisér listen, virtualiser med `react-window` (eller paginer 50 ad gangen), og lazy-load dialogen via `React.lazy` så koden ikke parses før brugeren åbner den.
 
-## 2. Ruteplanlæggerens UI/UX – konkrete forbedringer
+## 3. "Lås rute som snapshot" — gør betydningen klar eller fjern
+`RouteSnapshotSection` i `RouteEditSheet.tsx` lader brugeren fryse den aktuelle rute-tilstand som immutable historik. Det er en intern audit-feature, ikke noget den almindelige bruger har brug for.
 
-### 2a. "+N ruter" skal vise ruterne inline, ikke åbne en sheet
-I `MonthWeekCalendar.tsx` (linje ~880) udvider `+N ruter`-knappen i dag dagens overblik. Vi ændrer den til at **toggle "vis alle" pr. celle** via lokal state (`expandedDays: Set<string>`). Når klikket: `MAX_VISIBLE` ignoreres for den dag, knappen bliver "− skjul". Dagens overblik åbnes stadig hvis man klikker selve dato-tallet (eksplicit handling). 
+**Beslutning:** Skjul knappen bag en "Avanceret"-toggle og omdøb den til **"Gem som referencepunkt"** med en kort hjælpetekst: *"Gemmer et øjebliksbillede du senere kan sammenligne med — bruges til revision."* For ikke-admin roller skjules sektionen helt.
 
-### 2b. Modaler skal kunne lukkes på flere måder
-Audit alle dialoger/sheets i `src/components/route-planner/`:
-- `RouteEditSheet`, `StopDetailSheet`, `AllUnassignedDialog`, `BulkMoveRoutesDialog`, `BulkShiftDateDialog`, `MergeRoutesDialog`, `MoveProjectedOccurrenceDialog`, `MoveRouteDateDialog`, `MoveStopsDialog`, `DeleteRouteDialog`, `RouteHistoryDialog`, `RoutePrintDialog`, `SeriesScopeDialog`, `SuggestRouteDialog`, `CreateManualOrderDialog`, `DiagnosticsDialog`, `DayDetailPanel`.
+## 4. Tydeligere "udført"-status på rutekort
+I dag vises kun et lille grønt `"3/5"`-tal. **Forbedringer i `MonthWeekCalendar.tsx` (RoutePill) + `AgendaCalendar.tsx`:**
+- Tilføj en tynd **progress-bar** i bunden af pillen (`completed/total`) i emerald.
+- Når 100% udført: pille får emerald venstre-rail + lille `CheckCircle2`-ikon + dæmpet baggrund + badge "Udført".
+- I uge/måned-grid: vis cirkulær progress-ring rundt om stop-tæller.
+- Samme behandling i `UnassignedJobCard` / `RouteStopsPanel` for konsistens.
 
-Vores `Dialog`/`Sheet` (Radix) understøtter allerede **Esc** og **klik på overlay** by default. Vi tjekker at:
-- Ingen bruger `onPointerDownOutside={(e)=>e.preventDefault()}` eller `onEscapeKeyDown` uden grund — fjernes hvor det ikke er kritisk.
-- Destruktive dialoger (delete) får en explicit "Annullér"-knap i footeren.
-- Sheets på mobile har et tydeligt swipe-down / "Færdig"-knap i bunden.
-- Tilføj en synlig "Annullér" / "Færdig"-footerknap i alle sheets der i dag kun har "X" i hjørnet (`RouteEditSheet`, `StopDetailSheet`, `DayDetailPanel`).
+## 5. Medarbejder: kunne se men ikke udføre fremtidige/forrige dage
+`EmployeeApp.tsx` viser allerede andre datoer (date-navigator findes), men CTA'er (`Start dag`, `Start stop`, `Marker udført`) er kun aktive når `isCurrentDay`. Sektionen omkring linje 537 nævner allerede "låst"-tilstand.
 
-### 2c. Bredere UX-strømlining
-1. **Konsekvent toolbar-sprog**: erstat blandede CTA-labels ("Gem ændringer" / "Opdatér" / "OK") med konsekvent "Gem" + "Annullér".
-2. **Tydeligere drag-affordance**: når man holder en aftale, vis kun gyldige drop-mål — øvrige dage får `opacity-40` i stedet for den nuværende subtile tint, så det er åbenlyst hvor man kan slippe.
-3. **Synlig kontekstmenu-trigger**: rute-piller har i dag højre-klik kontekstmenu (skjult for de fleste). Tilføj en lille `⋯`-knap der er synlig ved hover på desktop og altid på touch.
-4. **Forklarende tooltips på badges/ikoner**: låste ruter, projicerede (stiplede) ruter, skill-mismatch-prik — alle får en forklarende `title`/`<Tooltip>` så førstegangsbrugere forstår hvad symbolet betyder.
-5. **Tom-tilstand for dage**: i stedet for kun "Slip her" ved drag, vis en diskret "+ Opret rute"-affordance når man hover'er på en tom dag (kun fremtid).
-6. **Dagens overblik (`DayDetailPanel`)**: tilføj en kort header med antal ruter, antal stops, samlet varighed og første/sidste afgang — i dag skal man læse listen for at få overblikket.
-7. **Tastaturgenveje**: shortcuts-help (`RoutePlannerShortcutsHelp`) findes allerede; tilføj en synlig "?"-knap øverst i planneren der åbner den, så de er opdagelige.
-8. **Loading-feedback**: erstat skeletons med en lille spinner + tekst ("Henter ruter …") i tomme uger så det er klart om data mangler vs. ingen ruter findes.
+**Fix:**
+- Gør ALT data-visning (rute, stops, kort, statistikker) tilgængelig for alle datoer — ingen tomme states pga. dato.
+- For `!isCurrentDay`: vis read-only-tilstand med tydeligt lås-badge ("Låst — kun visning. Bliver tilgængelig [dato]") og deaktiver alle handlings-knapper.
+- For fortid: vis statistikker (varighed, antal udførte stop, omsætning) i en kompakt "Dagsrapport"-card øverst.
 
-## Filer der ændres
+## 6. Tillad tidlig udførelse — generel + per-medarbejder + per-rute
+Ny indstilling: **"Tidlig udførelse"** med 3 lag i prioritetsorden (mest specifikke vinder):
 
-- `src/lib/statusColors.ts` — ny `occurrenceStatusBadge` helper
-- `src/components/route-planner/RouteOccurrenceTimeline.tsx` — brug ny badge
-- `src/components/employee/StopDetailsContent.tsx`, `src/components/route-planner/RouteEditSheet.tsx` — vis samme badge
-- `src/components/route-planner/MonthWeekCalendar.tsx` — toggle "+N ruter" inline + drag-affordance + tom-dag CTA + tooltips
-- `src/components/route-planner/DayDetailPanel.tsx` — header med overblik
-- Alle modal/sheet-komponenter i `route-planner/` — verificér Esc/overlay-luk, tilføj footer "Annullér"-knapper hvor de mangler, ensret CTA-labels
-- `src/components/route-planner/CalendarPlanner.tsx` (eller wrapper) — synlig "?"-knap til shortcuts
+1. **Rute-niveau** (`routes.allow_early_completion boolean`) — togglede i `RouteEditSheet`.
+2. **Medarbejder-niveau** (`employees.early_completion_mode enum: 'inherit' | 'always' | 'never'`) — vises i `EmployeesTab` som dropdown pr. medarbejder.
+3. **Virksomheds-niveau** (`businesses.allow_early_completion_default boolean`) — global toggle i Indstillinger → Medarbejdere.
 
-## Out of scope
-- Ingen ændringer i database-skema eller backend-status-flow. Status-værdier eksisterer allerede.
-- Ingen ændring i selve fakturerings-/ordre-flowet — kun visning af badge.
+**Resolution-funktion** (`canCompleteEarly(routeId, employeeId)`):
+```
+route.allow_early_completion === true  → tillad
+employee.early_completion_mode === 'always' → tillad
+employee.early_completion_mode === 'never'  → afvis
+business.allow_early_completion_default     → fallback
+```
+
+**UI i EmployeesTab:** Ny sektion "Tilladelser" pr. medarbejder-kort med segmenteret kontrol (`Arv fra virksomhed` / `Altid tilladt` / `Aldrig tilladt`) + tooltip-forklaring.
+
+**UI i RouteEditSheet:** Lille switch "Lås op for tidlig udførelse" i rute-indstillinger.
+
+**UI i EmployeeApp:** Når `canCompleteEarly` er true for fremtidig dato → vis et `Unlock`-badge "Låst op af virksomhed" og aktiver CTA'erne på den dato.
+
+## Teknisk
+
+### Migration
+```sql
+ALTER TABLE businesses    ADD COLUMN allow_early_completion_default boolean NOT NULL DEFAULT false;
+ALTER TABLE employees     ADD COLUMN early_completion_mode text NOT NULL DEFAULT 'inherit'
+  CHECK (early_completion_mode IN ('inherit','always','never'));
+ALTER TABLE routes        ADD COLUMN allow_early_completion boolean NOT NULL DEFAULT false;
+```
+RLS uændret — felterne arver eksisterende politikker.
+
+### Filer der redigeres
+- `src/hooks/useRoutes.ts` — tilføj invalidering på agreement-delete + nye SQL-felter i selects
+- `src/components/admin/CustomersTab.tsx`, `OrderTimeline.tsx`, `RouteEditSheet.tsx` — kald `invalidateRouteSyncQueries` ved aftale-delete
+- `src/components/route-planner/RouteContextMenu.tsx` — `preventDefault` + deferred open
+- `src/components/route-planner/RouteEditSheet.tsx` — udvid outside-guard; ny `RouteEarlyCompletionToggle`; gating af snapshot-sektion
+- `src/components/route-planner/RouteHistoryDialog.tsx` — virtualisering + lazy import
+- `src/components/route-planner/MonthWeekCalendar.tsx`, `AgendaCalendar.tsx`, `UnassignedJobCard.tsx`, `RouteStopsPanel.tsx` — progress-bar + completed-styling
+- `src/components/admin/EmployeesTab.tsx` — ny "Tilladelser"-kontrol
+- `src/pages/Admin.tsx` (settings-sektion) — global toggle
+- `src/pages/EmployeeApp.tsx` — read-only-tilstand for andre datoer + `canCompleteEarly`-resolver + lås-badges
+- Ny `src/lib/early-completion.ts` — resolver-funktion
+
+### Tests
+- Unit-tests for `canCompleteEarly` resolver med alle 3*3 kombinationer
+- Integration: slet aftale → forventer ruter invalideret uden reload
