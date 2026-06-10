@@ -777,23 +777,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     setTimeout(() => speak("Godt arbejde. Alle stop er klaret."), 800);
   }, [allDone, audioEnabled]);
 
-  /* Auto-redirect når alt er færdigt.
-   *
-   * To scenarier:
-   *  1. Brugeren har lige afsluttet sidste stop i denne session
-   *     (`routeStarted === true`) → vis "Rute færdig"-kortet med en blød
-   *     8-sek nedtælling så de når at se opsummeringen.
-   *  2. Brugeren åbner en rute der allerede VAR fuldt afsluttet inden
-   *     besøget (typisk via direkte URL eller gammelt browserlink) →
-   *     send dem straks tilbage til oversigten. Det giver ingen mening
-   *     at "genåbne" en færdig rute, og selve oversigten i Min dag viser
-   *     allerede status. */
+  /* Auto-retur kun når medarbejderen netop har afsluttet ruten i denne session.
+   * Historiske/allerede udførte ruter skal blive åbne som opsummering, så man
+   * kan se kørslen, statistik og aftaledetaljer uden at blive sendt væk. */
   useEffect(() => {
-    if (!allDone) return;
-    if (!routeStarted) {
-      navigate("/medarbejder", { replace: true });
-      return;
-    }
+    if (!allDone || !routeStarted) return;
     setAutoReturn(8);
     const tick = setInterval(() => {
       setAutoReturn((n) => {
