@@ -381,8 +381,24 @@ const SortableStopRow = ({
           onClick={onSelect}
           className="min-w-0 flex-1 text-left pr-2 py-2 space-y-0.5"
         >
-          {/* Header: kundenavn (primær) + medarbejder-avatars + åbn-pil */}
-          <div className="flex items-center gap-1.5">
+          {/* Header: branche-ikon + kundenavn (primær) + medarbejder-avatars + åbn-pil */}
+          <div className="flex items-center gap-2">
+            {/* Tintet branche-ikon-tile foran navnet — gør aftalens type
+                synlig på et splitsekund. Bruger samme ikon-pakke som
+                services og ordrer. */}
+            {stop.service_summary && (
+              <span
+                aria-hidden
+                title={stop.service_summary}
+                className="shrink-0 inline-flex items-center justify-center h-7 w-7 rounded-md bg-secondary/70 ring-1 ring-border/60 p-1"
+              >
+                <IndustryIcon
+                  name={stop.service_summary}
+                  className="h-full w-full object-contain"
+                  alt=""
+                />
+              </span>
+            )}
             <p className="text-xs font-semibold truncate flex-1 text-foreground leading-tight sm:text-sm">
               {stop.customer_name || "Ukendt kunde"}
             </p>
@@ -394,16 +410,8 @@ const SortableStopRow = ({
 
           {/* Ydelse — sekundær linje */}
           {stop.service_summary ? (
-            <p className="text-[10px] text-muted-foreground truncate sm:text-[11px] inline-flex items-center gap-1.5 max-w-full">
-              {/* Branchespecifikt ikon — gør det muligt at scanne hvilken
-                  service aftalen drejer sig om uden at læse hele teksten.
-                  Bruger samme ikon-pakke som services og ordrer. */}
-              <IndustryIcon
-                name={stop.service_summary}
-                className="h-3.5 w-3.5 shrink-0 opacity-80"
-                alt=""
-              />
-              <span className="truncate">{stop.service_summary}</span>
+            <p className="text-[10px] text-muted-foreground truncate sm:text-[11px]">
+              {stop.service_summary}
             </p>
           ) : (
             <p className="text-[10px] text-muted-foreground/60 truncate italic sm:text-[11px]">
