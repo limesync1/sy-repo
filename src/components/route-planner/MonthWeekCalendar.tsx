@@ -34,6 +34,8 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Filter, X as XIcon, Check } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -426,6 +428,42 @@ export const MonthWeekCalendar = ({
    *  klikker på dato-tallet eller "+N ruter"-knappen. */
   const [overviewDate, setOverviewDate] = useState<string | null>(null);
 
+  // ─── Hurtig filtrering (status + medarbejder) ───
+  // Lokal state — overlever ikke reload (med vilje: en filtrering på "klar"
+  // skal ikke forvirre næste gang man åbner planneren). Filteret anvendes
+  // KUN i kalender-visningen og påvirker ikke det data RoutePlanner ser.
+  type StatusFilter = "all" | "planned" | "ready" | "in_progress" | "completed";
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [employeeFilter, setEmployeeFilter] = useState<Set<string>>(new Set());
+
+  // Saml unikke medarbejdere på tværs af alle synlige ruter — bruges til
+  // medarbejder-filterets multi-select. Beregnes kun når routes ændrer sig.
+  const allEmployees = useMemo(() => {
+    const map = new Map<string, { id: string; name: string; color?: string | null; avatar_url?: string | null }>();
+    for (const r of routes) for (const e of r.attachedEmployees) if (!map.has(e.id)) map.set(e.id, e);
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, "da"));
+  }, [routes]);
+
+  const routeMatchesStatus = (r: CalendarRoute): boolean => {
+    if (statusFilter === "all") return true;
+    const status = ((r as any).status || "planned").toLowerCase();
+    // Projicerede forekomster har ingen rigtig server-status; tæl dem som
+    // "planned" så de ikke forsvinder ved status-filter på fremtidige dage.
+    if (r.isVirtual) return statusFilter === "planned";
+    if (statusFilter === "ready") return status === "ready" || status === "confirmed";
+    return status === statusFilter;
+  };
+  const routeMatchesEmployee = (r: CalendarRoute): boolean => {
+    if (employeeFilter.size === 0) return true;
+    return r.attachedEmployees.some((e) => employeeFilter.has(e.id));
+  };
+  const filteredRoutes = useMemo(
+    () => routes.filter((r) => routeMatchesStatus(r) && routeMatchesEmployee(r)),
+    [routes, statusFilter, employeeFilter],
+  );
+  const activeFilterCount = (statusFilter === "all" ? 0 : 1) + employeeFilter.size;
+  const hiddenCount = routes.length - filteredRoutes.length;
+
   // Memo: beregn synlige uger og rute-mapping kun når input ændrer sig.  Tidligere
   // blev disse rebygget hver render (= hver gang vejret eller drag-tilstand
   // ændrede sig), hvilket gjorde at hele kalenderen rerender'ede selv ved
@@ -446,7 +484,7 @@ export const MonthWeekCalendar = ({
 
   const routesByDate = useMemo(() => {
     const m = new Map<string, CalendarRoute[]>();
-    for (const r of routes) {
+    for (const r of filteredRoutes) {
       const arr = m.get(r.route_date) || [];
       arr.push(r);
       m.set(r.route_date, arr);
@@ -473,7 +511,7 @@ export const MonthWeekCalendar = ({
       m.set(k, arr);
     }
     return m;
-  }, [routes]);
+  }, [filteredRoutes]);
 
   const weekdayLabels = ["Man", "Tir", "Ons", "Tor", "Fre", "Lør", "Søn"];
   // Indeks (0–6) for "i dag" i mandags-uge — bruges til at fremhæve dagens
