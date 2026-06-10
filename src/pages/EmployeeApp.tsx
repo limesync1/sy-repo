@@ -3,6 +3,10 @@ import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyDayRoutes, useMyDayStops, type RouteStop } from "@/hooks/useRoutes";
 import { useMyWorkday, useStartWorkday, useEndWorkday } from "@/hooks/useRoutes";
+import { useMyEmployee } from "@/hooks/useMyEmployee";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { canCompleteEarly, earlyCompletionReason, type EarlyCompletionMode } from "@/lib/early-completion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
@@ -14,6 +18,7 @@ import {
   Calendar as CalendarIcon, Play, Printer, MapPin, Clock, CheckCircle2,
   ChevronLeft, ChevronRight, Route as RouteIcon, Navigation, PlayCircle, StopCircle,
   Users, User as UserIcon, Info, CalendarCheck, Sparkles, ArrowRight, Eye, Lock as LockIcon,
+  Unlock as UnlockIcon,
 } from "lucide-react";
 import { format, addDays, parseISO, isToday, formatDistanceStrict } from "date-fns";
 import { da } from "date-fns/locale";
