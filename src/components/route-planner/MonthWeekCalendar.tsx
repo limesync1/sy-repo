@@ -1651,11 +1651,20 @@ const RoutePillInner = ({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48" onClick={(e) => e.stopPropagation()}>
               <DropdownMenuItem
-                onSelect={() => {
-                  try { onSelect(); } catch (err) {
-                    console.error(err);
-                    toast.error("Kunne ikke åbne ruten");
-                  }
+                onSelect={(e) => {
+                  // FIX: når brugeren vælger "Åbn rute" via dropdown'en,
+                  // lukker Radix-menuen og bobler et pointer-event op til
+                  // den netop åbnede Sheet — som derefter tolker det som
+                  // "klik udenfor" og lukker sig selv igen. Vi udskyder
+                  // åbningen ét frame så menuens close-event er færdig
+                  // FØR sheet'en mountes.
+                  e.preventDefault();
+                  requestAnimationFrame(() => {
+                    try { onSelect(); } catch (err) {
+                      console.error(err);
+                      toast.error("Kunne ikke åbne ruten");
+                    }
+                  });
                 }}
               >
                 <Eye className="h-3.5 w-3.5 mr-2" /> Åbn rute
@@ -1663,11 +1672,14 @@ const RoutePillInner = ({
               {canOptimize && (
                 <DropdownMenuItem
                   disabled={optimizing}
-                  onSelect={() => {
-                    try { onOptimize(); } catch (err) {
-                      console.error(err);
-                      toast.error("Kunne ikke optimere ruten");
-                    }
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    requestAnimationFrame(() => {
+                      try { onOptimize(); } catch (err) {
+                        console.error(err);
+                        toast.error("Kunne ikke optimere ruten");
+                      }
+                    });
                   }}
                 >
                   {optimizing
@@ -1678,11 +1690,14 @@ const RoutePillInner = ({
               )}
               {canHistory && (
                 <DropdownMenuItem
-                  onSelect={() => {
-                    try { onShowHistory!(); } catch (err) {
-                      console.error(err);
-                      toast.error("Kunne ikke åbne historik");
-                    }
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    requestAnimationFrame(() => {
+                      try { onShowHistory!(); } catch (err) {
+                        console.error(err);
+                        toast.error("Kunne ikke åbne historik");
+                      }
+                    });
                   }}
                 >
                   <History className="h-3.5 w-3.5 mr-2" /> Vis historik
@@ -1693,11 +1708,14 @@ const RoutePillInner = ({
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     className="text-destructive focus:text-destructive"
-                    onSelect={() => {
-                      try { onDelete!(); } catch (err) {
-                        console.error(err);
-                        toast.error("Kunne ikke slette ruten");
-                      }
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      requestAnimationFrame(() => {
+                        try { onDelete!(); } catch (err) {
+                          console.error(err);
+                          toast.error("Kunne ikke slette ruten");
+                        }
+                      });
                     }}
                   >
                     <Trash2 className="h-3.5 w-3.5 mr-2" /> Slet rute…
