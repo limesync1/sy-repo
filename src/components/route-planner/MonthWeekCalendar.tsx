@@ -27,6 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { memo, useMemo, useState } from "react";
 import { useTargetValidation, ringForSeverity, chipBgForSeverity } from "./drag-validation-context";
 import RouteContextMenu from "./RouteContextMenu";
+import { PILL_BASE } from "./lib/card-styles";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
