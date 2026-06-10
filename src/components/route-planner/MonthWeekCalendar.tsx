@@ -637,6 +637,9 @@ const DayCellInner = ({
   loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds, alert,
   selectedRouteIds, onToggleRouteSelection, capacity, mismatchedRouteIds,
 }: DayCellProps) => {
+  // Lokal toggle for "vis alle ruter" i en travl dag — i stedet for at
+  // åbne hele dagens overblik bare for at se 1-2 ekstra piller.
+  const [expanded, setExpanded] = useState(false);
   const todayIso = format(new Date(), "yyyy-MM-dd");
   const isPast = dateStr < todayIso;
   const dow = date.getDay(); // 0=Sun, 6=Sat
@@ -848,8 +851,9 @@ const DayCellInner = ({
         {(() => {
           // I månedsvisning kapper vi antallet af synlige piller pr. dag, så travle
           // dage ikke "blæser" cellen op og forvrænger hele kalender-rækken.
+          // Brugeren kan klikke "+N ruter" for at folde de resterende ud inline.
           // I uge-visning er der masser af plads, så vi viser alle.
-          const MAX_VISIBLE = compact ? 3 : 99;
+          const MAX_VISIBLE = compact && !expanded ? 3 : 99;
           const visible = routes.slice(0, MAX_VISIBLE);
           const overflow = routes.length - visible.length;
           return (
@@ -880,12 +884,22 @@ const DayCellInner = ({
               {overflow > 0 && (
                 <button
                   type="button"
-                  onClick={(e) => { e.stopPropagation(); onOpenDayOverview(dateStr); }}
+                  onClick={(e) => { e.stopPropagation(); setExpanded(true); }}
                   className="inline-flex items-center gap-1 self-start text-[10.5px] font-bold text-muted-foreground hover:text-foreground bg-card hover:bg-secondary border border-dashed border-border/70 hover:border-border rounded-md px-2 py-1 transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none shadow-sm"
                   aria-label={`Vis ${overflow} flere ruter`}
                   title={routes.slice(MAX_VISIBLE).map((r) => r.name || "Rute").join(", ")}
                 >
                   +{overflow} {overflow === 1 ? "rute" : "ruter"}
+                </button>
+              )}
+              {expanded && compact && routes.length > 3 && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setExpanded(false); }}
+                  className="inline-flex items-center gap-1 self-start text-[10.5px] font-semibold text-muted-foreground hover:text-foreground bg-card hover:bg-secondary border border-border/60 rounded-md px-2 py-1 transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                  aria-label="Skjul ekstra ruter"
+                >
+                  − skjul
                 </button>
               )}
             </>

@@ -183,8 +183,7 @@ export const RouteStopsPanel = ({
           hideCloseButton={!isCompact}
           // Vis ved siden af RouteEditSheet (som er sm:max-w-md ≈ 28rem bred)
           onOpenAutoFocus={(e) => e.preventDefault()}
-          onPointerDownOutside={(e) => { if (!isCompact) e.preventDefault(); }}
-          onInteractOutside={(e) => { if (!isCompact) e.preventDefault(); }}
+          /* Tillad luk via klik udenfor + Esc (Radix default). */
         >
           <SheetHeader
             className={cn(
