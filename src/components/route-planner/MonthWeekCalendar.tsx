@@ -595,7 +595,7 @@ const DayCellInner = ({
               {overflow > 0 && (
                 <button
                   type="button"
-                  onClick={(e) => { e.stopPropagation(); onSelectRoute(routes[MAX_VISIBLE]); }}
+                  onClick={(e) => { e.stopPropagation(); onOpenDayOverview(dateStr); }}
                   className="inline-flex items-center gap-1 self-start text-[10.5px] font-bold text-muted-foreground hover:text-foreground bg-card hover:bg-secondary border border-dashed border-border/70 hover:border-border rounded-md px-2 py-1 transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none shadow-sm"
                   aria-label={`Vis ${overflow} flere ruter`}
                   title={routes.slice(MAX_VISIBLE).map((r) => r.name || "Rute").join(", ")}
