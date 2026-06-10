@@ -2601,12 +2601,6 @@ export const useMyRouteData = (routeId: string | undefined) => {
         .eq("id", routeId!)
         .maybeSingle();
       if (!route) return null;
-      // Spec §2/§30: medarbejder må ALDRIG få fremtidige route_dates.
-      const todayKey = new Date().toISOString().slice(0, 10);
-      if ((route as any).route_date && String((route as any).route_date).slice(0, 10) > todayKey) {
-        return null;
-      }
-
       const { data: myAssign } = await supabase
         .from("route_stop_assignees")
         .select("stop_id")
