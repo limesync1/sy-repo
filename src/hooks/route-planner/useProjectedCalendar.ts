@@ -123,12 +123,12 @@ export const useProjectedCalendar = (input: UseProjectedCalendarInput): Calendar
       realRouteDateById.set(r.id, String(r.route_date).slice(0, 10));
     }
 
-    const isLiveProjectedStop = (s: any) => {
-      // Base-route/template stops are the source for future projections. Their
-      // linked occurrence may already be completed on the original date, but
-      // that must not remove all future virtual routes for the same agreement.
-      if (s.agreement_occurrence_id && s.route_id && baseById.has(s.route_id)) return true;
+    const isProjectableStop = (s: any) => {
       const eff = (s.occurrence_status as string | null | undefined) ?? s.status;
+      // Basisrutens stop fungerer som skabelon for hele serien. Et udført stop
+      // på basisdatoen må derfor ikke fjerne fremtidige projicerede ruter — kun
+      // reelt annullerede stop skal udelades fra projektionen.
+      if (s.route_id && baseById.has(s.route_id)) return eff !== "cancelled";
       return eff !== "completed" && eff !== "cancelled";
     };
 
@@ -177,7 +177,7 @@ export const useProjectedCalendar = (input: UseProjectedCalendarInput): Calendar
 
         const projectedStops: any[] = (base.stops || [])
           .filter((s: any) => projectedStopMatchesSources(s, p.sourceKeys))
-          .filter(isLiveProjectedStop)
+          .filter(isProjectableStop)
           .map((s: any, i: number) => ({
             ...s,
             id: `virtual-stop:${p.baseRouteId}:${p.date}:${s.id}`,
