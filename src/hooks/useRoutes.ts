@@ -50,13 +50,15 @@ const materializeMyEmployeeDayRoutes = async (date: string) => {
   if (!day || day < localDateKey()) return;
   const existing = employeeDayMaterialization.get(day);
   if (existing) return existing;
-  const promise = supabase
-    .rpc("materialize_my_day_routes_for_employee" as any, { _date: day })
-    .then(() => undefined)
-    .catch((err) => {
+  const promise = (async () => {
+    try {
+      await supabase.rpc("materialize_my_day_routes_for_employee" as any, { _date: day });
+    } catch (err) {
       console.warn("Kunne ikke gøre fremtidige medarbejderruter klar", err);
-    })
-    .finally(() => employeeDayMaterialization.delete(day));
+    } finally {
+      employeeDayMaterialization.delete(day);
+    }
+  })();
   employeeDayMaterialization.set(day, promise);
   return promise;
 };
