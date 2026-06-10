@@ -1529,7 +1529,7 @@ const RoutePillInner = ({
                 {!compact && "Original"}
               </span>
             )}
-            {isRouteCompleted && (
+            {showAsCompleted && (
               <span
                 className={cn(
                   "inline-flex items-center gap-0.5 rounded-[3px] bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 ring-1 ring-inset ring-emerald-500/30 text-[9px] font-bold uppercase tracking-[0.06em] shrink-0",
