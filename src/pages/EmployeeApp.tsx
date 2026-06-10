@@ -589,13 +589,28 @@ const EmployeeApp = () => {
           // ELLER (b) brugeren endnu ikke har trykket "Start dag".
           // Vi tillader stadig start hvis dagen er afsluttet (efter-arbejde).
           const needsStartDay = isCurrentDay && !dayStarted && !dayEnded;
+          // Datolås: ruter kan kun udføres på selve dagen — medmindre
+          // virksomhed/medarbejder/rute har låst tidlig udførelse op.
+          const earlyAllowed = canCompleteEarly({
+            routeAllow: (r as any).allow_early_completion,
+            employeeMode,
+            businessDefault: businessEarlyDefault,
+          });
+          const dateLocked = !isCurrentDay && !earlyAllowed;
           const isLocked = total > 0 && (
-            (!allDone && firstActiveId !== null && r.id !== firstActiveId)
+            dateLocked
+            || (!allDone && firstActiveId !== null && r.id !== firstActiveId)
             || needsStartDay
           );
-          const lockReason = needsStartDay
-            ? "Tryk \"Start dag\" øverst før du kan starte en rute"
-            : "Tilgængelig efter forrige rute er gennemført";
+          const lockReason = dateLocked
+            ? earlyCompletionReason({
+                routeAllow: (r as any).allow_early_completion,
+                employeeMode,
+                businessDefault: businessEarlyDefault,
+              })
+            : needsStartDay
+              ? "Tryk \"Start dag\" øverst før du kan starte en rute"
+              : "Tilgængelig efter forrige rute er gennemført";
           const progress = total > 0 ? Math.round((done / total) * 100) : 0;
           const color = r.color || "hsl(var(--accent))";
           const startCoord: [number, number] | null =
