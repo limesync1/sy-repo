@@ -871,9 +871,13 @@ const RoutePillInner = ({
       title={
         validation?.topMessage
           ? validation.topMessage
-          : isVirtual
-          ? "Projiceret rute — klik åbner originalruten. Træk til en anden dato for at flytte netop denne ene forekomst (originalruten røres ikke)."
-          : isPast
+          : projectedKind === "future"
+            ? `Låst projektion — oplåses ${format(parseISO(route.route_date), "d. MMM yyyy", { locale: da })}. Klik åbner originalruten; træk for at flytte netop denne forekomst.`
+            : projectedKind === "today"
+              ? "Projiceret forekomst — aktiv i dag. Klik åbner originalruten; træk for at flytte netop denne forekomst."
+              : projectedKind === "past"
+                ? "Historisk projektion — datoen er passeret. Klik åbner originalruten."
+                : isPast
             ? "Tidligere rute — kan ikke flyttes"
             : undefined
       }
