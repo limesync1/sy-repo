@@ -894,6 +894,37 @@ const EmployeeRow = ({
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel className="text-xs">{employee.name || "Medarbejder"}</DropdownMenuLabel>
               <DropdownMenuSeparator />
+              <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Tidlig udførelse
+              </DropdownMenuLabel>
+              {([
+                { v: "inherit", label: "Arv fra virksomhed" },
+                { v: "always",  label: "Altid tilladt" },
+                { v: "never",   label: "Aldrig tilladt" },
+              ] as const).map((opt) => {
+                const current = ((employee as any).early_completion_mode || "inherit") as string;
+                const isOn = current === opt.v;
+                return (
+                  <DropdownMenuItem
+                    key={opt.v}
+                    onClick={() => {
+                      if (isOn) return;
+                      onUpdate.mutate(
+                        { id: employee.id, business_id: businessId, early_completion_mode: opt.v } as any,
+                        {
+                          onSuccess: () => toast.success(`Tidlig udførelse: ${opt.label.toLowerCase()}`),
+                          onError: (e: any) => toast.error(e.message),
+                        },
+                      );
+                    }}
+                  >
+                    <Unlock className={cn("h-4 w-4 mr-2", isOn ? "text-foreground" : "text-muted-foreground")} />
+                    <span className={cn("flex-1", isOn && "font-semibold")}>{opt.label}</span>
+                    {isOn && <CheckCircle2 className="h-3.5 w-3.5 text-foreground" />}
+                  </DropdownMenuItem>
+                );
+              })}
+              <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => {
                   const next = !(employee as any).livechat_enabled;
