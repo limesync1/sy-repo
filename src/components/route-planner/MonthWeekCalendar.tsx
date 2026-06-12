@@ -1138,7 +1138,7 @@ const DayCellInner = ({
                 ? "bg-destructive"
                 : capacity.load_pct >= 90
                 ? "bg-amber-500/80"
-                : "bg-foreground/25",
+                : "bg-foreground/45",
             )}
             style={{ width: `${Math.min(100, capacity.load_pct)}%` }}
           />
