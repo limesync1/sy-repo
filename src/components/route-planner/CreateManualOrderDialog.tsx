@@ -545,11 +545,18 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                             <Badge variant="outline" className="text-[10px] font-normal">
                               {it.service.pricing_type === "fast_pris" ? "Specifik pris" : it.service.pricing_type === "timepris" ? "Timepris" : "Prisberegner"}
                             </Badge>
+                            {it.interval && it.interval !== "engangskøb" && (
+                              <Badge variant="outline" className="border-accent/40 bg-accent/10 text-accent text-[10px] font-medium">
+                                <Repeat className="h-2.5 w-2.5 mr-0.5" />
+                                {INTERVAL_LABELS[it.interval] || it.interval}
+                              </Badge>
+                            )}
                           </div>
                         </div>
                         <button
+                          type="button"
                           onClick={() => removeItem(it.serviceId)}
-                          className="text-muted-foreground hover:text-destructive transition-colors p-1 -m-1 rounded"
+                          className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                           aria-label={`Fjern ${it.service.name}`}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
