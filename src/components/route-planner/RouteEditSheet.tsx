@@ -759,6 +759,17 @@ export const RouteEditSheet = ({
     onOpenChange(false);
   };
 
+  const handleSheetOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen && nestedOverlayOpenRef.current) {
+      // Radix kan sende `onOpenChange(false)` på pointer-down i portal'ede
+      // datepickers før kalenderens onSelect når at åbne flyt-dialogen.
+      // I det tilfælde må sheet'et ikke lukkes — ellers står kalenderen tilbage
+      // med en usynlig dismissable layer, og hele siden føles låst.
+      return;
+    }
+    onOpenChange(nextOpen);
+  };
+
   const handleOptimize = async () => {
     // Brug toast.promise så brugeren ser øjeblikkelig feedback mens vi
     // optimerer, og success-/info-toasten først dukker op NÅR ruten faktisk
@@ -819,7 +830,7 @@ export const RouteEditSheet = ({
 
   return (
     <>
-      <Sheet open={open} onOpenChange={onOpenChange} modal={isCompact}>
+      <Sheet open={open} onOpenChange={handleSheetOpenChange} modal={isCompact}>
         <SheetContent
           side={isCompact ? "bottom" : "right"}
           className={cn(
