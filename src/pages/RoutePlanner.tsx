@@ -49,6 +49,7 @@ import {
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { RouteAwareCalendar } from "@/components/route-planner/RouteAwareCalendar";
+import { RouteCalendarHintsProvider } from "@/components/route-planner/route-calendar-hints-context";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
@@ -2715,6 +2716,7 @@ const Planner = () => {
 
   return (
     <div className={cn(plannerTheme === "dark" && "dark")} data-density={density}>
+    <RouteCalendarHintsProvider value={{ routeDates: routeDatesSet, busyDates: busyDatesSet, overloadedDates: overloadedDatesSet }}>
     <span id="unassigned-drag-instructions" className="sr-only">
       Tryk Mellemrum eller Enter for at tage aftalekortet op. Brug piletasterne til at flytte det. Tryk Mellemrum igen for at slippe, eller Escape for at annullere.
     </span>
