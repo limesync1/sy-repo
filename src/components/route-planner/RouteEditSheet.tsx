@@ -751,6 +751,8 @@ export const RouteEditSheet = ({
     });
     toast.success("Den projicerede forekomst er flyttet til den nye dato");
     setPendingProjectedDate(null);
+    nestedOverlayOpenRef.current = false;
+    clearStaleRadixPointerLock();
     onOpenChange(false);
   };
 
@@ -831,22 +833,12 @@ export const RouteEditSheet = ({
              outside-close når target er inde i et Radix portal — Esc og X
              lukker stadig som forventet. */
           onPointerDownOutside={(e) => {
-            const t = e.target as Element | null;
-            if (
-              t?.closest(
-                '[data-radix-popper-content-wrapper],[data-radix-portal],[role="menu"],[role="listbox"],[role="dialog"],[role="tooltip"],[data-sonner-toaster]',
-              )
-            ) {
+            if (nestedOverlayOpenRef.current || isRouteEditPortalTarget(e.target)) {
               e.preventDefault();
             }
           }}
           onInteractOutside={(e) => {
-            const t = e.target as Element | null;
-            if (
-              t?.closest(
-                '[data-radix-popper-content-wrapper],[data-radix-portal],[role="menu"],[role="listbox"],[role="dialog"],[role="tooltip"],[data-sonner-toaster]',
-              )
-            ) {
+            if (nestedOverlayOpenRef.current || isRouteEditPortalTarget(e.target)) {
               e.preventDefault();
             }
           }}
