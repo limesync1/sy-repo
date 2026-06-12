@@ -518,7 +518,7 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="-mx-6 -mb-6 mt-2 border-t bg-card px-5 py-4">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={moving}>
             Annullér
           </Button>
