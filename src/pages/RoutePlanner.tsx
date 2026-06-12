@@ -4892,6 +4892,10 @@ const Planner = () => {
               >
                 Ryd
               </Button>
+              <span className="hidden sm:inline-flex items-center gap-1 text-[10.5px] text-muted-foreground pl-1 border-l border-border/70 ml-1">
+                <kbd className="px-1 rounded bg-secondary text-[10px] font-semibold">Esc</kbd>
+                <span>for at rydde</span>
+              </span>
             </div>
           </div>
         )}
