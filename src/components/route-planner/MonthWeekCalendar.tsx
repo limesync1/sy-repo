@@ -956,7 +956,7 @@ const DayCellInner = ({
             className={cn(
               "inline-flex items-center justify-center rounded-md text-[12.5px] font-bold tabular-nums transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
               today
-                ? "h-7 w-7 bg-foreground text-background shadow-sm ring-1 ring-foreground/10"
+                ? "h-7 w-7 text-foreground ring-2 ring-foreground/80 hover:bg-foreground hover:text-background"
                 : "h-6 w-6 text-foreground/90 hover:bg-secondary group-hover:bg-secondary/70 group-hover:text-foreground",
               !inMonth && !today && "text-muted-foreground/40",
               isPast && !today && "text-muted-foreground/55",
