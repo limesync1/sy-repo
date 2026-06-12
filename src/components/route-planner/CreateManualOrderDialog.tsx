@@ -114,6 +114,27 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
 
   const totalAmount = useMemo(() => roundPrice(items.reduce((s, it) => s + calcItemTotal(it), 0)), [items]);
 
+  // Hvor mange af de valgte aftaler er tilbagevendende? Bruges til en lille
+  // chip i footeren så brugeren har overblik over abonnement vs. engang.
+  const recurringCount = useMemo(
+    () => items.filter((it) => it.interval && it.interval !== "engangskøb").length,
+    [items],
+  );
+
+  // Grupper aktive services efter kategori i dropdown'en så lange kataloger
+  // bliver scanbare ("Rengøring", "Have", "Maler" …).
+  const servicesByCategory = useMemo(() => {
+    const groups = new Map<string, Service[]>();
+    for (const s of activeServices) {
+      if (items.some((i) => i.serviceId === s.id)) continue;
+      const cat = s.service_category || "Andet";
+      const arr = groups.get(cat) || [];
+      arr.push(s);
+      groups.set(cat, arr);
+    }
+    return Array.from(groups.entries()).sort(([a], [b]) => a.localeCompare(b, "da"));
+  }, [activeServices, items]);
+
   const addService = (serviceId: string) => {
     const svc = activeServices.find((s) => s.id === serviceId);
     if (!svc || items.some((i) => i.serviceId === serviceId)) return;
