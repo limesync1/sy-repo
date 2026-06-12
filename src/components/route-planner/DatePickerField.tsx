@@ -53,8 +53,8 @@ export const DatePickerField = ({
   const nextMonday = startOfWeek(addDays(today, 7), { weekStartsOn: 1 });
 
   const quickPick = (d: Date) => {
-    onChange(ymd(d));
     setCalendarOpen(false);
+    onChange(ymd(d));
   };
 
   return (
@@ -96,8 +96,8 @@ export const DatePickerField = ({
           selected={date}
           onSelect={(d) => {
             if (d) {
-              onChange(ymd(d));
               setCalendarOpen(false);
+              onChange(ymd(d));
             }
           }}
           showOutsideDays
