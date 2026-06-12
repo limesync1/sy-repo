@@ -1458,7 +1458,9 @@ const RoutePillInner = ({
         {...(dragLocked ? {} : attributes)}
         className={cn(
           "relative z-[1] pl-3 pr-2 py-1.5 flex items-center justify-between gap-1.5",
-          dragLocked ? "cursor-pointer" : "cursor-grab active:cursor-grabbing",
+          isPast && !isVirtual ? "cursor-not-allowed"
+            : dragLocked ? "cursor-pointer"
+            : "cursor-grab active:cursor-grabbing",
         )}
       >
         <div className="min-w-0 flex-1">
@@ -1500,6 +1502,22 @@ const RoutePillInner = ({
                 </span>
               );
             })()}
+            {/* Tidligere (ikke-projicerede) ruter er låste for flyt/redigér.
+                Vis et lille Lås-badge så brugeren ser det INDEN drag-forsøg —
+                samme stil som projicerede badges for konsistens. */}
+            {isPast && !isVirtual && !projectedKind && (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-0.5 rounded-[3px] bg-foreground/[0.06] ring-1 ring-inset ring-foreground/10 text-[9px] font-bold uppercase tracking-[0.06em] text-muted-foreground shrink-0",
+                  compact ? "px-1 py-px" : "px-1.5 py-px",
+                )}
+                title="Tidligere rute — kan ikke flyttes. Klik åbner detaljer."
+                aria-label="Låst — tidligere rute"
+              >
+                <Lock className="h-2 w-2 opacity-80" />
+                {!compact && "Låst"}
+              </span>
+            )}
             {isBaseRecurring && (
               <span
                 className={cn(
