@@ -705,14 +705,14 @@ export const MonthWeekCalendar = ({
               className={cn(
                 "p-2 text-[10px] font-semibold tracking-[0.18em] uppercase text-center border-r border-border/70 last:border-r-0 relative",
                 isWeekend ? "text-muted-foreground/45" : "text-muted-foreground/75",
-                isTodayCol && "text-foreground bg-foreground/[0.04]",
+                isTodayCol && "text-foreground bg-foreground/[0.08]",
               )}
             >
               {wd}
               {isTodayCol && (
                 <span
                   aria-hidden
-                  className="absolute left-1/2 -translate-x-1/2 bottom-0 h-[2px] w-6 rounded-full bg-foreground"
+                  className="absolute left-1/2 -translate-x-1/2 bottom-0 h-[2px] w-8 rounded-full bg-foreground"
                 />
               )}
             </div>
