@@ -190,12 +190,13 @@ type DayRowProps = {
   weatherError?: boolean;
   busy?: boolean;
   busyRouteIds?: Set<string>;
+  capacity?: { load_pct: number; minutes_booked: number; minutes_capacity: number } | null;
 };
 
 const DayRowInner = ({
   date, dateStr, todayIso, routes,
   onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, onDeleteRoute, onShowHistory, optimizingRouteId,
-  draggingType, draggingRouteId, weather, loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds,
+  draggingType, draggingRouteId, weather, loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds, capacity,
 }: DayRowProps) => {
   const isPast = dateStr < todayIso;
   const today = isToday(date);
