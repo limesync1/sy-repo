@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { ROUTE_COLORS, pickAvailableColor } from "./RouteEditSheet";
 import { useDayConflicts } from "@/hooks/useDayConflicts";
 import { AlertTriangle } from "lucide-react";
+import { SheetHeaderBlock } from "./SheetSection";
 import { getSubcategoryIcon } from "@/lib/category-icons";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
@@ -322,15 +323,16 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <CalendarDays className="h-4 w-4 text-accent" />
-            Flyt aftaler
-          </DialogTitle>
-          <DialogDescription>
-            Vælg hvilke aftaler der skal flyttes — enten til en ny dato eller
-            direkte til en eksisterende rute. Kun de markerede flyttes.
-          </DialogDescription>
+        <DialogHeader className="space-y-0 text-left -mx-6 -mt-6 mb-2 px-5 py-4 pr-12 border-b">
+          <SheetHeaderBlock
+            icon={<CalendarDays className="h-4 w-4" />}
+            title={<DialogTitle className="text-base">Flyt aftaler</DialogTitle>}
+            description={
+              <DialogDescription className="text-xs leading-snug">
+                Vælg hvilke aftaler der skal flyttes — enten til en ny dato eller direkte til en eksisterende rute. Kun de markerede flyttes.
+              </DialogDescription>
+            }
+          />
         </DialogHeader>
 
         <div className="space-y-3">
