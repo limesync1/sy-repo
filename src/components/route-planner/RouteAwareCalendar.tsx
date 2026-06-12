@@ -14,7 +14,7 @@ import { da } from "date-fns/locale";
 import { Calendar, type CalendarProps } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 
-type Props = Omit<CalendarProps, "modifiers" | "modifiersClassNames" | "locale" | "weekStartsOn"> & {
+type ExtraProps = {
   /** Datoer (yyyy-MM-dd) der har mindst én rute. */
   routeDates?: Set<string> | null;
   /** Datoer (yyyy-MM-dd) med høj load (>= 90 %). */
@@ -26,6 +26,7 @@ type Props = Omit<CalendarProps, "modifiers" | "modifiersClassNames" | "locale" 
   /** Mindste tilladte dato (yyyy-MM-dd) — disabler tidligere datoer. */
   minDateIso?: string;
 };
+type Props = CalendarProps & ExtraProps;
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
 
