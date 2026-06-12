@@ -4955,6 +4955,8 @@ const Planner = () => {
                 name: r.name || "Rute",
                 currentDate: r.route_date,
                 color: r.color,
+                stopCount: (r as any).stops?.length ?? 0,
+                employeeName: (r as any).employees?.[0]?.name ?? null,
               });
             }
             return items;
