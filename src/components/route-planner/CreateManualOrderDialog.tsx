@@ -13,7 +13,7 @@ import {
 import {
   Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Trash2, Send, ShoppingBag, User, MessageSquare, Package, Calendar, Repeat } from "lucide-react";
+import { Loader2, Trash2, Send, ShoppingBag, User, MessageSquare, Package, Calendar, Repeat, ListPlus } from "lucide-react";
 import { toast } from "sonner";
 import { INTERVAL_LABELS } from "@/types/service";
 import { roundPrice, buildPricingSnapshot } from "@/lib/service-pricing";
@@ -338,7 +338,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
             {/* Live status-chips — opdaterer mens brugeren bygger bestillingen */}
             <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-2 py-0.5 text-[10px] font-semibold text-foreground/80">
               <Package className="h-3 w-3" />
-              {items.length} service{items.length === 1 ? "" : "r"}
+              {items.length} {items.length === 1 ? "service" : "services"}
             </span>
             {recurringCount > 0 && (
               <span className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[10px] font-semibold text-accent">
@@ -461,7 +461,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
 
           {/* Services */}
           <Section
-            icon={<Package className="h-3.5 w-3.5" />}
+            icon={<ListPlus className="h-3.5 w-3.5" />}
             title="Services"
             required
             hint={items.length > 0 ? `${items.length} valgt` : undefined}
@@ -649,7 +649,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
               </div>
               {items.length > 0 && (
                 <span className="text-[11px] text-muted-foreground">
-                  {items.length} service{items.length === 1 ? "" : "r"}
+                  {items.length} {items.length === 1 ? "service" : "services"}
                   {recurringCount > 0 && (
                     <> · <span className="font-medium text-foreground">{recurringCount}</span> tilbagevendende</>
                   )}

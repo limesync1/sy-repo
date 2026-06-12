@@ -22,6 +22,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import EmptyState from "./EmptyState";
+import { SheetHeaderBlock } from "./SheetSection";
 
 type ActionMeta = {
   label: string;
@@ -91,19 +92,16 @@ export default function RouteHistoryDialog({ open, onOpenChange, routeId, routeN
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg p-0 overflow-hidden gap-0">
-        <DialogHeader className="space-y-1.5 px-5 pt-5 pb-4 border-b border-border/70 bg-gradient-to-br from-primary/5 via-card to-card">
-          <DialogTitle className="flex items-center gap-2.5 text-base tracking-tight">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-primary/15">
-              <History className="h-4 w-4" />
-            </span>
-            <span className="font-bold">Historik</span>
-            {routeName && (
-              <span className="text-muted-foreground font-normal truncate">— {routeName}</span>
-            )}
-          </DialogTitle>
-          <DialogDescription className="text-xs">
-            De seneste {data?.length ?? 100} ændringer på denne rute.
-          </DialogDescription>
+        <DialogHeader className="px-4 sm:px-5 py-4 pr-12 border-b shrink-0 space-y-0 text-left">
+          <SheetHeaderBlock
+            icon={<History className="h-4 w-4" />}
+            title={<DialogTitle className="text-base">Historik{routeName ? <span className="text-muted-foreground font-normal"> — {routeName}</span> : null}</DialogTitle>}
+            description={
+              <DialogDescription className="text-xs leading-snug">
+                De seneste {data?.length ?? 100} ændringer på denne rute.
+              </DialogDescription>
+            }
+          />
         </DialogHeader>
         <div className="max-h-[60vh] overflow-auto px-5 py-4 bg-secondary/[0.16]">
           {isLoading ? (
