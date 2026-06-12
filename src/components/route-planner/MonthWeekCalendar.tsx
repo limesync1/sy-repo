@@ -1464,7 +1464,11 @@ const RoutePillInner = ({
         {...(dragLocked ? {} : listeners)}
         {...(dragLocked ? {} : attributes)}
         className={cn(
-          "relative z-[1] pl-3 pr-2 py-1.5 flex items-center justify-between gap-1.5",
+          // Lidt mere højre-padding når der er medarbejder-avatarer på
+          // pillen, så ring-2 ring-card-haloen ikke "klipper" mod
+          // pillens højre kant i smalle måneds-celler.
+          "relative z-[1] pl-3 py-1.5 flex items-center justify-between gap-1.5",
+          (visibleEmployees.length > 0 || extraEmployees > 0) ? "pr-2.5" : "pr-2",
           isPast && !isVirtual ? "cursor-not-allowed"
             : dragLocked ? "cursor-pointer"
             : "cursor-grab active:cursor-grabbing",
