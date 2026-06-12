@@ -17,6 +17,7 @@ import { da } from "date-fns/locale";
 import { Combine, Repeat, ArrowRight, Loader2, AlertTriangle, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getSubcategoryIcon } from "@/lib/category-icons";
+import { SheetHeaderBlock } from "./SheetSection";
 
 export type MergeScope = "single" | "future";
 
@@ -71,11 +72,11 @@ export const MergeRoutesDialog = ({
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="left-4 right-4 top-4 max-h-[calc(100svh-2rem)] w-auto max-w-none translate-x-0 translate-y-0 overflow-y-auto overflow-x-hidden p-4 sm:left-1/2 sm:right-auto sm:top-1/2 sm:w-[min(92vw,32rem)] sm:max-w-md sm:translate-x-[-50%] sm:translate-y-[-50%] sm:p-6">
-        <AlertDialogHeader className="min-w-0 text-left">
-          <AlertDialogTitle className="flex min-w-0 items-center gap-2">
-            <Combine className="h-4 w-4 text-accent" />
-            Flet ruter
-          </AlertDialogTitle>
+        <AlertDialogHeader className="min-w-0 text-left space-y-2">
+          <SheetHeaderBlock
+            icon={<Combine className="h-4 w-4" />}
+            title={<AlertDialogTitle className="text-base">Flet ruter</AlertDialogTitle>}
+          />
           <AlertDialogDescription asChild>
             <div className="min-w-0 space-y-2 text-sm">
               <div className="grid min-w-0 gap-2 text-muted-foreground tabular-nums sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center">
