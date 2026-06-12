@@ -12,6 +12,7 @@ import {
   AlertTriangle, User, Loader2, MapPinned, CalendarSearch,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SheetHeaderBlock } from "./SheetSection";
 import {
   useRouteSuggestions, type RouteSuggestion,
   deriveZoneKey,
