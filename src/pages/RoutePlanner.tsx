@@ -2936,14 +2936,15 @@ const Planner = () => {
                   </button>
                 </PopoverTrigger>
                 <PopoverContent align="center" className="w-auto p-0">
-                  <CalendarPicker
+                  <RouteAwareCalendar
                     mode="single"
                     selected={parseISO(date)}
                     onSelect={(d) => { if (d) setDate(format(d, "yyyy-MM-dd")); }}
-                    weekStartsOn={1}
-                    locale={da}
+                    showOutsideDays
                     initialFocus
-                    className="p-3 pointer-events-auto"
+                    routeDates={routeDatesSet}
+                    busyDates={busyDatesSet}
+                    overloadedDates={overloadedDatesSet}
                   />
                 </PopoverContent>
               </Popover>
