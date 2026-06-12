@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
+import { SheetHeaderBlock } from "./SheetSection";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -136,14 +137,16 @@ export default function BulkShiftDateDialog({ open, onOpenChange, jobs, onDone }
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!busy) onOpenChange(v); }}>
       <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden flex flex-col max-h-[85vh]">
-        <DialogHeader className="px-5 py-4 border-b shrink-0 text-left">
-          <DialogTitle className="flex items-center gap-2 text-base">
-            <CalendarDays className="h-4 w-4" />
-            Flyt opstartsdato for {jobs.length} aftale{jobs.length === 1 ? "" : "r"}
-          </DialogTitle>
-          <DialogDescription className="text-xs">
-            Vælg en ny dato eller forskyd alle valgte med et antal dage. Se forhåndsvisningen før du bekræfter.
-          </DialogDescription>
+        <DialogHeader className="px-4 sm:px-5 py-4 pr-12 border-b shrink-0 space-y-0 text-left">
+          <SheetHeaderBlock
+            icon={<CalendarDays className="h-4 w-4" />}
+            title={<DialogTitle className="text-base">Flyt opstartsdato for {jobs.length} aftale{jobs.length === 1 ? "" : "r"}</DialogTitle>}
+            description={
+              <DialogDescription className="text-xs leading-snug">
+                Vælg en ny dato eller forskyd alle valgte med et antal dage. Se forhåndsvisningen før du bekræfter.
+              </DialogDescription>
+            }
+          />
         </DialogHeader>
 
         <div className="px-5 py-4 space-y-4 overflow-y-auto">

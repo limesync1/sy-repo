@@ -4,13 +4,14 @@
 import { useMemo } from "react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
-import { Clock, MapPin, ArrowRight } from "lucide-react";
+import { Clock, MapPin, ArrowRight, CalendarDays } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { formatDurationMin } from "@/lib/duration-format";
 import EmptyState from "./EmptyState";
 import { cn } from "@/lib/utils";
 import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_RAIL_WIDTH } from "./lib/card-styles";
 import { getSubcategoryIcon } from "@/lib/category-icons";
+import { SheetHeaderBlock } from "./SheetSection";
 
 export type DayStop = {
   id: string;
@@ -57,36 +58,39 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-md flex flex-col bg-background p-0">
-        <SheetHeader className="space-y-2 px-5 pt-5 pb-4 border-b border-border/70 bg-card">
-          <SheetTitle className="text-base capitalize tracking-tight font-bold">
-            {date ? format(parseISO(date), "EEEE d. MMMM yyyy", { locale: da }) : "Dag"}
-          </SheetTitle>
-          {sorted.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-background border border-border/70 shadow-sm font-semibold">
-                <MapPin className="h-3 w-3" />
-                {sorted.length} {sorted.length === 1 ? "stop" : "stop"}
-              </span>
-              {totalMinutes > 0 && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-background border border-border/70 shadow-sm tabular-nums font-semibold">
-                  <Clock className="h-3 w-3" />
-                  {formatDurationMin(totalMinutes)}
+        <SheetHeader className="px-4 sm:px-5 py-4 pr-12 border-b border-border/70 shrink-0 space-y-0 text-left">
+          <SheetHeaderBlock
+            icon={<CalendarDays className="h-4 w-4" />}
+            title={<SheetTitle className="text-base capitalize">{date ? format(parseISO(date), "EEEE d. MMMM yyyy", { locale: da }) : "Dag"}</SheetTitle>}
+            description={sorted.length === 0 ? <span className="text-xs text-muted-foreground">Ingen aftaler denne dag.</span> : undefined}
+          >
+            {sorted.length > 0 && (
+              <>
+                <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-2 py-0.5 text-[10px] font-semibold text-foreground/80">
+                  <MapPin className="h-3 w-3" />
+                  {sorted.length} stop
                 </span>
-              )}
-              {routes.length > 1 && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-background border border-border/70 shadow-sm font-semibold">
-                  {routes.slice(0, 4).map(([name, color]) => (
-                    <span
-                      key={name}
-                      className="h-2 w-2 rounded-full ring-1 ring-background"
-                      style={{ background: color || "hsl(var(--primary))" }}
-                    />
-                  ))}
-                  {routes.length} ruter
-                </span>
-              )}
-            </div>
-          )}
+                {totalMinutes > 0 && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-2 py-0.5 text-[10px] font-semibold tabular-nums text-foreground/80">
+                    <Clock className="h-3 w-3" />
+                    {formatDurationMin(totalMinutes)}
+                  </span>
+                )}
+                {routes.length > 1 && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-2 py-0.5 text-[10px] font-semibold text-foreground/80">
+                    {routes.slice(0, 4).map(([name, color]) => (
+                      <span
+                        key={name}
+                        className="h-2 w-2 rounded-full ring-1 ring-background"
+                        style={{ background: color || "hsl(var(--primary))" }}
+                      />
+                    ))}
+                    {routes.length} ruter
+                  </span>
+                )}
+              </>
+            )}
+          </SheetHeaderBlock>
         </SheetHeader>
 
         <div className="flex-1 overflow-auto px-5 py-4 bg-secondary/[0.16]">

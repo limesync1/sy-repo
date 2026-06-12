@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { AlertTriangle, Loader2, Trash2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,6 +11,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { SheetHeaderBlock } from "./SheetSection";
 
 interface Props {
   route: { id: string; name: string } | null;
@@ -50,8 +51,11 @@ export function DeleteRouteDialog({ route, onOpenChange, onConfirm, pending }: P
   return (
     <AlertDialog open={open} onOpenChange={(o) => !o && onOpenChange(false)}>
       <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Slet rute?</AlertDialogTitle>
+        <AlertDialogHeader className="text-left space-y-2">
+          <SheetHeaderBlock
+            icon={<Trash2 className="h-4 w-4" />}
+            title={<AlertDialogTitle className="text-base">Slet rute?</AlertDialogTitle>}
+          />
           <AlertDialogDescription asChild>
             <div className="space-y-3">
               <div>

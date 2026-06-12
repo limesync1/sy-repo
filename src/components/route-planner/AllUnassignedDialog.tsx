@@ -10,10 +10,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Calendar as CalIcon, Search } from "lucide-react";
+import { Loader2, Calendar as CalIcon, Search, MapPin } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { useQueryClient } from "@tanstack/react-query";
+import { SheetHeaderBlock } from "./SheetSection";
 
 type Job = {
   id: string;
@@ -68,11 +69,16 @@ export const AllUnassignedDialog = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
-        <DialogHeader className="pr-8 text-left">
-          <DialogTitle className="text-base sm:text-lg">Alle aftaler uden rute ({jobs.length})</DialogTitle>
-          <DialogDescription className="text-xs sm:text-sm">
-            Justér opstartsdato direkte her — eller luk og træk aftalen ind på en dag i kalenderen.
-          </DialogDescription>
+        <DialogHeader className="space-y-0 text-left -mx-6 -mt-6 mb-2 px-5 py-4 pr-12 border-b">
+          <SheetHeaderBlock
+            icon={<MapPin className="h-4 w-4" />}
+            title={<DialogTitle className="text-base">Alle aftaler uden rute ({jobs.length})</DialogTitle>}
+            description={
+              <DialogDescription className="text-xs leading-snug">
+                Justér opstartsdato direkte her — eller luk og træk aftalen ind på en dag i kalenderen.
+              </DialogDescription>
+            }
+          />
         </DialogHeader>
 
         <Input
