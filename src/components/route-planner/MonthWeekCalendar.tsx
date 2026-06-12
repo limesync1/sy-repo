@@ -1663,7 +1663,7 @@ const RoutePillInner = ({
                 onClick={(e) => e.stopPropagation()}
                 onPointerDown={(e) => e.stopPropagation()}
                 disabled={busy}
-                className="shrink-0 h-6 w-6 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary active:scale-[0.92] transition-[background-color,color,transform] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 data-[state=open]:bg-secondary data-[state=open]:text-foreground"
+                className="shrink-0 h-6 w-6 inline-flex items-center justify-center rounded-md text-muted-foreground opacity-40 group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100 hover:text-foreground hover:bg-secondary active:scale-[0.92] transition-[background-color,color,transform,opacity] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 data-[state=open]:bg-secondary data-[state=open]:text-foreground"
                 aria-label="Flere handlinger"
                 title="Flere handlinger"
               >
