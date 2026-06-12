@@ -15,6 +15,8 @@ type Props = {
   /** ISO yyyy-MM-dd */
   value: string;
   onChange: (newValue: string) => void;
+  /** Kaldes når kalender-popoveren åbner/lukker. Bruges af nested sheets/dialoger til at undgå outside-click races. */
+  onCalendarOpenChange?: (open: boolean) => void;
   className?: string;
   /** Mindste tilladte dato (ISO yyyy-MM-dd). Default: ingen. */
   minDate?: string;
@@ -29,10 +31,15 @@ type Props = {
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
 
 export const DatePickerField = ({
-  value, onChange, className, minDate, routeDates, busyDates, overloadedDates,
+  value, onChange, onCalendarOpenChange, className, minDate, routeDates, busyDates, overloadedDates,
 }: Props) => {
   const [open, setOpen] = useState(false);
   const date = value ? parseISO(value) : undefined;
+
+  const setCalendarOpen = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    onCalendarOpenChange?.(nextOpen);
+  };
 
   // Fald tilbage på context, så dialoger der ikke videresender hints stadig
   // får dem på dato-vælgeren.
@@ -46,12 +53,12 @@ export const DatePickerField = ({
   const nextMonday = startOfWeek(addDays(today, 7), { weekStartsOn: 1 });
 
   const quickPick = (d: Date) => {
+    setCalendarOpen(false);
     onChange(ymd(d));
-    setOpen(false);
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setCalendarOpen}>
       <PopoverTrigger asChild>
         <Button
           type="button"
@@ -89,8 +96,8 @@ export const DatePickerField = ({
           selected={date}
           onSelect={(d) => {
             if (d) {
+              setCalendarOpen(false);
               onChange(ymd(d));
-              setOpen(false);
             }
           }}
           showOutsideDays

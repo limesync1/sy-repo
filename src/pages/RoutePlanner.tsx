@@ -4793,7 +4793,13 @@ const Planner = () => {
               <RouteStopsPanel
                 route={activeEditingRoute && editingRoutePreview ? { ...activeEditingRoute, ...editingRoutePreview } : activeEditingRoute}
                 open={!!activeEditingRoute}
-                onOpenChange={(o) => !o && closeAll()}
+                onOpenChange={(o) => {
+                  // På desktop er stop-panelet et non-modalt søsterpanel til
+                  // RouteEditSheet. Portal-klik fra datepicker/dialoger kan få
+                  // Radix til at sende close på dette panel, men det må ikke
+                  // lukke hele rute-redigeringen.
+                  if (!o && isCompactRouteLayout) closeAll();
+                }}
                 stops={stopsForActive}
                 onRouteDeleted={closeAll}
           onSelectStop={(s) => setSelectedStopId(s.id)}

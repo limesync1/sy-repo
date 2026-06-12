@@ -660,15 +660,23 @@ export const RouteEditSheet = ({
 
   // Hvis brugeren ændrer datoen i picker → åbn scope-dialog i stedet for at autosave.
   const handleDateChange = (next: string) => {
+    const releaseNestedOverlayGuard = () => {
+      window.setTimeout(() => {
+        if (!pendingDate && !pendingProjectedDate) nestedOverlayOpenRef.current = false;
+        clearStaleRadixPointerLock();
+      }, 120);
+    };
     const currentFrom = isProjection && projectedDate ? projectedDate : route?.route_date;
     if (!route || !next || next === currentFrom) {
       setDate(next);
+      releaseNestedOverlayGuard();
       return;
     }
     if (next < todayIso) {
       toast.error("Kan ikke flytte ruten bagud i tiden", {
         description: "Vælg en dato fra i dag eller frem.",
       });
+      releaseNestedOverlayGuard();
       return;
     }
     // Samme serie-kollisions-checks som drag-drop på kalenderen, så datovælgeren
@@ -684,6 +692,7 @@ export const RouteEditSheet = ({
       });
       if (issue) {
         toast.error(issue.message, issue.description ? { description: issue.description } : undefined);
+        releaseNestedOverlayGuard();
         return;
       }
     }
@@ -756,6 +765,17 @@ export const RouteEditSheet = ({
     onOpenChange(false);
   };
 
+  const handleSheetOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen && nestedOverlayOpenRef.current) {
+      // Radix kan sende `onOpenChange(false)` på pointer-down i portal'ede
+      // datepickers før kalenderens onSelect når at åbne flyt-dialogen.
+      // I det tilfælde må sheet'et ikke lukkes — ellers står kalenderen tilbage
+      // med en usynlig dismissable layer, og hele siden føles låst.
+      return;
+    }
+    onOpenChange(nextOpen);
+  };
+
   const handleOptimize = async () => {
     // Brug toast.promise så brugeren ser øjeblikkelig feedback mens vi
     // optimerer, og success-/info-toasten først dukker op NÅR ruten faktisk
@@ -816,7 +836,7 @@ export const RouteEditSheet = ({
 
   return (
     <>
-      <Sheet open={open} onOpenChange={onOpenChange} modal={isCompact}>
+      <Sheet open={open} onOpenChange={handleSheetOpenChange} modal={isCompact}>
         <SheetContent
           side={isCompact ? "bottom" : "right"}
           className={cn(
@@ -973,7 +993,17 @@ export const RouteEditSheet = ({
                   ? "Flytter kun denne ene forekomst"
                   : (seriesInfo?.recurringAppointmentCount ?? 0) >= 1 ? "Del af fast rute" : "Træk i kalenderen for hurtigt skift"}
               >
-                <DatePickerField value={date} onChange={handleDateChange} minDate={todayIso} />
+                <DatePickerField
+                  value={date}
+                  onChange={handleDateChange}
+                  onCalendarOpenChange={(isOpen) => {
+                    if (isOpen) nestedOverlayOpenRef.current = true;
+                    else window.setTimeout(() => {
+                      if (!pendingDate && !pendingProjectedDate) nestedOverlayOpenRef.current = false;
+                    }, 180);
+                  }}
+                  minDate={todayIso}
+                />
               </Section>
             )}
 
