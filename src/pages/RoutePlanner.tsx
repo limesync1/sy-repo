@@ -5327,6 +5327,7 @@ const Planner = () => {
                   ? new Date(s.planned_arrival).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })
                   : null,
                 durationMin: s.duration_minutes ?? null,
+                serviceSummary: s.service_summary ?? null,
               }))
           ))}
       />
