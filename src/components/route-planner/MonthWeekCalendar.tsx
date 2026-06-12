@@ -890,7 +890,10 @@ const DayCellInner = ({
         "border-r border-border/70 last:border-r-0 relative group flex flex-col gap-1.5 p-2.5 transition-all duration-200",
         compact ? "min-h-[118px]" : "min-h-[170px]",
         !inMonth && "bg-muted/10",
-        inMonth && isWeekend && !isPast && "bg-secondary/[0.12]",
+        // Lidt kraftigere weekend-tint så uge-rytmen er nem at scanne i
+        // måneds-view. Stadig subtil nok til ikke at konkurrere med selve
+        // rute-pillerne. Bibeholdes ikke for fortidsdage (de dæmpes alligevel).
+        inMonth && isWeekend && !isPast && "bg-secondary/30",
         isPast && "bg-muted/15",
         today && "bg-foreground/[0.035] ring-1 ring-inset ring-foreground/20",
         inMonth && !isPast && !isDragActive && "hover:bg-secondary/30",
@@ -1135,7 +1138,7 @@ const DayCellInner = ({
                 ? "bg-destructive"
                 : capacity.load_pct >= 90
                 ? "bg-amber-500/80"
-                : "bg-foreground/25",
+                : "bg-foreground/45",
             )}
             style={{ width: `${Math.min(100, capacity.load_pct)}%` }}
           />
@@ -1461,7 +1464,11 @@ const RoutePillInner = ({
         {...(dragLocked ? {} : listeners)}
         {...(dragLocked ? {} : attributes)}
         className={cn(
-          "relative z-[1] pl-3 pr-2 py-1.5 flex items-center justify-between gap-1.5",
+          // Lidt mere højre-padding når der er medarbejder-avatarer på
+          // pillen, så ring-2 ring-card-haloen ikke "klipper" mod
+          // pillens højre kant i smalle måneds-celler.
+          "relative z-[1] pl-3 py-1.5 flex items-center justify-between gap-1.5",
+          (visibleEmployees.length > 0 || extraEmployees > 0) ? "pr-2.5" : "pr-2",
           isPast && !isVirtual ? "cursor-not-allowed"
             : dragLocked ? "cursor-pointer"
             : "cursor-grab active:cursor-grabbing",
