@@ -11,9 +11,9 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Trash2, Send, ShoppingBag, User, MessageSquare, Package, Calendar } from "lucide-react";
+import { Loader2, Trash2, Send, ShoppingBag, User, MessageSquare, Package, Calendar, Repeat } from "lucide-react";
 import { toast } from "sonner";
 import { INTERVAL_LABELS } from "@/types/service";
 import { roundPrice, buildPricingSnapshot } from "@/lib/service-pricing";
@@ -24,7 +24,7 @@ import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection
 import CustomerEmailAutocomplete from "./CustomerEmailAutocomplete";
 import { DatePickerField } from "./DatePickerField";
 import { format } from "date-fns";
-import { getSubcategoryIcon } from "@/lib/category-icons";
+import { getCategoryIcon } from "@/lib/category-icons";
 import { IndustryIcon } from "@/components/IndustryIcon";
 
 type CalcStep = { id: string; label: string; unit: string; price_per_unit: number; min_value: number | null; max_value: number | null; default_value: number | null; sort_order: number | null };
