@@ -1276,6 +1276,10 @@ const RoutePillInner = ({
   // sat til 'completed') også fremstår tydeligt færdig.
   const allStopsDone = !isVirtual && stopCount > 0 && completedCount === stopCount;
   const showAsCompleted = isRouteCompleted || allStopsDone;
+  // "I gang" — mindst ét stop er udført, men ikke alle. Vises som lille
+  // amber-badge så brugeren kan se hvor arbejdet er aktivt netop nu.
+  const isInProgress =
+    !isVirtual && !showAsCompleted && stopCount > 0 && completedCount > 0;
   // Tre tilstande for projicerede (virtuelle) ruter:
   //  - future  → låst indtil dagen er aktuel (vises med hængelås)
   //  - today   → aktiv projektion, kan udføres eller flyttes nu
