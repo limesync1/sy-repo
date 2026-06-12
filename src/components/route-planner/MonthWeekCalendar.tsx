@@ -1276,6 +1276,10 @@ const RoutePillInner = ({
   // sat til 'completed') også fremstår tydeligt færdig.
   const allStopsDone = !isVirtual && stopCount > 0 && completedCount === stopCount;
   const showAsCompleted = isRouteCompleted || allStopsDone;
+  // "I gang" — mindst ét stop er udført, men ikke alle. Vises som lille
+  // amber-badge så brugeren kan se hvor arbejdet er aktivt netop nu.
+  const isInProgress =
+    !isVirtual && !showAsCompleted && stopCount > 0 && completedCount > 0;
   // Tre tilstande for projicerede (virtuelle) ruter:
   //  - future  → låst indtil dagen er aktuel (vises med hængelås)
   //  - today   → aktiv projektion, kan udføres eller flyttes nu
@@ -1553,6 +1557,19 @@ const RoutePillInner = ({
               >
                 <CheckCircle2 className="h-2 w-2" />
                 {!compact && "Udført"}
+              </span>
+            )}
+            {isInProgress && (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-0.5 rounded-[3px] bg-amber-500/15 text-amber-700 dark:text-amber-300 ring-1 ring-inset ring-amber-500/30 text-[9px] font-bold uppercase tracking-[0.06em] shrink-0",
+                  compact ? "px-1 py-px" : "px-1.5 py-px",
+                )}
+                title={`Ruten er i gang — ${completedCount}/${stopCount} stop udført`}
+                aria-label="I gang"
+              >
+                <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                {!compact && "I gang"}
               </span>
             )}
             <span className={cn("truncate", isVirtual && "italic text-muted-foreground")}>
