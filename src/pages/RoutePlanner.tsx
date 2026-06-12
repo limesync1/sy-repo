@@ -48,7 +48,7 @@ import {
   ShoppingBag, Route as RouteIcon, Tag, Palette, ListChecks, AlertTriangle, Undo2, Redo2, Sparkles, MapPin, Clock,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarPicker } from "@/components/ui/calendar";
+import { RouteAwareCalendar } from "@/components/route-planner/RouteAwareCalendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
@@ -3936,12 +3936,15 @@ const Planner = () => {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent align="start" className="w-auto p-0">
-                        <CalendarPicker
+                        <RouteAwareCalendar
                           mode="single"
                           selected={parseISO(date)}
                           onSelect={(d) => d && setDate(format(d, "yyyy-MM-dd"))}
-                          weekStartsOn={1}
+                          showOutsideDays
                           initialFocus
+                          routeDates={routeDatesSet}
+                          busyDates={busyDatesSet}
+                          overloadedDates={overloadedDatesSet}
                         />
                       </PopoverContent>
                     </Popover>
