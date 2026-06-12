@@ -3035,6 +3035,8 @@ const Planner = () => {
                 </TooltipContent>
               </Tooltip>
 
+              <LegendPopover />
+
               <DropdownMenu>
                 <Tooltip>
                   <TooltipTrigger asChild>
