@@ -5324,6 +5324,7 @@ const Planner = () => {
         </Suspense>
       )}
     </DndContext>
+    </RouteCalendarHintsProvider>
     </div>
   );
 };
