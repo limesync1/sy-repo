@@ -49,6 +49,7 @@ type Props = {
   loadingWeather?: boolean;
   weatherError?: boolean;
   busyTargets?: Set<string>;
+  capacityByDate?: Map<string, { load_pct: number; minutes_booked: number; minutes_capacity: number }>;
 };
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
@@ -56,7 +57,7 @@ const ymd = (d: Date) => format(d, "yyyy-MM-dd");
 export const AgendaCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
   onCreateRoute, onOptimizeRoute, onDeleteRoute, onShowHistory, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
-  loadingRoutes, loadingWeather, weatherError, busyTargets,
+  loadingRoutes, loadingWeather, weatherError, busyTargets, capacityByDate,
 }: Props) => {
   const anchor = parseISO(anchorDate);
   const todayIso = format(new Date(), "yyyy-MM-dd");
@@ -151,6 +152,7 @@ export const AgendaCalendar = ({
                   weatherError={!!weatherError}
                   busy={!!busyTargets?.has(`day:${dateStr}`)}
                   busyRouteIds={busyTargets}
+                  capacity={capacityByDate?.get(dateStr) ?? null}
                 />
               );
             })}
