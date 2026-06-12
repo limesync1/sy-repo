@@ -334,7 +334,24 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                 Vælg services fra dit katalog og udfyld kundens oplysninger. Bestillingen oprettes som forhåndsgodkendt og kunden modtager en bekræftelses-mail med det samme.
               </DialogDescription>
             }
-          />
+          >
+            {/* Live status-chips — opdaterer mens brugeren bygger bestillingen */}
+            <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-2 py-0.5 text-[10px] font-semibold text-foreground/80">
+              <Package className="h-3 w-3" />
+              {items.length} service{items.length === 1 ? "" : "r"}
+            </span>
+            {recurringCount > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[10px] font-semibold text-accent">
+                <Repeat className="h-3 w-3" />
+                {recurringCount} tilbagevendende
+              </span>
+            )}
+            {totalAmount > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-bold tabular-nums text-foreground">
+                {fmt(totalAmount)}
+              </span>
+            )}
+          </SheetHeaderBlock>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto px-3 sm:px-5 py-4 space-y-3 bg-secondary/20">
