@@ -101,7 +101,7 @@ export const BulkMoveRoutesDialog = ({
           />
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 px-4 sm:px-5 py-4 bg-secondary/20">
           {/* Offset-vælger */}
           <div className="flex items-end gap-3">
             <div className="flex-1 space-y-1.5">
@@ -250,7 +250,7 @@ export const BulkMoveRoutesDialog = ({
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="border-t bg-card p-4">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
             Annullér
           </Button>
