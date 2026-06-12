@@ -1117,19 +1117,21 @@ const DayCellInner = ({
           medarbejdere), helt tomme dage og fortid. */}
       {capacity && capacity.minutes_capacity > 0 && inMonth && !isPast && (
         <div
-          className="absolute bottom-0 left-0 right-0 h-[2px] bg-border/40 overflow-hidden group/cap"
+          className="absolute bottom-0 left-0 right-0 h-[3px] bg-border/40 overflow-hidden group/cap"
           title={`Belastning: ${Math.round(capacity.load_pct)}% — ${Math.round(capacity.minutes_booked / 60 * 10) / 10} af ${Math.round(capacity.minutes_capacity / 60)} timer booket`}
           aria-label={`Dagens belastning: ${Math.round(capacity.load_pct)} procent`}
         >
           <div
             className={cn(
               "h-full transition-[width] duration-300",
-              // Flad, monokrom indikator — kun farve ved reelle problemer.
-              // Normale dage får en neutral foreground-tone, så bunden af
-              // celler ikke domineres af grønne/gule bånd.
-              capacity.load_pct >= 130 && capacity.minutes_booked >= 780
+              // Flad indikator — kun tydelig farve ved reelle problemer.
+              // Tærsklerne sænket en smule så advarsler kommer i god tid:
+              //   ≥110% + reelt booket    → rød (overbooket)
+              //   ≥90%                     → gul (tæt på fuldt)
+              //   ellers                    → neutral foreground-tone
+              capacity.load_pct >= 110 && capacity.minutes_booked >= 720
                 ? "bg-destructive"
-                : capacity.load_pct >= 100
+                : capacity.load_pct >= 90
                 ? "bg-amber-500/80"
                 : "bg-foreground/25",
             )}
