@@ -691,9 +691,11 @@ export const RouteEditSheet = ({
       // Projicerede ruter: vis en simpel bekræftelses-dialog i stedet for
       // scope-dialogen — vi flytter ALDRIG basisruten, kun denne ene
       // fremtidige forekomst.
+      nestedOverlayOpenRef.current = true;
       setPendingProjectedDate(next);
       return;
     }
+    nestedOverlayOpenRef.current = true;
     setPendingDate(next);
   };
 
@@ -710,6 +712,7 @@ export const RouteEditSheet = ({
     // Sheet'en evt. ryger.
     const newDate = pendingDate;
     setPendingDate(null);
+    nestedOverlayOpenRef.current = false;
     try {
       await moveRouteSeries.mutateAsync({
         routeId: route.id,
@@ -728,15 +731,7 @@ export const RouteEditSheet = ({
         description: e?.hint || e?.details || undefined,
       });
     } finally {
-      // Safety-net: hvis Radix har efterladt body locked pga. samtidig
-      // unmount af både dialog og sheet, så frigør pointer-events her.
-      if (typeof document !== "undefined") {
-        setTimeout(() => {
-          if (document.body.style.pointerEvents === "none") {
-            document.body.style.pointerEvents = "";
-          }
-        }, 50);
-      }
+      clearStaleRadixPointerLock();
     }
   };
 
