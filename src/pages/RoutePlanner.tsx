@@ -2912,6 +2912,8 @@ const Planner = () => {
               </PopoverContent>
             </Popover>
 
+            <span aria-hidden className="h-5 w-px bg-border/60 mx-0.5" />
+
             <div className="flex items-center rounded-md border border-border/70 bg-background overflow-hidden divide-x divide-border/60">
               <Button
                 variant="ghost"
@@ -2976,6 +2978,8 @@ const Planner = () => {
               </TooltipTrigger>
               <TooltipContent side="bottom" className="text-xs">Hop tilbage til dags dato</TooltipContent>
             </Tooltip>
+
+            <span aria-hidden className="h-5 w-px bg-border/60 mx-0.5" />
 
             <PlanningPanel
               businessId={businessId}
