@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { RouteAwareCalendar } from "./RouteAwareCalendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useRouteCalendarHints } from "./route-calendar-hints-context";
 
 type Props = {
   /** ISO yyyy-MM-dd */
@@ -32,6 +33,13 @@ export const DatePickerField = ({
 }: Props) => {
   const [open, setOpen] = useState(false);
   const date = value ? parseISO(value) : undefined;
+
+  // Fald tilbage på context, så dialoger der ikke videresender hints stadig
+  // får dem på dato-vælgeren.
+  const ctxHints = useRouteCalendarHints();
+  const effectiveRouteDates = routeDates ?? ctxHints.routeDates ?? undefined;
+  const effectiveBusyDates = busyDates ?? ctxHints.busyDates ?? undefined;
+  const effectiveOverloadedDates = overloadedDates ?? ctxHints.overloadedDates ?? undefined;
 
   const today = new Date();
   const tomorrow = addDays(today, 1);
@@ -87,9 +95,9 @@ export const DatePickerField = ({
           }}
           showOutsideDays
           minDateIso={minDate}
-          routeDates={routeDates}
-          busyDates={busyDates}
-          overloadedDates={overloadedDates}
+          routeDates={effectiveRouteDates}
+          busyDates={effectiveBusyDates}
+          overloadedDates={effectiveOverloadedDates}
           initialFocus
         />
       </PopoverContent>
