@@ -474,35 +474,40 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                 {activeServices.length === 0 && (
                   <SelectItem value="__none" disabled>Ingen services oprettet endnu</SelectItem>
                 )}
-                {activeServices
-                  .filter((s) => !items.some((i) => i.serviceId === s.id))
-                  .map((s) => {
-                    const sub = (s as any).subcategory as string | null;
-                    return (
-                      <SelectItem
-                        key={s.id}
-                        value={s.id}
-                        className="py-2 pr-3 pl-2 data-[highlighted]:bg-secondary data-[highlighted]:text-foreground focus:bg-secondary focus:text-foreground"
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <span
-                            className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden"
-                            aria-hidden="true"
-                          >
-                            <IndustryIcon category={s.service_category} subcategory={sub} name={s.name} className="h-6 w-6" />
-                          </span>
-                          <div className="min-w-0 flex-1">
-                            <div className="truncate text-sm font-medium text-foreground">{s.name}</div>
-                            {(sub || s.service_category) && (
-                              <div className="truncate text-[11px] text-muted-foreground">
-                                {sub || s.service_category}
-                              </div>
-                            )}
+                {servicesByCategory.map(([category, group], idx) => (
+                  <SelectGroup key={category}>
+                    {idx > 0 && <SelectSeparator />}
+                    <SelectLabel className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                      <span aria-hidden className="text-[12px] leading-none">{getCategoryIcon(category)}</span>
+                      {category}
+                    </SelectLabel>
+                    {group.map((s) => {
+                      const sub = (s as any).subcategory as string | null;
+                      return (
+                        <SelectItem
+                          key={s.id}
+                          value={s.id}
+                          className="py-2 pr-3 pl-2 data-[highlighted]:bg-secondary data-[highlighted]:text-foreground focus:bg-secondary focus:text-foreground"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <span
+                              className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden"
+                              aria-hidden="true"
+                            >
+                              <IndustryIcon category={s.service_category} subcategory={sub} name={s.name} className="h-6 w-6" />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <div className="truncate text-sm font-medium text-foreground">{s.name}</div>
+                              {sub && (
+                                <div className="truncate text-[11px] text-muted-foreground">{sub}</div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </SelectItem>
-                    );
-                  })}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectGroup>
+                ))}
               </SelectContent>
             </Select>
 
