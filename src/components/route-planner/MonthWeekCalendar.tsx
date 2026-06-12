@@ -890,7 +890,10 @@ const DayCellInner = ({
         "border-r border-border/70 last:border-r-0 relative group flex flex-col gap-1.5 p-2.5 transition-all duration-200",
         compact ? "min-h-[118px]" : "min-h-[170px]",
         !inMonth && "bg-muted/10",
-        inMonth && isWeekend && !isPast && "bg-secondary/[0.12]",
+        // Lidt kraftigere weekend-tint så uge-rytmen er nem at scanne i
+        // måneds-view. Stadig subtil nok til ikke at konkurrere med selve
+        // rute-pillerne. Bibeholdes ikke for fortidsdage (de dæmpes alligevel).
+        inMonth && isWeekend && !isPast && "bg-secondary/30",
         isPast && "bg-muted/15",
         today && "bg-foreground/[0.035] ring-1 ring-inset ring-foreground/20",
         inMonth && !isPast && !isDragActive && "hover:bg-secondary/30",
