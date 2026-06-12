@@ -679,19 +679,36 @@ export const RouteEditSheet = ({
     moveLinkedSubscriptions: boolean,
   ) => {
     if (!route || !pendingDate) return;
-    // Lader fejl boble op til dialogens egen catch — så vises de inline i
-    // stedet for kun som flygtig toast samtidig med at dialogen lukker.
-    await moveRouteSeries.mutateAsync({
-      routeId: route.id,
-      newDate: pendingDate,
-      scope,
-      moveLinkedSubscriptions,
-    });
-    setDate(pendingDate);
-    toast.success(
-      scope === "future" ? "Ruteserien flyttet" : "Rute flyttet til ny dato",
-    );
+    // VIGTIGT: Vi lukker AlertDialog'en FØR mutationen afventes.
+    // Ellers risikerer vi en race: mutationen invaliderer queries → parent
+    // fjerner ruten fra den valgte dato → Sheet'en lukker mens AlertDialog
+    // stadig er åben → Radix låser body { pointer-events: none } og hele UI'et
+    // bliver "død". Når dialogen lukkes først, unmountes den rent inden
+    // Sheet'en evt. ryger.
+    const newDate = pendingDate;
     setPendingDate(null);
+    try {
+      await moveRouteSeries.mutateAsync({
+        routeId: route.id,
+        newDate,
+        scope,
+        moveLinkedSubscriptions,
+      });
+      setDate(newDate);
+      toast.success(
+        scope === "future" ? "Ruteserien flyttet" : "Rute flyttet til ny dato",
+      );
+    } finally {
+      // Safety-net: hvis Radix har efterladt body locked pga. samtidig
+      // unmount af både dialog og sheet, så frigør pointer-events her.
+      if (typeof document !== "undefined") {
+        setTimeout(() => {
+          if (document.body.style.pointerEvents === "none") {
+            document.body.style.pointerEvents = "";
+          }
+        }, 50);
+      }
+    }
   };
 
   const handleConfirmMoveProjected = async () => {
