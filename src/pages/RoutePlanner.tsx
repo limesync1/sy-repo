@@ -1484,6 +1484,34 @@ const Planner = () => {
     [calendarRoutes, virtualCalendarRoutes, filtersActive],
   );
 
+  // Sæt af datoer der har mindst én rute (inkl. projicerede). Bruges af alle
+  // dato-popovers så brugeren kan se hvor der allerede ligger ruter.
+  const routeDatesSet = useMemo(() => {
+    const s = new Set<string>();
+    for (const r of calendarRoutesAll) {
+      const d = String((r as any).route_date || "").slice(0, 10);
+      if (d) s.add(d);
+    }
+    return s;
+  }, [calendarRoutesAll]);
+
+  // Travle / overbookede datoer baseret på daily capacity. Tærsklerne matcher
+  // kapacitetsbjælken i måneds- og agenda-kalenderen.
+  const busyDatesSet = useMemo(() => {
+    const s = new Set<string>();
+    for (const [d, c] of capacityByDate.entries()) {
+      if (c.load_pct >= 90 && c.load_pct < 110) s.add(d);
+    }
+    return s;
+  }, [capacityByDate]);
+  const overloadedDatesSet = useMemo(() => {
+    const s = new Set<string>();
+    for (const [d, c] of capacityByDate.entries()) {
+      if (c.load_pct >= 110 && c.minutes_booked >= 720) s.add(d);
+    }
+    return s;
+  }, [capacityByDate]);
+
   const activeEditingRoute = useMemo(() => {
     if (!editingRoute) return null;
     // Slå op i begge cacher: calendar-vinduet OG recurring-base-routes,
