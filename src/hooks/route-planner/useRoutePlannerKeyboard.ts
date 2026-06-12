@@ -29,6 +29,9 @@ export function useRoutePlannerKeyboard(opts: {
   focusSearchRef: MutableRefObject<() => void>;
   runAutoAssignRef: MutableRefObject<() => void | Promise<void>>;
   optimizeRouteRef: MutableRefObject<(id: string) => void>;
+  /** Valgte ruter i kalenderen (bulk-flyt-tilstand). Esc rydder dem. */
+  selectedRouteIds?: Set<string>;
+  clearRouteSelection?: () => void;
 }) {
   const {
     history,
@@ -49,6 +52,8 @@ export function useRoutePlannerKeyboard(opts: {
     focusSearchRef,
     runAutoAssignRef,
     optimizeRouteRef,
+    selectedRouteIds,
+    clearRouteSelection,
   } = opts;
 
   useEffect(() => {
@@ -87,7 +92,9 @@ export function useRoutePlannerKeyboard(opts: {
         e.preventDefault();
         void runAutoAssignRef.current();
       } else if (e.key === "Escape") {
-        if (selectedJobIds.size > 0) {
+        if (selectedRouteIds && selectedRouteIds.size > 0) {
+          clearRouteSelection?.();
+        } else if (selectedJobIds.size > 0) {
           setSelectedJobIds(new Set());
           lastSelectedJobIdRef.current = null;
         } else if (selectedStopId) {
