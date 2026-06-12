@@ -92,7 +92,9 @@ export function useRoutePlannerKeyboard(opts: {
         e.preventDefault();
         void runAutoAssignRef.current();
       } else if (e.key === "Escape") {
-        if (selectedJobIds.size > 0) {
+        if (selectedRouteIds && selectedRouteIds.size > 0) {
+          clearRouteSelection?.();
+        } else if (selectedJobIds.size > 0) {
           setSelectedJobIds(new Set());
           lastSelectedJobIdRef.current = null;
         } else if (selectedStopId) {
