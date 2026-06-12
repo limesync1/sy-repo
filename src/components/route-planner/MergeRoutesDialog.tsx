@@ -14,10 +14,19 @@ import {
 import { Button } from "@/components/ui/button";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
-import { Combine, Repeat, ArrowRight, Loader2, AlertTriangle } from "lucide-react";
+import { Combine, Repeat, ArrowRight, Loader2, AlertTriangle, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getSubcategoryIcon } from "@/lib/category-icons";
 
 export type MergeScope = "single" | "future";
+
+export type MergeStopPreview = {
+  id: string;
+  customerName: string | null;
+  serviceSummary: string | null;
+  plannedArrival: string | null;
+  durationMinutes?: number | null;
+};
 
 type Props = {
   open: boolean;
@@ -28,6 +37,11 @@ type Props = {
   targetDate: string;
   recurringAppointmentCount: number;
   loading?: boolean;
+  /** Aftaler på kilderuten — vises som lille preview-liste så brugeren ser præcis
+   *  hvad der flyttes over på målruten. */
+  sourceStops?: MergeStopPreview[];
+  /** Antal aftaler på målruten (vises som lille badge). */
+  targetStopCount?: number;
   /**
    * Konkrete grunde til at "Fremtidige aftaler også" ikke kan vælges.
    * Vises som bullet-liste under den deaktiverede knap så brugeren altid
@@ -39,7 +53,8 @@ type Props = {
 
 export const MergeRoutesDialog = ({
   open, onOpenChange, sourceName, targetName, sourceDate, targetDate,
-  recurringAppointmentCount, loading, disabledFutureReasons, onConfirm,
+  recurringAppointmentCount, loading, disabledFutureReasons, sourceStops,
+  targetStopCount, onConfirm,
 }: Props) => {
   const [scope, setScope] = useState<MergeScope>("single");
 
@@ -66,12 +81,52 @@ export const MergeRoutesDialog = ({
               <div className="grid min-w-0 gap-2 text-muted-foreground tabular-nums sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center">
                 <span className="min-w-0 [overflow-wrap:anywhere] rounded-md border border-border bg-secondary/30 px-2.5 py-2 text-left font-medium capitalize text-foreground sm:truncate">
                   {sourceName} <span className="text-muted-foreground">({fmt(sourceDate)})</span>
+                  {sourceStops && (
+                    <span className="ml-1 inline-flex items-center gap-0.5 rounded-full bg-secondary px-1.5 py-0 text-[10px] font-semibold text-foreground/80 tabular-nums normal-case">
+                      {sourceStops.length} aftaler
+                    </span>
+                  )}
                 </span>
                 <ArrowRight className="mx-auto h-3 w-3 shrink-0 rotate-90 sm:rotate-0" />
                 <span className="min-w-0 [overflow-wrap:anywhere] rounded-md border border-border bg-secondary/30 px-2.5 py-2 text-left font-medium capitalize text-foreground sm:truncate">
                   {targetName} <span className="text-muted-foreground">({fmt(targetDate)})</span>
+                  {typeof targetStopCount === "number" && (
+                    <span className="ml-1 inline-flex items-center gap-0.5 rounded-full bg-secondary px-1.5 py-0 text-[10px] font-semibold text-foreground/80 tabular-nums normal-case">
+                      {targetStopCount} aftaler
+                    </span>
+                  )}
                 </span>
               </div>
+              {sourceStops && sourceStops.length > 0 && (
+                <div className="rounded-md border bg-background">
+                  <div className="border-b px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Aftaler der flyttes
+                  </div>
+                  <ul className="max-h-40 divide-y overflow-y-auto">
+                    {sourceStops.map((s) => {
+                      const icon = getSubcategoryIcon(s.serviceSummary);
+                      const time = s.plannedArrival
+                        ? new Date(s.plannedArrival).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })
+                        : null;
+                      return (
+                        <li key={s.id} className="flex items-center gap-2 px-2.5 py-1.5 text-[12px]">
+                          <span aria-hidden className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded bg-secondary text-[12px] leading-none">
+                            {icon}
+                          </span>
+                          <span className="min-w-0 flex-1 truncate font-medium text-foreground">
+                            {s.customerName || "Aftale"}
+                          </span>
+                          {time && (
+                            <span className="inline-flex shrink-0 items-center gap-0.5 text-[10px] tabular-nums text-muted-foreground">
+                              <Clock className="h-2.5 w-2.5" /> {time}
+                            </span>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
               <p className="text-[11px] text-muted-foreground">
                 Alle aftaler flyttes til målruten. Kilderuten slettes automatisk.
                 Medarbejder­tilknytninger pr. aftale bevares.

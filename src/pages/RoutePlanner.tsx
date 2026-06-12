@@ -4426,6 +4426,21 @@ const Planner = () => {
           targetDate={pendingRouteMerge?.target.route_date || ""}
           recurringAppointmentCount={pendingMergeSeriesInfo?.recurringAppointmentCount ?? 0}
           loading={mergingRoute}
+          sourceStops={(() => {
+            const src: any = pendingRouteMerge?.source;
+            const stops: any[] = src?.stops ?? [];
+            return stops
+              .slice()
+              .sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0))
+              .map((s) => ({
+                id: s.id,
+                customerName: s.customer_name ?? null,
+                serviceSummary: s.service_summary ?? null,
+                plannedArrival: s.planned_arrival ?? null,
+                durationMinutes: s.duration_minutes ?? null,
+              }));
+          })()}
+          targetStopCount={(pendingRouteMerge?.target as any)?.stops?.length ?? 0}
           disabledFutureReasons={(() => {
             // Beregn HVORFOR "Fremtidige aftaler også" evt. er låst ved fletning,
             // så brugeren altid har en forklaring under den deaktiverede knap.
