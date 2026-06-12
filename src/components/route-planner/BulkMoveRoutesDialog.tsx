@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertTriangle, ArrowRight, CalendarDays, Loader2, MapPin, Minus, Plus, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SheetHeaderBlock } from "./SheetSection";
 
 /**
  * Bulk-flyt N ruter med ét tryk.
@@ -87,17 +88,17 @@ export const BulkMoveRoutesDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!loading) onOpenChange(o); }}>
-      <DialogContent className="max-w-xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <CalendarDays className="h-4 w-4 text-accent" />
-            Flyt {routes.length} {routes.length === 1 ? "rute" : "ruter"}
-          </DialogTitle>
-          <DialogDescription>
-            Forskyd alle valgte ruter med samme antal dage. Konflikter
-            (kollisioner eller fortid) blokerer kun de berørte ruter — resten
-            flyttes som forventet.
-          </DialogDescription>
+      <DialogContent className="max-w-xl p-0 overflow-hidden gap-0">
+        <DialogHeader className="px-4 sm:px-5 py-4 pr-12 border-b shrink-0 space-y-0 text-left">
+          <SheetHeaderBlock
+            icon={<CalendarDays className="h-4 w-4" />}
+            title={<DialogTitle className="text-base">Flyt {routes.length} {routes.length === 1 ? "rute" : "ruter"}</DialogTitle>}
+            description={
+              <DialogDescription className="text-xs leading-snug">
+                Forskyd alle valgte ruter med samme antal dage. Konflikter (kollisioner eller fortid) blokerer kun de berørte ruter — resten flyttes som forventet.
+              </DialogDescription>
+            }
+          />
         </DialogHeader>
 
         <div className="space-y-4">
