@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, ArrowRight, CheckCircle2 } from "lucide-react";
 import { describeUnprojectable, type UnprojectableReason } from "@/lib/route-suggestions";
 import { useNavigate } from "react-router-dom";
+import { SheetHeaderBlock } from "./SheetSection";
 
 export type UnprojectableItem = {
   source: any;
@@ -35,14 +36,16 @@ export function DiagnosticsDialog({ open, onOpenChange, items, onAssignRoute }: 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-warning" />
-            {items.length === 1 ? "1 aftale kan ikke projiceres" : `${items.length} aftaler kan ikke projiceres`}
-          </DialogTitle>
-          <DialogDescription>
-            Hver række viser hvorfor aftalen mangler i kalenderen og hvad du kan gøre.
-          </DialogDescription>
+        <DialogHeader className="space-y-0 text-left -mx-6 -mt-6 mb-2 px-5 py-4 pr-12 border-b">
+          <SheetHeaderBlock
+            icon={<AlertTriangle className="h-4 w-4" />}
+            title={<DialogTitle className="text-base">{items.length === 1 ? "1 aftale kan ikke projiceres" : `${items.length} aftaler kan ikke projiceres`}</DialogTitle>}
+            description={
+              <DialogDescription className="text-xs leading-snug">
+                Hver række viser hvorfor aftalen mangler i kalenderen og hvad du kan gøre.
+              </DialogDescription>
+            }
+          />
         </DialogHeader>
 
         <div className="space-y-3">
