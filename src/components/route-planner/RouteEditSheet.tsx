@@ -663,12 +663,14 @@ export const RouteEditSheet = ({
     const currentFrom = isProjection && projectedDate ? projectedDate : route?.route_date;
     if (!route || !next || next === currentFrom) {
       setDate(next);
+      nestedOverlayOpenRef.current = false;
       return;
     }
     if (next < todayIso) {
       toast.error("Kan ikke flytte ruten bagud i tiden", {
         description: "Vælg en dato fra i dag eller frem.",
       });
+      nestedOverlayOpenRef.current = false;
       return;
     }
     // Samme serie-kollisions-checks som drag-drop på kalenderen, så datovælgeren
@@ -684,6 +686,7 @@ export const RouteEditSheet = ({
       });
       if (issue) {
         toast.error(issue.message, issue.description ? { description: issue.description } : undefined);
+        nestedOverlayOpenRef.current = false;
         return;
       }
     }
@@ -973,7 +976,14 @@ export const RouteEditSheet = ({
                   ? "Flytter kun denne ene forekomst"
                   : (seriesInfo?.recurringAppointmentCount ?? 0) >= 1 ? "Del af fast rute" : "Træk i kalenderen for hurtigt skift"}
               >
-                <DatePickerField value={date} onChange={handleDateChange} minDate={todayIso} />
+                <DatePickerField
+                  value={date}
+                  onChange={handleDateChange}
+                  onCalendarOpenChange={(isOpen) => {
+                    if (isOpen) nestedOverlayOpenRef.current = true;
+                  }}
+                  minDate={todayIso}
+                />
               </Section>
             )}
 
