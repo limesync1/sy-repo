@@ -11,9 +11,9 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Trash2, Send, ShoppingBag, User, MessageSquare, Package, Calendar } from "lucide-react";
+import { Loader2, Trash2, Send, ShoppingBag, User, MessageSquare, Package, Calendar, Repeat } from "lucide-react";
 import { toast } from "sonner";
 import { INTERVAL_LABELS } from "@/types/service";
 import { roundPrice, buildPricingSnapshot } from "@/lib/service-pricing";
@@ -24,7 +24,7 @@ import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "./SheetSection
 import CustomerEmailAutocomplete from "./CustomerEmailAutocomplete";
 import { DatePickerField } from "./DatePickerField";
 import { format } from "date-fns";
-import { getSubcategoryIcon } from "@/lib/category-icons";
+import { getCategoryIcon } from "@/lib/category-icons";
 import { IndustryIcon } from "@/components/IndustryIcon";
 
 type CalcStep = { id: string; label: string; unit: string; price_per_unit: number; min_value: number | null; max_value: number | null; default_value: number | null; sort_order: number | null };
@@ -113,6 +113,27 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
   }, [open]);
 
   const totalAmount = useMemo(() => roundPrice(items.reduce((s, it) => s + calcItemTotal(it), 0)), [items]);
+
+  // Hvor mange af de valgte aftaler er tilbagevendende? Bruges til en lille
+  // chip i footeren så brugeren har overblik over abonnement vs. engang.
+  const recurringCount = useMemo(
+    () => items.filter((it) => it.interval && it.interval !== "engangskøb").length,
+    [items],
+  );
+
+  // Grupper aktive services efter kategori i dropdown'en så lange kataloger
+  // bliver scanbare ("Rengøring", "Have", "Maler" …).
+  const servicesByCategory = useMemo(() => {
+    const groups = new Map<string, Service[]>();
+    for (const s of activeServices) {
+      if (items.some((i) => i.serviceId === s.id)) continue;
+      const cat = s.service_category || "Andet";
+      const arr = groups.get(cat) || [];
+      arr.push(s);
+      groups.set(cat, arr);
+    }
+    return Array.from(groups.entries()).sort(([a], [b]) => a.localeCompare(b, "da"));
+  }, [activeServices, items]);
 
   const addService = (serviceId: string) => {
     const svc = activeServices.find((s) => s.id === serviceId);
@@ -313,7 +334,24 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                 Vælg services fra dit katalog og udfyld kundens oplysninger. Bestillingen oprettes som forhåndsgodkendt og kunden modtager en bekræftelses-mail med det samme.
               </DialogDescription>
             }
-          />
+          >
+            {/* Live status-chips — opdaterer mens brugeren bygger bestillingen */}
+            <span className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-2 py-0.5 text-[10px] font-semibold text-foreground/80">
+              <Package className="h-3 w-3" />
+              {items.length} service{items.length === 1 ? "" : "r"}
+            </span>
+            {recurringCount > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[10px] font-semibold text-accent">
+                <Repeat className="h-3 w-3" />
+                {recurringCount} tilbagevendende
+              </span>
+            )}
+            {totalAmount > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-bold tabular-nums text-foreground">
+                {fmt(totalAmount)}
+              </span>
+            )}
+          </SheetHeaderBlock>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto px-3 sm:px-5 py-4 space-y-3 bg-secondary/20">
@@ -436,35 +474,40 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                 {activeServices.length === 0 && (
                   <SelectItem value="__none" disabled>Ingen services oprettet endnu</SelectItem>
                 )}
-                {activeServices
-                  .filter((s) => !items.some((i) => i.serviceId === s.id))
-                  .map((s) => {
-                    const sub = (s as any).subcategory as string | null;
-                    return (
-                      <SelectItem
-                        key={s.id}
-                        value={s.id}
-                        className="py-2 pr-3 pl-2 data-[highlighted]:bg-secondary data-[highlighted]:text-foreground focus:bg-secondary focus:text-foreground"
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <span
-                            className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden"
-                            aria-hidden="true"
-                          >
-                            <IndustryIcon category={s.service_category} subcategory={sub} name={s.name} className="h-6 w-6" />
-                          </span>
-                          <div className="min-w-0 flex-1">
-                            <div className="truncate text-sm font-medium text-foreground">{s.name}</div>
-                            {(sub || s.service_category) && (
-                              <div className="truncate text-[11px] text-muted-foreground">
-                                {sub || s.service_category}
-                              </div>
-                            )}
+                {servicesByCategory.map(([category, group], idx) => (
+                  <SelectGroup key={category}>
+                    {idx > 0 && <SelectSeparator />}
+                    <SelectLabel className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                      <span aria-hidden className="text-[12px] leading-none">{getCategoryIcon(category)}</span>
+                      {category}
+                    </SelectLabel>
+                    {group.map((s) => {
+                      const sub = (s as any).subcategory as string | null;
+                      return (
+                        <SelectItem
+                          key={s.id}
+                          value={s.id}
+                          className="py-2 pr-3 pl-2 data-[highlighted]:bg-secondary data-[highlighted]:text-foreground focus:bg-secondary focus:text-foreground"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <span
+                              className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden"
+                              aria-hidden="true"
+                            >
+                              <IndustryIcon category={s.service_category} subcategory={sub} name={s.name} className="h-6 w-6" />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <div className="truncate text-sm font-medium text-foreground">{s.name}</div>
+                              {sub && (
+                                <div className="truncate text-[11px] text-muted-foreground">{sub}</div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </SelectItem>
-                    );
-                  })}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectGroup>
+                ))}
               </SelectContent>
             </Select>
 
@@ -502,11 +545,18 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                             <Badge variant="outline" className="text-[10px] font-normal">
                               {it.service.pricing_type === "fast_pris" ? "Specifik pris" : it.service.pricing_type === "timepris" ? "Timepris" : "Prisberegner"}
                             </Badge>
+                            {it.interval && it.interval !== "engangskøb" && (
+                              <Badge variant="outline" className="border-accent/40 bg-accent/10 text-accent text-[10px] font-medium">
+                                <Repeat className="h-2.5 w-2.5 mr-0.5" />
+                                {INTERVAL_LABELS[it.interval] || it.interval}
+                              </Badge>
+                            )}
                           </div>
                         </div>
                         <button
+                          type="button"
                           onClick={() => removeItem(it.serviceId)}
-                          className="text-muted-foreground hover:text-destructive transition-colors p-1 -m-1 rounded"
+                          className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                           aria-label={`Fjern ${it.service.name}`}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -592,9 +642,19 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
         {/* Footer — matcher SheetFooterBar i StopDetailSheet/RouteEditSheet */}
         <SheetFooterBar>
           <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-            <div className="flex items-baseline justify-between gap-2 sm:justify-start">
-              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">I alt</span>
-              <span className="text-xl font-bold tabular-nums">{fmt(totalAmount)}</span>
+            <div className="flex min-w-0 flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-3">
+              <div className="flex items-baseline gap-2">
+                <span className="text-[11px] text-muted-foreground uppercase tracking-wide">I alt</span>
+                <span className="text-xl font-bold tabular-nums">{fmt(totalAmount)}</span>
+              </div>
+              {items.length > 0 && (
+                <span className="text-[11px] text-muted-foreground">
+                  {items.length} service{items.length === 1 ? "" : "r"}
+                  {recurringCount > 0 && (
+                    <> · <span className="font-medium text-foreground">{recurringCount}</span> tilbagevendende</>
+                  )}
+                </span>
+              )}
             </div>
             <div className="flex gap-2">
               <Button variant="outline" className="flex-1 sm:flex-none" onClick={() => onOpenChange(false)} disabled={submitting}>
