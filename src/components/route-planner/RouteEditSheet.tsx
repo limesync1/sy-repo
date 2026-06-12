@@ -660,17 +660,23 @@ export const RouteEditSheet = ({
 
   // Hvis brugeren ændrer datoen i picker → åbn scope-dialog i stedet for at autosave.
   const handleDateChange = (next: string) => {
+    const releaseNestedOverlayGuard = () => {
+      window.setTimeout(() => {
+        if (!pendingDate && !pendingProjectedDate) nestedOverlayOpenRef.current = false;
+        clearStaleRadixPointerLock();
+      }, 120);
+    };
     const currentFrom = isProjection && projectedDate ? projectedDate : route?.route_date;
     if (!route || !next || next === currentFrom) {
       setDate(next);
-      nestedOverlayOpenRef.current = false;
+      releaseNestedOverlayGuard();
       return;
     }
     if (next < todayIso) {
       toast.error("Kan ikke flytte ruten bagud i tiden", {
         description: "Vælg en dato fra i dag eller frem.",
       });
-      nestedOverlayOpenRef.current = false;
+      releaseNestedOverlayGuard();
       return;
     }
     // Samme serie-kollisions-checks som drag-drop på kalenderen, så datovælgeren
@@ -686,7 +692,7 @@ export const RouteEditSheet = ({
       });
       if (issue) {
         toast.error(issue.message, issue.description ? { description: issue.description } : undefined);
-        nestedOverlayOpenRef.current = false;
+        releaseNestedOverlayGuard();
         return;
       }
     }
@@ -992,6 +998,9 @@ export const RouteEditSheet = ({
                   onChange={handleDateChange}
                   onCalendarOpenChange={(isOpen) => {
                     if (isOpen) nestedOverlayOpenRef.current = true;
+                    else window.setTimeout(() => {
+                      if (!pendingDate && !pendingProjectedDate) nestedOverlayOpenRef.current = false;
+                    }, 180);
                   }}
                   minDate={todayIso}
                 />
