@@ -37,6 +37,14 @@ const SECTIONS: { title: string; rows: { keys: string[]; label: string }[] }[] =
       { keys: ["Delete"], label: "Fjern valgt stop fra rute" },
     ],
   },
+  {
+    title: "Valg af ruter (i kalenderen)",
+    rows: [
+      { keys: ["⌘", "Klik"], label: "Vælg / fravælg én rute" },
+      { keys: ["⇧", "Klik"], label: "Tilføj rute til valg" },
+      { keys: ["Esc"], label: "Ryd valgte ruter" },
+    ],
+  },
 ];
 
 export default function RoutePlannerShortcutsHelp({
