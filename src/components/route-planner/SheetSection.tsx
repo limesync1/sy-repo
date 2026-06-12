@@ -35,15 +35,18 @@ export const SheetHeaderBlock = ({
   const hasAccent = !!accent;
   const bg = accent || "hsl(var(--primary))";
   const iconColor = hasAccent ? readableTextOn(accent!) : "hsl(var(--primary-foreground))";
+  const hasBadge = badge != null || icon != null;
   return (
     <div className="flex items-start gap-3">
-      <span
-        className="flex h-10 w-10 items-center justify-center rounded-lg text-sm font-bold shrink-0 shadow-sm"
-        style={{ background: bg, color: iconColor }}
-        aria-hidden={!badge}
-      >
-        {badge ?? icon}
-      </span>
+      {hasBadge && (
+        <span
+          className="flex h-10 w-10 items-center justify-center rounded-lg text-sm font-bold shrink-0 shadow-sm"
+          style={{ background: bg, color: iconColor }}
+          aria-hidden={!badge}
+        >
+          {badge ?? icon}
+        </span>
+      )}
       <div className="flex-1 min-w-0">
         <div className="text-lg font-bold leading-tight text-left truncate text-foreground">
           {title}
