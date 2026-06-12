@@ -3867,6 +3867,7 @@ const Planner = () => {
                   loadingWeather={loadingWeather}
                   weatherError={weatherError}
                   busyTargets={busyTargets}
+                  capacityByDate={capacityByDate}
                 />
               </div>
             </div>
