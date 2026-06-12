@@ -137,6 +137,7 @@ import DensityToggle, { useDensity } from "@/components/route-planner/DensityTog
 import ThemeToggle, { usePlannerTheme, usePlannerThemeEffect } from "@/components/route-planner/ThemeToggle";
 import RoutePrintDialog, { type PrintRoute } from "@/components/route-planner/RoutePrintDialog";
 import { Printer, ListOrdered } from "lucide-react";
+import { LegendPopover } from "@/components/route-planner/LegendPopover";
 import EmptyState from "@/components/route-planner/EmptyState";
 import DayDetailPanel, { type DayStop } from "@/components/route-planner/DayDetailPanel";
 const RouteHistoryDialog = lazy(() => import("@/components/route-planner/RouteHistoryDialog"));
@@ -3034,6 +3035,8 @@ const Planner = () => {
                     : "Intet at gentage"}
                 </TooltipContent>
               </Tooltip>
+
+              <LegendPopover />
 
               <DropdownMenu>
                 <Tooltip>
