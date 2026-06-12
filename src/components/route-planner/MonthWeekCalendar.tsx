@@ -916,27 +916,11 @@ const DayCellInner = ({
       aria-busy={busy || undefined}
     >
       {/* ─── Plads-markør under drag ─── */}
-      {/* Stiplet "slip her" placeholder i bunden af cellen viser præcis
-          hvor aftalen/ruten lander — gør drop-targettet håndgribeligt
-          uden at flytte eksisterende indhold. */}
-      {isOver && canReceiveDrop && !validation && emptyDay && (
-        <div
-          aria-hidden
-          className="absolute inset-x-1.5 bottom-1.5 z-10 pointer-events-none h-7 rounded-lg border-2 border-dashed border-accent/80 bg-accent/15 flex items-center justify-center gap-1 animate-in fade-in zoom-in-95 duration-200 shadow-[0_2px_8px_-2px_hsl(var(--accent)/0.4)]"
-        >
-          <ArrowDown className="h-3 w-3 text-accent animate-bounce" />
-          <span className="text-[10px] font-bold text-accent uppercase tracking-wider">Slip her</span>
-        </div>
-      )}
-      {/* Trin 3 — snap-linjer: tynd accent-linje i top + bund af cellen
-          når der hovres på en dag der allerede har ruter, så det er klart
-          hvor aftalen lander uden at flytte indholdet. */}
-      {isOver && canReceiveDrop && !validation && !emptyDay && (
-        <>
-          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-accent z-10" />
-          <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-accent z-10" />
-        </>
-      )}
+      {/* Selve cellen får allerede en accent-ring (linje ~912) når den er
+          gyldig drop-target, og tomme dage får en stor "Slip her"-overlay
+          længere nede (linje ~1111). Tidligere stod der her også en lille
+          stiplet pille i bunden + top/bund snap-linjer — det blev til 4-5
+          samtidige indikatorer på samme celle, så de er fjernet for ro. */}
       {/* ─── Drop-target floating label ─── */}
       {/* Vises kun mens brugeren hovrer over en gyldig drop-dag. Fortæller
           eksplicit hvad der sker ved slip + præcis dato — så brugeren
