@@ -705,14 +705,14 @@ export const MonthWeekCalendar = ({
               className={cn(
                 "p-2 text-[10px] font-semibold tracking-[0.18em] uppercase text-center border-r border-border/70 last:border-r-0 relative",
                 isWeekend ? "text-muted-foreground/45" : "text-muted-foreground/75",
-                isTodayCol && "text-foreground bg-foreground/[0.04]",
+                isTodayCol && "text-foreground bg-foreground/[0.08]",
               )}
             >
               {wd}
               {isTodayCol && (
                 <span
                   aria-hidden
-                  className="absolute left-1/2 -translate-x-1/2 bottom-0 h-[2px] w-6 rounded-full bg-foreground"
+                  className="absolute left-1/2 -translate-x-1/2 bottom-0 h-[2px] w-8 rounded-full bg-foreground"
                 />
               )}
             </div>
@@ -956,7 +956,7 @@ const DayCellInner = ({
             className={cn(
               "inline-flex items-center justify-center rounded-md text-[12.5px] font-bold tabular-nums transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
               today
-                ? "h-7 w-7 bg-foreground text-background shadow-sm ring-1 ring-foreground/10"
+                ? "h-7 w-7 text-foreground ring-2 ring-foreground/80 hover:bg-foreground hover:text-background"
                 : "h-6 w-6 text-foreground/90 hover:bg-secondary group-hover:bg-secondary/70 group-hover:text-foreground",
               !inMonth && !today && "text-muted-foreground/40",
               isPast && !today && "text-muted-foreground/55",
