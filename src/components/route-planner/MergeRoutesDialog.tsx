@@ -18,6 +18,7 @@ import { Combine, Repeat, ArrowRight, Loader2, AlertTriangle, Clock } from "luci
 import { cn } from "@/lib/utils";
 import { getSubcategoryIcon } from "@/lib/category-icons";
 import { SheetHeaderBlock } from "./SheetSection";
+import { ScopeOption } from "./ScopeOption";
 
 export type MergeScope = "single" | "future";
 

@@ -19,6 +19,7 @@ import { CalendarRange, Repeat, ArrowRight, Loader2, AlertTriangle } from "lucid
 import { cn } from "@/lib/utils";
 import { mapPostgresError } from "@/lib/route-errors";
 import { SheetHeaderBlock } from "./SheetSection";
+import { ScopeOption } from "./ScopeOption";
 
 export type MoveRouteScope = "single" | "future";
 
