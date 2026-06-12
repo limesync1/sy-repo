@@ -1396,7 +1396,7 @@ const RoutePillInner = ({
                 ? "Historisk projektion — datoen er passeret. Klik åbner originalruten."
                 : isPast
             ? "Tidligere rute — kan ikke flyttes"
-            : undefined
+            : "Klik åbner ruten · træk for at flytte · ⌘/Shift-klik for at vælge flere"
       }
       aria-busy={busy || undefined}
     >
