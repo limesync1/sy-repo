@@ -1208,7 +1208,13 @@ export const RouteEditSheet = ({
 
       <MoveRouteDateDialog
         open={!!pendingDate}
-        onOpenChange={(o) => { if (!o) setPendingDate(null); }}
+        onOpenChange={(o) => {
+          if (!o) {
+            setPendingDate(null);
+            nestedOverlayOpenRef.current = false;
+            clearStaleRadixPointerLock();
+          }
+        }}
         routeName={route.name || "Rute"}
         fromDate={route.route_date}
         toDate={pendingDate || ""}
@@ -1239,7 +1245,13 @@ export const RouteEditSheet = ({
       {/* Bekræftelse: flyt EN projiceret forekomst til ny dato. */}
       <MoveProjectedOccurrenceDialog
         open={!!pendingProjectedDate}
-        onOpenChange={(o) => { if (!o && !moveProjected.isPending) setPendingProjectedDate(null); }}
+        onOpenChange={(o) => {
+          if (!o && !moveProjected.isPending) {
+            setPendingProjectedDate(null);
+            nestedOverlayOpenRef.current = false;
+            clearStaleRadixPointerLock();
+          }
+        }}
         routeName={route.name || "Rute"}
         fromDate={projectedDate || ""}
         toDate={pendingProjectedDate || ""}
