@@ -698,6 +698,12 @@ export const RouteEditSheet = ({
       toast.success(
         scope === "future" ? "Ruteserien flyttet" : "Rute flyttet til ny dato",
       );
+    } catch (e: any) {
+      // Dialogen er allerede lukket, så vi kan ikke vise inline-fejl —
+      // toast i stedet.
+      toast.error(e?.message || "Kunne ikke flytte rute", {
+        description: e?.hint || e?.details || undefined,
+      });
     } finally {
       // Safety-net: hvis Radix har efterladt body locked pga. samtidig
       // unmount af både dialog og sheet, så frigør pointer-events her.
