@@ -349,6 +349,25 @@ const DayRowInner = ({
           </button>
         )}
       </div>
+      {capacity && capacity.minutes_capacity > 0 && !isPast && (
+        <div
+          className="absolute bottom-0 left-0 right-0 h-[3px] bg-border/40 overflow-hidden"
+          title={`Belastning: ${Math.round(capacity.load_pct)}% — ${Math.round(capacity.minutes_booked / 60 * 10) / 10} af ${Math.round(capacity.minutes_capacity / 60)} timer booket`}
+          aria-label={`Dagens belastning: ${Math.round(capacity.load_pct)} procent`}
+        >
+          <div
+            className={cn(
+              "h-full transition-[width] duration-300",
+              capacity.load_pct >= 110 && capacity.minutes_booked >= 720
+                ? "bg-destructive"
+                : capacity.load_pct >= 90
+                ? "bg-amber-500/80"
+                : "bg-foreground/25",
+            )}
+            style={{ width: `${Math.min(100, capacity.load_pct)}%` }}
+          />
+        </div>
+      )}
     </li>
   );
 };
