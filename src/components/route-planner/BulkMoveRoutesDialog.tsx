@@ -7,7 +7,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AlertTriangle, ArrowRight, CalendarDays, Loader2, Minus, Plus } from "lucide-react";
+import { AlertTriangle, ArrowRight, CalendarDays, Loader2, MapPin, Minus, Plus, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -27,6 +27,10 @@ export type BulkMoveRouteItem = {
   name: string;
   currentDate: string; // yyyy-MM-dd
   color?: string | null;
+  /** Antal stop på ruten — vises som lille badge i previewet. */
+  stopCount?: number | null;
+  /** Navn på primær medarbejder — vises som lille badge. */
+  employeeName?: string | null;
 };
 
 export type BulkMoveConflictCheck = (newDateByRoute: Map<string, string>) =>
@@ -168,11 +172,26 @@ export const BulkMoveRoutesDialog = ({
                   )}
                 >
                   <span
-                    className="h-3 w-3 shrink-0 rounded-sm"
+                    className="h-8 w-1 shrink-0 rounded-full"
                     style={{ background: r.color || "var(--muted-foreground)" }}
+                    aria-hidden
                   />
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-xs font-medium text-foreground">{r.name}</div>
+                    <div className="flex min-w-0 items-center gap-1.5">
+                      <span className="truncate text-xs font-semibold text-foreground">{r.name}</span>
+                      {typeof r.stopCount === "number" && r.stopCount > 0 && (
+                        <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-secondary px-1.5 py-0 text-[10px] font-medium text-foreground/80 tabular-nums">
+                          <MapPin className="h-2.5 w-2.5" />
+                          {r.stopCount}
+                        </span>
+                      )}
+                      {r.employeeName && (
+                        <span className="inline-flex min-w-0 shrink items-center gap-0.5 rounded-full bg-secondary px-1.5 py-0 text-[10px] font-medium text-foreground/80">
+                          <User className="h-2.5 w-2.5 shrink-0" />
+                          <span className="truncate max-w-[7rem]">{r.employeeName}</span>
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground tabular-nums">
                       <span>{format(parseISO(r.currentDate), "EEE d. MMM", { locale: da })}</span>
                       <ArrowRight className="h-3 w-3" />

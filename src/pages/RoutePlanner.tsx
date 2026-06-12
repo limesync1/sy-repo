@@ -48,7 +48,8 @@ import {
   ShoppingBag, Route as RouteIcon, Tag, Palette, ListChecks, AlertTriangle, Undo2, Redo2, Sparkles, MapPin, Clock,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarPicker } from "@/components/ui/calendar";
+import { RouteAwareCalendar } from "@/components/route-planner/RouteAwareCalendar";
+import { RouteCalendarHintsProvider } from "@/components/route-planner/route-calendar-hints-context";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
@@ -1484,6 +1485,34 @@ const Planner = () => {
     [calendarRoutes, virtualCalendarRoutes, filtersActive],
   );
 
+  // Sæt af datoer der har mindst én rute (inkl. projicerede). Bruges af alle
+  // dato-popovers så brugeren kan se hvor der allerede ligger ruter.
+  const routeDatesSet = useMemo(() => {
+    const s = new Set<string>();
+    for (const r of calendarRoutesAll) {
+      const d = String((r as any).route_date || "").slice(0, 10);
+      if (d) s.add(d);
+    }
+    return s;
+  }, [calendarRoutesAll]);
+
+  // Travle / overbookede datoer baseret på daily capacity. Tærsklerne matcher
+  // kapacitetsbjælken i måneds- og agenda-kalenderen.
+  const busyDatesSet = useMemo(() => {
+    const s = new Set<string>();
+    for (const [d, c] of capacityByDate.entries()) {
+      if (c.load_pct >= 90 && c.load_pct < 110) s.add(d);
+    }
+    return s;
+  }, [capacityByDate]);
+  const overloadedDatesSet = useMemo(() => {
+    const s = new Set<string>();
+    for (const [d, c] of capacityByDate.entries()) {
+      if (c.load_pct >= 110 && c.minutes_booked >= 720) s.add(d);
+    }
+    return s;
+  }, [capacityByDate]);
+
   const activeEditingRoute = useMemo(() => {
     if (!editingRoute) return null;
     // Slå op i begge cacher: calendar-vinduet OG recurring-base-routes,
@@ -2687,6 +2716,7 @@ const Planner = () => {
 
   return (
     <div className={cn(plannerTheme === "dark" && "dark")} data-density={density}>
+    <RouteCalendarHintsProvider value={{ routeDates: routeDatesSet, busyDates: busyDatesSet, overloadedDates: overloadedDatesSet }}>
     <span id="unassigned-drag-instructions" className="sr-only">
       Tryk Mellemrum eller Enter for at tage aftalekortet op. Brug piletasterne til at flytte det. Tryk Mellemrum igen for at slippe, eller Escape for at annullere.
     </span>
@@ -2908,14 +2938,15 @@ const Planner = () => {
                   </button>
                 </PopoverTrigger>
                 <PopoverContent align="center" className="w-auto p-0">
-                  <CalendarPicker
+                  <RouteAwareCalendar
                     mode="single"
                     selected={parseISO(date)}
                     onSelect={(d) => { if (d) setDate(format(d, "yyyy-MM-dd")); }}
-                    weekStartsOn={1}
-                    locale={da}
+                    showOutsideDays
                     initialFocus
-                    className="p-3 pointer-events-auto"
+                    routeDates={routeDatesSet}
+                    busyDates={busyDatesSet}
+                    overloadedDates={overloadedDatesSet}
                   />
                 </PopoverContent>
               </Popover>
@@ -3075,7 +3106,13 @@ const Planner = () => {
                           />
                         </Field>
                         <Field label="Dato" required>
-                          <DatePickerField value={newRouteDate} onChange={setNewRouteDate} />
+                          <DatePickerField
+                            value={newRouteDate}
+                            onChange={setNewRouteDate}
+                            routeDates={routeDatesSet}
+                            busyDates={busyDatesSet}
+                            overloadedDates={overloadedDatesSet}
+                          />
                         </Field>
                       </div>
                     </Section>
@@ -3908,12 +3945,15 @@ const Planner = () => {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent align="start" className="w-auto p-0">
-                        <CalendarPicker
+                        <RouteAwareCalendar
                           mode="single"
                           selected={parseISO(date)}
                           onSelect={(d) => d && setDate(format(d, "yyyy-MM-dd"))}
-                          weekStartsOn={1}
+                          showOutsideDays
                           initialFocus
+                          routeDates={routeDatesSet}
+                          busyDates={busyDatesSet}
+                          overloadedDates={overloadedDatesSet}
                         />
                       </PopoverContent>
                     </Popover>
@@ -4915,6 +4955,8 @@ const Planner = () => {
                 name: r.name || "Rute",
                 currentDate: r.route_date,
                 color: r.color,
+                stopCount: (r as any).stops?.length ?? 0,
+                employeeName: (r as any).employees?.[0]?.name ?? null,
               });
             }
             return items;
@@ -5284,6 +5326,7 @@ const Planner = () => {
         </Suspense>
       )}
     </DndContext>
+    </RouteCalendarHintsProvider>
     </div>
   );
 };

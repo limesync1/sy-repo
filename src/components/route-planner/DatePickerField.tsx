@@ -7,8 +7,9 @@ import { da } from "date-fns/locale";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import { RouteAwareCalendar } from "./RouteAwareCalendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useRouteCalendarHints } from "./route-calendar-hints-context";
 
 type Props = {
   /** ISO yyyy-MM-dd */
@@ -17,13 +18,28 @@ type Props = {
   className?: string;
   /** Mindste tilladte dato (ISO yyyy-MM-dd). Default: ingen. */
   minDate?: string;
+  /** Datoer der allerede har ruter — vises som accent-prik i kalenderen. */
+  routeDates?: Set<string> | null;
+  /** Datoer med høj load (>= 90 %) — vises som amber-prik. */
+  busyDates?: Set<string> | null;
+  /** Datoer med overbelastning (>= 110 %) — vises som rød prik. */
+  overloadedDates?: Set<string> | null;
 };
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
 
-export const DatePickerField = ({ value, onChange, className, minDate }: Props) => {
+export const DatePickerField = ({
+  value, onChange, className, minDate, routeDates, busyDates, overloadedDates,
+}: Props) => {
   const [open, setOpen] = useState(false);
   const date = value ? parseISO(value) : undefined;
+
+  // Fald tilbage på context, så dialoger der ikke videresender hints stadig
+  // får dem på dato-vælgeren.
+  const ctxHints = useRouteCalendarHints();
+  const effectiveRouteDates = routeDates ?? ctxHints.routeDates ?? undefined;
+  const effectiveBusyDates = busyDates ?? ctxHints.busyDates ?? undefined;
+  const effectiveOverloadedDates = overloadedDates ?? ctxHints.overloadedDates ?? undefined;
 
   const today = new Date();
   const tomorrow = addDays(today, 1);
@@ -68,7 +84,7 @@ export const DatePickerField = ({ value, onChange, className, minDate }: Props) 
             Næste mandag
           </Button>
         </div>
-        <Calendar
+        <RouteAwareCalendar
           mode="single"
           selected={date}
           onSelect={(d) => {
@@ -77,12 +93,12 @@ export const DatePickerField = ({ value, onChange, className, minDate }: Props) 
               setOpen(false);
             }
           }}
-          weekStartsOn={1}
-          locale={da}
           showOutsideDays
-          disabled={minDate ? (d) => d < parseISO(minDate) : undefined}
+          minDateIso={minDate}
+          routeDates={effectiveRouteDates}
+          busyDates={effectiveBusyDates}
+          overloadedDates={effectiveOverloadedDates}
           initialFocus
-          className={cn("p-3 pointer-events-auto")}
         />
       </PopoverContent>
     </Popover>
