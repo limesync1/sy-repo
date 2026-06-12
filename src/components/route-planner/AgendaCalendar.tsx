@@ -411,7 +411,7 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
         "border-l-[3px] shadow-[0_1px_2px_hsl(var(--foreground)/0.04)] active:scale-[0.99]",
         isDragging && "opacity-40",
         isVirtual && "border-dashed",
-        isPast && "opacity-60 saturate-50",
+        isPast && "opacity-60 saturate-50 cursor-not-allowed",
         showAsCompleted && !isPast && "bg-emerald-500/[0.07] hover:bg-emerald-500/[0.12]",
         jobDragActive && isPast && "opacity-25 pointer-events-none",
         !isVirtual && isOver && !validation && "ring-2 ring-accent shadow-md",
@@ -461,6 +461,16 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
             >
               <Lock className="h-2 w-2" />
               Projiceret
+            </span>
+          )}
+          {!isVirtual && isPast && (
+            <span
+              className="inline-flex items-center gap-0.5 rounded-sm bg-muted px-1 py-px text-[9px] font-bold uppercase tracking-wide text-muted-foreground shrink-0"
+              title="Låst — tidligere rute kan ikke ændres"
+              aria-label="Låst — tidligere rute"
+            >
+              <Lock className="h-2 w-2" />
+              Låst
             </span>
           )}
           <span className="truncate">{route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}</span>
