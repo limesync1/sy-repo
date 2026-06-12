@@ -54,6 +54,8 @@ export const RouteAwareCalendar = ({
   return (
     <div className="flex flex-col">
       <Calendar
+        // Calendar's prop type is a discriminated union over `mode`; we forward
+        // it through `rest` so the consumer picks the right shape.
         locale={da}
         weekStartsOn={1}
         disabled={disabledFn}
@@ -71,7 +73,7 @@ export const RouteAwareCalendar = ({
           overloaded:
             "relative font-semibold after:content-[''] after:absolute after:bottom-[3px] after:left-1/2 after:-translate-x-1/2 after:h-1 after:w-1.5 after:rounded-full after:bg-destructive",
         }}
-        {...rest}
+        {...(rest as CalendarProps)}
       />
       {showLegend && (routeDates || busyDates || overloadedDates) && (
         <div className="flex items-center justify-center gap-3 border-t px-3 py-1.5 text-[10px] text-muted-foreground">
