@@ -979,7 +979,7 @@ const DayCellInner = ({
           {!weather && loadingWeather && (
             <Skeleton className={cn("rounded-md", compact ? "h-4 w-8" : "h-5 w-12")} />
           )}
-          {!weather && !loadingWeather && weatherError && inMonth && (
+          {!weather && !loadingWeather && weatherError && inMonth && !compact && (
             <span
               className={cn(
                 "inline-flex items-center justify-center rounded-md bg-muted/60 text-muted-foreground ring-1 ring-border/60",
@@ -991,6 +991,7 @@ const DayCellInner = ({
               <CloudOff className={compact ? "h-2.5 w-2.5" : "h-3 w-3"} />
             </span>
           )}
+          {!isPast && inMonth && (
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onCreateRoute(dateStr); }}
@@ -999,7 +1000,7 @@ const DayCellInner = ({
             // selve indholdet i kalenderen. Tydeligere på direkte hover.
             className={cn(
               "h-6 w-6 inline-flex items-center justify-center rounded-md border border-transparent transition-[background-color,color,border-color,transform] duration-150 active:scale-[0.92] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-1 hover:bg-secondary hover:text-foreground hover:border-border",
-              emptyDay && inMonth && !isPast
+              emptyDay
                 ? "opacity-0 text-muted-foreground/80 group-hover:opacity-100"
                 : "opacity-0 group-hover:opacity-90 text-muted-foreground",
             )}
@@ -1008,6 +1009,7 @@ const DayCellInner = ({
           >
             <Plus className="h-3.5 w-3.5" />
           </button>
+          )}
         </div>
       </div>
 
