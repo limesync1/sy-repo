@@ -90,7 +90,7 @@ export function DiagnosticsDialog({ open, onOpenChange, items, onAssignRoute }: 
           )}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="-mx-6 -mb-6 mt-2 border-t bg-card px-5 py-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Luk</Button>
         </DialogFooter>
       </DialogContent>
