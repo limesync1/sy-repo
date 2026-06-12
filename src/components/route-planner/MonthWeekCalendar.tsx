@@ -1117,19 +1117,21 @@ const DayCellInner = ({
           medarbejdere), helt tomme dage og fortid. */}
       {capacity && capacity.minutes_capacity > 0 && inMonth && !isPast && (
         <div
-          className="absolute bottom-0 left-0 right-0 h-[2px] bg-border/40 overflow-hidden group/cap"
+          className="absolute bottom-0 left-0 right-0 h-[3px] bg-border/40 overflow-hidden group/cap"
           title={`Belastning: ${Math.round(capacity.load_pct)}% — ${Math.round(capacity.minutes_booked / 60 * 10) / 10} af ${Math.round(capacity.minutes_capacity / 60)} timer booket`}
           aria-label={`Dagens belastning: ${Math.round(capacity.load_pct)} procent`}
         >
           <div
             className={cn(
               "h-full transition-[width] duration-300",
-              // Flad, monokrom indikator — kun farve ved reelle problemer.
-              // Normale dage får en neutral foreground-tone, så bunden af
-              // celler ikke domineres af grønne/gule bånd.
-              capacity.load_pct >= 130 && capacity.minutes_booked >= 780
+              // Flad indikator — kun tydelig farve ved reelle problemer.
+              // Tærsklerne sænket en smule så advarsler kommer i god tid:
+              //   ≥110% + reelt booket    → rød (overbooket)
+              //   ≥90%                     → gul (tæt på fuldt)
+              //   ellers                    → neutral foreground-tone
+              capacity.load_pct >= 110 && capacity.minutes_booked >= 720
                 ? "bg-destructive"
-                : capacity.load_pct >= 100
+                : capacity.load_pct >= 90
                 ? "bg-amber-500/80"
                 : "bg-foreground/25",
             )}
@@ -1458,7 +1460,9 @@ const RoutePillInner = ({
         {...(dragLocked ? {} : attributes)}
         className={cn(
           "relative z-[1] pl-3 pr-2 py-1.5 flex items-center justify-between gap-1.5",
-          dragLocked ? "cursor-pointer" : "cursor-grab active:cursor-grabbing",
+          isPast && !isVirtual ? "cursor-not-allowed"
+            : dragLocked ? "cursor-pointer"
+            : "cursor-grab active:cursor-grabbing",
         )}
       >
         <div className="min-w-0 flex-1">
@@ -1500,6 +1504,22 @@ const RoutePillInner = ({
                 </span>
               );
             })()}
+            {/* Tidligere (ikke-projicerede) ruter er låste for flyt/redigér.
+                Vis et lille Lås-badge så brugeren ser det INDEN drag-forsøg —
+                samme stil som projicerede badges for konsistens. */}
+            {isPast && !isVirtual && !projectedKind && (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-0.5 rounded-[3px] bg-foreground/[0.06] ring-1 ring-inset ring-foreground/10 text-[9px] font-bold uppercase tracking-[0.06em] text-muted-foreground shrink-0",
+                  compact ? "px-1 py-px" : "px-1.5 py-px",
+                )}
+                title="Tidligere rute — kan ikke flyttes. Klik åbner detaljer."
+                aria-label="Låst — tidligere rute"
+              >
+                <Lock className="h-2 w-2 opacity-80" />
+                {!compact && "Låst"}
+              </span>
+            )}
             {isBaseRecurring && (
               <span
                 className={cn(
