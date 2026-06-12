@@ -1948,6 +1948,8 @@ const Planner = () => {
     focusSearchRef,
     runAutoAssignRef,
     optimizeRouteRef,
+    selectedRouteIds,
+    clearRouteSelection,
   });
 
   /* Når create-dialog åbnes, foreslå en ledig farve for den valgte dato */
