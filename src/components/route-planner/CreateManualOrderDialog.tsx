@@ -642,9 +642,19 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
         {/* Footer — matcher SheetFooterBar i StopDetailSheet/RouteEditSheet */}
         <SheetFooterBar>
           <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-            <div className="flex items-baseline justify-between gap-2 sm:justify-start">
-              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">I alt</span>
-              <span className="text-xl font-bold tabular-nums">{fmt(totalAmount)}</span>
+            <div className="flex min-w-0 flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-3">
+              <div className="flex items-baseline gap-2">
+                <span className="text-[11px] text-muted-foreground uppercase tracking-wide">I alt</span>
+                <span className="text-xl font-bold tabular-nums">{fmt(totalAmount)}</span>
+              </div>
+              {items.length > 0 && (
+                <span className="text-[11px] text-muted-foreground">
+                  {items.length} service{items.length === 1 ? "" : "r"}
+                  {recurringCount > 0 && (
+                    <> · <span className="font-medium text-foreground">{recurringCount}</span> tilbagevendende</>
+                  )}
+                </span>
+              )}
             </div>
             <div className="flex gap-2">
               <Button variant="outline" className="flex-1 sm:flex-none" onClick={() => onOpenChange(false)} disabled={submitting}>
