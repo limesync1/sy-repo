@@ -19,6 +19,7 @@ import { CalendarRange, Repeat, ArrowRight, Loader2, AlertTriangle } from "lucid
 import { cn } from "@/lib/utils";
 import { mapPostgresError } from "@/lib/route-errors";
 import { SheetHeaderBlock } from "./SheetSection";
+import { ScopeOption } from "./ScopeOption";
 
 export type MoveRouteScope = "single" | "future";
 
@@ -206,39 +207,3 @@ export const MoveRouteDateDialog = ({
     </AlertDialog>
   );
 };
-
-const ScopeOption = ({
-  selected, onClick, disabled, title, description, icon, extra,
-}: {
-  selected: boolean;
-  onClick: () => void;
-  disabled?: boolean;
-  title: string;
-  description: string;
-  icon?: React.ReactNode;
-  extra?: React.ReactNode;
-}) => (
-  <button
-    type="button"
-    onClick={onClick}
-    disabled={disabled}
-    className={cn(
-      "w-full min-w-0 text-left rounded-md border p-2.5 transition-colors",
-      selected ? "border-accent bg-accent/5 ring-1 ring-accent" : "border-border hover:bg-secondary/40",
-      disabled && "opacity-50 cursor-not-allowed hover:bg-transparent",
-    )}
-  >
-    <div className="mb-0.5 flex min-w-0 items-start gap-1.5">
-      <span
-        className={cn(
-          "inline-flex h-3.5 w-3.5 rounded-full border-2 shrink-0",
-          selected ? "border-accent bg-accent" : "border-border bg-background",
-        )}
-      />
-      {icon && <span className="text-muted-foreground">{icon}</span>}
-      <span className="min-w-0 text-sm font-semibold [overflow-wrap:anywhere]">{title}</span>
-    </div>
-    <p className="min-w-0 pl-5 text-[11px] leading-snug text-muted-foreground [overflow-wrap:anywhere]">{description}</p>
-    {extra && <div className="pl-5">{extra}</div>}
-  </button>
-);
