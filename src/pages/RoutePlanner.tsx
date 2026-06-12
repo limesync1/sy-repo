@@ -3104,7 +3104,13 @@ const Planner = () => {
                           />
                         </Field>
                         <Field label="Dato" required>
-                          <DatePickerField value={newRouteDate} onChange={setNewRouteDate} />
+                          <DatePickerField
+                            value={newRouteDate}
+                            onChange={setNewRouteDate}
+                            routeDates={routeDatesSet}
+                            busyDates={busyDatesSet}
+                            overloadedDates={overloadedDatesSet}
+                          />
                         </Field>
                       </div>
                     </Section>
