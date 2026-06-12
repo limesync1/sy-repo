@@ -29,6 +29,9 @@ export function useRoutePlannerKeyboard(opts: {
   focusSearchRef: MutableRefObject<() => void>;
   runAutoAssignRef: MutableRefObject<() => void | Promise<void>>;
   optimizeRouteRef: MutableRefObject<(id: string) => void>;
+  /** Valgte ruter i kalenderen (bulk-flyt-tilstand). Esc rydder dem. */
+  selectedRouteIds?: Set<string>;
+  clearRouteSelection?: () => void;
 }) {
   const {
     history,
@@ -49,6 +52,8 @@ export function useRoutePlannerKeyboard(opts: {
     focusSearchRef,
     runAutoAssignRef,
     optimizeRouteRef,
+    selectedRouteIds,
+    clearRouteSelection,
   } = opts;
 
   useEffect(() => {
