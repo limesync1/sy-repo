@@ -10,6 +10,7 @@ import { formatDurationMin } from "@/lib/duration-format";
 import EmptyState from "./EmptyState";
 import { cn } from "@/lib/utils";
 import { CARD_BASE, CARD_BORDER, CARD_HOVER, CARD_RAIL_WIDTH } from "./lib/card-styles";
+import { getSubcategoryIcon } from "@/lib/category-icons";
 
 export type DayStop = {
   id: string;
@@ -19,6 +20,7 @@ export type DayStop = {
   address?: string | null;
   startTime?: string | null; // "HH:mm"
   durationMin?: number | null;
+  serviceSummary?: string | null;
 };
 
 type Props = {
@@ -127,13 +129,28 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
                         style={{ background: s.routeColor ?? "hsl(var(--primary))" }}
                       />
                       <div className="flex items-center justify-between gap-2">
-                        <p className="text-sm font-bold truncate tracking-tight">{s.customerName}</p>
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          {s.serviceSummary && (
+                            <span
+                              className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-secondary border border-border/70 text-[11px] leading-none"
+                              aria-hidden
+                            >
+                              {getSubcategoryIcon(s.serviceSummary)}
+                            </span>
+                          )}
+                          <p className="text-sm font-bold truncate tracking-tight">{s.customerName}</p>
+                        </div>
                         {s.startTime && (
-                          <span className="text-[11px] font-semibold tabular-nums text-foreground/80 bg-secondary px-1.5 py-0.5 rounded-md border border-border/70">
+                          <span className="text-[11px] font-semibold tabular-nums text-foreground/80 bg-secondary px-1.5 py-0.5 rounded-md border border-border/70 shrink-0">
                             {s.startTime}
                           </span>
                         )}
                       </div>
+                      {s.serviceSummary && (
+                        <p className="mt-0.5 text-[11px] text-muted-foreground truncate pl-[26px]">
+                          {s.serviceSummary}
+                        </p>
+                      )}
                       {s.address && (
                         <p className="mt-1 text-[11px] text-muted-foreground flex items-center gap-1 truncate">
                           <MapPin className="h-3 w-3 shrink-0" /> {s.address}
