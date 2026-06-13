@@ -1915,6 +1915,7 @@ const RoutePill = memo(RoutePillInner, (prev, next) => {
     prev.selected === next.selected &&
     prev.anySelected === next.anySelected &&
     prev.onToggleSelect === next.onToggleSelect &&
-    prev.hasSkillMismatch === next.hasSkillMismatch
+    prev.hasSkillMismatch === next.hasSkillMismatch &&
+    prev.hasAssigneeConflict === next.hasAssigneeConflict
   );
 });
