@@ -1232,11 +1232,14 @@ type RoutePillProps = {
   /** True hvis ruten har mindst én service hvor ingen tildelt medarbejder
    *  har den krævede færdighed. Vises som lille ⚠ ved siden af titlen. */
   hasSkillMismatch?: boolean;
+  /** True hvis en tildelt medarbejder på ruten har et tids-overlap med
+   *  en anden rute samme dag. Vises som rødt "Konflikt"-badge. */
+  hasAssigneeConflict?: boolean;
 };
 
 const RoutePillInner = ({
   route, onSelect, onSelectStop, onOptimize, onDelete, onShowHistory, optimizing, compact, jobDragActive, routeDragSourceId,
-  busy, isPast, selected, anySelected, onToggleSelect, hasSkillMismatch,
+  busy, isPast, selected, anySelected, onToggleSelect, hasSkillMismatch, hasAssigneeConflict,
 }: RoutePillProps) => {
   const isVirtual = !!route.isVirtual;
   // En "basis"-rute er en rigtig rute der fungerer som skabelon for en
