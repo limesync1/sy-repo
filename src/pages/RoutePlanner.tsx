@@ -2086,8 +2086,16 @@ const Planner = () => {
   // hook-rækkefølgen sig mellem renders og React kaster
   // "Rendered more hooks than during the previous render."
   const handleCalendarSelectStop = useCallback((s: any) => {
+    // ⌘/Ctrl-klik (eller Shift-klik) toggler stoppet ind/ud af bulk-valget
+    // i stedet for at åbne detalje-sheet. Almindelig klik nulstiller bulk-
+    // valget og åbner detalje-sheet for det enkelte stop.
+    if (modKeyRef.current.meta || modKeyRef.current.shift) {
+      if (s?.id) toggleStopSelection(s.id);
+      return;
+    }
+    clearStopSelection();
     setSelectedStopId(s.id);
-  }, []);
+  }, [toggleStopSelection, clearStopSelection]);
   const handleCalendarCreateRoute = useCallback((d: string) => {
     setNewRouteDate(d);
     setCreateOpen(true);
