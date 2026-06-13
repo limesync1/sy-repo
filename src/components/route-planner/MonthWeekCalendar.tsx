@@ -11,7 +11,7 @@ import { useDroppable, useDraggable } from "@dnd-kit/core";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Plus, Users, MapPin, ArrowDown, Repeat, Clock, Wallet, Lock, GitMerge, History, MoreHorizontal, Eye, Trash2 } from "lucide-react";
+import { Loader2, Sparkles, Plus, Users, MapPin, ArrowDown, Repeat, Clock, Wallet, Lock, GitMerge, History, MoreHorizontal, Eye, Trash2, ArrowRightLeft } from "lucide-react";
 import { CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { CloudOff } from "lucide-react";
 import {
@@ -59,6 +59,13 @@ export type CalendarRoute = Route & {
    *  Den vises dæmpet med lås-ikon, kan ikke trækkes/optimeres, og klik åbner
    *  basisruten på dens næste rigtige dato. */
   isVirtual?: boolean;
+  /** Når true er ruten en *erstatnings-rute* — den er oprettet (eller flyttet hertil)
+   *  som følge af at en anden forekomst blev flyttet via en `moved`-exception.
+   *  Vises med et lille badge så planlæggeren kan se hvilke ruter der er
+   *  resultat af en flytning vs. naturligt planlagte. */
+  isReplacement?: boolean;
+  /** Original-dato som denne erstatningsrute "kom fra" (yyyy-MM-dd). */
+  replacedFromDate?: string;
 };
 
 type Props = {
@@ -338,6 +345,16 @@ const DayOverviewSheet = ({
                         {isCompleted && (
                           <span className="inline-flex items-center gap-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 ring-1 ring-inset ring-emerald-500/30 px-1 py-px text-[9px] font-bold uppercase tracking-wider">
                             <CheckCircle2 className="h-2 w-2" /> Udført
+                          </span>
+                        )}
+                        {!isVirtual && r.isReplacement && (
+                          <span
+                            className="inline-flex items-center gap-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300 ring-1 ring-inset ring-amber-500/30 px-1 py-px text-[9px] font-bold uppercase tracking-wider"
+                            title={r.replacedFromDate
+                              ? `Flyttet hertil fra ${format(parseISO(r.replacedFromDate), "EEEE d. MMM", { locale: da })}`
+                              : "Flyttet hertil fra en anden dato"}
+                          >
+                            <ArrowRightLeft className="h-2 w-2" /> Flyttet
                           </span>
                         )}
                         <span className={cn("text-sm font-semibold truncate", isVirtual && "italic text-muted-foreground")}>
@@ -1570,6 +1587,21 @@ const RoutePillInner = ({
               >
                 <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
                 {!compact && "I gang"}
+              </span>
+            )}
+            {!isVirtual && route.isReplacement && (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-0.5 rounded-[3px] bg-amber-500/15 text-amber-700 dark:text-amber-300 ring-1 ring-inset ring-amber-500/30 text-[9px] font-bold uppercase tracking-[0.06em] shrink-0",
+                  compact ? "px-1 py-px" : "px-1.5 py-px",
+                )}
+                title={route.replacedFromDate
+                  ? `Erstatningsrute — flyttet hertil fra ${format(parseISO(route.replacedFromDate), "EEEE d. MMM", { locale: da })}`
+                  : "Erstatningsrute — flyttet hertil fra en anden dato"}
+                aria-label="Erstatningsrute — flyttet hertil"
+              >
+                <ArrowRightLeft className="h-2 w-2" />
+                {!compact && "Flyttet"}
               </span>
             )}
             <span className={cn("truncate", isVirtual && "italic text-muted-foreground")}>
