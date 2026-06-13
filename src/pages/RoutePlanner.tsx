@@ -4060,6 +4060,7 @@ const Planner = () => {
                   capacityByDate={capacityByDate}
                   mismatchedRouteIds={mismatchedRouteIds}
                   conflictedRouteIds={conflictedRouteIds}
+                  selectedStopIds={selectedStopIds}
                 />
                 </div>
                 </div>
