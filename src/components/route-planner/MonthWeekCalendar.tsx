@@ -1579,6 +1579,21 @@ const RoutePillInner = ({
                 {!compact && "I gang"}
               </span>
             )}
+            {!isVirtual && route.isReplacement && (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-0.5 rounded-[3px] bg-amber-500/15 text-amber-700 dark:text-amber-300 ring-1 ring-inset ring-amber-500/30 text-[9px] font-bold uppercase tracking-[0.06em] shrink-0",
+                  compact ? "px-1 py-px" : "px-1.5 py-px",
+                )}
+                title={route.replacedFromDate
+                  ? `Erstatningsrute — flyttet hertil fra ${format(parseISO(route.replacedFromDate), "EEEE d. MMM", { locale: da })}`
+                  : "Erstatningsrute — flyttet hertil fra en anden dato"}
+                aria-label="Erstatningsrute — flyttet hertil"
+              >
+                <ArrowRightLeft className="h-2 w-2" />
+                {!compact && "Flyttet"}
+              </span>
+            )}
             <span className={cn("truncate", isVirtual && "italic text-muted-foreground")}>
               {route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}
             </span>
