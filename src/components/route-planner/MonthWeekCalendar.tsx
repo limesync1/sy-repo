@@ -123,6 +123,8 @@ type Props = {
    *  anden rute samme dag. Vises som rødt "Konflikt"-badge på pillen
    *  så planlæggeren ser problemet uden at åbne ruten. */
   conflictedRouteIds?: Set<string>;
+  /** Multi-select bulk-slet: valgte stop-ids. Viser visuel markering på stop. */
+  selectedStopIds?: Set<string>;
 };
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
@@ -166,6 +168,7 @@ const tintBgFrom = (color?: string | null) => {
  *  drag-source) for at undgå at trække ruter ud af sheet'en ved et uheld. */
 const DayOverviewSheet = ({
   date, routes, capacity, weather, onClose, onSelectRoute, onSelectStop, onCreateRoute,
+  selectedStopIds,
 }: {
   date: string;
   routes: CalendarRoute[];
@@ -175,6 +178,7 @@ const DayOverviewSheet = ({
   onSelectRoute: (route: Route) => void;
   onSelectStop: (stop: RouteStop) => void;
   onCreateRoute: (date: string) => void;
+  selectedStopIds?: Set<string>;
 }) => {
   const day = parseISO(date);
   const todayIso = format(new Date(), "yyyy-MM-dd");
@@ -394,7 +398,12 @@ const DayOverviewSheet = ({
                               tabIndex={0}
                               onClick={(e) => { e.stopPropagation(); onSelectStop(s); }}
                               onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); onSelectStop(s); } }}
-                              className="flex items-center gap-2 text-[11px] text-muted-foreground hover:text-foreground rounded px-1 -mx-1 py-0.5 hover:bg-secondary/60 cursor-pointer"
+                              className={cn(
+                                "flex items-center gap-2 text-[11px] rounded px-1 -mx-1 py-0.5 cursor-pointer",
+                                selectedStopIds?.has(s.id)
+                                  ? "text-foreground bg-accent/[0.06] ring-1 ring-accent/40"
+                                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/60",
+                              )}
                             >
                               <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-secondary text-[9px] font-bold text-foreground shrink-0">
                                 {i + 1}
@@ -444,6 +453,7 @@ export const MonthWeekCalendar = ({
   onCreateRoute, onOptimizeRoute, onDeleteRoute, onShowHistory, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
   loadingRoutes, loadingWeather, weatherError, busyTargets, dateAlerts,
   selectedRouteIds, onToggleRouteSelection, capacityByDate, mismatchedRouteIds, conflictedRouteIds,
+  selectedStopIds,
 }: Props) => {
   const anchor = parseISO(anchorDate);
 
@@ -792,6 +802,7 @@ export const MonthWeekCalendar = ({
                     capacity={capacityByDate?.get(dateStr) ?? null}
                     mismatchedRouteIds={mismatchedRouteIds}
                     conflictedRouteIds={conflictedRouteIds}
+                    selectedStopIds={selectedStopIds}
                   />
                 );
               })}
@@ -855,6 +866,8 @@ type DayCellProps = {
   mismatchedRouteIds?: Set<string>;
   /** Sæt af rute-ids med medarbejder-tids-konflikt — videresendes til RoutePill. */
   conflictedRouteIds?: Set<string>;
+  /** Multi-select bulk-slet: valgte stop-ids. Viser visuel markering. */
+  selectedStopIds?: Set<string>;
 };
 
 const DayCellInner = ({
@@ -862,6 +875,7 @@ const DayCellInner = ({
   onSelectRoute, onSelectStop, onCreateRoute, onOpenDayOverview, onOptimizeRoute, onDeleteRoute, onShowHistory, optimizingRouteId, compact, draggingType, draggingRouteId, weather,
   loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds, alert,
   selectedRouteIds, onToggleRouteSelection, capacity, mismatchedRouteIds, conflictedRouteIds,
+  selectedStopIds,
 }: DayCellProps) => {
   // Lokal toggle for "vis alle ruter" i en travl dag — i stedet for at
   // åbne hele dagens overblik bare for at se 1-2 ekstra piller.
