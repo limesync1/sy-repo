@@ -45,6 +45,35 @@ export function useRouteSelection(opts: {
   const [bulkBusy, setBulkBusy] = useState(false);
   const lastSelectedJobIdRef = useRef<string | null>(null);
 
+  // Stop-multi-select — bruges når brugeren ⌘/Ctrl-klikker individuelle stop
+  // for at bulk-slette dem. Single-click på et stop bruger fortsat
+  // `selectedStopId` (separat state i RoutePlanner) til at åbne detalje-sheet.
+  // Ryddes også når kalender-vinduet skifter, så vi ikke ender med id'er der
+  // ikke længere er synlige.
+  const [selectedStopIds, setSelectedStopIds] = useState<Set<string>>(new Set());
+  const [bulkStopBusy, setBulkStopBusy] = useState(false);
+  const [bulkStopProgress, setBulkStopProgress] = useState<{ done: number; total: number } | null>(null);
+  const lastSelectedStopIdRef = useRef<string | null>(null);
+
+  const toggleStopSelection = useCallback((id: string) => {
+    setSelectedStopIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+    lastSelectedStopIdRef.current = id;
+  }, []);
+  const clearStopSelection = useCallback(() => {
+    setSelectedStopIds(new Set());
+    lastSelectedStopIdRef.current = null;
+  }, []);
+
+  useEffect(() => {
+    setSelectedStopIds(new Set());
+    lastSelectedStopIdRef.current = null;
+  }, [calendarRangeStart, calendarRangeEnd, view]);
+
   return {
     selectedRouteIds,
     setSelectedRouteIds,
@@ -59,5 +88,14 @@ export function useRouteSelection(opts: {
     bulkBusy,
     setBulkBusy,
     lastSelectedJobIdRef,
+    selectedStopIds,
+    setSelectedStopIds,
+    toggleStopSelection,
+    clearStopSelection,
+    bulkStopBusy,
+    setBulkStopBusy,
+    bulkStopProgress,
+    setBulkStopProgress,
+    lastSelectedStopIdRef,
   };
 }
