@@ -178,6 +178,7 @@ const DayOverviewSheet = ({
   onSelectRoute: (route: Route) => void;
   onSelectStop: (stop: RouteStop) => void;
   onCreateRoute: (date: string) => void;
+  selectedStopIds?: Set<string>;
 }) => {
   const day = parseISO(date);
   const todayIso = format(new Date(), "yyyy-MM-dd");
