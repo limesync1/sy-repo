@@ -2163,6 +2163,8 @@ const Planner = () => {
     optimizeRouteRef,
     selectedRouteIds,
     clearRouteSelection,
+    selectedStopIds,
+    clearStopSelection,
   });
 
   /* Når create-dialog åbnes, foreslå en ledig farve for den valgte dato */
