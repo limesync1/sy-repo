@@ -392,9 +392,10 @@ type AgendaRoutePillProps = {
   routeDragSourceId?: string | null;
   busy?: boolean;
   isPast?: boolean;
+  hasAssigneeConflict?: boolean;
 };
 
-const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHistory, optimizing, jobDragActive, routeDragSourceId, busy, isPast }: AgendaRoutePillProps) => {
+const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHistory, optimizing, jobDragActive, routeDragSourceId, busy, isPast, hasAssigneeConflict }: AgendaRoutePillProps) => {
   const isVirtual = !!route.isVirtual;
   const isMergeTarget = !!routeDragSourceId && routeDragSourceId !== route.id && !isVirtual && !isPast && !busy;
   const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({
