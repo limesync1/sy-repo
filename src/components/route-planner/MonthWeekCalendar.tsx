@@ -443,7 +443,7 @@ export const MonthWeekCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
   onCreateRoute, onOptimizeRoute, onDeleteRoute, onShowHistory, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
   loadingRoutes, loadingWeather, weatherError, busyTargets, dateAlerts,
-  selectedRouteIds, onToggleRouteSelection, capacityByDate, mismatchedRouteIds,
+  selectedRouteIds, onToggleRouteSelection, capacityByDate, mismatchedRouteIds, conflictedRouteIds,
 }: Props) => {
   const anchor = parseISO(anchorDate);
 
