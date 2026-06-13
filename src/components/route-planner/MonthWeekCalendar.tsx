@@ -791,6 +791,7 @@ export const MonthWeekCalendar = ({
                     onToggleRouteSelection={onToggleRouteSelection}
                     capacity={capacityByDate?.get(dateStr) ?? null}
                     mismatchedRouteIds={mismatchedRouteIds}
+                    conflictedRouteIds={conflictedRouteIds}
                   />
                 );
               })}
