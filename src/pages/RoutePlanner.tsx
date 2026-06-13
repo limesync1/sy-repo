@@ -130,6 +130,7 @@ import { pushRouteUndo, routeHistory } from "@/lib/route-history";
 import { toastSuccessWithUndo } from "@/lib/toast-undo";
 import { estimateOptimizationGain, markOptimizeDismissed } from "@/lib/optimize-savings-estimate";
 import { BulkMoveRoutesDialog, type BulkMoveRouteItem } from "@/components/route-planner/BulkMoveRoutesDialog";
+import { BulkAddToRouteDialog, type BulkAddJobItem, type BulkAddRouteOption } from "@/components/route-planner/BulkAddToRouteDialog";
 import RoutePlannerShortcutsHelp from "@/components/route-planner/RoutePlannerShortcutsHelp";
 import UnassignedFiltersPopover, { URGENCY_OPTIONS, type UrgencyKey } from "@/components/route-planner/UnassignedFiltersPopover";
 import UndoBar from "@/components/route-planner/UndoBar";
