@@ -5050,28 +5050,53 @@ const Planner = () => {
             const toastId = toast.loading(`Flytter ${plan.length} ${plan.length === 1 ? "rute" : "ruter"}…`);
             let succeeded = 0;
             const failed: { name: string; message: string }[] = [];
+            // Saml undo-data så hele bulk-flytningen kan rulles tilbage på én gang.
+            const moved: { routeId: string; oldDate: string }[] = [];
             for (let i = 0; i < plan.length; i++) {
               const { route, newDate } = plan[i];
               try {
-                await moveRouteSeries.mutateAsync({
+                const res = await moveRouteSeries.mutateAsync({
                   routeId: route.id,
                   newDate,
                   scope: "single",
                   moveLinkedSubscriptions: false,
                 });
                 succeeded++;
+                moved.push({
+                  routeId: String((res as any)?.new_route_id || route.id),
+                  oldDate: route.route_date,
+                });
               } catch (err: any) {
                 failed.push({ name: route.name || "Rute", message: err?.message || "ukendt fejl" });
               }
               setBulkMoveProgress({ done: i + 1, total: plan.length });
             }
             toast.dismiss(toastId);
+            if (moved.length > 0) {
+              pushRouteUndo({
+                label: `Bulk-flyt ${moved.length} ${moved.length === 1 ? "rute" : "ruter"} (${offsetDays > 0 ? "+" : ""}${offsetDays} ${Math.abs(offsetDays) === 1 ? "dag" : "dage"})`,
+                undo: async () => {
+                  for (const m of moved) {
+                    try {
+                      await moveRouteSeries.mutateAsync({
+                        routeId: m.routeId,
+                        newDate: m.oldDate,
+                        scope: "single",
+                        moveLinkedSubscriptions: false,
+                      });
+                    } catch { /* fortsæt med de øvrige */ }
+                  }
+                },
+              });
+            }
             if (failed.length === 0 && skipped.length === 0) {
-              toast.success(`${succeeded} ${succeeded === 1 ? "rute flyttet" : "ruter flyttet"}`, {
-                description: `Forskudt med ${offsetDays > 0 ? "+" : ""}${offsetDays} ${Math.abs(offsetDays) === 1 ? "dag" : "dage"}.`,
+              toastSuccessWithUndo({
+                message: `${succeeded} ${succeeded === 1 ? "rute flyttet" : "ruter flyttet"}`,
+                description: `Forskudt med ${offsetDays > 0 ? "+" : ""}${offsetDays} ${Math.abs(offsetDays) === 1 ? "dag" : "dage"}. Klik Fortryd for at rulle alle tilbage.`,
               });
             } else if (failed.length === 0) {
-              toast.success(`${succeeded} flyttet · ${skipped.length} sprunget over`, {
+              toastSuccessWithUndo({
+                message: `${succeeded} flyttet · ${skipped.length} sprunget over`,
                 description: skipped.map((s) => `${s.name} (${s.reason})`).slice(0, 3).join(", "),
               });
             } else {
