@@ -116,6 +116,7 @@ import DragEtaOverlay, { setDragEta, clearDragEta } from "@/components/route-pla
 import { SimulationPreviewOverlay } from "@/components/route-planner/SimulationPreviewOverlay";
 import { haversineMeters } from "@/lib/geo-distance";
 import { validateStopAssignment, validateRouteMove } from "@/lib/route-validation";
+import { detectConflicts } from "@/lib/route-conflicts";
 import { cn } from "@/lib/utils";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { Monitor, MousePointer2, Map as MapIcon, LayoutGrid, ArrowLeft, Copy, Check, Rows3, MoreHorizontal, Layers } from "lucide-react";
