@@ -119,6 +119,10 @@ type Props = {
   /** Sæt af rute-ids hvor mindst én tildelt medarbejder mangler den
    *  færdighed et stop kræver. Vises som lille ⚠-ikon på rute-pillen. */
   mismatchedRouteIds?: Set<string>;
+  /** Sæt af rute-ids hvor en medarbejder har et tids-overlap med en
+   *  anden rute samme dag. Vises som rødt "Konflikt"-badge på pillen
+   *  så planlæggeren ser problemet uden at åbne ruten. */
+  conflictedRouteIds?: Set<string>;
 };
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
