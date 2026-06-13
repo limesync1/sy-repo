@@ -123,6 +123,8 @@ type Props = {
    *  anden rute samme dag. Vises som rødt "Konflikt"-badge på pillen
    *  så planlæggeren ser problemet uden at åbne ruten. */
   conflictedRouteIds?: Set<string>;
+  /** Multi-select bulk-slet: valgte stop-ids. Viser visuel markering på stop. */
+  selectedStopIds?: Set<string>;
 };
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
