@@ -1198,7 +1198,8 @@ const DayCell = memo(DayCellInner, (prev, next) => {
     prev.onToggleRouteSelection === next.onToggleRouteSelection &&
     prev.capacity?.load_pct === next.capacity?.load_pct &&
     prev.capacity?.minutes_capacity === next.capacity?.minutes_capacity &&
-    prev.mismatchedRouteIds === next.mismatchedRouteIds
+    prev.mismatchedRouteIds === next.mismatchedRouteIds &&
+    prev.conflictedRouteIds === next.conflictedRouteIds
   );
 });
 
