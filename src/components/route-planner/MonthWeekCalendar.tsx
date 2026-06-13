@@ -396,7 +396,12 @@ const DayOverviewSheet = ({
                               tabIndex={0}
                               onClick={(e) => { e.stopPropagation(); onSelectStop(s); }}
                               onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); onSelectStop(s); } }}
-                              className="flex items-center gap-2 text-[11px] text-muted-foreground hover:text-foreground rounded px-1 -mx-1 py-0.5 hover:bg-secondary/60 cursor-pointer"
+                              className={cn(
+                                "flex items-center gap-2 text-[11px] rounded px-1 -mx-1 py-0.5 cursor-pointer",
+                                selectedStopIds?.has(s.id)
+                                  ? "text-foreground bg-accent/[0.06] ring-1 ring-accent/40"
+                                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/60",
+                              )}
                             >
                               <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-secondary text-[9px] font-bold text-foreground shrink-0">
                                 {i + 1}
