@@ -50,6 +50,8 @@ type Props = {
   weatherError?: boolean;
   busyTargets?: Set<string>;
   capacityByDate?: Map<string, { load_pct: number; minutes_booked: number; minutes_capacity: number }>;
+  /** Sæt af rute-ids med medarbejder-tids-konflikt — vises som rødt badge. */
+  conflictedRouteIds?: Set<string>;
 };
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
@@ -57,7 +59,7 @@ const ymd = (d: Date) => format(d, "yyyy-MM-dd");
 export const AgendaCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
   onCreateRoute, onOptimizeRoute, onDeleteRoute, onShowHistory, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
-  loadingRoutes, loadingWeather, weatherError, busyTargets, capacityByDate,
+  loadingRoutes, loadingWeather, weatherError, busyTargets, capacityByDate, conflictedRouteIds,
 }: Props) => {
   const anchor = parseISO(anchorDate);
   const todayIso = format(new Date(), "yyyy-MM-dd");
@@ -153,6 +155,7 @@ export const AgendaCalendar = ({
                   busy={!!busyTargets?.has(`day:${dateStr}`)}
                   busyRouteIds={busyTargets}
                   capacity={capacityByDate?.get(dateStr) ?? null}
+                  conflictedRouteIds={conflictedRouteIds}
                 />
               );
             })}
