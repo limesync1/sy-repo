@@ -2037,6 +2037,103 @@ const Planner = () => {
     }
   };
 
+  /** Bulk-slet alle valgte stop. Kører sekventielt gennem deleteStop-hooken
+   *  så hver sletning passerer mutation-queue + idempotency-claims. Vi
+   *  rapporterer progress i en sticky toast og rydder valget bagefter. */
+  const runBulkDeleteStops = async () => {
+    if (bulkStopBusy || selectedStopIds.size === 0) return;
+    const ids = Array.from(selectedStopIds).filter((id) => !id.startsWith("virtual-stop:"));
+    if (ids.length === 0) {
+      toast.info("Projicerede stops kan ikke slettes — åbn originalruten for at ændre.");
+      return;
+    }
+    setBulkStopBusy(true);
+    setBulkStopProgress({ done: 0, total: ids.length });
+    const toastId = toast.loading(`Sletter ${ids.length} stop…`);
+    let ok = 0;
+    const failed: string[] = [];
+    for (let i = 0; i < ids.length; i++) {
+      try {
+        await deleteStop.mutateAsync(ids[i]);
+        ok++;
+      } catch (e: any) {
+        failed.push(e?.message || "ukendt fejl");
+      }
+      setBulkStopProgress({ done: i + 1, total: ids.length });
+    }
+    toast.dismiss(toastId);
+    setBulkStopBusy(false);
+    setBulkStopProgress(null);
+    clearStopSelection();
+    if (failed.length === 0) {
+      toast.success(`${ok} stop slettet`);
+    } else if (ok > 0) {
+      toast.warning(`${ok} stop slettet — ${failed.length} fejlede`, {
+        description: failed.slice(0, 2).join(" · "),
+      });
+    } else {
+      toast.error("Ingen stop blev slettet", { description: failed.slice(0, 2).join(" · ") });
+    }
+  };
+
+  /** Bulk-tilføj uplanlagte aftaler til en eksisterende rute. Hver aftale
+   *  oprettes som nyt stop via addStop-hooken i den valgte rute, i den
+   *  rækkefølge brugeren valgte dem. Eksisterende stops på ruten beholdes. */
+  const runBulkAddToRoute = async (targetRouteId: string) => {
+    if (!businessId || bulkBusy || selectedJobIds.size === 0) return;
+    const jobs = (unassigned as any[]).filter((j) => selectedJobIds.has(j.id));
+    if (jobs.length === 0) return;
+    setBulkBusy(true);
+    const toastId = toast.loading(`Tilføjer ${jobs.length} aftale${jobs.length === 1 ? "" : "r"}…`);
+    let ok = 0;
+    const failed: string[] = [];
+    try {
+      // Find næste ledige sekvens i mål-ruten — start hvor de eksisterende stop slutter.
+      const { data: existing } = await supabase
+        .from("route_stops")
+        .select("id")
+        .eq("route_id", targetRouteId);
+      let seq = (existing || []).length;
+      for (const j of jobs) {
+        try {
+          await addStop.mutateAsync({
+            route_id: targetRouteId,
+            order_id: j.id,
+            sequence: seq++,
+            customer_name: j.customer_name,
+            customer_phone: j.customer_phone,
+            address: j.address || [j.zip_code, j.city].filter(Boolean).join(" "),
+            latitude: j.latitude,
+            longitude: j.longitude,
+            service_summary: serviceSummaryForJob(j),
+            duration_minutes: Number(j.estimated_duration_minutes) || 30,
+            time_window_start: j.preferred_time_start || null,
+            time_window_end: j.preferred_time_end || null,
+          });
+          ok++;
+        } catch (e: any) {
+          failed.push(e?.message || "ukendt fejl");
+        }
+      }
+    } finally {
+      toast.dismiss(toastId);
+      setBulkBusy(false);
+    }
+    setBulkAddToRouteOpen(false);
+    setSelectedJobIds(new Set());
+    lastSelectedJobIdRef.current = null;
+    invalidateRouteSyncQueries(qc);
+    if (failed.length === 0) {
+      toast.success(`${ok} aftale${ok === 1 ? "" : "r"} tilføjet til ruten`);
+    } else if (ok > 0) {
+      toast.warning(`${ok} tilføjet — ${failed.length} fejlede`, {
+        description: failed.slice(0, 2).join(" · "),
+      });
+    } else {
+      toast.error("Ingen aftaler blev tilføjet", { description: failed.slice(0, 2).join(" · ") });
+    }
+  };
+
   /* Keyboard shortcuts: ←/→ for date, T for today, M for map, N for new route */
   // Ref så vi kan kalde optimize-handleren fra keydown uden at depende på
   // dens definition-rækkefølge (den er defineret længere nede).
