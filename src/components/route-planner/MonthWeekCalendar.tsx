@@ -794,6 +794,7 @@ export const MonthWeekCalendar = ({
                     capacity={capacityByDate?.get(dateStr) ?? null}
                     mismatchedRouteIds={mismatchedRouteIds}
                     conflictedRouteIds={conflictedRouteIds}
+                    selectedStopIds={selectedStopIds}
                   />
                 );
               })}
