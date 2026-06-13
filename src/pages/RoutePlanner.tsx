@@ -5321,6 +5321,95 @@ const Planner = () => {
           }}
         />
 
+        {/* ─── Bulk-stop: floating action-bar + slet ─────────────────────
+            ⌘/Ctrl-klik på stops i kalenderen samler dem i et bulk-valg.
+            Brugeren kan slette alle på én gang fra denne bar. Vises kun
+            når mindst ét stop er valgt. */}
+        {selectedStopIds.size > 0 && (
+          <div className="fixed bottom-20 left-1/2 z-50 -translate-x-1/2 animate-in fade-in slide-in-from-bottom-2">
+            <div className="flex items-center gap-3 rounded-full border bg-background px-4 py-2 shadow-lg">
+              <span className="text-sm font-semibold text-foreground">
+                {selectedStopIds.size} {selectedStopIds.size === 1 ? "stop" : "stop"} valgt
+              </span>
+              <Button
+                size="sm"
+                variant="destructive"
+                className="h-8"
+                onClick={runBulkDeleteStops}
+                disabled={bulkStopBusy}
+              >
+                {bulkStopBusy ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <X className="h-3.5 w-3.5" />
+                )}
+                {bulkStopBusy && bulkStopProgress
+                  ? `Sletter ${bulkStopProgress.done}/${bulkStopProgress.total}…`
+                  : "Slet valgte"}
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8"
+                onClick={clearStopSelection}
+                disabled={bulkStopBusy}
+              >
+                Ryd
+              </Button>
+              <span className="hidden sm:inline-flex items-center gap-1 text-[10.5px] text-muted-foreground pl-1 border-l border-border/70 ml-1">
+                <kbd className="px-1 rounded bg-secondary text-[10px] font-semibold">⌘/Ctrl</kbd>
+                <span>+ klik for at vælge flere</span>
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Bulk-tilføj uplanlagte aftaler til en eksisterende rute. */}
+        <BulkAddToRouteDialog
+          open={bulkAddToRouteOpen}
+          onOpenChange={(o) => { if (!bulkBusy) setBulkAddToRouteOpen(o); }}
+          loading={bulkBusy}
+          jobs={(() => {
+            const items: BulkAddJobItem[] = [];
+            for (const j of (unassigned as any[])) {
+              if (!selectedJobIds.has(j.id)) continue;
+              items.push({
+                id: j.id,
+                customer_name: j.customer_name ?? null,
+                address: j.address || [j.zip_code, j.city].filter(Boolean).join(" ") || null,
+                estimated_duration_minutes: j.estimated_duration_minutes ?? null,
+              });
+            }
+            return items;
+          })()}
+          routes={(() => {
+            const items: BulkAddRouteOption[] = [];
+            for (const r of calendarRoutesRaw) {
+              if ((r as any).isVirtual) continue;
+              const stops = calendarStops.filter((s) => s.route_id === r.id);
+              const totalMin = stops.reduce((acc, s) => acc + (s.duration_minutes || 30), 0);
+              items.push({
+                id: r.id,
+                name: r.name,
+                route_date: r.route_date,
+                color: r.color,
+                employeeName: (r as any).employees?.[0]?.name ?? null,
+                stopCount: stops.length,
+                totalMin,
+              });
+            }
+            return items;
+          })()}
+          onRemoveJob={(id) => {
+            setSelectedJobIds((prev) => {
+              const next = new Set(prev);
+              next.delete(id);
+              return next;
+            });
+          }}
+          onConfirm={(routeId) => { void runBulkAddToRoute(routeId); }}
+        />
+
         {/* Bekræftelse: drag/drop af en projiceret forekomst til ny dato. */}
         <MoveProjectedOccurrenceDialog
           open={!!pendingProjectedMove}
