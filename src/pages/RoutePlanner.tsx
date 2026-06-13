@@ -1479,11 +1479,28 @@ const Planner = () => {
   const calendarRoutesAll: CalendarRoute[] = useMemo(
     // Skjul projicerede (virtuelle) ruter når filtre er aktive — de har
     // ingen stops endnu, så vi kan ikke matche dem mod assignee/status-filtret.
-    () => [
-      ...calendarRoutes,
-      ...(filtersActive ? [] : virtualCalendarRoutes),
-    ],
-    [calendarRoutes, virtualCalendarRoutes, filtersActive],
+    () => {
+      // Map fra erstatnings-rute-id → original-dato (yyyy-MM-dd) — bruges til
+      // at vise "Flyttet hertil"-badge på ruter der er resultat af en
+      // `moved`-exception.
+      const replacementInfo = new Map<string, string>();
+      for (const ex of routeOccurrenceExceptions) {
+        if (ex.exception_type === "moved" && ex.replacement_route_id) {
+          replacementInfo.set(ex.replacement_route_id, ex.occurrence_date);
+        }
+      }
+      const merged = [
+        ...calendarRoutes,
+        ...(filtersActive ? [] : virtualCalendarRoutes),
+      ];
+      if (replacementInfo.size === 0) return merged;
+      return merged.map((r) => {
+        const fromDate = replacementInfo.get(r.id);
+        if (!fromDate) return r;
+        return { ...r, isReplacement: true, replacedFromDate: fromDate };
+      });
+    },
+    [calendarRoutes, virtualCalendarRoutes, filtersActive, routeOccurrenceExceptions],
   );
 
   // Sæt af datoer der har mindst én rute (inkl. projicerede). Bruges af alle
