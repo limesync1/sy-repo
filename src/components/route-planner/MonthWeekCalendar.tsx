@@ -347,6 +347,16 @@ const DayOverviewSheet = ({
                             <CheckCircle2 className="h-2 w-2" /> Udført
                           </span>
                         )}
+                        {!isVirtual && r.isReplacement && (
+                          <span
+                            className="inline-flex items-center gap-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300 ring-1 ring-inset ring-amber-500/30 px-1 py-px text-[9px] font-bold uppercase tracking-wider"
+                            title={r.replacedFromDate
+                              ? `Flyttet hertil fra ${format(parseISO(r.replacedFromDate), "EEEE d. MMM", { locale: da })}`
+                              : "Flyttet hertil fra en anden dato"}
+                          >
+                            <ArrowRightLeft className="h-2 w-2" /> Flyttet
+                          </span>
+                        )}
                         <span className={cn("text-sm font-semibold truncate", isVirtual && "italic text-muted-foreground")}>
                           {r.name || `Rute (${format(parseISO(r.route_date), "d. MMM", { locale: da })})`}
                         </span>
