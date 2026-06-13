@@ -4845,6 +4845,22 @@ const Planner = () => {
           recurringAppointmentCount={pendingSeriesInfo?.recurringAppointmentCount ?? 0}
           linkedSubscriptionCount={pendingSeriesInfo?.linkedSubscriptionCount ?? 0}
           loading={moveRouteSeries.isPending}
+          warnings={(() => {
+            // Advarsel når måldatoen allerede har én eller flere ruter.
+            // Brugeren får dialog-niveau besked INDEN bekræftelse — så vi
+            // ikke opdager dobbelt-booking først efter mutationen.
+            const r = pendingRouteMove?.route;
+            const newDate = pendingRouteMove?.newDate;
+            if (!r || !newDate) return [];
+            const others = calendarRoutesRaw.filter(
+              (x: any) => x.id !== r.id && !x.isVirtual && x.route_date === newDate,
+            );
+            if (others.length === 0) return [];
+            if (others.length === 1) {
+              return [`Der ligger allerede en rute "${others[0].name || "uden navn"}" på ${format(parseISO(newDate), "EEEE d. MMM", { locale: da })} — du får to ruter samme dag.`];
+            }
+            return [`Der ligger allerede ${others.length} ruter på ${format(parseISO(newDate), "EEEE d. MMM", { locale: da })} — du får i alt ${others.length + 1} ruter samme dag.`];
+          })()}
           disabledFutureReasons={(() => {
             // Beregn HVORFOR "Fremtidige aftaler også" evt. er låst, så
             // brugeren ikke står med en uforklaret deaktiveret knap.
