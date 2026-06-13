@@ -724,17 +724,35 @@ export const RouteEditSheet = ({
     const newDate = pendingDate;
     setPendingDate(null);
     nestedOverlayOpenRef.current = false;
+    const oldDate = route.route_date;
     try {
-      await moveRouteSeries.mutateAsync({
+      const result = await moveRouteSeries.mutateAsync({
         routeId: route.id,
         newDate,
         scope,
         moveLinkedSubscriptions,
       });
       setDate(newDate);
-      toast.success(
-        scope === "future" ? "Ruteserien flyttet" : "Rute flyttet til ny dato",
-      );
+      const movedRouteId = String((result as any)?.new_route_id || route.id);
+      pushRouteUndo({
+        label: scope === "future"
+          ? `Forskydning af ruteserie til ${format(parseISO(newDate), "d. MMM", { locale: da })}`
+          : `Flyt rute til ${format(parseISO(newDate), "d. MMM", { locale: da })}`,
+        undo: async () => {
+          await moveRouteSeries.mutateAsync({
+            routeId: movedRouteId,
+            newDate: oldDate,
+            scope,
+            moveLinkedSubscriptions,
+          });
+        },
+      });
+      toastSuccessWithUndo({
+        message: scope === "future"
+          ? `Ruteserien flyttet til ${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`
+          : `Rute flyttet til ${format(parseISO(newDate), "EEEE d. MMM", { locale: da })}`,
+        description: "Klik Fortryd for at rulle tilbage.",
+      });
     } catch (e: any) {
       // Dialogen er allerede lukket, så vi kan ikke vise inline-fejl —
       // toast i stedet.
