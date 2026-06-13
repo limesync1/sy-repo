@@ -5371,6 +5371,36 @@ const Planner = () => {
           </div>
         )}
 
+        {/* Bekræftelse før bulk-sletning af stop. Destruktivt, så vi kræver
+            eksplicit klik på "Slet" — også hvis brugeren rammer Delete-tasten. */}
+        <AlertDialog
+          open={bulkDeleteStopsConfirmOpen}
+          onOpenChange={(o) => { if (!bulkStopBusy) setBulkDeleteStopsConfirmOpen(o); }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Slet {selectedStopIds.size} stop?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Stoppene fjernes fra deres ruter. Tilknyttede aftaler ryger tilbage til "Aftaler uden rute" og kan genplanlægges. Projicerede (låste) stop springes over.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={bulkStopBusy}>Annullér</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                disabled={bulkStopBusy}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setBulkDeleteStopsConfirmOpen(false);
+                  void runBulkDeleteStops();
+                }}
+              >
+                Slet
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         {/* Bulk-tilføj uplanlagte aftaler til en eksisterende rute. */}
         <BulkAddToRouteDialog
           open={bulkAddToRouteOpen}
