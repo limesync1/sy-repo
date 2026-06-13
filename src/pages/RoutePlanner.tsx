@@ -650,6 +650,10 @@ const Planner = () => {
   // separat fra bulk-flyt-ruter så vi ikke deler open/loading flags.
   const [bulkAddToRouteOpen, setBulkAddToRouteOpen] = useState(false);
 
+  // Bekræftelses-dialog for bulk-sletning af stop. Vi viser den altid før
+  // sletning eksekveres så brugeren ikke ved et uheld smider et helt udvalg.
+  const [bulkDeleteStopsConfirmOpen, setBulkDeleteStopsConfirmOpen] = useState(false);
+
   // Modifier-key tracker for stop-multi-select. Vi læser bare ⌘/Ctrl/Shift
   // ved klik-tidspunktet uden at ændre signaturen på onSelectStop, som ellers
   // skulle trådes gennem 4 forskellige kalender-komponenter.
@@ -5338,7 +5342,7 @@ const Planner = () => {
                 size="sm"
                 variant="destructive"
                 className="h-8"
-                onClick={runBulkDeleteStops}
+                onClick={() => setBulkDeleteStopsConfirmOpen(true)}
                 disabled={bulkStopBusy}
               >
                 {bulkStopBusy ? (
@@ -5366,6 +5370,36 @@ const Planner = () => {
             </div>
           </div>
         )}
+
+        {/* Bekræftelse før bulk-sletning af stop. Destruktivt, så vi kræver
+            eksplicit klik på "Slet" — også hvis brugeren rammer Delete-tasten. */}
+        <AlertDialog
+          open={bulkDeleteStopsConfirmOpen}
+          onOpenChange={(o) => { if (!bulkStopBusy) setBulkDeleteStopsConfirmOpen(o); }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Slet {selectedStopIds.size} stop?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Stoppene fjernes fra deres ruter. Tilknyttede aftaler ryger tilbage til "Aftaler uden rute" og kan genplanlægges. Projicerede (låste) stop springes over.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={bulkStopBusy}>Annullér</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                disabled={bulkStopBusy}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setBulkDeleteStopsConfirmOpen(false);
+                  void runBulkDeleteStops();
+                }}
+              >
+                Slet
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Bulk-tilføj uplanlagte aftaler til en eksisterende rute. */}
         <BulkAddToRouteDialog
