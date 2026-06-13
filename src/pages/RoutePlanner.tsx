@@ -5342,7 +5342,7 @@ const Planner = () => {
                 size="sm"
                 variant="destructive"
                 className="h-8"
-                onClick={runBulkDeleteStops}
+                onClick={() => setBulkDeleteStopsConfirmOpen(true)}
                 disabled={bulkStopBusy}
               >
                 {bulkStopBusy ? (
