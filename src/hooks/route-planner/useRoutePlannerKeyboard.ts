@@ -32,6 +32,9 @@ export function useRoutePlannerKeyboard(opts: {
   /** Valgte ruter i kalenderen (bulk-flyt-tilstand). Esc rydder dem. */
   selectedRouteIds?: Set<string>;
   clearRouteSelection?: () => void;
+  /** Valgte stop i kalenderen (bulk-slet-tilstand). Esc rydder dem. */
+  selectedStopIds?: Set<string>;
+  clearStopSelection?: () => void;
 }) {
   const {
     history,
@@ -54,6 +57,8 @@ export function useRoutePlannerKeyboard(opts: {
     optimizeRouteRef,
     selectedRouteIds,
     clearRouteSelection,
+    selectedStopIds,
+    clearStopSelection,
   } = opts;
 
   useEffect(() => {
@@ -94,6 +99,8 @@ export function useRoutePlannerKeyboard(opts: {
       } else if (e.key === "Escape") {
         if (selectedRouteIds && selectedRouteIds.size > 0) {
           clearRouteSelection?.();
+        } else if (selectedStopIds && selectedStopIds.size > 0) {
+          clearStopSelection?.();
         } else if (selectedJobIds.size > 0) {
           setSelectedJobIds(new Set());
           lastSelectedJobIdRef.current = null;
