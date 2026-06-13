@@ -1,7 +1,7 @@
 // Bulk-handlingsbjælke for "Aftaler uden rute".
 // Sticky i bunden af aftalepoolen så den ikke spiser plads fra listen og
 // ikke overlapper kort i toppen. Vises kun når mindst én aftale er valgt.
-import { X, Trash2, CalendarDays, Eye } from "lucide-react";
+import { X, Trash2, CalendarDays, Eye, Route as RouteIcon } from "lucide-react";
 
 type Props = {
   selectedCount: number;
@@ -16,12 +16,14 @@ type Props = {
   onShowHidden?: () => void;
   onCancel?: () => void;
   onShiftDate?: () => void;
+  /** Åbn dialog der lægger de valgte aftaler ind på en eksisterende rute. */
+  onAddToRoute?: () => void;
   busy?: boolean;
 };
 
 export default function UnassignedBulkBar({
   selectedCount, visibleCount, hiddenCount, totalCount, onClear, onSelectAll, onShowHidden,
-  onCancel, onShiftDate, busy,
+  onCancel, onShiftDate, onAddToRoute, busy,
 }: Props) {
   if (selectedCount === 0) return null;
   const allSelected = selectedCount >= totalCount;
@@ -81,7 +83,19 @@ export default function UnassignedBulkBar({
           )}
         </div>
       )}
-      <div className="grid grid-cols-2 divide-x divide-border/60">
+      <div className={onAddToRoute ? "grid grid-cols-3 divide-x divide-border/60" : "grid grid-cols-2 divide-x divide-border/60"}>
+        {onAddToRoute && (
+          <button
+            type="button"
+            onClick={onAddToRoute}
+            disabled={busy}
+            className="flex flex-col items-center justify-center gap-0.5 px-1.5 py-2 text-[11px] font-semibold text-foreground hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
+            title="Læg de valgte aftaler ind på en eksisterende rute"
+          >
+            <RouteIcon className="h-3.5 w-3.5 text-muted-foreground" />
+            <span>Tilføj til rute</span>
+          </button>
+        )}
         <button
           type="button"
           onClick={onShiftDate}

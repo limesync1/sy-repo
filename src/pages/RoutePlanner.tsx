@@ -130,6 +130,7 @@ import { pushRouteUndo, routeHistory } from "@/lib/route-history";
 import { toastSuccessWithUndo } from "@/lib/toast-undo";
 import { estimateOptimizationGain, markOptimizeDismissed } from "@/lib/optimize-savings-estimate";
 import { BulkMoveRoutesDialog, type BulkMoveRouteItem } from "@/components/route-planner/BulkMoveRoutesDialog";
+import { BulkAddToRouteDialog, type BulkAddJobItem, type BulkAddRouteOption } from "@/components/route-planner/BulkAddToRouteDialog";
 import RoutePlannerShortcutsHelp from "@/components/route-planner/RoutePlannerShortcutsHelp";
 import UnassignedFiltersPopover, { URGENCY_OPTIONS, type UrgencyKey } from "@/components/route-planner/UnassignedFiltersPopover";
 import UndoBar from "@/components/route-planner/UndoBar";
@@ -417,6 +418,13 @@ const Planner = () => {
     bulkBusy,
     setBulkBusy,
     lastSelectedJobIdRef,
+    selectedStopIds,
+    toggleStopSelection,
+    clearStopSelection,
+    bulkStopBusy,
+    setBulkStopBusy,
+    bulkStopProgress,
+    setBulkStopProgress,
   } = plannerStore.selection;
   const {
     urgencyFilter,
@@ -637,6 +645,34 @@ const Planner = () => {
   const moveRouteSeries = useMoveRouteSeries();
   const addStop = useAddStop();
   const deleteStop = useDeleteStop();
+
+  // Bulk-tilføj uplanlagte aftaler til eksisterende rute — egen dialog-state,
+  // separat fra bulk-flyt-ruter så vi ikke deler open/loading flags.
+  const [bulkAddToRouteOpen, setBulkAddToRouteOpen] = useState(false);
+
+  // Modifier-key tracker for stop-multi-select. Vi læser bare ⌘/Ctrl/Shift
+  // ved klik-tidspunktet uden at ændre signaturen på onSelectStop, som ellers
+  // skulle trådes gennem 4 forskellige kalender-komponenter.
+  const modKeyRef = useRef({ meta: false, shift: false });
+  useEffect(() => {
+    const onDown = (e: KeyboardEvent) => {
+      if (e.key === "Meta" || e.key === "Control") modKeyRef.current.meta = true;
+      if (e.key === "Shift") modKeyRef.current.shift = true;
+    };
+    const onUp = (e: KeyboardEvent) => {
+      if (e.key === "Meta" || e.key === "Control") modKeyRef.current.meta = false;
+      if (e.key === "Shift") modKeyRef.current.shift = false;
+    };
+    const onBlur = () => { modKeyRef.current = { meta: false, shift: false }; };
+    window.addEventListener("keydown", onDown);
+    window.addEventListener("keyup", onUp);
+    window.addEventListener("blur", onBlur);
+    return () => {
+      window.removeEventListener("keydown", onDown);
+      window.removeEventListener("keyup", onUp);
+      window.removeEventListener("blur", onBlur);
+    };
+  }, []);
   const shiftProjectedOccurrence = useShiftProjectedOccurrence();
   const revertProjectedShift = useRevertProjectedShift();
   const optimizeRoute = useOptimizeRoute();
@@ -2001,6 +2037,103 @@ const Planner = () => {
     }
   };
 
+  /** Bulk-slet alle valgte stop. Kører sekventielt gennem deleteStop-hooken
+   *  så hver sletning passerer mutation-queue + idempotency-claims. Vi
+   *  rapporterer progress i en sticky toast og rydder valget bagefter. */
+  const runBulkDeleteStops = async () => {
+    if (bulkStopBusy || selectedStopIds.size === 0) return;
+    const ids = Array.from(selectedStopIds).filter((id) => !id.startsWith("virtual-stop:"));
+    if (ids.length === 0) {
+      toast.info("Projicerede stops kan ikke slettes — åbn originalruten for at ændre.");
+      return;
+    }
+    setBulkStopBusy(true);
+    setBulkStopProgress({ done: 0, total: ids.length });
+    const toastId = toast.loading(`Sletter ${ids.length} stop…`);
+    let ok = 0;
+    const failed: string[] = [];
+    for (let i = 0; i < ids.length; i++) {
+      try {
+        await deleteStop.mutateAsync(ids[i]);
+        ok++;
+      } catch (e: any) {
+        failed.push(e?.message || "ukendt fejl");
+      }
+      setBulkStopProgress({ done: i + 1, total: ids.length });
+    }
+    toast.dismiss(toastId);
+    setBulkStopBusy(false);
+    setBulkStopProgress(null);
+    clearStopSelection();
+    if (failed.length === 0) {
+      toast.success(`${ok} stop slettet`);
+    } else if (ok > 0) {
+      toast.warning(`${ok} stop slettet — ${failed.length} fejlede`, {
+        description: failed.slice(0, 2).join(" · "),
+      });
+    } else {
+      toast.error("Ingen stop blev slettet", { description: failed.slice(0, 2).join(" · ") });
+    }
+  };
+
+  /** Bulk-tilføj uplanlagte aftaler til en eksisterende rute. Hver aftale
+   *  oprettes som nyt stop via addStop-hooken i den valgte rute, i den
+   *  rækkefølge brugeren valgte dem. Eksisterende stops på ruten beholdes. */
+  const runBulkAddToRoute = async (targetRouteId: string) => {
+    if (!businessId || bulkBusy || selectedJobIds.size === 0) return;
+    const jobs = (unassigned as any[]).filter((j) => selectedJobIds.has(j.id));
+    if (jobs.length === 0) return;
+    setBulkBusy(true);
+    const toastId = toast.loading(`Tilføjer ${jobs.length} aftale${jobs.length === 1 ? "" : "r"}…`);
+    let ok = 0;
+    const failed: string[] = [];
+    try {
+      // Find næste ledige sekvens i mål-ruten — start hvor de eksisterende stop slutter.
+      const { data: existing } = await supabase
+        .from("route_stops")
+        .select("id")
+        .eq("route_id", targetRouteId);
+      let seq = (existing || []).length;
+      for (const j of jobs) {
+        try {
+          await addStop.mutateAsync({
+            route_id: targetRouteId,
+            order_id: j.id,
+            sequence: seq++,
+            customer_name: j.customer_name,
+            customer_phone: j.customer_phone,
+            address: j.address || [j.zip_code, j.city].filter(Boolean).join(" "),
+            latitude: j.latitude,
+            longitude: j.longitude,
+            service_summary: serviceSummaryForJob(j),
+            duration_minutes: Number(j.estimated_duration_minutes) || 30,
+            time_window_start: j.preferred_time_start || null,
+            time_window_end: j.preferred_time_end || null,
+          });
+          ok++;
+        } catch (e: any) {
+          failed.push(e?.message || "ukendt fejl");
+        }
+      }
+    } finally {
+      toast.dismiss(toastId);
+      setBulkBusy(false);
+    }
+    setBulkAddToRouteOpen(false);
+    setSelectedJobIds(new Set());
+    lastSelectedJobIdRef.current = null;
+    invalidateRouteSyncQueries(qc);
+    if (failed.length === 0) {
+      toast.success(`${ok} aftale${ok === 1 ? "" : "r"} tilføjet til ruten`);
+    } else if (ok > 0) {
+      toast.warning(`${ok} tilføjet — ${failed.length} fejlede`, {
+        description: failed.slice(0, 2).join(" · "),
+      });
+    } else {
+      toast.error("Ingen aftaler blev tilføjet", { description: failed.slice(0, 2).join(" · ") });
+    }
+  };
+
   /* Keyboard shortcuts: ←/→ for date, T for today, M for map, N for new route */
   // Ref så vi kan kalde optimize-handleren fra keydown uden at depende på
   // dens definition-rækkefølge (den er defineret længere nede).
@@ -2030,6 +2163,8 @@ const Planner = () => {
     optimizeRouteRef,
     selectedRouteIds,
     clearRouteSelection,
+    selectedStopIds,
+    clearStopSelection,
   });
 
   /* Når create-dialog åbnes, foreslå en ledig farve for den valgte dato */
@@ -2050,8 +2185,16 @@ const Planner = () => {
   // hook-rækkefølgen sig mellem renders og React kaster
   // "Rendered more hooks than during the previous render."
   const handleCalendarSelectStop = useCallback((s: any) => {
+    // ⌘/Ctrl-klik (eller Shift-klik) toggler stoppet ind/ud af bulk-valget
+    // i stedet for at åbne detalje-sheet. Almindelig klik nulstiller bulk-
+    // valget og åbner detalje-sheet for det enkelte stop.
+    if (modKeyRef.current.meta || modKeyRef.current.shift) {
+      if (s?.id) toggleStopSelection(s.id);
+      return;
+    }
+    clearStopSelection();
     setSelectedStopId(s.id);
-  }, []);
+  }, [toggleStopSelection, clearStopSelection]);
   const handleCalendarCreateRoute = useCallback((d: string) => {
     setNewRouteDate(d);
     setCreateOpen(true);
@@ -3857,6 +4000,7 @@ const Planner = () => {
                       } : undefined}
                       onCancel={runBulkCancel}
                       onShiftDate={() => setBulkShiftOpen(true)}
+                      onAddToRoute={() => setBulkAddToRouteOpen(true)}
                       busy={bulkBusy}
                     />
                   </div>
@@ -5177,6 +5321,95 @@ const Planner = () => {
             setBulkMoveOpen(false);
             clearRouteSelection();
           }}
+        />
+
+        {/* ─── Bulk-stop: floating action-bar + slet ─────────────────────
+            ⌘/Ctrl-klik på stops i kalenderen samler dem i et bulk-valg.
+            Brugeren kan slette alle på én gang fra denne bar. Vises kun
+            når mindst ét stop er valgt. */}
+        {selectedStopIds.size > 0 && (
+          <div className="fixed bottom-20 left-1/2 z-50 -translate-x-1/2 animate-in fade-in slide-in-from-bottom-2">
+            <div className="flex items-center gap-3 rounded-full border bg-background px-4 py-2 shadow-lg">
+              <span className="text-sm font-semibold text-foreground">
+                {selectedStopIds.size} {selectedStopIds.size === 1 ? "stop" : "stop"} valgt
+              </span>
+              <Button
+                size="sm"
+                variant="destructive"
+                className="h-8"
+                onClick={runBulkDeleteStops}
+                disabled={bulkStopBusy}
+              >
+                {bulkStopBusy ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <X className="h-3.5 w-3.5" />
+                )}
+                {bulkStopBusy && bulkStopProgress
+                  ? `Sletter ${bulkStopProgress.done}/${bulkStopProgress.total}…`
+                  : "Slet valgte"}
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8"
+                onClick={clearStopSelection}
+                disabled={bulkStopBusy}
+              >
+                Ryd
+              </Button>
+              <span className="hidden sm:inline-flex items-center gap-1 text-[10.5px] text-muted-foreground pl-1 border-l border-border/70 ml-1">
+                <kbd className="px-1 rounded bg-secondary text-[10px] font-semibold">⌘/Ctrl</kbd>
+                <span>+ klik for at vælge flere</span>
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Bulk-tilføj uplanlagte aftaler til en eksisterende rute. */}
+        <BulkAddToRouteDialog
+          open={bulkAddToRouteOpen}
+          onOpenChange={(o) => { if (!bulkBusy) setBulkAddToRouteOpen(o); }}
+          loading={bulkBusy}
+          jobs={(() => {
+            const items: BulkAddJobItem[] = [];
+            for (const j of (unassigned as any[])) {
+              if (!selectedJobIds.has(j.id)) continue;
+              items.push({
+                id: j.id,
+                customer_name: j.customer_name ?? null,
+                address: j.address || [j.zip_code, j.city].filter(Boolean).join(" ") || null,
+                estimated_duration_minutes: j.estimated_duration_minutes ?? null,
+              });
+            }
+            return items;
+          })()}
+          routes={(() => {
+            const items: BulkAddRouteOption[] = [];
+            for (const r of calendarRoutesRaw) {
+              if ((r as any).isVirtual) continue;
+              const stops = calendarStops.filter((s) => s.route_id === r.id);
+              const totalMin = stops.reduce((acc, s) => acc + (s.duration_minutes || 30), 0);
+              items.push({
+                id: r.id,
+                name: r.name,
+                route_date: r.route_date,
+                color: r.color,
+                employeeName: (r as any).employees?.[0]?.name ?? null,
+                stopCount: stops.length,
+                totalMin,
+              });
+            }
+            return items;
+          })()}
+          onRemoveJob={(id) => {
+            setSelectedJobIds((prev) => {
+              const next = new Set(prev);
+              next.delete(id);
+              return next;
+            });
+          }}
+          onConfirm={(routeId) => { void runBulkAddToRoute(routeId); }}
         />
 
         {/* Bekræftelse: drag/drop af en projiceret forekomst til ny dato. */}
