@@ -853,13 +853,15 @@ type DayCellProps = {
   capacity?: { load_pct: number; minutes_booked: number; minutes_capacity: number } | null;
   /** Sæt af rute-ids der har skill-mismatch — videresendes til RoutePill. */
   mismatchedRouteIds?: Set<string>;
+  /** Sæt af rute-ids med medarbejder-tids-konflikt — videresendes til RoutePill. */
+  conflictedRouteIds?: Set<string>;
 };
 
 const DayCellInner = ({
   date, dateStr, routes, inMonth, today,
   onSelectRoute, onSelectStop, onCreateRoute, onOpenDayOverview, onOptimizeRoute, onDeleteRoute, onShowHistory, optimizingRouteId, compact, draggingType, draggingRouteId, weather,
   loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds, alert,
-  selectedRouteIds, onToggleRouteSelection, capacity, mismatchedRouteIds,
+  selectedRouteIds, onToggleRouteSelection, capacity, mismatchedRouteIds, conflictedRouteIds,
 }: DayCellProps) => {
   // Lokal toggle for "vis alle ruter" i en travl dag — i stedet for at
   // åbne hele dagens overblik bare for at se 1-2 ekstra piller.
