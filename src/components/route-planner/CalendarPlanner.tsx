@@ -75,6 +75,7 @@ type Props = {
   columns: CalendarColumn[];
   selectedStopId?: string | null;
   onSelectStop?: (id: string) => void;
+  selectedStopIds?: Set<string>;
 };
 
 const arrivalToMinutes = (iso: string | null): number | null => {
