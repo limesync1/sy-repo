@@ -1615,6 +1615,19 @@ const RoutePillInner = ({
                 {!compact && "Flyttet"}
               </span>
             )}
+            {!isVirtual && hasAssigneeConflict && (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-0.5 rounded-[3px] bg-destructive/15 text-destructive ring-1 ring-inset ring-destructive/30 text-[9px] font-bold uppercase tracking-[0.06em] shrink-0",
+                  compact ? "px-1 py-px" : "px-1.5 py-px",
+                )}
+                title="Konflikt: en tildelt medarbejder er booket til to ting samtidig samme dag"
+                aria-label="Medarbejder-konflikt"
+              >
+                <AlertTriangle className="h-2 w-2" />
+                {!compact && "Konflikt"}
+              </span>
+            )}
             <span className={cn("truncate", isVirtual && "italic text-muted-foreground")}>
               {route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}
             </span>
