@@ -3915,6 +3915,7 @@ const Planner = () => {
                   onToggleRouteSelection={(id) => toggleRouteSelection(id)}
                   capacityByDate={capacityByDate}
                   mismatchedRouteIds={mismatchedRouteIds}
+                  conflictedRouteIds={conflictedRouteIds}
                 />
                 </div>
                 </div>
