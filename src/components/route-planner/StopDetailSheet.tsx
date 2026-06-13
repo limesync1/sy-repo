@@ -408,7 +408,6 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                         const svc = item.services || {};
                         const serviceDescription = svc.description || null;
                         const category = [svc.service_category, svc.subcategory].filter(Boolean).join(" · ");
-                        const effectiveInterval = itemInterval || recurringInterval || null;
                         return (
                           <div key={i} className="px-3 py-2.5">
                             <div className="flex items-start gap-3">
@@ -431,10 +430,10 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                                   <span className="text-sm font-semibold shrink-0">{Math.round(Number(item.total_price))} kr</span>
                                 </div>
                                 <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                                  {effectiveInterval && (
+                                  {itemInterval && (
                                     <Badge variant="outline" className="text-[10px] h-4 px-1.5 gap-1">
                                       <Repeat className="h-2.5 w-2.5" />
-                                      {INTERVAL_LABELS[effectiveInterval] || effectiveInterval}
+                                      {INTERVAL_LABELS[itemInterval] || itemInterval}
                                     </Badge>
                                   )}
                                   {hours !== null ? (
