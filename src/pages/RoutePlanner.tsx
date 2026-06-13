@@ -650,6 +650,10 @@ const Planner = () => {
   // separat fra bulk-flyt-ruter så vi ikke deler open/loading flags.
   const [bulkAddToRouteOpen, setBulkAddToRouteOpen] = useState(false);
 
+  // Bekræftelses-dialog for bulk-sletning af stop. Vi viser den altid før
+  // sletning eksekveres så brugeren ikke ved et uheld smider et helt udvalg.
+  const [bulkDeleteStopsConfirmOpen, setBulkDeleteStopsConfirmOpen] = useState(false);
+
   // Modifier-key tracker for stop-multi-select. Vi læser bare ⌘/Ctrl/Shift
   // ved klik-tidspunktet uden at ændre signaturen på onSelectStop, som ellers
   // skulle trådes gennem 4 forskellige kalender-komponenter.
