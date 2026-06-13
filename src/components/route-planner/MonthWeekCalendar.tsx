@@ -59,6 +59,13 @@ export type CalendarRoute = Route & {
    *  Den vises dæmpet med lås-ikon, kan ikke trækkes/optimeres, og klik åbner
    *  basisruten på dens næste rigtige dato. */
   isVirtual?: boolean;
+  /** Når true er ruten en *erstatnings-rute* — den er oprettet (eller flyttet hertil)
+   *  som følge af at en anden forekomst blev flyttet via en `moved`-exception.
+   *  Vises med et lille badge så planlæggeren kan se hvilke ruter der er
+   *  resultat af en flytning vs. naturligt planlagte. */
+  isReplacement?: boolean;
+  /** Original-dato som denne erstatningsrute "kom fra" (yyyy-MM-dd). */
+  replacedFromDate?: string;
 };
 
 type Props = {
