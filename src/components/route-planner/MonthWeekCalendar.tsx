@@ -168,6 +168,7 @@ const tintBgFrom = (color?: string | null) => {
  *  drag-source) for at undgå at trække ruter ud af sheet'en ved et uheld. */
 const DayOverviewSheet = ({
   date, routes, capacity, weather, onClose, onSelectRoute, onSelectStop, onCreateRoute,
+  selectedStopIds,
 }: {
   date: string;
   routes: CalendarRoute[];
