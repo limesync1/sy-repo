@@ -11,7 +11,7 @@ import { useDroppable, useDraggable } from "@dnd-kit/core";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Plus, Users, MapPin, ArrowDown, Repeat, Clock, Wallet, Lock, GitMerge, History, MoreHorizontal, Eye, Trash2, ArrowRightLeft } from "lucide-react";
+import { Loader2, Sparkles, Plus, Users, MapPin, ArrowDown, Repeat, Clock, Wallet, Lock, GitMerge, History, MoreHorizontal, Eye, Trash2, ArrowRightLeft, CalendarArrowDown } from "lucide-react";
 import { CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { CloudOff } from "lucide-react";
 import {
@@ -1626,7 +1626,7 @@ const RoutePillInner = ({
                   : "Erstatningsrute — flyttet hertil fra en anden dato"}
                 aria-label="Erstatningsrute — flyttet hertil"
               >
-                <ArrowRightLeft className="h-2 w-2" />
+                <CalendarArrowDown className="h-2 w-2" />
                 {!compact && "Flyttet"}
               </span>
             )}

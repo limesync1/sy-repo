@@ -5,7 +5,7 @@
 // `route-drop:<id>`) så al planlægger-logikken i RoutePlanner virker uændret.
 
 import { useDroppable, useDraggable } from "@dnd-kit/core";
-import { Loader2, Sparkles, Plus, MapPin, ArrowDown, Repeat, ChevronDown, Inbox, Lock, GitMerge, ArrowRightLeft, AlertTriangle } from "lucide-react";
+import { Loader2, Sparkles, Plus, MapPin, ArrowDown, Repeat, ChevronDown, Inbox, Lock, GitMerge, ArrowRightLeft, AlertTriangle, CalendarArrowDown } from "lucide-react";
 import { CloudOff } from "lucide-react";
 import {
   format, parseISO, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
@@ -509,7 +509,7 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
                 : "Flyttet hertil fra en anden dato"}
               aria-label="Erstatningsrute — flyttet hertil"
             >
-              <ArrowRightLeft className="h-2 w-2" />
+              <CalendarArrowDown className="h-2 w-2" />
               Flyttet
             </span>
           )}
