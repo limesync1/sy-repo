@@ -323,6 +323,7 @@ const DayRowInner = ({
             routeDragSourceId={draggingType === "route" ? (draggingRouteId ?? null) : null}
             busy={!!busyRouteIds?.has(`route:${r.id}`)}
             isPast={isPast}
+            hasAssigneeConflict={!!conflictedRouteIds?.has(r.id)}
           />
         ))}
 
