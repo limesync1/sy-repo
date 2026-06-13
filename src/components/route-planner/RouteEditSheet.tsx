@@ -39,6 +39,8 @@ const RouteHistoryDialog = lazy(() => import("./RouteHistoryDialog"));
 import { RouteOccurrenceTimeline } from "./RouteOccurrenceTimeline";
 import { SeriesScopeDialog, type SeriesScope } from "./SeriesScopeDialog";
 import { logRouteAudit } from "@/lib/route-audit";
+import { pushRouteUndo } from "@/lib/route-history";
+import { toastSuccessWithUndo } from "@/lib/toast-undo";
 import { useSeriesImpact } from "@/hooks/useSeriesImpact";
 import { useDayConflicts } from "@/hooks/useDayConflicts";
 import { Ban } from "lucide-react";
