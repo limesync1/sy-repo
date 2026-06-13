@@ -645,6 +645,34 @@ const Planner = () => {
   const moveRouteSeries = useMoveRouteSeries();
   const addStop = useAddStop();
   const deleteStop = useDeleteStop();
+
+  // Bulk-tilføj uplanlagte aftaler til eksisterende rute — egen dialog-state,
+  // separat fra bulk-flyt-ruter så vi ikke deler open/loading flags.
+  const [bulkAddToRouteOpen, setBulkAddToRouteOpen] = useState(false);
+
+  // Modifier-key tracker for stop-multi-select. Vi læser bare ⌘/Ctrl/Shift
+  // ved klik-tidspunktet uden at ændre signaturen på onSelectStop, som ellers
+  // skulle trådes gennem 4 forskellige kalender-komponenter.
+  const modKeyRef = useRef({ meta: false, shift: false });
+  useEffect(() => {
+    const onDown = (e: KeyboardEvent) => {
+      if (e.key === "Meta" || e.key === "Control") modKeyRef.current.meta = true;
+      if (e.key === "Shift") modKeyRef.current.shift = true;
+    };
+    const onUp = (e: KeyboardEvent) => {
+      if (e.key === "Meta" || e.key === "Control") modKeyRef.current.meta = false;
+      if (e.key === "Shift") modKeyRef.current.shift = false;
+    };
+    const onBlur = () => { modKeyRef.current = { meta: false, shift: false }; };
+    window.addEventListener("keydown", onDown);
+    window.addEventListener("keyup", onUp);
+    window.addEventListener("blur", onBlur);
+    return () => {
+      window.removeEventListener("keydown", onDown);
+      window.removeEventListener("keyup", onUp);
+      window.removeEventListener("blur", onBlur);
+    };
+  }, []);
   const shiftProjectedOccurrence = useShiftProjectedOccurrence();
   const revertProjectedShift = useRevertProjectedShift();
   const optimizeRoute = useOptimizeRoute();
