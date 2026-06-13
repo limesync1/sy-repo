@@ -768,6 +768,9 @@ export const RouteEditSheet = ({
     if (!route || !projectedDate || !pendingProjectedDate) return;
     // Lader fejl boble op til dialogens egen catch — så vises de inline i
     // stedet for kun som flygtig toast.
+    const fromD = projectedDate;
+    const toD = pendingProjectedDate;
+    const baseId = route.id;
     await moveProjected.mutateAsync({
       baseRouteId: route.id,
       fromDate: projectedDate,
@@ -778,7 +781,20 @@ export const RouteEditSheet = ({
       moveStartDates: projectedMoveSyncStart,
       moveNextDates: projectedMoveSyncNext,
     });
-    toast.success("Den projicerede forekomst er flyttet til den nye dato");
+    pushRouteUndo({
+      label: `Flyt projiceret forekomst tilbage til ${format(parseISO(fromD), "d. MMM", { locale: da })}`,
+      undo: async () => {
+        await moveProjected.mutateAsync({
+          baseRouteId: baseId,
+          fromDate: toD,
+          toDate: fromD,
+        });
+      },
+    });
+    toastSuccessWithUndo({
+      message: `Forekomst flyttet til ${format(parseISO(toD), "EEEE d. MMM", { locale: da })}`,
+      description: "Klik Fortryd for at lægge den tilbage på den oprindelige dato.",
+    });
     setPendingProjectedDate(null);
     nestedOverlayOpenRef.current = false;
     clearStaleRadixPointerLock();
