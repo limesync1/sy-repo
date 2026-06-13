@@ -857,6 +857,8 @@ type DayCellProps = {
   mismatchedRouteIds?: Set<string>;
   /** Sæt af rute-ids med medarbejder-tids-konflikt — videresendes til RoutePill. */
   conflictedRouteIds?: Set<string>;
+  /** Multi-select bulk-slet: valgte stop-ids. Viser visuel markering. */
+  selectedStopIds?: Set<string>;
 };
 
 const DayCellInner = ({
