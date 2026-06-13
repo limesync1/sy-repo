@@ -5,7 +5,7 @@
 // `route-drop:<id>`) så al planlægger-logikken i RoutePlanner virker uændret.
 
 import { useDroppable, useDraggable } from "@dnd-kit/core";
-import { Loader2, Sparkles, Plus, MapPin, ArrowDown, Repeat, ChevronDown, Inbox, Lock, GitMerge, ArrowRightLeft } from "lucide-react";
+import { Loader2, Sparkles, Plus, MapPin, ArrowDown, Repeat, ChevronDown, Inbox, Lock, GitMerge, ArrowRightLeft, AlertTriangle } from "lucide-react";
 import { CloudOff } from "lucide-react";
 import {
   format, parseISO, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
@@ -511,6 +511,16 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
             >
               <ArrowRightLeft className="h-2 w-2" />
               Flyttet
+            </span>
+          )}
+          {!isVirtual && hasAssigneeConflict && (
+            <span
+              className="inline-flex items-center gap-0.5 rounded-sm bg-destructive/15 text-destructive px-1 py-px text-[9px] font-bold uppercase tracking-wide shrink-0"
+              title="Konflikt: en tildelt medarbejder er booket til to ting samtidig samme dag"
+              aria-label="Medarbejder-konflikt"
+            >
+              <AlertTriangle className="h-2 w-2" />
+              Konflikt
             </span>
           )}
           <span className="truncate">{route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}</span>
