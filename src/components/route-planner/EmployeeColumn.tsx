@@ -28,13 +28,14 @@ type Props = {
   onDispatch?: () => void;
   onSelectStop?: (id: string) => void;
   selectedStopId?: string | null;
+  selectedStopIds?: Set<string>;
 };
 
 export const EmployeeColumn = ({
   routeId, employeeId, label, subtitle, color, stops,
   totalKm, totalMin, routeStatus,
   optimizing, dispatching,
-  onOptimize, onDispatch, onSelectStop, selectedStopId,
+  onOptimize, onDispatch, onSelectStop, selectedStopId, selectedStopIds,
 }: Props) => {
   const { setNodeRef, isOver } = useDroppable({
     id: `col-${employeeId ?? "none"}`,
@@ -144,7 +145,7 @@ export const EmployeeColumn = ({
               stop={s}
               index={i + 1}
               color={color}
-              isSelected={selectedStopId === s.id}
+              isSelected={selectedStopId === s.id || !!selectedStopIds?.has(s.id)}
               onSelect={() => onSelectStop?.(s.id)}
             />
           ))}
