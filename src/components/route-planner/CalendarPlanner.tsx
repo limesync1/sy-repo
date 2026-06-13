@@ -152,7 +152,7 @@ const slotIndexToTimeLabel = (i: number): string => {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 };
 
-export const CalendarPlanner = ({ routeDate, columns, selectedStopId, onSelectStop }: Props) => {
+export const CalendarPlanner = ({ routeDate, columns, selectedStopId, onSelectStop, selectedStopIds }: Props) => {
   // Persistér zoom mellem sessioner
   const [zoom, setZoom] = useState<ZoomLevel>(() => {
     if (typeof window === "undefined") return "normal";
@@ -299,6 +299,7 @@ export const CalendarPlanner = ({ routeDate, columns, selectedStopId, onSelectSt
                 routeDate={routeDate}
                 selectedStopId={selectedStopId}
                 onSelectStop={onSelectStop}
+                selectedStopIds={selectedStopIds}
               />
             ))}
 
@@ -517,12 +518,13 @@ const ColumnHeader = ({ col }: { col: CalendarColumn }) => {
 };
 
 const CalendarColumnView = ({
-  col, routeDate, selectedStopId, onSelectStop,
+  col, routeDate, selectedStopId, onSelectStop, selectedStopIds,
 }: {
   col: CalendarColumn;
   routeDate: string;
   selectedStopId?: string | null;
   onSelectStop?: (id: string) => void;
+  selectedStopIds?: Set<string>;
 }) => {
   const isEmpty = col.stops.length === 0;
   const layouts = computeStopLayouts(col.stops);
@@ -554,7 +556,7 @@ const CalendarColumnView = ({
                 : col.color
             }
             attachedEmployees={col.attachedEmployees}
-            isSelected={selectedStopId === stop.id}
+            isSelected={selectedStopId === stop.id || !!selectedStopIds?.has(stop.id)}
             onSelect={() => onSelectStop?.(stop.id)}
             onAssign={col.onAssignStop}
             lane={layout.lane}
