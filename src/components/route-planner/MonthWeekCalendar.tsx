@@ -1094,6 +1094,7 @@ const DayCellInner = ({
                     ? (e) => onToggleRouteSelection(r.id, e)
                     : undefined}
                   hasSkillMismatch={!!mismatchedRouteIds?.has(r.id)}
+                  hasAssigneeConflict={!!conflictedRouteIds?.has(r.id)}
                 />
               ))}
               {overflow > 0 && (
