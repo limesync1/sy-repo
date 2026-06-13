@@ -418,6 +418,13 @@ const Planner = () => {
     bulkBusy,
     setBulkBusy,
     lastSelectedJobIdRef,
+    selectedStopIds,
+    toggleStopSelection,
+    clearStopSelection,
+    bulkStopBusy,
+    setBulkStopBusy,
+    bulkStopProgress,
+    setBulkStopProgress,
   } = plannerStore.selection;
   const {
     urgencyFilter,
