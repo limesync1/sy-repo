@@ -119,6 +119,10 @@ type Props = {
   /** Sæt af rute-ids hvor mindst én tildelt medarbejder mangler den
    *  færdighed et stop kræver. Vises som lille ⚠-ikon på rute-pillen. */
   mismatchedRouteIds?: Set<string>;
+  /** Sæt af rute-ids hvor en medarbejder har et tids-overlap med en
+   *  anden rute samme dag. Vises som rødt "Konflikt"-badge på pillen
+   *  så planlæggeren ser problemet uden at åbne ruten. */
+  conflictedRouteIds?: Set<string>;
 };
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
@@ -439,7 +443,7 @@ export const MonthWeekCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
   onCreateRoute, onOptimizeRoute, onDeleteRoute, onShowHistory, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
   loadingRoutes, loadingWeather, weatherError, busyTargets, dateAlerts,
-  selectedRouteIds, onToggleRouteSelection, capacityByDate, mismatchedRouteIds,
+  selectedRouteIds, onToggleRouteSelection, capacityByDate, mismatchedRouteIds, conflictedRouteIds,
 }: Props) => {
   const anchor = parseISO(anchorDate);
 
@@ -787,6 +791,7 @@ export const MonthWeekCalendar = ({
                     onToggleRouteSelection={onToggleRouteSelection}
                     capacity={capacityByDate?.get(dateStr) ?? null}
                     mismatchedRouteIds={mismatchedRouteIds}
+                    conflictedRouteIds={conflictedRouteIds}
                   />
                 );
               })}
@@ -848,13 +853,15 @@ type DayCellProps = {
   capacity?: { load_pct: number; minutes_booked: number; minutes_capacity: number } | null;
   /** Sæt af rute-ids der har skill-mismatch — videresendes til RoutePill. */
   mismatchedRouteIds?: Set<string>;
+  /** Sæt af rute-ids med medarbejder-tids-konflikt — videresendes til RoutePill. */
+  conflictedRouteIds?: Set<string>;
 };
 
 const DayCellInner = ({
   date, dateStr, routes, inMonth, today,
   onSelectRoute, onSelectStop, onCreateRoute, onOpenDayOverview, onOptimizeRoute, onDeleteRoute, onShowHistory, optimizingRouteId, compact, draggingType, draggingRouteId, weather,
   loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds, alert,
-  selectedRouteIds, onToggleRouteSelection, capacity, mismatchedRouteIds,
+  selectedRouteIds, onToggleRouteSelection, capacity, mismatchedRouteIds, conflictedRouteIds,
 }: DayCellProps) => {
   // Lokal toggle for "vis alle ruter" i en travl dag — i stedet for at
   // åbne hele dagens overblik bare for at se 1-2 ekstra piller.
@@ -1087,6 +1094,7 @@ const DayCellInner = ({
                     ? (e) => onToggleRouteSelection(r.id, e)
                     : undefined}
                   hasSkillMismatch={!!mismatchedRouteIds?.has(r.id)}
+                  hasAssigneeConflict={!!conflictedRouteIds?.has(r.id)}
                 />
               ))}
               {overflow > 0 && (
@@ -1190,7 +1198,8 @@ const DayCell = memo(DayCellInner, (prev, next) => {
     prev.onToggleRouteSelection === next.onToggleRouteSelection &&
     prev.capacity?.load_pct === next.capacity?.load_pct &&
     prev.capacity?.minutes_capacity === next.capacity?.minutes_capacity &&
-    prev.mismatchedRouteIds === next.mismatchedRouteIds
+    prev.mismatchedRouteIds === next.mismatchedRouteIds &&
+    prev.conflictedRouteIds === next.conflictedRouteIds
   );
 });
 
@@ -1224,11 +1233,14 @@ type RoutePillProps = {
   /** True hvis ruten har mindst én service hvor ingen tildelt medarbejder
    *  har den krævede færdighed. Vises som lille ⚠ ved siden af titlen. */
   hasSkillMismatch?: boolean;
+  /** True hvis en tildelt medarbejder på ruten har et tids-overlap med
+   *  en anden rute samme dag. Vises som rødt "Konflikt"-badge. */
+  hasAssigneeConflict?: boolean;
 };
 
 const RoutePillInner = ({
   route, onSelect, onSelectStop, onOptimize, onDelete, onShowHistory, optimizing, compact, jobDragActive, routeDragSourceId,
-  busy, isPast, selected, anySelected, onToggleSelect, hasSkillMismatch,
+  busy, isPast, selected, anySelected, onToggleSelect, hasSkillMismatch, hasAssigneeConflict,
 }: RoutePillProps) => {
   const isVirtual = !!route.isVirtual;
   // En "basis"-rute er en rigtig rute der fungerer som skabelon for en
@@ -1604,6 +1616,19 @@ const RoutePillInner = ({
                 {!compact && "Flyttet"}
               </span>
             )}
+            {!isVirtual && hasAssigneeConflict && (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-0.5 rounded-[3px] bg-destructive/15 text-destructive ring-1 ring-inset ring-destructive/30 text-[9px] font-bold uppercase tracking-[0.06em] shrink-0",
+                  compact ? "px-1 py-px" : "px-1.5 py-px",
+                )}
+                title="Konflikt: en tildelt medarbejder er booket til to ting samtidig samme dag"
+                aria-label="Medarbejder-konflikt"
+              >
+                <AlertTriangle className="h-2 w-2" />
+                {!compact && "Konflikt"}
+              </span>
+            )}
             <span className={cn("truncate", isVirtual && "italic text-muted-foreground")}>
               {route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}
             </span>
@@ -1890,6 +1915,7 @@ const RoutePill = memo(RoutePillInner, (prev, next) => {
     prev.selected === next.selected &&
     prev.anySelected === next.anySelected &&
     prev.onToggleSelect === next.onToggleSelect &&
-    prev.hasSkillMismatch === next.hasSkillMismatch
+    prev.hasSkillMismatch === next.hasSkillMismatch &&
+    prev.hasAssigneeConflict === next.hasAssigneeConflict
   );
 });

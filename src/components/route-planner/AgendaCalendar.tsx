@@ -5,7 +5,7 @@
 // `route-drop:<id>`) så al planlægger-logikken i RoutePlanner virker uændret.
 
 import { useDroppable, useDraggable } from "@dnd-kit/core";
-import { Loader2, Sparkles, Plus, MapPin, ArrowDown, Repeat, ChevronDown, Inbox, Lock, GitMerge, ArrowRightLeft } from "lucide-react";
+import { Loader2, Sparkles, Plus, MapPin, ArrowDown, Repeat, ChevronDown, Inbox, Lock, GitMerge, ArrowRightLeft, AlertTriangle } from "lucide-react";
 import { CloudOff } from "lucide-react";
 import {
   format, parseISO, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
@@ -50,6 +50,8 @@ type Props = {
   weatherError?: boolean;
   busyTargets?: Set<string>;
   capacityByDate?: Map<string, { load_pct: number; minutes_booked: number; minutes_capacity: number }>;
+  /** Sæt af rute-ids med medarbejder-tids-konflikt — vises som rødt badge. */
+  conflictedRouteIds?: Set<string>;
 };
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
@@ -57,7 +59,7 @@ const ymd = (d: Date) => format(d, "yyyy-MM-dd");
 export const AgendaCalendar = ({
   view, anchorDate, routes, onSelectRoute, onSelectStop,
   onCreateRoute, onOptimizeRoute, onDeleteRoute, onShowHistory, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
-  loadingRoutes, loadingWeather, weatherError, busyTargets, capacityByDate,
+  loadingRoutes, loadingWeather, weatherError, busyTargets, capacityByDate, conflictedRouteIds,
 }: Props) => {
   const anchor = parseISO(anchorDate);
   const todayIso = format(new Date(), "yyyy-MM-dd");
@@ -153,6 +155,7 @@ export const AgendaCalendar = ({
                   busy={!!busyTargets?.has(`day:${dateStr}`)}
                   busyRouteIds={busyTargets}
                   capacity={capacityByDate?.get(dateStr) ?? null}
+                  conflictedRouteIds={conflictedRouteIds}
                 />
               );
             })}
@@ -191,12 +194,13 @@ type DayRowProps = {
   busy?: boolean;
   busyRouteIds?: Set<string>;
   capacity?: { load_pct: number; minutes_booked: number; minutes_capacity: number } | null;
+  conflictedRouteIds?: Set<string>;
 };
 
 const DayRowInner = ({
   date, dateStr, todayIso, routes,
   onSelectRoute, onSelectStop, onCreateRoute, onOptimizeRoute, onDeleteRoute, onShowHistory, optimizingRouteId,
-  draggingType, draggingRouteId, weather, loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds, capacity,
+  draggingType, draggingRouteId, weather, loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds, capacity, conflictedRouteIds,
 }: DayRowProps) => {
   const isPast = dateStr < todayIso;
   const today = isToday(date);
@@ -319,6 +323,7 @@ const DayRowInner = ({
             routeDragSourceId={draggingType === "route" ? (draggingRouteId ?? null) : null}
             busy={!!busyRouteIds?.has(`route:${r.id}`)}
             isPast={isPast}
+            hasAssigneeConflict={!!conflictedRouteIds?.has(r.id)}
           />
         ))}
 
@@ -387,9 +392,10 @@ type AgendaRoutePillProps = {
   routeDragSourceId?: string | null;
   busy?: boolean;
   isPast?: boolean;
+  hasAssigneeConflict?: boolean;
 };
 
-const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHistory, optimizing, jobDragActive, routeDragSourceId, busy, isPast }: AgendaRoutePillProps) => {
+const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHistory, optimizing, jobDragActive, routeDragSourceId, busy, isPast, hasAssigneeConflict }: AgendaRoutePillProps) => {
   const isVirtual = !!route.isVirtual;
   const isMergeTarget = !!routeDragSourceId && routeDragSourceId !== route.id && !isVirtual && !isPast && !busy;
   const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({
@@ -505,6 +511,16 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
             >
               <ArrowRightLeft className="h-2 w-2" />
               Flyttet
+            </span>
+          )}
+          {!isVirtual && hasAssigneeConflict && (
+            <span
+              className="inline-flex items-center gap-0.5 rounded-sm bg-destructive/15 text-destructive px-1 py-px text-[9px] font-bold uppercase tracking-wide shrink-0"
+              title="Konflikt: en tildelt medarbejder er booket til to ting samtidig samme dag"
+              aria-label="Medarbejder-konflikt"
+            >
+              <AlertTriangle className="h-2 w-2" />
+              Konflikt
             </span>
           )}
           <span className="truncate">{route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}</span>

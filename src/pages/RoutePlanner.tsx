@@ -116,6 +116,7 @@ import DragEtaOverlay, { setDragEta, clearDragEta } from "@/components/route-pla
 import { SimulationPreviewOverlay } from "@/components/route-planner/SimulationPreviewOverlay";
 import { haversineMeters } from "@/lib/geo-distance";
 import { validateStopAssignment, validateRouteMove } from "@/lib/route-validation";
+import { detectConflicts } from "@/lib/route-conflicts";
 import { cn } from "@/lib/utils";
 import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 import { Monitor, MousePointer2, Map as MapIcon, LayoutGrid, ArrowLeft, Copy, Check, Rows3, MoreHorizontal, Layers } from "lucide-react";
@@ -591,6 +592,7 @@ const Planner = () => {
     () => new Set(skillMismatchRows.map((r) => r.route_id)),
     [skillMismatchRows],
   );
+
 
   // Vejrudsigt — bruger gennemsnit af stop-koordinater i det viste interval,
   // ellers Danmarks centrum. Open-Meteo kan levere op til 16 dage frem.
@@ -1502,6 +1504,37 @@ const Planner = () => {
     },
     [calendarRoutes, virtualCalendarRoutes, filtersActive, routeOccurrenceExceptions],
   );
+
+  // Konflikt-detektion: ruter hvis stops har en medarbejder der er booket
+  // til to ting samtidig på samme dato. Vi markerer KUN egentlige tids-
+  // overlap som badge i kalenderen — "samme dag uden tids-overlap" er ofte
+  // legitimt teamwork og ville støje for meget. Tærsklen matcher den
+  // dybere konflikt-warning der vises ved drop/medarbejder-skift.
+  const conflictedRouteIds = useMemo(() => {
+    const routeDateById = new Map<string, string>();
+    for (const r of calendarRoutes) routeDateById.set(r.id, r.route_date);
+    const input = calendarStops
+      .filter((s: any) => s.route_id && routeDateById.has(s.route_id))
+      .map((s: any) => ({
+        id: s.id,
+        route_id: s.route_id,
+        route_date: routeDateById.get(s.route_id)!,
+        employee_ids: Array.from(new Set([
+          ...(Array.isArray(s.assignee_ids) ? s.assignee_ids : []),
+          ...(s.assigned_employee_id ? [s.assigned_employee_id] : []),
+        ].filter(Boolean))),
+        start_time: s.time_window_start ?? null,
+        end_time: s.time_window_end ?? null,
+        label: s.customer_name ?? null,
+      }));
+    const conflicts = detectConflicts(input);
+    const out = new Set<string>();
+    for (const c of conflicts) {
+      if (!c.overlapsTime) continue;
+      for (const s of c.stops) out.add(s.route_id);
+    }
+    return out;
+  }, [calendarRoutes, calendarStops]);
 
   // Sæt af datoer der har mindst én rute (inkl. projicerede). Bruges af alle
   // dato-popovers så brugeren kan se hvor der allerede ligger ruter.
@@ -3882,6 +3915,7 @@ const Planner = () => {
                   onToggleRouteSelection={(id) => toggleRouteSelection(id)}
                   capacityByDate={capacityByDate}
                   mismatchedRouteIds={mismatchedRouteIds}
+                  conflictedRouteIds={conflictedRouteIds}
                 />
                 </div>
                 </div>
@@ -3929,6 +3963,7 @@ const Planner = () => {
                   weatherError={weatherError}
                   busyTargets={busyTargets}
                   capacityByDate={capacityByDate}
+                  conflictedRouteIds={conflictedRouteIds}
                 />
               </div>
             </div>
