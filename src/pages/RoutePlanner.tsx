@@ -3963,6 +3963,7 @@ const Planner = () => {
                   weatherError={weatherError}
                   busyTargets={busyTargets}
                   capacityByDate={capacityByDate}
+                  conflictedRouteIds={conflictedRouteIds}
                 />
               </div>
             </div>
