@@ -868,6 +868,7 @@ const DayCellInner = ({
   onSelectRoute, onSelectStop, onCreateRoute, onOpenDayOverview, onOptimizeRoute, onDeleteRoute, onShowHistory, optimizingRouteId, compact, draggingType, draggingRouteId, weather,
   loadingRoutes, loadingWeather, weatherError, busy, busyRouteIds, alert,
   selectedRouteIds, onToggleRouteSelection, capacity, mismatchedRouteIds, conflictedRouteIds,
+  selectedStopIds,
 }: DayCellProps) => {
   // Lokal toggle for "vis alle ruter" i en travl dag — i stedet for at
   // åbne hele dagens overblik bare for at se 1-2 ekstra piller.
