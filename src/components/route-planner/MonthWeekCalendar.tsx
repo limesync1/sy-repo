@@ -446,6 +446,7 @@ export const MonthWeekCalendar = ({
   onCreateRoute, onOptimizeRoute, onDeleteRoute, onShowHistory, optimizingRouteId, draggingType, draggingRouteId, weatherByDate,
   loadingRoutes, loadingWeather, weatherError, busyTargets, dateAlerts,
   selectedRouteIds, onToggleRouteSelection, capacityByDate, mismatchedRouteIds, conflictedRouteIds,
+  selectedStopIds,
 }: Props) => {
   const anchor = parseISO(anchorDate);
 
