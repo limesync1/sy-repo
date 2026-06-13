@@ -592,35 +592,6 @@ const Planner = () => {
     [skillMismatchRows],
   );
 
-  // Konflikt-detektion: routes der har stops hvor en medarbejder er booket
-  // til to ting samtidig på samme dato. Vi viser KUN egentlige tids-
-  // overlap som badge i kalenderen — "samme dag, ingen tids-overlap" er
-  // ofte legitimt teamwork og ville støje for meget.
-  const conflictedRouteIds = useMemo(() => {
-    const routeDateById = new Map<string, string>();
-    for (const r of calendarRoutes) routeDateById.set(r.id, r.route_date);
-    const input = calendarStops
-      .filter((s: any) => s.route_id && routeDateById.has(s.route_id))
-      .map((s: any) => ({
-        id: s.id,
-        route_id: s.route_id,
-        route_date: routeDateById.get(s.route_id)!,
-        employee_ids: Array.from(new Set([
-          ...(Array.isArray(s.assignee_ids) ? s.assignee_ids : []),
-          ...(s.assigned_employee_id ? [s.assigned_employee_id] : []),
-        ].filter(Boolean))),
-        start_time: s.time_window_start ?? null,
-        end_time: s.time_window_end ?? null,
-        label: s.customer_name ?? null,
-      }));
-    const conflicts = detectConflicts(input);
-    const out = new Set<string>();
-    for (const c of conflicts) {
-      if (!c.overlapsTime) continue;
-      for (const s of c.stops) out.add(s.route_id);
-    }
-    return out;
-  }, [calendarRoutes, calendarStops]);
 
   // Vejrudsigt — bruger gennemsnit af stop-koordinater i det viste interval,
   // ellers Danmarks centrum. Open-Meteo kan levere op til 16 dage frem.
