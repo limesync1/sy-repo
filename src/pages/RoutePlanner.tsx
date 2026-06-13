@@ -3998,6 +3998,7 @@ const Planner = () => {
                       } : undefined}
                       onCancel={runBulkCancel}
                       onShiftDate={() => setBulkShiftOpen(true)}
+                      onAddToRoute={() => setBulkAddToRouteOpen(true)}
                       busy={bulkBusy}
                     />
                   </div>
