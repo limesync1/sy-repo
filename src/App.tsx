@@ -88,6 +88,7 @@ const BusinessOnboarding     = lazyRoute("/opret-virksomhed", () => import("./co
 const PrivacyPolicy          = lazyRoute("privacy", () => import("./pages/legal/PrivacyPolicy"));
 const Terms                  = lazyRoute("terms", () => import("./pages/legal/Terms"));
 const Cookies                = lazyRoute("cookies", () => import("./pages/legal/Cookies"));
+const CleaningPriceGuide     = lazyRoute("/priser/rengoering", () => import("./pages/guides/CleaningPriceGuide"));
 const VisualTestPlanner      = lazyRoute("visual-test-planner", () => import("./pages/VisualTestPlanner"));
 const VisualTestLivechat     = lazyRoute("visual-test-livechat", () => import("./pages/VisualTestLivechat"));
 
@@ -243,6 +244,9 @@ const App = () => (
               <Route path="/privatlivspolitik" element={<PrivacyPolicy />} />
               <Route path="/vilkaar" element={<Terms />} />
               <Route path="/cookies" element={<Cookies />} />
+
+              {/* ── Prisguides (SEO landing pages) ── */}
+              <Route path="/priser/rengoering" element={<CleaningPriceGuide />} />
 
               {/* ── Visual regression fixture (e2e only, ingen auth) ── */}
               <Route path="/__visual/planner" element={<VisualTestPlanner />} />
