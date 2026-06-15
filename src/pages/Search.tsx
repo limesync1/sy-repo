@@ -79,7 +79,7 @@ const BusinessCard = ({
           {biz.cover_image_url ? (
             <img
               src={biz.cover_image_url}
-              alt={biz.name}
+              alt={`${biz.name}${biz.city ? ` i ${biz.city}` : ""}${primaryCat ? ` – ${primaryCat}` : " – serviceydere"}`}
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
               loading="lazy"
             />
@@ -105,7 +105,7 @@ const BusinessCard = ({
           <div className="absolute -bottom-5 left-4 z-10 h-14 w-14 overflow-hidden rounded-xl border-2 border-card bg-card shadow-md flex items-center justify-center">
             <img
               src={biz.logo_url}
-              alt=""
+              alt={`${biz.name} logo`}
               className="max-h-[85%] max-w-[85%] object-contain"
               loading="lazy"
               decoding="async"
