@@ -21,6 +21,8 @@ const entries: SitemapEntry[] = [
   { path: "/cookies", changefreq: "yearly", priority: "0.3" },
   { path: "/privatlivspolitik", changefreq: "yearly", priority: "0.3" },
   { path: "/vilkaar", changefreq: "yearly", priority: "0.3" },
+  // Prisguides — SEO landing pages for høj-volume søgninger.
+  { path: "/priser/rengoering", changefreq: "monthly", priority: "0.8" },
 ];
 
 // Med vilje udeladt fra sitemap: /reset-password, /admin, /virksomhed,
