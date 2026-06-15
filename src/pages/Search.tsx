@@ -414,7 +414,13 @@ const SearchPage = () => {
         </div>
 
         {/* Results — list or map */}
-        <h2 className="sr-only">Søgeresultater</h2>
+        <h2 className="mb-4 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+          {selectedCategory
+            ? `${selectedCategory} i ${location.city || "Danmark"}`
+            : debouncedQuery
+              ? `Søgeresultater for "${debouncedQuery}"`
+              : "Alle serviceydere"}
+        </h2>
         {isLoading ? (
           <CardGridSkeleton count={8} />
         ) : rankedBusinesses && rankedBusinesses.length > 0 ? (
