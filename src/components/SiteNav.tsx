@@ -136,7 +136,7 @@ const SiteNav = ({ active, right }: Props) => {
           <Link to="/" className="flex shrink-0 items-center" aria-label="Serviceydere forside">
             <img
               src="/serviceydere-logo-dark.webp"
-              alt="Serviceydere"
+            alt="Serviceydere – find og book lokale serviceydere i Danmark"
               className="h-9 sm:h-10 md:h-12 w-auto"
               width={1920}
               height={539}

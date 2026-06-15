@@ -9,7 +9,7 @@ Serviceydere.dk forbinder kunder med lokale udbydere i hele Danmark. Kunder kan 
 - [Forside](/): Find og book lokale serviceydere i Danmark.
 - [Find virksomheder](/virksomheder): Søg og filtrér verificerede serviceydere efter kategori og by.
 - [Få tilbud](/tilbud): Beskriv din opgave og modtag op til 3 gratis tilbud fra relevante udbydere.
-- [Log ind](/log-ind): Login for kunder, virksomheder og medarbejdere.
+- [Opret virksomhed](/opret-virksomhed): Få din virksomhed på Serviceydere.
 
 ## Kategorier
 
@@ -27,5 +27,5 @@ Serviceydere.dk forbinder kunder med lokale udbydere i hele Danmark. Kunder kan 
 
 - [Cookies](/cookies): Cookiepolitik.
 - [Privatlivspolitik](/privatlivspolitik): Hvordan vi behandler persondata.
-- [Handelsbetingelser](/handelsbetingelser): Vilkår for brug af platformen.
+- [Vilkår](/vilkaar): Handelsbetingelser og vilkår for brug af platformen.
 - [Sitemap](/sitemap.xml): XML-sitemap over alle offentlige sider.
