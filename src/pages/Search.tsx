@@ -414,6 +414,7 @@ const SearchPage = () => {
         </div>
 
         {/* Results — list or map */}
+        <h2 className="sr-only">Søgeresultater</h2>
         {isLoading ? (
           <CardGridSkeleton count={8} />
         ) : rankedBusinesses && rankedBusinesses.length > 0 ? (
