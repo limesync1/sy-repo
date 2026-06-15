@@ -494,7 +494,10 @@ const RequestQuote = () => {
           </form>
 
           {/* How it works strip */}
-          <div className="mt-8 grid gap-3 sm:mt-12 sm:gap-5 sm:grid-cols-3">
+          <h2 className="mt-12 text-center text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+            Sådan fungerer det
+          </h2>
+          <div className="mt-6 grid gap-3 sm:gap-5 sm:grid-cols-3">
             {[
               { n: 1, title: "Beskriv opgaven", text: "Vælg kategori og fortæl kort, hvad du har brug for." },
               { n: 2, title: "AI matcher", text: "Vores AI finder de bedste 3 udbydere på sekunder." },
