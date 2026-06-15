@@ -89,6 +89,7 @@ const PrivacyPolicy          = lazyRoute("privacy", () => import("./pages/legal/
 const Terms                  = lazyRoute("terms", () => import("./pages/legal/Terms"));
 const Cookies                = lazyRoute("cookies", () => import("./pages/legal/Cookies"));
 const CleaningPriceGuide     = lazyRoute("/priser/rengoering", () => import("./pages/guides/CleaningPriceGuide"));
+const MovingPriceGuide       = lazyRoute("/priser/flyttehjaelp", () => import("./pages/guides/MovingPriceGuide"));
 const VisualTestPlanner      = lazyRoute("visual-test-planner", () => import("./pages/VisualTestPlanner"));
 const VisualTestLivechat     = lazyRoute("visual-test-livechat", () => import("./pages/VisualTestLivechat"));
 
@@ -247,6 +248,7 @@ const App = () => (
 
               {/* ── Prisguides (SEO landing pages) ── */}
               <Route path="/priser/rengoering" element={<CleaningPriceGuide />} />
+              <Route path="/priser/flyttehjaelp" element={<MovingPriceGuide />} />
 
               {/* ── Visual regression fixture (e2e only, ingen auth) ── */}
               <Route path="/__visual/planner" element={<VisualTestPlanner />} />
