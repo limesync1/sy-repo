@@ -17,7 +17,7 @@ const entries: SitemapEntry[] = [
   { path: "/", changefreq: "daily", priority: "1.0" },
   { path: "/virksomheder", changefreq: "daily", priority: "0.9" },
   { path: "/tilbud", changefreq: "weekly", priority: "0.9" },
-  { path: "/log-ind", changefreq: "monthly", priority: "0.3" },
+  { path: "/opret-virksomhed", changefreq: "monthly", priority: "0.7" },
   { path: "/cookies", changefreq: "yearly", priority: "0.3" },
   { path: "/privatlivspolitik", changefreq: "yearly", priority: "0.3" },
   { path: "/vilkaar", changefreq: "yearly", priority: "0.3" },

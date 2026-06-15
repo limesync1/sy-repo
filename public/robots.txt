@@ -9,6 +9,7 @@ Disallow: /log-ind
 Disallow: /reset-password
 Disallow: /afmeld
 Disallow: /godkend-bestilling
+Disallow: /min-konto
 # Legacy redirect-stier
 Disallow: /auth
 Disallow: /dashboard
