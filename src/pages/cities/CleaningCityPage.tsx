@@ -2,6 +2,8 @@ import { lazy, Suspense } from "react";
 import { Link, useParams, Navigate } from "react-router-dom";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
+import TrustBar from "@/components/conversion/TrustBar";
+import InlineQuoteTeaser from "@/components/conversion/InlineQuoteTeaser";
 import { findCity } from "./cleaningCityData";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
@@ -128,6 +130,12 @@ const CleaningCityPage = () => {
               <li>• Befolkning: <strong>~{city.population}</strong></li>
             </ul>
           </div>
+
+          <TrustBar />
+          <InlineQuoteTeaser
+            category="Rengøring"
+            heading={`Få 3 gratis tilbud på rengøring i ${city.name}`}
+          />
 
           <h2>Rengøringsmarkedet i {city.name}</h2>
           <p>{city.intro}</p>

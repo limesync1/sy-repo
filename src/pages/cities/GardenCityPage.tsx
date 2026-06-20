@@ -2,6 +2,8 @@ import { lazy, Suspense } from "react";
 import { Link, useParams, Navigate } from "react-router-dom";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
+import TrustBar from "@/components/conversion/TrustBar";
+import InlineQuoteTeaser from "@/components/conversion/InlineQuoteTeaser";
 import { findGardenCity, GARDEN_CITIES } from "./gardenCityData";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
@@ -89,6 +91,12 @@ const GardenCityPage = () => {
               <li>• Postnumre: <strong>{city.postalRange}</strong></li>
             </ul>
           </div>
+
+          <TrustBar />
+          <InlineQuoteTeaser
+            category="Haveservice"
+            heading={`Få 3 gratis tilbud på haveservice i ${city.name}`}
+          />
 
           <h2>Havemarkedet i {city.name}</h2>
           <p>{city.intro}</p>

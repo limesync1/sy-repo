@@ -2,6 +2,8 @@ import { lazy, Suspense } from "react";
 import { Link, useParams, Navigate } from "react-router-dom";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
+import TrustBar from "@/components/conversion/TrustBar";
+import InlineQuoteTeaser from "@/components/conversion/InlineQuoteTeaser";
 import { findMovingCity, MOVING_CITIES } from "./movingCityData";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
@@ -94,6 +96,12 @@ const MovingCityPage = () => {
               <li>• Dækker postnumre: <strong>{city.postalRange}</strong></li>
             </ul>
           </div>
+
+          <TrustBar />
+          <InlineQuoteTeaser
+            category="Flyttehjælp"
+            heading={`Få 3 gratis tilbud på flyttehjælp i ${city.name}`}
+          />
 
           <h2>Flyttemarkedet i {city.name}</h2>
           <p>{city.intro}</p>
