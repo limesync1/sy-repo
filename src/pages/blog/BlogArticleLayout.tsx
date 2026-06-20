@@ -19,7 +19,7 @@ const BlogArticleLayout = ({ post, keywords, faq, children }: Props) => {
   const canonical = `/blog/${post.slug}`;
   const fullUrl = `https://serviceydere.dk${canonical}`;
 
-  const jsonLd: object[] = [
+  const jsonLd: Record<string, unknown>[] = [
     {
       "@context": "https://schema.org",
       "@type": "Article",
