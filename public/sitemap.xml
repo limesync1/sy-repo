@@ -126,6 +126,51 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://serviceydere.dk/haandvaerker/koebenhavn</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/haandvaerker/aarhus</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/haandvaerker/odense</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/haandvaerker/aalborg</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/haandvaerker/esbjerg</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/saadan-vaelger-du-rengoeringsfirma</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/tjekliste-til-flyttedag</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/boligjob-fradrag-2026</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
     <loc>https://serviceydere.dk/virksomheder?category=Reng%C3%B8ring</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
