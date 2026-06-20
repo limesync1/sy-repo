@@ -488,11 +488,18 @@ const BusinessOnboarding = () => {
                            : "border-border bg-card hover:border-foreground/20"
                        }`}
                     >
-                      {discount > 0 && (
-                        <span className="absolute -top-2 right-3 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-foreground">
-                          -{discount}%
-                        </span>
-                      )}
+                      <div className="absolute -top-2 right-3 flex gap-1.5">
+                        {opt.value === "yearly" && (
+                          <span className="rounded-full bg-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-background shadow-sm">
+                            Anbefalet
+                          </span>
+                        )}
+                        {discount > 0 && (
+                          <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-foreground shadow-sm">
+                            −{discount}%
+                          </span>
+                        )}
+                      </div>
                       <p className="text-sm font-semibold text-foreground">{opt.label}</p>
                       <p className="mt-1 text-xs text-muted-foreground">{opt.sub}</p>
                     </button>
@@ -670,6 +677,10 @@ const BusinessOnboarding = () => {
           shortcut til "Start gratis prøve" eller scroll-til-konto. */}
       {pricing && breakdown && (
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-4 py-3 shadow-[0_-12px_30px_-18px_rgba(0,0,0,0.25)] backdrop-blur lg:hidden">
+          <div
+            aria-hidden
+            className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-accent via-foreground to-accent"
+          />
           <div className="mx-auto flex max-w-3xl items-center gap-3">
             <div className="min-w-0 flex-1">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -683,7 +694,7 @@ const BusinessOnboarding = () => {
             <Button
               onClick={handleSubmit}
               disabled={!canSubmit || submitting}
-              className="h-11 shrink-0 gap-2 rounded-full bg-foreground px-5 text-sm font-semibold text-background hover:bg-foreground/90"
+              className="h-11 shrink-0 gap-2 rounded-full bg-gradient-to-r from-foreground to-foreground/85 px-5 text-sm font-semibold text-background shadow-md transition-all hover:from-foreground hover:to-foreground hover:shadow-lg active:scale-[0.98]"
             >
               {submitting ? (
                 <><Loader2 className="h-4 w-4 animate-spin" /> Opretter…</>
