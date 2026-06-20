@@ -32,6 +32,7 @@ const Footer = () => {
               <li><Link to="/virksomheder" className="transition-colors hover:text-background">Find services</Link></li>
               <li><Link to="/tilbud" className="transition-colors hover:text-background">Indhent tilbud</Link></li>
               <li><Link to="/virksomheder" className="transition-colors hover:text-background">Kategorier</Link></li>
+              <li><Link to="/guides" className="transition-colors hover:text-background">Guides &amp; priser</Link></li>
             </ul>
           </div>
           <div>
