@@ -97,6 +97,12 @@ const MovingCityPage = () => {
             </ul>
           </div>
 
+          <TrustBar />
+          <InlineQuoteTeaser
+            category="Flyttehjælp"
+            heading={`Få 3 gratis tilbud på flyttehjælp i ${city.name}`}
+          />
+
           <h2>Flyttemarkedet i {city.name}</h2>
           <p>{city.intro}</p>
           <p>{city.localFactor}</p>

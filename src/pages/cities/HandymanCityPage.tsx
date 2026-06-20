@@ -98,6 +98,12 @@ const HandymanCityPage = () => {
             </ul>
           </div>
 
+          <TrustBar />
+          <InlineQuoteTeaser
+            category="Håndværker"
+            heading={`Få 3 gratis tilbud fra håndværkere i ${city.name}`}
+          />
+
           <h2>Håndværker-markedet i {city.name}</h2>
           <p>{city.intro}</p>
           <p>{city.localFactor}</p>
