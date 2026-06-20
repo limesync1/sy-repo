@@ -318,7 +318,7 @@ const BusinessOnboarding = () => {
           {/* ─── VENSTRE: form-sektioner ─── */}
           <div className="space-y-6">
             {/* 1. CVR */}
-            <Section number={1} title="Find din virksomhed" subtitle="Indtast CVR — vi udfylder resten">
+            <Section number={1} title="Find din virksomhed" subtitle="Indtast CVR — vi udfylder resten" done={!!cvrData}>
               <div className="flex flex-col gap-3 sm:flex-row">
                 <div className="relative flex-1">
                   <Building2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -704,14 +704,24 @@ const BusinessOnboarding = () => {
 
 /* ─────────── Sub-component: nummereret sektionscard ─────────── */
 const Section = ({
-  number, title, subtitle, children,
+  number, title, subtitle, children, done,
 }: {
-  number: number; title: string; subtitle?: string; children: React.ReactNode;
+  number: number; title: string; subtitle?: string; children: React.ReactNode; done?: boolean;
 }) => (
-  <section className="group rounded-2xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md sm:p-6">
+  <section
+    className={`group relative rounded-2xl border bg-card p-5 shadow-sm transition-all hover:shadow-md sm:p-6 ${
+      done ? "border-accent/40" : "border-border"
+    }`}
+  >
     <div className="flex items-baseline gap-3">
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-foreground to-foreground/80 text-xs font-semibold text-background shadow-sm ring-2 ring-background">
-        {number}
+      <span
+        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold shadow-sm ring-2 ring-background transition-all ${
+          done
+            ? "bg-gradient-to-br from-accent to-accent/80 text-accent-foreground"
+            : "bg-gradient-to-br from-foreground to-foreground/80 text-background"
+        }`}
+      >
+        {done ? <Check className="h-3.5 w-3.5" /> : number}
       </span>
       <div className="min-w-0">
         <h2 className="text-base font-semibold text-foreground sm:text-lg">{title}</h2>
