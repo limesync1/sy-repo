@@ -5,6 +5,7 @@ import SiteNav from "@/components/SiteNav";
 import { CITIES } from "./cities/cleaningCityData";
 import { MOVING_CITIES } from "./cities/movingCityData";
 import { HANDYMAN_CITIES } from "./cities/handymanCityData";
+import { GARDEN_CITIES } from "./cities/gardenCityData";
 import { BLOG_POSTS } from "./blog/blogPosts";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
@@ -49,6 +50,18 @@ const GUIDES = [
     href: "/priser/vvs",
     title: "VVS pris 2026 — udkald & timepris",
     desc: "Timepris, akutudkald og typiske opgaver fra dryppende vandhane til varmepumpe.",
+    tag: "Prisguide",
+  },
+  {
+    href: "/priser/haveservice",
+    title: "Haveservice priser 2026",
+    desc: "Timepris, abonnement, græsslåning og hækklipning — inkl. BoligJob-fradraget.",
+    tag: "Prisguide",
+  },
+  {
+    href: "/priser/elektriker",
+    title: "Elektriker pris 2026",
+    desc: "Timepris, udkald, ladestander og typiske el-opgaver fra HFI til ny gruppe.",
     tag: "Prisguide",
   },
   {
@@ -105,9 +118,15 @@ const GuidesIndex = () => {
           url: `https://serviceydere.dk/haandvaerker/${c.slug}`,
           name: `Håndværker i ${c.name}`,
         })),
-        ...BLOG_POSTS.map((p, i) => ({
+        ...GARDEN_CITIES.map((c, i) => ({
           "@type": "ListItem",
           position: GUIDES.length + CITIES.length + MOVING_CITIES.length + HANDYMAN_CITIES.length + i + 1,
+          url: `https://serviceydere.dk/haveservice/${c.slug}`,
+          name: `Haveservice i ${c.name}`,
+        })),
+        ...BLOG_POSTS.map((p, i) => ({
+          "@type": "ListItem",
+          position: GUIDES.length + CITIES.length + MOVING_CITIES.length + HANDYMAN_CITIES.length + GARDEN_CITIES.length + i + 1,
           url: `https://serviceydere.dk/blog/${p.slug}`,
           name: p.title,
         })),
@@ -244,6 +263,34 @@ const GuidesIndex = () => {
                 </span>
                 <h3 className="text-lg font-semibold text-foreground group-hover:underline">
                   Håndværker i {c.name}
+                </h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Fra {c.hourlyLow} kr./time · {c.postalRange}
+                </p>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section aria-labelledby="garden-heading" className="mt-14">
+          <h2 id="garden-heading" className="mb-4 text-2xl font-semibold text-foreground">
+            Haveservice efter by
+          </h2>
+          <p className="mb-4 text-sm text-muted-foreground">
+            Lokale priser på græsslåning, hækklipning og fast havepasning.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {GARDEN_CITIES.map((c) => (
+              <Link
+                key={c.slug}
+                to={`/haveservice/${c.slug}`}
+                className="group flex flex-col rounded-xl border border-border bg-card p-5 transition hover:border-foreground/40 hover:shadow-sm"
+              >
+                <span className="mb-2 inline-flex w-fit rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                  {c.region}
+                </span>
+                <h3 className="text-lg font-semibold text-foreground group-hover:underline">
+                  Haveservice i {c.name}
                 </h3>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Fra {c.hourlyLow} kr./time · {c.postalRange}
