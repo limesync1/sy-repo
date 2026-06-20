@@ -15,6 +15,7 @@ import Footer from "@/components/landing/Footer";
 import SEO from "@/components/SEO";
 import PageHero from "@/components/landing/PageHero";
 import { translateAuthError } from "@/lib/auth-errors";
+import AnimatedNumber from "@/components/admin/AnimatedNumber";
 
 /* ──────────────────────────────────────────────────────────────────────────
  * BusinessOnboarding — én side, ingen trin.
@@ -328,7 +329,7 @@ const BusinessOnboarding = () => {
               )}
 
               {cvrData && (
-                <div className="mt-4 rounded-xl border border-accent/30 bg-accent/5 p-4">
+                <div className="mt-4 rounded-xl border border-accent/30 bg-gradient-to-br from-accent/10 to-accent/5 p-4 animate-fade-in">
                   <div className="flex items-start gap-3">
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
                       <Check className="h-5 w-5" />
@@ -516,24 +517,38 @@ const BusinessOnboarding = () => {
 
           {/* ─── HØJRE: Sticky pris-summary ─── */}
           <aside className="lg:sticky lg:top-6 lg:self-start">
-            <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                Din pakke
-              </p>
-              <h3 className="mt-1 text-lg font-semibold text-foreground">Oversigt</h3>
+            <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-sm">
+              {/* Dekorativ baggrundsglow — gør kortet mere levende uden at forstyrre */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-accent/10 blur-3xl"
+              />
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -bottom-20 -left-10 h-40 w-40 rounded-full bg-foreground/5 blur-3xl"
+              />
+              <div className="relative">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-3.5 w-3.5 text-accent" />
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Din pakke
+                  </p>
+                </div>
+                <h3 className="mt-1 text-lg font-semibold text-foreground">Oversigt</h3>
+              </div>
 
               {!pricing ? (
                 <div className="mt-6 flex items-center gap-2 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" /> Indlæser priser…
                 </div>
               ) : breakdown && (
-                <>
+                <div className="relative">
                   <ul className="mt-5 space-y-2 border-b border-border pb-4">
                     {breakdown.lines.map((l) => (
-                      <li key={l.label} className="flex items-baseline justify-between gap-3 text-sm">
+                      <li key={l.label} className="flex items-baseline justify-between gap-3 text-sm animate-fade-in">
                         <span className="text-muted-foreground">{l.label}</span>
                         <span className="shrink-0 font-medium text-foreground tabular-nums">
-                          {formatDkk(l.amount)} kr
+                          <AnimatedNumber value={l.amount} /> kr
                         </span>
                       </li>
                     ))}
@@ -542,30 +557,36 @@ const BusinessOnboarding = () => {
                   <div className="mt-4 space-y-2 text-sm">
                     <div className="flex items-baseline justify-between text-muted-foreground">
                       <span>Pris per måned</span>
-                      <span className="tabular-nums">{formatDkk(breakdown.monthlySubtotal)} kr</span>
+                      <span className="tabular-nums">
+                        <AnimatedNumber value={breakdown.monthlySubtotal} /> kr
+                      </span>
                     </div>
                     {breakdown.discountPct > 0 && (
-                      <div className="flex items-baseline justify-between text-accent">
+                      <div className="flex items-baseline justify-between text-accent animate-fade-in">
                         <span>Rabat ({breakdown.discountPct}%)</span>
                         <span className="tabular-nums">
-                          −{formatDkk(breakdown.monthlySubtotal - breakdown.monthlyAfterDiscount)} kr/md
+                          −<AnimatedNumber value={breakdown.monthlySubtotal - breakdown.monthlyAfterDiscount} /> kr/md
                         </span>
                       </div>
                     )}
                   </div>
 
-                  <div className="mt-4 rounded-xl bg-secondary p-4">
-                    <div className="flex items-baseline justify-between">
-                      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <div className="mt-4 rounded-xl bg-gradient-to-br from-foreground to-foreground/90 p-4 text-background shadow-md ring-1 ring-foreground/10">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <span className="text-[11px] font-semibold uppercase tracking-wide text-background/70">
                         Total pr. måned
                       </span>
-                      <span className="text-2xl font-semibold text-foreground tabular-nums">
-                        {formatDkk(breakdown.monthlyAfterDiscount)} kr
+                      <span className="text-2xl font-semibold text-background tabular-nums">
+                        <AnimatedNumber
+                          value={breakdown.monthlyAfterDiscount}
+                          showDelta
+                          className="!text-background"
+                        /> kr
                       </span>
                     </div>
                     {breakdown.months > 1 && (
-                      <p className="mt-1 text-right text-xs text-muted-foreground tabular-nums">
-                        Faktureres {formatDkk(breakdown.periodTotal)} kr hver{" "}
+                      <p className="mt-1 text-right text-xs text-background/70 tabular-nums">
+                        Faktureres <AnimatedNumber value={breakdown.periodTotal} /> kr hver{" "}
                         {breakdown.months === 3 ? "kvartal" : "år"}
                       </p>
                     )}
@@ -594,13 +615,13 @@ const BusinessOnboarding = () => {
                       Ingen binding — opsig når som helst.
                     </p>
                   </div>
-                </>
+                </div>
               )}
 
               <Button
                 onClick={handleSubmit}
                 disabled={!canSubmit || submitting}
-                className="mt-5 h-12 w-full gap-2 rounded-xl bg-foreground text-base font-semibold text-background hover:bg-foreground/90"
+                className="relative mt-5 h-12 w-full gap-2 rounded-xl bg-foreground text-base font-semibold text-background shadow-sm transition-all hover:bg-foreground/90 hover:shadow-md hover:-translate-y-0.5 disabled:hover:translate-y-0"
               >
                 {submitting ? (
                   <><Loader2 className="h-4 w-4 animate-spin" /> Opretter…</>
@@ -631,7 +652,7 @@ const BusinessOnboarding = () => {
                 Total pr. måned
               </p>
               <p className="text-lg font-bold text-foreground tabular-nums">
-                {formatDkk(breakdown.monthlyAfterDiscount)} kr
+                <AnimatedNumber value={breakdown.monthlyAfterDiscount} showDelta /> kr
                 <span className="ml-1 text-[11px] font-normal text-muted-foreground">/md</span>
               </p>
             </div>
