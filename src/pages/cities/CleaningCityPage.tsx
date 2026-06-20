@@ -131,6 +131,12 @@ const CleaningCityPage = () => {
             </ul>
           </div>
 
+          <TrustBar />
+          <InlineQuoteTeaser
+            category="Rengøring"
+            heading={`Få 3 gratis tilbud på rengøring i ${city.name}`}
+          />
+
           <h2>Rengøringsmarkedet i {city.name}</h2>
           <p>{city.intro}</p>
           <p>{city.localFactor}</p>
