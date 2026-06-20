@@ -269,6 +269,8 @@ const App = () => (
               <Route path="/priser/maler" element={<PainterPriceGuide />} />
               <Route path="/priser/vinduespudser" element={<WindowCleaningGuide />} />
               <Route path="/priser/vvs" element={<PlumberPriceGuide />} />
+              <Route path="/priser/haveservice" element={<GardenPriceGuide />} />
+              <Route path="/priser/elektriker" element={<ElectricianPriceGuide />} />
               <Route path="/guides/rengoering-af-laminatgulv" element={<LaminateCleaningGuide />} />
               <Route path="/guides" element={<GuidesIndex />} />
 
@@ -276,6 +278,7 @@ const App = () => (
               <Route path="/rengoering/:city" element={<CleaningCityPage />} />
               <Route path="/flyttehjaelp/:city" element={<MovingCityPage />} />
               <Route path="/haandvaerker/:city" element={<HandymanCityPage />} />
+              <Route path="/haveservice/:city" element={<GardenCityPage />} />
 
               {/* ── Blog (long-form artikler) ── */}
               <Route path="/blog" element={<BlogIndex />} />
