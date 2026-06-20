@@ -295,7 +295,7 @@ const BusinessOnboarding = () => {
       </PageHero>
 
       {/* Social-proof strip — løfter troværdighed lige under hero */}
-      <div className="border-b border-border bg-card/60">
+      <div className="border-b border-border bg-card/60 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-8 gap-y-3 px-4 py-4 text-xs text-muted-foreground sm:px-6 lg:px-8">
           <span className="inline-flex items-center gap-1.5">
             <span className="flex">
@@ -307,15 +307,7 @@ const BusinessOnboarding = () => {
           </span>
           <span className="hidden h-3 w-px bg-border sm:block" />
           <span className="inline-flex items-center gap-1.5">
-            <Zap className="h-3.5 w-3.5 text-accent" /> Online på under 2 minutter
-          </span>
-          <span className="hidden h-3 w-px bg-border sm:block" />
-          <span className="inline-flex items-center gap-1.5">
             <Clock className="h-3.5 w-3.5 text-accent" /> Dansk support · svar inden for 24 t
-          </span>
-          <span className="hidden h-3 w-px bg-border sm:block" />
-          <span className="inline-flex items-center gap-1.5">
-            <ShieldCheck className="h-3.5 w-3.5 text-accent" /> GDPR · data hostet i EU
           </span>
         </div>
       </div>
