@@ -7,10 +7,15 @@ import { resolve } from "path";
 
 const BASE_URL = "https://serviceydere.dk";
 
+// Fælles lastmod — opdateres automatisk ved hver build. Giver Google et
+// frisk signal på SEO-sider når vi udruller nyt indhold.
+const TODAY = new Date().toISOString().slice(0, 10);
+
 interface SitemapEntry {
   path: string;
   changefreq?: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
   priority?: string;
+  lastmod?: string;
 }
 
 const entries: SitemapEntry[] = [
@@ -28,6 +33,8 @@ const entries: SitemapEntry[] = [
   { path: "/priser/maler", changefreq: "monthly", priority: "0.8" },
   { path: "/priser/vinduespudser", changefreq: "monthly", priority: "0.8" },
   { path: "/priser/vvs", changefreq: "monthly", priority: "0.8" },
+  { path: "/priser/haveservice", changefreq: "monthly", priority: "0.8" },
+  { path: "/priser/elektriker", changefreq: "monthly", priority: "0.85" },
   { path: "/guides/rengoering-af-laminatgulv", changefreq: "monthly", priority: "0.7" },
   { path: "/guides", changefreq: "weekly", priority: "0.8" },
   // By-landingssider for rengøring — målrettet lokale søgninger
@@ -49,6 +56,12 @@ const entries: SitemapEntry[] = [
   { path: "/haandvaerker/odense", changefreq: "weekly", priority: "0.8" },
   { path: "/haandvaerker/aalborg", changefreq: "weekly", priority: "0.8" },
   { path: "/haandvaerker/esbjerg", changefreq: "weekly", priority: "0.8" },
+  // By-landingssider for haveservice
+  { path: "/haveservice/koebenhavn", changefreq: "weekly", priority: "0.85" },
+  { path: "/haveservice/aarhus", changefreq: "weekly", priority: "0.85" },
+  { path: "/haveservice/odense", changefreq: "weekly", priority: "0.8" },
+  { path: "/haveservice/aalborg", changefreq: "weekly", priority: "0.8" },
+  { path: "/haveservice/esbjerg", changefreq: "weekly", priority: "0.8" },
   // Blog (long-form artikler) — vigtige for E-E-A-T signaler
   { path: "/blog", changefreq: "weekly", priority: "0.8" },
   { path: "/blog/saadan-vaelger-du-rengoeringsfirma", changefreq: "monthly", priority: "0.75" },
@@ -74,11 +87,13 @@ const urls = [
     loc: `${BASE_URL}${e.path}`,
     changefreq: e.changefreq,
     priority: e.priority,
+    lastmod: e.lastmod ?? TODAY,
   })),
   ...CATEGORIES.map((c) => ({
     loc: `${BASE_URL}/virksomheder?category=${encodeURIComponent(c)}`,
     changefreq: "weekly" as const,
     priority: "0.7",
+    lastmod: TODAY,
   })),
 ];
 
@@ -89,6 +104,7 @@ const xml = [
     [
       `  <url>`,
       `    <loc>${escapeXml(u.loc)}</loc>`,
+      u.lastmod ? `    <lastmod>${u.lastmod}</lastmod>` : null,
       u.changefreq ? `    <changefreq>${u.changefreq}</changefreq>` : null,
       u.priority ? `    <priority>${u.priority}</priority>` : null,
       `  </url>`,

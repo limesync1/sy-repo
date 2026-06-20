@@ -95,10 +95,13 @@ const HandymanPriceGuide     = lazyRoute("/priser/haandvaerker", () => import(".
 const PainterPriceGuide      = lazyRoute("/priser/maler", () => import("./pages/guides/PainterPriceGuide"));
 const WindowCleaningGuide    = lazyRoute("/priser/vinduespudser", () => import("./pages/guides/WindowCleaningPriceGuide"));
 const PlumberPriceGuide      = lazyRoute("/priser/vvs", () => import("./pages/guides/PlumberPriceGuide"));
+const GardenPriceGuide       = lazyRoute("/priser/haveservice", () => import("./pages/guides/GardenPriceGuide"));
+const ElectricianPriceGuide  = lazyRoute("/priser/elektriker", () => import("./pages/guides/ElectricianPriceGuide"));
 const GuidesIndex            = lazyRoute("/guides", () => import("./pages/GuidesIndex"));
 const CleaningCityPage       = lazyRoute("/rengoering/:city", () => import("./pages/cities/CleaningCityPage"));
 const MovingCityPage         = lazyRoute("/flyttehjaelp/:city", () => import("./pages/cities/MovingCityPage"));
 const HandymanCityPage       = lazyRoute("/haandvaerker/:city", () => import("./pages/cities/HandymanCityPage"));
+const GardenCityPage         = lazyRoute("/haveservice/:city", () => import("./pages/cities/GardenCityPage"));
 const BlogIndex              = lazyRoute("/blog", () => import("./pages/blog/BlogIndex"));
 const BlogChooseCleaning     = lazyRoute("/blog/saadan-vaelger-du-rengoeringsfirma", () => import("./pages/blog/posts/ChooseCleaningCompany"));
 const BlogMovingChecklist    = lazyRoute("/blog/tjekliste-til-flyttedag", () => import("./pages/blog/posts/MovingDayChecklist"));
@@ -266,6 +269,8 @@ const App = () => (
               <Route path="/priser/maler" element={<PainterPriceGuide />} />
               <Route path="/priser/vinduespudser" element={<WindowCleaningGuide />} />
               <Route path="/priser/vvs" element={<PlumberPriceGuide />} />
+              <Route path="/priser/haveservice" element={<GardenPriceGuide />} />
+              <Route path="/priser/elektriker" element={<ElectricianPriceGuide />} />
               <Route path="/guides/rengoering-af-laminatgulv" element={<LaminateCleaningGuide />} />
               <Route path="/guides" element={<GuidesIndex />} />
 
@@ -273,6 +278,7 @@ const App = () => (
               <Route path="/rengoering/:city" element={<CleaningCityPage />} />
               <Route path="/flyttehjaelp/:city" element={<MovingCityPage />} />
               <Route path="/haandvaerker/:city" element={<HandymanCityPage />} />
+              <Route path="/haveservice/:city" element={<GardenCityPage />} />
 
               {/* ── Blog (long-form artikler) ── */}
               <Route path="/blog" element={<BlogIndex />} />
