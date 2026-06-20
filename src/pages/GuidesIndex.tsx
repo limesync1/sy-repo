@@ -4,6 +4,8 @@ import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import { CITIES } from "./cities/cleaningCityData";
 import { MOVING_CITIES } from "./cities/movingCityData";
+import { HANDYMAN_CITIES } from "./cities/handymanCityData";
+import { BLOG_POSTS } from "./blog/blogPosts";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -96,6 +98,18 @@ const GuidesIndex = () => {
           position: GUIDES.length + CITIES.length + i + 1,
           url: `https://serviceydere.dk/flyttehjaelp/${c.slug}`,
           name: `Flyttehjælp i ${c.name}`,
+        })),
+        ...HANDYMAN_CITIES.map((c, i) => ({
+          "@type": "ListItem",
+          position: GUIDES.length + CITIES.length + MOVING_CITIES.length + i + 1,
+          url: `https://serviceydere.dk/haandvaerker/${c.slug}`,
+          name: `Håndværker i ${c.name}`,
+        })),
+        ...BLOG_POSTS.map((p, i) => ({
+          "@type": "ListItem",
+          position: GUIDES.length + CITIES.length + MOVING_CITIES.length + HANDYMAN_CITIES.length + i + 1,
+          url: `https://serviceydere.dk/blog/${p.slug}`,
+          name: p.title,
         })),
       ],
     },
@@ -206,6 +220,58 @@ const GuidesIndex = () => {
                 <p className="mt-2 text-sm text-muted-foreground">
                   Fra {c.hourlyLow} kr./time · {c.postalRange}
                 </p>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section aria-labelledby="handyman-heading" className="mt-14">
+          <h2 id="handyman-heading" className="mb-4 text-2xl font-semibold text-foreground">
+            Håndværker efter by
+          </h2>
+          <p className="mb-4 text-sm text-muted-foreground">
+            Lokale timepriser og håndværkere i de største danske byer.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {HANDYMAN_CITIES.map((c) => (
+              <Link
+                key={c.slug}
+                to={`/haandvaerker/${c.slug}`}
+                className="group flex flex-col rounded-xl border border-border bg-card p-5 transition hover:border-foreground/40 hover:shadow-sm"
+              >
+                <span className="mb-2 inline-flex w-fit rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                  {c.region}
+                </span>
+                <h3 className="text-lg font-semibold text-foreground group-hover:underline">
+                  Håndværker i {c.name}
+                </h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Fra {c.hourlyLow} kr./time · {c.postalRange}
+                </p>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section aria-labelledby="blog-heading" className="mt-14">
+          <h2 id="blog-heading" className="mb-4 text-2xl font-semibold text-foreground">
+            Fra bloggen
+          </h2>
+          <p className="mb-4 text-sm text-muted-foreground">
+            Dybdegående guides og praktiske råd.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {BLOG_POSTS.map((p) => (
+              <Link
+                key={p.slug}
+                to={`/blog/${p.slug}`}
+                className="group flex flex-col rounded-xl border border-border bg-card p-5 transition hover:border-foreground/40 hover:shadow-sm"
+              >
+                <span className="mb-2 inline-flex w-fit rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                  {p.category} · {p.readingMinutes} min
+                </span>
+                <h3 className="text-lg font-semibold text-foreground group-hover:underline">{p.title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{p.description}</p>
               </Link>
             ))}
           </div>
