@@ -37,6 +37,12 @@ const entries: SitemapEntry[] = [
   { path: "/rengoering/odense", changefreq: "weekly", priority: "0.8" },
   { path: "/rengoering/aalborg", changefreq: "weekly", priority: "0.8" },
   { path: "/rengoering/esbjerg", changefreq: "weekly", priority: "0.8" },
+  // By-landingssider for flyttehjælp
+  { path: "/flyttehjaelp/koebenhavn", changefreq: "weekly", priority: "0.85" },
+  { path: "/flyttehjaelp/aarhus", changefreq: "weekly", priority: "0.85" },
+  { path: "/flyttehjaelp/odense", changefreq: "weekly", priority: "0.8" },
+  { path: "/flyttehjaelp/aalborg", changefreq: "weekly", priority: "0.8" },
+  { path: "/flyttehjaelp/esbjerg", changefreq: "weekly", priority: "0.8" },
 ];
 
 // Med vilje udeladt fra sitemap: /reset-password, /admin, /virksomhed,

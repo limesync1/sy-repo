@@ -97,6 +97,7 @@ const WindowCleaningGuide    = lazyRoute("/priser/vinduespudser", () => import("
 const PlumberPriceGuide      = lazyRoute("/priser/vvs", () => import("./pages/guides/PlumberPriceGuide"));
 const GuidesIndex            = lazyRoute("/guides", () => import("./pages/GuidesIndex"));
 const CleaningCityPage       = lazyRoute("/rengoering/:city", () => import("./pages/cities/CleaningCityPage"));
+const MovingCityPage         = lazyRoute("/flyttehjaelp/:city", () => import("./pages/cities/MovingCityPage"));
 const VisualTestPlanner      = lazyRoute("visual-test-planner", () => import("./pages/VisualTestPlanner"));
 const VisualTestLivechat     = lazyRoute("visual-test-livechat", () => import("./pages/VisualTestLivechat"));
 
@@ -265,6 +266,7 @@ const App = () => (
 
               {/* ── By-landingssider for rengøring (SEO) ── */}
               <Route path="/rengoering/:city" element={<CleaningCityPage />} />
+              <Route path="/flyttehjaelp/:city" element={<MovingCityPage />} />
 
               {/* ── Visual regression fixture (e2e only, ingen auth) ── */}
               <Route path="/__visual/planner" element={<VisualTestPlanner />} />
