@@ -25,6 +25,30 @@ const GUIDES = [
     tag: "Prisguide",
   },
   {
+    href: "/priser/haandvaerker",
+    title: "Hvad koster en håndværker i timen?",
+    desc: "Timepriser for tømrer, murer, snedker og alm. håndværker — inkl. udkald og BoligJob-fradrag.",
+    tag: "Prisguide",
+  },
+  {
+    href: "/priser/maler",
+    title: "Maler pris pr. m² i 2026",
+    desc: "Priser pr. m² for vægge, lofter og træværk — indvendigt og udvendigt malerarbejde.",
+    tag: "Prisguide",
+  },
+  {
+    href: "/priser/vinduespudser",
+    title: "Vinduespudser pris 2026",
+    desc: "Pris pr. vindue, abonnement vs. engangsbesøg og hvad fradraget betyder for din regning.",
+    tag: "Prisguide",
+  },
+  {
+    href: "/priser/vvs",
+    title: "VVS pris 2026 — udkald & timepris",
+    desc: "Timepris, akutudkald og typiske opgaver fra dryppende vandhane til varmepumpe.",
+    tag: "Prisguide",
+  },
+  {
     href: "/guides/rengoering-af-laminatgulv",
     title: "Rengøring af laminatgulv",
     desc: "Trin-for-trin guide til skånsom rengøring og vedligehold af laminatgulve — uden striber og skader.",
