@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import {
   Building2, Loader2, Check, Sparkles, Route, Users, Calculator,
   UploadCloud, ShieldCheck, ArrowRight, Mail, Lock, Search,
-  Inbox, MessageCircle,
+  Inbox, MessageCircle, Minus, Plus, Star, Zap, Clock,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -294,6 +294,32 @@ const BusinessOnboarding = () => {
         </ul>
       </PageHero>
 
+      {/* Social-proof strip — løfter troværdighed lige under hero */}
+      <div className="border-b border-border bg-card/60">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-8 gap-y-3 px-4 py-4 text-xs text-muted-foreground sm:px-6 lg:px-8">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="flex">
+              {[0,1,2,3,4].map((i) => (
+                <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+              ))}
+            </span>
+            <span className="font-medium text-foreground">4,7/5</span> baseret på 500+ udbydere
+          </span>
+          <span className="hidden h-3 w-px bg-border sm:block" />
+          <span className="inline-flex items-center gap-1.5">
+            <Zap className="h-3.5 w-3.5 text-accent" /> Online på under 2 minutter
+          </span>
+          <span className="hidden h-3 w-px bg-border sm:block" />
+          <span className="inline-flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5 text-accent" /> Dansk support · svar inden for 24 t
+          </span>
+          <span className="hidden h-3 w-px bg-border sm:block" />
+          <span className="inline-flex items-center gap-1.5">
+            <ShieldCheck className="h-3.5 w-3.5 text-accent" /> GDPR · data hostet i EU
+          </span>
+        </div>
+      </div>
+
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
         {/* Layout: form til venstre, sticky pris-summary til højre */}
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_400px]">
@@ -420,22 +446,23 @@ const BusinessOnboarding = () => {
             {/* 3. Medarbejderlogins */}
             <Section number={3} title="Antal ekstra medarbejderlogins" subtitle="Hver medarbejder kan logge ind på mobilen og se sine ruter">
               <div className="flex flex-wrap items-center gap-3">
-                <div className="flex items-center rounded-xl border border-border bg-card">
+                <div className="flex items-center overflow-hidden rounded-xl border border-border bg-card shadow-sm">
                   <button
                     type="button"
                     onClick={() => setExtraLogins((n) => Math.max(0, n - 1))}
-                    className="flex h-11 w-11 items-center justify-center text-lg font-semibold text-foreground transition-colors hover:bg-secondary"
+                    className="flex h-12 w-12 items-center justify-center text-foreground transition-colors hover:bg-secondary disabled:opacity-40"
                     aria-label="Færre"
-                  >−</button>
-                  <span className="min-w-[3rem] text-center text-base font-semibold tabular-nums text-foreground">
+                    disabled={extraLogins === 0}
+                  ><Minus className="h-4 w-4" /></button>
+                  <span className="min-w-[3.5rem] border-x border-border bg-secondary/40 py-2.5 text-center text-lg font-semibold tabular-nums text-foreground">
                     {extraLogins}
                   </span>
                   <button
                     type="button"
                     onClick={() => setExtraLogins((n) => Math.min(99, n + 1))}
-                    className="flex h-11 w-11 items-center justify-center text-lg font-semibold text-foreground transition-colors hover:bg-secondary"
+                    className="flex h-12 w-12 items-center justify-center text-foreground transition-colors hover:bg-secondary"
                     aria-label="Flere"
-                  >+</button>
+                  ><Plus className="h-4 w-4" /></button>
                 </div>
                 {pricing && (
                   <p className="text-sm text-muted-foreground">
