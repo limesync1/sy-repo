@@ -46,6 +46,26 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://serviceydere.dk/priser/haandvaerker</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/priser/maler</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/priser/vinduespudser</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/priser/vvs</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://serviceydere.dk/guides/rengoering-af-laminatgulv</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
