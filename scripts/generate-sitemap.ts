@@ -25,6 +25,14 @@ const entries: SitemapEntry[] = [
   { path: "/priser/rengoering", changefreq: "monthly", priority: "0.8" },
   { path: "/priser/flyttehjaelp", changefreq: "monthly", priority: "0.8" },
   { path: "/guides/rengoering-af-laminatgulv", changefreq: "monthly", priority: "0.7" },
+  { path: "/guides", changefreq: "weekly", priority: "0.8" },
+  // By-landingssider for rengøring — målrettet lokale søgninger
+  // som "rengøring [by]" og "rengøringsfirma [by]".
+  { path: "/rengoering/koebenhavn", changefreq: "weekly", priority: "0.85" },
+  { path: "/rengoering/aarhus", changefreq: "weekly", priority: "0.85" },
+  { path: "/rengoering/odense", changefreq: "weekly", priority: "0.8" },
+  { path: "/rengoering/aalborg", changefreq: "weekly", priority: "0.8" },
+  { path: "/rengoering/esbjerg", changefreq: "weekly", priority: "0.8" },
 ];
 
 // Med vilje udeladt fra sitemap: /reset-password, /admin, /virksomhed,

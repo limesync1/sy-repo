@@ -51,6 +51,36 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://serviceydere.dk/guides</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/rengoering/koebenhavn</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/rengoering/aarhus</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/rengoering/odense</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/rengoering/aalborg</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/rengoering/esbjerg</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://serviceydere.dk/virksomheder?category=Reng%C3%B8ring</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
