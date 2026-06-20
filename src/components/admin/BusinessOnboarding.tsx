@@ -379,9 +379,11 @@ const BusinessOnboarding = () => {
                       key={key}
                       type="button"
                       onClick={() => toggleFeature(key)}
-                      className={`group flex items-start gap-4 rounded-xl border p-4 text-left transition-all ${
-                        active ? "border-accent bg-accent/5 shadow-sm" : "border-border bg-card hover:border-foreground/20"
-                      }`}
+                       className={`group flex items-start gap-4 rounded-xl border p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm ${
+                         active
+                           ? "border-accent bg-gradient-to-br from-accent/10 to-accent/0 shadow-sm ring-1 ring-accent/30"
+                           : "border-border bg-card hover:border-foreground/20"
+                       }`}
                     >
                       <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors ${
                         active ? "bg-accent text-accent-foreground" : "bg-secondary text-foreground"
@@ -461,9 +463,11 @@ const BusinessOnboarding = () => {
                       key={opt.value}
                       type="button"
                       onClick={() => setBilling(opt.value)}
-                      className={`relative rounded-xl border p-4 text-left transition-all ${
-                        active ? "border-foreground bg-foreground/5 shadow-sm" : "border-border bg-card hover:border-foreground/20"
-                      }`}
+                       className={`relative rounded-xl border p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm ${
+                         active
+                           ? "border-foreground bg-gradient-to-br from-foreground/5 to-transparent shadow-sm ring-1 ring-foreground/20"
+                           : "border-border bg-card hover:border-foreground/20"
+                       }`}
                     >
                       {discount > 0 && (
                         <span className="absolute -top-2 right-3 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-foreground">
@@ -684,9 +688,9 @@ const Section = ({
 }: {
   number: number; title: string; subtitle?: string; children: React.ReactNode;
 }) => (
-  <section className="rounded-2xl border border-border bg-card p-5 sm:p-6">
+  <section className="group rounded-2xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md sm:p-6">
     <div className="flex items-baseline gap-3">
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-foreground to-foreground/80 text-xs font-semibold text-background shadow-sm ring-2 ring-background">
         {number}
       </span>
       <div className="min-w-0">
