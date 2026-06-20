@@ -2,6 +2,8 @@ import { lazy, Suspense } from "react";
 import { Link, useParams, Navigate } from "react-router-dom";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
+import TrustBar from "@/components/conversion/TrustBar";
+import InlineQuoteTeaser from "@/components/conversion/InlineQuoteTeaser";
 import { findHandymanCity, HANDYMAN_CITIES } from "./handymanCityData";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
