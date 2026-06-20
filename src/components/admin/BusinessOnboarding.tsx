@@ -608,10 +608,7 @@ const BusinessOnboarding = () => {
                         Total pr. måned
                       </span>
                       <span className="text-2xl font-semibold text-background tabular-nums">
-                        <AnimatedNumber
-                          value={breakdown.monthlyAfterDiscount}
-                          className="!text-background"
-                        /> kr
+                        <AnimatedNumber value={breakdown.monthlyAfterDiscount} /> kr
                       </span>
                     </div>
                     {breakdown.months > 1 && (
