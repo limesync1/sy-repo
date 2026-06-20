@@ -95,10 +95,13 @@ const HandymanPriceGuide     = lazyRoute("/priser/haandvaerker", () => import(".
 const PainterPriceGuide      = lazyRoute("/priser/maler", () => import("./pages/guides/PainterPriceGuide"));
 const WindowCleaningGuide    = lazyRoute("/priser/vinduespudser", () => import("./pages/guides/WindowCleaningPriceGuide"));
 const PlumberPriceGuide      = lazyRoute("/priser/vvs", () => import("./pages/guides/PlumberPriceGuide"));
+const GardenPriceGuide       = lazyRoute("/priser/haveservice", () => import("./pages/guides/GardenPriceGuide"));
+const ElectricianPriceGuide  = lazyRoute("/priser/elektriker", () => import("./pages/guides/ElectricianPriceGuide"));
 const GuidesIndex            = lazyRoute("/guides", () => import("./pages/GuidesIndex"));
 const CleaningCityPage       = lazyRoute("/rengoering/:city", () => import("./pages/cities/CleaningCityPage"));
 const MovingCityPage         = lazyRoute("/flyttehjaelp/:city", () => import("./pages/cities/MovingCityPage"));
 const HandymanCityPage       = lazyRoute("/haandvaerker/:city", () => import("./pages/cities/HandymanCityPage"));
+const GardenCityPage         = lazyRoute("/haveservice/:city", () => import("./pages/cities/GardenCityPage"));
 const BlogIndex              = lazyRoute("/blog", () => import("./pages/blog/BlogIndex"));
 const BlogChooseCleaning     = lazyRoute("/blog/saadan-vaelger-du-rengoeringsfirma", () => import("./pages/blog/posts/ChooseCleaningCompany"));
 const BlogMovingChecklist    = lazyRoute("/blog/tjekliste-til-flyttedag", () => import("./pages/blog/posts/MovingDayChecklist"));
