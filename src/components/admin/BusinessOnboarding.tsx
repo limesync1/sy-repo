@@ -583,7 +583,6 @@ const BusinessOnboarding = () => {
                       <span className="text-2xl font-semibold text-background tabular-nums">
                         <AnimatedNumber
                           value={breakdown.monthlyAfterDiscount}
-                          showDelta
                           className="!text-background"
                         /> kr
                       </span>
@@ -656,7 +655,7 @@ const BusinessOnboarding = () => {
                 Total pr. måned
               </p>
               <p className="text-lg font-bold text-foreground tabular-nums">
-                <AnimatedNumber value={breakdown.monthlyAfterDiscount} showDelta /> kr
+                <AnimatedNumber value={breakdown.monthlyAfterDiscount} /> kr
                 <span className="ml-1 text-[11px] font-normal text-muted-foreground">/md</span>
               </p>
             </div>
