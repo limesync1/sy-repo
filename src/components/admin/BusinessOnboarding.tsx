@@ -540,7 +540,12 @@ const BusinessOnboarding = () => {
 
           {/* ─── HØJRE: Sticky pris-summary ─── */}
           <aside className="lg:sticky lg:top-6 lg:self-start">
-            <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-sm">
+            <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.12)]">
+              {/* Accentstribe i toppen — gør kortet til "the main event" på siden */}
+              <div
+                aria-hidden
+                className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-accent via-foreground to-accent"
+              />
               {/* Dekorativ baggrundsglow — gør kortet mere levende uden at forstyrre */}
               <div
                 aria-hidden
