@@ -10,6 +10,7 @@ import { LocationProvider } from "@/contexts/LocationContext";
 import ScrollToTop from "@/components/ScrollToTop";
 import CookieConsent from "@/components/CookieConsent";
 import ChunkErrorBoundary from "@/components/ChunkErrorBoundary";
+import StickyMobileCTA from "@/components/conversion/StickyMobileCTA";
 import { startVersionCheck, isStaleDeploy } from "@/lib/version-check";
 
 // Forsiden + Login indlæses ivrigt — alt andet er code-splittet via React.lazy
@@ -232,6 +233,7 @@ const App = () => (
             <CookieConsent />
             <IdlePrefetcher />
             <DeployVersionWatcher />
+            <StickyMobileCTA />
             <ChunkErrorBoundary>
             <Suspense fallback={<PageFallback />}>
             <Routes>

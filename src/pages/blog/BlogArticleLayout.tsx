@@ -2,6 +2,8 @@ import { lazy, Suspense, ReactNode } from "react";
 import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
+import TrustBar from "@/components/conversion/TrustBar";
+import InlineQuoteTeaser from "@/components/conversion/InlineQuoteTeaser";
 import type { BlogPostMeta } from "./blogPosts";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
@@ -87,7 +89,14 @@ const BlogArticleLayout = ({ post, keywords, faq, children }: Props) => {
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">{post.description}</p>
 
+          <TrustBar />
+
           {children}
+
+          <InlineQuoteTeaser
+            category={post.category === "Økonomi" ? undefined : post.category}
+            heading={`Få 3 gratis tilbud${post.category && post.category !== "Økonomi" ? ` på ${post.category.toLowerCase()}` : ""}`}
+          />
 
           <div className="not-prose my-10 rounded-xl border border-border bg-primary/5 p-6 sm:p-8">
             <h2 className="m-0 text-2xl font-semibold text-foreground">Klar til at få tilbud?</h2>
