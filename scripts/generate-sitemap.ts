@@ -43,6 +43,17 @@ const entries: SitemapEntry[] = [
   { path: "/flyttehjaelp/odense", changefreq: "weekly", priority: "0.8" },
   { path: "/flyttehjaelp/aalborg", changefreq: "weekly", priority: "0.8" },
   { path: "/flyttehjaelp/esbjerg", changefreq: "weekly", priority: "0.8" },
+  // By-landingssider for håndværker
+  { path: "/haandvaerker/koebenhavn", changefreq: "weekly", priority: "0.85" },
+  { path: "/haandvaerker/aarhus", changefreq: "weekly", priority: "0.85" },
+  { path: "/haandvaerker/odense", changefreq: "weekly", priority: "0.8" },
+  { path: "/haandvaerker/aalborg", changefreq: "weekly", priority: "0.8" },
+  { path: "/haandvaerker/esbjerg", changefreq: "weekly", priority: "0.8" },
+  // Blog (long-form artikler) — vigtige for E-E-A-T signaler
+  { path: "/blog", changefreq: "weekly", priority: "0.8" },
+  { path: "/blog/saadan-vaelger-du-rengoeringsfirma", changefreq: "monthly", priority: "0.75" },
+  { path: "/blog/tjekliste-til-flyttedag", changefreq: "monthly", priority: "0.75" },
+  { path: "/blog/boligjob-fradrag-2026", changefreq: "monthly", priority: "0.75" },
 ];
 
 // Med vilje udeladt fra sitemap: /reset-password, /admin, /virksomhed,

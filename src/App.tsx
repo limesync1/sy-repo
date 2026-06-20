@@ -98,6 +98,11 @@ const PlumberPriceGuide      = lazyRoute("/priser/vvs", () => import("./pages/gu
 const GuidesIndex            = lazyRoute("/guides", () => import("./pages/GuidesIndex"));
 const CleaningCityPage       = lazyRoute("/rengoering/:city", () => import("./pages/cities/CleaningCityPage"));
 const MovingCityPage         = lazyRoute("/flyttehjaelp/:city", () => import("./pages/cities/MovingCityPage"));
+const HandymanCityPage       = lazyRoute("/haandvaerker/:city", () => import("./pages/cities/HandymanCityPage"));
+const BlogIndex              = lazyRoute("/blog", () => import("./pages/blog/BlogIndex"));
+const BlogChooseCleaning     = lazyRoute("/blog/saadan-vaelger-du-rengoeringsfirma", () => import("./pages/blog/posts/ChooseCleaningCompany"));
+const BlogMovingChecklist    = lazyRoute("/blog/tjekliste-til-flyttedag", () => import("./pages/blog/posts/MovingDayChecklist"));
+const BlogBoligJob           = lazyRoute("/blog/boligjob-fradrag-2026", () => import("./pages/blog/posts/BoligJobGuide"));
 const VisualTestPlanner      = lazyRoute("visual-test-planner", () => import("./pages/VisualTestPlanner"));
 const VisualTestLivechat     = lazyRoute("visual-test-livechat", () => import("./pages/VisualTestLivechat"));
 
@@ -267,6 +272,13 @@ const App = () => (
               {/* ── By-landingssider for rengøring (SEO) ── */}
               <Route path="/rengoering/:city" element={<CleaningCityPage />} />
               <Route path="/flyttehjaelp/:city" element={<MovingCityPage />} />
+              <Route path="/haandvaerker/:city" element={<HandymanCityPage />} />
+
+              {/* ── Blog (long-form artikler) ── */}
+              <Route path="/blog" element={<BlogIndex />} />
+              <Route path="/blog/saadan-vaelger-du-rengoeringsfirma" element={<BlogChooseCleaning />} />
+              <Route path="/blog/tjekliste-til-flyttedag" element={<BlogMovingChecklist />} />
+              <Route path="/blog/boligjob-fradrag-2026" element={<BlogBoligJob />} />
 
               {/* ── Visual regression fixture (e2e only, ingen auth) ── */}
               <Route path="/__visual/planner" element={<VisualTestPlanner />} />
