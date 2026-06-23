@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
+import ArticleHero from "@/components/landing/ArticleHero";
 import { lazy, Suspense } from "react";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
