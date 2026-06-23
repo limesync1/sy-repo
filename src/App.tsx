@@ -305,6 +305,11 @@ const App = () => (
               <Route path="/blog/aarshjul-for-haveservice" element={<BlogGardenYearWheel />} />
               <Route path="/blog/vinduespudser-eller-selv" element={<BlogWindowCleaner />} />
               <Route path="/blog/tomrerprojekt-hjemme-trin-for-trin" element={<BlogCarpentryProject />} />
+              <Route path="/blog/murer-revner-og-fugtskader" element={<BlogMasonryCracks />} />
+              <Route path="/blog/rotter-i-haven-hvad-goer-jeg" element={<BlogRatsInGarden />} />
+              <Route path="/blog/gulvlaegger-vinyl-laminat-eller-traegulv" element={<BlogFloorChoice />} />
+              <Route path="/blog/anlaegsgartner-terrasse-og-have" element={<BlogLandscaping />} />
+              <Route path="/blog/algebehandling-tag-og-facade" element={<BlogAlgaeTreatment />} />
               <Route path="/hjaelp" element={<HelpCenter />} />
 
               {/* ── Visual regression fixture (e2e only, ingen auth) ── */}
