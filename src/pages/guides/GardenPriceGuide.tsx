@@ -67,10 +67,10 @@ const GardenPriceGuide = () => {
           <div className="my-8 rounded-lg border border-border bg-muted/40 p-5">
             <p className="m-0 text-sm font-semibold text-foreground">Kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">
-              <li>• Timepris havemand: <strong>325–595 kr.</strong> inkl. moms</li>
-              <li>• Græsslåning pr. besøg: <strong>275–750 kr.</strong></li>
-              <li>• Hækklipning pr. lbm.: <strong>24–75 kr.</strong></li>
-              <li>• Fradrag (BoligJob): <strong>op til 11.900 kr./person</strong></li>
+              <li>Timepris havemand: <strong>325–595 kr.</strong> inkl. moms</li>
+              <li>Græsslåning pr. besøg: <strong>275–750 kr.</strong></li>
+              <li>Hækklipning pr. lbm.: <strong>24–75 kr.</strong></li>
+              <li>Fradrag (BoligJob): <strong>op til 11.900 kr./person</strong></li>
             </ul>
           </div>
 

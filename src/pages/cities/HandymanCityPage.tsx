@@ -82,11 +82,11 @@ const HandymanCityPage = () => {
           <div className="my-8 rounded-lg border border-border bg-muted/40 p-5">
             <p className="m-0 text-sm font-semibold text-foreground">{city.name} kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">
-              <li>• Alm. håndværker: <strong>{city.hourlyLow}–{city.hourlyHigh} kr./time</strong> inkl. moms</li>
-              <li>• Tømrer: <strong>{city.carpenterLow}–{city.carpenterHigh} kr./time</strong></li>
-              <li>• Elektriker: <strong>{city.electricianLow}–{city.electricianHigh} kr./time</strong></li>
-              <li>• Udkald: <strong>{city.callOutLow}–{city.callOutHigh} kr.</strong></li>
-              <li>• Postnumre: <strong>{city.postalRange}</strong></li>
+              <li>Alm. håndværker: <strong>{city.hourlyLow}–{city.hourlyHigh} kr./time</strong> inkl. moms</li>
+              <li>Tømrer: <strong>{city.carpenterLow}–{city.carpenterHigh} kr./time</strong></li>
+              <li>Elektriker: <strong>{city.electricianLow}–{city.electricianHigh} kr./time</strong></li>
+              <li>Udkald: <strong>{city.callOutLow}–{city.callOutHigh} kr.</strong></li>
+              <li>Postnumre: <strong>{city.postalRange}</strong></li>
             </ul>
           </div>
 

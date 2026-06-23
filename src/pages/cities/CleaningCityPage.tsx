@@ -116,10 +116,10 @@ const CleaningCityPage = () => {
           <div className="my-8 rounded-lg border border-border bg-muted/40 p-5">
             <p className="m-0 text-sm font-semibold text-foreground">{city.name} kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">
-              <li>• Timepris: <strong>{city.hourlyLow}–{city.hourlyHigh} kr.</strong> inkl. moms</li>
-              <li>• Fast besøg (75 m², hver 14. dag): <strong>{city.flatLow}–{city.flatHigh} kr.</strong></li>
-              <li>• Postnumre dækket: <strong>{city.postalRange}</strong></li>
-              <li>• Befolkning: <strong>~{city.population}</strong></li>
+              <li>Timepris: <strong>{city.hourlyLow}–{city.hourlyHigh} kr.</strong> inkl. moms</li>
+              <li>Fast besøg (75 m², hver 14. dag): <strong>{city.flatLow}–{city.flatHigh} kr.</strong></li>
+              <li>Postnumre dækket: <strong>{city.postalRange}</strong></li>
+              <li>Befolkning: <strong>~{city.population}</strong></li>
             </ul>
           </div>
 
