@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import ArticleHero from "@/components/landing/ArticleHero";
+import ArticleFaqSection from "@/components/content/ArticleFaqSection";
 import { lazy, Suspense } from "react";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
@@ -107,7 +108,7 @@ const MovingPriceGuide = () => {
       />
 
       <main id="main" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-        <article className="prose prose-neutral max-w-3xl dark:prose-invert">
+        <article className="article-content prose prose-neutral dark:prose-invert">
           <div className="my-8 rounded-lg border border-border bg-muted/40 p-5">
             <p className="m-0 text-sm font-semibold text-foreground">Kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">
@@ -240,37 +241,15 @@ const MovingPriceGuide = () => {
             </div>
           </div>
 
-          <h2>Ofte stillede spørgsmål</h2>
-
-          <h3>Hvad koster flyttehjælp pr. time?</h3>
-          <p>
-            Typisk 450–900 kr. i timen inkl. moms for 2 mand + flyttebil. Hovedstadsområdet ligger i
-            den høje ende.
-          </p>
-
-          <h3>Hvad koster en flytning af en lejlighed?</h3>
-          <p>
-            En 2-værelses lejlighed koster typisk 3.500–6.500 kr. for en lokal flytning, alt efter
-            mængde og etager.
-          </p>
-
-          <h3>Timepris eller fast pris?</h3>
-          <p>
-            Fast pris er bedst hvis omfanget er kendt og du vil have budgetsikkerhed. Timepris kan
-            betale sig ved små, hurtige flytninger.
-          </p>
-
-          <h3>Er der fradrag på flyttehjælp?</h3>
-          <p>
-            Nej, ikke på selve flytningen. Men flytterengøring efter fraflytning er
-            fradragsberettiget via BoligJobordningen.
-          </p>
-
-          <h3>Hvor langt i forvejen skal jeg booke?</h3>
-          <p>
-            2–4 uger er typisk nok. Ved månedsskifte (sidste fredag/lørdag) bør du booke 4–6 uger i
-            forvejen.
-          </p>
+          <ArticleFaqSection
+            items={[
+              { q: "Hvad koster flyttehjælp pr. time?", a: "Typisk 450–900 kr. i timen inkl. moms for 2 mand + flyttebil. Hovedstadsområdet ligger i den høje ende." },
+              { q: "Hvad koster en flytning af en lejlighed?", a: "En 2-værelses lejlighed koster typisk 3.500–6.500 kr. for en lokal flytning, alt efter mængde og etager." },
+              { q: "Timepris eller fast pris?", a: "Fast pris er bedst hvis omfanget er kendt og du vil have budgetsikkerhed. Timepris kan betale sig ved små, hurtige flytninger." },
+              { q: "Er der fradrag på flyttehjælp?", a: "Nej, ikke på selve flytningen. Men flytterengøring efter fraflytning er fradragsberettiget via BoligJobordningen." },
+              { q: "Hvor langt i forvejen skal jeg booke?", a: "2–4 uger er typisk nok. Ved månedsskifte (sidste fredag/lørdag) bør du booke 4–6 uger i forvejen." },
+            ]}
+          />
         </article>
       </main>
 

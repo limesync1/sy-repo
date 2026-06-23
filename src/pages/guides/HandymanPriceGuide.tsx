@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import ArticleHero from "@/components/landing/ArticleHero";
+import ArticleFaqSection from "@/components/content/ArticleFaqSection";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -69,7 +70,7 @@ const HandymanPriceGuide = () => {
       />
 
       <main id="main" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-        <article className="prose prose-neutral max-w-3xl dark:prose-invert">
+        <article className="article-content prose prose-neutral dark:prose-invert">
           <div className="my-8 rounded-lg border border-border bg-muted/40 p-5">
             <p className="m-0 text-sm font-semibold text-foreground">Kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">
@@ -131,13 +132,13 @@ const HandymanPriceGuide = () => {
             </div>
           </div>
 
-          <h2>Ofte stillede spørgsmål</h2>
-          <h3>Hvad koster en håndværker i timen?</h3>
-          <p>Typisk 450–750 kr. inkl. moms afhængigt af fag og geografi.</p>
-          <h3>Hvad koster et udkald?</h3>
-          <p>350–600 kr. inkl. de første 30 minutter. Mange fakturerer minimum 1 time.</p>
-          <h3>Kan jeg få fradrag på regningen?</h3>
-          <p>Ja — arbejdsløn er fradragsberettiget med op til 8.600 kr./person i 2026, hvis firmaet er momsregistreret.</p>
+          <ArticleFaqSection
+            items={[
+              { q: "Hvad koster en håndværker i timen?", a: "Typisk 450–750 kr. inkl. moms afhængigt af fag og geografi." },
+              { q: "Hvad koster et udkald?", a: "350–600 kr. inkl. de første 30 minutter. Mange fakturerer minimum 1 time." },
+              { q: "Kan jeg få fradrag på regningen?", a: "Ja — arbejdsløn er fradragsberettiget med op til 8.600 kr./person i 2026, hvis firmaet er momsregistreret." },
+            ]}
+          />
         </article>
       </main>
 

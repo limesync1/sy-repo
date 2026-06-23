@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import ArticleHero from "@/components/landing/ArticleHero";
+import ArticleFaqSection from "@/components/content/ArticleFaqSection";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -64,7 +65,7 @@ const WindowCleaningPriceGuide = () => {
       />
 
       <main id="main" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-        <article className="prose prose-neutral max-w-3xl dark:prose-invert">
+        <article className="article-content prose prose-neutral dark:prose-invert">
           <div className="my-8 rounded-lg border border-border bg-muted/40 p-5">
             <p className="m-0 text-sm font-semibold text-foreground">Kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">
@@ -114,13 +115,13 @@ const WindowCleaningPriceGuide = () => {
             </div>
           </div>
 
-          <h2>Ofte stillede spørgsmål</h2>
-          <h3>Hvad koster en vinduespudser?</h3>
-          <p>25–45 kr./vindue ved abonnement, 35–60 kr./vindue ved engangsbesøg.</p>
-          <h3>Hvor ofte bør jeg pudse vinduer?</h3>
-          <p>4–8 gange årligt for private, månedligt for erhverv.</p>
-          <h3>Kan jeg få fradrag?</h3>
-          <p>Ja — fuldt omfattet af BoligJob-servicefradrag (op til 12.300 kr./voksen i 2026).</p>
+          <ArticleFaqSection
+            items={[
+              { q: "Hvad koster en vinduespudser?", a: "25–45 kr./vindue ved abonnement, 35–60 kr./vindue ved engangsbesøg." },
+              { q: "Hvor ofte bør jeg pudse vinduer?", a: "4–8 gange årligt for private, månedligt for erhverv." },
+              { q: "Kan jeg få fradrag?", a: "Ja — fuldt omfattet af BoligJob-servicefradrag (op til 12.300 kr./voksen i 2026)." },
+            ]}
+          />
         </article>
       </main>
 

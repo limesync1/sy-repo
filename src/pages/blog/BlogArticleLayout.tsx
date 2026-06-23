@@ -5,6 +5,7 @@ import SiteNav from "@/components/SiteNav";
 import ArticleHero from "@/components/landing/ArticleHero";
 import TrustBar from "@/components/conversion/TrustBar";
 import InlineQuoteTeaser from "@/components/conversion/InlineQuoteTeaser";
+import ArticleFaqSection from "@/components/content/ArticleFaqSection";
 import type { BlogPostMeta } from "./blogPosts";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
@@ -83,10 +84,12 @@ const BlogArticleLayout = ({ post, keywords, faq, children }: Props) => {
       />
 
       <main id="main" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-        <article className="prose prose-neutral max-w-3xl dark:prose-invert">
+        <article className="article-content prose prose-neutral dark:prose-invert">
           <TrustBar />
 
           {children}
+
+          {faq?.length ? <ArticleFaqSection items={faq} /> : null}
 
           <InlineQuoteTeaser
             category={post.category === "Økonomi" ? undefined : post.category}

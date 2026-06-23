@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import ArticleHero from "@/components/landing/ArticleHero";
+import ArticleFaqSection from "@/components/content/ArticleFaqSection";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -60,7 +61,7 @@ const ElectricianPriceGuide = () => {
       />
 
       <main id="main" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-        <article className="prose prose-neutral max-w-3xl dark:prose-invert">
+        <article className="article-content prose prose-neutral dark:prose-invert">
           <div className="my-8 rounded-lg border border-border bg-muted/40 p-5">
             <p className="m-0 text-sm font-semibold text-foreground">Kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">
@@ -111,6 +112,15 @@ const ElectricianPriceGuide = () => {
               <Link to="/virksomheder?category=Elektriker" className="inline-flex h-11 items-center rounded-md border border-border bg-background px-5 text-sm font-semibold text-foreground hover:bg-muted">Se elektrikere</Link>
             </div>
           </div>
+
+          <ArticleFaqSection
+            items={[
+              { q: "Hvad koster en elektriker i timen?", a: "En autoriseret elektriker koster typisk 495–895 kr. i timen inkl. moms i dagtimerne. Akut aften/weekend: 900–1.500 kr." },
+              { q: "Hvad koster et akut udkald?", a: "Akut udkald aften/nat/weekend ligger på 950–2.000 kr. inkl. første 30 min. plus timepris." },
+              { q: "Hvad koster installation af ladestander?", a: "En 11 kW hjemmeladestander koster typisk 8.500–18.000 kr. fuldt installeret. Pris afhænger af afstand til eltavle og evt. opgradering af gruppe." },
+              { q: "Skal jeg bruge en autoriseret elektriker?", a: "Ja — alt fast el-arbejde over lavspænding er lovkrav at få udført af en autoriseret elinstallatør." },
+            ]}
+          />
         </article>
       </main>
 

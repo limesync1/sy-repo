@@ -5,6 +5,7 @@ import SiteNav from "@/components/SiteNav";
 import ArticleHero from "@/components/landing/ArticleHero";
 import TrustBar from "@/components/conversion/TrustBar";
 import InlineQuoteTeaser from "@/components/conversion/InlineQuoteTeaser";
+import ArticleFaqSection from "@/components/content/ArticleFaqSection";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -144,7 +145,7 @@ export function defineGuidePage(cfg: GuideConfig) {
       />
 
       <main id="main" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-        <article className="prose prose-neutral max-w-3xl dark:prose-invert">
+        <article className="article-content prose prose-neutral dark:prose-invert">
           <div className="my-8 rounded-lg border border-border bg-muted/40 p-5">
             <p className="m-0 text-sm font-semibold text-foreground">Kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">
@@ -227,13 +228,7 @@ export function defineGuidePage(cfg: GuideConfig) {
             </div>
           </div>
 
-          <h2>Ofte stillede spørgsmål</h2>
-          {cfg.faq.map((f, i) => (
-            <Fragment key={i}>
-              <h3>{f.q}</h3>
-              <p>{f.a}</p>
-            </Fragment>
-          ))}
+          <ArticleFaqSection items={cfg.faq} />
         </article>
       </main>
 

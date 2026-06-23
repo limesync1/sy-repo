@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import ArticleHero from "@/components/landing/ArticleHero";
+import ArticleFaqSection from "@/components/content/ArticleFaqSection";
 import { lazy, Suspense } from "react";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
@@ -119,7 +120,7 @@ const LaminateCleaningGuide = () => {
       />
 
       <main id="main" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-        <article className="prose prose-neutral max-w-3xl dark:prose-invert">
+        <article className="article-content prose prose-neutral dark:prose-invert">
           <div className="my-8 rounded-lg border border-border bg-muted/40 p-5">
             <p className="m-0 text-sm font-semibold text-foreground">Kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">
@@ -203,19 +204,14 @@ const LaminateCleaningGuide = () => {
             </p>
           </div>
 
-          <h2>Ofte stillede spørgsmål</h2>
-
-          <h3>Hvilket rengøringsmiddel er bedst til laminatgulv?</h3>
-          <p>Et pH-neutralt laminatrens (fx Bona eller Faxe). Undgå sæbespåner, eddike, ammoniak og slibende midler — de ødelægger lakeringen eller efterlader en hinde.</p>
-
-          <h3>Må man vaske laminatgulv med vand?</h3>
-          <p>Ja, men kun med en hårdt opvredet klud. Stående vand trænger ned i samlingerne og får brædderne til at bulke op.</p>
-
-          <h3>Hvor ofte skal et laminatgulv vaskes?</h3>
-          <p>Støvsug 2–3 gange om ugen og vask gulvet hver 1.–2. uge med pH-neutralt middel. I køkken og entré oftere.</p>
-
-          <h3>Kan en damprenser bruges på laminatgulv?</h3>
-          <p>Nej. Damp og fugt ødelægger samlingerne. Brug en hårdt opvredet mikrofibermoppe i stedet.</p>
+          <ArticleFaqSection
+            items={[
+              { q: "Hvilket rengøringsmiddel er bedst til laminatgulv?", a: "Et pH-neutralt laminatrens (fx Bona eller Faxe). Undgå sæbespåner, eddike, ammoniak og slibende midler — de ødelægger lakeringen eller efterlader en hinde." },
+              { q: "Må man vaske laminatgulv med vand?", a: "Ja, men kun med en hårdt opvredet klud. Stående vand trænger ned i samlingerne og får brædderne til at bulke op." },
+              { q: "Hvor ofte skal et laminatgulv vaskes?", a: "Støvsug 2–3 gange om ugen og vask gulvet hver 1.–2. uge med pH-neutralt middel. I køkken og entré oftere." },
+              { q: "Kan en damprenser bruges på laminatgulv?", a: "Nej. Damp og fugt ødelægger samlingerne. Brug en hårdt opvredet mikrofibermoppe i stedet." },
+            ]}
+          />
         </article>
       </main>
 

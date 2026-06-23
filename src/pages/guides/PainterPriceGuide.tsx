@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import ArticleHero from "@/components/landing/ArticleHero";
+import ArticleFaqSection from "@/components/content/ArticleFaqSection";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -64,7 +65,7 @@ const PainterPriceGuide = () => {
       />
 
       <main id="main" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-        <article className="prose prose-neutral max-w-3xl dark:prose-invert">
+        <article className="article-content prose prose-neutral dark:prose-invert">
           <div className="my-8 rounded-lg border border-border bg-muted/40 p-5">
             <p className="m-0 text-sm font-semibold text-foreground">Kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">
@@ -114,13 +115,13 @@ const PainterPriceGuide = () => {
             </div>
           </div>
 
-          <h2>Ofte stillede spørgsmål</h2>
-          <h3>Hvad koster en maler pr. m²?</h3>
-          <p>Vægge: 90–180 kr./m². Lofter: 110–200 kr./m². Inkl. maling og 2 lag.</p>
-          <h3>Hvad er timeprisen for en maler?</h3>
-          <p>Typisk 425–625 kr. i timen inkl. moms.</p>
-          <h3>Hvad koster det at male et helt hus indvendigt?</h3>
-          <p>Et parcelhus på 130 m² koster typisk 35.000–65.000 kr. komplet indvendigt.</p>
+          <ArticleFaqSection
+            items={[
+              { q: "Hvad koster en maler pr. m²?", a: "Vægge: 90–180 kr./m². Lofter: 110–200 kr./m². Inkl. maling og 2 lag." },
+              { q: "Hvad er timeprisen for en maler?", a: "Typisk 425–625 kr. i timen inkl. moms." },
+              { q: "Hvad koster det at male et helt hus indvendigt?", a: "Et parcelhus på 130 m² koster typisk 35.000–65.000 kr. komplet indvendigt." },
+            ]}
+          />
         </article>
       </main>
 

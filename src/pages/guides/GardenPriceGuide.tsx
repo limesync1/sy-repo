@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import ArticleHero from "@/components/landing/ArticleHero";
+import ArticleFaqSection from "@/components/content/ArticleFaqSection";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -62,7 +63,7 @@ const GardenPriceGuide = () => {
       />
 
       <main id="main" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-        <article className="prose prose-neutral max-w-3xl dark:prose-invert">
+        <article className="article-content prose prose-neutral dark:prose-invert">
           <div className="my-8 rounded-lg border border-border bg-muted/40 p-5">
             <p className="m-0 text-sm font-semibold text-foreground">Kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">
@@ -114,6 +115,15 @@ const GardenPriceGuide = () => {
               <Link to="/virksomheder?category=Haveservice" className="inline-flex h-11 items-center rounded-md border border-border bg-background px-5 text-sm font-semibold text-foreground hover:bg-muted">Se havefirmaer</Link>
             </div>
           </div>
+
+          <ArticleFaqSection
+            items={[
+              { q: "Hvad koster en havemand i timen?", a: "En havemand koster typisk 325–595 kr. i timen inkl. moms i 2026. Faste aftaler ligger ofte 15–25% lavere end engangsbesøg." },
+              { q: "Hvad koster græsslåning?", a: "Græsslåning af et alm. parcelhus (200–400 m² græs) koster 275–750 kr. pr. besøg afhængig af by og adgang." },
+              { q: "Hvad koster hækklipning?", a: "Hækklipning koster 24–75 kr. pr. løbende meter. Højde over 2 meter giver typisk 30–50% tillæg." },
+              { q: "Kan jeg få fradrag på haveservice?", a: "Ja — haveservice indgår i BoligJob-ordningens serviceydelser. Det kræver elektronisk betaling og specificeret faktura." },
+            ]}
+          />
         </article>
       </main>
 

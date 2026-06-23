@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import ArticleHero from "@/components/landing/ArticleHero";
+import ArticleFaqSection from "@/components/content/ArticleFaqSection";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -64,7 +65,7 @@ const PlumberPriceGuide = () => {
       />
 
       <main id="main" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-        <article className="prose prose-neutral max-w-3xl dark:prose-invert">
+        <article className="article-content prose prose-neutral dark:prose-invert">
           <div className="my-8 rounded-lg border border-border bg-muted/40 p-5">
             <p className="m-0 text-sm font-semibold text-foreground">Kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">
@@ -116,13 +117,13 @@ const PlumberPriceGuide = () => {
             </div>
           </div>
 
-          <h2>Ofte stillede spørgsmål</h2>
-          <h3>Hvad koster en VVS'er i timen?</h3>
-          <p>550–800 kr. inkl. moms i dagtimerne. Akut aften/weekend: 900–1.500 kr.</p>
-          <h3>Hvad koster et akut udkald?</h3>
-          <p>900–1.800 kr. aften, nat eller weekend, inkl. første 30 minutter.</p>
-          <h3>Skal jeg bruge en autoriseret VVS'er?</h3>
-          <p>Ja — vand-, gas- og afløbsarbejde er lovkrav at få udført af en autoriseret VVS-installatør.</p>
+          <ArticleFaqSection
+            items={[
+              { q: "Hvad koster en VVS'er i timen?", a: "550–800 kr. inkl. moms i dagtimerne. Akut aften/weekend: 900–1.500 kr." },
+              { q: "Hvad koster et akut udkald?", a: "900–1.800 kr. aften, nat eller weekend, inkl. første 30 minutter." },
+              { q: "Skal jeg bruge en autoriseret VVS'er?", a: "Ja — vand-, gas- og afløbsarbejde er lovkrav at få udført af en autoriseret VVS-installatør." },
+            ]}
+          />
         </article>
       </main>
 
