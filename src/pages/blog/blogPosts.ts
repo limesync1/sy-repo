@@ -138,6 +138,132 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     readingMinutes: 8,
     category: "Algebehandling",
   },
+  {
+    slug: "saadan-finder-du-billig-flyttehjaelp",
+    title: "Sådan finder du billig flyttehjælp — uden at gå på kompromis med kvaliteten",
+    description:
+      "Sammenlign timepris og fast pris, undgå skjulte gebyrer, og lær hvornår en billig flyttemand faktisk bliver dyr. 9 konkrete tips til at spare 20–40%.",
+    publishedAt: "2026-08-05",
+    readingMinutes: 9,
+    category: "Flyttehjælp",
+  },
+  {
+    slug: "hovedrengoering-foer-flytning",
+    title: "Hovedrengøring før indflytning — tjekliste rum for rum",
+    description:
+      "Komplet tjekliste til hovedrengøring inden indflytning: køkken, bad, vinduer, gulve, ovne og hårde hvidevarer. Plus prisniveau for professionel hovedrengøring.",
+    publishedAt: "2026-08-08",
+    readingMinutes: 10,
+    category: "Rengøring",
+  },
+  {
+    slug: "fraflytningsrengoering-hvad-skal-med",
+    title: "Fraflytningsrengøring — hvad kræver udlejer reelt, og hvad koster det?",
+    description:
+      "Lovkrav, normal misligholdelse vs. ekstraordinær rengøring, hvad udlejer må trække i depositum, og realistiske priser for fraflytningsrengøring i 2026.",
+    publishedAt: "2026-08-12",
+    readingMinutes: 9,
+    category: "Rengøring",
+  },
+  {
+    slug: "el-tjek-foer-koeb-af-bolig",
+    title: "El-tjek før boligkøb — derfor er det 1.500 kr. godt givet ud",
+    description:
+      "Hvad er et el-tjek, hvad opdager elektrikeren, hvad må sælger ikke skjule, og hvornår er det lovpligtigt? Plus hvad et el-tjek koster i 2026.",
+    publishedAt: "2026-08-16",
+    readingMinutes: 8,
+    category: "Elektriker",
+  },
+  {
+    slug: "varmepumpe-installation-priser-2026",
+    title: "Varmepumpe — installation, tilskud og pris i 2026",
+    description:
+      "Luft-til-vand vs. luft-til-luft, hvor meget kan du spare på varmeregningen, hvilke tilskud findes der i 2026, og hvad koster en installation?",
+    publishedAt: "2026-08-20",
+    readingMinutes: 12,
+    category: "VVS",
+  },
+  {
+    slug: "tagrender-vedligehold-og-rens",
+    title: "Rens af tagrender — hvor ofte, hvad koster det og kan jeg selv?",
+    description:
+      "Tilstoppede tagrender giver fugtskader for titusinder af kroner. Lær hvor ofte du skal rense, prisniveau for professionel rens og hvornår du selv kan klare det.",
+    publishedAt: "2026-08-24",
+    readingMinutes: 7,
+    category: "Haveservice",
+  },
+  {
+    slug: "maling-af-facade-traek-og-puds",
+    title: "Facademaling — træ, puds eller mursten? Pris, holdbarhed og proces",
+    description:
+      "Sådan vælger du den rigtige maling til træfacade, pudset facade eller mursten. Holdbarhed, kvm-pris og hvad maleren laver trin for trin.",
+    publishedAt: "2026-08-28",
+    readingMinutes: 10,
+    category: "Maler",
+  },
+  {
+    slug: "haek-og-traefaeldning-regler",
+    title: "Hækklipning og træfældning — regler, naboaftaler og priser",
+    description:
+      "Hvornår må du fælde et træ uden tilladelse, hvilke regler gælder for hækhøjde mod skel, og hvad koster det at få professionelle ind? Plus hegnsloven kort.",
+    publishedAt: "2026-09-01",
+    readingMinutes: 9,
+    category: "Haveservice",
+  },
+  {
+    slug: "vinduer-udskiftning-energi-og-pris",
+    title: "Udskiftning af vinduer — energibesparelse, pris og tilskud",
+    description:
+      "Hvornår betaler det sig at udskifte vinduer, hvad er forskellen på 2- og 3-lags energiruder, hvad koster det pr. vindue, og hvilke tilskud findes der?",
+    publishedAt: "2026-09-05",
+    readingMinutes: 11,
+    category: "Tømrer",
+  },
+  {
+    slug: "skadedyr-i-koekkenet-hvad-goer-jeg",
+    title: "Skadedyr i køkkenet — sølvfisk, melmøl og kakerlakker",
+    description:
+      "Identifikation, forebyggelse og bekæmpelse af de mest almindelige køkkenskadedyr. Hvornår skal du selv sætte ind, og hvornår skal du ringe efter en professionel?",
+    publishedAt: "2026-09-09",
+    readingMinutes: 8,
+    category: "Skadedyrsbekæmpelse",
+  },
+  {
+    slug: "skorstensfejer-pligt-og-pris",
+    title: "Skorstensfejer — lovpligt, intervaller og hvad det koster",
+    description:
+      "Hvor ofte skal skorstenen fejes, hvad koster lovpligtigt skorstenssyn, og hvad sker der hvis du skipper det? Praktisk guide for husejere med brændeovn eller pejs.",
+    publishedAt: "2026-09-13",
+    readingMinutes: 7,
+    category: "Skorstensfejer",
+  },
+  {
+    slug: "alarm-eller-videoovervaagning-til-hjemmet",
+    title: "Alarm eller videoovervågning til hjemmet — hvad virker bedst i 2026?",
+    description:
+      "Sammenligning af alarmsystem, smart-kameraer og kombinationsløsninger. Hvad afskrækker indbrudstyve, hvad kræver GDPR, og hvad koster det at få installeret?",
+    publishedAt: "2026-09-17",
+    readingMinutes: 10,
+    category: "Sikkerhed",
+  },
+  {
+    slug: "gulvslibning-traegulv-trin-for-trin",
+    title: "Slibning og lakering af trægulv — pris, proces og DIY-vurdering",
+    description:
+      "Hvornår skal et trægulv slibes, hvor mange gange kan det lade sig gøre, hvad koster det pr. m², og kan du selv? Realistisk vurdering plus tjekliste til gulvlæggeren.",
+    publishedAt: "2026-09-21",
+    readingMinutes: 9,
+    category: "Gulvlægger",
+  },
+  {
+    slug: "saadan-bestiller-du-haandvaerker-rigtigt",
+    title: "Sådan bestiller du en håndværker rigtigt — undgå de 7 klassiske fejl",
+    description:
+      "Specifik opgavebeskrivelse, fast vs. timepris, kontrakt, betalingsplan, afleveringsforretning og 1-års gennemgang. Bestil bedre — og bliv ikke snydt.",
+    publishedAt: "2026-09-25",
+    readingMinutes: 11,
+    category: "Håndværker",
+  },
 ];
 
 export const findBlogPost = (slug?: string) =>

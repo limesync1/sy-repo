@@ -126,6 +126,20 @@ const BlogRatsInGarden       = lazyRoute("/blog/rotter-i-haven-hvad-goer-jeg", (
 const BlogFloorChoice        = lazyRoute("/blog/gulvlaegger-vinyl-laminat-eller-traegulv", () => import("./pages/blog/posts/FloorChoice"));
 const BlogLandscaping        = lazyRoute("/blog/anlaegsgartner-terrasse-og-have", () => import("./pages/blog/posts/Landscaping"));
 const BlogAlgaeTreatment     = lazyRoute("/blog/algebehandling-tag-og-facade", () => import("./pages/blog/posts/AlgaeTreatment"));
+const BlogCheapMoving        = lazyRoute("/blog/saadan-finder-du-billig-flyttehjaelp", () => import("./pages/blog/posts/CheapMovingHelp"));
+const BlogMoveInDeepClean    = lazyRoute("/blog/hovedrengoering-foer-flytning", () => import("./pages/blog/posts/MoveInDeepClean"));
+const BlogMoveOutCleaning    = lazyRoute("/blog/fraflytningsrengoering-hvad-skal-med", () => import("./pages/blog/posts/MoveOutCleaning"));
+const BlogElectricalCheck    = lazyRoute("/blog/el-tjek-foer-koeb-af-bolig", () => import("./pages/blog/posts/ElectricalInspection"));
+const BlogHeatPump           = lazyRoute("/blog/varmepumpe-installation-priser-2026", () => import("./pages/blog/posts/HeatPump"));
+const BlogGutterCleaning     = lazyRoute("/blog/tagrender-vedligehold-og-rens", () => import("./pages/blog/posts/GutterCleaning"));
+const BlogFacadePainting     = lazyRoute("/blog/maling-af-facade-traek-og-puds", () => import("./pages/blog/posts/FacadePainting"));
+const BlogHedgeTreeRules     = lazyRoute("/blog/haek-og-traefaeldning-regler", () => import("./pages/blog/posts/HedgeTreeRules"));
+const BlogWindowReplacement  = lazyRoute("/blog/vinduer-udskiftning-energi-og-pris", () => import("./pages/blog/posts/WindowReplacement"));
+const BlogKitchenPests       = lazyRoute("/blog/skadedyr-i-koekkenet-hvad-goer-jeg", () => import("./pages/blog/posts/KitchenPests"));
+const BlogChimneySweep       = lazyRoute("/blog/skorstensfejer-pligt-og-pris", () => import("./pages/blog/posts/ChimneySweepObligation"));
+const BlogAlarmVsCamera      = lazyRoute("/blog/alarm-eller-videoovervaagning-til-hjemmet", () => import("./pages/blog/posts/AlarmVsCamera"));
+const BlogFloorSanding       = lazyRoute("/blog/gulvslibning-traegulv-trin-for-trin", () => import("./pages/blog/posts/FloorSanding"));
+const BlogHireContractor     = lazyRoute("/blog/saadan-bestiller-du-haandvaerker-rigtigt", () => import("./pages/blog/posts/HireContractorRight"));
 const HelpCenter             = lazyRoute("/hjaelp", () => import("./pages/HelpCenter"));
 const VisualTestPlanner      = lazyRoute("visual-test-planner", () => import("./pages/VisualTestPlanner"));
 const VisualTestLivechat     = lazyRoute("visual-test-livechat", () => import("./pages/VisualTestLivechat"));
@@ -326,6 +340,20 @@ const App = () => (
               <Route path="/blog/gulvlaegger-vinyl-laminat-eller-traegulv" element={<BlogFloorChoice />} />
               <Route path="/blog/anlaegsgartner-terrasse-og-have" element={<BlogLandscaping />} />
               <Route path="/blog/algebehandling-tag-og-facade" element={<BlogAlgaeTreatment />} />
+              <Route path="/blog/saadan-finder-du-billig-flyttehjaelp" element={<BlogCheapMoving />} />
+              <Route path="/blog/hovedrengoering-foer-flytning" element={<BlogMoveInDeepClean />} />
+              <Route path="/blog/fraflytningsrengoering-hvad-skal-med" element={<BlogMoveOutCleaning />} />
+              <Route path="/blog/el-tjek-foer-koeb-af-bolig" element={<BlogElectricalCheck />} />
+              <Route path="/blog/varmepumpe-installation-priser-2026" element={<BlogHeatPump />} />
+              <Route path="/blog/tagrender-vedligehold-og-rens" element={<BlogGutterCleaning />} />
+              <Route path="/blog/maling-af-facade-traek-og-puds" element={<BlogFacadePainting />} />
+              <Route path="/blog/haek-og-traefaeldning-regler" element={<BlogHedgeTreeRules />} />
+              <Route path="/blog/vinduer-udskiftning-energi-og-pris" element={<BlogWindowReplacement />} />
+              <Route path="/blog/skadedyr-i-koekkenet-hvad-goer-jeg" element={<BlogKitchenPests />} />
+              <Route path="/blog/skorstensfejer-pligt-og-pris" element={<BlogChimneySweep />} />
+              <Route path="/blog/alarm-eller-videoovervaagning-til-hjemmet" element={<BlogAlarmVsCamera />} />
+              <Route path="/blog/gulvslibning-traegulv-trin-for-trin" element={<BlogFloorSanding />} />
+              <Route path="/blog/saadan-bestiller-du-haandvaerker-rigtigt" element={<BlogHireContractor />} />
               <Route path="/hjaelp" element={<HelpCenter />} />
 
               {/* ── Visual regression fixture (e2e only, ingen auth) ── */}

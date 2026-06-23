@@ -83,7 +83,7 @@ const BlogArticleLayout = ({ post, keywords, faq, children }: Props) => {
       />
 
       <main id="main" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-        <article className="prose prose-neutral mx-auto max-w-3xl dark:prose-invert">
+        <article className="prose prose-neutral max-w-3xl dark:prose-invert">
           <TrustBar />
 
           {children}
