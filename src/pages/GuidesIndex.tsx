@@ -66,6 +66,54 @@ const GUIDES = [
     tag: "Prisguide",
   },
   {
+    href: "/priser/tomrer",
+    title: "Tømrer pris 2026 — timepris & opgaver",
+    desc: "Timepris, terrasser, trapper, carport og tilbygninger — inkl. AB-Forbruger og BoligJob-fradrag.",
+    tag: "Prisguide",
+  },
+  {
+    href: "/priser/murer",
+    title: "Murer pris 2026 — opmuring & omfugning",
+    desc: "Timepris, opmuring, facadepudsning, omfugning og udbedring af sætningsskader.",
+    tag: "Prisguide",
+  },
+  {
+    href: "/priser/gulvlaegger",
+    title: "Gulvlægger pris 2026 — vinyl, laminat & trægulv",
+    desc: "Pris pr. m² på lægning af vinyl, laminat, parket, massivt trægulv og fliser.",
+    tag: "Prisguide",
+  },
+  {
+    href: "/priser/anlaegsgartner",
+    title: "Anlægsgartner pris 2026 — terrasse & havedesign",
+    desc: "Fliseterrasse, træterrasse, hækplantning, bede og dræn — process og priser.",
+    tag: "Prisguide",
+  },
+  {
+    href: "/priser/skadedyr",
+    title: "Skadedyrsbekæmpelse pris 2026",
+    desc: "Rotter, mus, hvepse, sølvfisk og bænkebider — pris, anmeldelsespligt og forsikringsdækning.",
+    tag: "Prisguide",
+  },
+  {
+    href: "/priser/skorstensfejer",
+    title: "Skorstensfejer pris 2026 — lovpligtig fejning",
+    desc: "Gebyr, intervaller for brændeovn, pejs og pillefyr — plus sotbrandinspektion.",
+    tag: "Prisguide",
+  },
+  {
+    href: "/priser/algebehandling",
+    title: "Algebehandling pris 2026 — tag & facade",
+    desc: "Softwash vs. højtryk, pris pr. m², holdbarhed og hvad du bør have med i tilbuddet.",
+    tag: "Prisguide",
+  },
+  {
+    href: "/priser/sikkerhed",
+    title: "Alarm, kameraer & lås — pris 2026",
+    desc: "Alarmsystem, vagtcentral, IP-kameraer og certificeret lås — pris og forsikringskrav.",
+    tag: "Prisguide",
+  },
+  {
     href: "/guides/rengoering-af-laminatgulv",
     title: "Rengøring af laminatgulv",
     desc: "Trin-for-trin guide til skånsom rengøring og vedligehold af laminatgulve — uden striber og skader.",
@@ -155,7 +203,7 @@ const GuidesIndex = () => {
         subtitle="Få overblik over priser, processer og lokale forhold — så du ved hvad du skal kigge efter, før du beder om tilbud."
       />
 
-      <main id="main" className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+      <main id="main" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
         <section aria-labelledby="guides-heading" className="mb-14">
           <h2 id="guides-heading" className="mb-4 text-2xl font-semibold text-foreground">
             Prisguides &amp; how-to
