@@ -293,10 +293,6 @@
     content: "";
   }
 
-  .article-content.prose > div:first-child:not(.not-prose) :where(li)::first-letter {
-    color: transparent;
-  }
-
   .article-content.prose > div:first-child:not(.not-prose) :where(li)::before {
     content: "";
     position: absolute;
