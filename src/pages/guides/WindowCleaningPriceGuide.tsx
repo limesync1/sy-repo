@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import ArticleHero from "@/components/landing/ArticleHero";
+import ArticleFaqSection from "@/components/content/ArticleFaqSection";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -114,13 +115,13 @@ const WindowCleaningPriceGuide = () => {
             </div>
           </div>
 
-          <h2>Ofte stillede spørgsmål</h2>
-          <h3>Hvad koster en vinduespudser?</h3>
-          <p>25–45 kr./vindue ved abonnement, 35–60 kr./vindue ved engangsbesøg.</p>
-          <h3>Hvor ofte bør jeg pudse vinduer?</h3>
-          <p>4–8 gange årligt for private, månedligt for erhverv.</p>
-          <h3>Kan jeg få fradrag?</h3>
-          <p>Ja — fuldt omfattet af BoligJob-servicefradrag (op til 12.300 kr./voksen i 2026).</p>
+          <ArticleFaqSection
+            items={[
+              { q: "Hvad koster en vinduespudser?", a: "25–45 kr./vindue ved abonnement, 35–60 kr./vindue ved engangsbesøg." },
+              { q: "Hvor ofte bør jeg pudse vinduer?", a: "4–8 gange årligt for private, månedligt for erhverv." },
+              { q: "Kan jeg få fradrag?", a: "Ja — fuldt omfattet af BoligJob-servicefradrag (op til 12.300 kr./voksen i 2026)." },
+            ]}
+          />
         </article>
       </main>
 

@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import ArticleHero from "@/components/landing/ArticleHero";
+import ArticleFaqSection from "@/components/content/ArticleFaqSection";
 import { lazy, Suspense } from "react";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
@@ -239,36 +240,30 @@ const CleaningPriceGuide = () => {
             </div>
           </div>
 
-          <h2>Ofte stillede spørgsmål</h2>
-
-          <h3>Hvad koster privat rengøring pr. time?</h3>
-          <p>
-            Typisk 250–450 kr. i timen inkl. moms. Faste aftaler ligger i den lave ende, engangs- og
-            hovedrengøring i den høje.
-          </p>
-
-          <h3>Hvad koster fast rengøring i en lejlighed?</h3>
-          <p>
-            En lejlighed på 60–90 m² koster typisk 350–650 kr. pr. besøg ved rengøring hver 2. uge.
-          </p>
-
-          <h3>Hvad er forskellen på timepris og fast pris?</h3>
-          <p>
-            Timepris betales pr. faktisk anvendt time. Fast pris er et samlet beløb for en defineret
-            opgave — fx flytterengøring eller en månedlig aftale.
-          </p>
-
-          <h3>Kan jeg få fradrag for rengøring?</h3>
-          <p>
-            Ja. Med BoligJobordningen kan du i 2026 trække op til 12.300 kr. fra pr. person, hvis
-            firmaet er momsregistreret og du betaler digitalt.
-          </p>
-
-          <h3>Hvad koster erhvervsrengøring?</h3>
-          <p>
-            Erhvervsrengøring afregnes typisk 8–18 kr. pr. m² pr. måned ved fast aftale, eller
-            220–380 kr. pr. time ekskl. moms ved engangsopgaver.
-          </p>
+          <ArticleFaqSection
+            items={[
+              {
+                q: "Hvad koster privat rengøring pr. time?",
+                a: "Typisk 250–450 kr. i timen inkl. moms. Faste aftaler ligger i den lave ende, engangs- og hovedrengøring i den høje.",
+              },
+              {
+                q: "Hvad koster fast rengøring i en lejlighed?",
+                a: "En lejlighed på 60–90 m² koster typisk 350–650 kr. pr. besøg ved rengøring hver 2. uge.",
+              },
+              {
+                q: "Hvad er forskellen på timepris og fast pris?",
+                a: "Timepris betales pr. faktisk anvendt time. Fast pris er et samlet beløb for en defineret opgave — fx flytterengøring eller en månedlig aftale.",
+              },
+              {
+                q: "Kan jeg få fradrag for rengøring?",
+                a: "Ja. Med BoligJobordningen kan du i 2026 trække op til 12.300 kr. fra pr. person, hvis firmaet er momsregistreret og du betaler digitalt.",
+              },
+              {
+                q: "Hvad koster erhvervsrengøring?",
+                a: "Erhvervsrengøring afregnes typisk 8–18 kr. pr. m² pr. måned ved fast aftale, eller 220–380 kr. pr. time ekskl. moms ved engangsopgaver.",
+              },
+            ]}
+          />
         </article>
       </main>
 
