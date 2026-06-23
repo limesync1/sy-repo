@@ -107,6 +107,13 @@ const BlogIndex              = lazyRoute("/blog", () => import("./pages/blog/Blo
 const BlogChooseCleaning     = lazyRoute("/blog/saadan-vaelger-du-rengoeringsfirma", () => import("./pages/blog/posts/ChooseCleaningCompany"));
 const BlogMovingChecklist    = lazyRoute("/blog/tjekliste-til-flyttedag", () => import("./pages/blog/posts/MovingDayChecklist"));
 const BlogBoligJob           = lazyRoute("/blog/boligjob-fradrag-2026", () => import("./pages/blog/posts/BoligJobGuide"));
+const BlogChoosePainter      = lazyRoute("/blog/saadan-vaelger-du-maler", () => import("./pages/blog/posts/ChoosePainter"));
+const BlogVvsAkut            = lazyRoute("/blog/vvs-akut-foer-installatoeren-kommer", () => import("./pages/blog/posts/VvsAkut"));
+const BlogElectricianRules   = lazyRoute("/blog/hvornaar-skal-du-have-autoriseret-elektriker", () => import("./pages/blog/posts/ElectricianRules"));
+const BlogGardenYearWheel    = lazyRoute("/blog/aarshjul-for-haveservice", () => import("./pages/blog/posts/GardenYearWheel"));
+const BlogWindowCleaner      = lazyRoute("/blog/vinduespudser-eller-selv", () => import("./pages/blog/posts/WindowCleanerOrDIY"));
+const BlogCarpentryProject   = lazyRoute("/blog/tomrerprojekt-hjemme-trin-for-trin", () => import("./pages/blog/posts/CarpentryProject"));
+const HelpCenter             = lazyRoute("/hjaelp", () => import("./pages/HelpCenter"));
 const VisualTestPlanner      = lazyRoute("visual-test-planner", () => import("./pages/VisualTestPlanner"));
 const VisualTestLivechat     = lazyRoute("visual-test-livechat", () => import("./pages/VisualTestLivechat"));
 
@@ -287,6 +294,13 @@ const App = () => (
               <Route path="/blog/saadan-vaelger-du-rengoeringsfirma" element={<BlogChooseCleaning />} />
               <Route path="/blog/tjekliste-til-flyttedag" element={<BlogMovingChecklist />} />
               <Route path="/blog/boligjob-fradrag-2026" element={<BlogBoligJob />} />
+              <Route path="/blog/saadan-vaelger-du-maler" element={<BlogChoosePainter />} />
+              <Route path="/blog/vvs-akut-foer-installatoeren-kommer" element={<BlogVvsAkut />} />
+              <Route path="/blog/hvornaar-skal-du-have-autoriseret-elektriker" element={<BlogElectricianRules />} />
+              <Route path="/blog/aarshjul-for-haveservice" element={<BlogGardenYearWheel />} />
+              <Route path="/blog/vinduespudser-eller-selv" element={<BlogWindowCleaner />} />
+              <Route path="/blog/tomrerprojekt-hjemme-trin-for-trin" element={<BlogCarpentryProject />} />
+              <Route path="/hjaelp" element={<HelpCenter />} />
 
               {/* ── Visual regression fixture (e2e only, ingen auth) ── */}
               <Route path="/__visual/planner" element={<VisualTestPlanner />} />
