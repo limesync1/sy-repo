@@ -48,8 +48,8 @@ const Footer = () => {
             <h4 className="mb-3 text-sm font-semibold text-background">Support</h4>
             <ul className="space-y-2 text-sm text-background/65">
               <li><a href="mailto:kontakt@serviceydere.dk" className="transition-colors hover:text-background">Kontakt os</a></li>
-              <li><span>Hjælpecenter</span></li>
-              <li><span>FAQ</span></li>
+              <li><Link to="/hjaelp" className="transition-colors hover:text-background">Hjælpecenter</Link></li>
+              <li><Link to="/hjaelp#faq" className="transition-colors hover:text-background">FAQ</Link></li>
             </ul>
           </div>
           <div>
