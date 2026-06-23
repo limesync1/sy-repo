@@ -79,7 +79,7 @@ const MovingCityPage = () => {
 
       <main id="main" className="mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
         <article className="prose prose-neutral max-w-none dark:prose-invert">
-          <div className="not-prose mb-2 mt-0 rounded-lg border border-border bg-muted/40 p-5">
+          <div className="my-8 rounded-lg border border-border bg-muted/40 p-5">
             <p className="m-0 text-sm font-semibold text-foreground">{city.name} kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">
               <li>• Timepris (2 mænd + bil): <strong>{city.hourlyLow}–{city.hourlyHigh} kr.</strong> inkl. moms</li>
