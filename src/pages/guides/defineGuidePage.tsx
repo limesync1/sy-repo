@@ -150,7 +150,7 @@ export function defineGuidePage(cfg: GuideConfig) {
             <p className="m-0 text-sm font-semibold text-foreground">Kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">
               {cfg.quickFacts.map((f, i) => (
-                <li key={i}>• {f}</li>
+                <li key={i}>{f}</li>
               ))}
             </ul>
           </div>

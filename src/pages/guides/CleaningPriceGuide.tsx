@@ -113,10 +113,10 @@ const CleaningPriceGuide = () => {
           <div className="my-8 rounded-lg border border-border bg-muted/40 p-5">
             <p className="m-0 text-sm font-semibold text-foreground">Kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">
-              <li>• Privat rengøring: <strong>250–450 kr./time</strong> inkl. moms</li>
-              <li>• Fast rengøring i lejlighed (60–90 m²): <strong>350–650 kr./besøg</strong></li>
-              <li>• Erhvervsrengøring: <strong>8–18 kr./m²/md.</strong> ved fast aftale</li>
-              <li>• BoligJob-fradrag i 2026: op til <strong>12.300 kr./person</strong></li>
+              <li>Privat rengøring: <strong>250–450 kr./time</strong> inkl. moms</li>
+              <li>Fast rengøring i lejlighed (60–90 m²): <strong>350–650 kr./besøg</strong></li>
+              <li>Erhvervsrengøring: <strong>8–18 kr./m²/md.</strong> ved fast aftale</li>
+              <li>BoligJob-fradrag i 2026: op til <strong>12.300 kr./person</strong></li>
             </ul>
           </div>
 

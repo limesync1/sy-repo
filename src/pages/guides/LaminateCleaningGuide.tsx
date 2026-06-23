@@ -124,11 +124,11 @@ const LaminateCleaningGuide = () => {
           <div className="my-8 rounded-lg border border-border bg-muted/40 p-5">
             <p className="m-0 text-sm font-semibold text-foreground">Kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">
-              <li>• Støvsug <strong>før</strong> du vasker — sand giver ridser</li>
-              <li>• Brug <strong>pH-neutralt</strong> laminatrens — aldrig sæbespåner eller eddike</li>
-              <li>• Vask med <strong>hårdt opvredet</strong> mikrofiberklud — aldrig drivvådt</li>
-              <li>• Tør spild op <strong>med det samme</strong></li>
-              <li>• Damprenser og brun sæbe <strong>ødelægger</strong> laminat</li>
+              <li>Støvsug <strong>før</strong> du vasker — sand giver ridser</li>
+              <li>Brug <strong>pH-neutralt</strong> laminatrens — aldrig sæbespåner eller eddike</li>
+              <li>Vask med <strong>hårdt opvredet</strong> mikrofiberklud — aldrig drivvådt</li>
+              <li>Tør spild op <strong>med det samme</strong></li>
+              <li>Damprenser og brun sæbe <strong>ødelægger</strong> laminat</li>
             </ul>
           </div>
 

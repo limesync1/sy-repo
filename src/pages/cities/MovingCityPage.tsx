@@ -82,10 +82,10 @@ const MovingCityPage = () => {
           <div className="my-8 rounded-lg border border-border bg-muted/40 p-5">
             <p className="m-0 text-sm font-semibold text-foreground">{city.name} kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">
-              <li>• Timepris (2 mænd + bil): <strong>{city.hourlyLow}–{city.hourlyHigh} kr.</strong> inkl. moms</li>
-              <li>• Lille lejlighed (1–2 vær.): <strong>{city.smallMoveLow}–{city.smallMoveHigh} kr.</strong></li>
-              <li>• Villa (4–5 vær.): <strong>{city.villaMoveLow}–{city.villaMoveHigh} kr.</strong></li>
-              <li>• Dækker postnumre: <strong>{city.postalRange}</strong></li>
+              <li>Timepris (2 mænd + bil): <strong>{city.hourlyLow}–{city.hourlyHigh} kr.</strong> inkl. moms</li>
+              <li>Lille lejlighed (1–2 vær.): <strong>{city.smallMoveLow}–{city.smallMoveHigh} kr.</strong></li>
+              <li>Villa (4–5 vær.): <strong>{city.villaMoveLow}–{city.villaMoveHigh} kr.</strong></li>
+              <li>Dækker postnumre: <strong>{city.postalRange}</strong></li>
             </ul>
           </div>
 

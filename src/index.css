@@ -246,11 +246,11 @@
 
 @layer components {
   .article-content {
-    @apply w-full max-w-4xl text-foreground;
+    @apply w-full max-w-none text-foreground;
   }
 
   .article-content.prose {
-    max-width: 56rem;
+    max-width: none;
     --tw-prose-body: hsl(var(--foreground) / 0.82);
     --tw-prose-headings: hsl(var(--foreground));
     --tw-prose-lead: hsl(var(--foreground) / 0.75);
@@ -267,12 +267,50 @@
     --tw-prose-td-borders: hsl(var(--border));
   }
 
+  .article-content.prose > :where(p, ul, ol, blockquote, h2, h3, h4):not(:where(.not-prose, .not-prose *)) {
+    max-width: 56rem;
+  }
+
+  .article-content.prose > div:first-child:not(.not-prose) {
+    @apply mb-10 mt-0 rounded-2xl border border-border bg-muted/40 p-5 shadow-panel sm:p-6;
+    max-width: none;
+  }
+
+  .article-content.prose > div:first-child:not(.not-prose) > p:first-child {
+    @apply m-0 text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground;
+  }
+
+  .article-content.prose > div:first-child:not(.not-prose) :where(ul) {
+    @apply m-0 mt-4 grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-4;
+    max-width: none;
+  }
+
+  .article-content.prose > div:first-child:not(.not-prose) :where(li) {
+    @apply relative m-0 rounded-xl border border-border bg-card p-4 pl-11 text-sm leading-6 text-foreground/85 shadow-sm;
+  }
+
+  .article-content.prose > div:first-child:not(.not-prose) :where(li)::marker {
+    content: "";
+  }
+
+  .article-content.prose > div:first-child:not(.not-prose) :where(li)::before {
+    content: "";
+    position: absolute;
+    left: 1rem;
+    top: 1.15rem;
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 9999px;
+    background-color: hsl(var(--accent));
+    box-shadow: 0 0 0 0.28rem hsl(var(--accent) / 0.12);
+  }
+
   .article-content.prose :where(h2):not(:where(.not-prose, .not-prose *)) {
-    @apply mt-12 border-t border-border pt-8 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl;
+    @apply mb-4 mt-14 border-l-4 border-accent pl-4 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl;
   }
 
   .article-content.prose :where(h2:first-child):not(:where(.not-prose, .not-prose *)) {
-    @apply mt-0 border-t-0 pt-0;
+    @apply mt-0;
   }
 
   .article-content.prose :where(p):not(:where(.not-prose, .not-prose *)) {
@@ -288,23 +326,35 @@
   }
 
   .article-content.prose :where(h3):not(:where(.not-prose, .not-prose *)) {
-    @apply mb-0 mt-4 rounded-t-xl border border-border bg-muted/40 px-5 py-4 text-base font-semibold leading-snug text-foreground;
-  }
-
-  .article-content.prose :where(h3 + p):not(:where(.not-prose, .not-prose *)) {
-    @apply mt-0 rounded-b-xl border-x border-b border-border bg-card px-5 py-4 text-sm leading-7 text-muted-foreground sm:text-base;
+    @apply mb-3 mt-9 text-xl font-semibold tracking-tight text-foreground;
   }
 
   .article-content .not-prose table {
-    @apply min-w-[680px] bg-card;
+    @apply min-w-[760px] bg-card;
+  }
+
+  .article-content .not-prose:has(> table) {
+    @apply my-8 rounded-2xl border border-border shadow-panel;
   }
 
   .article-content .not-prose thead {
     @apply border-b border-border;
   }
 
+  .article-content .not-prose th {
+    @apply bg-muted/70 px-5 py-4 text-xs font-semibold uppercase tracking-[0.08em] text-foreground;
+  }
+
+  .article-content .not-prose td {
+    @apply px-5 py-4 align-top text-sm leading-6 text-foreground/85;
+  }
+
   .article-content .not-prose tbody tr {
     @apply transition-colors hover:bg-muted/35;
+  }
+
+  .article-content .not-prose tbody tr td:nth-child(2) {
+    @apply font-semibold text-foreground;
   }
 }
 

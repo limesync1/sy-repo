@@ -11,11 +11,11 @@ const STATS: { label: string; value: string }[] = [
 ];
 
 const TrustBar = () => (
-  <div className="not-prose my-6 grid grid-cols-2 gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-4">
+  <div className="not-prose my-8 grid grid-cols-2 gap-3 rounded-2xl border border-border bg-card p-4 shadow-panel sm:grid-cols-4">
     {STATS.map((s) => (
-      <div key={s.label} className="text-center">
-        <p className="text-lg font-bold text-foreground sm:text-xl">{s.value}</p>
-        <p className="text-xs text-muted-foreground">{s.label}</p>
+      <div key={s.label} className="rounded-xl bg-muted/35 px-4 py-4 text-center">
+        <p className="text-lg font-bold tracking-tight text-foreground sm:text-xl">{s.value}</p>
+        <p className="mt-1 text-xs leading-5 text-muted-foreground">{s.label}</p>
       </div>
     ))}
   </div>

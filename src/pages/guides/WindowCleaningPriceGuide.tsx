@@ -69,10 +69,10 @@ const WindowCleaningPriceGuide = () => {
           <div className="my-8 rounded-lg border border-border bg-muted/40 p-5">
             <p className="m-0 text-sm font-semibold text-foreground">Kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">
-              <li>• Abonnement: <strong>25–45 kr./vindue</strong></li>
-              <li>• Engangsbesøg: <strong>35–60 kr./vindue</strong></li>
-              <li>• Standard villa (20–25 vinduer): <strong>500–1.200 kr./besøg</strong></li>
-              <li>• BoligJob-fradrag dækker hele beløbet</li>
+              <li>Abonnement: <strong>25–45 kr./vindue</strong></li>
+              <li>Engangsbesøg: <strong>35–60 kr./vindue</strong></li>
+              <li>Standard villa (20–25 vinduer): <strong>500–1.200 kr./besøg</strong></li>
+              <li>BoligJob-fradrag dækker hele beløbet</li>
             </ul>
           </div>
 

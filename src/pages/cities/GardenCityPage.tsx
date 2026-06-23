@@ -77,10 +77,10 @@ const GardenCityPage = () => {
           <div className="my-8 rounded-lg border border-border bg-muted/40 p-5">
             <p className="m-0 text-sm font-semibold text-foreground">{city.name} kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">
-              <li>• Timepris: <strong>{city.hourlyLow}–{city.hourlyHigh} kr./time</strong></li>
-              <li>• Græsslåning pr. besøg: <strong>{city.lawnLow}–{city.lawnHigh} kr.</strong></li>
-              <li>• Hækklipning pr. lbm.: <strong>{city.hedgeLow}–{city.hedgeHigh} kr.</strong></li>
-              <li>• Postnumre: <strong>{city.postalRange}</strong></li>
+              <li>Timepris: <strong>{city.hourlyLow}–{city.hourlyHigh} kr./time</strong></li>
+              <li>Græsslåning pr. besøg: <strong>{city.lawnLow}–{city.lawnHigh} kr.</strong></li>
+              <li>Hækklipning pr. lbm.: <strong>{city.hedgeLow}–{city.hedgeHigh} kr.</strong></li>
+              <li>Postnumre: <strong>{city.postalRange}</strong></li>
             </ul>
           </div>
 

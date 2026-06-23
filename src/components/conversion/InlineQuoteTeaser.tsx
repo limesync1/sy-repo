@@ -39,14 +39,18 @@ const InlineQuoteTeaser = ({
   return (
     <form
       onSubmit={onSubmit}
-      className="not-prose my-8 rounded-xl border border-border bg-card p-5 sm:p-6"
+      className="not-prose my-8 rounded-2xl border border-border bg-card p-5 shadow-panel sm:p-6"
       aria-label="Start tilbudsforespørgsel"
     >
-      <p className="text-sm font-semibold text-foreground">{heading}</p>
-      <p className="mt-1 text-xs text-muted-foreground">
-        Indtast dit postnummer — vi finder relevante udbydere på under 24 timer.
-      </p>
-      <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+        <div className="max-w-2xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Gratis tilbud</p>
+          <p className="mt-2 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">{heading}</p>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Indtast dit postnummer — vi finder relevante udbydere på under 24 timer.
+          </p>
+        </div>
+        <div className="flex w-full flex-col gap-2 sm:flex-row lg:w-auto">
         <label htmlFor="quote-postal" className="sr-only">Postnummer</label>
         <input
           id="quote-postal"
@@ -57,14 +61,15 @@ const InlineQuoteTeaser = ({
           placeholder="Postnummer"
           value={postal}
           onChange={(e) => setPostal(e.target.value)}
-          className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring sm:w-40"
+          className="h-12 w-full rounded-xl border border-input bg-background px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring sm:w-40"
         />
         <button
           type="submit"
-          className="inline-flex h-11 items-center justify-center rounded-md bg-foreground px-5 text-sm font-semibold text-background hover:opacity-90"
+          className="inline-flex h-12 items-center justify-center rounded-xl bg-foreground px-6 text-sm font-semibold text-background hover:opacity-90"
         >
           Start tilbud →
         </button>
+        </div>
       </div>
       <p className="mt-3 text-[11px] text-muted-foreground">
         Gratis & uforpligtende · Du modtager ikke spam

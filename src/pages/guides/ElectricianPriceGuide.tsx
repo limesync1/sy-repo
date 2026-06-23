@@ -65,10 +65,10 @@ const ElectricianPriceGuide = () => {
           <div className="my-8 rounded-lg border border-border bg-muted/40 p-5">
             <p className="m-0 text-sm font-semibold text-foreground">Kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">
-              <li>• Timepris (dagtimer): <strong>495–895 kr.</strong> inkl. moms</li>
-              <li>• Akut aften/weekend: <strong>900–1.500 kr./time</strong></li>
-              <li>• Udkald: <strong>450–850 kr.</strong> (akut: 950–2.000 kr.)</li>
-              <li>• 11 kW ladestander: <strong>8.500–18.000 kr.</strong> installeret</li>
+              <li>Timepris (dagtimer): <strong>495–895 kr.</strong> inkl. moms</li>
+              <li>Akut aften/weekend: <strong>900–1.500 kr./time</strong></li>
+              <li>Udkald: <strong>450–850 kr.</strong> (akut: 950–2.000 kr.)</li>
+              <li>11 kW ladestander: <strong>8.500–18.000 kr.</strong> installeret</li>
             </ul>
           </div>
 

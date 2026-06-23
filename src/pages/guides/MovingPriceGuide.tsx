@@ -112,10 +112,10 @@ const MovingPriceGuide = () => {
           <div className="my-8 rounded-lg border border-border bg-muted/40 p-5">
             <p className="m-0 text-sm font-semibold text-foreground">Kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">
-              <li>• Timepris (2 mand + bil): <strong>450–900 kr./time</strong> inkl. moms</li>
-              <li>• 2-værelses lejlighed: <strong>3.500–6.500 kr.</strong></li>
-              <li>• 4-værelses villa: <strong>8.000–15.000 kr.</strong></li>
-              <li>• Pakkehjælp: <strong>+500–1.500 kr.</strong> afhængigt af mængde</li>
+              <li>Timepris (2 mand + bil): <strong>450–900 kr./time</strong> inkl. moms</li>
+              <li>2-værelses lejlighed: <strong>3.500–6.500 kr.</strong></li>
+              <li>4-værelses villa: <strong>8.000–15.000 kr.</strong></li>
+              <li>Pakkehjælp: <strong>+500–1.500 kr.</strong> afhængigt af mængde</li>
             </ul>
           </div>
 
