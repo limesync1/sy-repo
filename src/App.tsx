@@ -294,6 +294,13 @@ const App = () => (
               <Route path="/blog/saadan-vaelger-du-rengoeringsfirma" element={<BlogChooseCleaning />} />
               <Route path="/blog/tjekliste-til-flyttedag" element={<BlogMovingChecklist />} />
               <Route path="/blog/boligjob-fradrag-2026" element={<BlogBoligJob />} />
+              <Route path="/blog/saadan-vaelger-du-maler" element={<BlogChoosePainter />} />
+              <Route path="/blog/vvs-akut-foer-installatoeren-kommer" element={<BlogVvsAkut />} />
+              <Route path="/blog/hvornaar-skal-du-have-autoriseret-elektriker" element={<BlogElectricianRules />} />
+              <Route path="/blog/aarshjul-for-haveservice" element={<BlogGardenYearWheel />} />
+              <Route path="/blog/vinduespudser-eller-selv" element={<BlogWindowCleaner />} />
+              <Route path="/blog/tomrerprojekt-hjemme-trin-for-trin" element={<BlogCarpentryProject />} />
+              <Route path="/hjaelp" element={<HelpCenter />} />
 
               {/* ── Visual regression fixture (e2e only, ingen auth) ── */}
               <Route path="/__visual/planner" element={<VisualTestPlanner />} />
