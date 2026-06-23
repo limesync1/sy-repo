@@ -39,6 +39,60 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     readingMinutes: 9,
     category: "Økonomi",
   },
+  {
+    slug: "saadan-vaelger-du-maler",
+    title: "Sådan vælger du den rette maler — pris, proces og faldgruber",
+    description:
+      "Få styr på malerpriser, proces, forsikring og typiske faldgruber inden du booker en maler — både til lejlighed, hus og erhverv.",
+    publishedAt: "2026-06-25",
+    readingMinutes: 10,
+    category: "Maler",
+  },
+  {
+    slug: "vvs-akut-foer-installatoeren-kommer",
+    title: "VVS-akut: hvad gør du før installatøren kommer?",
+    description:
+      "Sprunget vandrør, tilstoppet afløb eller stoppet toilet? Her er trin-for-trin hvad du skal gøre — og hvad du IKKE skal gøre — inden VVS'eren ankommer.",
+    publishedAt: "2026-06-28",
+    readingMinutes: 8,
+    category: "VVS",
+  },
+  {
+    slug: "hvornaar-skal-du-have-autoriseret-elektriker",
+    title: "Hvornår skal du have en autoriseret elektriker?",
+    description:
+      "Hvilke elinstallationer må du selv lave i 2026, og hvad kræver en autoriseret elektriker? Få reglerne, sikkerhedstjeklisten og prisniveauet.",
+    publishedAt: "2026-07-02",
+    readingMinutes: 9,
+    category: "Elektriker",
+  },
+  {
+    slug: "aarshjul-for-haveservice",
+    title: "Årshjul for haveservice — hvornår skal hvad gøres?",
+    description:
+      "Klip, beskæring, gødning, løvfald og vintersikring — komplet månedligt årshjul så din have ser velholdt ud hele året.",
+    publishedAt: "2026-07-05",
+    readingMinutes: 11,
+    category: "Haveservice",
+  },
+  {
+    slug: "vinduespudser-eller-selv",
+    title: "Vinduespudser eller selv — hvad betaler sig egentlig?",
+    description:
+      "Hvad koster en vinduespudser pr. vindue, hvor ofte bør vinduer pudses, og hvornår betaler det sig at gøre det selv? Realistisk regnestykke og tjekliste.",
+    publishedAt: "2026-07-08",
+    readingMinutes: 7,
+    category: "Vinduespudsning",
+  },
+  {
+    slug: "tomrerprojekt-hjemme-trin-for-trin",
+    title: "Tømrerprojekt hjemme — fra idé til færdig opgave",
+    description:
+      "Trin-for-trin guide: planlæg, indhent tilbud, vælg tømrer, byggetilladelse, kontrakt, afleveringsforretning og 1-års gennemgang.",
+    publishedAt: "2026-07-12",
+    readingMinutes: 12,
+    category: "Tømrer",
+  },
 ];
 
 export const findBlogPost = (slug?: string) =>
