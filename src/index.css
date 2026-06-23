@@ -286,11 +286,27 @@
   }
 
   .article-content.prose > div:first-child:not(.not-prose) :where(li) {
-    @apply m-0 rounded-xl border border-border bg-card p-4 pl-4 text-sm leading-6 text-foreground/85 shadow-sm;
+    @apply relative m-0 rounded-xl border border-border bg-card p-4 pl-11 text-sm leading-6 text-foreground/85 shadow-sm;
   }
 
   .article-content.prose > div:first-child:not(.not-prose) :where(li)::marker {
     content: "";
+  }
+
+  .article-content.prose > div:first-child:not(.not-prose) :where(li)::first-letter {
+    color: transparent;
+  }
+
+  .article-content.prose > div:first-child:not(.not-prose) :where(li)::before {
+    content: "";
+    position: absolute;
+    left: 1rem;
+    top: 1.15rem;
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 9999px;
+    background-color: hsl(var(--accent));
+    box-shadow: 0 0 0 0.28rem hsl(var(--accent) / 0.12);
   }
 
   .article-content.prose :where(h2):not(:where(.not-prose, .not-prose *)) {
