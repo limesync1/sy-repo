@@ -125,7 +125,9 @@ const HandymanPriceGuide = () => {
             <p className="mt-2 text-foreground/80">Beskriv din opgave, og få op til 3 uforpligtende tilbud fra verificerede håndværkere i dit område.</p>
             <div className="mt-5 flex flex-wrap gap-3">
               <Link to="/tilbud" className="inline-flex h-11 items-center rounded-md bg-foreground px-5 text-sm font-semibold text-background hover:opacity-90">Få 3 gratis tilbud</Link>
-              <Link to="/virksomheder?category=H%C3%A5ndv%C3%A6rker" className="inline-flex h-11 items-center rounded-md border border-border bg-background px-5 text-sm font-semibold text-foreground hover:bg-muted">Se håndværkere</Link>
+              <Link to="/virksomheder?category=T%C3%B8mrer" className="inline-flex h-11 items-center rounded-md border border-border bg-background px-5 text-sm font-semibold text-foreground hover:bg-muted">Se tømrere</Link>
+              <Link to="/virksomheder?category=Murer" className="inline-flex h-11 items-center rounded-md border border-border bg-background px-5 text-sm font-semibold text-foreground hover:bg-muted">Se murere</Link>
+              <Link to="/virksomheder?category=Maler" className="inline-flex h-11 items-center rounded-md border border-border bg-background px-5 text-sm font-semibold text-foreground hover:bg-muted">Se malere</Link>
             </div>
           </div>
 

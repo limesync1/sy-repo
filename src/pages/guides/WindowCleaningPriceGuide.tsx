@@ -26,7 +26,7 @@ const WindowCleaningPriceGuide = () => {
       itemListElement: [
         { "@type": "ListItem", position: 1, name: "Forside", item: "https://serviceydere.dk/" },
         { "@type": "ListItem", position: 2, name: "Guides", item: "https://serviceydere.dk/guides" },
-        { "@type": "ListItem", position: 3, name: "Vinduespudser", item: "https://serviceydere.dk/priser/vinduespudser" },
+        { "@type": "ListItem", position: 3, name: "Vinduespudsning", item: "https://serviceydere.dk/priser/vinduespudser" },
       ],
     },
     {
@@ -56,7 +56,7 @@ const WindowCleaningPriceGuide = () => {
         breadcrumbs={[
           { label: "Forside", to: "/" },
           { label: "Guides", to: "/guides" },
-          { label: "Vinduespudser" },
+          { label: "Vinduespudsning" },
         ]}
         eyebrow="Prisguide · Opdateret juni 2026"
         title="Vinduespudser pris i 2026"
@@ -110,7 +110,7 @@ const WindowCleaningPriceGuide = () => {
             <p className="mt-2 text-foreground/80">Få op til 3 gratis tilbud — sammenlign abonnementspriser og leveringstider i dit område.</p>
             <div className="mt-5 flex flex-wrap gap-3">
               <Link to="/tilbud" className="inline-flex h-11 items-center rounded-md bg-foreground px-5 text-sm font-semibold text-background hover:opacity-90">Få 3 gratis tilbud</Link>
-              <Link to="/virksomheder?category=Vinduespudser" className="inline-flex h-11 items-center rounded-md border border-border bg-background px-5 text-sm font-semibold text-foreground hover:bg-muted">Se vinduespudsere</Link>
+              <Link to="/virksomheder?category=Vinduespudsning" className="inline-flex h-11 items-center rounded-md border border-border bg-background px-5 text-sm font-semibold text-foreground hover:bg-muted">Se vinduespudsere</Link>
             </div>
           </div>
 
