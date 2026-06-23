@@ -106,6 +106,13 @@ const FloorLayerGuide        = lazyRoute("/priser/gulvlaegger", () => import("./
 const ChimneySweepGuide      = lazyRoute("/priser/skorstensfejer", () => import("./pages/guides/ChimneySweepPriceGuide"));
 const AlgaeTreatmentGuide    = lazyRoute("/priser/algebehandling", () => import("./pages/guides/AlgaeTreatmentPriceGuide"));
 const SecurityGuide          = lazyRoute("/priser/sikkerhed", () => import("./pages/guides/SecurityPriceGuide"));
+const HeatPumpGuide          = lazyRoute("/priser/varmepumpe", () => import("./pages/guides/HeatPumpPriceGuide"));
+const NewRoofGuide           = lazyRoute("/priser/nyt-tag", () => import("./pages/guides/NewRoofPriceGuide"));
+const BathroomGuide          = lazyRoute("/priser/nyt-badevaerelse", () => import("./pages/guides/BathroomPriceGuide"));
+const WindowReplacementGuide = lazyRoute("/priser/vinduesudskiftning", () => import("./pages/guides/WindowReplacementPriceGuide"));
+const SewerGuide             = lazyRoute("/priser/kloakmester", () => import("./pages/guides/SewerPriceGuide"));
+const CraftsmanTaxGuide      = lazyRoute("/guides/haandvaerkerfradrag-2026", () => import("./pages/guides/CraftsmanTaxDeduction2026"));
+const ServiceTaxGuide        = lazyRoute("/guides/servicefradrag-2026", () => import("./pages/guides/ServiceTaxDeduction2026"));
 const GuidesIndex            = lazyRoute("/guides", () => import("./pages/GuidesIndex"));
 const CleaningCityPage       = lazyRoute("/rengoering/:city", () => import("./pages/cities/CleaningCityPage"));
 const MovingCityPage         = lazyRoute("/flyttehjaelp/:city", () => import("./pages/cities/MovingCityPage"));
@@ -315,6 +322,13 @@ const App = () => (
               <Route path="/priser/skorstensfejer" element={<ChimneySweepGuide />} />
               <Route path="/priser/algebehandling" element={<AlgaeTreatmentGuide />} />
               <Route path="/priser/sikkerhed" element={<SecurityGuide />} />
+              <Route path="/priser/varmepumpe" element={<HeatPumpGuide />} />
+              <Route path="/priser/nyt-tag" element={<NewRoofGuide />} />
+              <Route path="/priser/nyt-badevaerelse" element={<BathroomGuide />} />
+              <Route path="/priser/vinduesudskiftning" element={<WindowReplacementGuide />} />
+              <Route path="/priser/kloakmester" element={<SewerGuide />} />
+              <Route path="/guides/haandvaerkerfradrag-2026" element={<CraftsmanTaxGuide />} />
+              <Route path="/guides/servicefradrag-2026" element={<ServiceTaxGuide />} />
               <Route path="/guides/rengoering-af-laminatgulv" element={<LaminateCleaningGuide />} />
               <Route path="/guides" element={<GuidesIndex />} />
 
