@@ -92,7 +92,6 @@ const HandymanCityPage = () => {
 
           <TrustBar />
           <InlineQuoteTeaser
-            category="Håndværker"
             heading={`Få 3 gratis tilbud fra håndværkere i ${city.name}`}
           />
 
