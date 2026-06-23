@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import ArticleHero from "@/components/landing/ArticleHero";
+import ArticleFaqSection from "@/components/content/ArticleFaqSection";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -114,6 +115,15 @@ const GardenPriceGuide = () => {
               <Link to="/virksomheder?category=Haveservice" className="inline-flex h-11 items-center rounded-md border border-border bg-background px-5 text-sm font-semibold text-foreground hover:bg-muted">Se havefirmaer</Link>
             </div>
           </div>
+
+          <ArticleFaqSection
+            items={[
+              { q: "Hvad koster en havemand i timen?", a: "En havemand koster typisk 325–595 kr. i timen inkl. moms i 2026. Faste aftaler ligger ofte 15–25% lavere end engangsbesøg." },
+              { q: "Hvad koster græsslåning?", a: "Græsslåning af et alm. parcelhus (200–400 m² græs) koster 275–750 kr. pr. besøg afhængig af by og adgang." },
+              { q: "Hvad koster hækklipning?", a: "Hækklipning koster 24–75 kr. pr. løbende meter. Højde over 2 meter giver typisk 30–50% tillæg." },
+              { q: "Kan jeg få fradrag på haveservice?", a: "Ja — haveservice indgår i BoligJob-ordningens serviceydelser. Det kræver elektronisk betaling og specificeret faktura." },
+            ]}
+          />
         </article>
       </main>
 
