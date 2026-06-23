@@ -244,6 +244,70 @@
   }
 }
 
+@layer components {
+  .article-content {
+    @apply w-full max-w-4xl text-foreground;
+  }
+
+  .article-content.prose {
+    max-width: 56rem;
+    --tw-prose-body: hsl(var(--foreground) / 0.82);
+    --tw-prose-headings: hsl(var(--foreground));
+    --tw-prose-lead: hsl(var(--foreground) / 0.75);
+    --tw-prose-links: hsl(var(--foreground));
+    --tw-prose-bold: hsl(var(--foreground));
+    --tw-prose-counters: hsl(var(--accent));
+    --tw-prose-bullets: hsl(var(--accent));
+    --tw-prose-hr: hsl(var(--border));
+    --tw-prose-quotes: hsl(var(--foreground));
+    --tw-prose-quote-borders: hsl(var(--accent));
+    --tw-prose-captions: hsl(var(--muted-foreground));
+    --tw-prose-code: hsl(var(--foreground));
+    --tw-prose-th-borders: hsl(var(--border));
+    --tw-prose-td-borders: hsl(var(--border));
+  }
+
+  .article-content.prose :where(h2):not(:where(.not-prose, .not-prose *)) {
+    @apply mt-12 border-t border-border pt-8 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl;
+  }
+
+  .article-content.prose :where(h2:first-child):not(:where(.not-prose, .not-prose *)) {
+    @apply mt-0 border-t-0 pt-0;
+  }
+
+  .article-content.prose :where(p):not(:where(.not-prose, .not-prose *)) {
+    @apply text-[1.02rem] leading-8 text-foreground/80;
+  }
+
+  .article-content.prose :where(ul, ol):not(:where(.not-prose, .not-prose *)) {
+    @apply my-6 space-y-2 text-foreground/80;
+  }
+
+  .article-content.prose :where(li):not(:where(.not-prose, .not-prose *)) {
+    @apply pl-1 leading-7;
+  }
+
+  .article-content.prose :where(h3):not(:where(.not-prose, .not-prose *)) {
+    @apply mb-0 mt-4 rounded-t-xl border border-border bg-muted/40 px-5 py-4 text-base font-semibold leading-snug text-foreground;
+  }
+
+  .article-content.prose :where(h3 + p):not(:where(.not-prose, .not-prose *)) {
+    @apply mt-0 rounded-b-xl border-x border-b border-border bg-card px-5 py-4 text-sm leading-7 text-muted-foreground sm:text-base;
+  }
+
+  .article-content .not-prose table {
+    @apply min-w-[680px] bg-card;
+  }
+
+  .article-content .not-prose thead {
+    @apply border-b border-border;
+  }
+
+  .article-content .not-prose tbody tr {
+    @apply transition-colors hover:bg-muted/35;
+  }
+}
+
 /* ─── Respektér brugerens motion-præferencer ───
    Folk med vestibulære lidelser får hurtigere/ingen animationer. Dette er
    et must på alle moderne sider og hjælper også på low-end devices hvor
