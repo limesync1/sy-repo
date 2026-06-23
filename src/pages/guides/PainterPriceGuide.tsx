@@ -69,10 +69,10 @@ const PainterPriceGuide = () => {
           <div className="my-8 rounded-lg border border-border bg-muted/40 p-5">
             <p className="m-0 text-sm font-semibold text-foreground">Kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">
-              <li>• Vægge: <strong>90–180 kr./m²</strong> (2 gange maling, inkl. materialer)</li>
-              <li>• Lofter: <strong>110–200 kr./m²</strong></li>
-              <li>• Timepris: <strong>425–625 kr./time</strong> inkl. moms</li>
-              <li>• Helt hus (130 m²): <strong>35.000–65.000 kr.</strong></li>
+              <li>Vægge: <strong>90–180 kr./m²</strong> (2 gange maling, inkl. materialer)</li>
+              <li>Lofter: <strong>110–200 kr./m²</strong></li>
+              <li>Timepris: <strong>425–625 kr./time</strong> inkl. moms</li>
+              <li>Helt hus (130 m²): <strong>35.000–65.000 kr.</strong></li>
             </ul>
           </div>
 

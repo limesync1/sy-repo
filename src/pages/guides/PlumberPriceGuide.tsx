@@ -69,10 +69,10 @@ const PlumberPriceGuide = () => {
           <div className="my-8 rounded-lg border border-border bg-muted/40 p-5">
             <p className="m-0 text-sm font-semibold text-foreground">Kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">
-              <li>• Timepris (dagtimer): <strong>550–800 kr.</strong> inkl. moms</li>
-              <li>• Akut aften/weekend: <strong>900–1.500 kr./time</strong></li>
-              <li>• Udkald: <strong>450–800 kr.</strong> (akut: 900–1.800 kr.)</li>
-              <li>• Toiletudskiftning: <strong>3.500–6.500 kr.</strong></li>
+              <li>Timepris (dagtimer): <strong>550–800 kr.</strong> inkl. moms</li>
+              <li>Akut aften/weekend: <strong>900–1.500 kr./time</strong></li>
+              <li>Udkald: <strong>450–800 kr.</strong> (akut: 900–1.800 kr.)</li>
+              <li>Toiletudskiftning: <strong>3.500–6.500 kr.</strong></li>
             </ul>
           </div>
 

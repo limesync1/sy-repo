@@ -74,10 +74,10 @@ const HandymanPriceGuide = () => {
           <div className="my-8 rounded-lg border border-border bg-muted/40 p-5">
             <p className="m-0 text-sm font-semibold text-foreground">Kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">
-              <li>• Tømrer/snedker: <strong>500–700 kr./time</strong> inkl. moms</li>
-              <li>• Murer: <strong>450–650 kr./time</strong></li>
-              <li>• Udkald: <strong>350–600 kr.</strong> (inkl. første 30 min.)</li>
-              <li>• Håndværkerfradrag 2026: op til <strong>8.600 kr./person</strong></li>
+              <li>Tømrer/snedker: <strong>500–700 kr./time</strong> inkl. moms</li>
+              <li>Murer: <strong>450–650 kr./time</strong></li>
+              <li>Udkald: <strong>350–600 kr.</strong> (inkl. første 30 min.)</li>
+              <li>Håndværkerfradrag 2026: op til <strong>8.600 kr./person</strong></li>
             </ul>
           </div>
 
