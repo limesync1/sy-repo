@@ -23,7 +23,6 @@ const ArticleFaqSection = ({ items, title = "Ofte stillede spørgsmål" }: Artic
           <details
             key={item.q}
             className="group rounded-xl border border-border bg-card shadow-sm transition-colors open:bg-background"
-            open={index === 0}
           >
             <summary className="flex min-h-[4.5rem] cursor-pointer list-none items-start justify-between gap-4 rounded-xl px-5 py-4 text-base font-semibold leading-6 text-foreground transition hover:bg-muted/40 [&::-webkit-details-marker]:hidden">
               <span>{item.q}</span>
