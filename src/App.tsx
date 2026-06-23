@@ -340,6 +340,20 @@ const App = () => (
               <Route path="/blog/gulvlaegger-vinyl-laminat-eller-traegulv" element={<BlogFloorChoice />} />
               <Route path="/blog/anlaegsgartner-terrasse-og-have" element={<BlogLandscaping />} />
               <Route path="/blog/algebehandling-tag-og-facade" element={<BlogAlgaeTreatment />} />
+              <Route path="/blog/saadan-finder-du-billig-flyttehjaelp" element={<BlogCheapMoving />} />
+              <Route path="/blog/hovedrengoering-foer-flytning" element={<BlogMoveInDeepClean />} />
+              <Route path="/blog/fraflytningsrengoering-hvad-skal-med" element={<BlogMoveOutCleaning />} />
+              <Route path="/blog/el-tjek-foer-koeb-af-bolig" element={<BlogElectricalCheck />} />
+              <Route path="/blog/varmepumpe-installation-priser-2026" element={<BlogHeatPump />} />
+              <Route path="/blog/tagrender-vedligehold-og-rens" element={<BlogGutterCleaning />} />
+              <Route path="/blog/maling-af-facade-traek-og-puds" element={<BlogFacadePainting />} />
+              <Route path="/blog/haek-og-traefaeldning-regler" element={<BlogHedgeTreeRules />} />
+              <Route path="/blog/vinduer-udskiftning-energi-og-pris" element={<BlogWindowReplacement />} />
+              <Route path="/blog/skadedyr-i-koekkenet-hvad-goer-jeg" element={<BlogKitchenPests />} />
+              <Route path="/blog/skorstensfejer-pligt-og-pris" element={<BlogChimneySweep />} />
+              <Route path="/blog/alarm-eller-videoovervaagning-til-hjemmet" element={<BlogAlarmVsCamera />} />
+              <Route path="/blog/gulvslibning-traegulv-trin-for-trin" element={<BlogFloorSanding />} />
+              <Route path="/blog/saadan-bestiller-du-haandvaerker-rigtigt" element={<BlogHireContractor />} />
               <Route path="/hjaelp" element={<HelpCenter />} />
 
               {/* ── Visual regression fixture (e2e only, ingen auth) ── */}
