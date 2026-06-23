@@ -1,94 +1,61 @@
+Det her er et stort stykke arbejde. Jeg foreslår at vi splitter det i fem leverancer, så hver del bliver gjort ordentligt og du kan godkende undervejs.
 
-# Mobil-UX-plan: bestilling og virksomhedspanel
+## 1. Strukturerede data (Article + FAQPage)
 
-Mål: Hele platformen skal føles som en native mobilapp — rolig scrolling, tommelfingervenlige targets, klar hierarki, ingen dialoger der "drukner" indholdet, og ingen indhold der gemmer sig bag bottom-nav/kurv.
+Status i dag:
+- Blog-artikler: har allerede Article + Breadcrumb + FAQPage via `BlogArticleLayout`.
+- Prisguides: har Article + Breadcrumb + FAQPage indlejret manuelt.
+- By-sider (Cleaning/Garden/Handyman/Moving): har FAQ-tekst men IKKE FAQPage JSON-LD, og IKKE Article JSON-LD.
 
-Jeg prioriterer kundeoplevelsen (omsætningskritisk) før paneloplevelsen, og bygger fælles mobil-primitiver så samme fix ikke skal laves 10 gange.
+Plan:
+- Tilføj `Article` + `BreadcrumbList` + `FAQPage` JSON-LD til alle fire by-side-skabeloner (delt helper, så ingen duplikering).
+- Tilføj `Article` JSON-LD til `GuidesIndex` og `HelpCenter` hvor det giver mening (FAQPage er der allerede på `HelpCenter`).
+- Sikre at JSON-LD `mainEntityOfPage` og breadcrumb-URL altid matcher `canonicalPath`.
 
----
+## 2. CMS-lignende blog-skabelon
 
-## Fase 0 — Fælles mobil-fundament (forudsætning, lille)
+Status i dag: hver post er en TSX-fil der importerer `BlogArticleLayout`, finder sin meta i `blogPosts.ts` via `findBlogPost(slug)` og leverer JSX-indhold + en `faq`-prop.
 
-Bygges først så alle senere faser bruger samme byggeklodser:
+Plan:
+- Indfør én `defineBlogPost({ slug, hero, faq, sections, related })` factory der returnerer en React-komponent.
+- `sections` accepteres som array af `{ heading, body, list?, ordered? }` så et nyt opslag kan oprettes uden JSX.
+- En enkelt fil `src/pages/blog/posts/_template.ts` med kommenteret skabelon man kan kopiere.
+- Eksisterende posts beholder deres frihed (kan stadig bruge JSX), men nye posts kan oprettes med ren data.
 
-- **`MobileSheet`-primitiv** (oven på shadcn Sheet): altid `side="bottom"`, `rounded-t-2xl`, drag-handle øverst, sticky header med titel + luk, sticky footer til primær-CTA, scrollbart midterfelt med `overscroll-contain` + safe-area padding. Erstatter Dialog på mobil for alt brugerinitieret flow.
-- **`StickyActionBar`**: bundforankret CTA-bjælke med `env(safe-area-inset-bottom)` der bruges af kurv, "Bestil", "Gem service", "Opret aftale" osv. — løser at primærknapper i dag forsvinder under tastatur/hjemme-bjælke.
-- **Scroll-låsning**: når et sheet/sidebar er åbent, lås body-scroll korrekt (ingen "dobbelt-scroll" hvor baggrunden også flytter sig).
-- **Touch-targets**: min. 44px højde på alle interaktive elementer; `gap-3` minimum mellem trykbare elementer i lister.
-- **Typografi-skala mobil**: én skala (text-sm body, text-base form, text-lg sektion, text-xl side-titel) — i dag blandes text-xs/sm/base tilfældigt og gør hierarkiet rodet.
-- **Bunpadding-regel**: alle sider tilføjer `pb-[calc(env(safe-area-inset-bottom)+5rem)]` på mobil så CartFab / AdminBottomNav aldrig dækker sidste række.
+## 3. Flere guides + opslag for resterende brancher
 
----
+Vi mangler dedikerede pris-/proces-sider for canonical industries: Tømrer, Murer, Skadedyrsbekæmpelse, Anlægsgartner, Gulvlægger, Skorstensfejer, Algebehandling, Sikkerhed.
 
-## Fase 1 — Virksomhedsside + servicekort (kundeflow, mobil)
+Plan (ny side pr. branche, samme `ArticleHero` + pris-tabel + proces-sektion + FAQ + CTA):
+- `/priser/tomrer`, `/priser/murer`, `/priser/skadedyr`, `/priser/anlaegsgartner`, `/priser/gulvlaegger`, `/priser/skorstensfejer`, `/priser/algebehandling`, `/priser/sikkerhed`.
+- Hver guide registreres i `GuidesIndex` og `sitemap.xml`.
 
-Filer: `src/pages/DynamicBusinessPage.tsx`, `src/components/business/DynamicServiceCard.tsx`, `ServiceCard.tsx`.
+## 4. Standardiser ArticleHero + bredde
 
-- **Sticky kompakt header** når man scroller: lille logo + virksomhedsnavn + "Ring"/"Bestil"-knap → reducerer behovet for at scrolle op.
-- **Kategori-tabs som horisontal scroller** med snap (`snap-x snap-mandatory`), aktiv pill og fade-edges. I dag wrapper de over flere linjer og skubber indholdet.
-- **Servicekort-redesign på mobil**: ét kort per række, billede 16:9 øverst, titel + pris i én blok, "Tilføj"-knap i højre hjørne (ikon-only når plads er knap). Fjerner nuværende squeeze hvor pris/CTA brydes.
-- **"Læs mere" → bottom sheet** i stedet for at udvide kortet (forhindrer at listen "hopper").
-- **Tomme tilstande**: pænt tomt-kort med ikon + tekst i stedet for blankt område.
+Status efter sidste runde: forside bruger `max-w-7xl`. Guides bruger `max-w-3xl` til prosa, by-sider `max-w-4xl`, blog-poster `max-w-3xl`. Alle har `ArticleHero`. Det er bevidst (læsbar prosa-bredde), men hero + sidefooter/CTA-bånd skal være 7xl for at matche forsiden.
 
-## Fase 2 — Prisberegner + Tilføj-til-kurv flow
+Plan:
+- Skift alle indholds-`<main>` til at have et bredt 7xl-wrapper, hvor selve teksten har `max-w-3xl/4xl` inden i.
+- Sørg for at `TrustBar` og afsluttende CTA-bånd udnytter den fulde bredde 1:1 som forsidens sektioner.
+- Skift de manuelle `max-w-2xl`/`max-w-5xl` afvigelser på `GuidesIndex` til at matche.
 
-Filer: prisberegner-komponenter i `src/components/business/` (åbnes fra servicekort), `CartSheet.tsx`, `CartFab.tsx`.
+## 5. QA af "Få 3 gratis tilbud"-flow
 
-- **Prisberegner som fuldskærms-sheet på mobil** (ikke modal): step-baseret med progress-prik øverst og sticky "Næste"/"Tilføj"-knap nederst. Input-felter får store labels OVER feltet (ikke side-om-side) — i dag bliver labels klippet på små skærme.
-- **Nummeriske input** (m², stk., timer) bruger `inputMode="decimal"`, +/- stepper-knapper, og levende prisvisning øverst i sheet'et så brugeren ser konsekvensen mens de skriver.
-- **Bekræftelse-toast** ved "Tilføjet til kurv" med undo, i stedet for at hoppe direkte ind i kurven.
-- **CartFab**: flyttes til `bottom-[calc(env(safe-area-inset-bottom)+0.75rem)]`, badge med antal, og gemmer sig på scroll-ned/viser på scroll-op (Material-mønster).
-- **CartSheet (745 linjer)** splittes i `CartItemRow`, `CartSummary`, `CartCheckoutForm`; sticky bund med total + "Til bestilling"; tastatur-håndtering så feltet man skriver i altid scrolles ind i view.
+Plan:
+- Verificér via headless Playwright at hver placering af `InlineQuoteTeaser` (blogartikler, guides, by-sider) sender `?postal=&category=` og at `/tilbud` korrekt forudvælger kategorien og viser postnummeret som by-chip.
+- Tjek samme for forsidens hero-CTA og `RequestQuote` direkte besøg.
+- Rapportér konkret hvad der virker / ikke virker pr. placering med screenshots.
 
-## Fase 3 — Bestilling/checkout (RequestQuote + ApproveOrder)
+## Foreslået rækkefølge
 
-Filer: `src/pages/RequestQuote.tsx`, `src/pages/ApproveOrder.tsx`.
+Jeg laver dem i denne rækkefølge for at undgå konflikter:
 
-- **Wizard-layout på mobil**: 3 trin (Kontakt → Adresse & tid → Bekræft), én sektion per skærm, sticky "Tilbage/Næste"-bjælke.
-- **Adresse-autocomplete**: dropdown som bottom-sheet (ikke flydende combobox der lægger sig forkert på iOS).
-- **Tidsvælger**: dato som horisontal dato-strip (i dag/næste 14 dage), tid som store touch-pills (08–10, 10–12 …) frem for native time-picker.
-- **Validering**: fejl vises inline UNDER feltet i rødt, og første fejlfelt scrolles i view ved submit.
-- **Bekræftelsesside** med ét stort grønt check, ordrenummer, og knapper "Føj til kalender" / "Tilbage til virksomheden".
+```text
+1. CMS-skabelon (defineBlogPost)         — fundament
+2. Strukturerede data på by-sider        — hurtigt og isoleret
+3. Bredde-standardisering                — visuelt sammenhæng
+4. Otte nye branche-guides               — størst arbejde
+5. QA-kørsel af tilbudsflowet            — verifikation til sidst
+```
 
-## Fase 4 — Virksomhedspanelet: navigation + lister
-
-Filer: `src/components/admin/shared/AdminShell.tsx`, `AdminBottomNav.tsx`, alle `*Tab.tsx`.
-
-- **AdminBottomNav** revideres: max 5 ikoner (Overblik, Aftaler, Kunder, Ruter/Services, Mere) — i dag flyder mange faner ind og bliver små. "Mere" åbner et bottom-sheet med resten.
-- **Topbar på mobil** bliver én linje: titel + primær-CTA-ikon. Sekundære knapper (filtre, eksport) flyttes ind i en "…"-menu.
-- **Lister (Aftaler, Kunder, Services)** får ensartet `MobileListCard`: titel + 2 metadata-linjer + status-pill + chevron. Ingen tabeller på mobil. Swipe-actions (slet/rediger) overvejes som premium-touch.
-- **Filterbjælke** bliver et bottom-sheet kaldet via en "Filtrér"-knap; aktive filtre vises som chips øverst i listen og kan fjernes med ét tryk.
-- **Søgefelt** sticky øverst i listen, ikke i topbaren.
-
-## Fase 5 — Oprettelse/redigering i panelet (services, aftaler, kunder)
-
-Filer: `ServicesTab.tsx` (1897 linjer), `AftaleTab.tsx` (2843 linjer), `CustomersTab.tsx` (1489 linjer), `CustomerEditDialog.tsx`, `LeadDetailDialog.tsx`.
-
-- **Alle store dialoger → fuldskærms-sheet på mobil** via `MobileSheet`. Sticky header med "Annullér" + titel + "Gem". Sticky footer med primær-CTA.
-- **Formularer i sektioner med accordion**: fx Service-oprettelse splittes i "Grundoplysninger", "Pris", "Tilgængelighed", "Billeder", "Avanceret" — kun én sektion åben ad gangen, så man ikke scroller endeløst.
-- **Prisberegner-builder på mobil**: trin-baseret guide (vælg type → tilføj enheder → forhåndsvis) i stedet for det nuværende tæt-pakkede skema.
-- **Billed-upload**: stort drop/pick-område, miniaturer som grid 3-kolonner, træk-for-at-omorganisere erstattes på touch af op/ned-pile.
-- **Aftale-oprettelse**: kunde-vælger som søgbar bottom-sheet med "Opret ny kunde inline"; service-vælger samme mønster.
-- **Refaktorering**: 2-3000-linjers tab-filer splittes til underkomponenter (`AftaleList`, `AftaleDetailSheet`, `AftaleCreateSheet`) — nødvendigt for at kunne lave mobiltilpasningen rent.
-
----
-
-## Leverancerækkefølge (forslag)
-
-1. Fase 0 (fundament) — 1 lille PR
-2. Fase 1 + 2 (kundeside, kurv, prisberegner) — omsætningskritisk
-3. Fase 3 (checkout)
-4. Fase 4 (panel-navigation + lister)
-5. Fase 5 (oprettelses-flows, kræver refaktorering først)
-
-Hver fase afsluttes med mobilskærmbilleder (390×844) til godkendelse før næste fase startes.
-
----
-
-## Tekniske noter (kort)
-
-- Tailwind breakpoints: alt mobil-først, `sm:` (≥640) er allerede "tablet" — jeg holder ægte mobil-styling som default.
-- `vaul` (allerede i shadcn `Drawer`) bruges som motor for `MobileSheet` — undgår at indføre ny dependency.
-- `useIsMobile`-hook findes (`src/hooks/use-mobile.tsx`) og genbruges til at swappe Dialog ↔ Sheet.
-- Ingen DB-/RLS-ændringer i denne plan — kun frontend/UX.
-- Tests: e2e Playwright-spec for "tilføj service til kurv → bestil" på iPhone-viewport tilføjes efter fase 3.
+Hver leverance kommer som én tur. Jeg starter med #1 så snart du godkender planen.
