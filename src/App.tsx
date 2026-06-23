@@ -113,6 +113,11 @@ const BlogElectricianRules   = lazyRoute("/blog/hvornaar-skal-du-have-autorisere
 const BlogGardenYearWheel    = lazyRoute("/blog/aarshjul-for-haveservice", () => import("./pages/blog/posts/GardenYearWheel"));
 const BlogWindowCleaner      = lazyRoute("/blog/vinduespudser-eller-selv", () => import("./pages/blog/posts/WindowCleanerOrDIY"));
 const BlogCarpentryProject   = lazyRoute("/blog/tomrerprojekt-hjemme-trin-for-trin", () => import("./pages/blog/posts/CarpentryProject"));
+const BlogMasonryCracks      = lazyRoute("/blog/murer-revner-og-fugtskader", () => import("./pages/blog/posts/MasonryCracks"));
+const BlogRatsInGarden       = lazyRoute("/blog/rotter-i-haven-hvad-goer-jeg", () => import("./pages/blog/posts/RatsInGarden"));
+const BlogFloorChoice        = lazyRoute("/blog/gulvlaegger-vinyl-laminat-eller-traegulv", () => import("./pages/blog/posts/FloorChoice"));
+const BlogLandscaping        = lazyRoute("/blog/anlaegsgartner-terrasse-og-have", () => import("./pages/blog/posts/Landscaping"));
+const BlogAlgaeTreatment     = lazyRoute("/blog/algebehandling-tag-og-facade", () => import("./pages/blog/posts/AlgaeTreatment"));
 const HelpCenter             = lazyRoute("/hjaelp", () => import("./pages/HelpCenter"));
 const VisualTestPlanner      = lazyRoute("visual-test-planner", () => import("./pages/VisualTestPlanner"));
 const VisualTestLivechat     = lazyRoute("visual-test-livechat", () => import("./pages/VisualTestLivechat"));
