@@ -203,7 +203,7 @@ const GuidesIndex = () => {
         subtitle="Få overblik over priser, processer og lokale forhold — så du ved hvad du skal kigge efter, før du beder om tilbud."
       />
 
-      <main id="main" className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+      <main id="main" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
         <section aria-labelledby="guides-heading" className="mb-14">
           <h2 id="guides-heading" className="mb-4 text-2xl font-semibold text-foreground">
             Prisguides &amp; how-to
