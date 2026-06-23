@@ -98,6 +98,14 @@ const WindowCleaningGuide    = lazyRoute("/priser/vinduespudser", () => import("
 const PlumberPriceGuide      = lazyRoute("/priser/vvs", () => import("./pages/guides/PlumberPriceGuide"));
 const GardenPriceGuide       = lazyRoute("/priser/haveservice", () => import("./pages/guides/GardenPriceGuide"));
 const ElectricianPriceGuide  = lazyRoute("/priser/elektriker", () => import("./pages/guides/ElectricianPriceGuide"));
+const CarpenterPriceGuide    = lazyRoute("/priser/tomrer", () => import("./pages/guides/CarpenterPriceGuide"));
+const MasonPriceGuide        = lazyRoute("/priser/murer", () => import("./pages/guides/MasonPriceGuide"));
+const PestControlGuide       = lazyRoute("/priser/skadedyr", () => import("./pages/guides/PestControlPriceGuide"));
+const LandscapingGuide       = lazyRoute("/priser/anlaegsgartner", () => import("./pages/guides/LandscapingPriceGuide"));
+const FloorLayerGuide        = lazyRoute("/priser/gulvlaegger", () => import("./pages/guides/FloorLayerPriceGuide"));
+const ChimneySweepGuide      = lazyRoute("/priser/skorstensfejer", () => import("./pages/guides/ChimneySweepPriceGuide"));
+const AlgaeTreatmentGuide    = lazyRoute("/priser/algebehandling", () => import("./pages/guides/AlgaeTreatmentPriceGuide"));
+const SecurityGuide          = lazyRoute("/priser/sikkerhed", () => import("./pages/guides/SecurityPriceGuide"));
 const GuidesIndex            = lazyRoute("/guides", () => import("./pages/GuidesIndex"));
 const CleaningCityPage       = lazyRoute("/rengoering/:city", () => import("./pages/cities/CleaningCityPage"));
 const MovingCityPage         = lazyRoute("/flyttehjaelp/:city", () => import("./pages/cities/MovingCityPage"));
@@ -285,6 +293,14 @@ const App = () => (
               <Route path="/priser/vvs" element={<PlumberPriceGuide />} />
               <Route path="/priser/haveservice" element={<GardenPriceGuide />} />
               <Route path="/priser/elektriker" element={<ElectricianPriceGuide />} />
+              <Route path="/priser/tomrer" element={<CarpenterPriceGuide />} />
+              <Route path="/priser/murer" element={<MasonPriceGuide />} />
+              <Route path="/priser/skadedyr" element={<PestControlGuide />} />
+              <Route path="/priser/anlaegsgartner" element={<LandscapingGuide />} />
+              <Route path="/priser/gulvlaegger" element={<FloorLayerGuide />} />
+              <Route path="/priser/skorstensfejer" element={<ChimneySweepGuide />} />
+              <Route path="/priser/algebehandling" element={<AlgaeTreatmentGuide />} />
+              <Route path="/priser/sikkerhed" element={<SecurityGuide />} />
               <Route path="/guides/rengoering-af-laminatgulv" element={<LaminateCleaningGuide />} />
               <Route path="/guides" element={<GuidesIndex />} />
 
