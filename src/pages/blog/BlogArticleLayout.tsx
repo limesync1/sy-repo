@@ -6,6 +6,7 @@ import ArticleHero from "@/components/landing/ArticleHero";
 import TrustBar from "@/components/conversion/TrustBar";
 import InlineQuoteTeaser from "@/components/conversion/InlineQuoteTeaser";
 import ArticleFaqSection from "@/components/content/ArticleFaqSection";
+import RelatedContent from "@/components/content/RelatedContent";
 import type { BlogPostMeta } from "./blogPosts";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
@@ -95,6 +96,8 @@ const BlogArticleLayout = ({ post, keywords, faq, children }: Props) => {
             category={post.category === "Økonomi" ? undefined : post.category}
             heading={`Få 3 gratis tilbud${post.category && post.category !== "Økonomi" ? ` på ${post.category.toLowerCase()}` : ""}`}
           />
+
+          <RelatedContent category={post.category} currentPath={canonical} />
 
           <div className="not-prose my-10 rounded-xl border border-border bg-primary/5 p-6 sm:p-8">
             <h2 className="m-0 text-2xl font-semibold text-foreground">Klar til at få tilbud?</h2>

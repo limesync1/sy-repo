@@ -6,6 +6,7 @@ import ArticleHero from "@/components/landing/ArticleHero";
 import TrustBar from "@/components/conversion/TrustBar";
 import InlineQuoteTeaser from "@/components/conversion/InlineQuoteTeaser";
 import ArticleFaqSection from "@/components/content/ArticleFaqSection";
+import RelatedContent from "@/components/content/RelatedContent";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -229,6 +230,8 @@ export function defineGuidePage(cfg: GuideConfig) {
           </div>
 
           <ArticleFaqSection items={cfg.faq} />
+
+          <RelatedContent category={cfg.ctaCategory} currentPath={cfg.canonicalPath} />
         </article>
       </main>
 

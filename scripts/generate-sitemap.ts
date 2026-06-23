@@ -4,6 +4,12 @@
 
 import { writeFileSync } from "fs";
 import { resolve } from "path";
+import { BLOG_POSTS } from "../src/pages/blog/blogPosts";
+import { GUIDES } from "../src/pages/guides/guidesRegistry";
+import { CITIES } from "../src/pages/cities/cleaningCityData";
+import { MOVING_CITIES } from "../src/pages/cities/movingCityData";
+import { HANDYMAN_CITIES } from "../src/pages/cities/handymanCityData";
+import { GARDEN_CITIES } from "../src/pages/cities/gardenCityData";
 
 const BASE_URL = "https://serviceydere.dk";
 
@@ -18,55 +24,47 @@ interface SitemapEntry {
   lastmod?: string;
 }
 
-const entries: SitemapEntry[] = [
+const STATIC_ENTRIES: SitemapEntry[] = [
   { path: "/", changefreq: "daily", priority: "1.0" },
   { path: "/virksomheder", changefreq: "daily", priority: "0.9" },
   { path: "/tilbud", changefreq: "weekly", priority: "0.9" },
   { path: "/opret-virksomhed", changefreq: "monthly", priority: "0.7" },
+  { path: "/hjaelp", changefreq: "monthly", priority: "0.5" },
+  { path: "/guides", changefreq: "weekly", priority: "0.8" },
+  { path: "/blog", changefreq: "weekly", priority: "0.8" },
   { path: "/cookies", changefreq: "yearly", priority: "0.3" },
   { path: "/privatlivspolitik", changefreq: "yearly", priority: "0.3" },
   { path: "/vilkaar", changefreq: "yearly", priority: "0.3" },
-  // Prisguides — SEO landing pages for høj-volume søgninger.
-  { path: "/priser/rengoering", changefreq: "monthly", priority: "0.8" },
-  { path: "/priser/flyttehjaelp", changefreq: "monthly", priority: "0.8" },
-  { path: "/priser/haandvaerker", changefreq: "monthly", priority: "0.85" },
-  { path: "/priser/maler", changefreq: "monthly", priority: "0.8" },
-  { path: "/priser/vinduespudser", changefreq: "monthly", priority: "0.8" },
-  { path: "/priser/vvs", changefreq: "monthly", priority: "0.8" },
-  { path: "/priser/haveservice", changefreq: "monthly", priority: "0.8" },
-  { path: "/priser/elektriker", changefreq: "monthly", priority: "0.85" },
-  { path: "/guides/rengoering-af-laminatgulv", changefreq: "monthly", priority: "0.7" },
-  { path: "/guides", changefreq: "weekly", priority: "0.8" },
-  // By-landingssider for rengøring — målrettet lokale søgninger
-  // som "rengøring [by]" og "rengøringsfirma [by]".
-  { path: "/rengoering/koebenhavn", changefreq: "weekly", priority: "0.85" },
-  { path: "/rengoering/aarhus", changefreq: "weekly", priority: "0.85" },
-  { path: "/rengoering/odense", changefreq: "weekly", priority: "0.8" },
-  { path: "/rengoering/aalborg", changefreq: "weekly", priority: "0.8" },
-  { path: "/rengoering/esbjerg", changefreq: "weekly", priority: "0.8" },
-  // By-landingssider for flyttehjælp
-  { path: "/flyttehjaelp/koebenhavn", changefreq: "weekly", priority: "0.85" },
-  { path: "/flyttehjaelp/aarhus", changefreq: "weekly", priority: "0.85" },
-  { path: "/flyttehjaelp/odense", changefreq: "weekly", priority: "0.8" },
-  { path: "/flyttehjaelp/aalborg", changefreq: "weekly", priority: "0.8" },
-  { path: "/flyttehjaelp/esbjerg", changefreq: "weekly", priority: "0.8" },
-  // By-landingssider for håndværker
-  { path: "/haandvaerker/koebenhavn", changefreq: "weekly", priority: "0.85" },
-  { path: "/haandvaerker/aarhus", changefreq: "weekly", priority: "0.85" },
-  { path: "/haandvaerker/odense", changefreq: "weekly", priority: "0.8" },
-  { path: "/haandvaerker/aalborg", changefreq: "weekly", priority: "0.8" },
-  { path: "/haandvaerker/esbjerg", changefreq: "weekly", priority: "0.8" },
-  // By-landingssider for haveservice
-  { path: "/haveservice/koebenhavn", changefreq: "weekly", priority: "0.85" },
-  { path: "/haveservice/aarhus", changefreq: "weekly", priority: "0.85" },
-  { path: "/haveservice/odense", changefreq: "weekly", priority: "0.8" },
-  { path: "/haveservice/aalborg", changefreq: "weekly", priority: "0.8" },
-  { path: "/haveservice/esbjerg", changefreq: "weekly", priority: "0.8" },
-  // Blog (long-form artikler) — vigtige for E-E-A-T signaler
-  { path: "/blog", changefreq: "weekly", priority: "0.8" },
-  { path: "/blog/saadan-vaelger-du-rengoeringsfirma", changefreq: "monthly", priority: "0.75" },
-  { path: "/blog/tjekliste-til-flyttedag", changefreq: "monthly", priority: "0.75" },
-  { path: "/blog/boligjob-fradrag-2026", changefreq: "monthly", priority: "0.75" },
+];
+
+// Auto-genereret fra de centrale data-kilder. Tilføj et opslag/guide/by
+// dér og det dukker automatisk op her — ingen manuel sync nødvendig.
+const GUIDE_ENTRIES: SitemapEntry[] = GUIDES.map((g) => ({
+  path: g.href,
+  changefreq: "monthly",
+  priority: g.priority ?? "0.8",
+  lastmod: g.updatedAt,
+}));
+
+const BLOG_ENTRIES: SitemapEntry[] = BLOG_POSTS.map((p) => ({
+  path: `/blog/${p.slug}`,
+  changefreq: "monthly",
+  priority: "0.75",
+  lastmod: p.updatedAt ?? p.publishedAt,
+}));
+
+const CITY_ENTRIES: SitemapEntry[] = [
+  ...CITIES.map((c) => ({ path: `/rengoering/${c.slug}`, changefreq: "weekly" as const, priority: "0.8" })),
+  ...MOVING_CITIES.map((c) => ({ path: `/flyttehjaelp/${c.slug}`, changefreq: "weekly" as const, priority: "0.8" })),
+  ...HANDYMAN_CITIES.map((c) => ({ path: `/haandvaerker/${c.slug}`, changefreq: "weekly" as const, priority: "0.8" })),
+  ...GARDEN_CITIES.map((c) => ({ path: `/haveservice/${c.slug}`, changefreq: "weekly" as const, priority: "0.8" })),
+];
+
+const entries: SitemapEntry[] = [
+  ...STATIC_ENTRIES,
+  ...GUIDE_ENTRIES,
+  ...BLOG_ENTRIES,
+  ...CITY_ENTRIES,
 ];
 
 // Med vilje udeladt fra sitemap: /reset-password, /admin, /virksomhed,
