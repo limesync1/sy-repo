@@ -2,6 +2,7 @@ import { lazy, Suspense, ReactNode } from "react";
 import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
+import ArticleHero from "@/components/landing/ArticleHero";
 import TrustBar from "@/components/conversion/TrustBar";
 import InlineQuoteTeaser from "@/components/conversion/InlineQuoteTeaser";
 import type { BlogPostMeta } from "./blogPosts";
@@ -70,25 +71,19 @@ const BlogArticleLayout = ({ post, keywords, faq, children }: Props) => {
         jsonLd={jsonLd}
       />
       <SiteNav />
+      <ArticleHero
+        breadcrumbs={[
+          { label: "Forside", to: "/" },
+          { label: "Blog", to: "/blog" },
+          { label: post.category },
+        ]}
+        eyebrow={`${post.category} · ${post.readingMinutes} min læsning`}
+        title={post.title}
+        subtitle={post.description}
+      />
 
       <main id="main" className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-        <nav aria-label="Brødkrummer" className="mb-6 text-sm text-muted-foreground">
-          <Link to="/" className="hover:text-foreground">Forside</Link>
-          <span className="mx-2">/</span>
-          <Link to="/blog" className="hover:text-foreground">Blog</Link>
-          <span className="mx-2">/</span>
-          <span className="text-foreground">{post.category}</span>
-        </nav>
-
         <article className="prose prose-neutral max-w-none dark:prose-invert">
-          <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
-            {post.category} · {post.readingMinutes} min læsning
-          </p>
-          <h1 className="mt-2 text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-            {post.title}
-          </h1>
-          <p className="mt-4 text-lg text-muted-foreground">{post.description}</p>
-
           <TrustBar />
 
           {children}

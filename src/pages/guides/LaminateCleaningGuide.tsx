@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
+import ArticleHero from "@/components/landing/ArticleHero";
 import { lazy, Suspense } from "react";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
@@ -106,29 +107,19 @@ const LaminateCleaningGuide = () => {
         jsonLd={jsonLd}
       />
       <SiteNav />
+      <ArticleHero
+        breadcrumbs={[
+          { label: "Forside", to: "/" },
+          { label: "Guides", to: "/guides" },
+          { label: "Rengøring af laminatgulv" },
+        ]}
+        eyebrow="Guide · Opdateret juni 2026"
+        title="Rengøring af laminatgulv — sådan gør du det rigtigt"
+        subtitle="Laminatgulv er nemt at vedligeholde, men tåler hverken stående vand eller stærke rengøringsmidler. Her er den komplette guide til daglig pleje, de rigtige midler og de fejl der koster gulvet levetid."
+      />
 
       <main id="main" className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-        <nav aria-label="Brødkrummer" className="mb-6 text-sm text-muted-foreground">
-          <Link to="/" className="hover:text-foreground">Forside</Link>
-          <span className="mx-2">/</span>
-          <span>Guides</span>
-          <span className="mx-2">/</span>
-          <span className="text-foreground">Rengøring af laminatgulv</span>
-        </nav>
-
         <article className="prose prose-neutral max-w-none dark:prose-invert">
-          <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
-            Guide · Opdateret juni 2026
-          </p>
-          <h1 className="mt-2 text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-            Rengøring af laminatgulv — sådan gør du det rigtigt
-          </h1>
-          <p className="mt-4 text-lg text-muted-foreground">
-            Laminatgulv er nemt at vedligeholde, men tåler hverken stående vand eller stærke
-            rengøringsmidler. Her er den komplette guide til daglig pleje, de rigtige midler
-            og de fejl der koster gulvet levetid.
-          </p>
-
           <div className="my-8 rounded-lg border border-border bg-muted/40 p-5">
             <p className="m-0 text-sm font-semibold text-foreground">Kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">

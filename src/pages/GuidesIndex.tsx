@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
+import ArticleHero from "@/components/landing/ArticleHero";
 import { CITIES } from "./cities/cleaningCityData";
 import { MOVING_CITIES } from "./cities/movingCityData";
 import { HANDYMAN_CITIES } from "./cities/handymanCityData";
@@ -144,27 +145,17 @@ const GuidesIndex = () => {
         jsonLd={jsonLd}
       />
       <SiteNav />
+      <ArticleHero
+        breadcrumbs={[
+          { label: "Forside", to: "/" },
+          { label: "Guides" },
+        ]}
+        eyebrow="Vidensbase"
+        title={<>Guides &amp; prisoversigter</>}
+        subtitle="Få overblik over priser, processer og lokale forhold — så du ved hvad du skal kigge efter, før du beder om tilbud."
+      />
 
-      <main id="main" className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-        <nav aria-label="Brødkrummer" className="mb-6 text-sm text-muted-foreground">
-          <Link to="/" className="hover:text-foreground">Forside</Link>
-          <span className="mx-2">/</span>
-          <span className="text-foreground">Guides</span>
-        </nav>
-
-        <header className="mb-10">
-          <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
-            Vidensbase
-          </p>
-          <h1 className="mt-2 text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-            Guides &amp; prisoversigter
-          </h1>
-          <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
-            Få overblik over priser, processer og lokale forhold — så du ved hvad du skal kigge
-            efter, før du beder om tilbud.
-          </p>
-        </header>
-
+      <main id="main" className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
         <section aria-labelledby="guides-heading" className="mb-14">
           <h2 id="guides-heading" className="mb-4 text-2xl font-semibold text-foreground">
             Prisguides &amp; how-to

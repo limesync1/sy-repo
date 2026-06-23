@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
+import ArticleHero from "@/components/landing/ArticleHero";
 import { lazy, Suspense } from "react";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
@@ -95,28 +96,19 @@ const CleaningPriceGuide = () => {
         jsonLd={jsonLd}
       />
       <SiteNav />
+      <ArticleHero
+        breadcrumbs={[
+          { label: "Forside", to: "/" },
+          { label: "Prisguides", to: "/guides" },
+          { label: "Rengøring" },
+        ]}
+        eyebrow="Prisguide · Opdateret juni 2026"
+        title="Hvad koster rengøring i 2026?"
+        subtitle="En komplet guide til priser på privat- og erhvervsrengøring i Danmark — timepris, fast pris, BoligJob-fradrag og hvad der reelt påvirker prisen."
+      />
 
       <main id="main" className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-        <nav aria-label="Brødkrummer" className="mb-6 text-sm text-muted-foreground">
-          <Link to="/" className="hover:text-foreground">Forside</Link>
-          <span className="mx-2">/</span>
-          <span>Prisguides</span>
-          <span className="mx-2">/</span>
-          <span className="text-foreground">Rengøring</span>
-        </nav>
-
         <article className="prose prose-neutral max-w-none dark:prose-invert">
-          <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
-            Prisguide · Opdateret juni 2026
-          </p>
-          <h1 className="mt-2 text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-            Hvad koster rengøring i 2026?
-          </h1>
-          <p className="mt-4 text-lg text-muted-foreground">
-            En komplet guide til priser på privat- og erhvervsrengøring i Danmark — timepris,
-            fast pris, BoligJob-fradrag og hvad der reelt påvirker prisen.
-          </p>
-
           <div className="my-8 rounded-lg border border-border bg-muted/40 p-5">
             <p className="m-0 text-sm font-semibold text-foreground">Kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">

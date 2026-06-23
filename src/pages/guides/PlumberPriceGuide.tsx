@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
+import ArticleHero from "@/components/landing/ArticleHero";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -51,24 +52,19 @@ const PlumberPriceGuide = () => {
         jsonLd={jsonLd}
       />
       <SiteNav />
+      <ArticleHero
+        breadcrumbs={[
+          { label: "Forside", to: "/" },
+          { label: "Guides", to: "/guides" },
+          { label: "VVS" },
+        ]}
+        eyebrow="Prisguide · Opdateret juni 2026"
+        title="VVS pris i 2026 — udkald, timepris og opgaver"
+        subtitle="Komplet overblik over priser hos en VVS'er — timepris, udkald, akut hjælp og typiske opgaver fra dryppende vandhane til varmepumpe."
+      />
 
       <main id="main" className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-        <nav aria-label="Brødkrummer" className="mb-6 text-sm text-muted-foreground">
-          <Link to="/" className="hover:text-foreground">Forside</Link>
-          <span className="mx-2">/</span>
-          <Link to="/guides" className="hover:text-foreground">Guides</Link>
-          <span className="mx-2">/</span>
-          <span className="text-foreground">VVS</span>
-        </nav>
-
         <article className="prose prose-neutral max-w-none dark:prose-invert">
-          <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Prisguide · Opdateret juni 2026</p>
-          <h1 className="mt-2 text-4xl font-bold tracking-tight text-foreground sm:text-5xl">VVS pris i 2026 — udkald, timepris og opgaver</h1>
-          <p className="mt-4 text-lg text-muted-foreground">
-            Komplet overblik over priser hos en VVS'er — timepris, udkald, akut hjælp og typiske
-            opgaver fra dryppende vandhane til varmepumpe.
-          </p>
-
           <div className="my-8 rounded-lg border border-border bg-muted/40 p-5">
             <p className="m-0 text-sm font-semibold text-foreground">Kort fortalt</p>
             <ul className="mt-2 space-y-1 text-sm text-foreground/90">
