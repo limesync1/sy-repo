@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
+import ArticleHero from "@/components/landing/ArticleHero";
 import { BLOG_POSTS } from "./blogPosts";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
@@ -37,26 +38,14 @@ const BlogIndex = () => {
         jsonLd={jsonLd}
       />
       <SiteNav />
+      <ArticleHero
+        breadcrumbs={[{ label: "Forside", to: "/" }, { label: "Blog" }]}
+        eyebrow="Vidensbase"
+        title="Blog & artikler"
+        subtitle="Dybdegående guides og praktiske råd til alt fra at vælge rengøringsfirma til at planlægge en flytning."
+      />
 
-      <main id="main" className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-        <nav aria-label="Brødkrummer" className="mb-6 text-sm text-muted-foreground">
-          <Link to="/" className="hover:text-foreground">Forside</Link>
-          <span className="mx-2">/</span>
-          <span className="text-foreground">Blog</span>
-        </nav>
-
-        <header className="mb-10">
-          <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
-            Vidensbase
-          </p>
-          <h1 className="mt-2 text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-            Blog &amp; artikler
-          </h1>
-          <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
-            Dybdegående guides og praktiske råd til alt fra at vælge rengøringsfirma til at planlægge en flytning.
-          </p>
-        </header>
-
+      <main id="main" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {BLOG_POSTS.map((p) => (
             <Link

@@ -93,6 +93,51 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     readingMinutes: 12,
     category: "Tømrer",
   },
+  {
+    slug: "murer-revner-og-fugtskader",
+    title: "Revner i muren? Sådan vurderer du om det haster — og hvad det koster",
+    description:
+      "Sætningsrevner, fugtskader og løse mursten — lær at se forskel på kosmetiske og kritiske revner, og få realistiske priser på murerreparation.",
+    publishedAt: "2026-07-16",
+    readingMinutes: 9,
+    category: "Murer",
+  },
+  {
+    slug: "rotter-i-haven-hvad-goer-jeg",
+    title: "Rotter i haven — hvad gør du? Komplet handlingsguide",
+    description:
+      "Symptomer, anmeldelsespligt, hvad kommunen gør, hvad du selv kan gøre, og hvornår du skal hyre skadedyrsbekæmper. Plus forebyggelse trin-for-trin.",
+    publishedAt: "2026-07-20",
+    readingMinutes: 8,
+    category: "Skadedyrsbekæmpelse",
+  },
+  {
+    slug: "gulvlaegger-vinyl-laminat-eller-traegulv",
+    title: "Vinyl, laminat eller trægulv? Sådan vælger du det rette gulv",
+    description:
+      "Sammenligning af pris, holdbarhed, vandbestandighed og fornemmelse for vinyl, laminat, trægulv og fliser — plus hvad det koster at få lagt.",
+    publishedAt: "2026-07-24",
+    readingMinutes: 10,
+    category: "Gulvlægger",
+  },
+  {
+    slug: "anlaegsgartner-terrasse-og-have",
+    title: "Ny terrasse og indretning af haven — hvad koster det egentlig?",
+    description:
+      "Realistiske priser på fliseterrasse, træterrasse, plantning af hæk og anlæg af bede. Trin-for-trin processen fra idé til færdig have.",
+    publishedAt: "2026-07-28",
+    readingMinutes: 11,
+    category: "Anlægsgartner",
+  },
+  {
+    slug: "algebehandling-tag-og-facade",
+    title: "Algebehandling af tag og facade — virker det, og hvor ofte?",
+    description:
+      "Hvornår skal taget algebehandles, hvad er forskellen på softwash og højtryk, hvad koster det, og hvor længe holder en behandling? Komplet guide.",
+    publishedAt: "2026-08-02",
+    readingMinutes: 8,
+    category: "Algebehandling",
+  },
 ];
 
 export const findBlogPost = (slug?: string) =>

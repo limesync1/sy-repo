@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { IndustryIcon } from "@/components/IndustryIcon";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -110,7 +110,24 @@ const RequestQuote = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedBusiness, setSelectedBusiness] = useState<MatchedBusiness | null>(null);
   const [showAllServices, setShowAllServices] = useState(false);
-  const { location, radiusKm } = useUserLocation();
+  const { location, radiusKm, setManualZip } = useUserLocation();
+  const [searchParams] = useSearchParams();
+
+  // Læs prefill fra URL (`?category=...&postal=1234`) når sider som
+  // InlineQuoteTeaser sender brugeren herhen. Postnummeret skubbes ind i
+  // LocationContext så match-funktionen straks bruger det.
+  useEffect(() => {
+    const urlCategory = searchParams.get("category");
+    if (urlCategory && CATEGORIES.some((c) => c.key === urlCategory)) {
+      setCategory(urlCategory);
+    }
+    const urlPostal = (searchParams.get("postal") || "").replace(/\D/g, "").slice(0, 4);
+    if (urlPostal.length === 4 && urlPostal !== location.zip) {
+      setManualZip(urlPostal);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const { user } = useAuth();
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState(user?.email ?? "");

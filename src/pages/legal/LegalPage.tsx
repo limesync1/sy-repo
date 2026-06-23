@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/landing/Footer";
 import SEO from "@/components/SEO";
+import ArticleHero from "@/components/landing/ArticleHero";
 
 /** Delt layout for /privatlivspolitik, /vilkaar og /cookies.
  *  Holder en konsistent typografi, sidebar med ankerlinks og fodnote
@@ -23,15 +24,12 @@ const LegalPage = ({ title, subtitle, canonicalPath, description, updated, secti
     <div className="min-h-screen bg-background">
       <SEO title={`${title} – Serviceydere`} description={description} canonicalPath={canonicalPath} />
       <SiteNav />
-
-      <header className="border-b border-border bg-secondary/40">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Juridisk</p>
-          <h1 className="mt-2 text-3xl font-bold text-foreground sm:text-4xl">{title}</h1>
-          {subtitle && <p className="mt-3 max-w-2xl text-base text-muted-foreground">{subtitle}</p>}
-          <p className="mt-4 text-xs text-muted-foreground">Senest opdateret: {updated}</p>
-        </div>
-      </header>
+      <ArticleHero
+        breadcrumbs={[{ label: "Forside", to: "/" }, { label: title }]}
+        eyebrow={`Juridisk · Senest opdateret ${updated}`}
+        title={title}
+        subtitle={subtitle}
+      />
 
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="grid gap-10 lg:grid-cols-[240px_1fr]">

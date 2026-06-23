@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState, type FormEvent } from "react";
+import { useUserLocation } from "@/contexts/LocationContext";
 
 interface Props {
   /** Forudvalgt kategori i tilbudsflowet (sendes som ?category=...) */
@@ -19,13 +20,19 @@ const InlineQuoteTeaser = ({
 }: Props) => {
   const navigate = useNavigate();
   const [postal, setPostal] = useState("");
+  const { setManualZip } = useUserLocation();
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
     const params = new URLSearchParams();
     if (category) params.set("category", category);
     const cleaned = postal.replace(/\D/g, "").slice(0, 4);
-    if (cleaned.length === 4) params.set("postal", cleaned);
+    if (cleaned.length === 4) {
+      params.set("postal", cleaned);
+      // Sæt brugerens manuelle postnummer i LocationContext, så
+      // /tilbud-flowet straks bruger den valgte by/region.
+      setManualZip(cleaned);
+    }
     navigate(`/tilbud${params.toString() ? `?${params}` : ""}`);
   };
 
