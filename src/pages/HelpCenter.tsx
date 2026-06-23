@@ -1,8 +1,9 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import ArticleHero from "@/components/landing/ArticleHero";
+import ArticleFaqSection from "@/components/content/ArticleFaqSection";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -81,7 +82,6 @@ const FAQ: { q: string; a: string }[] = [
 
 const HelpCenter = () => {
   const location = useLocation();
-  const [open, setOpen] = useState<number | null>(null);
 
   useEffect(() => {
     if (location.hash) {
@@ -141,31 +141,7 @@ const HelpCenter = () => {
           </div>
         </section>
 
-        <section aria-labelledby="faq" id="faq" className="mb-14 scroll-mt-24">
-          <h2 id="faq-heading" className="text-2xl font-bold tracking-tight text-foreground">Ofte stillede spørgsmål</h2>
-          <p className="mt-2 text-muted-foreground">Klik på et spørgsmål for at se svaret.</p>
-          <ul className="mt-6 divide-y divide-border rounded-xl border border-border bg-card">
-            {FAQ.map((f, i) => {
-              const isOpen = open === i;
-              return (
-                <li key={f.q}>
-                  <button
-                    type="button"
-                    onClick={() => setOpen(isOpen ? null : i)}
-                    aria-expanded={isOpen}
-                    className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-base font-medium text-foreground transition hover:bg-muted/40"
-                  >
-                    <span>{f.q}</span>
-                    <span aria-hidden className={`text-xl text-muted-foreground transition-transform ${isOpen ? "rotate-45" : ""}`}>+</span>
-                  </button>
-                  {isOpen && (
-                    <div className="px-5 pb-5 text-sm leading-6 text-muted-foreground">{f.a}</div>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </section>
+        <ArticleFaqSection items={FAQ} title="Ofte stillede spørgsmål om Serviceydere" />
 
         <section aria-labelledby="kontakt" className="rounded-2xl border border-border bg-primary/5 p-6 sm:p-8">
           <h2 id="kontakt" className="text-2xl font-bold tracking-tight text-foreground">Kunne du ikke finde svar?</h2>

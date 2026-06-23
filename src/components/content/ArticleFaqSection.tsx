@@ -1,13 +1,14 @@
 interface ArticleFaqSectionProps {
   items: { q: string; a: string }[];
   title?: string;
+  id?: string;
 }
 
-const ArticleFaqSection = ({ items, title = "Ofte stillede spørgsmål" }: ArticleFaqSectionProps) => {
+const ArticleFaqSection = ({ items, title = "Ofte stillede spørgsmål", id = "faq" }: ArticleFaqSectionProps) => {
   if (!items.length) return null;
 
   return (
-    <section className="not-prose my-14 rounded-2xl border border-border bg-muted/30 p-5 shadow-panel sm:p-6 lg:p-8" aria-labelledby="article-faq-heading">
+    <section id={id} className="not-prose my-14 scroll-mt-24 rounded-2xl border border-border bg-muted/30 p-5 shadow-panel sm:p-6 lg:p-8" aria-labelledby="article-faq-heading">
       <div className="mb-6 max-w-3xl">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">FAQ</p>
         <h2 id="article-faq-heading" className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
