@@ -119,53 +119,18 @@ const MovingCityPage         = lazyRoute("/flyttehjaelp/:city", () => import("./
 const HandymanCityPage       = lazyRoute("/haandvaerker/:city", () => import("./pages/cities/HandymanCityPage"));
 const GardenCityPage         = lazyRoute("/haveservice/:city", () => import("./pages/cities/GardenCityPage"));
 const BlogIndex              = lazyRoute("/blog", () => import("./pages/blog/BlogIndex"));
-const BlogChooseCleaning     = lazyRoute("/blog/saadan-vaelger-du-rengoeringsfirma", () => import("./pages/blog/posts/ChooseCleaningCompany"));
-const BlogMovingChecklist    = lazyRoute("/blog/tjekliste-til-flyttedag", () => import("./pages/blog/posts/MovingDayChecklist"));
-const BlogBoligJob           = lazyRoute("/blog/boligjob-fradrag-2026", () => import("./pages/blog/posts/BoligJobGuide"));
-const BlogChoosePainter      = lazyRoute("/blog/saadan-vaelger-du-maler", () => import("./pages/blog/posts/ChoosePainter"));
-const BlogVvsAkut            = lazyRoute("/blog/vvs-akut-foer-installatoeren-kommer", () => import("./pages/blog/posts/VvsAkut"));
-const BlogElectricianRules   = lazyRoute("/blog/hvornaar-skal-du-have-autoriseret-elektriker", () => import("./pages/blog/posts/ElectricianRules"));
-const BlogGardenYearWheel    = lazyRoute("/blog/aarshjul-for-haveservice", () => import("./pages/blog/posts/GardenYearWheel"));
-const BlogWindowCleaner      = lazyRoute("/blog/vinduespudser-eller-selv", () => import("./pages/blog/posts/WindowCleanerOrDIY"));
-const BlogCarpentryProject   = lazyRoute("/blog/tomrerprojekt-hjemme-trin-for-trin", () => import("./pages/blog/posts/CarpentryProject"));
-const BlogMasonryCracks      = lazyRoute("/blog/murer-revner-og-fugtskader", () => import("./pages/blog/posts/MasonryCracks"));
-const BlogRatsInGarden       = lazyRoute("/blog/rotter-i-haven-hvad-goer-jeg", () => import("./pages/blog/posts/RatsInGarden"));
-const BlogFloorChoice        = lazyRoute("/blog/gulvlaegger-vinyl-laminat-eller-traegulv", () => import("./pages/blog/posts/FloorChoice"));
-const BlogLandscaping        = lazyRoute("/blog/anlaegsgartner-terrasse-og-have", () => import("./pages/blog/posts/Landscaping"));
-const BlogAlgaeTreatment     = lazyRoute("/blog/algebehandling-tag-og-facade", () => import("./pages/blog/posts/AlgaeTreatment"));
-const BlogCheapMoving        = lazyRoute("/blog/saadan-finder-du-billig-flyttehjaelp", () => import("./pages/blog/posts/CheapMovingHelp"));
-const BlogMoveInDeepClean    = lazyRoute("/blog/hovedrengoering-foer-flytning", () => import("./pages/blog/posts/MoveInDeepClean"));
-const BlogMoveOutCleaning    = lazyRoute("/blog/fraflytningsrengoering-hvad-skal-med", () => import("./pages/blog/posts/MoveOutCleaning"));
-const BlogElectricalCheck    = lazyRoute("/blog/el-tjek-foer-koeb-af-bolig", () => import("./pages/blog/posts/ElectricalInspection"));
-const BlogHeatPump           = lazyRoute("/blog/varmepumpe-installation-priser-2026", () => import("./pages/blog/posts/HeatPump"));
-const BlogGutterCleaning     = lazyRoute("/blog/tagrender-vedligehold-og-rens", () => import("./pages/blog/posts/GutterCleaning"));
-const BlogFacadePainting     = lazyRoute("/blog/maling-af-facade-traek-og-puds", () => import("./pages/blog/posts/FacadePainting"));
-const BlogHedgeTreeRules     = lazyRoute("/blog/haek-og-traefaeldning-regler", () => import("./pages/blog/posts/HedgeTreeRules"));
-const BlogWindowReplacement  = lazyRoute("/blog/vinduer-udskiftning-energi-og-pris", () => import("./pages/blog/posts/WindowReplacement"));
-const BlogKitchenPests       = lazyRoute("/blog/skadedyr-i-koekkenet-hvad-goer-jeg", () => import("./pages/blog/posts/KitchenPests"));
-const BlogChimneySweep       = lazyRoute("/blog/skorstensfejer-pligt-og-pris", () => import("./pages/blog/posts/ChimneySweepObligation"));
-const BlogAlarmVsCamera      = lazyRoute("/blog/alarm-eller-videoovervaagning-til-hjemmet", () => import("./pages/blog/posts/AlarmVsCamera"));
-const BlogFloorSanding       = lazyRoute("/blog/gulvslibning-traegulv-trin-for-trin", () => import("./pages/blog/posts/FloorSanding"));
-const BlogHireContractor     = lazyRoute("/blog/saadan-bestiller-du-haandvaerker-rigtigt", () => import("./pages/blog/posts/HireContractorRight"));
-// SEO-pakke oktober 2026 — long-tail rengørings/plet-guides der targets
-// happyhelper.dk's vinder-keywords (svedpletter, tusch, rust, klister,
-// afkalkning, ruskind, afløb m.fl.).
-const BlogStainsSweat        = lazyRoute("/blog/fjern-svedpletter-fra-hvidt-toej", () => import("./pages/blog/posts/StainsSweat"));
-const BlogStainsMarker       = lazyRoute("/blog/fjern-tuschpletter-fra-toej", () => import("./pages/blog/posts/StainsMarker"));
-const BlogStainsRust         = lazyRoute("/blog/fjern-rustpletter-fra-toej", () => import("./pages/blog/posts/StainsRust"));
-const BlogStickerResidue     = lazyRoute("/blog/fjern-klistermaerker-og-limrester", () => import("./pages/blog/posts/StickerResidue"));
-const BlogStainsOil          = lazyRoute("/blog/fjern-olie-og-fedtpletter-fra-toej", () => import("./pages/blog/posts/StainsOil"));
-const BlogWindowsNoSqueegee  = lazyRoute("/blog/pudse-vinduer-uden-skraber", () => import("./pages/blog/posts/WindowsNoSqueegee"));
-const BlogWindowCleanerRecipe = lazyRoute("/blog/lav-dit-eget-vinduespudsemiddel", () => import("./pages/blog/posts/WindowCleanerRecipe"));
-const BlogDescaling          = lazyRoute("/blog/afkalkning-komplet-guide", () => import("./pages/blog/posts/Descaling"));
-const BlogAluminumCleaning   = lazyRoute("/blog/rengoering-af-aluminium", () => import("./pages/blog/posts/AluminumCleaning"));
-const BlogSuedeCleaning      = lazyRoute("/blog/rens-og-vask-af-ruskind", () => import("./pages/blog/posts/SuedeCleaning"));
-const BlogStaticElectricity  = lazyRoute("/blog/statisk-elektricitet-i-toej-loesninger", () => import("./pages/blog/posts/StaticElectricity"));
-const BlogSmellyDrain        = lazyRoute("/blog/afloeb-lugter-saadan-fjerner-du-lugten", () => import("./pages/blog/posts/SmellyDrain"));
-const BlogWoodSurface        = lazyRoute("/blog/rengoering-af-traeoverflader", () => import("./pages/blog/posts/WoodSurfaceCleaning"));
-const BlogCleaningFrequency  = lazyRoute("/blog/hvor-ofte-skal-du-goere-rent", () => import("./pages/blog/posts/CleaningFrequency"));
-const BlogBathtubReglazing   = lazyRoute("/blog/emaljering-af-badekar", () => import("./pages/blog/posts/BathtubReglazing"));
-const BlogNewHomeDeepClean   = lazyRoute("/blog/dybdegaaende-rengoering-af-nyt-hjem", () => import("./pages/blog/posts/NewHomeDeepClean"));
+
+// ── Datadrevne blog-ruter ────────────────────────────────────────────────
+// Hver post i BLOG_POSTS bærer sin egen lazy loader. Vi mapper dem til en
+// stabil React.lazy() én gang her, så samme komponent genbruges mellem
+// renders (ellers ville Suspense vise tom fallback ved hver navigation).
+// Tilføj en ny artikel = tilføj én entry i blogPosts.ts. Ingen ændring i
+// App.tsx eller sitemap.xml er nødvendig.
+import { BLOG_POSTS } from "./pages/blog/blogPosts";
+const BLOG_ROUTES = BLOG_POSTS.map((post) => ({
+  path: `/blog/${post.slug}`,
+  Component: lazyRoute(`/blog/${post.slug}`, post.loader),
+}));
 const HelpCenter             = lazyRoute("/hjaelp", () => import("./pages/HelpCenter"));
 const VisualTestPlanner      = lazyRoute("visual-test-planner", () => import("./pages/VisualTestPlanner"));
 const VisualTestLivechat     = lazyRoute("visual-test-livechat", () => import("./pages/VisualTestLivechat"));
