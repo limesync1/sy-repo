@@ -662,19 +662,19 @@ const LiveChatWidget = () => {
           className={
             isMobile
               ? "fixed inset-0 z-50 animate-in fade-in slide-in-from-bottom-4 duration-200"
-              : `fixed z-50 w-[calc(100vw-3rem)] max-w-[420px] md:w-[420px] animate-in fade-in slide-in-from-bottom-4 duration-200 ${panelBottomClass} ${panelPositionClass}`
+              : `fixed z-50 w-[calc(100vw-3rem)] max-w-[360px] md:w-[360px] animate-in fade-in slide-in-from-bottom-4 duration-200 ${panelBottomClass} ${panelPositionClass}`
           }
         >
           <div
             className={
               isMobile
                 ? "relative flex h-[100dvh] w-full flex-col overflow-hidden bg-card"
-                : "relative flex h-[min(680px,calc(100vh-3rem))] flex-col overflow-hidden rounded-[24px] border border-border bg-card shadow-[0_40px_100px_-30px_hsl(204_96%_13%/0.45)] ring-1 ring-black/[0.04]"
+                : "relative flex h-[min(520px,calc(100vh-4rem))] flex-col overflow-hidden rounded-[24px] border border-border bg-card shadow-[0_40px_100px_-30px_hsl(204_96%_13%/0.45)] ring-1 ring-black/[0.04]"
             }
           >
             {/* Header — matcher Serviceydere hero (mørk navy + cyan glows) */}
             <div
-              className="relative overflow-hidden px-5 pb-5 pt-4 text-white"
+              className="relative overflow-hidden px-4 pb-4 pt-3.5 text-white"
               style={{ backgroundColor: "hsl(var(--hero-bg))" }}
             >
               <div aria-hidden className="pointer-events-none absolute inset-0">

@@ -560,10 +560,10 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
       )}
 
       {open && (
-        <div className={`fixed z-50 w-[calc(100vw-1.5rem)] max-w-[400px] sm:w-[calc(100vw-3rem)] md:w-[400px] animate-in fade-in slide-in-from-bottom-4 duration-200 ${panelBottomClass} ${panelPositionClass}`}>
-          <div className="relative flex h-[min(620px,calc(100dvh-7rem))] sm:h-[min(640px,calc(100vh-3rem))] flex-col overflow-hidden rounded-[20px] border border-border bg-card shadow-[0_30px_80px_-20px_hsl(var(--foreground)/0.35)]">
+        <div className={`fixed z-50 w-[calc(100vw-1.5rem)] max-w-[360px] sm:w-[calc(100vw-3rem)] md:w-[360px] animate-in fade-in slide-in-from-bottom-4 duration-200 ${panelBottomClass} ${panelPositionClass}`}>
+          <div className="relative flex h-[min(520px,calc(100dvh-8rem))] sm:h-[min(540px,calc(100vh-3.5rem))] flex-col overflow-hidden rounded-[20px] border border-border bg-card shadow-[0_30px_80px_-20px_hsl(var(--foreground)/0.35)]">
             {/* Header */}
-            <div className="relative overflow-hidden bg-foreground px-5 pb-5 pt-4 text-background">
+            <div className="relative overflow-hidden bg-foreground px-4 pb-4 pt-3.5 text-background">
               <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-accent/30 blur-3xl" />
               <div className="pointer-events-none absolute -bottom-16 -left-10 h-32 w-32 rounded-full bg-accent/15 blur-3xl" />
               <div className="relative flex items-start justify-between gap-2">
