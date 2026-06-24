@@ -112,12 +112,21 @@
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "Organization",
+      "@type": ["Organization", "ProfessionalService"],
+      "@id": "https://serviceydere.dk/#organization",
       "name": "Serviceydere",
+      "alternateName": "Serviceydere.dk",
+      "description": "Dansk online markedsplads hvor private og virksomheder finder, sammenligner og booker verificerede lokale serviceudbydere — rengøring, håndværker, flyttehjælp, haveservice og mere.",
       "url": "https://serviceydere.dk",
       "logo": "https://serviceydere.dk/serviceydere-logo-dark.webp",
+      "image": "https://serviceydere.dk/serviceydere-logo-dark.webp",
       "areaServed": "DK",
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "DK"
+      },
       "email": "kontakt@serviceydere.dk",
+      "priceRange": "Gratis at bruge for kunder",
       "contactPoint": [{
         "@type": "ContactPoint",
         "email": "kontakt@serviceydere.dk",
