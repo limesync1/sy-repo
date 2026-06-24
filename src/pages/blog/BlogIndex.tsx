@@ -5,6 +5,7 @@ import SiteNav from "@/components/SiteNav";
 import ArticleHero from "@/components/landing/ArticleHero";
 import { BLOG_POSTS } from "./blogPosts";
 import { BLOG_CATEGORIES } from "./blogCategories";
+import LocalQuoteWidget from "@/components/conversion/LocalQuoteWidget";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -47,6 +48,13 @@ const BlogIndex = () => {
       />
 
       <main id="main" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+        <div className="mb-10">
+          <LocalQuoteWidget
+            heading="Brug for hjælp nu? Få 3 lokale tilbud"
+            description="Vælg service og by — vi finder verificerede firmaer der svarer inden for 24 timer."
+          />
+        </div>
+
         <nav aria-label="Bladr efter kategori" className="mb-8 flex flex-wrap gap-2">
           <span className="rounded-full border border-foreground bg-foreground px-3 py-1 text-sm text-background">Alle</span>
           {BLOG_CATEGORIES.map((c) => (
