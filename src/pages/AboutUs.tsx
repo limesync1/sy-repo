@@ -253,7 +253,7 @@ const AboutUs = () => {
                       <Building2 className="h-4.5 w-4.5" />
                     </span>
                     <div>
-                      <div className="font-semibold text-background">Serviceydere ApS</div>
+                      <div className="font-semibold text-background">Serviceydere</div>
                       <div className="text-background/70">Online markedsplads for håndværk, rengøring &amp; service</div>
                     </div>
                   </li>
