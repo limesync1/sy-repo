@@ -140,6 +140,66 @@ export const HANDYMAN_CITIES: CityHandymanContent[] = [
       "Skråninger og kældre i Vejle giver flere fugt- og konstruktionsopgaver end gennemsnittet. Bed om besigtigelse før fast pris på større udvendige arbejder.",
     popularTasks: ["Terrasse på skrå grund", "Kælderisolering", "Udskiftning af tag", "Renovering af badeværelse", "Maling af træværk"],
   },
+  {
+    slug: "horsens",
+    name: "Horsens",
+    region: "Midtjylland",
+    postalRange: "8700–8740",
+    hourlyLow: 375, hourlyHigh: 595,
+    carpenterLow: 425, carpenterHigh: 645,
+    electricianLow: 475, electricianHigh: 725,
+    callOutLow: 295, callOutHigh: 675,
+    intro:
+      "Horsens har et stort håndværker-marked drevet af stærk tilflytning fra Aarhus og en boom-renoveringskultur i ældre kvarterer som Bygholm og Vejlbygade. Konkurrencen mellem lokale firmaer holder priserne under landsgennemsnittet.",
+    localFactor:
+      "Mange nye tilflyttere renoverer ældre parcelhuse — derfor er badeværelses- og køkkenrenovering blandt de mest efterspurgte opgaver. Firmaer dækker også Brædstrup, Hedensted og Juelsminde.",
+    popularTasks: ["Renovering af badeværelse", "Køkkenmontering", "Udskiftning af vinduer", "Maling af facade", "Skift af tagrender"],
+  },
+  {
+    slug: "silkeborg",
+    name: "Silkeborg",
+    region: "Midtjylland",
+    postalRange: "8600–8632",
+    hourlyLow: 385, hourlyHigh: 605,
+    carpenterLow: 435, carpenterHigh: 655,
+    electricianLow: 485, electricianHigh: 735,
+    callOutLow: 305, callOutHigh: 685,
+    intro:
+      "Silkeborg har Danmarks højeste andel af søvillaer og sommerhuse pr. indbygger, hvilket giver et specialiseret håndværker-marked med fokus på terrasser, brygger og fugtsikring. Lokale firmaer dækker også Skanderborg og Kjellerup.",
+    localFactor:
+      "Brygger og søvillaer kræver ofte specialgodkendelser og fugtberegninger. Mange firmaer er certificerede til kystnær konstruktion. Standard parcelhuse i Funder og Gødvad er hurtige og billigere.",
+    popularTasks: ["Bygning af brygge", "Renovering af sommerhus", "Terrasse mod sø", "Fugtsikring af kælder", "Udskiftning af vinduer"],
+  },
+  {
+    slug: "herning",
+    name: "Herning",
+    region: "Midtjylland",
+    postalRange: "7400–7480",
+    hourlyLow: 365, hourlyHigh: 575,
+    carpenterLow: 415, carpenterHigh: 625,
+    electricianLow: 465, electricianHigh: 705,
+    callOutLow: 285, callOutHigh: 650,
+    intro:
+      "Herning har en stærk håndværkertradition drevet af messecenter, modebranchen og en stor erhvervssektor. Markedet er præget af mange selvstændige firmaer der dækker både privat og erhverv.",
+    localFactor:
+      "Korte afstande og fri parkering holder udkaldsgebyret lavt. Mange firmaer dækker også Ikast, Brande og Holstebro — godt udvalg på alle fagområder.",
+    popularTasks: ["Køkkenmontering", "Udskiftning af tag", "Maling af facade", "Opsætning af carport", "Tilslutning af hvidevarer"],
+  },
+  {
+    slug: "roskilde",
+    name: "Roskilde",
+    region: "Sjælland",
+    postalRange: "4000–4030",
+    hourlyLow: 445, hourlyHigh: 695,
+    carpenterLow: 495, carpenterHigh: 745,
+    electricianLow: 545, electricianHigh: 815,
+    callOutLow: 395, callOutHigh: 825,
+    intro:
+      "Roskildes håndværker-marked er præget af mange tilflyttere fra København der renoverer ældre villaer i Himmelev, Veddelev og Trekroner. Priserne ligger 10–15% under selve København for sammenlignelige opgaver.",
+    localFactor:
+      "Mange firmaer dækker også København og Køge — konkurrencen holder priserne moderate. Ældre villaer kræver typisk besigtigelse før fast pris på renoveringer.",
+    popularTasks: ["Renovering af badeværelse", "Udskiftning af køkken", "Skift af vinduer", "Tagrenovering", "Maling af facade"],
+  },
 ];
 
 export const findHandymanCity = (slug?: string) =>

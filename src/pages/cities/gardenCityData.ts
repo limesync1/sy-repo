@@ -73,6 +73,27 @@ export const GARDEN_CITIES: CityGardenContent[] = [
     localFactor: "Skråninger og bakkede haver kræver ofte specialudstyr (stejlskråningsklipper, terrasse-trimmer). Bed om besigtigelse til første aftale.",
     popularTasks: ["Skråningsgræsklip", "Hækklipning", "Trækfældning", "Støttemur-pleje", "Forårsoprydning"],
   },
+  {
+    slug: "horsens", name: "Horsens", region: "Midtjylland", postalRange: "8700–8740",
+    hourlyLow: 285, hourlyHigh: 445, lawnLow: 245, lawnHigh: 555, hedgeLow: 23, hedgeHigh: 52,
+    intro: "Horsens har mange parcelhusområder (Stensballe, Torsted, Egebjerg) med fast haveservice som standard. Lokale firmaer dækker også Brædstrup, Hedensted og Juelsminde.",
+    localFactor: "Lavt lønniveau og korte afstande gør Horsens til et af Midtjyllands billigste havemarkeder. Snerydning kombineres ofte med haveaftale.",
+    popularTasks: ["Græsklip på abonnement", "Hækklipning", "Snerydning", "Bortskaffelse af haveaffald", "Bede-renovering"],
+  },
+  {
+    slug: "silkeborg", name: "Silkeborg", region: "Midtjylland", postalRange: "8600–8632",
+    hourlyLow: 305, hourlyHigh: 475, lawnLow: 265, lawnHigh: 595, hedgeLow: 25, hedgeHigh: 55,
+    intro: "Silkeborg har Danmarks højeste tæthed af søvillaer og store haver med fokus på vandfront-pleje, trækfældning og specialklipning. Mange firmaer dækker også Kjellerup, Bjerringbro og Skanderborg.",
+    localFactor: "Store grunde og søfront-pleje kræver typisk specialudstyr — bed om besigtigelse til første aftale. Pakkeaftaler med 20–30 årsbesøg er normen.",
+    popularTasks: ["Trækfældning ved sø", "Skråningsgræsklip", "Hækklipning", "Beskæring af frugttræer", "Vinterklargøring af brygge"],
+  },
+  {
+    slug: "frederiksberg", name: "Frederiksberg", region: "Hovedstaden", postalRange: "1800–2000",
+    hourlyLow: 425, hourlyHigh: 625, lawnLow: 395, lawnHigh: 850, hedgeLow: 42, hedgeHigh: 85,
+    intro: "Frederiksberg har Danmarks mest pressede prisniveau på haveservice — små villahaver med høj kvalitetsforventning, gårdhaver i karreer og altanpleje udgør det meste af markedet.",
+    localFactor: "Begrænset adgang til ejendomme og bortskaffelse af haveaffald gennem trapper øger prisen pr. m². Mange firmaer kombinerer haveservice med vinduespudsning.",
+    popularTasks: ["Gårdhave-pleje", "Hækklipning", "Altanpleje og potter", "Bortskaffelse af haveaffald", "Vintervedligehold"],
+  },
 ];
 
 export const findGardenCity = (slug?: string) =>

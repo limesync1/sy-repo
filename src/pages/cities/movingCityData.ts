@@ -130,6 +130,118 @@ export const MOVING_CITIES: CityMovingContent[] = [
       "Bakkede gader i centrum kan give flere etager-tillæg end i flade byer — bed om besigtigelse til villaflytninger. Forstæderne (Bredballe, Mølholm) er hurtigere og billigere.",
     popularRoutes: ["Centrum → Bredballe", "Søndermarken → Mølholm", "Vejle → København", "Vejle → Aarhus", "Vejle → Horsens"],
   },
+  {
+    slug: "horsens",
+    name: "Horsens",
+    region: "Midtjylland",
+    postalRange: "8700–8740",
+    hourlyLow: 475, hourlyHigh: 760,
+    smallMoveLow: 1850, smallMoveHigh: 3500,
+    villaMoveLow: 7200, villaMoveHigh: 17000,
+    intro:
+      "Horsens har et travlt flyttemarked drevet af pendlere mellem Aarhus og Trekantsområdet. Mange firmaer er specialiserede i langture mod København og Tyskland og giver konkurrencedygtige fastpriser.",
+    localFactor:
+      "Motorvejstilkørsel og fri parkering i forstæderne (Stensballe, Torsted) holder flyttetiden nede. Centrum kan kræve gågadetilladelse til varevognen.",
+    popularRoutes: ["Centrum → Stensballe", "Torsted → Egebjerg", "Horsens → Aarhus", "Horsens → København", "Horsens → Vejle"],
+  },
+  {
+    slug: "silkeborg",
+    name: "Silkeborg",
+    region: "Midtjylland",
+    postalRange: "8600–8632",
+    hourlyLow: 475, hourlyHigh: 760,
+    smallMoveLow: 1850, smallMoveHigh: 3500,
+    villaMoveLow: 7200, villaMoveHigh: 17000,
+    intro:
+      "Silkeborgs flyttemarked vokser i takt med tilflytningen fra Aarhus. Mange firmaer dækker også Kjellerup, Bjerringbro og Skanderborg, og specialfirmaer håndterer søvillaer med begrænset adgang.",
+    localFactor:
+      "Smalle veje ved søerne og store villaer med klaverer/specialinventar giver flere tilbud med besigtigelse end gennemsnittet. Lange Aarhus-flytninger er almindelige.",
+    popularRoutes: ["Centrum → Gødvad", "Alderslyst → Sejs-Svejbæk", "Silkeborg → Aarhus", "Silkeborg → København", "Silkeborg → Viborg"],
+  },
+  {
+    slug: "herning",
+    name: "Herning",
+    region: "Midtjylland",
+    postalRange: "7400–7480",
+    hourlyLow: 465, hourlyHigh: 745,
+    smallMoveLow: 1800, smallMoveHigh: 3400,
+    villaMoveLow: 7000, villaMoveHigh: 16500,
+    intro:
+      "Herning har et stabilt flyttemarked drevet af pendlere og en stor erhvervssektor (messecenter, modebranchen). Lokale firmaer dækker også Ikast, Brande og Holstebro uden ekstra kørselstillæg.",
+    localFactor:
+      "Brede veje og fri parkering gør flytninger hurtige og effektive — typisk 20–30% færre timer end i de fire største byer. Mange firmaer giver fast pris.",
+    popularRoutes: ["Centrum → Tjørring", "Snejbjerg → Lind", "Herning → Aarhus", "Herning → Holstebro", "Herning → København"],
+  },
+  {
+    slug: "roskilde",
+    name: "Roskilde",
+    region: "Sjælland",
+    postalRange: "4000–4030",
+    hourlyLow: 595, hourlyHigh: 950,
+    smallMoveLow: 2400, smallMoveHigh: 4500,
+    villaMoveLow: 9500, villaMoveHigh: 22000,
+    intro:
+      "Roskilde er pendlerby til København og har et travlt flyttemarked med mange firmaer der dækker hele Sjælland. Mange flytninger går mellem Roskilde og København — typisk fast pris.",
+    localFactor:
+      "Korte afstande til København giver konkurrence med københavnske firmaer. Forstæderne (Himmelev, Veddelev) har god parkering; centrum kan kræve tilladelse.",
+    popularRoutes: ["Centrum → Himmelev", "Trekroner → Svogerslev", "Roskilde → København", "Roskilde → Lejre", "Roskilde → Køge"],
+  },
+  {
+    slug: "helsingoer",
+    name: "Helsingør",
+    region: "Hovedstaden",
+    postalRange: "3000–3070",
+    hourlyLow: 595, hourlyHigh: 980,
+    smallMoveLow: 2500, smallMoveHigh: 4700,
+    villaMoveLow: 10000, villaMoveHigh: 23000,
+    intro:
+      "Helsingør og hele Nordkysten har mange villaflytninger med store volumener, og firmaerne på strandvejskorridoren dækker oftest hele strækningen til København. Mange grænseflytninger til Sverige ekspederes også her.",
+    localFactor:
+      "Smalle veje i Snekkersten/Hornbæk og store villaer i Espergærde giver længere flyttetider end gennemsnittet. Bestil besigtigelse til villaflytninger over 150 m².",
+    popularRoutes: ["Centrum → Espergærde", "Snekkersten → Hornbæk", "Helsingør → København", "Helsingør → Hillerød", "Helsingør → Malmö"],
+  },
+  {
+    slug: "naestved",
+    name: "Næstved",
+    region: "Sjælland",
+    postalRange: "4700–4736",
+    hourlyLow: 485, hourlyHigh: 785,
+    smallMoveLow: 1900, smallMoveHigh: 3600,
+    villaMoveLow: 7400, villaMoveHigh: 17500,
+    intro:
+      "Næstved er Sydsjællands flyttecentrum og dækker et stort opland med Vordingborg, Slagelse og Faxe. Mange flytninger går til København (pendlere) eller Tyskland.",
+    localFactor:
+      "Fri parkering og lavt huslejeniveau holder priserne nede. Sommerhuse i Karrebæksminde giver sæsonbetonet topbelastning i juni–august.",
+    popularRoutes: ["Centrum → Grimstrup", "Ladby → Fensmark", "Næstved → København", "Næstved → Vordingborg", "Næstved → Slagelse"],
+  },
+  {
+    slug: "hilleroed",
+    name: "Hillerød",
+    region: "Hovedstaden",
+    postalRange: "3400–3450",
+    hourlyLow: 575, hourlyHigh: 930,
+    smallMoveLow: 2400, smallMoveHigh: 4500,
+    villaMoveLow: 9500, villaMoveHigh: 22000,
+    intro:
+      "Hillerød er Nordsjællands regionscenter med mange villaflytninger og en del børnefamilier, der flytter til/fra København. Lokale firmaer dækker hele Nordsjælland.",
+    localFactor:
+      "Store villaer og børnefamilier giver typisk større volumen og længere flyttedag end gennemsnittet. Forstæderne har god parkering; centrum kræver tilladelse i sommermånederne.",
+    popularRoutes: ["Centrum → Ullerød", "Hammersholt → Hillerød Øst", "Hillerød → København", "Hillerød → Allerød", "Hillerød → Helsingør"],
+  },
+  {
+    slug: "slagelse",
+    name: "Slagelse",
+    region: "Sjælland",
+    postalRange: "4200–4242",
+    hourlyLow: 475, hourlyHigh: 775,
+    smallMoveLow: 1850, smallMoveHigh: 3500,
+    villaMoveLow: 7200, villaMoveHigh: 17000,
+    intro:
+      "Slagelse dækker også Korsør og Skælskør med samme udbydere og er et naturligt knudepunkt for flytninger mellem Sjælland og Fyn via Storebæltsbroen. Mange firmaer kører langture.",
+    localFactor:
+      "Motorvejen E20 går gennem byen — godt udgangspunkt for både Sjælland og Fyn-Jylland. Korsør har en del lejligheder uden elevator, hvilket øger tiden.",
+    popularRoutes: ["Centrum → Sørbymagle", "Korsør → Slagelse", "Slagelse → København", "Slagelse → Odense", "Slagelse → Næstved"],
+  },
 ];
 
 export const findMovingCity = (slug?: string) =>
