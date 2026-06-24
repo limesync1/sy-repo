@@ -80,36 +80,68 @@ const CATEGORIES = [
 const escapeXml = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
 
-const urls = [
-  ...entries.map((e) => ({
+const toUrls = (es: SitemapEntry[]) =>
+  es.map((e) => ({
     loc: `${BASE_URL}${e.path}`,
     changefreq: e.changefreq,
     priority: e.priority,
     lastmod: e.lastmod ?? TODAY,
-  })),
+  }));
+
+const buildUrlset = (urls: ReturnType<typeof toUrls>) =>
+  [
+    `<?xml version="1.0" encoding="UTF-8"?>`,
+    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
+    ...urls.map((u) =>
+      [
+        `  <url>`,
+        `    <loc>${escapeXml(u.loc)}</loc>`,
+        u.lastmod ? `    <lastmod>${u.lastmod}</lastmod>` : null,
+        u.changefreq ? `    <changefreq>${u.changefreq}</changefreq>` : null,
+        u.priority ? `    <priority>${u.priority}</priority>` : null,
+        `  </url>`,
+      ].filter(Boolean).join("\n"),
+    ),
+    `</urlset>`,
+  ].join("\n");
+
+// Opdel i tematiske sitemaps + et sitemap-index. Giver Google bedre
+// crawl-budget pr. type (pages/blog/cities/guides) og isolerer fejl —
+// hvis ét sitemap har problemer påvirker det ikke de andre.
+const pagesUrls = toUrls([
+  ...STATIC_ENTRIES,
   ...CATEGORIES.map((c) => ({
-    loc: `${BASE_URL}/virksomheder?category=${encodeURIComponent(c)}`,
+    path: `/virksomheder?category=${encodeURIComponent(c)}`,
     changefreq: "weekly" as const,
     priority: "0.7",
-    lastmod: TODAY,
   })),
-];
+]);
+const blogUrls = toUrls(BLOG_ENTRIES);
+const guidesUrls = toUrls(GUIDE_ENTRIES);
+const citiesUrls = toUrls(CITY_ENTRIES);
 
-const xml = [
+writeFileSync(resolve("public/sitemap-pages.xml"), buildUrlset(pagesUrls));
+writeFileSync(resolve("public/sitemap-blog.xml"), buildUrlset(blogUrls));
+writeFileSync(resolve("public/sitemap-guides.xml"), buildUrlset(guidesUrls));
+writeFileSync(resolve("public/sitemap-cities.xml"), buildUrlset(citiesUrls));
+
+// Behold legacy /sitemap.xml som fuld urlset så ældre referencer + GSC's
+// eksisterende submitted sitemap fortsætter med at virke uden re-submit.
+// Nye konsumenter bør bruge /sitemap-index.xml.
+const allUrls = [...pagesUrls, ...blogUrls, ...guidesUrls, ...citiesUrls];
+writeFileSync(resolve("public/sitemap.xml"), buildUrlset(allUrls));
+
+const indexXml = [
   `<?xml version="1.0" encoding="UTF-8"?>`,
-  `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
-  ...urls.map((u) =>
-    [
-      `  <url>`,
-      `    <loc>${escapeXml(u.loc)}</loc>`,
-      u.lastmod ? `    <lastmod>${u.lastmod}</lastmod>` : null,
-      u.changefreq ? `    <changefreq>${u.changefreq}</changefreq>` : null,
-      u.priority ? `    <priority>${u.priority}</priority>` : null,
-      `  </url>`,
-    ].filter(Boolean).join("\n"),
+  `<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
+  ...["sitemap-pages.xml", "sitemap-blog.xml", "sitemap-guides.xml", "sitemap-cities.xml"].map(
+    (name) =>
+      `  <sitemap><loc>${BASE_URL}/${name}</loc><lastmod>${TODAY}</lastmod></sitemap>`,
   ),
-  `</urlset>`,
+  `</sitemapindex>`,
 ].join("\n");
+writeFileSync(resolve("public/sitemap-index.xml"), indexXml);
 
-writeFileSync(resolve("public/sitemap.xml"), xml);
-console.log(`sitemap.xml written (${urls.length} entries)`);
+console.log(
+  `sitemaps written — pages:${pagesUrls.length} blog:${blogUrls.length} guides:${guidesUrls.length} cities:${citiesUrls.length} (legacy sitemap.xml:${allUrls.length})`,
+);
