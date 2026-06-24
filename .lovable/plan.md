@@ -1,24 +1,29 @@
 # Plan: Fase 4 — Fra 253 sider til indeksering, autoritet og konvertering
 
-## Status lige nu
+## Status (opdateret juni 2026)
 - **Indhold**: 253+ indekserbare URLs, 5 emne-hubs, 50+ prisguides, 25+ bysider.
-- **Teknisk**: Sitemap er opdelt i pages/blog/guides/cities, `robots.txt` peger på `sitemap-index.xml`, dynamisk sitemap via backend.
-- **SEO-synlighed**: Semrush viser 2 organiske keywords, ~0 est. trafik/måned, Authority Score 2/100, 52 backlinks fra 36 domæner (mange lavkvalitet). Det betyder: vi har **masser af indhold, men næsten ingen autoritet** til at få det indekseret og rangeret.
+- **Teknisk**:
+  - Sitemap opdelt i pages/blog/guides/cities, robots → `sitemap-index.xml`.
+  - GSC: forside er **indekseret** (PASS, "Submitted and indexed"). Gammel `sitemap.xml` slettet i GSC, sitemap-index registreret som SitemapsIndex (errors:0).
+  - Børne-sitemaps resubmittet 2026-06-24; `sitemap-guides.xml` downloadet (29 URLs, 0 indekseret endnu).
+  - Organization-schema udvidet med `ProfessionalService`, address, priceRange, image.
+  - `RelatedContent` roterer nu deterministisk per side → halen af blog/guides får indgående links.
+- **GSC properties**: både `sc-domain:serviceydere.dk` og url-property. Brug sc-domain som master; slet url-property i UI hvis ønsket.
+- **SEO-synlighed**: Semrush AS 2/100, 52 backlinks. Stadig autoritets-flaskehals.
 
 ## Anbefalet fokus de næste 4 uger
 
-### Uge 9 — Teknisk indekseringsaudit (få mest ud af det eksisterende)
-1. **Google Search Console status-tjek**
-   - Tjek coverage for `sitemap-index.xml`, `sitemap-blog.xml`, `sitemap-guides.xml`, `sitemap-cities.xml`.
-   - Identificer "Discovered – currently not indexed" / "Crawled – currently not indexed".
-   - Resubmit fejlende sitemaps og enkelte URLs.
+### Uge 9 — Teknisk indekseringsaudit
+1. **GSC status-tjek** — ✅ DONE: sitemap-cleanup + resubmit kørt. Næste: tjek coverage-rapport om 5-7 dage for "Discovered – not indexed".
 2. **Schema- og on-page QA**
-   - Validér FAQ-schema på alle nye prisguides og bysider.
-   - Tilføj synlige breadcrumbs (UI) på blog, guides og bysider — udover JSON-LD.
-   - Audit alt-tekster, `loading="lazy"`, canonicals og H1-struktur.
+   - ✅ Organization → ProfessionalService udvidet på forsiden.
+   - TODO: Validér FAQ-schema via Rich Results Test på 5 sample-guides.
+   - TODO: Tilføj synlige breadcrumbs (UI) på blog/guides/bysider — JSON-LD findes allerede.
+   - TODO: Audit alt-tekster + `loading="lazy"`.
 3. **Orphan-page-detektion**
-   - Kør et script over `blogPosts.ts`, `guidesRegistry.ts`, by-data og sitemap for at finde sider med < 3 interne links.
-   - Tilføj "Læs også"-klynger til de svageste sider.
+   - ✅ `RelatedContent` roterer nu per side, så hver post/guide får ~3x flere indgående.
+   - Kør `bunx tsx scripts/audit-orphans.ts` igen efter næste deploy for ny baseline.
+   - Kør `scripts/indexnow-ping.ts` efter hver ny batch indhold.
 
 ### Uge 10 — Autoritetsbygning (backlinks + E-E-A-T)
 1. **Lokale og branche-relevante citations**
