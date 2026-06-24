@@ -88,6 +88,48 @@ export const MOVING_CITIES: CityMovingContent[] = [
       "Lavere lønniveau og god infrastruktur giver effektive flytninger. Mange firmaer dækker også Varde, Ribe, Bramming og Fanø (sidstnævnte med færgetillæg).",
     popularRoutes: ["Centrum → Sædding", "Strandby → Hjerting", "Esbjerg → København", "Esbjerg → Aarhus", "Esbjerg → Ribe"],
   },
+  {
+    slug: "randers",
+    name: "Randers",
+    region: "Midtjylland",
+    postalRange: "8900–8983",
+    hourlyLow: 475, hourlyHigh: 760,
+    smallMoveLow: 1850, smallMoveHigh: 3500,
+    villaMoveLow: 7200, villaMoveHigh: 17000,
+    intro:
+      "Randers er et solidt mellem-stort flyttemarked med korte afstande og rigelig parkering. Lokale firmaer dækker også Hobro, Hadsten og Langå og prissætter ofte fast pris frem for timer.",
+    localFactor:
+      "Hverken brokvartersparkering eller storbytrafik trækker tiden ud — flytninger i Randers tager typisk 20–30% færre timer end i de fire største byer.",
+    popularRoutes: ["Midtbyen → Kristrup", "Vorup → Dronningborg", "Randers → Aarhus", "Randers → Aalborg", "Randers → Hobro"],
+  },
+  {
+    slug: "kolding",
+    name: "Kolding",
+    region: "Syddanmark",
+    postalRange: "6000–6093",
+    hourlyLow: 495, hourlyHigh: 795,
+    smallMoveLow: 1950, smallMoveHigh: 3700,
+    villaMoveLow: 7500, villaMoveHigh: 17500,
+    intro:
+      "Kolding ligger centralt i Trekantsområdet og har et af Danmarks mest effektive flyttemarkeder. Mange firmaer er specialiserede i langture (København, Aarhus, Hamburg) og kører fast pris.",
+    localFactor:
+      "Motorvejsadgang fra E45 og E20 gør Kolding til et oplagt udgangspunkt for flytninger til/fra Sjælland og Tyskland. Lokale flytninger er hurtige takket være fri parkering.",
+    popularRoutes: ["Centrum → Vonsild", "Seest → Bramdrupdam", "Kolding → København", "Kolding → Aarhus", "Kolding → Vejle"],
+  },
+  {
+    slug: "vejle",
+    name: "Vejle",
+    region: "Syddanmark",
+    postalRange: "7100–7184",
+    hourlyLow: 495, hourlyHigh: 795,
+    smallMoveLow: 1950, smallMoveHigh: 3700,
+    villaMoveLow: 7500, villaMoveHigh: 17500,
+    intro:
+      "Vejle har et travlt flyttemarked drevet af pendlersamfundet til hele Trekantsområdet. Mange firmaer dækker både Vejle, Horsens, Fredericia og Kolding uden ekstra kørselstillæg.",
+    localFactor:
+      "Bakkede gader i centrum kan give flere etager-tillæg end i flade byer — bed om besigtigelse til villaflytninger. Forstæderne (Bredballe, Mølholm) er hurtigere og billigere.",
+    popularRoutes: ["Centrum → Bredballe", "Søndermarken → Mølholm", "Vejle → København", "Vejle → Aarhus", "Vejle → Horsens"],
+  },
 ];
 
 export const findMovingCity = (slug?: string) =>

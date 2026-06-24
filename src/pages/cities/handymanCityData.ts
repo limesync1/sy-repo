@@ -95,6 +95,51 @@ export const HANDYMAN_CITIES: CityHandymanContent[] = [
       "Vestkystens vejr (salt, vind, fugt) gør udvendigt vedligehold til en større del af opgaverne — særligt på træværk og facader. Firmaer dækker typisk Varde, Ribe og Bramming uden meromkostning.",
     popularTasks: ["Maling af facade", "Udskiftning af tagsten", "Reparation af træværk", "Opsætning af læhegn", "Skift af vinduer"],
   },
+  {
+    slug: "randers",
+    name: "Randers",
+    region: "Midtjylland",
+    postalRange: "8900–8983",
+    hourlyLow: 365, hourlyHigh: 575,
+    carpenterLow: 415, carpenterHigh: 625,
+    electricianLow: 465, electricianHigh: 705,
+    callOutLow: 295, callOutHigh: 650,
+    intro:
+      "Randers har et stabilt håndværker-marked med mange små lokale firmaer, der dækker både by og opland. Priserne ligger 15–20% under København og er attraktive for større renoveringer.",
+    localFactor:
+      "Korte afstande og fri parkering holder udkaldsgebyret nede. Mange firmaer dækker også Hadsten, Langå og Hobro uden ekstra kørselstillæg.",
+    popularTasks: ["Udskiftning af køkken", "Reparation af tagrender", "Opsætning af terrasse", "Maling af facade", "Skift af vinduer"],
+  },
+  {
+    slug: "kolding",
+    name: "Kolding",
+    region: "Syddanmark",
+    postalRange: "6000–6093",
+    hourlyLow: 395, hourlyHigh: 615,
+    carpenterLow: 445, carpenterHigh: 665,
+    electricianLow: 495, electricianHigh: 745,
+    callOutLow: 325, callOutHigh: 695,
+    intro:
+      "Kolding har Danmarks højeste håndværker-tæthed pr. indbygger uden for de fire største byer. Konkurrencen mellem firmaer holder priserne moderate, og udvalget er stort på alle fagområder.",
+    localFactor:
+      "Trekantsområdets infrastruktur gør samme firma relevant til Vejle, Fredericia og Middelfart. Mange firmaer giver pakkepris på køkken- og badeværelsesrenoveringer.",
+    popularTasks: ["Renovering af badeværelse", "Udskiftning af køkken", "Opsætning af carport", "Reparation af tag", "Maling af træværk"],
+  },
+  {
+    slug: "vejle",
+    name: "Vejle",
+    region: "Syddanmark",
+    postalRange: "7100–7184",
+    hourlyLow: 395, hourlyHigh: 615,
+    carpenterLow: 445, carpenterHigh: 665,
+    electricianLow: 495, electricianHigh: 745,
+    callOutLow: 325, callOutHigh: 695,
+    intro:
+      "Vejle har et bredt håndværker-marked drevet af mange parcelhuse i bakkeskråningerne og pendlere til hele Trekantsområdet. Mange firmaer er specialiserede i terrasse- og kælderløsninger på skrå grunde.",
+    localFactor:
+      "Skråninger og kældre i Vejle giver flere fugt- og konstruktionsopgaver end gennemsnittet. Bed om besigtigelse før fast pris på større udvendige arbejder.",
+    popularTasks: ["Terrasse på skrå grund", "Kælderisolering", "Udskiftning af tag", "Renovering af badeværelse", "Maling af træværk"],
+  },
 ];
 
 export const findHandymanCity = (slug?: string) =>
