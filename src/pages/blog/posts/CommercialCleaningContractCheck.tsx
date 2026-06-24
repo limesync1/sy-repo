@@ -6,7 +6,7 @@ export default defineBlogPost({
   faq: [
     { q: "Hvor lang er typisk bindingsperiode?", a: "Standarden er 3–6 måneders løbende opsigelse. Undgå længere binding end 12 måneder — kvaliteten falder ofte efter de første måneder hvis du ikke kan komme ud." },
     { q: "Skal jeg have kvalitetskontrol skrevet ind?", a: "Ja. Min. 1 stikprøvekontrol pr. kvartal, dokumenteret med tjekliste og foto. Uden måling kan du ikke reklamere konkret." },
-    { q: "Må firmaet sende underleverandører?", a: "Kun hvis det fremgår af kontrakten. Bed om navne på faste medarbejdere og krav om dansk straffeattest hvis I har følsomme data eller udstyr."] },
+    { q: "Må firmaet sende underleverandører?", a: "Kun hvis det fremgår af kontrakten. Bed om navne på faste medarbejdere og krav om dansk straffeattest hvis I har følsomme data eller udstyr." },
   ],
   sections: [
     { paragraphs: ["En erhvervsrengøringsaftale binder typisk 50.000–500.000 kr. om året. Bruger du 30 minutter på at læse kontrakten igennem med denne tjekliste, sparer du ofte 5-cifrede beløb om året — og slipper for de typiske konflikter."] },
