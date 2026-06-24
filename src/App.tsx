@@ -324,50 +324,9 @@ const App = () => (
 
               {/* ── Blog (long-form artikler) ── */}
               <Route path="/blog" element={<BlogIndex />} />
-              <Route path="/blog/saadan-vaelger-du-rengoeringsfirma" element={<BlogChooseCleaning />} />
-              <Route path="/blog/tjekliste-til-flyttedag" element={<BlogMovingChecklist />} />
-              <Route path="/blog/boligjob-fradrag-2026" element={<BlogBoligJob />} />
-              <Route path="/blog/saadan-vaelger-du-maler" element={<BlogChoosePainter />} />
-              <Route path="/blog/vvs-akut-foer-installatoeren-kommer" element={<BlogVvsAkut />} />
-              <Route path="/blog/hvornaar-skal-du-have-autoriseret-elektriker" element={<BlogElectricianRules />} />
-              <Route path="/blog/aarshjul-for-haveservice" element={<BlogGardenYearWheel />} />
-              <Route path="/blog/vinduespudser-eller-selv" element={<BlogWindowCleaner />} />
-              <Route path="/blog/tomrerprojekt-hjemme-trin-for-trin" element={<BlogCarpentryProject />} />
-              <Route path="/blog/murer-revner-og-fugtskader" element={<BlogMasonryCracks />} />
-              <Route path="/blog/rotter-i-haven-hvad-goer-jeg" element={<BlogRatsInGarden />} />
-              <Route path="/blog/gulvlaegger-vinyl-laminat-eller-traegulv" element={<BlogFloorChoice />} />
-              <Route path="/blog/anlaegsgartner-terrasse-og-have" element={<BlogLandscaping />} />
-              <Route path="/blog/algebehandling-tag-og-facade" element={<BlogAlgaeTreatment />} />
-              <Route path="/blog/saadan-finder-du-billig-flyttehjaelp" element={<BlogCheapMoving />} />
-              <Route path="/blog/hovedrengoering-foer-flytning" element={<BlogMoveInDeepClean />} />
-              <Route path="/blog/fraflytningsrengoering-hvad-skal-med" element={<BlogMoveOutCleaning />} />
-              <Route path="/blog/el-tjek-foer-koeb-af-bolig" element={<BlogElectricalCheck />} />
-              <Route path="/blog/varmepumpe-installation-priser-2026" element={<BlogHeatPump />} />
-              <Route path="/blog/tagrender-vedligehold-og-rens" element={<BlogGutterCleaning />} />
-              <Route path="/blog/maling-af-facade-traek-og-puds" element={<BlogFacadePainting />} />
-              <Route path="/blog/haek-og-traefaeldning-regler" element={<BlogHedgeTreeRules />} />
-              <Route path="/blog/vinduer-udskiftning-energi-og-pris" element={<BlogWindowReplacement />} />
-              <Route path="/blog/skadedyr-i-koekkenet-hvad-goer-jeg" element={<BlogKitchenPests />} />
-              <Route path="/blog/skorstensfejer-pligt-og-pris" element={<BlogChimneySweep />} />
-              <Route path="/blog/alarm-eller-videoovervaagning-til-hjemmet" element={<BlogAlarmVsCamera />} />
-              <Route path="/blog/gulvslibning-traegulv-trin-for-trin" element={<BlogFloorSanding />} />
-              <Route path="/blog/saadan-bestiller-du-haandvaerker-rigtigt" element={<BlogHireContractor />} />
-              <Route path="/blog/fjern-svedpletter-fra-hvidt-toej" element={<BlogStainsSweat />} />
-              <Route path="/blog/fjern-tuschpletter-fra-toej" element={<BlogStainsMarker />} />
-              <Route path="/blog/fjern-rustpletter-fra-toej" element={<BlogStainsRust />} />
-              <Route path="/blog/fjern-klistermaerker-og-limrester" element={<BlogStickerResidue />} />
-              <Route path="/blog/fjern-olie-og-fedtpletter-fra-toej" element={<BlogStainsOil />} />
-              <Route path="/blog/pudse-vinduer-uden-skraber" element={<BlogWindowsNoSqueegee />} />
-              <Route path="/blog/lav-dit-eget-vinduespudsemiddel" element={<BlogWindowCleanerRecipe />} />
-              <Route path="/blog/afkalkning-komplet-guide" element={<BlogDescaling />} />
-              <Route path="/blog/rengoering-af-aluminium" element={<BlogAluminumCleaning />} />
-              <Route path="/blog/rens-og-vask-af-ruskind" element={<BlogSuedeCleaning />} />
-              <Route path="/blog/statisk-elektricitet-i-toej-loesninger" element={<BlogStaticElectricity />} />
-              <Route path="/blog/afloeb-lugter-saadan-fjerner-du-lugten" element={<BlogSmellyDrain />} />
-              <Route path="/blog/rengoering-af-traeoverflader" element={<BlogWoodSurface />} />
-              <Route path="/blog/hvor-ofte-skal-du-goere-rent" element={<BlogCleaningFrequency />} />
-              <Route path="/blog/emaljering-af-badekar" element={<BlogBathtubReglazing />} />
-              <Route path="/blog/dybdegaaende-rengoering-af-nyt-hjem" element={<BlogNewHomeDeepClean />} />
+              {BLOG_ROUTES.map(({ path, Component }) => (
+                <Route key={path} path={path} element={<Component />} />
+              ))}
               <Route path="/hjaelp" element={<HelpCenter />} />
 
               {/* ── Visual regression fixture (e2e only, ingen auth) ── */}
