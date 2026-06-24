@@ -122,8 +122,11 @@ const RequestQuote = () => {
       setCategory(urlCategory);
     }
     const urlPostal = (searchParams.get("postal") || "").replace(/\D/g, "").slice(0, 4);
-    if (urlPostal.length === 4 && urlPostal !== location.zip) {
-      setManualZip(urlPostal);
+    const urlCity = (searchParams.get("city") || "").trim();
+    if (urlPostal.length === 4 && (urlPostal !== location.zip || urlCity !== location.city)) {
+      setManualZip(urlPostal, urlCity || undefined);
+    } else if (!urlPostal && urlCity && urlCity !== location.city) {
+      setManualZip("", urlCity);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
