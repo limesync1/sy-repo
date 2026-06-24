@@ -1,5 +1,9 @@
-// Metadata for alle blogartikler. Bruges af både /blog index, sitemap
-// og individuelle artikelsider, så vi har én sandhed.
+// Metadata for alle blogartikler. Bruges af både /blog index, sitemap,
+// individuelle artikelsider OG selve routing i App.tsx, så vi har én
+// sandhed pr. artikel. Tilføj et nyt opslag her, og det dukker
+// automatisk op i alle tre — uden at røre App.tsx eller sitemap.xml.
+
+import type { ComponentType, LazyExoticComponent } from "react";
 
 export interface BlogPostMeta {
   slug: string;
@@ -9,6 +13,13 @@ export interface BlogPostMeta {
   updatedAt?: string;
   readingMinutes: number;
   category: string;
+  /** Frie tags til intern linking ("pletter", "tøj", "rengoering"). */
+  tags?: string[];
+  /** Dynamic import af artikel-komponenten. Bruges af App.tsx til at
+   *  registrere ruten automatisk og af route-prefetch til hover-preload. */
+  loader: () => Promise<{ default: ComponentType<unknown> }>;
+  /** Sat af App.tsx efter første lazy() — undgå dobbelt-lazy. */
+  _lazy?: LazyExoticComponent<ComponentType<unknown>>;
 }
 
 export const BLOG_POSTS: BlogPostMeta[] = [
