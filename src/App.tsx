@@ -138,6 +138,7 @@ const BLOG_ROUTES = BLOG_POSTS.map((post) => ({
   Component: lazyRoute(`/blog/${post.slug}`, post.loader),
 }));
 const HelpCenter             = lazyRoute("/hjaelp", () => import("./pages/HelpCenter"));
+const AboutUs                = lazyRoute("/om-os", () => import("./pages/AboutUs"));
 const VisualTestPlanner      = lazyRoute("visual-test-planner", () => import("./pages/VisualTestPlanner"));
 const VisualTestLivechat     = lazyRoute("visual-test-livechat", () => import("./pages/VisualTestLivechat"));
 
@@ -340,6 +341,7 @@ const App = () => (
                 <Route key={path} path={path} element={<Component />} />
               ))}
               <Route path="/hjaelp" element={<HelpCenter />} />
+              <Route path="/om-os" element={<AboutUs />} />
 
               {/* ── Visual regression fixture (e2e only, ingen auth) ── */}
               <Route path="/__visual/planner" element={<VisualTestPlanner />} />
