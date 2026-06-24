@@ -335,6 +335,7 @@ const App = () => (
 
               {/* ── Blog (long-form artikler) ── */}
               <Route path="/blog" element={<BlogIndex />} />
+              <Route path="/blog/kategori/:slug" element={<BlogCategoryIndex />} />
               {BLOG_ROUTES.map(({ path, Component }) => (
                 <Route key={path} path={path} element={<Component />} />
               ))}

@@ -5,6 +5,7 @@
 import { writeFileSync } from "fs";
 import { resolve } from "path";
 import { BLOG_POSTS } from "../src/pages/blog/blogPosts";
+import { BLOG_CATEGORIES } from "../src/pages/blog/blogCategories";
 import { GUIDES } from "../src/pages/guides/guidesRegistry";
 import { CITIES } from "../src/pages/cities/cleaningCityData";
 import { MOVING_CITIES } from "../src/pages/cities/movingCityData";
@@ -51,6 +52,14 @@ const BLOG_ENTRIES: SitemapEntry[] = BLOG_POSTS.map((p) => ({
   changefreq: "monthly",
   priority: "0.75",
   lastmod: p.updatedAt ?? p.publishedAt,
+}));
+
+// Kategori-indekser (/blog/kategori/:slug) – én pr. blog-kategori med
+// mindst 1 artikel. Giver topic-clusters et indekserbart entry point.
+const BLOG_CATEGORY_ENTRIES: SitemapEntry[] = BLOG_CATEGORIES.map((c) => ({
+  path: `/blog/kategori/${c.slug}`,
+  changefreq: "weekly",
+  priority: "0.7",
 }));
 
 const CITY_ENTRIES: SitemapEntry[] = [
@@ -116,7 +125,7 @@ const pagesUrls = toUrls([
     priority: "0.7",
   })),
 ]);
-const blogUrls = toUrls(BLOG_ENTRIES);
+const blogUrls = toUrls([...BLOG_ENTRIES, ...BLOG_CATEGORY_ENTRIES]);
 const guidesUrls = toUrls(GUIDE_ENTRIES);
 const citiesUrls = toUrls(CITY_ENTRIES);
 
