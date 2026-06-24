@@ -136,26 +136,31 @@ const RequestQuote = () => {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const selectedCategory = CATEGORIES.find((c) => c.key === category);
-  /** Foreslå 3 populære kategorier ved tomt søgefelt så listen ikke
-   *  overvælder, men brugeren stadig kan klikke direkte. Når der søges,
-   *  vises alle matches. */
-  const POPULAR_KEYS = ["Rengøring", "Haveservice", "Vinduespudsning"];
+  const POPULAR_KEYS = topCategories().map((t) => t.key);
   const trimmedQuery = categoryQuery.trim();
-  /** Når der søges: brug det rige branche-søg (label + underbranche +
-   *  nøgleord) så fx "tagrens", "trappevask", "flytning" osv. også
-   *  giver hits — ikke kun de 18 top-labels. Hver hit kender også
-   *  hvad det matchede via, så vi kan vise det som hint i listen. */
-  const filteredCategories: { label: string; key: string; icon: string; matchedVia?: string }[] = trimmedQuery
-    ? searchIndustries(trimmedQuery, { limit: 25, preferTopKeys: true }).map((h) => ({
+  /** Når der søges: brug det rige branche-søg. Når feltet er tomt: vis
+   *  HELE kataloget — populære kategorier først, derefter resten alfabetisk.
+   *  Brugeren skal aldrig være i tvivl om hvilke services findes. */
+  type CatRow = { label: string; key: string; icon: string; matchedVia?: string; group?: string };
+  const filteredCategories: CatRow[] = trimmedQuery
+    ? searchIndustries(trimmedQuery, { limit: 50, preferTopKeys: true }).map((h) => ({
         label: h.industry.label,
         key: h.industry.key,
         icon: h.industry.icon,
         matchedVia: h.matchedVia,
       }))
-    : (POPULAR_KEYS
-        .map((k) => CATEGORIES.find((c) => c.key === k))
-        .filter(Boolean) as typeof CATEGORIES)
-      .map((c) => ({ label: c.label, key: c.key, icon: c.icon }));
+    : (() => {
+        const popular = POPULAR_KEYS
+          .map((k) => CATEGORIES.find((c) => c.key === k))
+          .filter(Boolean) as typeof CATEGORIES;
+        const rest = [...CATEGORIES]
+          .filter((c) => !POPULAR_KEYS.includes(c.key))
+          .sort((a, b) => a.label.localeCompare(b.label, "da"));
+        return [
+          ...popular.map((c, i): CatRow => ({ label: c.label, key: c.key, icon: c.icon, group: i === 0 ? "Populære" : undefined })),
+          ...rest.map((c, i): CatRow => ({ label: c.label, key: c.key, icon: c.icon, group: i === 0 ? "Alle kategorier" : undefined })),
+        ];
+      })();
 
   const handleFind = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -362,14 +367,19 @@ const RequestQuote = () => {
                       Populære kategorier
                     </div>
                   )}
-                  <ul className="max-h-[260px] overflow-y-auto py-1">
+                  <ul className="max-h-[340px] overflow-y-auto py-1">
                     {filteredCategories.length === 0 && (
                       <li className="px-4 py-3 text-sm text-muted-foreground">Ingen kategorier matcher.</li>
                     )}
-                    {filteredCategories.map(({ label, key, matchedVia }) => {
+                    {filteredCategories.map(({ label, key, matchedVia, group }) => {
                       const active = category === key;
                       return (
                         <li key={key}>
+                          {group && (
+                            <div className="sticky top-0 z-[1] border-b border-border bg-secondary/60 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                              {group}
+                            </div>
+                          )}
                           <button
                             type="button"
                             onClick={() => {
@@ -393,11 +403,6 @@ const RequestQuote = () => {
                         </li>
                       );
                     })}
-                    {!trimmedQuery && (
-                      <li className="border-t border-border px-3 py-2 text-[11px] text-muted-foreground">
-                        Skriv for at søge blandt alle {CATEGORIES.length} kategorier.
-                      </li>
-                    )}
                   </ul>
                 </PopoverContent>
               </Popover>
