@@ -138,6 +138,7 @@ const BLOG_ROUTES = BLOG_POSTS.map((post) => ({
   Component: lazyRoute(`/blog/${post.slug}`, post.loader),
 }));
 const HelpCenter             = lazyRoute("/hjaelp", () => import("./pages/HelpCenter"));
+const AboutUs                = lazyRoute("/om-os", () => import("./pages/AboutUs"));
 const VisualTestPlanner      = lazyRoute("visual-test-planner", () => import("./pages/VisualTestPlanner"));
 const VisualTestLivechat     = lazyRoute("visual-test-livechat", () => import("./pages/VisualTestLivechat"));
 
