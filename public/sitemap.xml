@@ -1003,13 +1003,91 @@
     <priority>0.75</priority>
   </url>
   <url>
-    <loc>https://serviceydere.dk/blog/kategori/rengoering</loc>
-    <lastmod>2026-06-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <loc>https://serviceydere.dk/blog/10-spoergsmaal-foer-du-booker-rengoeringsfirma</loc>
+    <lastmod>2027-04-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
   </url>
   <url>
-    <loc>https://serviceydere.dk/blog/kategori/haveservice</loc>
+    <loc>https://serviceydere.dk/blog/7-spoergsmaal-foer-du-booker-haandvaerker</loc>
+    <lastmod>2027-04-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/roede-flag-i-haandvaerkertilbud</loc>
+    <lastmod>2027-04-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/aconto-vs-slutfaktura</loc>
+    <lastmod>2027-04-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/dine-rettigheder-ved-fejl-i-haandvaerkerarbejde</loc>
+    <lastmod>2027-04-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/forhandl-prisen-paa-haandvaerker</loc>
+    <lastmod>2027-04-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/hvis-haandvaerker-ikke-moeder-op</loc>
+    <lastmod>2027-04-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/spoergsmaal-foer-du-booker-flyttefirma</loc>
+    <lastmod>2027-04-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/saadan-laeser-du-haandvaerkertilbud</loc>
+    <lastmod>2027-04-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/hvornaar-skal-du-have-byggetilladelse</loc>
+    <lastmod>2027-04-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/forsikringsskade-anmeldelse-haandvaerker</loc>
+    <lastmod>2027-04-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/skybrudssikring-pris-og-loesninger</loc>
+    <lastmod>2027-04-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/erhvervsrengoering-kontrakt-tjekliste</loc>
+    <lastmod>2027-04-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/klargoer-bolig-til-salg-haandvaerker</loc>
+    <lastmod>2027-04-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/kategori/rengoering</loc>
     <lastmod>2026-06-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -1021,13 +1099,19 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://serviceydere.dk/blog/kategori/tomrer</loc>
+    <loc>https://serviceydere.dk/blog/kategori/haveservice</loc>
     <lastmod>2026-06-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://serviceydere.dk/blog/kategori/flytning</loc>
+    <lastmod>2026-06-24</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/kategori/tomrer</loc>
     <lastmod>2026-06-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -1045,13 +1129,13 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://serviceydere.dk/blog/kategori/maler</loc>
+    <loc>https://serviceydere.dk/blog/kategori/oekonomi</loc>
     <lastmod>2026-06-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://serviceydere.dk/blog/kategori/oekonomi</loc>
+    <loc>https://serviceydere.dk/blog/kategori/maler</loc>
     <lastmod>2026-06-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>

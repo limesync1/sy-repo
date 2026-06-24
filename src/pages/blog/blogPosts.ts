@@ -1298,5 +1298,45 @@ BLOG_POSTS.push(
     loader: () => import("./posts/PreSaleHomePreparation") },
 );
 
+// ───── Batch 6: rettigheder, regler, energi, skadedyr, sommerhus, lejer
+BLOG_POSTS.push(
+  { slug: "garantitider-paa-haandvaerkerarbejde",
+    title: "Garantitider på håndværkerarbejde — 2 år, 5 år eller 10?",
+    description: "Købelovens 2 år, AB-Forbrugers 5 år og skjulte mangler op til 10 år. Få overblik over reklamationsfrister, 1- og 5-års gennemgang og hvordan du reklamerer rigtigt.",
+    publishedAt: "2027-05-02", readingMinutes: 7, category: "Håndværker",
+    tags: ["garanti","reklamation","rettigheder"],
+    loader: () => import("./posts/WarrantyContractorWork") },
+  { slug: "nabo-klager-over-byggeri-stoj-regler",
+    title: "Nabo klager over byggeri — støjtider, regler og konflikthåndtering",
+    description: "Hvornår må håndværkeren larme, hvornår skal du varsle naboen, og hvad kan naboen reelt kræve? Få reglerne og en tjekliste der forebygger nabokonflikten.",
+    publishedAt: "2027-05-04", readingMinutes: 6, category: "Håndværker",
+    tags: ["nabo","stoej","regler"],
+    loader: () => import("./posts/NeighborComplaintsBuilding") },
+  { slug: "energirenovering-tilskud-2026",
+    title: "Energirenovering tilskud 2026 — bygningspulje, skrotpræmie og fradrag",
+    description: "Varmepumpe, isolering, vinduer: så meget kan du få i tilskud og fradrag i 2026. Komplet trin-for-trin og regneeksempel hvor 130.000 kr. bliver til 65.000 kr.",
+    publishedAt: "2027-05-06", readingMinutes: 8, category: "Økonomi",
+    tags: ["energi","tilskud","fradrag"],
+    loader: () => import("./posts/EnergyRenovationSubsidy2026") },
+  { slug: "skadedyrsbekaempelse-pris-sammenligning",
+    title: "Skadedyrsbekæmpelse — priser 2026 for rotter, mus, hvepse og væggelus",
+    description: "Hvad koster det at få fjernet rotter, mus, hvepse, sølvfisk og væggelus? Hvornår betaler kommunen, og hvornår skal du selv? Komplet prisoversigt.",
+    publishedAt: "2027-05-08", readingMinutes: 7, category: "Skadedyrsbekæmpelse",
+    tags: ["skadedyr","pris","sammenligning"],
+    loader: () => import("./posts/PestControlPriceComparison") },
+  { slug: "sommerhus-noegleservice-rengoering-tilsyn",
+    title: "Sommerhus nøgleservice — rengøring, tilsyn og priser 2026",
+    description: "Slutrengøring, nøgleservice og vintertilsyn af sommerhus — hvad det koster, hvad det skal omfatte, og hvordan du vælger det rette firma.",
+    publishedAt: "2027-05-10", readingMinutes: 7, category: "Rengøring",
+    tags: ["sommerhus","noegleservice","udlejning"],
+    loader: () => import("./posts/SummerHouseKeyService") },
+  { slug: "depositum-tilbage-flytteopgoerelse-lejer",
+    title: "Få depositum tilbage — flytteopgørelse, normalt slid og dine rettigheder",
+    description: "Udlejer må ikke kræve nyistandsat (siden 2015) og har kun 6 uger til flytteopgørelsen. Lær hvad du skal gøre på flyttedagen for at få hele depositum tilbage.",
+    publishedAt: "2027-05-12", readingMinutes: 8, category: "Flyttehjælp",
+    tags: ["depositum","lejer","rettigheder"],
+    loader: () => import("./posts/DepositReturnMoveOut") },
+);
+
 export const findBlogPost = (slug?: string) =>
   BLOG_POSTS.find((p) => p.slug === slug?.toLowerCase());
