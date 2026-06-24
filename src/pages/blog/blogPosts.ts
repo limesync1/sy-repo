@@ -264,6 +264,153 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     readingMinutes: 11,
     category: "Håndværker",
   },
+  // ── Long-tail SEO-pakke (oktober 2026): targets HappyHelper-vinder-keywords.
+  // Hvert opslag er bevidst dybere og mere konkret end konkurrentens version,
+  // så vi kan tage positionen på Google for fjern-pletter/rengøringsguides.
+  {
+    slug: "fjern-svedpletter-fra-hvidt-toej",
+    title: "Fjern svedpletter fra hvidt tøj — 7 metoder der faktisk virker",
+    description:
+      "Gule svedpletter under armene? Trin-for-trin guide med natron, brintoverilte, citronsyre og opvaskemiddel — plus hvad du IKKE skal gøre på hvidt bomuldstøj.",
+    publishedAt: "2026-10-01",
+    readingMinutes: 8,
+    category: "Rengøring",
+  },
+  {
+    slug: "fjern-tuschpletter-fra-toej",
+    title: "Fjern tuschpletter fra tøj — guide til alle slags tusch",
+    description:
+      "Sprittusch, vandbaseret tusch, kuglepen og whiteboard-tusch fjernes vidt forskelligt. Få den rigtige metode for hver type — uden at ødelægge stoffet.",
+    publishedAt: "2026-10-02",
+    readingMinutes: 7,
+    category: "Rengøring",
+  },
+  {
+    slug: "fjern-rustpletter-fra-toej",
+    title: "Rustpletter på tøj — sådan fjerner du dem uden at ødelægge stoffet",
+    description:
+      "Citronsaft, eddike og rustfjerner: hvilken metode virker på bomuld, hør, uld og syntetisk? Komplet guide med trin-for-trin og advarsler.",
+    publishedAt: "2026-10-03",
+    readingMinutes: 7,
+    category: "Rengøring",
+  },
+  {
+    slug: "fjern-klistermaerker-og-limrester",
+    title: "Fjern klistermærker og limrester — fra glas, plast, træ og tøj",
+    description:
+      "Madolie, eucalyptusolie, sprit, hårtørrer og acetone — den rigtige metode afhænger af overfladen. Få den komplette guide til hver materialetype.",
+    publishedAt: "2026-10-04",
+    readingMinutes: 7,
+    category: "Rengøring",
+  },
+  {
+    slug: "fjern-olie-og-fedtpletter-fra-toej",
+    title: "Fjern olie- og fedtpletter fra tøj — også gamle og indtørrede",
+    description:
+      "Opvaskemiddel, talkum, brun sæbe og galdesæbe. Trin-for-trin for friske og indtørrede fedtpletter — på både hvidt, kulørt og delikate stoffer.",
+    publishedAt: "2026-10-05",
+    readingMinutes: 8,
+    category: "Rengøring",
+  },
+  {
+    slug: "pudse-vinduer-uden-skraber",
+    title: "Pudse vinduer uden skraber — sådan får du stribefri ruder",
+    description:
+      "Mikrofiberklud, avispapir, gummiviskere og den rigtige blanding. Få stribefri, klare vinduer uden professionelt udstyr — i fem trin.",
+    publishedAt: "2026-10-06",
+    readingMinutes: 6,
+    category: "Vinduespudser",
+  },
+  {
+    slug: "lav-dit-eget-vinduespudsemiddel",
+    title: "Lav dit eget vinduespudsemiddel — 4 opskrifter der virker",
+    description:
+      "Eddike, sprit, opvaskemiddel og citronsyre: præcise opskrifter til vinduespudsemiddel der ikke laver striber. Plus advarsler mod blanding du skal undgå.",
+    publishedAt: "2026-10-07",
+    readingMinutes: 6,
+    category: "Vinduespudser",
+  },
+  {
+    slug: "afkalkning-komplet-guide",
+    title: "Afkalkning — komplet guide til kaffemaskine, elkedel, bruser og toilet",
+    description:
+      "Eddike, citronsyre eller specialprodukter? Få den rigtige metode og dosis til hver type apparat og overflade — og undgå skader på pakninger og krom.",
+    publishedAt: "2026-10-08",
+    readingMinutes: 9,
+    category: "Rengøring",
+  },
+  {
+    slug: "rengoering-af-aluminium",
+    title: "Rengøring af aluminium — vinduer, gryder, havemøbler og biler",
+    description:
+      "Aluminium iltes og bliver mat. Få den rigtige metode med eddike, citronsyre, tandpasta eller specialpolish — uden at ridse eller misfarve.",
+    publishedAt: "2026-10-09",
+    readingMinutes: 7,
+    category: "Rengøring",
+  },
+  {
+    slug: "rens-og-vask-af-ruskind",
+    title: "Rens og vask af ruskind — sko, jakke og møbler uden at ødelægge dem",
+    description:
+      "Ruskind tåler ikke vand som almindeligt læder. Få den rigtige proces med ruskindsbørste, viskelæder, fugtbeskyttelse og pletfjerner.",
+    publishedAt: "2026-10-10",
+    readingMinutes: 7,
+    category: "Rengøring",
+  },
+  {
+    slug: "statisk-elektricitet-i-toej-loesninger",
+    title: "Statisk elektricitet i tøj — sådan slipper du af med stødene",
+    description:
+      "Antistatisk spray du selv kan lave, balsam i sidste skyl, tørreklude og hjemmelavede tricks. Forstå hvorfor det opstår — og fix det for godt.",
+    publishedAt: "2026-10-11",
+    readingMinutes: 6,
+    category: "Rengøring",
+  },
+  {
+    slug: "afloeb-lugter-saadan-fjerner-du-lugten",
+    title: "Afløb lugter — sådan fjerner du lugten permanent",
+    description:
+      "Natron + eddike, kogende vand, mekanisk rens og vandlås-tjek. Find årsagen (tør vandlås, kloakgas, biofilm) og løs det rigtigt — uden ætsende midler.",
+    publishedAt: "2026-10-12",
+    readingMinutes: 8,
+    category: "Rengøring",
+  },
+  {
+    slug: "rengoering-af-traeoverflader",
+    title: "Rengøring af træoverflader — bordplade, gulv, møbler og terrasse",
+    description:
+      "Olieret, lakeret, sæbebehandlet eller ubehandlet træ kræver hver sin metode. Få komplet guide til daglig pleje og dybderens uden at ødelægge overfladen.",
+    publishedAt: "2026-10-13",
+    readingMinutes: 9,
+    category: "Rengøring",
+  },
+  {
+    slug: "hvor-ofte-skal-du-goere-rent",
+    title: "Hvor ofte skal du gøre rent i hvert rum? Komplet skema",
+    description:
+      "Køkken, bad, soveværelse, stue og entré — daglige, ugentlige, månedlige og halvårlige opgaver i ét overskueligt skema. Plus tips til at fordele arbejdet.",
+    publishedAt: "2026-10-14",
+    readingMinutes: 8,
+    category: "Rengøring",
+  },
+  {
+    slug: "emaljering-af-badekar",
+    title: "Emaljering af badekar — DIY eller fagmand? Pris og proces",
+    description:
+      "Emaljemaling, fagmand-genemaljering eller udskiftning? Få overblik over levetid, pris (2.500–9.000 kr.), forarbejde og hvornår det betaler sig.",
+    publishedAt: "2026-10-15",
+    readingMinutes: 8,
+    category: "Håndværker",
+  },
+  {
+    slug: "dybdegaaende-rengoering-af-nyt-hjem",
+    title: "Dybdegående rengøring af nyt hjem — komplet tjekliste før indflytning",
+    description:
+      "Skabe, ovn, køl, ventilation, afløb, vinduer, gulve og el-kontakter. Den fulde rækkefølge for hovedrengøring inden du flytter ind — uden at glemme noget.",
+    publishedAt: "2026-10-16",
+    readingMinutes: 10,
+    category: "Flyttehjælp",
+  },
 ];
 
 export const findBlogPost = (slug?: string) =>
