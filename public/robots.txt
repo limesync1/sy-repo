@@ -16,7 +16,9 @@ Disallow: /dashboard
 Disallow: /unsubscribe
 Disallow: /b/
 
-# Statisk sitemap (genereres ved build, dækker faste ruter + kategorier).
+# Sitemap-index (opdelt i pages/blog/guides/cities for bedre crawl-budget).
+Sitemap: https://serviceydere.dk/sitemap-index.xml
+# Legacy full sitemap (beholdes for bagudkompatibilitet).
 Sitemap: https://serviceydere.dk/sitemap.xml
 # Dynamisk sitemap genereres af en edge function og indeholder alle
 # virksomheder — Google accepterer cross-host sitemaps når de er listet her.
