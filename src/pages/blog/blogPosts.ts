@@ -1258,5 +1258,45 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     loader: () => import("./posts/QuestionsBeforeMover") },
 ];
 
+// ───── Batch 5: tilbudslæsning, regler, forsikring, klima, B2B, salgsklargøring
+BLOG_POSTS.push(
+  { slug: "saadan-laeser-du-haandvaerkertilbud",
+    title: "Sådan læser du et håndværkertilbud — og spotter de skjulte ekstraregninger",
+    description: "10-punkts tjekliste til at læse håndværkertilbud rigtigt: hvad skal stå, hvilke formuleringer er røde flag, og hvordan sammenligner du 3 tilbud retfærdigt.",
+    publishedAt: "2027-04-20", readingMinutes: 7, category: "Håndværker",
+    tags: ["tilbud","tjekliste","haandvaerker"],
+    loader: () => import("./posts/HowToReadContractorOffer") },
+  { slug: "hvornaar-skal-du-have-byggetilladelse",
+    title: "Hvornår skal du have byggetilladelse? Komplet oversigt 2026",
+    description: "Tilbygning, carport, vådrum, vinduer — hvad kræver byggetilladelse, hvad kræver kun anmeldelse, og hvad må du selv? Inkl. priser og sagsbehandlingstid.",
+    publishedAt: "2027-04-22", readingMinutes: 8, category: "Håndværker",
+    tags: ["byggetilladelse","regler","kommune"],
+    loader: () => import("./posts/WhenBuildingPermit") },
+  { slug: "forsikringsskade-anmeldelse-haandvaerker",
+    title: "Forsikringsskade og håndværker — sådan anmelder du rigtigt fra dag 1",
+    description: "Vand-, brand- eller stormskade? Få den korrekte rækkefølge for anmeldelse, taksator, tilbud og udbedring — så forsikringen dækker hele beløbet.",
+    publishedAt: "2027-04-24", readingMinutes: 8, category: "Håndværker",
+    tags: ["forsikring","skade","anmeldelse"],
+    loader: () => import("./posts/InsuranceClaimContractor") },
+  { slug: "skybrudssikring-pris-og-loesninger",
+    title: "Skybrudssikring — priser, løsninger og tilskud i 2026",
+    description: "Højvandslukke, faskine, pumpebrønd og frakobling af tagvand. Se priser, kommunalt tilskud og hvilken løsning der passer til dit hus.",
+    publishedAt: "2027-04-26", readingMinutes: 7, category: "Håndværker",
+    tags: ["klimasikring","skybrud","kloak"],
+    loader: () => import("./posts/StormwaterProtection") },
+  { slug: "erhvervsrengoering-kontrakt-tjekliste",
+    title: "Erhvervsrengøring — 10 ting du skal tjekke i kontrakten",
+    description: "Bindingsperiode, kvalitetskontrol, prisregulering, forsikring og GDPR. Tjekliste til indkøbsansvarlige der vil undgå dyre rengøringsaftaler.",
+    publishedAt: "2027-04-28", readingMinutes: 8, category: "Rengøring",
+    tags: ["erhvervsrengoering","kontrakt","B2B"],
+    loader: () => import("./posts/CommercialCleaningContractCheck") },
+  { slug: "klargoer-bolig-til-salg-haandvaerker",
+    title: "Klargør boligen til salg — hvilke håndværkeropgaver giver pengene tilbage?",
+    description: "Maling, rengøring og småreparationer giver 3–10× pengene tilbage. Nyt køkken og bad gør sjældent. Her er den prioriterede liste fra mæglerstatistikkerne.",
+    publishedAt: "2027-04-30", readingMinutes: 7, category: "Håndværker",
+    tags: ["bolig-salg","ROI","forberedelse"],
+    loader: () => import("./posts/PreSaleHomePreparation") },
+);
+
 export const findBlogPost = (slug?: string) =>
   BLOG_POSTS.find((p) => p.slug === slug?.toLowerCase());
