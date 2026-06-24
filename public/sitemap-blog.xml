@@ -1008,4 +1008,40 @@
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/saadan-laeser-du-haandvaerkertilbud</loc>
+    <lastmod>2027-04-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/hvornaar-skal-du-have-byggetilladelse</loc>
+    <lastmod>2027-04-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/forsikringsskade-anmeldelse-haandvaerker</loc>
+    <lastmod>2027-04-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/skybrudssikring-pris-og-loesninger</loc>
+    <lastmod>2027-04-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/erhvervsrengoering-kontrakt-tjekliste</loc>
+    <lastmod>2027-04-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/klargoer-bolig-til-salg-haandvaerker</loc>
+    <lastmod>2027-04-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
 </urlset>
