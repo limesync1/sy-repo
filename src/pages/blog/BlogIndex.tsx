@@ -4,6 +4,7 @@ import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import ArticleHero from "@/components/landing/ArticleHero";
 import { BLOG_POSTS } from "./blogPosts";
+import { BLOG_CATEGORIES } from "./blogCategories";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -46,6 +47,18 @@ const BlogIndex = () => {
       />
 
       <main id="main" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+        <nav aria-label="Bladr efter kategori" className="mb-8 flex flex-wrap gap-2">
+          <span className="rounded-full border border-foreground bg-foreground px-3 py-1 text-sm text-background">Alle</span>
+          {BLOG_CATEGORIES.map((c) => (
+            <Link
+              key={c.slug}
+              to={`/blog/kategori/${c.slug}`}
+              className="rounded-full border border-border bg-background px-3 py-1 text-sm text-foreground transition hover:bg-muted"
+            >
+              {c.name} <span className="text-muted-foreground">({c.count})</span>
+            </Link>
+          ))}
+        </nav>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {BLOG_POSTS.map((p) => (
             <Link

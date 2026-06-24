@@ -1,4 +1,6 @@
 import { defineGuidePage } from "./defineGuidePage";
+import CityListSection from "@/components/content/CityListSection";
+import { CITIES as CLEANING_CITIES } from "@/pages/cities/cleaningCityData";
 
 export default defineGuidePage({
   canonicalPath: "/guides/rengoering",
@@ -39,20 +41,7 @@ export default defineGuidePage({
       <a href="/blog/erhvervsrengoering-pris-pr-m2-2026">Erhvervsrengøring pris pr. m²</a>,
       <a href="/blog/flytterengoering-pris-2026">Flytterengøring pris 2026</a>,
     ]},
-    { heading: "Lokal rengøring — find firmaer i din by", list: [
-      <a href="/rengoering/koebenhavn">Rengøring København</a>,
-      <a href="/rengoering/aarhus">Rengøring Aarhus</a>,
-      <a href="/rengoering/odense">Rengøring Odense</a>,
-      <a href="/rengoering/aalborg">Rengøring Aalborg</a>,
-      <a href="/rengoering/esbjerg">Rengøring Esbjerg</a>,
-      <a href="/rengoering/horsens">Rengøring Horsens</a>,
-      <a href="/rengoering/silkeborg">Rengøring Silkeborg</a>,
-      <a href="/rengoering/herning">Rengøring Herning</a>,
-      <a href="/rengoering/roskilde">Rengøring Roskilde</a>,
-      <a href="/rengoering/helsingoer">Rengøring Helsingør</a>,
-      <a href="/rengoering/frederiksberg">Rengøring Frederiksberg</a>,
-      <a href="/rengoering/hilleroed">Rengøring Hillerød</a>,
-    ]},
+    { body: <CityListSection base="/rengoering" label="rengøring" cities={CLEANING_CITIES} /> },
     { heading: "Sådan vælger du det rigtige firma", list: [
       <a href="/blog/saadan-vaelger-du-rengoeringsfirma">Sådan vælger du rengøringsfirma (9 ting)</a>,
       <a href="/blog/privat-vs-firma-rengoering">Privat hjælper vs. rengøringsfirma</a>,

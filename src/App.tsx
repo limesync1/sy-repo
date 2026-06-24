@@ -124,6 +124,7 @@ const MovingCityPage         = lazyRoute("/flyttehjaelp/:city", () => import("./
 const HandymanCityPage       = lazyRoute("/haandvaerker/:city", () => import("./pages/cities/HandymanCityPage"));
 const GardenCityPage         = lazyRoute("/haveservice/:city", () => import("./pages/cities/GardenCityPage"));
 const BlogIndex              = lazyRoute("/blog", () => import("./pages/blog/BlogIndex"));
+const BlogCategoryIndex      = lazyRoute("/blog/kategori", () => import("./pages/blog/BlogCategoryIndex"));
 
 // ── Datadrevne blog-ruter ────────────────────────────────────────────────
 // Hver post i BLOG_POSTS bærer sin egen lazy loader. Vi mapper dem til en
@@ -334,6 +335,7 @@ const App = () => (
 
               {/* ── Blog (long-form artikler) ── */}
               <Route path="/blog" element={<BlogIndex />} />
+              <Route path="/blog/kategori/:slug" element={<BlogCategoryIndex />} />
               {BLOG_ROUTES.map(({ path, Component }) => (
                 <Route key={path} path={path} element={<Component />} />
               ))}

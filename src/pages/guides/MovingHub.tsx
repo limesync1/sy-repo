@@ -1,4 +1,6 @@
 import { defineGuidePage } from "./defineGuidePage";
+import CityListSection from "@/components/content/CityListSection";
+import { MOVING_CITIES } from "@/pages/cities/movingCityData";
 
 export default defineGuidePage({
   canonicalPath: "/guides/flytning",
@@ -39,18 +41,7 @@ export default defineGuidePage({
       <a href="/blog/flytning-aalborg-pris-2026">Flytning Aalborg pris</a>,
       <a href="/blog/fraflytningsrengoering-pris-2026">Flytterengøring pris</a>,
     ]},
-    { heading: "Lokal flyttehjælp — find firmaer", list: [
-      <a href="/flyttehjaelp/koebenhavn">Flyttehjælp København</a>,
-      <a href="/flyttehjaelp/aarhus">Flyttehjælp Aarhus</a>,
-      <a href="/flyttehjaelp/odense">Flyttehjælp Odense</a>,
-      <a href="/flyttehjaelp/aalborg">Flyttehjælp Aalborg</a>,
-      <a href="/flyttehjaelp/esbjerg">Flyttehjælp Esbjerg</a>,
-      <a href="/flyttehjaelp/horsens">Flyttehjælp Horsens</a>,
-      <a href="/flyttehjaelp/roskilde">Flyttehjælp Roskilde</a>,
-      <a href="/flyttehjaelp/helsingoer">Flyttehjælp Helsingør</a>,
-      <a href="/flyttehjaelp/hilleroed">Flyttehjælp Hillerød</a>,
-      <a href="/flyttehjaelp/silkeborg">Flyttehjælp Silkeborg</a>,
-    ]},
+    { body: <CityListSection base="/flyttehjaelp" label="flyttehjælp" cities={MOVING_CITIES} /> },
     { heading: "Planlægning og valg", list: [
       <a href="/blog/tjekliste-til-flyttedag">Komplet flytte-tjekliste</a>,
       <a href="/blog/selvflytning-vs-flyttefirma">Selvflytning vs. flyttefirma</a>,

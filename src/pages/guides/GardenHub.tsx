@@ -1,4 +1,6 @@
 import { defineGuidePage } from "./defineGuidePage";
+import CityListSection from "@/components/content/CityListSection";
+import { GARDEN_CITIES } from "@/pages/cities/gardenCityData";
 
 export default defineGuidePage({
   canonicalPath: "/guides/have",
@@ -41,18 +43,7 @@ export default defineGuidePage({
       <a href="/blog/hvepseboet-fjernelse-pris-2026">Hvepseboet pris</a>,
       <a href="/blog/snerydning-pris-abonnement-2026">Snerydning pris og abonnement</a>,
     ]},
-    { heading: "Lokal haveservice — find firmaer", list: [
-      <a href="/haveservice/koebenhavn">Haveservice København</a>,
-      <a href="/haveservice/aarhus">Haveservice Aarhus</a>,
-      <a href="/haveservice/odense">Haveservice Odense</a>,
-      <a href="/haveservice/aalborg">Haveservice Aalborg</a>,
-      <a href="/haveservice/esbjerg">Haveservice Esbjerg</a>,
-      <a href="/haveservice/horsens">Haveservice Horsens</a>,
-      <a href="/haveservice/silkeborg">Haveservice Silkeborg</a>,
-      <a href="/haveservice/frederiksberg">Haveservice Frederiksberg</a>,
-      <a href="/blog/gartner-koebenhavn-timepris-2026">Gartner pris København</a>,
-      <a href="/blog/gartner-aarhus-pris-2026">Gartner pris Aarhus</a>,
-    ]},
+    { body: <CityListSection base="/haveservice" label="haveservice" cities={GARDEN_CITIES} /> },
     { heading: "Sammenligning og guides", list: [
       <a href="/blog/havemand-vs-anlaegsgartner">Havemand vs. anlægsgartner</a>,
       <a href="/blog/vinterklargoering-af-have">Vinterklargøring af haven</a>,

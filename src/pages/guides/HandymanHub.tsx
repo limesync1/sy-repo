@@ -1,4 +1,6 @@
 import { defineGuidePage } from "./defineGuidePage";
+import CityListSection from "@/components/content/CityListSection";
+import { HANDYMAN_CITIES } from "@/pages/cities/handymanCityData";
 
 export default defineGuidePage({
   canonicalPath: "/guides/haandvaerker",
@@ -51,17 +53,7 @@ export default defineGuidePage({
       <a href="/blog/kokkeninstallation-pris-2026">Køkkeninstallation pris</a>,
       <a href="/blog/badevaerelsesrenovering-pris-2026">Badeværelsesrenovering pris</a>,
     ]},
-    { heading: "Lokal håndværker — find firmaer", list: [
-      <a href="/haandvaerker/koebenhavn">Håndværker København</a>,
-      <a href="/haandvaerker/aarhus">Håndværker Aarhus</a>,
-      <a href="/haandvaerker/odense">Håndværker Odense</a>,
-      <a href="/haandvaerker/aalborg">Håndværker Aalborg</a>,
-      <a href="/haandvaerker/esbjerg">Håndværker Esbjerg</a>,
-      <a href="/haandvaerker/horsens">Håndværker Horsens</a>,
-      <a href="/haandvaerker/silkeborg">Håndværker Silkeborg</a>,
-      <a href="/haandvaerker/herning">Håndværker Herning</a>,
-      <a href="/haandvaerker/roskilde">Håndværker Roskilde</a>,
-    ]},
+    { body: <CityListSection base="/haandvaerker" label="håndværker" cities={HANDYMAN_CITIES} /> },
     { heading: "Sammenligning og valg", list: [
       <a href="/blog/tomrer-vs-snedker">Tømrer vs. snedker</a>,
       <a href="/blog/mason-vs-tomrer">Murer vs. tømrer</a>,
