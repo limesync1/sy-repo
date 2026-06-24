@@ -39,7 +39,9 @@ const LocalQuoteWidget = ({
   tone = "light",
 }: Props) => {
   const navigate = useNavigate();
-  const [service, setService] = useState(defaultService);
+  const [service, setService] = useState(() => (
+    ALL_INDUSTRIES.some((item) => item.key === defaultService) ? defaultService : "Rengøring"
+  ));
   const [serviceOpen, setServiceOpen] = useState(false);
   const [serviceQuery, setServiceQuery] = useState("");
   const [locationQuery, setLocationQuery] = useState("");
