@@ -60,7 +60,7 @@ const Post = defineBlogPost({
       <ul>
         <li key="l0"><Link to="/blog/privatrengoering-pris-pr-time">Privatrengøring pris pr. time</Link></li>
         <li key="l1"><Link to="/blog/saadan-vaelger-du-rengoeringsfirma">Sådan vælger du det rigtige rengøringsfirma</Link></li>
-        <li key="l2"><Link to="/blog/commercial-cleaning-contract-check">Tjekliste til erhvervsrengøringskontrakt</Link></li>
+        <li key="l2"><Link to="/blog/erhvervsrengoering-kontrakt-tjekliste">Tjekliste til erhvervsrengøringskontrakt</Link></li>
         <li key="l3"><Link to="/blog/akustikregulering-kontor-stojdaempning-pris">Akustikregulering på kontoret</Link></li>
         <li key="l4"><Link to="/erhvervsrengoering">Find erhvervsrengøring</Link></li>
       </ul>
