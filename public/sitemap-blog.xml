@@ -1092,4 +1092,40 @@
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/garantitider-paa-haandvaerkerarbejde</loc>
+    <lastmod>2027-05-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/nabo-klager-over-byggeri-stoj-regler</loc>
+    <lastmod>2027-05-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/energirenovering-tilskud-2026</loc>
+    <lastmod>2027-05-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/skadedyrsbekaempelse-pris-sammenligning</loc>
+    <lastmod>2027-05-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/sommerhus-noegleservice-rengoering-tilsyn</loc>
+    <lastmod>2027-05-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/depositum-tilbage-flytteopgoerelse-lejer</loc>
+    <lastmod>2027-05-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
 </urlset>
