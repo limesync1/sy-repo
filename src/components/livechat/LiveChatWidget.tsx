@@ -662,14 +662,14 @@ const LiveChatWidget = () => {
           className={
             isMobile
               ? "fixed inset-0 z-50 animate-in fade-in slide-in-from-bottom-4 duration-200"
-              : `fixed z-50 w-[calc(100vw-3rem)] max-w-[360px] md:w-[360px] animate-in fade-in slide-in-from-bottom-4 duration-200 ${panelBottomClass} ${panelPositionClass}`
+              : `fixed z-50 w-[calc(100vw-3rem)] max-w-[380px] md:w-[380px] animate-in fade-in slide-in-from-bottom-4 duration-200 ${panelBottomClass} ${panelPositionClass}`
           }
         >
           <div
             className={
               isMobile
                 ? "relative flex h-[100dvh] w-full flex-col overflow-hidden bg-card"
-                : "relative flex h-[min(520px,calc(100vh-4rem))] flex-col overflow-hidden rounded-[24px] border border-border bg-card shadow-[0_40px_100px_-30px_hsl(204_96%_13%/0.45)] ring-1 ring-black/[0.04]"
+                : "relative flex h-[min(600px,calc(100vh-5rem))] flex-col overflow-hidden rounded-[24px] border border-border bg-card shadow-[0_40px_100px_-30px_hsl(204_96%_13%/0.45)] ring-1 ring-black/[0.04]"
             }
           >
             {/* Header — matcher Serviceydere hero (mørk navy + cyan glows) */}
@@ -695,20 +695,20 @@ const LiveChatWidget = () => {
                 />
               </div>
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-white/10" />
-              <div className="relative flex items-start justify-between gap-2">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm">
+              <div className="relative flex items-center justify-between gap-2">
+                <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm">
                     <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-7 w-7 object-contain" />
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-[15px] font-semibold leading-tight">Serviceydere Kundeservice</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[14px] font-semibold leading-tight">Kundeservice</p>
                     <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-white/70">
-                      <span className={`h-1.5 w-1.5 rounded-full ${closed ? "bg-muted-foreground" : "animate-pulse bg-success"}`} />
-                      {closed ? "Samtalen er afsluttet" : "Vi svarer typisk inden 5 minutter."}
+                      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${closed ? "bg-muted-foreground" : "animate-pulse bg-success"}`} />
+                      <span className="truncate">{closed ? "Samtalen er afsluttet" : "Svar typisk inden 5 min."}</span>
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-0.5">
+                <div className="flex shrink-0 items-center gap-0.5">
                   {chats.length > 0 && (
                     <button
                       onClick={() => setShowInbox(true)}
