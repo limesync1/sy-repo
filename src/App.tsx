@@ -341,6 +341,7 @@ const App = () => (
                 <Route key={path} path={path} element={<Component />} />
               ))}
               <Route path="/hjaelp" element={<HelpCenter />} />
+              <Route path="/om-os" element={<AboutUs />} />
 
               {/* ── Visual regression fixture (e2e only, ingen auth) ── */}
               <Route path="/__visual/planner" element={<VisualTestPlanner />} />
