@@ -17,6 +17,16 @@ interface Props {
  * Google's evne til at gruppere indhold tematisk.
  */
 const RelatedContent = ({ category, currentPath, hideIfEmpty }: Props) => {
+  // Deterministisk hash af currentPath → rotation-offset, så hver side viser
+  // et FORSKELLIGT udvalg af "andre" posts/guides. Uden dette ville alle
+  // artikler linke til de samme 3 første — og halen af blog/guides blev
+  // orphan-sider uden indgående interne links.
+  const seed = Array.from(currentPath).reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
+  const rotate = <T,>(arr: T[]): T[] => {
+    if (arr.length === 0) return arr;
+    const k = seed % arr.length;
+    return [...arr.slice(k), ...arr.slice(0, k)];
+  };
   // Tving altid den matchende hub-side ind som første kort (hvis den findes
   // og ikke er den nuværende side). Det giver hver indekseret prisguide et
   // direkte link til sin hub, så Google opdager hub-siderne hurtigt.
@@ -46,13 +56,13 @@ const RelatedContent = ({ category, currentPath, hideIfEmpty }: Props) => {
     const others = GUIDES.filter(
       (g) => g.category !== category && g.href !== currentPath && g.href !== forcedHubHref,
     );
-    return [...hubFirst, ...same, ...others].slice(0, 3);
+    return [...hubFirst, ...rotate(same), ...rotate(others)].slice(0, 3);
   })();
 
   const relatedPosts = (() => {
     const same = BLOG_POSTS.filter((p) => p.category === category && `/blog/${p.slug}` !== currentPath);
     const others = BLOG_POSTS.filter((p) => p.category !== category && `/blog/${p.slug}` !== currentPath);
-    return [...same, ...others].slice(0, 3);
+    return [...rotate(same), ...rotate(others)].slice(0, 3);
   })();
 
   if (hideIfEmpty && relatedGuides.length === 0 && relatedPosts.length === 0) return null;
