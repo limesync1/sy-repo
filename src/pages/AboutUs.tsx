@@ -218,7 +218,7 @@ const AboutUs = () => {
                     { label: "Kategorier", value: "25+" },
                     { label: "Byer i Danmark", value: "60+" },
                     { label: "Prisguides", value: "20+" },
-                    { label: "Tilbud per forespørgsel", value: "op til 3" },
+                    { label: "Tilbud per opgave", value: "op til 3" },
                   ].map((s) => (
                     <div
                       key={s.label}
@@ -253,8 +253,8 @@ const AboutUs = () => {
                       <Building2 className="h-4.5 w-4.5" />
                     </span>
                     <div>
-                      <div className="font-semibold text-background">Serviceydere</div>
-                      <div className="text-background/70">Dansk online platform</div>
+                      <div className="font-semibold text-background">Serviceydere ApS</div>
+                      <div className="text-background/70">Online markedsplads for håndværk, rengøring &amp; service</div>
                     </div>
                   </li>
                   <li className="flex items-start gap-3">
