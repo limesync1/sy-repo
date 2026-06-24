@@ -1338,5 +1338,45 @@ BLOG_POSTS.push(
     loader: () => import("./posts/DepositReturnMoveOut") },
 );
 
+// ───── Batch 7: andel/ejer, tagrender, solceller, stillads, akustik, brændeovn
+BLOG_POSTS.push(
+  { slug: "andelsbolig-vs-ejerbolig-renovering-regler",
+    title: "Andelsbolig vs. ejerbolig — renoveringsregler og tilladelser",
+    description: "Hvad må du selv ændre i andels- og ejerlejlighed, hvad kræver foreningens godkendelse, og hvad sker der hvis du ombygger uden tilladelse? Komplet guide.",
+    publishedAt: "2027-05-14", readingMinutes: 7, category: "Håndværker",
+    tags: ["andelsbolig","ejerlejlighed","regler"],
+    loader: () => import("./posts/CondoVsOwnerRenovation") },
+  { slug: "tagrender-pris-udskift-vedligehold",
+    title: "Tagrender — pris, levetid og vedligehold i 2026",
+    description: "Plast, stål, zink eller kobber? Komplet prisoversigt pr. meter, rensningspriser og tjekliste til årligt selvtjek af tagrender og nedløb.",
+    publishedAt: "2027-05-16", readingMinutes: 6, category: "Håndværker",
+    tags: ["tagrender","udskift","vedligehold"],
+    loader: () => import("./posts/GutterPriceMaintenance") },
+  { slug: "solceller-pris-tilbagebetalingstid-2026",
+    title: "Solceller 2026 — pris, tilbagebetalingstid og batteri-økonomi",
+    description: "Hvad koster et 6, 8 eller 10 kWp solcelleanlæg i 2026? Få regneeksempel på tilbagebetalingstid, faldgruber og hvornår batteri kan betale sig.",
+    publishedAt: "2027-05-18", readingMinutes: 8, category: "Økonomi",
+    tags: ["solceller","energi","oekonomi"],
+    loader: () => import("./posts/SolarPanelPricePayback") },
+  { slug: "stillads-faldsikring-regler-haandvaerker",
+    title: "Stillads og faldsikring — regler, priser og bygherreansvar",
+    description: "Hvornår skal håndværker bruge stillads, hvad koster det, og hvilket ansvar har du som privat bygherre? AT-regler, prisoversigt og røde flag.",
+    publishedAt: "2027-05-20", readingMinutes: 7, category: "Håndværker",
+    tags: ["stillads","sikkerhed","regler"],
+    loader: () => import("./posts/ScaffoldingFallProtectionRules") },
+  { slug: "akustikregulering-kontor-stojdaempning-pris",
+    title: "Akustikregulering af kontor — priser, løsninger og effekt",
+    description: "Lyddæmpning af storkontor: hvad koster loftspaneler, vægabsorbenter og mødeboks, og hvilke løsninger giver mest effekt for pengene?",
+    publishedAt: "2027-05-22", readingMinutes: 7, category: "Erhverv",
+    tags: ["akustik","kontor","B2B"],
+    loader: () => import("./posts/OfficeAcousticTreatment") },
+  { slug: "braendeovn-traepilleovn-rensning-krav",
+    title: "Brændeovn og træpilleovn — rensning, krav og priser 2026",
+    description: "Lovkrav, skorstensfejning, selvtjek og priser på service og udskift. Tjek om din brændeovn stadig er lovlig — og hvad det koster at få den i orden.",
+    publishedAt: "2027-05-24", readingMinutes: 7, category: "Håndværker",
+    tags: ["braendeovn","skorsten","rensning"],
+    loader: () => import("./posts/WoodStoveCleaningRules") },
+);
+
 export const findBlogPost = (slug?: string) =>
   BLOG_POSTS.find((p) => p.slug === slug?.toLowerCase());
