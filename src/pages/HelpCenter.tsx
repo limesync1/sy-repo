@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { Search, MessageSquare, Building2, BookOpen, ArrowUpRight, Mail } from "lucide-react";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import ArticleHero from "@/components/landing/ArticleHero";
@@ -12,6 +13,7 @@ interface HelpTopic {
   description: string;
   to: string;
   label: string;
+  Icon: typeof Search;
 }
 
 const TOPICS: HelpTopic[] = [
@@ -20,24 +22,28 @@ const TOPICS: HelpTopic[] = [
     description: "Søg blandt verificerede virksomheder eller filtrer efter kategori, by og pris.",
     to: "/virksomheder",
     label: "Gå til søgning",
+    Icon: Search,
   },
   {
     title: "Indhent 3 tilbud",
     description: "Beskriv opgaven én gang og modtag uforpligtende tilbud fra op til 3 udbydere.",
     to: "/tilbud",
     label: "Start tilbudsrunde",
+    Icon: MessageSquare,
   },
   {
     title: "Bliv udbyder",
     description: "Opret din virksomhedsside, modtag opgaver og kom på Serviceydere i dag.",
     to: "/opret-virksomhed",
     label: "Opret virksomhed",
+    Icon: Building2,
   },
   {
     title: "Guides & priser",
     description: "Læs prisguides og find gennemsnitspriser for rengøring, flytning, håndværk og have.",
     to: "/guides",
     label: "Se guides",
+    Icon: BookOpen,
   },
 ];
 
@@ -125,17 +131,37 @@ const HelpCenter = () => {
 
       <main id="main" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
         <section aria-labelledby="topics" className="mb-14">
-          <h2 id="topics" className="text-2xl font-bold tracking-tight text-foreground">Populære emner</h2>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            {TOPICS.map((t) => (
+          <div className="flex items-end justify-between gap-6">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Genveje</p>
+              <h2 id="topics" className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Populære emner</h2>
+            </div>
+          </div>
+          <div className="mt-6 grid gap-5 sm:grid-cols-2">
+            {TOPICS.map((t, i) => (
               <Link
                 key={t.to}
                 to={t.to}
-                className="group flex flex-col rounded-xl border border-border bg-card p-5 transition hover:border-foreground/40 hover:shadow-sm"
+                className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-0.5 hover:border-foreground/40 hover:shadow-lg"
               >
-                <h3 className="text-lg font-semibold text-foreground">{t.title}</h3>
+                <div
+                  aria-hidden
+                  className="absolute inset-x-0 top-0 h-px"
+                  style={{ background: "linear-gradient(90deg, transparent, hsl(var(--hero-cyan-bright) / 0.55), transparent)" }}
+                />
+                <div className="flex items-center gap-4">
+                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-foreground text-background ring-1 ring-foreground/10">
+                    <t.Icon className="h-5 w-5" />
+                  </span>
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                    {String(i + 1).padStart(2, "0")} / {String(TOPICS.length).padStart(2, "0")}
+                  </span>
+                </div>
+                <h3 className="mt-5 text-lg font-semibold text-foreground">{t.title}</h3>
                 <p className="mt-2 text-sm text-muted-foreground">{t.description}</p>
-                <span className="mt-4 text-sm font-medium text-foreground group-hover:underline">{t.label} →</span>
+                <span className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-foreground">
+                  {t.label} <ArrowUpRight className="h-4 w-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </span>
               </Link>
             ))}
           </div>
@@ -143,18 +169,50 @@ const HelpCenter = () => {
 
         <ArticleFaqSection items={FAQ} title="Ofte stillede spørgsmål om Serviceydere" />
 
-        <section aria-labelledby="kontakt" className="rounded-2xl border border-border bg-primary/5 p-6 sm:p-8">
-          <h2 id="kontakt" className="text-2xl font-bold tracking-tight text-foreground">Kunne du ikke finde svar?</h2>
-          <p className="mt-2 text-foreground/80">
-            Skriv til os på <a href="mailto:kontakt@serviceydere.dk" className="font-semibold text-foreground underline underline-offset-2">kontakt@serviceydere.dk</a> — vi svarer typisk samme hverdag.
-          </p>
-          <div className="mt-5 flex flex-wrap gap-3">
-            <a href="mailto:kontakt@serviceydere.dk" className="inline-flex h-11 items-center rounded-md bg-foreground px-5 text-sm font-semibold text-background hover:opacity-90">
-              Skriv til support
-            </a>
-            <Link to="/tilbud" className="inline-flex h-11 items-center rounded-md border border-border bg-background px-5 text-sm font-semibold text-foreground hover:bg-muted">
-              Få 3 gratis tilbud
-            </Link>
+        <section
+          aria-labelledby="kontakt"
+          className="relative mt-14 overflow-hidden rounded-3xl text-background"
+          style={{
+            background:
+              "radial-gradient(70% 120% at 100% 0%, hsl(var(--hero-cyan) / 0.45), transparent 60%), linear-gradient(135deg, hsl(var(--hero-bg)) 0%, hsl(204 80% 10%) 100%)",
+          }}
+        >
+          <div
+            aria-hidden
+            className="absolute inset-0 opacity-[0.1]"
+            style={{
+              backgroundImage: "radial-gradient(hsl(var(--hero-cyan-bright)) 1px, transparent 1px)",
+              backgroundSize: "22px 22px",
+            }}
+          />
+          <div className="relative grid gap-6 p-8 sm:p-12 lg:grid-cols-[1.6fr,1fr] lg:items-center">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-background/70">Stadig i tvivl?</p>
+              <h2 id="kontakt" className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+                Kunne du ikke finde svar?
+              </h2>
+              <p className="mt-3 max-w-xl text-[15px] leading-7 text-background/80">
+                Skriv til os på{" "}
+                <a href="mailto:kontakt@serviceydere.dk" className="font-semibold text-background underline underline-offset-2">
+                  kontakt@serviceydere.dk
+                </a>{" "}
+                — vi svarer typisk samme hverdag.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3 lg:justify-end">
+              <a
+                href="mailto:kontakt@serviceydere.dk"
+                className="inline-flex h-11 items-center gap-2 rounded-md bg-background px-5 text-sm font-semibold text-foreground hover:opacity-90"
+              >
+                <Mail className="h-4 w-4" /> Skriv til support
+              </a>
+              <Link
+                to="/tilbud"
+                className="inline-flex h-11 items-center rounded-md border border-background/30 bg-background/5 px-5 text-sm font-semibold text-background hover:bg-background/10"
+              >
+                Få 3 gratis tilbud
+              </Link>
+            </div>
           </div>
         </section>
       </main>
