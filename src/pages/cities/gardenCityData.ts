@@ -52,6 +52,27 @@ export const GARDEN_CITIES: CityGardenContent[] = [
     localFactor: "Kystnær beplantning kræver oftere tilbageklipning og udskiftning — vær opmærksom på årligt vedligehold. Firmaerne dækker typisk Varde, Ribe og Bramming uden ekstra kørsel.",
     popularTasks: ["Læhegnsklipning", "Græsslåning", "Renovering af bede", "Plantning af vindbestandige buske", "Snerydning"],
   },
+  {
+    slug: "randers", name: "Randers", region: "Midtjylland", postalRange: "8900–8983",
+    hourlyLow: 285, hourlyHigh: 445, lawnLow: 245, lawnHigh: 550, hedgeLow: 23, hedgeHigh: 52,
+    intro: "Randers og opland har mange parcelhuse med store grunde — pakkeaftaler med græs, hæk og bortskaffelse er normen. Mange firmaer dækker også Hobro, Hadsten og Langå.",
+    localFactor: "Lavt lønniveau og korte afstande gør Randers til et af landets billigste havemarkeder. Vinterhalvåret er længere end i Sydjylland — snerydning kombineres ofte med haveaftale.",
+    popularTasks: ["Græsklip på abonnement", "Hækklipning", "Snerydning", "Bortskaffelse af haveaffald", "Bede-renovering"],
+  },
+  {
+    slug: "kolding", name: "Kolding", region: "Syddanmark", postalRange: "6000–6093",
+    hourlyLow: 305, hourlyHigh: 475, lawnLow: 265, lawnHigh: 595, hedgeLow: 25, hedgeHigh: 55,
+    intro: "Kolding har et bredt havemarked drevet af Trekantsområdets pendlersamfund og mange parcelhuskvarterer. Konkurrencen mellem firmaer holder priserne moderate.",
+    localFactor: "Geografisk midte: samme firma dækker ofte Kolding, Vejle, Fredericia og Middelfart. Mange tilbyder fast årsaftale med 18–24 besøg fordelt over sæsonen.",
+    popularTasks: ["Græsslåning", "Hækklipning 2× årligt", "Beskæring af frugttræer", "Anlæg af bede", "Bortskaffelse af haveaffald"],
+  },
+  {
+    slug: "vejle", name: "Vejle", region: "Syddanmark", postalRange: "7100–7184",
+    hourlyLow: 305, hourlyHigh: 475, lawnLow: 265, lawnHigh: 595, hedgeLow: 25, hedgeHigh: 55,
+    intro: "Vejle er kendt for skrå grunde og dybe haver — derfor er beskæring, terrænarbejde og støttemurspleje en større del af markedet end andre steder. Firmaer dækker også Børkop og Egtved.",
+    localFactor: "Skråninger og bakkede haver kræver ofte specialudstyr (stejlskråningsklipper, terrasse-trimmer). Bed om besigtigelse til første aftale.",
+    popularTasks: ["Skråningsgræsklip", "Hækklipning", "Trækfældning", "Støttemur-pleje", "Forårsoprydning"],
+  },
 ];
 
 export const findGardenCity = (slug?: string) =>

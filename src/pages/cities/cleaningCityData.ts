@@ -132,6 +132,72 @@ export const CITIES: CityCleaningContent[] = [
       "Lavere bopriser og lønniveau betyder, at rengøring i Esbjerg ofte er 15–20% billigere end i København. Mange firmaer dækker også Varde, Ribe og Fanø.",
     exampleHomeType: "110 m² parcelhus i Sædding",
   },
+  {
+    slug: "randers",
+    name: "Randers",
+    region: "Midtjylland",
+    population: "63.000",
+    postalRange: "8900–8983",
+    lat: 56.4607,
+    lng: 10.0369,
+    hourlyLow: 235,
+    hourlyHigh: 375,
+    flatLow: 470,
+    flatHigh: 760,
+    neighborhoods: [
+      "Midtbyen", "Vorup", "Dronningborg", "Kristrup",
+      "Hornbæk", "Helsted", "Paderup", "Assentoft",
+    ],
+    intro:
+      "Randers er Østjyllands sjette største by og har et stabilt rengøringsmarked drevet af industri, plejecentre og en voksende andel småbørnsfamilier i forstæderne. Mange firmaer dækker også Hadsten, Langå og Hobro.",
+    localFactor:
+      "Lavere lønniveau og kortere afstande mellem opgaver holder timeprisen 10–20% under landsgennemsnittet. Erhvervsrengøring fylder en større del af markedet end i de fleste tilsvarende byer.",
+    exampleHomeType: "100 m² parcelhus i Kristrup",
+  },
+  {
+    slug: "kolding",
+    name: "Kolding",
+    region: "Syddanmark",
+    population: "62.000",
+    postalRange: "6000–6093",
+    lat: 55.4904,
+    lng: 9.4722,
+    hourlyLow: 245,
+    hourlyHigh: 385,
+    flatLow: 485,
+    flatHigh: 790,
+    neighborhoods: [
+      "Centrum", "Seest", "Bramdrupdam", "Vonsild",
+      "Strandhuse", "Munkebo", "Eltang", "Christiansfeld",
+    ],
+    intro:
+      "Kolding er trekantsområdets logistik-knudepunkt og har et bredt udvalg af rengøringsfirmaer der dækker både privat, erhverv og industri. Markedet er præget af konkurrence fra både lokale og landsdækkende kæder.",
+    localFactor:
+      "Geografisk midt i Jylland: mange firmaer dækker også Vejle, Fredericia og Middelfart uden ekstra kørsel. Priserne ligger lige under landsgennemsnittet.",
+    exampleHomeType: "120 m² parcelhus i Seest",
+  },
+  {
+    slug: "vejle",
+    name: "Vejle",
+    region: "Syddanmark",
+    population: "60.000",
+    postalRange: "7100–7184",
+    lat: 55.7090,
+    lng: 9.5350,
+    hourlyLow: 245,
+    hourlyHigh: 385,
+    flatLow: 485,
+    flatHigh: 790,
+    neighborhoods: [
+      "Centrum", "Søndermarken", "Nørremarken", "Mølholm",
+      "Uhrhøj", "Bredballe", "Grejsdalen", "Hover",
+    ],
+    intro:
+      "Vejle har et veletableret rengøringsmarked drevet af pendlersamfundet til Trekantsområdet og en stor andel parcelhuse i forstæderne. Mange firmaer kombinerer privat- og erhvervsrengøring.",
+    localFactor:
+      "Topografien (bakker, skove) giver længere kørselstider end gennemsnittet — firmaer i Vejle prissætter ofte fast pris frem for timepris. Boligjob-fradraget bruges aktivt af de fleste familier.",
+    exampleHomeType: "115 m² parcelhus i Bredballe",
+  },
 ];
 
 export const findCity = (slug?: string) =>
