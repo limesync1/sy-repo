@@ -136,7 +136,7 @@ const RequestQuote = () => {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const selectedCategory = CATEGORIES.find((c) => c.key === category);
-  const POPULAR_KEYS = topCategories.map((t) => t.key);
+  const POPULAR_KEYS = topCategories().map((t) => t.key);
   const trimmedQuery = categoryQuery.trim();
   /** Når der søges: brug det rige branche-søg. Når feltet er tomt: vis
    *  HELE kataloget — populære kategorier først, derefter resten alfabetisk.
