@@ -58,7 +58,7 @@ const AboutUs = () => {
       <main id="main">
         {/* Hero */}
         <section className="bg-foreground text-background">
-          <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
             <nav aria-label="Brødkrumme" className="mb-6 text-sm text-background/60">
               <SmartLink to="/" className="hover:text-background">Forside</SmartLink>
               <span className="mx-2">/</span>
@@ -91,7 +91,7 @@ const AboutUs = () => {
 
         {/* Mission */}
         <section className="border-b border-border bg-background">
-          <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <div className="grid gap-10 lg:grid-cols-[1fr_1.4fr] lg:gap-16">
               <div>
                 <span className="inline-flex items-center gap-2 rounded-full bg-foreground/5 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-foreground/70">
@@ -124,7 +124,7 @@ const AboutUs = () => {
 
         {/* Værdier */}
         <section className="bg-muted/30">
-          <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
               Sådan arbejder vi
             </h2>
@@ -163,7 +163,7 @@ const AboutUs = () => {
 
         {/* Nøgletal / NAP */}
         <section className="bg-background">
-          <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
               <div>
                 <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
@@ -226,7 +226,7 @@ const AboutUs = () => {
 
         {/* CTA */}
         <section className="bg-foreground text-background">
-          <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-center">
               <div>
                 <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
