@@ -66,16 +66,36 @@ for (const file of files) {
 }
 
 const sorted = Array.from(incoming.entries()).sort((a, b) => a[1] - b[1]);
-const orphans = sorted.filter(([, n]) => n < 3);
+
+// Tæl dynamisk rendering: hver blog-post linkes fra /blog (BlogIndex),
+// hver guide fra /guides, hver by fra sin kategori-landing + tilsvarende
+// hub. RelatedContent viser 3 guides + 3 posts på hver artikel.
+function dynamicBoost(route: string): number {
+  let bonus = 0;
+  if (route.startsWith("/blog/")) bonus += 1; // BlogIndex
+  if (route.startsWith("/rengoering/") || route.startsWith("/flyttehjaelp/")
+    || route.startsWith("/haandvaerker/") || route.startsWith("/haveservice/")) {
+    bonus += 2; // kategori-landing + hub
+  }
+  // Footer linker hubs + populære sider
+  if (["/guides/rengoering","/guides/flytning","/guides/haandvaerker",
+       "/guides/have","/guides/priser-2026","/blog","/guides","/virksomheder",
+       "/tilbud","/opret-virksomhed","/hjaelp","/log-ind"].includes(route)) bonus += 5;
+  return bonus;
+}
+
+const effective = sorted.map(([r, n]) => [r, n + dynamicBoost(r)] as const)
+  .sort((a, b) => a[1] - b[1]);
+const orphans = effective.filter(([, n]) => n < 3);
 
 console.log(`\nTotal routes analyzed: ${uniqueRoutes.length}`);
 console.log(`Orphans (< 3 incoming internal links): ${orphans.length}\n`);
-console.log("ROUTE".padEnd(60), "INCOMING");
+console.log("ROUTE".padEnd(60), "EFFECTIVE LINKS (static + dynamic)");
 console.log("-".repeat(75));
 for (const [route, n] of orphans) {
   console.log(route.padEnd(60), n);
 }
 console.log("\nTop 10 best-linked routes (for reference):");
-for (const [route, n] of sorted.slice(-10).reverse()) {
+for (const [route, n] of effective.slice(-10).reverse()) {
   console.log(route.padEnd(60), n);
 }
