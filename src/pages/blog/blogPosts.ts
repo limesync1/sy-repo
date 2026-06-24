@@ -1,5 +1,9 @@
-// Metadata for alle blogartikler. Bruges af både /blog index, sitemap
-// og individuelle artikelsider, så vi har én sandhed.
+// Metadata for alle blogartikler. Bruges af både /blog index, sitemap,
+// individuelle artikelsider OG selve routing i App.tsx, så vi har én
+// sandhed pr. artikel. Tilføj et nyt opslag her, og det dukker
+// automatisk op i alle tre — uden at røre App.tsx eller sitemap.xml.
+
+import type { ComponentType, LazyExoticComponent } from "react";
 
 export interface BlogPostMeta {
   slug: string;
@@ -9,6 +13,13 @@ export interface BlogPostMeta {
   updatedAt?: string;
   readingMinutes: number;
   category: string;
+  /** Frie tags til intern linking ("pletter", "tøj", "rengoering"). */
+  tags?: string[];
+  /** Dynamic import af artikel-komponenten. Bruges af App.tsx til at
+   *  registrere ruten automatisk og af route-prefetch til hover-preload. */
+  loader: () => Promise<{ default: ComponentType<unknown> }>;
+  /** Sat af App.tsx efter første lazy() — undgå dobbelt-lazy. */
+  _lazy?: LazyExoticComponent<ComponentType<unknown>>;
 }
 
 export const BLOG_POSTS: BlogPostMeta[] = [
@@ -20,6 +31,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-06-15",
     readingMinutes: 11,
     category: "Rengøring",
+    loader: () => import("./posts/ChooseCleaningCompany"),
   },
   {
     slug: "tjekliste-til-flyttedag",
@@ -29,6 +41,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-06-10",
     readingMinutes: 13,
     category: "Flyttehjælp",
+    loader: () => import("./posts/MovingDayChecklist"),
   },
   {
     slug: "boligjob-fradrag-2026",
@@ -38,6 +51,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-06-05",
     readingMinutes: 9,
     category: "Økonomi",
+    loader: () => import("./posts/BoligJobGuide"),
   },
   {
     slug: "saadan-vaelger-du-maler",
@@ -47,6 +61,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-06-25",
     readingMinutes: 10,
     category: "Maler",
+    loader: () => import("./posts/ChoosePainter"),
   },
   {
     slug: "vvs-akut-foer-installatoeren-kommer",
@@ -56,6 +71,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-06-28",
     readingMinutes: 8,
     category: "VVS",
+    loader: () => import("./posts/VvsAkut"),
   },
   {
     slug: "hvornaar-skal-du-have-autoriseret-elektriker",
@@ -65,6 +81,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-07-02",
     readingMinutes: 9,
     category: "Elektriker",
+    loader: () => import("./posts/ElectricianRules"),
   },
   {
     slug: "aarshjul-for-haveservice",
@@ -74,6 +91,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-07-05",
     readingMinutes: 11,
     category: "Haveservice",
+    loader: () => import("./posts/GardenYearWheel"),
   },
   {
     slug: "vinduespudser-eller-selv",
@@ -83,6 +101,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-07-08",
     readingMinutes: 7,
     category: "Vinduespudsning",
+    loader: () => import("./posts/WindowCleanerOrDIY"),
   },
   {
     slug: "tomrerprojekt-hjemme-trin-for-trin",
@@ -92,6 +111,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-07-12",
     readingMinutes: 12,
     category: "Tømrer",
+    loader: () => import("./posts/CarpentryProject"),
   },
   {
     slug: "murer-revner-og-fugtskader",
@@ -101,6 +121,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-07-16",
     readingMinutes: 9,
     category: "Murer",
+    loader: () => import("./posts/MasonryCracks"),
   },
   {
     slug: "rotter-i-haven-hvad-goer-jeg",
@@ -110,6 +131,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-07-20",
     readingMinutes: 8,
     category: "Skadedyrsbekæmpelse",
+    loader: () => import("./posts/RatsInGarden"),
   },
   {
     slug: "gulvlaegger-vinyl-laminat-eller-traegulv",
@@ -119,6 +141,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-07-24",
     readingMinutes: 10,
     category: "Gulvlægger",
+    loader: () => import("./posts/FloorChoice"),
   },
   {
     slug: "anlaegsgartner-terrasse-og-have",
@@ -128,6 +151,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-07-28",
     readingMinutes: 11,
     category: "Anlægsgartner",
+    loader: () => import("./posts/Landscaping"),
   },
   {
     slug: "algebehandling-tag-og-facade",
@@ -137,6 +161,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-08-02",
     readingMinutes: 8,
     category: "Algebehandling",
+    loader: () => import("./posts/AlgaeTreatment"),
   },
   {
     slug: "saadan-finder-du-billig-flyttehjaelp",
@@ -146,6 +171,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-08-05",
     readingMinutes: 9,
     category: "Flyttehjælp",
+    loader: () => import("./posts/CheapMovingHelp"),
   },
   {
     slug: "hovedrengoering-foer-flytning",
@@ -155,6 +181,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-08-08",
     readingMinutes: 10,
     category: "Rengøring",
+    loader: () => import("./posts/MoveInDeepClean"),
   },
   {
     slug: "fraflytningsrengoering-hvad-skal-med",
@@ -164,6 +191,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-08-12",
     readingMinutes: 9,
     category: "Rengøring",
+    loader: () => import("./posts/MoveOutCleaning"),
   },
   {
     slug: "el-tjek-foer-koeb-af-bolig",
@@ -173,6 +201,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-08-16",
     readingMinutes: 8,
     category: "Elektriker",
+    loader: () => import("./posts/ElectricalInspection"),
   },
   {
     slug: "varmepumpe-installation-priser-2026",
@@ -182,6 +211,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-08-20",
     readingMinutes: 12,
     category: "VVS",
+    loader: () => import("./posts/HeatPump"),
   },
   {
     slug: "tagrender-vedligehold-og-rens",
@@ -191,6 +221,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-08-24",
     readingMinutes: 7,
     category: "Haveservice",
+    loader: () => import("./posts/GutterCleaning"),
   },
   {
     slug: "maling-af-facade-traek-og-puds",
@@ -200,6 +231,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-08-28",
     readingMinutes: 10,
     category: "Maler",
+    loader: () => import("./posts/FacadePainting"),
   },
   {
     slug: "haek-og-traefaeldning-regler",
@@ -209,6 +241,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-09-01",
     readingMinutes: 9,
     category: "Haveservice",
+    loader: () => import("./posts/HedgeTreeRules"),
   },
   {
     slug: "vinduer-udskiftning-energi-og-pris",
@@ -218,6 +251,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-09-05",
     readingMinutes: 11,
     category: "Tømrer",
+    loader: () => import("./posts/WindowReplacement"),
   },
   {
     slug: "skadedyr-i-koekkenet-hvad-goer-jeg",
@@ -227,6 +261,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-09-09",
     readingMinutes: 8,
     category: "Skadedyrsbekæmpelse",
+    loader: () => import("./posts/KitchenPests"),
   },
   {
     slug: "skorstensfejer-pligt-og-pris",
@@ -236,6 +271,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-09-13",
     readingMinutes: 7,
     category: "Skorstensfejer",
+    loader: () => import("./posts/ChimneySweepObligation"),
   },
   {
     slug: "alarm-eller-videoovervaagning-til-hjemmet",
@@ -245,6 +281,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-09-17",
     readingMinutes: 10,
     category: "Sikkerhed",
+    loader: () => import("./posts/AlarmVsCamera"),
   },
   {
     slug: "gulvslibning-traegulv-trin-for-trin",
@@ -254,6 +291,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-09-21",
     readingMinutes: 9,
     category: "Gulvlægger",
+    loader: () => import("./posts/FloorSanding"),
   },
   {
     slug: "saadan-bestiller-du-haandvaerker-rigtigt",
@@ -263,6 +301,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-09-25",
     readingMinutes: 11,
     category: "Håndværker",
+    loader: () => import("./posts/HireContractorRight"),
   },
   // ── Long-tail SEO-pakke (oktober 2026): targets HappyHelper-vinder-keywords.
   // Hvert opslag er bevidst dybere og mere konkret end konkurrentens version,
@@ -275,6 +314,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-10-01",
     readingMinutes: 8,
     category: "Rengøring",
+    loader: () => import("./posts/StainsSweat"),
   },
   {
     slug: "fjern-tuschpletter-fra-toej",
@@ -284,6 +324,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-10-02",
     readingMinutes: 7,
     category: "Rengøring",
+    loader: () => import("./posts/StainsMarker"),
   },
   {
     slug: "fjern-rustpletter-fra-toej",
@@ -293,6 +334,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-10-03",
     readingMinutes: 7,
     category: "Rengøring",
+    loader: () => import("./posts/StainsRust"),
   },
   {
     slug: "fjern-klistermaerker-og-limrester",
@@ -302,6 +344,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-10-04",
     readingMinutes: 7,
     category: "Rengøring",
+    loader: () => import("./posts/StickerResidue"),
   },
   {
     slug: "fjern-olie-og-fedtpletter-fra-toej",
@@ -311,6 +354,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-10-05",
     readingMinutes: 8,
     category: "Rengøring",
+    loader: () => import("./posts/StainsOil"),
   },
   {
     slug: "pudse-vinduer-uden-skraber",
@@ -320,6 +364,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-10-06",
     readingMinutes: 6,
     category: "Vinduespudser",
+    loader: () => import("./posts/WindowsNoSqueegee"),
   },
   {
     slug: "lav-dit-eget-vinduespudsemiddel",
@@ -329,6 +374,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-10-07",
     readingMinutes: 6,
     category: "Vinduespudser",
+    loader: () => import("./posts/WindowCleanerRecipe"),
   },
   {
     slug: "afkalkning-komplet-guide",
@@ -338,6 +384,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-10-08",
     readingMinutes: 9,
     category: "Rengøring",
+    loader: () => import("./posts/Descaling"),
   },
   {
     slug: "rengoering-af-aluminium",
@@ -347,6 +394,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-10-09",
     readingMinutes: 7,
     category: "Rengøring",
+    loader: () => import("./posts/AluminumCleaning"),
   },
   {
     slug: "rens-og-vask-af-ruskind",
@@ -356,6 +404,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-10-10",
     readingMinutes: 7,
     category: "Rengøring",
+    loader: () => import("./posts/SuedeCleaning"),
   },
   {
     slug: "statisk-elektricitet-i-toej-loesninger",
@@ -365,6 +414,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-10-11",
     readingMinutes: 6,
     category: "Rengøring",
+    loader: () => import("./posts/StaticElectricity"),
   },
   {
     slug: "afloeb-lugter-saadan-fjerner-du-lugten",
@@ -374,6 +424,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-10-12",
     readingMinutes: 8,
     category: "Rengøring",
+    loader: () => import("./posts/SmellyDrain"),
   },
   {
     slug: "rengoering-af-traeoverflader",
@@ -383,6 +434,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-10-13",
     readingMinutes: 9,
     category: "Rengøring",
+    loader: () => import("./posts/WoodSurfaceCleaning"),
   },
   {
     slug: "hvor-ofte-skal-du-goere-rent",
@@ -392,6 +444,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-10-14",
     readingMinutes: 8,
     category: "Rengøring",
+    loader: () => import("./posts/CleaningFrequency"),
   },
   {
     slug: "emaljering-af-badekar",
@@ -401,6 +454,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-10-15",
     readingMinutes: 8,
     category: "Håndværker",
+    loader: () => import("./posts/BathtubReglazing"),
   },
   {
     slug: "dybdegaaende-rengoering-af-nyt-hjem",
@@ -410,6 +464,175 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     publishedAt: "2026-10-16",
     readingMinutes: 10,
     category: "Flyttehjælp",
+    loader: () => import("./posts/NewHomeDeepClean"),
+  },
+  // ── Pakke A (Uge 1) — branchespørgsmål, 1 pr. branche. SEO-optimeret
+  // til "hvor ofte / hvor meget / hvorfor"-søgninger der typisk ender med
+  // featured snippets eller AI Overview-citationer.
+  {
+    slug: "hvor-ofte-rengoeringshjaelp",
+    title: "Hvor ofte skal du have rengøringshjælp? Realistisk skema 2026",
+    description:
+      "Hver uge, hver 14. dag eller hver måned? Få den rigtige frekvens efter boligens størrelse, antal beboere, kæledyr og livsstil — plus hvad det koster pr. besøg.",
+    publishedAt: "2026-11-01",
+    readingMinutes: 8,
+    category: "Rengøring",
+    tags: ["rengoering", "frekvens", "pris"],
+    loader: () => import("./posts/CleaningFrequencyHelp"),
+  },
+  {
+    slug: "hvor-lang-tid-tager-en-flytning",
+    title: "Hvor lang tid tager en flytning? Tidsestimater pr. boligstørrelse",
+    description:
+      "Sådan beregner du timer til flytning af 1-, 2-, 3- og 4-værelses bolig. Hvad påvirker tiden — trapper, elevator, afstand — og hvornår du sparer på fast pris.",
+    publishedAt: "2026-11-02",
+    readingMinutes: 9,
+    category: "Flyttehjælp",
+    tags: ["flytning", "tid", "pris", "estimat"],
+    loader: () => import("./posts/MovingDuration"),
+  },
+  {
+    slug: "fast-pris-eller-timepris-haandvaerker",
+    title: "Fast pris eller timepris til håndværker — hvad er bedst?",
+    description:
+      "Fast pris giver budgetsikkerhed, timepris er ofte billigere på små opgaver. Få beslutningsregler, faldgruber ved 'ekstra arbejde' og hvad branche-aftalen siger.",
+    publishedAt: "2026-11-03",
+    readingMinutes: 8,
+    category: "Håndværker",
+    tags: ["pris", "kontrakt", "haandvaerker"],
+    loader: () => import("./posts/FixedPriceOrHourly"),
+  },
+  {
+    slug: "hvad-koster-haekklipning",
+    title: "Hvad koster hækklipning pr. meter i 2026?",
+    description:
+      "Realistiske priser pr. meter og pr. time for hækklipning. Sådan påvirker hækhøjde, type (bøg, liguster, thuja) og bortskaffelse af afklip prisen — plus BoligJob-fradrag.",
+    publishedAt: "2026-11-04",
+    readingMinutes: 7,
+    category: "Haveservice",
+    tags: ["have", "pris", "haekklipning"],
+    loader: () => import("./posts/HedgeTrimmingPrice"),
+  },
+  {
+    slug: "hvor-mange-lag-maling",
+    title: "Hvor mange lag maling skal du bruge? Komplet guide",
+    description:
+      "1 lag, 2 lag eller 3 lag? Det afhænger af farveskift, undergrund (gips, puds, træ), malingstype og kvalitet. Få den rigtige beregning og undgå at male om.",
+    publishedAt: "2026-11-05",
+    readingMinutes: 7,
+    category: "Maler",
+    tags: ["maler", "maling", "teknik"],
+    loader: () => import("./posts/PaintCoatsCount"),
+  },
+  {
+    slug: "hvad-koster-akut-vvs-tilkald",
+    title: "Hvad koster akut VVS-tilkald? Priser 2026 inkl. weekend",
+    description:
+      "Hverdage, aften, weekend og helligdage — få realistiske priser for akut VVS-tilkald (1.200–4.500 kr.), hvad takstforhøjelsen dækker, og hvornår det reelt haster.",
+    publishedAt: "2026-11-06",
+    readingMinutes: 7,
+    category: "VVS",
+    tags: ["vvs", "akut", "pris", "weekend"],
+    loader: () => import("./posts/EmergencyPlumberCost"),
+  },
+  {
+    slug: "hpfi-relae-springer",
+    title: "HPFI-relæet springer hele tiden — sådan finder du fejlen",
+    description:
+      "Trin-for-trin fejlfinding: træk apparater ud ét ad gangen, test fugtige stikkontakter, tjek ladere og hårde hvidevarer. Hvornår skal du selv stoppe og ringe efter elektriker?",
+    publishedAt: "2026-11-07",
+    readingMinutes: 8,
+    category: "Elektriker",
+    tags: ["elektriker", "hpfi", "fejlfinding", "sikkerhed"],
+    loader: () => import("./posts/HpfiKeepsTripping"),
+  },
+  {
+    slug: "hvad-koster-skillevaeg",
+    title: "Hvad koster en skillevæg? Priser, materialer og proces 2026",
+    description:
+      "Gipsskillevæg (4.000–9.000 kr.), murvæg (8.000–18.000 kr.) eller letvæg med dør. Få realistiske priser pr. m², lyddæmpning, byggetilladelse og processen trin-for-trin.",
+    publishedAt: "2026-11-08",
+    readingMinutes: 8,
+    category: "Tømrer",
+    tags: ["tomrer", "skillevaeg", "pris", "renovering"],
+    loader: () => import("./posts/PartitionWallCost"),
+  },
+  {
+    slug: "rotter-eller-mus",
+    title: "Rotter eller mus? Sådan kender du forskellen — og hvad du gør",
+    description:
+      "Lortenes størrelse, lyden om natten, hullerne og adfærd: lær at se forskel på rotter og mus, og forstå hvorfor det betyder noget (rotter er anmeldelsespligtige).",
+    publishedAt: "2026-11-09",
+    readingMinutes: 7,
+    category: "Skadedyrsbekæmpelse",
+    tags: ["skadedyr", "rotter", "mus", "identifikation"],
+    loader: () => import("./posts/RatsOrMice"),
+  },
+  {
+    slug: "alarm-uden-abonnement",
+    title: "Alarm uden abonnement — virker det, og hvad mister du?",
+    description:
+      "Smart-alarmer (Ajax, Verisure DIY, Aqara) uden månedlig betaling: hvad er forskellen i forhold til kontrolcentral-alarmer, sker der reelt en udrykning, og hvad siger forsikringen?",
+    publishedAt: "2026-11-10",
+    readingMinutes: 8,
+    category: "Sikkerhed",
+    tags: ["sikkerhed", "alarm", "forsikring"],
+    loader: () => import("./posts/AlarmNoSubscription"),
+  },
+  {
+    slug: "hvor-ofte-skal-skorsten-fejes",
+    title: "Hvor ofte skal skorstenen fejes i 2026? Lovkrav og intervaller",
+    description:
+      "Lovpligtigt 1–2 gange årligt afhængigt af installation. Få præcise intervaller for brændeovn, pejs, oliefyr og gaskedel — plus hvad det koster, og hvad der sker hvis du springer det over.",
+    publishedAt: "2026-11-11",
+    readingMinutes: 6,
+    category: "Skorstensfejer",
+    tags: ["skorsten", "lovpligt", "braendeovn"],
+    loader: () => import("./posts/ChimneySweepFrequency"),
+  },
+  {
+    slug: "vinduespudsning-pris-pr-m2",
+    title: "Vinduespudsning pr. m² — hvad er den rigtige pris i 2026?",
+    description:
+      "Indvendigt (15–35 kr./m²), udvendigt (25–55 kr./m²), abonnement vs. engangsbesøg. Lær prisstrukturen, hvornår det betaler sig at få abonnement, og hvad du kan forhandle.",
+    publishedAt: "2026-11-12",
+    readingMinutes: 6,
+    category: "Vinduespudsning",
+    tags: ["vinduer", "pris", "abonnement"],
+    loader: () => import("./posts/WindowCleaningPricePerM2"),
+  },
+  {
+    slug: "hvor-mange-gange-slibe-traegulv",
+    title: "Hvor mange gange kan et trægulv slibes? Realistisk svar 2026",
+    description:
+      "Massivt parket: 4–8 gange. Lamel: 1–3 gange. Plankegulv: 6–10 gange. Lær at vurdere restslibedybde, bjælke-niveau og hvornår det er billigere at lægge nyt gulv.",
+    publishedAt: "2026-11-13",
+    readingMinutes: 7,
+    category: "Gulvlægger",
+    tags: ["gulv", "slibning", "parket"],
+    loader: () => import("./posts/WoodFloorSandingTimes"),
+  },
+  {
+    slug: "hvad-koster-facaderens",
+    title: "Hvad koster facaderens i 2026? Pris pr. m² og metoder",
+    description:
+      "Højtryksrens (25–70 kr./m²), softwash (35–90 kr./m²), sandblæsning (90–180 kr./m²). Få den rigtige metode efter facadetype, alder og graden af alger, mos og misfarvning.",
+    publishedAt: "2026-11-14",
+    readingMinutes: 8,
+    category: "Murer",
+    tags: ["facade", "rens", "pris", "murer"],
+    loader: () => import("./posts/FacadeCleaningCost"),
+  },
+  {
+    slug: "algebehandling-hvor-ofte",
+    title: "Algebehandling — hvor ofte skal det gøres på tag og facade?",
+    description:
+      "Tag: hvert 3.–5. år. Facade: hvert 2.–4. år afhængigt af himmelretning og bevoksning. Lær at vurdere tilstanden selv, så du ikke betaler for unødvendige behandlinger.",
+    publishedAt: "2026-11-15",
+    readingMinutes: 7,
+    category: "Algebehandling",
+    tags: ["algebehandling", "tag", "facade", "vedligehold"],
+    loader: () => import("./posts/AlgaeTreatmentFrequency"),
   },
 ];
 
