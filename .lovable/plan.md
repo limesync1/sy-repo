@@ -1,59 +1,71 @@
+# Plan: Fase 4 — Fra 253 sider til indeksering, autoritet og konvertering
 
-# SEO-plan: Næste fase (Uge 6–8)
+## Status lige nu
+- **Indhold**: 253+ indekserbare URLs, 5 emne-hubs, 50+ prisguides, 25+ bysider.
+- **Teknisk**: Sitemap er opdelt i pages/blog/guides/cities, `robots.txt` peger på `sitemap-index.xml`, dynamisk sitemap via backend.
+- **SEO-synlighed**: Semrush viser 2 organiske keywords, ~0 est. trafik/måned, Authority Score 2/100, 52 backlinks fra 36 domæner (mange lavkvalitet). Det betyder: vi har **masser af indhold, men næsten ingen autoritet** til at få det indekseret og rangeret.
 
-Vi har nu 208 indekserbare URLs, stærke prisguides og link-klynger. For at slå konkurrenterne (happyhelper.dk, servicefinder.dk m.fl.) fokuserer næste fase på **lokal dominans**, **emne-hubs** og **teknisk SEO-løft**.
+## Anbefalet fokus de næste 4 uger
 
-## Uge 6 — Sekundære byer (25 nye sider)
+### Uge 9 — Teknisk indekseringsaudit (få mest ud af det eksisterende)
+1. **Google Search Console status-tjek**
+   - Tjek coverage for `sitemap-index.xml`, `sitemap-blog.xml`, `sitemap-guides.xml`, `sitemap-cities.xml`.
+   - Identificer "Discovered – currently not indexed" / "Crawled – currently not indexed".
+   - Resubmit fejlende sitemaps og enkelte URLs.
+2. **Schema- og on-page QA**
+   - Validér FAQ-schema på alle nye prisguides og bysider.
+   - Tilføj synlige breadcrumbs (UI) på blog, guides og bysider — udover JSON-LD.
+   - Audit alt-tekster, `loading="lazy"`, canonicals og H1-struktur.
+3. **Orphan-page-detektion**
+   - Kør et script over `blogPosts.ts`, `guidesRegistry.ts`, by-data og sitemap for at finde sider med < 3 interne links.
+   - Tilføj "Læs også"-klynger til de svageste sider.
 
-Lokale landingssider for byer vi mangler. Hver side: H1 med by+service, lokalt prisniveau, FAQ, "Læs også"-cluster mod hovedguides.
+### Uge 10 — Autoritetsbygning (backlinks + E-E-A-T)
+1. **Lokale og branche-relevante citations**
+   - Sikre ensartet NAP/firmaprofil på Krak, De Gule Sider, Trustpilot, LinkedIn, CVR, Proff.
+   - Tilføj `Organization` og `LocalBusiness` schema på forsiden og kontaktside.
+2. **Kvalitetslink-prospektering**
+   - Gæsteindlæg på 3-5 danske bolig/renovering-blogs.
+   - HARO / danske journalist-pitch-tjenester for ekspertcitat.
+   - Partnerskaber med leverandører/brancheforeninger.
+3. **Ryd op i lavkvalitetslinks**
+   - Analysér de nuværende 52 links; disavow spamdomæner hvis nødvendigt.
 
-**Byer**: Esbjerg, Kolding, Vejle, Horsens, Randers, Roskilde, Helsingør, Næstved, Holstebro, Silkeborg, Herning, Frederiksberg, Frederikshavn, Hillerød, Slagelse.
+### Uge 11 — Konverteringsoptimering på det nye indhold
+1. **Ensartet CTA-blok på alle prisguides/hubs**
+   - "Få 3 tilbud på [service] i [by]" med by/service dynamik.
+2. **Lokal "søg hjælp" widget**
+   - På bysider og hubs: dropdown/by + service → quote-flow.
+3. **Trust-signals**
+   - Anmeldelser, garantier, "vælg firma med forsikring" blokke på landingssider.
+4. **Mobil UX**
+   - Fold-ud FAQ, sticky CTA, hurtigere navigation mellem relaterede guides.
 
-**Sider** (kombination by × service):
-- 10× rengøring i sekundære byer (`/rengoering/<by>`)
-- 8× flyttehjælp i sekundære byer
-- 7× håndværker/havemand-priser i sekundære byer
+### Uge 12 — Indholdspleje + konkurrent-gap
+1. **Opdater gamle guides**
+   - Opdater `updatedAt` og priser på de første 20-30 guides.
+   - Konsolider sider med < 300 ord.
+2. **Content-gap vs konkurrenter**
+   - Analysér HappyHelper, Servicefinder, 3byggetilbud og andre.
+   - Identificér 10-15 nye "sådan vælger du" / "spørgsmål før du bestiller" emner.
+3. **Planlæg batch 4**
+   - 10-15 nye guides + 10 nye by-/servicekombinationer.
 
-Udvider `cleaningCityData.ts`, `movingCityData.ts`, `handymanCityData.ts`, `gardenCityData.ts`.
+## Teknisk gennemførelse
+- **GSC-overvågning**: Supabase Edge Function eller scheduleret job der henter coverage og resubmitter.
+- **Intern linking-script**: Node-script baseret på `blogPosts.ts` + `guidesRegistry.ts` + by-data.
+- **Schema-validering**: Google Rich Results Test / Schema Markup Validator.
+- **Backlink-tracking**: Semrush rapporter (evt. månedligt).
 
-## Uge 7 — Emne-hubs + sammenligningsguides (20 nye sider)
+## Succeskriterier (efter 4 uger)
+- 90% af URLs i GSC står som "Valid" (ikke Excluded).
+- +20 nye kvalitetslinks fra DK-domæner.
+- Organisk trafik (Semrush-estimat) > 100/måned.
+- CTA-klikrate på guidesider > 2%.
 
-**5 Hub-sider** (pillar pages med 30+ interne links):
-- `/guides/rengoering` — alt om rengøring (samler 40+ prisguides/artikler)
-- `/guides/flytning`
-- `/guides/haandvaerker`
-- `/guides/have`
-- `/guides/priser-2026` — master price index
+## Valg nu
+**A)** Start med uge 9 (teknisk audit + indexation) — anbefalet, da det giver mest værdi af det eksisterende.  
+**B)** Spring direkte til uge 10 (autoritetsbygning) hvis du vil have links hurtigst muligt.  
+**C)** Kombi: uge 9 + de vigtigste link-aktiviteter fra uge 10 på samme tid.
 
-**15 Sammenligningsguides** (high-intent, low-competition):
-- "Serviceydere vs. Happyhelper", "vs. Servicefinder", "vs. HelpHelper"
-- "Fast pris vs. timepris", "Privat vs. firma-rengøring"
-- "Bedste rengøringsfirma i KBH/Aarhus/Odense/Aalborg" (top-lister)
-- "Billigste vs. dyreste flyttefirma — hvad får du?"
-- Plus 7 service-vs-service sammenligninger
-
-## Uge 8 — Teknisk SEO + autoritet
-
-1. **Schema-udvidelse**: Tilføj `LocalBusiness`, `Service`, `AggregateRating` og `Offer` schema på by-sider og hub-sider.
-2. **Breadcrumbs**: Synlige breadcrumbs på alle blog-/by-sider (vi har JSON-LD, men ikke UI).
-3. **Image SEO**: Alt-tekster + `loading="lazy"` audit, WebP-konvertering af tunge billeder.
-4. **Internal linking-audit**: Sikre at hver side har min. 3 indgående links fra relevante sider (orphan-detektion via script).
-5. **Core Web Vitals**: Lighthouse-tjek af top 20 trafiksider, fix CLS/LCP-problemer.
-6. **Sitemap-opdeling**: Split `sitemap.xml` i `sitemap-blog.xml`, `sitemap-cities.xml`, `sitemap-pages.xml` + index — bedre crawl-budget.
-7. **GSC-monitorering**: URL-inspection script til at tracke index-coverage af de 250+ sider, automatisk re-submit ved discovery-fejl.
-
-## Slut-tilstand efter uge 8
-
-- ~260 indekserbare URLs (fra 208)
-- 5 hub-sider der centraliserer topical authority
-- Komplet dækning af DK's top 20 byer × 4 hovedservices
-- Sammenligningssider der fanger bottom-funnel kommercielle queries
-- Teknisk fundament klar til skalering mod 500+ sider
-
-## Teknisk note
-
-Følger eksisterende mønstre: `defineBlogPost`-factory, `BlogArticleLayout`, lazy-loaded routes i `blogPosts.ts`, sitemap regenereres via `scripts/generate-sitemap.ts` og resubmittes til GSC via gateway-API.
-
----
-
-**Skal jeg starte med uge 6 (sekundære byer) eller springe til uge 7 (hubs+sammenligninger) — eller køre alle tre uger i træk?**
+Vælg A, B eller C, eller sig til hvis planen skal justeres.

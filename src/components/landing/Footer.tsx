@@ -25,7 +25,7 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-5">
           <div>
             <h4 className="mb-3 text-sm font-semibold text-background">Serviceydere</h4>
             <ul className="space-y-2 text-sm text-background/65">
@@ -34,6 +34,16 @@ const Footer = () => {
               <li><Link to="/virksomheder" className="transition-colors hover:text-background">Kategorier</Link></li>
               <li><Link to="/guides" className="transition-colors hover:text-background">Guides &amp; priser</Link></li>
               <li><Link to="/blog" className="transition-colors hover:text-background">Blog</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="mb-3 text-sm font-semibold text-background">Populære guides</h4>
+            <ul className="space-y-2 text-sm text-background/65">
+              <li><Link to="/guides/priser-2026" className="transition-colors hover:text-background">Priser 2026 — oversigt</Link></li>
+              <li><Link to="/guides/rengoering" className="transition-colors hover:text-background">Rengøring 2026</Link></li>
+              <li><Link to="/guides/flytning" className="transition-colors hover:text-background">Flytning 2026</Link></li>
+              <li><Link to="/guides/haandvaerker" className="transition-colors hover:text-background">Håndværker 2026</Link></li>
+              <li><Link to="/guides/have" className="transition-colors hover:text-background">Have &amp; haveservice</Link></li>
             </ul>
           </div>
           <div>
