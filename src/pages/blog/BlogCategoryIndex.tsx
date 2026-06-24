@@ -4,7 +4,7 @@ import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import ArticleHero from "@/components/landing/ArticleHero";
 import { BLOG_POSTS } from "./blogPosts";
-import { BLOG_CATEGORIES, categoryNameBySlug } from "./blogCategories";
+import { BLOG_CATEGORIES, categoryNameBySlug, normalizeCategory } from "./blogCategories";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -18,7 +18,7 @@ const BlogCategoryIndex = () => {
   const name = categoryNameBySlug(slug);
   if (!name) return <Navigate to="/blog" replace />;
 
-  const posts = BLOG_POSTS.filter((p) => p.category === name);
+  const posts = BLOG_POSTS.filter((p) => normalizeCategory(p.category) === name);
   const canonical = `/blog/kategori/${slug}`;
 
   const jsonLd = [
