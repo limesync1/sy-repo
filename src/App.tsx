@@ -147,6 +147,25 @@ const BlogChimneySweep       = lazyRoute("/blog/skorstensfejer-pligt-og-pris", (
 const BlogAlarmVsCamera      = lazyRoute("/blog/alarm-eller-videoovervaagning-til-hjemmet", () => import("./pages/blog/posts/AlarmVsCamera"));
 const BlogFloorSanding       = lazyRoute("/blog/gulvslibning-traegulv-trin-for-trin", () => import("./pages/blog/posts/FloorSanding"));
 const BlogHireContractor     = lazyRoute("/blog/saadan-bestiller-du-haandvaerker-rigtigt", () => import("./pages/blog/posts/HireContractorRight"));
+// SEO-pakke oktober 2026 — long-tail rengørings/plet-guides der targets
+// happyhelper.dk's vinder-keywords (svedpletter, tusch, rust, klister,
+// afkalkning, ruskind, afløb m.fl.).
+const BlogStainsSweat        = lazyRoute("/blog/fjern-svedpletter-fra-hvidt-toej", () => import("./pages/blog/posts/StainsSweat"));
+const BlogStainsMarker       = lazyRoute("/blog/fjern-tuschpletter-fra-toej", () => import("./pages/blog/posts/StainsMarker"));
+const BlogStainsRust         = lazyRoute("/blog/fjern-rustpletter-fra-toej", () => import("./pages/blog/posts/StainsRust"));
+const BlogStickerResidue     = lazyRoute("/blog/fjern-klistermaerker-og-limrester", () => import("./pages/blog/posts/StickerResidue"));
+const BlogStainsOil          = lazyRoute("/blog/fjern-olie-og-fedtpletter-fra-toej", () => import("./pages/blog/posts/StainsOil"));
+const BlogWindowsNoSqueegee  = lazyRoute("/blog/pudse-vinduer-uden-skraber", () => import("./pages/blog/posts/WindowsNoSqueegee"));
+const BlogWindowCleanerRecipe = lazyRoute("/blog/lav-dit-eget-vinduespudsemiddel", () => import("./pages/blog/posts/WindowCleanerRecipe"));
+const BlogDescaling          = lazyRoute("/blog/afkalkning-komplet-guide", () => import("./pages/blog/posts/Descaling"));
+const BlogAluminumCleaning   = lazyRoute("/blog/rengoering-af-aluminium", () => import("./pages/blog/posts/AluminumCleaning"));
+const BlogSuedeCleaning      = lazyRoute("/blog/rens-og-vask-af-ruskind", () => import("./pages/blog/posts/SuedeCleaning"));
+const BlogStaticElectricity  = lazyRoute("/blog/statisk-elektricitet-i-toej-loesninger", () => import("./pages/blog/posts/StaticElectricity"));
+const BlogSmellyDrain        = lazyRoute("/blog/afloeb-lugter-saadan-fjerner-du-lugten", () => import("./pages/blog/posts/SmellyDrain"));
+const BlogWoodSurface        = lazyRoute("/blog/rengoering-af-traeoverflader", () => import("./pages/blog/posts/WoodSurfaceCleaning"));
+const BlogCleaningFrequency  = lazyRoute("/blog/hvor-ofte-skal-du-goere-rent", () => import("./pages/blog/posts/CleaningFrequency"));
+const BlogBathtubReglazing   = lazyRoute("/blog/emaljering-af-badekar", () => import("./pages/blog/posts/BathtubReglazing"));
+const BlogNewHomeDeepClean   = lazyRoute("/blog/dybdegaaende-rengoering-af-nyt-hjem", () => import("./pages/blog/posts/NewHomeDeepClean"));
 const HelpCenter             = lazyRoute("/hjaelp", () => import("./pages/HelpCenter"));
 const VisualTestPlanner      = lazyRoute("visual-test-planner", () => import("./pages/VisualTestPlanner"));
 const VisualTestLivechat     = lazyRoute("visual-test-livechat", () => import("./pages/VisualTestLivechat"));
@@ -368,6 +387,22 @@ const App = () => (
               <Route path="/blog/alarm-eller-videoovervaagning-til-hjemmet" element={<BlogAlarmVsCamera />} />
               <Route path="/blog/gulvslibning-traegulv-trin-for-trin" element={<BlogFloorSanding />} />
               <Route path="/blog/saadan-bestiller-du-haandvaerker-rigtigt" element={<BlogHireContractor />} />
+              <Route path="/blog/fjern-svedpletter-fra-hvidt-toej" element={<BlogStainsSweat />} />
+              <Route path="/blog/fjern-tuschpletter-fra-toej" element={<BlogStainsMarker />} />
+              <Route path="/blog/fjern-rustpletter-fra-toej" element={<BlogStainsRust />} />
+              <Route path="/blog/fjern-klistermaerker-og-limrester" element={<BlogStickerResidue />} />
+              <Route path="/blog/fjern-olie-og-fedtpletter-fra-toej" element={<BlogStainsOil />} />
+              <Route path="/blog/pudse-vinduer-uden-skraber" element={<BlogWindowsNoSqueegee />} />
+              <Route path="/blog/lav-dit-eget-vinduespudsemiddel" element={<BlogWindowCleanerRecipe />} />
+              <Route path="/blog/afkalkning-komplet-guide" element={<BlogDescaling />} />
+              <Route path="/blog/rengoering-af-aluminium" element={<BlogAluminumCleaning />} />
+              <Route path="/blog/rens-og-vask-af-ruskind" element={<BlogSuedeCleaning />} />
+              <Route path="/blog/statisk-elektricitet-i-toej-loesninger" element={<BlogStaticElectricity />} />
+              <Route path="/blog/afloeb-lugter-saadan-fjerner-du-lugten" element={<BlogSmellyDrain />} />
+              <Route path="/blog/rengoering-af-traeoverflader" element={<BlogWoodSurface />} />
+              <Route path="/blog/hvor-ofte-skal-du-goere-rent" element={<BlogCleaningFrequency />} />
+              <Route path="/blog/emaljering-af-badekar" element={<BlogBathtubReglazing />} />
+              <Route path="/blog/dybdegaaende-rengoering-af-nyt-hjem" element={<BlogNewHomeDeepClean />} />
               <Route path="/hjaelp" element={<HelpCenter />} />
 
               {/* ── Visual regression fixture (e2e only, ingen auth) ── */}
