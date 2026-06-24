@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MapPin, Loader2, Pencil, X, Check, LocateFixed } from "lucide-react";
 import { useUserLocation } from "@/contexts/LocationContext";
 
