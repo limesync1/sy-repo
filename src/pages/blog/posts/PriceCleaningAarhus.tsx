@@ -65,14 +65,3 @@ const Post = defineBlogPost({
 });
 
 export default Post;
-    { heading: "Læs også", body: (
-      <ul>
-        <li key="l0"><Link to="/blog/rengoering-koebenhavn-pris-2026">Sammenlign med København</Link></li>
-        <li key="l1"><Link to="/blog/hvor-ofte-rengoering">Hvor ofte skal du gøre rent?</Link></li>
-        <li key="l2"><Link to="/rengoering/aarhus">Find rengøring i Aarhus</Link></li>
-      </ul>
-    ) },
-  ],
-});
-
-export default Post;
