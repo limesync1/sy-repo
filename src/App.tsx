@@ -113,6 +113,11 @@ const WindowReplacementGuide = lazyRoute("/priser/vinduesudskiftning", () => imp
 const SewerGuide             = lazyRoute("/priser/kloakmester", () => import("./pages/guides/SewerPriceGuide"));
 const CraftsmanTaxGuide      = lazyRoute("/guides/haandvaerkerfradrag-2026", () => import("./pages/guides/CraftsmanTaxDeduction2026"));
 const ServiceTaxGuide        = lazyRoute("/guides/servicefradrag-2026", () => import("./pages/guides/ServiceTaxDeduction2026"));
+const CleaningHub            = lazyRoute("/guides/rengoering", () => import("./pages/guides/CleaningHub"));
+const MovingHub              = lazyRoute("/guides/flytning", () => import("./pages/guides/MovingHub"));
+const HandymanHub            = lazyRoute("/guides/haandvaerker", () => import("./pages/guides/HandymanHub"));
+const GardenHub              = lazyRoute("/guides/have", () => import("./pages/guides/GardenHub"));
+const PricesHub              = lazyRoute("/guides/priser-2026", () => import("./pages/guides/PricesHub"));
 const GuidesIndex            = lazyRoute("/guides", () => import("./pages/GuidesIndex"));
 const CleaningCityPage       = lazyRoute("/rengoering/:city", () => import("./pages/cities/CleaningCityPage"));
 const MovingCityPage         = lazyRoute("/flyttehjaelp/:city", () => import("./pages/cities/MovingCityPage"));
@@ -314,6 +319,11 @@ const App = () => (
               <Route path="/guides/haandvaerkerfradrag-2026" element={<CraftsmanTaxGuide />} />
               <Route path="/guides/servicefradrag-2026" element={<ServiceTaxGuide />} />
               <Route path="/guides/rengoering-af-laminatgulv" element={<LaminateCleaningGuide />} />
+              <Route path="/guides/rengoering" element={<CleaningHub />} />
+              <Route path="/guides/flytning" element={<MovingHub />} />
+              <Route path="/guides/haandvaerker" element={<HandymanHub />} />
+              <Route path="/guides/have" element={<GardenHub />} />
+              <Route path="/guides/priser-2026" element={<PricesHub />} />
               <Route path="/guides" element={<GuidesIndex />} />
 
               {/* ── By-landingssider for rengøring (SEO) ── */}

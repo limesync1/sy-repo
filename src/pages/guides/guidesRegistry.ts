@@ -53,6 +53,13 @@ export const GUIDES: GuideMeta[] = [
 
   // Eksisterende how-to
   { href: "/guides/rengoering-af-laminatgulv", title: "Rengøring af laminatgulv", desc: "Trin-for-trin guide til skånsom rengøring og vedligehold af laminatgulve — uden striber og skader.", category: "Rengøring", tag: "How-to", priority: "0.7" },
+
+  // ── Uge 7: Hub-sider (pillar pages med 30+ interne links) ──
+  { href: "/guides/rengoering", title: "Rengøring 2026 — komplet guide", desc: "Master-hub for alt om rengøring: priser, typer, firmavalg, fradrag og lokal hjælp i 20+ byer.", category: "Rengøring", tag: "How-to", priority: "0.95", updatedAt: "2027-03-20" },
+  { href: "/guides/flytning", title: "Flytning 2026 — komplet guide", desc: "Master-hub for flytning: priser, tjekliste, firmavalg og lokal flyttehjælp i hele Danmark.", category: "Flyttehjælp", tag: "How-to", priority: "0.95", updatedAt: "2027-03-20" },
+  { href: "/guides/haandvaerker", title: "Håndværker 2026 — komplet guide", desc: "Master-hub for alt håndværk: priser pr. fag, renoveringer, fradrag og lokal hjælp i 20+ byer.", category: "Håndværker", tag: "How-to", priority: "0.95", updatedAt: "2027-03-20" },
+  { href: "/guides/have", title: "Have & haveservice 2026 — komplet guide", desc: "Master-hub for haveservice: priser, abonnement, anlæg og snerydning i hele Danmark.", category: "Haveservice", tag: "How-to", priority: "0.9", updatedAt: "2027-03-20" },
+  { href: "/guides/priser-2026", title: "Priser 2026 — master prisindeks", desc: "Komplet oversigt over alle serviceydelser i Danmark i 2026 — 50+ prisguides samlet ét sted.", category: "Økonomi", tag: "Prisguide", priority: "0.95", updatedAt: "2027-03-20" },
 ];
 
 export const findGuide = (href: string) => GUIDES.find((g) => g.href === href);
