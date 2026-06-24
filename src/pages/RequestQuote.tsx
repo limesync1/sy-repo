@@ -391,7 +391,9 @@ const RequestQuote = () => {
                               active ? "bg-secondary text-foreground" : "text-foreground hover:bg-secondary/60"
                             }`}
                           >
-                            <IndustryIcon category={key} className="h-7 w-7 shrink-0" alt={label} />
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-secondary/70 ring-1 ring-border">
+                              <IndustryIcon category={key} className="h-7 w-7" alt={label} />
+                            </span>
                             <span className="flex-1 min-w-0">
                               <div className="font-medium truncate">{label}</div>
                               {matchedVia && (
