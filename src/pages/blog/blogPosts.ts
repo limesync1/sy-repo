@@ -1418,5 +1418,45 @@ BLOG_POSTS.push(
     loader: () => import("./posts/RoboticMowerVsGardener") },
 );
 
+// ───── Batch 9: drone, energimaerke, vinduer, termografi, gulvvarme, traepleje
+BLOG_POSTS.push(
+  { slug: "drone-tagtjek-pris-fordele",
+    title: "Drone-tagtjek — pris, fordele og hvad du får i rapporten",
+    description: "1.200–4.500 kr. erstatter ofte stillads for 8.000+ kr. Få overblik over hvad et drone-tagtjek viser, hvilke pakker der findes og hvornår termografi giver mening.",
+    publishedAt: "2027-06-07", readingMinutes: 6, category: "Håndværker",
+    tags: ["drone","tag","inspektion"],
+    loader: () => import("./posts/DroneRoofInspection") },
+  { slug: "energimaerke-bolig-hvad-betyder-bogstaverne",
+    title: "Energimærke A–G — hvad bogstaverne betyder og hvordan du forbedrer karakteren",
+    description: "Forstå skalaen, det typiske forbrug pr. trin, og hvilke renoveringer der rykker dig op. Inkl. prisniveau og salgsværdi pr. trin op.",
+    publishedAt: "2027-06-09", readingMinutes: 7, category: "Økonomi",
+    tags: ["energimaerke","bolig","salg"],
+    loader: () => import("./posts/EnergyLabelExplained") },
+  { slug: "vinduesudskift-pris-energi-stoejdaempning",
+    title: "Vinduesudskift 2026 — pris, energi og støjdæmpning",
+    description: "Plast, træ, alu eller passivhus? Få pris pr. vindue, U-værdier, støjdæmpning og tilskudsmuligheder. Inkl. faldgruber ved montering.",
+    publishedAt: "2027-06-11", readingMinutes: 8, category: "Håndværker",
+    tags: ["vinduer","energi","udskift"],
+    loader: () => import("./posts/WindowReplacementGuide") },
+  { slug: "termografi-bolig-kuldebroer-fugt",
+    title: "Termografi af bolig — find kuldebroer, fugt og varmetab",
+    description: "Termografisk inspektion afslører usynlige varmetab. Se hvad det koster, hvornår det skal laves, og hvilke fund du kan forvente på et typisk parcelhus.",
+    publishedAt: "2027-06-13", readingMinutes: 6, category: "Håndværker",
+    tags: ["termografi","energi","inspektion"],
+    loader: () => import("./posts/ThermographyHomeInspection") },
+  { slug: "gulvvarme-paa-traegulv-pris-krav",
+    title: "Gulvvarme på trægulv — krav, priser og indkøring",
+    description: "Massiv eller parket, lavprofil eller beton, max-temperatur 27°C — alt du skal vide om gulvvarme under trægulv uden at ødelægge gulvet.",
+    publishedAt: "2027-06-15", readingMinutes: 7, category: "VVS",
+    tags: ["gulvvarme","traegulv","installation"],
+    loader: () => import("./posts/UnderfloorHeatingWoodFloor") },
+  { slug: "beskaering-traeer-nabo-regler-pris",
+    title: "Beskæring og fældning af træer — naboregler og priser 2026",
+    description: "Hvad må du klippe af naboens træ, hvornår skal du have tilladelse, og hvad koster fældning? Komplet prisoversigt og regler efter hegnsloven.",
+    publishedAt: "2027-06-17", readingMinutes: 7, category: "Haveservice",
+    tags: ["traeer","nabo","regler"],
+    loader: () => import("./posts/TreePruningRulesPrice") },
+);
+
 export const findBlogPost = (slug?: string) =>
   BLOG_POSTS.find((p) => p.slug === slug?.toLowerCase());
