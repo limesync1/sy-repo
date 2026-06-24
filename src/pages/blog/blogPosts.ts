@@ -1378,5 +1378,45 @@ BLOG_POSTS.push(
     loader: () => import("./posts/WoodStoveCleaningRules") },
 );
 
+// ───── Batch 8: koekken, bad, asbest, tag, varmepumpe, robotklipper
+BLOG_POSTS.push(
+  { slug: "koekken-renovering-trin-for-trin-guide",
+    title: "Køkkenrenovering — komplet trin-for-trin guide og tidsplan",
+    description: "Hvilken rækkefølge skal håndværkerne arbejde i? Få den professionelle tidsplan over 8 dages køkkenrenovering, prisniveau og 5 typiske faldgruber.",
+    publishedAt: "2027-05-26", readingMinutes: 8, category: "Håndværker",
+    tags: ["koekken","renovering","tidsplan"],
+    loader: () => import("./posts/KitchenRenovationStepByStep") },
+  { slug: "badevaerelse-renovering-tidsplan-koordinering",
+    title: "Badeværelses-renovering — tidsplan, koordinering og vådrumssikring",
+    description: "5-ugers tidsplan for komplet badeværelses-renovering. Få overblik over vådrumsmembran, MK-godkendelse og de fejl der koster 50.000+ kr. ved vandskade.",
+    publishedAt: "2027-05-28", readingMinutes: 8, category: "Håndværker",
+    tags: ["badevaerelse","renovering","vaadrum"],
+    loader: () => import("./posts/BathroomRenovationTimeline") },
+  { slug: "asbest-i-bolig-sanering-pris-regler",
+    title: "Asbest i boligen — test, sanering og priser 2026",
+    description: "Hvor sidder asbesten typisk, hvad må du selv fjerne, og hvad koster professionel sanering? Komplet guide med regler, priser og afleveringspligt.",
+    publishedAt: "2027-05-30", readingMinutes: 8, category: "Håndværker",
+    tags: ["asbest","sanering","regler"],
+    loader: () => import("./posts/AsbestosRemovalGuide") },
+  { slug: "skifte-tag-sammenligning-tegl-staal-eternit",
+    title: "Nyt tag — sammenligning af tegl, stål, eternit, skifer og pap",
+    description: "Levetid, pris pr. m² og vedligehold for 6 tagtyper. Komplet sammenligning så du vælger det rette tag til dit hus — uden 30.000 kr. i ekstra omkostninger.",
+    publishedAt: "2027-06-01", readingMinutes: 8, category: "Tagdækker",
+    tags: ["tag","sammenligning","materialer"],
+    loader: () => import("./posts/RoofTypeComparison") },
+  { slug: "varmepumpe-service-drift-vedligehold",
+    title: "Varmepumpe — service, drift og vedligehold for max levetid",
+    description: "Lovpligtigt service, selvtjek hver 3 måned, røde flag og serviceabonnement. Sådan får du 15–20 år ud af din varmepumpe uden faldende COP.",
+    publishedAt: "2027-06-03", readingMinutes: 7, category: "VVS",
+    tags: ["varmepumpe","service","vedligehold"],
+    loader: () => import("./posts/HeatPumpMaintenance") },
+  { slug: "robotplaeneklipper-vs-havemand-pris-test",
+    title: "Robotplæneklipper vs. havemand — total-økonomi over 10 år",
+    description: "Komplet 10-års regnestykke: havemand 65.000 kr., robot 22.000 kr., kombineret løsning 42.000 kr. Hvad passer til din have? Faldgruber, modeller og prisniveau.",
+    publishedAt: "2027-06-05", readingMinutes: 7, category: "Haveservice",
+    tags: ["robotklipper","sammenligning","oekonomi"],
+    loader: () => import("./posts/RoboticMowerVsGardener") },
+);
+
 export const findBlogPost = (slug?: string) =>
   BLOG_POSTS.find((p) => p.slug === slug?.toLowerCase());
