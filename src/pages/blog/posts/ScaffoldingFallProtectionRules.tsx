@@ -6,7 +6,7 @@ export default defineBlogPost({
   faq: [
     { q: "Hvornår skal der bruges stillads?", a: "Ved arbejde over 2 m i højden, hvis det varer mere end kort tid eller hvis stigen ikke er sikker. AT-vejledning kræver stillads ved tagarbejde, facaderenovering og malerarbejde i højden." },
     { q: "Hvad koster et stillads?", a: "Standard parcelhus, 2 facader, 2 uger: 8.000–18.000 kr. Hele huset, 4 uger: 18.000–40.000 kr. Pris afhænger af højde, opbygning og lejeperiode." },
-    { q: "Hvem har ansvar — bygherre eller håndværker?", a: "Som privat bygherre har du delt ansvar med håndværkeren. Du skal sikre at firmaet har styr på sikkerhed — sker der ulykke, kan du blive medansvarlig. Bed altid om dokumentation for AT-godkendt stillads."] },
+    { q: "Hvem har ansvar — bygherre eller håndværker?", a: "Som privat bygherre har du delt ansvar med håndværkeren. Du skal sikre at firmaet har styr på sikkerhed — sker der ulykke, kan du blive medansvarlig. Bed altid om dokumentation for AT-godkendt stillads." },
   ],
   sections: [
     { paragraphs: ["Hver uge sker der alvorlige faldulykker i Danmark — og som privat bygherre kan du faktisk blive medansvarlig. Her er reglerne, priserne og hvad du skal kræve af håndværkeren."] },

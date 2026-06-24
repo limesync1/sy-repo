@@ -973,6 +973,42 @@
     <priority>0.75</priority>
   </url>
   <url>
+    <loc>https://serviceydere.dk/blog/garantitider-paa-haandvaerkerarbejde</loc>
+    <lastmod>2027-05-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/nabo-klager-over-byggeri-stoj-regler</loc>
+    <lastmod>2027-05-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/energirenovering-tilskud-2026</loc>
+    <lastmod>2027-05-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/skadedyrsbekaempelse-pris-sammenligning</loc>
+    <lastmod>2027-05-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/sommerhus-noegleservice-rengoering-tilsyn</loc>
+    <lastmod>2027-05-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/depositum-tilbage-flytteopgoerelse-lejer</loc>
+    <lastmod>2027-05-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
     <loc>https://serviceydere.dk/blog/kategori/rengoering</loc>
     <lastmod>2026-06-24</lastmod>
     <changefreq>weekly</changefreq>
@@ -1009,13 +1045,13 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://serviceydere.dk/blog/kategori/vinduespudsning</loc>
+    <loc>https://serviceydere.dk/blog/kategori/oekonomi</loc>
     <lastmod>2026-06-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://serviceydere.dk/blog/kategori/oekonomi</loc>
+    <loc>https://serviceydere.dk/blog/kategori/vinduespudsning</loc>
     <lastmod>2026-06-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -1027,13 +1063,13 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://serviceydere.dk/blog/kategori/murer</loc>
+    <loc>https://serviceydere.dk/blog/kategori/skadedyr</loc>
     <lastmod>2026-06-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://serviceydere.dk/blog/kategori/skadedyr</loc>
+    <loc>https://serviceydere.dk/blog/kategori/murer</loc>
     <lastmod>2026-06-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -1091,41 +1127,5 @@
     <lastmod>2026-06-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://serviceydere.dk/blog/garantitider-paa-haandvaerkerarbejde</loc>
-    <lastmod>2027-05-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://serviceydere.dk/blog/nabo-klager-over-byggeri-stoj-regler</loc>
-    <lastmod>2027-05-04</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://serviceydere.dk/blog/energirenovering-tilskud-2026</loc>
-    <lastmod>2027-05-06</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://serviceydere.dk/blog/skadedyrsbekaempelse-pris-sammenligning</loc>
-    <lastmod>2027-05-08</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://serviceydere.dk/blog/sommerhus-noegleservice-rengoering-tilsyn</loc>
-    <lastmod>2027-05-10</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://serviceydere.dk/blog/depositum-tilbage-flytteopgoerelse-lejer</loc>
-    <lastmod>2027-05-12</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.75</priority>
   </url>
 </urlset>
