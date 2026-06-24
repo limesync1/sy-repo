@@ -1,0 +1,10 @@
+# IndexNow ping — enrichment-4 (2026-06-24)
+# Kør: bunx tsx scripts/indexnow-ping.ts < reports/indexnow/enrichment-4.txt
+https://serviceydere.dk/blog/vinduespudser-eller-selv
+https://serviceydere.dk/blog/algebehandling-tag-og-facade
+https://serviceydere.dk/blog/anlaegsgartner-terrasse-og-have
+https://serviceydere.dk/blog/murer-revner-og-fugtskader
+https://serviceydere.dk/blog/rotter-i-haven-hvad-goer-jeg
+https://serviceydere.dk/blog/gulvlaegger-vinyl-laminat-eller-traegulv
+https://serviceydere.dk/blog/tomrerprojekt-hjemme-trin-for-trin
+https://serviceydere.dk/blog/hvornaar-skal-du-have-autoriseret-elektriker
