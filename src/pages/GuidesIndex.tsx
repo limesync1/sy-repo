@@ -9,6 +9,7 @@ import { HANDYMAN_CITIES } from "./cities/handymanCityData";
 import { GARDEN_CITIES } from "./cities/gardenCityData";
 import { BLOG_POSTS } from "./blog/blogPosts";
 import { GUIDES } from "./guides/guidesRegistry";
+import LocalQuoteWidget from "@/components/conversion/LocalQuoteWidget";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -95,6 +96,13 @@ const GuidesIndex = () => {
       />
 
       <main id="main" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+        <div className="mb-12">
+          <LocalQuoteWidget
+            heading="Spring guiden over — få 3 tilbud nu"
+            description="Ved du allerede hvad du har brug for? Vælg service og by — vi finder lokale udbydere."
+          />
+        </div>
+
         <section aria-labelledby="guides-heading" className="mb-14">
           <h2 id="guides-heading" className="mb-4 text-2xl font-semibold text-foreground">
             Prisguides &amp; how-to
