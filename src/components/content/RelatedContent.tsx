@@ -17,10 +17,36 @@ interface Props {
  * Google's evne til at gruppere indhold tematisk.
  */
 const RelatedContent = ({ category, currentPath, hideIfEmpty }: Props) => {
+  // Tving altid den matchende hub-side ind som første kort (hvis den findes
+  // og ikke er den nuværende side). Det giver hver indekseret prisguide et
+  // direkte link til sin hub, så Google opdager hub-siderne hurtigt.
+  const HUB_BY_CATEGORY: Record<string, string> = {
+    "Rengøring": "/guides/rengoering",
+    "Flyttehjælp": "/guides/flytning",
+    "Håndværker": "/guides/haandvaerker",
+    "Tømrer": "/guides/haandvaerker",
+    "Murer": "/guides/haandvaerker",
+    "Maler": "/guides/haandvaerker",
+    "Elektriker": "/guides/haandvaerker",
+    "VVS": "/guides/haandvaerker",
+    "Gulvlægger": "/guides/haandvaerker",
+    "Haveservice": "/guides/have",
+    "Anlægsgartner": "/guides/have",
+    "Økonomi": "/guides/priser-2026",
+  };
+  const forcedHubHref = category ? HUB_BY_CATEGORY[category] : undefined;
+
   const relatedGuides = (() => {
-    const same = GUIDES.filter((g) => g.category === category && g.href !== currentPath);
-    const others = GUIDES.filter((g) => g.category !== category && g.href !== currentPath);
-    return [...same, ...others].slice(0, 3);
+    const hubFirst = forcedHubHref
+      ? GUIDES.filter((g) => g.href === forcedHubHref && g.href !== currentPath)
+      : [];
+    const same = GUIDES.filter(
+      (g) => g.category === category && g.href !== currentPath && g.href !== forcedHubHref,
+    );
+    const others = GUIDES.filter(
+      (g) => g.category !== category && g.href !== currentPath && g.href !== forcedHubHref,
+    );
+    return [...hubFirst, ...same, ...others].slice(0, 3);
   })();
 
   const relatedPosts = (() => {
