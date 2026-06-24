@@ -1,74 +1,130 @@
-# SEO-plan for serviceydere.dk
+## Mål
+Dominere Google på alle serviceydelser i Danmark ved at have den dybeste, bredeste og mest velstrukturerede indhold på markedet — bedre end happyhelper.dk, 3byggetilbud, anmeld-haandvaerker og haandvaerker.dk samlet.
 
-## Hvor vi står i dag (Semrush, DK)
-- Domænet rangerer pt. på **2 keywords** med ~0 trafik/md — siden er reelt ikke etableret i Google endnu.
-- Vi har masser af indhold (29 blogposts, 18 prisguides, by-sider), men:
-  - **sitemap.xml** indeholder kun 50 URLs — mange nye opslag og guides er ikke listet → Google opdager dem langsommere.
-  - Konkurrenter (3byggetilbud, anmeld-haandvaerker, haandvaerker.dk) henter trafik på landingssider for **håndværkerfradrag (5.400/md), nyt tag (1.600/md), nyt badeværelse (720/md), varmepumpe (880/md)** — alt sammen lav KDI (15–28). Vi har ingen optimerede sider på disse.
-  - Pricing-guides mangler `Service`/`HowTo`/`Offer`-schema og brødkrummer i JSON-LD.
-  - Forsiden mangler `WebSite` med `SearchAction` (Google sitelinks-searchbox) og `LocalBusiness`-schema.
-  - Ingen automatiseret "Relaterede artikler"-blok → svag intern linking mellem blog↔guides.
+Nuværende status: 45 blogartikler + 25 prisguides + 4 by-side-templates + 91→107 sitemap-entries. For at slå konkurrenterne skal vi op på **~250 artikler** med systematisk dækning.
 
-## Hvad planen gør
+## Strategi: 3 lag af content
 
-### 1. Nye SEO-landingssider (høj volumen, lav KDI)
-Bygges via eksisterende `defineGuidePage`-factory så design/FAQ/JSON-LD er 1:1 med resten.
+```text
+Lag 1: Pillar-sider (allerede dækket, kun udvides)
+  /priser/{branche}  — prisguides pr. branche (25 stk)
+  /guides/{emne}     — faglige guides (8 stk)
+  /{branche}/{by}    — by-sider (~80 stk)
 
-| Rute | Mål-keyword | Volumen | KDI |
-|---|---|---|---|
-| `/priser/varmepumpe` | varmepumpe pris | 880 | 23 |
-| `/priser/nyt-tag` | nyt tag pris | 1.600 | 28 |
-| `/priser/nyt-badevaerelse` | nyt badeværelse pris | 720 | 15 |
-| `/priser/vinduesudskiftning` | udskiftning af vinduer pris | 210 | 15 |
-| `/priser/anlaegsgartner` | anlægsgartner pris | 110 | 17 |
-| `/priser/kloakmester` | kloak pris | 30 | 3 |
-| `/guides/haandvaerkerfradrag-2026` | håndværkerfradrag | 5.400 | 28 |
-| `/guides/servicefradrag-2026` | servicefradrag | 1.900 | 23 |
-| `/tilbud/haandvaerker` | håndværker tilbud | 1.600 | 16 |
-| `/tilbud/maler` | maler tilbud | 260 | 32 |
-| `/tilbud/vvs` | vvs tilbud | 260 | 25 |
-| `/tilbud/elektriker` | elektriker tilbud | 140 | 23 |
-| `/tilbud/flyttefirma` | flyttefirma tilbud | 90 | 24 |
+Lag 2: Long-tail "spørgsmål" artikler (NY pakke — det her er hovedindsatsen)
+  /blog/{spørgsmål}  — én artikel pr. konkret bruger-spørgsmål
+                       → fanger Featured Snippets + AI Overviews
 
-Hver side: hero med postnummer-CTA der bærer kategori videre, pristabel, proces, FAQ (mindst 5 spørgsmål) og intern link-blok til relaterede guides/byer.
+Lag 3: Materiale/plet/teknik-guides (NY pakke)
+  /blog/{teknik}     — "sådan gør du X" trin-for-trin
+                       → fanger long-tail og giver intern PageRank
+```
 
-### 2. Udvidet structured data
-- **index.html**: tilføj `WebSite`+`SearchAction` (sitelinks searchbox), `Organization` med logo + samme `sameAs`, samt `LocalBusiness` for hovedadressen.
-- **defineGuidePage**: tilføj `Service`-schema (provider=Serviceydere, areaServed=DK, offers med priceRange fra tabellen) oven i Article+FAQ+Breadcrumb.
-- **BlogArticleLayout**: tilføj `image` (hero) og `wordCount` til Article-schema; tilføj `HowTo` når sektioner indeholder `ordered`-trin.
-- **By-sider**: tilføj `Service` med `areaServed` = by, så lokale forespørgsler matcher.
+## Pakker (i prioriteret rækkefølge)
 
-### 3. Intern linking + "Relaterede"
-- Ny komponent `RelatedContent` der ud fra kategori automatisk viser 3 relaterede prisguides + 3 blogartikler — indsættes i `BlogArticleLayout` og `defineGuidePage` lige før footer-CTA.
-- `BlogIndex` og `GuidesIndex`: tilføj kategorifiltre + længere meta-beskrivelser med søgeord.
-- Footer: tilføj "Populære prisguides" og "Populære byer"-kolonne for SEO-juice på alle sider.
+### Pakke A — Spørgsmål-artikler pr. branche (90 nye artikler)
+6 spørgsmål × 15 brancher. Targeter "hvad", "hvor meget", "hvor ofte", "hvornår", "hvordan", "kan jeg selv".
 
-### 4. Sitemap + discovery
-- Migrér fra hånd-vedligeholdt `public/sitemap.xml` til `scripts/generate-sitemap.ts` der auto-genererer fra route-tabellen (statiske routes + alle blog/guide/by-data-arrays). Hookes på `predev`/`prebuild`.
-- Bekræft at `robots.txt` allerede peger på både statisk og dynamisk (virksomheds-)sitemap — beholdes.
-- Tilføj `<lastmod>` baseret på `updatedAt` fra hver post/guide.
+| Branche | Eksempel-spørgsmål |
+|---|---|
+| Rengøring | "hvor ofte hovedrengøring", "tæppe vs hårdt gulv", "bortskaffelse af rengøringskemi", "natårhmidler virker", "hvor meget koster timeløn", "skal jeg være hjemme under rengøring" |
+| Flyttehjælp | "hvor mange timer flytter 80 m²", "pak selv vs flyttefirma", "forsikring under flytning", "klaver/akvarium flytning", "ophæng nyt sted", "weekendflytning ekstra pris" |
+| Håndværker | "fast pris vs timepris", "tilbud uden besøg", "ekstrakrav efter aftale", "1-års gennemgang", "byggepladsbidrag", "vintervejr forsinkelse" |
+| Haveservice | "hækkeklipning timer/m", "fældning anmeldelse", "ompotning udendørs", "vinterklargøring", "havemand fast eller engang", "rodfræsning pris" |
+| Maler | "hvor mange lag", "spartling priser", "vinduesrammer maling", "tapet eller maling", "loft sprøjte vs rulle", "facademaling holdbarhed" |
+| VVS | "akut tilkald pris", "varmtvandsbeholder levetid", "varmepumpe i lejlighed", "kalkfilter pris", "wc løber lyd", "blødt vand fordele" |
+| Elektriker | "hpfi udløser", "stikkontakter pr. rum krav", "ladeboks installation", "kabel skjult i væg", "smart home autorisation", "jordfejlsbryder test" |
+| Tømrer | "vindue indvendigt eller udvendigt", "trægulv som ny ejer", "loft isolering", "skillevæg pris", "altan terrasse", "skab efter mål pris" |
+| Skadedyrsbekæmpelse | "rotter eller mus", "kakerlakker anmeldelse", "borebille træ", "skægkræ bad", "honningbier vs hvepse", "gift børnesikkert" |
+| Sikkerhed | "alarm uden abonnement", "videoovervågning GDPR", "låsesmed pris akut", "smart lock sikkert", "tyverisikring forsikring", "døgnvagt opkald" |
+| Skorstensfejer | "lovpligtig besøg", "brændeovn miljøkrav", "skorsten ny pris", "pejs renovering", "ineffektiv brændeovn", "fyringssæson kontrol" |
+| Vinduespudser | "udvendigt pr. m²", "abonnement vs engang", "højhus stillads", "fastsiddende vinduer", "vinterpudsning", "skader fra højtryksrens" |
+| Gulvlægger | "hvor mange gange slibe", "lim vs flydende", "fugtspærre kælder", "varmegulv kompatibilitet", "støvfri slibning", "lakering vs olie" |
+| Murer | "fugekvalitet udvendig", "puds reparation", "facaderens", "skorstensreparation", "frostskader mur", "skifertag pris" |
+| Algebehandling | "tag rens uden højtryk", "kemi eller mekanisk", "intervaller hvor ofte", "skader på tegl", "facade kalk", "do-it-yourself risiko" |
 
-### 5. Meta- og indholds-finpudsning
-- Audit alle eksisterende `SEO`-kald: sørg for unik `title` ≤60 tegn, `description` 140–160 tegn, og `keywords` med primær + 3–5 long-tail.
-- `og:image` pr. blogpost: brug postens hero-billede frem for default social-billede.
-- Tilføj `<link rel="prev/next">` på paginerede lister (`/blog`, `/virksomheder`).
+→ Auto-genereres via samme `defineBlogPost` pattern. Hver artikel: 5 FAQ-spørgsmål, 4–6 sektioner, FAQ-schema + Article-schema.
 
-### 6. Performance/Core Web Vitals quick wins
-- Lazy-load `Footer` (allerede gjort) — gør tilsvarende for tunge under-fold-sektioner på guides.
-- Tilføj `loading="lazy"` + `decoding="async"` på alle ikke-hero-billeder.
-- Preload hero-font kun for headings der vises above-the-fold.
+### Pakke B — Plet- og rengørings-tekniker (40 nye artikler)
+Targeter happyhelper.dk's vinder-keywords vi endnu ikke har:
+"fjern blod fra tøj", "fjern vin fra sofa", "fjern make-up fra pude", "rens madras", "vask dyne", "rens støvsuger", "rens køleskab grundigt", "rens ovn uden ovnrens", "fjern skimmel fra fuger", "rens vaskemaskinen", "rens opvaskemaskine", "rens kaffemaskine", "rens emhætte", "rens persienner", "rens gardiner", "rens læderpåde", "rens microfiberpude", "rens uldsofa", "rens tæppe selv", "rens parket", "rens linoleum", "rens vinylgulv", "rens fliser bad", "rens kalk i toilet", "fjern lim fra hår", "fjern tjære fra bil", "fjern fugemasse fra fliser", "fjern silikone fra tøj", "fjern voks fra dug", "fjern tyggegummi", "fjern modellervoks", "fjern blæk fra sofa", "fjern kaffeplet", "fjern teplet", "fjern rødvinsplet", "fjern fedt fra emhætte", "fjern lugt fra mikroovn", "fjern lugt fra køleskab", "fjern muggen lugt fra vaskemaskine", "fjern hundelugt fra møbler".
 
-### 7. Markér eksisterende SEO-finding som løst
-Efter `/priser/varmepumpe` er live → `update_findings` for `agent_content:semrush_content_suggestions`.
+### Pakke C — Tjeklister og sæson-guides (30 nye artikler)
+"forårsrengøring tjekliste", "julerengøring", "sommerhus klargøring", "kontorrengøring 50 m²", "AirBnB-rengøring mellem gæster", "barnedåbsforberedelse", "salg af bolig — klargøring", "ny lejer overlevering", "fraflytningssyn checkpoints", "haveplan måned for måned" (× 12), "vinterklargøring tag/facade/haven", "ferieklar bolig", "vinduesvask efter hver årstid".
 
-## Teknisk plan (filer)
+### Pakke D — Sammenligninger og beslutningsguides (20 nye artikler)
+"rengøringsfirma vs fast husholderske", "flytfirma vs lej-en-mand-med-bil", "robotstøvsuger vs håndstøvsuger", "varmepumpe vs gasfyr 2026", "trægulv vs vinyl", "tagsten vs tagpap", "smart alarm vs traditionel", "kalkfilter vs blødgøringsanlæg", "lej eller køb højtryksrenser".
 
-- **Nye guides** (13 stk): `src/pages/guides/HeatPumpPriceGuide.tsx`, `NewRoofPriceGuide.tsx`, `BathroomPriceGuide.tsx`, `WindowReplacementPriceGuide.tsx`, `LandscaperPriceGuide.tsx`, `SewerPriceGuide.tsx`, `CraftsmanTaxDeduction2026.tsx`, `ServiceTaxDeduction2026.tsx`, samt 5 tilbuds-landingssider under `src/pages/quotes/`.
-- **Schema**: udvid `src/components/SEO.tsx` (ingen ændring), men opdatér `index.html`, `BlogArticleLayout.tsx`, `defineGuidePage.tsx`, by-side-templates.
-- **Komponent**: `src/components/content/RelatedContent.tsx` (læser fra `blogPosts.ts` + ny `guides.ts`-index).
-- **Footer**: udvid `src/components/landing/Footer.tsx`.
-- **Sitemap**: `scripts/generate-sitemap.ts` + `package.json` (`predev`/`prebuild`), erstat statisk `public/sitemap.xml` med generator-output (genereres fra blogPosts/guides-indekser, ikke håndredigeret).
-- **Routes**: registrér alle nye sider i `src/App.tsx`.
+## Tekniske ændringer
 
-## Forventet effekt (3–6 mdr)
-Samlet adresserbar volumen for de nye sider: **~12.000 søgninger/md**. Med realistisk position 5–15 på 30–40% af keywords kan vi nå ~300–600 organiske besøg/md inden for 6 måneder — forudsat at indholdet publiceres og at autoritet vokser via konsistent udgivelse.
+### B1: Skift fra hand-kodede `<Route>` til datadrevet routing
+107 manuelle `Route`-entries i `App.tsx` skalerer ikke til 250. Tilføj:
+- `src/pages/blog/blogPosts.ts` får nyt felt `loader: () => Promise<Component>`
+- `App.tsx` mapper `BLOG_POSTS.map(p => <Route path={...} element={lazy(p.loader)} />)`
+- Resultat: én ny artikel = 1 ny entry i `blogPosts.ts` + 1 ny fil, ingen App.tsx-ændringer
+
+### B2: Auto-genereret "Relateret indhold" via tags
+Udvid `BlogPostMeta` med `tags: string[]` (fx `["rengøring", "pletter", "tøj"]`). `RelatedContent` viser top 6 artikler med flest tags i fælles. Bedre intern linking = bedre indeksering.
+
+### B3: Auto-genereret kategori-sider (15 nye landingssider)
+`/blog/kategori/{tag}` — viser alle artikler tagget med fx "pletter" eller "rengoering". Targeter mellem-volumen keywords som "pletfjerner guide" og giver intern linking.
+
+### B4: Structured data-løft
+- Hver artikel får `HowTo` JSON-LD når den har en `ordered`-liste (allerede infrastruktur — udvid `defineBlogPost` til at detektere det automatisk).
+- BreadcrumbList får tag-niveau (`Blog → Pletter → Fjern svedpletter`).
+
+### B5: Internt link-vagtnet
+Tilføj `<RelatedContent>` i bunden af hver artikel + 2–3 inline-links i selve teksten (fx "Læs også [vores guide til afkalkning](/blog/afkalkning-komplet-guide)"). Inline-links skrives manuelt pr. artikel.
+
+### B6: Hreflang og lokalisering forbliver da-DK
+Ingen ændringer — vi er bevidst dansk-kun.
+
+## Levering — 6 ugers sprint
+
+| Uge | Leverance |
+|---|---|
+| 1 | B1+B2+B3 infrastruktur. Pakke A starter (15 artikler, 1 pr. branche) |
+| 2 | Pakke A fortsætter (30 artikler) |
+| 3 | Pakke A færdig (45 artikler) → 90 artikler i alt |
+| 4 | Pakke B (40 plet-artikler) |
+| 5 | Pakke C (30 sæson-artikler) |
+| 6 | Pakke D (20 sammenligninger) + B4+B5 polish |
+
+**Slutresultat: ~250 artikler, 60 prisguides/by-sider, ~310 indekserbare sider.**
+
+## Forventet effekt (6–12 mdr)
+- Adresserbar søgevolumen: **~40.000 søgninger/md** (vs. nuværende ~12.000).
+- Realistisk position 5–15 på 40 % af keywords → **2.000–4.000 organiske besøg/md** når autoritet bygger op.
+- Slår happyhelper.dk på antal artikler (~75 stk) og dybde (vi har 4–5 FAQ pr. artikel mod deres 0–2).
+- AI Overview-citationer via dyb FAQ-struktur — happyhelper har ingen.
+
+## Tekniske detaljer
+
+**Filstruktur (ingen ændring):** Hver artikel = én fil i `src/pages/blog/posts/{Navn}.tsx` der eksporterer `defineBlogPost({...})`. Metadata i `blogPosts.ts`.
+
+**Routing-refactor (B1):**
+```ts
+// blogPosts.ts
+loader: () => import("./posts/StainsSweat"),
+// App.tsx
+{BLOG_POSTS.map(p => (
+  <Route key={p.slug} path={`/blog/${p.slug}`}
+    element={React.createElement(lazy(p.loader))} />
+))}
+```
+
+**Sitemap:** Allerede auto-genererer fra `BLOG_POSTS` — vokser automatisk.
+
+**Ingen design-ændringer.** Eksisterende `BlogArticleLayout`, `ArticleFaqSection`, `RelatedContent` genbruges 1:1.
+
+## Hvad jeg IKKE foreslår
+- Ingen migration til Markdown/MDX (overkill — `defineBlogPost` er allerede ren data).
+- Ingen separat CMS (Contentful, Sanity) — øger kompleksitet uden gevinst på dansk SEO.
+- Ingen SSR i denne omgang. JSON-LD og meta sættes client-side via SEO-komponenten — Googlebot eksekverer JS fint. Hvis vi senere ser indekseringsproblemer på social previews kan vi lægge SSR til.
+- Ingen AI-genereret indhold uden review — hver artikel skrives med konkret faglig dybde (priser, doseringer, advarsler) som AI-generisk indhold ikke har.
+
+## Approval-spørgsmål
+Hvis du godkender, starter jeg med **Uge 1: B1+B2+B3 infrastruktur + 15 artikler (1 pr. branche)** i næste sving. Sig til hvis du vil:
+- Skære i scope (færre brancher / færre artikler pr. uge)
+- Prioritere én pakke før de andre (fx Pakke B plet-guides først for hurtige wins mod happyhelper)
+- Tilføje engelske versioner (ikke anbefalet for serviceydere.dk).
