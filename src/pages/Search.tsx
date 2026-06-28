@@ -448,19 +448,54 @@ const SearchPage = () => {
             </div>
           )
         ) : (
-          <div className="rounded-[2rem] border border-dashed border-border bg-card py-16 text-center shadow-sm">
+          <div className="rounded-[2rem] border border-dashed border-border bg-card px-6 py-14 text-center shadow-sm sm:px-10 sm:py-16">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary">
-              <SearchIcon className="h-7 w-7 text-muted-foreground/40" />
+              <SearchIcon className="h-7 w-7 text-muted-foreground/50" />
             </div>
-            <p className="text-lg font-bold tracking-tight text-foreground">Ingen virksomheder fundet</p>
-            <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
-              {hasFilters ? "Prøv en anden søgning eller fjern et filter for at se flere resultater." : "Der er endnu ingen registrerede virksomheder i denne kategori."}
+            <p className="text-lg font-bold tracking-tight text-foreground sm:text-xl">
+              {hasFilters ? "Ingen virksomheder matcher" : "Ingen virksomheder i denne kategori endnu"}
             </p>
-            {hasFilters && (
-              <Button variant="outline" className="mt-5 rounded-full" onClick={clearFilters}>
-                Ryd filtre
-              </Button>
+            <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+              {hasFilters
+                ? "Prøv at fjerne et filter, udvide søgeradius — eller få op til 3 tilbud, så finder vi udbydere til dig."
+                : "Få op til 3 tilbud i stedet — vi finder udbydere i din region."}
+            </p>
+
+            {/* Foreslå populære kategorier som chips — hurtig fallback. */}
+            {!debouncedQuery && (
+              <div className="mt-6">
+                <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  Populære brancher
+                </div>
+                <div className="flex flex-wrap justify-center gap-1.5">
+                  {CATEGORIES.slice(0, 8).map((cat) => (
+                    <button
+                      key={cat.key}
+                      type="button"
+                      onClick={() => setSelectedCategory(cat.key)}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-[13px] font-medium text-foreground transition-all hover:-translate-y-0.5 hover:border-foreground/30"
+                    >
+                      <IndustryIcon category={cat.key} className="h-4 w-4" alt={cat.label} />
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             )}
+
+            <div className="mt-7 flex flex-wrap items-center justify-center gap-2">
+              {hasFilters && (
+                <Button variant="outline" className="rounded-full" onClick={clearFilters}>
+                  Ryd filtre
+                </Button>
+              )}
+              <Link
+                to="/tilbud"
+                className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-all hover:-translate-y-0.5"
+              >
+                Få 3 gratis tilbud <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
         )}
       </div>
