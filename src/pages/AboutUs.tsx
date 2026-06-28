@@ -2,6 +2,7 @@ import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/landing/Footer";
 import SmartLink from "@/components/SmartLink";
+import PageHero from "@/components/landing/PageHero";
 import { Shield, Users, MapPin, Mail, CheckCircle2, Building2, HeartHandshake, ArrowRight } from "lucide-react";
 
 const PRINCIPLES = [
@@ -69,70 +70,66 @@ const AboutUs = () => {
       <SiteNav />
 
       <main id="main">
-        {/* HERO — editorial dark */}
-        <section className="relative overflow-hidden bg-[hsl(var(--hero-bg))] text-background">
-          <div aria-hidden className="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-[hsl(var(--accent)/0.18)] to-transparent" />
-          <div aria-hidden className="absolute left-0 top-0 h-[2px] w-32 bg-[hsl(var(--accent))]" />
-          <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8 lg:py-32">
-            <nav aria-label="Brødkrumme" className="mb-10 text-xs font-medium text-background/55">
-              <SmartLink to="/" className="hover:text-background">Forside</SmartLink>
-              <span className="mx-2 text-background/30">/</span>
-              <span className="text-background/80">Om os</span>
-            </nav>
-            <span className="mb-6 block text-[11px] font-bold uppercase tracking-[0.28em] text-[hsl(var(--accent))]">
-              Om Serviceydere
-            </span>
-            <h1 className="max-w-4xl text-5xl font-black leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
-              Vi gør det enklere at finde den rette serviceyder i Danmark.
-            </h1>
-            <p className="mt-8 max-w-2xl text-lg leading-8 text-background/75">
-              Serviceydere forbinder private og virksomheder med verificerede lokale udbydere
-              af rengøring, håndværk, flyttehjælp, haveservice og meget mere — i hele Danmark.
-            </p>
-            <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+        <PageHero
+          eyebrow="Om Serviceydere"
+          title={<>Vi gør det enklere at finde <span className="text-accent">den rette serviceyder</span> i Danmark</>}
+          subtitle="Serviceydere forbinder private og virksomheder med verificerede lokale udbydere af rengøring, håndværk, flyttehjælp, haveservice og meget mere — i hele Danmark."
+          actions={
+            <>
               <SmartLink
                 to="/virksomheder"
-                className="group inline-flex items-center justify-center gap-2 bg-[hsl(var(--accent))] px-7 py-4 text-sm font-bold uppercase tracking-wider text-[hsl(var(--hero-bg))] transition hover:opacity-90"
+                className="group inline-flex items-center justify-center gap-2 rounded-full bg-background px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5"
               >
                 Find services <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </SmartLink>
               <SmartLink
                 to="/tilbud"
-                className="inline-flex items-center justify-center border border-background/25 px-7 py-4 text-sm font-bold uppercase tracking-wider text-background transition hover:bg-background/5"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-background/25 bg-background/5 px-5 py-2.5 text-sm font-semibold text-background backdrop-blur transition-all hover:-translate-y-0.5 hover:bg-background/10"
               >
                 Indhent 3 tilbud
               </SmartLink>
+            </>
+          }
+        />
+
+        {/* STATS */}
+        <section className="bg-background pb-8 pt-12 md:pb-12 md:pt-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="relative overflow-hidden rounded-[28px] border border-border/70 bg-card px-6 py-8 shadow-[0_1px_2px_rgba(0,0,0,0.04)] md:px-12 md:py-11">
+              <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-accent/[0.06] blur-3xl" />
+              <dl className="relative grid grid-cols-2 gap-y-8 md:grid-cols-4 md:gap-2">
+                {STATS.map((s, i) => (
+                  <div
+                    key={s.label}
+                    className={`text-center md:text-left ${i > 0 ? "md:border-l md:border-border/60 md:pl-10" : ""}`}
+                  >
+                    <dd className="text-[2.25rem] font-semibold leading-none tracking-[-0.02em] text-foreground tabular-nums md:text-[2.75rem]">
+                      {s.value}
+                    </dd>
+                    <dt className="mt-3 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                      {s.label}
+                    </dt>
+                  </div>
+                ))}
+              </dl>
             </div>
           </div>
         </section>
 
-        {/* STATS BAND — typografisk, hairlines */}
-        <section className="border-b border-border bg-background">
-          <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-            <dl className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-              {STATS.map((s) => (
-                <div key={s.label} className="border-l-2 border-[hsl(var(--accent))] pl-5">
-                  <dd className="text-4xl font-black tabular-nums tracking-tight text-foreground">{s.value}</dd>
-                  <dt className="mt-2 text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">{s.label}</dt>
-                </div>
-              ))}
-            </dl>
-          </div>
-        </section>
-
-        {/* MISSION — editorial split */}
-        <section className="bg-background">
-          <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-            <div className="grid gap-12 border-b border-border pb-16 lg:grid-cols-[0.9fr_1.4fr] lg:gap-20">
+        {/* MISSION */}
+        <section className="bg-secondary py-20 md:py-28">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="grid gap-12 lg:grid-cols-[0.9fr_1.4fr] lg:gap-20">
               <div>
-                <span className="text-[11px] font-bold uppercase tracking-[0.28em] text-[hsl(var(--accent))]">
+                <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                  <span className="h-px w-6 bg-foreground/30" />
                   Mission
                 </span>
-                <h2 className="mt-4 text-4xl font-black leading-[1.05] tracking-tight text-foreground sm:text-5xl">
-                  Tryghed, gennemsigtighed og lokal kvalitet.
+                <h2 className="mt-5 text-[2rem] font-semibold leading-[1.04] tracking-[-0.025em] text-foreground md:text-[2.75rem] lg:text-[3.25rem]">
+                  Tryghed, gennemsigtighed og lokal kvalitet
                 </h2>
               </div>
-              <div className="space-y-5 text-base leading-8 text-foreground/80">
+              <div className="space-y-5 text-[15px] leading-7 text-muted-foreground md:text-base">
                 <p>
                   Hver dag bruger danskere timer på at finde, sammenligne og kontakte
                   serviceydere — uden at vide om udbyderen er pålidelig, om prisen er fair,
@@ -141,10 +138,10 @@ const AboutUs = () => {
                 <p>
                   Serviceydere samler verificerede danske virksomheder ét sted, så du på få
                   minutter kan finde en lokal udbyder, sammenligne tilbud og booke med tryghed.
-                  Vi tjekker CVR, kontaktoplysninger og — for de udbydere der har det — også
-                  forsikring og certificeringer.
+                  Vi tjekker CVR og kontaktoplysninger — og for de udbydere der har det,
+                  også forsikring og certificeringer.
                 </p>
-                <p className="border-l-2 border-[hsl(var(--accent))] bg-muted/30 px-5 py-4 text-foreground">
+                <p className="rounded-2xl border border-border/70 bg-card px-5 py-4 text-foreground shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
                   Det er <strong>gratis for private</strong> at bruge platformen. Vi tjener
                   vores penge ved at hjælpe seriøse virksomheder med at vækste.
                 </p>
@@ -153,109 +150,106 @@ const AboutUs = () => {
           </div>
         </section>
 
-        {/* PRINCIPLES — hairline grid */}
-        <section className="bg-background">
-          <div className="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
-            <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <div className="max-w-xl">
-                <span className="text-[11px] font-bold uppercase tracking-[0.28em] text-[hsl(var(--accent))]">
-                  Principper
-                </span>
-                <h2 className="mt-3 text-4xl font-black leading-[1.05] tracking-tight text-foreground sm:text-5xl">
-                  Sådan arbejder vi
-                </h2>
-              </div>
-              <p className="max-w-sm text-sm text-muted-foreground">
-                Fire principper der gælder for hver eneste udbyder og hver eneste forespørgsel på platformen.
+        {/* PRINCIPLES */}
+        <section className="bg-background py-20 md:py-28">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-12 max-w-2xl">
+              <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                <span className="h-px w-6 bg-foreground/30" />
+                Principper
+              </span>
+              <h2 className="mt-5 text-[2rem] font-semibold leading-[1.04] tracking-[-0.025em] text-foreground md:text-[2.75rem] lg:text-[3.25rem]">
+                Sådan arbejder vi
+              </h2>
+              <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground md:text-base">
+                Fire principper der gælder for hver udbyder og hver forespørgsel på platformen.
               </p>
             </div>
-            <div className="grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
-              {PRINCIPLES.map(({ icon: Icon, title, text }, i) => (
-                <div key={title} className="group relative bg-card p-8 transition-colors hover:bg-muted/40">
-                  <span className="mb-6 block font-mono text-xs text-[hsl(var(--accent))]">{String(i + 1).padStart(2, "0")}</span>
-                  <span className="mb-5 inline-flex h-10 w-10 items-center justify-center bg-foreground text-background">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {PRINCIPLES.map(({ icon: Icon, title, text }) => (
+                <div
+                  key={title}
+                  className="group flex flex-col rounded-[24px] border border-border/70 bg-card p-7 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border"
+                >
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-foreground text-background">
                     <Icon className="h-5 w-5" />
-                  </span>
-                  <h3 className="text-base font-bold tracking-tight text-foreground">{title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{text}</p>
+                  </div>
+                  <h3 className="mt-6 text-[15px] font-semibold leading-tight tracking-tight text-foreground">{title}</h3>
+                  <p className="mt-2 text-[14px] leading-6 text-muted-foreground">{text}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* CONTACT — editorial NAP, light */}
-        <section className="border-y border-border bg-muted/20">
-          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        {/* CONTACT */}
+        <section className="bg-secondary py-20 md:py-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid gap-10 lg:grid-cols-[0.9fr_1.4fr] lg:gap-20">
               <div>
-                <span className="text-[11px] font-bold uppercase tracking-[0.28em] text-[hsl(var(--accent))]">
+                <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                  <span className="h-px w-6 bg-foreground/30" />
                   Kontakt
                 </span>
-                <h2 className="mt-3 text-3xl font-black tracking-tight text-foreground sm:text-4xl">
+                <h2 className="mt-5 text-[1.75rem] font-semibold leading-[1.05] tracking-[-0.025em] text-foreground md:text-[2.25rem]">
                   Kontakt &amp; virksomhedsinfo
                 </h2>
-                <p className="mt-3 text-sm text-muted-foreground">
+                <p className="mt-4 text-[15px] leading-7 text-muted-foreground">
                   Vi besvarer henvendelser løbende på hverdage.
                 </p>
               </div>
-              <dl className="grid gap-px bg-border sm:grid-cols-3">
-                <div className="bg-background p-6">
-                  <Building2 className="h-5 w-5 text-[hsl(var(--accent))]" />
-                  <dt className="mt-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Platform</dt>
-                  <dd className="mt-1 text-sm font-semibold text-foreground">Serviceydere</dd>
-                  <dd className="text-sm text-muted-foreground">Markedsplads for service &amp; håndværk</dd>
-                </div>
-                <div className="bg-background p-6">
-                  <MapPin className="h-5 w-5 text-[hsl(var(--accent))]" />
-                  <dt className="mt-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Område</dt>
-                  <dd className="mt-1 text-sm font-semibold text-foreground">Hele Danmark</dd>
-                  <dd className="text-sm text-muted-foreground">Alle regioner og 50+ byer</dd>
-                </div>
-                <div className="bg-background p-6">
-                  <Mail className="h-5 w-5 text-[hsl(var(--accent))]" />
-                  <dt className="mt-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">E-mail</dt>
-                  <dd className="mt-1">
-                    <a
-                      href="mailto:kontakt@serviceydere.dk"
-                      className="text-sm font-semibold text-foreground underline-offset-4 hover:underline"
-                    >
-                      kontakt@serviceydere.dk
-                    </a>
-                  </dd>
-                </div>
+              <dl className="grid gap-4 sm:grid-cols-3">
+                {[
+                  { Icon: Building2, label: "Platform", value: "Serviceydere", sub: "Markedsplads for service & håndværk" },
+                  { Icon: MapPin, label: "Område", value: "Hele Danmark", sub: "Alle regioner og 50+ byer" },
+                  { Icon: Mail, label: "E-mail", value: "kontakt@serviceydere.dk", sub: "Svar inden for få hverdage", href: "mailto:kontakt@serviceydere.dk" },
+                ].map(({ Icon, label, value, sub, href }) => (
+                  <div key={label} className="rounded-[20px] border border-border/70 bg-card p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-soft text-accent">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <dt className="mt-4 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">{label}</dt>
+                    <dd className="mt-1 text-[15px] font-semibold text-foreground">
+                      {href ? <a href={href} className="underline-offset-4 hover:underline">{value}</a> : value}
+                    </dd>
+                    <dd className="text-[13px] leading-5 text-muted-foreground">{sub}</dd>
+                  </div>
+                ))}
               </dl>
             </div>
           </div>
         </section>
 
-        {/* CTA — outlined dark panel */}
-        <section className="bg-background py-16">
+        {/* CTA */}
+        <section className="bg-background py-20 md:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="relative overflow-hidden bg-[hsl(var(--hero-bg))] p-10 text-background sm:p-14">
-              <div aria-hidden className="absolute left-0 top-0 h-[2px] w-32 bg-[hsl(var(--accent))]" />
-              <div className="flex flex-col items-start justify-between gap-8 border border-background/10 p-8 sm:p-10 lg:flex-row lg:items-center">
+            <div
+              className="relative isolate overflow-hidden rounded-[28px] px-8 py-12 text-background sm:px-12 sm:py-16"
+              style={{ backgroundColor: "hsl(var(--hero-bg))" }}
+            >
+              <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+                <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full blur-[100px] opacity-30" style={{ backgroundColor: "hsl(var(--hero-mid))" }} />
+                <div className="absolute -bottom-24 -left-16 h-56 w-56 rounded-full blur-[90px] opacity-20" style={{ backgroundColor: "hsl(var(--hero-cyan))" }} />
+              </div>
+              <div className="flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-center">
                 <div className="max-w-xl">
-                  <span className="text-[11px] font-bold uppercase tracking-[0.28em] text-[hsl(var(--accent))]">
-                    Kom i gang
-                  </span>
-                  <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
+                  <h2 className="text-[1.75rem] font-semibold leading-[1.05] tracking-[-0.025em] sm:text-[2.25rem]">
                     Klar til at finde den rette serviceyder?
                   </h2>
-                  <p className="mt-3 text-base text-background/75">
+                  <p className="mt-3 text-[15px] leading-7 text-background/80">
                     Søg direkte — eller få op til 3 gratis tilbud fra verificerede udbydere i dit område.
                   </p>
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <SmartLink
                     to="/virksomheder"
-                    className="inline-flex items-center justify-center gap-2 bg-[hsl(var(--accent))] px-7 py-4 text-sm font-bold uppercase tracking-wider text-[hsl(var(--hero-bg))] hover:opacity-90"
+                    className="group inline-flex items-center justify-center gap-2 rounded-full bg-background px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5"
                   >
-                    Find services <ArrowRight className="h-4 w-4" />
+                    Find services <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                   </SmartLink>
                   <SmartLink
                     to="/tilbud"
-                    className="inline-flex items-center justify-center border border-background/25 px-7 py-4 text-sm font-bold uppercase tracking-wider text-background hover:bg-background/5"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-background/25 bg-background/5 px-5 py-2.5 text-sm font-semibold text-background backdrop-blur transition-all hover:-translate-y-0.5 hover:bg-background/10"
                   >
                     Indhent 3 tilbud
                   </SmartLink>
