@@ -112,6 +112,17 @@ const CATEGORIES: { key: FaqCategory | "Alle"; label: string }[] = [
 
 const HelpCenter = () => {
   const location = useLocation();
+  const [query, setQuery] = useState("");
+  const [activeCat, setActiveCat] = useState<FaqCategory | "Alle">("Alle");
+
+  const filteredFaq = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return FAQ.filter((item) => {
+      if (activeCat !== "Alle" && item.cat !== activeCat) return false;
+      if (!q) return true;
+      return item.q.toLowerCase().includes(q) || item.a.toLowerCase().includes(q);
+    });
+  }, [query, activeCat]);
 
   useEffect(() => {
     if (location.hash) {
@@ -190,17 +201,20 @@ const HelpCenter = () => {
                 <Link
                   key={t.to}
                   to={t.to}
-                  className="group flex flex-col rounded-[24px] border border-border/70 bg-card p-7 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border"
+                  className={`group relative flex min-h-[200px] flex-col justify-between overflow-hidden rounded-[24px] border border-border/60 p-7 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 ${t.tone}`}
                 >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-foreground text-background">
+                  <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-background/30 opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100" />
+                  <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-background/70 backdrop-blur">
                     <t.Icon className="h-5 w-5" />
                   </div>
-                  <h3 className="mt-6 text-[15px] font-semibold leading-tight tracking-tight text-foreground">{t.title}</h3>
-                  <p className="mt-2 text-[14px] leading-6 text-muted-foreground">{t.description}</p>
-                  <span className="mt-5 inline-flex items-center gap-1 text-[13px] font-semibold text-foreground">
-                    {t.label}
-                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                  </span>
+                  <div className="relative mt-6">
+                    <h3 className="text-[16px] font-semibold leading-tight tracking-tight">{t.title}</h3>
+                    <p className="mt-2 text-[13.5px] leading-6 opacity-80">{t.description}</p>
+                    <span className="mt-4 inline-flex items-center gap-1 text-[13px] font-semibold">
+                      {t.label}
+                      <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                    </span>
+                  </div>
                 </Link>
               ))}
             </div>
@@ -210,7 +224,7 @@ const HelpCenter = () => {
         {/* FAQ */}
         <section id="faq" className="scroll-mt-24 bg-secondary py-20 md:py-28">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="mb-10 grid gap-6 lg:grid-cols-[0.9fr_1.4fr] lg:gap-20">
+            <div className="mb-8 grid gap-6 lg:grid-cols-[0.9fr_1.4fr] lg:gap-20">
               <div>
                 <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
                   <span className="h-px w-6 bg-foreground/30" />
@@ -225,14 +239,71 @@ const HelpCenter = () => {
                 tilbudsforespørgsel til opsigelse af et udbyder-abonnement.
               </p>
             </div>
+
+            {/* Search + category filter */}
+            <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="relative w-full max-w-md">
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="search"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Søg i FAQ — fx tilbud, fradrag, abonnement…"
+                  className="h-12 w-full rounded-full border border-border/70 bg-card pl-11 pr-10 text-sm text-foreground shadow-[0_1px_2px_rgba(0,0,0,0.04)] placeholder:text-muted-foreground focus:border-foreground/30 focus:outline-none"
+                />
+                {query && (
+                  <button
+                    type="button"
+                    onClick={() => setQuery("")}
+                    className="absolute right-3 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full text-muted-foreground hover:bg-secondary"
+                    aria-label="Ryd søgning"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {CATEGORIES.map((c) => {
+                  const count = c.key === "Alle" ? FAQ.length : FAQ.filter((f) => f.cat === c.key).length;
+                  const active = activeCat === c.key;
+                  return (
+                    <button
+                      key={c.key}
+                      type="button"
+                      onClick={() => setActiveCat(c.key)}
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-all ${
+                        active
+                          ? "border-foreground bg-foreground text-background"
+                          : "border-border/70 bg-card text-foreground hover:-translate-y-0.5 hover:border-foreground/30"
+                      }`}
+                    >
+                      {c.label}
+                      <span className={`text-[11px] font-medium ${active ? "opacity-70" : "text-muted-foreground"}`}>{count}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <div className="overflow-hidden rounded-[24px] border border-border/70 bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-              {FAQ.map((item, i) => (
+              {filteredFaq.length === 0 && (
+                <div className="px-6 py-10 text-center text-sm text-muted-foreground sm:px-8">
+                  Ingen FAQ matcher “{query}”. Prøv et andet søgeord, eller{" "}
+                  <a href="mailto:kontakt@serviceydere.dk" className="font-semibold text-foreground underline underline-offset-4">
+                    skriv til support
+                  </a>.
+                </div>
+              )}
+              {filteredFaq.map((item, i) => (
                 <details
                   key={item.q}
                   className={`group px-6 py-5 sm:px-8 sm:py-6 ${i > 0 ? "border-t border-border/60" : ""} [&_summary::-webkit-details-marker]:hidden`}
                 >
                   <summary className="flex cursor-pointer list-none items-start justify-between gap-8 text-left">
-                    <span className="text-[15px] font-semibold tracking-tight text-foreground sm:text-base">{item.q}</span>
+                    <span className="flex min-w-0 flex-1 flex-col gap-1.5">
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{item.cat}</span>
+                      <span className="text-[15px] font-semibold tracking-tight text-foreground sm:text-base">{item.q}</span>
+                    </span>
                     <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-secondary text-muted-foreground transition-transform group-open:rotate-45">
                       <Plus className="h-4 w-4" />
                     </span>
