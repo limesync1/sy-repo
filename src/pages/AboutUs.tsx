@@ -3,7 +3,9 @@ import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/landing/Footer";
 import SmartLink from "@/components/SmartLink";
 import PageHero from "@/components/landing/PageHero";
-import { Shield, Users, MapPin, Mail, CheckCircle2, Building2, HeartHandshake, ArrowRight } from "lucide-react";
+import { IndustryIcon } from "@/components/IndustryIcon";
+import { topCategories } from "@/lib/service-taxonomy";
+import { Shield, Users, MapPin, Mail, CheckCircle2, Building2, HeartHandshake, ArrowRight, Sparkles, Lock, Search } from "lucide-react";
 
 const PRINCIPLES = [
   { icon: Shield, title: "Verificerede udbydere", text: "Vi tjekker CVR og kontaktoplysninger på alle virksomheder, der får et verificeret stempel." },
@@ -18,6 +20,21 @@ const STATS = [
   { label: "Prisguides", value: "25+" },
   { label: "Tilbud per opgave", value: "op til 3" },
 ];
+
+const CITY_PILLS = [
+  "København", "Aarhus", "Odense", "Aalborg", "Esbjerg", "Randers",
+  "Kolding", "Horsens", "Vejle", "Roskilde", "Herning", "Helsingør",
+  "Silkeborg", "Næstved", "Frederiksberg", "Holstebro",
+];
+
+const CATEGORY_TONES = [
+  "bg-feature-cool text-feature-cool-foreground",
+  "bg-feature-warm text-feature-warm-foreground",
+  "bg-feature-lilac text-feature-lilac-foreground",
+  "bg-accent-soft text-accent",
+] as const;
+
+const FEATURED_CATEGORIES = topCategories().slice(0, 10);
 
 const AboutUs = () => {
   const jsonLd = [
