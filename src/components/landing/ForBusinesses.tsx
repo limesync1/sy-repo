@@ -120,11 +120,11 @@ const ForBusinesses = () => {
                 </ul>
               </div>
 
-              {/* Mini "stats"-panel — illuderer panelet i virkeligheden. */}
+              {/* Mini "stats"-panel — illustration af dashboardet (eksempeltal). */}
               <div className="w-full max-w-xs shrink-0 rounded-2xl border border-background/15 bg-background/[0.04] p-5 backdrop-blur">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-background/75">
-                    Denne uge
+                    Eksempel · denne uge
                   </span>
                   <TrendingUp className="h-4 w-4" style={{ color: "hsl(var(--hero-cyan-bright))" }} />
                 </div>
@@ -142,6 +142,9 @@ const ForBusinesses = () => {
                     <div className="text-[11px] text-background/75">Kørsel</div>
                   </div>
                 </div>
+                <p className="mt-4 text-[10px] leading-4 text-background/55">
+                  Skærmbillede til illustration — dine tal afhænger af opgavevolumen.
+                </p>
               </div>
             </div>
 

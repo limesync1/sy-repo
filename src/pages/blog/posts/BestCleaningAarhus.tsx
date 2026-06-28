@@ -7,7 +7,7 @@ const Post = defineBlogPost({
     { q: "Hvad er gennemsnitsprisen i Aarhus?", a: "275–420 kr./time inkl. moms — 5–10% under KBH. Fast besøg 550–880 kr. for 85 m² hver 14. dag." },
     { q: "Hvilke områder er hurtigst at få dækket?", a: "Aarhus C, Trøjborg, Risskov og Højbjerg har størst udbud. Forstæder som Egå og Brabrand kan have lidt længere svartid." },
     { q: "Findes der BoligJob-godkendte firmaer?", a: "Ja — størstedelen af firmaerne i Aarhus er CVR-registrerede og håndterer indberetning automatisk." },
-    { q: "Hvor mange tilbud bør jeg indhente?", a: "3–5 tilbud giver bedste sammenligning. På Serviceydere får du dette gratis og automatisk." },
+    { q: "Hvor mange tilbud bør jeg indhente?", a: "3–5 tilbud giver den bedste sammenligning. Det er gratis at indhente tilbud via Serviceydere — du betaler kun for selve opgaven." },
   ],
   sections: [
     { heading: "Hvad kendetegner det bedste firma?", list: [

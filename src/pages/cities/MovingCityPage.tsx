@@ -32,7 +32,6 @@ const MovingCityPage = () => {
         priceCurrency: "DKK",
         lowPrice: String(city.hourlyLow),
         highPrice: String(city.villaMoveHigh),
-        offerCount: "30+",
       },
     },
     {

@@ -27,7 +27,7 @@ export const MOVING_CITIES: CityMovingContent[] = [
     smallMoveLow: 2800, smallMoveHigh: 5500,
     villaMoveLow: 12000, villaMoveHigh: 28000,
     intro:
-      "København har Danmarks største flyttebranche med over 200 firmaer — fra én-mands varevogne til store flytteforretninger med lagre. Konkurrencen er hård, men også de højeste lønninger og snæver indre by gør priserne højere end resten af landet.",
+      "København har Danmarks største flyttebranche — fra én-mands varevogne til store flytteforretninger med lagre. Konkurrencen er hård, men de høje lønninger og snæver indre by gør priserne højere end resten af landet.",
     localFactor:
       "Etagebyggeri uden elevator, manglende parkering og ensrettede gader øger tidsforbruget markant. Mange firmaer kører fast pris for kendte adresser i brokvartererne. Tidsbestilling i sommermånederne bør ske 4-6 uger frem.",
     popularRoutes: ["Nørrebro → Vesterbro", "Indre By → Frederiksberg", "København → Aarhus", "København → Roskilde", "Østerbro → Amager"],

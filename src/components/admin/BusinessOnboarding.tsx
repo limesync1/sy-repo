@@ -294,20 +294,19 @@ const BusinessOnboarding = () => {
         </ul>
       </PageHero>
 
-      {/* Social-proof strip — løfter troværdighed lige under hero */}
+      {/* Trust-stribe — kvalitative signaler, ingen fabrikerede tal */}
       <div className="border-b border-border bg-card/60 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-8 gap-y-3 px-4 py-4 text-xs text-muted-foreground sm:px-6 lg:px-8">
           <span className="inline-flex items-center gap-1.5">
-            <span className="flex">
-              {[0,1,2,3,4].map((i) => (
-                <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-              ))}
-            </span>
-            <span className="font-medium text-foreground">4,7/5</span> baseret på 500+ udbydere
+            <Check className="h-3.5 w-3.5 text-accent" /> CVR-verificeret onboarding
           </span>
           <span className="hidden h-3 w-px bg-border sm:block" />
           <span className="inline-flex items-center gap-1.5">
-            <Clock className="h-3.5 w-3.5 text-accent" /> Dansk support · svar inden for 24 t
+            <Check className="h-3.5 w-3.5 text-accent" /> Ingen binding · opsig når som helst
+          </span>
+          <span className="hidden h-3 w-px bg-border sm:block" />
+          <span className="inline-flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5 text-accent" /> Dansk support på hverdage
           </span>
         </div>
       </div>

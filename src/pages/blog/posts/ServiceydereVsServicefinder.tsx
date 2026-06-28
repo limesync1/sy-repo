@@ -6,7 +6,7 @@ const Post = defineBlogPost({
   faq: [
     { q: "Hvad er forskellen på Serviceydere og Servicefinder?", a: "Servicefinder fokuserer på håndværkertilbud med leads-model (firmaer betaler for leads). Serviceydere er en åben markedsplads hvor du som kunde får fast pris og fri firmavalg uden lead-gebyr." },
     { q: "Er det gratis at indhente tilbud?", a: "Ja, hos Serviceydere er det 100% gratis at indhente og sammenligne tilbud. Du betaler kun firmaet du vælger." },
-    { q: "Hvilken giver flest tilbud?", a: "Serviceydere giver typisk 3–5 tilbud pr. opgave på 24–48 timer. Servicefinder kan tage længere tid pga. lead-modellen hvor færre firmaer reagerer." },
+    { q: "Hvilken model giver flest tilbud?", a: "Serviceydere sender din forespørgsel direkte ud til relevante firmaer i området, så du kan modtage op til 3 uforpligtende tilbud. Servicefinder bruger en lead-model, hvor firmaer køber adgang til opgaven — det kan give færre svar pr. forespørgsel." },
     { q: "Hvad med kvalitetssikring?", a: "Begge har anmeldelser og verificering, men Serviceydere kræver CVR, ansvarsforsikring og brancheforeningsmedlemskab for top-rated tier." },
   ],
   sections: [

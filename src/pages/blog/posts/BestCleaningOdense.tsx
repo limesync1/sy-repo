@@ -6,7 +6,7 @@ const Post = defineBlogPost({
   faq: [
     { q: "Hvad er prisniveau i Odense?", a: "250–390 kr./time inkl. moms — ca. 15% under KBH. Fast besøg 500–820 kr. for 90 m² hver 14. dag." },
     { q: "Dækker firmaerne også Nyborg/Middelfart?", a: "Ja, mange Odense-firmaer dækker hele Fyn uden ekstra kørselstillæg pga. de korte afstande." },
-    { q: "Er udvalget stort nok?", a: "Odense har 60+ aktive rengøringsfirmaer — tilstrækkeligt til at få 3–5 konkurrerende tilbud." },
+    { q: "Er udvalget stort nok i Odense?", a: "Odense har et veludviklet marked for rengøring med både kæder og lokale enkeltmandsfirmaer. Det er typisk muligt at få flere konkurrerende tilbud på samme opgave." },
   ],
   sections: [
     { heading: "Tjek-liste til Odense-firmaer", list: [

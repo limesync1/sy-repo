@@ -4,10 +4,10 @@ const Post = defineBlogPost({
   slug: "bedste-rengoeringsfirma-koebenhavn-2026",
   keywords: "bedste rengøringsfirma københavn, top rengøring kbh, anbefalet rengøring københavn 2026",
   faq: [
-    { q: "Hvordan vælger jeg det bedste rengøringsfirma i København?", a: "Tjek CVR, ansvarsforsikring, anmeldelser (min. 4,3/5), om de bruger fast personale, og om de har transparent prismodel med fast pris-tilbud." },
+    { q: "Hvordan vælger jeg det bedste rengøringsfirma i København?", a: "Tjek CVR og ansvarsforsikring, læs eventuelle anmeldelser, spørg om de bruger fast personale, og bed om en transparent prismodel — gerne fast pris frem for løs timepris." },
     { q: "Hvad er en realistisk pris i KBH?", a: "295–450 kr./time inkl. moms før BoligJob-fradrag. Fast besøg 590–950 kr. for 75 m² hver 14. dag." },
     { q: "Skal jeg vælge stort kæde eller mindre lokal?", a: "Kæder giver erstatning ved bemanding (sygdom), mindre lokale firmaer giver fast personale og typisk bedre kvalitet. Begge har plusser." },
-    { q: "Hvor hurtigt kan jeg komme i gang?", a: "I København typisk samme uge — markedet er stort. På Serviceydere får du 3–5 tilbud på 24 timer." },
+    { q: "Hvor hurtigt kan jeg komme i gang?", a: "I København er markedet stort, og det er ofte muligt at komme i gang samme uge. Indhent flere tilbud så du både kan sammenligne pris og hvornår firmaet kan starte." },
   ],
   sections: [
     { heading: "Hvad skal du kigge efter?", list: [

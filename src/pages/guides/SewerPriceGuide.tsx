@@ -80,7 +80,7 @@ export default defineGuidePage({
   ],
   cta: {
     heading: "Brug for kloakmester?",
-    body: "Få op til 3 gratis tilbud fra autoriserede kloakmestre i dit område — typisk svar inden for få timer ved akutopgaver.",
+    body: "Få op til 3 gratis tilbud fra autoriserede kloakmestre i dit område. Marker opgaven som akut, så de modtagende firmaer ved, at det haster.",
     secondaryLabel: "Se VVS & kloakmestre",
     secondaryHref: "/virksomheder?category=VVS",
   },

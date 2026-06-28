@@ -29,7 +29,6 @@ const GardenCityPage = () => {
       offers: {
         "@type": "AggregateOffer", priceCurrency: "DKK",
         lowPrice: String(city.hourlyLow), highPrice: String(city.lawnHigh * 30),
-        offerCount: "25+",
       },
     },
     {

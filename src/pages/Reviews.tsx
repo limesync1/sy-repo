@@ -147,7 +147,7 @@ const Reviews = () => {
 
             <div className="mt-12">
               <LocalQuoteWidget
-                heading="Prøv selv — find 3 udbydere på under 24 timer"
+                heading="Prøv selv — beskriv opgaven, modtag op til 3 tilbud"
                 description="Vælg service og by — vi sender dig direkte ind i tilbudsflowet."
               />
             </div>
