@@ -59,6 +59,81 @@ const Reviews = () => {
           }
         />
 
+        {/* PREVIEW — sådan vil anmeldelser se ud */}
+        <section className="bg-background pt-16 md:pt-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-8 flex flex-col gap-3">
+              <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                <span className="h-px w-6 bg-foreground/30" />
+                Forhåndsvisning
+              </span>
+              <h2 className="text-[1.75rem] font-semibold leading-[1.05] tracking-[-0.025em] text-foreground md:text-[2.25rem]">
+                Sådan vil anmeldelser se ud
+              </h2>
+              <p className="max-w-xl text-[15px] leading-7 text-muted-foreground">
+                Et eksempel på formatet — placeholders indtil de første verificerede anmeldelser kommer ind.
+              </p>
+            </div>
+            <div className="grid gap-4 md:grid-cols-3">
+              {PREVIEW_REVIEWS.map((r, i) => (
+                <div
+                  key={i}
+                  className="relative flex flex-col rounded-[24px] border border-dashed border-border bg-card p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+                >
+                  <span className="absolute right-5 top-5 rounded-full bg-secondary px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Eksempel
+                  </span>
+                  <Quote className="h-6 w-6 text-muted-foreground/40" aria-hidden />
+                  <div className="mt-3 space-y-1.5">
+                    <div className="h-2.5 w-11/12 rounded-full bg-secondary" />
+                    <div className="h-2.5 w-10/12 rounded-full bg-secondary" />
+                    <div className="h-2.5 w-7/12 rounded-full bg-secondary" />
+                  </div>
+                  <div className="mt-6 flex items-center gap-2 text-muted-foreground/40">
+                    {Array.from({ length: 5 }).map((_, j) => (
+                      <Star key={j} className="h-4 w-4" />
+                    ))}
+                  </div>
+                  <div className="mt-6 flex items-center gap-3 border-t border-border/60 pt-4">
+                    <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-secondary ring-1 ring-border">
+                      <IndustryIcon category={r.category} className="h-6 w-6" alt={r.category} />
+                    </span>
+                    <div className="min-w-0">
+                      <div className="text-[13px] font-semibold text-foreground">{r.category}</div>
+                      <div className="text-[12px] text-muted-foreground">{r.city}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* PROMISE BAND */}
+        <section className="bg-background pt-12 md:pt-16">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="relative overflow-hidden rounded-[28px] border border-border/70 bg-card px-6 py-8 shadow-[0_1px_2px_rgba(0,0,0,0.04)] md:px-12 md:py-10">
+              <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-accent/[0.06] blur-3xl" />
+              <div className="relative grid gap-8 md:grid-cols-3">
+                {[
+                  { value: "100%", label: "Knyttet til gennemførte opgaver" },
+                  { value: "0", label: "Opdigtede eller købte anmeldelser" },
+                  { value: "CVR", label: "Verificering på hvert firma" },
+                ].map((s, i) => (
+                  <div key={s.label} className={`text-center md:text-left ${i > 0 ? "md:border-l md:border-border/60 md:pl-10" : ""}`}>
+                    <div className="text-[2rem] font-semibold leading-none tracking-[-0.02em] text-foreground md:text-[2.5rem]">
+                      {s.value}
+                    </div>
+                    <div className="mt-3 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                      {s.label}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* TRUST */}
         <section className="bg-background py-20 md:py-28">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
