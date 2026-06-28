@@ -199,7 +199,7 @@ const LocalQuoteWidget = ({
         <p className="mt-1 text-xl font-semibold tracking-tight sm:text-2xl">{heading}</p>
         <p className={`mt-1 text-sm leading-6 ${label}`}>{description}</p>
       </div>
-      <div className="grid gap-3 sm:grid-cols-[1.25fr_1.1fr_auto]">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1.25fr_1.1fr_auto]">
         <label className="flex flex-col gap-1">
           <span className={`text-xs font-medium ${label}`}>Service</span>
           <Popover open={serviceOpen} onOpenChange={setServiceOpen}>
@@ -319,7 +319,7 @@ const LocalQuoteWidget = ({
         </label>
         <button
           type="submit"
-          className={`mt-auto inline-flex h-12 items-center justify-center rounded-xl px-6 text-sm font-semibold ${button}`}
+          className={`mt-auto inline-flex h-12 w-full items-center justify-center rounded-xl px-6 text-sm font-semibold sm:col-span-2 lg:col-span-1 lg:w-auto ${button}`}
         >
           Få 3 tilbud →
         </button>

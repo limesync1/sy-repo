@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   ArrowRight, Sparkles, Star, MapPin, BadgeCheck, Loader2,
   AlertCircle, ShoppingCart, Check, ChevronLeft, Clock, ShieldCheck,
-  Building2, Search, ChevronDown,
+  Building2, Search, ChevronDown, Plus,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -136,6 +136,10 @@ const RequestQuote = () => {
   const [customerEmail, setCustomerEmail] = useState(user?.email ?? "");
   const [customerPhone, setCustomerPhone] = useState("");
   const [shareContact, setShareContact] = useState(true);
+  // Telefon er valgfrit og sjældent vigtigt for første kontakt — vi skjuler
+  // det bag en "Tilføj telefon"-toggle for at gøre formen kortere og mindre
+  // skræmmende. Brugeren kan altid folde det ud, hvis de foretrækker opkald.
+  const [showPhone, setShowPhone] = useState(false);
   // Samtykke til vilkår sker via klik på CTA-knappen (klart oplyst lige under
   // knappen). Dette fjerner et ekstra felt uden at kompromittere GDPR-kravet
   // om informeret samtykke — så længe teksten er læsbar før klik.
@@ -500,6 +504,9 @@ const RequestQuote = () => {
                     inputMode="email"
                     className="h-12 rounded-xl text-base sm:h-11 sm:text-sm"
                   />
+                </div>
+
+                {showPhone ? (
                   <Input
                     type="tel"
                     value={customerPhone}
@@ -507,9 +514,18 @@ const RequestQuote = () => {
                     placeholder="Telefon (valgfrit)"
                     autoComplete="tel"
                     inputMode="tel"
-                    className="h-12 rounded-xl text-base sm:col-span-2 sm:h-11 sm:text-sm"
+                    autoFocus
+                    className="h-12 rounded-xl text-base sm:h-11 sm:text-sm"
                   />
-                </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setShowPhone(true)}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-border bg-card px-3 py-1.5 text-[12px] font-medium text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
+                  >
+                    <Plus className="h-3.5 w-3.5" /> Tilføj telefon (valgfrit)
+                  </button>
+                )}
 
                 <label className="flex cursor-pointer items-start gap-2.5 px-1 text-[13px] leading-5 text-foreground sm:items-center sm:text-xs">
                   <Checkbox

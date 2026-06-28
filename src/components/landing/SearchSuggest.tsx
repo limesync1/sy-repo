@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, MapPin, Building2 } from "lucide-react";
+import { Search, MapPin, Building2, Clock, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUserLocation } from "@/contexts/LocationContext";
 import { topCategories, searchIndustries } from "@/lib/service-taxonomy";
@@ -18,7 +18,8 @@ const CATEGORIES = topCategories().map((ind) => ({
 type Suggestion =
   | { type: "category"; label: string; key: string; matchedVia?: string }
   | { type: "business"; label: string; slug: string; city: string | null; logo: string | null }
-  | { type: "city"; label: string };
+  | { type: "city"; label: string }
+  | { type: "history"; label: string; query: string };
 
 interface Props {
   variant?: "hero" | "page";
@@ -36,6 +37,30 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
   const navigate = useNavigate();
   const wrapRef = useRef<HTMLDivElement>(null);
   const { location } = useUserLocation();
+
+  // Senest søgt — lagres lokalt for at give returnerende brugere
+  // hurtig adgang til tidligere queries uden at koste backend-opslag.
+  const HISTORY_KEY = "sy:recent-searches";
+  const [history, setHistory] = useState<string[]>([]);
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(HISTORY_KEY);
+      if (raw) setHistory(JSON.parse(raw).slice(0, 5));
+    } catch { /* ignore quota / SSR */ }
+  }, []);
+  const pushHistory = (term: string) => {
+    const t = term.trim();
+    if (!t || t.length < 2) return;
+    setHistory((prev) => {
+      const next = [t, ...prev.filter((p) => p.toLowerCase() !== t.toLowerCase())].slice(0, 5);
+      try { localStorage.setItem(HISTORY_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  };
+  const clearHistory = () => {
+    setHistory([]);
+    try { localStorage.removeItem(HISTORY_KEY); } catch { /* ignore */ }
+  };
 
   // Fetch a small index of businesses + cities (cached 5 min)
   const { data: index } = useQuery({
@@ -62,8 +87,18 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
   const suggestions = useMemo<Suggestion[]>(() => {
     const term = q.trim().toLowerCase();
     if (!term) {
-      // Empty — show top categories
-      return CATEGORIES.slice(0, 6).map((c) => ({ type: "category" as const, label: c.label, key: c.key }));
+      // Empty — senest søgt øverst, derefter top-kategorier
+      const recents: Suggestion[] = history.slice(0, 3).map((h) => ({
+        type: "history" as const,
+        label: h,
+        query: h,
+      }));
+      const cats: Suggestion[] = CATEGORIES.slice(0, 6).map((c) => ({
+        type: "category" as const,
+        label: c.label,
+        key: c.key,
+      }));
+      return [...recents, ...cats];
     }
     const results: Suggestion[] = [];
 
@@ -96,7 +131,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
       .forEach((b) => results.push({ type: "business", label: b.name, slug: b.slug, city: b.city, logo: b.logo }));
 
     return results;
-  }, [q, index]);
+  }, [q, index, history]);
 
   // Click outside to close
   useEffect(() => {
@@ -111,6 +146,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
     const term = (custom ?? q).trim();
     const params = new URLSearchParams();
     if (term) params.set("q", term);
+    if (term) pushHistory(term);
     navigate(`/search${params.toString() ? `?${params}` : ""}`);
     setOpen(false);
   };
@@ -119,10 +155,14 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
     if (s.type === "business") {
       navigate(`/b/${s.slug}`);
     } else if (s.type === "category") {
-      // Brug branche-key (kanonisk værdi i `businesses.categories`) frem for det
-      // viste label, så filtreringen i søge-siden matcher 1:1.
+      pushHistory(s.label);
       navigate(`/search?category=${encodeURIComponent(s.key)}`);
+    } else if (s.type === "history") {
+      setQ(s.query);
+      pushHistory(s.query);
+      navigate(`/search?q=${encodeURIComponent(s.query)}`);
     } else {
+      pushHistory(s.label);
       navigate(`/search?q=${encodeURIComponent(s.label)}`);
     }
     setOpen(false);
@@ -215,20 +255,42 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
           className="absolute left-0 right-0 top-full z-50 mt-2 origin-top overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-[0_24px_60px_-12px_rgba(0,0,0,0.35)] ring-1 ring-black/5 animate-scale-in"
           role="listbox"
         >
-          {!q.trim() && (
-            <div className="border-b border-border bg-secondary/40 px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Populære kategorier
+          {!q.trim() && history.length > 0 && (
+            <div className="flex items-center justify-between border-b border-border bg-secondary/40 px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <span>Senest søgt</span>
+              <button
+                type="button"
+                onClick={clearHistory}
+                className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium normal-case tracking-normal text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              >
+                <X className="h-3 w-3" /> Ryd
+              </button>
             </div>
           )}
           <ul className="max-h-[min(60vh,460px)] overflow-y-auto overscroll-contain py-1.5">
             {suggestions.map((s, i) => {
               const active = activeIdx === i;
+              // Indsæt en sektionsoverskrift før første kategori-forslag
+              // når der både er historik og kategorier vist samtidigt.
+              const prev = suggestions[i - 1];
+              const showCatHeader =
+                !q.trim() && s.type === "category" && (!prev || prev.type === "history");
               return (
                 <li
                   key={`${s.type}-${s.label}-${i}`}
                   className="animate-fade-in-soft"
                   style={{ animationDelay: `${Math.min(i * 35, 280)}ms` }}
                 >
+                  {showCatHeader && history.length > 0 && (
+                    <div className="mt-1 border-y border-border bg-secondary/40 px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Populære kategorier
+                    </div>
+                  )}
+                  {showCatHeader && history.length === 0 && (
+                    <div className="border-b border-border bg-secondary/40 px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Populære kategorier
+                    </div>
+                  )}
                   <button
                     type="button"
                     onMouseEnter={() => setActiveIdx(i)}
@@ -237,6 +299,17 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
                       active ? "bg-secondary" : "hover:bg-secondary/60"
                     }`}
                   >
+                    {s.type === "history" && (
+                      <>
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-muted-foreground transition-transform duration-200 group-hover:scale-105">
+                          <Clock className="h-4 w-4" />
+                        </span>
+                        <span className="flex-1 min-w-0">
+                          <div className="truncate font-semibold text-foreground">{s.label}</div>
+                          <div className="text-xs text-muted-foreground">Senest søgt</div>
+                        </span>
+                      </>
+                    )}
                     {s.type === "category" && (
                       <>
                         <IndustryIcon category={s.key} className="h-8 w-8 shrink-0" alt={s.label} />
