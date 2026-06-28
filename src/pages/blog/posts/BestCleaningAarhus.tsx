@@ -11,7 +11,7 @@ const Post = defineBlogPost({
   ],
   sections: [
     { heading: "Hvad kendetegner det bedste firma?", list: [
-      "Min. 4,3/5 i anmeldelser med 30+ reviews.",
+      "Gode anmeldelser fra tidligere kunder.",
       "Fast personale tildelt din adresse.",
       "Transparent fast pris-tilbud.",
       "Dokumenteret forsikring og CVR.",

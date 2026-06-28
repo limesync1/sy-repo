@@ -10,7 +10,7 @@ const Post = defineBlogPost({
   ],
   sections: [
     { heading: "Det bedste firma — kriterier", list: [
-      "CVR, forsikring og min. 4,3/5 rating.",
+      "CVR, dokumenteret forsikring og gode anmeldelser.",
       "Lokalt kendskab (Vejgaard, Hasseris).",
       "Fast personale med dansk-/engelsk-talende.",
       "Tilbyder kombinationsaftaler (rengøring + vinduer).",

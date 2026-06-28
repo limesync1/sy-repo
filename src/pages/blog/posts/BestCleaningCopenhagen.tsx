@@ -12,7 +12,7 @@ const Post = defineBlogPost({
   sections: [
     { heading: "Hvad skal du kigge efter?", list: [
       "CVR + dokumenteret ansvarsforsikring.",
-      "Min. 4,3/5 i anmeldelser (50+ reviews).",
+      "Gode anmeldelser fra tidligere kunder — gerne på flere platforme.",
       "Fast personale (ikke skiftende rengøringsassistenter).",
       "Transparent pris — fast pris eller klar timepris.",
       "Egne rengøringsmidler og udstyr inkluderet.",
