@@ -1,8 +1,10 @@
 import { lazy, Suspense, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Search, MessageSquare, Building2, BookOpen, ArrowUpRight, Mail } from "lucide-react";
+import { Search, MessageSquare, Building2, BookOpen, ArrowRight, Mail, Plus } from "lucide-react";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
+import PageHero from "@/components/landing/PageHero";
+import SmartLink from "@/components/SmartLink";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -121,64 +123,59 @@ const HelpCenter = () => {
       />
       <SiteNav />
 
-      {/* HERO — editorial dark */}
-      <section className="relative overflow-hidden bg-[hsl(var(--hero-bg))] text-background">
-        <div aria-hidden className="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-[hsl(var(--accent)/0.18)] to-transparent" />
-        <div aria-hidden className="absolute left-0 top-0 h-[2px] w-32 bg-[hsl(var(--accent))]" />
-        <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24 lg:px-8 lg:py-28">
-          <nav aria-label="Brødkrumme" className="mb-10 text-xs font-medium text-background/55">
-            <Link to="/" className="hover:text-background">Forside</Link>
-            <span className="mx-2 text-background/30">/</span>
-            <span className="text-background/80">Hjælpecenter</span>
-          </nav>
-          <span className="mb-6 block text-[11px] font-bold uppercase tracking-[0.28em] text-[hsl(var(--accent))]">
-            Support
-          </span>
-          <h1 className="max-w-4xl text-5xl font-black leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
-            Hjælpecenter.
-          </h1>
-          <p className="mt-8 max-w-2xl text-lg leading-8 text-background/75">
-            Find svar på de oftest stillede spørgsmål, eller spring direkte til en af de mest brugte handlinger nedenfor.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="Support"
+        title={<>Hjælpecenter & <span className="text-accent">ofte stillede spørgsmål</span></>}
+        subtitle="Find svar på de mest stillede spørgsmål — eller spring direkte til en af de mest brugte handlinger nedenfor."
+        actions={
+          <>
+            <a
+              href="#faq"
+              className="group inline-flex items-center justify-center gap-2 rounded-full bg-background px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5"
+            >
+              Se FAQ <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </a>
+            <a
+              href="mailto:kontakt@serviceydere.dk"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-background/25 bg-background/5 px-5 py-2.5 text-sm font-semibold text-background backdrop-blur transition-all hover:-translate-y-0.5 hover:bg-background/10"
+            >
+              <Mail className="h-4 w-4" /> Skriv til support
+            </a>
+          </>
+        }
+      />
 
       <main id="main">
-        {/* TOPICS — hairline grid */}
-        <section aria-labelledby="topics" className="bg-background">
-          <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-            <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <span className="text-[11px] font-bold uppercase tracking-[0.28em] text-[hsl(var(--accent))]">
-                  Genveje
-                </span>
-                <h2 id="topics" className="mt-3 text-4xl font-black leading-[1.05] tracking-tight text-foreground sm:text-5xl">
-                  Populære emner
-                </h2>
-              </div>
-              <p className="max-w-sm text-sm text-muted-foreground">
+        {/* TOPICS */}
+        <section aria-labelledby="topics" className="bg-background py-20 md:py-28">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-12 max-w-2xl">
+              <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                <span className="h-px w-6 bg-foreground/30" />
+                Genveje
+              </span>
+              <h2 id="topics" className="mt-5 text-[2rem] font-semibold leading-[1.04] tracking-[-0.025em] text-foreground md:text-[2.75rem] lg:text-[3.25rem]">
+                Populære emner
+              </h2>
+              <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground md:text-base">
                 Fire indgange dækker langt de fleste henvendelser fra både kunder og udbydere.
               </p>
             </div>
-            <div className="grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2">
-              {TOPICS.map((t, i) => (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {TOPICS.map((t) => (
                 <Link
                   key={t.to}
                   to={t.to}
-                  className="group flex flex-col bg-card p-8 transition-colors hover:bg-muted/40"
+                  className="group flex flex-col rounded-[24px] border border-border/70 bg-card p-7 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="inline-flex h-10 w-10 items-center justify-center bg-foreground text-background">
-                      <t.Icon className="h-5 w-5" />
-                    </span>
-                    <span className="font-mono text-xs text-[hsl(var(--accent))]">
-                      {String(i + 1).padStart(2, "0")} / {String(TOPICS.length).padStart(2, "0")}
-                    </span>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-foreground text-background">
+                    <t.Icon className="h-5 w-5" />
                   </div>
-                  <h3 className="mt-6 text-lg font-bold tracking-tight text-foreground">{t.title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{t.description}</p>
-                  <span className="mt-6 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-foreground">
-                    {t.label} <ArrowUpRight className="h-4 w-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  <h3 className="mt-6 text-[15px] font-semibold leading-tight tracking-tight text-foreground">{t.title}</h3>
+                  <p className="mt-2 text-[14px] leading-6 text-muted-foreground">{t.description}</p>
+                  <span className="mt-5 inline-flex items-center gap-1 text-[13px] font-semibold text-foreground">
+                    {t.label}
+                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                   </span>
                 </Link>
               ))}
@@ -186,33 +183,37 @@ const HelpCenter = () => {
           </div>
         </section>
 
-        {/* FAQ — editorial divide-y */}
-        <section id="faq" className="scroll-mt-24 border-y border-border bg-muted/20">
-          <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+        {/* FAQ */}
+        <section id="faq" className="scroll-mt-24 bg-secondary py-20 md:py-28">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mb-10 grid gap-6 lg:grid-cols-[0.9fr_1.4fr] lg:gap-20">
               <div>
-                <span className="text-[11px] font-bold uppercase tracking-[0.28em] text-[hsl(var(--accent))]">
+                <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                  <span className="h-px w-6 bg-foreground/30" />
                   FAQ
                 </span>
-                <h2 className="mt-3 text-4xl font-black leading-[1.05] tracking-tight text-foreground sm:text-5xl">
+                <h2 className="mt-5 text-[2rem] font-semibold leading-[1.04] tracking-[-0.025em] text-foreground md:text-[2.75rem] lg:text-[3.25rem]">
                   Ofte stillede spørgsmål
                 </h2>
               </div>
-              <p className="text-base leading-7 text-muted-foreground lg:pt-2">
-                Korte, ærlige svar på det vi oftest bliver spurgt om — fra første tilbudsforespørgsel
-                til opsigelse af et udbyder-abonnement.
+              <p className="text-[15px] leading-7 text-muted-foreground md:text-base lg:pt-3">
+                Korte, ærlige svar på det vi oftest bliver spurgt om — fra første
+                tilbudsforespørgsel til opsigelse af et udbyder-abonnement.
               </p>
             </div>
-            <div className="divide-y divide-border border-y border-border bg-background">
-              {FAQ.map((item) => (
-                <details key={item.q} className="group px-5 py-5 sm:px-7 sm:py-6 [&_summary::-webkit-details-marker]:hidden">
+            <div className="overflow-hidden rounded-[24px] border border-border/70 bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+              {FAQ.map((item, i) => (
+                <details
+                  key={item.q}
+                  className={`group px-6 py-5 sm:px-8 sm:py-6 ${i > 0 ? "border-t border-border/60" : ""} [&_summary::-webkit-details-marker]:hidden`}
+                >
                   <summary className="flex cursor-pointer list-none items-start justify-between gap-8 text-left">
-                    <span className="text-base font-bold tracking-tight text-foreground sm:text-lg">{item.q}</span>
-                    <span className="mt-1 grid h-6 w-6 shrink-0 place-items-center text-[hsl(var(--accent))] transition-transform group-open:rotate-45">
-                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                    <span className="text-[15px] font-semibold tracking-tight text-foreground sm:text-base">{item.q}</span>
+                    <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-secondary text-muted-foreground transition-transform group-open:rotate-45">
+                      <Plus className="h-4 w-4" />
                     </span>
                   </summary>
-                  <div className="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground sm:text-[15px]">
+                  <div className="mt-3 max-w-3xl text-[14px] leading-7 text-muted-foreground sm:text-[15px]">
                     {item.a}
                   </div>
                 </details>
@@ -221,40 +222,43 @@ const HelpCenter = () => {
           </div>
         </section>
 
-        {/* CTA — outlined dark */}
-        <section className="bg-background py-16">
+        {/* CTA */}
+        <section className="bg-background py-20 md:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="relative overflow-hidden bg-[hsl(var(--hero-bg))] p-10 text-background sm:p-14">
-              <div aria-hidden className="absolute left-0 top-0 h-[2px] w-32 bg-[hsl(var(--accent))]" />
-              <div className="flex flex-col items-start justify-between gap-8 border border-background/10 p-8 sm:p-10 lg:flex-row lg:items-center">
+            <div
+              className="relative isolate overflow-hidden rounded-[28px] px-8 py-12 text-background sm:px-12 sm:py-16"
+              style={{ backgroundColor: "hsl(var(--hero-bg))" }}
+            >
+              <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+                <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full blur-[100px] opacity-30" style={{ backgroundColor: "hsl(var(--hero-mid))" }} />
+                <div className="absolute -bottom-24 -left-16 h-56 w-56 rounded-full blur-[90px] opacity-20" style={{ backgroundColor: "hsl(var(--hero-cyan))" }} />
+              </div>
+              <div className="flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-center">
                 <div className="max-w-xl">
-                  <span className="text-[11px] font-bold uppercase tracking-[0.28em] text-[hsl(var(--accent))]">
-                    Stadig i tvivl?
-                  </span>
-                  <h2 id="kontakt" className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
+                  <h2 id="kontakt" className="text-[1.75rem] font-semibold leading-[1.05] tracking-[-0.025em] sm:text-[2.25rem]">
                     Kunne du ikke finde svar?
                   </h2>
-                  <p className="mt-3 max-w-xl text-base text-background/75">
+                  <p className="mt-3 text-[15px] leading-7 text-background/80">
                     Skriv til os på{" "}
                     <a href="mailto:kontakt@serviceydere.dk" className="font-semibold text-background underline underline-offset-4">
                       kontakt@serviceydere.dk
-                    </a>{" "}
-                    — vi vender retur så hurtigt vi kan på hverdage.
+                    </a>
+                    {" "}— vi vender retur så hurtigt vi kan på hverdage.
                   </p>
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <a
                     href="mailto:kontakt@serviceydere.dk"
-                    className="inline-flex items-center justify-center gap-2 bg-[hsl(var(--accent))] px-7 py-4 text-sm font-bold uppercase tracking-wider text-[hsl(var(--hero-bg))] hover:opacity-90"
+                    className="group inline-flex items-center justify-center gap-2 rounded-full bg-background px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5"
                   >
                     <Mail className="h-4 w-4" /> Skriv til support
                   </a>
-                  <Link
+                  <SmartLink
                     to="/tilbud"
-                    className="inline-flex items-center justify-center border border-background/25 px-7 py-4 text-sm font-bold uppercase tracking-wider text-background hover:bg-background/5"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-background/25 bg-background/5 px-5 py-2.5 text-sm font-semibold text-background backdrop-blur transition-all hover:-translate-y-0.5 hover:bg-background/10"
                   >
                     Få 3 gratis tilbud
-                  </Link>
+                  </SmartLink>
                 </div>
               </div>
             </div>
