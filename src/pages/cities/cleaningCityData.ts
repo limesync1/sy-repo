@@ -39,7 +39,7 @@ export const CITIES: CityCleaningContent[] = [
       "Frederiksberg", "Amager", "Valby", "Sydhavnen",
     ],
     intro:
-      "København har Danmarks tætteste marked for rengøringshjælp — over 400 registrerede firmaer dækker hovedstaden. Det giver konkurrencedygtige priser, men også store udsving mellem brokvartererne og forstæderne.",
+      "København har Danmarks tætteste marked for rengøringshjælp, hvor et stort antal firmaer konkurrerer om opgaverne. Det giver gode priser, men også store udsving mellem brokvartererne og forstæderne.",
     localFactor:
       "Priserne i København ligger 10–15% over landsgennemsnittet, primært på grund af højere lønninger og transport mellem opgaver. Til gengæld er udvalget størst, og du kan ofte få et tilbud samme uge.",
     exampleHomeType: "75 m² lejlighed på Nørrebro",

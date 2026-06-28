@@ -53,7 +53,7 @@ const Contact = () => {
     <div className="min-h-screen bg-background">
       <SEO
         title="Kontakt Serviceydere — support, samarbejde og spørgsmål"
-        description="Kontakt Serviceydere via email kontakt@serviceydere.dk. Vi hjælper kunder, udbydere og pressekontakter — typisk svar inden for 24 timer på hverdage."
+        description="Kontakt Serviceydere via email kontakt@serviceydere.dk. Vi hjælper kunder, udbydere og pressekontakter — vi besvarer henvendelser løbende på hverdage."
         canonicalPath="/kontakt"
         keywords="kontakt serviceydere, serviceydere support, kontakt platform, serviceydere email"
         jsonLd={jsonLd}
@@ -98,7 +98,7 @@ const Contact = () => {
                   Lad os tale sammen.
                 </h1>
                 <p className="mt-5 max-w-xl text-[15px] leading-7 text-background/80 sm:text-[17px] sm:leading-[1.6]">
-                  Vi svarer typisk inden for 24 timer på hverdage. Skriv direkte — eller brug
+                  Vi besvarer henvendelser løbende på hverdage. Skriv direkte — eller brug
                   widgeten nedenfor hvis du leder efter en konkret udbyder.
                 </p>
                 <div className="mt-6 flex flex-wrap gap-3">
@@ -220,7 +220,7 @@ const Contact = () => {
                   <Clock className="mt-0.5 h-5 w-5 shrink-0 text-foreground/70" />
                   <div>
                     <dt className="font-semibold">Svartid</dt>
-                    <dd className="text-muted-foreground">Hverdage 9–17 · Typisk svar inden for 24 timer.</dd>
+                    <dd className="text-muted-foreground">Hverdage 9–17 · vi vender retur så hurtigt vi kan.</dd>
                   </div>
                 </div>
               </dl>

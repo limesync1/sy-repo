@@ -68,7 +68,7 @@ export default defineGuidePage({
     { q: "Hvad er en realistisk pris for fast rengøring?", a: "I 2026 ligger timepris på 225–450 kr./t inkl. moms — under fradrag 140–285 kr./t. Fast besøg 75 m² hver 14. dag koster 485–950 kr." },
     { q: "Hvilken type rengøring skal jeg vælge?", a: "Til løbende drift → abonnement (14-dags). Til hovedrengøring → engang 2× årligt. Til fraflytning → flytterengøring med garanti." },
     { q: "Får jeg automatisk BoligJob-fradrag?", a: "Når du betaler digitalt og bruger CVR-firma. Firmaet indberetter timer direkte til SKAT — du ser fradraget i din årsopgørelse." },
-    { q: "Hvor mange tilbud bør jeg indhente?", a: "3–5 tilbud giver bedste sammenligning. På Serviceydere får du det automatisk på 24–48 timer." },
+    { q: "Hvor mange tilbud bør jeg indhente?", a: "3–5 tilbud giver den bedste sammenligning. Beskriv opgaven én gang via tilbudsflowet, så går forespørgslen direkte ud til relevante firmaer i dit område." },
   ],
   cta: {
     heading: "Klar til at finde et rengøringsfirma?",

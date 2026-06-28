@@ -90,7 +90,7 @@ export default defineGuidePage({
     ]},
   ],
   faq: [
-    { q: "Hvor opdaterede er priserne?", a: "Alle prisguides er opdateret for 2026 og baseret på faktiske tilbud fra over 400 CVR-godkendte firmaer på Serviceydere." },
+    { q: "Hvor opdaterede er priserne?", a: "Alle prisguides er opdateret for 2026. Priserne er sammensat af officielle branchedata, prisstatistik fra forbrugerorganisationer og indhentede tilbud fra danske CVR-godkendte firmaer." },
     { q: "Inkluderer priserne moms?", a: "Ja — alle priser er angivet inkl. moms. BoligJob-fradraget reducerer reel udgift med 26–37%." },
     { q: "Hvorfor varierer priserne så meget?", a: "Geografi (KBH højest), opgavens størrelse, tidspunkt (akut dyrere) og firma-niveau (premium vs. standard). Hver guide forklarer den lokale variation." },
     { q: "Hvordan får jeg den bedste pris?", a: "Indhent 3–5 tilbud, sammenlign efter fradrag, og vælg fast pris frem for timepris på veldefinerede opgaver." },

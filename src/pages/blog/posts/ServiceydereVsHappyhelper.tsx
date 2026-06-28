@@ -5,7 +5,7 @@ const Post = defineBlogPost({
   keywords: "serviceydere vs happyhelper, happyhelper alternativ, rengøringsplatform sammenligning, bedste serviceplatform danmark",
   faq: [
     { q: "Hvad er den største forskel på Serviceydere og Happyhelper?", a: "Serviceydere er en bred markedsplads for alle serviceydere (rengøring, håndværk, flytning, have m.fl.) med fast pris-tilbud. Happyhelper fokuserer primært på timebaseret rengøring." },
-    { q: "Hvor mange virksomheder er på Serviceydere?", a: "Serviceydere har 400+ godkendte virksomheder fordelt på 9 hovedkategorier, mens Happyhelper primært dækker rengøring i de største byer." },
+    { q: "Hvilken type opgaver kan jeg få løst hvor?", a: "Serviceydere er en bred markedsplads, der dækker rengøring, håndværk, flytning, have og en række specialfag på tværs af hele Danmark. Happyhelper er primært fokuseret på rengøring i de største byer." },
     { q: "Får jeg BoligJob-fradrag samme sted?", a: "Ja — begge platforme håndterer indberetningen automatisk når du betaler digitalt. Serviceydere dækker både service- og håndværkerfradraget." },
     { q: "Hvilken er billigst?", a: "Priserne afgøres af det enkelte firma, ikke platformen. Serviceydere har bredere konkurrence og typisk 3–5 tilbud pr. opgave — det presser prisen ned." },
   ],

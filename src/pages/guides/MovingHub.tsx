@@ -50,7 +50,7 @@ export default defineGuidePage({
     ]},
   ],
   faq: [
-    { q: "Hvor lang tid før skal jeg booke?", a: "I sommermånederne 4-6 uger frem. I efterår/vinter typisk 2-3 uger. På Serviceydere kan du dog ofte få akut hjælp inden for en uge." },
+    { q: "Hvor lang tid før skal jeg booke?", a: "I sommermånederne typisk 4–6 uger frem, og i efterår/vinter 2–3 uger. Akutte flytninger med kort varsel er muligt, men udvalget er mindre — book så tidligt du kan." },
     { q: "Skal jeg vælge fast pris eller timepris?", a: "Lokal flytning under 5.000 kr.: timepris ok. Større/langture: altid fast pris med besigtigelse." },
     { q: "Er flyttehjælp BoligJob-fradragsberettiget?", a: "Selve transporten er ikke, men relaterede ydelser (flytterengøring, montering, nedrivning) er fradragsberettigede." },
     { q: "Hvad med forsikring?", a: "Alle CVR-firmaer på Serviceydere har lovpligtig ansvarsforsikring (min. 100.000 kr.). Spørg om fuld dækning for klaverer/kunst." },

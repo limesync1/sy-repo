@@ -45,7 +45,6 @@ const CleaningCityPage = () => {
         priceCurrency: "DKK",
         lowPrice: String(city.hourlyLow),
         highPrice: String(city.hourlyHigh),
-        offerCount: "50+",
       },
     },
     {

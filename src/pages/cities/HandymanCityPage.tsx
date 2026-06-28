@@ -32,7 +32,6 @@ const HandymanCityPage = () => {
         priceCurrency: "DKK",
         lowPrice: String(city.hourlyLow),
         highPrice: String(city.electricianHigh),
-        offerCount: "40+",
       },
     },
     {
