@@ -159,7 +159,6 @@ const HelpCenter = () => {
       <SiteNav />
 
       <PageHero
-        eyebrow="Support"
         title={<>Hjælpecenter & <span className="hero-accent-text">ofte stillede spørgsmål</span></>}
         subtitle="Find svar på de mest stillede spørgsmål — eller spring direkte til en af de mest brugte handlinger nedenfor."
         actions={
