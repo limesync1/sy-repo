@@ -89,7 +89,7 @@ const AboutUs = () => {
       <main id="main">
         <PageHero
           eyebrow="Om Serviceydere"
-          title={<>Vi gør det enklere at finde <span className="text-accent">den rette serviceyder</span> i Danmark</>}
+          title={<>Vi gør det enklere at finde <span className="hero-accent-text">den rette serviceyder</span> i Danmark</>}
           subtitle="Serviceydere forbinder private og virksomheder med verificerede lokale udbydere af rengøring, håndværk, flyttehjælp, haveservice og meget mere — i hele Danmark."
           actions={
             <>

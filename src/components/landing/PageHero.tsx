@@ -35,7 +35,7 @@ const PageHero = ({
   const padding =
     size === "compact"
       ? "pb-6 pt-6 sm:pb-8 sm:pt-8 lg:pb-10 lg:pt-10"
-      : "pb-10 pt-8 sm:pb-12 sm:pt-10 lg:pb-16 lg:pt-12";
+      : "pb-16 pt-12 sm:pb-20 sm:pt-16 lg:pb-28 lg:pt-24";
 
   return (
     <section
@@ -74,9 +74,9 @@ const PageHero = ({
       </div>
 
       <div className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 ${padding}`}>
-        <div className="max-w-2xl">
+        <div className="max-w-3xl">
           {eyebrow && (
-            <span className="inline-flex items-center gap-2 rounded-full border border-background/25 bg-background/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-background/85 backdrop-blur sm:text-xs">
+            <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-background/70">
               <span
                 className="h-1.5 w-1.5 rounded-full"
                 style={{ backgroundColor: "hsl(var(--hero-cyan-bright))" }}
@@ -84,17 +84,17 @@ const PageHero = ({
               {eyebrow}
             </span>
           )}
-          <h1 className="mt-3 text-[1.85rem] font-semibold leading-[1.08] tracking-[-0.025em] text-background sm:text-[2.4rem] lg:text-[2.85rem]">
+          <h1 className="mt-5 text-[1.9rem] font-semibold leading-[1.05] tracking-[-0.03em] text-background sm:text-[2.75rem] lg:text-[3.5rem]">
             {title}
           </h1>
           {subtitle && (
-            <p className="mt-3 max-w-xl text-sm leading-6 text-background/80 sm:text-[15px]">
+            <p className="mt-6 max-w-xl text-[15px] leading-7 text-background/80 sm:text-[18px] sm:leading-[1.6]">
               {subtitle}
             </p>
           )}
-          {children && <div className="mt-5 w-full max-w-2xl">{children}</div>}
+          {children && <div className="mt-7 w-full max-w-2xl">{children}</div>}
           {actions && (
-            <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               {actions}
             </div>
           )}

@@ -242,6 +242,20 @@
       0 0 0 4px hsl(var(--accent) / 0.16),
       0 22px 60px -18px rgba(0, 0, 0, 0.45);
   }
+
+  /* Accent-ord i hero-titler — samme gradient som forsiden, så
+     inderside-sider matcher den primære hero visuelt. */
+  .hero-accent-text {
+    background-image: linear-gradient(110deg,
+      hsl(var(--hero-cyan)) 0%,
+      hsl(var(--hero-cyan-bright)) 50%,
+      hsl(var(--hero-cyan)) 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: gradient-pan 8s ease-in-out infinite;
+  }
 }
 
 @layer components {
