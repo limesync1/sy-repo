@@ -2,7 +2,21 @@ import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/landing/Footer";
 import SmartLink from "@/components/SmartLink";
-import { Shield, Users, MapPin, Mail, CheckCircle2, Sparkles, Building2, HeartHandshake, ArrowRight } from "lucide-react";
+import { Shield, Users, MapPin, Mail, CheckCircle2, Building2, HeartHandshake, ArrowRight } from "lucide-react";
+
+const PRINCIPLES = [
+  { icon: Shield, title: "Verificerede udbydere", text: "Vi tjekker CVR og kontaktoplysninger på alle virksomheder, der får et verificeret stempel." },
+  { icon: Users, title: "Lokal forankring", text: "Udbydere i hele Danmark — fra København til Aalborg, Aarhus, Odense og alle byer imellem." },
+  { icon: HeartHandshake, title: "Fair priser", text: "Gennemsigtige prisguides, så du kender markedsprisen før du beder om tilbud." },
+  { icon: CheckCircle2, title: "Uafhængig platform", text: "Vi er ikke selv serviceyder — vi forbinder kun. Du vælger frit hvem du vil arbejde med." },
+];
+
+const STATS = [
+  { label: "Servicekategorier", value: "25+" },
+  { label: "Byer dækket", value: "50+" },
+  { label: "Prisguides", value: "25+" },
+  { label: "Tilbud per opgave", value: "op til 3" },
+];
 
 const AboutUs = () => {
   const jsonLd = [
@@ -55,56 +69,36 @@ const AboutUs = () => {
       <SiteNav />
 
       <main id="main">
-        {/* Hero — Ocean Deep */}
-        <section className="relative isolate overflow-hidden text-background">
-          <div
-            className="absolute inset-0 -z-10"
-            style={{
-              background:
-                "radial-gradient(70% 55% at 90% 10%, hsl(var(--hero-cyan) / 0.32), transparent 60%), radial-gradient(55% 45% at 0% 90%, hsl(var(--hero-mid) / 0.5), transparent 65%), linear-gradient(160deg, hsl(var(--hero-bg)) 0%, hsl(204 80% 8%) 100%)",
-            }}
-            aria-hidden
-          />
-          <div
-            className="absolute inset-0 -z-10 opacity-[0.10] mix-blend-overlay"
-            style={{
-              backgroundImage:
-                "radial-gradient(hsl(var(--hero-cyan-bright)) 1px, transparent 1px)",
-              backgroundSize: "24px 24px",
-            }}
-            aria-hidden
-          />
-          <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24 lg:px-8 lg:py-28">
-            <nav aria-label="Brødkrumme" className="mb-8 text-sm text-background/60">
+        {/* HERO — editorial dark */}
+        <section className="relative overflow-hidden bg-[hsl(var(--hero-bg))] text-background">
+          <div aria-hidden className="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-[hsl(var(--accent)/0.18)] to-transparent" />
+          <div aria-hidden className="absolute left-0 top-0 h-[2px] w-32 bg-[hsl(var(--accent))]" />
+          <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8 lg:py-32">
+            <nav aria-label="Brødkrumme" className="mb-10 text-xs font-medium text-background/55">
               <SmartLink to="/" className="hover:text-background">Forside</SmartLink>
-              <span className="mx-2">/</span>
-              <span className="text-background">Om os</span>
+              <span className="mx-2 text-background/30">/</span>
+              <span className="text-background/80">Om os</span>
             </nav>
-            <span className="inline-flex items-center gap-2 rounded-full border border-background/15 bg-background/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-background/80 backdrop-blur">
-              <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--hero-cyan-bright))] shadow-[0_0_12px_hsl(var(--hero-cyan-bright))]" />
-              Dansk platform · hele Danmark
+            <span className="mb-6 block text-[11px] font-bold uppercase tracking-[0.28em] text-[hsl(var(--accent))]">
+              Om Serviceydere
             </span>
-            <h1 className="mt-6 max-w-4xl text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-              Vi gør det enklere at finde{" "}
-              <span className="bg-gradient-to-r from-[hsl(var(--hero-cyan-bright))] to-background bg-clip-text text-transparent">
-                den rette serviceyder
-              </span>
+            <h1 className="max-w-4xl text-5xl font-black leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
+              Vi gør det enklere at finde den rette serviceyder i Danmark.
             </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-background/80">
+            <p className="mt-8 max-w-2xl text-lg leading-8 text-background/75">
               Serviceydere forbinder private og virksomheder med verificerede lokale udbydere
               af rengøring, håndværk, flyttehjælp, haveservice og meget mere — i hele Danmark.
             </p>
             <div className="mt-10 flex flex-col gap-3 sm:flex-row">
               <SmartLink
                 to="/virksomheder"
-                className="group inline-flex items-center justify-center gap-2 rounded-full bg-background px-6 py-3 text-sm font-semibold text-foreground transition-all hover:gap-3 hover:bg-background/90"
+                className="group inline-flex items-center justify-center gap-2 bg-[hsl(var(--accent))] px-7 py-4 text-sm font-bold uppercase tracking-wider text-[hsl(var(--hero-bg))] transition hover:opacity-90"
               >
-                Find services
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                Find services <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </SmartLink>
               <SmartLink
                 to="/tilbud"
-                className="inline-flex items-center justify-center rounded-full border border-background/25 bg-background/5 px-6 py-3 text-sm font-semibold text-background backdrop-blur transition-colors hover:bg-background/10"
+                className="inline-flex items-center justify-center border border-background/25 px-7 py-4 text-sm font-bold uppercase tracking-wider text-background transition hover:bg-background/5"
               >
                 Indhent 3 tilbud
               </SmartLink>
@@ -112,18 +106,31 @@ const AboutUs = () => {
           </div>
         </section>
 
-        {/* Mission */}
-        <section className="relative border-b border-border bg-background">
-          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-            <div className="grid gap-10 lg:grid-cols-[1fr_1.4fr] lg:gap-20">
+        {/* STATS BAND — typografisk, hairlines */}
+        <section className="border-b border-border bg-background">
+          <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+            <dl className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+              {STATS.map((s) => (
+                <div key={s.label} className="border-l-2 border-[hsl(var(--accent))] pl-5">
+                  <dd className="text-4xl font-black tabular-nums tracking-tight text-foreground">{s.value}</dd>
+                  <dt className="mt-2 text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">{s.label}</dt>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </section>
+
+        {/* MISSION — editorial split */}
+        <section className="bg-background">
+          <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+            <div className="grid gap-12 border-b border-border pb-16 lg:grid-cols-[0.9fr_1.4fr] lg:gap-20">
               <div>
-                <span className="inline-flex items-center gap-2 rounded-full bg-[hsl(var(--accent-soft))] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[hsl(var(--accent))]">
-                  <Sparkles className="h-3.5 w-3.5" /> Vores mission
+                <span className="text-[11px] font-bold uppercase tracking-[0.28em] text-[hsl(var(--accent))]">
+                  Mission
                 </span>
-                <h2 className="mt-4 text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-4xl">
-                  Tryghed, gennemsigtighed og lokal kvalitet
+                <h2 className="mt-4 text-4xl font-black leading-[1.05] tracking-tight text-foreground sm:text-5xl">
+                  Tryghed, gennemsigtighed og lokal kvalitet.
                 </h2>
-                <div className="mt-6 h-1 w-16 rounded-full bg-gradient-to-r from-[hsl(var(--accent))] to-[hsl(var(--hero-cyan))]" />
               </div>
               <div className="space-y-5 text-base leading-8 text-foreground/80">
                 <p>
@@ -137,7 +144,7 @@ const AboutUs = () => {
                   Vi tjekker CVR, kontaktoplysninger og — for de udbydere der har det — også
                   forsikring og certificeringer.
                 </p>
-                <p className="rounded-2xl border-l-4 border-[hsl(var(--accent))] bg-muted/40 p-4 text-foreground">
+                <p className="border-l-2 border-[hsl(var(--accent))] bg-muted/30 px-5 py-4 text-foreground">
                   Det er <strong>gratis for private</strong> at bruge platformen. Vi tjener
                   vores penge ved at hjælpe seriøse virksomheder med at vækste.
                 </p>
@@ -146,179 +153,113 @@ const AboutUs = () => {
           </div>
         </section>
 
-        {/* Værdier */}
-        <section className="bg-muted/20">
-          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-            <div className="mb-10 max-w-2xl">
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[hsl(var(--accent))]">
-                Vores principper
-              </span>
-              <h2 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                Sådan arbejder vi
-              </h2>
-              <p className="mt-3 text-base text-muted-foreground">
+        {/* PRINCIPLES — hairline grid */}
+        <section className="bg-background">
+          <div className="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+            <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div className="max-w-xl">
+                <span className="text-[11px] font-bold uppercase tracking-[0.28em] text-[hsl(var(--accent))]">
+                  Principper
+                </span>
+                <h2 className="mt-3 text-4xl font-black leading-[1.05] tracking-tight text-foreground sm:text-5xl">
+                  Sådan arbejder vi
+                </h2>
+              </div>
+              <p className="max-w-sm text-sm text-muted-foreground">
                 Fire principper der gælder for hver eneste udbyder og hver eneste forespørgsel på platformen.
               </p>
             </div>
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {[
-                {
-                  icon: Shield,
-                  title: "Verificerede udbydere",
-                  text: "Vi tjekker CVR og kontaktoplysninger på alle virksomheder, der får et verificeret stempel.",
-                },
-                {
-                  icon: Users,
-                  title: "Lokal forankring",
-                  text: "Udbydere i hele Danmark — fra København til Aalborg, Aarhus, Odense og alle byer imellem.",
-                },
-                {
-                  icon: HeartHandshake,
-                  title: "Fair priser",
-                  text: "Gennemsigtige prisguides, så du kender markedsprisen før du beder om tilbud.",
-                },
-                {
-                  icon: CheckCircle2,
-                  title: "Uafhængig platform",
-                  text: "Vi er ikke selv serviceyder — vi forbinder kun. Du vælger frit hvem du vil arbejde med.",
-                },
-              ].map(({ icon: Icon, title, text }, i) => (
-                <div
-                  key={title}
-                  className="group relative overflow-hidden rounded-2xl border border-border bg-background p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[hsl(var(--accent)/0.4)] hover:shadow-[0_20px_50px_-20px_hsl(var(--hero-bg)/0.25)]"
-                >
-                  <span className="absolute right-5 top-5 text-xs font-mono text-muted-foreground/40">
-                    0{i + 1}
+            <div className="grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
+              {PRINCIPLES.map(({ icon: Icon, title, text }, i) => (
+                <div key={title} className="group relative bg-card p-8 transition-colors hover:bg-muted/40">
+                  <span className="mb-6 block font-mono text-xs text-[hsl(var(--accent))]">{String(i + 1).padStart(2, "0")}</span>
+                  <span className="mb-5 inline-flex h-10 w-10 items-center justify-center bg-foreground text-background">
+                    <Icon className="h-5 w-5" />
                   </span>
-                  <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[hsl(var(--hero-bg))] text-background ring-1 ring-[hsl(var(--hero-cyan)/0.35)]">
-                    <Icon className="h-6 w-6" />
-                  </span>
-                  <h3 className="mt-5 text-base font-semibold text-foreground">{title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-foreground/70">{text}</p>
+                  <h3 className="text-base font-bold tracking-tight text-foreground">{title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{text}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Nøgletal / NAP */}
-        <section className="bg-background">
+        {/* CONTACT — editorial NAP, light */}
+        <section className="border-y border-border bg-muted/20">
           <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-            <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
+            <div className="grid gap-10 lg:grid-cols-[0.9fr_1.4fr] lg:gap-20">
               <div>
-                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[hsl(var(--accent))]">
-                  I tal
+                <span className="text-[11px] font-bold uppercase tracking-[0.28em] text-[hsl(var(--accent))]">
+                  Kontakt
                 </span>
-                <h2 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                  Serviceydere i tal
+                <h2 className="mt-3 text-3xl font-black tracking-tight text-foreground sm:text-4xl">
+                  Kontakt &amp; virksomhedsinfo
                 </h2>
-                <dl className="mt-8 grid grid-cols-2 gap-4">
-                  {[
-                    { label: "Servicekategorier", value: "25+" },
-                    { label: "Byer dækket", value: "50+" },
-                    { label: "Prisguides", value: "25+" },
-                    { label: "Tilbud per opgave", value: "op til 3" },
-                  ].map((s) => (
-                    <div
-                      key={s.label}
-                      className="rounded-2xl border border-border bg-muted/30 p-5"
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Vi besvarer henvendelser løbende på hverdage.
+                </p>
+              </div>
+              <dl className="grid gap-px bg-border sm:grid-cols-3">
+                <div className="bg-background p-6">
+                  <Building2 className="h-5 w-5 text-[hsl(var(--accent))]" />
+                  <dt className="mt-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Platform</dt>
+                  <dd className="mt-1 text-sm font-semibold text-foreground">Serviceydere</dd>
+                  <dd className="text-sm text-muted-foreground">Markedsplads for service &amp; håndværk</dd>
+                </div>
+                <div className="bg-background p-6">
+                  <MapPin className="h-5 w-5 text-[hsl(var(--accent))]" />
+                  <dt className="mt-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Område</dt>
+                  <dd className="mt-1 text-sm font-semibold text-foreground">Hele Danmark</dd>
+                  <dd className="text-sm text-muted-foreground">Alle regioner og 50+ byer</dd>
+                </div>
+                <div className="bg-background p-6">
+                  <Mail className="h-5 w-5 text-[hsl(var(--accent))]" />
+                  <dt className="mt-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">E-mail</dt>
+                  <dd className="mt-1">
+                    <a
+                      href="mailto:kontakt@serviceydere.dk"
+                      className="text-sm font-semibold text-foreground underline-offset-4 hover:underline"
                     >
-                      <dt className="text-xs uppercase tracking-wide text-foreground/60">{s.label}</dt>
-                      <dd className="mt-2 bg-gradient-to-br from-foreground to-[hsl(var(--hero-mid))] bg-clip-text text-4xl font-bold text-transparent">
-                        {s.value}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-              </div>
-
-              <div
-                className="relative overflow-hidden rounded-3xl border border-border p-7 text-background sm:p-9"
-                style={{
-                  background:
-                    "linear-gradient(160deg, hsl(var(--hero-bg)) 0%, hsl(204 70% 14%) 100%)",
-                }}
-              >
-                <div
-                  className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full opacity-50 blur-3xl"
-                  style={{ background: "hsl(var(--hero-cyan) / 0.35)" }}
-                  aria-hidden
-                />
-                <h2 className="text-xl font-semibold text-background">Kontakt &amp; virksomhedsinfo</h2>
-                <p className="mt-1 text-sm text-background/65">Vi svarer typisk inden for én arbejdsdag.</p>
-                <ul className="mt-6 space-y-4 text-sm">
-                  <li className="flex items-start gap-3">
-                    <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background/10 text-[hsl(var(--hero-cyan-bright))]">
-                      <Building2 className="h-4.5 w-4.5" />
-                    </span>
-                    <div>
-                      <div className="font-semibold text-background">Serviceydere</div>
-                      <div className="text-background/70">Online markedsplads for håndværk, rengøring &amp; service</div>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background/10 text-[hsl(var(--hero-cyan-bright))]">
-                      <MapPin className="h-4.5 w-4.5" />
-                    </span>
-                    <div>
-                      <div className="font-semibold text-background">Område</div>
-                      <div className="text-background/70">Hele Danmark</div>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background/10 text-[hsl(var(--hero-cyan-bright))]">
-                      <Mail className="h-4.5 w-4.5" />
-                    </span>
-                    <div>
-                      <div className="font-semibold text-background">E-mail</div>
-                      <a
-                        href="mailto:kontakt@serviceydere.dk"
-                        className="text-background/75 underline-offset-4 hover:text-background hover:underline"
-                      >
-                        kontakt@serviceydere.dk
-                      </a>
-                    </div>
-                  </li>
-                </ul>
-              </div>
+                      kontakt@serviceydere.dk
+                    </a>
+                  </dd>
+                </div>
+              </dl>
             </div>
           </div>
         </section>
 
-        {/* CTA */}
-        <section className="relative isolate overflow-hidden text-background">
-          <div
-            className="absolute inset-0 -z-10"
-            style={{
-              background:
-                "radial-gradient(60% 80% at 100% 50%, hsl(var(--hero-cyan) / 0.3), transparent 60%), linear-gradient(135deg, hsl(var(--hero-bg)) 0%, hsl(204 80% 10%) 100%)",
-            }}
-            aria-hidden
-          />
-          <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-            <div className="flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-center">
-              <div>
-                <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                  Klar til at finde den rette serviceyder?
-                </h2>
-                <p className="mt-4 max-w-2xl text-lg text-background/80">
-                  Søg direkte eller få op til 3 gratis tilbud fra verificerede udbydere i dit område.
-                </p>
-              </div>
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <SmartLink
-                  to="/virksomheder"
-                  className="group inline-flex items-center justify-center gap-2 rounded-full bg-background px-6 py-3 text-sm font-semibold text-foreground transition-all hover:gap-3 hover:bg-background/90"
-                >
-                  Find services
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                </SmartLink>
-                <SmartLink
-                  to="/tilbud"
-                  className="inline-flex items-center justify-center rounded-full border border-background/25 bg-background/5 px-6 py-3 text-sm font-semibold text-background backdrop-blur transition-colors hover:bg-background/10"
-                >
-                  Indhent 3 tilbud
-                </SmartLink>
+        {/* CTA — outlined dark panel */}
+        <section className="bg-background py-16">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="relative overflow-hidden bg-[hsl(var(--hero-bg))] p-10 text-background sm:p-14">
+              <div aria-hidden className="absolute left-0 top-0 h-[2px] w-32 bg-[hsl(var(--accent))]" />
+              <div className="flex flex-col items-start justify-between gap-8 border border-background/10 p-8 sm:p-10 lg:flex-row lg:items-center">
+                <div className="max-w-xl">
+                  <span className="text-[11px] font-bold uppercase tracking-[0.28em] text-[hsl(var(--accent))]">
+                    Kom i gang
+                  </span>
+                  <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
+                    Klar til at finde den rette serviceyder?
+                  </h2>
+                  <p className="mt-3 text-base text-background/75">
+                    Søg direkte — eller få op til 3 gratis tilbud fra verificerede udbydere i dit område.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <SmartLink
+                    to="/virksomheder"
+                    className="inline-flex items-center justify-center gap-2 bg-[hsl(var(--accent))] px-7 py-4 text-sm font-bold uppercase tracking-wider text-[hsl(var(--hero-bg))] hover:opacity-90"
+                  >
+                    Find services <ArrowRight className="h-4 w-4" />
+                  </SmartLink>
+                  <SmartLink
+                    to="/tilbud"
+                    className="inline-flex items-center justify-center border border-background/25 px-7 py-4 text-sm font-bold uppercase tracking-wider text-background hover:bg-background/5"
+                  >
+                    Indhent 3 tilbud
+                  </SmartLink>
+                </div>
               </div>
             </div>
           </div>

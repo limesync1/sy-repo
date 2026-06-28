@@ -3,8 +3,6 @@ import { Link, useLocation } from "react-router-dom";
 import { Search, MessageSquare, Building2, BookOpen, ArrowUpRight, Mail } from "lucide-react";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
-import ArticleHero from "@/components/landing/ArticleHero";
-import ArticleFaqSection from "@/components/content/ArticleFaqSection";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -122,96 +120,143 @@ const HelpCenter = () => {
         jsonLd={jsonLd}
       />
       <SiteNav />
-      <ArticleHero
-        breadcrumbs={[{ label: "Forside", to: "/" }, { label: "Hjælpecenter" }]}
-        eyebrow="Support"
-        title="Hjælpecenter"
-        subtitle="Find svar på de oftest stillede spørgsmål, eller spring direkte til en af de mest brugte handlinger nedenfor."
-      />
 
-      <main id="main" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-        <section aria-labelledby="topics" className="mb-14">
-          <div className="flex items-end justify-between gap-6">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Genveje</p>
-              <h2 id="topics" className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Populære emner</h2>
-            </div>
-          </div>
-          <div className="mt-6 grid gap-5 sm:grid-cols-2">
-            {TOPICS.map((t, i) => (
-              <Link
-                key={t.to}
-                to={t.to}
-                className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-0.5 hover:border-foreground/40 hover:shadow-lg"
-              >
-                <div
-                  aria-hidden
-                  className="absolute inset-x-0 top-0 h-px"
-                  style={{ background: "linear-gradient(90deg, transparent, hsl(var(--hero-cyan-bright) / 0.55), transparent)" }}
-                />
-                <div className="flex items-center gap-4">
-                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-foreground text-background ring-1 ring-foreground/10">
-                    <t.Icon className="h-5 w-5" />
-                  </span>
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                    {String(i + 1).padStart(2, "0")} / {String(TOPICS.length).padStart(2, "0")}
-                  </span>
-                </div>
-                <h3 className="mt-5 text-lg font-semibold text-foreground">{t.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{t.description}</p>
-                <span className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-foreground">
-                  {t.label} <ArrowUpRight className="h-4 w-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+      {/* HERO — editorial dark */}
+      <section className="relative overflow-hidden bg-[hsl(var(--hero-bg))] text-background">
+        <div aria-hidden className="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-[hsl(var(--accent)/0.18)] to-transparent" />
+        <div aria-hidden className="absolute left-0 top-0 h-[2px] w-32 bg-[hsl(var(--accent))]" />
+        <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24 lg:px-8 lg:py-28">
+          <nav aria-label="Brødkrumme" className="mb-10 text-xs font-medium text-background/55">
+            <Link to="/" className="hover:text-background">Forside</Link>
+            <span className="mx-2 text-background/30">/</span>
+            <span className="text-background/80">Hjælpecenter</span>
+          </nav>
+          <span className="mb-6 block text-[11px] font-bold uppercase tracking-[0.28em] text-[hsl(var(--accent))]">
+            Support
+          </span>
+          <h1 className="max-w-4xl text-5xl font-black leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
+            Hjælpecenter.
+          </h1>
+          <p className="mt-8 max-w-2xl text-lg leading-8 text-background/75">
+            Find svar på de oftest stillede spørgsmål, eller spring direkte til en af de mest brugte handlinger nedenfor.
+          </p>
+        </div>
+      </section>
+
+      <main id="main">
+        {/* TOPICS — hairline grid */}
+        <section aria-labelledby="topics" className="bg-background">
+          <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+            <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-[0.28em] text-[hsl(var(--accent))]">
+                  Genveje
                 </span>
-              </Link>
-            ))}
+                <h2 id="topics" className="mt-3 text-4xl font-black leading-[1.05] tracking-tight text-foreground sm:text-5xl">
+                  Populære emner
+                </h2>
+              </div>
+              <p className="max-w-sm text-sm text-muted-foreground">
+                Fire indgange dækker langt de fleste henvendelser fra både kunder og udbydere.
+              </p>
+            </div>
+            <div className="grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2">
+              {TOPICS.map((t, i) => (
+                <Link
+                  key={t.to}
+                  to={t.to}
+                  className="group flex flex-col bg-card p-8 transition-colors hover:bg-muted/40"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex h-10 w-10 items-center justify-center bg-foreground text-background">
+                      <t.Icon className="h-5 w-5" />
+                    </span>
+                    <span className="font-mono text-xs text-[hsl(var(--accent))]">
+                      {String(i + 1).padStart(2, "0")} / {String(TOPICS.length).padStart(2, "0")}
+                    </span>
+                  </div>
+                  <h3 className="mt-6 text-lg font-bold tracking-tight text-foreground">{t.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{t.description}</p>
+                  <span className="mt-6 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-foreground">
+                    {t.label} <ArrowUpRight className="h-4 w-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </span>
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
 
-        <ArticleFaqSection items={FAQ} title="Ofte stillede spørgsmål om Serviceydere" />
-
-        <section
-          aria-labelledby="kontakt"
-          className="relative mt-14 overflow-hidden rounded-3xl text-background"
-          style={{
-            background:
-              "radial-gradient(70% 120% at 100% 0%, hsl(var(--hero-cyan) / 0.45), transparent 60%), linear-gradient(135deg, hsl(var(--hero-bg)) 0%, hsl(204 80% 10%) 100%)",
-          }}
-        >
-          <div
-            aria-hidden
-            className="absolute inset-0 opacity-[0.1]"
-            style={{
-              backgroundImage: "radial-gradient(hsl(var(--hero-cyan-bright)) 1px, transparent 1px)",
-              backgroundSize: "22px 22px",
-            }}
-          />
-          <div className="relative grid gap-6 p-8 sm:p-12 lg:grid-cols-[1.6fr,1fr] lg:items-center">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-background/70">Stadig i tvivl?</p>
-              <h2 id="kontakt" className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-                Kunne du ikke finde svar?
-              </h2>
-              <p className="mt-3 max-w-xl text-[15px] leading-7 text-background/80">
-                Skriv til os på{" "}
-                <a href="mailto:kontakt@serviceydere.dk" className="font-semibold text-background underline underline-offset-2">
-                  kontakt@serviceydere.dk
-                </a>{" "}
-                — vi svarer typisk samme hverdag.
+        {/* FAQ — editorial divide-y */}
+        <section id="faq" className="scroll-mt-24 border-y border-border bg-muted/20">
+          <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+            <div className="mb-10 grid gap-6 lg:grid-cols-[0.9fr_1.4fr] lg:gap-20">
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-[0.28em] text-[hsl(var(--accent))]">
+                  FAQ
+                </span>
+                <h2 className="mt-3 text-4xl font-black leading-[1.05] tracking-tight text-foreground sm:text-5xl">
+                  Ofte stillede spørgsmål
+                </h2>
+              </div>
+              <p className="text-base leading-7 text-muted-foreground lg:pt-2">
+                Korte, ærlige svar på det vi oftest bliver spurgt om — fra første tilbudsforespørgsel
+                til opsigelse af et udbyder-abonnement.
               </p>
             </div>
-            <div className="flex flex-wrap gap-3 lg:justify-end">
-              <a
-                href="mailto:kontakt@serviceydere.dk"
-                className="inline-flex h-11 items-center gap-2 rounded-md bg-background px-5 text-sm font-semibold text-foreground hover:opacity-90"
-              >
-                <Mail className="h-4 w-4" /> Skriv til support
-              </a>
-              <Link
-                to="/tilbud"
-                className="inline-flex h-11 items-center rounded-md border border-background/30 bg-background/5 px-5 text-sm font-semibold text-background hover:bg-background/10"
-              >
-                Få 3 gratis tilbud
-              </Link>
+            <div className="divide-y divide-border border-y border-border bg-background">
+              {FAQ.map((item) => (
+                <details key={item.q} className="group px-5 py-5 sm:px-7 sm:py-6 [&_summary::-webkit-details-marker]:hidden">
+                  <summary className="flex cursor-pointer list-none items-start justify-between gap-8 text-left">
+                    <span className="text-base font-bold tracking-tight text-foreground sm:text-lg">{item.q}</span>
+                    <span className="mt-1 grid h-6 w-6 shrink-0 place-items-center text-[hsl(var(--accent))] transition-transform group-open:rotate-45">
+                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                    </span>
+                  </summary>
+                  <div className="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground sm:text-[15px]">
+                    {item.a}
+                  </div>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* CTA — outlined dark */}
+        <section className="bg-background py-16">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="relative overflow-hidden bg-[hsl(var(--hero-bg))] p-10 text-background sm:p-14">
+              <div aria-hidden className="absolute left-0 top-0 h-[2px] w-32 bg-[hsl(var(--accent))]" />
+              <div className="flex flex-col items-start justify-between gap-8 border border-background/10 p-8 sm:p-10 lg:flex-row lg:items-center">
+                <div className="max-w-xl">
+                  <span className="text-[11px] font-bold uppercase tracking-[0.28em] text-[hsl(var(--accent))]">
+                    Stadig i tvivl?
+                  </span>
+                  <h2 id="kontakt" className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
+                    Kunne du ikke finde svar?
+                  </h2>
+                  <p className="mt-3 max-w-xl text-base text-background/75">
+                    Skriv til os på{" "}
+                    <a href="mailto:kontakt@serviceydere.dk" className="font-semibold text-background underline underline-offset-4">
+                      kontakt@serviceydere.dk
+                    </a>{" "}
+                    — vi vender retur så hurtigt vi kan på hverdage.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <a
+                    href="mailto:kontakt@serviceydere.dk"
+                    className="inline-flex items-center justify-center gap-2 bg-[hsl(var(--accent))] px-7 py-4 text-sm font-bold uppercase tracking-wider text-[hsl(var(--hero-bg))] hover:opacity-90"
+                  >
+                    <Mail className="h-4 w-4" /> Skriv til support
+                  </a>
+                  <Link
+                    to="/tilbud"
+                    className="inline-flex items-center justify-center border border-background/25 px-7 py-4 text-sm font-bold uppercase tracking-wider text-background hover:bg-background/5"
+                  >
+                    Få 3 gratis tilbud
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
         </section>
