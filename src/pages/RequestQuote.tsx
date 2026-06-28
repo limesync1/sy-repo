@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { IndustryIcon } from "@/components/IndustryIcon";
 import { Button } from "@/components/ui/button";
@@ -136,7 +136,22 @@ const RequestQuote = () => {
   const [customerEmail, setCustomerEmail] = useState(user?.email ?? "");
   const [customerPhone, setCustomerPhone] = useState("");
   const [shareContact, setShareContact] = useState(true);
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  // Samtykke til vilkår sker via klik på CTA-knappen (klart oplyst lige under
+  // knappen). Dette fjerner et ekstra felt uden at kompromittere GDPR-kravet
+  // om informeret samtykke — så længe teksten er læsbar før klik.
+  const acceptedTerms = true;
+
+  // Smart kategori-forslag: når brugeren skriver i beskrivelsesfeltet uden at
+  // have valgt kategori, scanner vi teksten mod hele branchekataloget og
+  // tilbyder de 3 bedste forslag som klikbare chips. Sparer et opslag i
+  // dropdown'en for de fleste opgaver.
+  const smartSuggestions = useMemo(() => {
+    if (category) return [];
+    const q = description.trim();
+    if (q.length < 4) return [];
+    return searchIndustries(q, { limit: 3, preferTopKeys: true })
+      .map((h) => h.industry);
+  }, [category, description]);
 
   const selectedCategory = CATEGORIES.find((c) => c.key === category);
   const POPULAR_KEYS = topCategories().map((t) => t.key);
