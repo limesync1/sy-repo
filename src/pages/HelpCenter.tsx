@@ -1,6 +1,6 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Search, MessageSquare, Building2, BookOpen, ArrowRight, Mail, Plus } from "lucide-react";
+import { Search, MessageSquare, Building2, BookOpen, ArrowRight, Mail, Plus, X } from "lucide-react";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import PageHero from "@/components/landing/PageHero";
@@ -8,12 +8,15 @@ import SmartLink from "@/components/SmartLink";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
+type FaqCategory = "Kunder" | "Udbydere" | "Betaling" | "Privatliv";
+
 interface HelpTopic {
   title: string;
   description: string;
   to: string;
   label: string;
   Icon: typeof Search;
+  tone: string;
 }
 
 const TOPICS: HelpTopic[] = [
@@ -23,6 +26,7 @@ const TOPICS: HelpTopic[] = [
     to: "/virksomheder",
     label: "Gå til søgning",
     Icon: Search,
+    tone: "bg-feature-cool text-feature-cool-foreground",
   },
   {
     title: "Indhent 3 tilbud",
@@ -30,6 +34,7 @@ const TOPICS: HelpTopic[] = [
     to: "/tilbud",
     label: "Start tilbudsrunde",
     Icon: MessageSquare,
+    tone: "bg-feature-warm text-feature-warm-foreground",
   },
   {
     title: "Bliv udbyder",
@@ -37,6 +42,7 @@ const TOPICS: HelpTopic[] = [
     to: "/opret-virksomhed",
     label: "Opret virksomhed",
     Icon: Building2,
+    tone: "bg-feature-lilac text-feature-lilac-foreground",
   },
   {
     title: "Guides & priser",
@@ -44,46 +50,64 @@ const TOPICS: HelpTopic[] = [
     to: "/guides",
     label: "Se guides",
     Icon: BookOpen,
+    tone: "bg-accent-soft text-accent",
   },
 ];
 
-const FAQ: { q: string; a: string }[] = [
+const FAQ: { q: string; a: string; cat: FaqCategory }[] = [
   {
+    cat: "Kunder",
     q: "Hvad koster det at bruge Serviceydere som kunde?",
     a: "Det er 100 % gratis at søge efter udbydere og indhente op til 3 tilbud. Du betaler kun for selve opgaven til den udbyder du vælger.",
   },
   {
+    cat: "Kunder",
     q: "Hvordan ved jeg at en udbyder er pålidelig?",
     a: "Alle udbydere er CVR-verificerede, før de kan oprette en profil. På virksomhedssiden kan du se kontaktoplysninger, åbningstider, typiske opgaver og — hvis udbyderen har oplyst det — forsikring og certificeringer.",
   },
   {
+    cat: "Kunder",
     q: "Hvor hurtigt kan jeg forvente svar på en tilbudsforespørgsel?",
     a: "Det afhænger af udbyder og opgavetype, men de fleste forespørgsler bliver besvaret inden for et par hverdage. Du får besked på e-mail, så snart der kommer et tilbud.",
   },
   {
+    cat: "Betaling",
     q: "Kan jeg bruge BoligJob-fradraget på opgaver via Serviceydere?",
     a: "Serviceydere er en formidlingsplatform — selve fradraget aftaler og indberetter du direkte med den udbyder, du vælger. Om en opgave er fradragsberettiget afhænger af opgavetype og de aktuelle SKAT-regler. Læs vores guide om servicefradraget for et opdateret overblik.",
   },
   {
+    cat: "Kunder",
     q: "Hvad gør jeg hvis jeg er utilfreds med en udbyder?",
     a: "Kontakt først udbyderen direkte — aftalen er indgået mellem jer. Får I ikke løst sagen, må du gerne skrive til os på kontakt@serviceydere.dk. Vi kan ikke afgøre tvister, men vi følger op, og udbydere der gentagne gange får velbegrundede klager, kan miste deres profil.",
   },
   {
+    cat: "Udbydere",
     q: "Hvordan opretter jeg min virksomhed på Serviceydere?",
     a: "Klik på “Bliv udbyder”, indtast dit CVR-nummer (vi henter automatisk dine grunddata), vælg de funktioner du har brug for, og du kan være online på få minutter.",
   },
   {
+    cat: "Udbydere",
     q: "Hvad koster det at være udbyder?",
     a: "Prisen er modulopbygget: en fast basispris pr. måned plus tilkøb af de funktioner du har brug for — fx flere byer/kategorier, prisberegnere, ruteplanlægger eller medarbejderlogins. Du kan se din samlede pris live, mens du opretter virksomheden.",
   },
   {
+    cat: "Betaling",
     q: "Kan jeg opsige mit abonnement når som helst?",
     a: "Ja. Du kan opsige løbende inde i dit virksomhedspanel, og abonnementet løber til udgangen af den allerede betalte periode.",
   },
   {
+    cat: "Privatliv",
     q: "Hvordan behandler I mine personoplysninger?",
     a: "Vi følger GDPR og hoster data i EU. Læs detaljerne i vores privatlivspolitik.",
   },
+];
+
+const CATEGORIES: { key: FaqCategory | "Alle"; label: string }[] = [
+  { key: "Alle", label: "Alle" },
+  { key: "Kunder", label: "Kunder" },
+  { key: "Udbydere", label: "Udbydere" },
+  { key: "Betaling", label: "Betaling" },
+  { key: "Privatliv", label: "Privatliv" },
 ];
 
 const HelpCenter = () => {
