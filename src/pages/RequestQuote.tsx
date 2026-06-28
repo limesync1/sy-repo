@@ -599,10 +599,30 @@ const RequestQuote = () => {
       {/* ─── Error ─── */}
       {error && !isLoading && (
         <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14">
-          <div className="rounded-2xl border border-border bg-card p-8 text-center animate-fade-in">
-            <AlertCircle className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
-            <p className="mb-4 text-foreground">{error}</p>
-            <Button variant="outline" onClick={handleReset} className="rounded-full">Prøv igen</Button>
+          <div className="rounded-[1.75rem] border border-border bg-card p-8 text-center animate-fade-in sm:p-10">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary">
+              <AlertCircle className="h-7 w-7 text-muted-foreground/70" />
+            </div>
+            <p className="text-lg font-semibold tracking-tight text-foreground">Ingen matches lige nu</p>
+            <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+              {error} Prøv at udvide søgeradius, vælge en bredere kategori — eller skriv direkte til os, så finder vi en udbyder manuelt.
+            </p>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+              <Button variant="outline" onClick={handleReset} className="rounded-full">
+                Prøv igen
+              </Button>
+              <Link to="/virksomheder" className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5 hover:border-foreground/30">
+                <Search className="h-4 w-4" /> Søg manuelt
+              </Link>
+              <a href="mailto:kontakt@serviceydere.dk?subject=Hj%C3%A6lp%20med%20at%20finde%20udbyder" className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-all hover:-translate-y-0.5">
+                Få personlig hjælp
+              </a>
+            </div>
+            <div className="mx-auto mt-6 flex max-w-md flex-wrap items-center justify-center gap-1 text-[11px] text-muted-foreground">
+              <span>Tip:</span>
+              <span className="rounded-full bg-secondary px-2 py-0.5">Udvid radius til Hele DK</span>
+              <span className="rounded-full bg-secondary px-2 py-0.5">Skift til en bredere kategori</span>
+            </div>
           </div>
         </section>
       )}
