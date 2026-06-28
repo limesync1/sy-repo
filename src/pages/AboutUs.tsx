@@ -15,7 +15,6 @@ const AboutUs = () => {
       logo: "https://serviceydere.dk/serviceydere-logo-dark.webp",
       description:
         "Serviceydere er en dansk platform der forbinder private og virksomheder med verificerede lokale serviceydere — rengøring, håndværker, flyttehjælp, haveservice og mere.",
-      foundingDate: "2024",
       areaServed: { "@type": "Country", name: "Danmark" },
       contactPoint: {
         "@type": "ContactPoint",
@@ -83,7 +82,7 @@ const AboutUs = () => {
             </nav>
             <span className="inline-flex items-center gap-2 rounded-full border border-background/15 bg-background/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-background/80 backdrop-blur">
               <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--hero-cyan-bright))] shadow-[0_0_12px_hsl(var(--hero-cyan-bright))]" />
-              Dansk platform · siden 2024
+              Dansk platform · hele Danmark
             </span>
             <h1 className="mt-6 max-w-4xl text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
               Vi gør det enklere at finde{" "}
@@ -215,9 +214,9 @@ const AboutUs = () => {
                 </h2>
                 <dl className="mt-8 grid grid-cols-2 gap-4">
                   {[
-                    { label: "Kategorier", value: "25+" },
-                    { label: "Byer i Danmark", value: "60+" },
-                    { label: "Prisguides", value: "20+" },
+                    { label: "Servicekategorier", value: "25+" },
+                    { label: "Byer dækket", value: "50+" },
+                    { label: "Prisguides", value: "25+" },
                     { label: "Tilbud per opgave", value: "op til 3" },
                   ].map((s) => (
                     <div
