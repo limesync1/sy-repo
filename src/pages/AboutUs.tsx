@@ -136,7 +136,7 @@ const AboutUs = () => {
         {/* MISSION */}
         <section className="bg-secondary py-20 md:py-28">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid gap-12 lg:grid-cols-[0.9fr_1.4fr] lg:gap-20">
+            <div className="grid gap-10 lg:grid-cols-[0.9fr_1.4fr] lg:gap-16">
               <div>
                 <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
                   <span className="h-px w-6 bg-foreground/30" />
@@ -145,23 +145,112 @@ const AboutUs = () => {
                 <h2 className="mt-5 text-[2rem] font-semibold leading-[1.04] tracking-[-0.025em] text-foreground md:text-[2.75rem] lg:text-[3.25rem]">
                   Tryghed, gennemsigtighed og lokal kvalitet
                 </h2>
+                <p className="mt-5 max-w-md text-[15px] leading-7 text-muted-foreground">
+                  Vi samler verificerede danske virksomheder ét sted — så du på få minutter finder den rette uden gætværk.
+                </p>
               </div>
-              <div className="space-y-5 text-[15px] leading-7 text-muted-foreground md:text-base">
-                <p>
-                  Hver dag bruger danskere timer på at finde, sammenligne og kontakte
-                  serviceydere — uden at vide om udbyderen er pålidelig, om prisen er fair,
-                  eller om kvaliteten holder. Det ville vi lave om på.
+              <div className="grid gap-4 sm:grid-cols-2">
+                {[
+                  { Icon: Search, k: "Find", t: "Find på minutter", b: "Søg, filtrér og sammenlign lokale udbydere uden at oprette en konto." },
+                  { Icon: Shield, k: "Tryghed", t: "CVR-tjekket", b: "Hver virksomhed valideres mod CVR-registret før de bliver synlige." },
+                  { Icon: Sparkles, k: "Gratis", t: "Gratis for private", b: "Du betaler kun for opgaven — aldrig for at bruge platformen." },
+                  { Icon: Lock, k: "Direkte", t: "Ingen mellemled", b: "Du aftaler direkte med udbyderen — vi formidler kun kontakten." },
+                ].map(({ Icon, k, t, b }) => (
+                  <div key={t} className="rounded-[24px] border border-border/70 bg-card p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-foreground text-background">
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{k}</span>
+                    </div>
+                    <h3 className="mt-4 text-[16px] font-semibold tracking-tight text-foreground">{t}</h3>
+                    <p className="mt-1.5 text-[13.5px] leading-6 text-muted-foreground">{b}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* CATEGORIES SHOWCASE */}
+        <section className="bg-background py-20 md:py-28">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-12 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+              <div className="max-w-2xl">
+                <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                  <span className="h-px w-6 bg-foreground/30" />
+                  Brancher
+                </span>
+                <h2 className="mt-5 text-[2rem] font-semibold leading-[1.04] tracking-[-0.025em] text-foreground md:text-[2.75rem] lg:text-[3.25rem]">
+                  25+ kategorier, ét sted
+                </h2>
+                <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground">
+                  Fra rengøring og vinduespudsning til VVS, tømrer og anlægsgartner — alle de mest efterspurgte serviceydere er samlet.
                 </p>
-                <p>
-                  Serviceydere samler verificerede danske virksomheder ét sted, så du på få
-                  minutter kan finde en lokal udbyder, sammenligne tilbud og booke med tryghed.
-                  Vi tjekker CVR og kontaktoplysninger — og for de udbydere der har det,
-                  også forsikring og certificeringer.
+              </div>
+              <SmartLink
+                to="/virksomheder"
+                className="group inline-flex items-center gap-2 self-start rounded-full border border-border/70 bg-card px-4 py-2 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5 md:self-auto"
+              >
+                Se alle brancher
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </SmartLink>
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
+              {FEATURED_CATEGORIES.map((cat, i) => (
+                <SmartLink
+                  key={cat.key}
+                  to={`/search?category=${encodeURIComponent(cat.key)}`}
+                  className={`group relative flex min-h-[140px] flex-col justify-between overflow-hidden rounded-[24px] border border-border/60 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 ${CATEGORY_TONES[i % CATEGORY_TONES.length]}`}
+                >
+                  <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-background/30 opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100" />
+                  <IndustryIcon category={cat.key} className="h-9 w-9" alt={cat.label} />
+                  <div className="relative">
+                    <div className="text-[14px] font-semibold leading-tight">{cat.label}</div>
+                    <div className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold opacity-80">
+                      Se firmaer
+                      <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                    </div>
+                  </div>
+                </SmartLink>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* CITIES BAND */}
+        <section className="bg-secondary py-16 md:py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-16">
+              <div className="max-w-md shrink-0">
+                <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                  <span className="h-px w-6 bg-foreground/30" />
+                  Geografi
+                </span>
+                <h2 className="mt-5 text-[1.75rem] font-semibold leading-[1.05] tracking-[-0.025em] text-foreground md:text-[2.25rem]">
+                  Lokale udbydere i hele Danmark
+                </h2>
+                <p className="mt-3 text-[15px] leading-7 text-muted-foreground">
+                  Vi dækker 50+ byer på tværs af alle fem regioner.
                 </p>
-                <p className="rounded-2xl border border-border/70 bg-card px-5 py-4 text-foreground shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-                  Det er <strong>gratis for private</strong> at bruge platformen. Vi tjener
-                  vores penge ved at hjælpe seriøse virksomheder med at vækste.
-                </p>
+              </div>
+              <div className="flex flex-1 flex-wrap gap-2">
+                {CITY_PILLS.map((city) => (
+                  <SmartLink
+                    key={city}
+                    to={`/search?city=${encodeURIComponent(city)}`}
+                    className="rounded-full border border-border/70 bg-card px-3.5 py-1.5 text-[13px] font-medium text-foreground transition-all hover:-translate-y-0.5 hover:border-foreground/30"
+                  >
+                    {city}
+                  </SmartLink>
+                ))}
+                <SmartLink
+                  to="/virksomheder"
+                  className="inline-flex items-center gap-1 rounded-full bg-foreground px-3.5 py-1.5 text-[13px] font-semibold text-background transition-all hover:-translate-y-0.5"
+                >
+                  + flere
+                  <ArrowRight className="h-3 w-3" />
+                </SmartLink>
               </div>
             </div>
           </div>
