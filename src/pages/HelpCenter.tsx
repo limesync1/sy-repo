@@ -160,7 +160,7 @@ const HelpCenter = () => {
 
       <PageHero
         eyebrow="Support"
-        title={<>Hjælpecenter & <span className="text-accent">ofte stillede spørgsmål</span></>}
+        title={<>Hjælpecenter & <span className="hero-accent-text">ofte stillede spørgsmål</span></>}
         subtitle="Find svar på de mest stillede spørgsmål — eller spring direkte til en af de mest brugte handlinger nedenfor."
         actions={
           <>

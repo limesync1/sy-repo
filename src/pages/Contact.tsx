@@ -101,7 +101,7 @@ const Contact = () => {
       <main id="main">
         <PageHero
           eyebrow="Kontakt Serviceydere"
-          title={<>Lad os <span className="text-accent">tale sammen</span></>}
+          title={<>Lad os <span className="hero-accent-text">tale sammen</span></>}
           subtitle="Vi besvarer henvendelser løbende på hverdage. Skriv direkte til det rette team — eller start tilbudsflowet hvis du leder efter en konkret udbyder."
           actions={
             <>
