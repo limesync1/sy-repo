@@ -20,7 +20,11 @@ export function IndustryIcon({ category, subcategory, name, className, alt }: In
   return (
     <img
       src={src}
-      alt={alt ?? subcategory ?? category ?? name ?? "branche"}
+      alt={
+        alt ??
+        ([subcategory, category, name].filter(Boolean).join(" – ") ||
+          "Ikon for branche")
+      }
       draggable={false}
       className={cn("inline-block select-none object-contain", className)}
     />

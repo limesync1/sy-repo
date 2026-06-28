@@ -65,7 +65,7 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
           {/* Logo overlay — løftes op over coveret så virksomheden står tydeligt frem */}
           <div className="absolute -top-7 left-4 flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border-2 border-card bg-card shadow-md">
             {biz.logo_url ? (
-              <img src={biz.logo_url} alt={`${biz.name} logo`} className="h-full w-full object-contain p-1" loading="lazy" decoding="async" />
+              <img src={biz.logo_url} alt={`Logo for ${biz.name}`} className="h-full w-full object-contain p-1" loading="lazy" decoding="async" />
             ) : (
               <span className="text-base font-bold text-accent">{biz.name.charAt(0)}</span>
             )}

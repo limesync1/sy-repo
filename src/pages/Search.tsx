@@ -105,7 +105,7 @@ const BusinessCard = ({
           <div className="absolute -bottom-5 left-4 z-10 h-14 w-14 overflow-hidden rounded-xl border-2 border-card bg-card shadow-md flex items-center justify-center">
             <img
               src={biz.logo_url}
-              alt={`${biz.name} logo`}
+              alt={`Logo for ${biz.name}`}
               className="max-h-[85%] max-w-[85%] object-contain"
               loading="lazy"
               decoding="async"

@@ -152,7 +152,7 @@ const GetQuotes = () => {
                         {m.logo_url ? (
                           <img
                             src={m.logo_url}
-                            alt={`${m.name} logo`}
+                            alt={`Logo for ${m.name}`}
                             className="h-full w-full object-contain p-1"
                             loading="lazy"
                             decoding="async"
