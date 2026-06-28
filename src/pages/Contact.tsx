@@ -63,7 +63,6 @@ const Contact = () => {
 
       <main id="main">
         <PageHero
-          eyebrow="Kontakt Serviceydere"
           title={<>Lad os <span className="hero-accent-text">tale sammen</span></>}
           subtitle="Skriv til os på kontakt@serviceydere.dk — vi besvarer henvendelser løbende på hverdage. Søger du en konkret udbyder, er det hurtigere at starte tilbudsflowet."
           actions={

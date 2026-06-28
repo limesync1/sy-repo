@@ -18,7 +18,7 @@ const STATS = [
   { label: "Servicekategorier", value: "25+" },
   { label: "Byer dækket", value: "50+" },
   { label: "Prisguides", value: "25+" },
-  { label: "Tilbud per opgave", value: "op til 3" },
+  { label: "Pris for private", value: "0 kr." },
 ];
 
 const CITY_PILLS = [
@@ -88,7 +88,6 @@ const AboutUs = () => {
 
       <main id="main">
         <PageHero
-          eyebrow="Om Serviceydere"
           title={<>Vi gør det enklere at finde <span className="hero-accent-text">den rette serviceyder</span> i Danmark</>}
           subtitle="Serviceydere forbinder private og virksomheder med verificerede lokale udbydere af rengøring, håndværk, flyttehjælp, haveservice og meget mere — i hele Danmark."
           actions={
@@ -306,7 +305,7 @@ const AboutUs = () => {
               </div>
               <dl className="grid gap-4 sm:grid-cols-3">
                 {[
-                  { Icon: Building2, label: "Platform", value: "Serviceydere", sub: "Markedsplads for service & håndværk" },
+                  { Icon: Building2, label: "Platform", value: "Serviceydere", sub: "serviceydere.dk" },
                   { Icon: MapPin, label: "Område", value: "Hele Danmark", sub: "Alle regioner og 50+ byer" },
                   { Icon: Mail, label: "E-mail", value: "kontakt@serviceydere.dk", sub: "Svar inden for få hverdage", href: "mailto:kontakt@serviceydere.dk" },
                 ].map(({ Icon, label, value, sub, href }) => (

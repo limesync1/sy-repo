@@ -38,7 +38,6 @@ const Reviews = () => {
 
       <main id="main">
         <PageHero
-          eyebrow="Kvalitet & tryghed"
           title={<>Anmeldelser fra <span className="hero-accent-text">rigtige kunder</span> — på vej</>}
           subtitle="Serviceydere er en ny dansk platform. Vi viser kun anmeldelser, der kommer fra reelle kunder med en gennemført opgave — derfor er der endnu ikke offentlige anmeldelser at vise her. I mellemtiden kan du læse om, hvordan vi verificerer hver enkelt udbyder."
           actions={
