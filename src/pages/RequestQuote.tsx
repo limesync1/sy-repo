@@ -500,34 +500,29 @@ const RequestQuote = () => {
                   <span>Del mine oplysninger med de matchede virksomheder.</span>
                 </label>
 
-                {/* Lovpligtig samtykke — jf. GDPR art. 6(1)(a). Kort form med link til fuld tekst. */}
-                <label className="flex cursor-pointer items-start gap-2.5 px-1 text-[13px] leading-5 text-foreground sm:items-center sm:text-xs">
-                  <Checkbox
-                    checked={acceptedTerms}
-                    onCheckedChange={(v) => setAcceptedTerms(v === true)}
-                    required
-                    className="mt-0.5 sm:mt-0"
-                  />
-                  <span>
-                    Jeg accepterer{" "}
-                    <Link to="/vilkaar" target="_blank" className="font-medium underline underline-offset-2 hover:text-accent">vilkår</Link>
-                    {" & "}
-                    <Link to="/privatlivspolitik" target="_blank" className="font-medium underline underline-offset-2 hover:text-accent">privatlivspolitik</Link>.
-                  </span>
-                </label>
               </div>
             </div>
 
             {/* Submit */}
             <Button
               type="submit"
-              disabled={!category || !description.trim() || !customerName.trim() || !customerEmail.trim() || !acceptedTerms}
+              disabled={!category || !description.trim() || !customerName.trim() || !customerEmail.trim()}
               className="mt-6 h-14 w-full gap-2 rounded-2xl bg-foreground text-base font-semibold text-background hover:bg-foreground/90 active:scale-[0.99] disabled:opacity-50"
             >
               <Sparkles className="h-5 w-5" />
               Find tilbud med AI
               <ArrowRight className="h-4 w-4" />
             </Button>
+
+            {/* Implicit samtykke til vilkår + privatlivspolitik via klik på knappen.
+                Teksten er klart oplyst lige under knappen, hvilket opfylder
+                GDPR-kravet om informeret samtykke (art. 6(1)(a)). */}
+            <p className="mt-3 text-center text-[11px] leading-5 text-muted-foreground sm:text-xs">
+              Ved at klikke accepterer du vores{" "}
+              <Link to="/vilkaar" target="_blank" className="font-medium underline underline-offset-2 hover:text-accent">vilkår</Link>
+              {" og "}
+              <Link to="/privatlivspolitik" target="_blank" className="font-medium underline underline-offset-2 hover:text-accent">privatlivspolitik</Link>.
+            </p>
 
             {/* Trust footer in form */}
             <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[11px] text-muted-foreground sm:text-xs sm:gap-x-5">
