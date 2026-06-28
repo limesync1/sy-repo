@@ -3,8 +3,6 @@ import { Link, useLocation } from "react-router-dom";
 import { Search, MessageSquare, Building2, BookOpen, ArrowUpRight, Mail } from "lucide-react";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
-import ArticleHero from "@/components/landing/ArticleHero";
-import ArticleFaqSection from "@/components/content/ArticleFaqSection";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
