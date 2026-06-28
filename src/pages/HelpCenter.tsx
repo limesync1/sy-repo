@@ -54,35 +54,35 @@ const FAQ: { q: string; a: string }[] = [
   },
   {
     q: "Hvordan ved jeg at en udbyder er pålidelig?",
-    a: "Alle udbydere på Serviceydere er CVR-verificerede. På virksomhedssiden kan du se anmeldelser, oplyste forsikringer, åbningstider og typiske opgaver.",
+    a: "Alle udbydere er CVR-verificerede, før de kan oprette en profil. På virksomhedssiden kan du se kontaktoplysninger, åbningstider, typiske opgaver og — hvis udbyderen har oplyst det — forsikring og certificeringer.",
   },
   {
     q: "Hvor hurtigt kan jeg forvente svar på en tilbudsforespørgsel?",
-    a: "De fleste udbydere svarer inden for 24 timer på hverdage. Du modtager besked på email, så snart der kommer et tilbud.",
+    a: "Det afhænger af udbyder og opgavetype, men de fleste forespørgsler bliver besvaret inden for et par hverdage. Du får besked på e-mail, så snart der kommer et tilbud.",
   },
   {
     q: "Kan jeg bruge BoligJob-fradraget på opgaver via Serviceydere?",
-    a: "Ja — så længe opgaven er fradragsberettiget (rengøring, have, mindre håndværk osv.) og du betaler elektronisk. Læs vores BoligJob-guide for detaljer.",
+    a: "Serviceydere er en formidlingsplatform — selve fradraget aftaler og indberetter du direkte med den udbyder, du vælger. Om en opgave er fradragsberettiget afhænger af opgavetype og de aktuelle SKAT-regler. Læs vores guide om servicefradraget for et opdateret overblik.",
   },
   {
     q: "Hvad gør jeg hvis jeg er utilfreds med en udbyder?",
-    a: "Skriv først til udbyderen direkte. Hvis du ikke får løst sagen, kan du kontakte os på kontakt@serviceydere.dk — vi hjælper med at mægle og kan fjerne udbydere der ikke lever op til vores standarder.",
+    a: "Kontakt først udbyderen direkte — aftalen er indgået mellem jer. Får I ikke løst sagen, må du gerne skrive til os på kontakt@serviceydere.dk. Vi kan ikke afgøre tvister, men vi følger op, og udbydere der gentagne gange får velbegrundede klager, kan miste deres profil.",
   },
   {
     q: "Hvordan opretter jeg min virksomhed på Serviceydere?",
-    a: "Klik på “Bliv udbyder”, vælg dit abonnement og udfyld dit CVR-nummer. Du er online inden for få minutter og kan straks modtage opgaver.",
+    a: "Klik på “Bliv udbyder”, indtast dit CVR-nummer (vi henter automatisk dine grunddata), vælg de funktioner du har brug for, og du kan være online på få minutter.",
   },
   {
-    q: "Hvilke abonnementer findes der for udbydere?",
-    a: "Vi har et basisabonnement med plads til én by og kategori, samt et premiumabonnement med flere byer, flere kategorier, prioriteret placering og prisberegnere på din virksomhedsside.",
+    q: "Hvad koster det at være udbyder?",
+    a: "Prisen er modulopbygget: en fast basispris pr. måned plus tilkøb af de funktioner du har brug for — fx flere byer/kategorier, prisberegnere, ruteplanlægger eller medarbejderlogins. Du kan se din samlede pris live, mens du opretter virksomheden.",
   },
   {
     q: "Kan jeg opsige mit abonnement når som helst?",
-    a: "Ja. Du kan opsige løbende inde i dit virksomhedspanel — abonnementet løber til udgangen af den allerede betalte periode.",
+    a: "Ja. Du kan opsige løbende inde i dit virksomhedspanel, og abonnementet løber til udgangen af den allerede betalte periode.",
   },
   {
     q: "Hvordan behandler I mine personoplysninger?",
-    a: "Vi hoster al data i EU og følger GDPR. Læs detaljerne i vores privatlivspolitik.",
+    a: "Vi følger GDPR og hoster data i EU. Læs detaljerne i vores privatlivspolitik.",
   },
 ];
 
