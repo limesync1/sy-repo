@@ -1,6 +1,6 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Search, MessageSquare, Building2, BookOpen, ArrowRight, Mail, Plus } from "lucide-react";
+import { Search, MessageSquare, Building2, BookOpen, ArrowRight, Mail, Plus, X } from "lucide-react";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import PageHero from "@/components/landing/PageHero";
@@ -8,12 +8,15 @@ import SmartLink from "@/components/SmartLink";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
+type FaqCategory = "Kunder" | "Udbydere" | "Betaling" | "Privatliv";
+
 interface HelpTopic {
   title: string;
   description: string;
   to: string;
   label: string;
   Icon: typeof Search;
+  tone: string;
 }
 
 const TOPICS: HelpTopic[] = [
@@ -23,6 +26,7 @@ const TOPICS: HelpTopic[] = [
     to: "/virksomheder",
     label: "Gå til søgning",
     Icon: Search,
+    tone: "bg-feature-cool text-feature-cool-foreground",
   },
   {
     title: "Indhent 3 tilbud",
@@ -30,6 +34,7 @@ const TOPICS: HelpTopic[] = [
     to: "/tilbud",
     label: "Start tilbudsrunde",
     Icon: MessageSquare,
+    tone: "bg-feature-warm text-feature-warm-foreground",
   },
   {
     title: "Bliv udbyder",
@@ -37,6 +42,7 @@ const TOPICS: HelpTopic[] = [
     to: "/opret-virksomhed",
     label: "Opret virksomhed",
     Icon: Building2,
+    tone: "bg-feature-lilac text-feature-lilac-foreground",
   },
   {
     title: "Guides & priser",
@@ -44,50 +50,79 @@ const TOPICS: HelpTopic[] = [
     to: "/guides",
     label: "Se guides",
     Icon: BookOpen,
+    tone: "bg-accent-soft text-accent",
   },
 ];
 
-const FAQ: { q: string; a: string }[] = [
+const FAQ: { q: string; a: string; cat: FaqCategory }[] = [
   {
+    cat: "Kunder",
     q: "Hvad koster det at bruge Serviceydere som kunde?",
     a: "Det er 100 % gratis at søge efter udbydere og indhente op til 3 tilbud. Du betaler kun for selve opgaven til den udbyder du vælger.",
   },
   {
+    cat: "Kunder",
     q: "Hvordan ved jeg at en udbyder er pålidelig?",
     a: "Alle udbydere er CVR-verificerede, før de kan oprette en profil. På virksomhedssiden kan du se kontaktoplysninger, åbningstider, typiske opgaver og — hvis udbyderen har oplyst det — forsikring og certificeringer.",
   },
   {
+    cat: "Kunder",
     q: "Hvor hurtigt kan jeg forvente svar på en tilbudsforespørgsel?",
     a: "Det afhænger af udbyder og opgavetype, men de fleste forespørgsler bliver besvaret inden for et par hverdage. Du får besked på e-mail, så snart der kommer et tilbud.",
   },
   {
+    cat: "Betaling",
     q: "Kan jeg bruge BoligJob-fradraget på opgaver via Serviceydere?",
     a: "Serviceydere er en formidlingsplatform — selve fradraget aftaler og indberetter du direkte med den udbyder, du vælger. Om en opgave er fradragsberettiget afhænger af opgavetype og de aktuelle SKAT-regler. Læs vores guide om servicefradraget for et opdateret overblik.",
   },
   {
+    cat: "Kunder",
     q: "Hvad gør jeg hvis jeg er utilfreds med en udbyder?",
     a: "Kontakt først udbyderen direkte — aftalen er indgået mellem jer. Får I ikke løst sagen, må du gerne skrive til os på kontakt@serviceydere.dk. Vi kan ikke afgøre tvister, men vi følger op, og udbydere der gentagne gange får velbegrundede klager, kan miste deres profil.",
   },
   {
+    cat: "Udbydere",
     q: "Hvordan opretter jeg min virksomhed på Serviceydere?",
     a: "Klik på “Bliv udbyder”, indtast dit CVR-nummer (vi henter automatisk dine grunddata), vælg de funktioner du har brug for, og du kan være online på få minutter.",
   },
   {
+    cat: "Udbydere",
     q: "Hvad koster det at være udbyder?",
     a: "Prisen er modulopbygget: en fast basispris pr. måned plus tilkøb af de funktioner du har brug for — fx flere byer/kategorier, prisberegnere, ruteplanlægger eller medarbejderlogins. Du kan se din samlede pris live, mens du opretter virksomheden.",
   },
   {
+    cat: "Betaling",
     q: "Kan jeg opsige mit abonnement når som helst?",
     a: "Ja. Du kan opsige løbende inde i dit virksomhedspanel, og abonnementet løber til udgangen af den allerede betalte periode.",
   },
   {
+    cat: "Privatliv",
     q: "Hvordan behandler I mine personoplysninger?",
     a: "Vi følger GDPR og hoster data i EU. Læs detaljerne i vores privatlivspolitik.",
   },
 ];
 
+const CATEGORIES: { key: FaqCategory | "Alle"; label: string }[] = [
+  { key: "Alle", label: "Alle" },
+  { key: "Kunder", label: "Kunder" },
+  { key: "Udbydere", label: "Udbydere" },
+  { key: "Betaling", label: "Betaling" },
+  { key: "Privatliv", label: "Privatliv" },
+];
+
 const HelpCenter = () => {
   const location = useLocation();
+  const [query, setQuery] = useState("");
+  const [activeCat, setActiveCat] = useState<FaqCategory | "Alle">("Alle");
+
+  const filteredFaq = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return FAQ.filter((item) => {
+      if (activeCat !== "Alle" && item.cat !== activeCat) return false;
+      if (!q) return true;
+      return item.q.toLowerCase().includes(q) || item.a.toLowerCase().includes(q);
+    });
+  }, [query, activeCat]);
 
   useEffect(() => {
     if (location.hash) {
@@ -166,17 +201,20 @@ const HelpCenter = () => {
                 <Link
                   key={t.to}
                   to={t.to}
-                  className="group flex flex-col rounded-[24px] border border-border/70 bg-card p-7 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border"
+                  className={`group relative flex min-h-[200px] flex-col justify-between overflow-hidden rounded-[24px] border border-border/60 p-7 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 ${t.tone}`}
                 >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-foreground text-background">
+                  <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-background/30 opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100" />
+                  <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-background/70 backdrop-blur">
                     <t.Icon className="h-5 w-5" />
                   </div>
-                  <h3 className="mt-6 text-[15px] font-semibold leading-tight tracking-tight text-foreground">{t.title}</h3>
-                  <p className="mt-2 text-[14px] leading-6 text-muted-foreground">{t.description}</p>
-                  <span className="mt-5 inline-flex items-center gap-1 text-[13px] font-semibold text-foreground">
-                    {t.label}
-                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                  </span>
+                  <div className="relative mt-6">
+                    <h3 className="text-[16px] font-semibold leading-tight tracking-tight">{t.title}</h3>
+                    <p className="mt-2 text-[13.5px] leading-6 opacity-80">{t.description}</p>
+                    <span className="mt-4 inline-flex items-center gap-1 text-[13px] font-semibold">
+                      {t.label}
+                      <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                    </span>
+                  </div>
                 </Link>
               ))}
             </div>
@@ -186,7 +224,7 @@ const HelpCenter = () => {
         {/* FAQ */}
         <section id="faq" className="scroll-mt-24 bg-secondary py-20 md:py-28">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="mb-10 grid gap-6 lg:grid-cols-[0.9fr_1.4fr] lg:gap-20">
+            <div className="mb-8 grid gap-6 lg:grid-cols-[0.9fr_1.4fr] lg:gap-20">
               <div>
                 <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
                   <span className="h-px w-6 bg-foreground/30" />
@@ -201,14 +239,71 @@ const HelpCenter = () => {
                 tilbudsforespørgsel til opsigelse af et udbyder-abonnement.
               </p>
             </div>
+
+            {/* Search + category filter */}
+            <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="relative w-full max-w-md">
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="search"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Søg i FAQ — fx tilbud, fradrag, abonnement…"
+                  className="h-12 w-full rounded-full border border-border/70 bg-card pl-11 pr-10 text-sm text-foreground shadow-[0_1px_2px_rgba(0,0,0,0.04)] placeholder:text-muted-foreground focus:border-foreground/30 focus:outline-none"
+                />
+                {query && (
+                  <button
+                    type="button"
+                    onClick={() => setQuery("")}
+                    className="absolute right-3 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full text-muted-foreground hover:bg-secondary"
+                    aria-label="Ryd søgning"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {CATEGORIES.map((c) => {
+                  const count = c.key === "Alle" ? FAQ.length : FAQ.filter((f) => f.cat === c.key).length;
+                  const active = activeCat === c.key;
+                  return (
+                    <button
+                      key={c.key}
+                      type="button"
+                      onClick={() => setActiveCat(c.key)}
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-all ${
+                        active
+                          ? "border-foreground bg-foreground text-background"
+                          : "border-border/70 bg-card text-foreground hover:-translate-y-0.5 hover:border-foreground/30"
+                      }`}
+                    >
+                      {c.label}
+                      <span className={`text-[11px] font-medium ${active ? "opacity-70" : "text-muted-foreground"}`}>{count}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <div className="overflow-hidden rounded-[24px] border border-border/70 bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-              {FAQ.map((item, i) => (
+              {filteredFaq.length === 0 && (
+                <div className="px-6 py-10 text-center text-sm text-muted-foreground sm:px-8">
+                  Ingen FAQ matcher “{query}”. Prøv et andet søgeord, eller{" "}
+                  <a href="mailto:kontakt@serviceydere.dk" className="font-semibold text-foreground underline underline-offset-4">
+                    skriv til support
+                  </a>.
+                </div>
+              )}
+              {filteredFaq.map((item, i) => (
                 <details
                   key={item.q}
                   className={`group px-6 py-5 sm:px-8 sm:py-6 ${i > 0 ? "border-t border-border/60" : ""} [&_summary::-webkit-details-marker]:hidden`}
                 >
                   <summary className="flex cursor-pointer list-none items-start justify-between gap-8 text-left">
-                    <span className="text-[15px] font-semibold tracking-tight text-foreground sm:text-base">{item.q}</span>
+                    <span className="flex min-w-0 flex-1 flex-col gap-1.5">
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{item.cat}</span>
+                      <span className="text-[15px] font-semibold tracking-tight text-foreground sm:text-base">{item.q}</span>
+                    </span>
                     <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-secondary text-muted-foreground transition-transform group-open:rotate-45">
                       <Plus className="h-4 w-4" />
                     </span>
