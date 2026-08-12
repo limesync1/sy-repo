@@ -835,6 +835,30 @@
     <priority>0.75</priority>
   </url>
   <url>
+    <loc>https://serviceydere.dk/blog/serviceydere-vs-haandvaerker-dk</loc>
+    <lastmod>2026-08-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/serviceydere-vs-byggestart</loc>
+    <lastmod>2026-08-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/serviceydere-vs-facebook-grupper</loc>
+    <lastmod>2026-08-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/platform-vs-ringe-direkte-til-firma</loc>
+    <lastmod>2026-08-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
     <loc>https://serviceydere.dk/blog/fast-pris-vs-timepris</loc>
     <lastmod>2027-03-04</lastmod>
     <changefreq>monthly</changefreq>
@@ -1147,13 +1171,13 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://serviceydere.dk/blog/kategori/haveservice</loc>
+    <loc>https://serviceydere.dk/blog/kategori/oekonomi</loc>
     <lastmod>2026-08-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://serviceydere.dk/blog/kategori/oekonomi</loc>
+    <loc>https://serviceydere.dk/blog/kategori/haveservice</loc>
     <lastmod>2026-08-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
