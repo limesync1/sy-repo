@@ -21,6 +21,7 @@ const Post = defineBlogPost({
       <>Se også vores <a href="/priser/haandvaerker">håndværker prisguide</a> for at sætte tilbud i kontekst.</>,
     ]},
     { heading: "Læs også", list: [
+      <a href="/blog/bedste-platform-til-haandvaerkertilbud-2026">Oversigt: bedste platform til tilbud i 2026</a>,
       <a href="/blog/serviceydere-vs-happyhelper">Serviceydere vs. Happyhelper</a>,
       <a href="/blog/diy-vs-haandvaerker">DIY vs. håndværker — hvornår betaler det sig?</a>,
       <a href="/priser/haandvaerker">Håndværker prisguide 2026</a>,

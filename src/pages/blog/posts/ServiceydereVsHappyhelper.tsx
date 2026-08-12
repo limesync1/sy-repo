@@ -24,6 +24,7 @@ const Post = defineBlogPost({
       "Når du vil have fast ugentlig/14-dags rengøring med samme person, og bor i København eller Aarhus hvor udvalget er størst.",
     ]},
     { heading: "Læs også", list: [
+      <a href="/blog/bedste-platform-til-haandvaerkertilbud-2026">Oversigt: bedste platform til tilbud i 2026</a>,
       <a href="/blog/serviceydere-vs-servicefinder">Serviceydere vs. Servicefinder</a>,
       <a href="/blog/fast-pris-vs-timepris">Fast pris vs. timepris — hvad er bedst?</a>,
       <a href="/blog/saadan-vaelger-du-rengoeringsfirma">Sådan vælger du rengøringsfirma</a>,

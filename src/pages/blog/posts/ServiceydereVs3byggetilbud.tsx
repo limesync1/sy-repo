@@ -71,6 +71,7 @@ const Post = defineBlogPost({
     {
       heading: "Læs også",
       list: [
+        <a href="/blog/bedste-platform-til-haandvaerkertilbud-2026">Oversigt: bedste platform til tilbud i 2026</a>,
         <a href="/blog/serviceydere-vs-handyhand">Serviceydere vs. HandyHand</a>,
         <a href="/blog/serviceydere-vs-servicefinder">Serviceydere vs. Servicefinder</a>,
         <a href="/blog/fast-pris-vs-timepris">Fast pris vs. timepris</a>,

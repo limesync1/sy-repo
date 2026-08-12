@@ -80,6 +80,7 @@ const Post = defineBlogPost({
     {
       heading: "Læs også",
       list: [
+        <a href="/blog/bedste-platform-til-haandvaerkertilbud-2026">Oversigt: bedste platform til tilbud i 2026</a>,
         <a href="/blog/serviceydere-vs-happyhelper">Serviceydere vs. Happyhelper</a>,
         <a href="/blog/serviceydere-vs-servicefinder">Serviceydere vs. Servicefinder</a>,
         <a href="/blog/serviceydere-vs-3byggetilbud">Serviceydere vs. 3byggetilbud</a>,
