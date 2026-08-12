@@ -3293,6 +3293,7 @@ const Planner = () => {
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="text-xs">Opret en ny bestilling manuelt</TooltipContent>
                 </Tooltip>
+                {createOpen && (
                 <DialogContent className="max-w-md p-0 gap-0 overflow-hidden flex flex-col">
                   <DialogHeader className="px-4 sm:px-5 py-4 pr-12 border-b shrink-0 space-y-0 text-left">
                     <SheetHeaderBlock
@@ -3475,6 +3476,7 @@ const Planner = () => {
                     </div>
                   </SheetFooterBar>
                 </DialogContent>
+                )}
               </Dialog>
             </div>
           </div>
