@@ -3293,6 +3293,7 @@ const Planner = () => {
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="text-xs">Opret en ny bestilling manuelt</TooltipContent>
                 </Tooltip>
+                {createOpen && (
                 <DialogContent className="max-w-md p-0 gap-0 overflow-hidden flex flex-col">
                   <DialogHeader className="px-4 sm:px-5 py-4 pr-12 border-b shrink-0 space-y-0 text-left">
                     <SheetHeaderBlock
@@ -3475,6 +3476,7 @@ const Planner = () => {
                     </div>
                   </SheetFooterBar>
                 </DialogContent>
+                )}
               </Dialog>
             </div>
           </div>
@@ -4628,11 +4630,13 @@ const Planner = () => {
         />
 
         {/* L3: Diagnostik for ikke-projicérbare aftaler — per-aftale fix-knapper */}
+        {diagnosticsOpen && (
         <DiagnosticsDialog
           open={diagnosticsOpen}
           onOpenChange={setDiagnosticsOpen}
           items={projectionDiagnostics.unprojectable}
         />
+        )}
 
         {/* Bekræft fletning af to ruter (drag-and-drop rute → rute) */}
         <MergeRoutesDialog
@@ -5195,6 +5199,7 @@ const Planner = () => {
             </div>
           </div>
         )}
+        {bulkMoveOpen && (
         <BulkMoveRoutesDialog
           open={bulkMoveOpen}
           onOpenChange={(o) => { if (!bulkMoveInProgress) setBulkMoveOpen(o); }}
@@ -5337,6 +5342,7 @@ const Planner = () => {
             clearRouteSelection();
           }}
         />
+        )}
 
         {/* ─── Bulk-stop: floating action-bar + slet ─────────────────────
             ⌘/Ctrl-klik på stops i kalenderen samler dem i et bulk-valg.
@@ -5658,13 +5664,18 @@ const Planner = () => {
         </AlertDialog>
       </AdminShell>
       <UndoBar />
+      {shortcutsOpen && (
       <RoutePlannerShortcutsHelp open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
+      )}
+      {bulkShiftOpen && (
       <BulkShiftDateDialog
         open={bulkShiftOpen}
         onOpenChange={setBulkShiftOpen}
         jobs={(unassigned as any[]).filter((j) => selectedJobIds.has(j.id))}
         onDone={() => setSelectedJobIds(new Set())}
       />
+      )}
+      {printOpen && (
       <RoutePrintDialog
         open={printOpen}
         onOpenChange={setPrintOpen}
@@ -5692,6 +5703,8 @@ const Planner = () => {
               })),
           })))}
       />
+      )}
+      {dayDetailOpen && (
       <DayDetailPanel
         open={dayDetailOpen}
         onOpenChange={setDayDetailOpen}
@@ -5715,6 +5728,7 @@ const Planner = () => {
               }))
           ))}
       />
+      )}
       {historyRoute && (
         <Suspense fallback={null}>
           <RouteHistoryDialog
