@@ -931,6 +931,24 @@
     <priority>0.75</priority>
   </url>
   <url>
+    <loc>https://serviceydere.dk/blog/serviceydere-vs-handyhand</loc>
+    <lastmod>2026-08-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/serviceydere-vs-3byggetilbud</loc>
+    <lastmod>2026-08-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://serviceydere.dk/blog/bedste-platform-til-haandvaerkertilbud-2026</loc>
+    <lastmod>2026-08-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
     <loc>https://serviceydere.dk/blog/fast-pris-vs-timepris</loc>
     <lastmod>2027-03-04</lastmod>
     <changefreq>monthly</changefreq>
@@ -1249,6 +1267,12 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://serviceydere.dk/blog/kategori/oekonomi</loc>
+    <lastmod>2026-08-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://serviceydere.dk/blog/kategori/flytning</loc>
     <lastmod>2026-08-12</lastmod>
     <changefreq>weekly</changefreq>
@@ -1262,12 +1286,6 @@
   </url>
   <url>
     <loc>https://serviceydere.dk/blog/kategori/tomrer</loc>
-    <lastmod>2026-08-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://serviceydere.dk/blog/kategori/oekonomi</loc>
     <lastmod>2026-08-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
