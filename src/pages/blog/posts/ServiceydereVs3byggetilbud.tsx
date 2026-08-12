@@ -53,7 +53,7 @@ const Post = defineBlogPost({
       body: (
         <p className="text-sm">
           Se prisniveauer før du beder om tilbud i vores <a href="/priser/haandvaerker">håndværker prisguide</a>,{" "}
-          <a href="/priser/nyt-tag">tag-prisguide</a> og <a href="/priser/badevaerelse">badeværelses-prisguide</a>.
+          <a href="/priser/nyt-tag">tag-prisguide</a> og <a href="/priser/nyt-badevaerelse">badeværelses-prisguide</a>.
         </p>
       ),
     },

@@ -49,7 +49,7 @@ const Post = defineBlogPost({
       body: (
         <p className="text-sm">
           Vil du kende prisniveauet før du beder om tilbud, kan du bruge vores{" "}
-          <a href="/priser">prisguides</a> som udgangspunkt.
+          <a href="/guides/priser-2026">prisguides</a> som udgangspunkt.
         </p>
       ),
     },
@@ -84,7 +84,7 @@ const Post = defineBlogPost({
         <a href="/blog/serviceydere-vs-servicefinder">Serviceydere vs. Servicefinder</a>,
         <a href="/blog/serviceydere-vs-3byggetilbud">Serviceydere vs. 3byggetilbud</a>,
         <a href="/blog/fast-pris-vs-timepris">Fast pris vs. timepris</a>,
-        <a href="/blog/diy-vs-haandvaerker">DIY vs. håndværker</a>,
+        <a href="/blog/serviceydere-vs-helphelper">Serviceydere vs. Helphelper</a>,
       ],
     },
   ],
