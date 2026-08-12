@@ -35,11 +35,11 @@ const Testimonials = () => {
       // Hent profilbilleder for de anmeldere der har en profil.
       const ids = Array.from(new Set(rows.map((r) => r.customer_id).filter(Boolean))) as string[];
       if (ids.length > 0) {
-        const { data: profiles } = await supabase
-          .from("profiles")
+        const { data: profiles } = await (supabase as any)
+          .from("profiles_public")
           .select("user_id, avatar_url")
           .in("user_id", ids);
-        const map = new Map((profiles ?? []).map((p) => [p.user_id, p.avatar_url]));
+        const map = new Map(((profiles ?? []) as { user_id: string; avatar_url: string | null }[]).map((p) => [p.user_id, p.avatar_url]));
         rows.forEach((r) => {
           r._avatarUrl = r.customer_id ? map.get(r.customer_id) ?? null : null;
         });
