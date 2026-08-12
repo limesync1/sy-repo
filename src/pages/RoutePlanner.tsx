@@ -85,7 +85,7 @@ import { MergeRoutesDialog } from "@/components/route-planner/MergeRoutesDialog"
 import { DeleteRouteDialog } from "@/components/route-planner/DeleteRouteDialog";
 import { DiagnosticsDialog } from "@/components/route-planner/DiagnosticsDialog";
 import { supabase } from "@/integrations/supabase/client";
-import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
+import CreateOrderDialogHost, { openCreateOrderDialog } from "@/components/route-planner/CreateOrderDialogHost";
 import { renameFreshSplitRoutes } from "@/components/route-planner/MoveStopsDialog";
 import { dragMetrics } from "@/lib/drag-metrics";
 import { startDragAutoScroll, stopDragAutoScroll } from "@/components/route-planner/lib/drag-auto-scroll";
@@ -441,8 +441,6 @@ const Planner = () => {
     setDayDetailOpen,
     bulkShiftOpen,
     setBulkShiftOpen,
-    createOrderOpen,
-    setCreateOrderOpen,
     createOpen,
     setCreateOpen,
     diagnosticsOpen,
@@ -3248,7 +3246,7 @@ const Planner = () => {
                 </Tooltip>
                 <DropdownMenuContent align="end" className="w-60">
                   <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">Handlinger</DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => setCreateOrderOpen(true)} className="text-xs gap-2">
+                  <DropdownMenuItem onClick={() => openCreateOrderDialog()} className="text-xs gap-2">
                     <ShoppingBag className="h-3.5 w-3.5" /> Opret bestilling manuelt
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setPrintOpen(true)} className="text-xs gap-2">
@@ -3287,7 +3285,7 @@ const Planner = () => {
                       variant="outline"
                       size="sm"
                       className="h-8 gap-1.5 rounded-md font-semibold ml-1"
-                      onClick={() => setCreateOrderOpen(true)}
+                      onClick={() => openCreateOrderDialog()}
                       aria-label="Opret bestilling"
                     >
                       <ShoppingBag className="h-3.5 w-3.5" />Opret bestilling
@@ -3854,7 +3852,7 @@ const Planner = () => {
                               icon={<Inbox className="h-5 w-5" />}
                               title="Kom godt i gang"
                               description="Du har ingen aftaler eller ruter endnu. Opret en bestilling, så kan du planlægge den på kalenderen."
-                              action={{ label: "Opret bestilling", icon: <Plus className="h-4 w-4" />, onClick: () => setCreateOrderOpen(true) }}
+                              action={{ label: "Opret bestilling", icon: <Plus className="h-4 w-4" />, onClick: () => openCreateOrderDialog() }}
                               compact
                             />
                           );
@@ -3864,7 +3862,7 @@ const Planner = () => {
                             icon={<Inbox className="h-5 w-5" />}
                             title="Alle aftaler er planlagt 🎉"
                             description="Nye aftaler lander her, så snart de oprettes."
-                            action={{ label: "Opret bestilling", icon: <Plus className="h-4 w-4" />, onClick: () => setCreateOrderOpen(true) }}
+                            action={{ label: "Opret bestilling", icon: <Plus className="h-4 w-4" />, onClick: () => openCreateOrderDialog() }}
                             compact
                           />
                         );
@@ -4350,7 +4348,7 @@ const Planner = () => {
                       </Button>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button variant="outline" size="icon" className="h-8 w-8" aria-label="Ny bestilling" onClick={() => setCreateOrderOpen(true)}>
+                          <Button variant="outline" size="icon" className="h-8 w-8" aria-label="Ny bestilling" onClick={() => openCreateOrderDialog()}>
                             <ShoppingBag className="h-3.5 w-3.5" />
                           </Button>
                         </TooltipTrigger>
@@ -4542,7 +4540,7 @@ const Planner = () => {
                       <Plus className="h-4 w-4" />
                       Opret rute
                     </Button>
-                    <Button variant="outline" className="h-9 gap-1.5 text-xs" onClick={() => setCreateOrderOpen(true)}>
+                    <Button variant="outline" className="h-9 gap-1.5 text-xs" onClick={() => openCreateOrderDialog()}>
                       <ShoppingBag className="h-4 w-4" />
                       Bestilling
                     </Button>
@@ -4583,9 +4581,7 @@ const Planner = () => {
 
         {/* Manuel ordre-oprettelse — kunde modtager mail med godkendelseslink */}
         {businessId && (
-          <CreateManualOrderDialog
-            open={createOrderOpen}
-            onOpenChange={setCreateOrderOpen}
+          <CreateOrderDialogHost
             businessId={businessId}
             businessName={business?.name || ""}
           />
