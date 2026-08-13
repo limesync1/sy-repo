@@ -3406,7 +3406,11 @@ const Planner = () => {
                       <div className="max-h-56 overflow-y-auto rounded border divide-y bg-background">
                         {unassigned.length === 0 && (
                           <div className="p-4 text-center text-xs text-muted-foreground">
-                            Ingen aftaler i poolen. Opret en bestilling først.
+                            Ingen aftaler i poolen. Opret en bestilling først — se
+                            {" "}
+                            <a href="/virksomhed?tab=getting-started" className="font-medium text-foreground underline underline-offset-2">
+                              Kom godt i gang
+                            </a>.
                           </div>
                         )}
                         {(() => {
