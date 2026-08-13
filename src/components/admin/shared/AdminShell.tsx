@@ -301,11 +301,19 @@ export const AdminShell = ({
   const leadsEnabled = !!(business.settings as any)?.leads_enabled;
   const livechatEnabled = !!(business.settings as any)?.livechat_enabled;
   const accountingEnabled = !!(business.settings as any)?.accounting_integration_enabled;
+  // Onboarding-status styrer om "Kom godt i gang" vises i sidebaren, og
+  // hvilken badge den har (fx "3/6"). Forsvinder af sig selv når alt er grønt.
+  const onboarding = useOnboardingSignals(business);
+  const onboardingVisible = !onboarding.allDone;
+  const onboardingBadge = onboarding.counts
+    ? `${onboarding.completedCount}/${onboarding.totalCount}`
+    : null;
   const visibleNav = NAV_ITEMS.filter((n) => {
     if (n.requiresRoutePlanning && !routePlanningEnabled) return false;
     if (n.requiresLeads && !leadsEnabled) return false;
     if (n.requiresLivechat && !livechatEnabled) return false;
     if (n.requiresAccounting && !accountingEnabled) return false;
+    if (n.onlyWhileOnboarding && !onboardingVisible) return false;
     return true;
   });
   const currentNav = visibleNav.find((n) => n.value === activeTab) ?? NAV_ITEMS.find((n) => n.value === activeTab);
@@ -413,13 +421,15 @@ export const AdminShell = ({
               !(item.requiresRoutePlanning && !routePlanningEnabled) &&
               !(item.requiresLeads && !leadsEnabled) &&
               !(item.requiresLivechat && !livechatEnabled) &&
-              !(item.requiresAccounting && !accountingEnabled);
+              !(item.requiresAccounting && !accountingEnabled) &&
+              !(item.onlyWhileOnboarding && !onboardingVisible);
             return (
               <AnimatedNavItem
                 key={item.value}
                 visible={visible}
                 isActive={activeTab === item.value}
                 item={item}
+                badge={item.value === "getting-started" ? onboardingBadge : null}
                 onClick={() => handleNavClick(item)}
                 onPrefetch={() => prefetchTab(item.value)}
                 collapsed={collapsed}
