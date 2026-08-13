@@ -44,9 +44,23 @@ export default function DragEtaOverlay({ targetId }: Props) {
 
   useEffect(() => {
     if (!targetId) { setPos(null); return; }
-    const onMove = (e: PointerEvent | MouseEvent) => setPos({ x: e.clientX, y: e.clientY });
+    // rAF-throttling: pointermove fyrer 60-120 gange/sek. Uden throttle
+    // re-renderer overlayet lige så tit og gør hele draget tungt.
+    let frame: number | null = null;
+    let next: { x: number; y: number } | null = null;
+    const flush = () => {
+      frame = null;
+      if (next) setPos(next);
+    };
+    const onMove = (e: PointerEvent | MouseEvent) => {
+      next = { x: e.clientX, y: e.clientY };
+      if (frame == null) frame = requestAnimationFrame(flush);
+    };
     window.addEventListener("pointermove", onMove);
-    return () => window.removeEventListener("pointermove", onMove);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      if (frame != null) cancelAnimationFrame(frame);
+    };
   }, [targetId]);
 
   if (!targetId || !pos) return null;

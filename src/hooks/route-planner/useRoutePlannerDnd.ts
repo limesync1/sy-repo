@@ -11,9 +11,10 @@ import {
   type DragOverEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { setDragEta, clearDragEta } from "@/components/route-planner/DragEtaOverlay";
-import { clearDragValidation, summarize, writeDragValidationDebounced } from "@/components/route-planner/drag-validation-context";
+import { cancelPendingDragValidation, clearDragValidation, summarize, writeDragValidationDebounced } from "@/components/route-planner/drag-validation-context";
+import { cancelPendingSimulationPreview, clearSimulationPreview } from "@/components/route-planner/simulation-preview-context";
 import { dragMetrics } from "@/lib/drag-metrics";
 import { startDragAutoScroll } from "@/components/route-planner/lib/drag-auto-scroll";
 import { haversineMeters } from "@/lib/geo-distance";
@@ -76,6 +77,45 @@ export function useRoutePlannerDnd(opts: {
   const activeRouteDragOriginRef = useRef<DragPoint | null>(null);
   const routeOverlayRef = useRef<HTMLDivElement | null>(null);
   const inFlightDropsRef = useRef<Set<string>>(new Set());
+
+  // Ryd modul-singleton state + ventende debounce-timere når planlæggeren
+  // unmountes (fx navigation midt i et drag) — ellers kan en forældet
+  // validering/preview blive vist næste gang siden mountes.
+  useEffect(() => () => {
+    cancelPendingDragValidation();
+    cancelPendingSimulationPreview();
+    clearDragValidation();
+    clearSimulationPreview();
+    clearDragEta();
+  }, []);
+
+  // Skærmlæser-annonceringer på dansk (dnd-kit's default er engelsk).
+  const dndAnnouncements = useMemo(() => {
+    const label = (data: any) =>
+      data?.type === "route"
+        ? (data.route?.name || "Rute")
+        : (data?.job?.customer_name || data?.stop?.customer_name || "Aftale");
+    return {
+      onDragStart({ active }: any) {
+        return `Tog ${label(active.data.current)} op.`;
+      },
+      onDragOver({ active, over }: any) {
+        if (!over) return `${label(active.data.current)} er ikke over et gyldigt mål.`;
+        const d: any = over.data.current;
+        const target = d?.type === "day" ? `dagen ${d.date}` : d?.type === "route" ? "en rute" : "et mål";
+        return `${label(active.data.current)} er over ${target}.`;
+      },
+      onDragEnd({ active, over }: any) {
+        if (!over) return `${label(active.data.current)} blev sluppet uden ændring.`;
+        const d: any = over.data.current;
+        const target = d?.type === "day" ? `dagen ${d.date}` : d?.type === "route" ? "ruten" : "målet";
+        return `${label(active.data.current)} blev sluppet på ${target}.`;
+      },
+      onDragCancel({ active }: any) {
+        return `Flytning af ${label(active.data.current)} blev annulleret.`;
+      },
+    };
+  }, []);
 
   const applyRouteOverlayPosition = (point: DragPoint | null) => {
     const el = routeOverlayRef.current;
@@ -420,6 +460,7 @@ export function useRoutePlannerDnd(opts: {
     // DnD-kit
     sensors,
     routePlannerCollisionDetection,
+    dndAnnouncements,
     handleDragStart,
     handleDragOver,
     handleDragMove,
