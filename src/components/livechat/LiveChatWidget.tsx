@@ -406,7 +406,7 @@ const LiveChatWidget = () => {
     setStarting(true);
     try {
       const token = crypto.randomUUID() + "-" + crypto.randomUUID();
-      const { data: conv, error: cErr } = await supabase
+      const { error: cErr } = await supabase
         .from("chat_conversations")
         .insert({
           session_token: token,
@@ -414,10 +414,14 @@ const LiveChatWidget = () => {
           visitor_name: parsed.data.name,
           visitor_email: parsed.data.email,
           subject: parsed.data.subject || null,
-        })
-        .select("id, session_token, visitor_name, visitor_email, subject, status")
-        .single();
-      if (cErr || !conv) throw cErr || new Error("Kunne ikke oprette samtale");
+        });
+      if (cErr) throw cErr;
+
+      // Samtaler kan ikke læses direkte (RLS beskytter besøgendes navn/e-mail),
+      // så vi henter den nyoprettede række via den token-baserede RPC.
+      const { data: convRows } = await supabase.rpc("get_chat_conversation_by_token", { p_token: token });
+      const conv = (Array.isArray(convRows) ? convRows[0] : convRows) as Conversation | undefined;
+      if (!conv) throw new Error("Kunne ikke oprette samtale");
 
       const { error: mErr } = await supabase.from("chat_messages").insert({
         conversation_id: conv.id,
