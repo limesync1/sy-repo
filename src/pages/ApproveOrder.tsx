@@ -73,38 +73,25 @@ const ApproveOrder = () => {
         setLoading(false);
         return;
       }
-      const { data, error: err } = await supabase
-        .from("orders")
-        .select("*, order_items(*)")
-        .eq("id", orderId)
-        .eq("approval_token", token)
-        .maybeSingle();
+      // Bestillinger er ikke offentligt læsbare. RPC'en verificerer selv at
+      // token'et matcher ordren, så ordre-id alene kan ikke afsløre data.
+      const { data: res, error: err } = await (supabase as any).rpc("get_order_for_approval", {
+        p_order_id: orderId,
+        p_token: token,
+      });
       if (cancelled) return;
-      if (err || !data) {
+      if (err || !res?.order) {
         setError("Vi kunne ikke finde bestillingen. Linket er muligvis udløbet eller allerede brugt.");
         setLoading(false);
         return;
       }
-      const groupId = (data as any).parent_order_id || data.id;
-      const { data: groupRows } = await supabase
-        .from("orders")
-        .select("*, order_items(*)")
-        .or(`id.eq.${groupId},parent_order_id.eq.${groupId}`);
-      const group = Array.isArray(groupRows) && groupRows.length > 0 ? groupRows : [data];
       const mergedOrder = {
-        ...data,
-        order_items: group.flatMap((row: any) => row.order_items || []),
-        total_amount: group.reduce((sum: number, row: any) => sum + Number(row.total_amount || 0), 0),
+        ...res.order,
+        order_items: res.items || [],
+        total_amount: Number(res.total_amount || 0),
       };
       setOrder(mergedOrder as any);
-      if (data.business_id) {
-        const { data: biz } = await supabase
-          .from("businesses")
-          .select("id, name, logo_url, phone, email")
-          .eq("id", data.business_id)
-          .maybeSingle();
-        if (!cancelled) setBusiness(biz as any);
-      }
+      if (res.business) setBusiness(res.business as any);
       setLoading(false);
     })();
     return () => { cancelled = true; };
