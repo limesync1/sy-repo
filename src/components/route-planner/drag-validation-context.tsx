@@ -64,6 +64,15 @@ export function writeDragValidationDebounced(v: TargetValidation | null, delayMs
   }, delayMs);
 }
 
+/**
+ * Annullér en ventende debounced skrivning (kaldes ved unmount af planlæggeren)
+ * så en gammel validering ikke dukker op efter navigation.
+ */
+export function cancelPendingDragValidation() {
+  if (debounceTimer) clearTimeout(debounceTimer);
+  debounceTimer = null;
+}
+
 /** Map severity → tailwind ring-classes (semantic tokens). */
 export function ringForSeverity(s: "ok" | "warning" | "error" | undefined): string {
   if (s === "error") return "ring-2 ring-destructive ring-inset bg-destructive/10";
