@@ -34,7 +34,7 @@ const RESOURCES = [
 export default function GettingStartedTab({ business, onNavigate }: Props) {
   const {
     counts, isLoading, done, skipped, toggleSkip, steps, nextLevelSteps,
-    focus, setFocus, completedCount, totalCount, allDone, nextStepId,
+    focus, setFocus, clearFocus, completedCount, totalCount, allDone, nextStepId,
   } = useOnboardingSignals(business);
   const [manualExpanded, setManualExpanded] = useState<OnboardingStepId | "none" | null>(null);
   const [showNextLevel, setShowNextLevel] = useState(false);
@@ -90,6 +90,15 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
             <Clock className="h-3 w-3" aria-hidden="true" /> Tager ca. 15 minutter
           </span>
           <span>Trinene markeres færdige automatisk — I skal ikke krydse af manuelt.</span>
+          {focus && (
+            <button
+              type="button"
+              onClick={clearFocus}
+              className="font-medium text-foreground underline underline-offset-2"
+            >
+              Skift hvad I bruger platformen til
+            </button>
+          )}
         </div>
       </div>
 

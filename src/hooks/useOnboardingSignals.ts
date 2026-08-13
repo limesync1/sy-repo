@@ -41,6 +41,8 @@ export type OnboardingState = {
   nextLevelSteps: OnboardingStep[];
   focus: OnboardingFocus | null;
   setFocus: (focus: OnboardingFocus) => void;
+  /** Nulstil svaret så spørgsmålet vises igen. */
+  clearFocus: () => void;
   completedCount: number;
   totalCount: number;
   allDone: boolean;
@@ -130,6 +132,8 @@ export const useOnboardingSignals = (business: any): OnboardingState => {
     [patchProgress],
   );
 
+  const clearFocus = useCallback(() => patchProgress({ current_step: null }), [patchProgress]);
+
   const effective = counts ?? EMPTY_COUNTS;
   const steps = useMemo(() => coreStepsForFocus(focus ?? "both"), [focus]);
 
@@ -154,6 +158,7 @@ export const useOnboardingSignals = (business: any): OnboardingState => {
     nextLevelSteps: NEXT_LEVEL_STEPS,
     focus,
     setFocus,
+    clearFocus,
     completedCount,
     totalCount: steps.length,
     allDone: !isLoading && !!counts && completedCount === steps.length,
