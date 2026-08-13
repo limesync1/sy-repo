@@ -4076,6 +4076,19 @@ const Planner = () => {
                   rangeStart={calendarRange.start}
                   rangeEnd={calendarRange.end}
                 />
+                {calendarError && (
+                  <div className="mx-3 mt-3 flex flex-wrap items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-foreground">
+                    <AlertTriangle className="h-4 w-4 text-destructive" />
+                    <span className="font-medium">Kunne ikke hente kalenderen — det viste kan være ufuldstændigt.</span>
+                    <button
+                      type="button"
+                      onClick={() => void refetchCalendar()}
+                      className="ml-auto rounded-md border border-border bg-background px-2 py-1 font-semibold hover:bg-secondary"
+                    >
+                      Prøv igen
+                    </button>
+                  </div>
+                )}
                 <div className="flex-1 min-h-0">
                 <MonthWeekCalendar
                   view={view}
