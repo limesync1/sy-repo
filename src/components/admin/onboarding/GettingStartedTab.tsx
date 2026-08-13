@@ -119,18 +119,26 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
             {completedCount} af {totalCount}
           </span>
         </div>
+        {/* Segmenteret fremgang — ét felt pr. opgave, som Discords to-do-tæller */}
         <div
-          className="mt-3 h-2 w-full overflow-hidden rounded-full bg-secondary"
+          className="mt-3 flex gap-1.5"
           role="progressbar"
           aria-label="Opsætningens fremgang"
           aria-valuenow={pct}
           aria-valuemin={0}
           aria-valuemax={100}
         >
-          <div
-            className={cn("h-full rounded-full bg-foreground transition-[width] duration-500", allDone && "bg-accent")}
-            style={{ width: `${pct}%` }}
-          />
+          {steps.map((s, i) => (
+            <span
+              key={s.id}
+              className={cn(
+                "h-1.5 flex-1 rounded-full bg-secondary transition-colors duration-500",
+                done[s.id] && (allDone ? "bg-accent" : "bg-foreground"),
+                !done[s.id] && s.id === nextStepId && "bg-foreground/30",
+              )}
+              style={{ transitionDelay: `${i * 60}ms` }}
+            />
+          ))}
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
           {!allDone && (
