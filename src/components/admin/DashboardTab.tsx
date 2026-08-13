@@ -20,6 +20,7 @@ import type { Business } from "@/hooks/useDatabase";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useOnboardingSignals } from "@/hooks/useOnboardingSignals";
 import { useNavigate, useLocation } from "react-router-dom";
 import { EmptyState } from "@/components/admin/shared/AdminUI";
 import { cn } from "@/lib/utils";
@@ -70,27 +71,14 @@ const DashboardTab = ({
   const location = useLocation();
   const openGuide = () => {
     const params = new URLSearchParams(location.search);
-    params.set("guide", "1");
+    params.delete("guide");
+    params.set("tab", "getting-started");
     navigate({ pathname: location.pathname, search: `?${params.toString()}` }, { replace: true });
   };
-  // Hurtig inline status til "Se guide"-knappen — viser brugeren hvor langt
-  // de er kommet uden at åbne popuppen. Bruger samme signaler som
-  // OnboardingHub auto-detekterer på (men kun det vi har lokalt).
-  const guideSignals = useMemo(() => {
-    const settings = (business as any)?.settings || {};
-    const categories = (business as any)?.categories || [];
-    const accountingEnabled = !!settings.accounting_integration_enabled;
-    const checks = [
-      categories.length > 0,                          // 1 brancher
-      !accountingEnabled,                             // 2 regnskab (antaget OK hvis ikke aktiveret)
-      false,                                          // 3 medarbejder — kan ikke detekteres her, OnboardingHub henter
-      servicesCount > 0,                              // 4 services
-      ordersCount > 0,                                // 5 bestilling
-      false,                                          // 6 rute — hentes i hub
-    ];
-    const done = checks.filter(Boolean).length;
-    return { done, total: 6 };
-  }, [business, servicesCount, ordersCount]);
+  // Status til "Se guide"-knappen — samme delte kilde som sidebar-badgen og
+  // "Kom godt i gang"-fanen, så tallene aldrig kan afvige.
+  const onboarding = useOnboardingSignals(business);
+  const guideSignals = { done: onboarding.completedCount, total: onboarding.totalCount };
   // Stat-detalje-panel — hvilken metric vi har åbnet, hvis nogen.
   const [openStat, setOpenStat] = useState<null | "revenue" | "orders" | "today" | "pending" | "rating">(null);
   // Filtre på "Seneste bestillinger" — status-pille + søgetekst.

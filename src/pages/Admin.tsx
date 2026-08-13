@@ -4,13 +4,13 @@ import {
   useMyBusiness, useServices, useOrders, useCreateBusiness,
   useReviews,
 } from "@/hooks/useDatabase";
-import { Navigate, Link, useLocation } from "react-router-dom";
+import { Navigate, Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { useEffect, useState, lazy, Suspense } from "react";
+import { useEffect, useRef, useState, lazy, Suspense } from "react";
 import { Sparkles } from "lucide-react";
 // Lazy load tunge tabs så hver fane først downloades når brugeren åbner den
 const DashboardTab = lazy(() => import("@/components/admin/DashboardTab"));
@@ -29,7 +29,9 @@ const AccountingTab = lazy(() => import("@/components/admin/AccountingTab"));
 // så det kun loades når brugeren faktisk åbner Services-fanen.
 const ServicesTab = lazy(() => import("@/components/admin/ServicesTab"));
 import BusinessOnboarding from "@/components/admin/BusinessOnboarding";
-import OnboardingHub from "@/components/admin/onboarding/OnboardingHub";
+const GettingStartedTab = lazy(() => import("@/components/admin/onboarding/GettingStartedTab"));
+import NextStepBar from "@/components/admin/onboarding/NextStepBar";
+import { useOnboardingSignals } from "@/hooks/useOnboardingSignals";
 import SEO from "@/components/SEO";
 import { AdminShell, type AdminTabKey } from "@/components/admin/shared/AdminShell";
 import { ShellSkeleton, ListCardSkeleton, StatGridSkeleton, PageSkeleton, FormSkeleton, FilterBarSkeleton, PageHeaderSkeleton } from "@/components/admin/shared/Skeletons";
@@ -179,15 +181,34 @@ const AdminDashboard = () => {
   const { data: business, isLoading } = useMyBusiness();
   const { data: plan } = useBusinessPlan(business?.id);
   const location = useLocation();
+  const navigate = useNavigate();
+  const onboarding = useOnboardingSignals(business);
   // Læs ?tab=xxx synkront ved første render så vi ALDRIG flasher "Overblik" når
   // brugeren navigerer fra fx Ruteplanlæggeren til en anden fane.
   const initialTab = ((): AdminTabKey => {
     if (typeof window === "undefined") return "dashboard";
-    const t = new URLSearchParams(window.location.search).get("tab") as AdminTabKey | null;
-    const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","leads","livechat","accounting","settings"];
+    const params = new URLSearchParams(window.location.search);
+    // Bagudkompatibelt: ?guide=1 pegede tidligere på onboarding-modalen.
+    if (params.get("guide") === "1") return "getting-started";
+    const t = params.get("tab") as AdminTabKey | null;
+    const allowed: AdminTabKey[] = ["getting-started","dashboard","services","orders","customers","employees","reviews","leads","livechat","accounting","settings"];
     return t && allowed.includes(t) ? t : "dashboard";
   })();
   const [activeTab, setActiveTab] = useState<AdminTabKey>(initialTab);
+  // Nye virksomheder lander på "Kom godt i gang" i stedet for Overblik, indtil
+  // de fire første trin er klaret. Kun ved første load og kun hvis URL'en ikke
+  // selv peger på en fane — så vi aldrig river brugeren væk midt i arbejdet.
+  const landedRef = useRef(false);
+  useEffect(() => {
+    if (landedRef.current) return;
+    if (typeof window === "undefined") return;
+    if (new URLSearchParams(window.location.search).get("tab")) { landedRef.current = true; return; }
+    if (!onboarding.counts) return;
+    landedRef.current = true;
+    const coreDone = ["categories", "accounting", "employees", "services"]
+      .every((id) => onboarding.done[id as keyof typeof onboarding.done]);
+    if (!coreDone) setActiveTab("getting-started");
+  }, [onboarding.counts, onboarding.done]);
 
   // Hold URL'en synkroniseret med aktiv fane (uden at trigge en ekstra render-cyklus).
   // Bruges også når brugeren klikker browserens tilbage-pil.
@@ -195,7 +216,7 @@ const AdminDashboard = () => {
     if (typeof window === "undefined") return;
     const onPop = () => {
       const t = new URLSearchParams(window.location.search).get("tab") as AdminTabKey | null;
-      const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","leads","livechat","accounting","settings"];
+      const allowed: AdminTabKey[] = ["getting-started","dashboard","services","orders","customers","employees","reviews","leads","livechat","accounting","settings"];
       setActiveTab(t && allowed.includes(t) ? t : "dashboard");
     };
     window.addEventListener("popstate", onPop);
@@ -206,16 +227,21 @@ const AdminDashboard = () => {
   // betalingskort" klikkes mens vi allerede er på /virksomhed) — uden dette
   // bliver fanen ikke skiftet, fordi React Router ikke fyrer popstate.
   useEffect(() => {
-    const t = new URLSearchParams(location.search).get("tab") as AdminTabKey | null;
-    const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","leads","livechat","accounting","settings"];
-    const next = t && allowed.includes(t) ? t : "dashboard";
+    const params = new URLSearchParams(location.search);
+    const t = params.get("tab") as AdminTabKey | null;
+    const allowed: AdminTabKey[] = ["getting-started","dashboard","services","orders","customers","employees","reviews","leads","livechat","accounting","settings"];
+    const next: AdminTabKey = params.get("guide") === "1"
+      ? "getting-started"
+      : t && allowed.includes(t) ? t : "dashboard";
     setActiveTab((curr) => (curr === next ? curr : next));
   }, [location.search]);
 
   const handleTabChange = (tab: AdminTabKey) => {
+    if (tab === "routes") { navigate("/virksomhed/ruter"); return; }
     setActiveTab(tab);
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href);
+      url.searchParams.delete("guide");
       if (tab === "dashboard") url.searchParams.delete("tab");
       else url.searchParams.set("tab", tab);
       window.history.replaceState({}, "", url.toString());
@@ -237,6 +263,7 @@ const AdminDashboard = () => {
 
   const renderContent = () => {
     switch (effectiveTab) {
+      case "getting-started": return <GettingStartedTab business={business} onNavigate={(t) => handleTabChange(t as AdminTabKey)} />;
       case "dashboard": return <DashboardWrapper business={business} onNavigate={(t) => handleTabChange(t as AdminTabKey)} />;
       case "services": return <ServicesTab businessId={business.id} business={business} />;
       case "orders": return (
@@ -272,9 +299,16 @@ const AdminDashboard = () => {
           <TrialBanner plan={plan} hideAction={activeTab === "settings"} />
         </div>
       )}
-      {/* Onboarding-hub: velkomst-wizard ved første login + persistent
-          checkliste i toppen indtil alle kerne-trin er gjort. */}
-      <OnboardingHub business={business} />
+      {/* Næste-trin-stribe: vises på alle faner indtil opsætningen er færdig. */}
+      {effectiveTab !== "getting-started" && (
+        <NextStepBar
+          nextStepId={onboarding.nextStepId}
+          counts={onboarding.counts}
+          completedCount={onboarding.completedCount}
+          totalCount={onboarding.totalCount}
+          onOpenGuide={() => handleTabChange("getting-started")}
+        />
+      )}
       <TabErrorBoundary resetKey={effectiveTab} label={effectiveTab}>
         <Suspense fallback={<TabFallback tab={effectiveTab} />}>
           {/* Én enkelt, blød fade-in pr. fane-skift. key sikrer at animationen

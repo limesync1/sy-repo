@@ -12,13 +12,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   LogOut, LayoutDashboard, Wrench, ShoppingCart, Star, Settings,
-  Menu, X, ExternalLink, Users, Route as RouteIcon, Contact, Sparkles, MessageCircle, Calculator, Upload, LifeBuoy, Truck,
+  Menu, X, ExternalLink, Users, Route as RouteIcon, Contact, Sparkles, MessageCircle, Calculator, Upload, LifeBuoy, Truck, Rocket,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { useBusinessPlan } from "@/hooks/useBusinessPlan";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useMyEmployee } from "@/hooks/useMyEmployee";
+import { useOnboardingSignals } from "@/hooks/useOnboardingSignals";
 import {
   SidebarNavButton, SidebarFooterItem,
 } from "@/components/shared/sidebar/SidebarParts";
@@ -64,7 +65,7 @@ const RoleSwitchFooterItem = ({
 };
 
 export type AdminTabKey =
-  | "dashboard" | "services" | "orders" | "customers"
+  | "getting-started" | "dashboard" | "services" | "orders" | "customers"
   | "routes" | "employees" | "reviews" | "leads" | "livechat" | "accounting" | "settings";
 
 /**
@@ -74,7 +75,7 @@ export type AdminTabKey =
  * det signalerede "noget vigtigt skete" hver gang en menu blev hentet.
  */
 const AnimatedNavItem = ({
-  visible, isActive, item, onClick, onPrefetch, collapsed,
+  visible, isActive, item, onClick, onPrefetch, collapsed, badge,
 }: {
   visible: boolean;
   isActive: boolean;
@@ -82,6 +83,7 @@ const AnimatedNavItem = ({
   onClick: () => void;
   onPrefetch: () => void;
   collapsed: boolean;
+  badge?: string | null;
 }) => {
   const [shouldRender, setShouldRender] = useState(visible);
   const [open, setOpen] = useState(visible);
@@ -140,6 +142,7 @@ const AnimatedNavItem = ({
           label={item.label}
           active={isActive}
           collapsed={collapsed}
+          badge={badge}
           onClick={onClick}
           onMouseEnter={onPrefetch}
           onFocus={onPrefetch}
@@ -156,6 +159,7 @@ const AnimatedNavItem = ({
  * fane-skift føles øjeblikkeligt i stedet for at vise "Indlæser…".
  */
 const TAB_PREFETCH: Partial<Record<AdminTabKey, () => Promise<unknown>>> = {
+  "getting-started": () => import("@/components/admin/onboarding/GettingStartedTab"),
   dashboard: () => import("@/components/admin/DashboardTab"),
   services:  () => import("@/components/admin/ServicesTab"),
   orders:    () => import("@/components/admin/AftaleTab"),
@@ -184,9 +188,12 @@ type NavItem = {
   requiresLeads?: boolean;
   requiresLivechat?: boolean;
   requiresAccounting?: boolean;
+  /** Vises kun mens onboarding ikke er færdig. */
+  onlyWhileOnboarding?: boolean;
 };
 
 const NAV_ITEMS: NavItem[] = [
+  { value: "getting-started", label: "Kom godt i gang", icon: Rocket, onlyWhileOnboarding: true },
   { value: "dashboard", label: "Overblik", icon: LayoutDashboard },
   { value: "services", label: "Services", icon: Wrench },
   { value: "orders", label: "Aftaler", icon: ShoppingCart },
@@ -295,11 +302,19 @@ export const AdminShell = ({
   const leadsEnabled = !!(business.settings as any)?.leads_enabled;
   const livechatEnabled = !!(business.settings as any)?.livechat_enabled;
   const accountingEnabled = !!(business.settings as any)?.accounting_integration_enabled;
+  // Onboarding-status styrer om "Kom godt i gang" vises i sidebaren, og
+  // hvilken badge den har (fx "3/6"). Forsvinder af sig selv når alt er grønt.
+  const onboarding = useOnboardingSignals(business);
+  const onboardingVisible = !onboarding.allDone;
+  const onboardingBadge = onboarding.counts
+    ? `${onboarding.completedCount}/${onboarding.totalCount}`
+    : null;
   const visibleNav = NAV_ITEMS.filter((n) => {
     if (n.requiresRoutePlanning && !routePlanningEnabled) return false;
     if (n.requiresLeads && !leadsEnabled) return false;
     if (n.requiresLivechat && !livechatEnabled) return false;
     if (n.requiresAccounting && !accountingEnabled) return false;
+    if (n.onlyWhileOnboarding && !onboardingVisible) return false;
     return true;
   });
   const currentNav = visibleNav.find((n) => n.value === activeTab) ?? NAV_ITEMS.find((n) => n.value === activeTab);
@@ -407,13 +422,15 @@ export const AdminShell = ({
               !(item.requiresRoutePlanning && !routePlanningEnabled) &&
               !(item.requiresLeads && !leadsEnabled) &&
               !(item.requiresLivechat && !livechatEnabled) &&
-              !(item.requiresAccounting && !accountingEnabled);
+              !(item.requiresAccounting && !accountingEnabled) &&
+              !(item.onlyWhileOnboarding && !onboardingVisible);
             return (
               <AnimatedNavItem
                 key={item.value}
                 visible={visible}
                 isActive={activeTab === item.value}
                 item={item}
+                badge={item.value === "getting-started" ? onboardingBadge : null}
                 onClick={() => handleNavClick(item)}
                 onPrefetch={() => prefetchTab(item.value)}
                 collapsed={collapsed}
