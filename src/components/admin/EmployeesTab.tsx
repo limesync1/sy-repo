@@ -51,9 +51,11 @@ interface Props {
   businessId: string;
   businessName: string;
   routePlanningEnabled: boolean;
+  /** Åbner "Tilføj medarbejder" med det samme (deep link fra onboarding-guiden). */
+  autoOpenCreate?: boolean;
 }
 
-const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
+const EmployeesTab = ({ businessId, routePlanningEnabled, autoOpenCreate }: Props) => {
   const { data: employees, isLoading } = useEmployees(businessId);
   const { data: business } = useMyBusiness();
   const { data: plan } = useBusinessPlan(businessId);
@@ -63,7 +65,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
   const updateBusiness = useUpdateBusiness();
   const allowEarlyCompletionDefault = !!(business as any)?.allow_early_completion_default;
 
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState(!!autoOpenCreate);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -517,7 +519,7 @@ const EmployeesTab = ({ businessId, routePlanningEnabled }: Props) => {
         <EmptyState
           icon={<UserPlus />}
           title="Ingen medarbejdere endnu"
-          description="Tilføj din første medarbejder — de modtager en email med deres login-oplysninger og adgang til ruteplanlæggeren."
+          description="Tilføj din første medarbejder — de modtager en email med login og adgang til ruteplanlæggeren. Det er en del af opsætningen under “Kom godt i gang”."
           action={
             <PrimaryButton onClick={() => setShowForm(true)} icon={<UserPlus />}>
               Tilføj første medarbejder

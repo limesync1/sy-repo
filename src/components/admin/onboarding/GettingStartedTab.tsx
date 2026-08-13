@@ -2,10 +2,10 @@
 // Opbygget som Discords Server Guide: en personlig hilsen i toppen, en kort
 // liste konkrete opgaver der markeres færdige automatisk, et frivilligt
 // "næste niveau"-spor og en ressource-sektion nederst.
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   CheckCircle2, Inbox, MessageCircle, Star, LifeBuoy, BookOpen, Sparkles,
-  Clock, ChevronDown, ExternalLink,
+  Clock, ChevronDown, ExternalLink, PartyPopper,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -16,7 +16,7 @@ import { ListCardSkeleton, PageHeaderSkeleton } from "@/components/admin/shared/
 
 type Props = {
   business: any;
-  onNavigate: (tab: string) => void;
+  onNavigate: (tab: string, action?: string | null) => void;
 };
 
 const NEXT_LEVEL_LINKS = [
@@ -26,9 +26,9 @@ const NEXT_LEVEL_LINKS = [
 ];
 
 const RESOURCES = [
-  { title: "Aftaler vs. bestillinger", body: "Hvad forskellen er, og hvornår I bruger hvad.", href: "/hjaelp#faq" },
-  { title: "Prisberegner på 5 minutter", body: "Sæt m²-, stk- eller timepris op på en service.", href: "/hjaelp#faq" },
-  { title: "Medarbejder-appen", body: "Hvad jeres team ser, og hvordan de melder færdig.", href: "/hjaelp#faq" },
+  { title: "Ofte stillede spørgsmål", body: "Aftaler, bestillinger, priser og medarbejder-app.", href: "/hjaelp#faq" },
+  { title: "Prisguides", body: "Se markedspriser i jeres branche som udgangspunkt.", href: "/guides/priser-2026" },
+  { title: "Kontakt os", body: "Sidder I fast? Skriv til os — vi svarer på hverdage.", href: "/kontakt" },
 ];
 
 export default function GettingStartedTab({ business, onNavigate }: Props) {
@@ -38,11 +38,26 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
   } = useOnboardingSignals(business);
   const [manualExpanded, setManualExpanded] = useState<OnboardingStepId | "none" | null>(null);
   const [showNextLevel, setShowNextLevel] = useState(false);
+  const [showDone, setShowDone] = useState(false);
+  // Fejring vises én gang pr. session, når man lige er blevet færdig.
+  const [celebrate, setCelebrate] = useState(false);
+  const wasDone = useRef<boolean | null>(null);
+  useEffect(() => {
+    if (isLoading || !counts) return;
+    if (wasDone.current === false && allDone) {
+      setCelebrate(true);
+      const t = setTimeout(() => setCelebrate(false), 6000);
+      return () => clearTimeout(t);
+    }
+    wasDone.current = allDone;
+  }, [allDone, isLoading, counts]);
 
   // Som standard er kun det aktuelle trin foldet ud.
   const expandedId = manualExpanded === null ? nextStepId : manualExpanded;
   const pct = totalCount ? Math.round((completedCount / totalCount) * 100) : 0;
   const publicHref = `/v/${business?.slug ?? ""}`;
+  const activeSteps = steps.filter((s) => !done[s.id]);
+  const doneSteps = steps.filter((s) => done[s.id]);
 
   if (isLoading || !counts) {
     return (
@@ -56,17 +71,36 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
   return (
     <div className="mx-auto w-full max-w-3xl space-y-5">
       {/* Velkomst + fremgang */}
-      <div className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
+      <div
+        className={cn(
+          "rounded-2xl border border-border bg-card p-4 shadow-sm transition-colors sm:p-5",
+          allDone && "border-accent/40 bg-accent/5",
+        )}
+      >
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">
-            <h1 className="text-lg font-bold text-foreground sm:text-xl">
-              Velkommen{business?.name ? `, ${business.name}` : ""}
+            <h1 className="flex items-center gap-2 text-lg font-bold text-foreground sm:text-xl">
+              {allDone && (
+                <PartyPopper
+                  className={cn("h-5 w-5 text-accent", celebrate && "animate-bounce")}
+                  aria-hidden="true"
+                />
+              )}
+              {allDone ? "I er live" : `Velkommen${business?.name ? `, ${business.name}` : ""}`}
             </h1>
             <p className="mt-0.5 text-sm text-muted-foreground">
               {allDone
-                ? "Opsætningen er færdig — I er klar til kunder."
+                ? "Opsætningen er færdig — jeres side er klar til kunder."
                 : `Her er de ${totalCount} ting der skal på plads, før I kan tage imod jeres første kunde.`}
             </p>
+            {allDone && (
+              <Button asChild size="sm" variant="outline" className="mt-3 h-8 text-xs">
+                <a href={publicHref} target="_blank" rel="noreferrer">
+                  Se jeres offentlige side
+                  <ExternalLink className="ml-1.5 h-3 w-3" aria-hidden="true" />
+                </a>
+              </Button>
+            )}
           </div>
           <span className="shrink-0 rounded-full bg-secondary px-2.5 py-1 text-xs font-bold tabular-nums text-foreground">
             {completedCount} af {totalCount}
@@ -86,10 +120,14 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
           />
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-          <span className="inline-flex items-center gap-1">
-            <Clock className="h-3 w-3" aria-hidden="true" /> Tager ca. 15 minutter
-          </span>
-          <span>Trinene markeres færdige automatisk — I skal ikke krydse af manuelt.</span>
+          {!allDone && (
+            <>
+              <span className="inline-flex items-center gap-1">
+                <Clock className="h-3 w-3" aria-hidden="true" /> Tager ca. 15 minutter
+              </span>
+              <span>Trinene markeres færdige automatisk — I skal ikke krydse af manuelt.</span>
+            </>
+          )}
           {focus && (
             <button
               type="button"
@@ -103,7 +141,7 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
       </div>
 
       {/* Ét spørgsmål der tilpasser guiden */}
-      {!focus && (
+      {!focus && !allDone && (
         <div className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
           <h2 className="text-sm font-bold text-foreground">Hvad vil I bruge Serviceydere til?</h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
@@ -153,30 +191,69 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
         </div>
       )}
 
-      {/* Kerne-trin */}
-      <div>
-        <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-          Skal på plads
-        </p>
-        <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-          {steps.map((step, i) => (
-            <OnboardingStepCard
-              key={step.id}
-              step={step}
-              number={i + 1}
-              counts={counts}
-              done={done[step.id]}
-              skipped={!!skipped[step.id]}
-              expanded={expandedId === step.id}
-              onToggleExpand={() =>
-                setManualExpanded((cur) => ((cur === null ? nextStepId : cur) === step.id ? "none" : step.id))
-              }
-              onNavigate={onNavigate}
-              onToggleSkip={() => toggleSkip(step.id)}
-            />
-          ))}
+      {/* Kerne-trin der mangler */}
+      {activeSteps.length > 0 && (
+        <div>
+          <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Skal på plads
+          </p>
+          <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+            {activeSteps.map((step) => (
+              <OnboardingStepCard
+                key={step.id}
+                step={step}
+                number={steps.indexOf(step) + 1}
+                counts={counts}
+                done={false}
+                skipped={!!skipped[step.id]}
+                expanded={expandedId === step.id}
+                onToggleExpand={() =>
+                  setManualExpanded((cur) => ((cur === null ? nextStepId : cur) === step.id ? "none" : step.id))
+                }
+                onNavigate={onNavigate}
+                onToggleSkip={() => toggleSkip(step.id)}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Færdige trin — foldet sammen så listen kun viser det der mangler */}
+      {doneSteps.length > 0 && (
+        <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+          <button
+            type="button"
+            onClick={() => setShowDone((v) => !v)}
+            aria-expanded={showDone}
+            className="flex w-full items-center gap-2 px-3 py-2.5 text-left sm:px-4"
+          >
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
+            <span className="text-sm font-semibold text-foreground">Færdige ({doneSteps.length})</span>
+            <ChevronDown
+              className={cn("ml-auto h-4 w-4 text-muted-foreground transition-transform", showDone && "rotate-180")}
+              aria-hidden="true"
+            />
+          </button>
+          {showDone && (
+            <div className="border-t border-border">
+              {doneSteps.map((step) => (
+                <OnboardingStepCard
+                  key={step.id}
+                  step={step}
+                  counts={counts}
+                  done
+                  compact
+                  skipped={!!skipped[step.id]}
+                  expanded={false}
+                  onToggleExpand={() => {}}
+                  onNavigate={onNavigate}
+                  onToggleSkip={() => toggleSkip(step.id)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Frivillige trin — foldet sammen */}
       <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">

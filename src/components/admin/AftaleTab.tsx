@@ -757,6 +757,7 @@ const AftaleTab = ({
   businessId,
   businessName,
   routePlanningEnabled = false,
+  autoOpenCreate = false,
 }: {
   businessId: string;
   businessName: string;
@@ -764,6 +765,8 @@ const AftaleTab = ({
    *  filter-chips ("Ikke planlagt"/"På rute"), badges på aftaler og
    *  rute-info-blokken i den udfoldede aftale. */
   routePlanningEnabled?: boolean;
+  /** Åbner "Opret bestilling" med det samme (deep link fra onboarding-guiden). */
+  autoOpenCreate?: boolean;
 }) => {
   const { data: orders, isLoading } = useOrders(businessId);
   const { data: services } = useServices(businessId);
@@ -779,7 +782,7 @@ const AftaleTab = ({
   const [responseType, setResponseType] = useState<"accepted" | "rejected" | "adjusted">("accepted");
   const [responseMessage, setResponseMessage] = useState("");
   const [adjustedItems, setAdjustedItems] = useState<Record<string, AdjustmentItem[]>>({});
-  const [createOrderOpen, setCreateOrderOpen] = useState(false);
+  const [createOrderOpen, setCreateOrderOpen] = useState(autoOpenCreate);
   // Opret-rute dialog (samme design som ruteplanlægger).
   const [createRouteOpen, setCreateRouteOpen] = useState(false);
   const [newRouteName, setNewRouteName] = useState("");

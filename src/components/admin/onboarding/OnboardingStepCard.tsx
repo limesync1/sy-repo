@@ -16,16 +16,36 @@ type Props = {
   skipped: boolean;
   expanded: boolean;
   onToggleExpand: () => void;
-  onNavigate: (tab: string) => void;
+  onNavigate: (tab: string, action?: string | null) => void;
   onToggleSkip: () => void;
+  /** Kompakt visning: brugt til færdige trin, der er foldet sammen. */
+  compact?: boolean;
 };
 
 export default function OnboardingStepCard({
-  step, number, counts, done, skipped, expanded, onToggleExpand, onNavigate, onToggleSkip,
+  step, number, counts, done, skipped, expanded, onToggleExpand, onNavigate, onToggleSkip, compact,
 }: Props) {
   const Icon = step.icon;
   const missing = (step.requires ?? []).filter((r) => !r.met(counts));
   const blocked = missing.length > 0 && !done;
+  const go = () => onNavigate(step.tab(counts), step.action?.(counts) ?? null);
+
+  if (compact) {
+    return (
+      <button
+        type="button"
+        onClick={go}
+        className="flex w-full items-center gap-2.5 border-b border-border bg-secondary/20 px-3 py-2 text-left last:border-b-0 transition-colors hover:bg-secondary/40 sm:px-4"
+      >
+        <Check className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
+        <span className="min-w-0 flex-1 truncate text-xs font-medium text-muted-foreground">
+          {step.title}
+          {skipped && !step.isDone(counts) && " · sprunget over"}
+        </span>
+        <ArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60" aria-hidden="true" />
+      </button>
+    );
+  }
 
   return (
     <div
@@ -77,7 +97,7 @@ export default function OnboardingStepCard({
           size="sm"
           variant={done ? "ghost" : "default"}
           disabled={blocked}
-          onClick={() => onNavigate(step.tab(counts))}
+          onClick={go}
           className="hidden h-8 shrink-0 px-3 text-xs sm:inline-flex"
           title={blocked ? `Mangler: ${missing.map((m) => m.label).join(", ")}` : undefined}
         >
@@ -125,7 +145,7 @@ export default function OnboardingStepCard({
             <Button
               size="sm"
               disabled={blocked}
-              onClick={() => onNavigate(step.tab(counts))}
+              onClick={go}
               className="h-8 px-3 text-xs sm:hidden"
             >
               {step.cta(counts)}
