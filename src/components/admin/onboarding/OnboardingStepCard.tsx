@@ -20,10 +20,12 @@ type Props = {
   onToggleSkip: () => void;
   /** Kompakt visning: brugt til færdige trin, der er foldet sammen. */
   compact?: boolean;
+  /** Fremhæv som det aktuelle trin (Discords "next up"-kort). */
+  current?: boolean;
 };
 
 export default function OnboardingStepCard({
-  step, number, counts, done, skipped, expanded, onToggleExpand, onNavigate, onToggleSkip, compact,
+  step, number, counts, done, skipped, expanded, onToggleExpand, onNavigate, onToggleSkip, compact, current,
 }: Props) {
   const Icon = step.icon;
   const missing = (step.requires ?? []).filter((r) => !r.met(counts));
@@ -50,10 +52,17 @@ export default function OnboardingStepCard({
   return (
     <div
       className={cn(
-        "border-b border-border bg-card transition-colors last:border-b-0",
+        "rounded-xl border border-border bg-card transition-all",
+        !done && "hover:border-foreground/25 hover:shadow-sm",
+        current && !done && "border-accent/50 shadow-sm ring-1 ring-accent/20",
         done && "bg-secondary/30",
       )}
     >
+      {current && !done && (
+        <p className="px-3 pt-2.5 text-[10px] font-bold uppercase tracking-wider text-accent sm:px-4">
+          Næste trin
+        </p>
+      )}
       <div className="flex items-center gap-3 px-3 py-3 sm:px-4">
         <span
           className={cn(

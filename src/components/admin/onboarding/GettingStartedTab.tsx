@@ -70,13 +70,26 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
 
   return (
     <div className="mx-auto w-full max-w-3xl space-y-5">
-      {/* Velkomst + fremgang */}
+      {/* Welcome sign — Discords banner: ét billede-agtigt felt, navn, én linje, én handling */}
       <div
         className={cn(
-          "rounded-2xl border border-border bg-card p-4 shadow-sm transition-colors sm:p-5",
-          allDone && "border-accent/40 bg-accent/5",
+          "overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-colors",
+          allDone && "border-accent/40",
         )}
       >
+        <div
+          className={cn(
+            "relative h-20 bg-gradient-to-br from-foreground/90 via-foreground/70 to-accent/70 sm:h-24",
+            allDone && "from-accent via-accent/80 to-foreground/70",
+          )}
+          aria-hidden="true"
+        >
+          <div className="absolute inset-0 opacity-25 [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:14px_14px]" />
+        </div>
+        <div className="relative p-4 pt-0 sm:p-5 sm:pt-0">
+          <div className="-mt-7 mb-3 flex h-14 w-14 items-center justify-center rounded-2xl border-4 border-card bg-secondary text-lg font-black uppercase text-foreground sm:h-16 sm:w-16">
+            {(business?.name?.[0] ?? "S")}
+          </div>
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">
             <h1 className="flex items-center gap-2 text-lg font-bold text-foreground sm:text-xl">
@@ -138,6 +151,7 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
             </button>
           )}
         </div>
+        </div>
       </div>
 
       {/* Ét spørgsmål der tilpasser guiden */}
@@ -191,13 +205,13 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
         </div>
       )}
 
-      {/* Kerne-trin der mangler */}
+      {/* Kerne-trin der mangler — ét kort pr. opgave, som Discords "To Do" */}
       {activeSteps.length > 0 && (
         <div>
           <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Skal på plads
+            Skal på plads ({activeSteps.length})
           </p>
-          <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+          <div className="space-y-2">
             {activeSteps.map((step) => (
               <OnboardingStepCard
                 key={step.id}
@@ -205,6 +219,7 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
                 number={steps.indexOf(step) + 1}
                 counts={counts}
                 done={false}
+                current={step.id === nextStepId}
                 skipped={!!skipped[step.id]}
                 expanded={expandedId === step.id}
                 onToggleExpand={() =>
@@ -271,7 +286,7 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
           />
         </button>
         {showNextLevel && (
-          <div className="border-t border-border">
+            <div className="space-y-2 border-t border-border p-2">
             {nextLevelSteps.map((step) => (
               <OnboardingStepCard
                 key={step.id}
