@@ -878,6 +878,11 @@ const Planner = () => {
     return sorted;
   }, [unassigned, search, sortBy, unassignedStatusFilter, urgencyFilter, postcodeFilter, serviceFilter]);
 
+  // Nulstil vinduet når filtrering/søgning ændrer listen.
+  useEffect(() => {
+    setUnassignedVisible(UNASSIGNED_PAGE);
+  }, [search, sortBy, unassignedStatusFilter, urgencyFilter, postcodeFilter, serviceFilter]);
+
   // Facets: postnumre + services i den nuværende pulje (uden urgency/postcode/service-
   // filtre, så brugeren kan se totalen pr. værdi). Beregnes fra `unassigned`
   // efter status+search, så facets viser hvad der reelt er at vælge mellem.
@@ -3957,7 +3962,22 @@ const Planner = () => {
                         />
                       );
                       if (unassignedGroupBy === "none") {
-                        return filteredUnassigned.map(renderCard);
+                        const shown = filteredUnassigned.slice(0, unassignedVisible);
+                        const rest = filteredUnassigned.length - shown.length;
+                        return (
+                          <>
+                            {shown.map(renderCard)}
+                            {rest > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => setUnassignedVisible((n) => n + UNASSIGNED_PAGE)}
+                                className="w-full h-9 rounded-md border border-border bg-background text-xs font-semibold text-foreground hover:bg-secondary"
+                              >
+                                Vis {Math.min(rest, UNASSIGNED_PAGE)} flere ({rest} tilbage)
+                              </button>
+                            )}
+                          </>
+                        );
                       }
                       const groups = new Map<string, { label: string; items: any[] }>();
                       const keyFor = (job: any): { key: string; label: string } => {
