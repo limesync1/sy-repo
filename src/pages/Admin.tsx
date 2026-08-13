@@ -29,7 +29,9 @@ const AccountingTab = lazy(() => import("@/components/admin/AccountingTab"));
 // så det kun loades når brugeren faktisk åbner Services-fanen.
 const ServicesTab = lazy(() => import("@/components/admin/ServicesTab"));
 import BusinessOnboarding from "@/components/admin/BusinessOnboarding";
-import OnboardingHub from "@/components/admin/onboarding/OnboardingHub";
+const GettingStartedTab = lazy(() => import("@/components/admin/onboarding/GettingStartedTab"));
+import NextStepBar from "@/components/admin/onboarding/NextStepBar";
+import { useOnboardingSignals } from "@/hooks/useOnboardingSignals";
 import SEO from "@/components/SEO";
 import { AdminShell, type AdminTabKey } from "@/components/admin/shared/AdminShell";
 import { ShellSkeleton, ListCardSkeleton, StatGridSkeleton, PageSkeleton, FormSkeleton, FilterBarSkeleton, PageHeaderSkeleton } from "@/components/admin/shared/Skeletons";
@@ -179,12 +181,17 @@ const AdminDashboard = () => {
   const { data: business, isLoading } = useMyBusiness();
   const { data: plan } = useBusinessPlan(business?.id);
   const location = useLocation();
+  const navigate = useNavigate();
+  const onboarding = useOnboardingSignals(business);
   // Læs ?tab=xxx synkront ved første render så vi ALDRIG flasher "Overblik" når
   // brugeren navigerer fra fx Ruteplanlæggeren til en anden fane.
   const initialTab = ((): AdminTabKey => {
     if (typeof window === "undefined") return "dashboard";
-    const t = new URLSearchParams(window.location.search).get("tab") as AdminTabKey | null;
-    const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","leads","livechat","accounting","settings"];
+    const params = new URLSearchParams(window.location.search);
+    // Bagudkompatibelt: ?guide=1 pegede tidligere på onboarding-modalen.
+    if (params.get("guide") === "1") return "getting-started";
+    const t = params.get("tab") as AdminTabKey | null;
+    const allowed: AdminTabKey[] = ["getting-started","dashboard","services","orders","customers","employees","reviews","leads","livechat","accounting","settings"];
     return t && allowed.includes(t) ? t : "dashboard";
   })();
   const [activeTab, setActiveTab] = useState<AdminTabKey>(initialTab);
