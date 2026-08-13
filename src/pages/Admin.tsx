@@ -195,6 +195,20 @@ const AdminDashboard = () => {
     return t && allowed.includes(t) ? t : "dashboard";
   })();
   const [activeTab, setActiveTab] = useState<AdminTabKey>(initialTab);
+  // Nye virksomheder lander på "Kom godt i gang" i stedet for Overblik, indtil
+  // de fire første trin er klaret. Kun ved første load og kun hvis URL'en ikke
+  // selv peger på en fane — så vi aldrig river brugeren væk midt i arbejdet.
+  const landedRef = useRef(false);
+  useEffect(() => {
+    if (landedRef.current) return;
+    if (typeof window === "undefined") return;
+    if (new URLSearchParams(window.location.search).get("tab")) { landedRef.current = true; return; }
+    if (!onboarding.counts) return;
+    landedRef.current = true;
+    const coreDone = ["categories", "accounting", "employees", "services"]
+      .every((id) => onboarding.done[id as keyof typeof onboarding.done]);
+    if (!coreDone) setActiveTab("getting-started");
+  }, [onboarding.counts, onboarding.done]);
 
   // Hold URL'en synkroniseret med aktiv fane (uden at trigge en ekstra render-cyklus).
   // Bruges også når brugeren klikker browserens tilbage-pil.
