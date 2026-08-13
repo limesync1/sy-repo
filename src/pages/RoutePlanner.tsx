@@ -3829,7 +3829,7 @@ const Planner = () => {
                       <EmptyState
                         icon={<AlertTriangle className="h-5 w-5" />}
                         title="Kunne ikke hente aftaler"
-                        description="Der opstod en fejl под hentning af aftaler uden rute. Tjek din forbindelse og prøv igen."
+                        description="Der opstod en fejl under hentning af aftaler uden rute. Tjek din forbindelse og prøv igen."
                         action={{ label: "Prøv igen", onClick: () => void refetchUnassigned() }}
                         compact
                       />
