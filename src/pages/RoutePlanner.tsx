@@ -190,7 +190,9 @@ const RoutePlannerDesktopOnly = () => {
       await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch {}
+    } catch {
+      toast.error("Kunne ikke kopiere linket", { description: "Kopiér adressen manuelt fra browserens adresselinje." });
+    }
   };
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-background via-background to-muted/30 px-5 py-10">
@@ -381,7 +383,12 @@ const Planner = () => {
   const { data: employees = [] } = useEmployees(businessId);
   const activeEmployees = useMemo(() => employees.filter((e: any) => e.is_active), [employees]);
 
-  const { data: unassigned = [], isLoading: loadingUnassigned } = useUnassignedJobs(businessId);
+  const {
+    data: unassigned = [],
+    isLoading: loadingUnassigned,
+    isError: unassignedError,
+    refetch: refetchUnassigned,
+  } = useUnassignedJobs(businessId);
 
   // Range for kalender: hele måneden hvis month-view, ugen hvis week-view
   const calendarRange = useMemo(() => {
@@ -448,7 +455,12 @@ const Planner = () => {
     bulkMoveOpen,
     setBulkMoveOpen,
   } = plannerStore.dialogs;
-  const { data: calendarData, isLoading: loadingCalendar } = useCalendarData(
+  const {
+    data: calendarData,
+    isLoading: loadingCalendar,
+    isError: calendarError,
+    refetch: refetchCalendar,
+  } = useCalendarData(
     businessId,
     calendarRange.start,
     calendarRange.end,
@@ -1397,6 +1409,7 @@ const Planner = () => {
     detectAssigneeConflicts,
     sensors,
     routePlannerCollisionDetection,
+    dndAnnouncements,
     handleDragStart,
     handleDragOver,
     handleDragMove,
