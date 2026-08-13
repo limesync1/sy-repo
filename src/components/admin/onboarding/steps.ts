@@ -42,6 +42,8 @@ export type OnboardingStep = {
   tip?: string;
   /** Fane CTA'en åbner. Kan afhænge af status. */
   tab: (c: OnboardingCounts) => string;
+  /** Valgfri deep-link-handling der åbner den rigtige dialog med det samme. */
+  action?: (c: OnboardingCounts) => string | null;
   cta: (c: OnboardingCounts) => string;
   isDone: (c: OnboardingCounts) => boolean;
   requires?: StepRequirement[];
@@ -72,6 +74,7 @@ export const CORE_STEPS: OnboardingStep[] = [
       "Opret de ydelser I sælger. Services er det kunder bestiller, og det prisen på hver aftale bygger på.",
     tip: "Start med 2-3 services I kender godt — resten kan tilføjes løbende.",
     tab: () => "services",
+    action: (c) => (c.servicesCount > 0 ? null : "new"),
     cta: (c) => (c.servicesCount > 0 ? "Se services" : "Opret service"),
     isDone: (c) => c.servicesCount > 0,
     requires: [
@@ -87,6 +90,7 @@ export const CORE_STEPS: OnboardingStep[] = [
       "Tilføj jeres team under Medarbejdere. De ser deres egne ruter, opgaver og kundeoplysninger i appen.",
     tip: "Er I solo? Opret jer selv — så kan I se flowet fra medarbejderens side.",
     tab: () => "employees",
+    action: (c) => (c.employeesCount > 0 ? null : "new"),
     cta: (c) => (c.employeesCount > 0 ? "Se team" : "Tilføj medarbejder"),
     isDone: (c) => c.employeesCount > 0,
   },
@@ -99,6 +103,7 @@ export const CORE_STEPS: OnboardingStep[] = [
       "Klik \"Opret bestilling\" under Aftaler eller Ruter. Vælg services, antal og dato — nye kunder oprettes undervejs.",
     tip: "En bestilling kan indeholde flere aftaler (fx ugentlig rengøring). Hver aftale bliver et stop på en rute.",
     tab: () => "orders",
+    action: (c) => (c.ordersCount > 0 ? null : "new"),
     cta: (c) => (c.ordersCount > 0 ? "Se aftaler" : "Opret bestilling"),
     isDone: (c) => c.ordersCount > 0,
     requires: [
