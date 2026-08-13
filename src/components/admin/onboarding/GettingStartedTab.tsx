@@ -25,10 +25,10 @@ const NEXT_LEVEL = [
 export default function GettingStartedTab({ business, onNavigate }: Props) {
   const { counts, isLoading, done, skipped, toggleSkip, completedCount, totalCount, allDone, nextStepId } =
     useOnboardingSignals(business);
-  const [manualExpanded, setManualExpanded] = useState<OnboardingStepId | null>(null);
+  const [manualExpanded, setManualExpanded] = useState<OnboardingStepId | "none" | null>(null);
 
   // Som standard er kun det aktuelle trin foldet ud.
-  const expandedId = manualExpanded ?? nextStepId;
+  const expandedId = manualExpanded === null ? nextStepId : manualExpanded;
   const pct = totalCount ? Math.round((completedCount / totalCount) * 100) : 0;
 
   const resources = useMemo(
@@ -114,7 +114,7 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
             done={done[step.id]}
             skipped={!!skipped[step.id]}
             expanded={expandedId === step.id}
-            onToggleExpand={() => setManualExpanded((cur) => (cur === step.id ? ("" as any) : step.id))}
+            onToggleExpand={() => setManualExpanded((cur) => ((cur === null ? nextStepId : cur) === step.id ? "none" : step.id))}
             onNavigate={onNavigate}
             onToggleSkip={() => toggleSkip(step.id)}
           />
