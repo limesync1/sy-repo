@@ -148,11 +148,11 @@ const SERVICE_CATEGORIES: Record<string, Record<string, string[]>> = {
 };
 
 /* ─── Services Tab ─── */
-const ServicesTab = ({ businessId, business }: { businessId: string; business: any }) => {
+const ServicesTab = ({ businessId, business, autoOpenCreate }: { businessId: string; business: any; autoOpenCreate?: boolean }) => {
   const { data: services, isLoading } = useServices(businessId);
   const { data: orders } = useOrders(businessId);
   const deleteService = useDeleteService();
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState(!!autoOpenCreate);
   const [filterCategory, setFilterCategory] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   // Bekræftelses-dialog før sletning af service — undgår utilsigtet tab af data.
@@ -415,7 +415,7 @@ const ServicesTab = ({ businessId, business }: { businessId: string; business: a
           <EmptyState
             icon={<Wrench />}
             title={filterCategory ? `Ingen services i "${filterCategory}"` : "Ingen services endnu"}
-            description="Tilføj din første service for at komme i gang."
+            description="Tilføj din første service for at komme i gang. Det er en del af opsætningen under “Kom godt i gang”."
             action={
               <PrimaryButton onClick={() => setShowForm(true)} icon={<Plus />}>
                 Tilføj service
