@@ -120,10 +120,14 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
           />
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-          <span className="inline-flex items-center gap-1">
-            <Clock className="h-3 w-3" aria-hidden="true" /> Tager ca. 15 minutter
-          </span>
-          <span>Trinene markeres færdige automatisk — I skal ikke krydse af manuelt.</span>
+          {!allDone && (
+            <>
+              <span className="inline-flex items-center gap-1">
+                <Clock className="h-3 w-3" aria-hidden="true" /> Tager ca. 15 minutter
+              </span>
+              <span>Trinene markeres færdige automatisk — I skal ikke krydse af manuelt.</span>
+            </>
+          )}
           {focus && (
             <button
               type="button"
@@ -137,7 +141,7 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
       </div>
 
       {/* Ét spørgsmål der tilpasser guiden */}
-      {!focus && (
+      {!focus && !allDone && (
         <div className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
           <h2 className="text-sm font-bold text-foreground">Hvad vil I bruge Serviceydere til?</h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
