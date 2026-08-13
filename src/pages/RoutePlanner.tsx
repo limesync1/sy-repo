@@ -3893,7 +3893,7 @@ const Planner = () => {
                         );
                       })()
                     )}
-                    {(() => {
+                    {!unassignedError && (() => {
                       const renderCard = (job: any) => (
                         <UnassignedJobCard
                         key={job.id}
