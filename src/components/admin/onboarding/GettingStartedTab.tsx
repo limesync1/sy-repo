@@ -317,15 +317,21 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
         <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           <Sparkles className="h-3.5 w-3.5" aria-hidden="true" /> Ressourcer
         </p>
-        <div className="grid gap-2 sm:grid-cols-3">
+        <div className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-background">
           {RESOURCES.map((r) => (
             <a
               key={r.title}
               href={r.href}
-              className="rounded-xl border border-border bg-background p-3 transition-colors hover:border-foreground/30"
+              className="group flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-secondary/50"
             >
-              <p className="text-sm font-semibold text-foreground">{r.title}</p>
-              <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">{r.body}</p>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-semibold text-foreground">{r.title}</span>
+                <span className="block truncate text-[11px] leading-snug text-muted-foreground">{r.body}</span>
+              </span>
+              <ExternalLink
+                className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5"
+                aria-hidden="true"
+              />
             </a>
           ))}
         </div>
