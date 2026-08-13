@@ -303,16 +303,22 @@ export const AdminShell = ({
   // Onboarding-status styrer om "Kom godt i gang" vises i sidebaren, og
   // hvilken badge den har (fx "3/6"). Forsvinder af sig selv når alt er grønt.
   const onboarding = useOnboardingSignals(business);
-  const onboardingVisible = !onboarding.allDone;
-  const onboardingBadge = onboarding.counts
+  const onboardingBadge = onboarding.counts && !onboarding.allDone
     ? `${onboarding.completedCount}/${onboarding.totalCount}`
     : null;
+  // Når opsætningen er færdig forsvinder badgen, og guiden flytter nederst i
+  // menuen — den bliver liggende som en rolig indgang til ressourcerne.
+  const orderedNav = onboarding.allDone
+    ? [
+        ...NAV_ITEMS.filter((n) => n.value !== "getting-started"),
+        ...NAV_ITEMS.filter((n) => n.value === "getting-started"),
+      ]
+    : NAV_ITEMS;
   const visibleNav = NAV_ITEMS.filter((n) => {
     if (n.requiresRoutePlanning && !routePlanningEnabled) return false;
     if (n.requiresLeads && !leadsEnabled) return false;
     if (n.requiresLivechat && !livechatEnabled) return false;
     if (n.requiresAccounting && !accountingEnabled) return false;
-    if (n.onlyWhileOnboarding && !onboardingVisible) return false;
     return true;
   });
   const currentNav = visibleNav.find((n) => n.value === activeTab) ?? NAV_ITEMS.find((n) => n.value === activeTab);
@@ -415,13 +421,12 @@ export const AdminShell = ({
         </div>
 
         <nav className={cn("flex-1 pt-1 pb-2 overflow-y-auto", collapsed ? "px-2" : "px-3")}>
-          {NAV_ITEMS.map((item) => {
+          {orderedNav.map((item) => {
             const visible =
               !(item.requiresRoutePlanning && !routePlanningEnabled) &&
               !(item.requiresLeads && !leadsEnabled) &&
               !(item.requiresLivechat && !livechatEnabled) &&
-              !(item.requiresAccounting && !accountingEnabled) &&
-              !(item.onlyWhileOnboarding && !onboardingVisible);
+              !(item.requiresAccounting && !accountingEnabled);
             return (
               <AnimatedNavItem
                 key={item.value}
