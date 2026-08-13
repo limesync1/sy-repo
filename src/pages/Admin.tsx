@@ -4,7 +4,7 @@ import {
   useMyBusiness, useServices, useOrders, useCreateBusiness,
   useReviews,
 } from "@/hooks/useDatabase";
-import { Navigate, Link, useLocation } from "react-router-dom";
+import { Navigate, Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -202,7 +202,7 @@ const AdminDashboard = () => {
     if (typeof window === "undefined") return;
     const onPop = () => {
       const t = new URLSearchParams(window.location.search).get("tab") as AdminTabKey | null;
-      const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","leads","livechat","accounting","settings"];
+      const allowed: AdminTabKey[] = ["getting-started","dashboard","services","orders","customers","employees","reviews","leads","livechat","accounting","settings"];
       setActiveTab(t && allowed.includes(t) ? t : "dashboard");
     };
     window.addEventListener("popstate", onPop);
@@ -213,16 +213,21 @@ const AdminDashboard = () => {
   // betalingskort" klikkes mens vi allerede er på /virksomhed) — uden dette
   // bliver fanen ikke skiftet, fordi React Router ikke fyrer popstate.
   useEffect(() => {
-    const t = new URLSearchParams(location.search).get("tab") as AdminTabKey | null;
-    const allowed: AdminTabKey[] = ["dashboard","services","orders","customers","employees","reviews","leads","livechat","accounting","settings"];
-    const next = t && allowed.includes(t) ? t : "dashboard";
+    const params = new URLSearchParams(location.search);
+    const t = params.get("tab") as AdminTabKey | null;
+    const allowed: AdminTabKey[] = ["getting-started","dashboard","services","orders","customers","employees","reviews","leads","livechat","accounting","settings"];
+    const next: AdminTabKey = params.get("guide") === "1"
+      ? "getting-started"
+      : t && allowed.includes(t) ? t : "dashboard";
     setActiveTab((curr) => (curr === next ? curr : next));
   }, [location.search]);
 
   const handleTabChange = (tab: AdminTabKey) => {
+    if (tab === "routes") { navigate("/virksomhed/ruter"); return; }
     setActiveTab(tab);
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href);
+      url.searchParams.delete("guide");
       if (tab === "dashboard") url.searchParams.delete("tab");
       else url.searchParams.set("tab", tab);
       window.history.replaceState({}, "", url.toString());
@@ -244,6 +249,7 @@ const AdminDashboard = () => {
 
   const renderContent = () => {
     switch (effectiveTab) {
+      case "getting-started": return <GettingStartedTab business={business} onNavigate={(t) => handleTabChange(t as AdminTabKey)} />;
       case "dashboard": return <DashboardWrapper business={business} onNavigate={(t) => handleTabChange(t as AdminTabKey)} />;
       case "services": return <ServicesTab businessId={business.id} business={business} />;
       case "orders": return (
@@ -279,9 +285,16 @@ const AdminDashboard = () => {
           <TrialBanner plan={plan} hideAction={activeTab === "settings"} />
         </div>
       )}
-      {/* Onboarding-hub: velkomst-wizard ved første login + persistent
-          checkliste i toppen indtil alle kerne-trin er gjort. */}
-      <OnboardingHub business={business} />
+      {/* Næste-trin-stribe: vises på alle faner indtil opsætningen er færdig. */}
+      {effectiveTab !== "getting-started" && (
+        <NextStepBar
+          nextStepId={onboarding.nextStepId}
+          counts={onboarding.counts}
+          completedCount={onboarding.completedCount}
+          totalCount={onboarding.totalCount}
+          onOpenGuide={() => handleTabChange("getting-started")}
+        />
+      )}
       <TabErrorBoundary resetKey={effectiveTab} label={effectiveTab}>
         <Suspense fallback={<TabFallback tab={effectiveTab} />}>
           {/* Én enkelt, blød fade-in pr. fane-skift. key sikrer at animationen
