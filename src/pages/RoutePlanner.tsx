@@ -809,6 +809,11 @@ const Planner = () => {
   /** Vis ALLE aftaler uden rute i poolen — ingen dato-vinduesfiltrering.
       Brugeren foretrækker at se hele listen ad gangen, fremfor at skulle
       åbne en separat dialog for at finde aftaler der ligger længere ude. */
+  // Progressiv rendering af den uplanlagte pulje: lange lister (100+ kort)
+  // gjorde panelet tungt at scrolle. Vi renderer et vindue ad gangen.
+  const UNASSIGNED_PAGE = 60;
+  const [unassignedVisible, setUnassignedVisible] = useState(UNASSIGNED_PAGE);
+
   const filteredUnassigned = useMemo(() => {
     let list = [...unassigned];
 
