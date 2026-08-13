@@ -162,7 +162,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [durationHours, durationMinutes, timeSlot, notes, assigneeIds, leadId]);
+  }, [durationHours, durationMinutes, timeSlot, notes, assigneeIds, leadId, readOnly, stop?.id]);
 
   if (!stop) return null;
 

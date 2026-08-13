@@ -190,7 +190,9 @@ const RoutePlannerDesktopOnly = () => {
       await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch {}
+    } catch {
+      toast.error("Kunne ikke kopiere linket", { description: "Kopiér adressen manuelt fra browserens adresselinje." });
+    }
   };
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-background via-background to-muted/30 px-5 py-10">
@@ -381,7 +383,12 @@ const Planner = () => {
   const { data: employees = [] } = useEmployees(businessId);
   const activeEmployees = useMemo(() => employees.filter((e: any) => e.is_active), [employees]);
 
-  const { data: unassigned = [], isLoading: loadingUnassigned } = useUnassignedJobs(businessId);
+  const {
+    data: unassigned = [],
+    isLoading: loadingUnassigned,
+    isError: unassignedError,
+    refetch: refetchUnassigned,
+  } = useUnassignedJobs(businessId);
 
   // Range for kalender: hele måneden hvis month-view, ugen hvis week-view
   const calendarRange = useMemo(() => {
@@ -448,7 +455,12 @@ const Planner = () => {
     bulkMoveOpen,
     setBulkMoveOpen,
   } = plannerStore.dialogs;
-  const { data: calendarData, isLoading: loadingCalendar } = useCalendarData(
+  const {
+    data: calendarData,
+    isLoading: loadingCalendar,
+    isError: calendarError,
+    refetch: refetchCalendar,
+  } = useCalendarData(
     businessId,
     calendarRange.start,
     calendarRange.end,
@@ -797,6 +809,11 @@ const Planner = () => {
   /** Vis ALLE aftaler uden rute i poolen — ingen dato-vinduesfiltrering.
       Brugeren foretrækker at se hele listen ad gangen, fremfor at skulle
       åbne en separat dialog for at finde aftaler der ligger længere ude. */
+  // Progressiv rendering af den uplanlagte pulje: lange lister (100+ kort)
+  // gjorde panelet tungt at scrolle. Vi renderer et vindue ad gangen.
+  const UNASSIGNED_PAGE = 60;
+  const [unassignedVisible, setUnassignedVisible] = useState(UNASSIGNED_PAGE);
+
   const filteredUnassigned = useMemo(() => {
     let list = [...unassigned];
 
@@ -860,6 +877,11 @@ const Planner = () => {
     }
     return sorted;
   }, [unassigned, search, sortBy, unassignedStatusFilter, urgencyFilter, postcodeFilter, serviceFilter]);
+
+  // Nulstil vinduet når filtrering/søgning ændrer listen.
+  useEffect(() => {
+    setUnassignedVisible(UNASSIGNED_PAGE);
+  }, [search, sortBy, unassignedStatusFilter, urgencyFilter, postcodeFilter, serviceFilter]);
 
   // Facets: postnumre + services i den nuværende pulje (uden urgency/postcode/service-
   // filtre, så brugeren kan se totalen pr. værdi). Beregnes fra `unassigned`
@@ -1397,6 +1419,7 @@ const Planner = () => {
     detectAssigneeConflicts,
     sensors,
     routePlannerCollisionDetection,
+    dndAnnouncements,
     handleDragStart,
     handleDragOver,
     handleDragMove,
@@ -2918,6 +2941,7 @@ const Planner = () => {
     </span>
     <DndContext
       sensors={sensors}
+      accessibility={{ announcements: dndAnnouncements }}
       collisionDetection={routePlannerCollisionDetection}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
@@ -3811,14 +3835,23 @@ const Planner = () => {
                     data-density-target="list"
                     className="flex-1 overflow-y-auto p-2.5 space-y-2 bg-secondary/[0.16]"
                   >
-                    {loadingUnassigned && unassigned.length === 0 && (
+                    {unassignedError && (
+                      <EmptyState
+                        icon={<AlertTriangle className="h-5 w-5" />}
+                        title="Kunne ikke hente aftaler"
+                        description="Der opstod en fejl under hentning af aftaler uden rute. Tjek din forbindelse og prøv igen."
+                        action={{ label: "Prøv igen", onClick: () => void refetchUnassigned() }}
+                        compact
+                      />
+                    )}
+                    {!unassignedError && loadingUnassigned && unassigned.length === 0 && (
                       <div className="space-y-1.5">
                         {Array.from({ length: 5 }).map((_, i) => (
                           <UnassignedJobCardSkeleton key={i} compact={compactCards} />
                         ))}
                       </div>
                     )}
-                    {!loadingUnassigned && filteredUnassigned.length === 0 && (
+                    {!unassignedError && !loadingUnassigned && filteredUnassigned.length === 0 && (
                       (() => {
                         const hasFilter = unassignedStatusFilter !== "all";
                         const filterLabel: Record<typeof unassignedStatusFilter, string> = {
@@ -3870,7 +3903,7 @@ const Planner = () => {
                         );
                       })()
                     )}
-                    {(() => {
+                    {!unassignedError && (() => {
                       const renderCard = (job: any) => (
                         <UnassignedJobCard
                         key={job.id}
@@ -3929,7 +3962,22 @@ const Planner = () => {
                         />
                       );
                       if (unassignedGroupBy === "none") {
-                        return filteredUnassigned.map(renderCard);
+                        const shown = filteredUnassigned.slice(0, unassignedVisible);
+                        const rest = filteredUnassigned.length - shown.length;
+                        return (
+                          <>
+                            {shown.map(renderCard)}
+                            {rest > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => setUnassignedVisible((n) => n + UNASSIGNED_PAGE)}
+                                className="w-full h-9 rounded-md border border-border bg-background text-xs font-semibold text-foreground hover:bg-secondary"
+                              >
+                                Vis {Math.min(rest, UNASSIGNED_PAGE)} flere ({rest} tilbage)
+                              </button>
+                            )}
+                          </>
+                        );
                       }
                       const groups = new Map<string, { label: string; items: any[] }>();
                       const keyFor = (job: any): { key: string; label: string } => {
@@ -4053,6 +4101,19 @@ const Planner = () => {
                   rangeStart={calendarRange.start}
                   rangeEnd={calendarRange.end}
                 />
+                {calendarError && (
+                  <div className="mx-3 mt-3 flex flex-wrap items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-foreground">
+                    <AlertTriangle className="h-4 w-4 text-destructive" />
+                    <span className="font-medium">Kunne ikke hente kalenderen — det viste kan være ufuldstændigt.</span>
+                    <button
+                      type="button"
+                      onClick={() => void refetchCalendar()}
+                      className="ml-auto rounded-md border border-border bg-background px-2 py-1 font-semibold hover:bg-secondary"
+                    >
+                      Prøv igen
+                    </button>
+                  </div>
+                )}
                 <div className="flex-1 min-h-0">
                 <MonthWeekCalendar
                   view={view}

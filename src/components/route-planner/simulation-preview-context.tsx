@@ -59,3 +59,9 @@ export function writeSimulationPreviewDebounced(v: SimulationPreview | null, del
     setSimulationPreview(v);
   }, delayMs);
 }
+
+/** Annullér ventende skrivning (kaldes ved unmount) — undgår forældet preview. */
+export function cancelPendingSimulationPreview() {
+  if (debounceTimer) clearTimeout(debounceTimer);
+  debounceTimer = null;
+}

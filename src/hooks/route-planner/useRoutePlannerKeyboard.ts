@@ -1,5 +1,5 @@
 import { addDays, addMonths, addWeeks, format, parseISO } from "date-fns";
-import { useEffect, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
+import { useEffect, useRef, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
 import { toast } from "sonner";
 
 /**
@@ -36,33 +36,37 @@ export function useRoutePlannerKeyboard(opts: {
   selectedStopIds?: Set<string>;
   clearStopSelection?: () => void;
 }) {
-  const {
-    history,
-    view,
-    setDate,
-    todayStr,
-    selectedJobIds,
-    setSelectedJobIds,
-    lastSelectedJobIdRef,
-    selectedStopId,
-    setSelectedStopId,
-    deleteStop,
-    editingRoute,
-    setCreateOpen,
-    setShortcutsOpen,
-    setPrintOpen,
-    setDayDetailOpen,
-    focusSearchRef,
-    runAutoAssignRef,
-    optimizeRouteRef,
-    selectedRouteIds,
-    clearRouteSelection,
-    selectedStopIds,
-    clearStopSelection,
-  } = opts;
+  // Alle props læses gennem en "latest"-ref, så keydown-lytteren aldrig
+  // arbejder på en forældet kopi af fx `selectedRouteIds` (stale closure).
+  const latest = useRef(opts);
+  latest.current = opts;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      const {
+        history,
+        view,
+        setDate,
+        todayStr,
+        selectedJobIds,
+        setSelectedJobIds,
+        lastSelectedJobIdRef,
+        selectedStopId,
+        setSelectedStopId,
+        deleteStop,
+        editingRoute,
+        setCreateOpen,
+        setShortcutsOpen,
+        setPrintOpen,
+        setDayDetailOpen,
+        focusSearchRef,
+        runAutoAssignRef,
+        optimizeRouteRef,
+        selectedRouteIds,
+        clearRouteSelection,
+        selectedStopIds,
+        clearStopSelection,
+      } = latest.current;
       // Ignore when typing in inputs
       const t = e.target as HTMLElement;
       if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
@@ -145,6 +149,5 @@ export function useRoutePlannerKeyboard(opts: {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedStopId, view, history, editingRoute, selectedJobIds, deleteStop]);
+  }, []);
 }
