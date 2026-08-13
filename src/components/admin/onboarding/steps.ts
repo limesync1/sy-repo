@@ -2,8 +2,12 @@
 //
 // Ét trin = én handling = ét deep link. Teksterne er bevidst korte: titlen
 // maks fire ord, `short` én linje, og `body`/`tip` vises først når kortet er
-// udfoldet. `requires` bruges til at gate CTA'en indtil forudsætningerne er
-// på plads (samme mønster som Discord's onboarding-krav).
+// udfoldet. `requires` gater CTA'en indtil forudsætningerne er på plads
+// (samme mønster som Discord's onboarding-krav).
+//
+// Trinene er delt i to spor — som Discords "New Member To Do's" viser vi
+// aldrig mere end en håndfuld obligatoriske opgaver ad gangen. Resten ligger
+// i "næste niveau" og tæller ikke med i fremgangen.
 import {
   Tags, Calculator, UserPlus, Wrench, ShoppingCart, Route as RouteIcon,
   type LucideIcon,
@@ -12,6 +16,15 @@ import type { OnboardingCounts } from "@/hooks/useOnboardingSignals";
 
 export type OnboardingStepId =
   | "categories" | "accounting" | "employees" | "services" | "order" | "route";
+
+/** Hvad virksomheden primært vil bruge platformen til. Styrer hvilke trin der vises. */
+export type OnboardingFocus = "routes" | "jobs" | "both";
+
+export const FOCUS_OPTIONS: { value: OnboardingFocus; title: string; body: string }[] = [
+  { value: "routes", title: "Faste aftaler og ruter", body: "Tilbagevendende besøg som planlægges på ruter." },
+  { value: "jobs", title: "Enkeltopgaver og tilbud", body: "Opgaver ad gangen — uden fast ruteplan." },
+  { value: "both", title: "Begge dele", body: "Både faste aftaler og løse opgaver." },
+];
 
 export type StepRequirement = {
   label: string;
@@ -22,7 +35,6 @@ export type StepRequirement = {
 
 export type OnboardingStep = {
   id: OnboardingStepId;
-  number: number;
   icon: LucideIcon;
   title: string;
   short: string;
@@ -33,12 +45,14 @@ export type OnboardingStep = {
   cta: (c: OnboardingCounts) => string;
   isDone: (c: OnboardingCounts) => boolean;
   requires?: StepRequirement[];
+  /** Skjul trinet for virksomheder hvis fokus ikke passer. */
+  appliesTo?: (focus: OnboardingFocus) => boolean;
 };
 
-export const ONBOARDING_STEPS: OnboardingStep[] = [
+/** Obligatoriske trin — tælleren og badgen bygger på disse. */
+export const CORE_STEPS: OnboardingStep[] = [
   {
     id: "categories",
-    number: 1,
     icon: Tags,
     title: "Vælg brancher",
     short: "Bestemmer hvor kunder kan finde jer.",
@@ -50,35 +64,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     isDone: (c) => c.categoriesCount > 0,
   },
   {
-    id: "accounting",
-    number: 2,
-    icon: Calculator,
-    title: "Forbind regnskab",
-    short: "Fakturaer oprettes automatisk når en aftale afsluttes.",
-    body:
-      "Slå regnskab til under Indstillinger → Ekstra funktioner, og forbind e-conomic, Billy, Dinero eller Zenegy. Så bogføres bestillinger automatisk.",
-    tip: "Sæt regnskab op før første rute køres — ellers skal de første bestillinger bogføres manuelt.",
-    tab: (c) => (c.accountingFeatureEnabled ? "accounting" : "settings"),
-    cta: (c) =>
-      c.accountingActive ? "Se status" : c.accountingFeatureEnabled ? "Forbind" : "Aktivér",
-    isDone: (c) => !c.accountingFeatureEnabled || c.accountingActive,
-  },
-  {
-    id: "employees",
-    number: 3,
-    icon: UserPlus,
-    title: "Opret medarbejdere",
-    short: "Hver medarbejder får eget login til medarbejder-appen.",
-    body:
-      "Tilføj jeres team under Medarbejdere. De ser deres egne ruter, opgaver og kundeoplysninger i appen.",
-    tip: "Er I solo? Opret jer selv — så kan I se flowet fra chaufførens side.",
-    tab: () => "employees",
-    cta: (c) => (c.employeesCount > 0 ? "Se team" : "Tilføj medarbejder"),
-    isDone: (c) => c.employeesCount > 0,
-  },
-  {
     id: "services",
-    number: 4,
     icon: Wrench,
     title: "Opret services",
     short: "Fast pris, timepris eller prisberegner.",
@@ -93,8 +79,19 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     ],
   },
   {
+    id: "employees",
+    icon: UserPlus,
+    title: "Opret medarbejdere",
+    short: "Hver medarbejder får eget login til medarbejder-appen.",
+    body:
+      "Tilføj jeres team under Medarbejdere. De ser deres egne ruter, opgaver og kundeoplysninger i appen.",
+    tip: "Er I solo? Opret jer selv — så kan I se flowet fra medarbejderens side.",
+    tab: () => "employees",
+    cta: (c) => (c.employeesCount > 0 ? "Se team" : "Tilføj medarbejder"),
+    isDone: (c) => c.employeesCount > 0,
+  },
+  {
     id: "order",
-    number: 5,
     icon: ShoppingCart,
     title: "Første bestilling",
     short: "Kunden kan oprettes direkte i bestillingen.",
@@ -110,7 +107,6 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   },
   {
     id: "route",
-    number: 6,
     icon: RouteIcon,
     title: "Læg på en rute",
     short: "Husk at tildele hvert stop til en medarbejder.",
@@ -124,8 +120,31 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
       { label: "Mindst én medarbejder", met: (c) => c.employeesCount > 0, tab: "employees" },
       { label: "Mindst én bestilling", met: (c) => c.ordersCount > 0, tab: "orders" },
     ],
+    appliesTo: (focus) => focus !== "jobs",
   },
 ];
 
-export const getStep = (id: OnboardingStepId) =>
-  ONBOARDING_STEPS.find((s) => s.id === id)!;
+/** Frivillige trin — vises foldet sammen og blokerer ikke opstarten. */
+export const NEXT_LEVEL_STEPS: OnboardingStep[] = [
+  {
+    id: "accounting",
+    icon: Calculator,
+    title: "Forbind regnskab",
+    short: "Fakturaer oprettes automatisk når en aftale afsluttes.",
+    body:
+      "Slå regnskab til under Indstillinger → Ekstra funktioner, og forbind e-conomic, Billy, Dinero eller Zenegy. Så bogføres bestillinger automatisk.",
+    tip: "Kan sættes op når som helst — indtil da bogfører I selv.",
+    tab: (c) => (c.accountingFeatureEnabled ? "accounting" : "settings"),
+    cta: (c) =>
+      c.accountingActive ? "Se status" : c.accountingFeatureEnabled ? "Forbind" : "Aktivér",
+    isDone: (c) => c.accountingFeatureEnabled && c.accountingActive,
+  },
+];
+
+export const ALL_STEPS = [...CORE_STEPS, ...NEXT_LEVEL_STEPS];
+
+/** Trin der gælder for et givent fokus. */
+export const coreStepsForFocus = (focus: OnboardingFocus) =>
+  CORE_STEPS.filter((s) => !s.appliesTo || s.appliesTo(focus));
+
+export const getStep = (id: OnboardingStepId) => ALL_STEPS.find((s) => s.id === id)!;
