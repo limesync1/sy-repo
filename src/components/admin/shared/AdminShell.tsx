@@ -159,6 +159,7 @@ const AnimatedNavItem = ({
  * fane-skift føles øjeblikkeligt i stedet for at vise "Indlæser…".
  */
 const TAB_PREFETCH: Partial<Record<AdminTabKey, () => Promise<unknown>>> = {
+  "getting-started": () => import("@/components/admin/onboarding/GettingStartedTab"),
   dashboard: () => import("@/components/admin/DashboardTab"),
   services:  () => import("@/components/admin/ServicesTab"),
   orders:    () => import("@/components/admin/AftaleTab"),

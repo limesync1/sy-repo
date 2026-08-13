@@ -70,7 +70,8 @@ const DashboardTab = ({
   const location = useLocation();
   const openGuide = () => {
     const params = new URLSearchParams(location.search);
-    params.set("guide", "1");
+    params.delete("guide");
+    params.set("tab", "getting-started");
     navigate({ pathname: location.pathname, search: `?${params.toString()}` }, { replace: true });
   };
   // Hurtig inline status til "Se guide"-knappen — viser brugeren hvor langt
