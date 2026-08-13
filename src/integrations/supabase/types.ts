@@ -4209,24 +4209,6 @@ export type Database = {
         }
         Relationships: []
       }
-      profiles_public: {
-        Row: {
-          avatar_url: string | null
-          display_name: string | null
-          user_id: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          display_name?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          display_name?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
     }
     Functions: {
       _acct_health_record: {
@@ -4778,6 +4760,10 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_order_for_approval: {
+        Args: { p_order_id: string; p_token: string }
+        Returns: Json
+      }
       get_platform_pricing: {
         Args: never
         Returns: {
@@ -4791,6 +4777,14 @@ export type Database = {
           startup_fee_dkk: number
           stripe_publishable_key: string
           trial_days: number
+        }[]
+      }
+      get_public_profiles: {
+        Args: { p_user_ids: string[] }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          user_id: string
         }[]
       }
       get_quote_request_contact: {
