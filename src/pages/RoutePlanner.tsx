@@ -2931,6 +2931,7 @@ const Planner = () => {
     </span>
     <DndContext
       sensors={sensors}
+      accessibility={{ announcements: dndAnnouncements }}
       collisionDetection={routePlannerCollisionDetection}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
@@ -3824,14 +3825,23 @@ const Planner = () => {
                     data-density-target="list"
                     className="flex-1 overflow-y-auto p-2.5 space-y-2 bg-secondary/[0.16]"
                   >
-                    {loadingUnassigned && unassigned.length === 0 && (
+                    {unassignedError && (
+                      <EmptyState
+                        icon={<AlertTriangle className="h-5 w-5" />}
+                        title="Kunne ikke hente aftaler"
+                        description="Der opstod en fejl под hentning af aftaler uden rute. Tjek din forbindelse og prøv igen."
+                        action={{ label: "Prøv igen", onClick: () => void refetchUnassigned() }}
+                        compact
+                      />
+                    )}
+                    {!unassignedError && loadingUnassigned && unassigned.length === 0 && (
                       <div className="space-y-1.5">
                         {Array.from({ length: 5 }).map((_, i) => (
                           <UnassignedJobCardSkeleton key={i} compact={compactCards} />
                         ))}
                       </div>
                     )}
-                    {!loadingUnassigned && filteredUnassigned.length === 0 && (
+                    {!unassignedError && !loadingUnassigned && filteredUnassigned.length === 0 && (
                       (() => {
                         const hasFilter = unassignedStatusFilter !== "all";
                         const filterLabel: Record<typeof unassignedStatusFilter, string> = {
