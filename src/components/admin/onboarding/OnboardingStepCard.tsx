@@ -9,6 +9,8 @@ import type { OnboardingCounts } from "@/hooks/useOnboardingSignals";
 
 type Props = {
   step: OnboardingStep;
+  /** Løbenummer i listen. Udelades for frivillige trin. */
+  number?: number;
   counts: OnboardingCounts;
   done: boolean;
   skipped: boolean;
@@ -19,7 +21,7 @@ type Props = {
 };
 
 export default function OnboardingStepCard({
-  step, counts, done, skipped, expanded, onToggleExpand, onNavigate, onToggleSkip,
+  step, number, counts, done, skipped, expanded, onToggleExpand, onNavigate, onToggleSkip,
 }: Props) {
   const Icon = step.icon;
   const missing = (step.requires ?? []).filter((r) => !r.met(counts));
@@ -42,7 +44,7 @@ export default function OnboardingStepCard({
           )}
           aria-hidden="true"
         >
-          {done ? <Check className="h-4 w-4" /> : step.number}
+          {done ? <Check className="h-4 w-4" /> : number ?? <Icon className="h-3.5 w-3.5" />}
         </span>
 
         <button

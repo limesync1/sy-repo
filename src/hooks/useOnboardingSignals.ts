@@ -2,12 +2,19 @@
 // opsætningen?". Bruges af sidebar-badgen, næste-trin-striben og selve
 // "Kom godt i gang"-fanen, så de aldrig kan vise forskellige tal.
 //
-// Alt detekteres automatisk fra databasen. Manuelle overrides bruges kun til
-// "spring over" på det enkelte trin og gemmes lokalt pr. virksomhed.
-import { useCallback, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+// Selve fremgangen detekteres automatisk fra databasen. Brugerens egne valg
+// — sprunget over-trin og hvad de vil bruge platformen til — gemmes i
+// `business_onboarding_progress`, så de følger virksomheden på tværs af
+// browsere og kolleger. Fokus lægges i `current_step` med præfikset
+// `focus:` for at undgå en migration for ét enkelt felt.
+import { useCallback, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ONBOARDING_STEPS, type OnboardingStepId } from "@/components/admin/onboarding/steps";
+import {
+  CORE_STEPS, coreStepsForFocus, NEXT_LEVEL_STEPS,
+  type OnboardingFocus, type OnboardingStep, type OnboardingStepId,
+} from "@/components/admin/onboarding/steps";
+import { useOnboardingProgress, useUpdateOnboardingProgress } from "@/hooks/useOnboarding";
 
 export type OnboardingCounts = {
   categoriesCount: number;
@@ -19,7 +26,8 @@ export type OnboardingCounts = {
   routesCount: number;
 };
 
-const SKIP_KEY_PREFIX = "serviceydere.onboarding.skipped.";
+const FOCUS_PREFIX = "focus:";
+const isFocus = (v: string): v is OnboardingFocus => ["routes", "jobs", "both"].includes(v);
 
 export type OnboardingState = {
   counts: OnboardingCounts | undefined;
@@ -28,6 +36,13 @@ export type OnboardingState = {
   done: Record<OnboardingStepId, boolean>;
   skipped: Record<string, boolean>;
   toggleSkip: (id: OnboardingStepId) => void;
+  /** Kerne-trin filtreret efter virksomhedens fokus. */
+  steps: OnboardingStep[];
+  nextLevelSteps: OnboardingStep[];
+  focus: OnboardingFocus | null;
+  setFocus: (focus: OnboardingFocus) => void;
+  /** Nulstil svaret så spørgsmålet vises igen. */
+  clearFocus: () => void;
   completedCount: number;
   totalCount: number;
   allDone: boolean;
@@ -47,6 +62,7 @@ const EMPTY_COUNTS: OnboardingCounts = {
 
 export const useOnboardingSignals = (business: any): OnboardingState => {
   const businessId = business?.id as string | undefined;
+  const qc = useQueryClient();
 
   const { data: counts, isLoading } = useQuery({
     queryKey: ["onboarding-signals", businessId],
@@ -75,32 +91,62 @@ export const useOnboardingSignals = (business: any): OnboardingState => {
     },
   });
 
-  const skipKey = SKIP_KEY_PREFIX + (businessId || "anon");
-  const [skipped, setSkipped] = useState<Record<string, boolean>>(() => {
-    if (typeof window === "undefined") return {};
-    try { return JSON.parse(localStorage.getItem(skipKey) || "{}"); } catch { return {}; }
-  });
+  const { data: progress } = useOnboardingProgress(businessId);
+  const update = useUpdateOnboardingProgress(businessId);
 
-  const toggleSkip = useCallback((id: OnboardingStepId) => {
-    setSkipped((prev) => {
-      const next = { ...prev, [id]: !prev[id] };
-      try { localStorage.setItem(skipKey, JSON.stringify(next)); } catch { /* ignore */ }
-      return next;
-    });
-  }, [skipKey]);
+  const skipped = useMemo(() => {
+    const map: Record<string, boolean> = {};
+    for (const id of progress?.skipped_steps ?? []) map[id] = true;
+    return map;
+  }, [progress?.skipped_steps]);
+
+  const rawFocus = progress?.current_step ?? "";
+  const focus: OnboardingFocus | null =
+    rawFocus.startsWith(FOCUS_PREFIX) && isFocus(rawFocus.slice(FOCUS_PREFIX.length))
+      ? (rawFocus.slice(FOCUS_PREFIX.length) as OnboardingFocus)
+      : null;
+
+  const patchProgress = useCallback(
+    (patch: Record<string, unknown>) => {
+      // Optimistisk: opdatér cachen med det samme så UI'et ikke hakker.
+      qc.setQueryData(["onboarding-progress", businessId], (old: any) =>
+        old ? { ...old, ...patch } : old,
+      );
+      update.mutate(patch as any);
+    },
+    [qc, businessId, update],
+  );
+
+  const toggleSkip = useCallback(
+    (id: OnboardingStepId) => {
+      const current = new Set(progress?.skipped_steps ?? []);
+      if (current.has(id)) current.delete(id);
+      else current.add(id);
+      patchProgress({ skipped_steps: Array.from(current) });
+    },
+    [progress?.skipped_steps, patchProgress],
+  );
+
+  const setFocus = useCallback(
+    (next: OnboardingFocus) => patchProgress({ current_step: `${FOCUS_PREFIX}${next}` }),
+    [patchProgress],
+  );
+
+  const clearFocus = useCallback(() => patchProgress({ current_step: null }), [patchProgress]);
 
   const effective = counts ?? EMPTY_COUNTS;
+  const steps = useMemo(() => coreStepsForFocus(focus ?? "both"), [focus]);
 
   const done = useMemo(() => {
     const map = {} as Record<OnboardingStepId, boolean>;
-    for (const step of ONBOARDING_STEPS) {
+    for (const step of [...CORE_STEPS, ...NEXT_LEVEL_STEPS]) {
       map[step.id] = step.isDone(effective) || !!skipped[step.id];
     }
     return map;
   }, [effective, skipped]);
 
-  const completedCount = ONBOARDING_STEPS.filter((s) => done[s.id]).length;
-  const nextStep = ONBOARDING_STEPS.find((s) => !done[s.id]) ?? null;
+  const completedCount = steps.filter((s) => done[s.id]).length;
+  const nextStep = steps.find((s) => !done[s.id]) ?? null;
 
   return {
     counts,
@@ -108,9 +154,14 @@ export const useOnboardingSignals = (business: any): OnboardingState => {
     done,
     skipped,
     toggleSkip,
+    steps,
+    nextLevelSteps: NEXT_LEVEL_STEPS,
+    focus,
+    setFocus,
+    clearFocus,
     completedCount,
-    totalCount: ONBOARDING_STEPS.length,
-    allDone: !isLoading && !!counts && completedCount === ONBOARDING_STEPS.length,
+    totalCount: steps.length,
+    allDone: !isLoading && !!counts && completedCount === steps.length,
     nextStepId: nextStep?.id ?? null,
   };
 };
