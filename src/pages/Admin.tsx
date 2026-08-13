@@ -205,7 +205,7 @@ const AdminDashboard = () => {
     if (new URLSearchParams(window.location.search).get("tab")) { landedRef.current = true; return; }
     if (!onboarding.counts) return;
     landedRef.current = true;
-    const coreDone = ["categories", "accounting", "employees", "services"]
+    const coreDone = ["categories", "services", "employees"]
       .every((id) => onboarding.done[id as keyof typeof onboarding.done]);
     if (!coreDone) setActiveTab("getting-started");
   }, [onboarding.counts, onboarding.done]);
