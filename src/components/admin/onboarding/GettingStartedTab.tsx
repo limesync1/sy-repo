@@ -119,18 +119,26 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
             {completedCount} af {totalCount}
           </span>
         </div>
+        {/* Segmenteret fremgang — ét felt pr. opgave, som Discords to-do-tæller */}
         <div
-          className="mt-3 h-2 w-full overflow-hidden rounded-full bg-secondary"
+          className="mt-3 flex gap-1.5"
           role="progressbar"
           aria-label="Opsætningens fremgang"
           aria-valuenow={pct}
           aria-valuemin={0}
           aria-valuemax={100}
         >
-          <div
-            className={cn("h-full rounded-full bg-foreground transition-[width] duration-500", allDone && "bg-accent")}
-            style={{ width: `${pct}%` }}
-          />
+          {steps.map((s, i) => (
+            <span
+              key={s.id}
+              className={cn(
+                "h-1.5 flex-1 rounded-full bg-secondary transition-colors duration-500",
+                done[s.id] && (allDone ? "bg-accent" : "bg-foreground"),
+                !done[s.id] && s.id === nextStepId && "bg-foreground/30",
+              )}
+              style={{ transitionDelay: `${i * 60}ms` }}
+            />
+          ))}
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
           {!allDone && (
@@ -309,15 +317,21 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
         <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           <Sparkles className="h-3.5 w-3.5" aria-hidden="true" /> Ressourcer
         </p>
-        <div className="grid gap-2 sm:grid-cols-3">
+        <div className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-background">
           {RESOURCES.map((r) => (
             <a
               key={r.title}
               href={r.href}
-              className="rounded-xl border border-border bg-background p-3 transition-colors hover:border-foreground/30"
+              className="group flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-secondary/50"
             >
-              <p className="text-sm font-semibold text-foreground">{r.title}</p>
-              <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">{r.body}</p>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-semibold text-foreground">{r.title}</span>
+                <span className="block truncate text-[11px] leading-snug text-muted-foreground">{r.body}</span>
+              </span>
+              <ExternalLink
+                className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5"
+                aria-hidden="true"
+              />
             </a>
           ))}
         </div>

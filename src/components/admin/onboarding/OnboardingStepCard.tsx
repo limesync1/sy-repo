@@ -66,14 +66,16 @@ export default function OnboardingStepCard({
       <div className="flex items-center gap-3 px-3 py-3 sm:px-4">
         <span
           className={cn(
-            "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 text-[11px] font-bold tabular-nums",
+            "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border text-[11px] font-bold tabular-nums transition-colors",
             done
               ? "border-accent bg-accent text-accent-foreground"
-              : "border-border bg-background text-muted-foreground",
+              : current
+                ? "border-foreground/15 bg-foreground text-background"
+                : "border-border bg-secondary text-muted-foreground",
           )}
           aria-hidden="true"
         >
-          {done ? <Check className="h-4 w-4" /> : number ?? <Icon className="h-3.5 w-3.5" />}
+          {done ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
         </span>
 
         <button
@@ -82,9 +84,11 @@ export default function OnboardingStepCard({
           aria-expanded={expanded}
           className="flex min-w-0 flex-1 items-center gap-2 text-left"
         >
-          <Icon className="hidden h-4 w-4 shrink-0 text-muted-foreground sm:block" aria-hidden="true" />
           <span className="min-w-0">
             <span className={cn("block truncate text-sm font-semibold", done ? "text-muted-foreground" : "text-foreground")}>
+              {number != null && !done && (
+                <span className="mr-1.5 text-[11px] font-bold tabular-nums text-muted-foreground">{number}.</span>
+              )}
               {step.title}
               {skipped && !step.isDone(counts) && (
                 <span className="ml-2 rounded-full bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
