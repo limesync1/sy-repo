@@ -188,12 +188,10 @@ type NavItem = {
   requiresLeads?: boolean;
   requiresLivechat?: boolean;
   requiresAccounting?: boolean;
-  /** Vises kun mens onboarding ikke er færdig. */
-  onlyWhileOnboarding?: boolean;
 };
 
 const NAV_ITEMS: NavItem[] = [
-  { value: "getting-started", label: "Kom godt i gang", icon: Rocket, onlyWhileOnboarding: true },
+  { value: "getting-started", label: "Kom godt i gang", icon: Rocket },
   { value: "dashboard", label: "Overblik", icon: LayoutDashboard },
   { value: "services", label: "Services", icon: Wrench },
   { value: "orders", label: "Aftaler", icon: ShoppingCart },
