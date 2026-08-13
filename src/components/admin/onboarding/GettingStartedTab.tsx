@@ -286,7 +286,7 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
           />
         </button>
         {showNextLevel && (
-          <div className="border-t border-border">
+            <div className="space-y-2 border-t border-border p-2">
             {nextLevelSteps.map((step) => (
               <OnboardingStepCard
                 key={step.id}
