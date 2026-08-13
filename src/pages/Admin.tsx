@@ -236,7 +236,12 @@ const AdminDashboard = () => {
     setActiveTab((curr) => (curr === next ? curr : next));
   }, [location.search]);
 
-  const handleTabChange = (tab: AdminTabKey) => {
+  // Deep link fra onboarding-guiden: fx "åbn Services og gå direkte i
+  // Opret service". Nulstilles når fanen skifter igen.
+  const [pendingAction, setPendingAction] = useState<{ tab: string; action: string } | null>(null);
+
+  const handleTabChange = (tab: AdminTabKey, action?: string | null) => {
+    setPendingAction(action ? { tab, action } : null);
     if (tab === "routes") { navigate("/virksomhed/ruter"); return; }
     setActiveTab(tab);
     if (typeof window !== "undefined") {
@@ -262,19 +267,22 @@ const AdminDashboard = () => {
       : activeTab;
 
   const renderContent = () => {
+    const openCreate = (tab: string) =>
+      pendingAction?.tab === tab && pendingAction.action === "new";
     switch (effectiveTab) {
-      case "getting-started": return <GettingStartedTab business={business} onNavigate={(t) => handleTabChange(t as AdminTabKey)} />;
+      case "getting-started": return <GettingStartedTab business={business} onNavigate={(t, a) => handleTabChange(t as AdminTabKey, a)} />;
       case "dashboard": return <DashboardWrapper business={business} onNavigate={(t) => handleTabChange(t as AdminTabKey)} />;
-      case "services": return <ServicesTab businessId={business.id} business={business} />;
+      case "services": return <ServicesTab businessId={business.id} business={business} autoOpenCreate={openCreate("services")} />;
       case "orders": return (
         <AftaleTab
           businessId={business.id}
           businessName={business.name}
           routePlanningEnabled={!!(business.settings as any)?.route_planning_enabled}
+          autoOpenCreate={openCreate("orders")}
         />
       );
       case "customers": return <CustomersTab businessId={business.id} businessName={business.name} />;
-      case "employees": return <EmployeesTab businessId={business.id} businessName={business.name} routePlanningEnabled={!!(business.settings as any)?.route_planning_enabled} />;
+      case "employees": return <EmployeesTab businessId={business.id} businessName={business.name} routePlanningEnabled={!!(business.settings as any)?.route_planning_enabled} autoOpenCreate={openCreate("employees")} />;
       case "reviews": return <ReviewsWrapper businessId={business.id} />;
       case "leads": return <LeadsTab businessId={business.id} />;
       case "livechat": return <BusinessLiveChatTab businessId={business.id} businessName={business.name} />;
