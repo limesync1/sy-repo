@@ -566,10 +566,24 @@ const SettingsTab = ({ business }: { business: any }) => {
     if (!el) return;
     setActiveSection(id);
     isProgrammaticScroll.current = true;
-    const top = el.getBoundingClientRect().top + window.scrollY - getScrollOffset();
-    window.scrollTo({ top, behavior: "smooth" });
-    // Slip observerens "lock" igen efter animationen er færdig.
-    window.setTimeout(() => { isProgrammaticScroll.current = false; }, 700);
+    const targetTop = () =>
+      el.getBoundingClientRect().top + window.scrollY - getScrollOffset();
+    window.scrollTo({ top: targetTop(), behavior: "smooth" });
+
+    // Sektionerne kan skifte højde undervejs (billeder, lazy indhold), så
+    // vi følger målet indtil scroll-positionen er stabil og korrekt.
+    const start = performance.now();
+    const correct = () => {
+      const want = targetTop();
+      const diff = Math.abs(want - window.scrollY);
+      if (diff > 2) window.scrollTo({ top: want, behavior: "smooth" });
+      if (performance.now() - start < 1200) {
+        window.setTimeout(correct, 120);
+      } else {
+        isProgrammaticScroll.current = false;
+      }
+    };
+    window.setTimeout(correct, 300);
   }, []);
 
   // Når brugeren lander på Indstillinger fra et deep-link (fx onboarding-knap
