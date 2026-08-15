@@ -86,6 +86,7 @@ import { DeleteRouteDialog } from "@/components/route-planner/DeleteRouteDialog"
 import { DiagnosticsDialog } from "@/components/route-planner/DiagnosticsDialog";
 import { supabase } from "@/integrations/supabase/client";
 import CreateOrderDialogHost, { openCreateOrderDialog } from "@/components/route-planner/CreateOrderDialogHost";
+import SickLeaveDialogHost, { openSickLeaveDialog } from "@/components/route-planner/SickLeaveDialogHost";
 import { renameFreshSplitRoutes } from "@/components/route-planner/MoveStopsDialog";
 import { dragMetrics } from "@/lib/drag-metrics";
 import { startDragAutoScroll, stopDragAutoScroll } from "@/components/route-planner/lib/drag-auto-scroll";
@@ -3279,6 +3280,9 @@ const Planner = () => {
                   <DropdownMenuItem onClick={() => setDayDetailOpen(true)} className="text-xs gap-2">
                     <ListOrdered className="h-3.5 w-3.5" /> Vis dag som tidslinje
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => openSickLeaveDialog()} className="text-xs gap-2">
+                    <AlertTriangle className="h-3.5 w-3.5" /> Meld medarbejder syg
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">Visning</DropdownMenuLabel>
                   <div className="px-2 py-1 flex items-center justify-between gap-2">
@@ -4651,6 +4655,15 @@ const Planner = () => {
           <CreateOrderDialogHost
             businessId={businessId}
             businessName={business?.name || ""}
+          />
+        )}
+
+        {/* Sygemelding — erstat, fordel eller frigiv en medarbejders aftaler */}
+        {businessId && (
+          <SickLeaveDialogHost
+            businessId={businessId}
+            employees={activeEmployees as any}
+            date={date}
           />
         )}
 
