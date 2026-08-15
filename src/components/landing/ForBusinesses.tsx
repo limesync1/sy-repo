@@ -52,14 +52,22 @@ const ForBusinesses = () => {
               Find nye kunder, planlæg dagens ruter og send fakturaer — fra ét samlet panel, så du bruger tiden på opgaverne i stedet for papirarbejdet.
             </p>
           </div>
-          <SmartLink
-            to="/opret-virksomhed"
-            className="group inline-flex items-center gap-2 self-start rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background shadow-sm transition-all hover:-translate-y-0.5 md:self-auto"
-          >
-            <Sparkles className="h-4 w-4" />
-            Opret din virksomhed
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-          </SmartLink>
+          <div className="flex flex-wrap items-center gap-2.5 self-start md:self-auto">
+            <SmartLink
+              to="/opret-virksomhed"
+              className="group inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background shadow-sm transition-all hover:-translate-y-0.5"
+            >
+              <Sparkles className="h-4 w-4" />
+              Opret din virksomhed
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </SmartLink>
+            <SmartLink
+              to="/software"
+              className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
+            >
+              Se systemet og priserne
+            </SmartLink>
+          </div>
         </div>
 
         {/* Hero-tile øverst i fuld bredde + 3 feature-kort under. Ingen tomme celler. */}
