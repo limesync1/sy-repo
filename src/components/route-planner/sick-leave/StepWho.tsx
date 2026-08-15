@@ -51,7 +51,7 @@ export default function StepWho({
       <div className="space-y-2">
         <Label className="text-xs">Medarbejder</Label>
         <Select value={employeeId ?? ""} onValueChange={onEmployeeChange}>
-          <SelectTrigger className="h-11 bg-background text-sm">
+          <SelectTrigger className="h-11 bg-background text-sm [&>span]:flex [&>span]:min-w-0 [&>span]:items-center">
             {sickEmp ? <EmpLine emp={sickEmp} /> : <SelectValue placeholder="Vælg medarbejder" />}
           </SelectTrigger>
           <SelectContent>
