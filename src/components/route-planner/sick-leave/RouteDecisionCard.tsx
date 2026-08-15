@@ -152,7 +152,7 @@ export default function RouteDecisionCard({
                     </button>
                   );
                 })}
-     </section>
+              </div>
               {candidates.length > 3 && (
                 <Button
                   type="button"
@@ -188,6 +188,6 @@ export default function RouteDecisionCard({
           {route.stops.length > 3 && ` +${route.stops.length - 3} mere`}
         </p>
       )}
-    </div>
+    </section>
   );
 }

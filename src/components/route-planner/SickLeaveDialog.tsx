@@ -198,7 +198,7 @@ export default function SickLeaveDialog({
                   "min-w-0 border-t-2 pt-2 transition-colors",
                   i <= step ? "border-foreground" : "border-border",
                 )}
-                aria-current={ifalse}
+                aria-current={i === step ? "step" : undefined}
               >
                 <span
                   className={cn(
