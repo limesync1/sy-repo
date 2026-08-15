@@ -1907,6 +1907,60 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_absences: {
+        Row: {
+          absence_type: string
+          business_id: string
+          created_at: string
+          created_by: string | null
+          employee_id: string
+          end_date: string
+          id: string
+          note: string | null
+          start_date: string
+          updated_at: string
+        }
+        Insert: {
+          absence_type?: string
+          business_id: string
+          created_at?: string
+          created_by?: string | null
+          employee_id: string
+          end_date: string
+          id?: string
+          note?: string | null
+          start_date: string
+          updated_at?: string
+        }
+        Update: {
+          absence_type?: string
+          business_id?: string
+          created_at?: string
+          created_by?: string | null
+          employee_id?: string
+          end_date?: string
+          id?: string
+          note?: string | null
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_absences_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_absences_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_completed_stops: {
         Row: {
           address: string | null
