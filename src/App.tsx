@@ -126,6 +126,11 @@ const SoftwareEmployeeApp    = lazyRoute("/software/medarbejder-app", () => impo
 const SoftwareBooking        = lazyRoute("/software/booking-og-tilbud", () => import("./pages/software/BookingQuotesFeature"));
 const SoftwareInvoicing      = lazyRoute("/software/fakturering-og-regnskab", () => import("./pages/software/InvoicingAccountingFeature"));
 const SoftwareIndustries     = lazyRoute("/software/brancher", () => import("./pages/software/IndustriesPage"));
+const SoftwarePricing        = lazyRoute("/software/priser", () => import("./pages/software/PricingPage"));
+const SoftwareWindowCleaner  = lazyRoute("/software/vinduespudser", () => import("./pages/software/WindowCleanerSoftware"));
+const SoftwareCleaning       = lazyRoute("/software/rengoering", () => import("./pages/software/CleaningSoftware"));
+const SoftwareGarden         = lazyRoute("/software/haveservice", () => import("./pages/software/GardenSoftware"));
+const SoftwareHandyman       = lazyRoute("/software/haandvaerker", () => import("./pages/software/HandymanSoftware"));
 const CleaningCityPage       = lazyRoute("/rengoering/:city", () => import("./pages/cities/CleaningCityPage"));
 const MovingCityPage         = lazyRoute("/flyttehjaelp/:city", () => import("./pages/cities/MovingCityPage"));
 const HandymanCityPage       = lazyRoute("/haandvaerker/:city", () => import("./pages/cities/HandymanCityPage"));
@@ -307,6 +312,11 @@ const App = () => (
               <Route path="/software/booking-og-tilbud" element={<SoftwareBooking />} />
               <Route path="/software/fakturering-og-regnskab" element={<SoftwareInvoicing />} />
               <Route path="/software/brancher" element={<SoftwareIndustries />} />
+              <Route path="/software/priser" element={<SoftwarePricing />} />
+              <Route path="/software/vinduespudser" element={<SoftwareWindowCleaner />} />
+              <Route path="/software/rengoering" element={<SoftwareCleaning />} />
+              <Route path="/software/haveservice" element={<SoftwareGarden />} />
+              <Route path="/software/haandvaerker" element={<SoftwareHandyman />} />
 
               {/* ── Juridiske sider ── */}
               <Route path="/privatlivspolitik" element={<PrivacyPolicy />} />
