@@ -18,11 +18,27 @@ interface Props {
   right?: React.ReactNode;
 }
 
-const NAV_ITEMS: { key: NonNullable<Props["active"]>; label: string; to: string }[] = [
-  { key: "search", label: "Find services", to: "/virksomheder" },
-  { key: "quote", label: "Få tilbud", to: "/tilbud" },
-  { key: "business", label: "Bliv udbyder", to: "/opret-virksomhed" },
-  { key: "software", label: "Software", to: "/software" },
+type NavItem = { key: NonNullable<Props["active"]>; label: string; to: string };
+
+/** Navigationen er delt i to publikummer, så både brugere, skærmlæsere og
+ *  sprogmodeller kan se hvad der er til kunder og hvad der er til virksomheder. */
+const NAV_GROUPS: { id: "customers" | "business"; label: string; items: NavItem[] }[] = [
+  {
+    id: "customers",
+    label: "For kunder",
+    items: [
+      { key: "search", label: "Find services", to: "/virksomheder" },
+      { key: "quote", label: "Få tilbud", to: "/tilbud" },
+    ],
+  },
+  {
+    id: "business",
+    label: "For virksomheder",
+    items: [
+      { key: "business", label: "Bliv udbyder", to: "/opret-virksomhed" },
+      { key: "software", label: "Software", to: "/software" },
+    ],
+  },
 ];
 
 const PANEL_PREFERENCE_KEY = "preferred-panel-route";
@@ -119,6 +135,8 @@ const SiteNav = ({ active, right }: Props) => {
     if (active !== undefined) return active === key;
     if (key === "search") return pathname.startsWith("/virksomheder") || pathname.startsWith("/search");
     if (key === "quote") return pathname.startsWith("/tilbud") || pathname.startsWith("/quote");
+    if (key === "business") return pathname.startsWith("/opret-virksomhed");
+    if (key === "software") return pathname === "/software" || pathname.startsWith("/software/");
     return false;
   };
 
@@ -150,18 +168,23 @@ const SiteNav = ({ active, right }: Props) => {
               På små tablet (<lg) bruger vi en mere kompakt padding så alle 3
               links plus højre-side knapper kan være på linjen. */}
           <div className="hidden items-center gap-1 rounded-full border border-border/70 bg-card/80 p-1 md:flex">
-            {NAV_ITEMS.map((item) => (
-              <SmartLink
-                key={item.key}
-                to={item.to}
-                className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors lg:px-4 lg:py-2 ${
-                  isActive(item.key)
-                    ? "bg-secondary text-foreground shadow-sm"
-                    : "text-foreground/80 hover:bg-secondary hover:text-foreground"
-                }`}
-              >
-                {item.label}
-              </SmartLink>
+            {NAV_GROUPS.map((group, gi) => (
+              <div key={group.id} className="flex items-center gap-1" role="group" aria-label={group.label}>
+                {gi > 0 && <span aria-hidden className="mx-1 h-5 w-px bg-border" />}
+                {group.items.map((item) => (
+                  <SmartLink
+                    key={item.key}
+                    to={item.to}
+                    className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors lg:px-4 lg:py-2 ${
+                      isActive(item.key)
+                        ? "bg-secondary text-foreground shadow-sm"
+                        : "text-foreground/80 hover:bg-secondary hover:text-foreground"
+                    }`}
+                  >
+                    {item.label}
+                  </SmartLink>
+                ))}
+              </div>
             ))}
           </div>
 
@@ -252,17 +275,25 @@ const SiteNav = ({ active, right }: Props) => {
 
         {open && (
           <div className="mb-3 rounded-2xl border border-border bg-card p-2 shadow-lg md:hidden">
-            {NAV_ITEMS.map((item) => (
-              <SmartLink
-                key={item.key}
-                to={item.to}
-                onClick={() => setOpen(false)}
-                className={`block rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                  isActive(item.key) ? "bg-secondary text-foreground" : "text-foreground hover:bg-secondary"
-                }`}
-              >
-                {item.label}
-              </SmartLink>
+            {NAV_GROUPS.map((group, gi) => (
+              <div key={group.id}>
+                {gi > 0 && <div className="my-1 h-px bg-border" />}
+                <p className="px-3 pt-2 pb-1 text-[11px] uppercase tracking-wide text-muted-foreground">
+                  {group.label}
+                </p>
+                {group.items.map((item) => (
+                  <SmartLink
+                    key={item.key}
+                    to={item.to}
+                    onClick={() => setOpen(false)}
+                    className={`block rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                      isActive(item.key) ? "bg-secondary text-foreground" : "text-foreground hover:bg-secondary"
+                    }`}
+                  >
+                    {item.label}
+                  </SmartLink>
+                ))}
+              </div>
             ))}
             <div className="my-1 h-px bg-border" />
             {user ? (

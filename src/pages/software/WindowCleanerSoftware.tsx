@@ -20,7 +20,7 @@ const WindowCleanerSoftware = defineSoftwarePage({
     "Advarsler ved dobbeltbooking, ferie og helligdage",
     "Priser pr. stk., pr. m², pr. time eller fast pris",
     "Nye kunder fra markedspladsen Serviceydere.dk",
-    "Fra 289 kr./md. med ruteplanlægning inkluderet",
+    "Fra 289 kr./md. med ruteplanlægning inkluderet — 14 dages gratis prøve uden betalingskort",
   ],
   sections: [
     {
@@ -56,7 +56,7 @@ const WindowCleanerSoftware = defineSoftwarePage({
     { q: "Hvad koster det for en vinduespudser med to mand?", a: "289 kr./md. i basis med ruteplanlægning inkluderet, plus 59 kr./md. pr. medarbejderlogin. To medarbejdere giver 407 kr./md. ekskl. moms. Se alle tal på prissiden." },
     { q: "Kan jeg flytte en hel dag, hvis det regner?", a: "Ja. Du kan trække et helt hold eller enkelte stop til en anden dag, og systemet advarer hvis dagen dermed bliver for lang eller kolliderer med noget." },
     { q: "Får jeg nye kunder gennem systemet?", a: "I får en profilside på markedspladsen, hvor kunder kan booke direkte, og I kan modtage forespørgsler fra jeres område. Hvor mange det bliver, afhænger af område og konkurrence — vi lover ikke et bestemt antal." },
-    { q: "Kan jeg importere mine nuværende kunder?", a: "Ja. Kunder kan importeres fra regneark eller fra et eksisterende system. Dataimport koster 1.495 kr. som engangsbeløb." },
+    { q: "Kan jeg flytte mine nuværende kunder ind?", a: "Ja, og I skal ikke selv sidde med det. Serviceyderes support står for importen fra regneark eller jeres nuværende system og lægger kunder, adresser og faste aftaler ind for jer. Dataimport koster 1.495 kr. som engangsbeløb." },
   ],
   cta: {
     heading: "Prøv det med din egen ruteliste",

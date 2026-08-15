@@ -20,7 +20,7 @@ const GardenSoftware = defineSoftwarePage({
     "Pris pr. time, pr. m² eller fast sæsonaftale",
     "Medarbejder-app med rute, noter og billeder",
     "Nye kunder fra markedspladsen Serviceydere.dk",
-    "Fra 289 kr./md. med ruteplanlægning inkluderet",
+    "Fra 289 kr./md. med ruteplanlægning inkluderet — 14 dages gratis prøve uden betalingskort",
   ],
   sections: [
     {

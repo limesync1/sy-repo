@@ -51,7 +51,15 @@ const FAQ = [
   },
   {
     q: "Kan jeg prøve det først?",
-    a: "Ja. Der er 14 dages prøveperiode, hvor du kan lægge dine egne kunder ind og planlægge en rigtig uge.",
+    a: "Ja. Der er 14 dages gratis prøve, og du skal ikke oplyse betalingskort for at komme i gang. Vil du fortsætte efter prøven, tilføjer du kort under Indstillinger → Fakturering. Der er ingen binding.",
+  },
+  {
+    q: "Er Serviceydere gratis?",
+    a: "Nej. De første 14 dage er gratis, og derefter koster basis 289 kr./md. ekskl. moms med ruteplanlægning inkluderet. Vælger du ikke at fortsætte, sker der ingen betaling.",
+  },
+  {
+    q: "Kan I flytte mine eksisterende kunder ind?",
+    a: "Ja, og I skal ikke selv sidde med det. Serviceyderes support står for importen: I sender jeres kundeliste som regneark eller et udtræk fra jeres nuværende system, og vi lægger kunder, adresser, kontaktpersoner og faste aftaler ind for jer. Dataimport koster 1.495 kr. som engangsbeløb.",
   },
   {
     q: "Kan jeg spare ved at betale for længere perioder?",
@@ -319,9 +327,10 @@ const PricingPage = () => {
               "Profilside på markedspladsen med online booking",
               "Prisberegner med jeres egne enheder",
               "Tilbud kunden kan godkende online",
-              "Livechat med kunderne",
+              "Livechat med kunderne (slås til når I vil)",
               "Fakturering af udført arbejde",
-              "Ubegrænset antal kunder og opgaver",
+              "Ét ejer-login — ekstra medarbejderlogin koster 59 kr./md.",
+              "Ingen loft på antal kunder, aftaler eller opgaver",
             ].map((f) => (
               <li key={f} className="flex gap-3 rounded-xl border border-border bg-card p-4 text-sm leading-6 text-foreground">
                 <Check className="mt-0.5 h-4 w-4 shrink-0 text-foreground" aria-hidden />

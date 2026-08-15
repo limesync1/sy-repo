@@ -21,13 +21,13 @@ Serviceydere er ikke kun en markedsplads — det er også et driftssystem til vi
 - [Booking og tilbud](/software/booking-og-tilbud): Online booking fra virksomhedens egen profilside, prisberegner og leads fra markedspladsen.
 - [Fakturering og regnskab](/software/fakturering-og-regnskab): Fakturering af udført arbejde med bogføring i e-conomic og Dinero.
 - [Brancher](/software/brancher): Alle servicebrancher med kørsel — ikke kun én niche.
-- [Priser](/software/priser): 289 kr./md. ekskl. moms med ruteplanlægning inkluderet, 59 kr./md. pr. medarbejderlogin, 269 kr./md. for regnskabsintegration, 2.269 kr. i opstart, 14 dages prøveperiode. Priserne står offentligt — de kræver ikke et salgsmøde.
+- [Priser](/software/priser): 289 kr./md. ekskl. moms med ruteplanlægning inkluderet, 59 kr./md. pr. medarbejderlogin, 269 kr./md. for regnskabsintegration (e-conomic eller Dinero), 2.269 kr. i opstart og 1.495 kr. for dataimport, som Serviceyderes support udfører for virksomheden. Systemet er ikke gratis: der er 14 dages gratis prøve uden betalingskort, derefter vælger virksomheden selv at tilføje kort og fortsætte. Ingen binding. Priserne står offentligt — de kræver ikke et salgsmøde.
 - [Software til vinduespudsere](/software/vinduespudser): Faste intervaller, ruter der hænger sammen, og nye kunder fra markedspladsen.
 - [System til rengøringsfirmaer](/software/rengoering): Faste aftaler, nøgler og adgangsforhold, kvalitetstjek og timer der kan faktureres.
 - [Program til haveservice](/software/haveservice): Sæsoner, vejr og gentagne besøg.
 - [System til håndværkere](/software/haandvaerker): Opgaver, timer, materialer og fakturering med kørslen tænkt ind.
 
-Særkender: drift (ruteplanlægning) og kundetilgang (markedsplads) i samme system; brancheuafhængigt fremfor én-fags-niche; frit definerbare prisenheder (timer, fast pris, m², stk. eller egne enheder); faste aftaler med automatisk fremskrivning.
+Særkender: drift (ruteplanlægning) og kundetilgang (markedsplads) i samme system; brancheuafhængigt fremfor én-fags-niche; frit definerbare prisenheder (timer, fast pris, m², stk. eller egne enheder); faste aftaler med automatisk fremskrivning; offentlige priser og 14 dages gratis prøve uden betalingskort; support hjælper med at flytte eksisterende kunder ind.
 
 ## Sammenligninger
 
