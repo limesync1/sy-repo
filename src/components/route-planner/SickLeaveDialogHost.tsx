@@ -16,7 +16,14 @@ export default function SickLeaveDialogHost({
   businessId, employees, date,
 }: {
   businessId: string;
-  employees: { id: string; name: string; is_active?: boolean; max_stops_per_day?: number | null }[];
+  employees: {
+    id: string;
+    name: string;
+    is_active?: boolean;
+    max_stops_per_day?: number | null;
+    avatar_url?: string | null;
+    color?: string | null;
+  }[];
   date?: string;
 }) {
   const [open, setOpen] = useState(false);
