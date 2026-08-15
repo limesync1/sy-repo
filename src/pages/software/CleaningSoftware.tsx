@@ -20,7 +20,7 @@ const CleaningSoftware = defineSoftwarePage({
     "Tjek ind og ud giver dokumenterede timer",
     "Pris pr. time, pr. m² eller fast månedspris",
     "Bogføring i e-conomic og Dinero",
-    "Fra 289 kr./md. med ruteplanlægning inkluderet",
+    "Fra 289 kr./md. med ruteplanlægning inkluderet — 14 dages gratis prøve uden betalingskort",
   ],
   sections: [
     {
