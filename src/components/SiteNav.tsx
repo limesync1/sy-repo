@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 interface Props {
-  active?: "search" | "quote" | "business" | null;
+  active?: "search" | "quote" | "business" | "software" | null;
   right?: React.ReactNode;
 }
 
