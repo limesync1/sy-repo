@@ -258,12 +258,12 @@ const SiteNav = ({ active, right }: Props) => {
             ) : (
               <>
                 <Link to="/log-ind" className="hidden md:inline-block">
-                  <button className="rounded-full px-3 sm:px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-secondary active:bg-secondary/70">
+                  <button className="rounded-full px-3 sm:px-4 py-2 text-sm font-semibold text-foreground transition-all hover:bg-secondary hover:text-foreground active:scale-95">
                     Log ind
                   </button>
                 </Link>
                 <Link to="/log-ind?signup=1" className="hidden sm:inline-block">
-                  <button className="rounded-full bg-foreground px-3 sm:px-4 py-2 text-sm font-semibold text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80">
+                  <button className="rounded-full bg-foreground px-3 sm:px-4 py-2 text-sm font-semibold text-background shadow-sm transition-all hover:bg-foreground/90 hover:shadow active:scale-95">
                     Opret konto
                   </button>
                 </Link>
