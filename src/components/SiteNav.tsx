@@ -164,26 +164,29 @@ const SiteNav = ({ active, right }: Props) => {
              loading="eager"/>
           </Link>
 
-          {/* Primær nav — vises fra md+ så tablet ikke ender med tom "Menu"-chip.
-              På små tablet (<lg) bruger vi en mere kompakt padding så alle 3
-              links plus højre-side knapper kan være på linjen. */}
-          <div className="hidden items-center gap-1 rounded-full border border-border/70 bg-card/80 p-1 md:flex">
-            {NAV_GROUPS.map((group, gi) => (
-              <div key={group.id} className="flex items-center gap-1" role="group" aria-label={group.label}>
-                {gi > 0 && <span aria-hidden className="mx-1 h-5 w-px bg-border" />}
-                {group.items.map((item) => (
-                  <SmartLink
-                    key={item.key}
-                    to={item.to}
-                    className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors lg:px-4 lg:py-2 ${
-                      isActive(item.key)
-                        ? "bg-secondary text-foreground shadow-sm"
-                        : "text-foreground/80 hover:bg-secondary hover:text-foreground"
-                    }`}
-                  >
-                    {item.label}
-                  </SmartLink>
-                ))}
+          {/* Primær nav — opdelt i to tydelige sektioner med små labels ovenover,
+              så både kunder og virksomheder med det samme kan se hvad der er for dem. */}
+          <div className="hidden items-end gap-4 md:flex lg:gap-6">
+            {NAV_GROUPS.map((group) => (
+              <div key={group.id} className="flex flex-col gap-1" role="group" aria-label={group.label}>
+                <span className="px-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {group.label}
+                </span>
+                <div className="flex items-center gap-1 rounded-full border border-border/70 bg-card/80 p-1">
+                  {group.items.map((item) => (
+                    <SmartLink
+                      key={item.key}
+                      to={item.to}
+                      className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors lg:px-4 lg:py-2 ${
+                        isActive(item.key)
+                          ? "bg-secondary text-foreground shadow-sm"
+                          : "text-foreground/80 hover:bg-secondary hover:text-foreground"
+                      }`}
+                    >
+                      {item.label}
+                    </SmartLink>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
