@@ -57,7 +57,7 @@ if (slugs.length === 0) {
 
 (async () => {
   // 1) Genindsend hovedsitemap + blog-sitemap
-  for (const sitemap of ["sitemap.xml", "sitemap-blog.xml"]) {
+  for (const sitemap of ["sitemap-index.xml", "sitemap-pages.xml", "sitemap-blog.xml"]) {
     const enc = encodeURIComponent(`${SITE}${sitemap}`);
     const url = `${GATEWAY}/webmasters/v3/sites/${encodeURIComponent(SITE)}/sitemaps/${enc}`;
     const res = await fetch(url, { method: "PUT", headers });
