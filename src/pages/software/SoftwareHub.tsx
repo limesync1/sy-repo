@@ -21,7 +21,7 @@ const Page = defineSoftwarePage({
     "Bygget til alle servicebrancher med kørsel, ikke kun én niche.",
     "Regnskabsintegration til e-conomic og Dinero.",
     "Dansk sprog, danske adresser og dansk support.",
-    "Gratis at oprette virksomheden og komme i gang.",
+    "14 dages gratis prøve uden betalingskort — derefter 289 kr./md. Ingen binding.",
   ],
   sections: [
     {
@@ -59,7 +59,9 @@ const Page = defineSoftwarePage({
     {
       heading: "Hvad koster det",
       paragraphs: [
-        "Det er gratis at oprette virksomheden og lægge kunder, services og medarbejdere ind. Betalte planer åbner for de større driftsfunktioner og for øget synlighed på markedspladsen. Der er ingen binding på oprettelsen.",
+        "Serviceydere er ikke et gratis system. Du starter med 14 dages gratis prøve, hvor der ikke skal oplyses betalingskort. Vil I fortsætte efter prøven, tilføjer I kort under Indstillinger → Fakturering.",
+        "Basisprisen er 289 kr./md. og indeholder virksomhedsprofil på markedspladsen, kundekartotek, bestillinger, kalender, fakturering og ruteplanlægning med ét ejer-login. Ekstra medarbejderlogin koster 59 kr./md. pr. medarbejder, og regnskabsintegration til e-conomic eller Dinero er et tilvalg til 269 kr./md. Der er et engangsbeløb for opstart, og betaler I kvartalsvis eller årligt, er der 10 % eller 20 % rabat.",
+        <>Der er ingen binding — I kan opsige når som helst. Se den fulde prisoversigt og regn på jeres egen opsætning på <Link to="/software/priser">prissiden</Link>.</>,
       ],
     },
   ],
@@ -78,7 +80,11 @@ const Page = defineSoftwarePage({
     },
     {
       q: "Kan jeg flytte mine eksisterende kunder ind?",
-      a: "Ja. Der er import af kunder fra regneark, og systemet hjælper med at genkende kolonner så adresser, kontaktoplysninger og aftaler lander de rigtige steder.",
+      a: "Ja — og I skal ikke selv sidde med det. Serviceyderes support står for importen: I sender jeres kundeliste som regneark eller et udtræk fra jeres nuværende system, og vi lægger kunder, adresser, kontaktoplysninger og faste aftaler ind for jer. Dataimport er en engangsydelse, som fremgår af prissiden.",
+    },
+    {
+      q: "Er Serviceydere gratis?",
+      a: "Nej. Der er 14 dages gratis prøve uden betalingskort, og derefter vælger I selv, om I vil tilføje kort og fortsætte. Basisprisen er 289 kr./md. med ruteplanlægning inkluderet, plus 59 kr./md. pr. ekstra medarbejderlogin. Ingen binding.",
     },
     {
       q: "Virker det på mobil?",
@@ -91,7 +97,7 @@ const Page = defineSoftwarePage({
   ],
   cta: {
     heading: "Se systemet med dine egne kunder",
-    body: "Opret virksomheden gratis, importér dine kunder og planlæg den første uge. Det tager typisk under en time at have en realistisk rute på skærmen.",
+    body: "Opret virksomheden og kør 14 dage gratis uden betalingskort. Vores support hjælper med at få jeres kunder ind, så I kan planlægge den første rigtige uge.",
   },
 });
 export default Page;
