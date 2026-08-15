@@ -166,27 +166,32 @@ const SiteNav = ({ active, right }: Props) => {
 
           {/* Primær nav — opdelt i to tydelige sektioner med små labels ovenover,
               så både kunder og virksomheder med det samme kan se hvad der er for dem. */}
-          <div className="hidden items-end gap-4 md:flex lg:gap-6">
-            {NAV_GROUPS.map((group) => (
-              <div key={group.id} className="flex flex-col gap-1" role="group" aria-label={group.label}>
-                <span className="px-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  {group.label}
-                </span>
-                <div className="flex items-center gap-1 rounded-full border border-border/70 bg-card/80 p-1">
-                  {group.items.map((item) => (
-                    <SmartLink
-                      key={item.key}
-                      to={item.to}
-                      className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors lg:px-4 lg:py-2 ${
-                        isActive(item.key)
-                          ? "bg-secondary text-foreground shadow-sm"
-                          : "text-foreground/80 hover:bg-secondary hover:text-foreground"
-                      }`}
-                    >
-                      {item.label}
-                    </SmartLink>
-                  ))}
+          <div className="hidden items-center gap-3 md:flex lg:gap-4">
+            {NAV_GROUPS.map((group, gi) => (
+              <div key={group.id} className="flex items-center gap-3 lg:gap-4">
+                <div className="flex flex-col items-start gap-1.5" role="group" aria-label={group.label}>
+                  <span className="px-1 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                    {group.label}
+                  </span>
+                  <div className="flex items-center gap-1 rounded-full border border-border/50 bg-muted/50 p-1 shadow-sm">
+                    {group.items.map((item) => (
+                      <SmartLink
+                        key={item.key}
+                        to={item.to}
+                        className={`rounded-full px-3 py-1.5 text-sm font-medium transition-all lg:px-4 lg:py-2 ${
+                          isActive(item.key)
+                            ? "bg-foreground text-background shadow-sm hover:bg-foreground/90"
+                            : "text-foreground/70 hover:bg-secondary hover:text-foreground"
+                        }`}
+                      >
+                        {item.label}
+                      </SmartLink>
+                    ))}
+                  </div>
                 </div>
+                {gi === 0 && (
+                  <div className="hidden h-8 w-px self-end bg-border/70 lg:block" aria-hidden="true" />
+                )}
               </div>
             ))}
           </div>
