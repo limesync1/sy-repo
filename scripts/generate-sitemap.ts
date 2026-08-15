@@ -11,12 +11,14 @@ import { CITIES } from "../src/pages/cities/cleaningCityData";
 import { MOVING_CITIES } from "../src/pages/cities/movingCityData";
 import { HANDYMAN_CITIES } from "../src/pages/cities/handymanCityData";
 import { GARDEN_CITIES } from "../src/pages/cities/gardenCityData";
+import { SOFTWARE_PAGES } from "../src/pages/software/softwareRegistry";
 
 const BASE_URL = "https://serviceydere.dk";
 
-// Fælles lastmod — opdateres automatisk ved hver build. Giver Google et
-// frisk signal på SEO-sider når vi udruller nyt indhold.
-const TODAY = new Date().toISOString().slice(0, 10);
+// Bruges kun til <lastmod> på selve sitemap-index'et (hvornår sitemappet
+// blev genereret). Sider får kun lastmod, når vi har en reel, sidespecifik
+// dato — et build-tidsstempel er ikke et sandt "sidst ændret"-signal.
+const GENERATED_AT = new Date().toISOString().slice(0, 10);
 
 interface SitemapEntry {
   path: string;
@@ -69,8 +71,16 @@ const CITY_ENTRIES: SitemapEntry[] = [
   ...GARDEN_CITIES.map((c) => ({ path: `/haveservice/${c.slug}`, changefreq: "weekly" as const, priority: "0.8" })),
 ];
 
+// Offentlige produktsider (/software/*) — én sandhed i softwareRegistry.
+const SOFTWARE_ENTRIES: SitemapEntry[] = SOFTWARE_PAGES.map((p) => ({
+  path: p.href,
+  changefreq: "monthly",
+  priority: p.priority ?? "0.8",
+}));
+
 const entries: SitemapEntry[] = [
   ...STATIC_ENTRIES,
+  ...SOFTWARE_ENTRIES,
   ...GUIDE_ENTRIES,
   ...BLOG_ENTRIES,
   ...CITY_ENTRIES,
@@ -94,7 +104,7 @@ const toUrls = (es: SitemapEntry[]) =>
     loc: `${BASE_URL}${e.path}`,
     changefreq: e.changefreq,
     priority: e.priority,
-    lastmod: e.lastmod ?? TODAY,
+    lastmod: e.lastmod,
   }));
 
 const buildUrlset = (urls: ReturnType<typeof toUrls>) =>
@@ -119,6 +129,7 @@ const buildUrlset = (urls: ReturnType<typeof toUrls>) =>
 // hvis ét sitemap har problemer påvirker det ikke de andre.
 const pagesUrls = toUrls([
   ...STATIC_ENTRIES,
+  ...SOFTWARE_ENTRIES,
   ...CATEGORIES.map((c) => ({
     path: `/virksomheder?category=${encodeURIComponent(c)}`,
     changefreq: "weekly" as const,
@@ -145,7 +156,7 @@ const indexXml = [
   `<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
   ...["sitemap-pages.xml", "sitemap-blog.xml", "sitemap-guides.xml", "sitemap-cities.xml"].map(
     (name) =>
-      `  <sitemap><loc>${BASE_URL}/${name}</loc><lastmod>${TODAY}</lastmod></sitemap>`,
+      `  <sitemap><loc>${BASE_URL}/${name}</loc><lastmod>${GENERATED_AT}</lastmod></sitemap>`,
   ),
   `</sitemapindex>`,
 ].join("\n");

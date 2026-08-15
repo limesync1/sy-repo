@@ -119,6 +119,13 @@ const HandymanHub            = lazyRoute("/guides/haandvaerker", () => import(".
 const GardenHub              = lazyRoute("/guides/have", () => import("./pages/guides/GardenHub"));
 const PricesHub              = lazyRoute("/guides/priser-2026", () => import("./pages/guides/PricesHub"));
 const GuidesIndex            = lazyRoute("/guides", () => import("./pages/GuidesIndex"));
+// ── Offentligt produktunivers (/software) ────────────────────────────────
+const SoftwareHub            = lazyRoute("/software", () => import("./pages/software/SoftwareHub"));
+const SoftwareRoutePlanner   = lazyRoute("/software/ruteplanlaegger", () => import("./pages/software/RoutePlannerFeature"));
+const SoftwareEmployeeApp    = lazyRoute("/software/medarbejder-app", () => import("./pages/software/EmployeeAppFeature"));
+const SoftwareBooking        = lazyRoute("/software/booking-og-tilbud", () => import("./pages/software/BookingQuotesFeature"));
+const SoftwareInvoicing      = lazyRoute("/software/fakturering-og-regnskab", () => import("./pages/software/InvoicingAccountingFeature"));
+const SoftwareIndustries     = lazyRoute("/software/brancher", () => import("./pages/software/IndustriesPage"));
 const CleaningCityPage       = lazyRoute("/rengoering/:city", () => import("./pages/cities/CleaningCityPage"));
 const MovingCityPage         = lazyRoute("/flyttehjaelp/:city", () => import("./pages/cities/MovingCityPage"));
 const HandymanCityPage       = lazyRoute("/haandvaerker/:city", () => import("./pages/cities/HandymanCityPage"));
@@ -292,6 +299,14 @@ const App = () => (
               <Route path="/v/:slug" element={<DynamicBusinessPage />} />
               <Route path="/demo" element={<BusinessPage />} />
               <Route path="/opret-virksomhed" element={<BusinessOnboarding />} />
+
+              {/* ── Produktsider (software) ── */}
+              <Route path="/software" element={<SoftwareHub />} />
+              <Route path="/software/ruteplanlaegger" element={<SoftwareRoutePlanner />} />
+              <Route path="/software/medarbejder-app" element={<SoftwareEmployeeApp />} />
+              <Route path="/software/booking-og-tilbud" element={<SoftwareBooking />} />
+              <Route path="/software/fakturering-og-regnskab" element={<SoftwareInvoicing />} />
+              <Route path="/software/brancher" element={<SoftwareIndustries />} />
 
               {/* ── Juridiske sider ── */}
               <Route path="/privatlivspolitik" element={<PrivacyPolicy />} />

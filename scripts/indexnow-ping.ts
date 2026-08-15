@@ -36,7 +36,11 @@ if (slugs.length === 0) {
   process.exit(1);
 }
 
-const urlList = slugs.map((s) => `https://${HOST}/blog/${s.replace(/^\/blog\//, "")}`);
+// En slug uden "/" foran behandles som blog-slug (bagudkompatibelt).
+// Starter den med "/", er det en fuld sti, fx "/software/ruteplanlaegger".
+const urlList = slugs.map((s) =>
+  s.startsWith("/") ? `https://${HOST}${s}` : `https://${HOST}/blog/${s}`,
+);
 
 const body = {
   host: HOST,
