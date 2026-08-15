@@ -156,7 +156,7 @@ const indexXml = [
   `<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
   ...["sitemap-pages.xml", "sitemap-blog.xml", "sitemap-guides.xml", "sitemap-cities.xml"].map(
     (name) =>
-      `  <sitemap><loc>${BASE_URL}/${name}</loc><lastmod>${TODAY}</lastmod></sitemap>`,
+      `  <sitemap><loc>${BASE_URL}/${name}</loc><lastmod>${GENERATED_AT}</lastmod></sitemap>`,
   ),
   `</sitemapindex>`,
 ].join("\n");
