@@ -166,27 +166,32 @@ const SiteNav = ({ active, right }: Props) => {
 
           {/* Primær nav — opdelt i to tydelige sektioner med små labels ovenover,
               så både kunder og virksomheder med det samme kan se hvad der er for dem. */}
-          <div className="hidden items-end gap-4 md:flex lg:gap-6">
-            {NAV_GROUPS.map((group) => (
-              <div key={group.id} className="flex flex-col gap-1" role="group" aria-label={group.label}>
-                <span className="px-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  {group.label}
-                </span>
-                <div className="flex items-center gap-1 rounded-full border border-border/70 bg-card/80 p-1">
-                  {group.items.map((item) => (
-                    <SmartLink
-                      key={item.key}
-                      to={item.to}
-                      className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors lg:px-4 lg:py-2 ${
-                        isActive(item.key)
-                          ? "bg-secondary text-foreground shadow-sm"
-                          : "text-foreground/80 hover:bg-secondary hover:text-foreground"
-                      }`}
-                    >
-                      {item.label}
-                    </SmartLink>
-                  ))}
+          <div className="hidden items-center gap-3 md:flex lg:gap-4">
+            {NAV_GROUPS.map((group, gi) => (
+              <div key={group.id} className="flex items-center gap-3 lg:gap-4">
+                <div className="flex flex-col items-start gap-1.5" role="group" aria-label={group.label}>
+                  <span className="px-1 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                    {group.label}
+                  </span>
+                  <div className="flex items-center gap-1 rounded-full border border-border/50 bg-muted/50 p-1 shadow-sm">
+                    {group.items.map((item) => (
+                      <SmartLink
+                        key={item.key}
+                        to={item.to}
+                        className={`rounded-full px-3 py-1.5 text-sm font-medium transition-all lg:px-4 lg:py-2 ${
+                          isActive(item.key)
+                            ? "bg-foreground text-background shadow-sm hover:bg-foreground/90"
+                            : "text-foreground/70 hover:bg-secondary hover:text-foreground"
+                        }`}
+                      >
+                        {item.label}
+                      </SmartLink>
+                    ))}
+                  </div>
                 </div>
+                {gi === 0 && (
+                  <div className="hidden h-8 w-px self-end bg-border/70 lg:block" aria-hidden="true" />
+                )}
               </div>
             ))}
           </div>
@@ -253,12 +258,12 @@ const SiteNav = ({ active, right }: Props) => {
             ) : (
               <>
                 <Link to="/log-ind" className="hidden md:inline-block">
-                  <button className="rounded-full px-3 sm:px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-secondary active:bg-secondary/70">
+                  <button className="rounded-full px-3 sm:px-4 py-2 text-sm font-semibold text-foreground transition-all hover:bg-secondary hover:text-foreground active:scale-95">
                     Log ind
                   </button>
                 </Link>
                 <Link to="/log-ind?signup=1" className="hidden sm:inline-block">
-                  <button className="rounded-full bg-foreground px-3 sm:px-4 py-2 text-sm font-semibold text-background transition-colors hover:bg-foreground/90 active:bg-foreground/80">
+                  <button className="rounded-full bg-foreground px-3 sm:px-4 py-2 text-sm font-semibold text-background shadow-sm transition-all hover:bg-foreground/90 hover:shadow active:scale-95">
                     Opret konto
                   </button>
                 </Link>
@@ -277,20 +282,23 @@ const SiteNav = ({ active, right }: Props) => {
         </div>
 
         {open && (
-          <div className="mb-3 rounded-2xl border border-border bg-card p-2 shadow-lg md:hidden">
+          <div className="mb-4 rounded-2xl border border-border bg-card p-3 shadow-xl md:hidden">
             {NAV_GROUPS.map((group, gi) => (
-              <div key={group.id}>
-                {gi > 0 && <div className="my-1 h-px bg-border" />}
-                <p className="px-3 pt-2 pb-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-                  {group.label}
-                </p>
+              <div key={group.id} className={gi > 0 ? "mt-2" : ""}>
+                {gi > 0 && <div className="mb-2 h-px bg-border" />}
+                <div className="flex items-center gap-2 px-3 pt-2 pb-1.5">
+                  <div className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
+                    {group.label}
+                  </p>
+                </div>
                 {group.items.map((item) => (
                   <SmartLink
                     key={item.key}
                     to={item.to}
                     onClick={() => setOpen(false)}
-                    className={`block rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                      isActive(item.key) ? "bg-secondary text-foreground" : "text-foreground hover:bg-secondary"
+                    className={`block rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                      isActive(item.key) ? "bg-foreground text-background" : "text-foreground hover:bg-secondary"
                     }`}
                   >
                     {item.label}
@@ -298,47 +306,50 @@ const SiteNav = ({ active, right }: Props) => {
                 ))}
               </div>
             ))}
-            <div className="my-1 h-px bg-border" />
+            <div className="my-2 h-px bg-border" />
             {user ? (
               <>
                 {showSwitcher && (
                   <>
-                    <p className="px-3 pt-2 pb-1 text-[11px] uppercase tracking-wide text-muted-foreground">Skift visning</p>
+                    <div className="flex items-center gap-2 px-3 pt-2 pb-1.5">
+                      <div className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />
+                      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Skift visning</p>
+                    </div>
                     {roles.map((r) => (
                       <button
                         key={r.to}
                         onClick={() => { handleSelectPanel(r.to); setOpen(false); navigate(r.to); }}
-                        className={`flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium ${
-                          preferredRole?.to === r.to ? "bg-secondary text-foreground" : "text-foreground hover:bg-secondary"
+                        className={`flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium ${
+                          preferredRole?.to === r.to ? "bg-foreground text-background" : "text-foreground hover:bg-secondary"
                         }`}
                       >
                         <r.icon className="h-4 w-4" />{r.label}
                       </button>
                     ))}
-                    <div className="my-1 h-px bg-border" />
+                    <div className="my-2 h-px bg-border" />
                   </>
                 )}
                 {preferredRole && (
                   <button
                     onClick={() => { setOpen(false); navigate(preferredRole.to); }}
-                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary"
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary"
                   >
                     <preferredRole.icon className="h-4 w-4" />Gå til {preferredRole.label}
                   </button>
                 )}
                 <button
                   onClick={() => { setOpen(false); handleSignOut(); }}
-                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary"
+                  className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary"
                 >
                   <LogOut className="h-4 w-4" />Log ud
                 </button>
               </>
             ) : (
               <>
-                <Link to="/log-ind" onClick={() => setOpen(false)} className="block rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary">
+                <Link to="/log-ind" onClick={() => setOpen(false)} className="block rounded-xl px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary">
                   Log ind
                 </Link>
-                <Link to="/log-ind?signup=1" onClick={() => setOpen(false)} className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary">
+                <Link to="/log-ind?signup=1" onClick={() => setOpen(false)} className="block rounded-xl px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary">
                   Opret konto
                 </Link>
               </>
