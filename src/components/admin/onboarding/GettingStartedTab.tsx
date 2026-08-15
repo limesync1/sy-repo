@@ -1,14 +1,15 @@
-// "Kom godt i gang" — fast fane i virksomhedspanelet (ikke en modal).
-// Opbygget som Discords Server Guide: en personlig hilsen i toppen, en kort
-// liste konkrete opgaver der markeres færdige automatisk, et frivilligt
-// "næste niveau"-spor og en ressource-sektion nederst.
+// "Kom godt i gang" — fast fane i virksomhedspanelet.
+// Bruger samme layout-sprog som de øvrige faner: PageHeader øverst,
+// nøgletal-kort, og indhold i SectionCard'er. To kolonner på store skærme,
+// én kolonne på mobil/tablet.
 import { useEffect, useRef, useState } from "react";
 import {
   CheckCircle2, Inbox, MessageCircle, Star, LifeBuoy, BookOpen, Sparkles,
-  Clock, ChevronDown, ExternalLink, PartyPopper,
+  Clock, ChevronDown, ExternalLink, ListChecks, Rocket, Target,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { PageHeader, SectionCard, StatCard } from "@/components/admin/shared/AdminUI";
 import { FOCUS_OPTIONS, type OnboardingStepId } from "./steps";
 import OnboardingStepCard from "./OnboardingStepCard";
 import { useOnboardingSignals } from "@/hooks/useOnboardingSignals";
@@ -39,7 +40,6 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
   const [manualExpanded, setManualExpanded] = useState<OnboardingStepId | "none" | null>(null);
   const [showNextLevel, setShowNextLevel] = useState(false);
   const [showDone, setShowDone] = useState(false);
-  // Fejring vises én gang pr. session, når man lige er blevet færdig.
   const [celebrate, setCelebrate] = useState(false);
   const wasDone = useRef<boolean | null>(null);
   useEffect(() => {
@@ -52,7 +52,6 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
     wasDone.current = allDone;
   }, [allDone, isLoading, counts]);
 
-  // Som standard er kun det aktuelle trin foldet ud.
   const expandedId = manualExpanded === null ? nextStepId : manualExpanded;
   const pct = totalCount ? Math.round((completedCount / totalCount) * 100) : 0;
   const publicHref = `/v/${business?.slug ?? ""}`;
@@ -61,7 +60,7 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
 
   if (isLoading || !counts) {
     return (
-      <div className="w-full space-y-4">
+      <div className="space-y-4">
         <PageHeaderSkeleton withAction={false} />
         <ListCardSkeleton rows={5} />
       </div>
@@ -69,59 +68,77 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-5">
-      {/* Welcome sign — Discords banner: ét billede-agtigt felt, navn, én linje, én handling */}
-      <div
-        className={cn(
-          "overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-colors",
-          allDone && "border-accent/40",
-        )}
-      >
-        <div
-          className={cn(
-            "relative h-20 bg-gradient-to-br from-foreground/90 via-foreground/70 to-accent/70 sm:h-24",
-            allDone && "from-accent via-accent/80 to-foreground/70",
-          )}
-          aria-hidden="true"
-        >
-          <div className="absolute inset-0 opacity-25 [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:14px_14px]" />
-        </div>
-        <div className="relative p-4 pt-0 sm:p-5 sm:pt-0">
-          <div className="-mt-7 mb-3 flex h-14 w-14 items-center justify-center rounded-2xl border-4 border-card bg-secondary text-lg font-black uppercase text-foreground sm:h-16 sm:w-16">
-            {(business?.name?.[0] ?? "S")}
-          </div>
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div className="min-w-0">
-            <h1 className="flex items-center gap-2 text-lg font-bold text-foreground sm:text-xl">
-              {allDone && (
-                <PartyPopper
-                  className={cn("h-5 w-5 text-accent", celebrate && "animate-bounce")}
-                  aria-hidden="true"
-                />
-              )}
-              {allDone ? "I er live" : `Velkommen${business?.name ? `, ${business.name}` : ""}`}
-            </h1>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              {allDone
-                ? "Opsætningen er færdig — jeres side er klar til kunder."
-                : `Her er de ${totalCount} ting der skal på plads, før I kan tage imod jeres første kunde.`}
-            </p>
-            {allDone && (
-              <Button asChild size="sm" variant="outline" className="mt-3 h-8 text-xs">
-                <a href={publicHref} target="_blank" rel="noreferrer">
-                  Se jeres offentlige side
-                  <ExternalLink className="ml-1.5 h-3 w-3" aria-hidden="true" />
-                </a>
+    <div className="space-y-4">
+      <PageHeader
+        title="Kom godt i gang"
+        description={
+          allDone
+            ? "Opsætningen er færdig — jeres side er klar til kunder."
+            : `${totalCount} ting skal på plads, før I kan tage imod jeres første kunde.`
+        }
+        action={
+          <div className="flex w-full gap-2 sm:w-auto">
+            {focus && (
+              <Button variant="ghost" size="sm" className="h-9 text-xs" onClick={clearFocus}>
+                <Target className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
+                Skift formål
               </Button>
             )}
+            <Button asChild variant="outline" size="sm" className="h-9 flex-1 text-xs sm:flex-none">
+              <a href={publicHref} target="_blank" rel="noreferrer">
+                Se jeres side
+                <ExternalLink className="ml-1.5 h-3 w-3" aria-hidden="true" />
+              </a>
+            </Button>
           </div>
-          <span className="shrink-0 rounded-full bg-secondary px-2.5 py-1 text-xs font-bold tabular-nums text-foreground">
+        }
+      />
+
+      {/* Nøgletal — samme stat-kort som Overblik */}
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+        <StatCard
+          label="Fremgang"
+          value={`${pct}%`}
+          icon={<Rocket />}
+          tone={allDone ? "ok" : "accent"}
+          hint={`${completedCount} af ${totalCount} trin`}
+        />
+        <StatCard
+          label="Mangler"
+          value={activeSteps.length}
+          icon={<ListChecks />}
+          tone={activeSteps.length ? "warn" : "ok"}
+          hint={activeSteps.length ? "Trin tilbage" : "Alt er på plads"}
+        />
+        <StatCard label="Færdige" value={doneSteps.length} icon={<CheckCircle2 />} tone="ok" hint="Markeres automatisk" />
+        <StatCard label="Tidsforbrug" value="~15 min" icon={<Clock />} hint="Typisk samlet opsætning" />
+      </div>
+
+      {/* Fremgangslinje */}
+      <SectionCard className={cn(allDone && "border-accent/40")}>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="min-w-0">
+            <h3 className="text-[15px] font-semibold tracking-tight text-foreground">
+              {allDone ? "I er live" : `Velkommen${business?.name ? `, ${business.name}` : ""}`}
+            </h3>
+            <p className="mt-0.5 text-[13px] leading-relaxed text-muted-foreground">
+              {allDone
+                ? "Medarbejderne kan logge ind, og kunder kan finde jer."
+                : "Trinene markeres færdige automatisk — I skal ikke krydse af manuelt."}
+            </p>
+          </div>
+          <span
+            className={cn(
+              "shrink-0 rounded-full px-2.5 py-1 text-xs font-bold tabular-nums",
+              allDone ? "bg-accent/10 text-accent" : "bg-secondary text-foreground",
+              celebrate && "animate-pulse",
+            )}
+          >
             {completedCount} af {totalCount}
           </span>
         </div>
-        {/* Segmenteret fremgang — ét felt pr. opgave, som Discords to-do-tæller */}
         <div
-          className="mt-3 flex gap-1.5"
+          className="flex gap-1.5"
           role="progressbar"
           aria-label="Opsætningens fremgang"
           aria-valuenow={pct}
@@ -140,215 +157,195 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
             />
           ))}
         </div>
-        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-          {!allDone && (
-            <>
-              <span className="inline-flex items-center gap-1">
-                <Clock className="h-3 w-3" aria-hidden="true" /> Tager ca. 15 minutter
-              </span>
-              <span>Trinene markeres færdige automatisk — I skal ikke krydse af manuelt.</span>
-            </>
-          )}
-          {focus && (
-            <button
-              type="button"
-              onClick={clearFocus}
-              className="font-medium text-foreground underline underline-offset-2"
-            >
-              Skift hvad I bruger platformen til
-            </button>
-          )}
-        </div>
-        </div>
-      </div>
+      </SectionCard>
 
       {/* Ét spørgsmål der tilpasser guiden */}
       {!focus && !allDone && (
-        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
-          <h2 className="text-sm font-bold text-foreground">Hvad vil I bruge Serviceydere til?</h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            Vi skjuler de trin I ikke har brug for. Kan ændres senere.
-          </p>
-          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+        <SectionCard
+          title="Hvad vil I bruge Serviceydere til?"
+          icon={<Target />}
+          description="Vi skjuler de trin I ikke har brug for. Kan ændres senere."
+        >
+          <div className="grid gap-2 sm:grid-cols-3">
             {FOCUS_OPTIONS.map((o) => (
               <button
                 key={o.value}
                 type="button"
                 onClick={() => setFocus(o.value)}
-                className="rounded-xl border border-border bg-background p-3 text-left transition-colors hover:border-foreground/40"
+                className="rounded-xl border border-border bg-background p-3 text-left transition-colors hover:border-foreground/40 hover:bg-secondary/40"
               >
                 <p className="text-sm font-semibold text-foreground">{o.title}</p>
-                <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">{o.body}</p>
+                <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{o.body}</p>
               </button>
             ))}
           </div>
-        </div>
+        </SectionCard>
       )}
 
-      {allDone && (
-        <div className="rounded-2xl border border-accent/30 bg-accent/5 p-4 sm:p-5">
-          <div className="flex items-start gap-3">
-            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-accent" aria-hidden="true" />
-            <div>
-              <h2 className="text-sm font-bold text-foreground">Grundopsætningen er på plads</h2>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                Medarbejderne kan logge ind og se deres opgaver. Næste niveau:
-              </p>
-            </div>
-          </div>
-          <div className="mt-3 grid gap-2 sm:grid-cols-3">
-            {NEXT_LEVEL_LINKS.map((n) => (
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] xl:items-start">
+        {/* Venstre: trin */}
+        <div className="space-y-4">
+          {activeSteps.length > 0 && (
+            <SectionCard
+              title={`Skal på plads (${activeSteps.length})`}
+              icon={<ListChecks />}
+              description="Start øverst — vi åbner det rigtige sted i panelet for jer."
+            >
+              <div className="space-y-2">
+                {activeSteps.map((step) => (
+                  <OnboardingStepCard
+                    key={step.id}
+                    step={step}
+                    number={steps.indexOf(step) + 1}
+                    counts={counts}
+                    done={false}
+                    current={step.id === nextStepId}
+                    skipped={!!skipped[step.id]}
+                    expanded={expandedId === step.id}
+                    onToggleExpand={() =>
+                      setManualExpanded((cur) => ((cur === null ? nextStepId : cur) === step.id ? "none" : step.id))
+                    }
+                    onNavigate={onNavigate}
+                    onToggleSkip={() => toggleSkip(step.id)}
+                  />
+                ))}
+              </div>
+            </SectionCard>
+          )}
+
+          {allDone && (
+            <SectionCard
+              title="Grundopsætningen er på plads"
+              icon={<CheckCircle2 />}
+              description="Medarbejderne kan logge ind og se deres opgaver. Næste niveau:"
+              className="border-accent/30"
+            >
+              <div className="grid gap-2 sm:grid-cols-3">
+                {NEXT_LEVEL_LINKS.map((n) => (
+                  <button
+                    key={n.title}
+                    type="button"
+                    onClick={() => onNavigate(n.tab)}
+                    className="rounded-xl border border-border bg-background p-3 text-left transition-colors hover:border-foreground/30 hover:bg-secondary/40"
+                  >
+                    <n.icon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                    <p className="mt-1.5 text-sm font-semibold text-foreground">{n.title}</p>
+                    <p className="text-xs leading-snug text-muted-foreground">{n.body}</p>
+                  </button>
+                ))}
+              </div>
+            </SectionCard>
+          )}
+
+          {/* Færdige trin */}
+          {doneSteps.length > 0 && (
+            <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
               <button
-                key={n.title}
                 type="button"
-                onClick={() => onNavigate(n.tab)}
-                className="rounded-xl border border-border bg-card p-3 text-left transition-colors hover:border-foreground/30"
+                onClick={() => setShowDone((v) => !v)}
+                aria-expanded={showDone}
+                className="flex w-full items-center gap-2 px-4 py-3 text-left transition-colors hover:bg-secondary/40"
               >
-                <n.icon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-                <p className="mt-1.5 text-sm font-semibold text-foreground">{n.title}</p>
-                <p className="text-[11px] leading-snug text-muted-foreground">{n.body}</p>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Kerne-trin der mangler — ét kort pr. opgave, som Discords "To Do" */}
-      {activeSteps.length > 0 && (
-        <div>
-          <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Skal på plads ({activeSteps.length})
-          </p>
-          <div className="space-y-2">
-            {activeSteps.map((step) => (
-              <OnboardingStepCard
-                key={step.id}
-                step={step}
-                number={steps.indexOf(step) + 1}
-                counts={counts}
-                done={false}
-                current={step.id === nextStepId}
-                skipped={!!skipped[step.id]}
-                expanded={expandedId === step.id}
-                onToggleExpand={() =>
-                  setManualExpanded((cur) => ((cur === null ? nextStepId : cur) === step.id ? "none" : step.id))
-                }
-                onNavigate={onNavigate}
-                onToggleSkip={() => toggleSkip(step.id)}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Færdige trin — foldet sammen så listen kun viser det der mangler */}
-      {doneSteps.length > 0 && (
-        <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-          <button
-            type="button"
-            onClick={() => setShowDone((v) => !v)}
-            aria-expanded={showDone}
-            className="flex w-full items-center gap-2 px-3 py-2.5 text-left sm:px-4"
-          >
-            <CheckCircle2 className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
-            <span className="text-sm font-semibold text-foreground">Færdige ({doneSteps.length})</span>
-            <ChevronDown
-              className={cn("ml-auto h-4 w-4 text-muted-foreground transition-transform", showDone && "rotate-180")}
-              aria-hidden="true"
-            />
-          </button>
-          {showDone && (
-            <div className="border-t border-border">
-              {doneSteps.map((step) => (
-                <OnboardingStepCard
-                  key={step.id}
-                  step={step}
-                  counts={counts}
-                  done
-                  compact
-                  skipped={!!skipped[step.id]}
-                  expanded={false}
-                  onToggleExpand={() => {}}
-                  onNavigate={onNavigate}
-                  onToggleSkip={() => toggleSkip(step.id)}
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
+                <span className="text-sm font-semibold text-foreground">Færdige ({doneSteps.length})</span>
+                <ChevronDown
+                  className={cn("ml-auto h-4 w-4 text-muted-foreground transition-transform", showDone && "rotate-180")}
+                  aria-hidden="true"
                 />
-              ))}
+              </button>
+              {showDone && (
+                <div className="border-t border-border">
+                  {doneSteps.map((step) => (
+                    <OnboardingStepCard
+                      key={step.id}
+                      step={step}
+                      counts={counts}
+                      done
+                      compact
+                      skipped={!!skipped[step.id]}
+                      expanded={false}
+                      onToggleExpand={() => {}}
+                      onNavigate={onNavigate}
+                      onToggleSkip={() => toggleSkip(step.id)}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
-      )}
 
-      {/* Frivillige trin — foldet sammen */}
-      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-        <button
-          type="button"
-          onClick={() => setShowNextLevel((v) => !v)}
-          aria-expanded={showNextLevel}
-          className="flex w-full items-center gap-2 px-3 py-3 text-left sm:px-4"
-        >
-          <span className="text-sm font-semibold text-foreground">Når I er klar</span>
-          <span className="text-[11px] text-muted-foreground">Frivilligt — blokerer ikke opstarten</span>
-          <ChevronDown
-            className={cn("ml-auto h-4 w-4 text-muted-foreground transition-transform", showNextLevel && "rotate-180")}
-            aria-hidden="true"
-          />
-        </button>
-        {showNextLevel && (
-            <div className="space-y-2 border-t border-border p-2">
-            {nextLevelSteps.map((step) => (
-              <OnboardingStepCard
-                key={step.id}
-                step={step}
-                counts={counts}
-                done={done[step.id]}
-                skipped={!!skipped[step.id]}
-                expanded={expandedId === step.id}
-                onToggleExpand={() => setManualExpanded((cur) => (cur === step.id ? "none" : step.id))}
-                onNavigate={onNavigate}
-                onToggleSkip={() => toggleSkip(step.id)}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Ressourcer */}
-      <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-        <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          <Sparkles className="h-3.5 w-3.5" aria-hidden="true" /> Ressourcer
-        </p>
-        <div className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-background">
-          {RESOURCES.map((r) => (
-            <a
-              key={r.title}
-              href={r.href}
-              className="group flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-secondary/50"
+        {/* Højre: frivilligt + ressourcer */}
+        <div className="space-y-4">
+          <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+            <button
+              type="button"
+              onClick={() => setShowNextLevel((v) => !v)}
+              aria-expanded={showNextLevel}
+              className="flex w-full items-start gap-2 px-4 py-3 text-left transition-colors hover:bg-secondary/40"
             >
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-semibold text-foreground">{r.title}</span>
-                <span className="block truncate text-[11px] leading-snug text-muted-foreground">{r.body}</span>
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold text-foreground">Når I er klar</span>
+                <span className="block text-xs text-muted-foreground">Frivilligt — blokerer ikke opstarten</span>
               </span>
-              <ExternalLink
-                className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5"
+              <ChevronDown
+                className={cn("ml-auto mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform", showNextLevel && "rotate-180")}
                 aria-hidden="true"
               />
-            </a>
-          ))}
-        </div>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <Button asChild size="sm" variant="outline" className="h-8 text-xs">
-            <a href={publicHref} target="_blank" rel="noreferrer">
-              <BookOpen className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
-              Se din offentlige side
-              <ExternalLink className="ml-1.5 h-3 w-3" aria-hidden="true" />
-            </a>
-          </Button>
-          <Button asChild size="sm" variant="outline" className="h-8 text-xs">
-            <a href="/hjaelp">
-              <LifeBuoy className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
-              Hjælp og support
-            </a>
-          </Button>
+            </button>
+            {showNextLevel && (
+              <div className="space-y-2 border-t border-border p-3">
+                {nextLevelSteps.map((step) => (
+                  <OnboardingStepCard
+                    key={step.id}
+                    step={step}
+                    counts={counts}
+                    done={done[step.id]}
+                    skipped={!!skipped[step.id]}
+                    expanded={expandedId === step.id}
+                    onToggleExpand={() => setManualExpanded((cur) => (cur === step.id ? "none" : step.id))}
+                    onNavigate={onNavigate}
+                    onToggleSkip={() => toggleSkip(step.id)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          <SectionCard title="Ressourcer" icon={<Sparkles />}>
+            <div className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-background">
+              {RESOURCES.map((r) => (
+                <a
+                  key={r.title}
+                  href={r.href}
+                  className="group flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-secondary/50"
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold text-foreground">{r.title}</span>
+                    <span className="block truncate text-xs leading-snug text-muted-foreground">{r.body}</span>
+                  </span>
+                  <ExternalLink
+                    className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5"
+                    aria-hidden="true"
+                  />
+                </a>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button asChild size="sm" variant="outline" className="h-9 flex-1 text-xs sm:flex-none">
+                <a href={publicHref} target="_blank" rel="noreferrer">
+                  <BookOpen className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
+                  Se din offentlige side
+                </a>
+              </Button>
+              <Button asChild size="sm" variant="outline" className="h-9 flex-1 text-xs sm:flex-none">
+                <a href="/hjaelp">
+                  <LifeBuoy className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
+                  Hjælp og support
+                </a>
+              </Button>
+            </div>
+          </SectionCard>
         </div>
       </div>
     </div>
