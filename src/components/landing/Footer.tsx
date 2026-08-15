@@ -50,6 +50,10 @@ const Footer = () => {
             <h4 className="mb-3 text-sm font-semibold text-background">For virksomheder</h4>
             <ul className="space-y-2 text-sm text-background/65">
               <li><Link to="/opret-virksomhed" className="transition-colors hover:text-background">Bliv udbyder</Link></li>
+              <li><Link to="/software" className="transition-colors hover:text-background">Software til virksomheder</Link></li>
+              <li><Link to="/software/ruteplanlaegger" className="transition-colors hover:text-background">Ruteplanlægger</Link></li>
+              <li><Link to="/software/medarbejder-app" className="transition-colors hover:text-background">Medarbejder-app</Link></li>
+              <li><Link to="/software/fakturering-og-regnskab" className="transition-colors hover:text-background">Fakturering &amp; regnskab</Link></li>
               <li><Link to="/log-ind" className="transition-colors hover:text-background">Log ind</Link></li>
               <li><Link to="/virksomhed" className="transition-colors hover:text-background">Virksomhedspanel</Link></li>
             </ul>
