@@ -20,7 +20,7 @@ const WindowCleanerSoftware = defineSoftwarePage({
     "Advarsler ved dobbeltbooking, ferie og helligdage",
     "Priser pr. stk., pr. m², pr. time eller fast pris",
     "Nye kunder fra markedspladsen Serviceydere.dk",
-    "Fra 289 kr./md. med ruteplanlægning inkluderet",
+    "Fra 289 kr./md. med ruteplanlægning inkluderet — 14 dages gratis prøve uden betalingskort",
   ],
   sections: [
     {
