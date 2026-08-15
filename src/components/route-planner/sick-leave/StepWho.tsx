@@ -41,17 +41,17 @@ export default function StepWho({
   const sickEmp = employees.find((e) => e.id === employeeId);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <StepHeading
         step={1}
         title="Hvem og hvornår"
         description="Vælg medarbejderen og den periode fraværet dækker."
       />
 
-      <div className="space-y-1.5">
+      <div className="space-y-2">
         <Label className="text-xs">Medarbejder</Label>
         <Select value={employeeId ?? ""} onValueChange={onEmployeeChange}>
-          <SelectTrigger className="h-11 text-sm">
+          <SelectTrigger className="h-11 bg-background text-sm">
             {sickEmp ? <EmpLine emp={sickEmp} /> : <SelectValue placeholder="Vælg medarbejder" />}
           </SelectTrigger>
           <SelectContent>
@@ -70,7 +70,7 @@ export default function StepWho({
         )}
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         <div className="flex items-center justify-between">
           <Label className="text-xs">Fraværsperiode</Label>
           <span className="text-[11px] tabular-nums text-muted-foreground">
@@ -78,14 +78,14 @@ export default function StepWho({
           </span>
         </div>
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-end">
           <div className="min-w-0 flex-1 space-y-1">
             <span className="block text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
               Fra og med
             </span>
             <DatePickerField value={from} onChange={onFromChange} />
           </div>
-          <ArrowRight className="hidden h-3.5 w-3.5 shrink-0 self-center text-muted-foreground sm:block" />
+           <ArrowRight className="hidden h-3.5 w-3.5 shrink-0 self-center text-muted-foreground sm:block" />
           <div className="min-w-0 flex-1 space-y-1">
             <span className="block text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
               Til og med
@@ -94,17 +94,17 @@ export default function StepWho({
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-1">
+        <div className="grid grid-cols-2 gap-1.5 sm:flex sm:flex-wrap">
           {presets.map((p) => (
             <button
               key={p.label}
               type="button"
               onClick={() => { onFromChange(p.f); onToChange(p.t); }}
               className={cn(
-                "rounded-md px-2 py-1 text-[11px] font-medium transition-colors",
+                "min-h-8 rounded-md border px-2 py-1 text-[11px] font-medium transition-colors",
                 active === p.label
-                  ? "bg-foreground text-background"
-                  : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border bg-background text-muted-foreground hover:bg-secondary hover:text-foreground",
               )}
             >
               {p.label}
@@ -119,12 +119,12 @@ export default function StepWho({
       ) : loading ? (
         <Skeleton className="h-11 w-full rounded-lg" />
       ) : (impact?.routes.length ?? 0) === 0 ? (
-        <div className="flex items-center gap-2 rounded-lg border bg-card px-3 py-2.5 text-xs shadow-sm">
+         <div className="flex items-center gap-2 rounded-md border bg-secondary/30 px-3 py-3 text-xs">
           <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
           Ingen ruter eller aftaler bliver ramt. Fraværet registreres bare.
         </div>
       ) : (
-        <div className="flex items-center gap-2 rounded-lg border bg-card px-3 py-2.5 text-xs shadow-sm">
+         <div className="flex items-center gap-2 rounded-md border bg-secondary/30 px-3 py-3 text-xs">
           <CalendarDays className="h-4 w-4 shrink-0 text-muted-foreground" />
           <span className="tabular-nums">
             {days} dag{days === 1 ? "" : "e"} · {impact!.routes.length} rute

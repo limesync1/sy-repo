@@ -6,7 +6,6 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -180,44 +179,42 @@ export default function SickLeaveDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[calc(100dvh-1rem)] max-w-2xl flex-col gap-0 overflow-hidden p-0 sm:max-h-[92vh]">
-        <DialogHeader className="shrink-0 space-y-0 border-b px-4 py-4 pr-12 text-left sm:px-5">
+      <DialogContent className="flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-xl flex-col gap-0 overflow-hidden p-0 sm:max-h-[90vh]">
+        <DialogHeader className="shrink-0 space-y-0 border-b px-4 py-4 pr-12 text-left sm:px-6 sm:py-5">
           <SheetHeaderBlock
             icon={<Thermometer className="h-4 w-4" />}
-            accent="#f59e0b"
             title={<DialogTitle className="text-base">Meld medarbejder syg</DialogTitle>}
             description={
-              <DialogDescription className="text-xs leading-snug">
-                Vi finder alle aftaler i perioden og foreslår, hvem der kan overtage. Intet ændres, før du bekræfter.
+              <DialogDescription className="max-w-md text-xs leading-relaxed">
+                Registrér fraværet, og vælg hvad der skal ske med medarbejderens aftaler.
               </DialogDescription>
             }
           />
-          {/* Trin-indikator */}
-          <ol className="mt-3 flex items-center gap-1.5" aria-label="Trin">
+          <ol className="mt-4 grid grid-cols-3 gap-2" aria-label="Trin">
             {STEPS.map((label, i) => (
-              <li key={label} className="flex min-w-0 flex-1 items-center gap-1.5">
+              <li
+                key={label}
+                className={cn(
+                  "min-w-0 border-t-2 pt-2 transition-colors",
+                  i <= step ? "border-foreground" : "border-border",
+                )}
+                aria-current={i === step ? "step" : undefined}
+              >
                 <span
                   className={cn(
-                    "h-1 flex-1 rounded-full transition-colors",
-                    i <= step ? "bg-foreground" : "bg-border",
-                  )}
-                  aria-current={i === step ? "step" : undefined}
-                />
-                <span
-                  className={cn(
-                    "hidden shrink-0 text-[10px] font-medium uppercase tracking-wide sm:block",
+                    "block truncate text-[11px] font-medium",
                     i === step ? "text-foreground" : "text-muted-foreground",
                   )}
                 >
-                  {label}
+                  <span className="mr-1 tabular-nums">{i + 1}.</span>{label}
                 </span>
               </li>
             ))}
           </ol>
         </DialogHeader>
 
-        <ScrollArea className="min-h-0 flex-1 bg-secondary/20">
-          <div className="space-y-4 px-4 py-4 sm:px-5">
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="space-y-5 px-4 py-5 sm:px-6 sm:py-6">
             <div ref={headingRef} tabIndex={-1} className="outline-none" />
 
             {step === 0 && (
@@ -252,8 +249,8 @@ export default function SickLeaveDialog({
                 ) : (
                   <>
                     {(impact?.routes.length ?? 0) > 1 && (
-                      <div className="flex flex-col gap-2 rounded-lg border bg-card px-3 py-2 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-                        <span className="text-[11px] text-muted-foreground">
+                       <div className="flex flex-col gap-2.5 rounded-md border bg-secondary/30 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
+                         <span className="text-xs font-medium">
                           Brug samme løsning på alle ruter
                         </span>
                         <Select onValueChange={(v) => applyToAll(v as SickLeaveAction)}>
@@ -301,9 +298,9 @@ export default function SickLeaveDialog({
               />
             )}
           </div>
-        </ScrollArea>
+        </div>
 
-        <DialogFooter className="shrink-0 flex-col-reverse gap-2 border-t bg-background px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <DialogFooter className="shrink-0 flex-col-reverse gap-2 border-t bg-background px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <Button
             variant="ghost"
             size="sm"

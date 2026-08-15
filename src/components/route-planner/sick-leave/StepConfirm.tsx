@@ -51,7 +51,7 @@ export default function StepConfirm({
         description="Tjek konsekvensen igennem. Intet ændres før du bekræfter."
       />
 
-      <div className="rounded-xl border bg-card p-3 shadow-sm">
+      <div className="rounded-lg border bg-secondary/30 p-3.5">
         <p className="text-sm font-semibold">{employeeName}</p>
         <p className="text-[11px] text-muted-foreground">
           Syg {prettyDate(from)}
@@ -60,12 +60,12 @@ export default function StepConfirm({
       </div>
 
       {routes.length === 0 ? (
-        <div className="flex items-center gap-2 rounded-xl border bg-card px-3 py-3 text-xs shadow-sm">
+         <div className="flex items-center gap-2 rounded-lg border bg-secondary/30 px-3 py-3 text-xs">
           <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
           Ingen aftaler berøres — fraværet registreres blot i kalenderen.
         </div>
       ) : (
-        <ul className="divide-y overflow-hidden rounded-xl border bg-card shadow-sm">
+         <ul className="divide-y overflow-hidden rounded-lg border bg-card">
           {routes.map((r) => (
             <li key={r.id} className="flex flex-col gap-0.5 px-3 py-2.5">
               <span className="text-xs font-medium">

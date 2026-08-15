@@ -39,7 +39,7 @@ export default function RouteDecisionCard({
     a === "spread" && route.crewIds.length === 0 ? "Ingen andre på holdet" : null;
 
   return (
-    <div className="space-y-3 rounded-xl border bg-card p-3 shadow-sm">
+    <section className="space-y-4 rounded-lg border bg-card p-3.5">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold">{route.name || "Rute uden navn"}</p>
@@ -60,7 +60,7 @@ export default function RouteDecisionCard({
       </div>
 
       {/* Handlingsvalg som radiokort */}
-      <div role="radiogroup" aria-label="Løsning for ruten" className="grid gap-1.5 sm:grid-cols-2">
+      <div role="radiogroup" aria-label="Løsning for ruten" className="grid gap-2">
         {ACTIONS.map((a) => {
           const reason = disabledReason(a);
           const selected = action === a;
@@ -73,8 +73,8 @@ export default function RouteDecisionCard({
               disabled={!!reason}
               onClick={() => onChange({ action: a })}
               className={cn(
-                "rounded-lg border p-2.5 text-left transition-colors",
-                selected ? "border-foreground bg-secondary/60" : "hover:bg-secondary/40",
+                "rounded-md border px-3 py-2.5 text-left transition-colors",
+                selected ? "border-foreground bg-secondary/60" : "border-border hover:bg-secondary/40",
                 reason && "cursor-not-allowed opacity-50",
               )}
             >
@@ -89,7 +89,7 @@ export default function RouteDecisionCard({
                 </span>
                 {ACTION_LABEL[a]}
               </span>
-              <span className="mt-1 block pl-5 text-[11px] leading-snug text-muted-foreground">
+               <span className="mt-1 block pl-5 text-[11px] leading-relaxed text-muted-foreground">
                 {reason || ACTION_HINT[a]}
               </span>
             </button>
@@ -119,7 +119,7 @@ export default function RouteDecisionCard({
                       aria-checked={selected}
                       onClick={() => onChange({ replacementId: c.employeeId })}
                       className={cn(
-                        "flex w-full flex-wrap items-center justify-between gap-2 rounded-lg border px-2.5 py-2 text-left transition-colors",
+                        "flex w-full flex-col items-stretch gap-2 rounded-md border px-3 py-2.5 text-left transition-colors sm:flex-row sm:items-center sm:justify-between",
                         selected ? "border-foreground bg-secondary/60" : "hover:bg-secondary/40",
                       )}
                     >
@@ -188,6 +188,6 @@ export default function RouteDecisionCard({
           {route.stops.length > 3 && ` +${route.stops.length - 3} mere`}
         </p>
       )}
-    </div>
+    </section>
   );
 }

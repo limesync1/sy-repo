@@ -86,7 +86,7 @@ export const EmpLine = ({
 
 /** Nummereret trin-overskrift inde i en sektion. */
 export const StepHeading = ({
-  step,
+  step: _step,
   title,
   description,
 }: {
@@ -94,13 +94,8 @@ export const StepHeading = ({
   title: string;
   description?: string;
 }) => (
-  <div className="flex items-start gap-2.5">
-    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-foreground text-[10px] font-bold text-background">
-      {step}
-    </span>
-    <div className="min-w-0">
-      <h3 className="text-sm font-semibold leading-tight">{title}</h3>
-      {description && <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>}
-    </div>
+  <div className="min-w-0 border-b pb-3">
+    <h3 className="text-sm font-semibold leading-tight">{title}</h3>
+    {description && <p className="mt-1 max-w-lg text-xs leading-relaxed text-muted-foreground">{description}</p>}
   </div>
 );
