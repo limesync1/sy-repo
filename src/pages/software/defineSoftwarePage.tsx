@@ -5,7 +5,8 @@ import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
 import PageHero from "@/components/landing/PageHero";
 import ArticleFaqSection from "@/components/content/ArticleFaqSection";
-import { softwarePagesExcept } from "./softwareRegistry";
+import { productPagesExcept, industryPagesExcept } from "./softwareRegistry";
+import { BRAND_DEFINITION, BRAND_FEATURE_LIST } from "@/lib/brand";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
 
@@ -59,16 +60,17 @@ export function defineSoftwarePage(cfg: SoftwareConfig) {
       operatingSystem: "Web, iOS, Android (webapp)",
       url: fullUrl,
       inLanguage: "da-DK",
-      description: cfg.answer,
-      featureList: [
-        "Ruteplanlægning med drag & drop",
-        "Gentagne aftaler og faste kunder",
-        "Medarbejder-app med tjek ind/ud",
-        "Online booking og tilbudsstyring",
-        "Fakturering med e-conomic og Dinero",
-        "Kundekartotek og livechat",
-        "Profilside på markedspladsen Serviceydere.dk",
-      ],
+      // Samme definition overalt — se src/lib/brand.ts for hvorfor.
+      description: BRAND_DEFINITION,
+      abstract: cfg.answer,
+      featureList: BRAND_FEATURE_LIST,
+      offers: {
+        "@type": "Offer",
+        price: "289",
+        priceCurrency: "DKK",
+        url: "https://serviceydere.dk/software/priser",
+        description: "Pr. måned ekskl. moms. Ruteplanlægning inkluderet. 14 dages prøveperiode.",
+      },
       provider: {
         "@type": "Organization",
         name: "Serviceydere",
@@ -100,7 +102,8 @@ export function defineSoftwarePage(cfg: SoftwareConfig) {
     });
   }
 
-  const related = softwarePagesExcept(cfg.canonicalPath);
+  const related = productPagesExcept(cfg.canonicalPath);
+  const industries = industryPagesExcept(cfg.canonicalPath);
 
   const Page = () => (
     <div className="min-h-screen bg-background">
@@ -203,6 +206,25 @@ export function defineSoftwarePage(cfg: SoftwareConfig) {
                 ))}
               </ul>
             </div>
+
+            {industries.length > 0 && (
+              <div className="mt-4 rounded-2xl border border-border bg-muted/35 p-6">
+                <p className="text-sm font-semibold tracking-tight text-foreground">Samme system i din branche</p>
+                <ul className="mt-4 space-y-2">
+                  {industries.map((r) => (
+                    <li key={r.href}>
+                      <Link
+                        to={r.href}
+                        className="group flex items-start gap-2 rounded-lg px-2 py-2 text-sm text-foreground transition-colors hover:bg-secondary"
+                      >
+                        <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" aria-hidden />
+                        <span className="font-medium">{r.label}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </aside>
         </div>
 

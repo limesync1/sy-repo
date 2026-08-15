@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 interface Props {
-  active?: "search" | "quote" | "business" | null;
+  active?: "search" | "quote" | "business" | "software" | null;
   right?: React.ReactNode;
 }
 
@@ -22,6 +22,7 @@ const NAV_ITEMS: { key: NonNullable<Props["active"]>; label: string; to: string 
   { key: "search", label: "Find services", to: "/virksomheder" },
   { key: "quote", label: "Få tilbud", to: "/tilbud" },
   { key: "business", label: "Bliv udbyder", to: "/opret-virksomhed" },
+  { key: "software", label: "Software", to: "/software" },
 ];
 
 const PANEL_PREFERENCE_KEY = "preferred-panel-route";

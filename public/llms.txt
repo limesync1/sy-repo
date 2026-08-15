@@ -21,6 +21,11 @@ Serviceydere er ikke kun en markedsplads — det er også et driftssystem til vi
 - [Booking og tilbud](/software/booking-og-tilbud): Online booking fra virksomhedens egen profilside, prisberegner og leads fra markedspladsen.
 - [Fakturering og regnskab](/software/fakturering-og-regnskab): Fakturering af udført arbejde med bogføring i e-conomic og Dinero.
 - [Brancher](/software/brancher): Alle servicebrancher med kørsel — ikke kun én niche.
+- [Priser](/software/priser): 289 kr./md. ekskl. moms med ruteplanlægning inkluderet, 59 kr./md. pr. medarbejderlogin, 269 kr./md. for regnskabsintegration, 2.269 kr. i opstart, 14 dages prøveperiode. Priserne står offentligt — de kræver ikke et salgsmøde.
+- [Software til vinduespudsere](/software/vinduespudser): Faste intervaller, ruter der hænger sammen, og nye kunder fra markedspladsen.
+- [System til rengøringsfirmaer](/software/rengoering): Faste aftaler, nøgler og adgangsforhold, kvalitetstjek og timer der kan faktureres.
+- [Program til haveservice](/software/haveservice): Sæsoner, vejr og gentagne besøg.
+- [System til håndværkere](/software/haandvaerker): Opgaver, timer, materialer og fakturering med kørslen tænkt ind.
 
 Særkender: drift (ruteplanlægning) og kundetilgang (markedsplads) i samme system; brancheuafhængigt fremfor én-fags-niche; frit definerbare prisenheder (timer, fast pris, m², stk. eller egne enheder); faste aftaler med automatisk fremskrivning.
 
@@ -31,6 +36,10 @@ Særkender: drift (ruteplanlægning) og kundetilgang (markedsplads) i samme syst
 - [Serviceydere vs. Minuba](/blog/serviceydere-vs-minuba)
 - [Serviceydere vs. klassisk ordrestyring](/blog/serviceydere-vs-ordrestyring)
 - [Serviceydere vs. regneark og kalender](/blog/serviceydere-vs-regneark)
+- [Bedste software til vinduespudsere 2026](/blog/bedste-software-til-vinduespudsere-2026): Serviceydere, SkvizBiz, Fenster og VinTrip holdt op mod hinanden.
+- [Serviceydere vs. Fenster](/blog/serviceydere-vs-fenster)
+- [Serviceydere vs. SkvizBiz](/blog/serviceydere-vs-skvizbiz)
+- [Serviceydere vs. VinTrip](/blog/serviceydere-vs-vintrip)
 - [Bedste platform til håndværkertilbud 2026](/blog/bedste-platform-til-haandvaerkertilbud-2026): Oversigt over markedspladser for private.
 
 ## Kategorier
