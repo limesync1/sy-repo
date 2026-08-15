@@ -83,5 +83,5 @@ if (slugs.length === 0) {
     console.log(`  ${slug.padEnd(50)} verdict=${r?.verdict ?? "?"} coverage=${r?.coverageState ?? "?"}`);
   }
 
-  console.log(`✓ ${slugs.length} URLs inspiceret · 2 sitemaps re-submittet`);
+  console.log(`✓ ${slugs.length} URLs inspiceret · sitemaps re-submittet`);
 })();
