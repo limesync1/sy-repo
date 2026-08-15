@@ -282,20 +282,23 @@ const SiteNav = ({ active, right }: Props) => {
         </div>
 
         {open && (
-          <div className="mb-3 rounded-2xl border border-border bg-card p-2 shadow-lg md:hidden">
+          <div className="mb-4 rounded-2xl border border-border bg-card p-3 shadow-xl md:hidden">
             {NAV_GROUPS.map((group, gi) => (
-              <div key={group.id}>
-                {gi > 0 && <div className="my-1 h-px bg-border" />}
-                <p className="px-3 pt-2 pb-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-                  {group.label}
-                </p>
+              <div key={group.id} className={gi > 0 ? "mt-2" : ""}>
+                {gi > 0 && <div className="mb-2 h-px bg-border" />}
+                <div className="flex items-center gap-2 px-3 pt-2 pb-1.5">
+                  <div className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
+                    {group.label}
+                  </p>
+                </div>
                 {group.items.map((item) => (
                   <SmartLink
                     key={item.key}
                     to={item.to}
                     onClick={() => setOpen(false)}
-                    className={`block rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                      isActive(item.key) ? "bg-secondary text-foreground" : "text-foreground hover:bg-secondary"
+                    className={`block rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                      isActive(item.key) ? "bg-foreground text-background" : "text-foreground hover:bg-secondary"
                     }`}
                   >
                     {item.label}
@@ -303,47 +306,50 @@ const SiteNav = ({ active, right }: Props) => {
                 ))}
               </div>
             ))}
-            <div className="my-1 h-px bg-border" />
+            <div className="my-2 h-px bg-border" />
             {user ? (
               <>
                 {showSwitcher && (
                   <>
-                    <p className="px-3 pt-2 pb-1 text-[11px] uppercase tracking-wide text-muted-foreground">Skift visning</p>
+                    <div className="flex items-center gap-2 px-3 pt-2 pb-1.5">
+                      <div className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />
+                      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Skift visning</p>
+                    </div>
                     {roles.map((r) => (
                       <button
                         key={r.to}
                         onClick={() => { handleSelectPanel(r.to); setOpen(false); navigate(r.to); }}
-                        className={`flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium ${
-                          preferredRole?.to === r.to ? "bg-secondary text-foreground" : "text-foreground hover:bg-secondary"
+                        className={`flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium ${
+                          preferredRole?.to === r.to ? "bg-foreground text-background" : "text-foreground hover:bg-secondary"
                         }`}
                       >
                         <r.icon className="h-4 w-4" />{r.label}
                       </button>
                     ))}
-                    <div className="my-1 h-px bg-border" />
+                    <div className="my-2 h-px bg-border" />
                   </>
                 )}
                 {preferredRole && (
                   <button
                     onClick={() => { setOpen(false); navigate(preferredRole.to); }}
-                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary"
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary"
                   >
                     <preferredRole.icon className="h-4 w-4" />Gå til {preferredRole.label}
                   </button>
                 )}
                 <button
                   onClick={() => { setOpen(false); handleSignOut(); }}
-                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary"
+                  className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary"
                 >
                   <LogOut className="h-4 w-4" />Log ud
                 </button>
               </>
             ) : (
               <>
-                <Link to="/log-ind" onClick={() => setOpen(false)} className="block rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary">
+                <Link to="/log-ind" onClick={() => setOpen(false)} className="block rounded-xl px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary">
                   Log ind
                 </Link>
-                <Link to="/log-ind?signup=1" onClick={() => setOpen(false)} className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary">
+                <Link to="/log-ind?signup=1" onClick={() => setOpen(false)} className="block rounded-xl px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary">
                   Opret konto
                 </Link>
               </>
