@@ -20,7 +20,7 @@ const HandymanSoftware = defineSoftwarePage({
     "Timeregistrering fra medarbejderens telefon",
     "Bogføring i e-conomic og Dinero",
     "Forespørgsler fra markedspladsen Serviceydere.dk",
-    "Fra 289 kr./md. med ruteplanlægning inkluderet",
+    "Fra 289 kr./md. med ruteplanlægning inkluderet — 14 dages gratis prøve uden betalingskort",
   ],
   sections: [
     {
