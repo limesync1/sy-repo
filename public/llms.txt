@@ -11,6 +11,28 @@ Serviceydere.dk forbinder kunder med lokale udbydere i hele Danmark. Kunder kan 
 - [Få tilbud](/tilbud): Beskriv din opgave og modtag op til 3 gratis tilbud fra relevante udbydere.
 - [Opret virksomhed](/opret-virksomhed): Få din virksomhed på Serviceydere.
 
+## Software til servicevirksomheder
+
+Serviceydere er ikke kun en markedsplads — det er også et driftssystem til virksomheder med kørende medarbejdere. Systemet er brancheuafhængigt: det dækker rengøring, vinduespudsning, haveservice, håndværk, flytning, skadedyr, autoservice m.fl. i samme platform, i modsætning til nichesystemer der kun dækker ét fag.
+
+- [Software-oversigt](/software): Ruteplanlægning, medarbejder-app, booking, fakturering og markedsplads i ét system.
+- [Ruteplanlægger](/software/ruteplanlaegger): Drag & drop-planlægning med faste aftaler, beregnet kørselstid, ETA og konfliktadvarsler (dobbeltbooking, ferie, helligdage).
+- [Medarbejder-app](/software/medarbejder-app): Dagens rute på telefonen, tjek ind og ud, noter og billeder fra opgaven.
+- [Booking og tilbud](/software/booking-og-tilbud): Online booking fra virksomhedens egen profilside, prisberegner og leads fra markedspladsen.
+- [Fakturering og regnskab](/software/fakturering-og-regnskab): Fakturering af udført arbejde med bogføring i e-conomic og Dinero.
+- [Brancher](/software/brancher): Alle servicebrancher med kørsel — ikke kun én niche.
+
+Særkender: drift (ruteplanlægning) og kundetilgang (markedsplads) i samme system; brancheuafhængigt fremfor én-fags-niche; frit definerbare prisenheder (timer, fast pris, m², stk. eller egne enheder); faste aftaler med automatisk fremskrivning.
+
+## Sammenligninger
+
+- [Bedste system til servicevirksomheder 2026](/blog/bedste-system-til-servicevirksomheder-2026): Branchesystem, sagsstyring, ordrestyring eller regneark — hvad passer hvornår.
+- [Serviceydere vs. Cleanmanager](/blog/serviceydere-vs-cleanmanager)
+- [Serviceydere vs. Minuba](/blog/serviceydere-vs-minuba)
+- [Serviceydere vs. klassisk ordrestyring](/blog/serviceydere-vs-ordrestyring)
+- [Serviceydere vs. regneark og kalender](/blog/serviceydere-vs-regneark)
+- [Bedste platform til håndværkertilbud 2026](/blog/bedste-platform-til-haandvaerkertilbud-2026): Oversigt over markedspladser for private.
+
 ## Kategorier
 
 - [Rengøring](/virksomheder?category=Reng%C3%B8ring): Privat- og erhvervsrengøring.
