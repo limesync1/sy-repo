@@ -1,0 +1,11 @@
+/software
+/software/ruteplanlaegger
+/software/medarbejder-app
+/software/booking-og-tilbud
+/software/fakturering-og-regnskab
+/software/brancher
+bedste-system-til-servicevirksomheder-2026
+serviceydere-vs-cleanmanager
+serviceydere-vs-minuba
+serviceydere-vs-ordrestyring
+serviceydere-vs-regneark
