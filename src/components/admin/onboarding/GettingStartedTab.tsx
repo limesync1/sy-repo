@@ -27,6 +27,7 @@ const NEXT_LEVEL_LINKS = [
 ];
 
 const RESOURCES = [
+  { title: "Brugsanvisning til ruteplanlæggeren", body: "Søgbar guide til hver funktion — med eksempel og trin. Kan hentes som PDF.", href: "/software/funktioner" },
   { title: "Ofte stillede spørgsmål", body: "Aftaler, bestillinger, priser og medarbejder-app.", href: "/hjaelp#faq" },
   { title: "Prisguides", body: "Se markedspriser i jeres branche som udgangspunkt.", href: "/guides/priser-2026" },
   { title: "Kontakt os", body: "Sidder I fast? Skriv til os — vi svarer på hverdage.", href: "/kontakt" },
@@ -336,6 +337,12 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
                 <a href={publicHref} target="_blank" rel="noreferrer">
                   <BookOpen className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
                   Se din offentlige side
+                </a>
+              </Button>
+              <Button asChild size="sm" variant="outline" className="h-9 flex-1 text-xs sm:flex-none">
+                <a href="/guides/serviceydere-ruteplanlaegger-brugerguide.pdf" target="_blank" rel="noreferrer" download>
+                  <BookOpen className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
+                  Hent PDF-guide
                 </a>
               </Button>
               <Button asChild size="sm" variant="outline" className="h-9 flex-1 text-xs sm:flex-none">
