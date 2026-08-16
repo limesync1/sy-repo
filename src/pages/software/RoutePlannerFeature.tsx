@@ -22,8 +22,25 @@ const Page = defineSoftwarePage({
     "Konfliktadvarsler ved overlap, ferie, helligdage og lukkedage.",
     "Ruteoptimering foreslår en kortere rækkefølge på dagen.",
     "Ændringer kan gælde ét stop eller hele serien.",
+    "Sygemelding i tre trin med forslag til afløser.",
+    "Print af køresedler og udsendelse til medarbejder-appen.",
   ],
   sections: [
+    {
+      heading: "Alle funktioner i ruteplanlæggeren",
+      paragraphs: [
+        <>Herunder står hvad planlæggeren faktisk indeholder. Hver funktion er beskrevet med et eksempel og korte trin i den <Link to="/software/funktioner">søgbare funktionsguide</Link>, som også kan hentes som PDF.</>,
+      ],
+      list: [
+        "Planlægning: træk aftaler ind på ruter, panel med aftaler uden rute (søgning og filtre), auto-fordeling med forhåndsvisning, masse-handlinger på flere aftaler, opret bestilling direkte i planlæggeren, opret og redigér ruter.",
+        "Kalender: uge-, måneds- og agendavisning, dagen som tidslinje, valgfri tæthed og mørk tilstand.",
+        "Kort og kørsel: ruter tegnet med nummererede stop, løbende beregning af kørselstid og ankomsttider, ruteoptimering og “find næste ledige tid”.",
+        "Faste aftaler: intervaller fra ugentlig til frit valgt, valg mellem ét besøg og hele serien, pauser i en periode uden at slette serien.",
+        "Medarbejdere og fravær: sygemelding i tre trin med forslag til afløser, ferie, fridage og danske helligdage, dagsvisning med en kolonne pr. medarbejder.",
+        "Kvalitet og kontrol: konfliktadvarsler, forhåndsvisning før større ændringer gemmes, fortryd og gentag, historik på hver rute og diagnostik af skæve data.",
+        "Print, eksport og deling: køresedler til print eller PDF, udsendelse til medarbejder-appen, vejrudsigt på dagen og tastaturgenveje til hele flowet.",
+      ],
+    },
     {
       heading: "Sådan fungerer planlægningen",
       list: [
@@ -59,6 +76,12 @@ const Page = defineSoftwarePage({
         <>Ruten sendes videre til <Link to="/software/medarbejder-app">medarbejder-appen</Link>, hvor stoppene tjekkes af undervejs. Udført arbejde kan derefter faktureres og <Link to="/software/fakturering-og-regnskab">bogføres automatisk</Link>, uden at nogen skal taste dagen ind igen.</>,
       ],
     },
+    {
+      heading: "Guide og hjælp",
+      paragraphs: [
+        <>Alle funktioner er samlet i en <Link to="/software/funktioner">søgbar funktionsguide</Link> med eksempler og trin, og kan hentes som PDF-brugerguide. Inde i planlæggeren forklares de samme funktioner direkte i skærmbilledet.</>,
+      ],
+    },
   ],
   faq: [
     {
@@ -75,7 +98,11 @@ const Page = defineSoftwarePage({
     },
     {
       q: "Hvad sker der, hvis en medarbejder melder sig syg?",
-      a: "Dagens stop kan flyttes samlet til en anden medarbejder eller en anden dag, og systemet viser med det samme hvilke konflikter det giver på den nye plan.",
+      a: "Der er en guide i tre trin: du vælger medarbejder og periode, vælger handling pr. berørt rute (erstat med kollega, fordel på flere, flyt dato eller fjern tildeling) og bekræfter. Systemet foreslår afløsere og viser konflikter, inden ændringen gemmes.",
+    },
+    {
+      q: "Findes der en brugerguide til ruteplanlæggeren?",
+      a: "Ja. Alle funktioner er beskrevet med eksempler og trin i den søgbare funktionsguide på serviceydere.dk/software/funktioner, som også kan hentes som PDF. De samme forklaringer vises direkte i planlæggeren.",
     },
     {
       q: "Skal jeg installere noget?",
