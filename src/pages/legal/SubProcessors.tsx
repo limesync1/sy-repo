@@ -36,7 +36,37 @@ const SubProcessors = () => (
         id: "listen",
         title: "2. Godkendte underdatabehandlere",
         body: (
-          <div className="not-prose overflow-x-auto rounded-xl border border-border">
+          <>
+          {/* Mobil: kort i stedet for tabel — en 4-kolonners tabel er
+              ulæselig på 390 px og tvinger vandret scroll. */}
+          <div className="not-prose grid gap-3 md:hidden">
+            {SUB_PROCESSORS.map((s) => (
+              <div key={s.name} className="rounded-xl border border-border bg-card p-4">
+                <p className="text-sm font-semibold text-foreground">{s.name}</p>
+                {s.optional && (
+                  <span className="mt-1 inline-block rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Kun ved tilvalg
+                  </span>
+                )}
+                <dl className="mt-3 space-y-2 text-sm text-muted-foreground">
+                  <div>
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-foreground/70">Formål</dt>
+                    <dd>{s.purpose}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-foreground/70">Oplysninger</dt>
+                    <dd>{s.data}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-foreground/70">Placering</dt>
+                    <dd>{s.location}</dd>
+                  </div>
+                </dl>
+              </div>
+            ))}
+          </div>
+
+          <div className="not-prose hidden overflow-x-auto rounded-xl border border-border md:block">
             <table className="w-full min-w-[640px] text-left text-sm">
               <thead>
                 <tr className="border-b border-border bg-muted/40 text-foreground">
@@ -65,6 +95,7 @@ const SubProcessors = () => (
               </tbody>
             </table>
           </div>
+          </>
         ),
       },
       {
