@@ -92,6 +92,7 @@ import { dragMetrics } from "@/lib/drag-metrics";
 import { startDragAutoScroll, stopDragAutoScroll } from "@/components/route-planner/lib/drag-auto-scroll";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
 import { AdminShell } from "@/components/admin/shared/AdminShell";
+import HelpTip from "@/components/route-planner/HelpTip";
 import { useWeatherForecast, type WeatherDay } from "@/hooks/useWeather";
 import { useDayConflicts } from "@/hooks/useDayConflicts";
 import { useDailyCapacity, useRouteSkillMismatch, deriveZoneKey } from "@/hooks/useRoutePlannerSmarts";
