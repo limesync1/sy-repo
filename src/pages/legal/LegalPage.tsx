@@ -31,8 +31,27 @@ const LegalPage = ({ title, subtitle, canonicalPath, description, updated, secti
         subtitle={subtitle}
       />
 
-      <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="grid gap-10 lg:grid-cols-[240px_1fr]">
+      <main className="mx-auto w-full max-w-7xl overflow-x-hidden px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+        {/* Mobil-indhold: sammenklappelig indholdsfortegnelse i stedet for
+            sidebaren, som er skjult under lg. */}
+        <details className="mb-6 rounded-xl border border-border bg-card lg:hidden">
+          <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-foreground">
+            Indhold på siden
+          </summary>
+          <nav className="border-t border-border px-2 py-2">
+            {sections.map((s) => (
+              <a
+                key={s.id}
+                href={`#${s.id}`}
+                className="block rounded-md px-2 py-2 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground"
+              >
+                {s.title}
+              </a>
+            ))}
+          </nav>
+        </details>
+
+        <div className="grid gap-10 lg:grid-cols-[240px_minmax(0,1fr)]">
           <aside className="hidden lg:block">
             <nav className="sticky top-24 space-y-1 text-sm">
               <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Indhold</p>
@@ -55,17 +74,17 @@ const LegalPage = ({ title, subtitle, canonicalPath, description, updated, secti
             </nav>
           </aside>
 
-          <article className="prose prose-sm max-w-none text-foreground">
+          <article className="prose prose-sm min-w-0 max-w-none break-words text-foreground">
             {sections.map((s) => (
               <section key={s.id} id={s.id} className="scroll-mt-24 mb-10">
-                <h2 className="text-xl font-semibold text-foreground">{s.title}</h2>
-                <div className="mt-3 space-y-3 text-sm leading-7 text-muted-foreground">
+                <h2 className="text-lg font-semibold text-foreground sm:text-xl">{s.title}</h2>
+                <div className="mt-3 space-y-3 text-[15px] leading-7 text-muted-foreground sm:text-sm">
                   {s.body}
                 </div>
               </section>
             ))}
 
-            <section className="mt-12 rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground">
+            <section className="mt-12 rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground sm:p-5">
               <p className="font-semibold text-foreground">Dataansvarlig</p>
               <p className="mt-1">Software og Full-service branding hos Adely Group</p>
               <p>CVR-nr.: 40543120</p>
