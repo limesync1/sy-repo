@@ -235,6 +235,14 @@ export const sortCandidates = (a: CandidateScore, b: CandidateScore) => {
 
 export type SickLeaveAction = "replace" | "spread" | "unassign" | "move_date";
 
+/** Dansk forklaring til historikken, så ejeren kan se hvad der blev valgt. */
+const SICK_LEAVE_SUMMARY: Record<SickLeaveAction, (newDate: string | null) => string> = {
+  replace: () => "ruten blev overtaget af en afløser",
+  spread: () => "stoppene blev fordelt på det øvrige hold",
+  unassign: () => "ruten blev sat fri uden medarbejder",
+  move_date: (d) => `ruten blev flyttet til ${d ?? "en ny dato"}`,
+};
+
 export type RouteDecision = {
   routeId: string;
   action: SickLeaveAction;
@@ -378,6 +386,9 @@ export const useCommitSickLeave = () => {
           business_id: businessId,
           route_id: route.id,
           action: `sygemelding:${decision.action}`,
+          summary: `${input.employeeName} blev meldt syg — ${
+            SICK_LEAVE_SUMMARY[decision.action as SickLeaveAction](decision.newDate ?? null)
+          }.`,
           scope: "single",
           affected_count: route.stops.length,
           before: { employee_id: employeeId, employee_name: input.employeeName },

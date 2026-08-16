@@ -375,6 +375,7 @@ export function toastRouteError(
       agreement_id: override.audit.agreement_id ?? null,
       scope: override.audit.scope ?? null,
       affected_count: 0,
+      summary: `Handlingen "${override.audit.action}" fejlede: ${issue.title} — ${issue.message}`,
       before: override.audit.payload ?? null,
       after: {
         error_code: issue.code,
