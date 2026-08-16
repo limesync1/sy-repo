@@ -182,7 +182,7 @@ const PrivacyPolicy = () => (
       },
       {
         id: "aendringer",
-        title: "8. Ændringer i politikken",
+        title: "9. Ændringer i politikken",
         body: <p>Vi kan løbende opdatere denne privatlivspolitik for at afspejle ændringer i lovgivningen, vores tjenester eller praksis. Den til enhver tid gældende version findes altid på serviceydere.dk/privatlivspolitik. Ved væsentlige ændringer der påvirker dine rettigheder, vil vi orientere dig på e-mail eller via en notifikation på platformen.</p>,
       },
     ]}
