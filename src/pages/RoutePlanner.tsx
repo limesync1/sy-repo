@@ -3784,6 +3784,12 @@ const Planner = () => {
                       }
                       return (
                         <div className="space-y-1.5">
+                          {/* Kontekstuel forklaring af auto-fordeling — samme tekst
+                              som i funktionsguiden og PDF-guiden. */}
+                          <div className="flex items-center justify-end gap-1 text-[10px] text-muted-foreground">
+                            <span>Hvad gør auto-fordel?</span>
+                            <HelpTip feature="auto-distribute" />
+                          </div>
                           {missing > 0 && (
                             <p className="text-[10px] text-muted-foreground flex items-center gap-1">
                               <MapPin className="h-2.5 w-2.5 text-amber-500" />
