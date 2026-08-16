@@ -379,6 +379,19 @@ export const AdminShell = ({
       >
         <div className={cn("flex h-14 shrink-0 items-center justify-between border-b border-border", collapsed ? "px-2" : "px-4")}>
           <Link to="/" className="flex items-center gap-2 overflow-hidden" aria-label="Forside">
+            {collapsed ? (
+              // Sammenfoldet: kun ikonet — ordmærket ville blive skåret over.
+              <img
+                src="/serviceydere-ikon.webp"
+                alt="Serviceydere"
+                className="h-8 w-8 rounded-lg object-contain"
+                width={64}
+                height={64}
+                decoding="async"
+                loading="lazy"
+              />
+            ) : (
+            <>
             <img
               src="/serviceydere-logo-dark.webp"
               alt="Serviceydere"
@@ -399,6 +412,8 @@ export const AdminShell = ({
               decoding="async"
               loading="lazy"
             />
+            </>
+            )}
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}
