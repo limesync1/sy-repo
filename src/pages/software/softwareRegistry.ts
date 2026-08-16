@@ -39,6 +39,13 @@ export const SOFTWARE_PAGES: SoftwarePageMeta[] = [
     group: "product",
   },
   {
+    href: "/software/funktioner",
+    label: "Funktionsguide",
+    blurb: "Søgbar guide til hver funktion i ruteplanlæggeren — med eksempler, trin og PDF.",
+    priority: "0.8",
+    group: "product",
+  },
+  {
     href: "/software/booking-og-tilbud",
     label: "Booking og tilbud",
     blurb: "Online booking fra din egen profilside, leads fra markedspladsen og tilbud i ét flow.",

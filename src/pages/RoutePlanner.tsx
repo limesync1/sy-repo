@@ -2973,6 +2973,7 @@ const Planner = () => {
         business={business}
         activeTab="routes"
         contentPadding={false}
+        collapsible
         contentClassName="flex flex-col overflow-hidden"
         topbarRight={
           <div className="hidden 2xl:flex items-center gap-2 flex-wrap justify-end">
@@ -3532,8 +3533,9 @@ const Planner = () => {
                         <Inbox className="h-4 w-4 text-foreground" />
                       </span>
                       <div className="flex-1 min-w-0">
-                        <h2 className="font-bold text-sm leading-tight text-foreground truncate tracking-tight">
-                          Aftaler uden rute
+                        <h2 className="flex items-center gap-1 font-bold text-sm leading-tight text-foreground tracking-tight">
+                          <span className="truncate">Aftaler uden rute</span>
+                          <HelpTip feature="unassigned-panel" />
                         </h2>
                         {filteredUnassigned.length > 0 ? (
                           <p className="text-[11px] text-muted-foreground leading-snug mt-0.5 truncate">

@@ -13,6 +13,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   LogOut, LayoutDashboard, Wrench, ShoppingCart, Star, Settings,
   Menu, X, ExternalLink, Users, Route as RouteIcon, Contact, Sparkles, MessageCircle, Calculator, Upload, LifeBuoy, Truck, Rocket,
+  PanelLeftClose, PanelLeftOpen,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -23,6 +24,8 @@ import { useOnboardingSignals } from "@/hooks/useOnboardingSignals";
 import {
   SidebarNavButton, SidebarFooterItem,
 } from "@/components/shared/sidebar/SidebarParts";
+import useSidebarCollapsed from "@/components/shared/sidebar/useSidebarCollapsed";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import AdminBottomNav from "./AdminBottomNav";
 
 /**
@@ -228,12 +231,18 @@ type AdminShellProps = {
   contentPadding?: boolean;
   /** Ekstra klasser på <main>. */
   contentClassName?: string;
+  /**
+   * Tillader at folde sidebaren sammen til en smal ikon-stribe på store
+   * skærme. Bruges af Ruter-siden, hvor kalenderen har brug for bredden.
+   * Valget huskes pr. bruger i localStorage.
+   */
+  collapsible?: boolean;
   children: ReactNode;
 };
 
 export const AdminShell = ({
   business, activeTab, onTabChange, title, topbarRight,
-  contentPadding = true, contentClassName, children,
+  contentPadding = true, contentClassName, collapsible = false, children,
 }: AdminShellProps) => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
@@ -251,7 +260,21 @@ export const AdminShell = ({
     Array.isArray(employees) &&
     employees.length === 1 &&
     employees[0]?.id === myEmployee.id;
-  const collapsed = false;
+  const { collapsed: collapsedPref, toggle: toggleCollapsed } = useSidebarCollapsed(
+    "sy.sidebar.collapsed.business",
+  );
+  // Sammenfoldning gælder kun fra lg og op — på mobil er sidebaren en drawer,
+  // hvor en ikon-stribe ikke giver mening.
+  const [isDesktop, setIsDesktop] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia("(min-width: 1024px)").matches : true,
+  );
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const onChange = () => setIsDesktop(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+  const collapsed = collapsible && collapsedPref && isDesktop;
 
   // ESC lukker mobil-sidebar — letter tastatur-navigation.
   useEffect(() => {
@@ -348,7 +371,8 @@ export const AdminShell = ({
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-[86vw] max-w-[320px] flex-col border-r border-border bg-background transition-[transform,width] duration-200 lg:h-dvh lg:w-[248px] lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex w-[86vw] max-w-[320px] flex-col border-r border-border bg-background transition-[transform,width] duration-200 lg:h-dvh lg:translate-x-0",
+          collapsed ? "lg:w-[68px]" : "lg:w-[248px]",
           sidebarOpen ? "translate-x-0" : "-translate-x-full",
         )}
         aria-label="Hovednavigation"
@@ -457,7 +481,12 @@ export const AdminShell = ({
       </aside>
 
       {/* Main */}
-      <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden lg:pl-[248px]">
+      <div
+        className={cn(
+          "flex min-w-0 flex-1 flex-col overflow-x-hidden transition-[padding] duration-200",
+          collapsed ? "lg:pl-[68px]" : "lg:pl-[248px]",
+        )}
+      >
         <header className="sticky top-0 z-30 flex h-14 shrink-0 flex-nowrap items-center gap-2 border-b border-border bg-card px-3 sm:gap-3 sm:px-6">
           <button
             onClick={() => setSidebarOpen(true)}
@@ -466,6 +495,24 @@ export const AdminShell = ({
           >
             <Menu className="h-5 w-5" />
           </button>
+          {collapsible && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={toggleCollapsed}
+                  className="hidden rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:inline-flex"
+                  aria-label={collapsed ? "Vis sidemenu" : "Skjul sidemenu"}
+                  aria-pressed={collapsed}
+                >
+                  {collapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                {collapsed ? "Vis sidemenu" : "Skjul sidemenu"} <span className="opacity-60">[</span>
+              </TooltipContent>
+            </Tooltip>
+          )}
           <h1 className="min-w-0 flex-1 truncate text-base font-semibold text-foreground sm:text-lg">
             {title ?? currentNav?.label}
           </h1>
