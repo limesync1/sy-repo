@@ -38,6 +38,7 @@ import { ShellSkeleton, ListCardSkeleton, StatGridSkeleton, PageSkeleton, FormSk
 import { TabErrorBoundary } from "@/components/admin/shared/TabErrorBoundary";
 import { TabPerfTracker } from "@/components/admin/shared/usePerfMark";
 import TrialBanner from "@/components/admin/TrialBanner";
+import DPAAcceptanceBanner from "@/components/admin/DPAAcceptanceBanner";
 import ReactivateDialog from "@/components/admin/ReactivateDialog";
 import { useBusinessPlan } from "@/hooks/useBusinessPlan";
 import {
@@ -307,6 +308,10 @@ const AdminDashboard = () => {
           <TrialBanner plan={plan} hideAction={activeTab === "settings"} />
         </div>
       )}
+      {/* Databehandleraftale: skal aktivt godkendes af ejeren (GDPR art. 28). */}
+      <div className="mb-4">
+        <DPAAcceptanceBanner businessId={business.id} isOwner={business.owner_id === user?.id} />
+      </div>
       {/* Næste-trin-stribe: vises på alle faner indtil opsætningen er færdig. */}
       {effectiveTab !== "getting-started" && (
         <NextStepBar

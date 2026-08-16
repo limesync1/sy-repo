@@ -80,7 +80,24 @@ const slugify = (s: string) =>
 const formatDkk = (n: number) =>
   new Intl.NumberFormat("da-DK", { maximumFractionDigits: 0 }).format(Math.round(n));
 
-const BusinessOnboarding = () => {
+/**
+ * `variant` styrer kun ramme og tekst — selve flowet (CVR, funktioner,
+ * medarbejderlogins, betalingsperiode, live pris, kontooprettelse) er
+ * identisk. "pricing" bruges af den offentlige prisside /software/priser,
+ * så priser og tilvalg aldrig kan afvige mellem de to sider.
+ */
+export type OnboardingVariant = "signup" | "pricing";
+
+type BusinessOnboardingProps = {
+  variant?: OnboardingVariant;
+  /** Ekstra indhold (fx FAQ) der vises under formularen på prissiden. */
+  belowContent?: React.ReactNode;
+  /** Brødkrumme vist over formularen. */
+  breadcrumb?: React.ReactNode;
+  seo?: { title: string; description: string; canonicalPath: string; keywords?: string; jsonLd?: unknown };
+};
+
+const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo }: BusinessOnboardingProps = {}) => {
   const { user, signUp } = useAuth();
   const navigate = useNavigate();
 
@@ -271,12 +288,22 @@ const BusinessOnboarding = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEO
-        title="Opret din virksomhed på Serviceydere"
-        description="Opret din virksomhedsprofil på Serviceydere og få adgang til bestillinger, ruteplanlægning og medarbejderlogins."
-        canonicalPath="/opret-virksomhed"
-        noIndex
-      />
+      {seo ? (
+        <SEO
+          title={seo.title}
+          description={seo.description}
+          canonicalPath={seo.canonicalPath}
+          keywords={seo.keywords}
+          jsonLd={seo.jsonLd as any}
+        />
+      ) : (
+        <SEO
+          title="Opret din virksomhed på Serviceydere"
+          description="Opret din virksomhedsprofil på Serviceydere og få adgang til bestillinger, ruteplanlægning og medarbejderlogins."
+          canonicalPath="/opret-virksomhed"
+          noIndex
+        />
+      )}
 
       {/* Samme topnav som resten af sitet — ingen wrapper, så headeren
           ser 100% identisk ud og ikke "hopper" når man navigerer hertil. */}
@@ -284,8 +311,12 @@ const BusinessOnboarding = () => {
 
       <PageHero
         eyebrow={`${pricing?.trial_days ?? 14} dages gratis prøve · Intet kort kræves`}
-        title="Bliv udbyder på Serviceydere"
-        subtitle="Få din virksomhed online på under 2 minutter. Indtast dit CVR — vi henter automatisk dine oplysninger. Vælg dine funktioner og se prisen med det samme."
+        title={variant === "pricing" ? "Priser — sammensæt jeres abonnement" : "Bliv udbyder på Serviceydere"}
+        subtitle={
+          variant === "pricing"
+            ? `Basis koster ${formatDkk(pricing?.base_price_dkk ?? 289)} kr./md. ekskl. moms med ruteplanlægningen inkluderet. Indtast CVR, vælg tilvalg og medarbejderlogins — så ser I præcis jeres egen pris, før I opretter noget.`
+            : "Få din virksomhed online på under 2 minutter. Indtast dit CVR — vi henter automatisk dine oplysninger. Vælg dine funktioner og se prisen med det samme."
+        }
       >
         <ul className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-background/85">
           <li className="flex items-center gap-1.5"><Check className="h-4 w-4" style={{ color: "hsl(var(--hero-cyan-bright))" }} /> Ingen binding</li>
@@ -311,7 +342,8 @@ const BusinessOnboarding = () => {
         </div>
       </div>
 
-      <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+      <main id="main" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+        {breadcrumb}
         {/* Layout: form til venstre, sticky pris-summary til højre */}
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_400px]">
           {/* ─── VENSTRE: form-sektioner ─── */}
@@ -668,6 +700,8 @@ const BusinessOnboarding = () => {
             </div>
           </aside>
         </div>
+
+        {belowContent}
       </main>
 
       {/* ── Mobile sticky CTA ──

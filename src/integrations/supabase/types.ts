@@ -1820,6 +1820,50 @@ export type Database = {
           },
         ]
       }
+      dpa_acceptances: {
+        Row: {
+          accepted_by: string
+          accepted_email: string | null
+          accepted_name: string | null
+          business_id: string
+          created_at: string
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+          version: string
+        }
+        Insert: {
+          accepted_by: string
+          accepted_email?: string | null
+          accepted_name?: string | null
+          business_id: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          version: string
+        }
+        Update: {
+          accepted_by?: string
+          accepted_email?: string | null
+          accepted_name?: string | null
+          business_id?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dpa_acceptances_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -3075,8 +3119,11 @@ export type Database = {
           business_id: string
           created_at: string
           id: string
+          ip_address: string | null
           route_id: string | null
           scope: string | null
+          summary: string | null
+          user_agent: string | null
         }
         Insert: {
           action: string
@@ -3088,8 +3135,11 @@ export type Database = {
           business_id: string
           created_at?: string
           id?: string
+          ip_address?: string | null
           route_id?: string | null
           scope?: string | null
+          summary?: string | null
+          user_agent?: string | null
         }
         Update: {
           action?: string
@@ -3101,8 +3151,11 @@ export type Database = {
           business_id?: string
           created_at?: string
           id?: string
+          ip_address?: string | null
           route_id?: string | null
           scope?: string | null
+          summary?: string | null
+          user_agent?: string | null
         }
         Relationships: []
       }
@@ -4379,6 +4432,10 @@ export type Database = {
         Args: { _occurrence_id: string; _target_route_id: string }
         Returns: string
       }
+      accept_dpa: {
+        Args: { p_business_id: string; p_version: string }
+        Returns: string
+      }
       accounting_health_check_run: { Args: never; Returns: Json }
       accounting_health_summary: { Args: never; Returns: Json }
       add_route_stop_idempotent: {
@@ -4900,6 +4957,20 @@ export type Database = {
           suggested_minutes: number
         }[]
       }
+      log_route_audit: {
+        Args: {
+          p_action: string
+          p_affected_count?: number
+          p_after?: Json
+          p_agreement_id?: string
+          p_before?: Json
+          p_business_id: string
+          p_route_id?: string
+          p_scope?: string
+          p_summary?: string
+        }
+        Returns: string
+      }
       log_route_event: {
         Args: {
           _actor_id?: string
@@ -5141,6 +5212,25 @@ export type Database = {
       revert_projected_shift: {
         Args: { _exception_id: string }
         Returns: boolean
+      }
+      route_audit_feed: {
+        Args: { p_limit?: number; p_route_id: string }
+        Returns: {
+          action: string
+          actor_email: string
+          actor_id: string
+          actor_name: string
+          actor_role: string
+          affected_count: number
+          after_data: Json
+          before_data: Json
+          created_at: string
+          id: string
+          ip_address: string
+          scope: string
+          summary: string
+          user_agent: string
+        }[]
       }
       routes_with_skill_mismatch: {
         Args: { _business_id: string; _end: string; _start: string }

@@ -1051,6 +1051,7 @@ export const useDeleteRoute = () => {
             business_id: routeBefore.business_id,
             route_id: routeId,
             action: "route.archive",
+            summary: `Ruten "${routeBefore?.name ?? "uden navn"}" blev arkiveret, fordi den havde ${count ?? 0} stop.`,
             affected_count: count ?? 0,
             before: routeBefore,
           });
@@ -1064,6 +1065,7 @@ export const useDeleteRoute = () => {
           business_id: routeBefore.business_id,
           route_id: routeId,
           action: "route.delete",
+          summary: `Den tomme rute "${routeBefore?.name ?? "uden navn"}" blev slettet permanent.`,
           affected_count: 0,
           before: routeBefore,
         });
