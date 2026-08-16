@@ -92,7 +92,7 @@ const PrivacyPolicy = () => (
             </p>
             <ul className="ml-5 list-disc space-y-1">
               <li><strong className="text-foreground">Matchede serviceudbydere</strong> — kun de oplysninger du udtrykkeligt har valgt at dele i forbindelse med en konkret tilbudsforespørgsel. Udbyderen agerer selvstændig dataansvarlig for sin egen efterfølgende behandling.</li>
-              <li><strong className="text-foreground">Databehandlere</strong> som vi har indgået databehandleraftaler med (jf. GDPR art. 28): hosting og database (Supabase/AWS, EU-region), e-mailudsendelse (Mailgun via Lovable Email), betalingsudbyder (Stripe Payments Europe Ltd.), kortbetjening og analyseværktøjer til drift.</li>
+              <li><strong className="text-foreground">Databehandlere</strong> som vi har indgået databehandleraftaler med (jf. GDPR art. 28): hosting og database hos vores platformleverandør (infrastruktur i EU-region), e-mailudsendelse (Mailgun), betalingsudbyder (Stripe Payments Europe Ltd.), kortbetjening og analyseværktøjer til drift.</li>
               <li><strong className="text-foreground">Offentlige myndigheder</strong> som SKAT, politi eller domstole, hvis vi er retligt forpligtet hertil.</li>
             </ul>
             <p>
