@@ -2,7 +2,7 @@ import { lazy, Suspense, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Search, ArrowRight, Route, Smartphone, CalendarCheck, Receipt,
-  Users, MessageSquare, Check, Download,
+  Users, Building2, Check, Download,
 } from "lucide-react";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
@@ -30,7 +30,7 @@ const PARTS = [
     body: "Fakturér udført arbejde og send det videre til e-conomic eller Dinero." },
   { icon: Users, title: "Kunder og medarbejdere", href: "/software/funktioner",
     body: "Kundekartotek med kontaktpersoner og dokumenter, medarbejderlogin, kompetencer og provision." },
-  { icon: MessageSquare, title: "Brancher", href: "/software/brancher",
+  { icon: Building2, title: "Brancher", href: "/software/brancher",
     body: "Samme system til rengøring, vinduespudsning, have, håndværk, flytning og autoservice." },
 ];
 
