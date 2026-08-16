@@ -175,7 +175,7 @@ export const DPAGate = ({
   if (acceptance?.version === DPA_VERSION) return <>{children}</>;
 
   return (
-    <div className="mx-auto w-full max-w-2xl py-6 sm:py-10">
+    <div className="mx-auto w-full max-w-2xl px-4 py-6 sm:py-10">
       <p className="mb-3 text-sm text-muted-foreground">
         Før I kan bruge virksomhedspanelet, skal I godkende vilkårene for vores behandling af
         oplysninger om jeres kunder og medarbejdere.
