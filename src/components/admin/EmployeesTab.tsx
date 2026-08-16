@@ -747,6 +747,26 @@ const EmployeeRow = ({
               className="w-72 p-3 space-y-3"
               onOpenAutoFocus={(e) => e.preventDefault()}
             >
+              {/* Stor visning af billedet, så man kan se med sikkerhed at det
+                  er den rigtige medarbejder — den lille avatar er for lille. */}
+              <div className="overflow-hidden rounded-xl border border-border bg-secondary/40">
+                {employee.avatar_url ? (
+                  <img
+                    src={employee.avatar_url}
+                    alt={employee.name}
+                    className="aspect-square w-full object-cover"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ) : (
+                  <div
+                    className="flex aspect-square w-full items-center justify-center text-4xl font-bold text-white"
+                    style={{ background: fallbackColor }}
+                  >
+                    {(employee.name || "?").charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </div>
               <div>
                 <p className="text-xs font-semibold text-foreground">Profilbillede</p>
                 <div className="mt-1.5 flex items-center gap-2">

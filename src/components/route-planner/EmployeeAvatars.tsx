@@ -2,6 +2,7 @@
 // Bruges på aftalekort i RouteStopsPanel og samlet på rute-niveau i kalenderen.
 
 import { cn } from "@/lib/utils";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 
 export type EmpAvatar = {
   id: string;
@@ -56,15 +57,29 @@ export const EmployeeAvatars = ({
     <div className={cn("flex -space-x-1.5 shrink-0", className)} title={tooltip}>
       {visible.map((e) =>
         e.avatar_url ? (
-          <img
-            key={e.id}
-            src={e.avatar_url}
-            alt={e.name}
-            title={e.name}
-            loading="lazy"
-            className="rounded-full object-cover ring-2 ring-background"
-            style={{ width: size, height: size }}
-          />
+          // Stort billede ved hover/fokus, så man kan verificere at det er den
+          // rigtige medarbejder uden at forlade planlægningen.
+          <HoverCard key={e.id} openDelay={150} closeDelay={80}>
+            <HoverCardTrigger asChild>
+              <img
+                src={e.avatar_url}
+                alt={e.name}
+                title={e.name}
+                loading="lazy"
+                tabIndex={0}
+                className="rounded-full object-cover ring-2 ring-background focus:outline-none focus-visible:ring-foreground/40"
+                style={{ width: size, height: size }}
+              />
+            </HoverCardTrigger>
+            <HoverCardContent side="top" align="center" className="w-48 p-2">
+              <img
+                src={e.avatar_url}
+                alt={e.name}
+                className="aspect-square w-full rounded-xl border border-border object-cover"
+              />
+              <p className="mt-2 truncate text-center text-xs font-semibold text-foreground">{e.name}</p>
+            </HoverCardContent>
+          </HoverCard>
         ) : (
           <span
             key={e.id}
