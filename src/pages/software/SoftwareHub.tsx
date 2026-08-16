@@ -157,7 +157,7 @@ const SoftwareHub = () => {
         </form>
       </PageHero>
 
-      <main id="main" className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+      <main id="main" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
         <nav aria-label="Brødkrumme" className="mb-8 text-sm text-muted-foreground">
           <Link to="/" className="hover:text-foreground">Forside</Link>
           <span className="px-2">/</span>
@@ -182,7 +182,7 @@ const SoftwareHub = () => {
 
         {/* Systemets dele */}
         <h2 className="mt-14 text-2xl font-semibold tracking-tight text-foreground">Hvad systemet består af</h2>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:gap-6">
           {PARTS.map(({ icon: Icon, title, body, href }) => (
             <Link
               key={title}

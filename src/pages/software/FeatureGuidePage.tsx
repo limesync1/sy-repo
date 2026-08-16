@@ -102,7 +102,7 @@ const FeatureGuidePage = () => {
         }
       />
 
-      <main id="main" className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+      <main id="main" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
         <nav aria-label="Brødkrumme" className="mb-8 text-sm text-muted-foreground">
           <Link to="/" className="hover:text-foreground">Forside</Link>
           <span className="px-2">/</span>
