@@ -162,7 +162,7 @@ const FeatureGuidePage = () => {
         </p>
 
         {/* Resultater */}
-        <div className="mt-4 space-y-3">
+        <div className="mt-4 grid gap-3 xl:grid-cols-2 xl:items-start">
           {results.map((f) => {
             const expanded = open === f.id;
             return (
@@ -222,7 +222,7 @@ const FeatureGuidePage = () => {
           })}
 
           {results.length === 0 && (
-            <div className="rounded-2xl border border-dashed border-border p-10 text-center">
+            <div className="rounded-2xl border border-dashed border-border p-10 text-center xl:col-span-2">
               <p className="text-sm font-semibold text-foreground">Ingen funktioner matcher søgningen</p>
               <p className="mt-1 text-sm text-muted-foreground">
                 Prøv et andet ord — eller <button type="button" className="underline" onClick={() => { setQuery(""); setCategory("alle"); }}>ryd filtrene</button>.
