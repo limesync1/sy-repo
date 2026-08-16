@@ -242,7 +242,7 @@ type AdminShellProps = {
 
 export const AdminShell = ({
   business, activeTab, onTabChange, title, topbarRight,
-  contentPadding = true, contentClassName, collapsible = false, children,
+  contentPadding = true, contentClassName, collapsible = true, children,
 }: AdminShellProps) => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
