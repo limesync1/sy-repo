@@ -22,8 +22,8 @@ export type SubProcessor = {
 
 export const SUB_PROCESSORS: SubProcessor[] = [
   {
-    name: "Lovable (hosting, database, login, filer og e-mailudsendelse)",
-    purpose: "Drift af selve platformen: database, brugerlogin, filopbevaring, serverfunktioner og udsendelse af system-e-mails.",
+    name: "Vores platform- og hostingleverandør (database, login, filer og e-mailudsendelse)",
+    purpose: "Drift af selve platformen: database, brugerlogin, filopbevaring, serverfunktioner og udsendelse af system-e-mails. Databasen og filerne ligger på infrastruktur i EU.",
     data: "Alle oplysninger virksomheden lægger i panelet: kunder, adresser, kontaktpersoner, aftaler, ruter, medarbejdere, beskeder og logs.",
     location: "EU",
   },
@@ -79,7 +79,7 @@ export const SUB_PROCESSORS: SubProcessor[] = [
     optional: true,
   },
   {
-    name: "Lovable AI Gateway",
+    name: "AI-tjeneste hos vores platformleverandør",
     purpose: "AI-hjælp i panelet: forslag til svar, rutenavne, servicebeskrivelser og hjælp til dataimport.",
     data: "Kun den tekst, brugeren selv sender til funktionen. Data bruges ikke til at træne modeller.",
     location: "EU/USA (standardkontraktbestemmelser)",
