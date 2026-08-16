@@ -1,5 +1,5 @@
 import { lazy, Suspense, useMemo, useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { Search, Download, ChevronDown, X, Keyboard } from "lucide-react";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
@@ -21,7 +21,8 @@ const Footer = lazy(() => import("@/components/landing/Footer"));
  * filtrere på område og folde hver funktion ud med eksempel og trin.
  */
 const FeatureGuidePage = () => {
-  const [query, setQuery] = useState("");
+  const [params] = useSearchParams();
+  const [query, setQuery] = useState(params.get("q") ?? "");
   const [category, setCategory] = useState<FeatureArea | "alle">("alle");
   const [open, setOpen] = useState<string | null>(null);
   const { hash } = useLocation();
