@@ -41,7 +41,7 @@ export const SOFTWARE_PAGES: SoftwarePageMeta[] = [
   {
     href: "/software/funktioner",
     label: "Funktionsguide",
-    blurb: "Søgbar guide til hver funktion i ruteplanlæggeren — med eksempler, trin og PDF.",
+    blurb: "Søgbar guide til hver funktion i hele systemet — med eksempler, trin og PDF.",
     priority: "0.8",
     group: "product",
   },

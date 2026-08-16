@@ -1,5 +1,5 @@
 import { lazy, Suspense, useMemo, useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { Search, Download, ChevronDown, X, Keyboard } from "lucide-react";
 import SEO from "@/components/SEO";
 import SiteNav from "@/components/SiteNav";
@@ -7,10 +7,10 @@ import PageHero from "@/components/landing/PageHero";
 import { cn } from "@/lib/utils";
 import {
   PLANNER_FEATURES,
-  PLANNER_FEATURE_CATEGORIES,
+  FEATURE_AREAS,
   PLANNER_GUIDE_PDF_PATH,
   searchPlannerFeatures,
-  type PlannerFeatureCategory,
+  type FeatureArea,
 } from "@/data/routePlannerFeatures";
 
 const Footer = lazy(() => import("@/components/landing/Footer"));
@@ -21,8 +21,9 @@ const Footer = lazy(() => import("@/components/landing/Footer"));
  * filtrere på område og folde hver funktion ud med eksempel og trin.
  */
 const FeatureGuidePage = () => {
-  const [query, setQuery] = useState("");
-  const [category, setCategory] = useState<PlannerFeatureCategory | "alle">("alle");
+  const [params] = useSearchParams();
+  const [query, setQuery] = useState(params.get("q") ?? "");
+  const [category, setCategory] = useState<FeatureArea | "alle">("alle");
   const [open, setOpen] = useState<string | null>(null);
   const { hash } = useLocation();
 
@@ -39,7 +40,7 @@ const FeatureGuidePage = () => {
   const results = useMemo(() => {
     const base = category === "alle"
       ? PLANNER_FEATURES
-      : PLANNER_FEATURES.filter((f) => f.category === category);
+      : PLANNER_FEATURES.filter((f) => f.area === category);
     return searchPlannerFeatures(query, base);
   }, [query, category]);
 
@@ -47,7 +48,7 @@ const FeatureGuidePage = () => {
     {
       "@context": "https://schema.org",
       "@type": "ItemList",
-      name: "Funktioner i Serviceyderes ruteplanlægger",
+      name: "Funktioner i Serviceydere",
       itemListElement: PLANNER_FEATURES.map((f, i) => ({
         "@type": "ListItem",
         position: i + 1,
@@ -70,8 +71,8 @@ const FeatureGuidePage = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Funktionsguide til ruteplanlæggeren | Serviceydere"
-        description="Søg blandt alle funktioner i Serviceyderes ruteplanlægger. Hver funktion forklares med eksempel, korte trin og tastaturgenveje. Hent også guiden som PDF."
+        title="Funktionsguide til Serviceydere | Alle funktioner"
+        description="Søg blandt alle funktioner i Serviceydere — ruteplanlægger, aftaler, kunder, services, medarbejdere, leads, livechat og regnskab. Hver funktion med eksempel og korte trin."
         canonicalPath="/software/funktioner"
         keywords="ruteplanlægger guide, brugerguide ruteplanlægning, funktioner ruteplanlægger, serviceydere vejledning"
         jsonLd={jsonLd}
@@ -79,8 +80,8 @@ const FeatureGuidePage = () => {
       <SiteNav />
       <PageHero
         eyebrow="Funktionsguide"
-        title="Find og forstå hver funktion i ruteplanlæggeren"
-        subtitle="Søg efter en funktion, læs et konkret eksempel og se de trin, du skal igennem i systemet. Hent hele guiden som PDF, hvis den skal med ud til kontoret."
+        title="Find og forstå hver funktion i Serviceydere"
+        subtitle="Søg på tværs af hele systemet — ruteplanlægning, aftaler, kunder, medarbejdere, leads, livechat og regnskab. Hver funktion har et konkret eksempel og korte trin."
         actions={
           <>
             <a
@@ -89,7 +90,7 @@ const FeatureGuidePage = () => {
               className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-background px-6 text-sm font-semibold text-foreground transition-opacity hover:opacity-90"
             >
               <Download className="h-4 w-4" aria-hidden />
-              Hent PDF-brugerguide
+              Hent PDF om ruteplanlæggeren
             </a>
             <Link
               to="/software/ruteplanlaegger"
@@ -110,7 +111,7 @@ const FeatureGuidePage = () => {
           <span className="text-foreground">Funktionsguide</span>
         </nav>
 
-        <h1 className="sr-only">Funktionsguide til Serviceyderes ruteplanlægger</h1>
+        <h1 className="sr-only">Funktionsguide til Serviceydere</h1>
 
         {/* Søgning */}
         <div className="sticky top-0 z-20 -mx-4 bg-background/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
@@ -121,7 +122,7 @@ const FeatureGuidePage = () => {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Søg fx “syg”, “optimering”, “fast aftale” eller “print”"
+              placeholder="Søg fx “syg”, “faktura”, “prisberegner” eller “print”"
               className="h-12 w-full rounded-full border border-border bg-card pl-11 pr-11 text-sm text-foreground shadow-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/40"
             />
             {query && (
@@ -137,11 +138,11 @@ const FeatureGuidePage = () => {
           </label>
 
           <div className="mt-3 flex flex-wrap gap-2">
-            {(["alle", ...PLANNER_FEATURE_CATEGORIES] as const).map((c) => (
+            {(["alle", ...FEATURE_AREAS] as const).map((c) => (
               <button
                 key={c}
                 type="button"
-                onClick={() => setCategory(c as PlannerFeatureCategory | "alle")}
+                onClick={() => setCategory(c as FeatureArea | "alle")}
                 className={cn(
                   "rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors",
                   category === c
@@ -149,7 +150,7 @@ const FeatureGuidePage = () => {
                     : "border-border bg-card text-muted-foreground hover:text-foreground",
                 )}
               >
-                {c === "alle" ? "Alle funktioner" : c}
+                {c === "alle" ? "Alle områder" : c}
               </button>
             ))}
           </div>
@@ -180,7 +181,7 @@ const FeatureGuidePage = () => {
                     <div className="flex flex-wrap items-center gap-2">
                       <h2 className="text-base font-semibold tracking-tight text-foreground">{f.title}</h2>
                       <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                        {f.category}
+                        {f.category ?? f.area}
                       </span>
                       {f.shortcut && (
                         <span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
