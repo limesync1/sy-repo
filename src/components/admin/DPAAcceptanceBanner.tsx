@@ -2,7 +2,7 @@
 // databehandleraftalen. Accepten gemmes med version, bruger, tidspunkt, IP og
 // enhed, så begge parter har dokumentation. Når den nyeste version er
 // accepteret, vises i stedet en diskret kvittering med link til aftalen.
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, FileCheck2, Loader2, ShieldCheck } from "lucide-react";
@@ -139,3 +139,48 @@ const DPAAcceptanceBanner = ({ businessId, isOwner }: Props) => {
 };
 
 export default DPAAcceptanceBanner;
+
+/**
+ * DPAGate — spærrer virksomhedspanelet indtil ejeren aktivt har godkendt
+ * databehandleraftalen. Medarbejdere og ikke-ejere kommer uhindret ind, da de
+ * ikke kan indgå aftalen på virksomhedens vegne.
+ */
+export const DPAGate = ({
+  businessId, isOwner, children,
+}: { businessId: string; isOwner: boolean; children: ReactNode }) => {
+  const { data: acceptance, isLoading } = useQuery({
+    queryKey: ["dpa-acceptance", businessId],
+    enabled: !!businessId && isOwner,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("dpa_acceptances")
+        .select("id, version, created_at, accepted_name, accepted_email")
+        .eq("business_id", businessId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  if (!isOwner) return <>{children}</>;
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" aria-hidden />
+      </div>
+    );
+  }
+  if (acceptance?.version === DPA_VERSION) return <>{children}</>;
+
+  return (
+    <div className="mx-auto w-full max-w-2xl px-4 py-6 sm:py-10">
+      <p className="mb-3 text-sm text-muted-foreground">
+        Før I kan bruge virksomhedspanelet, skal I godkende vilkårene for vores behandling af
+        oplysninger om jeres kunder og medarbejdere.
+      </p>
+      <DPAAcceptanceBanner businessId={businessId} isOwner />
+    </div>
+  );
+};

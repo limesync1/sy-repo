@@ -27,6 +27,7 @@ import {
 import useSidebarCollapsed from "@/components/shared/sidebar/useSidebarCollapsed";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import AdminBottomNav from "./AdminBottomNav";
+import { DPAGate } from "@/components/admin/DPAAcceptanceBanner";
 
 /**
  * RoleSwitchFooterItem — speciel sidebar-knap til at skifte mellem
@@ -242,9 +243,9 @@ type AdminShellProps = {
 
 export const AdminShell = ({
   business, activeTab, onTabChange, title, topbarRight,
-  contentPadding = true, contentClassName, collapsible = false, children,
+  contentPadding = true, contentClassName, collapsible = true, children,
 }: AdminShellProps) => {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { data: plan } = useBusinessPlan(business.id);
@@ -591,7 +592,9 @@ export const AdminShell = ({
           )}
         >
           <ImpersonationBanner />
-          {children}
+          <DPAGate businessId={business.id} isOwner={(business as any).owner_id === user?.id}>
+            {children}
+          </DPAGate>
         </main>
         <AdminBottomNav
           activeTab={activeTab}
