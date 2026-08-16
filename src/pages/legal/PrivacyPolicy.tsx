@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import LegalPage from "./LegalPage";
 
 const PrivacyPolicy = () => (
@@ -94,6 +95,10 @@ const PrivacyPolicy = () => (
               <li><strong className="text-foreground">Databehandlere</strong> som vi har indgået databehandleraftaler med (jf. GDPR art. 28): hosting og database (Supabase/AWS, EU-region), e-mailudsendelse (Mailgun via Lovable Email), betalingsudbyder (Stripe Payments Europe Ltd.), kortbetjening og analyseværktøjer til drift.</li>
               <li><strong className="text-foreground">Offentlige myndigheder</strong> som SKAT, politi eller domstole, hvis vi er retligt forpligtet hertil.</li>
             </ul>
+            <p>
+              En samlet oversigt over de tjenester, vi bruger, findes på siden{" "}
+              <Link to="/underdatabehandlere" className="text-foreground underline">underdatabehandlere</Link>.
+            </p>
             <p>Data opbevares som udgangspunkt inden for EU/EØS. Hvis en databehandler undtagelsesvist overfører data til et tredjeland (fx USA), sker det på baggrund af EU-Kommissionens standardkontraktbestemmelser (Standard Contractual Clauses) eller anden gyldig overførselsmekanisme, jf. GDPR kapitel V.</p>
           </>
         ),
@@ -147,6 +152,30 @@ const PrivacyPolicy = () => (
               Telefon: +45 33 19 32 00<br />
               E-mail: <a href="mailto:dt@datatilsynet.dk" className="text-foreground underline">dt@datatilsynet.dk</a><br />
               Web: <a href="https://www.datatilsynet.dk" className="text-foreground underline" target="_blank" rel="noopener noreferrer">datatilsynet.dk</a>
+            </p>
+          </>
+        ),
+      },
+      {
+        id: "virksomhedspanel",
+        title: "8. Når du bruger virksomhedspanelet",
+        body: (
+          <>
+            <p>
+              Bruger du Serviceyderes virksomhedspanel til at drive din egen servicevirksomhed, er
+              <strong className="text-foreground"> din virksomhed dataansvarlig</strong> for de oplysninger, I
+              lægger ind om jeres egne kunder, kontaktpersoner og medarbejdere. Serviceydere er i den situation
+              databehandler og behandler kun oplysningerne efter jeres instruks.
+            </p>
+            <p>
+              Rammerne står i vores{" "}
+              <Link to="/databehandleraftale" className="text-foreground underline">databehandleraftale</Link>,
+              som virksomhedens ejer godkender aktivt i panelet. Underdatabehandlerne fremgår af{" "}
+              <Link to="/underdatabehandlere" className="text-foreground underline">listen over underdatabehandlere</Link>.
+            </p>
+            <p>
+              Er du kunde hos en virksomhed, der bruger panelet, skal du rette henvendelse til virksomheden selv,
+              hvis du vil have indsigt i eller slettet dine oplysninger. Vi videresender henvendelser, vi modtager.
             </p>
           </>
         ),
