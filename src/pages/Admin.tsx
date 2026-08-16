@@ -179,6 +179,7 @@ const Admin = () => {
 
 /* ─── Main Dashboard ─── */
 const AdminDashboard = () => {
+  const { user } = useAuth();
   const { data: business, isLoading } = useMyBusiness();
   const { data: plan } = useBusinessPlan(business?.id);
   const location = useLocation();
