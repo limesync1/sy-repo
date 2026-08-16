@@ -49,6 +49,8 @@ const LegalPage = ({ title, subtitle, canonicalPath, description, updated, secti
                 <Link to="/privatlivspolitik" className="block hover:text-foreground">Privatlivspolitik</Link>
                 <Link to="/vilkaar" className="block hover:text-foreground">Vilkår</Link>
                 <Link to="/cookies" className="block hover:text-foreground">Cookies</Link>
+                <Link to="/databehandleraftale" className="block hover:text-foreground">Databehandleraftale</Link>
+                <Link to="/underdatabehandlere" className="block hover:text-foreground">Underdatabehandlere</Link>
               </div>
             </nav>
           </aside>
