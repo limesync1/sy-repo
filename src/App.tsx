@@ -122,6 +122,7 @@ const GuidesIndex            = lazyRoute("/guides", () => import("./pages/Guides
 // ── Offentligt produktunivers (/software) ────────────────────────────────
 const SoftwareHub            = lazyRoute("/software", () => import("./pages/software/SoftwareHub"));
 const SoftwareRoutePlanner   = lazyRoute("/software/ruteplanlaegger", () => import("./pages/software/RoutePlannerFeature"));
+const SoftwareFeatureGuide   = lazyRoute("/software/funktioner", () => import("./pages/software/FeatureGuidePage"));
 const SoftwareEmployeeApp    = lazyRoute("/software/medarbejder-app", () => import("./pages/software/EmployeeAppFeature"));
 const SoftwareBooking        = lazyRoute("/software/booking-og-tilbud", () => import("./pages/software/BookingQuotesFeature"));
 const SoftwareInvoicing      = lazyRoute("/software/fakturering-og-regnskab", () => import("./pages/software/InvoicingAccountingFeature"));
@@ -308,6 +309,7 @@ const App = () => (
               {/* ── Produktsider (software) ── */}
               <Route path="/software" element={<SoftwareHub />} />
               <Route path="/software/ruteplanlaegger" element={<SoftwareRoutePlanner />} />
+              <Route path="/software/funktioner" element={<SoftwareFeatureGuide />} />
               <Route path="/software/medarbejder-app" element={<SoftwareEmployeeApp />} />
               <Route path="/software/booking-og-tilbud" element={<SoftwareBooking />} />
               <Route path="/software/fakturering-og-regnskab" element={<SoftwareInvoicing />} />

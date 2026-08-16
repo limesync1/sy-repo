@@ -92,6 +92,7 @@ import { dragMetrics } from "@/lib/drag-metrics";
 import { startDragAutoScroll, stopDragAutoScroll } from "@/components/route-planner/lib/drag-auto-scroll";
 import { Section, Field, SheetHeaderBlock, SheetFooterBar } from "@/components/route-planner/SheetSection";
 import { AdminShell } from "@/components/admin/shared/AdminShell";
+import HelpTip from "@/components/route-planner/HelpTip";
 import { useWeatherForecast, type WeatherDay } from "@/hooks/useWeather";
 import { useDayConflicts } from "@/hooks/useDayConflicts";
 import { useDailyCapacity, useRouteSkillMismatch, deriveZoneKey } from "@/hooks/useRoutePlannerSmarts";
@@ -2973,6 +2974,7 @@ const Planner = () => {
         business={business}
         activeTab="routes"
         contentPadding={false}
+        collapsible
         contentClassName="flex flex-col overflow-hidden"
         topbarRight={
           <div className="hidden 2xl:flex items-center gap-2 flex-wrap justify-end">
@@ -3532,8 +3534,9 @@ const Planner = () => {
                         <Inbox className="h-4 w-4 text-foreground" />
                       </span>
                       <div className="flex-1 min-w-0">
-                        <h2 className="font-bold text-sm leading-tight text-foreground truncate tracking-tight">
-                          Aftaler uden rute
+                        <h2 className="flex items-center gap-1 font-bold text-sm leading-tight text-foreground tracking-tight">
+                          <span className="truncate">Aftaler uden rute</span>
+                          <HelpTip feature="unassigned-panel" />
                         </h2>
                         {filteredUnassigned.length > 0 ? (
                           <p className="text-[11px] text-muted-foreground leading-snug mt-0.5 truncate">
@@ -3781,6 +3784,14 @@ const Planner = () => {
                       }
                       return (
                         <div className="space-y-1.5">
+                          {/* Kontekstuel forklaring af auto-fordeling — samme tekst
+                              som i funktionsguiden og PDF-guiden. */}
+                          {(selectionMode || canAutoAssign > 0) && (
+                            <div className="flex items-center justify-end gap-1 text-[10px] text-muted-foreground">
+                              <span>Hvad gør auto-fordel?</span>
+                              <HelpTip feature="auto-distribute" />
+                            </div>
+                          )}
                           {missing > 0 && (
                             <p className="text-[10px] text-muted-foreground flex items-center gap-1">
                               <MapPin className="h-2.5 w-2.5 text-amber-500" />
