@@ -237,6 +237,7 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
 
     return () => {
       cancelled = true;
+      window.clearInterval(pollId);
       supabase.removeChannel(msgChannel);
       supabase.removeChannel(convChannel);
     };
