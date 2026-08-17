@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Package, CalendarClock, Store, ChevronLeft, CheckCircle2, Loader2, User, MapPin, ShoppingBag, Sparkles, Building2, UserRound } from "lucide-react";
+import { Trash2, Package, CalendarClock, Store, ChevronLeft, CheckCircle2, Loader2, User, MapPin, ShoppingBag, Sparkles, Building2, UserRound, ChevronDown, X } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "sonner";
@@ -54,6 +54,8 @@ const CartSheet = () => {
   const [verifying, setVerifying] = useState(false);
   const [geo, setGeo] = useState<{ ok: boolean; display?: string; lat?: number; lng?: number } | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // Sammenklappede virksomhedsgrupper i kurven — gør lange bestillinger overskuelige
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
   // Auto-fyld navn/email/tlf fra brugerens profil når de åbner checkout
   useEffect(() => {
@@ -375,21 +377,27 @@ const CartSheet = () => {
             : "w-full sm:max-w-md",
         )}
       >
+        {/* Grabber — visuel indikator for at panelet kan lukkes/scrolles på mobil */}
+        {isMobile && (
+          <div className="shrink-0 flex justify-center pt-2 pb-1 bg-card rounded-t-2xl">
+            <span className="h-1.5 w-10 rounded-full bg-border" />
+          </div>
+        )}
         {/* Header with stepper */}
         <div className="shrink-0 border-b border-border bg-card">
-          <div className="px-5 py-4">
+          <div className="px-5 py-3.5">
             <SheetHeader className="p-0">
               <SheetTitle className="text-left">
                 {checkout ? (
-                  <button onClick={() => setCheckout(false)} className="flex items-center gap-2 text-base font-semibold text-foreground hover:text-accent transition-colors group">
-                    <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" /> Bekræft bestilling
+                  <button onClick={() => setCheckout(false)} className="-ml-2 flex min-h-[44px] items-center gap-2 rounded-lg px-2 text-base font-semibold text-foreground transition-colors hover:text-accent group">
+                    <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" /> Tilbage til kurv
                   </button>
                 ) : (
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2.5 pr-10">
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10">
                       <ShoppingBag className="h-4 w-4 text-accent" />
                     </div>
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <span className="block text-base">Din bestilling</span>
                       {items.length > 0 && (
                         <span className="block text-xs font-normal text-muted-foreground mt-0.5">
@@ -447,98 +455,123 @@ const CartSheet = () => {
         ) : !checkout ? (
           /* ── Cart items view ── */
           <div className="flex flex-1 flex-col min-h-0">
-            <div ref={cartScrollRef} className="flex-1 overflow-y-auto overscroll-contain px-5 py-4 space-y-5">
-              {Object.entries(groupedByBusiness).map(([bizId, group]) => (
-                <div key={bizId}>
-                  {/* Business header */}
-                  <div className="flex items-center gap-2.5 mb-3">
+            {/* Handlingsbjælke — hurtig oprydning uden at scrolle */}
+            <div className="shrink-0 flex items-center justify-between gap-2 border-b border-border/60 bg-secondary/30 px-5 py-2">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                {count} valgt{businessCount > 1 ? ` · ${businessCount} virksomheder` : ""}
+              </span>
+              <button
+                type="button"
+                onClick={() => { clearCart(); toast.success("Kurven er tømt"); }}
+                className="inline-flex min-h-[32px] items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-muted-foreground transition-colors hover:text-destructive"
+              >
+                <X className="h-3.5 w-3.5" /> Tøm kurv
+              </button>
+            </div>
+            <div ref={cartScrollRef} className="flex-1 overflow-y-auto overscroll-contain px-4 py-3 space-y-4">
+              {Object.entries(groupedByBusiness).map(([bizId, group]) => {
+                const groupTotal = group.items.reduce((acc, i) => acc + i.total * i.quantity, 0);
+                const isCollapsed = !!collapsed[bizId];
+                return (
+                <div key={bizId} className="space-y-2">
+                  {/* Business header — klæber til toppen så man altid ved hvem man bestiller hos */}
+                  <button
+                    type="button"
+                    onClick={() => setCollapsed((c) => ({ ...c, [bizId]: !c[bizId] }))}
+                    aria-expanded={!isCollapsed}
+                    className="sticky top-0 z-10 -mx-1 flex w-[calc(100%+0.5rem)] min-h-[44px] items-center gap-2.5 rounded-xl border border-border/60 bg-card/95 px-3 py-2 text-left backdrop-blur transition-colors hover:bg-secondary/50"
+                  >
                     {group.businessLogoUrl ? (
                       <img
                         src={group.businessLogoUrl}
                         alt=""
-                        className="h-7 w-7 rounded-lg object-contain bg-secondary p-0.5 border border-border"
+                        className="h-7 w-7 shrink-0 rounded-lg object-contain bg-secondary p-0.5 border border-border"
                         width={28}
                         height={28}
                         loading="lazy"
                         decoding="async"
                       />
                     ) : (
-                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-secondary border border-border">
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-secondary border border-border">
                         <Store className="h-3.5 w-3.5 text-muted-foreground" />
                       </div>
                     )}
-                    <span className="text-sm font-semibold text-foreground">{group.businessName}</span>
-                  </div>
+                    <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">{group.businessName}</span>
+                    <span className="shrink-0 text-sm font-bold text-foreground tabular-nums">{groupTotal} kr</span>
+                    <ChevronDown className={cn("h-4 w-4 shrink-0 text-muted-foreground transition-transform", isCollapsed && "-rotate-90")} />
+                  </button>
 
                   {/* Items */}
-                  <div className="space-y-3">
+                  {isCollapsed ? (
+                    <p className="px-3 text-xs text-muted-foreground">
+                      {group.items.length} {group.items.length === 1 ? "service" : "services"} skjult — tryk for at se
+                    </p>
+                  ) : (
+                  <div className="space-y-2">
                     {group.items.map((item) => (
-                      <div key={item.serviceId} className="overflow-hidden rounded-[1.5rem] border border-border bg-card shadow-[0_18px_42px_-34px_hsl(var(--foreground)/0.3)]">
-                        <div className="p-3.5">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0 flex-1">
-                              <h4 className="text-sm font-semibold text-foreground">{item.serviceName}</h4>
-                              {item.interval && item.interval !== "engangskøb" && (
-                                <Badge variant="secondary" className="mt-1 text-[11px] gap-1 px-2 py-0.5">
-                                  <CalendarClock className="h-3 w-3" />
-                                  {INTERVAL_LABELS[item.interval] || item.interval}
-                                </Badge>
-                              )}
+                      <div key={item.serviceId} className="rounded-2xl border border-border bg-card p-3 shadow-sm">
+                        <div className="flex items-start gap-2">
+                          <div className="min-w-0 flex-1">
+                            <h4 className="text-sm font-semibold leading-snug text-foreground">{item.serviceName}</h4>
+                            <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                              <span className="text-sm font-bold text-foreground tabular-nums">{item.total} kr</span>
+                              <Badge variant="secondary" className="gap-1 px-2 py-0.5 text-[11px] font-medium">
+                                {item.interval && item.interval !== "engangskøb" ? (
+                                  <><CalendarClock className="h-3 w-3" />{INTERVAL_LABELS[item.interval] || item.interval}</>
+                                ) : "Engangskøb"}
+                              </Badge>
                             </div>
-                            <button onClick={() => removeItem(item.serviceId)}
-                              className="text-muted-foreground hover:text-destructive transition-colors p-1 -m-1">
-                              <Trash2 className="h-4 w-4" />
-                            </button>
                           </div>
+                          <button
+                            onClick={() => removeItem(item.serviceId)}
+                            aria-label={`Fjern ${item.serviceName}`}
+                            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
 
-                          {item.stepDetails && item.stepDetails.length > 0 && (
-                            <div className="mt-3 overflow-hidden rounded-xl border border-border/70 bg-secondary/30 divide-y divide-border/50">
+                        {item.stepDetails && item.stepDetails.length > 0 && (
+                          <details className="group mt-2">
+                            <summary className="flex cursor-pointer list-none items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground">
+                              <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
+                              Se prisdetaljer ({item.stepDetails.length})
+                            </summary>
+                            <div className="mt-2 overflow-hidden rounded-xl border border-border/70 bg-secondary/30 divide-y divide-border/50">
                               {item.stepDetails.map((sd, i) => (
-                                <div key={i} className="flex justify-between px-3 py-1.5 text-xs">
-                                  <span className="text-muted-foreground">
+                                <div key={i} className="flex justify-between gap-3 px-3 py-1.5 text-xs">
+                                  <span className="min-w-0 truncate text-muted-foreground">
                                     {sd.label}: <span className="text-foreground/80">{sd.value} {sd.unit}</span>
                                   </span>
-                                  <span className="font-medium text-foreground">{sd.subtotal} kr</span>
+                                  <span className="shrink-0 font-medium text-foreground tabular-nums">{sd.subtotal} kr</span>
                                 </div>
                               ))}
                             </div>
-                          )}
+                          </details>
+                        )}
 
-                          {!item.stepDetails?.length && item.details && (
-                            <p className="mt-2 text-xs leading-5 text-muted-foreground">{item.details}</p>
-                          )}
-
-                          <div className="mt-3 flex items-center justify-between rounded-[1rem] border border-accent/15 bg-accent/5 px-3 py-2.5">
-                            <div className="min-w-0">
-                              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Pris</p>
-                              <p className="text-sm font-bold text-foreground">{item.total} kr</p>
-                            </div>
-                            <Badge variant="secondary" className="rounded-full bg-card text-xs font-medium text-foreground">
-                              {item.interval && item.interval !== "engangskøb"
-                                ? INTERVAL_LABELS[item.interval] || item.interval
-                                : "Engang"}
-                            </Badge>
-                          </div>
-                        </div>
+                        {!item.stepDetails?.length && item.details && (
+                          <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-muted-foreground">{item.details}</p>
+                        )}
                       </div>
                     ))}
                   </div>
+                  )}
                 </div>
-              ))}
+                );
+              })}
             </div>
 
-            {/* Footer */}
-            <div className="shrink-0 border-t border-border bg-card px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-              <div className="mb-3 rounded-[1rem] border border-accent/15 bg-accent/5 px-3.5 py-3">
-                <div className="flex items-baseline justify-between">
+            {/* Footer — kompakt så knappen altid er synlig, også på små skærme */}
+            <div className="shrink-0 border-t border-border bg-card px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_-20px_hsl(var(--foreground)/0.5)]">
+              <div className="mb-2.5 flex items-baseline justify-between px-1">
                 <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total</span>
-                <span className="text-xl font-bold text-foreground">{total} kr</span>
-                </div>
-                <p className="mt-1 text-[11px] text-muted-foreground">Du kan stadig tilpasse oplysninger og adresse i næste trin.</p>
+                <span className="text-xl font-bold text-foreground tabular-nums">{total} kr</span>
               </div>
-              <Button onClick={() => setCheckout(true)} size="lg" className="w-full rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 font-semibold shadow-sm hover:shadow-md transition-all">
+              <Button onClick={() => setCheckout(true)} size="lg" className="h-12 w-full rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 font-semibold shadow-sm hover:shadow-md transition-all">
                 Gå til bestilling →
               </Button>
+              <p className="mt-1.5 text-center text-[11px] text-muted-foreground">Oplysninger og adresse udfyldes i næste trin.</p>
             </div>
           </div>
         ) : (
@@ -736,19 +769,16 @@ const CartSheet = () => {
             </div>
 
             {/* Submit footer */}
-              <div className="shrink-0 border-t border-border bg-card px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] space-y-2.5">
-              <div className="rounded-[1rem] border border-accent/15 bg-accent/5 px-3.5 py-3">
-                <div className="flex items-baseline justify-between">
-                  <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total at betale</span>
-                  <span className="text-xl font-bold text-foreground">{total} kr</span>
-                </div>
-                <p className="mt-1 text-[11px] text-muted-foreground">Bestillingen sendes først til virksomheden for godkendelse.</p>
+              <div className="shrink-0 border-t border-border bg-card px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] space-y-2 shadow-[0_-8px_24px_-20px_hsl(var(--foreground)/0.5)]">
+              <div className="flex items-baseline justify-between px-1">
+                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total</span>
+                <span className="text-xl font-bold text-foreground tabular-nums">{total} kr</span>
               </div>
               <Button
                 onClick={handleOrder}
                 disabled={createOrder.isPending || submitting}
                 size="lg"
-                className="w-full rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 font-semibold text-base shadow-sm hover:shadow-md transition-all"
+                className="h-12 w-full rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 font-semibold text-base shadow-sm hover:shadow-md transition-all"
               >
                 {createOrder.isPending || submitting ? (
                   <><Loader2 className="h-4 w-4 animate-spin" /> Sender bestilling...</>
@@ -756,6 +786,7 @@ const CartSheet = () => {
                   <>Send bestilling <CheckCircle2 className="h-4 w-4" /></>
                 )}
               </Button>
+              <p className="text-center text-[11px] text-muted-foreground">Sendes til virksomheden for godkendelse — ingen betaling nu.</p>
             </div>
           </div>
         )}
