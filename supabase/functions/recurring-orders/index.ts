@@ -19,11 +19,11 @@ Deno.serve(async (req) => {
     //  - pg_cron (kalder med projektets anon key — supabase verificerer JWT)
     //  - Eksternt cron med eksplicit CRON_SECRET
     //  - Intern service-role
-    const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") || "";
+    // Kun cron-secret eller service-role. Den offentlige anon key er IKKE
+    // en gyldig legitimation — den ligger i klient-bundlen.
     const ok =
-      (CRON_SECRET && authHeader === `Bearer ${CRON_SECRET}`) ||
-      (SERVICE_KEY && authHeader === `Bearer ${SERVICE_KEY}`) ||
-      (ANON_KEY && authHeader === `Bearer ${ANON_KEY}`);
+      (!!CRON_SECRET && authHeader === `Bearer ${CRON_SECRET}`) ||
+      (!!SERVICE_KEY && authHeader === `Bearer ${SERVICE_KEY}`);
     if (!ok) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },

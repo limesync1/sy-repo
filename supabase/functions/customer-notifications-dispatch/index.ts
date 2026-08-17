@@ -57,6 +57,17 @@ function render(tpl: string, vars: Record<string, string>): string {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  // Kun cron/serveren må dræne køen (den sender rigtige mails/SMS).
+  const authHeader = req.headers.get("Authorization") || "";
+  const CRON_SECRET = Deno.env.get("CRON_SECRET") || "";
+  const authorized =
+    (!!CRON_SECRET && authHeader === `Bearer ${CRON_SECRET}`) ||
+    (!!SERVICE_KEY && authHeader === `Bearer ${SERVICE_KEY}`);
+  if (!authorized) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
   const admin = createClient(SUPABASE_URL, SERVICE_KEY);
   const now = new Date().toISOString();
   const { data: jobs, error } = await admin

@@ -7,6 +7,20 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
+  // Kun kaldbar af cron/serveren med delt hemmelighed.
+  const authHeader = req.headers.get("Authorization") || "";
+  const CRON_SECRET = Deno.env.get("CRON_SECRET") || "";
+  const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+  const authorized =
+    (!!CRON_SECRET && authHeader === `Bearer ${CRON_SECRET}`) ||
+    (!!SERVICE_KEY && authHeader === `Bearer ${SERVICE_KEY}`);
+  if (!authorized) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
