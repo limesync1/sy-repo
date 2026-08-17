@@ -562,18 +562,16 @@ const CartSheet = () => {
               })}
             </div>
 
-            {/* Footer */}
-            <div className="shrink-0 border-t border-border bg-card px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-              <div className="mb-3 rounded-[1rem] border border-accent/15 bg-accent/5 px-3.5 py-3">
-                <div className="flex items-baseline justify-between">
+            {/* Footer — kompakt så knappen altid er synlig, også på små skærme */}
+            <div className="shrink-0 border-t border-border bg-card px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_-20px_hsl(var(--foreground)/0.5)]">
+              <div className="mb-2.5 flex items-baseline justify-between px-1">
                 <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total</span>
-                <span className="text-xl font-bold text-foreground">{total} kr</span>
-                </div>
-                <p className="mt-1 text-[11px] text-muted-foreground">Du kan stadig tilpasse oplysninger og adresse i næste trin.</p>
+                <span className="text-xl font-bold text-foreground tabular-nums">{total} kr</span>
               </div>
-              <Button onClick={() => setCheckout(true)} size="lg" className="w-full rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 font-semibold shadow-sm hover:shadow-md transition-all">
+              <Button onClick={() => setCheckout(true)} size="lg" className="h-12 w-full rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 font-semibold shadow-sm hover:shadow-md transition-all">
                 Gå til bestilling →
               </Button>
+              <p className="mt-1.5 text-center text-[11px] text-muted-foreground">Oplysninger og adresse udfyldes i næste trin.</p>
             </div>
           </div>
         ) : (
