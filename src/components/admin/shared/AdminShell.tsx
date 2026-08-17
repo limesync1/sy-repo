@@ -540,7 +540,7 @@ export const AdminShell = ({
             {title ?? currentNav?.label}
           </h1>
           <div className="ml-auto flex shrink-0 items-center gap-2 min-w-0">
-            {topbarRight && (
+            {topbarRight && !hideActions && (
               <div className="hidden min-w-0 items-center gap-2 sm:flex">
                 {topbarRight}
               </div>
@@ -581,7 +581,7 @@ export const AdminShell = ({
             </button>
           </div>
         </header>
-        {topbarRight && (
+        {topbarRight && !hideActions && (
           <div className="sm:hidden sticky top-14 z-20 border-b border-border bg-card px-3 py-2">
             <div className="flex min-w-0 flex-wrap items-center gap-2 overflow-hidden">
               {topbarRight}
