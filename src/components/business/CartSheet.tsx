@@ -377,21 +377,27 @@ const CartSheet = () => {
             : "w-full sm:max-w-md",
         )}
       >
+        {/* Grabber — visuel indikator for at panelet kan lukkes/scrolles på mobil */}
+        {isMobile && (
+          <div className="shrink-0 flex justify-center pt-2 pb-1 bg-card rounded-t-2xl">
+            <span className="h-1.5 w-10 rounded-full bg-border" />
+          </div>
+        )}
         {/* Header with stepper */}
         <div className="shrink-0 border-b border-border bg-card">
-          <div className="px-5 py-4">
+          <div className="px-5 py-3.5">
             <SheetHeader className="p-0">
               <SheetTitle className="text-left">
                 {checkout ? (
-                  <button onClick={() => setCheckout(false)} className="flex items-center gap-2 text-base font-semibold text-foreground hover:text-accent transition-colors group">
-                    <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" /> Bekræft bestilling
+                  <button onClick={() => setCheckout(false)} className="-ml-2 flex min-h-[44px] items-center gap-2 rounded-lg px-2 text-base font-semibold text-foreground transition-colors hover:text-accent group">
+                    <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" /> Tilbage til kurv
                   </button>
                 ) : (
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2.5 pr-10">
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10">
                       <ShoppingBag className="h-4 w-4 text-accent" />
                     </div>
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <span className="block text-base">Din bestilling</span>
                       {items.length > 0 && (
                         <span className="block text-xs font-normal text-muted-foreground mt-0.5">
