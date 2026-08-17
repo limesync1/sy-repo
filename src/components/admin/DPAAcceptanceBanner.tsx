@@ -148,6 +148,35 @@ export default DPAAcceptanceBanner;
 export const DPAGate = ({
   businessId, isOwner, children,
 }: { businessId: string; isOwner: boolean; children: ReactNode }) => {
+  const { blocked, isLoading } = useDpaBlocked(businessId, isOwner);
+
+  if (!isOwner) return <>{children}</>;
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" aria-hidden />
+      </div>
+    );
+  }
+  if (!blocked) return <>{children}</>;
+
+  return (
+    <div className="mx-auto w-full max-w-2xl px-4 py-6 sm:py-10">
+      <p className="mb-3 text-sm text-muted-foreground">
+        Før I kan bruge virksomhedspanelet, skal I godkende vilkårene for vores behandling af
+        oplysninger om jeres kunder og medarbejdere.
+      </p>
+      <DPAAcceptanceBanner businessId={businessId} isOwner />
+    </div>
+  );
+};
+
+/**
+ * useDpaBlocked — sandt når ejeren endnu ikke har godkendt den nyeste
+ * databehandleraftale. Bruges også af AdminShell til at skjule topbar-knapper,
+ * så panelets funktioner først bliver tilgængelige efter accept.
+ */
+export const useDpaBlocked = (businessId: string, isOwner: boolean) => {
   const { data: acceptance, isLoading } = useQuery({
     queryKey: ["dpa-acceptance", businessId],
     enabled: !!businessId && isOwner,
@@ -163,24 +192,9 @@ export const DPAGate = ({
       return data;
     },
   });
-
-  if (!isOwner) return <>{children}</>;
-  if (isLoading) {
-    return (
-      <div className="flex min-h-[40vh] items-center justify-center">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" aria-hidden />
-      </div>
-    );
-  }
-  if (acceptance?.version === DPA_VERSION) return <>{children}</>;
-
-  return (
-    <div className="mx-auto w-full max-w-2xl px-4 py-6 sm:py-10">
-      <p className="mb-3 text-sm text-muted-foreground">
-        Før I kan bruge virksomhedspanelet, skal I godkende vilkårene for vores behandling af
-        oplysninger om jeres kunder og medarbejdere.
-      </p>
-      <DPAAcceptanceBanner businessId={businessId} isOwner />
-    </div>
-  );
+  const enabled = !!businessId && isOwner;
+  return {
+    isLoading: enabled ? isLoading : false,
+    blocked: enabled ? acceptance?.version !== DPA_VERSION : false,
+  };
 };
