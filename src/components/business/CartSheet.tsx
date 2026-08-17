@@ -34,6 +34,9 @@ const CartSheet = () => {
   // checkout-flowet stadig kører de første awaits (geocoding, signup
   // osv.) før createOrder.isPending bliver true.
   const submittingRef = useRef(false);
+  // Scroll-containere for hvert trin, så vi altid starter i toppen ved trinskift
+  const cartScrollRef = useRef<HTMLDivElement | null>(null);
+  const checkoutScrollRef = useRef<HTMLDivElement | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [customerType, setCustomerType] = useState<"private" | "business">("private");
   const [name, setName] = useState("");
@@ -344,6 +347,20 @@ const CartSheet = () => {
 
   const businessCount = Object.keys(groupedByBusiness).length;
 
+  // Scroll til toppen når man skifter trin eller åbner kassen — ellers står
+  // man midt i indholdet på mobil når næste trin vises.
+  useEffect(() => {
+    if (!sheetOpen) return;
+    const el = checkout ? checkoutScrollRef.current : cartScrollRef.current;
+    requestAnimationFrame(() => el?.scrollTo({ top: 0, behavior: "auto" }));
+  }, [checkout, sheetOpen, orderSuccess]);
+
+  // Vis fejl med det samme: rul op når validering fejler
+  useEffect(() => {
+    if (!Object.keys(errors).length) return;
+    checkoutScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  }, [errors]);
+
   return (
     <Sheet open={sheetOpen} onOpenChange={(v) => { setSheetOpen(v); if (!v) { setCheckout(false); setOrderSuccess(false); } }} modal={false}>
       <SheetContent
@@ -351,7 +368,7 @@ const CartSheet = () => {
         side={isMobile ? "bottom" : "right"}
         onInteractOutside={(e) => e.preventDefault()}
         onPointerDownOutside={(e) => e.preventDefault()}
-        className="flex w-full flex-col sm:max-w-md p-0 gap-0 shadow-2xl data-[side=bottom]:h-[92dvh] data-[side=bottom]:max-h-[92dvh] data-[side=bottom]:rounded-t-2xl"
+        className="flex w-full flex-col overscroll-contain sm:max-w-md p-0 gap-0 shadow-2xl data-[side=bottom]:h-[92dvh] data-[side=bottom]:max-h-[92dvh] data-[side=bottom]:rounded-t-2xl"
       >
         {/* Header with stepper */}
         <div className="shrink-0 border-b border-border bg-card">
@@ -425,7 +442,7 @@ const CartSheet = () => {
         ) : !checkout ? (
           /* ── Cart items view ── */
           <div className="flex flex-1 flex-col min-h-0">
-            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+            <div ref={cartScrollRef} className="flex-1 overflow-y-auto overscroll-contain px-5 py-4 space-y-5">
               {Object.entries(groupedByBusiness).map(([bizId, group]) => (
                 <div key={bizId}>
                   {/* Business header */}
@@ -506,7 +523,7 @@ const CartSheet = () => {
             </div>
 
             {/* Footer */}
-            <div className="shrink-0 border-t border-border bg-card px-5 py-4">
+            <div className="shrink-0 border-t border-border bg-card px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
               <div className="mb-3 rounded-[1rem] border border-accent/15 bg-accent/5 px-3.5 py-3">
                 <div className="flex items-baseline justify-between">
                 <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total</span>
@@ -522,7 +539,7 @@ const CartSheet = () => {
         ) : (
           /* ── Checkout view ── */
           <div className="flex flex-1 flex-col min-h-0">
-            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+            <div ref={checkoutScrollRef} className="flex-1 overflow-y-auto overscroll-contain px-5 py-4 space-y-5">
               {/* Privat / Erhverv toggle — matcher CustomerEditDialog stil */}
               <div className="grid grid-cols-2 gap-2 rounded-xl border border-border bg-secondary/50 p-1">
                 <button
@@ -714,7 +731,7 @@ const CartSheet = () => {
             </div>
 
             {/* Submit footer */}
-              <div className="shrink-0 border-t border-border bg-card px-5 py-4 space-y-2.5">
+              <div className="shrink-0 border-t border-border bg-card px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] space-y-2.5">
               <div className="rounded-[1rem] border border-accent/15 bg-accent/5 px-3.5 py-3">
                 <div className="flex items-baseline justify-between">
                   <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total at betale</span>
