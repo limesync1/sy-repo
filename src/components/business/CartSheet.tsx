@@ -54,6 +54,8 @@ const CartSheet = () => {
   const [verifying, setVerifying] = useState(false);
   const [geo, setGeo] = useState<{ ok: boolean; display?: string; lat?: number; lng?: number } | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // Kunden skal aktivt acceptere handelsbetingelser og privatlivspolitik
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   // Sammenklappede virksomhedsgrupper i kurven — gør lange bestillinger overskuelige
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
@@ -86,9 +88,10 @@ const CartSheet = () => {
         if (companyName.trim()) delete next.companyName;
         if (contactName.trim()) delete next.contactName;
       }
+      if (acceptedTerms) delete next.terms;
       return next;
     });
-  }, [address, city, companyName, contactName, customerType, email, errors, name, phone, zipCode]);
+  }, [acceptedTerms, address, city, companyName, contactName, customerType, email, errors, name, phone, zipCode]);
 
   // (zip/city håndteres nu udelukkende via AddressAutocomplete)
 
@@ -144,6 +147,7 @@ const CartSheet = () => {
     else if (!user && !emailOk) nextErrors.email = "Indtast en gyldig e-mailadresse.";
     if (!trimmedPhone) nextErrors.phone = "Indtast dit telefonnummer.";
     if (!address.trim() || !zipCode.trim() || !city.trim()) nextErrors.address = "Vælg en gyldig adresse med postnummer og by.";
+    if (!acceptedTerms) nextErrors.terms = "Du skal acceptere handelsbetingelserne og privatlivspolitikken.";
 
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
@@ -332,6 +336,7 @@ const CartSheet = () => {
       setLatitude(null); setLongitude(null);
       setCvr(""); setCompanyName(""); setContactName("");
       setCustomerType("private");
+      setAcceptedTerms(false);
       if (user || activeUserId) {
         if (createdAccount) {
           toast.success("Konto oprettet – tjek din mail for loginoplysninger.");
@@ -374,7 +379,7 @@ const CartSheet = () => {
           "flex flex-col overflow-hidden overscroll-contain p-0 gap-0 shadow-2xl",
           isMobile
             ? "h-[88dvh] max-h-[88dvh] w-auto rounded-2xl"
-            : "w-full sm:max-w-md",
+            : "w-full sm:max-w-lg lg:max-w-xl",
         )}
       >
         {/* Grabber — visuel indikator for at panelet kan lukkes/scrolles på mobil */}
@@ -615,7 +620,7 @@ const CartSheet = () => {
                     </div>
                     <h4 className="text-sm font-semibold text-foreground">Virksomhed</h4>
                   </div>
-                  <div className="space-y-2.5 pl-9">
+                  <div className="grid gap-2.5 pl-9 sm:grid-cols-2">
                     <div>
                       <label className="mb-1 block text-xs font-medium text-muted-foreground">CVR-nummer</label>
                       <CvrLookupField
@@ -644,7 +649,7 @@ const CartSheet = () => {
                       <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Indtastes automatisk via CVR" className="rounded-lg" />
                       {errors.companyName && <p className="mt-1 text-xs text-destructive">{errors.companyName}</p>}
                     </div>
-                    <div>
+                    <div className="sm:col-span-2">
                       <label className="mb-1 block text-xs font-medium text-muted-foreground">Kontaktperson</label>
                       <Input value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Fulde navn" className="rounded-lg" />
                       {errors.contactName && <p className="mt-1 text-xs text-destructive">{errors.contactName}</p>}
@@ -663,12 +668,7 @@ const CartSheet = () => {
                     {customerType === "business" ? "Kontakt" : "Dine oplysninger"}
                   </h4>
                 </div>
-                <div className="space-y-2.5 pl-9">
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-muted-foreground">E-mail</label>
-                    <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="din@email.dk" className="rounded-lg" />
-                    {errors.email && <p className="mt-1 text-xs text-destructive">{errors.email}</p>}
-                  </div>
+                <div className="grid gap-2.5 pl-9 sm:grid-cols-2">
                   {customerType === "private" && (
                     <div>
                       <label className="mb-1 block text-xs font-medium text-muted-foreground">Fulde navn</label>
@@ -676,6 +676,11 @@ const CartSheet = () => {
                       {errors.name && <p className="mt-1 text-xs text-destructive">{errors.name}</p>}
                     </div>
                   )}
+                  <div className={cn(customerType === "business" && "sm:col-span-1")}>
+                    <label className="mb-1 block text-xs font-medium text-muted-foreground">E-mail</label>
+                    <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="din@email.dk" className="rounded-lg" />
+                    {errors.email && <p className="mt-1 text-xs text-destructive">{errors.email}</p>}
+                  </div>
                   <div>
                     <label className="mb-1 block text-xs font-medium text-muted-foreground">Telefon</label>
                     <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+45 00 00 00 00" className="rounded-lg" />
@@ -709,12 +714,6 @@ const CartSheet = () => {
                     }}
                   />
                   {errors.address && <p className="text-xs text-destructive">{errors.address}</p>}
-                  {address && zipCode && city && geo?.ok && (
-                    <div className="flex items-center gap-2 text-[11px] text-foreground/70">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-accent" />
-                      <span>Adresse verificeret</span>
-                    </div>
-                  )}
                 </div>
               </section>
 
@@ -766,6 +765,36 @@ const CartSheet = () => {
                   </div>
                 )}
               </div>
+
+              {/* Accept af handelsbetingelser — krav før bestilling kan sendes */}
+              <label
+                htmlFor="cart-accept-terms"
+                className={cn(
+                  "flex cursor-pointer items-start gap-3 rounded-[1.25rem] border bg-card p-4 shadow-sm transition-colors",
+                  errors.terms ? "border-destructive/60 bg-destructive/5" : "border-border hover:bg-secondary/40",
+                )}
+              >
+                <input
+                  id="cart-accept-terms"
+                  type="checkbox"
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  aria-invalid={!!errors.terms}
+                  className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer rounded border-border accent-[hsl(var(--accent))]"
+                />
+                <span className="text-xs leading-5 text-foreground/80">
+                  Jeg accepterer{" "}
+                  <a href="/vilkaar" target="_blank" rel="noopener noreferrer" className="font-medium text-accent underline underline-offset-2" onClick={(e) => e.stopPropagation()}>
+                    handelsbetingelserne
+                  </a>{" "}
+                  og{" "}
+                  <a href="/privatlivspolitik" target="_blank" rel="noopener noreferrer" className="font-medium text-accent underline underline-offset-2" onClick={(e) => e.stopPropagation()}>
+                    privatlivspolitikken
+                  </a>
+                  , og at mine oplysninger deles med den valgte virksomhed, så bestillingen kan behandles.
+                  {errors.terms && <span className="mt-1 block font-medium text-destructive">{errors.terms}</span>}
+                </span>
+              </label>
             </div>
 
             {/* Submit footer */}
