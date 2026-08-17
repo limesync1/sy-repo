@@ -4716,6 +4716,10 @@ export type Database = {
       }
       cleanup_route_mutation_claims: { Args: never; Returns: number }
       cleanup_route_planner_idempotency: { Args: never; Returns: number }
+      close_chat_conversation_by_token: {
+        Args: { p_token: string }
+        Returns: undefined
+      }
       confirm_business_deletion: {
         Args: { p_business_id: string; p_code: string }
         Returns: boolean
@@ -4842,6 +4846,20 @@ export type Database = {
           subject: string
           visitor_email: string
           visitor_name: string
+        }[]
+      }
+      get_chat_messages_by_token: {
+        Args: { p_token: string }
+        Returns: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          image_url: string
+          is_system: boolean
+          metadata: Json
+          sender_name: string
+          sender_type: string
         }[]
       }
       get_customer_notification_pref: {
@@ -4996,6 +5014,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      mark_chat_read_by_token: { Args: { p_token: string }; Returns: undefined }
       materialize_my_day_routes_for_employee: {
         Args: { _date: string }
         Returns: {
@@ -5239,6 +5258,15 @@ export type Database = {
           missing_service_ids: string[]
           route_id: string
         }[]
+      }
+      send_chat_message_by_token: {
+        Args: {
+          p_content?: string
+          p_image_url?: string
+          p_is_system?: boolean
+          p_token: string
+        }
+        Returns: string
       }
       shift_projected_occurrence:
         | {
