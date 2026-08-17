@@ -336,6 +336,7 @@ const CartSheet = () => {
       setLatitude(null); setLongitude(null);
       setCvr(""); setCompanyName(""); setContactName("");
       setCustomerType("private");
+      setAcceptedTerms(false);
       if (user || activeUserId) {
         if (createdAccount) {
           toast.success("Konto oprettet – tjek din mail for loginoplysninger.");
