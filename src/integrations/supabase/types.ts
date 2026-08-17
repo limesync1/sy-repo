@@ -2708,8 +2708,6 @@ export type Database = {
           price_route_planning_dkk: number
           startup_fee_dkk: number
           stripe_publishable_key: string | null
-          stripe_secret_key: string | null
-          stripe_webhook_secret: string | null
           trial_days: number
           updated_at: string
         }
@@ -2725,8 +2723,6 @@ export type Database = {
           price_route_planning_dkk?: number
           startup_fee_dkk?: number
           stripe_publishable_key?: string | null
-          stripe_secret_key?: string | null
-          stripe_webhook_secret?: string | null
           trial_days?: number
           updated_at?: string
         }
@@ -2742,8 +2738,6 @@ export type Database = {
           price_route_planning_dkk?: number
           startup_fee_dkk?: number
           stripe_publishable_key?: string | null
-          stripe_secret_key?: string | null
-          stripe_webhook_secret?: string | null
           trial_days?: number
           updated_at?: string
         }
