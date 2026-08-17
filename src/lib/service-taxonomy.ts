@@ -839,6 +839,7 @@ export const TOP_CATEGORY_KEYS: string[] = [
   "Gulvlægger",
   "Skorstensfejer",
   "Sikkerhed",
+  "Industriservice",
 ];
 
 /** Returnér Industry-objekter for top-kategorierne (filtrerer ukendte). */
