@@ -449,6 +449,7 @@ const LiveChatWidget = () => {
             recipientEmail: "kontakt@serviceydere.dk",
             idempotencyKey: `chat-start-${conv.id}`,
             templateData: {
+              conversationToken: token,
               visitorName: parsed.data.name,
               visitorEmail: parsed.data.email,
               subject: parsed.data.subject || "",
