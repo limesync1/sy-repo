@@ -368,7 +368,12 @@ const CartSheet = () => {
         side={isMobile ? "bottom" : "right"}
         onInteractOutside={(e) => e.preventDefault()}
         onPointerDownOutside={(e) => e.preventDefault()}
-        className="flex w-full flex-col overscroll-contain sm:max-w-md p-0 gap-0 shadow-2xl data-[side=bottom]:h-[92dvh] data-[side=bottom]:max-h-[92dvh] data-[side=bottom]:rounded-t-2xl"
+        className={cn(
+          "flex flex-col overflow-hidden overscroll-contain p-0 gap-0 shadow-2xl",
+          isMobile
+            ? "h-[88dvh] max-h-[88dvh] w-auto rounded-2xl"
+            : "w-full sm:max-w-md",
+        )}
       >
         {/* Header with stepper */}
         <div className="shrink-0 border-b border-border bg-card">
