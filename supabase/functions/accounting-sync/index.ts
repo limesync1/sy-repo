@@ -31,8 +31,17 @@ Deno.serve(async (req) => {
     // Service-role client for actual DB work
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
 
+    // internal_mode må KUN honoreres når kalderen beviser at den er serveren
+    // (cron-secret eller service-role key). Ellers kræves ejerskab.
+    const authHeader = req.headers.get("Authorization") || "";
+    const CRON_SECRET = Deno.env.get("CRON_SECRET") || "";
+    const isTrustedServerCaller =
+      (!!CRON_SECRET && authHeader === `Bearer ${CRON_SECRET}`) ||
+      (!!SERVICE_KEY && authHeader === `Bearer ${SERVICE_KEY}`);
+    const allowInternal = internal_mode === true && isTrustedServerCaller;
+
     // If called externally (not internal cron), verify caller owns the business
-    if (!internal_mode) {
+    if (!allowInternal) {
       const auth = await requireAuthenticatedUser(req, SUPABASE_URL, ANON_KEY);
       if ("error" in auth) return json({ error: auth.error }, auth.status);
       const userClient = auth.userClient;

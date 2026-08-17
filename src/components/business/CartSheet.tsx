@@ -171,38 +171,10 @@ const CartSheet = () => {
     }
 
     let activeUserId: string | null = user?.id || null;
-    let createdAccount = false;
     try {
-      // If the customer is not logged in, create an account first so that:
-      //  • the order is correctly tied to their customer_id (avoids "wrong customer" issues)
-      //  • they get login credentials emailed and are auto-logged in
-      if (!user) {
-        const { data: acct, error: acctErr } = await supabase.functions.invoke(
-          "create-customer-account",
-          { body: { email: effectiveEmail, name: customerType === "business" ? (contactName || name) : name, phone: trimmedPhone } }
-        );
-        if (acctErr) {
-          toast.error("Kunne ikke oprette konto", { description: acctErr.message });
-          return;
-        }
-        if (acct?.created && acct?.password) {
-          const { error: signInErr } = await supabase.auth.signInWithPassword({
-            email: effectiveEmail,
-            password: acct.password,
-          });
-          if (signInErr) {
-            toast.error("Konto oprettet, men automatisk login fejlede", { description: signInErr.message });
-          } else {
-            activeUserId = acct.userId;
-            createdAccount = true;
-          }
-        } else if (acct?.ok && !acct?.created) {
-          // Account already exists — proceed without auto-login. Order will still be linked by email.
-          toast.message("Du har allerede en konto", {
-            description: "Log ind for at se dine bestillinger på din konto.",
-          });
-        }
-      }
+      // Gæstebestilling: vi opretter IKKE en konto på vegne af en e-mail vi
+      // ikke har verificeret (det ville tillade konto-overtagelse). Ordren
+      // knyttes til e-mailen, og kunden kan selv oprette en konto bagefter.
 
       for (const [businessId, group] of Object.entries(groupedByBusiness)) {
         const bizTotal = group.items.reduce((acc, i) => acc + i.total * i.quantity, 0);
@@ -338,9 +310,6 @@ const CartSheet = () => {
       setCustomerType("private");
       setAcceptedTerms(false);
       if (user || activeUserId) {
-        if (createdAccount) {
-          toast.success("Konto oprettet – tjek din mail for loginoplysninger.");
-        }
         navigate("/min-konto");
       } else {
         toast.success("Din bestilling er sendt! Virksomheden vil gennemgå og bekræfte den.");

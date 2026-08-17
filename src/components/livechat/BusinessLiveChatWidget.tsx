@@ -364,6 +364,7 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
             recipientEmail: "kontakt@serviceydere.dk",
             idempotencyKey: `biz-chat-start-${conv.id}`,
             templateData: {
+              conversationToken: token,
               visitorName: parsed.data.name,
               visitorEmail: parsed.data.email,
               subject: parsed.data.subject || "",
