@@ -36,8 +36,6 @@ const PlatformSettingsTab = () => {
   const save = async () => {
     const payload = {
       stripe_publishable_key: s.stripe_publishable_key || null,
-      stripe_secret_key: s.stripe_secret_key || null,
-      stripe_webhook_secret: s.stripe_webhook_secret || null,
       base_price_dkk: Number(s.base_price_dkk) || 0,
       price_route_planning_dkk: Number(s.price_route_planning_dkk) || 0,
       price_accounting_integration_dkk: Number(s.price_accounting_integration_dkk) || 0,

@@ -4,8 +4,6 @@ import { FieldLabel } from "@/components/admin/shared/AdminUI";
 
 export const SettingsSchema = z.object({
   stripe_publishable_key: z.string().trim().regex(/^(pk_(test|live)_[A-Za-z0-9_]+)?$/, "Skal starte med pk_test_ eller pk_live_").nullable(),
-  stripe_secret_key: z.string().trim().regex(/^(sk_(test|live)_[A-Za-z0-9_]+)?$/, "Skal starte med sk_test_ eller sk_live_").nullable(),
-  stripe_webhook_secret: z.string().trim().regex(/^(whsec_[A-Za-z0-9_]+)?$/, "Skal starte med whsec_").nullable(),
   base_price_dkk: z.number().min(0).max(100000),
   price_route_planning_dkk: z.number().min(0).max(100000),
   price_accounting_integration_dkk: z.number().min(0).max(100000),
