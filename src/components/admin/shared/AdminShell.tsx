@@ -27,7 +27,7 @@ import {
 import useSidebarCollapsed from "@/components/shared/sidebar/useSidebarCollapsed";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import AdminBottomNav from "./AdminBottomNav";
-import { DPAGate } from "@/components/admin/DPAAcceptanceBanner";
+import { DPAGate, useDpaBlocked } from "@/components/admin/DPAAcceptanceBanner";
 
 /**
  * RoleSwitchFooterItem — speciel sidebar-knap til at skifte mellem
@@ -250,6 +250,13 @@ export const AdminShell = ({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { data: plan } = useBusinessPlan(business.id);
   void plan;
+  // Når databehandleraftalen mangler godkendelse, skjuler vi panelets
+  // handlingsknapper i topbaren — kun accept-skærmen må være tilgængelig.
+  const { blocked: dpaBlocked, isLoading: dpaLoading } = useDpaBlocked(
+    business.id,
+    (business as any).owner_id === user?.id,
+  );
+  const hideActions = dpaBlocked || dpaLoading;
   // Genvej til medarbejder-appen: Vises kun når virksomheden har præcis
   // én medarbejder OG den medarbejder er den indloggede ejer selv. Så kan
   // ejeren med ét klik hoppe fra ruteplanlægning over i medarbejder-appen
@@ -533,7 +540,7 @@ export const AdminShell = ({
             {title ?? currentNav?.label}
           </h1>
           <div className="ml-auto flex shrink-0 items-center gap-2 min-w-0">
-            {topbarRight && (
+            {topbarRight && !hideActions && (
               <div className="hidden min-w-0 items-center gap-2 sm:flex">
                 {topbarRight}
               </div>
@@ -574,7 +581,7 @@ export const AdminShell = ({
             </button>
           </div>
         </header>
-        {topbarRight && (
+        {topbarRight && !hideActions && (
           <div className="sm:hidden sticky top-14 z-20 border-b border-border bg-card px-3 py-2">
             <div className="flex min-w-0 flex-wrap items-center gap-2 overflow-hidden">
               {topbarRight}
