@@ -37,6 +37,32 @@ Deno.serve(async (req) => {
 
   const admin = createClient(supabaseUrl, serviceKey)
 
+  // ── Authorization: kun indloggede virksomhedsejere/admins må oprette
+  // kundekonti. Ellers kunne hvem som helst oprette konti på fremmede
+  // e-mailadresser.
+  const authHeader = req.headers.get('Authorization') || ''
+  const bearer = authHeader.replace(/^Bearer\s+/i, '')
+  const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || ''
+  const unauthorized = () =>
+    new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+
+  if (!bearer || bearer === anonKey) return unauthorized()
+  const { data: claims } = await admin.auth.getClaims(bearer)
+  const callerId = claims?.claims?.sub ? String(claims.claims.sub) : null
+  if (!callerId) return unauthorized()
+
+  const [{ data: isAdmin }, { data: ownedBiz }] = await Promise.all([
+    admin.rpc('has_role', { _user_id: callerId, _role: 'admin' }),
+    admin.from('businesses').select('id').eq('owner_id', callerId).limit(1),
+  ])
+  if (!isAdmin && !(ownedBiz && ownedBiz.length > 0)) {
+    return new Response(JSON.stringify({ error: 'Forbidden' }), {
+      status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  }
+
   // Check if user exists
   let existingUserId: string | null = null
   try {
@@ -92,11 +118,10 @@ Deno.serve(async (req) => {
     },
   }).catch(() => {})
 
-  // Password returneres til CartSheet/guest-checkout for auto-login direkte
-  // efter konto-oprettelse. Endpoint er bevidst åbent for anonyme bestillinger,
-  // men 'existed'-grenen returnerer samme shape som created-grenen for at
-  // mindske user-enumeration.
-  return new Response(JSON.stringify({ created: true, userId: created.user.id, password, email }), {
+  // Adgangskoden returneres ALDRIG i svaret — den sendes kun til kundens
+  // egen e-mail. Svaret har samme form som 'findes allerede'-grenen for at
+  // undgå user-enumeration.
+  return new Response(JSON.stringify({ ok: true, email }), {
     status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   })
 })
