@@ -709,12 +709,6 @@ const CartSheet = () => {
                     }}
                   />
                   {errors.address && <p className="text-xs text-destructive">{errors.address}</p>}
-                  {address && zipCode && city && geo?.ok && (
-                    <div className="flex items-center gap-2 text-[11px] text-foreground/70">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-accent" />
-                      <span>Adresse verificeret</span>
-                    </div>
-                  )}
                 </div>
               </section>
 
