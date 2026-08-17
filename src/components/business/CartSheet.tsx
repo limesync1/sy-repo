@@ -54,6 +54,8 @@ const CartSheet = () => {
   const [verifying, setVerifying] = useState(false);
   const [geo, setGeo] = useState<{ ok: boolean; display?: string; lat?: number; lng?: number } | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // Kunden skal aktivt acceptere handelsbetingelser og privatlivspolitik
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   // Sammenklappede virksomhedsgrupper i kurven — gør lange bestillinger overskuelige
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
@@ -86,9 +88,10 @@ const CartSheet = () => {
         if (companyName.trim()) delete next.companyName;
         if (contactName.trim()) delete next.contactName;
       }
+      if (acceptedTerms) delete next.terms;
       return next;
     });
-  }, [address, city, companyName, contactName, customerType, email, errors, name, phone, zipCode]);
+  }, [acceptedTerms, address, city, companyName, contactName, customerType, email, errors, name, phone, zipCode]);
 
   // (zip/city håndteres nu udelukkende via AddressAutocomplete)
 
@@ -144,6 +147,7 @@ const CartSheet = () => {
     else if (!user && !emailOk) nextErrors.email = "Indtast en gyldig e-mailadresse.";
     if (!trimmedPhone) nextErrors.phone = "Indtast dit telefonnummer.";
     if (!address.trim() || !zipCode.trim() || !city.trim()) nextErrors.address = "Vælg en gyldig adresse med postnummer og by.";
+    if (!acceptedTerms) nextErrors.terms = "Du skal acceptere handelsbetingelserne og privatlivspolitikken.";
 
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
