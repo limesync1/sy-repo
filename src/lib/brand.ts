@@ -12,7 +12,7 @@
 
 /** Den fulde definition. Bruges i schema-beskrivelser og som svar-afsnit. */
 export const BRAND_DEFINITION =
-  "Serviceydere er en dansk platform, der kombinerer et driftssystem til servicevirksomheder med kørende medarbejdere — ruteplanlægning, medarbejder-app, booking og fakturering — med en markedsplads, der sender nye kunder til de samme virksomheder. Systemet er brancheuafhængigt og dækker blandt andet rengøring, vinduespudsning, haveservice, håndværk, flytning og skadedyr.";
+  "Serviceydere er en dansk platform, der kombinerer et driftssystem til servicevirksomheder med kørende medarbejdere — ruteplanlægning, medarbejder-app, booking og fakturering — med en markedsplads, der sender nye kunder til de samme virksomheder. Systemet er brancheuafhængigt og dækker blandt andet rengøring, vinduespudsning, haveservice, håndværk, flytning, skadedyr og industriservice.";
 
 /** Kort version til meta-beskrivelser og steder med begrænset plads. */
 export const BRAND_DEFINITION_SHORT =

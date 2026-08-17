@@ -46,6 +46,7 @@ const EXAMPLE_PROMPTS: Record<string, string> = {
   "Gulvlægger": "Fx: Lægning af 35 m² laminatgulv i stue og spisestue.",
   "Skorstensfejer": "Fx: Årlig fejning af brændeovnsskorsten på parcelhus.",
   "Sikkerhed": "Fx: Montering af 4 udendørs sikkerhedskameraer og alarm til parcelhus.",
+  "Industriservice": "Fx: Månedlig maskin- og hal­rengøring af 1.200 m² produktion samt eftersyn af ventilation.",
 };
 
 interface MatchedService {

@@ -5,7 +5,7 @@ const Page = defineSoftwarePage({
   canonicalPath: "/software/brancher",
   metaTitle: "Brancher: hvem kan bruge Serviceydere? | Serviceydere",
   metaDescription:
-    "Serviceydere er bygget til alle servicebrancher med kørsel — rengøring, vinduespudsning, haveservice, håndværk, flytning, skadedyr, autoservice og flere.",
+    "Serviceydere er bygget til alle servicebrancher med kørsel — rengøring, vinduespudsning, haveservice, håndværk, flytning, skadedyr, autoservice, industriservice og flere.",
   keywords:
     "system til rengøringsfirma, system til vinduespudser, software til haveservice, ordrestyring håndværker, system til flyttefirma, skadedyrsbekæmpelse software",
   heroEyebrow: "Brancher",
@@ -36,6 +36,7 @@ const Page = defineSoftwarePage({
         <><strong>Skorstensfejning og service på installationer</strong> — lovpligtige eller anbefalede intervaller pr. adresse. <Link to="/priser/skorstensfejer">Prisguide til skorstensfejer</Link>.</>,
         <><strong>Autoservice og mobile værksteder</strong> — opgaver hos kunden med kørsel imellem.</>,
         <><strong>Sikkerhed, alarm og låse</strong> — servicebesøg og udkald. <Link to="/priser/sikkerhed">Prisguide til sikkerhed</Link>.</>,
+        <><strong>Industriservice</strong> — industrirengøring, højtryks- og vakuumspuling, maskinvedligehold og ventilationsservice hos produktions- og lagervirksomheder med faste serviceintervaller.</>,
       ],
     },
     {

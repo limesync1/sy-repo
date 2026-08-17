@@ -31,6 +31,7 @@ import pestAsset from "@/assets/industry-icons/pest.svg.asset.json";
 import plumbingAsset from "@/assets/industry-icons/plumbing.svg.asset.json";
 import windowInstallerAsset from "@/assets/industry-icons/window-installer.svg.asset.json";
 import itServiceAsset from "@/assets/industry-icons/it-service.svg.asset.json";
+import industrialServiceAsset from "@/assets/industry-icons/industrial-service.svg.asset.json";
 import placeholder from "@/assets/industry-icons/placeholder.svg";
 
 const cleaning = cleaningAsset.url;
@@ -58,6 +59,7 @@ const pest = pestAsset.url;
 const plumbing = plumbingAsset.url;
 const windowInstaller = windowInstallerAsset.url;
 const itService = itServiceAsset.url;
+const industrialService = industrialServiceAsset.url;
 
 /**
  * Eksplicitte branche-mapninger (key fra service-taxonomy).
@@ -89,6 +91,7 @@ const INDUSTRY_ASSETS: Record<string, string> = {
   "Autoservice": autoservice,
   "Sikkerhed": security,
   "IT-service": itService,
+  "Industriservice": industrialService,
 };
 
 /**
@@ -97,6 +100,7 @@ const INDUSTRY_ASSETS: Record<string, string> = {
  * "Solcellerens" under "Vinduespudsning" stadig får solcelle-ikonet.
  */
 const KEYWORD_FALLBACK: Array<[RegExp, string]> = [
+  [/industri.?service|industri.?rengøring|maskin|produktions.?anlæg|vakuum.?sug|slam.?sug|tør.?is|silo|procesanlæg/i, industrialService],
   [/solcelle/i, solarCleaning],
   [/flise|fuge|belægning|granit|natursten|indkørsel/i, tileCleaning],
   [/facade|graffiti|murværk|sand.?blæs|filt/i, facadeCleaning],

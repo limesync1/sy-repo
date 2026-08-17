@@ -375,6 +375,24 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
       },
     ],
   },
+  {
+    label: "Industri & erhvervsservice",
+    industries: [
+      {
+        key: "Industriservice",
+        label: "Industriservice",
+        icon: "⚙️",
+        subcategories: [
+          { label: "Industrirengøring", services: ["Maskin­rengøring", "Produktions­rengøring", "Hal- og lager­rengøring", "Tank­rengøring", "Silo­rengøring"] },
+          { label: "Højtryks- & vakuum­spuling", services: ["Højtryks­spuling industri", "Vakuum­sugning", "Tør­is­rensning", "Slam­sugning"] },
+          { label: "Maskin­service & vedligehold", services: ["Forebyggende vedligehold", "Maskin­eftersyn", "Reparation af produktions­udstyr", "Smøre­service"] },
+          { label: "Ventilation & procesanlæg", services: ["Ventilations­rens industri", "Emhætte- og kanal­rens", "Filter­skift", "Proces­anlæg service"] },
+          { label: "Industri­montage", services: ["Maskin­flytning", "Maskin­opstilling", "Rør­montage", "Stål­montage"] },
+          { label: "Lovpligtige eftersyn", services: ["Eftersyn af løfte­grej", "Port- og lift­eftersyn", "Termografering el-tavler"] },
+        ],
+      },
+    ],
+  },
 ];
 
 /* ───────────── Step-templates pr. branche ───────────── */
@@ -737,6 +755,33 @@ export const STEP_TEMPLATES_BY_INDUSTRY: Record<string, StepTemplate[]> = {
         { label: "Afretning af underlag", unit: "m²", price_per_unit: 95, min_value: 0, max_value: 300, default_value: 0 },
       ]},
   ],
+  "Industriservice": [
+    { label: "Industrirengøring", subcategories: ["Industrirengøring"],
+      keywords: ["industri","produktion","hal","lager","maskine","fabrik"],
+      steps: [
+        { label: "Areal", unit: "m²", price_per_unit: 9, min_value: 100, max_value: 10000, default_value: 800 },
+        { label: "Antal mand", unit: "stk", price_per_unit: 495, min_value: 1, max_value: 10, default_value: 2 },
+        { label: "Timer", unit: "timer", price_per_unit: 1, min_value: 1, max_value: 40, default_value: 6 },
+      ]},
+    { label: "Højtryks- & vakuumspuling", subcategories: ["Højtryks- & vakuumspuling"],
+      keywords: ["højtryk","spuling","vakuum","slamsugning","tøris","tank","silo"],
+      steps: [
+        { label: "Udkald med materiel", unit: "stk", price_per_unit: 1495, min_value: 1, max_value: 1, default_value: 1 },
+        { label: "Arbejdstimer", unit: "timer", price_per_unit: 895, min_value: 1, max_value: 24, default_value: 4 },
+      ]},
+    { label: "Maskinservice & vedligehold", subcategories: ["Maskinservice & vedligehold"],
+      keywords: ["vedligehold","eftersyn","maskine","service","reparation","smøring"],
+      steps: [
+        { label: "Antal maskiner", unit: "stk", price_per_unit: 695, min_value: 1, max_value: 50, default_value: 4 },
+        { label: "Tekniker­timer", unit: "timer", price_per_unit: 745, min_value: 1, max_value: 40, default_value: 5 },
+      ]},
+    { label: "Ventilations- & kanalrens", subcategories: ["Ventilation & procesanlæg"],
+      keywords: ["ventilation","kanal","emhætte","filter","procesanlæg"],
+      steps: [
+        { label: "Kanal­meter", unit: "stk", price_per_unit: 165, min_value: 10, max_value: 1000, default_value: 120 },
+        { label: "Filterskift", unit: "stk", price_per_unit: 395, min_value: 0, max_value: 40, default_value: 4 },
+      ]},
+  ],
 };
 
 /* ───────────── Hjælpefunktioner ───────────── */
@@ -794,6 +839,7 @@ export const TOP_CATEGORY_KEYS: string[] = [
   "Gulvlægger",
   "Skorstensfejer",
   "Sikkerhed",
+  "Industriservice",
 ];
 
 /** Returnér Industry-objekter for top-kategorierne (filtrerer ukendte). */
