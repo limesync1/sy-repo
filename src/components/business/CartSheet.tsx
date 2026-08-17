@@ -765,6 +765,36 @@ const CartSheet = () => {
                   </div>
                 )}
               </div>
+
+              {/* Accept af handelsbetingelser — krav før bestilling kan sendes */}
+              <label
+                htmlFor="cart-accept-terms"
+                className={cn(
+                  "flex cursor-pointer items-start gap-3 rounded-[1.25rem] border bg-card p-4 shadow-sm transition-colors",
+                  errors.terms ? "border-destructive/60 bg-destructive/5" : "border-border hover:bg-secondary/40",
+                )}
+              >
+                <input
+                  id="cart-accept-terms"
+                  type="checkbox"
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  aria-invalid={!!errors.terms}
+                  className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer rounded border-border accent-[hsl(var(--accent))]"
+                />
+                <span className="text-xs leading-5 text-foreground/80">
+                  Jeg accepterer{" "}
+                  <a href="/vilkaar" target="_blank" rel="noopener noreferrer" className="font-medium text-accent underline underline-offset-2" onClick={(e) => e.stopPropagation()}>
+                    handelsbetingelserne
+                  </a>{" "}
+                  og{" "}
+                  <a href="/privatlivspolitik" target="_blank" rel="noopener noreferrer" className="font-medium text-accent underline underline-offset-2" onClick={(e) => e.stopPropagation()}>
+                    privatlivspolitikken
+                  </a>
+                  , og at mine oplysninger deles med den valgte virksomhed, så bestillingen kan behandles.
+                  {errors.terms && <span className="mt-1 block font-medium text-destructive">{errors.terms}</span>}
+                </span>
+              </label>
             </div>
 
             {/* Submit footer */}
