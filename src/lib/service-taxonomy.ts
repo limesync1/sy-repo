@@ -375,6 +375,24 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
       },
     ],
   },
+  {
+    label: "Industri & erhvervsservice",
+    industries: [
+      {
+        key: "Industriservice",
+        label: "Industriservice",
+        icon: "⚙️",
+        subcategories: [
+          { label: "Industrirengøring", services: ["Maskin­rengøring", "Produktions­rengøring", "Hal- og lager­rengøring", "Tank­rengøring", "Silo­rengøring"] },
+          { label: "Højtryks- & vakuum­spuling", services: ["Højtryks­spuling industri", "Vakuum­sugning", "Tør­is­rensning", "Slam­sugning"] },
+          { label: "Maskin­service & vedligehold", services: ["Forebyggende vedligehold", "Maskin­eftersyn", "Reparation af produktions­udstyr", "Smøre­service"] },
+          { label: "Ventilation & procesanlæg", services: ["Ventilations­rens industri", "Emhætte- og kanal­rens", "Filter­skift", "Proces­anlæg service"] },
+          { label: "Industri­montage", services: ["Maskin­flytning", "Maskin­opstilling", "Rør­montage", "Stål­montage"] },
+          { label: "Lovpligtige eftersyn", services: ["Eftersyn af løfte­grej", "Port- og lift­eftersyn", "Termografering el-tavler"] },
+        ],
+      },
+    ],
+  },
 ];
 
 /* ───────────── Step-templates pr. branche ───────────── */
