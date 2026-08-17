@@ -5,7 +5,7 @@ const Page = defineSoftwarePage({
   canonicalPath: "/software/brancher",
   metaTitle: "Brancher: hvem kan bruge Serviceydere? | Serviceydere",
   metaDescription:
-    "Serviceydere er bygget til alle servicebrancher med kørsel — rengøring, vinduespudsning, haveservice, håndværk, flytning, skadedyr, autoservice og flere.",
+    "Serviceydere er bygget til alle servicebrancher med kørsel — rengøring, vinduespudsning, haveservice, håndværk, flytning, skadedyr, autoservice, industriservice og flere.",
   keywords:
     "system til rengøringsfirma, system til vinduespudser, software til haveservice, ordrestyring håndværker, system til flyttefirma, skadedyrsbekæmpelse software",
   heroEyebrow: "Brancher",
