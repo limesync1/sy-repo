@@ -181,20 +181,24 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
     if (!conversation) return;
     let cancelled = false;
     initialLoadRef.current = true;
-    supabase
-      .from("chat_messages")
-      .select("id, conversation_id, sender_type, sender_name, content, image_url, is_system, created_at")
-      .eq("conversation_id", conversation.id)
-      .order("created_at", { ascending: true })
-      .then(({ data }) => {
-        if (!cancelled && data) {
-          setMessages(data as ChatMessage[]);
-          lastMsgIdRef.current = (data[data.length - 1] as ChatMessage)?.id || null;
-        }
-        initialLoadRef.current = false;
-      });
+    // RLS beskytter beskederne — hentes via token-baseret RPC.
+    const loadMessages = async (initial: boolean) => {
+      const { data } = await supabase.rpc("get_chat_messages_by_token", { p_token: conversation.session_token });
+      if (cancelled || !data) { if (initial) initialLoadRef.current = false; return; }
+      const rows = data as unknown as ChatMessage[];
+      setMessages((prev) => (prev.length === rows.length && prev[prev.length - 1]?.id === rows[rows.length - 1]?.id ? prev : rows));
+      const last = rows[rows.length - 1];
+      if (last && lastMsgIdRef.current !== last.id) {
+        if (!initial && last.sender_type === "admin" && !last.is_system) chatSounds.incoming();
+        lastMsgIdRef.current = last.id;
+      }
+      if (initial) initialLoadRef.current = false;
+    };
+    void loadMessages(true);
+    // Polling-fallback: anonyme besøgende modtager ikke realtime-events længere.
+    const pollId = window.setInterval(() => { void loadMessages(false); }, 4000);
 
-    supabase.from("chat_conversations").update({ unread_visitor_count: 0 }).eq("id", conversation.id).then(() => {});
+    supabase.rpc("mark_chat_read_by_token", { p_token: conversation.session_token }).then(() => {});
 
     const msgChannel = supabase
       .channel(`biz-chat-${conversation.id}`)
@@ -213,7 +217,7 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
             }
           }
           if (open && next.sender_type === "admin") {
-            supabase.from("chat_conversations").update({ unread_visitor_count: 0 }).eq("id", conversation.id).then(() => {});
+            supabase.rpc("mark_chat_read_by_token", { p_token: conversation.session_token }).then(() => {});
           }
         },
       )
@@ -327,11 +331,9 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
       const conv = (Array.isArray(convRows) ? convRows[0] : convRows) as Conversation | undefined;
       if (!conv) throw new Error("Kunne ikke oprette samtale");
 
-      const { error: mErr } = await supabase.from("chat_messages").insert({
-        conversation_id: conv.id,
-        sender_type: "visitor",
-        sender_name: parsed.data.name,
-        content: parsed.data.message,
+      const { error: mErr } = await supabase.rpc("send_chat_message_by_token", {
+        p_token: token,
+        p_content: parsed.data.message,
       });
       if (mErr) throw mErr;
 
@@ -392,12 +394,10 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
       if (!image_url) { setSending(false); return; }
     }
     const content = text.slice(0, 2000) || null;
-    const { error: mErr } = await supabase.from("chat_messages").insert({
-      conversation_id: conversation.id,
-      sender_type: "visitor",
-      sender_name: conversation.visitor_name,
-      content,
-      image_url,
+    const { error: mErr } = await supabase.rpc("send_chat_message_by_token", {
+      p_token: conversation.session_token,
+      p_content: content,
+      p_image_url: image_url,
     });
     setSending(false);
     if (!mErr) {
@@ -409,14 +409,12 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
 
   const endChatSession = async () => {
     if (!conversation) return;
-    await supabase.from("chat_messages").insert({
-      conversation_id: conversation.id,
-      sender_type: "visitor",
-      sender_name: conversation.visitor_name,
-      content: `${conversation.visitor_name} afsluttede samtalen`,
-      is_system: true,
+    await supabase.rpc("send_chat_message_by_token", {
+      p_token: conversation.session_token,
+      p_content: `${conversation.visitor_name} afsluttede samtalen`,
+      p_is_system: true,
     });
-    await supabase.from("chat_conversations").update({ status: "closed" }).eq("id", conversation.id);
+    await supabase.rpc("close_chat_conversation_by_token", { p_token: conversation.session_token });
     chatSounds.system();
     setConversation((prev) => (prev ? { ...prev, status: "closed" } : prev));
   };
@@ -425,14 +423,12 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
     if (!conversation) return;
     if (!confirm("Vil du slette samtalen fra dine samtaler?")) return;
     if (conversation.status !== "closed") {
-      await supabase.from("chat_messages").insert({
-        conversation_id: conversation.id,
-        sender_type: "visitor",
-        sender_name: conversation.visitor_name,
-        content: `${conversation.visitor_name} slettede samtalen fra sin oversigt`,
-        is_system: true,
+      await supabase.rpc("send_chat_message_by_token", {
+        p_token: conversation.session_token,
+        p_content: `${conversation.visitor_name} slettede samtalen fra sin oversigt`,
+        p_is_system: true,
       });
-      await supabase.from("chat_conversations").update({ status: "closed" }).eq("id", conversation.id);
+      await supabase.rpc("close_chat_conversation_by_token", { p_token: conversation.session_token });
     }
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
     removeChat(businessKey(businessId));
@@ -467,7 +463,7 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
     setOpen(true);
     chatSounds.open();
     if (conversation) {
-      supabase.from("chat_conversations").update({ unread_visitor_count: 0 }).eq("id", conversation.id).then(() => {});
+      supabase.rpc("mark_chat_read_by_token", { p_token: conversation.session_token }).then(() => {});
     }
   };
 
@@ -485,7 +481,7 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
     if (chat.key === activeKey) {
       try { localStorage.removeItem(STORAGE_KEY); } catch {}
       if (conversation) {
-        supabase.from("chat_conversations").update({ status: "closed" }).eq("id", conversation.id).then(() => {});
+        supabase.rpc("close_chat_conversation_by_token", { p_token: conversation.session_token }).then(() => {});
       }
       setConversation(null);
       setMessages([]);
