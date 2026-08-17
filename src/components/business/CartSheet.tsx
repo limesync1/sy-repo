@@ -778,7 +778,7 @@ const CartSheet = () => {
                 onClick={handleOrder}
                 disabled={createOrder.isPending || submitting}
                 size="lg"
-                className="w-full rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 font-semibold text-base shadow-sm hover:shadow-md transition-all"
+                className="h-12 w-full rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 font-semibold text-base shadow-sm hover:shadow-md transition-all"
               >
                 {createOrder.isPending || submitting ? (
                   <><Loader2 className="h-4 w-4 animate-spin" /> Sender bestilling...</>
@@ -786,6 +786,7 @@ const CartSheet = () => {
                   <>Send bestilling <CheckCircle2 className="h-4 w-4" /></>
                 )}
               </Button>
+              <p className="text-center text-[11px] text-muted-foreground">Sendes til virksomheden for godkendelse — ingen betaling nu.</p>
             </div>
           </div>
         )}
