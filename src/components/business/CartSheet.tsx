@@ -668,12 +668,7 @@ const CartSheet = () => {
                     {customerType === "business" ? "Kontakt" : "Dine oplysninger"}
                   </h4>
                 </div>
-                <div className="space-y-2.5 pl-9">
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-muted-foreground">E-mail</label>
-                    <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="din@email.dk" className="rounded-lg" />
-                    {errors.email && <p className="mt-1 text-xs text-destructive">{errors.email}</p>}
-                  </div>
+                <div className="grid gap-2.5 pl-9 sm:grid-cols-2">
                   {customerType === "private" && (
                     <div>
                       <label className="mb-1 block text-xs font-medium text-muted-foreground">Fulde navn</label>
@@ -681,6 +676,11 @@ const CartSheet = () => {
                       {errors.name && <p className="mt-1 text-xs text-destructive">{errors.name}</p>}
                     </div>
                   )}
+                  <div className={cn(customerType === "business" && "sm:col-span-1")}>
+                    <label className="mb-1 block text-xs font-medium text-muted-foreground">E-mail</label>
+                    <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="din@email.dk" className="rounded-lg" />
+                    {errors.email && <p className="mt-1 text-xs text-destructive">{errors.email}</p>}
+                  </div>
                   <div>
                     <label className="mb-1 block text-xs font-medium text-muted-foreground">Telefon</label>
                     <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+45 00 00 00 00" className="rounded-lg" />
