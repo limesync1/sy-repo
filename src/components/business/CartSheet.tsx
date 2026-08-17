@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Package, CalendarClock, Store, ChevronLeft, CheckCircle2, Loader2, User, MapPin, ShoppingBag, Sparkles, Building2, UserRound } from "lucide-react";
+import { Trash2, Package, CalendarClock, Store, ChevronLeft, CheckCircle2, Loader2, User, MapPin, ShoppingBag, Sparkles, Building2, UserRound, ChevronDown, X } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "sonner";
@@ -54,6 +54,8 @@ const CartSheet = () => {
   const [verifying, setVerifying] = useState(false);
   const [geo, setGeo] = useState<{ ok: boolean; display?: string; lat?: number; lng?: number } | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // Sammenklappede virksomhedsgrupper i kurven — gør lange bestillinger overskuelige
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
   // Auto-fyld navn/email/tlf fra brugerens profil når de åbner checkout
   useEffect(() => {
