@@ -727,6 +727,7 @@ export const STEP_TEMPLATES_BY_INDUSTRY: Record<string, StepTemplate[]> = {
       ]},
   ],
   "Sikkerhed": [
+    // (industriservice-templates ligger nedenfor)
     { label: "Låsesmed udkald", keywords: ["lås","låsesmed","døroplukning"],
       steps: [
         { label: "Udkald", unit: "stk", price_per_unit: 945, min_value: 1, max_value: 1, default_value: 1 },
