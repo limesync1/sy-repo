@@ -620,7 +620,7 @@ const CartSheet = () => {
                     </div>
                     <h4 className="text-sm font-semibold text-foreground">Virksomhed</h4>
                   </div>
-                  <div className="space-y-2.5 pl-9">
+                  <div className="grid gap-2.5 pl-9 sm:grid-cols-2">
                     <div>
                       <label className="mb-1 block text-xs font-medium text-muted-foreground">CVR-nummer</label>
                       <CvrLookupField
@@ -649,7 +649,7 @@ const CartSheet = () => {
                       <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Indtastes automatisk via CVR" className="rounded-lg" />
                       {errors.companyName && <p className="mt-1 text-xs text-destructive">{errors.companyName}</p>}
                     </div>
-                    <div>
+                    <div className="sm:col-span-2">
                       <label className="mb-1 block text-xs font-medium text-muted-foreground">Kontaktperson</label>
                       <Input value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Fulde navn" className="rounded-lg" />
                       {errors.contactName && <p className="mt-1 text-xs text-destructive">{errors.contactName}</p>}
