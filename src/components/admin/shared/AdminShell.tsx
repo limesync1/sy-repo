@@ -27,7 +27,7 @@ import {
 import useSidebarCollapsed from "@/components/shared/sidebar/useSidebarCollapsed";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import AdminBottomNav from "./AdminBottomNav";
-import { DPAGate } from "@/components/admin/DPAAcceptanceBanner";
+import { DPAGate, useDpaBlocked } from "@/components/admin/DPAAcceptanceBanner";
 
 /**
  * RoleSwitchFooterItem — speciel sidebar-knap til at skifte mellem
