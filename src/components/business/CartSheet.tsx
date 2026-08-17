@@ -379,7 +379,7 @@ const CartSheet = () => {
           "flex flex-col overflow-hidden overscroll-contain p-0 gap-0 shadow-2xl",
           isMobile
             ? "h-[88dvh] max-h-[88dvh] w-auto rounded-2xl"
-            : "w-full sm:max-w-md",
+            : "w-full sm:max-w-lg lg:max-w-xl",
         )}
       >
         {/* Grabber — visuel indikator for at panelet kan lukkes/scrolles på mobil */}
