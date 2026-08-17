@@ -30,9 +30,11 @@ function generateToken(): string {
     .join('')
 }
 
-// Auth note: this function uses verify_jwt = true in config.toml, so Supabase's
-// gateway validates the caller's JWT (anon or service_role) before the request
-// reaches this code. No in-function auth check is needed.
+// Auth note: verify_jwt = false, så auth håndhæves i koden nedenfor:
+//  • service-role / CRON_SECRET  → fuld adgang (interne kald)
+//  • indlogget bruger (gyldig JWT) → adgang
+//  • anonym besøgende → kun 'new-chat-message' og kun med et gyldigt
+//    chat-session-token (modtager udledes server-side)
 
 Deno.serve(async (req) => {
   // Handle CORS preflight
@@ -102,7 +104,7 @@ Deno.serve(async (req) => {
     console.error('Template not found in registry', { templateName })
     return new Response(
       JSON.stringify({
-        error: `Template '${templateName}' not found. Available: ${Object.keys(TEMPLATES).join(', ')}`,
+        error: 'Unknown template',
       }),
       {
         status: 404,
@@ -114,6 +116,51 @@ Deno.serve(async (req) => {
   // Create Supabase client with service role (bypasses RLS) — moved up so we
   // can resolve business-scoped recipients before suppression/quota checks.
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+  // ── Authorization ────────────────────────────────────────────────────────
+  const authHeader = req.headers.get('Authorization') || ''
+  const bearer = authHeader.replace(/^Bearer\s+/i, '')
+  const cronSecret = Deno.env.get('CRON_SECRET') || ''
+  const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || ''
+
+  let authorized =
+    (!!cronSecret && bearer === cronSecret) ||
+    (!!supabaseServiceKey && bearer === supabaseServiceKey)
+
+  if (!authorized && bearer && bearer !== anonKey) {
+    const { data: claims } = await supabase.auth.getClaims(bearer)
+    if (claims?.claims?.sub) authorized = true
+  }
+
+  if (!authorized) {
+    // Anonyme besøgende må kun udløse chat-notifikationen, og kun hvis de
+    // beviser at de ejer samtalen via dens private session-token.
+    const conversationToken =
+      typeof (templateData as any)?.conversationToken === 'string'
+        ? (templateData as any).conversationToken
+        : null
+    if (templateName === 'new-chat-message' && conversationToken) {
+      const { data: conv } = await supabase
+        .from('chat_conversations')
+        .select('id, business_id')
+        .eq('session_token', conversationToken)
+        .maybeSingle()
+      if (conv) {
+        authorized = true
+        // Modtager udledes altid server-side for anonyme kald.
+        businessId = conv.business_id ?? null
+        recipientEmail = 'kontakt@serviceydere.dk'
+        delete (templateData as any).conversationToken
+      }
+    }
+  }
+
+  if (!authorized) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  }
 
   // Resolve effective recipient.
   // Order of precedence:
