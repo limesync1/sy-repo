@@ -769,13 +769,10 @@ const CartSheet = () => {
             </div>
 
             {/* Submit footer */}
-              <div className="shrink-0 border-t border-border bg-card px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] space-y-2.5">
-              <div className="rounded-[1rem] border border-accent/15 bg-accent/5 px-3.5 py-3">
-                <div className="flex items-baseline justify-between">
-                  <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total at betale</span>
-                  <span className="text-xl font-bold text-foreground">{total} kr</span>
-                </div>
-                <p className="mt-1 text-[11px] text-muted-foreground">Bestillingen sendes først til virksomheden for godkendelse.</p>
+              <div className="shrink-0 border-t border-border bg-card px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] space-y-2 shadow-[0_-8px_24px_-20px_hsl(var(--foreground)/0.5)]">
+              <div className="flex items-baseline justify-between px-1">
+                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total</span>
+                <span className="text-xl font-bold text-foreground tabular-nums">{total} kr</span>
               </div>
               <Button
                 onClick={handleOrder}
