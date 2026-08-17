@@ -13,6 +13,7 @@ export const CATEGORY_ICONS: Record<string, string> = {
   "VVS": "💧",
   "Elektriker": "⚡",
   "Sikkerhed": "🛡️",
+  "Industriservice": "⚙️",
 };
 
 export const DEFAULT_CATEGORY_ICON = "🧰";
