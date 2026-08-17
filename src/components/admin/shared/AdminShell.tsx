@@ -250,6 +250,13 @@ export const AdminShell = ({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { data: plan } = useBusinessPlan(business.id);
   void plan;
+  // Når databehandleraftalen mangler godkendelse, skjuler vi panelets
+  // handlingsknapper i topbaren — kun accept-skærmen må være tilgængelig.
+  const { blocked: dpaBlocked, isLoading: dpaLoading } = useDpaBlocked(
+    business.id,
+    (business as any).owner_id === user?.id,
+  );
+  const hideActions = dpaBlocked || dpaLoading;
   // Genvej til medarbejder-appen: Vises kun når virksomheden har præcis
   // én medarbejder OG den medarbejder er den indloggede ejer selv. Så kan
   // ejeren med ét klik hoppe fra ruteplanlægning over i medarbejder-appen
