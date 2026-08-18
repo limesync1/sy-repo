@@ -8,6 +8,7 @@ import {
   Image as ImageIcon, Volume2, VolumeX, Sparkles, MoreVertical, MessagesSquare, ArrowLeft, Trash2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 import chatSounds from "./chatSounds";
@@ -406,6 +407,8 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
       setDraft("");
       clearPendingImage();
       chatSounds.outgoing();
+    } else {
+      toast.error(mErr.message || "Beskeden kunne ikke sendes. Prøv igen.");
     }
   }, [conversation, sending, draft, pendingImage]); // eslint-disable-line react-hooks/exhaustive-deps
 

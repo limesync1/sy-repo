@@ -5,6 +5,7 @@ import {
   ImageIcon, Volume2, VolumeX, MoreVertical, MessagesSquare, ArrowLeft, Trash2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { z } from "zod";
@@ -488,6 +489,8 @@ const LiveChatWidget = () => {
     if (!mErr) {
       if (override === undefined) { setDraft(""); clearPendingImage(); }
       chatSounds.outgoing();
+    } else {
+      toast.error(mErr.message || "Beskeden kunne ikke sendes. Prøv igen.");
     }
   }, [conversation, sending, draft, pendingImage]); // eslint-disable-line react-hooks/exhaustive-deps
 
