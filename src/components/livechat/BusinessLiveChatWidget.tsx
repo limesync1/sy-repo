@@ -406,6 +406,8 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
       setDraft("");
       clearPendingImage();
       chatSounds.outgoing();
+    } else {
+      toast.error(mErr.message || "Beskeden kunne ikke sendes. Prøv igen.");
     }
   }, [conversation, sending, draft, pendingImage]); // eslint-disable-line react-hooks/exhaustive-deps
 
