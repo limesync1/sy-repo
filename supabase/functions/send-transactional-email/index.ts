@@ -156,6 +156,31 @@ Deno.serve(async (req) => {
   }
 
   if (!authorized) {
+    // Gæstebestilling: en anonym kunde må udløse ordrebekræftelsen for en
+    // ordre der lige er oprettet. Modtageren udledes server-side fra ordren,
+    // så et gæt på et ordre-id ikke kan bruges til at sende mail andre steder hen.
+    const orderId =
+      typeof (templateData as any)?.orderId === 'string'
+        ? (templateData as any).orderId
+        : null
+    if (templateName === 'order-confirmation' && orderId) {
+      const { data: order } = await supabase
+        .from('orders')
+        .select('id, customer_email, business_id, created_at')
+        .eq('id', orderId)
+        .maybeSingle()
+      const fresh =
+        order?.created_at &&
+        Date.now() - new Date(order.created_at).getTime() < 60 * 60 * 1000
+      if (order?.customer_email && fresh) {
+        authorized = true
+        recipientEmail = order.customer_email
+        businessId = null
+      }
+    }
+  }
+
+  if (!authorized) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
