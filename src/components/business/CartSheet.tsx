@@ -335,9 +335,14 @@ const CartSheet = () => {
     requestAnimationFrame(() => el?.scrollTo({ top: 0, behavior: "auto" }));
   }, [checkout, sheetOpen, orderSuccess]);
 
-  // Vis fejl med det samme: rul op når validering fejler
+  // Vis fejl med det samme: rul kun op når der opstår NYE fejl (fx efter
+  // et mislykket forsøg) — ikke hver gang errors-objektet får ny reference.
+  const prevErrorKeys = useRef("");
   useEffect(() => {
-    if (!Object.keys(errors).length) return;
+    const keys = Object.keys(errors).sort().join(",");
+    const hadNew = keys && keys !== prevErrorKeys.current;
+    prevErrorKeys.current = keys;
+    if (!hadNew) return;
     checkoutScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   }, [errors]);
 
