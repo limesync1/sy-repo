@@ -89,9 +89,13 @@ const CartSheet = () => {
         if (contactName.trim()) delete next.contactName;
       }
       if (acceptedTerms) delete next.terms;
+      // Vigtigt: returnér samme objekt hvis intet er ændret — ellers får
+      // vi en ny reference hver render, som trigger effekten igen (loop)
+      // og river brugerens scroll-position op i toppen igen og igen.
+      if (Object.keys(next).length === Object.keys(prev).length) return prev;
       return next;
     });
-  }, [acceptedTerms, address, city, companyName, contactName, customerType, email, errors, name, phone, zipCode]);
+  }, [acceptedTerms, address, city, companyName, contactName, customerType, email, name, phone, zipCode]);
 
   // (zip/city håndteres nu udelukkende via AddressAutocomplete)
 
