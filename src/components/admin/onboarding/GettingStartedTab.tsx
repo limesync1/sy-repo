@@ -58,6 +58,7 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
   const publicHref = `/v/${business?.slug ?? ""}`;
   const activeSteps = steps.filter((s) => !done[s.id]);
   const doneSteps = steps.filter((s) => done[s.id]);
+  const nextStep = steps.find((s) => s.id === nextStepId) ?? null;
 
   if (isLoading || !counts) {
     return (
