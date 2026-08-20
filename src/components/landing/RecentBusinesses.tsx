@@ -142,23 +142,52 @@ const RecentBusinesses = () => {
 
   if (!businesses || businesses.length === 0) return null;
 
+  const verifiedCount = businesses.filter((b) => b.is_verified).length;
+  const cityCount = new Set(businesses.map((b) => b.city).filter(Boolean)).size;
+
   return (
-    <section className="bg-background py-20 md:py-32">
+    <section className="relative isolate overflow-hidden bg-ocean py-20 text-ocean-foreground md:py-32">
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute -left-20 top-0 h-80 w-80 rounded-full bg-accent/25 blur-[130px]" />
+        <div className="absolute -right-16 bottom-0 h-96 w-96 rounded-full bg-feature-lilac/20 blur-[140px]" />
+      </div>
+
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-12 flex flex-col gap-4 md:mb-14 md:flex-row md:items-end md:justify-between">
+        <div className="mb-10 flex flex-col gap-6 md:mb-12 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-              <span className="h-px w-6 bg-foreground/30" />
+            <span className="inline-flex items-center gap-2 rounded-full bg-ocean-foreground/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-ocean-foreground">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
+              </span>
               Nyeste på platformen
             </span>
-            <h2 className="mt-5 text-[2rem] font-semibold leading-[1.04] tracking-[-0.025em] text-foreground md:text-[2.75rem] lg:text-[3.25rem]">
+            <h2 className="mt-5 text-[2rem] font-semibold leading-[1.04] tracking-[-0.025em] md:text-[2.75rem] lg:text-[3.25rem]">
               Nye virksomheder i Danmark
             </h2>
-            <p className="mt-3 text-[15px] leading-7 text-muted-foreground md:text-base">
-              Bladr i de seneste verificerede udbydere — klik på et kort for at se priser, ydelser og anmeldelser.
+            <p className="mt-3 text-[15px] leading-7 text-ocean-foreground/75 md:text-base">
+              Bladr i de seneste udbydere — klik på et kort for at se priser, ydelser og anmeldelser.
             </p>
+            <div className="mt-5 flex flex-wrap items-center gap-2 text-[12px] font-medium">
+              <span className="rounded-full bg-ocean-foreground/10 px-3 py-1">
+                {businesses.length} nye profiler
+              </span>
+              {verifiedCount > 0 && (
+                <span className="rounded-full bg-accent/20 px-3 py-1 text-accent">
+                  {verifiedCount} verificeret
+                </span>
+              )}
+              {cityCount > 0 && (
+                <span className="rounded-full bg-ocean-foreground/10 px-3 py-1">
+                  {cityCount} {cityCount === 1 ? "by" : "byer"}
+                </span>
+              )}
+            </div>
           </div>
-          <Link to="/virksomheder" className="group inline-flex items-center gap-2 self-start rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5 md:self-auto">
+          <Link
+            to="/virksomheder"
+            className="group inline-flex items-center gap-2 self-start rounded-full bg-ocean-foreground px-5 py-2.5 text-sm font-semibold text-ocean transition-all hover:-translate-y-0.5 md:self-auto"
+          >
             Se alle virksomheder
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
@@ -172,6 +201,7 @@ const RecentBusinesses = () => {
       </div>
     </section>
   );
+
 };
 
 export default RecentBusinesses;

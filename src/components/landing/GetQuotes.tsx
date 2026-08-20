@@ -118,9 +118,12 @@ const GetQuotes = () => {
             </div>
           </div>
 
-          <div className="relative">
-            <div aria-hidden className="absolute -inset-6 -z-10 rounded-[36px] bg-gradient-to-br from-accent/10 via-transparent to-foreground/5 blur-2xl" />
-            <div className="relative rounded-[28px] border border-border/70 bg-card p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_30px_80px_-30px_rgba(0,0,0,0.18)] sm:p-7">
+          <div className="relative pb-6">
+            {/* Blød glød bag kortet — holdes inden for sektionen så kanten
+                aldrig bliver klippet skarpt af overflow. */}
+            <div aria-hidden className="absolute -inset-x-4 -top-4 bottom-0 -z-10 rounded-[36px] bg-gradient-to-br from-accent/10 via-transparent to-foreground/5 blur-2xl" />
+            <div className="relative rounded-[28px] border border-border/70 bg-card p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_24px_60px_-40px_rgba(0,0,0,0.22)] sm:p-7">
+
               <div className="mb-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-3.5 w-3.5 text-accent" />

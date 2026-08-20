@@ -1,35 +1,69 @@
-import { ArrowRight } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import HorizontalScroller from "./HorizontalScroller";
-import { topCategories } from "@/lib/service-taxonomy";
+import { ALL_INDUSTRIES, TOP_CATEGORY_KEYS } from "@/lib/service-taxonomy";
 import { IndustryIcon } from "@/components/IndustryIcon";
 
-/* Tonefarver roteres pænt på tværs af kategorier — bruger samme tokens som resten af forsiden. */
-const TONES = [
-  "bg-feature-cool text-feature-cool-foreground",
-  "bg-feature-warm text-feature-warm-foreground",
-  "bg-feature-lilac text-feature-lilac-foreground",
-  "bg-accent-soft text-accent",
-] as const;
-
 /**
- * Vi viser de kuraterede top-brancher fra `topCategories()`. Listen styres ét
- * sted i `service-taxonomy.ts` (TOP_CATEGORY_KEYS), så forsiden altid spejler
- * præcist hvad virksomheder faktisk kan vælge i virksomhedsindstillinger.
+ * Hver branche får sin egen, faste kulør. Farven udledes deterministisk af
+ * branchens plads i kataloget (gylden vinkel giver maksimal spredning), så to
+ * naboer aldrig ligner hinanden — og farven er den samme hver gang siden
+ * loades. Kuløren sættes som `--ind` (hue) og bruges i HSL-udtryk, så både
+ * lys og mørk tilstand får korrekt kontrast.
  */
-const categories = topCategories().map((ind, i) => ({
-  label: ind.label,
+const hueFor = (index: number) => Math.round((index * 137.508 + 168) % 360);
+
+const categories = ALL_INDUSTRIES.map((ind, i) => ({
   key: ind.key,
-  tone: TONES[i % TONES.length],
-  // Kort, læsbar undertekst genereret fra de første 2 underbrancher.
+  label: ind.label,
+  hue: hueFor(i),
+  top: TOP_CATEGORY_KEYS.includes(ind.key),
   hint: ind.subcategories.slice(0, 2).map((s) => s.label).join(" · "),
 }));
 
+/* Top-brancherne vises først, resten foldes ud med "Vis alle brancher". */
+const sorted = [...categories].sort((a, b) => Number(b.top) - Number(a.top));
+const INITIAL = 10;
+
+const CategoryCard = ({
+  cat,
+  className,
+}: {
+  cat: (typeof categories)[number];
+  className?: string;
+}) => (
+  <Link
+    key={cat.key}
+    to={`/search?category=${encodeURIComponent(cat.key)}`}
+    style={{ ["--ind" as string]: `${cat.hue}` }}
+    className={`group relative flex flex-col justify-between overflow-hidden rounded-[28px] border p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_-24px_hsl(var(--ind)_70%_40%/0.55)] border-[hsl(var(--ind)_60%_45%/0.22)] bg-[hsl(var(--ind)_78%_96%)] text-[hsl(var(--ind)_60%_26%)] dark:bg-[hsl(var(--ind)_45%_13%)] dark:text-[hsl(var(--ind)_75%_80%)] ${className ?? ""}`}
+  >
+    <div
+      aria-hidden
+      className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-[hsl(var(--ind)_85%_60%/0.28)] opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100"
+    />
+    <IndustryIcon category={cat.key} className="h-10 w-10" alt={cat.label} />
+    <div className="relative mt-4">
+      <div className="text-[15px] font-semibold leading-tight">{cat.label}</div>
+      {cat.hint && (
+        <div className="mt-1.5 line-clamp-1 text-[11px] font-medium opacity-70">{cat.hint}</div>
+      )}
+      <div className="mt-3 inline-flex items-center gap-1 text-xs font-semibold opacity-80">
+        Se virksomheder
+        <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+      </div>
+    </div>
+  </Link>
+);
+
 const Categories = () => {
+  const [expanded, setExpanded] = useState(false);
+  const visible = expanded ? sorted : sorted.slice(0, INITIAL);
+
   return (
     <section className="bg-background py-20 md:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Sektionsoverskrift — venstrejusteret, samme rytme som resten af forsiden */}
         <div className="mb-12 flex flex-col gap-6 md:mb-14 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
@@ -40,64 +74,44 @@ const Categories = () => {
               Find den rette branche
             </h2>
             <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground md:text-base">
-              De mest efterspurgte udkørende serviceydere — vælg en branche og se virksomheder i dit område.
+              Alle {categories.length} brancher på Serviceydere — vælg en branche og se
+              virksomheder i dit område.
             </p>
           </div>
           <Link
             to="/virksomheder"
             className="group inline-flex items-center gap-2 self-start rounded-full border border-border/70 bg-card px-4 py-2 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5 hover:border-border md:self-auto"
           >
-            Se alle brancher
+            Se alle virksomheder
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
         </div>
 
-        {/* Desktop / tablet — luftig grid med hover-løft og tydeligere hierarki */}
+        {/* Desktop / tablet */}
         <div className="hidden grid-cols-2 gap-4 sm:grid sm:grid-cols-3 lg:grid-cols-5">
-          {categories.map((cat) => (
-            <Link
-              key={cat.key}
-              to={`/search?category=${encodeURIComponent(cat.key)}`}
-              className={`group relative flex min-h-[190px] flex-col justify-between overflow-hidden rounded-[28px] border border-border/60 p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 ${cat.tone}`}
-            >
-              {/* Subtil glow ved hover */}
-              <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-background/30 opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100" />
-              <IndustryIcon category={cat.key} className="h-10 w-10" alt={cat.label} />
-              <div className="relative">
-                <div className="text-[15px] font-semibold leading-tight">{cat.label}</div>
-                {cat.hint && (
-                  <div className="mt-1.5 line-clamp-1 text-[11px] font-medium opacity-70">
-                    {cat.hint}
-                  </div>
-                )}
-                <div className="mt-3 inline-flex items-center gap-1 text-xs font-semibold opacity-80">
-                  Se virksomheder
-                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                </div>
-              </div>
-            </Link>
+          {visible.map((cat) => (
+            <CategoryCard key={cat.key} cat={cat} className="min-h-[190px]" />
           ))}
         </div>
 
-        {/* Mobil — vandret scroll med snap, ensartede kort */}
+        {!expanded && sorted.length > INITIAL && (
+          <div className="mt-8 hidden justify-center sm:flex">
+            <button
+              type="button"
+              onClick={() => setExpanded(true)}
+              className="group inline-flex items-center gap-2 rounded-full border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5"
+            >
+              Vis alle {sorted.length} brancher
+              <ChevronDown className="h-4 w-4 transition-transform group-hover:translate-y-0.5" />
+            </button>
+          </div>
+        )}
+
+        {/* Mobil — vandret scroll med alle brancher */}
         <div className="sm:hidden">
           <HorizontalScroller>
-            {categories.map((cat) => (
-              <Link
-                key={cat.key}
-                to={`/search?category=${encodeURIComponent(cat.key)}`}
-                className={`flex w-[170px] shrink-0 snap-start flex-col gap-4 rounded-[24px] border border-border/60 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] ${cat.tone}`}
-              >
-                <IndustryIcon category={cat.key} className="h-10 w-10" alt={cat.label} />
-                <div>
-                  <div className="text-sm font-semibold leading-tight">{cat.label}</div>
-                  {cat.hint && (
-                    <div className="mt-1 line-clamp-1 text-[11px] font-medium opacity-70">
-                      {cat.hint}
-                    </div>
-                  )}
-                </div>
-              </Link>
+            {sorted.map((cat) => (
+              <CategoryCard key={cat.key} cat={cat} className="w-[170px] shrink-0 snap-start" />
             ))}
           </HorizontalScroller>
         </div>

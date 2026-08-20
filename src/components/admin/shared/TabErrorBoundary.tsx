@@ -6,6 +6,8 @@ import { Component, type ReactNode } from "react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import PermissionErrorNotice, { isPermissionError } from "@/components/shared/PermissionErrorNotice";
+
 
 type Props = {
   /** Skifter når fanen skifter — nulstiller fejl-state ved tab-skift. */
@@ -43,9 +45,21 @@ export class TabErrorBoundary extends Component<Props, State> {
 
   render() {
     if (!this.state.error) return this.props.children;
+    // Rettighedsfejl (RLS) får en venlig forklaring med trin-for-trin hjælp
+    // i stedet for den rå engelske Postgres-besked.
+    if (isPermissionError(this.state.error)) {
+      return (
+        <PermissionErrorNotice
+          error={this.state.error}
+          context={this.props.label}
+          onRetry={this.handleRetry}
+        />
+      );
+    }
     const message = this.state.error.message || "Ukendt fejl";
     return (
       <Card className="rounded-xl border border-destructive/30 bg-destructive/5 animate-fade-in-soft">
+
         <CardContent className="flex flex-col items-center justify-center gap-3 py-12 text-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
             <AlertTriangle className="h-6 w-6" />
