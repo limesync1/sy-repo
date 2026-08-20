@@ -8,12 +8,16 @@ import SiteNav from "@/components/SiteNav";
 // forsiden "loadede igen"). De tungere sektioner længere nede code-splittes
 // stadig så initial JS-bundle bliver markant mindre.
 import Stats from "@/components/landing/Stats";
+import Categories from "@/components/landing/Categories";
 import RecentBusinesses from "@/components/landing/RecentBusinesses";
 const HowItWorks        = lazy(() => import("@/components/landing/HowItWorks"));
 const GetQuotes         = lazy(() => import("@/components/landing/GetQuotes"));
+const PopularCities     = lazy(() => import("@/components/landing/PopularCities"));
+const AudienceSplit     = lazy(() => import("@/components/landing/AudienceSplit"));
 const Testimonials      = lazy(() => import("@/components/landing/Testimonials"));
 const WhyUs             = lazy(() => import("@/components/landing/WhyUs"));
 const ForBusinesses     = lazy(() => import("@/components/landing/ForBusinesses"));
+const CTABand           = lazy(() => import("@/components/landing/CTABand"));
 const Footer            = lazy(() => import("@/components/landing/Footer"));
 
 const Index = () => {
