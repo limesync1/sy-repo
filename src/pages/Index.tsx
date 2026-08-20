@@ -113,12 +113,24 @@ const Index = () => {
       <Suspense fallback={null}>
         <main id="main">
           <Reveal><Stats /></Reveal>
+          <Reveal><Categories /></Reveal>
           <Reveal><HowItWorks /></Reveal>
           <Reveal><GetQuotes /></Reveal>
           <Reveal><RecentBusinesses /></Reveal>
+          <Reveal><PopularCities /></Reveal>
+          <Reveal><AudienceSplit /></Reveal>
           <Reveal><Testimonials /></Reveal>
           <Reveal><WhyUs /></Reveal>
           <Reveal><ForBusinesses /></Reveal>
+          <Reveal>
+            <CTABand
+              eyebrow="Kom i gang"
+              title="Beskriv opgaven én gang — få op til 3 tilbud"
+              body="Det er gratis og uforpligtende. Du taler direkte med virksomhederne."
+              primary={{ label: "Indhent 3 tilbud", to: "/tilbud" }}
+              secondary={{ label: "Find services", to: "/virksomheder" }}
+            />
+          </Reveal>
         </main>
         <Footer />
       </Suspense>
