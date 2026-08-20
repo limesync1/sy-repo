@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { PageHeader, SectionCard, StatCard } from "@/components/admin/shared/AdminUI";
+import { PageHeader, SectionCard } from "@/components/admin/shared/AdminUI";
 import { FOCUS_OPTIONS, type OnboardingStepId } from "./steps";
 import OnboardingStepCard from "./OnboardingStepCard";
 import { useOnboardingSignals } from "@/hooks/useOnboardingSignals";
@@ -58,6 +58,7 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
   const publicHref = `/v/${business?.slug ?? ""}`;
   const activeSteps = steps.filter((s) => !done[s.id]);
   const doneSteps = steps.filter((s) => done[s.id]);
+  const nextStep = steps.find((s) => s.id === nextStepId) ?? null;
 
   if (isLoading || !counts) {
     return (
@@ -95,70 +96,81 @@ export default function GettingStartedTab({ business, onNavigate }: Props) {
         }
       />
 
-      {/* Nøgletal — samme stat-kort som Overblik */}
-      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
-        <StatCard
-          label="Fremgang"
-          value={`${pct}%`}
-          icon={<Rocket />}
-          tone={allDone ? "ok" : "accent"}
-          hint={`${completedCount} af ${totalCount} trin`}
-        />
-        <StatCard
-          label="Mangler"
-          value={activeSteps.length}
-          icon={<ListChecks />}
-          tone={activeSteps.length ? "warn" : "ok"}
-          hint={activeSteps.length ? "Trin tilbage" : "Alt er på plads"}
-        />
-        <StatCard label="Færdige" value={doneSteps.length} icon={<CheckCircle2 />} tone="ok" hint="Markeres automatisk" />
-        <StatCard label="Tidsforbrug" value="~15 min" icon={<Clock />} hint="Typisk samlet opsætning" />
-      </div>
-
-      {/* Fremgangslinje */}
-      <SectionCard className={cn(allDone && "border-accent/40")}>
-        <div className="flex flex-wrap items-center justify-between gap-2">
+      {/* Start her — ét tydeligt næste skridt, så man aldrig er i tvivl. */}
+      <div
+        className={cn(
+          "overflow-hidden rounded-2xl border bg-card shadow-sm",
+          allDone ? "border-accent/40" : "border-border",
+        )}
+      >
+        <div className="flex flex-col gap-4 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0">
-            <h3 className="text-[15px] font-semibold tracking-tight text-foreground">
-              {allDone ? "I er live" : `Velkommen${business?.name ? `, ${business.name}` : ""}`}
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-foreground">
+              <Rocket className="h-3 w-3" aria-hidden="true" />
+              {allDone ? "I er live" : "Start her"}
+            </span>
+            <h3 className="mt-2 text-lg font-semibold tracking-tight text-foreground sm:text-xl">
+              {allDone
+                ? `Opsætningen er færdig${business?.name ? `, ${business.name}` : ""}`
+                : nextStep
+                  ? `Trin ${steps.indexOf(nextStep) + 1} af ${totalCount}: ${nextStep.title}`
+                  : "Klar til at gå i gang"}
             </h3>
-            <p className="mt-0.5 text-[13px] leading-relaxed text-muted-foreground">
+            <p className="mt-1 max-w-xl text-[13px] leading-relaxed text-muted-foreground">
               {allDone
                 ? "Medarbejderne kan logge ind, og kunder kan finde jer."
-                : "Trinene markeres færdige automatisk — I skal ikke krydse af manuelt."}
+                : nextStep
+                  ? nextStep.short
+                  : "Følg trinene herunder — de markeres færdige automatisk."}
             </p>
+          </div>
+          {!allDone && nextStep && (
+            <Button
+              size="lg"
+              className="h-11 shrink-0 gap-2 text-sm font-semibold"
+              onClick={() => onNavigate(nextStep.tab(counts), nextStep.action?.(counts) ?? null)}
+            >
+              {nextStep.cta(counts)}
+              <ExternalLink className="h-4 w-4" aria-hidden="true" />
+            </Button>
+          )}
+        </div>
+        <div className="flex items-center gap-3 border-t border-border bg-secondary/30 px-4 py-3 sm:px-5">
+          <div
+            className="flex flex-1 gap-1.5"
+            role="progressbar"
+            aria-label="Opsætningens fremgang"
+            aria-valuenow={pct}
+            aria-valuemin={0}
+            aria-valuemax={100}
+          >
+            {steps.map((s, i) => (
+              <span
+                key={s.id}
+                className={cn(
+                  "h-1.5 flex-1 rounded-full bg-border transition-colors duration-500",
+                  done[s.id] && (allDone ? "bg-accent" : "bg-foreground"),
+                  !done[s.id] && s.id === nextStepId && "bg-foreground/30",
+                )}
+                style={{ transitionDelay: `${i * 60}ms` }}
+              />
+            ))}
           </div>
           <span
             className={cn(
-              "shrink-0 rounded-full px-2.5 py-1 text-xs font-bold tabular-nums",
-              allDone ? "bg-accent/10 text-accent" : "bg-secondary text-foreground",
+              "shrink-0 text-xs font-bold tabular-nums",
+              allDone ? "text-accent" : "text-foreground",
               celebrate && "animate-pulse",
             )}
           >
-            {completedCount} af {totalCount}
+            {completedCount}/{totalCount} · {pct}%
+          </span>
+          <span className="hidden shrink-0 items-center gap-1 text-xs text-muted-foreground sm:inline-flex">
+            <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+            ~15 min
           </span>
         </div>
-        <div
-          className="flex gap-1.5"
-          role="progressbar"
-          aria-label="Opsætningens fremgang"
-          aria-valuenow={pct}
-          aria-valuemin={0}
-          aria-valuemax={100}
-        >
-          {steps.map((s, i) => (
-            <span
-              key={s.id}
-              className={cn(
-                "h-1.5 flex-1 rounded-full bg-secondary transition-colors duration-500",
-                done[s.id] && (allDone ? "bg-accent" : "bg-foreground"),
-                !done[s.id] && s.id === nextStepId && "bg-foreground/30",
-              )}
-              style={{ transitionDelay: `${i * 60}ms` }}
-            />
-          ))}
-        </div>
-      </SectionCard>
+      </div>
 
       {/* Ét spørgsmål der tilpasser guiden */}
       {!focus && !allDone && (
