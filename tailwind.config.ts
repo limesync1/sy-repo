@@ -82,6 +82,14 @@ export default {
         "feature-warm-foreground": "hsl(var(--feature-warm-foreground))",
         "feature-lilac": "hsl(var(--feature-lilac))",
         "feature-lilac-foreground": "hsl(var(--feature-lilac-foreground))",
+        /* Sektions-baggrunde til de offentlige sider — giver siderne
+           rytme uden at bryde med det eksisterende tema. */
+        surface: "hsl(var(--surface))",
+        "surface-strong": "hsl(var(--surface-strong))",
+        sand: "hsl(var(--sand))",
+        "sand-foreground": "hsl(var(--sand-foreground))",
+        ocean: "hsl(var(--ocean))",
+        "ocean-foreground": "hsl(var(--ocean-foreground))",
       },
       borderRadius: {
         lg: "var(--radius)",
