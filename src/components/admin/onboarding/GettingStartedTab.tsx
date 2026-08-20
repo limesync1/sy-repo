@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { PageHeader, SectionCard, StatCard } from "@/components/admin/shared/AdminUI";
+import { PageHeader, SectionCard } from "@/components/admin/shared/AdminUI";
 import { FOCUS_OPTIONS, type OnboardingStepId } from "./steps";
 import OnboardingStepCard from "./OnboardingStepCard";
 import { useOnboardingSignals } from "@/hooks/useOnboardingSignals";
