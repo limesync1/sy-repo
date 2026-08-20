@@ -51,6 +51,15 @@
     --hero-mid: 201 99% 33%;         /* #016EA4 */
     --hero-cyan: 189 100% 45%;       /* #00C0E3 */
     --hero-cyan-bright: 188 100% 49%;/* #00DCFA */
+
+    /* Sektions-flader til de offentlige sider — skiftevis lys/dæmpet
+       så lange sider får rytme i stedet for én hvid flade. */
+    --surface: 200 30% 97%;
+    --surface-strong: 200 28% 94%;
+    --sand: 38 60% 95%;
+    --sand-foreground: 28 55% 24%;
+    --ocean: 204 96% 13%;
+    --ocean-foreground: 195 40% 94%;
   }
 
   .dark {
@@ -97,6 +106,13 @@
     --sidebar-accent-foreground: 210 30% 92%;
     --sidebar-border: 217 22% 18%;
     --sidebar-ring: 184 75% 50%;
+
+    --surface: 222 30% 9%;
+    --surface-strong: 222 28% 12%;
+    --sand: 30 25% 15%;
+    --sand-foreground: 38 70% 82%;
+    --ocean: 204 60% 10%;
+    --ocean-foreground: 195 40% 92%;
   }
 }
 
