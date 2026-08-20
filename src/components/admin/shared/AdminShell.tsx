@@ -385,8 +385,8 @@ export const AdminShell = ({
         )}
         aria-label="Hovednavigation"
       >
-        <div className={cn("flex h-14 shrink-0 items-center justify-between border-b border-border", collapsed ? "px-2" : "px-4")}>
-          <Link to="/" className="flex items-center gap-2 overflow-hidden" aria-label="Forside">
+        <div className={cn("flex h-14 shrink-0 items-center border-b border-border", collapsed ? "justify-center px-0" : "justify-between px-4")}>
+          <Link to="/" className={cn("flex items-center gap-2 overflow-hidden", collapsed && "justify-center")} aria-label="Forside">
             {collapsed ? (
               // Sammenfoldet: kun ikonet — ordmærket ville blive skåret over.
               <img
