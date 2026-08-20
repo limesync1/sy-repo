@@ -440,7 +440,7 @@ export const AdminShell = ({
           )}
           title={collapsed ? business.name : undefined}
         >
-          <div className="flex items-center gap-2">
+          <div className={cn("flex items-center", collapsed ? "justify-center gap-0" : "gap-2")}>
             {business.logo_url ? (
               <img
                 src={business.logo_url}
