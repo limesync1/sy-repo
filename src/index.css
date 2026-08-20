@@ -106,6 +106,13 @@
     --sidebar-accent-foreground: 210 30% 92%;
     --sidebar-border: 217 22% 18%;
     --sidebar-ring: 184 75% 50%;
+
+    --surface: 222 30% 9%;
+    --surface-strong: 222 28% 12%;
+    --sand: 30 25% 15%;
+    --sand-foreground: 38 70% 82%;
+    --ocean: 204 60% 10%;
+    --ocean-foreground: 195 40% 92%;
   }
 }
 
