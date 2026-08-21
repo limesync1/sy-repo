@@ -205,7 +205,7 @@ export const SidebarFooterItem = ({
   danger?: boolean;
 }) => {
   const className = cn(
-    "group relative flex w-full items-center rounded-lg text-sm font-medium transition-colors",
+    "group relative flex w-full items-center overflow-hidden rounded-lg text-sm font-medium transition-[background-color,color,padding] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30",
     collapsed ? "h-10 justify-center px-0" : "gap-2 px-3 py-2",
     danger
@@ -217,9 +217,17 @@ export const SidebarFooterItem = ({
   const inner = (
     <>
       <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-      {!collapsed && <span className="truncate">{label}</span>}
+      <span
+        className={cn(
+          "truncate whitespace-nowrap transition-[max-width,opacity,transform] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
+          collapsed ? "max-w-0 -translate-x-1 opacity-0" : "max-w-[170px] translate-x-0 opacity-100",
+        )}
+      >
+        {label}
+      </span>
     </>
   );
+
   const button = href ? (
     <a href={href} className={className} aria-label={collapsed ? label : undefined}>{inner}</a>
   ) : (
