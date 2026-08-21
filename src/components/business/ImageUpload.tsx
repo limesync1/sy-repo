@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ImagePlus, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -80,9 +80,18 @@ const ImageUpload = ({
   const [preview, setPreview] = useState<string | null>(currentUrl || null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Indstillinger og serviceformularen kan blive opdateret efter auto-save.
+  // Hold den lokale forhåndsvisning synkroniseret med den gemte værdi.
+  useEffect(() => {
+    setPreview(currentUrl || null);
+  }, [currentUrl]);
+
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Gør det muligt at vælge den samme fil igen efter en fejl.
+    e.target.value = "";
 
     if (!file.type.startsWith("image/")) {
       toast.error("Kun billedfiler er tilladt");
@@ -96,6 +105,16 @@ const ImageUpload = ({
 
     setUploading(true);
     try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session?.user) {
+        throw new Error("Din session er udløbet. Log ind igen og prøv på ny.");
+      }
+
+      // Første mappe skal altid matche den aktive bruger. Dermed kan en gammel
+      // formular eller en nyligt fornyet session ikke udløse fillagerets RLS.
+      const folderParts = folder.split("/").filter(Boolean);
+      const safeFolder = [session.user.id, ...folderParts.slice(1)].join("/");
+
       // SVG kan ikke komprimeres via canvas — upload originalt
       let uploadBody: Blob | File = file;
       let ext = "webp";
@@ -110,7 +129,7 @@ const ImageUpload = ({
           ext = file.name.split(".").pop() || "png";
         }
       }
-      const fileName = `${folder}/${Date.now()}.${ext}`;
+      const fileName = `${safeFolder}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
 
       const { error } = await supabase.storage.from(bucket).upload(fileName, uploadBody, {
         cacheControl: "31536000",
@@ -128,7 +147,11 @@ const ImageUpload = ({
       toast.success("Billede uploadet!");
     } catch (err: any) {
       console.error(err);
-      toast.error("Upload fejlede: " + err.message);
+      const message = err?.message || "Ukendt fejl";
+      const isAccessError = /row.level security|not authorized|permission|403/i.test(message);
+      toast.error(isAccessError
+        ? "Billedet kunne ikke gemmes. Din adgang er muligvis udløbet — genindlæs siden og prøv igen."
+        : `Upload fejlede: ${message}`);
     } finally {
       setUploading(false);
     }
@@ -156,6 +179,7 @@ const ImageUpload = ({
               decoding="async"
             />
             <button
+              type="button"
               onClick={handleRemove}
               className="absolute right-2 top-2 rounded-full bg-foreground/80 p-1 text-background hover:bg-foreground"
               aria-label="Fjern billede"
@@ -165,6 +189,7 @@ const ImageUpload = ({
           </>
         ) : (
           <button
+            type="button"
             onClick={() => inputRef.current?.click()}
             disabled={uploading}
             className="flex h-full w-full flex-col items-center justify-center gap-1.5 p-3 text-muted-foreground transition-colors hover:text-foreground"
