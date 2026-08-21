@@ -1479,7 +1479,7 @@ const ProfileView = () => {
       const path = `${user.id}/avatar-${Date.now()}.${ext}`;
       const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, {
         contentType: file.type,
-        upsert: true,
+        upsert: false,
       });
       if (upErr) throw upErr;
       const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
