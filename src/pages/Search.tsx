@@ -64,23 +64,22 @@ const BusinessCard = ({
       to={`/b/${biz.slug}`}
       onMouseEnter={() => onHover?.(biz.id)}
       onMouseLeave={() => onHover?.(null)}
-      className={`group relative flex flex-col gap-3 rounded-2xl p-2 -m-2 transition-all ${
+      className={`group relative flex h-full flex-col overflow-visible rounded-[24px] border border-border/70 bg-card p-3 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-[0_20px_45px_-30px_hsl(var(--foreground)/0.35)] ${
         isHighlighted ? "ring-2 ring-accent ring-offset-2 ring-offset-background" : ""
       }`}
     >
       {/*
        * Wrapper-div må IKKE have overflow-hidden, ellers bliver logoet (som
        * stikker ud i bunden med -bottom-5) klippet af. Cover-billedet får
-       * sin egen overflow-hidden så hover-zoom stadig holder sig inden for
-       * billedrammen — og logoet ligger som søsken oven på.
+       * sin egen overflow-hidden — og logoet ligger som søsken oven på.
        */}
       <div className="relative aspect-[4/3] w-full">
-        <div className="absolute inset-0 overflow-hidden rounded-2xl bg-secondary">
+        <div className="absolute inset-0 overflow-hidden rounded-[18px] bg-secondary">
           {biz.cover_image_url ? (
             <img
               src={biz.cover_image_url}
               alt={`${biz.name}${biz.city ? ` i ${biz.city}` : ""}${primaryCat ? ` – ${primaryCat}` : " – serviceydere"}`}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              className="h-full w-full object-cover"
               loading="lazy"
             />
           ) : (
@@ -114,7 +113,7 @@ const BusinessCard = ({
         )}
       </div>
 
-      <div className={`flex flex-col gap-1 px-1 ${biz.logo_url ? "pt-4" : ""}`}>
+      <div className={`flex flex-1 flex-col gap-1 px-2 pb-1 ${biz.logo_url ? "pt-6" : "pt-3"}`}>
         <div className="flex items-start justify-between gap-2">
           <h3 className="text-[15px] font-semibold tracking-tight text-foreground line-clamp-1 group-hover:text-accent transition-colors">{biz.name}</h3>
           {cnt > 0 ? (
@@ -156,7 +155,7 @@ const BusinessCard = ({
         )}
 
         {/* Quick actions — visible on hover (desktop) and always on touch devices for accessibility */}
-        <div className="mt-2 flex items-center gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+        <div className="mt-auto flex items-center gap-2 pt-3 opacity-100 transition-opacity sm:opacity-70 sm:group-hover:opacity-100">
           <span className="inline-flex flex-1 items-center justify-center gap-1 rounded-full bg-foreground px-3 py-1.5 text-[12px] font-semibold text-background hover:bg-foreground/90">
             Se virksomhed
             <ArrowRight className="h-3 w-3" />
@@ -309,9 +308,11 @@ const SearchPage = () => {
 
       {/* Dark hero — minimal: kun titel og beskrivelse */}
       <PageHero
+        eyebrow="Find services"
         title="Find verificerede serviceydere."
-        subtitle="Søg på service, virksomhed eller by — sammenlign og book direkte."
+        subtitle="Søg på service, virksomhed eller by — sammenlign priser og anmeldelser, og book direkte."
       />
+
 
       {/* Søgefelt — samme oplevelse som forsiden, så brugeren kan skrive sig
           frem til en kategori, by eller specifik virksomhed uden at skifte side. */}
@@ -435,7 +436,7 @@ const SearchPage = () => {
               />
             </Suspense>
           ) : (
-            <div className="grid gap-x-5 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
               {rankedBusinesses.map((biz: any, i: number) => (
                 <div key={biz.id} style={{ animation: `fade-in 0.4s ease-out ${Math.min(i, 8) * 50}ms both` }}>
                   <BusinessCard

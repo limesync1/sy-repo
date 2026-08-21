@@ -314,13 +314,16 @@ const RequestQuote = () => {
       {!matches && !isLoading && !selectedBusiness && (
         <>
           <PageHero
+            eyebrow="Få tilbud"
             title="Få op til 3 gratis tilbud."
             subtitle="Beskriv opgaven, så finder vi de bedste serviceydere til dig — gratis og uforpligtende."
           />
 
-          <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 pb-12 md:pt-12 md:pb-20">
+          <section className="bg-surface px-4 pt-6 pb-14 sm:px-6 md:pt-12 md:pb-20 lg:px-8">
+          <div className="mx-auto max-w-3xl">
           {/* Form card */}
-          <form onSubmit={handleFind} className="surface-panel mt-4 rounded-[1.5rem] border border-border p-4 shadow-[0_24px_55px_-36px_hsl(var(--foreground)/0.28)] sm:rounded-[2rem] sm:p-6 md:mt-10 md:p-8">
+          <form onSubmit={handleFind} className="surface-panel rounded-[1.5rem] border border-border bg-card p-4 shadow-[0_28px_60px_-38px_hsl(var(--foreground)/0.35)] sm:rounded-[2rem] sm:p-6 md:p-8">
+
             {/* Step 1: Lokation — fuld step med eget nummer, så det stilmæssigt
                 matcher de øvrige trin. */}
             <div>
@@ -570,23 +573,31 @@ const RequestQuote = () => {
           </form>
 
           {/* How it works strip */}
-          <h2 className="mt-12 text-center text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+          <h2 className="mt-14 text-center text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
             Sådan fungerer det
           </h2>
           <div className="mt-6 grid gap-3 sm:gap-5 sm:grid-cols-3">
             {[
-              { n: 1, title: "Beskriv opgaven", text: "Vælg kategori og fortæl kort, hvad du har brug for." },
-              { n: 2, title: "AI matcher", text: "Vores AI finder de bedste 3 udbydere på sekunder." },
-              { n: 3, title: "Sammenlign & vælg", text: "Tilpas pris, læs anmeldelser og book direkte." },
+              { n: 1, title: "Beskriv opgaven", text: "Vælg kategori og fortæl kort, hvad du har brug for.", hue: 186 },
+              { n: 2, title: "Vi matcher", text: "Vi finder op til 3 relevante udbydere i dit område.", hue: 262 },
+              { n: 3, title: "Sammenlign & vælg", text: "Se priser, læs anmeldelser og book direkte.", hue: 28 },
             ].map((s) => (
-              <div key={s.n} className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:rounded-[1.5rem] sm:p-5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/10 text-sm font-bold text-accent">{s.n}</div>
+              <div
+                key={s.n}
+                style={{ ["--step" as string]: `${s.hue}` }}
+                className="rounded-2xl border border-border bg-card p-5 shadow-sm transition-transform duration-300 hover:-translate-y-1 sm:rounded-[1.5rem]"
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[hsl(var(--step)_70%_94%)] text-sm font-bold text-[hsl(var(--step)_60%_32%)] dark:bg-[hsl(var(--step)_45%_16%)] dark:text-[hsl(var(--step)_70%_78%)]">
+                  {s.n}
+                </div>
                 <h3 className="mt-3 text-sm font-semibold text-foreground">{s.title}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{s.text}</p>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">{s.text}</p>
               </div>
             ))}
           </div>
+          </div>
           </section>
+
         </>
       )}
 

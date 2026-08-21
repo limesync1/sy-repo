@@ -405,15 +405,15 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
 
             {/* 2. Funktioner */}
             <Section number={2} title="Vælg dine funktioner" subtitle="Ruteplanlægning er altid med. Vælg om du vil tilkøbe regnskabsintegration eller slå de gratis funktioner til.">
-              <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-700">
+              <div className="mb-4 rounded-2xl border border-accent/25 bg-accent-soft p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-accent">
                   Inkluderet i basis
                 </p>
-                <ul className="mt-2 grid gap-1.5 text-sm text-emerald-900 sm:grid-cols-2">
-                  <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-700" /> Virksomhedsprofil med søgesynlighed</li>
-                  <li className="flex items-center gap-2"><Route className="h-4 w-4 text-emerald-700" /> Ruteplanlægning til medarbejdere</li>
-                  <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-700" /> Bestillinger, kalender, fakturering</li>
-                  <li className="flex items-center gap-2"><Users className="h-4 w-4 text-emerald-700" /> 1 ejer-login</li>
+                <ul className="mt-2 grid gap-1.5 text-sm text-foreground sm:grid-cols-2">
+                  <li className="flex items-center gap-2"><Check className="h-4 w-4 shrink-0 text-accent" /> Virksomhedsprofil med søgesynlighed</li>
+                  <li className="flex items-center gap-2"><Route className="h-4 w-4 shrink-0 text-accent" /> Ruteplanlægning til medarbejdere</li>
+                  <li className="flex items-center gap-2"><Check className="h-4 w-4 shrink-0 text-accent" /> Bestillinger, kalender, fakturering</li>
+                  <li className="flex items-center gap-2"><Users className="h-4 w-4 shrink-0 text-accent" /> 1 ejer-login</li>
                 </ul>
               </div>
               <div className="grid gap-3">
@@ -448,7 +448,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                             </span>
                           )}
                           {price === 0 && (
-                            <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-emerald-700">
+                            <span className="shrink-0 rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-semibold uppercase text-accent">
                               Gratis
                             </span>
                           )}
@@ -655,15 +655,15 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                   </div>
 
                   {breakdown.startupFee > 0 && (
-                    <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                    <div className="mt-3 rounded-xl border border-border bg-secondary/60 p-3">
                       <div className="flex items-baseline justify-between gap-3 text-sm">
-                        <span className="font-semibold text-amber-900">Opstartspris (engangsbeløb)</span>
-                        <span className="tabular-nums font-semibold text-amber-900">
+                        <span className="font-semibold text-foreground">Opstartspris (engangsbeløb)</span>
+                        <span className="tabular-nums font-semibold text-foreground">
                           {formatDkk(breakdown.startupFee)} kr
                         </span>
                       </div>
-                      <p className="mt-1 text-[11px] leading-5 text-amber-800">
-                        Tilføjes til <span className="font-semibold">første faktura</span> efter prøveperiodens udløb. Dækker oprettelse,
+                      <p className="mt-1 text-[11px] leading-5 text-muted-foreground">
+                        Tilføjes til <span className="font-semibold text-foreground">første faktura</span> efter prøveperiodens udløb. Dækker oprettelse,
                         opsætning og 1-til-1 onboarding. Betales kun én gang.
                       </p>
                     </div>
