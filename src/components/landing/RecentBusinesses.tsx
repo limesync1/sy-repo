@@ -39,7 +39,7 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
             <img
               src={biz.cover_image_url}
               alt={`${biz.name}${biz.city ? ` – ${biz.city}` : ""}${primaryCat ? `, ${primaryCat}` : ""}`}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              className="h-full w-full object-cover"
               width={400}
               height={300}
               loading="lazy"
@@ -168,17 +168,20 @@ const RecentBusinesses = () => {
             <p className="mt-3 text-[15px] leading-7 text-ocean-foreground/75 md:text-base">
               Bladr i de seneste udbydere — klik på et kort for at se priser, ydelser og anmeldelser.
             </p>
-            <div className="mt-5 flex flex-wrap items-center gap-2 text-[12px] font-medium">
-              <span className="rounded-full bg-ocean-foreground/10 px-3 py-1">
+            <div className="mt-6 flex flex-wrap items-center gap-2 text-[13px] font-semibold">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-ocean-foreground/25 bg-ocean-foreground/[0.14] px-3.5 py-1.5 text-ocean-foreground">
+                <Building2 className="h-3.5 w-3.5" aria-hidden />
                 {businesses.length} nye profiler
               </span>
               {verifiedCount > 0 && (
-                <span className="rounded-full bg-accent/20 px-3 py-1 text-accent">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/20 px-3.5 py-1.5 text-ocean-foreground">
+                  <ShieldCheck className="h-3.5 w-3.5 text-accent" aria-hidden />
                   {verifiedCount} verificeret
                 </span>
               )}
               {cityCount > 0 && (
-                <span className="rounded-full bg-ocean-foreground/10 px-3 py-1">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-ocean-foreground/25 bg-ocean-foreground/[0.14] px-3.5 py-1.5 text-ocean-foreground">
+                  <MapPin className="h-3.5 w-3.5" aria-hidden />
                   {cityCount} {cityCount === 1 ? "by" : "byer"}
                 </span>
               )}
