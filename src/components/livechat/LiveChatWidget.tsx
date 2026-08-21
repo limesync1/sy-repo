@@ -118,6 +118,28 @@ const TOPIC_REPLIES: { keywords: string[]; replies: string[] }[] = [
       "Kan jeg filtrere efter by?",
     ],
   },
+  {
+    keywords: [
+      "rute", "ruteplan", "planlægger", "planlaegger", "kalender", "kørsel", "koersel",
+      "optimer", "optimér", "stop", "træk", "drag", "syg", "sygemeld", "fravær", "ferie",
+      "tidslinje", "kort", "eta", "gentag", "fast aftale", "interval", "print", "guide",
+      "manual", "brugsanvisning", "vejledning",
+    ],
+    replies: [
+      "Hvordan planlægger jeg en rute?",
+      "Hvad sker der hvis en medarbejder melder sig syg?",
+      "Kan jeg få en guide til ruteplanlæggeren?",
+    ],
+  },
+];
+
+/** Link til den downloadbare PDF-brugerguide til ruteplanlæggeren. */
+export const PLANNER_GUIDE_URL = "/guides/serviceydere-ruteplanlaegger-brugerguide.pdf";
+
+/** Emneord der betyder at brugeren sandsynligvis vil have guiden. */
+const PLANNER_GUIDE_KEYWORDS = [
+  "rute", "ruteplan", "planlægger", "planlaegger", "guide", "manual",
+  "brugsanvisning", "vejledning", "kalender", "optimer", "optimér", "stop",
 ];
 
 const UNSAFE_SUGGESTION_TERMS = [
@@ -631,6 +653,16 @@ const LiveChatWidget = () => {
     !!lastAdminMsg &&
     (!lastVisitorMsg || new Date(lastAdminMsg.created_at) > new Date(lastVisitorMsg.created_at));
   const dynamicReplies = useMemo(() => getDynamicReplies(messages), [messages]);
+  // Har samtalen handlet om ruteplanlægning? Så tilbyder vi PDF-guiden direkte
+  // i chatten, så kunden ikke skal lede efter den på /software/funktioner.
+  const showPlannerGuide = useMemo(() => {
+    const recent = messages
+      .filter((m) => !m.is_system && m.content)
+      .slice(-6)
+      .map((m) => (m.content || "").toLowerCase())
+      .join(" ");
+    return PLANNER_GUIDE_KEYWORDS.some((k) => recent.includes(k));
+  }, [messages]);
 
   const unreadAdmin = messages.some((m) => m.sender_type === "admin") && !open;
   const closed = conversation?.status === "closed";
@@ -965,6 +997,24 @@ const LiveChatWidget = () => {
                   </div>
                 ) : (
                   <>
+                    {showPlannerGuide && (
+                      <div className="border-t border-border bg-secondary/40 px-3 py-2.5">
+                        <a
+                          href={PLANNER_GUIDE_URL}
+                          target="_blank"
+                          rel="noopener"
+                          className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-[11px] font-medium text-foreground transition-colors hover:border-accent/40 hover:text-accent"
+                        >
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-secondary text-[10px] font-bold uppercase">
+                            PDF
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block truncate font-semibold">Brugerguide til ruteplanlæggeren</span>
+                            <span className="block truncate text-[10px] text-muted-foreground">Hent PDF med alle funktioner trin for trin</span>
+                          </span>
+                        </a>
+                      </div>
+                    )}
                     {showRecommended && dynamicReplies.length > 0 && !draft && !pendingImage && (
                       <div className="border-t border-border bg-card px-3 py-2.5">
                         <div className="mb-1.5 flex items-center gap-1.5">

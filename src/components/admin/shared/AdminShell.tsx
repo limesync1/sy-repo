@@ -246,12 +246,18 @@ type AdminShellProps = {
    * Valget huskes pr. bruger i localStorage.
    */
   collapsible?: boolean;
+  /**
+   * Skjuler "Kundeservice"-knappen og virksomheds-ID'et i topbaren. Bruges af
+   * ruteplanlæggeren, hvor topbaren i forvejen er fyldt med daglige handlinger.
+   */
+  hideTopbarUtilities?: boolean;
   children: ReactNode;
 };
 
 export const AdminShell = ({
   business, activeTab, onTabChange, title, topbarRight,
-  contentPadding = true, contentClassName, collapsible = true, children,
+  contentPadding = true, contentClassName, collapsible = true,
+  hideTopbarUtilities = false, children,
 }: AdminShellProps) => {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
@@ -345,13 +351,12 @@ export const AdminShell = ({
   const onboardingBadge = onboarding.counts && !onboarding.allDone
     ? `${onboarding.completedCount}/${onboarding.totalCount}`
     : null;
-  // Når opsætningen er færdig forsvinder badgen, og guiden flytter nederst i
-  // menuen — den bliver liggende som en rolig indgang til ressourcerne.
-  const orderedNav = onboarding.allDone
-    ? [
-        ...NAV_ITEMS.filter((n) => n.value !== "getting-started"),
-        ...NAV_ITEMS.filter((n) => n.value === "getting-started"),
-      ]
+  // Når opsætningen er 100 % færdig fjerner vi "Kom godt i gang" helt fra
+  // menuen — den har gjort sit arbejde. Den bliver dog stående så længe man
+  // faktisk står på fanen, så siden ikke virker "forsvundet" under fødderne.
+  const hideGettingStarted = onboarding.allDone && activeTab !== "getting-started";
+  const orderedNav = hideGettingStarted
+    ? NAV_ITEMS.filter((n) => n.value !== "getting-started")
     : NAV_ITEMS;
   const visibleNav = NAV_ITEMS.filter((n) => {
     if (n.requiresRoutePlanning && !routePlanningEnabled) return false;
@@ -560,7 +565,7 @@ export const AdminShell = ({
                 {topbarRight}
               </div>
             )}
-            {(business as any).public_id && (
+            {!hideTopbarUtilities && (business as any).public_id && (
               <button
                 type="button"
                 title="Kopiér virksomheds-ID"
@@ -573,6 +578,7 @@ export const AdminShell = ({
                 ID {(business as any).public_id}
               </button>
             )}
+            {!hideTopbarUtilities && (
             <button
               type="button"
               onClick={() => window.dispatchEvent(new CustomEvent("serviceydere:open-platform-chat"))}
@@ -594,6 +600,7 @@ export const AdminShell = ({
               </span>
               <span className="hidden sm:inline">Kundeservice</span>
             </button>
+            )}
           </div>
         </header>
         {topbarRight && !hideActions && (

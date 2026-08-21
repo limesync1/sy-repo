@@ -2975,6 +2975,7 @@ const Planner = () => {
         activeTab="routes"
         contentPadding={false}
         collapsible
+        hideTopbarUtilities
         contentClassName="flex flex-col overflow-hidden"
         topbarRight={
           <div className="hidden 2xl:flex items-center gap-2 flex-wrap justify-end">
