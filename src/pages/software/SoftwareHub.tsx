@@ -179,13 +179,6 @@ const SoftwareHub = () => {
           </div>
         </div>
 
-        <div className="mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
-          <nav aria-label="Brødkrumme" className="text-sm text-muted-foreground">
-            <Link to="/" className="hover:text-foreground">Forside</Link>
-            <span className="px-2">/</span>
-            <span className="text-foreground">Software</span>
-          </nav>
-        </div>
 
         {/* Systemets dele */}
         <SectionShell
