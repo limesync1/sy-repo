@@ -565,12 +565,8 @@ const RequestQuote = () => {
               <Link to="/privatlivspolitik" target="_blank" className="font-medium underline underline-offset-2 hover:text-accent">privatlivspolitik</Link>.
             </p>
 
-            {/* Trust footer in form */}
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[11px] text-muted-foreground sm:text-xs sm:gap-x-5">
-              <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-accent" /> 3-10 sek.</span>
-              <span className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-accent" /> Verificerede udbydere</span>
-              <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-accent" /> Gratis & uforpligtende</span>
-            </div>
+            {/* Tryghedspunkter står i sidepanelet — ingen gentagelse her. */}
+
           </form>
 
           {/* Sidepanel: sådan fungerer det + tryghed. Sticky på desktop, og
