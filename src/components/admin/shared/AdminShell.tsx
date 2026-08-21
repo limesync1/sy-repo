@@ -44,7 +44,7 @@ const RoleSwitchFooterItem = ({
       onClick={onClick}
       aria-label={collapsed ? label : undefined}
       className={cn(
-        "group relative flex w-full items-center rounded-lg text-sm font-semibold text-foreground transition-colors",
+        "group relative flex w-full items-center overflow-hidden rounded-lg text-sm font-semibold text-foreground transition-[background-color,padding] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30",
         "hover:bg-secondary",
         collapsed ? "h-10 justify-center px-0" : "gap-2 px-2 py-2",
@@ -63,7 +63,15 @@ const RoleSwitchFooterItem = ({
           <Icon className="h-3.5 w-3.5 text-foreground" />
         </span>
       </span>
-      {!collapsed && <span className="truncate">{label}</span>}
+      <span
+        className={cn(
+          "truncate whitespace-nowrap transition-[max-width,opacity,transform] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
+          collapsed ? "max-w-0 -translate-x-1 opacity-0" : "max-w-[170px] translate-x-0 opacity-100",
+        )}
+      >
+        {label}
+      </span>
+
     </button>
   );
 };
@@ -372,19 +380,26 @@ export const AdminShell = ({
 
   return (
     <div className="flex min-h-dvh w-full max-w-full overflow-x-hidden bg-secondary/50">
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-40 bg-foreground/40 lg:hidden" onClick={() => setSidebarOpen(false)} />
-      )}
+      {/* Mobil-overlay fader ind/ud i stedet for at poppe hårdt frem. */}
+      <div
+        aria-hidden={!sidebarOpen}
+        onClick={() => setSidebarOpen(false)}
+        className={cn(
+          "fixed inset-0 z-40 bg-foreground/40 backdrop-blur-[2px] transition-opacity duration-300 lg:hidden",
+          sidebarOpen ? "opacity-100" : "pointer-events-none opacity-0",
+        )}
+      />
 
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-[86vw] max-w-[320px] flex-col border-r border-border bg-background transition-[transform,width] duration-200 lg:h-dvh lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex w-[86vw] max-w-[320px] flex-col border-r border-border bg-background transition-[transform,width,box-shadow] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] lg:h-dvh lg:translate-x-0",
           collapsed ? "lg:w-[68px]" : "lg:w-[248px]",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full",
+          sidebarOpen ? "translate-x-0 shadow-2xl lg:shadow-none" : "-translate-x-full shadow-none",
         )}
         aria-label="Hovednavigation"
       >
+
         <div className={cn("flex h-14 shrink-0 items-center border-b border-border", collapsed ? "justify-center px-0" : "justify-between px-4")}>
           <Link to="/" className={cn("flex items-center gap-2 overflow-hidden", collapsed && "justify-center")} aria-label="Forside">
             {collapsed ? (
@@ -506,7 +521,7 @@ export const AdminShell = ({
       {/* Main */}
       <div
         className={cn(
-          "flex min-w-0 flex-1 flex-col overflow-x-hidden transition-[padding] duration-200",
+          "flex min-w-0 flex-1 flex-col overflow-x-hidden transition-[padding] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
           collapsed ? "lg:pl-[68px]" : "lg:pl-[248px]",
         )}
       >

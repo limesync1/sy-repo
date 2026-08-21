@@ -319,10 +319,11 @@ const RequestQuote = () => {
             subtitle="Beskriv opgaven, så finder vi de bedste serviceydere til dig — gratis og uforpligtende."
           />
 
-          <section className="bg-surface px-4 pt-6 pb-14 sm:px-6 md:pt-12 md:pb-20 lg:px-8">
-          <div className="mx-auto max-w-3xl">
+          <section className="bg-surface px-4 pt-8 pb-14 sm:px-6 md:pt-12 md:pb-20 lg:px-8">
+          <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-8">
           {/* Form card */}
           <form onSubmit={handleFind} className="surface-panel rounded-[1.5rem] border border-border bg-card p-4 shadow-[0_28px_60px_-38px_hsl(var(--foreground)/0.35)] sm:rounded-[2rem] sm:p-6 md:p-8">
+
 
             {/* Step 1: Lokation — fuld step med eget nummer, så det stilmæssigt
                 matcher de øvrige trin. */}
@@ -564,37 +565,43 @@ const RequestQuote = () => {
               <Link to="/privatlivspolitik" target="_blank" className="font-medium underline underline-offset-2 hover:text-accent">privatlivspolitik</Link>.
             </p>
 
-            {/* Trust footer in form */}
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[11px] text-muted-foreground sm:text-xs sm:gap-x-5">
-              <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-accent" /> 3-10 sek.</span>
-              <span className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-accent" /> Verificerede udbydere</span>
-              <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-accent" /> Gratis & uforpligtende</span>
-            </div>
+            {/* Tryghedspunkter står i sidepanelet — ingen gentagelse her. */}
+
           </form>
 
-          {/* How it works strip */}
-          <h2 className="mt-14 text-center text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
-            Sådan fungerer det
-          </h2>
-          <div className="mt-6 grid gap-3 sm:gap-5 sm:grid-cols-3">
-            {[
-              { n: 1, title: "Beskriv opgaven", text: "Vælg kategori og fortæl kort, hvad du har brug for.", hue: 186 },
-              { n: 2, title: "Vi matcher", text: "Vi finder op til 3 relevante udbydere i dit område.", hue: 262 },
-              { n: 3, title: "Sammenlign & vælg", text: "Se priser, læs anmeldelser og book direkte.", hue: 28 },
-            ].map((s) => (
-              <div
-                key={s.n}
-                style={{ ["--step" as string]: `${s.hue}` }}
-                className="rounded-2xl border border-border bg-card p-5 shadow-sm transition-transform duration-300 hover:-translate-y-1 sm:rounded-[1.5rem]"
-              >
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[hsl(var(--step)_70%_94%)] text-sm font-bold text-[hsl(var(--step)_60%_32%)] dark:bg-[hsl(var(--step)_45%_16%)] dark:text-[hsl(var(--step)_70%_78%)]">
-                  {s.n}
-                </div>
-                <h3 className="mt-3 text-sm font-semibold text-foreground">{s.title}</h3>
-                <p className="mt-1 text-sm leading-6 text-muted-foreground">{s.text}</p>
-              </div>
-            ))}
-          </div>
+          {/* Sidepanel: sådan fungerer det + tryghed. Sticky på desktop, og
+              lige under formularen på mobil hvor der ikke er plads ved siden af. */}
+          <aside className="lg:sticky lg:top-24 lg:self-start">
+            <div className="rounded-[1.5rem] border border-border bg-card p-5 shadow-sm sm:rounded-[1.75rem] sm:p-6">
+              <h2 className="text-base font-semibold tracking-tight text-foreground">Sådan fungerer det</h2>
+              <ol className="mt-4 space-y-4">
+                {[
+                  { n: 1, title: "Beskriv opgaven", text: "Vælg kategori og fortæl kort, hvad du har brug for.", hue: 186 },
+                  { n: 2, title: "Vi matcher", text: "Vi finder op til 3 relevante udbydere i dit område.", hue: 262 },
+                  { n: 3, title: "Sammenlign & vælg", text: "Se priser, læs anmeldelser og book direkte.", hue: 28 },
+                ].map((s) => (
+                  <li key={s.n} style={{ ["--step" as string]: `${s.hue}` }} className="flex gap-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[hsl(var(--step)_70%_94%)] text-sm font-bold text-[hsl(var(--step)_60%_32%)] dark:bg-[hsl(var(--step)_45%_16%)] dark:text-[hsl(var(--step)_70%_78%)]">
+                      {s.n}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-semibold text-foreground">{s.title}</span>
+                      <span className="mt-0.5 block text-sm leading-6 text-muted-foreground">{s.text}</span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            <div className="mt-4 rounded-[1.5rem] border border-border bg-surface p-5 sm:rounded-[1.75rem]">
+              <ul className="space-y-2.5 text-sm text-muted-foreground">
+                <li className="flex items-center gap-2"><Clock className="h-4 w-4 shrink-0 text-accent" /> Svar på 3-10 sekunder</li>
+                <li className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 shrink-0 text-accent" /> Kun verificerede udbydere</li>
+                <li className="flex items-center gap-2"><Check className="h-4 w-4 shrink-0 text-accent" /> Gratis og uforpligtende</li>
+              </ul>
+            </div>
+          </aside>
+
           </div>
           </section>
 

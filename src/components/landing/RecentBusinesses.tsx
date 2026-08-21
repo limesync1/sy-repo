@@ -24,7 +24,7 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
   const primaryCat = cats[0];
 
   return (
-    <article className="group relative flex w-[270px] shrink-0 flex-col overflow-hidden rounded-[28px] border border-border/70 bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-border sm:w-[292px]">
+    <article className="group relative flex w-[270px] shrink-0 flex-col overflow-hidden rounded-[28px] bg-card ring-1 ring-border/70 transition-[box-shadow,ring-color] duration-300 hover:ring-accent/50 hover:shadow-[0_26px_50px_-28px_hsl(var(--foreground)/0.45)] sm:w-[292px]">
       {/* Favorit-knappen ligger uden for linket — så vi undgår ulovlig
           nested <button> i <a> (skærmlæser-fjendtligt og ugyldig HTML).
           FavoriteButton positionerer sig selv absolut top-right. */}

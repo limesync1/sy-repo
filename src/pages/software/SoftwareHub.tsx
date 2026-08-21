@@ -179,13 +179,6 @@ const SoftwareHub = () => {
           </div>
         </div>
 
-        <div className="mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
-          <nav aria-label="Brødkrumme" className="text-sm text-muted-foreground">
-            <Link to="/" className="hover:text-foreground">Forside</Link>
-            <span className="px-2">/</span>
-            <span className="text-foreground">Software</span>
-          </nav>
-        </div>
 
         {/* Systemets dele */}
         <SectionShell
@@ -234,32 +227,60 @@ const SoftwareHub = () => {
           </div>
         </SectionShell>
 
-        {/* Pris — korte punkter i stedet for en tekstmur */}
+        {/* Pris — ét tydeligt hovedtal, tilvalg som rolige rækker ved siden af */}
         <SectionShell
           eyebrow="Pris"
           title="Hvad koster det"
           description="14 dages gratis prøve uden betalingskort. Vil I fortsætte, tilføjer I kort under Indstillinger."
-          aside={
-            <div className="flex flex-wrap gap-3">
-              <Link to="/software/priser" className="inline-flex h-11 items-center rounded-full bg-foreground px-6 text-sm font-semibold text-background hover:opacity-90">
-                Se prisoversigten
-              </Link>
-              <Link to="/opret-virksomhed" className="inline-flex h-11 items-center rounded-full border border-border bg-card px-6 text-sm font-semibold text-foreground hover:bg-secondary">
-                Start gratis prøve
-              </Link>
-            </div>
-          }
         >
-          <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {PRICE_POINTS.map((p) => (
-              <div key={p.label} className="rounded-[22px] border border-border/70 bg-card p-5 shadow-sm">
-                <dt className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">{p.label}</dt>
-                <dd className="mt-2 text-xl font-semibold tracking-tight text-foreground">{p.value}</dd>
-                <p className="mt-1 text-sm text-muted-foreground">{p.note}</p>
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+            {/* Hovedprisen */}
+            <div className="relative isolate overflow-hidden rounded-[28px] bg-ocean p-7 text-ocean-foreground sm:p-9">
+              <div aria-hidden className="pointer-events-none absolute -right-10 -top-16 -z-10 h-64 w-64 rounded-full bg-accent/25 blur-[110px]" />
+              <span className="inline-flex items-center gap-2 rounded-full bg-ocean-foreground/12 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em]">
+                Basis
+              </span>
+              <p className="mt-5 flex items-end gap-2">
+                <span className="text-[2.75rem] font-semibold leading-none tracking-[-0.03em]">289 kr.</span>
+                <span className="pb-1 text-sm text-ocean-foreground/70">/md. ekskl. moms</span>
+              </p>
+              <p className="mt-3 text-sm leading-6 text-ocean-foreground/80">
+                Ruteplanlægning, medarbejder-app, booking, kundekartotek og fakturering er med fra start.
+              </p>
+              <ul className="mt-5 space-y-2 text-sm">
+                {["14 dages gratis prøve uden kort", "Ingen binding", "Dansk support på hverdage"].map((t) => (
+                  <li key={t} className="flex items-center gap-2">
+                    <Check className="h-4 w-4 shrink-0 text-accent" aria-hidden />
+                    {t}
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-7 flex flex-wrap gap-3">
+                <Link to="/opret-virksomhed" className="inline-flex h-11 items-center rounded-full bg-ocean-foreground px-6 text-sm font-semibold text-ocean transition-opacity hover:opacity-90">
+                  Start gratis prøve
+                </Link>
+                <Link to="/software/priser" className="inline-flex h-11 items-center rounded-full border border-ocean-foreground/30 px-6 text-sm font-semibold text-ocean-foreground transition-colors hover:bg-ocean-foreground/10">
+                  Se prisoversigten
+                </Link>
               </div>
-            ))}
-          </dl>
+            </div>
+
+            {/* Tilvalg og vilkår */}
+            <dl className="grid content-start gap-3 sm:grid-cols-2">
+              {PRICE_POINTS.map((p) => (
+                <div
+                  key={p.label}
+                  className="rounded-[22px] bg-card p-5 ring-1 ring-border/70 transition-shadow duration-300 hover:shadow-[0_20px_40px_-30px_hsl(var(--foreground)/0.45)]"
+                >
+                  <dt className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">{p.label}</dt>
+                  <dd className="mt-2 text-xl font-semibold tracking-tight text-foreground">{p.value}</dd>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">{p.note}</p>
+                </div>
+              ))}
+            </dl>
+          </div>
         </SectionShell>
+
 
         <div className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
           <div className="article-content prose prose-neutral max-w-none dark:prose-invert">

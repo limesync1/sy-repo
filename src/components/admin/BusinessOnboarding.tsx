@@ -317,30 +317,24 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
             ? `Basis koster ${formatDkk(pricing?.base_price_dkk ?? 289)} kr./md. ekskl. moms med ruteplanlægningen inkluderet. Indtast CVR, vælg tilvalg og medarbejderlogins — så ser I præcis jeres egen pris, før I opretter noget.`
             : "Få din virksomhed online på under 2 minutter. Indtast dit CVR — vi henter automatisk dine oplysninger. Vælg dine funktioner og se prisen med det samme."
         }
-      >
-        <ul className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-background/85">
-          <li className="flex items-center gap-1.5"><Check className="h-4 w-4" style={{ color: "hsl(var(--hero-cyan-bright))" }} /> Ingen binding</li>
-          <li className="flex items-center gap-1.5"><Check className="h-4 w-4" style={{ color: "hsl(var(--hero-cyan-bright))" }} /> Opsig når som helst</li>
-          <li className="flex items-center gap-1.5"><Check className="h-4 w-4" style={{ color: "hsl(var(--hero-cyan-bright))" }} /> Dansk support</li>
-        </ul>
-      </PageHero>
+      />
 
-      {/* Trust-stribe — kvalitative signaler, ingen fabrikerede tal */}
-      <div className="border-b border-border bg-card/60 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-8 gap-y-3 px-4 py-4 text-xs text-muted-foreground sm:px-6 lg:px-8">
-          <span className="inline-flex items-center gap-1.5">
-            <Check className="h-3.5 w-3.5 text-accent" /> CVR-verificeret onboarding
-          </span>
-          <span className="hidden h-3 w-px bg-border sm:block" />
-          <span className="inline-flex items-center gap-1.5">
-            <Check className="h-3.5 w-3.5 text-accent" /> Ingen binding · opsig når som helst
-          </span>
-          <span className="hidden h-3 w-px bg-border sm:block" />
-          <span className="inline-flex items-center gap-1.5">
-            <Clock className="h-3.5 w-3.5 text-accent" /> Dansk support på hverdage
-          </span>
+      {/* Fakta-stribe — samme design og bredde som på /software */}
+      <div className="border-b border-border bg-surface">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-7 gap-y-2 px-4 py-4 sm:px-6 lg:px-8">
+          {[
+            "CVR-verificeret onboarding",
+            "Ingen binding — opsig når som helst",
+            "Dansk support på hverdage",
+          ].map((f) => (
+            <span key={f} className="inline-flex items-center gap-2 text-[13px] font-medium text-muted-foreground">
+              <Check className="h-4 w-4 shrink-0 text-accent" aria-hidden />
+              {f}
+            </span>
+          ))}
         </div>
       </div>
+
 
       <main id="main" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
         {breadcrumb}
