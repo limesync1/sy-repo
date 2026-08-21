@@ -58,7 +58,7 @@ export const SidebarNavButton = forwardRef<HTMLButtonElement, SidebarNavButtonPr
         aria-current={active ? "page" : undefined}
         aria-label={collapsed ? label : undefined}
         className={cn(
-          "group relative flex w-full items-center rounded-lg text-sm font-medium text-left transition-colors duration-150",
+          "group relative flex w-full items-center overflow-hidden rounded-lg text-sm font-medium text-left transition-[background-color,color,padding] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30",
           collapsed ? "h-10 justify-center px-0" : "gap-2.5 px-3 py-2.5",
           active
@@ -75,7 +75,17 @@ export const SidebarNavButton = forwardRef<HTMLButtonElement, SidebarNavButtonPr
           )}
         />
         <Icon className={cn("h-4 w-4 shrink-0", active && "text-foreground")} aria-hidden="true" />
-        {!collapsed && <span className="flex-1 truncate">{label}</span>}
+        {/* Labelen fades og glider ud i stedet for at forsvinde brat — det
+            gør collapse/expand markant mere roligt at se på. */}
+        <span
+          className={cn(
+            "min-w-0 truncate whitespace-nowrap transition-[max-width,opacity,transform] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
+            collapsed ? "max-w-0 -translate-x-1 opacity-0" : "max-w-[170px] flex-1 translate-x-0 opacity-100",
+          )}
+        >
+          {label}
+        </span>
+
         {!collapsed && showBadge && (
           <span
             className={cn(
