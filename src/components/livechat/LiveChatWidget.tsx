@@ -653,6 +653,16 @@ const LiveChatWidget = () => {
     !!lastAdminMsg &&
     (!lastVisitorMsg || new Date(lastAdminMsg.created_at) > new Date(lastVisitorMsg.created_at));
   const dynamicReplies = useMemo(() => getDynamicReplies(messages), [messages]);
+  // Har samtalen handlet om ruteplanlægning? Så tilbyder vi PDF-guiden direkte
+  // i chatten, så kunden ikke skal lede efter den på /software/funktioner.
+  const showPlannerGuide = useMemo(() => {
+    const recent = messages
+      .filter((m) => !m.is_system && m.content)
+      .slice(-6)
+      .map((m) => (m.content || "").toLowerCase())
+      .join(" ");
+    return PLANNER_GUIDE_KEYWORDS.some((k) => recent.includes(k));
+  }, [messages]);
 
   const unreadAdmin = messages.some((m) => m.sender_type === "admin") && !open;
   const closed = conversation?.status === "closed";
