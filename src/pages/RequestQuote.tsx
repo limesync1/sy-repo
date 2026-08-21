@@ -319,10 +319,11 @@ const RequestQuote = () => {
             subtitle="Beskriv opgaven, så finder vi de bedste serviceydere til dig — gratis og uforpligtende."
           />
 
-          <section className="bg-surface px-4 pt-6 pb-14 sm:px-6 md:pt-12 md:pb-20 lg:px-8">
-          <div className="mx-auto max-w-3xl">
+          <section className="bg-surface px-4 pt-8 pb-14 sm:px-6 md:pt-12 md:pb-20 lg:px-8">
+          <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-8">
           {/* Form card */}
           <form onSubmit={handleFind} className="surface-panel rounded-[1.5rem] border border-border bg-card p-4 shadow-[0_28px_60px_-38px_hsl(var(--foreground)/0.35)] sm:rounded-[2rem] sm:p-6 md:p-8">
+
 
             {/* Step 1: Lokation — fuld step med eget nummer, så det stilmæssigt
                 matcher de øvrige trin. */}
