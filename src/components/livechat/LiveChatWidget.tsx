@@ -997,6 +997,24 @@ const LiveChatWidget = () => {
                   </div>
                 ) : (
                   <>
+                    {showPlannerGuide && (
+                      <div className="border-t border-border bg-secondary/40 px-3 py-2.5">
+                        <a
+                          href={PLANNER_GUIDE_URL}
+                          target="_blank"
+                          rel="noopener"
+                          className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-[11px] font-medium text-foreground transition-colors hover:border-accent/40 hover:text-accent"
+                        >
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-secondary text-[10px] font-bold uppercase">
+                            PDF
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block truncate font-semibold">Brugerguide til ruteplanlæggeren</span>
+                            <span className="block truncate text-[10px] text-muted-foreground">Hent PDF med alle funktioner trin for trin</span>
+                          </span>
+                        </a>
+                      </div>
+                    )}
                     {showRecommended && dynamicReplies.length > 0 && !draft && !pendingImage && (
                       <div className="border-t border-border bg-card px-3 py-2.5">
                         <div className="mb-1.5 flex items-center gap-1.5">
