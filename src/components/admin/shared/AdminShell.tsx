@@ -565,7 +565,7 @@ export const AdminShell = ({
                 {topbarRight}
               </div>
             )}
-            {(business as any).public_id && (
+            {!hideTopbarUtilities && (business as any).public_id && (
               <button
                 type="button"
                 title="Kopiér virksomheds-ID"
@@ -578,6 +578,7 @@ export const AdminShell = ({
                 ID {(business as any).public_id}
               </button>
             )}
+            {!hideTopbarUtilities && (
             <button
               type="button"
               onClick={() => window.dispatchEvent(new CustomEvent("serviceydere:open-platform-chat"))}
@@ -599,6 +600,7 @@ export const AdminShell = ({
               </span>
               <span className="hidden sm:inline">Kundeservice</span>
             </button>
+            )}
           </div>
         </header>
         {topbarRight && !hideActions && (
