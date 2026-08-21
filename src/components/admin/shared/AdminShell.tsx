@@ -351,13 +351,12 @@ export const AdminShell = ({
   const onboardingBadge = onboarding.counts && !onboarding.allDone
     ? `${onboarding.completedCount}/${onboarding.totalCount}`
     : null;
-  // Når opsætningen er færdig forsvinder badgen, og guiden flytter nederst i
-  // menuen — den bliver liggende som en rolig indgang til ressourcerne.
-  const orderedNav = onboarding.allDone
-    ? [
-        ...NAV_ITEMS.filter((n) => n.value !== "getting-started"),
-        ...NAV_ITEMS.filter((n) => n.value === "getting-started"),
-      ]
+  // Når opsætningen er 100 % færdig fjerner vi "Kom godt i gang" helt fra
+  // menuen — den har gjort sit arbejde. Den bliver dog stående så længe man
+  // faktisk står på fanen, så siden ikke virker "forsvundet" under fødderne.
+  const hideGettingStarted = onboarding.allDone && activeTab !== "getting-started";
+  const orderedNav = hideGettingStarted
+    ? NAV_ITEMS.filter((n) => n.value !== "getting-started")
     : NAV_ITEMS;
   const visibleNav = NAV_ITEMS.filter((n) => {
     if (n.requiresRoutePlanning && !routePlanningEnabled) return false;
