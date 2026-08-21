@@ -47,6 +47,22 @@ import {
 /* ─── Constants ─── */
 
 /**
+ * DelayedFallback — undgår at skeletonen blinker på hurtige chunk-loads.
+ * Først når ventetiden overstiger ~140 ms viser vi en loading-silhuet;
+ * ellers går vi direkte fra den gamle fane til den nye uden mellemstation.
+ */
+const DelayedFallback = ({ children, delay = 140 }: { children: React.ReactNode; delay?: number }) => {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const t = window.setTimeout(() => setShow(true), delay);
+    return () => window.clearTimeout(t);
+  }, [delay]);
+  return show ? <>{children}</> : <div className="min-h-[50vh]" />;
+};
+
+
+
+/**
  * TabFallback — vis et skeleton der matcher hver fane mens chunk + data loader.
  * Erstatter den gamle "Indlæser…" tekst, så panelet føles instant og smooth.
  */
