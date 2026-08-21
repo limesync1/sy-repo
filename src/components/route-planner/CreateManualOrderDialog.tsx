@@ -25,6 +25,8 @@ import CustomerEmailAutocomplete from "./CustomerEmailAutocomplete";
 import { DatePickerField } from "./DatePickerField";
 import { format } from "date-fns";
 import { getCategoryIcon } from "@/lib/category-icons";
+import { NumberStepper } from "@/components/shared/NumberStepper";
+
 import { IndustryIcon } from "@/components/IndustryIcon";
 
 type CalcStep = { id: string; label: string; unit: string; price_per_unit: number; min_value: number | null; max_value: number | null; default_value: number | null; sort_order: number | null };
@@ -565,10 +567,14 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                       {it.service.pricing_type === "timepris" && (
                         <div className="flex flex-wrap items-center gap-2 mb-2 text-sm">
                           <Label className="text-xs text-muted-foreground">Timer</Label>
-                          <Input
-                            type="number" min={0.5} max={24} step={0.5} value={it.hours}
-                            onChange={(e) => updateItem(it.serviceId, { hours: Math.max(0.5, parseFloat(e.target.value) || 0.5) })}
-                            className="h-9 w-24"
+                          <NumberStepper
+                            value={it.hours}
+                            min={0.5}
+                            max={24}
+                            step={0.5}
+                            ariaLabel="Antal timer"
+                            onChange={(v) => updateItem(it.serviceId, { hours: v })}
+                            className="w-32"
                           />
                           <span className="text-muted-foreground text-xs">× {it.service.base_price} kr</span>
                         </div>
@@ -579,15 +585,20 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                           {[...(it.service.calculator_steps || [])].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)).map((step) => (
                             <div key={step.id} className="flex flex-wrap items-center gap-2 text-xs">
                               <span className="flex-1 min-w-[120px] truncate">{step.label} <span className="text-muted-foreground">({step.price_per_unit} kr/{step.unit})</span></span>
-                              <Input type="number" min={Number(step.min_value ?? 0)} max={Number(step.max_value ?? 9999)}
+                              <NumberStepper
                                 value={it.stepValues[step.id] ?? 0}
-                                onChange={(e) => updateItem(it.serviceId, { stepValues: { ...it.stepValues, [step.id]: Math.max(0, parseFloat(e.target.value) || 0) } })}
-                                className="h-9 w-24" />
-                              <span className="text-muted-foreground w-8 text-right text-xs">{step.unit}</span>
+                                min={Number(step.min_value ?? 0)}
+                                max={Number(step.max_value ?? 9999)}
+                                unit={step.unit}
+                                ariaLabel={step.label}
+                                onChange={(v) => updateItem(it.serviceId, { stepValues: { ...it.stepValues, [step.id]: v } })}
+                                className="w-36"
+                              />
                             </div>
                           ))}
                         </div>
                       )}
+
 
                       {intervals.length > 1 && (
                         <Select value={it.interval} onValueChange={(v) => updateItem(it.serviceId, { interval: v })}>
