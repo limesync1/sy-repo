@@ -521,7 +521,7 @@ export const AdminShell = ({
       {/* Main */}
       <div
         className={cn(
-          "flex min-w-0 flex-1 flex-col overflow-x-hidden transition-[padding] duration-200",
+          "flex min-w-0 flex-1 flex-col overflow-x-hidden transition-[padding] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
           collapsed ? "lg:pl-[68px]" : "lg:pl-[248px]",
         )}
       >
