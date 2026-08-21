@@ -335,7 +335,7 @@ const AdminDashboard = () => {
         />
       )}
       <TabErrorBoundary resetKey={effectiveTab} label={effectiveTab}>
-        <Suspense fallback={<TabFallback tab={effectiveTab} />}>
+        <Suspense fallback={<DelayedFallback><TabFallback tab={effectiveTab} /></DelayedFallback>}>
           {/* Én enkelt, blød fade-in pr. fane-skift. key sikrer at animationen
               kun kører når faner faktisk skifter — ikke når interne state-
               opdateringer (filtre, dialoger) re-renderer indholdet. */}
