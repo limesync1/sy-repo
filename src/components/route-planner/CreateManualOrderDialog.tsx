@@ -25,6 +25,8 @@ import CustomerEmailAutocomplete from "./CustomerEmailAutocomplete";
 import { DatePickerField } from "./DatePickerField";
 import { format } from "date-fns";
 import { getCategoryIcon } from "@/lib/category-icons";
+import { NumberStepper } from "@/components/shared/NumberStepper";
+
 import { IndustryIcon } from "@/components/IndustryIcon";
 
 type CalcStep = { id: string; label: string; unit: string; price_per_unit: number; min_value: number | null; max_value: number | null; default_value: number | null; sort_order: number | null };
