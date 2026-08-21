@@ -246,12 +246,18 @@ type AdminShellProps = {
    * Valget huskes pr. bruger i localStorage.
    */
   collapsible?: boolean;
+  /**
+   * Skjuler "Kundeservice"-knappen og virksomheds-ID'et i topbaren. Bruges af
+   * ruteplanlæggeren, hvor topbaren i forvejen er fyldt med daglige handlinger.
+   */
+  hideTopbarUtilities?: boolean;
   children: ReactNode;
 };
 
 export const AdminShell = ({
   business, activeTab, onTabChange, title, topbarRight,
-  contentPadding = true, contentClassName, collapsible = true, children,
+  contentPadding = true, contentClassName, collapsible = true,
+  hideTopbarUtilities = false, children,
 }: AdminShellProps) => {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
