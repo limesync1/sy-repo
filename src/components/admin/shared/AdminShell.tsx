@@ -44,7 +44,7 @@ const RoleSwitchFooterItem = ({
       onClick={onClick}
       aria-label={collapsed ? label : undefined}
       className={cn(
-        "group relative flex w-full items-center rounded-lg text-sm font-semibold text-foreground transition-colors",
+        "group relative flex w-full items-center overflow-hidden rounded-lg text-sm font-semibold text-foreground transition-[background-color,padding] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30",
         "hover:bg-secondary",
         collapsed ? "h-10 justify-center px-0" : "gap-2 px-2 py-2",
@@ -63,7 +63,15 @@ const RoleSwitchFooterItem = ({
           <Icon className="h-3.5 w-3.5 text-foreground" />
         </span>
       </span>
-      {!collapsed && <span className="truncate">{label}</span>}
+      <span
+        className={cn(
+          "truncate whitespace-nowrap transition-[max-width,opacity,transform] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
+          collapsed ? "max-w-0 -translate-x-1 opacity-0" : "max-w-[170px] translate-x-0 opacity-100",
+        )}
+      >
+        {label}
+      </span>
+
     </button>
   );
 };
