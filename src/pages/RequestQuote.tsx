@@ -314,13 +314,16 @@ const RequestQuote = () => {
       {!matches && !isLoading && !selectedBusiness && (
         <>
           <PageHero
+            eyebrow="Få tilbud"
             title="Få op til 3 gratis tilbud."
             subtitle="Beskriv opgaven, så finder vi de bedste serviceydere til dig — gratis og uforpligtende."
           />
 
-          <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 pb-12 md:pt-12 md:pb-20">
+          <section className="bg-surface px-4 pt-6 pb-14 sm:px-6 md:pt-12 md:pb-20 lg:px-8">
+          <div className="mx-auto max-w-3xl">
           {/* Form card */}
-          <form onSubmit={handleFind} className="surface-panel mt-4 rounded-[1.5rem] border border-border p-4 shadow-[0_24px_55px_-36px_hsl(var(--foreground)/0.28)] sm:rounded-[2rem] sm:p-6 md:mt-10 md:p-8">
+          <form onSubmit={handleFind} className="surface-panel rounded-[1.5rem] border border-border bg-card p-4 shadow-[0_28px_60px_-38px_hsl(var(--foreground)/0.35)] sm:rounded-[2rem] sm:p-6 md:p-8">
+
             {/* Step 1: Lokation — fuld step med eget nummer, så det stilmæssigt
                 matcher de øvrige trin. */}
             <div>
