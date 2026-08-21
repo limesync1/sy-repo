@@ -380,19 +380,26 @@ export const AdminShell = ({
 
   return (
     <div className="flex min-h-dvh w-full max-w-full overflow-x-hidden bg-secondary/50">
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-40 bg-foreground/40 lg:hidden" onClick={() => setSidebarOpen(false)} />
-      )}
+      {/* Mobil-overlay fader ind/ud i stedet for at poppe hårdt frem. */}
+      <div
+        aria-hidden={!sidebarOpen}
+        onClick={() => setSidebarOpen(false)}
+        className={cn(
+          "fixed inset-0 z-40 bg-foreground/40 backdrop-blur-[2px] transition-opacity duration-300 lg:hidden",
+          sidebarOpen ? "opacity-100" : "pointer-events-none opacity-0",
+        )}
+      />
 
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-[86vw] max-w-[320px] flex-col border-r border-border bg-background transition-[transform,width] duration-200 lg:h-dvh lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex w-[86vw] max-w-[320px] flex-col border-r border-border bg-background transition-[transform,width,box-shadow] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] lg:h-dvh lg:translate-x-0",
           collapsed ? "lg:w-[68px]" : "lg:w-[248px]",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full",
+          sidebarOpen ? "translate-x-0 shadow-2xl lg:shadow-none" : "-translate-x-full shadow-none",
         )}
         aria-label="Hovednavigation"
       >
+
         <div className={cn("flex h-14 shrink-0 items-center border-b border-border", collapsed ? "justify-center px-0" : "justify-between px-4")}>
           <Link to="/" className={cn("flex items-center gap-2 overflow-hidden", collapsed && "justify-center")} aria-label="Forside">
             {collapsed ? (
