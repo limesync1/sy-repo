@@ -118,6 +118,28 @@ const TOPIC_REPLIES: { keywords: string[]; replies: string[] }[] = [
       "Kan jeg filtrere efter by?",
     ],
   },
+  {
+    keywords: [
+      "rute", "ruteplan", "planlægger", "planlaegger", "kalender", "kørsel", "koersel",
+      "optimer", "optimér", "stop", "træk", "drag", "syg", "sygemeld", "fravær", "ferie",
+      "tidslinje", "kort", "eta", "gentag", "fast aftale", "interval", "print", "guide",
+      "manual", "brugsanvisning", "vejledning",
+    ],
+    replies: [
+      "Hvordan planlægger jeg en rute?",
+      "Hvad sker der hvis en medarbejder melder sig syg?",
+      "Kan jeg få en guide til ruteplanlæggeren?",
+    ],
+  },
+];
+
+/** Link til den downloadbare PDF-brugerguide til ruteplanlæggeren. */
+export const PLANNER_GUIDE_URL = "/guides/serviceydere-ruteplanlaegger-brugerguide.pdf";
+
+/** Emneord der betyder at brugeren sandsynligvis vil have guiden. */
+const PLANNER_GUIDE_KEYWORDS = [
+  "rute", "ruteplan", "planlægger", "planlaegger", "guide", "manual",
+  "brugsanvisning", "vejledning", "kalender", "optimer", "optimér", "stop",
 ];
 
 const UNSAFE_SUGGESTION_TERMS = [
