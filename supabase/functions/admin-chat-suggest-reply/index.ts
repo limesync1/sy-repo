@@ -14,6 +14,21 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+
+// Produktviden om ruteplanlæggeren — holdes kort og faktuel, så svar-udkastene
+// aldrig opfinder funktioner. Listen spejler src/data/routePlannerFeatures.ts.
+const PLANNER_GUIDE_URL = "https://serviceydere.dk/guides/serviceydere-ruteplanlaegger-brugerguide.pdf";
+const PLANNER_KNOWLEDGE = `RUTEPLANLÆGGEREN I VIRKSOMHEDSPANELET (/virksomhed/ruter):
+- Planlægning: træk aftaler ind på en rute, panel med "aftaler uden rute", auto-fordeling, handlinger på flere aftaler ad gangen, opret bestilling direkte i planlæggeren, opret/redigér ruter.
+- Visninger: uge-, måneds- og agendavisning, dagen som tidslinje, én kolonne pr. rute, justerbar tæthed og mørk tilstand, kortvisning med stop og rækkefølge.
+- Kørsel: beregnet kørselstid og ankomsttider (ETA), "optimér rækkefølge", "næste ledige tid", vejr på dagen.
+- Faste aftaler: intervaller/gentagelser, valg mellem "denne gang" eller "hele serien", pauser i en aftale.
+- Medarbejdere: meld medarbejder syg med guidet erstatning af aftaler, fravær/ferie/helligdage, kompetencer, billede og farve.
+- Sikkerhed: konfliktadvarsler, forhåndsvisning før ændringer gemmes, fortryd/gentag, historik på ruter med hvem/hvornår, diagnostik af aftaler der ikke kan vises.
+- Output: print/PDF af dagen, ruten sendes til medarbejder-appen (min dag, start dag, markér udført, egen statistik), tastaturgenveje.
+- Omkring: aftaler med filtre, kundekartotek og kundeimport (support hjælper med import), servicekatalog med prisberegner, indlærte tider, leads, livechat, regnskabsintegration (e-conomic og Dinero), abonnement.
+- Guide: en downloadbar PDF-brugerguide ligger på ${PLANNER_GUIDE_URL}, og en søgbar funktionsguide på https://serviceydere.dk/software/funktioner.`;
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") {
@@ -88,7 +103,7 @@ Deno.serve(async (req) => {
     }
 
     const firstName = (conv?.visitor_name || "kunden").split(" ")[0];
-    const systemPrompt = `Du er en venlig dansk kundeservice-medarbejder for platformen Serviceydere (markedsplads for håndværkere og serviceudbydere). Skriv ét konkret svar-udkast på dansk til "${firstName}" baseret på samtalehistorikken. Maks 4 sætninger. Brug "du", ikke "De". Ingen emojis. Ingen indledning som "Her er et svar:" — bare selve svaret. Hvis kunden spørger om noget der kræver opfølgning, foreslå konkret næste skridt.`;
+    const systemPrompt = `Du er en venlig dansk kundeservice-medarbejder for platformen Serviceydere (markedsplads for håndværkere og serviceudbydere). Skriv ét konkret svar-udkast på dansk til "${firstName}" baseret på samtalehistorikken. Maks 4 sætninger. Brug "du", ikke "De". Ingen emojis. Ingen indledning som "Her er et svar:" — bare selve svaret. Hvis kunden spørger om noget der kræver opfølgning, foreslå konkret næste skridt. Du kender platformens ruteplanlægger indgående — brug kun viden fra afsnittet nedenfor og find aldrig på funktioner. Når spørgsmålet handler om ruteplanlægning, kalender, ruter, medarbejderplanlægning eller "hvordan gør jeg", så henvis til den downloadbare brugerguide med det fulde link ${PLANNER_GUIDE_URL}.\n\n${PLANNER_KNOWLEDGE}`;
 
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
