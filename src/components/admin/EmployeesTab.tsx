@@ -670,7 +670,7 @@ const EmployeeRow = ({
       const path = `${user.id}/employees/${employee.id}-${Date.now()}.${ext}`;
       const { error } = await supabase.storage.from("business-assets").upload(path, file, {
         cacheControl: "3600",
-        upsert: true,
+        upsert: false,
       });
       if (error) throw error;
       const { data: { publicUrl } } = supabase.storage.from("business-assets").getPublicUrl(path);

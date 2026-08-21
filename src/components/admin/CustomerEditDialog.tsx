@@ -137,7 +137,7 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
       const ext = file.name.split(".").pop() || "png";
       const path = `${user.id}/customers/${initial?.id || crypto.randomUUID()}-${Date.now()}.${ext}`;
       const { error } = await supabase.storage.from("business-assets").upload(path, file, {
-        cacheControl: "3600", upsert: true,
+        cacheControl: "3600", upsert: false,
       });
       if (error) throw error;
       const { data: { publicUrl } } = supabase.storage.from("business-assets").getPublicUrl(path);

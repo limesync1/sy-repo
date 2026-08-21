@@ -746,6 +746,13 @@ const ServiceForm = ({
   useEffect(() => {
     if (!businessId) return;
     let cancelled = false;
+    // Formularen kan genbruges mellem virksomheder. Nulstil først, så
+    // regnskabsfelter aldrig hænger ved fra en tidligere aktiv integration.
+    setHasIntegration(false);
+    setIntegrationProvider(null);
+    setAccountingGroups({ product_groups: [], income_accounts: [], labels: {} });
+    setAccountingDefaults({});
+    setAccountingLoading(false);
     (async () => {
       // Tjek først om regnskabsintegration overhovedet er aktiveret i virksomhedens indstillinger.
       // Hvis ikke, skal vi hverken vise UI'et eller hente data fra regnskabsprogrammet.
@@ -1124,10 +1131,21 @@ const ServiceForm = ({
         service_category: serviceCategory.trim() || null,
         image_url: imageUrl || null,
         interval_options: intervalOptions.length > 0 ? intervalOptions : ["engangskøb"],
-        accounting_product_group: accountingProductGroup || null,
-        accounting_income_account: accountingIncomeAccount || null,
-        product_number: productNumber.trim() || null,
-        vat_zone: vatZone || null,
+        // Regnskabsdata må kun gemmes fra formularen, når virksomheden har
+        // en aktiv integration. Ved redigering uden integration bevares
+        // eventuelle historiske værdier, selv om felterne er skjult.
+        accounting_product_group: hasIntegration
+          ? (accountingProductGroup || null)
+          : (existingService?.accounting_product_group || null),
+        accounting_income_account: hasIntegration
+          ? (accountingIncomeAccount || null)
+          : (existingService?.accounting_income_account || null),
+        product_number: hasIntegration
+          ? (productNumber.trim() || null)
+          : (existingService?.product_number || null),
+        vat_zone: hasIntegration
+          ? (vatZone || null)
+          : (existingService?.vat_zone || null),
         is_active: isActive,
         default_employee_id: defaultEmployeeIds[0] || null,
         default_employee_ids: defaultEmployeeIds,

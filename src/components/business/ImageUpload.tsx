@@ -114,7 +114,9 @@ const ImageUpload = ({
 
       const { error } = await supabase.storage.from(bucket).upload(fileName, uploadBody, {
         cacheControl: "31536000",
-        upsert: true,
+        // Filnavnet er altid unikt. Undgå upsert, da Storage ellers kræver
+        // både INSERT-, SELECT- og UPDATE-policy og kan fejle med RLS.
+        upsert: false,
         contentType: ext === "webp" ? "image/webp" : (ext === "svg" ? "image/svg+xml" : file.type),
       });
 
