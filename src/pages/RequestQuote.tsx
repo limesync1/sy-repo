@@ -573,29 +573,39 @@ const RequestQuote = () => {
             </div>
           </form>
 
-          {/* How it works strip */}
-          <h2 className="mt-14 text-center text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
-            Sådan fungerer det
-          </h2>
-          <div className="mt-6 grid gap-3 sm:gap-5 sm:grid-cols-3">
-            {[
-              { n: 1, title: "Beskriv opgaven", text: "Vælg kategori og fortæl kort, hvad du har brug for.", hue: 186 },
-              { n: 2, title: "Vi matcher", text: "Vi finder op til 3 relevante udbydere i dit område.", hue: 262 },
-              { n: 3, title: "Sammenlign & vælg", text: "Se priser, læs anmeldelser og book direkte.", hue: 28 },
-            ].map((s) => (
-              <div
-                key={s.n}
-                style={{ ["--step" as string]: `${s.hue}` }}
-                className="rounded-2xl border border-border bg-card p-5 shadow-sm transition-transform duration-300 hover:-translate-y-1 sm:rounded-[1.5rem]"
-              >
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[hsl(var(--step)_70%_94%)] text-sm font-bold text-[hsl(var(--step)_60%_32%)] dark:bg-[hsl(var(--step)_45%_16%)] dark:text-[hsl(var(--step)_70%_78%)]">
-                  {s.n}
-                </div>
-                <h3 className="mt-3 text-sm font-semibold text-foreground">{s.title}</h3>
-                <p className="mt-1 text-sm leading-6 text-muted-foreground">{s.text}</p>
-              </div>
-            ))}
-          </div>
+          {/* Sidepanel: sådan fungerer det + tryghed. Sticky på desktop, og
+              lige under formularen på mobil hvor der ikke er plads ved siden af. */}
+          <aside className="lg:sticky lg:top-24 lg:self-start">
+            <div className="rounded-[1.5rem] border border-border bg-card p-5 shadow-sm sm:rounded-[1.75rem] sm:p-6">
+              <h2 className="text-base font-semibold tracking-tight text-foreground">Sådan fungerer det</h2>
+              <ol className="mt-4 space-y-4">
+                {[
+                  { n: 1, title: "Beskriv opgaven", text: "Vælg kategori og fortæl kort, hvad du har brug for.", hue: 186 },
+                  { n: 2, title: "Vi matcher", text: "Vi finder op til 3 relevante udbydere i dit område.", hue: 262 },
+                  { n: 3, title: "Sammenlign & vælg", text: "Se priser, læs anmeldelser og book direkte.", hue: 28 },
+                ].map((s) => (
+                  <li key={s.n} style={{ ["--step" as string]: `${s.hue}` }} className="flex gap-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[hsl(var(--step)_70%_94%)] text-sm font-bold text-[hsl(var(--step)_60%_32%)] dark:bg-[hsl(var(--step)_45%_16%)] dark:text-[hsl(var(--step)_70%_78%)]">
+                      {s.n}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-semibold text-foreground">{s.title}</span>
+                      <span className="mt-0.5 block text-sm leading-6 text-muted-foreground">{s.text}</span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            <div className="mt-4 rounded-[1.5rem] border border-border bg-surface p-5 sm:rounded-[1.75rem]">
+              <ul className="space-y-2.5 text-sm text-muted-foreground">
+                <li className="flex items-center gap-2"><Clock className="h-4 w-4 shrink-0 text-accent" /> Svar på 3-10 sekunder</li>
+                <li className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 shrink-0 text-accent" /> Kun verificerede udbydere</li>
+                <li className="flex items-center gap-2"><Check className="h-4 w-4 shrink-0 text-accent" /> Gratis og uforpligtende</li>
+              </ul>
+            </div>
+          </aside>
+
           </div>
           </section>
 
