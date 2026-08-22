@@ -29,7 +29,7 @@ const Reviews = () => {
     <div className="min-h-screen bg-background">
       <SEO
         title="Anmeldelser af Serviceydere — sådan sikrer vi kvalitet"
-        description="Anmeldelser og kundeoplevelser på Serviceydere er på vej. Læs hvordan vi verificerer udbydere via CVR, og hvordan anmeldelser kommer til at fungere på platformen."
+        description="Anmeldelser på Serviceydere er på vej. Læs hvordan vi verificerer udbydere via CVR, og hvordan anmeldelser kommer til at fungere."
         canonicalPath="/anmeldelser"
         keywords="serviceydere anmeldelser, kundeanmeldelser, erfaringer serviceydere, kvalitetssikring"
         jsonLd={jsonLd}
