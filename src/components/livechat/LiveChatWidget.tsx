@@ -342,15 +342,9 @@ const LiveChatWidget = () => {
             if (prev.some((m) => m.id === next.id)) return prev;
             return [...prev, next];
           });
-          if (lastMsgIdRef.current !== next.id) {
-            lastMsgIdRef.current = next.id;
-            // Play sound for incoming admin messages (not our own optimistic ones)
-            if (!initialLoadRef.current && next.sender_type === "admin" && !next.is_system) {
-              chatSounds.incoming();
-            } else if (next.is_system) {
-              chatSounds.system();
-            }
-          }
+          lastMsgIdRef.current = next.id;
+          playForMessage(next, { silent: initialLoadRef.current || next.sender_type === "visitor" });
+
           // Mark as read when widget is open
           if (open && next.sender_type === "admin") {
             supabase.rpc("mark_chat_read_by_token", { p_token: conversation.session_token }).then(() => {});
