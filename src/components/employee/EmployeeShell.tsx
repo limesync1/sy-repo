@@ -12,15 +12,15 @@
 //     <indhold />
 //   </EmployeeShell>
 import { Link, useNavigate } from "react-router-dom";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
-  LogOut, Calendar as CalendarIcon, BarChart3, MessageCircle, Briefcase,
+  LogOut, Calendar as CalendarIcon, BarChart3, MessageCircle, Briefcase, Building2,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useMyEmployee } from "@/hooks/useMyEmployee";
+import { useMyEmployee, useMyEmployees } from "@/hooks/useMyEmployee";
 import { useMyBusiness } from "@/hooks/useDatabase";
 import { useEmployees } from "@/hooks/useEmployees";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -29,6 +29,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { getEmployeeWorkspace } from "@/lib/employee-workspace";
+import EmployeeWorkspacePicker from "@/components/employee/EmployeeWorkspacePicker";
+
 
 export type EmployeeTabKey = "today" | "stats" | "livechat";
 
@@ -81,6 +84,17 @@ export const EmployeeShell = ({
 }: EmployeeShellProps) => {
   const { user, signOut } = useAuth();
   const { data: employee } = useMyEmployee();
+  const { data: myEmployeeRecords } = useMyEmployees();
+  const queryClient = useQueryClient();
+  // Arbejder brugeren for flere virksomheder, skal der vælges arbejdsplads
+  // før panelet vises. `pickerOpen` tvinger vælgeren frem ved manuelt skift.
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [workspaceId, setWorkspaceId] = useState<string | null>(() => getEmployeeWorkspace());
+  const multiWorkspace = (myEmployeeRecords?.length ?? 0) > 1;
+  const needsWorkspaceChoice =
+    multiWorkspace &&
+    (pickerOpen || !myEmployeeRecords!.some((e) => e.business_id === workspaceId));
+
   // Hvis medarbejderen også ejer virksomheden (typisk solo-ejeren), så
   // vises "Skift til virksomhedspanel" i profilmenuen.
   const { data: myBusiness } = useMyBusiness();
@@ -151,7 +165,24 @@ export const EmployeeShell = ({
     .join("") || "M";
   const accentColor = employee?.color || "hsl(var(--foreground))";
 
+  if (needsWorkspaceChoice) {
+    return (
+      <EmployeeWorkspacePicker
+        employees={myEmployeeRecords!}
+        currentBusinessId={workspaceId}
+        onSelected={(id) => {
+          setWorkspaceId(id);
+          setPickerOpen(false);
+          // Alle medarbejder-data (ruter, stop, statistik) hænger på den
+          // valgte virksomhed — ryd cachen så intet vises på tværs.
+          queryClient.clear();
+        }}
+      />
+    );
+  }
+
   return (
+
     <div className="isolate flex min-h-dvh flex-col bg-secondary/50">
       {/* Topbar — altid synlig */}
       <header className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
@@ -261,6 +292,13 @@ export const EmployeeShell = ({
                   <span className="truncate text-xs font-normal text-muted-foreground">{subLabel}</span>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                {multiWorkspace && (
+                  <DropdownMenuItem onClick={() => setPickerOpen(true)}>
+                    <Building2 className="mr-2 h-4 w-4" />
+                    Skift virksomhed
+                  </DropdownMenuItem>
+                )}
+
                 {myBusiness && (
                   <DropdownMenuItem onClick={() => navigate("/virksomhed")}>
                     <Briefcase className="mr-2 h-4 w-4" />

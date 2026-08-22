@@ -153,6 +153,29 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  // Én konto = én virksomhed. Er brugeren logget ind og ejer allerede en
+  // aktiv virksomhed, spærrer vi oprettelsen med en tydelig besked.
+  const [existingBusiness, setExistingBusiness] = useState<{ id: string; name: string } | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    if (!user) {
+      setExistingBusiness(null);
+      return;
+    }
+    supabase
+      .from("businesses")
+      .select("id, name")
+      .eq("owner_id", user.id)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setExistingBusiness((data as { id: string; name: string } | null) ?? null);
+      });
+    return () => { cancelled = true; };
+  }, [user]);
+
 
   const toggleFeature = (k: FeatureKey) =>
     setFeatures((p) => ({ ...p, [k]: !p[k] }));
@@ -233,8 +256,26 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
         }
       }
 
+      // Én konto = én virksomhed. Ejer brugeren allerede en aktiv virksomhed,
+      // stopper vi her i stedet for at oprette en dublet.
+      const { data: existingBiz } = await supabase
+        .from("businesses")
+        .select("id, name")
+        .eq("owner_id", activeUserId)
+        .is("deleted_at", null)
+        .limit(1)
+        .maybeSingle();
+      if (existingBiz) {
+        toast.error(
+          `Din konto er allerede tilknyttet virksomheden "${existingBiz.name}". Én konto kan kun have én virksomhed — log ind på virksomhedspanelet, eller kontakt support hvis du skal have flere.`,
+        );
+        setSubmitting(false);
+        return;
+      }
+
       // Opret virksomheden
       const cleanCvr = cvr.replace(/\D/g, "");
+
       const { data: bizData, error: bizError } = await supabase
         .from("businesses")
         .insert({
@@ -674,9 +715,25 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                 </div>
               )}
 
+              {existingBusiness && (
+                <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+                  <p className="text-sm font-semibold text-foreground">
+                    Din konto har allerede en virksomhed
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    "{existingBusiness.name}" er tilknyttet denne konto. Én konto kan kun
+                    have én virksomhed.
+                  </p>
+                  <Button asChild variant="outline" size="sm" className="mt-3 w-full">
+                    <Link to="/virksomhed">Gå til virksomhedspanelet</Link>
+                  </Button>
+                </div>
+              )}
+
               <Button
                 onClick={handleSubmit}
-                disabled={!canSubmit || submitting}
+                disabled={!canSubmit || submitting || !!existingBusiness}
+
                 className="relative mt-5 h-12 w-full gap-2 rounded-xl bg-foreground text-base font-semibold text-background shadow-sm transition-all hover:bg-foreground/90 hover:shadow-md hover:-translate-y-0.5 disabled:hover:translate-y-0"
               >
                 {submitting ? (
@@ -720,7 +777,8 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
             </div>
             <Button
               onClick={handleSubmit}
-              disabled={!canSubmit || submitting}
+              disabled={!canSubmit || submitting || !!existingBusiness}
+
               className="h-11 shrink-0 gap-2 rounded-full bg-gradient-to-r from-foreground to-foreground/85 px-5 text-sm font-semibold text-background shadow-md transition-all hover:from-foreground hover:to-foreground hover:shadow-lg active:scale-[0.98]"
             >
               {submitting ? (
