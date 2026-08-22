@@ -692,9 +692,25 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
                 </div>
               )}
 
+              {existingBusiness && (
+                <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+                  <p className="text-sm font-semibold text-foreground">
+                    Din konto har allerede en virksomhed
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    "{existingBusiness.name}" er tilknyttet denne konto. Én konto kan kun
+                    have én virksomhed.
+                  </p>
+                  <Button asChild variant="outline" size="sm" className="mt-3 w-full">
+                    <Link to="/virksomhed">Gå til virksomhedspanelet</Link>
+                  </Button>
+                </div>
+              )}
+
               <Button
                 onClick={handleSubmit}
-                disabled={!canSubmit || submitting}
+                disabled={!canSubmit || submitting || !!existingBusiness}
+
                 className="relative mt-5 h-12 w-full gap-2 rounded-xl bg-foreground text-base font-semibold text-background shadow-sm transition-all hover:bg-foreground/90 hover:shadow-md hover:-translate-y-0.5 disabled:hover:translate-y-0"
               >
                 {submitting ? (
