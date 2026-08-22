@@ -138,36 +138,109 @@ const ReactivateDialog = ({ open, businessId, businessName }: Props) => {
           onInteractOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}
         >
-          <DialogHeader>
-            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
-              <Lock className="h-6 w-6" />
-            </div>
-            <DialogTitle className="text-center">Genaktivér {businessName}</DialogTitle>
-            <DialogDescription className="text-center">
-              Din gratis prøveperiode er udløbet, og din virksomhed er midlertidigt deaktiveret. Tilføj et betalingskort for at få adgang til virksomhedspanelet igen.
-            </DialogDescription>
-          </DialogHeader>
+          {mode === "pay" ? (
+            <>
+              <DialogHeader>
+                <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
+                  <Lock className="h-6 w-6" />
+                </div>
+                <DialogTitle className="text-center">Genaktivér {businessName}</DialogTitle>
+                <DialogDescription className="text-center">
+                  Din gratis prøveperiode er udløbet, og din virksomhed er midlertidigt deaktiveret. Tilføj et betalingskort for at få adgang til virksomhedspanelet igen.
+                </DialogDescription>
+              </DialogHeader>
 
-          <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary/50 p-3 text-xs text-muted-foreground">
-            <ShieldCheck className="h-4 w-4 text-accent shrink-0" />
-            Sikker betaling via Stripe. Du kan opsige eller skifte plan når som helst fra Indstillinger.
-          </div>
+              <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary/50 p-3 text-xs text-muted-foreground">
+                <ShieldCheck className="h-4 w-4 text-accent shrink-0" />
+                Sikker betaling via Stripe. Du kan opsige eller skifte plan når som helst fra Indstillinger.
+              </div>
 
-          <div className="flex flex-col gap-2">
-            <Button
-              onClick={() => (hasCard ? openPortal() : setShowCheckout(true))}
-              disabled={openingPortal || !plan}
-              size="lg"
-              className="bg-foreground text-background hover:bg-foreground/90"
-            >
-              {openingPortal ? (
-                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Åbner sikker betaling…</>
-              ) : (
-                <><CreditCard className="mr-2 h-4 w-4" />{hasCard ? "Opdatér betalingskort" : "Tilføj betalingskort & genaktivér"}</>
+              <div className="flex flex-col gap-2">
+                <Button
+                  onClick={() => (hasCard ? openPortal() : setShowCheckout(true))}
+                  disabled={openingPortal || !plan}
+                  size="lg"
+                  className="bg-foreground text-background hover:bg-foreground/90"
+                >
+                  {openingPortal ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Åbner sikker betaling…</>
+                  ) : (
+                    <><CreditCard className="mr-2 h-4 w-4" />{hasCard ? "Opdatér betalingskort" : "Tilføj betalingskort & genaktivér"}</>
+                  )}
+                </Button>
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" className="flex-1" onClick={() => signOut()}>Log ud</Button>
+                  <Button
+                    variant="ghost"
+                    className="flex-1 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() => { setCode(""); setMode("delete-intro"); }}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" /> Slet virksomhed
+                  </Button>
+                </div>
+                <p className="text-center text-[11px] leading-relaxed text-muted-foreground">
+                  Vil du ikke fortsætte? Du kan slette virksomheden og dine data helt — så opkræves du aldrig.
+                </p>
+              </div>
+            </>
+          ) : (
+            <>
+              <DialogHeader>
+                <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
+                  <AlertTriangle className="h-6 w-6" />
+                </div>
+                <DialogTitle className="text-center">Slet {businessName}</DialogTitle>
+                <DialogDescription className="text-center">
+                  {mode === "delete-intro"
+                    ? "Virksomheden, dine services og data fjernes fra Serviceydere, og abonnementet annulleres med det samme. Platform-support kan rulle det tilbage i op til 30 dage."
+                    : `Indtast den 5-cifrede kode vi har sendt til ${ownerEmail}.`}
+                </DialogDescription>
+              </DialogHeader>
+
+              {mode === "delete-code" && (
+                <div className="space-y-2">
+                  <Input
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 5))}
+                    placeholder="00000"
+                    inputMode="numeric"
+                    maxLength={5}
+                    className="h-14 text-center font-mono text-2xl tabular-nums tracking-[0.5em]"
+                    autoFocus
+                  />
+                  <p className="text-center text-[11px] text-muted-foreground">
+                    Koden er gyldig i 15 minutter.{" "}
+                    <button
+                      type="button"
+                      onClick={requestDeletionCode}
+                      disabled={sending || cooldown > 0}
+                      className="font-medium text-foreground underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:text-muted-foreground disabled:no-underline"
+                    >
+                      {cooldown > 0 ? `Send ny kode om ${cooldown}s` : "Send ny kode"}
+                    </button>
+                  </p>
+                </div>
               )}
-            </Button>
-            <Button variant="ghost" onClick={() => signOut()}>Log ud</Button>
-          </div>
+
+              <div className="flex flex-col gap-2">
+                {mode === "delete-intro" ? (
+                  <Button variant="destructive" size="lg" onClick={requestDeletionCode} disabled={sending || !ownerEmail}>
+                    {sending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+                    Send bekræftelseskode
+                  </Button>
+                ) : (
+                  <Button variant="destructive" size="lg" onClick={confirmDeletion} disabled={confirming || code.length !== 5}>
+                    {confirming ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+                    Bekræft sletning
+                  </Button>
+                )}
+                <Button variant="ghost" onClick={() => setMode("pay")} disabled={sending || confirming}>
+                  <ArrowLeft className="mr-2 h-4 w-4" /> Tilbage
+                </Button>
+              </div>
+            </>
+          )}
+
         </DialogContent>
       </Dialog>
 
