@@ -55,6 +55,9 @@ const features = [
 
 
 const ForBusinesses = () => {
+  const { data: pricing } = usePlatformPricing();
+  const p = { ...PRICING_FALLBACK, ...(pricing ?? {}) };
+
   return (
     <section className="bg-secondary py-20 md:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -68,9 +71,10 @@ const ForBusinesses = () => {
               Drevet til at vækste din serviceforretning.
             </h2>
             <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground md:text-base">
-              Find nye kunder, planlæg dagens ruter og send fakturaer — fra ét samlet panel, så du bruger tiden på opgaverne i stedet for papirarbejdet.
+              Find nye kunder, planlæg dagens ruter og send fakturaer — fra ét samlet panel. {p.trial_days} dages gratis prøve uden betalingskort, og ingen binding.
             </p>
           </div>
+
           <div className="flex flex-wrap items-center gap-2.5 self-start md:self-auto">
             <SmartLink
               to="/opret-virksomhed"
