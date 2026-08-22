@@ -1,4 +1,5 @@
 import SmartLink from "@/components/SmartLink";
+import { usePlatformPricing } from "@/hooks/useBusinessPlan";
 import {
   ArrowRight,
   Users,
@@ -7,13 +8,30 @@ import {
   Sparkles,
   TrendingUp,
   Check,
+  Upload,
 } from "lucide-react";
 
 /**
  * Forretningsrettet sektion på forsiden. Bento-layout med ét stort, mørkt
  * "premium" hero-tile + 4 feature-kort. Den mørke kasse matcher hero/footer
  * og giver siden en tydelig rytme i stedet for den tidligere flade 4-grid.
+ *
+ * Priserne hentes fra get_platform_pricing (samme kilde som /software/priser
+ * og /opret-virksomhed), så forsiden aldrig kan komme i modstrid med den
+ * fakturering kunderne faktisk møder.
  */
+const PRICING_FALLBACK = {
+  base_price_dkk: 289,
+  price_accounting_integration_dkk: 269,
+  price_data_import_dkk: 1495,
+  price_per_employee_login_dkk: 59,
+  startup_fee_dkk: 2269,
+  trial_days: 14,
+};
+
+const kr = (n: number) =>
+  new Intl.NumberFormat("da-DK", { maximumFractionDigits: 0 }).format(Math.round(n));
+
 const features = [
   {
     icon: Users,
@@ -23,8 +41,8 @@ const features = [
   },
   {
     icon: Route,
-    title: "Ruteplanlægning til medarbejdere",
-    text: "Planlæg dagens stop, optimer kørerækkefølgen automatisk og send ruten direkte til medarbejderens telefon.",
+    title: "Ruteplanlægning inkluderet",
+    text: "Planlæg dagens stop, optimer kørerækkefølgen og send ruten direkte til medarbejderens telefon. Inkluderet i basis — ikke et tilkøb.",
     tone: "bg-feature-warm text-feature-warm-foreground",
   },
   {
@@ -34,6 +52,7 @@ const features = [
     tone: "bg-feature-lilac text-feature-lilac-foreground",
   },
 ];
+
 
 const ForBusinesses = () => {
   return (
