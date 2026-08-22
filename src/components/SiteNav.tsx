@@ -36,7 +36,7 @@ const NAV_GROUPS: { id: "customers" | "business"; label: string; items: NavItem[
     label: "For virksomheder",
     items: [
       { key: "business", label: "Bliv udbyder", to: "/opret-virksomhed" },
-      { key: "software", label: "Software", to: "/software" },
+      { key: "software", label: "Systemet", to: "/software" },
     ],
   },
 ];

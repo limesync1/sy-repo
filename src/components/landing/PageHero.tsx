@@ -1,4 +1,6 @@
 import { ReactNode } from "react";
+import { ChevronDown } from "lucide-react";
+
 
 interface PageHeroProps {
   /** Small uppercase eyebrow label rendered with an accent dot. */
@@ -34,8 +36,9 @@ const PageHero = ({
 }: PageHeroProps) => {
   const padding =
     size === "compact"
-      ? "pb-6 pt-6 sm:pb-8 sm:pt-8 lg:pb-10 lg:pt-10"
-      : "pb-16 pt-12 sm:pb-20 sm:pt-16 lg:pb-28 lg:pt-24";
+      ? "pb-5 pt-5 sm:pb-8 sm:pt-8 lg:pb-10 lg:pt-10"
+      : "pb-9 pt-8 sm:pb-14 sm:pt-12 lg:pb-28 lg:pt-24";
+
 
   return (
     <section
@@ -84,23 +87,30 @@ const PageHero = ({
               {eyebrow}
             </span>
           )}
-          <h1 className="mt-5 text-[1.9rem] font-semibold leading-[1.05] tracking-[-0.03em] text-background sm:text-[2.75rem] lg:text-[3.5rem]">
+          <h1 className="mt-4 text-[1.75rem] font-semibold leading-[1.08] tracking-[-0.03em] text-background sm:mt-5 sm:text-[2.5rem] lg:text-[3.5rem]">
             {title}
           </h1>
           {subtitle && (
-            <p className="mt-6 max-w-xl text-[15px] leading-7 text-background/80 sm:text-[18px] sm:leading-[1.6]">
+            <p className="mt-3 max-w-xl text-[14.5px] leading-6 text-background/80 sm:mt-5 sm:text-[17px] sm:leading-[1.6]">
               {subtitle}
             </p>
           )}
-          {children && <div className="mt-7 w-full max-w-2xl">{children}</div>}
+          {children && <div className="mt-5 w-full max-w-2xl sm:mt-7">{children}</div>}
           {actions && (
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <div className="mt-5 flex flex-col gap-3 sm:mt-7 sm:flex-row sm:flex-wrap">
               {actions}
             </div>
           )}
+
+        </div>
+
+        {/* Diskret indikator: viser at der er mere indhold under heroen på mobil. */}
+        <div aria-hidden className="pointer-events-none mt-6 flex justify-center sm:hidden">
+          <ChevronDown className="h-5 w-5 animate-bounce text-background/45" />
         </div>
       </div>
     </section>
+
   );
 };
 

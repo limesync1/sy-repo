@@ -192,26 +192,39 @@ const DynamicBusinessContent = () => {
       {/* ── Hero ── */}
       <header className="relative border-b border-border bg-background">
         <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8 md:pt-6">
-          {/* Cover image med blød gradient */}
+          {/* Cover — fast, forudsigeligt billedforhold så billedet aldrig
+              beskæres hårdt: 3:2 på mobil, bredere jo større skærmen bliver. */}
           <div className="relative overflow-hidden rounded-[1.75rem] border border-border bg-secondary shadow-[0_26px_60px_-40px_hsl(var(--foreground)/0.22)]">
-            <div className={`relative w-full ${hasCover ? "h-48 sm:h-56 md:h-72 lg:h-80" : "h-24 md:h-28"}`}>
-              {hasCover && (
-                <>
-                  <img
-                    src={business.cover_image_url!}
-                    alt={`${business.name}${business.city ? ` i ${business.city}` : ""} – billede`}
-                    className="h-full w-full object-cover"
-                    width={1600}
-                    height={640}
-                    loading="eager"
-                    decoding="async"
-                    fetchPriority="high"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/20 via-transparent to-transparent" />
-                </>
-              )}
-            </div>
+            {hasCover ? (
+              <a
+                href={business.cover_image_url!}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Åbn coverbillede i fuld størrelse"
+                className="group relative block aspect-[3/2] w-full sm:aspect-[2/1] lg:aspect-[16/6]"
+              >
+                <img
+                  src={business.cover_image_url!}
+                  alt={`${business.name}${business.city ? ` i ${business.city}` : ""} – billede`}
+                  className="h-full w-full object-cover object-center"
+                  width={1600}
+                  height={600}
+                  loading="eager"
+                  decoding="async"
+                  fetchPriority="high"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-foreground/25 via-transparent to-transparent" />
+              </a>
+            ) : (
+              <div
+                aria-hidden
+                className="relative h-24 w-full bg-gradient-to-br from-accent/25 via-accent/10 to-secondary md:h-32"
+              >
+                <div className="absolute inset-0 bg-noise opacity-[0.06]" />
+              </div>
+            )}
           </div>
+
 
           {/* Identity row — kun logoet overlapper coveret. Tekstkolonnen sidder
               i sin egen flow nedenunder, så branche-chips aldrig lander oven i billedet. */}

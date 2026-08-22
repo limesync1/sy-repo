@@ -87,7 +87,7 @@ const jsonLd: Record<string, unknown>[] = [
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Forside", item: "https://serviceydere.dk/" },
-      { "@type": "ListItem", position: 2, name: "Software", item: "https://serviceydere.dk/software" },
+      { "@type": "ListItem", position: 2, name: "Systemet", item: "https://serviceydere.dk/software" },
     ],
   },
   {
@@ -112,7 +112,7 @@ const SoftwareHub = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Software til servicevirksomheder | Serviceydere"
+        title="Systemet til servicevirksomheder | Serviceydere"
         description="Ruteplanlægning, medarbejder-app, booking, kunder, fakturering og markedsplads i ét dansk system. 14 dages gratis prøve uden betalingskort, derefter 289 kr./md."
         canonicalPath="/software"
         keywords="system til servicevirksomheder, ruteplanlægning software, serviceplanlægning, rengøringssystem, håndværkersystem, field service management danmark"
@@ -121,9 +121,10 @@ const SoftwareHub = () => {
       <SiteNav />
 
       <PageHero
-        eyebrow="Software til virksomheder"
+        eyebrow="Systemet til virksomheder"
         title="Ét system til planlægning, drift og nye kunder"
         subtitle="Ruteplanlægning, medarbejder-app, booking, kunder og fakturering — samlet ét sted."
+
         actions={
           <>
             <Link

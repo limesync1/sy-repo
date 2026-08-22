@@ -90,17 +90,18 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
             )}
           </div>
 
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-3 pt-1">
             {primaryCat ? (
               <span className="inline-flex items-center rounded-full bg-accent-soft px-2.5 py-1 text-[11px] font-semibold text-accent">
                 {primaryCat}
               </span>
             ) : <span />}
-            <span className="inline-flex items-center gap-1 text-sm font-semibold text-foreground">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-3.5 py-1.5 text-[13px] font-semibold text-background transition-transform group-hover:translate-x-0.5">
               Se virksomhed
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              <ArrowRight className="h-3.5 w-3.5" />
             </span>
           </div>
+
         </div>
       </Link>
     </article>
@@ -142,8 +143,8 @@ const RecentBusinesses = () => {
 
   if (!businesses || businesses.length === 0) return null;
 
-  const verifiedCount = businesses.filter((b) => b.is_verified).length;
-  const cityCount = new Set(businesses.map((b) => b.city).filter(Boolean)).size;
+
+
 
   return (
     <section className="relative isolate overflow-hidden bg-ocean py-20 text-ocean-foreground md:py-32">
@@ -155,37 +156,13 @@ const RecentBusinesses = () => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-10 flex flex-col gap-6 md:mb-12 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 rounded-full bg-ocean-foreground/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-ocean-foreground">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
-              </span>
-              Nyeste på platformen
-            </span>
-            <h2 className="mt-5 text-[2rem] font-semibold leading-[1.04] tracking-[-0.025em] md:text-[2.75rem] lg:text-[3.25rem]">
+            <h2 className="text-[2rem] font-semibold leading-[1.04] tracking-[-0.025em] md:text-[2.75rem] lg:text-[3.25rem]">
               Nye virksomheder i Danmark
             </h2>
-            <p className="mt-3 text-[15px] leading-7 text-ocean-foreground/75 md:text-base">
-              Bladr i de seneste udbydere — klik på et kort for at se priser, ydelser og anmeldelser.
+            <p className="mt-4 text-[15px] leading-7 text-ocean-foreground/80 md:text-base">
+              De senest tilføjede udbydere på platformen. Klik på en virksomhed for at se ydelser,
+              priser og anmeldelser — og book direkte.
             </p>
-            <div className="mt-6 flex flex-wrap items-center gap-2 text-[13px] font-semibold">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-ocean-foreground/25 bg-ocean-foreground/[0.14] px-3.5 py-1.5 text-ocean-foreground">
-                <Building2 className="h-3.5 w-3.5" aria-hidden />
-                {businesses.length} nye profiler
-              </span>
-              {verifiedCount > 0 && (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/20 px-3.5 py-1.5 text-ocean-foreground">
-                  <ShieldCheck className="h-3.5 w-3.5 text-accent" aria-hidden />
-                  {verifiedCount} verificeret
-                </span>
-              )}
-              {cityCount > 0 && (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-ocean-foreground/25 bg-ocean-foreground/[0.14] px-3.5 py-1.5 text-ocean-foreground">
-                  <MapPin className="h-3.5 w-3.5" aria-hidden />
-                  {cityCount} {cityCount === 1 ? "by" : "byer"}
-                </span>
-              )}
-            </div>
           </div>
           <Link
             to="/virksomheder"
@@ -195,6 +172,7 @@ const RecentBusinesses = () => {
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
         </div>
+
 
         <HorizontalScroller>
           {businesses.map((biz) => (

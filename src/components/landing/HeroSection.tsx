@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import SmartLink from "@/components/SmartLink";
 import { Button } from "@/components/ui/button";
 import SearchSuggest from "./SearchSuggest";
@@ -64,27 +64,29 @@ const HeroSection = () => {
       </div>
 
       {/* Indhold — asymmetrisk 60/40 grid */}
-      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 pb-20 pt-12 sm:px-6 sm:pb-24 sm:pt-16 lg:grid-cols-[60%_40%] lg:gap-20 lg:px-8 lg:pb-32 lg:pt-24">
+      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 pb-10 pt-8 sm:px-6 sm:pb-16 sm:pt-12 lg:grid-cols-[60%_40%] lg:gap-20 lg:px-8 lg:pb-32 lg:pt-24">
         <div className="max-w-2xl">
-          <h1 className="animate-fade-in text-[1.9rem] font-semibold leading-[1.05] tracking-[-0.03em] text-background sm:text-[2.75rem] lg:text-[3.5rem]">
+          <h1 className="animate-fade-in text-[1.75rem] font-semibold leading-[1.08] tracking-[-0.03em] text-background sm:text-[2.5rem] lg:text-[3.5rem]">
             Find den rette{" "}
             <span className="bg-[linear-gradient(110deg,hsl(var(--hero-cyan))_0%,hsl(var(--hero-cyan-bright))_50%,hsl(var(--hero-cyan))_100%)] bg-[length:200%_100%] bg-clip-text text-transparent animate-gradient-pan">
               serviceyder
             </span>{" "}
             til opgaven.
           </h1>
-          <p className="animate-fade-in [animation-delay:120ms] mt-6 max-w-xl text-[15px] leading-7 text-background/80 sm:text-[18px] sm:leading-[1.6]">
+          <p className="animate-fade-in [animation-delay:120ms] mt-3 max-w-xl text-[14.5px] leading-6 text-background/80 sm:mt-5 sm:text-[17px] sm:leading-[1.6]">
             Sammenlign lokale udbydere, se priser og book direkte — alt samlet ét sted.
           </p>
 
-          <div className="animate-fade-in [animation-delay:220ms] relative z-20 mt-7 w-full max-w-2xl">
+
+          <div className="animate-fade-in [animation-delay:220ms] relative z-20 mt-5 w-full max-w-2xl sm:mt-7">
             <SearchSuggest variant="hero" showNearLabel={false} placeholder="Søg efter service, virksomhed eller by…" />
             <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-background/80">
               <LocationChip />
             </div>
           </div>
 
-          <div className="animate-fade-in [animation-delay:320ms] mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <div className="animate-fade-in [animation-delay:320ms] mt-5 flex flex-col gap-3 sm:mt-7 sm:flex-row sm:flex-wrap">
+
             <SmartLink to="/virksomheder" className="sm:w-auto">
               <Button size="lg" className="group h-11 w-full gap-2 rounded-full bg-background px-6 text-sm font-semibold text-foreground shadow-md transition-all duration-200 hover:bg-background/90 active:scale-[0.98] sm:w-auto">
                 Find services
@@ -102,11 +104,19 @@ const HeroSection = () => {
               </Button>
             </SmartLink>
           </div>
+
+
+
+          {/* Diskret indikator: viser at der er mere indhold under heroen på mobil. */}
+          <div aria-hidden className="pointer-events-none mt-6 flex justify-center sm:hidden">
+            <ChevronDown className="h-5 w-5 animate-bounce text-background/45" />
+          </div>
         </div>
 
         {/* Højre 40% — bevidst tom, så de ambient glows får luft og giver premium-feel. */}
         <div aria-hidden className="hidden lg:block" />
       </div>
+
     </header>
   );
 };

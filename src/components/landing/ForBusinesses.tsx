@@ -1,4 +1,5 @@
 import SmartLink from "@/components/SmartLink";
+import { usePlatformPricing } from "@/hooks/useBusinessPlan";
 import {
   ArrowRight,
   Users,
@@ -7,13 +8,30 @@ import {
   Sparkles,
   TrendingUp,
   Check,
+  Upload,
 } from "lucide-react";
 
 /**
  * Forretningsrettet sektion på forsiden. Bento-layout med ét stort, mørkt
  * "premium" hero-tile + 4 feature-kort. Den mørke kasse matcher hero/footer
  * og giver siden en tydelig rytme i stedet for den tidligere flade 4-grid.
+ *
+ * Priserne hentes fra get_platform_pricing (samme kilde som /software/priser
+ * og /opret-virksomhed), så forsiden aldrig kan komme i modstrid med den
+ * fakturering kunderne faktisk møder.
  */
+const PRICING_FALLBACK = {
+  base_price_dkk: 289,
+  price_accounting_integration_dkk: 269,
+  price_data_import_dkk: 1495,
+  price_per_employee_login_dkk: 59,
+  startup_fee_dkk: 2269,
+  trial_days: 14,
+};
+
+const kr = (n: number) =>
+  new Intl.NumberFormat("da-DK", { maximumFractionDigits: 0 }).format(Math.round(n));
+
 const features = [
   {
     icon: Users,
@@ -23,8 +41,8 @@ const features = [
   },
   {
     icon: Route,
-    title: "Ruteplanlægning til medarbejdere",
-    text: "Planlæg dagens stop, optimer kørerækkefølgen automatisk og send ruten direkte til medarbejderens telefon.",
+    title: "Ruteplanlægning inkluderet",
+    text: "Planlæg dagens stop, optimer kørerækkefølgen og send ruten direkte til medarbejderens telefon. Inkluderet i basis — ikke et tilkøb.",
     tone: "bg-feature-warm text-feature-warm-foreground",
   },
   {
@@ -35,7 +53,11 @@ const features = [
   },
 ];
 
+
 const ForBusinesses = () => {
+  const { data: pricing } = usePlatformPricing();
+  const p = { ...PRICING_FALLBACK, ...(pricing ?? {}) };
+
   return (
     <section className="bg-secondary py-20 md:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -49,9 +71,10 @@ const ForBusinesses = () => {
               Drevet til at vækste din serviceforretning.
             </h2>
             <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground md:text-base">
-              Find nye kunder, planlæg dagens ruter og send fakturaer — fra ét samlet panel, så du bruger tiden på opgaverne i stedet for papirarbejdet.
+              Find nye kunder, planlæg dagens ruter og send fakturaer — fra ét samlet panel. {p.trial_days} dages gratis prøve uden betalingskort, og ingen binding.
             </p>
           </div>
+
           <div className="flex flex-wrap items-center gap-2.5 self-start md:self-auto">
             <SmartLink
               to="/opret-virksomhed"
@@ -161,11 +184,14 @@ const ForBusinesses = () => {
                 to="/opret-virksomhed"
                 className="group inline-flex items-center gap-2 rounded-full bg-background px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5"
               >
-                Kom i gang gratis
+                Prøv gratis i {p.trial_days} dage
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </SmartLink>
-              <span className="text-xs text-background/80">14 dages prøveperiode · ingen binding.</span>
+              <span className="text-xs text-background/80">
+                Ingen betalingskort ved start · ingen binding · derefter {kr(p.base_price_dkk)} kr/md.
+              </span>
             </div>
+
           </article>
 
           {/* 4 feature-kort i den højre kolonne på desktop, 2x2 grid på mindre. */}
@@ -185,35 +211,50 @@ const ForBusinesses = () => {
           ))}
         </div>
 
-        {/* Gennemsigtig prismodel — vist tydeligt så virksomheder ved præcis hvad de betaler. */}
-        <div className="mt-16 rounded-[28px] border border-border/70 bg-card p-8 sm:p-10">
-          <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-                <span className="h-px w-6 bg-foreground/30" />
-                Prismodel
-              </span>
-              <h3 className="mt-3 text-[1.6rem] font-semibold leading-tight tracking-[-0.02em] text-foreground sm:text-[2rem]">
-                Én fast pris. Ingen skjulte gebyrer.
-              </h3>
-              <p className="mt-2 max-w-xl text-[14.5px] leading-6 text-muted-foreground">
-                14 dages gratis prøveperiode uden binding. Opstartsgebyret betales først på første faktura efter prøveperioden.
-              </p>
+        {/* Gennemsigtig prismodel — tallene kommer fra samme kilde som prissiden. */}
+        <div className="mt-16 overflow-hidden rounded-[28px] border border-border/70 bg-card">
+          <div className="border-b border-border/70 bg-secondary/60 px-8 py-8 sm:px-10">
+            <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+              <span className="h-px w-6 bg-foreground/30" />
+              Prismodel
+            </span>
+            <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <h3 className="text-[1.6rem] font-semibold leading-tight tracking-[-0.02em] text-foreground sm:text-[2rem]">
+                  Én fast pris. Ingen skjulte gebyrer.
+                </h3>
+                <p className="mt-2 max-w-xl text-[14.5px] leading-6 text-muted-foreground">
+                  {p.trial_days} dages gratis prøve — du skal ikke oplyse betalingskort for at komme i gang.
+                  Vil du fortsætte, tilføjer du kort i panelet. Opstartsgebyret betales først på første faktura efter prøven.
+                  Alle priser er ekskl. moms.
+                </p>
+              </div>
+              <SmartLink
+                to="/software/priser"
+                className="group inline-flex shrink-0 items-center gap-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
+              >
+                Beregn jeres pris
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </SmartLink>
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 p-6 sm:p-8 md:grid-cols-2">
             {/* Basis */}
-            <div className="rounded-2xl border-2 border-foreground/90 bg-background p-6">
+            <div className="flex flex-col rounded-2xl border-2 border-foreground/90 bg-background p-6">
               <div className="flex items-baseline justify-between">
-                <h4 className="text-base font-semibold text-foreground">Basis</h4>
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Påkrævet</span>
+                <h4 className="text-base font-semibold text-foreground">Basis — alt det vigtige</h4>
+                <span className="rounded-full bg-foreground px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-background">
+                  Inkluderet
+                </span>
               </div>
               <div className="mt-3 flex items-baseline gap-1">
-                <span className="text-4xl font-semibold tabular-nums text-foreground">289</span>
+                <span className="text-4xl font-semibold tabular-nums text-foreground">{kr(p.base_price_dkk)}</span>
                 <span className="text-sm text-muted-foreground">kr/md</span>
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">Engangs opstartsgebyr: 2.269 kr (på første faktura)</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Engangs opstartsgebyr: {kr(p.startup_fee_dkk)} kr (på første faktura efter prøven)
+              </p>
               <ul className="mt-5 space-y-2 text-[13.5px] text-foreground">
                 {[
                   "Virksomhedsprofil med søgesynlighed",
@@ -231,9 +272,14 @@ const ForBusinesses = () => {
             </div>
 
             {/* Tilvalg */}
-            <div className="rounded-2xl border border-border bg-background p-6">
-              <h4 className="text-base font-semibold text-foreground">Tilvalg — kun det du bruger</h4>
-              <p className="mt-1 text-xs text-muted-foreground">Slå til/fra når som helst i panelet.</p>
+            <div className="flex flex-col rounded-2xl border border-border bg-background p-6">
+              <div className="flex items-baseline justify-between">
+                <h4 className="text-base font-semibold text-foreground">Tilvalg — kun det I bruger</h4>
+                <span className="rounded-full border border-border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Frivilligt
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">Slå til og fra når som helst i panelet.</p>
 
               <div className="mt-5 space-y-4">
                 <div className="flex items-start justify-between gap-4 border-b border-border/60 pb-4">
@@ -242,31 +288,48 @@ const ForBusinesses = () => {
                     <div className="mt-0.5 text-xs text-muted-foreground">Automatiske fakturaer til e-conomic eller Dinero.</div>
                   </div>
                   <div className="shrink-0 text-right">
-                    <div className="text-base font-semibold tabular-nums text-foreground">+269 kr</div>
+                    <div className="text-base font-semibold tabular-nums text-foreground">+{kr(p.price_accounting_integration_dkk)} kr</div>
                     <div className="text-[11px] text-muted-foreground">/md</div>
                   </div>
                 </div>
 
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start justify-between gap-4 border-b border-border/60 pb-4">
                   <div>
                     <div className="text-sm font-medium text-foreground">Ekstra medarbejderlogin</div>
                     <div className="mt-0.5 text-xs text-muted-foreground">Pris pr. ekstra medarbejder ud over den ene inkluderede.</div>
                   </div>
                   <div className="shrink-0 text-right">
-                    <div className="text-base font-semibold tabular-nums text-foreground">+59 kr</div>
+                    <div className="text-base font-semibold tabular-nums text-foreground">+{kr(p.price_per_employee_login_dkk)} kr</div>
                     <div className="text-[11px] text-muted-foreground">/md pr. stk</div>
+                  </div>
+                </div>
+
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                      <Upload className="h-3.5 w-3.5 text-muted-foreground" />
+                      Vi flytter jeres nuværende kunder ind
+                    </div>
+                    <div className="mt-0.5 text-xs text-muted-foreground">
+                      Send jeres kundeliste — vores support lægger kunder, adresser og faste aftaler ind for jer.
+                    </div>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <div className="text-base font-semibold tabular-nums text-foreground">{kr(p.price_data_import_dkk)} kr</div>
+                    <div className="text-[11px] text-muted-foreground">engangs</div>
                   </div>
                 </div>
               </div>
 
               <div className="mt-6 rounded-xl bg-muted/60 p-3 text-[12.5px] leading-5 text-muted-foreground">
-                Nedjusteringer (færre logins eller deaktivering af regnskab) låses 3 dage før fakturering og træder i kraft fra næste periode — så du betaler altid for det du faktisk har brugt.
+                Nedjusteringer (færre logins eller deaktivering af regnskab) låses 3 dage før fakturering og træder i kraft fra næste periode — så I betaler altid for det I faktisk har brugt.
               </div>
             </div>
           </div>
         </div>
       </div>
     </section>
+
   );
 };
 

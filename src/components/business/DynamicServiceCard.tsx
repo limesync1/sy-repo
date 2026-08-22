@@ -177,33 +177,56 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
     ? service.interval_options : ["engangskøb"];
   const showIntervals = intervals.length > 1 || (intervals.length === 1 && intervals[0] !== "engangskøb");
 
+  const isFixed = service.pricing_type === "fast_pris";
+
   return (
-    <Card className="group flex h-full flex-col overflow-hidden rounded-xl border-border/80 bg-card transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/25">
-      {/* Billede — kun når der er ét. Tom placeholder fjernet for at spare højde. */}
-      {service.image_url && (
-        <div className="relative h-16 w-full overflow-hidden bg-secondary sm:h-24">
+    <Card className="group flex h-full flex-col overflow-hidden rounded-2xl border-border/80 bg-card transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-[0_18px_40px_-28px_hsl(var(--foreground)/0.35)]">
+      {/* Billede i fast 16:9 — samme højde på alle kort, og aldrig beskåret hårdt. */}
+      {service.image_url ? (
+        <div className="relative aspect-[16/9] w-full overflow-hidden bg-secondary">
           <img
             src={service.image_url}
             alt={service.name}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
             loading="lazy"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-foreground/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-foreground/45 to-transparent" />
+          <span
+            className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide backdrop-blur ${
+              isFixed
+                ? "bg-background/90 text-foreground"
+                : "bg-accent/90 text-accent-foreground"
+            }`}
+          >
+            {isFixed ? "Fast pris" : "Prisoverslag"}
+          </span>
+        </div>
+      ) : (
+        <div
+          aria-hidden
+          className="relative aspect-[16/5] w-full bg-gradient-to-br from-accent/25 via-accent/10 to-secondary"
+        >
+          <span
+            className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${
+              isFixed ? "bg-background/90 text-foreground" : "bg-accent text-accent-foreground"
+            }`}
+          >
+            {isFixed ? "Fast pris" : "Prisoverslag"}
+          </span>
         </div>
       )}
 
-      <CardContent className="flex flex-1 flex-col p-2 sm:p-2.5">
-        <div className="flex items-start justify-between gap-3 border-b border-border/70 pb-2">
-          <div className="min-w-0 flex-1">
-           <h3 className="text-sm font-bold leading-tight text-foreground sm:text-base">{service.name}</h3>
+      <CardContent className="flex flex-1 flex-col p-3 sm:p-4">
+        <div className="border-b border-border/70 pb-2.5">
+          <h3 className="text-[15px] font-bold leading-tight text-foreground sm:text-base">{service.name}</h3>
           {(service as any).subcategory && (
-            <span className="mt-1 inline-flex rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-semibold text-accent">{(service as any).subcategory}</span>
+            <span className="mt-1.5 inline-flex rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-semibold text-accent">{(service as any).subcategory}</span>
           )}
           {service.description && (
-             <p className="mt-1 text-[11px] leading-snug text-muted-foreground/90 line-clamp-2">{service.description}</p>
+            <p className="mt-1.5 text-xs leading-snug text-muted-foreground line-clamp-2">{service.description}</p>
           )}
-          </div>
         </div>
+
 
         <div className="mt-2 space-y-2">
         {showIntervals && (
@@ -225,9 +248,12 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
         )}
 
         <div className="rounded-lg border border-border bg-secondary/20 p-2">
-          {service.pricing_type !== "fast_pris" && (
-            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Tilpas</p>
+          {!isFixed && (
+            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Tilpas opgaven — prisen opdateres automatisk
+            </p>
           )}
+
 
         {/* Fast pris */}
         {service.pricing_type === "fast_pris" && (
@@ -275,21 +301,24 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
         )}
         </div>
 
-        <div className="rounded-lg border border-accent/20 bg-[hsl(var(--accent)/0.06)] p-2">
-          <div className="mb-1.5 flex items-center justify-between gap-2">
+        <div className="mt-auto rounded-xl border border-accent/25 bg-[hsl(var(--accent)/0.07)] p-2.5">
+          <div className="mb-2 flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Prisoverslag</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                {isFixed ? "Fast pris" : "Prisoverslag"}
+              </p>
               <div className="mt-0.5 flex items-baseline gap-1">
-                <p className="text-base font-bold leading-none text-foreground sm:text-lg">{roundPrice(total)}</p>
+                <p className="text-lg font-bold leading-none text-foreground sm:text-xl">{roundPrice(total)}</p>
                 <span className="text-[11px] text-muted-foreground">kr</span>
                 <span className="ml-1 truncate text-[10px] text-muted-foreground">
                   · {selectedInterval && selectedInterval !== "engangskøb"
                     ? INTERVAL_LABELS[selectedInterval] || selectedInterval
-                    : "engangs"}
+                    : "engangskøb"}
                 </span>
               </div>
             </div>
           </div>
+
           <Button
             onClick={handleAdd}
             disabled={justAdded}
