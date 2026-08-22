@@ -1482,16 +1482,23 @@ const ServiceForm = ({
                   <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     {rankedTemplates.slice(0, 3).map((t, idx) => {
                       const isBest = idx === 0 && isBestMatch;
+                      const isSelected = appliedTemplateLabel === t.label;
                       return (
                         <button
                           key={t.label}
                           type="button"
                           onClick={() => applyTemplate(t)}
                           className={`group relative flex flex-col rounded-xl border bg-card p-4 text-left transition-all hover:border-foreground/50 hover:shadow-md ${
-                            isBest ? "border-foreground/70 ring-1 ring-foreground/10" : "border-border"
+                            isSelected
+                              ? "border-foreground bg-secondary ring-2 ring-foreground/20"
+                              : isBest ? "border-foreground/70 ring-1 ring-foreground/10" : "border-border"
                           }`}
                         >
-                          {isBest && (
+                          {isSelected ? (
+                            <span className="absolute -top-2 left-3 inline-flex items-center gap-1 rounded-full bg-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-background">
+                              <Check className="h-2.5 w-2.5" /> Valgt
+                            </span>
+                          ) : isBest && (
                             <span className="absolute -top-2 left-3 rounded-full bg-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-background">
                               Bedste match
                             </span>
@@ -1505,7 +1512,7 @@ const ServiceForm = ({
                             {t.steps.length > 3 ? " …" : ""}
                           </span>
                           <span className="mt-3 inline-flex items-center gap-1 text-[11px] font-medium text-foreground/70 group-hover:text-foreground">
-                            Brug skabelon →
+                            {isSelected ? "Anvendt ✓" : "Brug skabelon →"}
                           </span>
                         </button>
                       );
@@ -1591,12 +1598,13 @@ const ServiceForm = ({
                   <CardContent className="p-4 space-y-3">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="mb-1 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Navn</label>
+                        <label className="mb-1 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Navn på trin</label>
                         <Input placeholder="Fx Boligens størrelse" value={step.label}
                           onChange={(e) => updateStep(i, "label", e.target.value)} className="bg-card" />
+                        <p className="mt-1 text-[11px] text-muted-foreground">Det kunden ser, fx "Antal m²" eller "Antal rum".</p>
                       </div>
                       <div>
-                        <label className="mb-1 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Enhed</label>
+                        <label className="mb-1 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Enhed kunden vælger i</label>
                         <div className="flex flex-wrap gap-1.5">
                           {["stk", "m²", "m", "timer", "rum", "km", "kg", "kr"].map((u) => (
                             <button key={u} type="button" onClick={() => updateStep(i, "unit", u)}
@@ -1611,13 +1619,13 @@ const ServiceForm = ({
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                       {[
-                        { label: `Pris / ${step.unit || "enhed"}`, hint: "kr", field: "price_per_unit", value: step.price_per_unit },
-                        { label: "Minimum", hint: step.unit, field: "min_value", value: step.min_value },
-                        { label: "Maksimum", hint: step.unit, field: "max_value", value: step.max_value },
-                        { label: "Standard", hint: step.unit, field: "default_value", value: step.default_value },
+                        { label: `Pris pr. ${step.unit || "enhed"}`, help: `Kr. pr. ${step.unit || "enhed"}, fx 12 kr/m²`, hint: "kr", field: "price_per_unit", value: step.price_per_unit },
+                        { label: "Mindste antal", help: "Det laveste kunden kan vælge", hint: step.unit, field: "min_value", value: step.min_value },
+                        { label: "Højeste antal", help: "Det højeste kunden kan vælge", hint: step.unit, field: "max_value", value: step.max_value },
+                        { label: "Forudvalgt antal", help: "Vist som udgangspunkt hos kunden", hint: step.unit, field: "default_value", value: step.default_value },
                       ].map((f) => (
                         <div key={f.field}>
-                          <label className="mb-1 block text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                          <label className="mb-1 block text-xs font-medium text-muted-foreground uppercase tracking-wider" title={f.help}>
                             {f.label}
                           </label>
                           <div className="relative">
@@ -1628,6 +1636,7 @@ const ServiceForm = ({
                               {f.hint}
                             </span>
                           </div>
+                          <p className="mt-1 text-[10.5px] leading-tight text-muted-foreground">{f.help}</p>
                         </div>
                       ))}
                     </div>

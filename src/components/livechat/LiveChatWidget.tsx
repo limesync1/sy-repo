@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import {
   MessageCircle, Send, Loader2, ChevronDown, CheckCheck, Paperclip, X as XIcon,
   ImageIcon, Volume2, VolumeX, MoreVertical, MessagesSquare, ArrowLeft, Trash2,
+  Bot, UserRound,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -205,6 +206,7 @@ const LiveChatWidget = () => {
   const [pendingImagePreview, setPendingImagePreview] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [muted, setMuted] = useState<boolean>(chatSounds.isMuted());
+  const [aiThinking, setAiThinking] = useState(false);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -464,6 +466,7 @@ const LiveChatWidget = () => {
       setFirstMessage("");
       setSubject("");
       chatSounds.outgoing();
+      void requestAiReply(token);
 
       supabase.functions
         .invoke("send-transactional-email", {
@@ -511,10 +514,51 @@ const LiveChatWidget = () => {
     if (!mErr) {
       if (override === undefined) { setDraft(""); clearPendingImage(); }
       chatSounds.outgoing();
+      void requestAiReply(conversation.session_token);
     } else {
       toast.error(mErr.message || "Beskeden kunne ikke sendes. Prøv igen.");
     }
-  }, [conversation, sending, draft, pendingImage]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [conversation, sending, draft, pendingImage, requestAiReply]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Beder AI-assistenten om at svare på seneste besked. Funktionen afgør selv
+  // om den skal svare (den springer over hvis samtalen er eskaleret, lukket,
+  // eller en rigtig medarbejder allerede har taget over) — så vi kan kalde
+  // den trygt efter hver besked fra den besøgende.
+  const requestAiReply = useCallback(async (token: string) => {
+    setAiThinking(true);
+    try {
+      const { data } = await supabase.functions.invoke("livechat-ai-reply", { body: { token } });
+      const appendIfNew = (row: any) => {
+        if (!row) return;
+        setMessages((prev) => (prev.some((m) => m.id === row.id) ? prev : [...prev, row]));
+      };
+      appendIfNew(data?.message);
+      appendIfNew(data?.escalationMessage);
+      if (data?.message?.sender_type === "admin") chatSounds.incoming();
+    } catch {
+      // Stille fejl — beskeden dukker op via polling hvis den alligevel blev gemt,
+      // og vi vil ikke forstyrre brugeren med en fejltoast for en baggrundsproces.
+    } finally {
+      setAiThinking(false);
+    }
+  }, []);
+
+  // "Tal med et menneske" — brugeren kan altid selv bede om at blive koblet
+  // til en rigtig medarbejder, uanset hvad AI'en ellers svarer.
+  const requestHumanHandoff = useCallback(async () => {
+    if (!conversation) return;
+    try {
+      const { data } = await supabase.functions.invoke("livechat-ai-reply", {
+        body: { token: conversation.session_token, action: "escalate" },
+      });
+      if (data?.message) {
+        setMessages((prev) => (prev.some((m) => m.id === data.message.id) ? prev : [...prev, data.message]));
+        chatSounds.system();
+      }
+    } catch {
+      toast.error("Kunne ikke koble en medarbejder på. Prøv igen.");
+    }
+  }, [conversation]);
 
   const endChatSession = async () => {
     if (!conversation) return;
