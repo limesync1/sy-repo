@@ -244,7 +244,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
         .maybeSingle();
       if (existingBiz) {
         toast.error(
-          `Din konto er allerede tilknyttet virksomheden "${existingBiz.name}". Én konto kan kun have én virksomhed — log ind på virksomhedspanelet, eller kontakt支 support hvis du skal have flere.`,
+          `Din konto er allerede tilknyttet virksomheden "${existingBiz.name}". Én konto kan kun have én virksomhed — log ind på virksomhedspanelet, eller kontakt support hvis du skal have flere.`,
         );
         setSubmitting(false);
         return;
