@@ -167,6 +167,10 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
   };
 
   const pickSuggestion = (s: Suggestion) => {
+    if (s.type === "query") {
+      submit(s.label);
+      return;
+    }
     if (s.type === "business") {
       navigate(`/b/${s.slug}`);
     } else if (s.type === "category") {
@@ -182,6 +186,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
     }
     setOpen(false);
   };
+
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {
