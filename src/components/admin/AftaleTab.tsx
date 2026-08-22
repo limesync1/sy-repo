@@ -566,7 +566,7 @@ const ProposalStatusBanner = ({ order }: { order: any }) => {
         <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
         <div>
           <p className="text-sm font-semibold text-green-900">Kunden godkendte dit forslag</p>
-          <p className="text-xs text-green-700">Aftalen er bekræftet til {order.adjusted_amount} kr. Du kan nu starte arbejdet.</p>
+          <p className="text-xs text-green-700">Aftalen er bekræftet til {formatPrice(order.adjusted_amount)} Du kan nu starte arbejdet.</p>
         </div>
       </div>
     );

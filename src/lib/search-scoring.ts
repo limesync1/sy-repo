@@ -10,15 +10,25 @@
  *  whitespace, og fjernede diakritiske tegn — men bevarer æ/ø/å som de er
  *  (de må IKKE foldes til a/o/a, da det ville slå fejl-matches sammen med
  *  helt andre ord på dansk, fx "hår" vs "har"). */
-export const normalizeDanish = (input: string): string =>
-  input
+export const normalizeDanish = (input: string): string => {
+  // NFKD dekomponerer OGSÅ æ/ø/å (å → a + combining ring above), som vi
+  // eksplicit IKKE vil folde til a/o/a — de er selvstændige danske bogstaver
+  // og skal forblive forskellige fra deres latinske "søskende". Vi beskytter
+  // dem derfor med midlertidige placeholders før NFKD-normaliseringen og
+  // gendanner dem bagefter.
+  const PLACEHOLDERS: Record<string, string> = { "æ": "", "ø": "", "å": "" };
+  const RESTORE: Record<string, string> = { "": "æ", "": "ø", "": "å" };
+  const protectedInput = input
     .toLowerCase()
+    .replace(/[æøå]/g, (ch) => PLACEHOLDERS[ch]);
+  return protectedInput
     .normalize("NFKD")
-    // Fjern kombinerende accent-tegn (é → e, ü → u …) men ikke æøå, som ikke
-    // dekomponeres af NFKD i utf-8 og derfor er upåvirkede af dette trin.
+    // Fjern kombinerende accent-tegn (é → e, ü → u …).
     .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\u0001\u0002\u0003]/g, (ch) => RESTORE[ch])
     .trim()
     .replace(/\s+/g, " ");
+};
 
 /** Damerau-Levenshtein-afstand (tilladt: indsæt, slet, erstat, transponér
  *  nabo-tegn) — bruges til at opfange typiske tastefejl som "kbenhavn"
