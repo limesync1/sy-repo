@@ -7,7 +7,31 @@
 
 export const PLANNER_GUIDE_URL =
   "https://serviceydere.dk/guides/serviceydere-ruteplanlaegger-brugerguide.pdf";
-export const FEATURE_GUIDE_URL = "https://serviceydere.dk/systemet/funktioner";
+export const FEATURE_GUIDE_URL = "https://serviceydere.dk/software/funktioner";
+
+/**
+ * De ENESTE gyldige links AI'en må sende. Menupunktet hedder "Systemet",
+ * men URL'en er /software/... — derfor står begge dele her.
+ */
+export const LINK_MAP = `GYLDIGE LINKS (brug KUN disse stier — opfind aldrig en URL):
+- Find services / søg virksomheder: /virksomheder
+- Få op til 3 tilbud: /tilbud
+- Systemet (produktoversigt for virksomheder): /software
+- Priser på systemet: /software/priser
+- Funktionsguide (søgbar): /software/funktioner
+- Ruteplanlægger: /software/ruteplanlaegger
+- Medarbejder-app: /software/medarbejder-app
+- Booking og tilbud: /software/booking-og-tilbud
+- Fakturering og regnskab: /software/fakturering-og-regnskab
+- Brancher: /software/brancher
+- Bliv udbyder / opret virksomhed: /bliv-udbyder
+- Hjælp og FAQ: /hjaelp
+- Kontakt: /kontakt
+- Anmeldelser: /anmeldelser
+- Om os: /om-os
+- Virksomhedspanel (kræver login): /virksomhed og /virksomhed/ruter
+Menuen viser "Systemet", men stien er /software — skriv ALDRIG /systemet/...`;
+
 
 /** Hvad Serviceydere er, og hvem der bruger det. */
 export const PLATFORM_KNOWLEDGE = `OM SERVICEYDERE:
