@@ -516,7 +516,8 @@ const LiveChatWidget = () => {
       };
       appendIfNew(data?.message);
       appendIfNew(data?.escalationMessage);
-      if (data?.message?.sender_type === "admin") chatSounds.incoming();
+      playForMessage(data?.message);
+      playForMessage(data?.escalationMessage);
     } catch {
       // Stille fejl — beskeden dukker op via polling hvis den alligevel blev gemt,
       // og vi vil ikke forstyrre brugeren med en fejltoast for en baggrundsproces.
@@ -564,7 +565,7 @@ const LiveChatWidget = () => {
       });
       if (data?.message) {
         setMessages((prev) => (prev.some((m) => m.id === data.message.id) ? prev : [...prev, data.message]));
-        chatSounds.system();
+        playForMessage(data.message);
       }
     } catch {
       toast.error("Kunne ikke koble en medarbejder på. Prøv igen.");
