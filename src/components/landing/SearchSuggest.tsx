@@ -392,8 +392,32 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
               );
             })}
           </ul>
+          {/* Fod: tastaturgenveje på desktop + genvej til de tre gratis tilbud,
+              så brugeren altid har en næste handling. */}
+          <div className="flex items-center justify-between gap-3 border-t border-border bg-secondary/30 px-4 py-2 text-[11px] text-muted-foreground">
+            <span className="hidden items-center gap-3 sm:flex">
+              <span className="inline-flex items-center gap-1">
+                <kbd className="rounded border border-border bg-card px-1 py-0.5 font-sans text-[10px]">↑</kbd>
+                <kbd className="rounded border border-border bg-card px-1 py-0.5 font-sans text-[10px]">↓</kbd>
+                naviger
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <kbd className="rounded border border-border bg-card px-1 py-0.5 font-sans text-[10px]">Enter</kbd>
+                vælg
+              </span>
+            </span>
+            <button
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => { setOpen(false); navigate("/tilbud"); }}
+              className="ml-auto inline-flex items-center gap-1 font-medium text-foreground underline-offset-2 hover:underline"
+            >
+              Ved du ikke hvad du søger? Få 3 gratis tilbud
+            </button>
+          </div>
         </div>
       )}
+
     </div>
   );
 };
