@@ -31,12 +31,21 @@ const ESCALATE_MARKER = "[ESKALER_TIL_MENNESKE]";
 
 // Sætninger der tydeligt betyder "jeg vil have en rigtig person" — bruges
 // som ekstra sikkerhedsnet ud over modellens egen vurdering.
+// Kun formuleringer der utvetydigt beder om et menneske. Bevidst IKKE bare
+// "medarbejder" — det ord indgår i helt normale produktspørgsmål ("hvad sker
+// der hvis en medarbejder melder sig syg?"), som AI'en skal svare på selv.
 const HUMAN_REQUEST_PATTERNS = [
   "tale med et menneske", "tale med en person", "snakke med et menneske",
   "snakke med en person", "en rigtig person", "et rigtigt menneske",
-  "medarbejder", "kundeservicemedarbejder", "menneskelig hjælp",
-  "ikke en robot", "ikke en bot", "supportmedarbejder",
+  "tale med en medarbejder", "snakke med en medarbejder",
+  "tale med kundeservice", "snakke med kundeservice",
+  "tale med support", "snakke med support",
+  "kontakt en medarbejder", "kald en medarbejder", "tilkald en medarbejder",
+  "menneskelig hjælp", "ikke en robot", "ikke en bot",
+  "supportmedarbejder", "kundeservicemedarbejder",
+  "jeg vil tale med", "jeg vil snakke med", "kan jeg tale med", "kan jeg snakke med",
 ];
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
