@@ -261,6 +261,11 @@ ${FULL_KNOWLEDGE}`;
     let reply: string = aiJson?.choices?.[0]?.message?.content?.trim() || "";
     const shouldEscalate = reply.includes(ESCALATE_MARKER);
     if (shouldEscalate) reply = reply.replace(ESCALATE_MARKER, "").trim();
+    // Sikkerhedsnet: menupunktet hedder "Systemet", men stien er /software.
+    reply = reply
+      .replace(/(https?:\/\/[^\s)]*serviceydere\.dk)?\/systemet\b/gi, (_m, host) => `${host || ""}/software`)
+      .replace(/\]\((?!https?:\/\/|\/|mailto:)([^)\s]+)\)/g, "](/$1)");
+
     if (!reply) reply = "Jeg er ikke helt sikker på svaret her — jeg kobler en medarbejder på til dig.";
 
     const { data: aiRow } = await admin
