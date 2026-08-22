@@ -202,7 +202,7 @@ const DynamicBusinessContent = () => {
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Åbn coverbillede i fuld størrelse"
-                className="group relative block aspect-[3/2] max-h-[220px] w-full sm:aspect-[16/7] sm:max-h-[300px] lg:aspect-[21/8] lg:max-h-[380px]"
+                className="group relative block aspect-[2/1] max-h-[180px] w-full sm:aspect-[16/6] sm:max-h-[230px] lg:aspect-[24/7] lg:max-h-[290px]"
               >
                 {/* Blurret baggrund udfylder rammen, så smalle billeder ikke
                     efterlader tomme kanter */}
