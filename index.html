@@ -52,7 +52,15 @@
 </head>
 
   <body>
+    <style>
+      /* Kritisk CSS: undgår hvidt "blink" og layout-hop før React mounter.
+         Baggrunden matcher app-baggrunden, og #root reserverer viewport-højden. */
+      html { background: hsl(0 0% 100%); }
+      body { margin: 0; background: hsl(0 0% 100%); }
+      #root { min-height: 100vh; min-height: 100dvh; }
+    </style>
     <div id="root">
+
       <!-- Statisk SEO-fallback: synlig indtil React mounter, og altid synlig
            for crawlere uden fuld JS-rendering. Bliver erstattet af appen
            ved hydration, så det påvirker ikke det endelige UX. -->

@@ -1513,10 +1513,10 @@ const ServiceForm = ({
                   <span className="text-xs text-muted-foreground">
                     · Standardpris{" "}
                     <span className="font-medium text-foreground tabular-nums">
-                      {steps.reduce(
+                      {formatPrice(steps.reduce(
                         (sum, s) => sum + (Number(s.price_per_unit) || 0) * (Number(s.default_value) || 0),
                         0,
-                      ).toLocaleString("da-DK")} kr
+                      ))}
                     </span>
                   </span>
                 </div>
@@ -1540,7 +1540,7 @@ const ServiceForm = ({
                       </span>
                       {rowTotal > 0 && (
                         <span className="ml-1 shrink-0 rounded-md border border-border bg-card px-1.5 py-0.5 text-[10px] font-medium text-foreground/80 tabular-nums">
-                          {rowTotal.toLocaleString("da-DK")} kr
+                          {formatPrice(rowTotal)}
                         </span>
                       )}
                     </div>
