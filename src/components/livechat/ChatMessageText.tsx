@@ -1,12 +1,15 @@
 import { Fragment, useMemo } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
+import { isValidSitePath, normalizeSitePath } from "@/lib/site-paths";
 
 /**
  * Letvægts-markdown til chatbeskeder.
  * Understøtter: **fed**, *kursiv*, `kode`, [tekst](url), rå URL'er/e-mails,
  * punktlister (-, *, •) og nummererede lister.
  * Ingen ekstern afhængighed, og alt tekst brydes så bobler aldrig flyder ud.
+ * Interne links valideres mod de sider der faktisk findes — ugyldige stier
+ * vises som ren tekst i stedet for et dødt link.
  */
 
 const INLINE_RE =
@@ -16,14 +19,16 @@ const LINK_CLASS =
   "font-medium underline decoration-current/40 underline-offset-[3px] transition-colors hover:decoration-current [overflow-wrap:anywhere]";
 
 function toInternalPath(href: string) {
-  if (href.startsWith("/")) return href;
+  if (href.startsWith("/")) return normalizeSitePath(href);
   const m = href.match(/^https?:\/\/(?:www\.)?serviceydere\.dk(\/[^\s]*)?$/i);
-  return m ? m[1] || "/" : null;
+  return m ? normalizeSitePath(m[1] || "/") : null;
 }
 
 function Link({ href, children }: { href: string; children: React.ReactNode }) {
   const internal = toInternalPath(href);
   if (internal && !internal.endsWith(".pdf")) {
+    // Ugyldig intern sti → vis teksten uden link, så kunden aldrig lander på 404.
+    if (!isValidSitePath(internal)) return <>{children}</>;
     return (
       <RouterLink to={internal} className={LINK_CLASS}>
         {children}
@@ -37,6 +42,7 @@ function Link({ href, children }: { href: string; children: React.ReactNode }) {
     </a>
   );
 }
+
 
 
 function renderInline(text: string, keyPrefix: string) {
