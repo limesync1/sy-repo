@@ -82,18 +82,24 @@ const PageHero = ({
             "linear-gradient(90deg, hsl(var(--hero-bg)) 0%, hsl(var(--hero-bg) / 0.9) 50%, hsl(var(--hero-bg) / 0.55) 100%)",
         }}
       />
-      {/* Ambient cyan/mid-blue glows — samme sprog som forsidens hero. */}
+      {/* Ambient glows i sidens egen farvetone. */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         <div
           className="absolute -top-32 right-[-8%] h-[28rem] w-[28rem] rounded-full blur-[110px] opacity-30"
-          style={{ backgroundColor: "hsl(var(--hero-mid))" }}
+          style={{ backgroundColor: t.glowA }}
         />
         <div
-          className="absolute -bottom-32 -left-24 h-[22rem] w-[22rem] rounded-full blur-[100px] opacity-20"
-          style={{ backgroundColor: "hsl(var(--hero-cyan))" }}
+          className="absolute -bottom-32 -left-24 h-[22rem] w-[22rem] rounded-full blur-[100px] opacity-25"
+          style={{ backgroundColor: t.glowB }}
         />
         <div className="absolute inset-0 bg-noise opacity-[0.05] mix-blend-overlay" />
       </div>
+      {/* Farvet bundkant — binder heroen sammen med sidens farvetone. */}
+      <div
+        aria-hidden
+        className="absolute inset-x-0 bottom-0 h-1"
+        style={{ backgroundImage: `linear-gradient(90deg, ${t.edge}, transparent 85%)` }}
+      />
 
       <div className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 ${padding}`}>
         <div className="max-w-3xl">
@@ -101,8 +107,9 @@ const PageHero = ({
             <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-background/70">
               <span
                 className="h-1.5 w-1.5 rounded-full"
-                style={{ backgroundColor: "hsl(var(--hero-cyan-bright))" }}
+                style={{ backgroundColor: t.dot }}
               />
+
               {eyebrow}
             </span>
           )}
