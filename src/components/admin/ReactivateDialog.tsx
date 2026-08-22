@@ -3,10 +3,11 @@
 // Tidligere viste den et fake kort-form; nu åbner den den rigtige Stripe
 // Embedded Checkout-flow (samme som i Indstillinger), så betalingen rent
 // faktisk oprettes og payments-webhook flipper plan.status til "active".
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { CreditCard, Lock, ShieldCheck, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { CreditCard, Lock, ShieldCheck, Loader2, Trash2, ArrowLeft, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBusinessPlan } from "@/hooks/useBusinessPlan";
@@ -21,10 +22,87 @@ type Props = {
 };
 
 const ReactivateDialog = ({ open, businessId, businessName }: Props) => {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const { data: plan } = useBusinessPlan(businessId);
   const [showCheckout, setShowCheckout] = useState(false);
   const [openingPortal, setOpeningPortal] = useState(false);
+
+  // ---- Sletning af virksomheden ------------------------------------------
+  // Brugere der ikke ønsker at betale efter prøveperioden skal kunne komme
+  // videre uden at kontakte support. Vi genbruger samme e-mailkode-flow som
+  // farezonen i Indstillinger (request_business_deletion_code →
+  // confirm_business_deletion), så sletningen er lige så sikker her.
+  const [mode, setMode] = useState<"pay" | "delete-intro" | "delete-code">("pay");
+  const [code, setCode] = useState("");
+  const [sending, setSending] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+  const cooldownRef = useRef<number | null>(null);
+  const ownerEmail = user?.email ?? null;
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    cooldownRef.current = window.setTimeout(() => setCooldown((s) => s - 1), 1000);
+    return () => { if (cooldownRef.current) window.clearTimeout(cooldownRef.current); };
+  }, [cooldown]);
+
+  const requestDeletionCode = async () => {
+    if (sending || cooldown > 0) return;
+    setSending(true);
+    try {
+      if (!ownerEmail) throw new Error("Ingen e-mail tilknyttet din konto");
+      const { data: codeValue, error } = await supabase.rpc("request_business_deletion_code", {
+        p_business_id: businessId,
+      });
+      if (error || !codeValue) throw new Error(error?.message || "Kunne ikke generere kode");
+      const { error: mailErr } = await supabase.functions.invoke("send-transactional-email", {
+        body: {
+          templateName: "business-deletion-code",
+          recipientEmail: ownerEmail,
+          idempotencyKey: `biz-del-${businessId}-${codeValue}`,
+          templateData: { businessName, code: codeValue, expiresInMinutes: 15 },
+        },
+      });
+      if (mailErr) throw mailErr;
+      setMode("delete-code");
+      setCooldown(60);
+      toast.success(`Kode sendt til ${ownerEmail}`);
+    } catch (err: any) {
+      toast.error(err?.message || "Noget gik galt");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const confirmDeletion = async () => {
+    const trimmed = code.trim();
+    if (trimmed.length !== 5) {
+      toast.error("Koden skal være 5 cifre");
+      return;
+    }
+    setConfirming(true);
+    try {
+      const { data, error } = await supabase.rpc("confirm_business_deletion", {
+        p_business_id: businessId,
+        p_code: trimmed,
+      });
+      if (error) throw error;
+      if (!data) {
+        toast.error("Ugyldig eller udløbet kode");
+        setConfirming(false);
+        return;
+      }
+      toast.success("Virksomheden er slettet, og der opkræves ikke yderligere");
+      setTimeout(async () => {
+        await supabase.auth.signOut();
+        window.location.href = "/";
+      }, 1200);
+    } catch (err: any) {
+      toast.error(err?.message || "Kunne ikke slette virksomheden");
+      setConfirming(false);
+    }
+  };
+
 
   // Hvis virksomheden allerede har et kort hos Stripe (fx udløbet og kortet
   // skal opdateres), åbner vi Billing Portal i stedet for ny checkout.
