@@ -153,6 +153,29 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  // Én konto = én virksomhed. Er brugeren logget ind og ejer allerede en
+  // aktiv virksomhed, spærrer vi oprettelsen med en tydelig besked.
+  const [existingBusiness, setExistingBusiness] = useState<{ id: string; name: string } | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    if (!user) {
+      setExistingBusiness(null);
+      return;
+    }
+    supabase
+      .from("businesses")
+      .select("id, name")
+      .eq("owner_id", user.id)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setExistingBusiness((data as { id: string; name: string } | null) ?? null);
+      });
+    return () => { cancelled = true; };
+  }, [user]);
+
 
   const toggleFeature = (k: FeatureKey) =>
     setFeatures((p) => ({ ...p, [k]: !p[k] }));
