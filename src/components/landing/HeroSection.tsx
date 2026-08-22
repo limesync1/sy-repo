@@ -78,14 +78,15 @@ const HeroSection = () => {
           </p>
 
 
-          <div className="animate-fade-in [animation-delay:220ms] relative z-20 mt-7 w-full max-w-2xl">
+          <div className="animate-fade-in [animation-delay:220ms] relative z-20 mt-5 w-full max-w-2xl sm:mt-7">
             <SearchSuggest variant="hero" showNearLabel={false} placeholder="Søg efter service, virksomhed eller by…" />
             <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-background/80">
               <LocationChip />
             </div>
           </div>
 
-          <div className="animate-fade-in [animation-delay:320ms] mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <div className="animate-fade-in [animation-delay:320ms] mt-5 flex flex-col gap-3 sm:mt-7 sm:flex-row sm:flex-wrap">
+
             <SmartLink to="/virksomheder" className="sm:w-auto">
               <Button size="lg" className="group h-11 w-full gap-2 rounded-full bg-background px-6 text-sm font-semibold text-foreground shadow-md transition-all duration-200 hover:bg-background/90 active:scale-[0.98] sm:w-auto">
                 Find services
