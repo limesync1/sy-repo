@@ -93,4 +93,4 @@ DU MÅ IKKE:
 - Bede om betalingsoplysninger, kodeord eller CPR.`;
 
 /** Samlet kontekst til systemprompten. */
-export const FULL_KNOWLEDGE = `${PLATFORM_KNOWLEDGE}\n\n${SYSTEM_KNOWLEDGE}\n\n${SUPPORT_PLAYBOOK}`;
+export const FULL_KNOWLEDGE = `${PLATFORM_KNOWLEDGE}\n\n${SYSTEM_KNOWLEDGE}\n\n${LINK_MAP}\n\n${SUPPORT_PLAYBOOK}`;
