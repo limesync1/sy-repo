@@ -4,7 +4,8 @@ import { Link } from "react-router-dom";
 import { Star, ShieldCheck, MapPin, Building2, ArrowRight } from "lucide-react";
 import HorizontalScroller from "./HorizontalScroller";
 import FavoriteButton from "@/components/business/FavoriteButton";
-import { imageSrc, imageSrcSet } from "@/lib/image-url";
+import BusinessCover from "@/components/shared/media/BusinessCover";
+import BusinessLogo from "@/components/shared/media/BusinessLogo";
 
 type Biz = {
   id: string;
@@ -35,28 +36,15 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
         aria-label={`${biz.name}${biz.city ? `, ${biz.city}` : ""} — se virksomhed`}
         className="flex flex-col gap-3"
       >
-        <div className="relative aspect-[16/10] w-full overflow-hidden rounded-t-[28px] bg-secondary">
-          {biz.cover_image_url ? (
-            <>
-              <img src={imageSrc(biz.cover_image_url, 48, 40)} alt="" aria-hidden className="absolute inset-0 h-full w-full scale-110 object-cover blur-xl opacity-70" loading="lazy" decoding="async" />
-              <img
-                src={imageSrc(biz.cover_image_url, 640, 75)}
-                srcSet={imageSrcSet(biz.cover_image_url, [320, 480, 640, 960], 75)}
-                alt={`${biz.name}${biz.city ? ` – ${biz.city}` : ""}${primaryCat ? `, ${primaryCat}` : ""}`}
-                className="relative h-full w-full object-cover"
-                width={400}
-                height={250}
-                sizes="(max-width: 640px) 80vw, 320px"
-                loading="lazy"
-
-                decoding="async"
-              />
-            </>
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-accent/20 via-feature-lilac/10 to-secondary">
-              <Building2 className="h-12 w-12 text-muted-foreground/30" />
-            </div>
-          )}
+        <BusinessCover
+          url={biz.cover_image_url}
+          name={biz.name}
+          alt={`${biz.name}${biz.city ? ` – ${biz.city}` : ""}${primaryCat ? `, ${primaryCat}` : ""}`}
+          ratio="16/10"
+          sizes="(max-width: 640px) 80vw, 320px"
+          widths={[320, 480, 640, 960]}
+          className="rounded-t-[28px]"
+        />
 
 
           {biz.is_verified && (
@@ -71,13 +59,12 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
 
         <div className="relative space-y-3 p-5 pt-8">
           {/* Logo overlay — løftes op over coveret så virksomheden står tydeligt frem */}
-          <div className="absolute -top-7 left-4 flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border-2 border-card bg-card shadow-md">
-            {biz.logo_url ? (
-              <img src={imageSrc(biz.logo_url, 128, 80)} alt={`Logo for ${biz.name}`} className="h-full w-full object-contain p-1" loading="lazy" decoding="async" />
-            ) : (
-              <span className="text-base font-bold text-accent">{biz.name.charAt(0)}</span>
-            )}
-          </div>
+          <BusinessLogo
+            url={biz.logo_url}
+            name={biz.name}
+            size={48}
+            className="absolute -top-7 left-4 border-2 border-card shadow-md"
+          />
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <h3 className="truncate text-base font-semibold text-foreground">{biz.name}</h3>
