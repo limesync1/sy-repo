@@ -85,7 +85,25 @@ Deno.serve(async (req) => {
       (m: any) => m.sender_type === "admin" && !m.is_system && m.metadata?.kind !== "ai",
     );
 
-    const notifyEscalation = async (reason: string) => {
+    // Hele AI-dialogen som læsbar transskription — sendes med i eskalerings-
+    // notifikationen og gemmes på system-beskeden, så kundeservice kan følge
+    // med i hvad AI'en allerede har svaret, uden at åbne panelet først.
+    const buildTranscript = () =>
+      history
+        .filter((m: any) => m.content)
+        .slice(-30)
+        .map((m: any) => {
+          const ts = new Date(m.created_at).toLocaleString("da-DK");
+          const who = m.is_system
+            ? "System"
+            : m.sender_type === "admin"
+              ? (m.metadata?.kind === "ai" ? "Serviceydere AI" : `Support (${m.sender_name})`)
+              : (m.sender_name || "Kunde");
+          return `[${ts}] ${who}: ${m.content}`;
+        })
+        .join("\n");
+
+    const notifyEscalation = async (reason: string, transcript: string) => {
       admin.functions
         .invoke("send-transactional-email", {
           body: {
@@ -97,7 +115,7 @@ Deno.serve(async (req) => {
               visitorName: conv.visitor_name,
               visitorEmail: conv.visitor_email,
               subject: conv.subject || "",
-              message: `🙋 ${reason}`,
+              message: `🙋 ${reason}\n\n--- AI-dialog indtil nu ---\n${transcript || "(ingen beskeder)"}`,
               isLoggedIn: false,
             },
           },
@@ -106,6 +124,7 @@ Deno.serve(async (req) => {
     };
 
     const insertSystemEscalation = async (reason: string) => {
+      const transcript = buildTranscript();
       const { data: row } = await admin
         .from("chat_messages")
         .insert({
@@ -114,13 +133,14 @@ Deno.serve(async (req) => {
           sender_name: "Serviceydere",
           content: "En medarbejder er koblet på og svarer dig hurtigst muligt.",
           is_system: true,
-          metadata: { kind: "escalation" },
+          metadata: { kind: "escalation", reason, ai_transcript: transcript },
         })
         .select("id, sender_type, sender_name, content, is_system, metadata, created_at")
         .single();
-      await notifyEscalation(reason);
+      await notifyEscalation(reason, transcript);
       return row;
     };
+
 
     // ------- Eksplicit "Tal med et menneske"-tryk fra widget'en -------
     if (action === "escalate") {
