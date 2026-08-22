@@ -599,7 +599,7 @@ const CartSheet = () => {
                     </div>
                     <h4 className="text-sm font-semibold text-foreground">Virksomhed</h4>
                   </div>
-                  <div className="grid gap-4 pl-0 sm:pl-9 sm:grid-cols-2">
+                  <div className="space-y-4 pl-0 sm:pl-9">
                     <div>
                       <label className="mb-1.5 block text-sm font-medium text-foreground">CVR-nummer</label>
                       <p className="mb-1.5 text-xs text-muted-foreground">Vi henter automatisk firmanavn og adresse.</p>
@@ -624,15 +624,17 @@ const CartSheet = () => {
                         }}
                       />
                     </div>
-                    <div>
-                      <label className="mb-1.5 block text-sm font-medium text-foreground">Firmanavn</label>
-                      <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Udfyldes automatisk efter CVR-opslag" className="h-11 rounded-lg text-base sm:text-sm" />
-                      {errors.companyName && <p className="mt-1 text-xs text-destructive">{errors.companyName}</p>}
-                    </div>
-                    <div className="sm:col-span-2">
-                      <label className="mb-1.5 block text-sm font-medium text-foreground">Kontaktperson</label>
-                      <Input value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Fulde navn" className="h-11 rounded-lg text-base sm:text-sm" />
-                      {errors.contactName && <p className="mt-1 text-xs text-destructive">{errors.contactName}</p>}
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium text-foreground">Firmanavn</label>
+                        <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Udfyldes automatisk efter CVR-opslag" className="h-11 rounded-lg text-base sm:text-sm" />
+                        {errors.companyName && <p className="mt-1 text-xs text-destructive">{errors.companyName}</p>}
+                      </div>
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium text-foreground">Kontaktperson</label>
+                        <Input value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Fulde navn" className="h-11 rounded-lg text-base sm:text-sm" />
+                        {errors.contactName && <p className="mt-1 text-xs text-destructive">{errors.contactName}</p>}
+                      </div>
                     </div>
                   </div>
                 </section>

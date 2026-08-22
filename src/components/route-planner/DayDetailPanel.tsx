@@ -160,12 +160,11 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
                           <MapPin className="h-3 w-3 shrink-0" /> {s.address}
                         </p>
                       )}
-                      <div className="mt-1.5 flex items-center justify-between gap-2 text-[10.5px] text-muted-foreground">
-                        {s.routeName && <span className="truncate font-medium">{s.routeName}</span>}
-                        {s.durationMin != null && (
-                          <span className="tabular-nums font-semibold">{formatDurationMin(s.durationMin)}</span>
-                        )}
-                      </div>
+                      {s.routeName && (
+                        <div className="mt-1.5 text-[10.5px] text-muted-foreground">
+                          <span className="truncate font-medium">{s.routeName}</span>
+                        </div>
+                      )}
                     </div>
                   </li>
                 );

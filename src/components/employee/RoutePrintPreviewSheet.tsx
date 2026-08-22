@@ -171,9 +171,6 @@ const PreviewArticle = ({ data }: { data: NonNullable<ReturnType<typeof useMyRou
                         {arrival && (
                           <span className="inline-flex items-center gap-1 rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-foreground">
                             <Clock className="h-2.5 w-2.5" /> kl. {arrival}
-                            {s.duration_minutes > 0 && (
-                              <span className="text-muted-foreground">· {s.duration_minutes} min</span>
-                            )}
                           </span>
                         )}
                       </div>
