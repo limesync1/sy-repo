@@ -1,4 +1,6 @@
 import { ReactNode } from "react";
+import { ChevronDown } from "lucide-react";
+
 
 interface PageHeroProps {
   /** Small uppercase eyebrow label rendered with an accent dot. */
