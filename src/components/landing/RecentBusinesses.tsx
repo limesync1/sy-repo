@@ -36,17 +36,16 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
         aria-label={`${biz.name}${biz.city ? `, ${biz.city}` : ""} — se virksomhed`}
         className="flex flex-col gap-3"
       >
-        <BusinessCover
-          url={biz.cover_image_url}
-          name={biz.name}
-          alt={`${biz.name}${biz.city ? ` – ${biz.city}` : ""}${primaryCat ? `, ${primaryCat}` : ""}`}
-          ratio="16/10"
-          sizes="(max-width: 640px) 80vw, 320px"
-          widths={[320, 480, 640, 960]}
-          className="rounded-t-[28px]"
-        />
-
-
+        <div className="relative">
+          <BusinessCover
+            url={biz.cover_image_url}
+            name={biz.name}
+            alt={`${biz.name}${biz.city ? ` – ${biz.city}` : ""}${primaryCat ? `, ${primaryCat}` : ""}`}
+            ratio="16/10"
+            sizes="(max-width: 640px) 80vw, 320px"
+            widths={[320, 480, 640, 960]}
+            className="rounded-t-[28px]"
+          />
           {biz.is_verified && (
             <div className="absolute left-3.5 top-3.5">
               <div className="inline-flex items-center gap-1 rounded-full bg-card/95 px-2.5 py-1 text-[11px] font-semibold text-foreground shadow-[0_2px_8px_rgba(0,0,0,0.08)] backdrop-blur">
@@ -56,6 +55,7 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
             </div>
           )}
         </div>
+
 
         <div className="relative space-y-3 p-5 pt-8">
           {/* Logo overlay — løftes op over coveret så virksomheden står tydeligt frem */}
