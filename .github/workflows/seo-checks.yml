@@ -1,0 +1,42 @@
+name: SEO & sitemap checks
+
+on:
+  pull_request:
+    paths:
+      - "index.html"
+      - "public/robots.txt"
+      - "public/sitemap*.xml"
+      - "src/components/SEO.tsx"
+      - "scripts/seo-check.ts"
+      - ".github/workflows/seo-checks.yml"
+  push:
+    branches: [main]
+  # Kør også dagligt, så vi opdager hvis live-domænet holder op med at
+  # servere robots.txt eller sitemap-index.xml efter et deploy.
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: seo-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  seo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # Validerer title, meta description, canonical, OG/Twitter, JSON-LD,
+      # robots.txt og at sitemap-index peger på child-sitemaps der findes.
+      - name: Validér SEO-metadata og sitemaps
+        run: bun run scripts/seo-check.ts
+
+      # På main (og i det daglige cron-run) tjekker vi også at det deployede
+      # domæne rent faktisk serverer robots.txt og sitemap-index.xml.
+      - name: Validér live-domæne
+        if: github.event_name != 'pull_request'
+        run: bun run scripts/seo-check.ts --live
