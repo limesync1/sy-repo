@@ -112,7 +112,7 @@ const BusinessRecommendationCard = ({
                     )}
                   </div>
                   <span className="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-[10.5px] font-semibold text-foreground">
-                    {formatPrice(s)}
+                    {formatServicePrice(s)}
                   </span>
                 </li>
               ))}
