@@ -609,6 +609,10 @@ const OrderCard = ({ order, onRespond }: {
                   <span className="block text-[11px] text-muted-foreground line-through">{order.total_amount} kr</span>
                 )}
               </div>
+              <ChevronRight
+                aria-hidden
+                className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}
+              />
             </div>
           </div>
           {/* Regnskabsstatus — viser præcis samme betalings-/rykker-/kreditstatus
@@ -616,7 +620,13 @@ const OrderCard = ({ order, onRespond }: {
           <div className="mt-2">
             <AccountingStatusRow order={order as OrderForStatus} size="xs" />
           </div>
+          {/* Tydelig klik-affordance: kortet ser ellers statisk ud. */}
+          <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-accent">
+            {expanded ? "Skjul detaljer" : "Se detaljer"}
+            <ChevronRight className={`h-3 w-3 transition-transform duration-200 ${expanded ? "rotate-90" : ""}`} />
+          </span>
         </button>
+
 
         {/* Expanded content */}
         {expanded && (
