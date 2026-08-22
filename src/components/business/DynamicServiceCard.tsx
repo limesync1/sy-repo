@@ -181,21 +181,28 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
 
   return (
     <Card className="group flex h-full flex-col overflow-hidden rounded-2xl border-border/80 bg-card transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-[0_18px_40px_-28px_hsl(var(--foreground)/0.35)]">
-      {/* Billede i fast 16:9 — samme højde på alle kort, og aldrig beskåret hårdt. */}
+      {/* Billede: blurret baggrund + hele motivet i midten — ingen hård beskæring,
+          uanset om virksomheden uploader stående eller liggende billeder. */}
       {service.image_url ? (
-        <div className="relative aspect-[16/9] w-full overflow-hidden bg-secondary">
+        <div className="relative aspect-[16/10] w-full overflow-hidden bg-secondary">
+          <img
+            src={service.image_url}
+            alt=""
+            aria-hidden
+            className="absolute inset-0 h-full w-full scale-110 object-cover blur-xl opacity-70"
+            loading="lazy"
+          />
           <img
             src={service.image_url}
             alt={service.name}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+            className="relative h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.03]"
             loading="lazy"
           />
-          <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-foreground/45 to-transparent" />
           <span
-            className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide backdrop-blur ${
+            className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide shadow-sm backdrop-blur ${
               isFixed
-                ? "bg-background/90 text-foreground"
-                : "bg-accent/90 text-accent-foreground"
+                ? "bg-emerald-500 text-white"
+                : "bg-accent text-accent-foreground"
             }`}
           >
             {isFixed ? "Fast pris" : "Prisoverslag"}
@@ -204,11 +211,11 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
       ) : (
         <div
           aria-hidden
-          className="relative aspect-[16/5] w-full bg-gradient-to-br from-accent/25 via-accent/10 to-secondary"
+          className="relative aspect-[16/5] w-full bg-gradient-to-br from-accent/25 via-feature-lilac/15 to-secondary"
         >
           <span
             className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${
-              isFixed ? "bg-background/90 text-foreground" : "bg-accent text-accent-foreground"
+              isFixed ? "bg-emerald-500 text-white" : "bg-accent text-accent-foreground"
             }`}
           >
             {isFixed ? "Fast pris" : "Prisoverslag"}
@@ -225,7 +232,13 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
           {service.description && (
             <p className="mt-1.5 text-xs leading-snug text-muted-foreground line-clamp-2">{service.description}</p>
           )}
+          <p className="mt-2 text-[11px] font-medium text-muted-foreground">
+            {isFixed
+              ? "Prisen er fast — læg direkte i bestillingen."
+              : "Justér felterne nedenfor — prisen beregnes automatisk."}
+          </p>
         </div>
+
 
 
         <div className="mt-2 space-y-2">
