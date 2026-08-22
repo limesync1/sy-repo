@@ -12,15 +12,15 @@
 //     <indhold />
 //   </EmployeeShell>
 import { Link, useNavigate } from "react-router-dom";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
-  LogOut, Calendar as CalendarIcon, BarChart3, MessageCircle, Briefcase,
+  LogOut, Calendar as CalendarIcon, BarChart3, MessageCircle, Briefcase, Building2,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useMyEmployee } from "@/hooks/useMyEmployee";
+import { useMyEmployee, useMyEmployees } from "@/hooks/useMyEmployee";
 import { useMyBusiness } from "@/hooks/useDatabase";
 import { useEmployees } from "@/hooks/useEmployees";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -29,6 +29,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { getEmployeeWorkspace } from "@/lib/employee-workspace";
+import EmployeeWorkspacePicker from "@/components/employee/EmployeeWorkspacePicker";
+
 
 export type EmployeeTabKey = "today" | "stats" | "livechat";
 
