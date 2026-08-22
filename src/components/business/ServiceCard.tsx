@@ -161,7 +161,7 @@ const CalculatorService = ({ service }: { service: Service }) => {
             <span className="text-sm font-medium text-muted-foreground">{step.unit}</span>
           </div>
           {step.pricePerUnit && (
-            <p className="text-sm text-muted-foreground">{step.pricePerUnit} kr/{step.unit}</p>
+            <p className="text-sm text-muted-foreground">{formatPrice(step.pricePerUnit)}/{step.unit}</p>
           )}
         </div>
       );

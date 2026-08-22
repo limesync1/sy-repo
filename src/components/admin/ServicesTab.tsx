@@ -34,6 +34,7 @@ import {
 import { useEmployees } from "@/hooks/useEmployees";
 import { IntervalBuilder } from "@/components/admin/IntervalBuilder";
 import { formatInterval } from "@/lib/interval";
+import { formatPrice } from "@/lib/price-format";
 import { PageHeader, PrimaryButton, EmptyState, FieldLabel, StatCard } from "@/components/admin/shared/AdminUI";
 import { ListCardSkeleton, StatGridSkeleton } from "@/components/admin/shared/Skeletons";
 import {
@@ -307,7 +308,7 @@ const ServicesTab = ({ businessId, business, autoOpenCreate }: { businessId: str
     <div className="space-y-5">
 
       <Dialog open={isFocusMode} onOpenChange={(open) => { if (!open) { setShowForm(false); setEditingId(null); } }}>
-        <DialogContent className="max-w-3xl max-h-[calc(100dvh-1rem)] overflow-hidden p-0 gap-0 flex flex-col">
+        <DialogContent className="max-w-5xl max-h-[calc(100dvh-1rem)] overflow-hidden p-0 gap-0 flex flex-col">
           <DialogHeader className="border-b px-4 py-3 text-left sm:px-5 sm:py-4">
             <DialogTitle className="text-base">
               {editingService ? `Rediger ${editingService.name}` : "Ny service"}
