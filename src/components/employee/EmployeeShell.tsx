@@ -15,7 +15,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   LogOut, Calendar as CalendarIcon, BarChart3, MessageCircle, Briefcase, Building2,
+  Check, ChevronsUpDown,
 } from "lucide-react";
+
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyEmployee, useMyEmployees } from "@/hooks/useMyEmployee";
 import { useMyBusiness } from "@/hooks/useDatabase";
