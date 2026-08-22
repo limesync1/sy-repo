@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import SmartLink from "@/components/SmartLink";
 import { Button } from "@/components/ui/button";
 import SearchSuggest from "./SearchSuggest";
