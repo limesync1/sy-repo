@@ -228,16 +228,18 @@ const LiveChatWidget = () => {
   // Beskeder kan nå frem ad tre veje (realtime, polling og AI-svaret), så vi
   // holder styr på hvilke id'er der allerede har afspillet en lyd.
   const soundedIdsRef = useRef<Set<string>>(new Set());
-  const playForMessage = useCallback((m: { id: string; sender_type?: string; is_system?: boolean } | null | undefined, opts?: { silent?: boolean }) => {
+  const playForMessage = useCallback((m: { id: string; sender_type?: string; is_system?: boolean } | null | undefined, opts?: { silent?: boolean; source?: string }) => {
     if (!m?.id || soundedIdsRef.current.has(m.id)) return;
     soundedIdsRef.current.add(m.id);
     if (soundedIdsRef.current.size > 300) {
       soundedIdsRef.current = new Set(Array.from(soundedIdsRef.current).slice(-150));
     }
     if (opts?.silent) return;
-    if (m.is_system) chatSounds.system();
-    else if (m.sender_type === "admin") chatSounds.incoming();
+    const source = opts?.source || "unknown";
+    if (m.is_system) chatSounds.system(source);
+    else if (m.sender_type === "admin") chatSounds.incoming(source);
   }, []);
+
 
   const userScrolledUpRef = useRef(false);
 
