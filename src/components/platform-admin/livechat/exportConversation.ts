@@ -9,6 +9,7 @@ type ExportMessage = {
   content: string | null;
   image_url?: string | null;
   is_system?: boolean;
+  metadata?: { kind?: string; [key: string]: unknown } | null;
   created_at: string;
 };
 
@@ -42,7 +43,10 @@ export const buildTranscript = (conv: ExportConversation, messages: ExportMessag
   const body = messages.map((m) => {
     const ts = fmt(m.created_at);
     if (m.is_system) return `[${ts}] -- ${m.content || ""}`;
-    const who = m.sender_type === "admin" ? `Admin (${m.sender_name})` : m.sender_name;
+    const who =
+      m.sender_type === "admin"
+        ? (m.metadata?.kind === "ai" ? "Serviceydere AI" : `Admin (${m.sender_name})`)
+        : m.sender_name;
     const parts = [`[${ts}] ${who}:`];
     if (m.content) parts.push(m.content);
     if (m.image_url) parts.push(`(billede: ${m.image_url})`);

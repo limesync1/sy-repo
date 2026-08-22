@@ -14,6 +14,15 @@ export type Conversation = {
   needs_human?: boolean;
 };
 
+export type MessageMetadata = {
+  /** "ai" = svar fra Serviceydere AI, "escalation" = overdraget til menneske. */
+  kind?: string;
+  reason?: string;
+  /** Transskription af AI-dialogen på eskaleringstidspunktet. */
+  ai_transcript?: string;
+  [key: string]: unknown;
+};
+
 export type Message = {
   id: string;
   conversation_id: string;
@@ -22,8 +31,10 @@ export type Message = {
   content: string | null;
   image_url?: string | null;
   is_system?: boolean;
+  metadata?: MessageMetadata | null;
   created_at: string;
 };
+
 
 export type Filter = "all" | "open" | "unread" | "closed" | "snoozed";
 export type SortMode = "recent" | "unread_first" | "oldest";

@@ -158,6 +158,7 @@ const Reviews                = lazyRoute("/anmeldelser", () => import("./pages/R
 const Contact                = lazyRoute("/kontakt", () => import("./pages/Contact"));
 const VisualTestPlanner      = lazyRoute("visual-test-planner", () => import("./pages/VisualTestPlanner"));
 const VisualTestLivechat     = lazyRoute("visual-test-livechat", () => import("./pages/VisualTestLivechat"));
+const VisualTestMedia        = lazyRoute("visual-test-media", () => import("./pages/VisualTestMedia"));
 
 // Sensible cache defaults så fane-skift i virksomhedspanelet føles øjeblikkeligt
 // (cached data vises først, refetch i baggrunden) og vi ikke spammer DB ved hvert
@@ -381,6 +382,7 @@ const App = () => (
               {/* ── Visual regression fixture (e2e only, ingen auth) ── */}
               <Route path="/__visual/planner" element={<VisualTestPlanner />} />
               <Route path="/__visual/livechat" element={<VisualTestLivechat />} />
+              <Route path="/__visual/media" element={<VisualTestMedia />} />
 
               {/* ── Legacy redirects (preserve bookmarks & SEO) ── */}
               <Route path="/auth" element={<RedirectWithQuery to="/log-ind" />} />

@@ -1,5 +1,6 @@
 import { formatPrice } from "@/lib/price-format";
 import { useState, useEffect } from "react";
+import BusinessCover from "@/components/shared/media/BusinessCover";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   useMySubscriptions, useUpdateSubscription, useMyProfile, useUpdateProfile,
@@ -223,21 +224,14 @@ const FavoritesView = () => {
             className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-[0_18px_40px_-28px_hsl(var(--foreground)/0.35)]"
           >
             <div className="relative aspect-[16/9] w-full overflow-hidden bg-secondary">
-              {biz.cover_image_url ? (
-                <img
-                  src={biz.cover_image_url}
-                  alt={biz.name}
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  loading="lazy"
-                  decoding="async"
-                  width={800}
-                  height={450}
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-accent/20 via-secondary to-muted">
-                  <Building2 className="h-12 w-12 text-muted-foreground/30" />
-                </div>
-              )}
+              <BusinessCover
+                url={biz.cover_image_url}
+                name={biz.name}
+                ratio="16/9"
+                sizes="(max-width: 640px) 100vw, 360px"
+                className="absolute inset-0 h-full"
+                imgClassName="transition-transform duration-500 group-hover:scale-105"
+              />
 
               <button
                 type="button"

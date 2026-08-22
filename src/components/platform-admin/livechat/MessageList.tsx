@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import { CheckCheck } from "lucide-react";
+import { CheckCheck, Sparkles } from "lucide-react";
 import type { Message } from "./shared";
 import { formatTime, initials } from "./shared";
 
@@ -27,6 +27,7 @@ const MessageList = forwardRef<HTMLDivElement, Props>(function MessageList({ mes
           );
         }
         const mine = m.sender_type === "admin";
+        const isAi = m.metadata?.kind === "ai";
         const prev = messages[i - 1];
         const showAvatar = !mine && (!prev || prev.sender_type !== m.sender_type || prev.is_system);
         const isLastMine = mine && i === lastAdminIdx;
@@ -42,9 +43,19 @@ const MessageList = forwardRef<HTMLDivElement, Props>(function MessageList({ mes
               </div>
             )}
             <div className={`flex max-w-[70%] flex-col ${mine ? "items-end" : "items-start"}`}>
+              {isAi && (
+                <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-wide text-accent-foreground">
+                  <Sparkles className="h-2.5 w-2.5" /> AI-svar
+                </span>
+              )}
               <div className={`overflow-hidden rounded-2xl text-[13.5px] leading-snug shadow-sm ${
-                mine ? "rounded-br-sm bg-foreground text-background" : "rounded-bl-sm border border-border bg-card text-foreground"
+                mine
+                  ? isAi
+                    ? "rounded-br-sm border border-accent/40 bg-accent-soft text-foreground"
+                    : "rounded-br-sm bg-foreground text-background"
+                  : "rounded-bl-sm border border-border bg-card text-foreground"
               }`}>
+
                 {m.image_url && (
                   <a href={m.image_url} target="_blank" rel="noopener noreferrer" className="block">
                     <img src={m.image_url} alt="Vedhæftet billede" className="max-h-72 w-auto object-cover" />

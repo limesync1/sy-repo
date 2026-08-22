@@ -18,6 +18,7 @@
 // "Tal med et menneske" i widget'en — her genereres intet AI-svar.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { FULL_KNOWLEDGE } from "../_shared/serviceydere-knowledge.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -36,30 +37,6 @@ const HUMAN_REQUEST_PATTERNS = [
   "medarbejder", "kundeservicemedarbejder", "menneskelig hjælp",
   "ikke en robot", "ikke en bot", "supportmedarbejder",
 ];
-
-const PLANNER_GUIDE_URL = "https://serviceydere.dk/guides/serviceydere-ruteplanlaegger-brugerguide.pdf";
-
-const KNOWLEDGE = `OM SERVICEYDERE:
-Serviceydere er en dansk platform, der kombinerer et driftssystem til servicevirksomheder med kørende medarbejdere (ruteplanlægning, medarbejder-app, booking og fakturering) med en markedsplads der sender nye kunder til de samme virksomheder. Brancheuafhængigt — dækker rengøring, vinduespudsning, haveservice, håndværk, flytning, skadedyr, industriservice m.fl.
-
-FOR KUNDER (privat/erhverv der søger en udbyder):
-- Find og sammenlign lokale virksomheder på /virksomheder, filtrér på kategori og by.
-- Beskriv en opgave på /tilbud og få op til 3 gratis tilbud fra relevante udbydere.
-- Book direkte fra en virksomheds profilside, se priser, anmeldelser og åbningstider.
-- Det er gratis for kunder at bruge platformen og få tilbud.
-
-FOR VIRKSOMHEDER (udbydere der vil bruge softwaren og/eller stå på markedspladsen):
-- Priser: 289 kr./md. ekskl. moms inkl. ruteplanlægning, 59 kr./md. pr. medarbejderlogin, 269 kr./md. for regnskabsintegration (e-conomic eller Dinero), 2.269 kr. i opstart og 1.495 kr. for dataimport (support udfører selve importen af eksisterende kunder).
-- 14 dages gratis prøve uden betalingskort, ingen binding.
-- Ruteplanlægger: drag & drop, faste/gentagne aftaler, beregnet kørselstid og ETA, konfliktadvarsler, kort- og tidslinjevisning, "optimér rækkefølge", print/PDF.
-- Medarbejder-app: dagens rute, tjek ind/ud, noter og billeder.
-- Booking og fakturering: online booking, prisberegner, leads fra markedspladsen, fakturering med e-conomic/Dinero.
-- Guide til ruteplanlæggeren (PDF): ${PLANNER_GUIDE_URL}. Henvis hertil ved spørgsmål om "hvordan gør jeg" i ruteplanlæggeren.
-
-VIGTIGT — DU MÅ IKKE:
-- Opfinde priser, funktioner eller vilkår der ikke står ovenfor.
-- Love konkrete leveringstider, garantier, refusion eller juridiske afgørelser.
-- Give råd om en specifik igangværende bestilling/faktura/klage — det skal en medarbejder tage sig af.`;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -108,7 +85,25 @@ Deno.serve(async (req) => {
       (m: any) => m.sender_type === "admin" && !m.is_system && m.metadata?.kind !== "ai",
     );
 
-    const notifyEscalation = async (reason: string) => {
+    // Hele AI-dialogen som læsbar transskription — sendes med i eskalerings-
+    // notifikationen og gemmes på system-beskeden, så kundeservice kan følge
+    // med i hvad AI'en allerede har svaret, uden at åbne panelet først.
+    const buildTranscript = () =>
+      history
+        .filter((m: any) => m.content)
+        .slice(-30)
+        .map((m: any) => {
+          const ts = new Date(m.created_at).toLocaleString("da-DK");
+          const who = m.is_system
+            ? "System"
+            : m.sender_type === "admin"
+              ? (m.metadata?.kind === "ai" ? "Serviceydere AI" : `Support (${m.sender_name})`)
+              : (m.sender_name || "Kunde");
+          return `[${ts}] ${who}: ${m.content}`;
+        })
+        .join("\n");
+
+    const notifyEscalation = async (reason: string, transcript: string) => {
       admin.functions
         .invoke("send-transactional-email", {
           body: {
@@ -120,7 +115,7 @@ Deno.serve(async (req) => {
               visitorName: conv.visitor_name,
               visitorEmail: conv.visitor_email,
               subject: conv.subject || "",
-              message: `🙋 ${reason}`,
+              message: `🙋 ${reason}\n\n--- AI-dialog indtil nu ---\n${transcript || "(ingen beskeder)"}`,
               isLoggedIn: false,
             },
           },
@@ -129,6 +124,7 @@ Deno.serve(async (req) => {
     };
 
     const insertSystemEscalation = async (reason: string) => {
+      const transcript = buildTranscript();
       const { data: row } = await admin
         .from("chat_messages")
         .insert({
@@ -137,13 +133,14 @@ Deno.serve(async (req) => {
           sender_name: "Serviceydere",
           content: "En medarbejder er koblet på og svarer dig hurtigst muligt.",
           is_system: true,
-          metadata: { kind: "escalation" },
+          metadata: { kind: "escalation", reason, ai_transcript: transcript },
         })
         .select("id, sender_type, sender_name, content, is_system, metadata, created_at")
         .single();
-      await notifyEscalation(reason);
+      await notifyEscalation(reason, transcript);
       return row;
     };
+
 
     // ------- Eksplicit "Tal med et menneske"-tryk fra widget'en -------
     if (action === "escalate") {
@@ -208,7 +205,7 @@ Deno.serve(async (req) => {
 
 Hvis du er i tvivl, ikke kan svare præcist ud fra viden nedenfor, eller kunden virker frustreret/utilfreds, spørger om en konkret bestilling/faktura/klage/refusion, eller selv beder om at tale med et menneske — så afslut dit svar med teksten "${ESCALATE_MARKER}" på sin egen linje (ingen andre tegn på den linje). Brug kun markøren når det reelt er relevant, ikke som standard.
 
-${KNOWLEDGE}`;
+${FULL_KNOWLEDGE}`;
 
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

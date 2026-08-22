@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import BusinessCover from "@/components/shared/media/BusinessCover";
+import { imageSrc } from "@/lib/image-url";
 import { Link, useSearchParams } from "react-router-dom";
 import { IndustryIcon } from "@/components/IndustryIcon";
 import { Button } from "@/components/ui/button";
@@ -698,25 +700,18 @@ const RequestQuote = () => {
                   <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:gap-5 sm:p-6">
                     {/* Cover with logo overlay */}
                     <div className="relative h-28 w-full shrink-0 overflow-hidden rounded-xl bg-secondary sm:h-28 sm:w-28">
-                      {match.business.cover_image_url ? (
-                        <img
-                          src={match.business.cover_image_url}
-                          alt=""
-                          className="h-full w-full object-cover"
-                          width={400}
-                          height={300}
-                          loading="lazy"
-                          decoding="async"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary to-muted">
-                          <Building2 className="h-10 w-10 text-muted-foreground/40" />
-                        </div>
-                      )}
+                      <BusinessCover
+                        url={match.business.cover_image_url}
+                        name={match.business.name}
+                        decorative
+                        sizes="(max-width: 640px) 100vw, 112px"
+                        widths={[240, 320, 480]}
+                        className="absolute inset-0 h-full"
+                      />
                       {match.business.logo_url && match.business.cover_image_url && (
                         <div className="absolute bottom-1.5 left-1.5 flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg border border-border bg-card p-1 shadow-md">
                           <img
-                            src={match.business.logo_url}
+                            src={imageSrc(match.business.logo_url, 96, 82)}
                             alt=""
                             className="h-full w-full object-contain"
                             width={36}

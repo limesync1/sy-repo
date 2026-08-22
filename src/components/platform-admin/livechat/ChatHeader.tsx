@@ -1,4 +1,4 @@
-import { Download, BellOff, Bell, Archive } from "lucide-react";
+import { Download, BellOff, Bell, Archive, ScrollText } from "lucide-react";
 import type { Conversation } from "./shared";
 import { initials } from "./shared";
 
@@ -8,6 +8,7 @@ type Props = {
   showInfo: boolean;
   onToggleInfo: () => void;
   onExport: () => void;
+  onShowTranscript: () => void;
   onSnooze: (hours: number) => void;
   onUnsnooze: () => void;
   onClose: () => void;
@@ -16,7 +17,7 @@ type Props = {
 
 /** Header-bjælke over chat-tråden — handlinger + status-pille. */
 export default function ChatHeader({
-  active, snoozed, showInfo, onToggleInfo, onExport, onSnooze, onUnsnooze, onClose, onReopen,
+  active, snoozed, showInfo, onToggleInfo, onExport, onShowTranscript, onSnooze, onUnsnooze, onClose, onReopen,
 }: Props) {
   return (
     <div className="flex items-center justify-between gap-3 border-b border-border bg-card px-5 py-3">
@@ -45,6 +46,13 @@ export default function ChatHeader({
           className="hidden rounded-lg border border-border px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground hover:bg-secondary lg:block"
         >
           {showInfo ? "Skjul info" : "Vis info"}
+        </button>
+        <button
+          onClick={onShowTranscript}
+          className="rounded-lg border border-border px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground hover:bg-secondary"
+          title="Vis og kopiér hele chatloggen (inkl. AI-dialog)"
+        >
+          <ScrollText className="mr-1 inline h-3 w-3" /> Chatlog
         </button>
         <button
           onClick={onExport}
