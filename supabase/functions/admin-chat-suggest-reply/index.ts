@@ -8,6 +8,7 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { FULL_KNOWLEDGE, PLANNER_GUIDE_URL } from "../_shared/serviceydere-knowledge.ts";
+import { sanitizeLinks } from "../_shared/valid-links.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -123,7 +124,9 @@ Deno.serve(async (req) => {
     }
 
     const aiJson = await aiRes.json();
-    const suggestion: string = aiJson?.choices?.[0]?.message?.content?.trim() || "";
+    const raw: string = aiJson?.choices?.[0]?.message?.content?.trim() || "";
+    const { text: suggestion, issues } = sanitizeLinks(raw);
+    if (issues.length > 0) console.error("AI link issues (suggest)", JSON.stringify(issues));
     return new Response(JSON.stringify({ suggestion }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

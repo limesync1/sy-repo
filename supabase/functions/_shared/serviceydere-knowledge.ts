@@ -24,13 +24,23 @@ export const LINK_MAP = `GYLDIGE LINKS (brug KUN disse stier — opfind aldrig e
 - Booking og tilbud: /software/booking-og-tilbud
 - Fakturering og regnskab: /software/fakturering-og-regnskab
 - Brancher: /software/brancher
-- Bliv udbyder / opret virksomhed: /bliv-udbyder
+- Bliv udbyder / opret virksomhed: /opret-virksomhed
 - Hjælp og FAQ: /hjaelp
 - Kontakt: /kontakt
 - Anmeldelser: /anmeldelser
 - Om os: /om-os
 - Virksomhedspanel (kræver login): /virksomhed og /virksomhed/ruter
-Menuen viser "Systemet", men stien er /software — skriv ALDRIG /systemet/...`;
+Menuen viser "Systemet", men stien er /software — skriv ALDRIG /systemet/...
+Menupunktet hedder "Bliv udbyder", men stien er /opret-virksomhed — skriv ALDRIG /bliv-udbyder.
+
+KATEGORISERING (menunavn → korrekt sti):
+- "Find services" → /virksomheder
+- "Få tilbud" → /tilbud
+- "Bliv udbyder" → /opret-virksomhed
+- "Systemet" → /software
+- "Systemet > Priser" → /software/priser
+- "Systemet > Funktioner" → /software/funktioner
+Menutitler er IKKE stier. Slå altid stien op i listen ovenfor. Findes den ikke i listen, så nævn siden med ord uden at lave et link.`;
 
 
 /** Hvad Serviceydere er, og hvem der bruger det. */

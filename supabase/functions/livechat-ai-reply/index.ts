@@ -19,6 +19,7 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { FULL_KNOWLEDGE } from "../_shared/serviceydere-knowledge.ts";
+import { sanitizeLinks } from "../_shared/valid-links.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -58,7 +59,8 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json().catch(() => ({}));
     const token = String(body?.token || "");
-    const action = body?.action === "escalate" ? "escalate" : "reply";
+    const rawAction = String(body?.action || "reply");
+    const action = rawAction === "escalate" || rawAction === "feedback" ? rawAction : "reply";
     if (token.length < 32) {
       return new Response(JSON.stringify({ error: "Ugyldig sessions-token" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -151,6 +153,39 @@ Deno.serve(async (req) => {
     };
 
 
+    // ------- Tommel op/ned + "Rapportér forkert svar" på et AI-svar -------
+    if (action === "feedback") {
+      const rating = body?.rating === "down" ? "down" : body?.rating === "up" ? "up" : null;
+      const messageId = String(body?.messageId || "");
+      if (!rating || !/^[0-9a-f-]{36}$/i.test(messageId)) {
+        return new Response(JSON.stringify({ error: "Ugyldig feedback" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      // Beskeden skal tilhøre denne samtale — ellers kan man ikke stemme på den.
+      const owns = history.some((m: any) => m.id === messageId);
+      if (!owns) {
+        return new Response(JSON.stringify({ error: "Beskeden findes ikke i samtalen" }), {
+          status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const reason = typeof body?.reason === "string" ? body.reason.slice(0, 1000) : null;
+      const { error: fbErr } = await admin
+        .from("chat_message_feedback")
+        .upsert(
+          { conversation_id: conv.id, message_id: messageId, rating, reason },
+          { onConflict: "message_id" },
+        );
+      if (fbErr) {
+        return new Response(JSON.stringify({ error: "Kunne ikke gemme feedback" }), {
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // ------- Eksplicit "Tal med et menneske"-tryk fra widget'en -------
     if (action === "escalate") {
       if (alreadyEscalated) {
@@ -218,7 +253,7 @@ FORMATERING (svaret vises i en smal chatboble på ca. 300 px):
 - Maks. ca. 60 ord i alt. Første linje er svaret; derefter højst ét kort næste skridt.
 - Korte afsnit på 1-2 linjer adskilt af en tom linje. Ingen lange tekstmure.
 - Punktliste kun når der reelt er 2-4 sideordnede ting; hvert punkt maks. 8 ord med "- " foran.
-- Links skrives ALTID som markdown med en relativ sti fra listen over gyldige links, fx [priser](/software/priser). Aldrig rå URL'er, aldrig opfundne stier, aldrig /systemet/....
+- Links skrives ALTID som markdown med en relativ sti fra listen over gyldige links, fx [priser](/software/priser). Aldrig rå URL'er, aldrig opfundne stier, aldrig /systemet/..., aldrig /bliv-udbyder (den hedder /opret-virksomhed). Menutitler er ikke stier — brug kun stier fra listen over gyldige links.
 - Ingen overskrifter, tabeller, kodeblokke eller emojis. Fed skrift kun på ét-to nøgleord (fx **289 kr./md.**).
 - Skriv priser som "289 kr./md. ekskl. moms".
 
@@ -261,10 +296,12 @@ ${FULL_KNOWLEDGE}`;
     let reply: string = aiJson?.choices?.[0]?.message?.content?.trim() || "";
     const shouldEscalate = reply.includes(ESCALATE_MARKER);
     if (shouldEscalate) reply = reply.replace(ESCALATE_MARKER, "").trim();
-    // Sikkerhedsnet: menupunktet hedder "Systemet", men stien er /software.
-    reply = reply
-      .replace(/(https?:\/\/[^\s)]*serviceydere\.dk)?\/systemet\b/gi, (_m, host) => `${host || ""}/software`)
-      .replace(/\]\((?!https?:\/\/|\/|mailto:)([^)\s]+)\)/g, "](/$1)");
+    // Sikkerhedsnet: gør relative links absolutte fra roden, og valider
+    // dernæst alle links mod de stier der faktisk findes i appen.
+    reply = reply.replace(/\]\((?!https?:\/\/|\/|mailto:|tel:)([^)\s]+)\)/g, "](/$1)");
+    const sanitized = sanitizeLinks(reply);
+    reply = sanitized.text;
+    const linkIssues = sanitized.issues;
 
     if (!reply) reply = "Jeg er ikke helt sikker på svaret her — jeg kobler en medarbejder på til dig.";
 
@@ -280,6 +317,27 @@ ${FULL_KNOWLEDGE}`;
       })
       .select("id, sender_type, sender_name, content, image_url, is_system, metadata, created_at")
       .single();
+
+    // Log link-fejl automatisk, så vidensbasen kan rettes proaktivt.
+    if (linkIssues.length > 0) {
+      console.error("AI link issues", JSON.stringify(linkIssues));
+      admin
+        .from("ai_link_issues")
+        .insert(
+          linkIssues.map((issue) => ({
+            source: "livechat-ai-reply",
+            conversation_id: conv.id,
+            message_id: aiRow?.id ?? null,
+            raw_link: issue.raw,
+            resolved_link: issue.resolved,
+            kind: issue.kind,
+            link_label: issue.label ?? null,
+            reply_excerpt: reply.slice(0, 500),
+          })),
+        )
+        .then(() => {})
+        .catch(() => {});
+    }
 
     let escalationRow = null;
     if (shouldEscalate) {

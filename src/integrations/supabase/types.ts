@@ -972,6 +972,45 @@ export type Database = {
           },
         ]
       }
+      ai_link_issues: {
+        Row: {
+          conversation_id: string | null
+          created_at: string
+          id: string
+          kind: string
+          link_label: string | null
+          message_id: string | null
+          raw_link: string
+          reply_excerpt: string | null
+          resolved_link: string | null
+          source: string
+        }
+        Insert: {
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          kind: string
+          link_label?: string | null
+          message_id?: string | null
+          raw_link: string
+          reply_excerpt?: string | null
+          resolved_link?: string | null
+          source?: string
+        }
+        Update: {
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          link_label?: string | null
+          message_id?: string | null
+          raw_link?: string
+          reply_excerpt?: string | null
+          resolved_link?: string | null
+          source?: string
+        }
+        Relationships: []
+      }
       business_agreement_counters: {
         Row: {
           business_id: string
@@ -1507,6 +1546,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      chat_message_feedback: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          id: string
+          message_id: string
+          rating: string
+          reason: string | null
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string
+          id?: string
+          message_id: string
+          rating: string
+          reason?: string | null
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          message_id?: string
+          rating?: string
+          reason?: string | null
+        }
+        Relationships: []
       }
       chat_messages: {
         Row: {

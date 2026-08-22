@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import {
   MessageCircle, Send, Loader2, ChevronDown, CheckCheck, Paperclip, X as XIcon,
   ImageIcon, Volume2, VolumeX, MoreVertical, MessagesSquare, ArrowLeft, Trash2,
-  Bot, UserRound,
+  Bot, UserRound, ThumbsUp, ThumbsDown, Flag,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -228,16 +228,23 @@ const LiveChatWidget = () => {
   // Beskeder kan nå frem ad tre veje (realtime, polling og AI-svaret), så vi
   // holder styr på hvilke id'er der allerede har afspillet en lyd.
   const soundedIdsRef = useRef<Set<string>>(new Set());
-  const playForMessage = useCallback((m: { id: string; sender_type?: string; is_system?: boolean } | null | undefined, opts?: { silent?: boolean }) => {
+  const playForMessage = useCallback((m: { id: string; sender_type?: string; is_system?: boolean } | null | undefined, opts?: { silent?: boolean; source?: string }) => {
     if (!m?.id || soundedIdsRef.current.has(m.id)) return;
     soundedIdsRef.current.add(m.id);
     if (soundedIdsRef.current.size > 300) {
       soundedIdsRef.current = new Set(Array.from(soundedIdsRef.current).slice(-150));
     }
     if (opts?.silent) return;
-    if (m.is_system) chatSounds.system();
-    else if (m.sender_type === "admin") chatSounds.incoming();
+    const source = opts?.source || "unknown";
+    if (m.is_system) chatSounds.system(source);
+    else if (m.sender_type === "admin") chatSounds.incoming(source);
   }, []);
+
+
+  // Feedback på AI-svar: tommel op/ned + kort rapport af forkerte svar.
+  const [feedback, setFeedback] = useState<Record<string, "up" | "down">>({});
+  const [reportFor, setReportFor] = useState<string | null>(null);
+  const [reportText, setReportText] = useState("");
 
   const userScrolledUpRef = useRef(false);
 
@@ -318,7 +325,7 @@ const LiveChatWidget = () => {
       setMessages((prev) => (prev.length === rows.length && prev[prev.length - 1]?.id === rows[rows.length - 1]?.id ? prev : rows));
       // Ved første indlæsning markeres alt som "allerede hørt", så gamle
       // beskeder ikke bimler når widgeten åbnes igen.
-      rows.forEach((r) => playForMessage(r, { silent: initial || r.sender_type === "visitor" }));
+      rows.forEach((r) => playForMessage(r, { silent: initial || r.sender_type === "visitor", source: "poll" }));
       const last = rows[rows.length - 1];
       if (last) lastMsgIdRef.current = last.id;
       if (initial) initialLoadRef.current = false;
@@ -343,7 +350,7 @@ const LiveChatWidget = () => {
             return [...prev, next];
           });
           lastMsgIdRef.current = next.id;
-          playForMessage(next, { silent: initialLoadRef.current || next.sender_type === "visitor" });
+          playForMessage(next, { silent: initialLoadRef.current || next.sender_type === "visitor", source: "realtime" });
 
           // Mark as read when widget is open
           if (open && next.sender_type === "admin") {
@@ -475,7 +482,7 @@ const LiveChatWidget = () => {
       upsertChat({ key: platformKey(), scope: "platform", label: "Serviceydere Kundeservice" });
       setFirstMessage("");
       setSubject("");
-      chatSounds.outgoing();
+      chatSounds.outgoing("send");
       void requestAiReply(token);
 
       supabase.functions
@@ -516,8 +523,8 @@ const LiveChatWidget = () => {
       };
       appendIfNew(data?.message);
       appendIfNew(data?.escalationMessage);
-      playForMessage(data?.message);
-      playForMessage(data?.escalationMessage);
+      playForMessage(data?.message, { source: "ai-reply" });
+      playForMessage(data?.escalationMessage, { source: "ai-reply" });
     } catch {
       // Stille fejl — beskeden dukker op via polling hvis den alligevel blev gemt,
       // og vi vil ikke forstyrre brugeren med en fejltoast for en baggrundsproces.
@@ -547,7 +554,7 @@ const LiveChatWidget = () => {
     setSending(false);
     if (!mErr) {
       if (override === undefined) { setDraft(""); clearPendingImage(); }
-      chatSounds.outgoing();
+      chatSounds.outgoing("send");
       void requestAiReply(conversation.session_token);
     } else {
       toast.error(mErr.message || "Beskeden kunne ikke sendes. Prøv igen.");
@@ -565,12 +572,34 @@ const LiveChatWidget = () => {
       });
       if (data?.message) {
         setMessages((prev) => (prev.some((m) => m.id === data.message.id) ? prev : [...prev, data.message]));
-        playForMessage(data.message);
+        playForMessage(data.message, { source: "escalate" });
       }
     } catch {
       toast.error("Kunne ikke koble en medarbejder på. Prøv igen.");
     }
   }, [conversation]);
+
+  const sendFeedback = useCallback(
+    async (messageId: string, rating: "up" | "down", reason?: string) => {
+      if (!conversation) return;
+      setFeedback((prev) => ({ ...prev, [messageId]: rating }));
+      try {
+        const { data, error } = await supabase.functions.invoke("livechat-ai-reply", {
+          body: { token: conversation.session_token, action: "feedback", messageId, rating, reason },
+        });
+        if (error || (data as any)?.error) throw new Error("fejl");
+        toast.success(rating === "up" ? "Tak for din feedback" : "Tak — vi kigger på svaret");
+      } catch {
+        setFeedback((prev) => {
+          const next = { ...prev };
+          delete next[messageId];
+          return next;
+        });
+        toast.error("Kunne ikke sende feedback. Prøv igen.");
+      }
+    },
+    [conversation],
+  );
 
   const endChatSession = async () => {
     if (!conversation) return;
@@ -622,12 +651,12 @@ const LiveChatWidget = () => {
     const next = !muted;
     setMuted(next);
     chatSounds.setMuted(next);
-    if (!next) chatSounds.tick();
+    if (!next) chatSounds.tick("unmute");
   };
 
   const handleOpen = () => {
     setOpen(true);
-    chatSounds.open();
+    chatSounds.open("open-panel");
     if (conversation) {
       supabase.rpc("mark_chat_read_by_token", { p_token: conversation.session_token }).then(() => {});
     }
@@ -1043,7 +1072,63 @@ const LiveChatWidget = () => {
                           <div className={`mt-1 flex items-center gap-1 px-1 text-[10px] text-muted-foreground ${mine ? "flex-row-reverse" : ""}`}>
                             <span>{formatTime(m.created_at)}</span>
                             {isLastMine && <CheckCheck className="h-3 w-3" />}
+                            {m.metadata?.kind === "ai" && (
+                              <span className="ml-1 inline-flex items-center gap-0.5">
+                                <button
+                                  type="button"
+                                  aria-label="Godt svar"
+                                  onClick={() => sendFeedback(m.id, "up")}
+                                  className={`rounded-md p-1 transition-colors hover:bg-secondary ${feedback[m.id] === "up" ? "text-success" : "text-muted-foreground"}`}
+                                >
+                                  <ThumbsUp className="h-3 w-3" />
+                                </button>
+                                <button
+                                  type="button"
+                                  aria-label="Dårligt svar"
+                                  onClick={() => sendFeedback(m.id, "down")}
+                                  className={`rounded-md p-1 transition-colors hover:bg-secondary ${feedback[m.id] === "down" ? "text-destructive" : "text-muted-foreground"}`}
+                                >
+                                  <ThumbsDown className="h-3 w-3" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => { setReportFor(reportFor === m.id ? null : m.id); setReportText(""); }}
+                                  className="inline-flex items-center gap-0.5 rounded-md px-1 py-1 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                                >
+                                  <Flag className="h-3 w-3" />
+                                  Rapportér
+                                </button>
+                              </span>
+                            )}
                           </div>
+                          {reportFor === m.id && (
+                            <div className="mt-1 w-full rounded-xl border border-border bg-card p-2">
+                              <textarea
+                                value={reportText}
+                                onChange={(e) => setReportText(e.target.value.slice(0, 500))}
+                                rows={2}
+                                placeholder="Hvad var forkert i svaret?"
+                                className="w-full resize-none rounded-lg border border-border bg-background px-2 py-1.5 text-[12px] outline-none focus:border-accent"
+                              />
+                              <div className="mt-1.5 flex justify-end gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => setReportFor(null)}
+                                  className="rounded-full px-2.5 py-1 text-[11px] font-medium text-muted-foreground hover:bg-secondary"
+                                >
+                                  Annullér
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={!reportText.trim()}
+                                  onClick={() => { void sendFeedback(m.id, "down", reportText.trim()); setReportFor(null); }}
+                                  className="rounded-full bg-foreground px-2.5 py-1 text-[11px] font-semibold text-background disabled:opacity-40"
+                                >
+                                  Send
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
