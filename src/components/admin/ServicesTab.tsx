@@ -479,7 +479,7 @@ const ServiceRow = ({ service, orderCount, accountingMeta, onEdit, onDelete }: {
     ? intervals.slice(0, 2).map((interval: string) => formatInterval(interval)).join(", ") + (intervals.length > 2 ? ` +${intervals.length - 2}` : "")
     : "Ikke angivet";
   const priceSummary = service.base_price != null
-    ? `${service.base_price} kr${service.unit ? ` / ${service.unit}` : ""}`
+    ? `${formatPrice(service.base_price)}${service.unit ? ` / ${service.unit}` : ""}`
     : service.pricing_type === "prisberegner"
       ? `${service.calculator_steps?.length || 0} trin`
       : "Ikke angivet";
@@ -612,50 +612,6 @@ const AccountingChip = ({ icon, label, value, muted }: { icon: React.ReactNode; 
     <span className="truncate font-medium">{value}</span>
   </span>
 );
-
-/* ─── Calculator Preview ─── */
-const CalculatorPreview = ({ steps }: { steps: any[] }) => {
-  const [values, setValues] = useState<Record<number, number>>(() => {
-    const init: Record<number, number> = {};
-    steps.forEach((s, i) => { init[i] = parseFloat(s.default_value) || 0; });
-    return init;
-  });
-
-  const total = steps.reduce((sum, step, i) => sum + (values[i] || 0) * (parseFloat(step.price_per_unit) || 0), 0);
-  if (steps.length === 0) return null;
-
-  return (
-    <div className="surface-admin rounded-xl border border-border/80 p-4">
-      <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
-        <Calculator className="h-4 w-4" />
-        Forhåndsvisning
-      </div>
-      <div className="rounded-lg border border-border bg-card overflow-hidden">
-        {steps.filter(s => s.label).map((step, idx) => {
-          const stepTotal = (values[idx] || 0) * (parseFloat(step.price_per_unit) || 0);
-          return (
-            <div key={idx} className={`flex items-center justify-between gap-3 px-4 py-3 ${idx < steps.length - 1 ? "border-b border-border" : ""}`}>
-              <div className="min-w-0 flex-1">
-                <div className="text-sm font-medium text-foreground">{step.label || "..."}</div>
-                <div className="text-xs text-muted-foreground">{parseFloat(step.price_per_unit) || 0} kr / {step.unit || "stk"}</div>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="rounded-lg border border-border bg-muted px-3 py-1.5 text-sm font-semibold text-foreground">
-                  {values[idx] || 0} {step.unit || "stk"}
-                </span>
-                <span className="w-16 text-right text-sm font-semibold text-foreground">{stepTotal} kr</span>
-              </div>
-            </div>
-          );
-        })}
-        <div className="flex items-center justify-between bg-secondary px-4 py-3">
-          <span className="text-sm font-semibold text-foreground">I alt</span>
-          <span className="text-lg font-bold text-foreground">{total} kr</span>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 /* ─── Service Form ─── */
 const ServiceForm = ({
@@ -1673,7 +1629,6 @@ const ServiceForm = ({
             )}
           </div>
 
-          <CalculatorPreview steps={steps} />
             </div>
           )}
         </div>
