@@ -15,7 +15,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   LogOut, Calendar as CalendarIcon, BarChart3, MessageCircle, Briefcase, Building2,
+  Check, ChevronsUpDown,
 } from "lucide-react";
+
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyEmployee, useMyEmployees } from "@/hooks/useMyEmployee";
 import { useMyBusiness } from "@/hooks/useDatabase";
@@ -29,8 +31,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { getEmployeeWorkspace } from "@/lib/employee-workspace";
+import { getEmployeeWorkspace, setEmployeeWorkspace } from "@/lib/employee-workspace";
 import EmployeeWorkspacePicker from "@/components/employee/EmployeeWorkspacePicker";
+
 
 
 export type EmployeeTabKey = "today" | "stats" | "livechat";
@@ -89,11 +92,33 @@ export const EmployeeShell = ({
   // Arbejder brugeren for flere virksomheder, skal der vælges arbejdsplads
   // før panelet vises. `pickerOpen` tvinger vælgeren frem ved manuelt skift.
   const [pickerOpen, setPickerOpen] = useState(false);
+  // Har brugeren aktivt fravalgt "husk mit valg", holder vi valget til
+  // sessionen i stedet for at gemme det permanent.
+  const [rememberChoice, setRememberChoice] = useState(true);
   const [workspaceId, setWorkspaceId] = useState<string | null>(() => getEmployeeWorkspace());
   const multiWorkspace = (myEmployeeRecords?.length ?? 0) > 1;
   const needsWorkspaceChoice =
     multiWorkspace &&
     (pickerOpen || !myEmployeeRecords!.some((e) => e.business_id === workspaceId));
+
+  // Gem valget permanent (localStorage) så brugeren automatisk lander i den
+  // rigtige virksomhed ved næste login. Har brugeren kun ét arbejdssted,
+  // gemmes det uden at spørge.
+  useEffect(() => {
+    const rows = myEmployeeRecords ?? [];
+    if (rows.length === 0) return;
+    if (rows.length === 1) {
+      if (workspaceId !== rows[0].business_id) {
+        setEmployeeWorkspace(rows[0].business_id, true);
+        setWorkspaceId(rows[0].business_id);
+      }
+      return;
+    }
+    if (rememberChoice && workspaceId && rows.some((e) => e.business_id === workspaceId)) {
+      setEmployeeWorkspace(workspaceId, true);
+    }
+  }, [myEmployeeRecords, workspaceId, rememberChoice]);
+
 
   // Hvis medarbejderen også ejer virksomheden (typisk solo-ejeren), så
   // vises "Skift til virksomhedspanel" i profilmenuen.
@@ -165,12 +190,26 @@ export const EmployeeShell = ({
     .join("") || "M";
   const accentColor = employee?.color || "hsl(var(--foreground))";
 
+  // Aktiv virksomhed — panelets data hentes udelukkende for denne.
+  const activeBusiness = employee?.business ?? null;
+  const activeBusinessName = activeBusiness?.name || "Virksomhed";
+  const businessInitials =
+    activeBusinessName
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((p) => p.charAt(0).toUpperCase())
+      .join("") || "V";
+
+
+
   if (needsWorkspaceChoice) {
     return (
       <EmployeeWorkspacePicker
         employees={myEmployeeRecords!}
         currentBusinessId={workspaceId}
-        onSelected={(id) => {
+        onSelected={(id, remember) => {
+          setRememberChoice(remember);
           setWorkspaceId(id);
           setPickerOpen(false);
           // Alle medarbejder-data (ruter, stop, statistik) hænger på den
@@ -234,6 +273,44 @@ export const EmployeeShell = ({
 
           <div className="ml-auto flex min-w-0 items-center gap-2">
             {topbarRight}
+
+            {/* Aktiv virksomhed — synlig genvej til at skifte arbejdsplads
+                uden at åbne profilmenuen. Den grønne markør bekræfter hvilken
+                virksomhed panelets data hører til. */}
+            {multiWorkspace && (
+              <button
+                type="button"
+                onClick={() => setPickerOpen(true)}
+                className="flex h-9 min-w-0 shrink items-center gap-2 rounded-full border border-border bg-secondary/60 pl-1 pr-2.5 text-xs font-semibold text-foreground transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30"
+                aria-label={`Aktiv virksomhed: ${activeBusinessName}. Skift virksomhed`}
+                title={`Aktiv virksomhed: ${activeBusinessName}`}
+              >
+                <span className="relative inline-flex shrink-0">
+                  <Avatar className="h-7 w-7 rounded-full ring-1 ring-border">
+                    {activeBusiness?.logo_url ? (
+                      <AvatarImage
+                        src={activeBusiness.logo_url}
+                        alt={activeBusinessName}
+                        className="rounded-full object-cover"
+                      />
+                    ) : null}
+                    <AvatarFallback className="rounded-full bg-card text-[10px] font-bold text-foreground">
+                      {businessInitials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span
+                    aria-hidden="true"
+                    className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-card"
+                  >
+                    <Check className="h-2 w-2 text-white" strokeWidth={4} />
+                  </span>
+                </span>
+                <span className="hidden max-w-[160px] truncate sm:inline">{activeBusinessName}</span>
+                <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              </button>
+            )}
+
+
 
             {/* Solo-ejer genvej — kun synlig når virksomheden har præcis
                 1 medarbejder og det er ejeren selv. Spejler "Skift til

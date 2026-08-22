@@ -22,7 +22,7 @@ const initialsOf = (name: string) =>
 type Props = {
   employees: EmployeeWithBusiness[];
   /** Kaldes efter valget er gemt — så shell'en kan rendre panelet. */
-  onSelected: (businessId: string) => void;
+  onSelected: (businessId: string, remember: boolean) => void;
   /** Aktuelt valgt (når vælgeren åbnes fra profilmenuen). */
   currentBusinessId?: string | null;
 };
@@ -34,7 +34,7 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
   const choose = (businessId: string) => {
     setPending(businessId);
     setEmployeeWorkspace(businessId, remember);
-    onSelected(businessId);
+    onSelected(businessId, remember);
   };
 
   return (
@@ -116,7 +116,9 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
                   </div>
 
                   {active ? (
-                    <Check className="h-4 w-4 shrink-0 text-foreground" />
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
+                      <Check className="h-3 w-3" strokeWidth={3} /> Aktiv
+                    </span>
                   ) : (
                     <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
                   )}

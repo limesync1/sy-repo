@@ -266,9 +266,16 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
         .limit(1)
         .maybeSingle();
       if (existingBiz) {
-        toast.error(
-          `Din konto er allerede tilknyttet virksomheden "${existingBiz.name}". Én konto kan kun have én virksomhed — log ind på virksomhedspanelet, eller kontakt support hvis du skal have flere.`,
-        );
+        toast.error(`Du ejer allerede "${existingBiz.name}"`, {
+          description:
+            "Én konto kan kun have én virksomhed. Gå til dit virksomhedspanel — eller kontakt support, hvis du har brug for flere virksomheder på samme konto.",
+          duration: 10000,
+          action: {
+            label: "Åbn virksomhedspanel",
+            onClick: () => navigate("/virksomhed"),
+          },
+        });
+        setExistingBusiness(existingBiz as { id: string; name: string });
         setSubmitting(false);
         return;
       }
