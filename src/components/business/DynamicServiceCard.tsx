@@ -180,7 +180,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
 
   const isFixed = service.pricing_type === "fast_pris";
 
-  const hue = hueForString((service as any).subcategory || service.category || service.name);
+  const hue = hueForString((service as any).subcategory || (service as any).category || service.name);
 
   return (
     <Card
