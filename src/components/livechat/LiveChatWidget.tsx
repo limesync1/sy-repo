@@ -316,13 +316,14 @@ const LiveChatWidget = () => {
       if (cancelled || !data) { if (initial) initialLoadRef.current = false; return; }
       const rows = data as unknown as ChatMessage[];
       setMessages((prev) => (prev.length === rows.length && prev[prev.length - 1]?.id === rows[rows.length - 1]?.id ? prev : rows));
+      // Ved første indlæsning markeres alt som "allerede hørt", så gamle
+      // beskeder ikke bimler når widgeten åbnes igen.
+      rows.forEach((r) => playForMessage(r, { silent: initial || r.sender_type === "visitor" }));
       const last = rows[rows.length - 1];
-      if (last && lastMsgIdRef.current !== last.id) {
-        if (!initial && last.sender_type === "admin" && !last.is_system) chatSounds.incoming();
-        lastMsgIdRef.current = last.id;
-      }
+      if (last) lastMsgIdRef.current = last.id;
       if (initial) initialLoadRef.current = false;
     };
+
     void loadMessages(true);
     // Polling-fallback: realtime kan ikke levere beskeder til anonyme besøgende
     // efter RLS-stramningen, så vi henter jævnligt via RPC'en.
