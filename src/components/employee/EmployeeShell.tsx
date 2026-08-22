@@ -92,6 +92,9 @@ export const EmployeeShell = ({
   // Arbejder brugeren for flere virksomheder, skal der vælges arbejdsplads
   // før panelet vises. `pickerOpen` tvinger vælgeren frem ved manuelt skift.
   const [pickerOpen, setPickerOpen] = useState(false);
+  // Har brugeren aktivt fravalgt "husk mit valg", holder vi valget til
+  // sessionen i stedet for at gemme det permanent.
+  const [rememberChoice, setRememberChoice] = useState(true);
   const [workspaceId, setWorkspaceId] = useState<string | null>(() => getEmployeeWorkspace());
   const multiWorkspace = (myEmployeeRecords?.length ?? 0) > 1;
   const needsWorkspaceChoice =
@@ -111,10 +114,10 @@ export const EmployeeShell = ({
       }
       return;
     }
-    if (workspaceId && rows.some((e) => e.business_id === workspaceId)) {
+    if (rememberChoice && workspaceId && rows.some((e) => e.business_id === workspaceId)) {
       setEmployeeWorkspace(workspaceId, true);
     }
-  }, [myEmployeeRecords, workspaceId]);
+  }, [myEmployeeRecords, workspaceId, rememberChoice]);
 
 
   // Hvis medarbejderen også ejer virksomheden (typisk solo-ejeren), så
@@ -205,7 +208,8 @@ export const EmployeeShell = ({
       <EmployeeWorkspacePicker
         employees={myEmployeeRecords!}
         currentBusinessId={workspaceId}
-        onSelected={(id) => {
+        onSelected={(id, remember) => {
+          setRememberChoice(remember);
           setWorkspaceId(id);
           setPickerOpen(false);
           // Alle medarbejder-data (ruter, stop, statistik) hænger på den
