@@ -37,7 +37,7 @@ const TRACKS = [
       "Vores support flytter jeres eksisterende kunder ind",
     ],
     primary: { label: "Se software", to: "/software" },
-    secondary: { label: "Bliv udbyder", to: "/bliv-udbyder" },
+    secondary: { label: "Bliv udbyder", to: "/opret-virksomhed" },
     tone: "bg-sand text-sand-foreground",
     chip: "bg-sand-foreground text-sand",
   },

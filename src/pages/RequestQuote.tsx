@@ -314,6 +314,7 @@ const RequestQuote = () => {
       {!matches && !isLoading && !selectedBusiness && (
         <>
           <PageHero
+            tone="violet"
             eyebrow="Få tilbud"
             title="Få op til 3 gratis tilbud."
             subtitle="Beskriv opgaven, så finder vi de bedste serviceydere til dig — gratis og uforpligtende."
