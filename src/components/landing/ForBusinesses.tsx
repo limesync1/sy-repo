@@ -184,11 +184,14 @@ const ForBusinesses = () => {
                 to="/opret-virksomhed"
                 className="group inline-flex items-center gap-2 rounded-full bg-background px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5"
               >
-                Kom i gang gratis
+                Prøv gratis i {p.trial_days} dage
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </SmartLink>
-              <span className="text-xs text-background/80">14 dages prøveperiode · ingen binding.</span>
+              <span className="text-xs text-background/80">
+                Ingen betalingskort ved start · ingen binding · derefter {kr(p.base_price_dkk)} kr/md.
+              </span>
             </div>
+
           </article>
 
           {/* 4 feature-kort i den højre kolonne på desktop, 2x2 grid på mindre. */}
