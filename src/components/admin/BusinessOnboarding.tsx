@@ -723,7 +723,8 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
               )}
 
               {existingBusiness && (
-                <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+                <div className="mt-6 mb-2 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+
                   <p className="text-sm font-semibold text-foreground">
                     Din konto har allerede en virksomhed
                   </p>

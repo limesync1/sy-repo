@@ -598,9 +598,10 @@ const CartSheet = () => {
                     </div>
                     <h4 className="text-sm font-semibold text-foreground">Virksomhed</h4>
                   </div>
-                  <div className="grid gap-2.5 pl-9 sm:grid-cols-2">
+                  <div className="grid gap-4 pl-0 sm:pl-9 sm:grid-cols-2">
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-muted-foreground">CVR-nummer</label>
+                      <label className="mb-1.5 block text-sm font-medium text-foreground">CVR-nummer</label>
+                      <p className="mb-1.5 text-xs text-muted-foreground">Vi henter automatisk firmanavn og adresse.</p>
                       <CvrLookupField
                         value={cvr}
                         onChange={setCvr}
@@ -623,13 +624,13 @@ const CartSheet = () => {
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-muted-foreground">Firmanavn</label>
-                      <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Indtastes automatisk via CVR" className="rounded-lg" />
+                      <label className="mb-1.5 block text-sm font-medium text-foreground">Firmanavn</label>
+                      <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Udfyldes automatisk efter CVR-opslag" className="h-11 rounded-lg text-base sm:text-sm" />
                       {errors.companyName && <p className="mt-1 text-xs text-destructive">{errors.companyName}</p>}
                     </div>
                     <div className="sm:col-span-2">
-                      <label className="mb-1 block text-xs font-medium text-muted-foreground">Kontaktperson</label>
-                      <Input value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Fulde navn" className="rounded-lg" />
+                      <label className="mb-1.5 block text-sm font-medium text-foreground">Kontaktperson</label>
+                      <Input value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Fulde navn" className="h-11 rounded-lg text-base sm:text-sm" />
                       {errors.contactName && <p className="mt-1 text-xs text-destructive">{errors.contactName}</p>}
                     </div>
                   </div>
@@ -646,22 +647,22 @@ const CartSheet = () => {
                     {customerType === "business" ? "Kontakt" : "Dine oplysninger"}
                   </h4>
                 </div>
-                <div className="grid gap-2.5 pl-9 sm:grid-cols-2">
+                <div className="grid gap-4 pl-0 sm:pl-9 sm:grid-cols-2">
                   {customerType === "private" && (
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-muted-foreground">Fulde navn</label>
-                      <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Dit navn" className="rounded-lg" />
+                      <label className="mb-1.5 block text-sm font-medium text-foreground">Fulde navn</label>
+                      <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Dit navn" className="h-11 rounded-lg text-base sm:text-sm" />
                       {errors.name && <p className="mt-1 text-xs text-destructive">{errors.name}</p>}
                     </div>
                   )}
                   <div className={cn(customerType === "business" && "sm:col-span-1")}>
-                    <label className="mb-1 block text-xs font-medium text-muted-foreground">E-mail</label>
-                    <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="din@email.dk" className="rounded-lg" />
+                    <label className="mb-1.5 block text-sm font-medium text-foreground">E-mail</label>
+                    <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="din@email.dk" className="h-11 rounded-lg text-base sm:text-sm" />
                     {errors.email && <p className="mt-1 text-xs text-destructive">{errors.email}</p>}
                   </div>
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-muted-foreground">Telefon</label>
-                    <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+45 00 00 00 00" className="rounded-lg" />
+                    <label className="mb-1.5 block text-sm font-medium text-foreground">Telefon</label>
+                    <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+45 00 00 00 00" className="h-11 rounded-lg text-base sm:text-sm" />
                     {errors.phone && <p className="mt-1 text-xs text-destructive">{errors.phone}</p>}
                   </div>
                 </div>
@@ -675,7 +676,7 @@ const CartSheet = () => {
                   </div>
                   <h4 className="text-sm font-semibold text-foreground">Service-adresse</h4>
                 </div>
-                <div className="space-y-2.5 pl-9">
+                <div className="space-y-2.5 pl-0 sm:pl-9">
                   <AddressAutocomplete
                     value={{ address, zip_code: zipCode, city, latitude, longitude }}
                     onChange={(v) => {

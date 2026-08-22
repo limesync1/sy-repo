@@ -192,8 +192,9 @@ const DynamicBusinessContent = () => {
       {/* ── Hero ── */}
       <header className="relative border-b border-border bg-background">
         <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8 md:pt-6">
-          {/* Cover — højere billedforhold så motivet faktisk kan ses:
-              4:3 på mobil, 16:9 på tablet, 16:7 på store skærme. */}
+          {/* Cover — roligt bredformat der aldrig bliver højere end skærmen
+              tåler: 3:2 på mobil, 16:7 på tablet, 21:8 på store skærme, med et
+              hårdt loft så coveret ikke skubber indholdet ned. */}
           <div className="relative overflow-hidden rounded-[1.75rem] border border-border bg-secondary shadow-[0_26px_60px_-40px_hsl(var(--foreground)/0.22)]">
             {hasCover ? (
               <a
@@ -201,41 +202,44 @@ const DynamicBusinessContent = () => {
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Åbn coverbillede i fuld størrelse"
-                className="group relative block aspect-[4/3] w-full sm:aspect-[16/9] lg:aspect-[16/7]"
+                className="group relative block aspect-[2/1] max-h-[180px] w-full sm:aspect-[16/6] sm:max-h-[230px] lg:aspect-[24/7] lg:max-h-[290px]"
               >
-                {/* Blurret baggrund udfylder rammen, så selve billedet kan vises helt */}
+                {/* Blurret baggrund udfylder rammen, så smalle billeder ikke
+                    efterlader tomme kanter */}
                 <img
                   src={business.cover_image_url!}
                   alt=""
                   aria-hidden
-                  className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl opacity-60"
+                  className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl opacity-50"
                   loading="eager"
                   decoding="async"
                 />
                 <img
                   src={business.cover_image_url!}
                   alt={`${business.name}${business.city ? ` i ${business.city}` : ""} – billede`}
-                  className="relative h-full w-full object-contain object-center sm:object-cover"
+                  className="relative h-full w-full object-cover object-center"
                   width={1600}
-                  height={700}
+                  height={610}
+                  sizes="(max-width: 640px) 100vw, (max-width: 1280px) 100vw, 1280px"
                   loading="eager"
                   decoding="async"
                   fetchPriority="high"
                 />
-                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-foreground/30 to-transparent" />
-                <span className="absolute bottom-3 right-3 rounded-full bg-background/90 px-3 py-1 text-[11px] font-semibold text-foreground opacity-0 shadow-sm backdrop-blur transition-opacity group-hover:opacity-100">
+                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-foreground/35 to-transparent" />
+                <span className="absolute bottom-3 right-3 rounded-full bg-background/90 px-3 py-1 text-[11px] font-semibold text-foreground opacity-0 shadow-sm backdrop-blur transition-opacity group-hover:opacity-100 focus-visible:opacity-100">
                   Se i fuld størrelse
                 </span>
               </a>
             ) : (
               <div
                 aria-hidden
-                className="relative h-28 w-full bg-gradient-to-br from-accent/30 via-feature-lilac/15 to-secondary md:h-40"
+                className="relative h-24 w-full bg-gradient-to-br from-accent/30 via-feature-lilac/20 to-feature-warm/30 md:h-32"
               >
                 <div className="absolute inset-0 bg-noise opacity-[0.06]" />
               </div>
             )}
           </div>
+
 
 
 

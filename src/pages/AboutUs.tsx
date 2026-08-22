@@ -78,8 +78,8 @@ const AboutUs = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Om Serviceydere — Danmarks platform for verificerede serviceydere"
-        description="Serviceydere forbinder danskere med verificerede lokale serviceydere — rengøring, håndværker, flyttehjælp, haveservice og mere. Læs om vores mission og hvordan vi arbejder."
+        title="Om Serviceydere — verificerede lokale udbydere"
+        description="Serviceydere forbinder danskere med verificerede lokale udbydere: rengøring, håndværker, flyttehjælp og haveservice. Læs om vores mission."
         canonicalPath="/om-os"
         keywords="om serviceydere, serviceydere danmark, find lokal serviceyder, verificerede udbydere"
         jsonLd={jsonLd}
