@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import {
   MessageCircle, Send, Loader2, ChevronDown, CheckCheck, Paperclip, X as XIcon,
   ImageIcon, Volume2, VolumeX, MoreVertical, MessagesSquare, ArrowLeft, Trash2,
-  Bot, UserRound,
+  Bot, UserRound, ThumbsUp, ThumbsDown, Flag,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -240,6 +240,11 @@ const LiveChatWidget = () => {
     else if (m.sender_type === "admin") chatSounds.incoming(source);
   }, []);
 
+
+  // Feedback på AI-svar: tommel op/ned + kort rapport af forkerte svar.
+  const [feedback, setFeedback] = useState<Record<string, "up" | "down">>({});
+  const [reportFor, setReportFor] = useState<string | null>(null);
+  const [reportText, setReportText] = useState("");
 
   const userScrolledUpRef = useRef(false);
 
@@ -573,6 +578,28 @@ const LiveChatWidget = () => {
       toast.error("Kunne ikke koble en medarbejder på. Prøv igen.");
     }
   }, [conversation]);
+
+  const sendFeedback = useCallback(
+    async (messageId: string, rating: "up" | "down", reason?: string) => {
+      if (!conversation) return;
+      setFeedback((prev) => ({ ...prev, [messageId]: rating }));
+      try {
+        const { data, error } = await supabase.functions.invoke("livechat-ai-reply", {
+          body: { token: conversation.session_token, action: "feedback", messageId, rating, reason },
+        });
+        if (error || (data as any)?.error) throw new Error("fejl");
+        toast.success(rating === "up" ? "Tak for din feedback" : "Tak — vi kigger på svaret");
+      } catch {
+        setFeedback((prev) => {
+          const next = { ...prev };
+          delete next[messageId];
+          return next;
+        });
+        toast.error("Kunne ikke sende feedback. Prøv igen.");
+      }
+    },
+    [conversation],
+  );
 
   const endChatSession = async () => {
     if (!conversation) return;
@@ -1045,7 +1072,63 @@ const LiveChatWidget = () => {
                           <div className={`mt-1 flex items-center gap-1 px-1 text-[10px] text-muted-foreground ${mine ? "flex-row-reverse" : ""}`}>
                             <span>{formatTime(m.created_at)}</span>
                             {isLastMine && <CheckCheck className="h-3 w-3" />}
+                            {m.metadata?.kind === "ai" && (
+                              <span className="ml-1 inline-flex items-center gap-0.5">
+                                <button
+                                  type="button"
+                                  aria-label="Godt svar"
+                                  onClick={() => sendFeedback(m.id, "up")}
+                                  className={`rounded-md p-1 transition-colors hover:bg-secondary ${feedback[m.id] === "up" ? "text-success" : "text-muted-foreground"}`}
+                                >
+                                  <ThumbsUp className="h-3 w-3" />
+                                </button>
+                                <button
+                                  type="button"
+                                  aria-label="Dårligt svar"
+                                  onClick={() => sendFeedback(m.id, "down")}
+                                  className={`rounded-md p-1 transition-colors hover:bg-secondary ${feedback[m.id] === "down" ? "text-destructive" : "text-muted-foreground"}`}
+                                >
+                                  <ThumbsDown className="h-3 w-3" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => { setReportFor(reportFor === m.id ? null : m.id); setReportText(""); }}
+                                  className="inline-flex items-center gap-0.5 rounded-md px-1 py-1 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                                >
+                                  <Flag className="h-3 w-3" />
+                                  Rapportér
+                                </button>
+                              </span>
+                            )}
                           </div>
+                          {reportFor === m.id && (
+                            <div className="mt-1 w-full rounded-xl border border-border bg-card p-2">
+                              <textarea
+                                value={reportText}
+                                onChange={(e) => setReportText(e.target.value.slice(0, 500))}
+                                rows={2}
+                                placeholder="Hvad var forkert i svaret?"
+                                className="w-full resize-none rounded-lg border border-border bg-background px-2 py-1.5 text-[12px] outline-none focus:border-accent"
+                              />
+                              <div className="mt-1.5 flex justify-end gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => setReportFor(null)}
+                                  className="rounded-full px-2.5 py-1 text-[11px] font-medium text-muted-foreground hover:bg-secondary"
+                                >
+                                  Annullér
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={!reportText.trim()}
+                                  onClick={() => { void sendFeedback(m.id, "down", reportText.trim()); setReportFor(null); }}
+                                  className="rounded-full bg-foreground px-2.5 py-1 text-[11px] font-semibold text-background disabled:opacity-40"
+                                >
+                                  Send
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
