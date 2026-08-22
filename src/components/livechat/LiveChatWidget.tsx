@@ -524,7 +524,7 @@ const LiveChatWidget = () => {
     } finally {
       setAiThinking(false);
     }
-  }, []);
+  }, [playForMessage]);
 
   const sendMessage = useCallback(async (override?: string) => {
     if (!conversation || sending) return;
@@ -580,7 +580,6 @@ const LiveChatWidget = () => {
       p_is_system: true,
     });
     await supabase.rpc("close_chat_conversation_by_token", { p_token: conversation.session_token });
-    chatSounds.system();
     // Don't clear locally — keep the closed conversation visible so the visitor
     // can see status changes (closed/reopened) and start a new chat when ready.
     setConversation((prev) => (prev ? { ...prev, status: "closed" } : prev));
@@ -602,7 +601,6 @@ const LiveChatWidget = () => {
     setMessages([]);
     setDraft("");
     clearPendingImage();
-    chatSounds.system();
   };
   const deleteCurrentConversation = () => setConfirmDelete({ kind: "current" });
 
