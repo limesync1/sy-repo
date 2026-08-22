@@ -327,20 +327,20 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
         )}
         </div>
 
-        <div className="mt-auto rounded-xl border border-[hsl(var(--ind)_70%_45%_/_0.3)] bg-[hsl(var(--ind)_75%_96%)] p-2.5">
+        <div className="mt-auto rounded-xl border border-border bg-secondary/40 p-2.5">
           <div className="mb-2 flex items-center justify-between gap-2">
             <div className="min-w-0">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                 {isFixed ? "Fast pris" : "Prisoverslag"}
               </p>
-              <div className="mt-0.5 flex items-baseline gap-1">
-                <p className="text-lg font-bold leading-none text-foreground sm:text-xl">{roundPrice(total)}</p>
+              <div
+                className="mt-0.5 flex items-baseline gap-1"
+                aria-live="polite"
+                aria-label={`${isFixed ? "Fast pris" : "Prisoverslag"} ${priceLabel}, ${intervalLabel}`}
+              >
+                <p className="text-lg font-bold leading-none text-foreground sm:text-xl">{roundPrice(total).toLocaleString("da-DK")}</p>
                 <span className="text-[11px] text-muted-foreground">kr</span>
-                <span className="ml-1 truncate text-[10px] text-muted-foreground">
-                  · {selectedInterval && selectedInterval !== "engangskøb"
-                    ? INTERVAL_LABELS[selectedInterval] || selectedInterval
-                    : "engangskøb"}
-                </span>
+                <span className="ml-1 truncate text-[10px] text-muted-foreground">· {intervalLabel}</span>
               </div>
             </div>
           </div>
@@ -348,25 +348,36 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
           <Button
             onClick={handleAdd}
             disabled={justAdded}
-            className={`h-10 w-full gap-1.5 rounded-lg text-xs font-semibold transition-all sm:h-11 sm:text-sm ${
+            aria-label={
               justAdded
-                ? "bg-emerald-600 text-white"
-                : "bg-[hsl(var(--ind)_70%_38%)] text-white shadow-lg shadow-[hsl(var(--ind)_70%_38%_/_0.28)] hover:bg-[hsl(var(--ind)_70%_32%)] active:scale-[0.98]"
+                ? `${service.name} er tilføjet til bestillingen`
+                : `Tilføj ${service.name} til bestilling, ${priceLabel}`
+            }
+            className={`h-11 w-full justify-between gap-2 rounded-lg px-3 text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 ${
+              justAdded
+                ? "bg-foreground text-background"
+                : "bg-accent text-accent-foreground shadow-sm hover:bg-accent/90 active:scale-[0.99]"
             }`}
           >
             {justAdded ? (
-              <>
-                <Check className="h-3.5 w-3.5" />
-                Tilføjet!
-              </>
+              <span className="mx-auto inline-flex items-center gap-1.5">
+                <Check className="h-4 w-4" aria-hidden />
+                Tilføjet
+              </span>
             ) : (
               <>
-                <ShoppingCart className="h-3.5 w-3.5" />
-                Tilføj til bestilling · {roundPrice(total)} kr
+                <span className="inline-flex min-w-0 items-center gap-1.5">
+                  <ShoppingCart className="h-4 w-4 shrink-0" aria-hidden />
+                  <span className="truncate">Tilføj til bestilling</span>
+                </span>
+                <span className="shrink-0 rounded-md bg-background/15 px-2 py-0.5 text-xs font-bold tabular-nums">
+                  {priceLabel}
+                </span>
               </>
             )}
           </Button>
         </div>
+
         </div>
 
       </CardContent>
