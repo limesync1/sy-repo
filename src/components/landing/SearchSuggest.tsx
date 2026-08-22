@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, MapPin, Building2, Clock, X } from "lucide-react";
+import { Search, MapPin, Building2, Clock, X, CornerDownLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUserLocation } from "@/contexts/LocationContext";
 import { topCategories, searchIndustries } from "@/lib/service-taxonomy";
