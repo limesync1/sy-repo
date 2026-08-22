@@ -824,7 +824,7 @@ const BusinessPageSkeleton = () => (
     </header>
 
     {/* Body */}
-    <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
+    <main className="mx-auto max-w-[92rem] px-4 sm:px-6 lg:px-8 py-4">
       <div className="grid gap-4 md:gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="space-y-4">
           <Skeleton className="h-64 w-full rounded-[2rem]" />
