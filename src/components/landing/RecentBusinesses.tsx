@@ -46,7 +46,9 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
                 className="relative h-full w-full object-contain"
                 width={400}
                 height={250}
+                sizes="(max-width: 640px) 80vw, 320px"
                 loading="lazy"
+
                 decoding="async"
               />
             </>
