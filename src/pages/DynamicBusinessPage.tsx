@@ -513,7 +513,9 @@ const DynamicBusinessContent = () => {
                     </div>
                   )}
                 </div>
+                </div>
               </section>
+
             )}
 
             {/* Empty state — vises hvis virksomheden endnu ikke har oprettet services */}
