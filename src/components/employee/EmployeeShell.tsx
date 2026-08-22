@@ -165,7 +165,24 @@ export const EmployeeShell = ({
     .join("") || "M";
   const accentColor = employee?.color || "hsl(var(--foreground))";
 
+  if (needsWorkspaceChoice) {
+    return (
+      <EmployeeWorkspacePicker
+        employees={myEmployeeRecords!}
+        currentBusinessId={workspaceId}
+        onSelected={(id) => {
+          setWorkspaceId(id);
+          setPickerOpen(false);
+          // Alle medarbejder-data (ruter, stop, statistik) hænger på den
+          // valgte virksomhed — ryd cachen så intet vises på tværs.
+          queryClient.clear();
+        }}
+      />
+    );
+  }
+
   return (
+
     <div className="isolate flex min-h-dvh flex-col bg-secondary/50">
       {/* Topbar — altid synlig */}
       <header className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
