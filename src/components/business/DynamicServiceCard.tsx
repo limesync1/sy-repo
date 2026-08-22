@@ -9,6 +9,7 @@ import type { Service, CalculatorStep } from "@/hooks/useDatabase";
 import { buildPricingSnapshot, roundPrice } from "@/lib/service-pricing";
 import { hueForString } from "@/lib/industry-color";
 import { imageSrc, imageSrcSet } from "@/lib/image-url";
+import { formatPrice } from "@/lib/price-format";
 
 interface Props {
   service: Service & { calculator_steps?: CalculatorStep[] };
@@ -187,7 +188,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
   // underkategori-chip). Alt interaktivt bruger brandets accent-token, så
   // farverne er forudsigelige og knapperne ser ens ud på tværs af kort.
   const hue = hueForString((service as any).subcategory || (service as any).category || service.name);
-  const priceLabel = `${roundPrice(total).toLocaleString("da-DK")} kr`;
+  const priceLabel = formatPrice(roundPrice(total));
   const intervalLabel = selectedInterval && selectedInterval !== "engangskøb"
     ? INTERVAL_LABELS[selectedInterval] || selectedInterval
     : "engangskøb";
@@ -289,8 +290,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
         {/* Fast pris */}
         {service.pricing_type === "fast_pris" && (
           <div className="inline-flex w-fit items-end gap-1 rounded-lg bg-card px-2.5 py-1.5 ring-1 ring-border">
-            <span className="text-xl font-bold text-foreground">{service.base_price}</span>
-            <span className="pb-0.5 text-xs text-muted-foreground">kr</span>
+            <span className="text-xl font-bold text-foreground">{formatPrice(service.base_price)}</span>
           </div>
         )}
 
@@ -298,7 +298,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
         {service.pricing_type === "timepris" && (
           <div className="space-y-2">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <span className="text-xs text-muted-foreground">{service.base_price} kr / time</span>
+              <span className="text-xs text-muted-foreground">{formatPrice(service.base_price)} / time</span>
               <StepperInput value={hours} onChange={setHours} min={0.5} max={24} step={0.5} unit="t" />
             </div>
           </div>
@@ -316,7 +316,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
                       <span className="text-xs font-medium text-foreground">{step.label}</span>
                       <span className="ml-1 text-[10px] text-muted-foreground">({step.price_per_unit} kr/{step.unit})</span>
                     </div>
-                    <span className="text-xs font-semibold text-foreground shrink-0">{roundPrice(stepTotal)} kr</span>
+                    <span className="text-xs font-semibold text-foreground shrink-0">{formatPrice(roundPrice(stepTotal))}</span>
                   </div>
                   <StepperInput
                     value={stepValues[step.id] ?? step.default_value ?? step.min_value ?? 0}
@@ -343,8 +343,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
                 aria-live="polite"
                 aria-label={`${isFixed ? "Fast pris" : "Prisoverslag"} ${priceLabel}, ${intervalLabel}`}
               >
-                <p className="text-lg font-bold leading-none text-foreground sm:text-xl">{roundPrice(total).toLocaleString("da-DK")}</p>
-                <span className="text-[11px] text-muted-foreground">kr</span>
+                <p className="text-lg font-bold leading-none text-foreground sm:text-xl">{formatPrice(roundPrice(total))}</p>
                 <span className="ml-1 truncate text-[10px] text-muted-foreground">· {intervalLabel}</span>
               </div>
             </div>

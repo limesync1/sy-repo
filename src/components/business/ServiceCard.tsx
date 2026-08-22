@@ -6,12 +6,13 @@ import { useCart } from "@/contexts/CartContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, Minus, Plus, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
+import { formatPrice } from "@/lib/price-format";
 
 const FixedPriceService = ({ service }: { service: Service }) => {
   const { addItem } = useCart();
   return (
     <div className="flex items-center justify-between border-t border-border pt-4">
-      <span className="text-2xl font-bold text-foreground">{service.fixedPrice} kr</span>
+      <span className="text-2xl font-bold text-foreground">{formatPrice(service.fixedPrice)}</span>
       <Button
         onClick={() => {
           addItem({ serviceId: service.id, serviceName: service.name, total: service.fixedPrice!, details: "Specifik pris", quantity: 1 });
@@ -33,7 +34,7 @@ const HourlyService = ({ service }: { service: Service }) => {
   return (
     <div className="space-y-4 border-t border-border pt-4">
       <div className="flex items-center justify-between">
-        <span className="text-sm text-muted-foreground">{service.hourlyRate} kr/time</span>
+        <span className="text-sm text-muted-foreground">{formatPrice(service.hourlyRate)}/time</span>
         <div className="flex items-center gap-3">
           <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setHours(Math.max(service.minHours || 1, hours - 1))}>
             <Minus className="h-4 w-4" />
@@ -45,7 +46,7 @@ const HourlyService = ({ service }: { service: Service }) => {
         </div>
       </div>
       <div className="flex items-center justify-between">
-        <span className="text-2xl font-bold text-foreground">{total} kr</span>
+        <span className="text-2xl font-bold text-foreground">{formatPrice(total)}</span>
         <Button
           onClick={() => {
             addItem({ serviceId: service.id, serviceName: service.name, total, details: `${hours} timer á ${service.hourlyRate} kr`, quantity: 1 });
@@ -109,7 +110,7 @@ const CalculatorService = ({ service }: { service: Service }) => {
             >
               <span className="font-medium text-foreground">{opt.label}</span>
               <div className="flex items-center gap-2">
-                {opt.priceAdjustment > 0 && <span className="text-sm text-muted-foreground">+{opt.priceAdjustment} kr</span>}
+                {opt.priceAdjustment > 0 && <span className="text-sm text-muted-foreground">+{formatPrice(opt.priceAdjustment)}</span>}
                 {answer === opt.id && <Check className="h-5 w-5 text-accent" />}
               </div>
             </button>
@@ -135,7 +136,7 @@ const CalculatorService = ({ service }: { service: Service }) => {
               >
                 <span className="font-medium text-foreground">{opt.label}</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">+{opt.priceAdjustment} kr</span>
+                  <span className="text-sm text-muted-foreground">+{formatPrice(opt.priceAdjustment)}</span>
                   {isSelected && <Check className="h-5 w-5 text-accent" />}
                 </div>
               </button>
@@ -173,7 +174,7 @@ const CalculatorService = ({ service }: { service: Service }) => {
             onClick={() => setAnswers({ ...answers, [step.id]: true })}
             className={`rounded-xl border p-4 font-medium transition-all ${answer === true ? "border-accent bg-accent/10" : "border-border hover:border-accent/40"}`}
           >
-            Ja {step.yesPrice && <span className="text-sm text-muted-foreground">(+{step.yesPrice} kr)</span>}
+            Ja {step.yesPrice && <span className="text-sm text-muted-foreground">(+{formatPrice(step.yesPrice)})</span>}
           </button>
           <button
             onClick={() => setAnswers({ ...answers, [step.id]: false })}
@@ -212,7 +213,7 @@ const CalculatorService = ({ service }: { service: Service }) => {
       {/* Step label */}
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium text-muted-foreground">Trin {currentStep + 1} af {steps.length}</p>
-        <p className="text-lg font-bold text-foreground">{total} kr</p>
+        <p className="text-lg font-bold text-foreground">{formatPrice(total)}</p>
       </div>
 
       <h4 className="text-lg font-semibold text-foreground">{step.label}</h4>
@@ -242,7 +243,7 @@ const CalculatorService = ({ service }: { service: Service }) => {
             disabled={!answers[step.id] && answers[step.id] !== false}
             className="flex-1 gap-2 bg-accent text-accent-foreground hover:bg-accent/90"
           >
-            <ShoppingCart className="h-4 w-4" /> Læg i kurv – {total} kr
+            <ShoppingCart className="h-4 w-4" /> Læg i kurv – {formatPrice(total)}
           </Button>
         )}
       </div>
@@ -252,9 +253,9 @@ const CalculatorService = ({ service }: { service: Service }) => {
 
 const ServiceCard = ({ service }: { service: Service }) => {
   const priceLabel = service.priceType === "fixed"
-    ? `${service.fixedPrice} kr`
+    ? formatPrice(service.fixedPrice)
     : service.priceType === "hourly"
-    ? `Fra ${(service.hourlyRate || 0) * (service.minHours || 1)} kr`
+    ? `Fra ${formatPrice((service.hourlyRate || 0) * (service.minHours || 1))}`
     : "Beregn pris";
 
   return (
