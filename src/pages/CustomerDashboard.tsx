@@ -1,3 +1,4 @@
+import { formatPrice } from "@/lib/price-format";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -603,10 +604,10 @@ const OrderCard = ({ order, onRespond }: {
               </span>
               <div className="text-right">
                 <span className="text-sm font-bold text-foreground">
-                  {hasProposal ? order.adjusted_amount : order.total_amount} kr
+                  {formatPrice(hasProposal ? order.adjusted_amount : order.total_amount)}
                 </span>
                 {hasProposal && order.adjusted_amount !== order.total_amount && (
-                  <span className="block text-[11px] text-muted-foreground line-through">{order.total_amount} kr</span>
+                  <span className="block text-[11px] text-muted-foreground line-through">{formatPrice(order.total_amount)}</span>
                 )}
               </div>
               <ChevronRight
@@ -647,14 +648,14 @@ const OrderCard = ({ order, onRespond }: {
                         </span>
                       )}
                     </div>
-                    <span className="text-sm font-bold text-foreground shrink-0">{item.total_price} kr</span>
+                    <span className="text-sm font-bold text-foreground shrink-0">{formatPrice(item.total_price)}</span>
                   </div>
                   {item.details?.stepDetails && (
                     <div className="mt-2 space-y-1">
                       {(item.details.stepDetails as any[]).map((sd: any, i: number) => (
                         <div key={i} className="flex justify-between text-xs text-muted-foreground">
                           <span>{sd.label}: <span className="font-medium text-foreground/80">{sd.value} {sd.unit}</span></span>
-                          <span className="font-medium text-foreground/70">{sd.subtotal} kr</span>
+                          <span className="font-medium text-foreground/70">{formatPrice(sd.subtotal)}</span>
                         </div>
                       ))}
                     </div>
@@ -663,7 +664,7 @@ const OrderCard = ({ order, onRespond }: {
               ))}
               <div className="px-4 py-2.5 flex justify-between bg-muted/30">
                 <span className="text-sm font-bold text-foreground">I alt</span>
-                <span className="text-sm font-bold text-foreground">{order.total_amount} kr</span>
+                <span className="text-sm font-bold text-foreground">{formatPrice(order.total_amount)}</span>
               </div>
             </div>
 
@@ -748,12 +749,12 @@ const OrderCard = ({ order, onRespond }: {
                                 )}
                               </div>
                             </div>
-                            <span className="text-sm font-semibold text-foreground shrink-0">{item.total_price} kr</span>
+                            <span className="text-sm font-semibold text-foreground shrink-0">{formatPrice(item.total_price)}</span>
                           </div>
                           {item.details?.stepDetails?.map((sd: any, i: number) => (
                             <div key={i} className="flex justify-between text-xs text-muted-foreground mt-0.5 pl-0.5">
                               <span>{sd.label}: {sd.value} {sd.unit}</span>
-                              <span>{sd.subtotal} kr</span>
+                              <span>{formatPrice(sd.subtotal)}</span>
                             </div>
                           ))}
                         </div>
@@ -766,9 +767,9 @@ const OrderCard = ({ order, onRespond }: {
                 }`}>
                   <span className="text-sm font-bold text-foreground">Tilpasset pris</span>
                   <div className="text-right">
-                    <span className="text-sm font-bold text-foreground">{order.adjusted_amount} kr</span>
+                    <span className="text-sm font-bold text-foreground">{formatPrice(order.adjusted_amount)}</span>
                     {order.adjusted_amount !== order.total_amount && (
-                      <span className="ml-2 text-xs text-muted-foreground line-through">{order.total_amount} kr</span>
+                      <span className="ml-2 text-xs text-muted-foreground line-through">{formatPrice(order.total_amount)}</span>
                     )}
                   </div>
                 </div>
@@ -780,7 +781,7 @@ const OrderCard = ({ order, onRespond }: {
               <div className="flex flex-wrap gap-2 pt-1">
                 <Button size="sm" onClick={() => onRespond(order.id, "accepted", order)}
                   className="gap-1.5 rounded-xl text-xs bg-green-600 text-white hover:bg-green-700 shadow-sm">
-                  <Check className="h-3.5 w-3.5" /> Godkend forslag ({order.adjusted_amount} kr)
+                  <Check className="h-3.5 w-3.5" /> Godkend forslag ({formatPrice(order.adjusted_amount)})
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => onRespond(order.id, "rejected", order)}
                   className="gap-1.5 rounded-xl text-xs text-destructive hover:text-destructive hover:bg-destructive/5">
@@ -897,12 +898,12 @@ const ProposalHistory = ({ orderId }: { orderId: string }) => {
                         {it.service_name}
                         <span className="ml-1 text-[10px] text-muted-foreground">({intervalLabel(it.details?.interval)})</span>
                       </span>
-                      <span className="tabular-nums text-foreground/70">{Number(it.total_price || 0)} kr</span>
+                      <span className="tabular-nums text-foreground/70">{formatPrice(Number(it.total_price || 0))}</span>
                     </div>
                   ))}
                   <div className="mt-1 flex justify-between border-t border-border pt-1 text-xs font-semibold">
                     <span>I alt</span>
-                    <span className="tabular-nums">{Number(e.original_amount || 0)} kr</span>
+                    <span className="tabular-nums">{formatPrice(Number(e.original_amount || 0))}</span>
                   </div>
                 </div>
                 <div className="rounded-lg border border-amber-200 bg-amber-50/40 p-2.5">
@@ -923,9 +924,9 @@ const ProposalHistory = ({ orderId }: { orderId: string }) => {
                             </span>
                           </span>
                           <span className="tabular-nums font-semibold text-foreground">
-                            {Number(it.total_price || 0)} kr
+                            {formatPrice(Number(it.total_price || 0))}
                             {priceChanged && (
-                              <span className="ml-1 text-[10px] font-normal text-muted-foreground line-through">{Number(orig!.total_price)} kr</span>
+                              <span className="ml-1 text-[10px] font-normal text-muted-foreground line-through">{formatPrice(Number(orig!.total_price))}</span>
                             )}
                           </span>
                         </div>
@@ -940,9 +941,9 @@ const ProposalHistory = ({ orderId }: { orderId: string }) => {
                   <div className="mt-1 flex justify-between border-t border-amber-200 pt-1 text-xs font-semibold">
                     <span>I alt</span>
                     <span className="tabular-nums">
-                      {Number(e.adjusted_amount || 0)} kr
+                      {formatPrice(Number(e.adjusted_amount || 0))}
                       {Number(e.adjusted_amount) !== Number(e.original_amount) && (
-                        <span className="ml-1 text-[10px] font-normal text-muted-foreground line-through">{Number(e.original_amount || 0)} kr</span>
+                        <span className="ml-1 text-[10px] font-normal text-muted-foreground line-through">{formatPrice(Number(e.original_amount || 0))}</span>
                       )}
                     </span>
                   </div>
@@ -1106,7 +1107,7 @@ const SubscriptionsView = () => {
                           </div>
                         </div>
                         <div className="text-right shrink-0">
-                          <span className="text-lg font-bold text-foreground">{sub.total_price} kr</span>
+                          <span className="text-lg font-bold text-foreground">{formatPrice(sub.total_price)}</span>
                           {sub.interval !== "engangskøb" && (
                             <span className="block text-xs text-muted-foreground">
                               /{(INTERVAL_LABELS[sub.interval] || sub.interval).toLowerCase()}
@@ -1120,7 +1121,7 @@ const SubscriptionsView = () => {
                           {((sub.details as any).stepDetails as any[]).map((sd: any, i: number) => (
                             <div key={i} className="flex justify-between px-3.5 py-2 text-xs">
                               <span className="text-muted-foreground">{sd.label}: {sd.value} {sd.unit}</span>
-                              <span className="font-medium text-foreground">{sd.subtotal} kr</span>
+                              <span className="font-medium text-foreground">{formatPrice(sd.subtotal)}</span>
                             </div>
                           ))}
                         </div>
@@ -1281,7 +1282,7 @@ const InvoicesView = () => {
                   <AccountingStatusRow order={o as OrderForStatus} size="xs" />
                 </div>
               </div>
-              <span className="text-sm font-bold whitespace-nowrap">{Number(o.total_amount).toLocaleString("da-DK")} kr</span>
+              <span className="text-sm font-bold whitespace-nowrap">{formatPrice(Number(o.total_amount).toLocaleString("da-DK"))}</span>
               <CustomerInvoiceDownload orderId={o.id} hasInvoice={!!o.invoice_external_id} />
             </CardContent>
           </Card>

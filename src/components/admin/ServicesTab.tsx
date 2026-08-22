@@ -1003,6 +1003,7 @@ const ServiceForm = ({
   };
   const startFromScratch = () => {
     setSteps([blankStep(0)]);
+    setAppliedTemplateLabel("__scratch__");
   };
   const updateStep = (i: number, field: string, value: any) => {
     const updated = [...steps];
@@ -1013,6 +1014,7 @@ const ServiceForm = ({
 
   const applyTemplate = (template: typeof availableTemplates[number]) => {
     setSteps(template.steps.map((s, i) => ({ ...s, sort_order: i })));
+    setAppliedTemplateLabel(template.label);
     toast.success(`Skabelon "${template.label}" anvendt`);
   };
 
@@ -1021,6 +1023,9 @@ const ServiceForm = ({
   // 2-5 trin specifikt tilpasset denne service (kategori + underkategori
   // + beskrivelse). Resultatet erstatter de nuværende trin.
   const [aiTemplateLoading, setAiTemplateLoading] = useState(false);
+  // Sporer hvilken skabelon der senest er valgt, så vi kan vise en tydelig
+  // "valgt"-tilstand i UI'et i stedet for at brugeren skal gætte.
+  const [appliedTemplateLabel, setAppliedTemplateLabel] = useState<string | null>(null);
   const generateAiTemplate = async (opts?: { silent?: boolean }) => {
     if (!name.trim()) {
       toast.error("Skriv først et servicenavn");
@@ -1046,6 +1051,7 @@ const ServiceForm = ({
       const aiSteps = ((data as any)?.steps ?? []) as any[];
       if (!Array.isArray(aiSteps) || aiSteps.length === 0) throw new Error("AI returnerede ingen trin");
       setSteps(aiSteps.map((s, i) => ({ ...s, sort_order: i })));
+      setAppliedTemplateLabel("__ai__");
       if (!opts?.silent) toast.success("AI-skabelon genereret ud fra din beskrivelse");
       else toast.success("AI byggede en skræddersyet prisberegner til dig");
     } catch (e: any) {

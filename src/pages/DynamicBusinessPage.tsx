@@ -465,7 +465,15 @@ const DynamicBusinessContent = () => {
                               {sub && (
                                 <h4 className="mb-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{sub}</h4>
                               )}
-                                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                                <div
+                                className={`grid gap-3 ${
+                                  items.length === 1
+                                    ? "max-w-md sm:max-w-lg"
+                                    : items.length === 2
+                                    ? "sm:grid-cols-2 max-w-3xl"
+                                    : "sm:grid-cols-2 xl:grid-cols-3"
+                                }`}
+                              >
                                 {items.map((s) => (
                                   <DynamicServiceCard
                                     key={s.id}
