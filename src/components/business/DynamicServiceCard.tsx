@@ -8,6 +8,7 @@ import { INTERVAL_LABELS } from "@/types/service";
 import type { Service, CalculatorStep } from "@/hooks/useDatabase";
 import { buildPricingSnapshot, roundPrice } from "@/lib/service-pricing";
 import { hueForString } from "@/lib/industry-color";
+import { imageSrc, imageSrcSet } from "@/lib/image-url";
 
 interface Props {
   service: Service & { calculator_steps?: CalculatorStep[] };
@@ -201,7 +202,8 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
       {service.image_url ? (
         <div className="relative aspect-[16/9] w-full overflow-hidden bg-secondary">
           <img
-            src={service.image_url}
+            src={imageSrc(service.image_url, 640, 75)}
+            srcSet={imageSrcSet(service.image_url, [320, 480, 640, 960], 75)}
             alt={`${service.name}${businessName ? ` hos ${businessName}` : ""}`}
             className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-[1.04]"
             width={640}
@@ -264,7 +266,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
               {intervals.map((iv) => (
                 <button key={iv} type="button" onClick={() => setSelectedInterval(iv)}
                   aria-pressed={selectedInterval === iv}
-                  className={`rounded-full border px-2 py-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent text-[11px] font-medium transition-all ${
+                  className={`inline-flex h-8 items-center rounded-full border px-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent text-[11px] font-medium transition-all ${
                     selectedInterval === iv
                       ? "border-accent bg-accent text-accent-foreground shadow-sm"
                       : "border-border bg-card text-muted-foreground hover:border-accent/40"

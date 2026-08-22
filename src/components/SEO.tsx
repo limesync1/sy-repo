@@ -117,11 +117,16 @@ const SEO = ({
     setMeta('meta[property="og:image"]', "content", absImage);
     setMeta('meta[property="og:site_name"]', "content", SITE_NAME);
     setMeta('meta[property="og:locale"]', "content", "da_DK");
+    setMeta('meta[property="og:image:alt"]', "content", title);
+    setMeta('meta[property="og:image:width"]', "content", "1200");
+    setMeta('meta[property="og:image:height"]', "content", "630");
 
     setMeta('meta[name="twitter:card"]', "content", "summary_large_image");
     setMeta('meta[name="twitter:title"]', "content", fullTitle);
     setMeta('meta[name="twitter:description"]', "content", desc);
     setMeta('meta[name="twitter:image"]', "content", absImage);
+    setMeta('meta[name="twitter:image:alt"]', "content", title);
+    setMeta('meta[name="twitter:site"]', "content", "@serviceydere");
 
     // JSON-LD
     const scripts: HTMLScriptElement[] = [];

@@ -3,6 +3,7 @@ import { Navigate } from "react-router-dom";
 import { useBusinessBySlug, useServices, useReviews } from "@/hooks/useDatabase";
 import DynamicServiceCard from "@/components/business/DynamicServiceCard";
 import BusinessSEO from "@/components/business/BusinessSEO";
+import { imageSrc, imageSrcSet } from "@/lib/image-url";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -207,7 +208,7 @@ const DynamicBusinessContent = () => {
                 {/* Blurret baggrund udfylder rammen, så smalle billeder ikke
                     efterlader tomme kanter */}
                 <img
-                  src={business.cover_image_url!}
+                  src={imageSrc(business.cover_image_url, 64, 40)}
                   alt=""
                   aria-hidden
                   className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl opacity-50"
@@ -215,7 +216,8 @@ const DynamicBusinessContent = () => {
                   decoding="async"
                 />
                 <img
-                  src={business.cover_image_url!}
+                  src={imageSrc(business.cover_image_url, 1280, 78)}
+                  srcSet={imageSrcSet(business.cover_image_url, [640, 960, 1280, 1600], 78)}
                   alt={`${business.name}${business.city ? ` i ${business.city}` : ""} – billede`}
                   className="relative h-full w-full object-cover object-center"
                   width={1600}
@@ -251,7 +253,7 @@ const DynamicBusinessContent = () => {
               <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border-4 border-background bg-card shadow-xl md:h-24 md:w-24">
                 {business.logo_url ? (
                   <img
-                    src={business.logo_url}
+                    src={imageSrc(business.logo_url, 192, 80)}
                     alt={`${business.name} logo${business.city ? ` – ${business.city}` : ""}`}
                     className="h-full w-full object-contain p-2"
                     width={96}
