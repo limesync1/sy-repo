@@ -97,7 +97,7 @@ Deno.serve(async (req) => {
       headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         // Et kort svar-udkast i livechat — lite-modellen er rigeligt og billigere.
-        model: "google/gemini-2.5-flash-lite",
+        model: "google/gemini-3.1-flash-lite",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Emne: ${conv?.subject || "(ingen)"}\n\nSamtale:\n${transcript || "(ingen beskeder endnu)"}` },
