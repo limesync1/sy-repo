@@ -143,11 +143,19 @@ export const useMyBusiness = () => {
       // den valgte virksomhed i stedet for admins egen (hvis nogen).
       const impersonateId = getImpersonatedBusinessId();
       const query = supabase.from("businesses").select("*");
+      // Ejer man mere end én virksomhed (fx en ekstra oprettet ved en fejl),
+      // må opslaget ikke fejle — vi vælger den ældste aktive virksomhed.
       const { data, error } = await (impersonateId
         ? query.eq("id", impersonateId).maybeSingle()
-        : query.eq("owner_id", user!.id).maybeSingle());
+        : query
+            .eq("owner_id", user!.id)
+            .is("deleted_at", null)
+            .order("created_at", { ascending: true })
+            .limit(1)
+            .maybeSingle());
       if (error) throw error;
       return data;
+
     },
     enabled: !!user,
     staleTime: 300_000,
