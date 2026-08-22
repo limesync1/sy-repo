@@ -216,8 +216,12 @@ const FavoritesView = () => {
         const primaryCat = cats[0];
 
         return (
-          <Link key={fav.id} to={`/v/${biz.slug}`} className="group flex flex-col gap-3">
-            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-secondary">
+          <Link
+            key={fav.id}
+            to={`/v/${biz.slug}`}
+            className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-[0_18px_40px_-28px_hsl(var(--foreground)/0.35)]"
+          >
+            <div className="relative aspect-[16/9] w-full overflow-hidden bg-secondary">
               {biz.cover_image_url ? (
                 <img
                   src={biz.cover_image_url}
@@ -226,11 +230,11 @@ const FavoritesView = () => {
                   loading="lazy"
                   decoding="async"
                   width={800}
-                  height={600}
+                  height={450}
                 />
               ) : (
-                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary to-muted">
-                  <Building2 className="h-14 w-14 text-muted-foreground/30" />
+                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-accent/20 via-secondary to-muted">
+                  <Building2 className="h-12 w-12 text-muted-foreground/30" />
                 </div>
               )}
 
@@ -249,38 +253,47 @@ const FavoritesView = () => {
                   <ShieldCheck className="h-3 w-3 text-accent" /> Verificeret
                 </div>
               )}
+            </div>
 
-              {biz.logo_url && (
-                <div className="absolute -bottom-5 left-4 h-14 w-14 overflow-hidden rounded-xl border-2 border-card bg-card shadow-md flex items-center justify-center">
+            {/* Logoet ligger i kortets krop — ikke oven i coveret — så det
+                aldrig bliver klippet af kortets afrundede kant. */}
+            <div className="flex items-start gap-3 p-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-background">
+                {biz.logo_url ? (
                   <img
                     src={biz.logo_url}
                     alt=""
                     className="h-full w-full object-contain p-1.5"
-                    width={56}
-                    height={56}
+                    width={48}
+                    height={48}
                     loading="lazy"
                     decoding="async"
                   />
-                </div>
-              )}
-            </div>
+                ) : (
+                  <Building2 className="h-5 w-5 text-muted-foreground/50" />
+                )}
+              </div>
 
-            <div className={`flex flex-col gap-1 px-1 ${biz.logo_url ? "pt-4" : ""}`}>
-              <h3 className="text-[15px] font-semibold tracking-tight text-foreground line-clamp-1">{biz.name}</h3>
-              {primaryCat && (
-                <span className="inline-flex w-fit items-center rounded-md bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent">
-                  {primaryCat}
-                </span>
-              )}
-              {biz.city && (
-                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <MapPin className="h-3.5 w-3.5" />
-                  <span>{biz.city}</span>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-[15px] font-semibold tracking-tight text-foreground line-clamp-1">{biz.name}</h3>
+                <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                  {primaryCat && (
+                    <span className="inline-flex w-fit items-center rounded-md bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent">
+                      {primaryCat}
+                    </span>
+                  )}
+                  {biz.city && (
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <MapPin className="h-3.5 w-3.5" />
+                      {biz.city}
+                    </span>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           </Link>
         );
+
       })}
     </div>
   );
