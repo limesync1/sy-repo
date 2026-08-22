@@ -233,8 +233,26 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
         }
       }
 
+      // Én konto = én virksomhed. Ejer brugeren allerede en aktiv virksomhed,
+      // stopper vi her i stedet for at oprette en dublet.
+      const { data: existingBiz } = await supabase
+        .from("businesses")
+        .select("id, name")
+        .eq("owner_id", activeUserId)
+        .is("deleted_at", null)
+        .limit(1)
+        .maybeSingle();
+      if (existingBiz) {
+        toast.error(
+          `Din konto er allerede tilknyttet virksomheden "${existingBiz.name}". Én konto kan kun have én virksomhed — log ind på virksomhedspanelet, eller kontakt支 support hvis du skal have flere.`,
+        );
+        setSubmitting(false);
+        return;
+      }
+
       // Opret virksomheden
       const cleanCvr = cvr.replace(/\D/g, "");
+
       const { data: bizData, error: bizError } = await supabase
         .from("businesses")
         .insert({
