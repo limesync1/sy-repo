@@ -248,9 +248,12 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
         )}
 
         <div className="rounded-lg border border-border bg-secondary/20 p-2">
-          {service.pricing_type !== "fast_pris" && (
-            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Tilpas</p>
+          {!isFixed && (
+            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Tilpas opgaven — prisen opdateres automatisk
+            </p>
           )}
+
 
         {/* Fast pris */}
         {service.pricing_type === "fast_pris" && (
