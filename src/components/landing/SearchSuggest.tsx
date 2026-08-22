@@ -6,6 +6,7 @@ import { Search, MapPin, Building2, Clock, X, CornerDownLeft } from "lucide-reac
 import { Button } from "@/components/ui/button";
 import { useUserLocation } from "@/contexts/LocationContext";
 import { topCategories, searchIndustries } from "@/lib/service-taxonomy";
+import { rankByQuery } from "@/lib/search-scoring";
 import { IndustryIcon } from "@/components/IndustryIcon";
 
 /** Top-brancher hentes fra det kanoniske taksonomi-katalog så landing, søgning
@@ -129,20 +130,23 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
       }),
     );
 
-    // City matches
-    (index?.cities || [])
-      .filter((c) => c.toLowerCase().includes(term))
+    // By-match: rangeret efter match-kvalitet (prefix > word-start >
+    // substring > fuzzy) så stavefejl som "kbenhavn" eller "odence" stadig
+    // finder den rigtige by, uden at drukne præcise match.
+    rankByQuery(term, index?.cities || [], (c) => c)
       .slice(0, 3)
-      .forEach((c) => results.push({ type: "city", label: c }));
+      .forEach(({ item: c }) => results.push({ type: "city", label: c }));
 
-    // Business matches
-    (index?.businesses || [])
-      .filter((b) =>
-        b.name.toLowerCase().includes(term) ||
-        b.cats.some((c) => c.toLowerCase().includes(term))
-      )
+    // Virksomheds-match: samme scoring på navn OG kategorier, så bedste
+    // match (uanset om det ramte navn eller branche) vinder. Fuzzy-fallback
+    // (Damerau-Levenshtein <= 2 / trigram-similaritet) fanger tastefejl.
+    rankByQuery(
+      term,
+      index?.businesses || [],
+      (b) => `${b.name} ${b.cats.join(" ")}`,
+    )
       .slice(0, 5)
-      .forEach((b) => results.push({ type: "business", label: b.name, slug: b.slug, city: b.city, logo: b.logo }));
+      .forEach(({ item: b }) => results.push({ type: "business", label: b.name, slug: b.slug, city: b.city, logo: b.logo }));
 
     return results;
   }, [q, index, history]);
