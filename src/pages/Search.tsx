@@ -1,4 +1,6 @@
 import { useState, useEffect, useMemo, lazy, Suspense } from "react";
+import BusinessCover from "@/components/shared/media/BusinessCover";
+import BusinessLogo from "@/components/shared/media/BusinessLogo";
 import { useSearchParams, Link } from "react-router-dom";
 import { IndustryIcon } from "@/components/IndustryIcon";
 import { useAllBusinesses, type SortOption } from "@/hooks/useDatabase";
@@ -74,20 +76,15 @@ const BusinessCard = ({
        * sin egen overflow-hidden — og logoet ligger som søsken oven på.
        */}
       <div className="relative aspect-[4/3] w-full">
-        <div className="absolute inset-0 overflow-hidden rounded-[18px] bg-secondary">
-          {biz.cover_image_url ? (
-            <img
-              src={biz.cover_image_url}
-              alt={`${biz.name}${biz.city ? ` i ${biz.city}` : ""}${primaryCat ? ` – ${primaryCat}` : " – serviceydere"}`}
-              className="h-full w-full object-cover"
-              loading="lazy"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary to-muted">
-              <Building2 className="h-14 w-14 text-muted-foreground/30" />
-            </div>
-          )}
-        </div>
+        <BusinessCover
+          url={biz.cover_image_url}
+          name={biz.name}
+          alt={`${biz.name}${biz.city ? ` i ${biz.city}` : ""}${primaryCat ? ` – ${primaryCat}` : " – serviceydere"}`}
+          ratio="3/2"
+          sizes="(max-width: 640px) 100vw, 360px"
+          widths={[320, 480, 640, 960]}
+          className="absolute inset-0 h-full rounded-[18px]"
+        />
 
         <div onClick={stop}>
           <FavoriteButton businessId={biz.id} />
@@ -101,15 +98,12 @@ const BusinessCard = ({
         )}
 
         {biz.logo_url && (
-          <div className="absolute -bottom-5 left-4 z-10 h-14 w-14 overflow-hidden rounded-xl border-2 border-card bg-card shadow-md flex items-center justify-center">
-            <img
-              src={biz.logo_url}
-              alt={`Logo for ${biz.name}`}
-              className="max-h-[85%] max-w-[85%] object-contain"
-              loading="lazy"
-              decoding="async"
-            />
-          </div>
+          <BusinessLogo
+            url={biz.logo_url}
+            name={biz.name}
+            size={56}
+            className="absolute -bottom-5 left-4 z-10 border-2 border-card shadow-md"
+          />
         )}
       </div>
 
