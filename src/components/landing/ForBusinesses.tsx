@@ -211,8 +211,6 @@ const ForBusinesses = () => {
           ))}
         </div>
 
-        {/* Gennemsigtig prismodel — vist tydeligt så virksomheder ved præcis hvad de betaler. */}
-        <div className="mt-16 rounded-[28px] border border-border/70 bg-card p-8 sm:p-10">
         {/* Gennemsigtig prismodel — tallene kommer fra samme kilde som prissiden. */}
         <div className="mt-16 overflow-hidden rounded-[28px] border border-border/70 bg-card">
           <div className="border-b border-border/70 bg-secondary/60 px-8 py-8 sm:px-10">
