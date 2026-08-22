@@ -95,12 +95,14 @@ const CvrLookupField = ({ value, onChange, onResult, className }: Props) => {
             value={value}
             onChange={(e) => handleInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); lookup(); } }}
-            placeholder="8 cifre — fx 12345678"
+            placeholder="8 cifre, fx 12345678"
             inputMode="numeric"
+            autoComplete="off"
             maxLength={11}
-            className="h-9 pl-8"
+            aria-label="CVR-nummer"
+            className="h-11 pl-10 text-base tracking-[0.06em] placeholder:tracking-normal placeholder:text-muted-foreground/80 sm:text-sm"
           />
-          <Building2 className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         </div>
         <Button
           type="button"
@@ -108,9 +110,9 @@ const CvrLookupField = ({ value, onChange, onResult, className }: Props) => {
           size="sm"
           onClick={lookup}
           disabled={!isValid || loading}
-          className="h-9 shrink-0"
+          className="h-11 shrink-0 px-4"
         >
-          {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Slå op"}
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Slå op"}
         </Button>
       </div>
       {status === "ok" && companyName && (
