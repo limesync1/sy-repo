@@ -1282,7 +1282,7 @@ const InvoicesView = () => {
                   <AccountingStatusRow order={o as OrderForStatus} size="xs" />
                 </div>
               </div>
-              <span className="text-sm font-bold whitespace-nowrap">{formatPrice(Number(o.total_amount).toLocaleString("da-DK"))}</span>
+              <span className="text-sm font-bold whitespace-nowrap">{formatPrice(o.total_amount)}</span>
               <CustomerInvoiceDownload orderId={o.id} hasInvoice={!!o.invoice_external_id} />
             </CardContent>
           </Card>

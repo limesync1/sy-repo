@@ -1408,6 +1408,19 @@ const ServiceForm = ({
                 </p>
               </div>
 
+              {/* "Sådan virker det" — kort, selvforklarende introduktion til begreberne */}
+              <div className="rounded-xl border border-border bg-secondary/30 p-4">
+                <p className="text-sm font-semibold text-foreground">Sådan virker det</p>
+                <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+                  En prisberegner består af <span className="font-medium text-foreground">trin</span> — fx "Antal m²" eller "Antal rum".
+                  Kunden justerer hvert trin med en skyder eller et tal, og prisen regnes automatisk: <span className="font-medium text-foreground">antal × pris pr. enhed</span>.
+                  Summen af alle trin bliver den samlede pris, kunden ser og bestiller til.
+                </p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Eksempel: trinnet "Antal m²" med pris 12 kr/m² og et valgt antal på 50 m² giver 600 kr for det trin alene.
+                </p>
+              </div>
+
               {steps.length === 0 && (
                 <div className="grid gap-3 sm:grid-cols-2">
                   <button
