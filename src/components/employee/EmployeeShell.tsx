@@ -292,6 +292,13 @@ export const EmployeeShell = ({
                   <span className="truncate text-xs font-normal text-muted-foreground">{subLabel}</span>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                {multiWorkspace && (
+                  <DropdownMenuItem onClick={() => setPickerOpen(true)}>
+                    <Building2 className="mr-2 h-4 w-4" />
+                    Skift virksomhed
+                  </DropdownMenuItem>
+                )}
+
                 {myBusiness && (
                   <DropdownMenuItem onClick={() => navigate("/virksomhed")}>
                     <Briefcase className="mr-2 h-4 w-4" />
