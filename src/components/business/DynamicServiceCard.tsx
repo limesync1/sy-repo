@@ -264,7 +264,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
               {intervals.map((iv) => (
                 <button key={iv} type="button" onClick={() => setSelectedInterval(iv)}
                   aria-pressed={selectedInterval === iv}
-                  className={`rounded-full border px-2 py-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent text-[11px] font-medium transition-all ${
+                  className={`inline-flex h-8 items-center rounded-full border px-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent text-[11px] font-medium transition-all ${
                     selectedInterval === iv
                       ? "border-accent bg-accent text-accent-foreground shadow-sm"
                       : "border-border bg-card text-muted-foreground hover:border-accent/40"
