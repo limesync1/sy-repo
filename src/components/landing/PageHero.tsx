@@ -1,6 +1,20 @@
 import { ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 
+/** Farvetoner pr. sidetype. Heroen er stadig mørk og genkendelig, men hver
+ *  hovedsektion får sin egen kulør, så man visuelt kan mærke hvor man er:
+ *  Find services (cyan), Få tilbud (violet), Bliv udbyder (varm), Systemet
+ *  (grøn), Kundepanel (blå). */
+export type HeroTone = "ocean" | "cyan" | "violet" | "amber" | "emerald" | "azure";
+
+const TONES: Record<HeroTone, { glowA: string; glowB: string; dot: string; edge: string }> = {
+  ocean:   { glowA: "hsl(var(--hero-mid))",        glowB: "hsl(var(--hero-cyan))",   dot: "hsl(var(--hero-cyan-bright))", edge: "hsl(var(--hero-cyan) / 0.55)" },
+  cyan:    { glowA: "hsl(189 100% 45%)",           glowB: "hsl(201 99% 33%)",        dot: "hsl(188 100% 55%)",            edge: "hsl(189 100% 50% / 0.6)" },
+  violet:  { glowA: "hsl(268 70% 52%)",            glowB: "hsl(210 90% 45%)",        dot: "hsl(268 85% 70%)",             edge: "hsl(268 80% 62% / 0.6)" },
+  amber:   { glowA: "hsl(30 95% 50%)",             glowB: "hsl(350 75% 48%)",        dot: "hsl(38 100% 62%)",             edge: "hsl(32 95% 55% / 0.6)" },
+  emerald: { glowA: "hsl(160 84% 39%)",            glowB: "hsl(195 90% 40%)",        dot: "hsl(158 80% 55%)",             edge: "hsl(160 80% 45% / 0.6)" },
+  azure:   { glowA: "hsl(217 91% 55%)",            glowB: "hsl(190 90% 45%)",        dot: "hsl(210 100% 70%)",            edge: "hsl(217 91% 60% / 0.6)" },
+};
 
 interface PageHeroProps {
   /** Small uppercase eyebrow label rendered with an accent dot. */
@@ -17,6 +31,8 @@ interface PageHeroProps {
   backgroundImage?: string;
   /** Compact vertical padding for inner pages. */
   size?: "default" | "compact";
+  /** Farvetone for glows, eyebrow-prik og bundkant. */
+  tone?: HeroTone;
 }
 
 /**
@@ -33,11 +49,14 @@ const PageHero = ({
   actions,
   backgroundImage,
   size = "default",
+  tone = "ocean",
 }: PageHeroProps) => {
+  const t = TONES[tone];
   const padding =
     size === "compact"
       ? "pb-5 pt-5 sm:pb-8 sm:pt-8 lg:pb-10 lg:pt-10"
       : "pb-7 pt-6 sm:pb-12 sm:pt-10 lg:pb-24 lg:pt-20";
+
 
 
   return (
