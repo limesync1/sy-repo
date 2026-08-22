@@ -301,21 +301,24 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
         )}
         </div>
 
-        <div className="rounded-lg border border-accent/20 bg-[hsl(var(--accent)/0.06)] p-2">
-          <div className="mb-1.5 flex items-center justify-between gap-2">
+        <div className="mt-auto rounded-xl border border-accent/25 bg-[hsl(var(--accent)/0.07)] p-2.5">
+          <div className="mb-2 flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Prisoverslag</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                {isFixed ? "Fast pris" : "Prisoverslag"}
+              </p>
               <div className="mt-0.5 flex items-baseline gap-1">
-                <p className="text-base font-bold leading-none text-foreground sm:text-lg">{roundPrice(total)}</p>
+                <p className="text-lg font-bold leading-none text-foreground sm:text-xl">{roundPrice(total)}</p>
                 <span className="text-[11px] text-muted-foreground">kr</span>
                 <span className="ml-1 truncate text-[10px] text-muted-foreground">
                   · {selectedInterval && selectedInterval !== "engangskøb"
                     ? INTERVAL_LABELS[selectedInterval] || selectedInterval
-                    : "engangs"}
+                    : "engangskøb"}
                 </span>
               </div>
             </div>
           </div>
+
           <Button
             onClick={handleAdd}
             disabled={justAdded}
