@@ -143,8 +143,8 @@ const RecentBusinesses = () => {
 
   if (!businesses || businesses.length === 0) return null;
 
-  const verifiedCount = businesses.filter((b) => b.is_verified).length;
-  const cityCount = new Set(businesses.map((b) => b.city).filter(Boolean)).size;
+
+
 
   return (
     <section className="relative isolate overflow-hidden bg-ocean py-20 text-ocean-foreground md:py-32">
