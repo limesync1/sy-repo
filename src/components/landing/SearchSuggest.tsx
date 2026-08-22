@@ -112,7 +112,9 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
       }));
       return [...recents, ...cats];
     }
-    const results: Suggestion[] = [];
+    // Første række er altid fritekst-søgningen, så Enter/klik er forudsigeligt
+    // og brugeren aldrig sidder fast hvis intet forslag rammer.
+    const results: Suggestion[] = [{ type: "query", label: q.trim() }];
 
     // Branche-match: kig i HELE branchekataloget (alle brancher,
     // underbrancher, service-navne og nøgleord) — så "tagrens",
@@ -144,6 +146,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
 
     return results;
   }, [q, index, history]);
+
 
   // Click outside to close
   useEffect(() => {
