@@ -5,6 +5,8 @@ on:
     paths:
       - "src/**"
       - "e2e/dark-mode-planner.spec.ts"
+      - "e2e/visual-media.spec.ts"
+      - "src/pages/VisualTestMedia.tsx"
       - "src/pages/VisualTestPlanner.tsx"
       - "src/index.css"
       - "tailwind.config.ts"
