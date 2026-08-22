@@ -710,6 +710,7 @@ const LiveChatWidget = () => {
 
   const unreadAdmin = messages.some((m) => m.sender_type === "admin") && !open;
   const closed = conversation?.status === "closed";
+  const escalated = messages.some((m) => m.is_system && (m as any).metadata?.kind === "escalation");
 
   if (hidden) return null;
 
@@ -786,7 +787,7 @@ const LiveChatWidget = () => {
                     <p className="truncate text-[14px] font-semibold leading-tight">Kundeservice</p>
                     <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-white/70">
                       <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${closed ? "bg-muted-foreground" : "animate-pulse bg-success"}`} />
-                      <span className="truncate">{closed ? "Samtalen er afsluttet" : "Svar typisk inden 5 min."}</span>
+                      <span className="truncate">{closed ? "Samtalen er afsluttet" : escalated ? "En medarbejder er koblet på" : "AI-assistent svarer med det samme"}</span>
                     </p>
                   </div>
                 </div>
@@ -818,6 +819,15 @@ const LiveChatWidget = () => {
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" sideOffset={8} className="z-[80] w-60 rounded-xl border border-border bg-card p-1 text-foreground shadow-xl">
+                        {!closed && !escalated && (
+                          <DropdownMenuItem
+                            onSelect={requestHumanHandoff}
+                            className="cursor-pointer gap-2 rounded-md text-[13px] text-foreground focus:bg-secondary focus:text-foreground"
+                          >
+                            <UserRound className="h-3.5 w-3.5 text-muted-foreground" />
+                            Tal med et menneske
+                          </DropdownMenuItem>
+                        )}
                         {!closed && (
                           <DropdownMenuItem
                             onSelect={endChatSession}

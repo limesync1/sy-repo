@@ -666,6 +666,8 @@ const ServiceForm = ({
   );
   const [aiLoading, setAiLoading] = useState(false);
   const [aiDescAutoTried, setAiDescAutoTried] = useState(!!existingService?.description);
+  const [aiImproveLoading, setAiImproveLoading] = useState(false);
+  const [descriptionBeforeImprove, setDescriptionBeforeImprove] = useState<string | null>(null);
 
   // Regnskabsintegration: hvis virksomheden har en aktiv integration, lad
   // brugeren vælge produktgruppe + indtægtskonto her ved oprettelse, så
@@ -792,6 +794,43 @@ const ServiceForm = ({
     } finally {
       setAiLoading(false);
     }
+  };
+
+  const improveAiDescription = async () => {
+    if (!description.trim()) {
+      toast.error("Skriv først en beskrivelse, som AI kan forbedre");
+      return;
+    }
+    setAiImproveLoading(true);
+    const before = description;
+    try {
+      const { data, error } = await supabase.functions.invoke("improve-service-description", {
+        body: {
+          serviceName: name.trim(),
+          serviceCategory: serviceCategory || null,
+          subcategory: subcategory || null,
+          currentDescription: description.trim(),
+        },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      const text = ((data as any)?.description ?? "").trim();
+      if (!text) throw new Error("Fik et tomt svar fra AI");
+      setDescriptionBeforeImprove(before);
+      setDescription(text);
+      toast.success("Beskrivelsen er forbedret — du kan fortryde igen");
+    } catch (e: any) {
+      toast.error(e?.message || "Kunne ikke forbedre beskrivelsen — prøv igen");
+    } finally {
+      setAiImproveLoading(false);
+    }
+  };
+
+  const undoImproveDescription = () => {
+    if (descriptionBeforeImprove === null) return;
+    setDescription(descriptionBeforeImprove);
+    setDescriptionBeforeImprove(null);
+    toast.success("Fortrudt — tidligere beskrivelse gendannet");
   };
 
   // Auto-foreslå AI-beskrivelse første gang brugeren rammer detaljer-trinnet
