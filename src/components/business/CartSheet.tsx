@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import AddressAutocomplete from "@/components/shared/AddressAutocomplete";
 import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupField";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { formatPrice } from "@/lib/price-format";
 
 /**
  * Global bestillings-sheet. Renderes én gang globalt (i App.tsx) og åbnes
@@ -480,7 +481,7 @@ const CartSheet = () => {
                       </div>
                     )}
                     <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">{group.businessName}</span>
-                    <span className="shrink-0 text-sm font-bold text-foreground tabular-nums">{groupTotal} kr</span>
+                    <span className="shrink-0 text-sm font-bold text-foreground tabular-nums">{formatPrice(groupTotal)}</span>
                     <ChevronDown className={cn("h-4 w-4 shrink-0 text-muted-foreground transition-transform", isCollapsed && "-rotate-90")} />
                   </button>
 
@@ -497,7 +498,7 @@ const CartSheet = () => {
                           <div className="min-w-0 flex-1">
                             <h4 className="text-sm font-semibold leading-snug text-foreground">{item.serviceName}</h4>
                             <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                              <span className="text-sm font-bold text-foreground tabular-nums">{item.total} kr</span>
+                              <span className="text-sm font-bold text-foreground tabular-nums">{formatPrice(item.total)}</span>
                               <Badge variant="secondary" className="gap-1 px-2 py-0.5 text-[11px] font-medium">
                                 {item.interval && item.interval !== "engangskøb" ? (
                                   <><CalendarClock className="h-3 w-3" />{INTERVAL_LABELS[item.interval] || item.interval}</>
@@ -526,7 +527,7 @@ const CartSheet = () => {
                                   <span className="min-w-0 truncate text-muted-foreground">
                                     {sd.label}: <span className="text-foreground/80">{sd.value} {sd.unit}</span>
                                   </span>
-                                  <span className="shrink-0 font-medium text-foreground tabular-nums">{sd.subtotal} kr</span>
+                                  <span className="shrink-0 font-medium text-foreground tabular-nums">{formatPrice(sd.subtotal)}</span>
                                 </div>
                               ))}
                             </div>
@@ -549,7 +550,7 @@ const CartSheet = () => {
             <div className="shrink-0 border-t border-border bg-card px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_-20px_hsl(var(--foreground)/0.5)]">
               <div className="mb-2.5 flex items-baseline justify-between px-1">
                 <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total</span>
-                <span className="text-xl font-bold text-foreground tabular-nums">{total} kr</span>
+                <span className="text-xl font-bold text-foreground tabular-nums">{formatPrice(total)}</span>
               </div>
               <Button onClick={() => setCheckout(true)} size="lg" className="h-12 w-full rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 font-semibold shadow-sm hover:shadow-md transition-all">
                 Gå til bestilling →
@@ -721,7 +722,7 @@ const CartSheet = () => {
                           <div className="h-5 w-5 rounded bg-secondary flex items-center justify-center"><Store className="h-3 w-3 text-muted-foreground" /></div>
                         )}
                         <span className="text-xs font-semibold text-foreground flex-1 truncate">{group.businessName}</span>
-                        <span className="text-xs font-bold text-foreground">{bizTotal} kr</span>
+                        <span className="text-xs font-bold text-foreground">{formatPrice(bizTotal)}</span>
                       </div>
                       <div className="mt-1 pl-7 text-[11px] text-muted-foreground">
                         {group.items.length} {group.items.length === 1 ? "service" : "services"}
@@ -780,7 +781,7 @@ const CartSheet = () => {
               <div className="shrink-0 border-t border-border bg-card px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] space-y-2 shadow-[0_-8px_24px_-20px_hsl(var(--foreground)/0.5)]">
               <div className="flex items-baseline justify-between px-1">
                 <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total</span>
-                <span className="text-xl font-bold text-foreground tabular-nums">{total} kr</span>
+                <span className="text-xl font-bold text-foreground tabular-nums">{formatPrice(total)}</span>
               </div>
               <Button
                 onClick={handleOrder}
