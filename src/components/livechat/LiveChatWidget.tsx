@@ -1006,6 +1006,11 @@ const LiveChatWidget = () => {
                           {!mine && showAvatar && (
                             <div className="mb-1 flex items-center gap-1.5 px-1 text-[10px] font-semibold text-muted-foreground">
                               <span className="text-foreground/80">{m.sender_name || "Serviceydere"}</span>
+                              {m.metadata?.kind === "ai" && (
+                                <span className="inline-flex items-center gap-0.5 rounded-full bg-accent/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-accent">
+                                  <Bot className="h-2.5 w-2.5" /> AI
+                                </span>
+                              )}
                             </div>
                           )}
                           <div
@@ -1032,6 +1037,20 @@ const LiveChatWidget = () => {
                       </div>
                     );
                   })}
+                  {aiThinking && !escalated && (
+                    <div className="flex items-end gap-2 animate-in fade-in duration-200">
+                      <div className="w-9 flex-shrink-0">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-border bg-card">
+                          <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-6 w-6 object-contain" />
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 rounded-2xl rounded-bl-md border border-border bg-card px-3.5 py-2.5 shadow-[0_2px_6px_-2px_hsl(var(--foreground)/0.08)]">
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.3s]" />
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.15s]" />
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {closed ? (
@@ -1088,7 +1107,17 @@ const LiveChatWidget = () => {
                         </div>
                       </div>
                     )}
-                    <div className="border-t border-border bg-card/95 px-3 py-3 backdrop-blur-sm">
+                    <div className="border-t border-border bg-card/95 px-3 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-sm">
+                      {!escalated && (
+                        <button
+                          type="button"
+                          onClick={requestHumanHandoff}
+                          className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary/50 px-2.5 py-1 text-[10.5px] font-medium text-muted-foreground transition-colors hover:border-accent/40 hover:bg-card hover:text-accent"
+                        >
+                          <UserRound className="h-3 w-3" />
+                          Tal med et menneske
+                        </button>
+                      )}
                       {pendingImagePreview && (
                         <div className="mb-2 flex items-center gap-2 rounded-lg border border-border bg-secondary/40 p-2">
                           <img src={pendingImagePreview} alt="Forhåndsvisning" className="h-12 w-12 rounded object-cover" />

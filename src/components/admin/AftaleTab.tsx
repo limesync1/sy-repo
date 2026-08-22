@@ -1657,7 +1657,7 @@ const AftaleTab = ({
         description={(() => {
           const parts: string[] = [];
           parts.push(`${activeOrders.length} aktive`);
-          if (actionNeeded.length > 0) parts.push(`${formatPrice(actionNeeded.length)}æver handling`);
+          if (actionNeeded.length > 0) parts.push(`${actionNeeded.length} kræver handling`);
           if (overduePaymentOrders.length > 0) parts.push(`${overduePaymentOrders.length} forfalden betaling`);
           else if (upcomingSubs.length > 0) parts.push(`${upcomingSubs.length} kommende`);
           return parts.join(" · ");

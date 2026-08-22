@@ -1380,16 +1380,37 @@ const ServiceForm = ({
               readOnly={aiLoading}
             />
             <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-              <button
-                type="button"
-                onClick={generateAiDescription}
-                disabled={aiLoading || !name.trim()}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
-                title={!name.trim() ? "Skriv et servicenavn først" : "Generér forslag baseret på din virksomhed"}
-              >
-                {aiLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wand2 className="h-3.5 w-3.5" />}
-                {aiLoading ? "Genererer…" : "Foreslå beskrivelse med AI"}
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={generateAiDescription}
+                  disabled={aiLoading || aiImproveLoading || !name.trim()}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
+                  title={!name.trim() ? "Skriv et servicenavn først" : "Generér forslag baseret på din virksomhed"}
+                >
+                  {aiLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wand2 className="h-3.5 w-3.5" />}
+                  {aiLoading ? "Genererer…" : "Foreslå beskrivelse med AI"}
+                </button>
+                <button
+                  type="button"
+                  onClick={improveAiDescription}
+                  disabled={aiImproveLoading || aiLoading || !description.trim()}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
+                  title={!description.trim() ? "Skriv en beskrivelse først" : "Lad AI forbedre den nuværende tekst"}
+                >
+                  {aiImproveLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                  {aiImproveLoading ? "Forbedrer…" : "Forbedr min beskrivelse med AI"}
+                </button>
+                {descriptionBeforeImprove !== null && !aiImproveLoading && (
+                  <button
+                    type="button"
+                    onClick={undoImproveDescription}
+                    className="text-xs font-medium text-muted-foreground underline decoration-dotted hover:text-foreground"
+                  >
+                    Fortryd forbedring
+                  </button>
+                )}
+              </div>
               <p className="text-[11px] text-muted-foreground">AI bruger jeres navn, branche og beskrivelse.</p>
             </div>
           </div>
