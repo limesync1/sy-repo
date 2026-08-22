@@ -5,35 +5,64 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { calcEmployeeShare, exclVat } from "@/lib/commission";
+import { getEmployeeWorkspace } from "@/lib/employee-workspace";
 
 export type Employee = Tables<"employees">;
+
+export type EmployeeWithBusiness = Employee & {
+  business?: {
+    id: string;
+    name: string;
+    logo_url: string | null;
+    city: string | null;
+    zip_code: string | null;
+    category: string | null;
+  } | null;
+};
+
+/**
+ * ALLE medarbejder-records for den indloggede bruger — én pr. virksomhed
+ * brugeren arbejder for. Inkluderer virksomhedens navn/logo så vi kan vise
+ * et pænt valg-interface når der er mere end én.
+ */
+export const useMyEmployees = () => {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["my-employees", user?.id],
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async (): Promise<EmployeeWithBusiness[]> => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("employees")
+        .select("*, business:businesses(id, name, logo_url, city, zip_code, category)")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data || []) as unknown as EmployeeWithBusiness[];
+    },
+  });
+};
 
 /**
  * Den indloggede medarbejders egen record (incl. avatar, navn, business).
  *
- * Bruger AuthContext'ets allerede-loaded user, så vi UNDGÅR et ekstra
- * `auth.getUser()` netværkskald pr. hook-instans. Cache-nøglen indeholder
- * user.id så React Query deduplikerer på tværs af komponenter (sidebar,
- * dashboard, route-hooks osv.) — alle bruger den samme query.
+ * Arbejder brugeren for flere virksomheder, bruges det valgte arbejdssted
+ * (se `lib/employee-workspace`). Er der intet valg endnu, returneres den
+ * første — EmployeeShell viser i så fald vælgeren først.
  */
 export const useMyEmployee = () => {
-  const { user } = useAuth();
-  return useQuery({
-    queryKey: ["my-employee", user?.id],
-    enabled: !!user,
-    staleTime: 5 * 60 * 1000, // 5 min — medarbejder-record ændres sjældent
-    queryFn: async () => {
-      if (!user) return null;
-      const { data, error } = await supabase
-        .from("employees")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      if (error) throw error;
-      return data as Employee | null;
-    },
-  });
+  const list = useMyEmployees();
+  const selectedBusinessId = getEmployeeWorkspace();
+  const rows = list.data || [];
+  const match = selectedBusinessId
+    ? rows.find((e) => e.business_id === selectedBusinessId)
+    : undefined;
+  const data = rows.length === 0 ? null : (match ?? rows[0]);
+  return { ...list, data: list.data ? (data as EmployeeWithBusiness | null) : undefined } as
+    typeof list & { data: EmployeeWithBusiness | null | undefined };
 };
+
 
 /**
  * Lightweight helper: returnerer KUN medarbejderens id (eller undefined).
