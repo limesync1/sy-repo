@@ -1,3 +1,4 @@
+import { formatPrice } from "@/lib/price-format";
 // RouteEditSheet — rediger en rute: navn, farve, dato, medarbejdere.
 // Bruges fra den nye måned/uge kalender.
 
@@ -1494,7 +1495,7 @@ const CompletedRouteSummary = ({ routeId }: { routeId: string }) => {
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
-                      {Math.round(info.earnings).toLocaleString("da-DK")} kr
+                      {formatPrice(Math.round(info.earnings))}
                     </p>
                     <p className="text-[10px] text-muted-foreground">indtjening</p>
                   </div>
@@ -1510,7 +1511,7 @@ const CompletedRouteSummary = ({ routeId }: { routeId: string }) => {
                       </div>
                       <div className="text-right shrink-0">
                         <p className="font-semibold tabular-nums">
-                          {Math.round(Number(s.earnings || 0)).toLocaleString("da-DK")} kr
+                          {formatPrice(Math.round(Number(s.earnings || 0)).toLocaleString("da-DK"))}
                         </p>
                       </div>
                     </li>
@@ -1553,7 +1554,7 @@ const RouteRevenueBreakdown = ({
           <p className="text-[11px] text-muted-foreground">{periodLabel}</p>
         </div>
         <p className="text-2xl font-bold tabular-nums text-foreground">
-          {Math.round(total).toLocaleString("da-DK")} kr
+          {formatPrice(Math.round(total))}
         </p>
       </div>
 
@@ -1578,7 +1579,7 @@ const RouteRevenueBreakdown = ({
                     "shrink-0 tabular-nums",
                     amount > 0 ? "font-semibold text-foreground" : "text-muted-foreground",
                   )}>
-                    {amount > 0 ? `${Math.round(amount).toLocaleString("da-DK")} kr` : "—"}
+                    {amount > 0 ? `${formatPrice(Math.round(amount))}` : "—"}
                   </span>
                 </li>
               );

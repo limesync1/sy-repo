@@ -1,3 +1,4 @@
+import { formatPrice } from "@/lib/price-format";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServices } from "@/hooks/useDatabase";
@@ -576,7 +577,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                             onChange={(v) => updateItem(it.serviceId, { hours: v })}
                             className="w-32"
                           />
-                          <span className="text-muted-foreground text-xs">× {it.service.base_price} kr</span>
+                          <span className="text-muted-foreground text-xs">× {formatPrice(it.service.base_price)}</span>
                         </div>
                       )}
 
@@ -584,7 +585,7 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
                         <div className="space-y-2 mb-2 rounded-md bg-secondary/40 p-2">
                           {[...(it.service.calculator_steps || [])].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)).map((step) => (
                             <div key={step.id} className="flex flex-wrap items-center gap-2 text-xs">
-                              <span className="flex-1 min-w-[120px] truncate">{step.label} <span className="text-muted-foreground">({step.price_per_unit} kr/{step.unit})</span></span>
+                              <span className="flex-1 min-w-[120px] truncate">{step.label} <span className="text-muted-foreground">({formatPrice(step.price_per_unit)}/{step.unit})</span></span>
                               <NumberStepper
                                 value={it.stepValues[step.id] ?? 0}
                                 min={Number(step.min_value ?? 0)}

@@ -1,3 +1,4 @@
+import { formatPrice } from "@/lib/price-format";
 // AllUnassignedDialog — viser ALLE aftaler uden rute (uden filter/dato-vindue)
 // så man fx kan justere `preferred_date` på en aftale der ligger langt ude
 // i fremtiden uden først at scrolle kalenderen derhen.
@@ -110,7 +111,7 @@ export const AllUnassignedDialog = ({
                       {j.customer_name || "Ukendt kunde"}
                     </p>
                     <p className="text-[11px] text-muted-foreground">
-                      {j.city || "—"} · {Math.round(j.total_amount || 0).toLocaleString("da-DK")} kr · ønsket {fmt(current)}
+                      {j.city || "—"} · {formatPrice(Math.round(j.total_amount || 0))} · ønsket {fmt(current)}
                     </p>
                   </div>
                   <div className="flex items-center gap-1.5 sm:shrink-0">

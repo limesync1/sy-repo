@@ -1,3 +1,4 @@
+import { formatPrice } from "@/lib/price-format";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -120,7 +121,7 @@ type ReviewRow = {
   id: string; rating: number; comment: string | null; created_at: string;
 };
 
-const fmtKr = (n: number) => `${Math.round(n).toLocaleString("da-DK")} kr`;
+const fmtKr = (n: number) => `${formatPrice(Math.round(n))}`;
 const fmtDate = (d: string | null) => d ? format(parseISO(d), "d. MMM yyyy", { locale: da }) : "—";
 
 /** Aggregate orders by customer email + merge med privat/erhvervs-kartoteket */
@@ -1200,7 +1201,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
     return (a.preferred_date || a.created_at).localeCompare(b.preferred_date || b.created_at);
   })[0];
   const focusText = paymentIssueOrders.length > 0
-    ? `${paymentIssueOrders.length} betaling${paymentIssueOrders.length === 1 ? "" : "er"} kræver opmærksomhed`
+    ? `${paymentIssueOrders.length} betaling${formatPrice(paymentIssueOrders.length === 1 ? "" : "er")}æver opmærksomhed`
     : pendingOrders.length > 0
       ? `${pendingOrders.length} ny${pendingOrders.length === 1 ? "" : "e"} bestilling${pendingOrders.length === 1 ? "" : "er"} afventer svar`
       : activeOrders.length > 0
@@ -1242,7 +1243,7 @@ const CustomerDetailSheet = ({ businessId, email, customer, onClose }: {
                   </div>
                   <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-normal text-muted-foreground">
                     <span>{activeOrders.length > 0 ? `${activeOrders.length} aktive aftaler` : customer.first_order_at ? `Kunde siden ${fmtDate(customer.first_order_at)}` : "Ingen aftaler endnu"}</span>
-                    {paymentIssueOrders.length > 0 && <span className="font-medium text-destructive">{paymentIssueOrders.length} kræver betaling</span>}
+                    {paymentIssueOrders.length > 0 && <span className="font-medium text-destructive">{formatPrice(paymentIssueOrders.length)}æver betaling</span>}
                     {customer.total_revenue > 0 && <span>Omsætning {fmtKr(customer.total_revenue)}</span>}
                   </div>
                 </div>

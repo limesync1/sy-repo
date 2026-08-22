@@ -1,3 +1,4 @@
+import { formatPrice } from "@/lib/price-format";
 // Ruteplanlægger — orkestrerer kalender, projektion, DnD og dialoger.
 // Refaktoreringsplan: .lovable/plan.md (Fase 1–5).
 // Trigger-flow ved completion: docs/route-stops-triggers.md.
@@ -3541,7 +3542,7 @@ const Planner = () => {
                         </h2>
                         {filteredUnassigned.length > 0 ? (
                           <p className="text-[11px] text-muted-foreground leading-snug mt-0.5 truncate">
-                            <span className="tabular-nums font-semibold text-foreground/80">{Math.round(unassignedTotal).toLocaleString("da-DK")} kr</span> samlet
+                            <span className="tabular-nums font-semibold text-foreground/80">{formatPrice(Math.round(unassignedTotal))}</span> samlet
                           </p>
                         ) : (
                           <p className="text-[11px] text-muted-foreground leading-snug mt-0.5 truncate">
@@ -4795,7 +4796,7 @@ const Planner = () => {
               <div className="flex items-center justify-between gap-2">
                 <p className="text-[12px] font-bold truncate text-foreground capitalize">{activeDragData.job.customer_name}</p>
                 <span className="text-[11px] font-bold text-accent shrink-0 tabular-nums">
-                  {Math.round(Number(activeDragData.job.total_amount || 0))} kr
+                  {formatPrice(Math.round(Number(activeDragData.job.total_amount || 0)))}
                 </span>
               </div>
               {activeDragData.job.address && (

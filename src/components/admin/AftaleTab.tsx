@@ -1,3 +1,4 @@
+import { formatPrice } from "@/lib/price-format";
 import React, { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -394,7 +395,7 @@ const CustomerOrderSummary = ({ order }: { order: any }) => {
     <div className="rounded-lg border border-border bg-card overflow-hidden">
       <div className="flex items-center justify-between gap-3 border-b border-border bg-secondary/40 px-3 py-2">
         <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Aftalens indhold</span>
-        <span className="text-sm font-bold tabular-nums text-foreground">{roundPrice(order.total_amount)} kr</span>
+        <span className="text-sm font-bold tabular-nums text-foreground">{formatPrice(roundPrice(order.total_amount))}</span>
       </div>
       {items.map((item: any) => (
         <div key={item.id} className="border-b border-border last:border-b-0 px-3 py-2">
@@ -408,16 +409,16 @@ const CustomerOrderSummary = ({ order }: { order: any }) => {
                 </span>
               )}
             </div>
-            <span className="text-sm font-bold text-foreground shrink-0">{item.total_price} kr</span>
+            <span className="text-sm font-bold text-foreground shrink-0">{formatPrice(item.total_price)}</span>
           </div>
           {item.details?.stepDetails && (
             <div className="mt-1.5 space-y-0.5 pl-0.5">
               {(item.details.stepDetails as any[]).map((sd: any, i: number) => (
                 <div key={i} className="flex justify-between text-xs text-muted-foreground">
                   <span>{sd.label}: <span className="font-medium text-foreground/80">{sd.value} {sd.unit}</span>
-                    {sd.price_per_unit ? <span className="text-muted-foreground/60"> × {sd.price_per_unit} kr/{sd.unit}</span> : ""}
+                    {sd.price_per_unit ? <span className="text-muted-foreground/60"> × {formatPrice(sd.price_per_unit)}/{sd.unit}</span> : ""}
                   </span>
-                  <span className="font-medium text-foreground/70">{sd.subtotal} kr</span>
+                  <span className="font-medium text-foreground/70">{formatPrice(sd.subtotal)}</span>
                 </div>
               ))}
             </div>
@@ -475,9 +476,9 @@ const AdjustmentEditor = ({
                   <div className="flex items-center justify-between mb-2">
                     <div className="min-w-0">
                       <span className="text-sm font-medium text-foreground">{sd.label}</span>
-                      <span className="ml-1.5 text-xs text-muted-foreground">({sd.price_per_unit} kr/{sd.unit})</span>
+                      <span className="ml-1.5 text-xs text-muted-foreground">({formatPrice(sd.price_per_unit)}/{sd.unit})</span>
                     </div>
-                    <span className="text-sm font-semibold text-foreground shrink-0">{roundPrice(sd.subtotal)} kr</span>
+                    <span className="text-sm font-semibold text-foreground shrink-0">{formatPrice(roundPrice(sd.subtotal))}</span>
                   </div>
                   <StepperInput
                     value={sd.value}
@@ -651,12 +652,12 @@ const AdjustmentDisplay = ({ order }: { order: any }) => {
                 );
               })()}
             </div>
-            <span className="text-sm font-semibold text-foreground">{item.total_price} kr</span>
+            <span className="text-sm font-semibold text-foreground">{formatPrice(item.total_price)}</span>
           </div>
           {item.details?.stepDetails?.map((sd: any, i: number) => (
             <div key={i} className="flex justify-between text-xs text-muted-foreground mt-0.5 pl-0.5">
-              <span>{sd.label}: {sd.value} {sd.unit} × {sd.price_per_unit} kr/{sd.unit}</span>
-              <span>{sd.subtotal} kr</span>
+              <span>{sd.label}: {sd.value} {sd.unit} × {formatPrice(sd.price_per_unit)}/{sd.unit}</span>
+              <span>{formatPrice(sd.subtotal)}</span>
             </div>
           ))}
         </div>
@@ -664,9 +665,9 @@ const AdjustmentDisplay = ({ order }: { order: any }) => {
       <div className="px-4 py-2 flex justify-between bg-muted/30 border-t border-border">
         <span className="text-sm font-bold text-foreground">Tilpasset pris</span>
         <div className="text-right">
-          <span className="text-sm font-bold text-foreground">{order.adjusted_amount} kr</span>
+          <span className="text-sm font-bold text-foreground">{formatPrice(order.adjusted_amount)}</span>
           {order.adjusted_amount !== order.total_amount && (
-            <span className="ml-2 text-xs text-muted-foreground line-through">{order.total_amount} kr</span>
+            <span className="ml-2 text-xs text-muted-foreground line-through">{formatPrice(order.total_amount)}</span>
           )}
         </div>
       </div>
@@ -708,7 +709,7 @@ const LinkedSubscriptionInfo = ({ orderId, subscriptions, businessId, customerEm
                     <Pause className="h-3 w-3 mr-1" /> På pause
                   </Badge>
                 )}
-                <span className="text-sm font-bold text-foreground">{sub.total_price} kr</span>
+                <span className="text-sm font-bold text-foreground">{formatPrice(sub.total_price)}</span>
               </div>
             </div>
             {nextDate && sub.status === "active" && (
@@ -1656,7 +1657,7 @@ const AftaleTab = ({
         description={(() => {
           const parts: string[] = [];
           parts.push(`${activeOrders.length} aktive`);
-          if (actionNeeded.length > 0) parts.push(`${actionNeeded.length} kræver handling`);
+          if (actionNeeded.length > 0) parts.push(`${formatPrice(actionNeeded.length)}æver handling`);
           if (overduePaymentOrders.length > 0) parts.push(`${overduePaymentOrders.length} forfalden betaling`);
           else if (upcomingSubs.length > 0) parts.push(`${upcomingSubs.length} kommende`);
           return parts.join(" · ");
@@ -2183,7 +2184,7 @@ const AftaleTab = ({
                           </span>
                           {order.adjusted_amount && order.customer_response === "accepted" && originalTotal !== currentTotal && (
                             <span className="mt-0.5 text-[10px] text-muted-foreground line-through tabular-nums">
-                              {originalTotal.toLocaleString("da-DK")} kr
+                              {formatPrice(originalTotal)}
                             </span>
                           )}
                         </div>
@@ -2304,7 +2305,7 @@ const AftaleTab = ({
                               }`}>
                               {responseType === "accepted" ? "Bekræft godkendelse"
                                 : responseType === "rejected" ? "Bekræft afvisning"
-                                : `Send forslag · ${roundPrice(getAdjustedTotal(order.id))} kr`}
+                                : `Send forslag · ${formatPrice(roundPrice(getAdjustedTotal(order.id)))}`}
                             </Button>
                             <Button variant="ghost" size="sm" onClick={() => { setRespondingTo(null); setResponseMessage(""); }}
                               className="h-8 rounded-md px-2.5 text-xs text-muted-foreground hover:bg-secondary hover:text-foreground">Luk</Button>
@@ -2325,8 +2326,8 @@ const AftaleTab = ({
                               onUpdateFixedPrice={updateAdjustedFixedPrice}
                             />
                             <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-secondary px-3 py-2">
-                              <span className="text-xs text-muted-foreground">Kundens pris <span className="ml-1 line-through">{order.total_amount} kr</span></span>
-                              <span className="text-sm font-bold text-foreground">Dit forslag: {roundPrice(getAdjustedTotal(order.id))} kr</span>
+                              <span className="text-xs text-muted-foreground">Kundens pris <span className="ml-1 line-through">{formatPrice(order.total_amount)}</span></span>
+                              <span className="text-sm font-bold text-foreground">Dit forslag: {formatPrice(roundPrice(getAdjustedTotal(order.id)))}</span>
                             </div>
                           </div>
                         )}
@@ -2828,7 +2829,7 @@ const AftaleTab = ({
                   || "Ukendt kunde"}
               </p>
               <span className="text-[10px] font-bold text-accent shrink-0 tabular-nums">
-                {Math.round(Number(activeDragOrder.total_amount || 0))} kr
+                {formatPrice(Math.round(Number(activeDragOrder.total_amount || 0)))}
               </span>
             </div>
             {activeDragOrder.address && (

@@ -1,3 +1,4 @@
+import { formatPrice } from "@/lib/price-format";
 import { Link } from "react-router-dom";
 import { BadgeCheck, MapPin, ArrowRight, Building2 } from "lucide-react";
 
@@ -30,9 +31,9 @@ interface RecommendationMetadata {
 
 const formatPrice = (s: NonNullable<RecommendationMetadata["services"]>[number]) => {
   if (s.pricing_type === "prisberegner") return "Prisberegner";
-  if (s.pricing_type === "timepris" && s.base_price) return `${s.base_price} kr/t`;
-  if (s.pricing_type === "fast_pris" && s.base_price) return `${s.base_price} kr`;
-  if (s.base_price) return `${s.base_price} kr${s.unit ? ` / ${s.unit}` : ""}`;
+  if (s.pricing_type === "timepris" && s.base_price) return `${formatPrice(s.base_price)}/t`;
+  if (s.pricing_type === "fast_pris" && s.base_price) return `${formatPrice(s.base_price)}`;
+  if (s.base_price) return `${formatPrice(s.base_price)}${s.unit ? ` / ${s.unit}` : ""}`;
   return "Pris efter aftale";
 };
 
