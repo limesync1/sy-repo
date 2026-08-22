@@ -754,7 +754,8 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
             </div>
             <Button
               onClick={handleSubmit}
-              disabled={!canSubmit || submitting}
+              disabled={!canSubmit || submitting || !!existingBusiness}
+
               className="h-11 shrink-0 gap-2 rounded-full bg-gradient-to-r from-foreground to-foreground/85 px-5 text-sm font-semibold text-background shadow-md transition-all hover:from-foreground hover:to-foreground hover:shadow-lg active:scale-[0.98]"
             >
               {submitting ? (
