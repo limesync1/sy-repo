@@ -14,8 +14,9 @@ const HeroSection = () => {
       {/* Baggrundslag samlet i én overflow-hidden wrapper, så søge-dropdownen
           kan trække ud over hero-kanten uden at blive klippet. */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        {/* Baggrundsbillede — blendet ned så de premium glows dominerer,
-            men stadig synligt for tekstur og kontekst. */}
+        {/* Baggrundsbillede — vises nu i fuld styrke. Kontrasten til teksten
+            styres udelukkende af den ene scrim-gradient nedenfor, i stedet for
+            af flere overlappende lag der gjorde billedet grumset. */}
         <img
           src={heroImage}
           alt=""
@@ -24,44 +25,36 @@ const HeroSection = () => {
           height={960}
           fetchPriority="high"
           decoding="async"
-          className="absolute inset-0 h-full w-full object-cover opacity-50"
+          className="absolute inset-0 h-full w-full object-cover object-[70%_center]"
           loading="eager"
         />
-        {/* Mørk gradient over billedet — sikrer kontrast til teksten. */}
+        {/* Én scrim: tæt bag teksten i venstre side, næsten klar i højre side
+            så motivet faktisk kan ses. På mobil bruger vi en lodret scrim,
+            fordi teksten dér fylder hele bredden. */}
         <div
-          className="absolute inset-0"
+          className="absolute inset-0 sm:hidden"
           style={{
             backgroundImage:
-              "linear-gradient(90deg, hsl(var(--hero-bg) / 0.95) 0%, hsl(var(--hero-bg) / 0.85) 45%, hsl(var(--hero-bg) / 0.5) 100%)",
+              "linear-gradient(180deg, hsl(var(--hero-bg) / 0.92) 0%, hsl(var(--hero-bg) / 0.86) 60%, hsl(var(--hero-bg) / 0.72) 100%)",
           }}
         />
-        {/* Ambient cyan glows — giver dybde uden støj. */}
-        {/* Stor central cyan-glow, langsomt pulserende */}
         <div
-          className="absolute left-1/2 top-1/2 h-[40rem] w-[40rem] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[120px] opacity-25 animate-blob-slow"
-          style={{ backgroundColor: "hsl(var(--hero-cyan))" }}
+          className="absolute inset-0 hidden sm:block"
+          style={{
+            backgroundImage:
+              "linear-gradient(96deg, hsl(var(--hero-bg) / 0.96) 0%, hsl(var(--hero-bg) / 0.92) 38%, hsl(var(--hero-bg) / 0.6) 62%, hsl(var(--hero-bg) / 0.25) 100%)",
+          }}
         />
-        {/* Mid-blå glow øverst højre */}
+        {/* Én enkelt ambient glow i højre side — nok til dybde, ikke nok til
+            at sløre motivet. */}
         <div
-          className="absolute -top-32 right-[-8%] h-[36rem] w-[36rem] rounded-full blur-[110px] opacity-30"
+          className="absolute -top-40 right-[-10%] h-[34rem] w-[34rem] rounded-full blur-[130px] opacity-20"
           style={{ backgroundColor: "hsl(var(--hero-mid))" }}
         />
-        {/* Lille cyan accent nederst venstre */}
-        <div
-          className="absolute -bottom-40 -left-32 h-[28rem] w-[28rem] rounded-full blur-[100px] opacity-15"
-          style={{ backgroundColor: "hsl(var(--hero-cyan-bright))" }}
-        />
-        {/* Subtil radial gradient overlay for ekstra dybde */}
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage:
-              "radial-gradient(ellipse 80% 60% at 70% 50%, hsl(var(--hero-mid) / 0.25), transparent 60%)",
-          }}
-        />
         {/* Film-grain — analog tekstur */}
-        <div className="absolute inset-0 bg-noise opacity-[0.06] mix-blend-overlay" />
+        <div className="absolute inset-0 bg-noise opacity-[0.05] mix-blend-overlay" />
       </div>
+
 
       {/* Indhold — asymmetrisk 60/40 grid */}
       <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-4 pb-8 pt-6 sm:px-6 sm:gap-12 sm:pb-14 sm:pt-10 lg:grid-cols-[60%_40%] lg:gap-20 lg:px-8 lg:pb-32 lg:pt-24">

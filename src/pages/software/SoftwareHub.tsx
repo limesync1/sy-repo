@@ -121,6 +121,7 @@ const SoftwareHub = () => {
       <SiteNav />
 
       <PageHero
+        tone="emerald"
         eyebrow="Systemet til virksomheder"
         title="Ét system til planlægning, drift og nye kunder"
         subtitle="Ruteplanlægning, medarbejder-app, booking, kunder og fakturering — samlet ét sted."

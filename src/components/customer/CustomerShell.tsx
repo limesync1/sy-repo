@@ -30,7 +30,14 @@ export const CustomerShell = ({
   const currentTab = tabs.find((t) => t.key === activeTab);
 
   return (
-    <div className="flex min-h-screen flex-col bg-secondary/50">
+    <div
+      className="flex min-h-screen flex-col bg-secondary/50"
+      /* Blød farvet baggrund, så kundepanelet ikke føles gråt og fladt. */
+      style={{
+        backgroundImage:
+          "radial-gradient(1100px 420px at 10% -10%, hsl(217 91% 60% / 0.10), transparent 60%), radial-gradient(900px 400px at 95% 0%, hsl(189 100% 45% / 0.10), transparent 60%)",
+      }}
+    >
       {/* ── Global header ── samme SiteNav som forsiden bruger */}
       <SiteNav right={topbarRight} />
 
@@ -53,7 +60,7 @@ export const CustomerShell = ({
                   className={cn(
                     "snap-start shrink-0 inline-flex items-center gap-2 px-3 py-3 text-sm font-medium transition-colors min-h-[48px] whitespace-nowrap border-b-2",
                     isActive
-                      ? "border-foreground text-foreground"
+                      ? "border-[hsl(var(--hero-mid))] text-[hsl(var(--hero-mid))]"
                       : "border-transparent text-muted-foreground hover:text-foreground hover:border-border",
                   )}
                 >
@@ -63,7 +70,7 @@ export const CustomerShell = ({
                     <span className={cn(
                       "ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[11px] font-semibold",
                       isActive
-                        ? "bg-foreground text-background"
+                        ? "bg-[hsl(var(--hero-mid))] text-background"
                         : "bg-secondary text-foreground",
                     )}>
                       {tab.badge > 99 ? "99+" : tab.badge}

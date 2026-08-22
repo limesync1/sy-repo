@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, MapPin, Building2, Clock, X } from "lucide-react";
+import { Search, MapPin, Building2, Clock, X, CornerDownLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUserLocation } from "@/contexts/LocationContext";
 import { topCategories, searchIndustries } from "@/lib/service-taxonomy";
@@ -16,10 +16,22 @@ const CATEGORIES = topCategories().map((ind) => ({
 }));
 
 type Suggestion =
+  | { type: "query"; label: string }
   | { type: "category"; label: string; key: string; matchedVia?: string }
   | { type: "business"; label: string; slug: string; city: string | null; logo: string | null }
   | { type: "city"; label: string }
   | { type: "history"; label: string; query: string };
+
+/** Overskrifter pr. forslagstype — bruges til at gruppere dropdownen, så
+ *  brugeren hurtigt kan se hvad der er kategori, by og virksomhed. */
+const GROUP_LABEL: Record<Suggestion["type"], string> = {
+  query: "Fritekst",
+  history: "Senest søgt",
+  category: "Kategorier",
+  city: "Byer",
+  business: "Virksomheder",
+};
+
 
 interface Props {
   variant?: "hero" | "page";
@@ -100,7 +112,9 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
       }));
       return [...recents, ...cats];
     }
-    const results: Suggestion[] = [];
+    // Første række er altid fritekst-søgningen, så Enter/klik er forudsigeligt
+    // og brugeren aldrig sidder fast hvis intet forslag rammer.
+    const results: Suggestion[] = [{ type: "query", label: q.trim() }];
 
     // Branche-match: kig i HELE branchekataloget (alle brancher,
     // underbrancher, service-navne og nøgleord) — så "tagrens",
@@ -133,6 +147,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
     return results;
   }, [q, index, history]);
 
+
   // Click outside to close
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -152,6 +167,10 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
   };
 
   const pickSuggestion = (s: Suggestion) => {
+    if (s.type === "query") {
+      submit(s.label);
+      return;
+    }
     if (s.type === "business") {
       navigate(`/b/${s.slug}`);
     } else if (s.type === "category") {
@@ -167,6 +186,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
     }
     setOpen(false);
   };
+
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {
@@ -270,36 +290,46 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
           <ul className="max-h-[min(60vh,460px)] overflow-y-auto overscroll-contain py-1.5">
             {suggestions.map((s, i) => {
               const active = activeIdx === i;
-              // Indsæt en sektionsoverskrift før første kategori-forslag
-              // når der både er historik og kategorier vist samtidigt.
+              // Gruppér forslagene: vis en sektionsoverskrift hver gang
+              // forslagstypen skifter (Kategorier → Byer → Virksomheder).
               const prev = suggestions[i - 1];
-              const showCatHeader =
-                !q.trim() && s.type === "category" && (!prev || prev.type === "history");
+              const showGroupHeader =
+                s.type !== "query" && (!prev || prev.type !== s.type) && !(s.type === "history" && !q.trim());
               return (
                 <li
                   key={`${s.type}-${s.label}-${i}`}
                   className="animate-fade-in-soft"
                   style={{ animationDelay: `${Math.min(i * 35, 280)}ms` }}
                 >
-                  {showCatHeader && history.length > 0 && (
-                    <div className="mt-1 border-y border-border bg-secondary/40 px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      Populære kategorier
-                    </div>
-                  )}
-                  {showCatHeader && history.length === 0 && (
-                    <div className="border-b border-border bg-secondary/40 px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      Populære kategorier
+                  {showGroupHeader && (
+                    <div className="border-y border-border bg-secondary/40 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground first:border-t-0">
+                      {GROUP_LABEL[s.type]}
                     </div>
                   )}
                   <button
                     type="button"
+                    role="option"
+                    aria-selected={active}
                     onMouseEnter={() => setActiveIdx(i)}
                     onClick={() => pickSuggestion(s)}
                     className={`group flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors duration-150 ${
                       active ? "bg-secondary" : "hover:bg-secondary/60"
                     }`}
                   >
+                    {s.type === "query" && (
+                      <>
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                          <Search className="h-4 w-4" />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <div className="truncate font-semibold text-foreground">Søg efter “{s.label}”</div>
+                          <div className="text-xs text-muted-foreground">Se alle resultater</div>
+                        </span>
+                        <CornerDownLeft className="h-3.5 w-3.5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                      </>
+                    )}
                     {s.type === "history" && (
+
                       <>
                         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-muted-foreground transition-transform duration-200 group-hover:scale-105">
                           <Clock className="h-4 w-4" />
@@ -362,8 +392,32 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
               );
             })}
           </ul>
+          {/* Fod: tastaturgenveje på desktop + genvej til de tre gratis tilbud,
+              så brugeren altid har en næste handling. */}
+          <div className="flex items-center justify-between gap-3 border-t border-border bg-secondary/30 px-4 py-2 text-[11px] text-muted-foreground">
+            <span className="hidden items-center gap-3 sm:flex">
+              <span className="inline-flex items-center gap-1">
+                <kbd className="rounded border border-border bg-card px-1 py-0.5 font-sans text-[10px]">↑</kbd>
+                <kbd className="rounded border border-border bg-card px-1 py-0.5 font-sans text-[10px]">↓</kbd>
+                naviger
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <kbd className="rounded border border-border bg-card px-1 py-0.5 font-sans text-[10px]">Enter</kbd>
+                vælg
+              </span>
+            </span>
+            <button
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => { setOpen(false); navigate("/tilbud"); }}
+              className="ml-auto inline-flex items-center gap-1 font-medium text-foreground underline-offset-2 hover:underline"
+            >
+              Ved du ikke hvad du søger? Få 3 gratis tilbud
+            </button>
+          </div>
         </div>
       )}
+
     </div>
   );
 };

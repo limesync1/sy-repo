@@ -358,6 +358,7 @@ const BusinessOnboarding = ({ variant = "signup", belowContent, breadcrumb, seo 
       <SiteNav />
 
       <PageHero
+        tone="amber"
         eyebrow={`${pricing?.trial_days ?? 14} dages gratis prøve · Intet kort kræves`}
         title={variant === "pricing" ? "Priser — sammensæt jeres abonnement" : "Bliv udbyder på Serviceydere"}
         subtitle={

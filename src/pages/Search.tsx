@@ -308,6 +308,7 @@ const SearchPage = () => {
 
       {/* Dark hero — minimal: kun titel og beskrivelse */}
       <PageHero
+        tone="cyan"
         eyebrow="Find services"
         title="Find verificerede serviceydere."
         subtitle="Søg på service, virksomhed eller by — sammenlign priser og anmeldelser, og book direkte."
