@@ -31,8 +31,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { getEmployeeWorkspace } from "@/lib/employee-workspace";
+import { getEmployeeWorkspace, setEmployeeWorkspace } from "@/lib/employee-workspace";
 import EmployeeWorkspacePicker from "@/components/employee/EmployeeWorkspacePicker";
+
 
 
 export type EmployeeTabKey = "today" | "stats" | "livechat";
