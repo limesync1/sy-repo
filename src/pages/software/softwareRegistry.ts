@@ -19,7 +19,7 @@ export interface SoftwarePageMeta {
 export const SOFTWARE_PAGES: SoftwarePageMeta[] = [
   {
     href: "/software",
-    label: "Serviceydere software",
+    label: "Systemet — overblik",
     blurb: "Hele systemet: ruteplanlægning, medarbejder-app, booking, fakturering og markedsplads i ét.",
     priority: "0.9",
     group: "product",
