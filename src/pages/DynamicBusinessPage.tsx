@@ -192,8 +192,8 @@ const DynamicBusinessContent = () => {
       {/* ── Hero ── */}
       <header className="relative border-b border-border bg-background">
         <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8 md:pt-6">
-          {/* Cover — fast, forudsigeligt billedforhold så billedet aldrig
-              beskæres hårdt: 3:2 på mobil, bredere jo større skærmen bliver. */}
+          {/* Cover — højere billedforhold så motivet faktisk kan ses:
+              4:3 på mobil, 16:9 på tablet, 16:7 på store skærme. */}
           <div className="relative overflow-hidden rounded-[1.75rem] border border-border bg-secondary shadow-[0_26px_60px_-40px_hsl(var(--foreground)/0.22)]">
             {hasCover ? (
               <a
@@ -201,29 +201,42 @@ const DynamicBusinessContent = () => {
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Åbn coverbillede i fuld størrelse"
-                className="group relative block aspect-[3/2] w-full sm:aspect-[2/1] lg:aspect-[16/6]"
+                className="group relative block aspect-[4/3] w-full sm:aspect-[16/9] lg:aspect-[16/7]"
               >
+                {/* Blurret baggrund udfylder rammen, så selve billedet kan vises helt */}
+                <img
+                  src={business.cover_image_url!}
+                  alt=""
+                  aria-hidden
+                  className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl opacity-60"
+                  loading="eager"
+                  decoding="async"
+                />
                 <img
                   src={business.cover_image_url!}
                   alt={`${business.name}${business.city ? ` i ${business.city}` : ""} – billede`}
-                  className="h-full w-full object-cover object-center"
+                  className="relative h-full w-full object-contain object-center sm:object-cover"
                   width={1600}
-                  height={600}
+                  height={700}
                   loading="eager"
                   decoding="async"
                   fetchPriority="high"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-foreground/25 via-transparent to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-foreground/30 to-transparent" />
+                <span className="absolute bottom-3 right-3 rounded-full bg-background/90 px-3 py-1 text-[11px] font-semibold text-foreground opacity-0 shadow-sm backdrop-blur transition-opacity group-hover:opacity-100">
+                  Se i fuld størrelse
+                </span>
               </a>
             ) : (
               <div
                 aria-hidden
-                className="relative h-24 w-full bg-gradient-to-br from-accent/25 via-accent/10 to-secondary md:h-32"
+                className="relative h-28 w-full bg-gradient-to-br from-accent/30 via-feature-lilac/15 to-secondary md:h-40"
               >
                 <div className="absolute inset-0 bg-noise opacity-[0.06]" />
               </div>
             )}
           </div>
+
 
 
           {/* Identity row — kun logoet overlapper coveret. Tekstkolonnen sidder
@@ -346,15 +359,40 @@ const DynamicBusinessContent = () => {
 
             {/* Services */}
             {services && services.length > 0 && (
-              <section id="services" aria-labelledby="services-heading" className="rounded-2xl border border-border bg-card p-3 shadow-[0_22px_50px_-34px_hsl(var(--foreground)/0.2)] sm:p-4 md:p-5">
-                <div className="mb-3 flex flex-col gap-2 border-b border-border pb-3 sm:flex-row sm:items-end sm:justify-between">
-                  <div>
-                    <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Book direkte</p>
-                    <h2 id="services-heading" className="text-xl font-bold text-foreground sm:text-[1.75rem]">Services</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">Vælg og tilføj services direkte til din bestilling.</p>
+              <section id="services" aria-labelledby="services-heading" className="overflow-hidden rounded-2xl border border-border bg-card shadow-[0_22px_50px_-34px_hsl(var(--foreground)/0.2)]">
+                {/* Farvet sektionshoved — gør det tydeligt hvad man kan her */}
+                <div className="border-b border-border bg-gradient-to-r from-accent/12 via-feature-lilac/10 to-transparent p-4 sm:p-5">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-accent">Book direkte online</p>
+                      <h2 id="services-heading" className="text-xl font-bold text-foreground sm:text-[1.75rem]">Services du kan bestille</h2>
+                      <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+                        Tilpas opgaven, se prisen med det samme og læg den i bestillingen. Ingen betaling før virksomheden har bekræftet.
+                      </p>
+                    </div>
+                    <span className="inline-flex w-fit shrink-0 items-center rounded-full bg-accent px-3 py-1 text-sm font-semibold text-accent-foreground">{serviceCount} {serviceCount === 1 ? "service" : "services"}</span>
                   </div>
-                  <span className="inline-flex w-fit items-center rounded-full bg-secondary px-3 py-1 text-sm font-medium text-muted-foreground">{serviceCount} {serviceCount === 1 ? "service" : "services"}</span>
+
+                  {/* 3-trins forklaring — fjerner tvivl om hvad der kan gøres */}
+                  <ol className="mt-4 grid gap-2 sm:grid-cols-3">
+                    {[
+                      { n: "1", t: "Vælg service", d: "Filtrér på kategori" },
+                      { n: "2", t: "Tilpas antal", d: "Prisen opdateres live" },
+                      { n: "3", t: "Send bestilling", d: "Virksomheden bekræfter" },
+                    ].map((s) => (
+                      <li key={s.n} className="flex items-center gap-2.5 rounded-xl bg-card/80 px-3 py-2 ring-1 ring-border/70">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent text-[11px] font-bold text-accent-foreground">{s.n}</span>
+                        <span className="min-w-0">
+                          <span className="block truncate text-[13px] font-semibold text-foreground">{s.t}</span>
+                          <span className="block truncate text-[11px] text-muted-foreground">{s.d}</span>
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
                 </div>
+
+                <div className="p-3 sm:p-4 md:p-5">
+
 
                 {/* Category filter pills */}
                  {hasMultipleCategories && (
@@ -475,7 +513,9 @@ const DynamicBusinessContent = () => {
                     </div>
                   )}
                 </div>
+                </div>
               </section>
+
             )}
 
             {/* Empty state — vises hvis virksomheden endnu ikke har oprettet services */}

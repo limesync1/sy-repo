@@ -64,7 +64,7 @@ const HeroSection = () => {
       </div>
 
       {/* Indhold — asymmetrisk 60/40 grid */}
-      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 pb-10 pt-8 sm:px-6 sm:pb-16 sm:pt-12 lg:grid-cols-[60%_40%] lg:gap-20 lg:px-8 lg:pb-32 lg:pt-24">
+      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-4 pb-8 pt-6 sm:px-6 sm:gap-12 sm:pb-14 sm:pt-10 lg:grid-cols-[60%_40%] lg:gap-20 lg:px-8 lg:pb-32 lg:pt-24">
         <div className="max-w-2xl">
           <h1 className="animate-fade-in text-[1.75rem] font-semibold leading-[1.08] tracking-[-0.03em] text-background sm:text-[2.5rem] lg:text-[3.5rem]">
             Find den rette{" "}
