@@ -168,6 +168,19 @@ export const EmployeeShell = ({
     .join("") || "M";
   const accentColor = employee?.color || "hsl(var(--foreground))";
 
+  // Aktiv virksomhed — panelets data hentes udelukkende for denne.
+  const activeBusiness = employee?.business ?? null;
+  const activeBusinessName = activeBusiness?.name || "Virksomhed";
+  const businessInitials =
+    activeBusinessName
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((p) => p.charAt(0).toUpperCase())
+      .join("") || "V";
+
+
+
   if (needsWorkspaceChoice) {
     return (
       <EmployeeWorkspacePicker
