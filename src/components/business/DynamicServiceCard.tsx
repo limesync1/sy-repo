@@ -47,7 +47,8 @@ const StepperInput = ({
   return (
     <div className="inline-flex items-center gap-0">
       <button type="button" onClick={dec} disabled={value <= min}
-        className="flex h-9 w-9 items-center justify-center rounded-l-lg border border-r-0 border-border bg-card text-foreground transition-colors hover:bg-secondary active:bg-secondary/70 disabled:opacity-30 disabled:hover:bg-card">
+        aria-label={`Færre ${unit}`}
+        className="flex h-9 w-9 items-center justify-center rounded-l-lg border border-r-0 border-border bg-card text-foreground transition-colors hover:bg-secondary active:bg-secondary/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-30 disabled:hover:bg-card">
         <Minus className="h-3.5 w-3.5" />
       </button>
       {isLargeRange ? (
@@ -62,7 +63,8 @@ const StepperInput = ({
         </div>
       )}
       <button type="button" onClick={inc} disabled={value >= max}
-        className="flex h-9 w-9 items-center justify-center rounded-r-lg border border-l-0 border-border bg-card text-foreground transition-colors hover:bg-secondary active:bg-secondary/70 disabled:opacity-30 disabled:hover:bg-card">
+        aria-label={`Flere ${unit}`}
+        className="flex h-9 w-9 items-center justify-center rounded-r-lg border border-l-0 border-border bg-card text-foreground transition-colors hover:bg-secondary active:bg-secondary/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-30 disabled:hover:bg-card">
         <Plus className="h-3.5 w-3.5" />
       </button>
       <span className="ml-2 text-xs text-muted-foreground">{unit}</span>
@@ -261,7 +263,8 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
             <div className="flex flex-wrap gap-1">
               {intervals.map((iv) => (
                 <button key={iv} type="button" onClick={() => setSelectedInterval(iv)}
-                  className={`rounded-full border px-2 py-0.5 text-[11px] font-medium transition-all ${
+                  aria-pressed={selectedInterval === iv}
+                  className={`rounded-full border px-2 py-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent text-[11px] font-medium transition-all ${
                     selectedInterval === iv
                       ? "border-accent bg-accent text-accent-foreground shadow-sm"
                       : "border-border bg-card text-muted-foreground hover:border-accent/40"
