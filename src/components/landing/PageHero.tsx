@@ -85,20 +85,21 @@ const PageHero = ({
               {eyebrow}
             </span>
           )}
-          <h1 className="mt-5 text-[1.9rem] font-semibold leading-[1.05] tracking-[-0.03em] text-background sm:text-[2.75rem] lg:text-[3.5rem]">
+          <h1 className="mt-4 text-[1.75rem] font-semibold leading-[1.08] tracking-[-0.03em] text-background sm:mt-5 sm:text-[2.5rem] lg:text-[3.5rem]">
             {title}
           </h1>
           {subtitle && (
-            <p className="mt-6 max-w-xl text-[15px] leading-7 text-background/80 sm:text-[18px] sm:leading-[1.6]">
+            <p className="mt-3 max-w-xl text-[14.5px] leading-6 text-background/80 sm:mt-5 sm:text-[17px] sm:leading-[1.6]">
               {subtitle}
             </p>
           )}
-          {children && <div className="mt-7 w-full max-w-2xl">{children}</div>}
+          {children && <div className="mt-5 w-full max-w-2xl sm:mt-7">{children}</div>}
           {actions && (
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <div className="mt-5 flex flex-col gap-3 sm:mt-7 sm:flex-row sm:flex-wrap">
               {actions}
             </div>
           )}
+
         </div>
       </div>
     </section>
