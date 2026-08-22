@@ -359,15 +359,40 @@ const DynamicBusinessContent = () => {
 
             {/* Services */}
             {services && services.length > 0 && (
-              <section id="services" aria-labelledby="services-heading" className="rounded-2xl border border-border bg-card p-3 shadow-[0_22px_50px_-34px_hsl(var(--foreground)/0.2)] sm:p-4 md:p-5">
-                <div className="mb-3 flex flex-col gap-2 border-b border-border pb-3 sm:flex-row sm:items-end sm:justify-between">
-                  <div>
-                    <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Book direkte</p>
-                    <h2 id="services-heading" className="text-xl font-bold text-foreground sm:text-[1.75rem]">Services</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">Vælg og tilføj services direkte til din bestilling.</p>
+              <section id="services" aria-labelledby="services-heading" className="overflow-hidden rounded-2xl border border-border bg-card shadow-[0_22px_50px_-34px_hsl(var(--foreground)/0.2)]">
+                {/* Farvet sektionshoved — gør det tydeligt hvad man kan her */}
+                <div className="border-b border-border bg-gradient-to-r from-accent/12 via-feature-lilac/10 to-transparent p-4 sm:p-5">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-accent">Book direkte online</p>
+                      <h2 id="services-heading" className="text-xl font-bold text-foreground sm:text-[1.75rem]">Services du kan bestille</h2>
+                      <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+                        Tilpas opgaven, se prisen med det samme og læg den i bestillingen. Ingen betaling før virksomheden har bekræftet.
+                      </p>
+                    </div>
+                    <span className="inline-flex w-fit shrink-0 items-center rounded-full bg-accent px-3 py-1 text-sm font-semibold text-accent-foreground">{serviceCount} {serviceCount === 1 ? "service" : "services"}</span>
                   </div>
-                  <span className="inline-flex w-fit items-center rounded-full bg-secondary px-3 py-1 text-sm font-medium text-muted-foreground">{serviceCount} {serviceCount === 1 ? "service" : "services"}</span>
+
+                  {/* 3-trins forklaring — fjerner tvivl om hvad der kan gøres */}
+                  <ol className="mt-4 grid gap-2 sm:grid-cols-3">
+                    {[
+                      { n: "1", t: "Vælg service", d: "Filtrér på kategori" },
+                      { n: "2", t: "Tilpas antal", d: "Prisen opdateres live" },
+                      { n: "3", t: "Send bestilling", d: "Virksomheden bekræfter" },
+                    ].map((s) => (
+                      <li key={s.n} className="flex items-center gap-2.5 rounded-xl bg-card/80 px-3 py-2 ring-1 ring-border/70">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent text-[11px] font-bold text-accent-foreground">{s.n}</span>
+                        <span className="min-w-0">
+                          <span className="block truncate text-[13px] font-semibold text-foreground">{s.t}</span>
+                          <span className="block truncate text-[11px] text-muted-foreground">{s.d}</span>
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
                 </div>
+
+                <div className="p-3 sm:p-4 md:p-5">
+
 
                 {/* Category filter pills */}
                  {hasMultipleCategories && (
