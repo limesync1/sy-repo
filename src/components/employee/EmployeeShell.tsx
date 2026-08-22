@@ -98,6 +98,25 @@ export const EmployeeShell = ({
     multiWorkspace &&
     (pickerOpen || !myEmployeeRecords!.some((e) => e.business_id === workspaceId));
 
+  // Gem valget permanent (localStorage) så brugeren automatisk lander i den
+  // rigtige virksomhed ved næste login. Har brugeren kun ét arbejdssted,
+  // gemmes det uden at spørge.
+  useEffect(() => {
+    const rows = myEmployeeRecords ?? [];
+    if (rows.length === 0) return;
+    if (rows.length === 1) {
+      if (workspaceId !== rows[0].business_id) {
+        setEmployeeWorkspace(rows[0].business_id, true);
+        setWorkspaceId(rows[0].business_id);
+      }
+      return;
+    }
+    if (workspaceId && rows.some((e) => e.business_id === workspaceId)) {
+      setEmployeeWorkspace(workspaceId, true);
+    }
+  }, [myEmployeeRecords, workspaceId]);
+
+
   // Hvis medarbejderen også ejer virksomheden (typisk solo-ejeren), så
   // vises "Skift til virksomhedspanel" i profilmenuen.
   const { data: myBusiness } = useMyBusiness();
