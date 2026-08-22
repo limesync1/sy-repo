@@ -34,22 +34,26 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
         aria-label={`${biz.name}${biz.city ? `, ${biz.city}` : ""} — se virksomhed`}
         className="flex flex-col gap-3"
       >
-        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-[28px] bg-secondary">
+        <div className="relative aspect-[16/10] w-full overflow-hidden rounded-t-[28px] bg-secondary">
           {biz.cover_image_url ? (
-            <img
-              src={biz.cover_image_url}
-              alt={`${biz.name}${biz.city ? ` – ${biz.city}` : ""}${primaryCat ? `, ${primaryCat}` : ""}`}
-              className="h-full w-full object-cover"
-              width={400}
-              height={300}
-              loading="lazy"
-              decoding="async"
-            />
+            <>
+              <img src={biz.cover_image_url} alt="" aria-hidden className="absolute inset-0 h-full w-full scale-110 object-cover blur-xl opacity-70" loading="lazy" decoding="async" />
+              <img
+                src={biz.cover_image_url}
+                alt={`${biz.name}${biz.city ? ` – ${biz.city}` : ""}${primaryCat ? `, ${primaryCat}` : ""}`}
+                className="relative h-full w-full object-contain"
+                width={400}
+                height={250}
+                loading="lazy"
+                decoding="async"
+              />
+            </>
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-secondary">
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-accent/20 via-feature-lilac/10 to-secondary">
               <Building2 className="h-12 w-12 text-muted-foreground/30" />
             </div>
           )}
+
 
           {biz.is_verified && (
             <div className="absolute left-3.5 top-3.5">
