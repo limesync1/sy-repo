@@ -103,8 +103,14 @@ const PageHero = ({
           )}
 
         </div>
+
+        {/* Diskret indikator: viser at der er mere indhold under heroen på mobil. */}
+        <div aria-hidden className="pointer-events-none mt-6 flex justify-center sm:hidden">
+          <ChevronDown className="h-5 w-5 animate-bounce text-background/45" />
+        </div>
       </div>
     </section>
+
   );
 };
 
