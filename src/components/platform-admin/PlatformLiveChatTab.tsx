@@ -540,6 +540,10 @@ const PlatformLiveChatTab = () => {
         />
       )}
 
+      {showTranscript && active && (
+        <TranscriptDialog active={active} messages={messages} onClose={() => setShowTranscript(false)} />
+      )}
+
       {/* Canned response admin manager */}
       {showCannedManager && (
         <CannedResponsesManager
