@@ -179,30 +179,33 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
 
   const isFixed = service.pricing_type === "fast_pris";
 
+  const hue = hueForString((service as any).subcategory || service.category || service.name);
+
   return (
-    <Card className="group flex h-full flex-col overflow-hidden rounded-2xl border-border/80 bg-card transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-[0_18px_40px_-28px_hsl(var(--foreground)/0.35)]">
-      {/* Billede: blurret baggrund + hele motivet i midten — ingen hård beskæring,
-          uanset om virksomheden uploader stående eller liggende billeder. */}
+    <Card
+      style={{ ["--ind" as string]: `${hue}` }}
+      className="group flex h-full flex-col overflow-hidden rounded-2xl border-border/80 bg-card transition-all duration-300 hover:-translate-y-0.5 hover:border-[hsl(var(--ind)_70%_45%_/_0.45)] hover:shadow-[0_18px_40px_-28px_hsl(var(--foreground)/0.35)]"
+    >
+      {/* Billede: fast 16:9-felt med skarp beskæring i midten — ensartet
+          korthøjde og ingen blurrede kanter. */}
       {service.image_url ? (
-        <div className="relative aspect-[16/10] w-full overflow-hidden bg-secondary">
-          <img
-            src={service.image_url}
-            alt=""
-            aria-hidden
-            className="absolute inset-0 h-full w-full scale-110 object-cover blur-xl opacity-70"
-            loading="lazy"
-          />
+        <div className="relative aspect-[16/9] w-full overflow-hidden bg-secondary">
           <img
             src={service.image_url}
             alt={service.name}
-            className="relative h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.03]"
+            className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-[1.04]"
+            width={640}
+            height={360}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             loading="lazy"
+            decoding="async"
           />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-foreground/45 to-transparent" />
           <span
             className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide shadow-sm backdrop-blur ${
               isFixed
                 ? "bg-emerald-500 text-white"
-                : "bg-accent text-accent-foreground"
+                : "bg-[hsl(var(--ind)_70%_42%)] text-white"
             }`}
           >
             {isFixed ? "Fast pris" : "Prisoverslag"}
@@ -211,11 +214,11 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
       ) : (
         <div
           aria-hidden
-          className="relative aspect-[16/5] w-full bg-gradient-to-br from-accent/25 via-feature-lilac/15 to-secondary"
+          className="relative aspect-[16/6] w-full bg-[linear-gradient(135deg,hsl(var(--ind)_75%_92%),hsl(var(--ind)_60%_82%))]"
         >
           <span
             className={`absolute left-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${
-              isFixed ? "bg-emerald-500 text-white" : "bg-accent text-accent-foreground"
+              isFixed ? "bg-emerald-500 text-white" : "bg-[hsl(var(--ind)_70%_35%)] text-white"
             }`}
           >
             {isFixed ? "Fast pris" : "Prisoverslag"}
@@ -227,7 +230,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
         <div className="border-b border-border/70 pb-2.5">
           <h3 className="text-[15px] font-bold leading-tight text-foreground sm:text-base">{service.name}</h3>
           {(service as any).subcategory && (
-            <span className="mt-1.5 inline-flex rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-semibold text-accent">{(service as any).subcategory}</span>
+            <span className="mt-1.5 inline-flex rounded-full bg-[hsl(var(--ind)_75%_94%)] px-2 py-0.5 text-[10px] font-semibold text-[hsl(var(--ind)_65%_30%)]">{(service as any).subcategory}</span>
           )}
           {service.description && (
             <p className="mt-1.5 text-xs leading-snug text-muted-foreground line-clamp-2">{service.description}</p>
@@ -238,6 +241,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
               : "Justér felterne nedenfor — prisen beregnes automatisk."}
           </p>
         </div>
+
 
 
 
