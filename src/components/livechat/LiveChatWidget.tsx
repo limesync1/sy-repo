@@ -13,6 +13,7 @@ import { z } from "zod";
 import chatSounds from "./chatSounds";
 import ChatInboxList from "./ChatInboxList";
 import BusinessRecommendationCard from "./BusinessRecommendationCard";
+import ChatMessageText from "./ChatMessageText";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   DropdownMenu,
@@ -746,7 +747,7 @@ const LiveChatWidget = () => {
           className={
             isMobile
               ? "fixed inset-0 z-50 animate-in fade-in slide-in-from-bottom-4 duration-200"
-              : `fixed z-50 w-[calc(100vw-3rem)] max-w-[380px] md:w-[380px] animate-in fade-in slide-in-from-bottom-4 duration-200 ${panelBottomClass} ${panelPositionClass}`
+              : `fixed z-50 w-[calc(100vw-3rem)] max-w-[400px] md:w-[400px] animate-in fade-in slide-in-from-bottom-4 duration-200 ${panelBottomClass} ${panelPositionClass}`
           }
         >
           <div
@@ -1003,7 +1004,7 @@ const LiveChatWidget = () => {
                             )}
                           </div>
                         )}
-                        <div className={`flex max-w-[78%] flex-col ${mine ? "items-end" : "items-start"}`}>
+                        <div className={`flex min-w-0 max-w-[calc(100%-3rem)] flex-col sm:max-w-[85%] ${mine ? "items-end" : "items-start"}`}>
                           {!mine && showAvatar && (
                             <div className="mb-1 flex items-center gap-1.5 px-1 text-[10px] font-semibold text-muted-foreground">
                               <span className="text-foreground/80">{m.sender_name || "Serviceydere"}</span>
@@ -1015,7 +1016,7 @@ const LiveChatWidget = () => {
                             </div>
                           )}
                           <div
-                            className={`overflow-hidden rounded-2xl text-[13.5px] leading-snug shadow-[0_2px_6px_-2px_hsl(var(--foreground)/0.08)] ${
+                            className={`min-w-0 max-w-full overflow-hidden rounded-2xl text-[13.5px] shadow-[0_2px_6px_-2px_hsl(var(--foreground)/0.08)] ${
                               mine
                                 ? "rounded-br-md bg-foreground text-background"
                                 : "rounded-bl-md border border-border bg-card text-foreground"
@@ -1027,9 +1028,10 @@ const LiveChatWidget = () => {
                               </a>
                             )}
                             {m.content && (
-                              <div className="whitespace-pre-wrap break-words px-3.5 py-2">{m.content}</div>
+                              <ChatMessageText content={m.content} className="px-3.5 py-2.5" />
                             )}
                           </div>
+
                           <div className={`mt-1 flex items-center gap-1 px-1 text-[10px] text-muted-foreground ${mine ? "flex-row-reverse" : ""}`}>
                             <span>{formatTime(m.created_at)}</span>
                             {isLastMine && <CheckCheck className="h-3 w-3" />}
