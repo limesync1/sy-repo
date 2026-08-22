@@ -42,7 +42,7 @@ interface Props {
   onNavigate?: (tab: string) => void;
 }
 
-const fmtKr = (n: number) => `${formatPrice(Math.round(n))}`;
+const fmtKr = (n: number) => formatPrice(n);
 // Dansk: vis altid fuldt tal med tusindtals-punktum (3.700) — ingen "k"-forkortelse,
 // da det ikke giver mening på dansk. For meget store beløb (>= 1 mio) bruger vi
 // "mio" som dansk forkortelse for million.

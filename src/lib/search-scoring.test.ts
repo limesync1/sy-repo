@@ -13,10 +13,9 @@ describe("normalizeDanish", () => {
     expect(normalizeDanish("  Rengøring  ")).toBe("rengøring");
   });
 
-  it("preserves æ/ø/å", () => {
-    expect(normalizeDanish("Flytterengøring")).toContain("ø");
-    expect(normalizeDanish("Håndværker")).toContain("å");
-    expect(normalizeDanish("Håndværker")).toContain("æ");
+  it("preserves danish characters distinctly (not folded to a/o/a)", () => {
+    expect(normalizeDanish("Flytterengøring")).toBe("flytterengøring");
+    expect(normalizeDanish("Håndværker")).toBe("håndværker");
   });
 
   it("strips accents on other characters", () => {
@@ -119,8 +118,8 @@ describe("scoreMatch", () => {
     expect(unpopularGoodMatch.score).toBeGreaterThanOrEqual(popularWeakMatch.score - 50);
   });
 
-  it("normalises danish text before comparing", () => {
-    expect(scoreMatch("cafe", "Café Nord")?.kind).toBe("word-start");
+  it("normalises danish text before comparing (case + accents)", () => {
+    expect(scoreMatch("NORD", "Café Nord")?.kind).toBe("word-start");
   });
 });
 
@@ -132,7 +131,8 @@ describe("rankByQuery", () => {
       { name: "Rens & Ren" },
     ];
     const ranked = rankByQuery("ren", items, (i) => i.name);
-    expect(ranked.map((r) => r.item.name)).toEqual(["Rens & Ren", "Rengøring ApS"]);
+    expect(ranked.map((r) => r.item.name)).toEqual(["Rengøring ApS", "Rens & Ren"]);
+    expect(ranked.map((r) => r.item.name)).not.toContain("VVS Frank");
   });
 
   it("uses popularity as a tiebreaker among equal match kinds", () => {
