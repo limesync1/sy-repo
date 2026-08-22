@@ -290,36 +290,46 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
           <ul className="max-h-[min(60vh,460px)] overflow-y-auto overscroll-contain py-1.5">
             {suggestions.map((s, i) => {
               const active = activeIdx === i;
-              // Indsæt en sektionsoverskrift før første kategori-forslag
-              // når der både er historik og kategorier vist samtidigt.
+              // Gruppér forslagene: vis en sektionsoverskrift hver gang
+              // forslagstypen skifter (Kategorier → Byer → Virksomheder).
               const prev = suggestions[i - 1];
-              const showCatHeader =
-                !q.trim() && s.type === "category" && (!prev || prev.type === "history");
+              const showGroupHeader =
+                s.type !== "query" && (!prev || prev.type !== s.type) && !(s.type === "history" && !q.trim());
               return (
                 <li
                   key={`${s.type}-${s.label}-${i}`}
                   className="animate-fade-in-soft"
                   style={{ animationDelay: `${Math.min(i * 35, 280)}ms` }}
                 >
-                  {showCatHeader && history.length > 0 && (
-                    <div className="mt-1 border-y border-border bg-secondary/40 px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      Populære kategorier
-                    </div>
-                  )}
-                  {showCatHeader && history.length === 0 && (
-                    <div className="border-b border-border bg-secondary/40 px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      Populære kategorier
+                  {showGroupHeader && (
+                    <div className="border-y border-border bg-secondary/40 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground first:border-t-0">
+                      {GROUP_LABEL[s.type]}
                     </div>
                   )}
                   <button
                     type="button"
+                    role="option"
+                    aria-selected={active}
                     onMouseEnter={() => setActiveIdx(i)}
                     onClick={() => pickSuggestion(s)}
                     className={`group flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors duration-150 ${
                       active ? "bg-secondary" : "hover:bg-secondary/60"
                     }`}
                   >
+                    {s.type === "query" && (
+                      <>
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                          <Search className="h-4 w-4" />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <div className="truncate font-semibold text-foreground">Søg efter “{s.label}”</div>
+                          <div className="text-xs text-muted-foreground">Se alle resultater</div>
+                        </span>
+                        <CornerDownLeft className="h-3.5 w-3.5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                      </>
+                    )}
                     {s.type === "history" && (
+
                       <>
                         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-muted-foreground transition-transform duration-200 group-hover:scale-105">
                           <Clock className="h-4 w-4" />
