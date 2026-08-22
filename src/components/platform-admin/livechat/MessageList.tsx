@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import { CheckCheck } from "lucide-react";
+import { CheckCheck, Sparkles } from "lucide-react";
 import type { Message } from "./shared";
 import { formatTime, initials } from "./shared";
 

@@ -11,6 +11,7 @@ import ChatHeader from "./livechat/ChatHeader";
 import MessageList from "./livechat/MessageList";
 import ChatComposer from "./livechat/ChatComposer";
 import DetailsPanel from "./livechat/DetailsPanel";
+import TranscriptDialog from "./livechat/TranscriptDialog";
 import {
   type Conversation, type Message, type Filter, type SortMode,
   CANNED_KEY, DEFAULT_CATEGORIES,
@@ -45,6 +46,7 @@ const PlatformLiveChatTab = () => {
   const [newCannedCategory, setNewCannedCategory] = useState(DEFAULT_CATEGORIES[0]);
   const [newCannedBody, setNewCannedBody] = useState("");
   const [showInfo, setShowInfo] = useState(true);
+  const [showTranscript, setShowTranscript] = useState(false);
   const [pendingImage, setPendingImage] = useState<File | null>(null);
   const [pendingImagePreview, setPendingImagePreview] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -484,6 +486,7 @@ const PlatformLiveChatTab = () => {
               showInfo={showInfo}
               onToggleInfo={() => setShowInfo((v) => !v)}
               onExport={handleExport}
+              onShowTranscript={() => setShowTranscript(true)}
               onSnooze={(h) => handleSnooze(active.id, h)}
               onUnsnooze={() => handleUnsnooze(active.id)}
               onClose={() => closeConversation(active.id)}
