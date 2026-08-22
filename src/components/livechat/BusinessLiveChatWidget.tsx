@@ -777,9 +777,9 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
                             )}
                           </div>
                         )}
-                        <div className={`flex max-w-[78%] flex-col ${mine ? "items-end" : "items-start"}`}>
+                        <div className={`flex min-w-0 max-w-[calc(100%-3rem)] flex-col sm:max-w-[85%] ${mine ? "items-end" : "items-start"}`}>
                           <div
-                            className={`overflow-hidden rounded-2xl text-[13.5px] leading-snug shadow-sm ${
+                            className={`min-w-0 max-w-full overflow-hidden rounded-2xl text-[13.5px] shadow-sm ${
                               mine
                                 ? "rounded-br-sm bg-foreground text-background"
                                 : "rounded-bl-sm border border-border bg-card text-foreground"
@@ -791,9 +791,10 @@ const BusinessLiveChatWidget = ({ businessId, businessName, brandName, logoUrl, 
                               </a>
                             )}
                             {m.content && (
-                              <div className="whitespace-pre-wrap break-words px-3.5 py-2">{m.content}</div>
+                              <ChatMessageText content={m.content} className="px-3.5 py-2.5" />
                             )}
                           </div>
+
                           <div className={`mt-1 flex items-center gap-1 px-1 text-[10px] text-muted-foreground ${mine ? "flex-row-reverse" : ""}`}>
                             <span>{formatTime(m.created_at)}</span>
                             {isLastMine && <CheckCheck className="h-3 w-3" />}
