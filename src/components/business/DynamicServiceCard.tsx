@@ -7,6 +7,7 @@ import { ShoppingCart, Minus, Plus, Check } from "lucide-react";
 import { INTERVAL_LABELS } from "@/types/service";
 import type { Service, CalculatorStep } from "@/hooks/useDatabase";
 import { buildPricingSnapshot, roundPrice } from "@/lib/service-pricing";
+import { hueForString } from "@/lib/industry-color";
 
 interface Props {
   service: Service & { calculator_steps?: CalculatorStep[] };
@@ -318,7 +319,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
         )}
         </div>
 
-        <div className="mt-auto rounded-xl border border-accent/25 bg-[hsl(var(--accent)/0.07)] p-2.5">
+        <div className="mt-auto rounded-xl border border-[hsl(var(--ind)_70%_45%_/_0.3)] bg-[hsl(var(--ind)_75%_96%)] p-2.5">
           <div className="mb-2 flex items-center justify-between gap-2">
             <div className="min-w-0">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -339,10 +340,10 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
           <Button
             onClick={handleAdd}
             disabled={justAdded}
-            className={`h-8 w-full gap-1.5 rounded-md text-xs font-semibold transition-all sm:h-9 sm:text-sm ${
+            className={`h-10 w-full gap-1.5 rounded-lg text-xs font-semibold transition-all sm:h-11 sm:text-sm ${
               justAdded
-                ? "bg-accent/80 text-accent-foreground"
-                : "bg-accent text-accent-foreground shadow-lg shadow-accent/25 hover:bg-accent/90 active:scale-[0.98]"
+                ? "bg-emerald-600 text-white"
+                : "bg-[hsl(var(--ind)_70%_38%)] text-white shadow-lg shadow-[hsl(var(--ind)_70%_38%_/_0.28)] hover:bg-[hsl(var(--ind)_70%_32%)] active:scale-[0.98]"
             }`}
           >
             {justAdded ? (
@@ -353,7 +354,7 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
             ) : (
               <>
                 <ShoppingCart className="h-3.5 w-3.5" />
-                Tilføj
+                Tilføj til bestilling · {roundPrice(total)} kr
               </>
             )}
           </Button>
