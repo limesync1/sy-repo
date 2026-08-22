@@ -13,6 +13,7 @@ import { z } from "zod";
 import chatSounds from "./chatSounds";
 import ChatInboxList from "./ChatInboxList";
 import BusinessRecommendationCard from "./BusinessRecommendationCard";
+import ChatMessageText from "./ChatMessageText";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   DropdownMenu,
@@ -746,7 +747,7 @@ const LiveChatWidget = () => {
           className={
             isMobile
               ? "fixed inset-0 z-50 animate-in fade-in slide-in-from-bottom-4 duration-200"
-              : `fixed z-50 w-[calc(100vw-3rem)] max-w-[380px] md:w-[380px] animate-in fade-in slide-in-from-bottom-4 duration-200 ${panelBottomClass} ${panelPositionClass}`
+              : `fixed z-50 w-[calc(100vw-3rem)] max-w-[400px] md:w-[400px] animate-in fade-in slide-in-from-bottom-4 duration-200 ${panelBottomClass} ${panelPositionClass}`
           }
         >
           <div

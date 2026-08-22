@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 import chatSounds from "./chatSounds";
 import ChatInboxList from "./ChatInboxList";
+import ChatMessageText from "./ChatMessageText";
 import {
   DropdownMenu,
   DropdownMenuContent,
