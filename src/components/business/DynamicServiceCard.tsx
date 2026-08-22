@@ -8,6 +8,7 @@ import { INTERVAL_LABELS } from "@/types/service";
 import type { Service, CalculatorStep } from "@/hooks/useDatabase";
 import { buildPricingSnapshot, roundPrice } from "@/lib/service-pricing";
 import { hueForString } from "@/lib/industry-color";
+import { imageSrc, imageSrcSet } from "@/lib/image-url";
 
 interface Props {
   service: Service & { calculator_steps?: CalculatorStep[] };
@@ -201,7 +202,8 @@ const DynamicServiceCard = ({ service, initialStepValues, initialHours, business
       {service.image_url ? (
         <div className="relative aspect-[16/9] w-full overflow-hidden bg-secondary">
           <img
-            src={service.image_url}
+            src={imageSrc(service.image_url, 640, 75)}
+            srcSet={imageSrcSet(service.image_url, [320, 480, 640, 960], 75)}
             alt={`${service.name}${businessName ? ` hos ${businessName}` : ""}`}
             className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-[1.04]"
             width={640}

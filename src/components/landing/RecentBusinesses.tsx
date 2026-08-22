@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Star, ShieldCheck, MapPin, Building2, ArrowRight } from "lucide-react";
 import HorizontalScroller from "./HorizontalScroller";
 import FavoriteButton from "@/components/business/FavoriteButton";
+import { imageSrc, imageSrcSet } from "@/lib/image-url";
 
 type Biz = {
   id: string;
@@ -37,9 +38,10 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
         <div className="relative aspect-[16/10] w-full overflow-hidden rounded-t-[28px] bg-secondary">
           {biz.cover_image_url ? (
             <>
-              <img src={biz.cover_image_url} alt="" aria-hidden className="absolute inset-0 h-full w-full scale-110 object-cover blur-xl opacity-70" loading="lazy" decoding="async" />
+              <img src={imageSrc(biz.cover_image_url, 48, 40)} alt="" aria-hidden className="absolute inset-0 h-full w-full scale-110 object-cover blur-xl opacity-70" loading="lazy" decoding="async" />
               <img
-                src={biz.cover_image_url}
+                src={imageSrc(biz.cover_image_url, 640, 75)}
+                srcSet={imageSrcSet(biz.cover_image_url, [320, 480, 640, 960], 75)}
                 alt={`${biz.name}${biz.city ? ` – ${biz.city}` : ""}${primaryCat ? `, ${primaryCat}` : ""}`}
                 className="relative h-full w-full object-contain"
                 width={400}
@@ -69,7 +71,7 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
           {/* Logo overlay — løftes op over coveret så virksomheden står tydeligt frem */}
           <div className="absolute -top-7 left-4 flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border-2 border-card bg-card shadow-md">
             {biz.logo_url ? (
-              <img src={biz.logo_url} alt={`Logo for ${biz.name}`} className="h-full w-full object-contain p-1" loading="lazy" decoding="async" />
+              <img src={imageSrc(biz.logo_url, 128, 80)} alt={`Logo for ${biz.name}`} className="h-full w-full object-contain p-1" loading="lazy" decoding="async" />
             ) : (
               <span className="text-base font-bold text-accent">{biz.name.charAt(0)}</span>
             )}
