@@ -104,7 +104,8 @@ const HeroSection = () => {
               </Button>
             </SmartLink>
           </div>
-        </div>
+
+
 
           {/* Diskret indikator: viser at der er mere indhold under heroen på mobil. */}
           <div aria-hidden className="pointer-events-none mt-6 flex justify-center sm:hidden">
