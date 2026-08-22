@@ -34,8 +34,9 @@ const PageHero = ({
 }: PageHeroProps) => {
   const padding =
     size === "compact"
-      ? "pb-6 pt-6 sm:pb-8 sm:pt-8 lg:pb-10 lg:pt-10"
-      : "pb-16 pt-12 sm:pb-20 sm:pt-16 lg:pb-28 lg:pt-24";
+      ? "pb-5 pt-5 sm:pb-8 sm:pt-8 lg:pb-10 lg:pt-10"
+      : "pb-9 pt-8 sm:pb-14 sm:pt-12 lg:pb-28 lg:pt-24";
+
 
   return (
     <section
