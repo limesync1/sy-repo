@@ -90,17 +90,18 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
             )}
           </div>
 
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-3 pt-1">
             {primaryCat ? (
               <span className="inline-flex items-center rounded-full bg-accent-soft px-2.5 py-1 text-[11px] font-semibold text-accent">
                 {primaryCat}
               </span>
             ) : <span />}
-            <span className="inline-flex items-center gap-1 text-sm font-semibold text-foreground">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-3.5 py-1.5 text-[13px] font-semibold text-background transition-transform group-hover:translate-x-0.5">
               Se virksomhed
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              <ArrowRight className="h-3.5 w-3.5" />
             </span>
           </div>
+
         </div>
       </Link>
     </article>
