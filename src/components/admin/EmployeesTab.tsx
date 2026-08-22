@@ -1677,11 +1677,6 @@ const EmployeeTasksDialog = ({
                           <MapPin className="h-3 w-3" /> {s.address}
                         </p>
                       )}
-                      {s.duration_minutes != null && (
-                        <p className="mt-0.5 text-[11px] text-muted-foreground flex items-center gap-1">
-                          <Clock className="h-3 w-3" /> {s.duration_minutes} min planlagt
-                        </p>
-                      )}
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-[11px] text-muted-foreground flex items-center gap-1 justify-end">

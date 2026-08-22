@@ -1,3 +1,4 @@
+import { formatPrice } from "@/lib/price-format";
 import { useMemo } from "react";
 import { Calendar, DollarSign, TrendingUp } from "lucide-react";
 import {
@@ -20,7 +21,7 @@ type OrderLike = {
 };
 
 const fmtKr = (n: number) =>
-  `${Math.round(n).toLocaleString("da-DK")} kr`;
+  `${formatPrice(Math.round(n))}`;
 
 const useScheduled = (orders: OrderLike[]) =>
   useMemo(() => {

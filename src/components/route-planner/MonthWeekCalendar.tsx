@@ -1,3 +1,4 @@
+import { formatPrice } from "@/lib/price-format";
 // MonthWeekCalendar — klassisk kalender-overblik med måned/uge visning.
 // - Ingen timer/tidsrum: hver dag er ét helt felt
 // - Ugenumre vises i venstre side (ISO-uger)
@@ -132,14 +133,14 @@ const fmtRouteMin = (min: number) => min >= 60 ? `${Math.floor(min / 60)}t ${min
 // Vis altid med dansk tusind-separator + "kr" — så et tal på et rute-kort
 // aldrig kan misforstås som "antal" i stedet for "beløb".
 const fmtRouteKr = (n: number) =>
-  `${Math.round(n).toLocaleString("da-DK")} kr`;
+  `${formatPrice(Math.round(n))}`;
 // Kompakt valuta til smalle månedsceller: viser stadig "kr" så betydningen
 // er entydig. "1,5k kr" / "760 kr" — ingen tvivl om at det er penge.
 const fmtRouteKrCompact = (n: number) => {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(".", ",")} mio kr`;
   if (n >= 10_000) return `${Math.round(n / 1000)}t kr`;
   if (n >= 1_000) return `${(n / 1000).toFixed(1).replace(".", ",")}t kr`;
-  return `${Math.round(n)} kr`;
+  return `${formatPrice(Math.round(n))}`;
 };
 const initials = (name: string) => name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
 const readableTokenOn = (color?: string | null) => {

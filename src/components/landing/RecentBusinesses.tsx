@@ -43,7 +43,7 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
                 src={imageSrc(biz.cover_image_url, 640, 75)}
                 srcSet={imageSrcSet(biz.cover_image_url, [320, 480, 640, 960], 75)}
                 alt={`${biz.name}${biz.city ? ` – ${biz.city}` : ""}${primaryCat ? `, ${primaryCat}` : ""}`}
-                className="relative h-full w-full object-contain"
+                className="relative h-full w-full object-cover"
                 width={400}
                 height={250}
                 sizes="(max-width: 640px) 80vw, 320px"

@@ -388,11 +388,6 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
                           <Clock className="h-2.5 w-2.5" /> {arrivalTime}
                         </span>
                       )}
-                      {s.duration_minutes ? (
-                        <span className="shrink-0 rounded-full bg-secondary px-1.5 py-0 text-[10px] font-medium text-muted-foreground tabular-nums">
-                          {s.duration_minutes} min
-                        </span>
-                      ) : null}
                     </div>
                     <p className={`text-xs truncate ${s.service_summary ? "text-muted-foreground" : "text-muted-foreground/70 italic"}`}>
                       {s.service_summary || "Ingen ydelser angivet"}

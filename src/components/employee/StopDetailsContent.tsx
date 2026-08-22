@@ -279,11 +279,6 @@ export const StopDetailsContent = ({
               <Clock className="h-2.5 w-2.5" />{arrivalLabel}
             </Badge>
           )}
-          {stop.duration_minutes > 0 && (
-            <Badge variant="outline" className="gap-1 text-[10px]">
-              <Clock className="h-2.5 w-2.5" />~{stop.duration_minutes} min
-            </Badge>
-          )}
           <Badge variant="outline" className={`gap-1 text-[10px] ${paymentClasses}`}>
             <Wallet className="h-2.5 w-2.5" />{paymentLabel}
           </Badge>

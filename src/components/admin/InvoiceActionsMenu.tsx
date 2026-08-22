@@ -1,3 +1,4 @@
+import { formatPrice } from "@/lib/price-format";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -357,7 +358,7 @@ function ConfirmDialog({
           <AlertDialogDescription>
             {confirm === "credit_invoice" && "Der oprettes en kreditnota i dit regnskabsprogram for hele fakturaens beløb. Dette kan ikke fortrydes."}
             {confirm === "void_draft" && "Kladden slettes i dit regnskabsprogram, og ordren markeres som annulleret."}
-            {confirm === "mark_paid" && `Fakturaen registreres som betalt med ${totalAmount} kr. i dit regnskabsprogram.`}
+            {confirm === "mark_paid" && `Fakturaen registreres som betalt med ${formatPrice(totalAmount)} i dit regnskabsprogram.`}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

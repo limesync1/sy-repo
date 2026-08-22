@@ -1,3 +1,4 @@
+import { formatPrice } from "@/lib/price-format";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -47,7 +48,7 @@ export type PlanningPanelEmployee = {
 };
 
 const fmtKr = (n: number) =>
-  `${Math.round(n).toLocaleString("da-DK")} kr`;
+  formatPrice(n);
 
 interface Props {
   businessId?: string;

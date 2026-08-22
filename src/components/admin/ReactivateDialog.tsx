@@ -92,7 +92,7 @@ const ReactivateDialog = ({ open, businessId, businessName }: Props) => {
         setConfirming(false);
         return;
       }
-      toast.success("Virksomheden er slettet, og der opkræves ikke yderligere");
+      toast.success("Virksomheden er nu slettet og abonnementet annulleret");
       setTimeout(async () => {
         await supabase.auth.signOut();
         window.location.href = "/";
@@ -192,7 +192,7 @@ const ReactivateDialog = ({ open, businessId, businessName }: Props) => {
                 <DialogTitle className="text-center">Slet {businessName}</DialogTitle>
                 <DialogDescription className="text-center">
                   {mode === "delete-intro"
-                    ? "Virksomheden, dine services og data fjernes fra Serviceydere, og abonnementet annulleres med det samme. Platform-support kan rulle det tilbage i op til 30 dage."
+                    ? "Dette annullerer jeres abonnement og fjerner virksomheden fra Serviceydere. Vi sender en bekræftelseskode til din e-mail før sletningen gennemføres. Handlingen kan rulles tilbage af platform-support i op til 30 dage."
                     : `Indtast den 5-cifrede kode vi har sendt til ${ownerEmail}.`}
                 </DialogDescription>
               </DialogHeader>

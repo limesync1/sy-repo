@@ -124,10 +124,6 @@ export const BulkAddToRouteDialog = ({
                           <MapPin className="h-2.5 w-2.5" />{j.address}
                         </p>
                       )}
-                      <p className="text-[11px] text-muted-foreground tabular-nums flex items-center gap-0.5 mt-0.5">
-                        <Clock className="h-2.5 w-2.5" />
-                        {formatDurationMin(Number(j.estimated_duration_minutes) || 30, { short: true })}
-                      </p>
                     </div>
                     <Button
                       type="button"

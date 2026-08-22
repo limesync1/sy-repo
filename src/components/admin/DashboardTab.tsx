@@ -1,3 +1,4 @@
+import { formatPrice } from "@/lib/price-format";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,7 +42,7 @@ interface Props {
   onNavigate?: (tab: string) => void;
 }
 
-const fmtKr = (n: number) => `${Math.round(n).toLocaleString("da-DK")} kr`;
+const fmtKr = (n: number) => formatPrice(n);
 // Dansk: vis altid fuldt tal med tusindtals-punktum (3.700) — ingen "k"-forkortelse,
 // da det ikke giver mening på dansk. For meget store beløb (>= 1 mio) bruger vi
 // "mio" som dansk forkortelse for million.
@@ -433,8 +434,8 @@ const DashboardTab = ({
 
         {/* Snapshot-pille: i dag */}
         <div className="mt-2.5 grid min-w-0 grid-cols-2 gap-1.5 sm:mt-4 sm:grid-cols-4 sm:gap-2 lg:mt-6">
-          <SnapshotPill label="I dag" value={String(stats.todayCount)} sub={`${fmtKrShort(stats.todayRevenue)} kr`} onClick={() => setOpenStat("today")} />
-          <SnapshotPill label="Denne uge" value={String(stats.orders7)} sub={`${fmtKrShort(stats.revenue7)} kr`} onClick={() => setOpenStat("orders")} />
+          <SnapshotPill label="I dag" value={String(stats.todayCount)} sub={`${fmtKrShort((stats.todayRevenue))}`} onClick={() => setOpenStat("today")} />
+          <SnapshotPill label="Denne uge" value={String(stats.orders7)} sub={`${fmtKrShort((stats.revenue7))}`} onClick={() => setOpenStat("orders")} />
           <SnapshotPill label="Afventer" value={String(pendingOrders)} sub={pendingOrders > 0 ? "Afventer behandling" : "Ingen i kø"} accent={pendingOrders > 0} onClick={() => setOpenStat("pending")} />
           <SnapshotPill label="Bedømmelse" value={reviewsCount > 0 ? `${averageRating.toFixed(1)}★` : "–"} sub={`${reviewsCount} ${reviewsCount === 1 ? "anmeldelse" : "anmeldelser"}`} onClick={reviewsCount > 0 ? () => onNavigate?.("reviews") : undefined} />
         </div>
@@ -859,7 +860,7 @@ const FinanceOverviewCard = ({
           <p className="mt-2 text-xl font-semibold tabular-nums text-foreground sm:text-2xl">{fmtKr(p.billed)}</p>
           <p className="mt-1 text-xs text-muted-foreground">
             {p.totalCount} {p.totalCount === 1 ? "aftale" : "aftaler"}
-            {p.cancelled > 0 && <> · {fmtKrShort(p.cancelled)} kr annulleret</>}
+            {p.cancelled > 0 && <> · {fmtKrShort((p.cancelled))} annulleret</>}
           </p>
         </button>
 
@@ -905,7 +906,7 @@ const FinanceOverviewCard = ({
           <p className="mt-1 text-xs text-muted-foreground">
             {p.outstandingCount} {p.outstandingCount === 1 ? "aftale mangler betaling" : "aftaler mangler betaling"}
             {p.overdue > 0 && (
-              <> · <span className="font-medium text-amber-700">{fmtKrShort(p.overdue)} kr forfaldent</span></>
+              <> · <span className="font-medium text-amber-700">{fmtKrShort((p.overdue))} forfaldent</span></>
             )}
           </p>
         </button>
@@ -927,7 +928,7 @@ const FinanceOverviewCard = ({
             <span className="text-xs font-semibold tabular-nums text-muted-foreground">{completedPct}%</span>
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
-            {p.completedCount} udført · {p.notCompletedCount} mangler ({fmtKrShort(p.notCompletedSum)} kr)
+            {p.completedCount} udført · {p.notCompletedCount} mangler ({fmtKrShort((p.notCompletedSum))})
           </p>
         </button>
       </div>

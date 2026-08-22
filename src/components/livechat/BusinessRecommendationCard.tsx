@@ -1,3 +1,4 @@
+import { formatPrice as formatDkk } from "@/lib/price-format";
 import { Link } from "react-router-dom";
 import { BadgeCheck, MapPin, ArrowRight, Building2 } from "lucide-react";
 
@@ -28,11 +29,11 @@ interface RecommendationMetadata {
   }>;
 }
 
-const formatPrice = (s: NonNullable<RecommendationMetadata["services"]>[number]) => {
+const formatServicePrice = (s: NonNullable<RecommendationMetadata["services"]>[number]) => {
   if (s.pricing_type === "prisberegner") return "Prisberegner";
-  if (s.pricing_type === "timepris" && s.base_price) return `${s.base_price} kr/t`;
-  if (s.pricing_type === "fast_pris" && s.base_price) return `${s.base_price} kr`;
-  if (s.base_price) return `${s.base_price} kr${s.unit ? ` / ${s.unit}` : ""}`;
+  if (s.pricing_type === "timepris" && s.base_price) return `${formatDkk(s.base_price)}/t`;
+  if (s.pricing_type === "fast_pris" && s.base_price) return `${formatDkk(s.base_price)}`;
+  if (s.base_price) return `${formatDkk(s.base_price)}${s.unit ? ` / ${s.unit}` : ""}`;
   return "Pris efter aftale";
 };
 
@@ -111,7 +112,7 @@ const BusinessRecommendationCard = ({
                     )}
                   </div>
                   <span className="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-[10.5px] font-semibold text-foreground">
-                    {formatPrice(s)}
+                    {formatServicePrice(s)}
                   </span>
                 </li>
               ))}

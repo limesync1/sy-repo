@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import {
   MessageCircle, Send, Loader2, ChevronDown, CheckCheck, Paperclip, X as XIcon,
   ImageIcon, Volume2, VolumeX, MoreVertical, MessagesSquare, ArrowLeft, Trash2,
+  Bot, UserRound,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -205,6 +206,7 @@ const LiveChatWidget = () => {
   const [pendingImagePreview, setPendingImagePreview] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [muted, setMuted] = useState<boolean>(chatSounds.isMuted());
+  const [aiThinking, setAiThinking] = useState(false);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -464,6 +466,7 @@ const LiveChatWidget = () => {
       setFirstMessage("");
       setSubject("");
       chatSounds.outgoing();
+      void requestAiReply(token);
 
       supabase.functions
         .invoke("send-transactional-email", {
@@ -489,6 +492,29 @@ const LiveChatWidget = () => {
     }
   };
 
+  // Beder AI-assistenten om at svare på seneste besked. Funktionen afgør selv
+  // om den skal svare (den springer over hvis samtalen er eskaleret, lukket,
+  // eller en rigtig medarbejder allerede har taget over) — så vi kan kalde
+  // den trygt efter hver besked fra den besøgende.
+  const requestAiReply = useCallback(async (token: string) => {
+    setAiThinking(true);
+    try {
+      const { data } = await supabase.functions.invoke("livechat-ai-reply", { body: { token } });
+      const appendIfNew = (row: any) => {
+        if (!row) return;
+        setMessages((prev) => (prev.some((m) => m.id === row.id) ? prev : [...prev, row]));
+      };
+      appendIfNew(data?.message);
+      appendIfNew(data?.escalationMessage);
+      if (data?.message?.sender_type === "admin") chatSounds.incoming();
+    } catch {
+      // Stille fejl — beskeden dukker op via polling hvis den alligevel blev gemt,
+      // og vi vil ikke forstyrre brugeren med en fejltoast for en baggrundsproces.
+    } finally {
+      setAiThinking(false);
+    }
+  }, []);
+
   const sendMessage = useCallback(async (override?: string) => {
     if (!conversation || sending) return;
     const text = (override ?? draft).trim();
@@ -511,10 +537,29 @@ const LiveChatWidget = () => {
     if (!mErr) {
       if (override === undefined) { setDraft(""); clearPendingImage(); }
       chatSounds.outgoing();
+      void requestAiReply(conversation.session_token);
     } else {
       toast.error(mErr.message || "Beskeden kunne ikke sendes. Prøv igen.");
     }
-  }, [conversation, sending, draft, pendingImage]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [conversation, sending, draft, pendingImage, requestAiReply]); // eslint-disable-line react-hooks/exhaustive-deps
+
+
+  // "Tal med et menneske" — brugeren kan altid selv bede om at blive koblet
+  // til en rigtig medarbejder, uanset hvad AI'en ellers svarer.
+  const requestHumanHandoff = useCallback(async () => {
+    if (!conversation) return;
+    try {
+      const { data } = await supabase.functions.invoke("livechat-ai-reply", {
+        body: { token: conversation.session_token, action: "escalate" },
+      });
+      if (data?.message) {
+        setMessages((prev) => (prev.some((m) => m.id === data.message.id) ? prev : [...prev, data.message]));
+        chatSounds.system();
+      }
+    } catch {
+      toast.error("Kunne ikke koble en medarbejder på. Prøv igen.");
+    }
+  }, [conversation]);
 
   const endChatSession = async () => {
     if (!conversation) return;
@@ -666,6 +711,7 @@ const LiveChatWidget = () => {
 
   const unreadAdmin = messages.some((m) => m.sender_type === "admin") && !open;
   const closed = conversation?.status === "closed";
+  const escalated = messages.some((m) => m.is_system && (m as any).metadata?.kind === "escalation");
 
   if (hidden) return null;
 
@@ -742,7 +788,7 @@ const LiveChatWidget = () => {
                     <p className="truncate text-[14px] font-semibold leading-tight">Kundeservice</p>
                     <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-white/70">
                       <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${closed ? "bg-muted-foreground" : "animate-pulse bg-success"}`} />
-                      <span className="truncate">{closed ? "Samtalen er afsluttet" : "Svar typisk inden 5 min."}</span>
+                      <span className="truncate">{closed ? "Samtalen er afsluttet" : escalated ? "En medarbejder er koblet på" : "AI-assistent svarer med det samme"}</span>
                     </p>
                   </div>
                 </div>
@@ -774,6 +820,15 @@ const LiveChatWidget = () => {
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" sideOffset={8} className="z-[80] w-60 rounded-xl border border-border bg-card p-1 text-foreground shadow-xl">
+                        {!closed && !escalated && (
+                          <DropdownMenuItem
+                            onSelect={requestHumanHandoff}
+                            className="cursor-pointer gap-2 rounded-md text-[13px] text-foreground focus:bg-secondary focus:text-foreground"
+                          >
+                            <UserRound className="h-3.5 w-3.5 text-muted-foreground" />
+                            Tal med et menneske
+                          </DropdownMenuItem>
+                        )}
                         {!closed && (
                           <DropdownMenuItem
                             onSelect={endChatSession}
@@ -952,6 +1007,11 @@ const LiveChatWidget = () => {
                           {!mine && showAvatar && (
                             <div className="mb-1 flex items-center gap-1.5 px-1 text-[10px] font-semibold text-muted-foreground">
                               <span className="text-foreground/80">{m.sender_name || "Serviceydere"}</span>
+                              {m.metadata?.kind === "ai" && (
+                                <span className="inline-flex items-center gap-0.5 rounded-full bg-accent/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-accent">
+                                  <Bot className="h-2.5 w-2.5" /> AI
+                                </span>
+                              )}
                             </div>
                           )}
                           <div
@@ -978,6 +1038,20 @@ const LiveChatWidget = () => {
                       </div>
                     );
                   })}
+                  {aiThinking && !escalated && (
+                    <div className="flex items-end gap-2 animate-in fade-in duration-200">
+                      <div className="w-9 flex-shrink-0">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-border bg-card">
+                          <img src="/serviceydere-ikon.webp" alt="" aria-hidden="true" className="h-6 w-6 object-contain" />
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 rounded-2xl rounded-bl-md border border-border bg-card px-3.5 py-2.5 shadow-[0_2px_6px_-2px_hsl(var(--foreground)/0.08)]">
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.3s]" />
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.15s]" />
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {closed ? (
@@ -1034,7 +1108,17 @@ const LiveChatWidget = () => {
                         </div>
                       </div>
                     )}
-                    <div className="border-t border-border bg-card/95 px-3 py-3 backdrop-blur-sm">
+                    <div className="border-t border-border bg-card/95 px-3 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-sm">
+                      {!escalated && (
+                        <button
+                          type="button"
+                          onClick={requestHumanHandoff}
+                          className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary/50 px-2.5 py-1 text-[10.5px] font-medium text-muted-foreground transition-colors hover:border-accent/40 hover:bg-card hover:text-accent"
+                        >
+                          <UserRound className="h-3 w-3" />
+                          Tal med et menneske
+                        </button>
+                      )}
                       {pendingImagePreview && (
                         <div className="mb-2 flex items-center gap-2 rounded-lg border border-border bg-secondary/40 p-2">
                           <img src={pendingImagePreview} alt="Forhåndsvisning" className="h-12 w-12 rounded object-cover" />

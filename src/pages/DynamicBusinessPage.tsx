@@ -4,6 +4,7 @@ import { useBusinessBySlug, useServices, useReviews } from "@/hooks/useDatabase"
 import DynamicServiceCard from "@/components/business/DynamicServiceCard";
 import BusinessSEO from "@/components/business/BusinessSEO";
 import { imageSrc, imageSrcSet } from "@/lib/image-url";
+import { formatPrice } from "@/lib/price-format";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -166,7 +167,7 @@ const DynamicBusinessContent = () => {
 
       {/* ── Sticky Nav (light, matches landing) ── */}
       <nav className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-md" aria-label="Virksomhedsnavigation">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-[92rem] items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3 min-w-0">
             <Link to="/" aria-label="Tilbage til Serviceydere" className="transition-opacity hover:opacity-80">
               <img
@@ -192,18 +193,15 @@ const DynamicBusinessContent = () => {
 
       {/* ── Hero ── */}
       <header className="relative border-b border-border bg-background">
-        <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8 md:pt-6">
+        <div className="mx-auto max-w-[92rem] px-4 pt-4 sm:px-6 lg:px-8 md:pt-6">
           {/* Cover — roligt bredformat der aldrig bliver højere end skærmen
               tåler: 3:2 på mobil, 16:7 på tablet, 21:8 på store skærme, med et
               hårdt loft så coveret ikke skubber indholdet ned. */}
           <div className="relative overflow-hidden rounded-[1.75rem] border border-border bg-secondary shadow-[0_26px_60px_-40px_hsl(var(--foreground)/0.22)]">
             {hasCover ? (
-              <a
-                href={business.cover_image_url!}
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Åbn coverbillede i fuld størrelse"
-                className="group relative block aspect-[2/1] max-h-[180px] w-full sm:aspect-[16/6] sm:max-h-[230px] lg:aspect-[24/7] lg:max-h-[290px]"
+              <div
+                aria-label={`${business.name}${business.city ? ` i ${business.city}` : ""} – coverbillede`}
+                className="relative block aspect-[2/1] max-h-[180px] w-full sm:aspect-[16/6] sm:max-h-[230px] lg:aspect-[24/7] lg:max-h-[290px]"
               >
                 {/* Blurret baggrund udfylder rammen, så smalle billeder ikke
                     efterlader tomme kanter */}
@@ -228,10 +226,7 @@ const DynamicBusinessContent = () => {
                   fetchPriority="high"
                 />
                 <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-foreground/35 to-transparent" />
-                <span className="absolute bottom-3 right-3 rounded-full bg-background/90 px-3 py-1 text-[11px] font-semibold text-foreground opacity-0 shadow-sm backdrop-blur transition-opacity group-hover:opacity-100 focus-visible:opacity-100">
-                  Se i fuld størrelse
-                </span>
-              </a>
+              </div>
             ) : (
               <div
                 aria-hidden
@@ -357,7 +352,7 @@ const DynamicBusinessContent = () => {
 
 
       {/* ── Body ── */}
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-[92rem] px-4 sm:px-6 lg:px-8">
           <div className="grid gap-4 py-3 md:gap-5 md:py-4 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px]">
 
           {/* ── Main Column ── */}
@@ -470,7 +465,15 @@ const DynamicBusinessContent = () => {
                               {sub && (
                                 <h4 className="mb-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{sub}</h4>
                               )}
-                                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                                <div
+                                className={`grid gap-3 ${
+                                  items.length === 1
+                                    ? "max-w-md sm:max-w-lg"
+                                    : items.length === 2
+                                    ? "sm:grid-cols-2 max-w-3xl"
+                                    : "sm:grid-cols-2 xl:grid-cols-3"
+                                }`}
+                              >
                                 {items.map((s) => (
                                   <DynamicServiceCard
                                     key={s.id}
@@ -803,7 +806,7 @@ const BusinessPageSkeleton = () => (
   <div className="min-h-screen bg-background">
     {/* Top-nav placeholder */}
     <div className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-md">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-[92rem] items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         <Skeleton className="h-8 w-32 rounded-md" />
         <Skeleton className="h-8 w-24 rounded-full" />
       </div>
@@ -811,7 +814,7 @@ const BusinessPageSkeleton = () => (
 
     {/* Hero */}
     <header className="border-b border-border bg-background">
-      <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8 md:pt-6">
+      <div className="mx-auto max-w-[92rem] px-4 pt-4 sm:px-6 lg:px-8 md:pt-6">
         <Skeleton className="h-48 w-full rounded-[1.75rem] sm:h-56 md:h-72 lg:h-80" />
         <div className="relative flex flex-col gap-4 pb-6 md:flex-row md:items-start md:gap-6 md:pb-8">
           <Skeleton className="-mt-10 h-20 w-20 rounded-2xl border-4 border-background md:-mt-12 md:h-24 md:w-24" />
@@ -829,7 +832,7 @@ const BusinessPageSkeleton = () => (
     </header>
 
     {/* Body */}
-    <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
+    <main className="mx-auto max-w-[92rem] px-4 sm:px-6 lg:px-8 py-4">
       <div className="grid gap-4 md:gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="space-y-4">
           <Skeleton className="h-64 w-full rounded-[2rem]" />

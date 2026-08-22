@@ -47,7 +47,7 @@ const nodeText = (node: ReactNode): string => {
 };
 
 const LegalPage = ({ title, subtitle, canonicalPath, description, updated, sections }: Props) => {
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
   const [query, setQuery] = useState("");
   const [activeId, setActiveId] = useState<string | null>(sections[0]?.id ?? null);
   const [progress, setProgress] = useState(0);
@@ -101,6 +101,28 @@ const LegalPage = ({ title, subtitle, canonicalPath, description, updated, secti
     });
     return () => observer.disconnect();
   }, [visible]);
+
+  // Deep-linking: hvis siden åbnes med et hash (fx delt link til et
+  // bestemt afsnit), skal vi selv scrolle dertil — browserens indbyggede
+  // hash-scroll rammer forkert pga. den sticky header og fordi indholdet
+  // først er i DOM'en efter render. Vi venter til elementet findes.
+  useEffect(() => {
+    const id = hash.replace(/^#/, "");
+    if (!id) return;
+    let attempts = 0;
+    const tryScroll = () => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        setActiveId(id);
+      } else if (attempts < 20) {
+        attempts += 1;
+        window.requestAnimationFrame(tryScroll);
+      }
+    };
+    tryScroll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hash, pathname]);
 
   const copyLink = (id: string) => {
     const url = `${window.location.origin}${canonicalPath}#${id}`;
