@@ -48,7 +48,7 @@ export type PlanningPanelEmployee = {
 };
 
 const fmtKr = (n: number) =>
-  `${formatPrice(Math.round(n))}`;
+  formatPrice(n);
 
 interface Props {
   businessId?: string;
