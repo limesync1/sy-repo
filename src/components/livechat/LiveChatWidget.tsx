@@ -225,6 +225,20 @@ const LiveChatWidget = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastMsgIdRef = useRef<string | null>(null);
   const initialLoadRef = useRef(true);
+  // Beskeder kan nå frem ad tre veje (realtime, polling og AI-svaret), så vi
+  // holder styr på hvilke id'er der allerede har afspillet en lyd.
+  const soundedIdsRef = useRef<Set<string>>(new Set());
+  const playForMessage = useCallback((m: { id: string; sender_type?: string; is_system?: boolean } | null | undefined, opts?: { silent?: boolean }) => {
+    if (!m?.id || soundedIdsRef.current.has(m.id)) return;
+    soundedIdsRef.current.add(m.id);
+    if (soundedIdsRef.current.size > 300) {
+      soundedIdsRef.current = new Set(Array.from(soundedIdsRef.current).slice(-150));
+    }
+    if (opts?.silent) return;
+    if (m.is_system) chatSounds.system();
+    else if (m.sender_type === "admin") chatSounds.incoming();
+  }, []);
+
   const userScrolledUpRef = useRef(false);
 
   const hidden = useMemo(
@@ -302,13 +316,14 @@ const LiveChatWidget = () => {
       if (cancelled || !data) { if (initial) initialLoadRef.current = false; return; }
       const rows = data as unknown as ChatMessage[];
       setMessages((prev) => (prev.length === rows.length && prev[prev.length - 1]?.id === rows[rows.length - 1]?.id ? prev : rows));
+      // Ved første indlæsning markeres alt som "allerede hørt", så gamle
+      // beskeder ikke bimler når widgeten åbnes igen.
+      rows.forEach((r) => playForMessage(r, { silent: initial || r.sender_type === "visitor" }));
       const last = rows[rows.length - 1];
-      if (last && lastMsgIdRef.current !== last.id) {
-        if (!initial && last.sender_type === "admin" && !last.is_system) chatSounds.incoming();
-        lastMsgIdRef.current = last.id;
-      }
+      if (last) lastMsgIdRef.current = last.id;
       if (initial) initialLoadRef.current = false;
     };
+
     void loadMessages(true);
     // Polling-fallback: realtime kan ikke levere beskeder til anonyme besøgende
     // efter RLS-stramningen, så vi henter jævnligt via RPC'en.
@@ -327,15 +342,9 @@ const LiveChatWidget = () => {
             if (prev.some((m) => m.id === next.id)) return prev;
             return [...prev, next];
           });
-          if (lastMsgIdRef.current !== next.id) {
-            lastMsgIdRef.current = next.id;
-            // Play sound for incoming admin messages (not our own optimistic ones)
-            if (!initialLoadRef.current && next.sender_type === "admin" && !next.is_system) {
-              chatSounds.incoming();
-            } else if (next.is_system) {
-              chatSounds.system();
-            }
-          }
+          lastMsgIdRef.current = next.id;
+          playForMessage(next, { silent: initialLoadRef.current || next.sender_type === "visitor" });
+
           // Mark as read when widget is open
           if (open && next.sender_type === "admin") {
             supabase.rpc("mark_chat_read_by_token", { p_token: conversation.session_token }).then(() => {});
@@ -507,14 +516,15 @@ const LiveChatWidget = () => {
       };
       appendIfNew(data?.message);
       appendIfNew(data?.escalationMessage);
-      if (data?.message?.sender_type === "admin") chatSounds.incoming();
+      playForMessage(data?.message);
+      playForMessage(data?.escalationMessage);
     } catch {
       // Stille fejl — beskeden dukker op via polling hvis den alligevel blev gemt,
       // og vi vil ikke forstyrre brugeren med en fejltoast for en baggrundsproces.
     } finally {
       setAiThinking(false);
     }
-  }, []);
+  }, [playForMessage]);
 
   const sendMessage = useCallback(async (override?: string) => {
     if (!conversation || sending) return;
@@ -555,7 +565,7 @@ const LiveChatWidget = () => {
       });
       if (data?.message) {
         setMessages((prev) => (prev.some((m) => m.id === data.message.id) ? prev : [...prev, data.message]));
-        chatSounds.system();
+        playForMessage(data.message);
       }
     } catch {
       toast.error("Kunne ikke koble en medarbejder på. Prøv igen.");
@@ -570,7 +580,6 @@ const LiveChatWidget = () => {
       p_is_system: true,
     });
     await supabase.rpc("close_chat_conversation_by_token", { p_token: conversation.session_token });
-    chatSounds.system();
     // Don't clear locally — keep the closed conversation visible so the visitor
     // can see status changes (closed/reopened) and start a new chat when ready.
     setConversation((prev) => (prev ? { ...prev, status: "closed" } : prev));
@@ -592,7 +601,6 @@ const LiveChatWidget = () => {
     setMessages([]);
     setDraft("");
     clearPendingImage();
-    chatSounds.system();
   };
   const deleteCurrentConversation = () => setConfirmDelete({ kind: "current" });
 

@@ -1,4 +1,6 @@
 import { Fragment, useMemo } from "react";
+import { Link as RouterLink } from "react-router-dom";
+import { ArrowUpRight } from "lucide-react";
 
 /**
  * Letvægts-markdown til chatbeskeder.
@@ -10,23 +12,32 @@ import { Fragment, useMemo } from "react";
 const INLINE_RE =
   /(\*\*[^*]+\*\*|__[^_]+__|\*[^*\n]+\*|`[^`]+`|\[[^\]]+\]\((?:https?:\/\/|\/|mailto:)[^)\s]+\)|https?:\/\/[^\s<>()]+|(?:^|\s)\/[a-z0-9\-/]{2,}|[\w.+-]+@[\w-]+\.[\w.]{2,})/gi;
 
-function isInternal(href: string) {
-  return href.startsWith("/");
+const LINK_CLASS =
+  "font-medium underline decoration-current/40 underline-offset-[3px] transition-colors hover:decoration-current [overflow-wrap:anywhere]";
+
+function toInternalPath(href: string) {
+  if (href.startsWith("/")) return href;
+  const m = href.match(/^https?:\/\/(?:www\.)?serviceydere\.dk(\/[^\s]*)?$/i);
+  return m ? m[1] || "/" : null;
 }
 
 function Link({ href, children }: { href: string; children: React.ReactNode }) {
-  const internal = isInternal(href);
+  const internal = toInternalPath(href);
+  if (internal && !internal.endsWith(".pdf")) {
+    return (
+      <RouterLink to={internal} className={LINK_CLASS}>
+        {children}
+      </RouterLink>
+    );
+  }
   return (
-    <a
-      href={href}
-      target={internal ? undefined : "_blank"}
-      rel={internal ? undefined : "noopener noreferrer"}
-      className="font-medium underline decoration-current/40 underline-offset-2 transition-colors hover:decoration-current [overflow-wrap:anywhere]"
-    >
+    <a href={href} target="_blank" rel="noopener noreferrer" className={LINK_CLASS}>
       {children}
+      <ArrowUpRight className="ml-0.5 inline h-3 w-3 align-[-1px] opacity-70" aria-hidden="true" />
     </a>
   );
 }
+
 
 function renderInline(text: string, keyPrefix: string) {
   const nodes: React.ReactNode[] = [];
