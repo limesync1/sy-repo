@@ -16,10 +16,22 @@ const CATEGORIES = topCategories().map((ind) => ({
 }));
 
 type Suggestion =
+  | { type: "query"; label: string }
   | { type: "category"; label: string; key: string; matchedVia?: string }
   | { type: "business"; label: string; slug: string; city: string | null; logo: string | null }
   | { type: "city"; label: string }
   | { type: "history"; label: string; query: string };
+
+/** Overskrifter pr. forslagstype — bruges til at gruppere dropdownen, så
+ *  brugeren hurtigt kan se hvad der er kategori, by og virksomhed. */
+const GROUP_LABEL: Record<Suggestion["type"], string> = {
+  query: "Fritekst",
+  history: "Senest søgt",
+  category: "Kategorier",
+  city: "Byer",
+  business: "Virksomheder",
+};
+
 
 interface Props {
   variant?: "hero" | "page";
