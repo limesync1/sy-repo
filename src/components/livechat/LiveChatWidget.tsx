@@ -320,7 +320,7 @@ const LiveChatWidget = () => {
       setMessages((prev) => (prev.length === rows.length && prev[prev.length - 1]?.id === rows[rows.length - 1]?.id ? prev : rows));
       // Ved første indlæsning markeres alt som "allerede hørt", så gamle
       // beskeder ikke bimler når widgeten åbnes igen.
-      rows.forEach((r) => playForMessage(r, { silent: initial || r.sender_type === "visitor" }));
+      rows.forEach((r) => playForMessage(r, { silent: initial || r.sender_type === "visitor", source: "poll" }));
       const last = rows[rows.length - 1];
       if (last) lastMsgIdRef.current = last.id;
       if (initial) initialLoadRef.current = false;
@@ -345,7 +345,7 @@ const LiveChatWidget = () => {
             return [...prev, next];
           });
           lastMsgIdRef.current = next.id;
-          playForMessage(next, { silent: initialLoadRef.current || next.sender_type === "visitor" });
+          playForMessage(next, { silent: initialLoadRef.current || next.sender_type === "visitor", source: "realtime" });
 
           // Mark as read when widget is open
           if (open && next.sender_type === "admin") {
@@ -477,7 +477,7 @@ const LiveChatWidget = () => {
       upsertChat({ key: platformKey(), scope: "platform", label: "Serviceydere Kundeservice" });
       setFirstMessage("");
       setSubject("");
-      chatSounds.outgoing();
+      chatSounds.outgoing("send");
       void requestAiReply(token);
 
       supabase.functions
@@ -518,8 +518,8 @@ const LiveChatWidget = () => {
       };
       appendIfNew(data?.message);
       appendIfNew(data?.escalationMessage);
-      playForMessage(data?.message);
-      playForMessage(data?.escalationMessage);
+      playForMessage(data?.message, { source: "ai-reply" });
+      playForMessage(data?.escalationMessage, { source: "ai-reply" });
     } catch {
       // Stille fejl — beskeden dukker op via polling hvis den alligevel blev gemt,
       // og vi vil ikke forstyrre brugeren med en fejltoast for en baggrundsproces.
@@ -549,7 +549,7 @@ const LiveChatWidget = () => {
     setSending(false);
     if (!mErr) {
       if (override === undefined) { setDraft(""); clearPendingImage(); }
-      chatSounds.outgoing();
+      chatSounds.outgoing("send");
       void requestAiReply(conversation.session_token);
     } else {
       toast.error(mErr.message || "Beskeden kunne ikke sendes. Prøv igen.");
@@ -567,7 +567,7 @@ const LiveChatWidget = () => {
       });
       if (data?.message) {
         setMessages((prev) => (prev.some((m) => m.id === data.message.id) ? prev : [...prev, data.message]));
-        playForMessage(data.message);
+        playForMessage(data.message, { source: "escalate" });
       }
     } catch {
       toast.error("Kunne ikke koble en medarbejder på. Prøv igen.");
@@ -624,12 +624,12 @@ const LiveChatWidget = () => {
     const next = !muted;
     setMuted(next);
     chatSounds.setMuted(next);
-    if (!next) chatSounds.tick();
+    if (!next) chatSounds.tick("unmute");
   };
 
   const handleOpen = () => {
     setOpen(true);
-    chatSounds.open();
+    chatSounds.open("open-panel");
     if (conversation) {
       supabase.rpc("mark_chat_read_by_token", { p_token: conversation.session_token }).then(() => {});
     }
