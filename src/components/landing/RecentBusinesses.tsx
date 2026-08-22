@@ -86,8 +86,11 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
                 <span className="font-medium">{biz._avgRating!.toFixed(1)}</span>
               </div>
             ) : (
-              <span className="text-xs font-medium text-muted-foreground">Ny</span>
+              <span className="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                Ingen anmeldelser endnu
+              </span>
             )}
+
           </div>
 
           <div className="flex items-center justify-between gap-3 pt-1">
