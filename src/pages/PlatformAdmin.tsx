@@ -4,7 +4,7 @@ import { Navigate, Link } from "react-router-dom";
 import { useState, lazy, Suspense, useEffect } from "react";
 import {
   LayoutDashboard, Building2, Users, ShoppingCart, Star,
-  LogOut, Menu, X, Repeat, Settings, MessageCircle, ExternalLink, Globe, History, Search, HeartPulse, Mail, Shield, Keyboard, AlertTriangle, Activity,
+  LogOut, Menu, X, Repeat, Settings, MessageCircle, ExternalLink, Globe, History, Search, HeartPulse, Mail, Shield, Keyboard, AlertTriangle, Activity, Sparkles,
 } from "lucide-react";
 import SEO from "@/components/SEO";
 import { cn } from "@/lib/utils";
@@ -46,6 +46,7 @@ const PlatformRouteEventsTab = lazy(() => import("@/components/platform-admin/Pl
 const PlatformHealthTab = lazy(() => import("@/components/platform-admin/PlatformHealthTab"));
 const PlatformMailsTab = lazy(() => import("@/components/platform-admin/PlatformMailsTab"));
 const PlatformSecurityTab = lazy(() => import("@/components/platform-admin/PlatformSecurityTab"));
+const PlatformAiQualityTab = lazy(() => import("@/components/platform-admin/PlatformAiQualityTab"));
 
 // Sidebar er nu delt i to logiske grupper. Det reducerer kognitiv belastning
 // når man scanner 10+ menupunkter, og gør "drift"-flowet (det man bruger dagligt)
@@ -72,6 +73,7 @@ const NAV_GROUPS: { label: string; items: { value: string; label: string; icon: 
       { value: "route-events", label: "Domæne-events", icon: Activity },
       { value: "health", label: "Sundhed", icon: HeartPulse },
       { value: "mails", label: "Mails", icon: Mail },
+      { value: "ai-quality", label: "AI-kvalitet", icon: Sparkles },
       { value: "security", label: "Sikkerhed", icon: Shield },
       { value: "settings", label: "Platform", icon: Settings },
     ],
@@ -97,6 +99,7 @@ const TAB_PREFETCH: Record<string, () => Promise<unknown>> = {
   health: () => import("@/components/platform-admin/PlatformHealthTab"),
   mails: () => import("@/components/platform-admin/PlatformMailsTab"),
   security: () => import("@/components/platform-admin/PlatformSecurityTab"),
+  "ai-quality": () => import("@/components/platform-admin/PlatformAiQualityTab"),
   settings: () => import("@/components/platform-admin/PlatformPlatformSettingsTab"),
 };
 const prefetched = new Set<string>();
@@ -359,6 +362,7 @@ const PlatformAdmin = () => {
                   {tab === "route-events" && <PlatformRouteEventsTab />}
                   {tab === "health" && <PlatformHealthTab />}
                   {tab === "mails" && <PlatformMailsTab />}
+                  {tab === "ai-quality" && <PlatformAiQualityTab />}
                   {tab === "security" && <PlatformSecurityTab />}
                   {tab === "settings" && <PlatformSettingsTab />}
                 </Suspense>
