@@ -972,8 +972,87 @@ export type Database = {
           },
         ]
       }
+      ai_answer_events: {
+        Row: {
+          alias_fix_count: number
+          categories: string[]
+          conversation_id: string | null
+          created_at: string
+          escalated: boolean
+          id: string
+          invalid_link_count: number
+          link_issue_count: number
+          message_id: string | null
+          sound_deduped: number
+          sound_played: number
+          source: string
+        }
+        Insert: {
+          alias_fix_count?: number
+          categories?: string[]
+          conversation_id?: string | null
+          created_at?: string
+          escalated?: boolean
+          id?: string
+          invalid_link_count?: number
+          link_issue_count?: number
+          message_id?: string | null
+          sound_deduped?: number
+          sound_played?: number
+          source?: string
+        }
+        Update: {
+          alias_fix_count?: number
+          categories?: string[]
+          conversation_id?: string | null
+          created_at?: string
+          escalated?: boolean
+          id?: string
+          invalid_link_count?: number
+          link_issue_count?: number
+          message_id?: string | null
+          sound_deduped?: number
+          sound_played?: number
+          source?: string
+        }
+        Relationships: []
+      }
+      ai_link_aliases: {
+        Row: {
+          correct_path: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          note: string | null
+          updated_at: string
+          wrong_path: string
+        }
+        Insert: {
+          correct_path: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          note?: string | null
+          updated_at?: string
+          wrong_path: string
+        }
+        Update: {
+          correct_path?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          note?: string | null
+          updated_at?: string
+          wrong_path?: string
+        }
+        Relationships: []
+      }
       ai_link_issues: {
         Row: {
+          admin_note: string | null
           conversation_id: string | null
           created_at: string
           id: string
@@ -982,10 +1061,14 @@ export type Database = {
           message_id: string | null
           raw_link: string
           reply_excerpt: string | null
+          resolved_at: string | null
+          resolved_by: string | null
           resolved_link: string | null
           source: string
+          status: string
         }
         Insert: {
+          admin_note?: string | null
           conversation_id?: string | null
           created_at?: string
           id?: string
@@ -994,10 +1077,14 @@ export type Database = {
           message_id?: string | null
           raw_link: string
           reply_excerpt?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
           resolved_link?: string | null
           source?: string
+          status?: string
         }
         Update: {
+          admin_note?: string | null
           conversation_id?: string | null
           created_at?: string
           id?: string
@@ -1006,8 +1093,68 @@ export type Database = {
           message_id?: string | null
           raw_link?: string
           reply_excerpt?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
           resolved_link?: string | null
           source?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      ai_review_tickets: {
+        Row: {
+          admin_note: string | null
+          answer_excerpt: string | null
+          categories: string[]
+          conversation_id: string | null
+          created_at: string
+          id: string
+          message_id: string | null
+          question_excerpt: string | null
+          reported_reason: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          source: string
+          status: string
+          suggested_fix: string | null
+          suggested_title: string | null
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          answer_excerpt?: string | null
+          categories?: string[]
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          message_id?: string | null
+          question_excerpt?: string | null
+          reported_reason?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          source?: string
+          status?: string
+          suggested_fix?: string | null
+          suggested_title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          answer_excerpt?: string | null
+          categories?: string[]
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          message_id?: string | null
+          question_excerpt?: string | null
+          reported_reason?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          source?: string
+          status?: string
+          suggested_fix?: string | null
+          suggested_title?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
