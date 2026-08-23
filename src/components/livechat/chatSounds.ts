@@ -109,6 +109,15 @@ export const chatSounds = {
   },
   /** Seneste lyd-hændelser (til fejlfinding af dobbelt-afspilning). */
   getLog: () => [...log],
+  /**
+   * Sammentælling af lyd-hændelser i sessionen: hvor mange der faktisk blev
+   * afspillet, og hvor mange der blev stoppet af dedupe/throttle. Sendes med
+   * som telemetri, så dobbelt-afspilning kan korreleres med AI-svar.
+   */
+  stats: () => ({
+    played: log.filter((e) => e.played).length,
+    deduped: log.filter((e) => !e.played && e.reason === "throttled").length,
+  }),
   // Soft "ding" when a new incoming message arrives
   incoming: (source = "unknown") =>
     playTones("incoming", source, [
