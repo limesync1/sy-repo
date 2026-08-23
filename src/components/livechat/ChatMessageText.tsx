@@ -15,8 +15,9 @@ import { isValidSitePath, normalizeSitePath } from "@/lib/site-paths";
 const INLINE_RE =
   /(\*\*[^*]+\*\*|__[^_]+__|\*[^*\n]+\*|`[^`]+`|\[[^\]]+\]\((?:https?:\/\/|\/|mailto:)[^)\s]+\)|https?:\/\/[^\s<>()]+|(?:^|\s)\/[a-z0-9\-/]{2,}|[\w.+-]+@[\w-]+\.[\w.]{2,})/gi;
 
+// Tydelig fokus-tilstand så links kan tabbes igennem med tastatur.
 const LINK_CLASS =
-  "font-medium underline decoration-current/40 underline-offset-[3px] transition-colors hover:decoration-current [overflow-wrap:anywhere]";
+  "font-medium underline decoration-current/40 underline-offset-[3px] transition-colors hover:decoration-current [overflow-wrap:anywhere] rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background";
 
 function toInternalPath(href: string) {
   if (href.startsWith("/")) return normalizeSitePath(href);
@@ -30,13 +31,19 @@ function Link({ href, children }: { href: string; children: React.ReactNode }) {
     // Ugyldig intern sti → vis teksten uden link, så kunden aldrig lander på 404.
     if (!isValidSitePath(internal)) return <>{children}</>;
     return (
-      <RouterLink to={internal} className={LINK_CLASS}>
+      <RouterLink to={internal} className={LINK_CLASS} aria-label={`Gå til ${internal}`}>
         {children}
       </RouterLink>
     );
   }
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" className={LINK_CLASS}>
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={LINK_CLASS}
+      aria-label={href.startsWith("mailto:") ? `Send e-mail til ${href.replace("mailto:", "")}` : `Åbn ${href} i nyt vindue`}
+    >
       {children}
       <ArrowUpRight className="ml-0.5 inline h-3 w-3 align-[-1px] opacity-70" aria-hidden="true" />
     </a>
