@@ -18,7 +18,7 @@
 // "Tal med et menneske" i widget'en — her genereres intet AI-svar.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { FULL_KNOWLEDGE } from "../_shared/serviceydere-knowledge.ts";
+import { FULL_KNOWLEDGE, CITATION_INSTRUCTIONS, KNOWLEDGE_CATEGORIES, parseCitations } from "../_shared/serviceydere-knowledge.ts";
 import { sanitizeLinks } from "../_shared/valid-links.ts";
 
 const corsHeaders = {
@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const token = String(body?.token || "");
     const rawAction = String(body?.action || "reply");
-    const action = rawAction === "escalate" || rawAction === "feedback" ? rawAction : "reply";
+    const action = ["escalate", "feedback", "telemetry"].includes(rawAction) ? rawAction : "reply";
     if (token.length < 32) {
       return new Response(JSON.stringify({ error: "Ugyldig sessions-token" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -181,6 +181,80 @@ Deno.serve(async (req) => {
           status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+      // Tommel ned = arbejdsgang: opret et review-ticket med den rapporterede
+      // grund, spørgsmålet, svaret og de kilder AI'en brugte — og lad modellen
+      // foreslå en rettet videnartikel, så vidensbasen kan opdateres målrettet.
+      if (rating === "down") {
+        const answer = history.find((m: any) => m.id === messageId);
+        const question = [...history]
+          .filter((m: any) => m.sender_type === "visitor" && !m.is_system && m.content)
+          .filter((m: any) => new Date(m.created_at) <= new Date(answer?.created_at || 0))
+          .pop();
+        const categories: string[] = Array.isArray((answer as any)?.metadata?.citations)
+          ? (answer as any).metadata.citations
+          : [];
+
+        let suggestedTitle: string | null = null;
+        let suggestedFix: string | null = null;
+        const key = Deno.env.get("LOVABLE_API_KEY");
+        if (key) {
+          try {
+            const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${key}`, "Content-Type": "application/json" },
+              body: JSON.stringify({
+                model: "google/gemini-3.1-flash-lite",
+                messages: [
+                  {
+                    role: "system",
+                    content: `Du hjælper med at forbedre vidensbasen for Serviceydere. Ud fra et kundespørgsmål, et AI-svar der blev rapporteret som forkert, og kundens begrundelse: foreslå en rettet videnartikel.\nSvar KUN som JSON: {"title":"kort titel","fix":"3-6 linjers rettet faktatekst på dansk"}.\nOpfind aldrig priser eller funktioner der ikke fremgår af viden nedenfor — beskriv i stedet hvad der skal verificeres.\n\n${FULL_KNOWLEDGE}`,
+                  },
+                  {
+                    role: "user",
+                    content: `Spørgsmål: ${question?.content || "(ukendt)"}\n\nAI-svar: ${answer?.content || "(ukendt)"}\n\nKundens begrundelse: ${reason || "(ingen)"}\n\nKilder brugt: ${categories.join(", ") || "(ingen)"}`,
+                  },
+                ],
+              }),
+            });
+            if (res.ok) {
+              const j = await res.json();
+              const raw = String(j?.choices?.[0]?.message?.content || "").replace(/```json|```/g, "").trim();
+              const parsed = JSON.parse(raw);
+              suggestedTitle = typeof parsed?.title === "string" ? parsed.title.slice(0, 200) : null;
+              suggestedFix = typeof parsed?.fix === "string" ? parsed.fix.slice(0, 4000) : null;
+            }
+          } catch { /* forslag er "nice to have" — ticket oprettes uanset */ }
+        }
+
+        await admin.from("ai_review_tickets").insert({
+          conversation_id: conv.id,
+          message_id: messageId,
+          source: "livechat",
+          reported_reason: reason,
+          answer_excerpt: (answer?.content || "").slice(0, 2000),
+          question_excerpt: (question?.content || "").slice(0, 2000),
+          categories,
+          suggested_title: suggestedTitle,
+          suggested_fix: suggestedFix,
+        });
+      }
+
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ------- Lyd-telemetri fra widget'en (afspillet vs. dedupet) -------
+    if (action === "telemetry") {
+      const messageId = String(body?.messageId || "");
+      const played = Number.isFinite(body?.soundPlayed) ? Math.max(0, Math.min(50, Number(body.soundPlayed))) : 0;
+      const deduped = Number.isFinite(body?.soundDeduped) ? Math.max(0, Math.min(50, Number(body.soundDeduped))) : 0;
+      if (/^[0-9a-f-]{36}$/i.test(messageId)) {
+        await admin
+          .from("ai_answer_events")
+          .update({ sound_played: played, sound_deduped: deduped })
+          .eq("message_id", messageId);
+      }
       return new Response(JSON.stringify({ ok: true }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -258,7 +332,9 @@ FORMATERING (svaret vises i en smal chatboble på ca. 300 px):
 - Skriv priser som "289 kr./md. ekskl. moms".
 
 
-${FULL_KNOWLEDGE}`;
+${FULL_KNOWLEDGE}
+
+${CITATION_INSTRUCTIONS}`;
 
 
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -299,7 +375,18 @@ ${FULL_KNOWLEDGE}`;
     // Sikkerhedsnet: gør relative links absolutte fra roden, og valider
     // dernæst alle links mod de stier der faktisk findes i appen.
     reply = reply.replace(/\]\((?!https?:\/\/|\/|mailto:|tel:)([^)\s]+)\)/g, "](/$1)");
-    const sanitized = sanitizeLinks(reply);
+    // Kilder: fjern KILDER-linjen fra svaret og gem kategorierne i metadata.
+    const cited = parseCitations(reply);
+    reply = cited.text;
+    const citations = cited.categories;
+    // Admin-godkendte alias-rettelser hentes dynamisk.
+    const { data: aliasRows } = await admin
+      .from("ai_link_aliases")
+      .select("wrong_path, correct_path")
+      .eq("is_active", true);
+    const extraAliases: Record<string, string> = {};
+    for (const r of aliasRows || []) extraAliases[(r as any).wrong_path] = (r as any).correct_path;
+    const sanitized = sanitizeLinks(reply, extraAliases);
     reply = sanitized.text;
     const linkIssues = sanitized.issues;
 
@@ -313,7 +400,14 @@ ${FULL_KNOWLEDGE}`;
         sender_name: AI_SENDER_NAME,
         content: reply,
         is_system: false,
-        metadata: { kind: "ai" },
+        metadata: {
+          kind: "ai",
+          citations,
+          sources: citations
+            .map((id) => KNOWLEDGE_CATEGORIES.find((c) => c.id === id))
+            .filter(Boolean)
+            .map((c) => ({ id: c!.id, label: c!.label, path: c!.path })),
+        },
       })
       .select("id, sender_type, sender_name, content, image_url, is_system, metadata, created_at")
       .single();
@@ -335,6 +429,24 @@ ${FULL_KNOWLEDGE}`;
             reply_excerpt: reply.slice(0, 500),
           })),
         )
+        .then(() => {})
+        .catch(() => {});
+    }
+
+    // Måling pr. svar: hvilke videnkategorier blev brugt, og gik der noget galt?
+    if (aiRow?.id) {
+      admin
+        .from("ai_answer_events")
+        .insert({
+          conversation_id: conv.id,
+          message_id: aiRow.id,
+          source: "livechat",
+          categories: citations,
+          link_issue_count: linkIssues.length,
+          alias_fix_count: linkIssues.filter((i) => i.kind === "alias").length,
+          invalid_link_count: linkIssues.filter((i) => i.kind === "invalid").length,
+          escalated: shouldEscalate,
+        })
         .then(() => {})
         .catch(() => {});
     }
