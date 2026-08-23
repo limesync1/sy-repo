@@ -525,6 +525,16 @@ const LiveChatWidget = () => {
       appendIfNew(data?.escalationMessage);
       playForMessage(data?.message, { source: "ai-reply" });
       playForMessage(data?.escalationMessage, { source: "ai-reply" });
+      // Lyd-telemetri: knyt afspillede vs. dedupede lyde til dette svar, så
+      // dobbelt-afspilning kan korreleres med AI-kvalitet i admin-panelet.
+      if (data?.message?.id) {
+        const { played, deduped } = chatSounds.stats();
+        supabase.functions
+          .invoke("livechat-ai-reply", {
+            body: { token, action: "telemetry", messageId: data.message.id, soundPlayed: played, soundDeduped: deduped },
+          })
+          .catch(() => {});
+      }
     } catch {
       // Stille fejl — beskeden dukker op via polling hvis den alligevel blev gemt,
       // og vi vil ikke forstyrre brugeren med en fejltoast for en baggrundsproces.
@@ -1069,6 +1079,26 @@ const LiveChatWidget = () => {
                             )}
                           </div>
 
+                          {!mine && Array.isArray((m.metadata as any)?.sources) && (m.metadata as any).sources.length > 0 && (
+                            <ul
+                              className="mt-1 flex flex-wrap items-center gap-1 px-1"
+                              aria-label="Kilder brugt i svaret"
+                            >
+                              {((m.metadata as any).sources as Array<{ id: string; label: string; path: string }>).map((src) => (
+                                <li key={src.id}>
+                                  <Link
+                                    to={src.path}
+                                    aria-label={`Kilde: ${src.label} — åbn ${src.path}`}
+                                    className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-2 py-0.5 text-[10px] font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                                  >
+                                    <BookOpen className="h-2.5 w-2.5" aria-hidden="true" />
+                                    {src.label}
+                                  </Link>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+
                           <div className={`mt-1 flex items-center gap-1 px-1 text-[10px] text-muted-foreground ${mine ? "flex-row-reverse" : ""}`}>
                             <span>{formatTime(m.created_at)}</span>
                             {isLastMine && <CheckCheck className="h-3 w-3" />}
@@ -1076,26 +1106,30 @@ const LiveChatWidget = () => {
                               <span className="ml-1 inline-flex items-center gap-0.5">
                                 <button
                                   type="button"
-                                  aria-label="Godt svar"
+                                  aria-label="Marker svaret som godt"
+                                  aria-pressed={feedback[m.id] === "up"}
                                   onClick={() => sendFeedback(m.id, "up")}
-                                  className={`rounded-md p-1 transition-colors hover:bg-secondary ${feedback[m.id] === "up" ? "text-success" : "text-muted-foreground"}`}
+                                  className={`rounded-md p-1 transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ${feedback[m.id] === "up" ? "text-success" : "text-muted-foreground"}`}
                                 >
-                                  <ThumbsUp className="h-3 w-3" />
+                                  <ThumbsUp className="h-3 w-3" aria-hidden="true" />
                                 </button>
                                 <button
                                   type="button"
-                                  aria-label="Dårligt svar"
+                                  aria-label="Marker svaret som dårligt"
+                                  aria-pressed={feedback[m.id] === "down"}
                                   onClick={() => sendFeedback(m.id, "down")}
-                                  className={`rounded-md p-1 transition-colors hover:bg-secondary ${feedback[m.id] === "down" ? "text-destructive" : "text-muted-foreground"}`}
+                                  className={`rounded-md p-1 transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ${feedback[m.id] === "down" ? "text-destructive" : "text-muted-foreground"}`}
                                 >
-                                  <ThumbsDown className="h-3 w-3" />
+                                  <ThumbsDown className="h-3 w-3" aria-hidden="true" />
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => { setReportFor(reportFor === m.id ? null : m.id); setReportText(""); }}
-                                  className="inline-flex items-center gap-0.5 rounded-md px-1 py-1 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                                  aria-label="Rapportér forkert svar"
+                                  aria-expanded={reportFor === m.id}
+                                  className="inline-flex items-center gap-0.5 rounded-md px-1 py-1 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
                                 >
-                                  <Flag className="h-3 w-3" />
+                                  <Flag className="h-3 w-3" aria-hidden="true" />
                                   Rapportér
                                 </button>
                               </span>
