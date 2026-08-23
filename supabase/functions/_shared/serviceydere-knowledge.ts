@@ -104,3 +104,57 @@ DU MÅ IKKE:
 
 /** Samlet kontekst til systemprompten. */
 export const FULL_KNOWLEDGE = `${PLATFORM_KNOWLEDGE}\n\n${SYSTEM_KNOWLEDGE}\n\n${LINK_MAP}\n\n${SUPPORT_PLAYBOOK}`;
+
+// ---------------------------------------------------------------------------
+// Videnkategorier + citations
+// ---------------------------------------------------------------------------
+// AI'en skal fortælle HVILKEN del af vidensbasen svaret bygger på. Det gør det
+// muligt at (1) vise korte kilder under svaret i chatten og (2) måle
+// succesrate pr. kategori — fx om "software/priser" oftere fører til
+// tommel-ned end "systemet".
+
+export type KnowledgeCategory = {
+  /** Stabilt id — bruges i metadata og analytics. */
+  id: string;
+  /** Kort label vist som kilde-chip i chatten. */
+  label: string;
+  /** Siden kilden peger på (skal findes i VALID_PATHS). */
+  path: string;
+};
+
+export const KNOWLEDGE_CATEGORIES: KnowledgeCategory[] = [
+  { id: "software/priser", label: "Priser", path: "/software/priser" },
+  { id: "systemet", label: "Systemet", path: "/software" },
+  { id: "ruteplanlaegger", label: "Ruteplanlægger", path: "/software/ruteplanlaegger" },
+  { id: "medarbejder-app", label: "Medarbejder-app", path: "/software/medarbejder-app" },
+  { id: "booking", label: "Booking og tilbud", path: "/software/booking-og-tilbud" },
+  { id: "regnskab", label: "Fakturering og regnskab", path: "/software/fakturering-og-regnskab" },
+  { id: "markedsplads", label: "Find services", path: "/virksomheder" },
+  { id: "tilbud", label: "Få tilbud", path: "/tilbud" },
+  { id: "bliv-udbyder", label: "Bliv udbyder", path: "/opret-virksomhed" },
+  { id: "support", label: "Hjælp og vilkår", path: "/hjaelp" },
+];
+
+const CATEGORY_IDS = KNOWLEDGE_CATEGORIES.map((c) => c.id);
+
+/** Instruktion der tvinger modellen til at afslutte med en kildelinje. */
+export const CITATION_INSTRUCTIONS = `KILDER (obligatorisk):
+Afslut ALTID svaret med en sidste linje i præcis dette format:
+KILDER: <id>[, <id>]
+Brug 1-2 id'er fra denne liste og intet andet: ${CATEGORY_IDS.join(", ")}.
+Vælg "software/priser" når svaret handler om pris/abonnement/prøveperiode, og "systemet" når det handler om hvad panelet kan. De to må ikke forveksles.
+Linjen må ikke indeholde andet end id'er.`;
+
+export type ParsedCitations = { text: string; categories: string[] };
+
+/** Fjerner KILDER-linjen fra svaret og returnerer de genkendte kategori-id'er. */
+export function parseCitations(raw: string): ParsedCitations {
+  const match = raw.match(/^\s*kilder\s*:\s*(.+)$/im);
+  if (!match) return { text: raw.trim(), categories: [] };
+  const categories = match[1]
+    .split(/[,;]/)
+    .map((s) => s.trim().toLowerCase().replace(/^\/+/, ""))
+    .filter((id) => CATEGORY_IDS.includes(id));
+  const text = raw.replace(match[0], "").trim();
+  return { text, categories: Array.from(new Set(categories)) };
+}

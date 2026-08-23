@@ -102,8 +102,17 @@ export function isValidPath(path: string): boolean {
  * - Ukendt sti → linket erstattes med ren tekst (issue kind "invalid").
  * Eksterne links (mailto:, tel:, andre domæner) røres ikke.
  */
-export function sanitizeLinks(text: string): { text: string; issues: LinkIssue[] } {
+export function sanitizeLinks(
+  text: string,
+  extraAliases: Record<string, string> = {},
+): { text: string; issues: LinkIssue[] } {
   const issues: LinkIssue[] = [];
+  // Admin-godkendte aliaser (fra ai_link_aliases) vinder over de statiske,
+  // så en forkert sti kan rettes uden en ny deploy.
+  const aliases: Record<string, string> = { ...PATH_ALIASES };
+  for (const [wrong, correct] of Object.entries(extraAliases)) {
+    aliases[normalize(wrong)] = normalize(correct);
+  }
 
   // 1) Markdown-links
   let out = text.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (match, label: string, href: string) => {
@@ -113,7 +122,7 @@ export function sanitizeLinks(text: string): { text: string; issues: LinkIssue[]
     const path = normalize(href);
     if (isValidPath(path)) return `[${label}](${path})`;
 
-    const alias = PATH_ALIASES[path];
+    const alias = aliases[path];
     if (alias) {
       issues.push({ raw: href, resolved: alias, kind: "alias", label });
       return `[${label}](${alias})`;
@@ -126,7 +135,7 @@ export function sanitizeLinks(text: string): { text: string; issues: LinkIssue[]
   out = out.replace(/https?:\/\/(?:www\.)?serviceydere\.dk(\/[^\s)]*)?/gi, (match, path: string) => {
     const p = normalize(path || "/");
     if (isValidPath(p)) return p;
-    const alias = PATH_ALIASES[p];
+    const alias = aliases[p];
     if (alias) {
       issues.push({ raw: match, resolved: alias, kind: "alias" });
       return alias;
