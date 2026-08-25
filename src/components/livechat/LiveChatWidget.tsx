@@ -794,21 +794,22 @@ const LiveChatWidget = () => {
           className={
             isMobile
               ? "fixed inset-0 z-50 animate-in fade-in slide-in-from-bottom-4 duration-200"
-              : `fixed z-50 w-[calc(100vw-3rem)] max-w-[400px] md:w-[400px] animate-in fade-in slide-in-from-bottom-4 duration-200 ${panelBottomClass} ${panelPositionClass}`
+              : `fixed z-50 w-[calc(100vw-2rem)] max-w-[420px] sm:w-[380px] md:w-[400px] lg:w-[420px] animate-in fade-in slide-in-from-bottom-4 duration-200 ${panelBottomClass} ${panelPositionClass}`
           }
         >
           <div
             className={
               isMobile
-                ? "relative flex h-[100dvh] w-full flex-col overflow-hidden bg-card"
-                : "relative flex h-[min(600px,calc(100vh-5rem))] flex-col overflow-hidden rounded-[24px] border border-border bg-card shadow-[0_40px_100px_-30px_hsl(204_96%_13%/0.45)] ring-1 ring-black/[0.04]"
+                ? "relative flex h-[100dvh] max-h-[100dvh] w-full flex-col overflow-hidden bg-card"
+                : "relative flex h-[min(640px,calc(100dvh-5rem))] flex-col overflow-hidden rounded-[24px] border border-border bg-card shadow-[0_40px_100px_-30px_hsl(204_96%_13%/0.45)] ring-1 ring-black/[0.04]"
             }
           >
             {/* Header — matcher Serviceydere hero (mørk navy + cyan glows) */}
             <div
-              className="relative overflow-hidden px-4 pb-4 pt-3.5 text-white"
+              className="relative overflow-hidden px-4 pb-4 pt-[max(0.875rem,env(safe-area-inset-top))] text-white"
               style={{ backgroundColor: "hsl(var(--hero-bg))" }}
             >
+
               <div aria-hidden className="pointer-events-none absolute inset-0">
                 <div
                   className="absolute -right-16 -top-20 h-56 w-56 rounded-full opacity-40 blur-[60px]"
