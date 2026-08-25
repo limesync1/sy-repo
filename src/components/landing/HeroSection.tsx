@@ -103,6 +103,15 @@ const HeroSection = () => {
             </SmartLink>
           </div>
 
+          {/* Rolig tillidsstribe — giver heroen indhold uden at støje. */}
+          <ul className="animate-fade-in [animation-delay:420ms] mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11.5px] text-background/70 sm:mt-7 sm:text-xs">
+            {["Gratis og uforpligtende", "Verificerede virksomheder", "Op til 3 tilbud"].map((t) => (
+              <li key={t} className="inline-flex items-center gap-1.5">
+                <Check className="h-3.5 w-3.5" style={{ color: "hsl(var(--hero-cyan-bright))" }} />
+                {t}
+              </li>
+            ))}
+          </ul>
 
 
           {/* Diskret indikator: viser at der er mere indhold under heroen på mobil. */}
