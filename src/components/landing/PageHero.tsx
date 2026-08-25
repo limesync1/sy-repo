@@ -54,8 +54,8 @@ const PageHero = ({
   const t = TONES[tone];
   const padding =
     size === "compact"
-      ? "pb-5 pt-5 sm:pb-8 sm:pt-8 lg:pb-10 lg:pt-10"
-      : "pb-7 pt-6 sm:pb-12 sm:pt-10 lg:pb-24 lg:pt-20";
+      ? "pb-6 pt-6 sm:pb-8 sm:pt-8 lg:pb-10 lg:pt-10"
+      : "pb-9 pt-8 sm:pb-12 sm:pt-10 lg:pb-24 lg:pt-20";
 
 
 
@@ -69,7 +69,7 @@ const PageHero = ({
           src={backgroundImage}
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 -z-20 h-full w-full object-cover opacity-30"
+          className="absolute inset-0 -z-20 h-full w-full object-cover opacity-20 sm:opacity-30"
           loading="eager"
         />
       )}
@@ -82,29 +82,31 @@ const PageHero = ({
             "linear-gradient(90deg, hsl(var(--hero-bg)) 0%, hsl(var(--hero-bg) / 0.9) 50%, hsl(var(--hero-bg) / 0.55) 100%)",
         }}
       />
-      {/* Ambient glows i sidens egen farvetone. */}
+      {/* Ambient glows i sidens egen farvetone. Dæmpet på mobil, hvor de
+          ellers fylder hele skærmen og gør farverne skrigende. */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         <div
-          className="absolute -top-32 right-[-8%] h-[28rem] w-[28rem] rounded-full blur-[110px] opacity-30"
+          className="absolute -top-32 right-[-8%] h-[20rem] w-[20rem] rounded-full opacity-[0.14] blur-[90px] sm:h-[28rem] sm:w-[28rem] sm:opacity-30 sm:blur-[110px]"
           style={{ backgroundColor: t.glowA }}
         />
         <div
-          className="absolute -bottom-32 -left-24 h-[22rem] w-[22rem] rounded-full blur-[100px] opacity-25"
+          className="absolute -bottom-32 -left-24 h-[16rem] w-[16rem] rounded-full opacity-[0.12] blur-[80px] sm:h-[22rem] sm:w-[22rem] sm:opacity-25 sm:blur-[100px]"
           style={{ backgroundColor: t.glowB }}
         />
-        <div className="absolute inset-0 bg-noise opacity-[0.05] mix-blend-overlay" />
+        <div className="absolute inset-0 bg-noise opacity-[0.04] mix-blend-overlay sm:opacity-[0.05]" />
       </div>
       {/* Farvet bundkant — binder heroen sammen med sidens farvetone. */}
       <div
         aria-hidden
-        className="absolute inset-x-0 bottom-0 h-1"
+        className="absolute inset-x-0 bottom-0 h-px sm:h-1"
         style={{ backgroundImage: `linear-gradient(90deg, ${t.edge}, transparent 85%)` }}
       />
+
 
       <div className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 ${padding}`}>
         <div className="max-w-3xl">
           {eyebrow && (
-            <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-background/70">
+            <span className="inline-flex items-center gap-2 rounded-full border border-background/15 bg-background/[0.06] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-background/75 sm:text-[11px] sm:tracking-[0.22em]">
               <span
                 className="h-1.5 w-1.5 rounded-full"
                 style={{ backgroundColor: t.dot }}
@@ -113,9 +115,10 @@ const PageHero = ({
               {eyebrow}
             </span>
           )}
-          <h1 className="mt-4 text-[1.75rem] font-semibold leading-[1.08] tracking-[-0.03em] text-background sm:mt-5 sm:text-[2.5rem] lg:text-[3.5rem]">
+          <h1 className="mt-3 text-[1.75rem] font-semibold leading-[1.1] tracking-[-0.03em] text-background sm:mt-5 sm:text-[2.5rem] sm:leading-[1.08] lg:text-[3.5rem]">
             {title}
           </h1>
+
           {subtitle && (
             <p className="mt-3 max-w-xl text-[14.5px] leading-6 text-background/80 sm:mt-5 sm:text-[17px] sm:leading-[1.6]">
               {subtitle}

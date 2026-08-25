@@ -438,7 +438,11 @@ const LiveChatWidget = () => {
     const { error: upErr } = await supabase.storage.from("chat-attachments").upload(path, file, {
       cacheControl: "3600", upsert: false, contentType: file.type,
     });
-    if (upErr) { setUploadError("Kunne ikke uploade billedet"); return null; }
+    if (upErr) {
+      console.error("[livechat] upload fejlede", upErr);
+      setUploadError(`Kunne ikke uploade billedet: ${upErr.message}`);
+      return null;
+    }
     const { data } = supabase.storage.from("chat-attachments").getPublicUrl(path);
     return data.publicUrl;
   };
