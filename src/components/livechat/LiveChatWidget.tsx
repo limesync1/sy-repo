@@ -380,26 +380,51 @@ const LiveChatWidget = () => {
     };
   }, [conversation, open]);
 
+  // Ét sted at rulle til bunden — bruges både ved nye beskeder, ved egne
+  // afsendelser, når AI'en begynder at skrive, og af "ny besked"-knappen.
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
+    const el = scrollRef.current;
+    if (!el) return;
+    userScrolledUpRef.current = false;
+    setShowJumpToBottom(false);
+    setUnseenCount(0);
+    requestAnimationFrame(() => {
+      const node = scrollRef.current;
+      if (node) node.scrollTo({ top: node.scrollHeight, behavior });
+    });
+  }, []);
+
   useEffect(() => {
     if (!open) return;
     const el = scrollRef.current;
     if (!el) return;
-    // Only auto-scroll if user is near bottom or it's the initial load.
-    // This lets the user scroll up to read history without being yanked back down.
-    if (initialLoadRef.current || !userScrolledUpRef.current) {
+    const last = messages[messages.length - 1];
+    const mine = last?.sender_type === "visitor";
+    // Egne beskeder ruller altid ned. Andres beskeder kun hvis man er i bunden —
+    // ellers vises "Ny besked"-knappen, så man ikke bliver revet væk fra historikken.
+    if (initialLoadRef.current || mine || !userScrolledUpRef.current) {
       el.scrollTo({ top: el.scrollHeight, behavior: initialLoadRef.current ? "auto" : "smooth" });
+      if (mine || !userScrolledUpRef.current) {
+        userScrolledUpRef.current = false;
+        setShowJumpToBottom(false);
+        setUnseenCount(0);
+      }
+    } else if (last && !mine) {
+      setUnseenCount((n) => n + 1);
+      setShowJumpToBottom(true);
     }
   }, [messages, open]);
+
+  // Når AI'en begynder at skrive, skal "skriver…"-boblen være synlig.
+  useEffect(() => {
+    if (aiThinking && open && !userScrolledUpRef.current) scrollToBottom();
+  }, [aiThinking, open, scrollToBottom]);
 
   // Når popup'en åbnes på ny, skal vi altid hoppe ned til seneste besked.
   useEffect(() => {
     if (!open) return;
-    userScrolledUpRef.current = false;
-    requestAnimationFrame(() => {
-      const el = scrollRef.current;
-      if (el) el.scrollTo({ top: el.scrollHeight, behavior: "auto" });
-    });
-  }, [open, conversation?.id, showInbox]);
+    scrollToBottom("auto");
+  }, [open, conversation?.id, showInbox, scrollToBottom]);
 
   // Track whether the user has scrolled away from the bottom.
   useEffect(() => {
@@ -407,11 +432,17 @@ const LiveChatWidget = () => {
     if (!el || !open) return;
     const onScroll = () => {
       const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
-      userScrolledUpRef.current = distanceFromBottom > 80;
+      const up = distanceFromBottom > 80;
+      userScrolledUpRef.current = up;
+      if (!up) {
+        setShowJumpToBottom(false);
+        setUnseenCount(0);
+      }
     };
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => el.removeEventListener("scroll", onScroll);
   }, [open, conversation]);
+
 
   useEffect(() => {
     const el = textareaRef.current;
