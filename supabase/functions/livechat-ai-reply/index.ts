@@ -315,10 +315,23 @@ Deno.serve(async (req) => {
 
     const firstName = (conv.visitor_name || "").split(" ")[0] || "";
     const transcript = history
-      .filter((m: any) => !m.is_system && m.content)
+      .filter((m: any) => !m.is_system && (m.content || m.image_url))
       .slice(-16)
-      .map((m: any) => `${m.sender_type === "admin" ? "Support" : (firstName || "Kunde")}: ${m.content}`)
+      .map((m: any) => {
+        const who = m.sender_type === "admin" ? "Support" : (firstName || "Kunde");
+        const parts = [m.content || ""];
+        if (m.image_url) parts.push("[vedhæftede et billede]");
+        return `${who}: ${parts.filter(Boolean).join(" ")}`;
+      })
       .join("\n");
+
+    // Billeder kunden har vedhæftet (de nyeste 3) sendes med som multimodal
+    // input, så AI'en rent faktisk kan se og svare på skærmbilleder m.m.
+    const visitorImages: string[] = history
+      .filter((m: any) => m.sender_type === "visitor" && !m.is_system && m.image_url)
+      .slice(-3)
+      .map((m: any) => String(m.image_url));
+
 
     const systemPrompt = `Du er "Serviceydere AI" — en dygtig, venlig og præcis kundeservice-assistent for platformen Serviceydere.dk, som svarer automatisk i livechatten. Du svarer altid på dansk, kort og konkret (maks. 4-5 sætninger), i "du"-form, uden emojis og uden at indlede med "Her er et svar" el.lign. Brug KUN viden fra afsnittet nedenfor — find aldrig funktioner, priser eller vilkår på.
 
