@@ -29,8 +29,10 @@ const ResultsMap = lazy(() => import("@/components/search/ResultsMap"));
 import SiteNav from "@/components/SiteNav";
 import PageHero from "@/components/landing/PageHero";
 import Footer from "@/components/landing/Footer";
-import { topCategories } from "@/lib/service-taxonomy";
+import { topCategories, searchIndustries } from "@/lib/service-taxonomy";
 import SearchSuggest from "@/components/landing/SearchSuggest";
+import LocationChip from "@/components/LocationChip";
+
 import { CardGridSkeleton } from "@/components/admin/shared/Skeletons";
 
 /** Brancher hentes fra det kanoniske taksonomi-katalog så de matcher
