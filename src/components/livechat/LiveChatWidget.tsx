@@ -1070,10 +1070,22 @@ const LiveChatWidget = () => {
                             }`}
                           >
                             {m.image_url && (
-                              <a href={m.image_url} target="_blank" rel="noopener noreferrer" className="block">
-                                <img src={m.image_url} alt="Vedhæftet billede" className="max-h-64 w-auto object-cover" />
+                              <a
+                                href={m.image_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block bg-secondary/40"
+                                aria-label="Åbn vedhæftet billede i fuld størrelse"
+                              >
+                                <img
+                                  src={m.image_url}
+                                  alt="Vedhæftet billede"
+                                  loading="lazy"
+                                  className="max-h-52 w-full object-contain sm:max-h-64"
+                                />
                               </a>
                             )}
+
                             {m.content && (
                               <ChatMessageText content={m.content} className="px-3.5 py-2.5" />
                             )}
