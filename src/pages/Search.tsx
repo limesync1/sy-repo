@@ -300,25 +300,23 @@ const SearchPage = () => {
       {/* Header — matches landing */}
       <SiteNav active="search" />
 
-      {/* Dark hero — minimal: kun titel og beskrivelse */}
+      {/* Dark hero — søgefeltet ligger nu inde i heroen, så siden starter med
+          én tydelig handling i stedet for et felt der svæver over kanten. */}
       <PageHero
         tone="cyan"
+        size="compact"
         eyebrow="Find services"
         title="Find verificerede serviceydere."
         subtitle="Søg på service, virksomhed eller by — sammenlign priser og anmeldelser, og book direkte."
-      />
-
-
-      {/* Søgefelt — samme oplevelse som forsiden, så brugeren kan skrive sig
-          frem til en kategori, by eller specifik virksomhed uden at skifte side. */}
-      <div className="mx-auto -mt-6 max-w-7xl px-4 sm:-mt-8 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl">
-          <SearchSuggest variant="page" defaultQuery={debouncedQuery} showNearLabel={false} />
+      >
+        <SearchSuggest variant="page" defaultQuery={debouncedQuery} showNearLabel={false} />
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-background/80">
+          <LocationChip />
         </div>
-      </div>
+      </PageHero>
 
       {/* Sticky filter bar */}
-      <div className="sticky top-14 sm:top-[65px] z-20 mt-5 border-b border-border bg-background/95 backdrop-blur-md">
+      <div className="sticky top-14 sm:top-[65px] z-20 border-b border-border bg-background/95 backdrop-blur-md">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2 overflow-x-auto py-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             <button
@@ -331,7 +329,7 @@ const SearchPage = () => {
             >
               Alle brancher
             </button>
-            {CATEGORIES.map((cat) => {
+            {orderedCategories.map((cat) => {
               // Sammenlign mod kanonisk `key` (det der gemmes på businesses)
               // så chip'en matcher uanset hvordan branchen vises.
               const active = selectedCategory === cat.key;
@@ -352,8 +350,51 @@ const SearchPage = () => {
               );
             })}
           </div>
+
+          {/* Aktive filtre — hvert filter kan fjernes enkeltvis, så man ikke
+              behøver rydde alt for at justere én ting. */}
+          {hasFilters && (
+            <div className="flex flex-wrap items-center gap-2 border-t border-border/60 py-2.5 text-xs">
+              <span className="font-semibold uppercase tracking-[0.14em] text-muted-foreground">Filtre</span>
+              {debouncedQuery && (
+                <button
+                  type="button"
+                  onClick={() => setDebouncedQuery("")}
+                  className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-2.5 py-1 font-medium text-foreground transition-colors hover:bg-secondary"
+                >
+                  “{debouncedQuery}” <X className="h-3 w-3 opacity-60" />
+                </button>
+              )}
+              {selectedCategory && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategory("")}
+                  className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-2.5 py-1 font-medium text-foreground transition-colors hover:bg-secondary"
+                >
+                  {selectedCategory} <X className="h-3 w-3 opacity-60" />
+                </button>
+              )}
+              {sort !== "relevance" && (
+                <button
+                  type="button"
+                  onClick={() => setSort("relevance")}
+                  className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-2.5 py-1 font-medium text-foreground transition-colors hover:bg-secondary"
+                >
+                  Sortering <X className="h-3 w-3 opacity-60" />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="ml-auto font-semibold text-accent hover:underline"
+              >
+                Ryd alle
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-5 md:py-7">
         {/* Results header */}
