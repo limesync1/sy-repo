@@ -345,11 +345,17 @@ FORMATERING (svaret vises i en smal chatboble på ca. 300 px):
 - Ingen overskrifter, tabeller, kodeblokke eller emojis. Fed skrift kun på ét-to nøgleord (fx **289 kr./md.**).
 - Skriv priser som "289 kr./md. ekskl. moms".
 
+BILLEDER: Kunden kan vedhæfte billeder (typisk skærmbilleder af platformen, fejlbeskeder, fakturaer eller fotos af en opgave). Hvis der er billeder med, så kig på dem og henvis konkret til hvad du ser (fx knappen, fejlteksten eller feltet), før du giver næste skridt. Gæt aldrig på tekst du ikke kan læse — skriv i stedet at billedet er utydeligt og bed om et nyt. Du må ikke læse eller gengive personoplysninger (navne, adresser, e-mails, kontonumre) fra billedet højere end nødvendigt for at hjælpe.
 
 ${FULL_KNOWLEDGE}
 
 ${CITATION_INSTRUCTIONS}`;
 
+    // Multimodalt indhold: transskriptionen som tekst + de seneste billeder.
+    const userContent: Array<Record<string, unknown>> = [
+      { type: "text", text: `Emne: ${conv.subject || "(ingen)"}\n\nSamtale:\n${transcript}` },
+      ...visitorImages.map((url) => ({ type: "image_url", image_url: { url } })),
+    ];
 
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -358,10 +364,11 @@ ${CITATION_INSTRUCTIONS}`;
         model: "google/gemini-3.7-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Emne: ${conv.subject || "(ingen)"}\n\nSamtale:\n${transcript}` },
+          { role: "user", content: visitorImages.length > 0 ? userContent : (userContent[0] as any).text },
         ],
       }),
     });
+
 
     if (aiRes.status === 429) {
       return new Response(JSON.stringify({ error: "For mange forespørgsler lige nu — prøv igen om lidt." }), {
