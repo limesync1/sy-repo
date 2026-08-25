@@ -847,7 +847,7 @@ const LiveChatWidget = () => {
                       onClick={() => setShowInbox(true)}
                       aria-label="Vis mine samtaler"
                       title="Mine samtaler"
-                      className="relative rounded-md p-1.5 text-white/75 transition-colors hover:bg-white/10 hover:text-white"
+                      className="relative rounded-lg p-2 text-white/80 sm:p-1.5 transition-colors hover:bg-white/10 hover:text-white"
                     >
                       <MessagesSquare className="h-4 w-4" />
                       {chats.length > 1 && (
@@ -863,7 +863,7 @@ const LiveChatWidget = () => {
                         <button
                           aria-label="Flere handlinger"
                           title="Handlinger"
-                          className="rounded-md p-1.5 text-white/75 transition-colors hover:bg-white/10 hover:text-white"
+                          className="rounded-lg p-2 text-white/80 sm:p-1.5 transition-colors hover:bg-white/10 hover:text-white"
                         >
                           <MoreVertical className="h-4 w-4" />
                         </button>
@@ -908,14 +908,14 @@ const LiveChatWidget = () => {
                     onClick={toggleMute}
                     aria-label={muted ? "Slå lyd til" : "Slå lyd fra"}
                     title={muted ? "Slå lyd til" : "Slå lyd fra"}
-                    className="rounded-md p-1.5 text-white/75 transition-colors hover:bg-white/10 hover:text-white"
+                    className="rounded-lg p-2 text-white/80 sm:p-1.5 transition-colors hover:bg-white/10 hover:text-white"
                   >
                     {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
                   </button>
                   <button
                     onClick={() => setOpen(false)}
                     aria-label="Luk chat"
-                    className="rounded-md p-1.5 text-white/75 transition-colors hover:bg-white/10 hover:text-white"
+                    className="rounded-lg p-2 text-white/80 sm:p-1.5 transition-colors hover:bg-white/10 hover:text-white"
                   >
                     <ChevronDown className="h-4 w-4" />
                   </button>
