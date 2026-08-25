@@ -262,8 +262,28 @@ const SearchPage = () => {
 
   const userPoint = useMemo(() => lookupDkZip(location.zip), [location.zip]);
 
+  /** Brancheforslag ud fra fritekst — bruges både til at rykke relevante
+   *  chips frem i filterbaren og til "Mente du…" i tom-tilstanden. */
+  const queryMatchedCategories = useMemo(() => {
+    const term = debouncedQuery.trim();
+    if (term.length < 2) return [] as string[];
+    return searchIndustries(term, { limit: 4, preferTopKeys: true }).map((h) => h.industry.key);
+  }, [debouncedQuery]);
+
+  /** Chips i filterbaren: valgt branche først, derefter dem der matcher
+   *  søgeordet, så det mest relevante altid er inden for rækkevidde. */
+  const orderedCategories = useMemo(() => {
+    const priority = new Set([selectedCategory, ...queryMatchedCategories].filter(Boolean));
+    if (priority.size === 0) return CATEGORIES;
+    return [
+      ...CATEGORIES.filter((c) => priority.has(c.key)),
+      ...CATEGORIES.filter((c) => !priority.has(c.key)),
+    ];
+  }, [selectedCategory, queryMatchedCategories]);
+
   const handleCategoryClick = (cat: string) =>
     setSelectedCategory(selectedCategory === cat ? "" : cat);
+
 
   const clearFilters = () => {
     setDebouncedQuery("");
