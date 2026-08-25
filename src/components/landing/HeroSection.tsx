@@ -59,7 +59,11 @@ const HeroSection = () => {
       {/* Indhold — asymmetrisk 60/40 grid */}
       <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-4 pb-8 pt-6 sm:px-6 sm:gap-12 sm:pb-14 sm:pt-10 lg:grid-cols-[60%_40%] lg:gap-20 lg:px-8 lg:pb-32 lg:pt-24">
         <div className="max-w-2xl">
-          <h1 className="animate-fade-in text-[1.75rem] font-semibold leading-[1.08] tracking-[-0.03em] text-background sm:text-[2.5rem] lg:text-[3.5rem]">
+          <span className="animate-fade-in inline-flex items-center gap-2 rounded-full border border-background/15 bg-background/[0.06] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-background/75 backdrop-blur sm:text-[11px] sm:tracking-[0.22em]">
+            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "hsl(var(--hero-cyan-bright))" }} />
+            Hele Danmark
+          </span>
+          <h1 className="animate-fade-in mt-3 text-[1.75rem] font-semibold leading-[1.1] tracking-[-0.03em] text-background sm:mt-5 sm:text-[2.5rem] sm:leading-[1.06] lg:text-[3.5rem]">
             Find den rette{" "}
             <span className="bg-[linear-gradient(110deg,hsl(var(--hero-cyan))_0%,hsl(var(--hero-cyan-bright))_50%,hsl(var(--hero-cyan))_100%)] bg-[length:200%_100%] bg-clip-text text-transparent animate-gradient-pan">
               serviceyder
@@ -69,6 +73,7 @@ const HeroSection = () => {
           <p className="animate-fade-in [animation-delay:120ms] mt-3 max-w-xl text-[14.5px] leading-6 text-background/80 sm:mt-5 sm:text-[17px] sm:leading-[1.6]">
             Sammenlign lokale udbydere, se priser og book direkte — alt samlet ét sted.
           </p>
+
 
 
           <div className="animate-fade-in [animation-delay:220ms] relative z-20 mt-5 w-full max-w-2xl sm:mt-7">
