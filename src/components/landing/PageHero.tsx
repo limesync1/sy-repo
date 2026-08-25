@@ -106,7 +106,7 @@ const PageHero = ({
       <div className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 ${padding}`}>
         <div className="max-w-3xl">
           {eyebrow && (
-            <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-background/70">
+            <span className="inline-flex items-center gap-2 rounded-full border border-background/15 bg-background/[0.06] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-background/75 sm:text-[11px] sm:tracking-[0.22em]">
               <span
                 className="h-1.5 w-1.5 rounded-full"
                 style={{ backgroundColor: t.dot }}
@@ -115,9 +115,10 @@ const PageHero = ({
               {eyebrow}
             </span>
           )}
-          <h1 className="mt-4 text-[1.75rem] font-semibold leading-[1.08] tracking-[-0.03em] text-background sm:mt-5 sm:text-[2.5rem] lg:text-[3.5rem]">
+          <h1 className="mt-3 text-[1.75rem] font-semibold leading-[1.1] tracking-[-0.03em] text-background sm:mt-5 sm:text-[2.5rem] sm:leading-[1.08] lg:text-[3.5rem]">
             {title}
           </h1>
+
           {subtitle && (
             <p className="mt-3 max-w-xl text-[14.5px] leading-6 text-background/80 sm:mt-5 sm:text-[17px] sm:leading-[1.6]">
               {subtitle}
