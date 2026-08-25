@@ -37,24 +37,27 @@ const CategoryCard = ({
     key={cat.key}
     to={`/search?category=${encodeURIComponent(cat.key)}`}
     style={{ ["--ind" as string]: `${cat.hue}` }}
-    className={`group relative flex flex-col justify-between overflow-hidden rounded-[28px] border p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_-24px_hsl(var(--ind)_70%_40%/0.55)] border-[hsl(var(--ind)_60%_45%/0.22)] bg-[hsl(var(--ind)_78%_96%)] text-[hsl(var(--ind)_60%_26%)] dark:bg-[hsl(var(--ind)_45%_13%)] dark:text-[hsl(var(--ind)_75%_80%)] ${className ?? ""}`}
+    className={`group relative flex flex-col justify-between overflow-hidden rounded-[28px] border border-border/70 bg-card p-6 text-foreground shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-[0_18px_40px_-30px_hsl(var(--foreground)/0.35)] ${className ?? ""}`}
   >
+    {/* Diskret kulør pr. branche — kun som tynd topstribe, ikke som flade. */}
     <div
       aria-hidden
-      className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-[hsl(var(--ind)_85%_60%/0.28)] opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100"
+      className="pointer-events-none absolute inset-x-0 top-0 h-[3px] opacity-70 transition-opacity duration-300 group-hover:opacity-100"
+      style={{ backgroundColor: "hsl(var(--ind) 65% 45%)" }}
     />
     <IndustryIcon category={cat.key} className="h-10 w-10" alt={cat.label} />
     <div className="relative mt-4">
       <div className="text-[15px] font-semibold leading-tight">{cat.label}</div>
       {cat.hint && (
-        <div className="mt-1.5 line-clamp-1 text-[11px] font-medium opacity-70">{cat.hint}</div>
+        <div className="mt-1.5 line-clamp-1 text-[11px] font-medium text-muted-foreground">{cat.hint}</div>
       )}
-      <div className="mt-3 inline-flex items-center gap-1 text-xs font-semibold opacity-80">
+      <div className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground transition-colors group-hover:text-foreground">
         Se virksomheder
         <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
       </div>
     </div>
   </Link>
+
 );
 
 const Categories = () => {

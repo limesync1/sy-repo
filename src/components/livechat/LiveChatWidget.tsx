@@ -247,6 +247,8 @@ const LiveChatWidget = () => {
   const [reportText, setReportText] = useState("");
 
   const userScrolledUpRef = useRef(false);
+  const [showJumpToBottom, setShowJumpToBottom] = useState(false);
+  const [unseenCount, setUnseenCount] = useState(0);
 
   const hidden = useMemo(
     () =>
@@ -380,26 +382,51 @@ const LiveChatWidget = () => {
     };
   }, [conversation, open]);
 
+  // Ét sted at rulle til bunden — bruges både ved nye beskeder, ved egne
+  // afsendelser, når AI'en begynder at skrive, og af "ny besked"-knappen.
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
+    const el = scrollRef.current;
+    if (!el) return;
+    userScrolledUpRef.current = false;
+    setShowJumpToBottom(false);
+    setUnseenCount(0);
+    requestAnimationFrame(() => {
+      const node = scrollRef.current;
+      if (node) node.scrollTo({ top: node.scrollHeight, behavior });
+    });
+  }, []);
+
   useEffect(() => {
     if (!open) return;
     const el = scrollRef.current;
     if (!el) return;
-    // Only auto-scroll if user is near bottom or it's the initial load.
-    // This lets the user scroll up to read history without being yanked back down.
-    if (initialLoadRef.current || !userScrolledUpRef.current) {
+    const last = messages[messages.length - 1];
+    const mine = last?.sender_type === "visitor";
+    // Egne beskeder ruller altid ned. Andres beskeder kun hvis man er i bunden —
+    // ellers vises "Ny besked"-knappen, så man ikke bliver revet væk fra historikken.
+    if (initialLoadRef.current || mine || !userScrolledUpRef.current) {
       el.scrollTo({ top: el.scrollHeight, behavior: initialLoadRef.current ? "auto" : "smooth" });
+      if (mine || !userScrolledUpRef.current) {
+        userScrolledUpRef.current = false;
+        setShowJumpToBottom(false);
+        setUnseenCount(0);
+      }
+    } else if (last && !mine) {
+      setUnseenCount((n) => n + 1);
+      setShowJumpToBottom(true);
     }
   }, [messages, open]);
+
+  // Når AI'en begynder at skrive, skal "skriver…"-boblen være synlig.
+  useEffect(() => {
+    if (aiThinking && open && !userScrolledUpRef.current) scrollToBottom();
+  }, [aiThinking, open, scrollToBottom]);
 
   // Når popup'en åbnes på ny, skal vi altid hoppe ned til seneste besked.
   useEffect(() => {
     if (!open) return;
-    userScrolledUpRef.current = false;
-    requestAnimationFrame(() => {
-      const el = scrollRef.current;
-      if (el) el.scrollTo({ top: el.scrollHeight, behavior: "auto" });
-    });
-  }, [open, conversation?.id, showInbox]);
+    scrollToBottom("auto");
+  }, [open, conversation?.id, showInbox, scrollToBottom]);
 
   // Track whether the user has scrolled away from the bottom.
   useEffect(() => {
@@ -407,11 +434,17 @@ const LiveChatWidget = () => {
     if (!el || !open) return;
     const onScroll = () => {
       const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
-      userScrolledUpRef.current = distanceFromBottom > 80;
+      const up = distanceFromBottom > 80;
+      userScrolledUpRef.current = up;
+      if (!up) {
+        setShowJumpToBottom(false);
+        setUnseenCount(0);
+      }
     };
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => el.removeEventListener("scroll", onScroll);
   }, [open, conversation]);
+
 
   useEffect(() => {
     const el = textareaRef.current;
@@ -569,6 +602,8 @@ const LiveChatWidget = () => {
     if (!mErr) {
       if (override === undefined) { setDraft(""); clearPendingImage(); }
       chatSounds.outgoing("send");
+      scrollToBottom();
+      textareaRef.current?.focus();
       void requestAiReply(conversation.session_token);
     } else {
       toast.error(mErr.message || "Beskeden kunne ikke sendes. Prøv igen.");
@@ -1197,6 +1232,19 @@ const LiveChatWidget = () => {
                         <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.15s]" />
                         <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" />
                       </div>
+                    </div>
+                  )}
+
+                  {showJumpToBottom && (
+                    <div className="sticky bottom-0 z-10 flex justify-center pt-2">
+                      <button
+                        type="button"
+                        onClick={() => scrollToBottom()}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-3 py-1.5 text-[11px] font-semibold text-background shadow-[0_8px_20px_-10px_hsl(var(--foreground)/0.7)] transition-transform hover:-translate-y-0.5"
+                      >
+                        <ChevronDown className="h-3.5 w-3.5" />
+                        {unseenCount > 0 ? `${unseenCount} ny besked${unseenCount > 1 ? "er" : ""}` : "Nyeste besked"}
+                      </button>
                     </div>
                   )}
                 </div>
