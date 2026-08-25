@@ -103,15 +103,25 @@ const HeroSection = () => {
             </SmartLink>
           </div>
 
-          {/* Rolig tillidsstribe — giver heroen indhold uden at støje. */}
-          <ul className="animate-fade-in [animation-delay:420ms] mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11.5px] text-background/70 sm:mt-7 sm:text-xs">
-            {["Gratis og uforpligtende", "Verificerede virksomheder", "Op til 3 tilbud"].map((t) => (
-              <li key={t} className="inline-flex items-center gap-1.5">
-                <Check className="h-3.5 w-3.5" style={{ color: "hsl(var(--hero-cyan-bright))" }} />
-                {t}
+          {/* Hurtige genveje — mere brugbart end en tillidsstribe. */}
+          <ul className="animate-fade-in [animation-delay:420ms] mt-5 flex flex-wrap items-center gap-2 sm:mt-7">
+            {[
+              { label: "Rengøring", key: "cleaning" },
+              { label: "Vinduespudsning", key: "window-cleaning" },
+              { label: "Haveservice", key: "garden" },
+              { label: "Flytning", key: "moving" },
+            ].map((c) => (
+              <li key={c.key}>
+                <SmartLink
+                  to={`/virksomheder?category=${encodeURIComponent(c.key)}`}
+                  className="inline-flex items-center rounded-full border border-background/20 bg-background/[0.07] px-3 py-1.5 text-[12px] font-medium text-background/85 backdrop-blur transition-colors hover:border-background/40 hover:bg-background/15 hover:text-background"
+                >
+                  {c.label}
+                </SmartLink>
               </li>
             ))}
           </ul>
+
 
 
           {/* Diskret indikator: viser at der er mere indhold under heroen på mobil. */}
