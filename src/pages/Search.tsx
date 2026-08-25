@@ -321,6 +321,16 @@ const SearchPage = () => {
       <div className="sticky top-14 sm:top-[65px] z-20 mt-5 border-b border-border bg-background/95 backdrop-blur-md">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2 overflow-x-auto py-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            <button
+              onClick={() => selectedCategory && handleCategoryClick(selectedCategory)}
+              className={`shrink-0 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all ${
+                selectedCategory
+                  ? "border-border bg-card text-foreground hover:border-foreground/40 hover:bg-secondary"
+                  : "border-foreground bg-foreground text-background"
+              }`}
+            >
+              Alle brancher
+            </button>
             {CATEGORIES.map((cat) => {
               // Sammenlign mod kanonisk `key` (det der gemmes på businesses)
               // så chip'en matcher uanset hvordan branchen vises.
@@ -347,7 +357,14 @@ const SearchPage = () => {
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-5 md:py-7">
         {/* Results header */}
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-[1.5rem] border border-border bg-card p-4 shadow-sm">
+        <h2 className="mb-4 text-2xl font-semibold tracking-[-0.02em] text-foreground sm:text-[1.75rem]">
+          {selectedCategory
+            ? `${selectedCategory} i ${location.city || "Danmark"}`
+            : debouncedQuery
+              ? `Søgeresultater for "${debouncedQuery}"`
+              : "Alle serviceydere"}
+        </h2>
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/70 bg-card/70 p-3.5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] sm:p-4">
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             {!isLoading && (
               <span>
@@ -410,13 +427,6 @@ const SearchPage = () => {
         </div>
 
         {/* Results — list or map */}
-        <h2 className="mb-4 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
-          {selectedCategory
-            ? `${selectedCategory} i ${location.city || "Danmark"}`
-            : debouncedQuery
-              ? `Søgeresultater for "${debouncedQuery}"`
-              : "Alle serviceydere"}
-        </h2>
         {isLoading ? (
           <CardGridSkeleton count={8} />
         ) : rankedBusinesses && rankedBusinesses.length > 0 ? (
