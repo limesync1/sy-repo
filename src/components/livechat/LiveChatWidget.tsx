@@ -1051,7 +1051,7 @@ const LiveChatWidget = () => {
                             )}
                           </div>
                         )}
-                        <div className={`flex min-w-0 max-w-[calc(100%-3rem)] flex-col sm:max-w-[85%] ${mine ? "items-end" : "items-start"}`}>
+                        <div className={`flex min-w-0 max-w-[calc(100%-2.75rem)] flex-col sm:max-w-[86%] ${mine ? "items-end" : "items-start"}`}>
                           {!mine && showAvatar && (
                             <div className="mb-1 flex items-center gap-1.5 px-1 text-[10px] font-semibold text-muted-foreground">
                               <span className="text-foreground/80">{m.sender_name || "Serviceydere"}</span>
