@@ -1,4 +1,4 @@
-import { ArrowRight, Check, ChevronDown } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import SmartLink from "@/components/SmartLink";
 import { Button } from "@/components/ui/button";
 import SearchSuggest from "./SearchSuggest";
@@ -106,10 +106,10 @@ const HeroSection = () => {
           {/* Hurtige genveje — mere brugbart end en tillidsstribe. */}
           <ul className="animate-fade-in [animation-delay:420ms] mt-5 flex flex-wrap items-center gap-2 sm:mt-7">
             {[
-              { label: "Rengøring", key: "cleaning" },
-              { label: "Vinduespudsning", key: "window-cleaning" },
-              { label: "Haveservice", key: "garden" },
-              { label: "Flytning", key: "moving" },
+              { label: "Rengøring", key: "Rengøring" },
+              { label: "Vinduespudsning", key: "Vinduespudsning" },
+              { label: "Haveservice", key: "Haveservice" },
+              { label: "Flyttehjælp", key: "Flyttehjælp" },
             ].map((c) => (
               <li key={c.key}>
                 <SmartLink
