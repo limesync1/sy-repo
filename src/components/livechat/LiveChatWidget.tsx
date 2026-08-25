@@ -1234,6 +1234,19 @@ const LiveChatWidget = () => {
                       </div>
                     </div>
                   )}
+
+                  {showJumpToBottom && (
+                    <div className="sticky bottom-0 z-10 flex justify-center pt-2">
+                      <button
+                        type="button"
+                        onClick={() => scrollToBottom()}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-3 py-1.5 text-[11px] font-semibold text-background shadow-[0_8px_20px_-10px_hsl(var(--foreground)/0.7)] transition-transform hover:-translate-y-0.5"
+                      >
+                        <ChevronDown className="h-3.5 w-3.5" />
+                        {unseenCount > 0 ? `${unseenCount} ny besked${unseenCount > 1 ? "er" : ""}` : "Nyeste besked"}
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {closed ? (
