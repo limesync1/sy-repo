@@ -1099,9 +1099,10 @@ const LiveChatWidget = () => {
                             </ul>
                           )}
 
-                          <div className={`mt-1 flex items-center gap-1 px-1 text-[10px] text-muted-foreground ${mine ? "flex-row-reverse" : ""}`}>
+                          <div className={`mt-1 flex flex-wrap items-center gap-1 px-1 text-[10px] text-muted-foreground ${mine ? "flex-row-reverse" : ""}`}>
                             <span>{formatTime(m.created_at)}</span>
                             {isLastMine && <CheckCheck className="h-3 w-3" />}
+
                             {m.metadata?.kind === "ai" && (
                               <span className="ml-1 inline-flex items-center gap-0.5">
                                 <button
