@@ -530,27 +530,30 @@ const SearchPage = () => {
                 : "Få op til 3 tilbud i stedet — vi finder udbydere i din region."}
             </p>
 
-            {/* Foreslå populære kategorier som chips — hurtig fallback. */}
-            {!debouncedQuery && (
-              <div className="mt-6">
-                <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                  Populære brancher
-                </div>
-                <div className="flex flex-wrap justify-center gap-1.5">
-                  {CATEGORIES.slice(0, 8).map((cat) => (
-                    <button
-                      key={cat.key}
-                      type="button"
-                      onClick={() => setSelectedCategory(cat.key)}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-[13px] font-medium text-foreground transition-all hover:-translate-y-0.5 hover:border-foreground/30"
-                    >
-                      <IndustryIcon category={cat.key} className="h-4 w-4" alt={cat.label} />
-                      {cat.label}
-                    </button>
-                  ))}
-                </div>
+            {/* Klogere fallback: rammer søgeordet en branche, foreslår vi den
+                direkte ("Mente du…"). Ellers viser vi populære brancher. */}
+            <div className="mt-6">
+              <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                {queryMatchedCategories.length > 0 ? "Mente du" : "Populære brancher"}
               </div>
-            )}
+              <div className="flex flex-wrap justify-center gap-1.5">
+                {(queryMatchedCategories.length > 0
+                  ? CATEGORIES.filter((c) => queryMatchedCategories.includes(c.key))
+                  : CATEGORIES.slice(0, 8)
+                ).map((cat) => (
+                  <button
+                    key={cat.key}
+                    type="button"
+                    onClick={() => { setDebouncedQuery(""); setSelectedCategory(cat.key); }}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-[13px] font-medium text-foreground transition-all hover:-translate-y-0.5 hover:border-foreground/30"
+                  >
+                    <IndustryIcon category={cat.key} className="h-4 w-4" alt={cat.label} />
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
 
             <div className="mt-7 flex flex-wrap items-center justify-center gap-2">
               {hasFilters && (
