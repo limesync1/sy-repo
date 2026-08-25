@@ -245,24 +245,25 @@ const DynamicBusinessContent = () => {
           <div className="relative flex flex-col gap-4 pb-6 md:flex-row md:items-start md:gap-6 md:pb-8">
             {/* Logo — alene om at overlappe cover */}
             <div className="relative z-10 -mt-10 shrink-0 md:-mt-12">
-              <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border-4 border-background bg-card shadow-xl md:h-24 md:w-24">
+              {/* Logo-rammen tilpasser sig bredden, så brede ordmærker (fx
+                  "Ready2Clean") ikke bliver klemt sammen i et lille kvadrat. */}
+              <div className="flex h-20 min-w-[5rem] max-w-[16rem] items-center justify-center overflow-hidden rounded-2xl border-4 border-background bg-card px-3 shadow-xl md:h-24 md:max-w-[20rem] md:px-4">
                 {business.logo_url ? (
                   <img
-                    src={imageSrc(business.logo_url, 192, 80)}
+                    src={imageSrc(business.logo_url, 512, 85)}
                     alt={`${business.name} logo${business.city ? ` – ${business.city}` : ""}`}
-                    className="h-full w-full object-contain p-2"
-                    width={96}
-                    height={96}
+                    className="h-full w-auto max-w-full object-contain py-2"
                     loading="eager"
                     decoding="async"
                     fetchPriority="high"
                   />
                 ) : (
-                  <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-accent/20 to-accent/5 text-3xl font-extrabold text-accent">
+                  <div className="flex h-full w-20 items-center justify-center bg-gradient-to-br from-accent/20 to-accent/5 text-3xl font-extrabold text-accent md:w-24">
                     {business.name.charAt(0)}
                   </div>
                 )}
               </div>
+
               {business.is_verified && (
                 <span
                   className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-accent text-accent-foreground ring-4 ring-background shadow-md"
