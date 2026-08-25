@@ -794,21 +794,22 @@ const LiveChatWidget = () => {
           className={
             isMobile
               ? "fixed inset-0 z-50 animate-in fade-in slide-in-from-bottom-4 duration-200"
-              : `fixed z-50 w-[calc(100vw-3rem)] max-w-[400px] md:w-[400px] animate-in fade-in slide-in-from-bottom-4 duration-200 ${panelBottomClass} ${panelPositionClass}`
+              : `fixed z-50 w-[calc(100vw-2rem)] max-w-[420px] sm:w-[380px] md:w-[400px] lg:w-[420px] animate-in fade-in slide-in-from-bottom-4 duration-200 ${panelBottomClass} ${panelPositionClass}`
           }
         >
           <div
             className={
               isMobile
-                ? "relative flex h-[100dvh] w-full flex-col overflow-hidden bg-card"
-                : "relative flex h-[min(600px,calc(100vh-5rem))] flex-col overflow-hidden rounded-[24px] border border-border bg-card shadow-[0_40px_100px_-30px_hsl(204_96%_13%/0.45)] ring-1 ring-black/[0.04]"
+                ? "relative flex h-[100dvh] max-h-[100dvh] w-full flex-col overflow-hidden bg-card"
+                : "relative flex h-[min(640px,calc(100dvh-5rem))] flex-col overflow-hidden rounded-[24px] border border-border bg-card shadow-[0_40px_100px_-30px_hsl(204_96%_13%/0.45)] ring-1 ring-black/[0.04]"
             }
           >
             {/* Header — matcher Serviceydere hero (mørk navy + cyan glows) */}
             <div
-              className="relative overflow-hidden px-4 pb-4 pt-3.5 text-white"
+              className="relative overflow-hidden px-4 pb-4 pt-[max(0.875rem,env(safe-area-inset-top))] text-white"
               style={{ backgroundColor: "hsl(var(--hero-bg))" }}
             >
+
               <div aria-hidden className="pointer-events-none absolute inset-0">
                 <div
                   className="absolute -right-16 -top-20 h-56 w-56 rounded-full opacity-40 blur-[60px]"
@@ -846,7 +847,7 @@ const LiveChatWidget = () => {
                       onClick={() => setShowInbox(true)}
                       aria-label="Vis mine samtaler"
                       title="Mine samtaler"
-                      className="relative rounded-md p-1.5 text-white/75 transition-colors hover:bg-white/10 hover:text-white"
+                      className="relative rounded-lg p-2 text-white/80 sm:p-1.5 transition-colors hover:bg-white/10 hover:text-white"
                     >
                       <MessagesSquare className="h-4 w-4" />
                       {chats.length > 1 && (
@@ -862,7 +863,7 @@ const LiveChatWidget = () => {
                         <button
                           aria-label="Flere handlinger"
                           title="Handlinger"
-                          className="rounded-md p-1.5 text-white/75 transition-colors hover:bg-white/10 hover:text-white"
+                          className="rounded-lg p-2 text-white/80 sm:p-1.5 transition-colors hover:bg-white/10 hover:text-white"
                         >
                           <MoreVertical className="h-4 w-4" />
                         </button>
@@ -907,14 +908,14 @@ const LiveChatWidget = () => {
                     onClick={toggleMute}
                     aria-label={muted ? "Slå lyd til" : "Slå lyd fra"}
                     title={muted ? "Slå lyd til" : "Slå lyd fra"}
-                    className="rounded-md p-1.5 text-white/75 transition-colors hover:bg-white/10 hover:text-white"
+                    className="rounded-lg p-2 text-white/80 sm:p-1.5 transition-colors hover:bg-white/10 hover:text-white"
                   >
                     {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
                   </button>
                   <button
                     onClick={() => setOpen(false)}
                     aria-label="Luk chat"
-                    className="rounded-md p-1.5 text-white/75 transition-colors hover:bg-white/10 hover:text-white"
+                    className="rounded-lg p-2 text-white/80 sm:p-1.5 transition-colors hover:bg-white/10 hover:text-white"
                   >
                     <ChevronDown className="h-4 w-4" />
                   </button>
@@ -966,7 +967,7 @@ const LiveChatWidget = () => {
                       <span className="mb-1 block text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">Navn</span>
                       <input
                         type="text" value={name} onChange={(e) => setName(e.target.value)} maxLength={80}
-                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none transition-all focus:border-foreground focus:ring-2 focus:ring-foreground/10"
+                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-base text-foreground outline-none transition-all focus:border-foreground sm:text-sm focus:ring-2 focus:ring-foreground/10"
                         placeholder="Dit navn"
                       />
                     </label>
@@ -974,7 +975,7 @@ const LiveChatWidget = () => {
                       <span className="mb-1 block text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">Email</span>
                       <input
                         type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={160}
-                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none transition-all focus:border-foreground focus:ring-2 focus:ring-foreground/10"
+                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-base text-foreground outline-none transition-all focus:border-foreground sm:text-sm focus:ring-2 focus:ring-foreground/10"
                         placeholder="dig@eksempel.dk"
                       />
                     </label>
@@ -984,7 +985,7 @@ const LiveChatWidget = () => {
                     <textarea
                       value={firstMessage} onChange={(e) => setFirstMessage(e.target.value)} maxLength={2000} rows={4}
                       onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); startConversation(); } }}
-                      className="w-full resize-none rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none transition-all focus:border-foreground focus:ring-2 focus:ring-foreground/10"
+                      className="w-full resize-none rounded-xl border border-border bg-background px-3 py-2.5 text-base text-foreground outline-none transition-all focus:border-foreground sm:text-sm focus:ring-2 focus:ring-foreground/10"
                       placeholder="Fx: Jeg skal bruge vinduespudsning i Aarhus…"
                     />
                   </label>
@@ -1051,7 +1052,7 @@ const LiveChatWidget = () => {
                             )}
                           </div>
                         )}
-                        <div className={`flex min-w-0 max-w-[calc(100%-3rem)] flex-col sm:max-w-[85%] ${mine ? "items-end" : "items-start"}`}>
+                        <div className={`flex min-w-0 max-w-[calc(100%-2.75rem)] flex-col sm:max-w-[86%] ${mine ? "items-end" : "items-start"}`}>
                           {!mine && showAvatar && (
                             <div className="mb-1 flex items-center gap-1.5 px-1 text-[10px] font-semibold text-muted-foreground">
                               <span className="text-foreground/80">{m.sender_name || "Serviceydere"}</span>
@@ -1070,10 +1071,22 @@ const LiveChatWidget = () => {
                             }`}
                           >
                             {m.image_url && (
-                              <a href={m.image_url} target="_blank" rel="noopener noreferrer" className="block">
-                                <img src={m.image_url} alt="Vedhæftet billede" className="max-h-64 w-auto object-cover" />
+                              <a
+                                href={m.image_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block bg-secondary/40"
+                                aria-label="Åbn vedhæftet billede i fuld størrelse"
+                              >
+                                <img
+                                  src={m.image_url}
+                                  alt="Vedhæftet billede"
+                                  loading="lazy"
+                                  className="max-h-52 w-full object-contain sm:max-h-64"
+                                />
                               </a>
                             )}
+
                             {m.content && (
                               <ChatMessageText content={m.content} className="px-3.5 py-2.5" />
                             )}
@@ -1099,9 +1112,10 @@ const LiveChatWidget = () => {
                             </ul>
                           )}
 
-                          <div className={`mt-1 flex items-center gap-1 px-1 text-[10px] text-muted-foreground ${mine ? "flex-row-reverse" : ""}`}>
+                          <div className={`mt-1 flex flex-wrap items-center gap-1 px-1 text-[10px] text-muted-foreground ${mine ? "flex-row-reverse" : ""}`}>
                             <span>{formatTime(m.created_at)}</span>
                             {isLastMine && <CheckCheck className="h-3 w-3" />}
+
                             {m.metadata?.kind === "ai" && (
                               <span className="ml-1 inline-flex items-center gap-0.5">
                                 <button
@@ -1276,7 +1290,7 @@ const LiveChatWidget = () => {
                           ref={textareaRef} value={draft} onChange={(e) => setDraft(e.target.value)}
                           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
                           maxLength={2000} rows={1} placeholder="Skriv en besked…"
-                          className="flex-1 resize-none rounded-2xl border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-foreground focus:ring-2 focus:ring-foreground/10"
+                          className="flex-1 resize-none rounded-2xl border border-border bg-background px-4 py-2.5 text-base text-foreground outline-none transition-colors focus:border-foreground sm:text-sm focus:ring-2 focus:ring-foreground/10"
                         />
                         <button
                           onClick={() => sendMessage()} disabled={sending || (!draft.trim() && !pendingImage)} aria-label="Send"

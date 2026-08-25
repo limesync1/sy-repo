@@ -85,11 +85,12 @@ Deno.serve(async (req) => {
 
     const { data: msgs } = await admin
       .from("chat_messages")
-      .select("id, sender_type, sender_name, content, is_system, metadata, created_at")
+      .select("id, sender_type, sender_name, content, image_url, is_system, metadata, created_at")
       .eq("conversation_id", conv.id)
       .order("created_at", { ascending: true })
       .limit(60);
     const history = msgs || [];
+
 
     const alreadyEscalated = history.some((m: any) => m.is_system && m.metadata?.kind === "escalation");
     const humanTookOver = history.some(
@@ -314,10 +315,23 @@ Deno.serve(async (req) => {
 
     const firstName = (conv.visitor_name || "").split(" ")[0] || "";
     const transcript = history
-      .filter((m: any) => !m.is_system && m.content)
+      .filter((m: any) => !m.is_system && (m.content || m.image_url))
       .slice(-16)
-      .map((m: any) => `${m.sender_type === "admin" ? "Support" : (firstName || "Kunde")}: ${m.content}`)
+      .map((m: any) => {
+        const who = m.sender_type === "admin" ? "Support" : (firstName || "Kunde");
+        const parts = [m.content || ""];
+        if (m.image_url) parts.push("[vedhæftede et billede]");
+        return `${who}: ${parts.filter(Boolean).join(" ")}`;
+      })
       .join("\n");
+
+    // Billeder kunden har vedhæftet (de nyeste 3) sendes med som multimodal
+    // input, så AI'en rent faktisk kan se og svare på skærmbilleder m.m.
+    const visitorImages: string[] = history
+      .filter((m: any) => m.sender_type === "visitor" && !m.is_system && m.image_url)
+      .slice(-3)
+      .map((m: any) => String(m.image_url));
+
 
     const systemPrompt = `Du er "Serviceydere AI" — en dygtig, venlig og præcis kundeservice-assistent for platformen Serviceydere.dk, som svarer automatisk i livechatten. Du svarer altid på dansk, kort og konkret (maks. 4-5 sætninger), i "du"-form, uden emojis og uden at indlede med "Her er et svar" el.lign. Brug KUN viden fra afsnittet nedenfor — find aldrig funktioner, priser eller vilkår på.
 
@@ -331,11 +345,17 @@ FORMATERING (svaret vises i en smal chatboble på ca. 300 px):
 - Ingen overskrifter, tabeller, kodeblokke eller emojis. Fed skrift kun på ét-to nøgleord (fx **289 kr./md.**).
 - Skriv priser som "289 kr./md. ekskl. moms".
 
+BILLEDER: Kunden kan vedhæfte billeder (typisk skærmbilleder af platformen, fejlbeskeder, fakturaer eller fotos af en opgave). Hvis der er billeder med, så kig på dem og henvis konkret til hvad du ser (fx knappen, fejlteksten eller feltet), før du giver næste skridt. Gæt aldrig på tekst du ikke kan læse — skriv i stedet at billedet er utydeligt og bed om et nyt. Du må ikke læse eller gengive personoplysninger (navne, adresser, e-mails, kontonumre) fra billedet højere end nødvendigt for at hjælpe.
 
 ${FULL_KNOWLEDGE}
 
 ${CITATION_INSTRUCTIONS}`;
 
+    // Multimodalt indhold: transskriptionen som tekst + de seneste billeder.
+    const userContent: Array<Record<string, unknown>> = [
+      { type: "text", text: `Emne: ${conv.subject || "(ingen)"}\n\nSamtale:\n${transcript}` },
+      ...visitorImages.map((url) => ({ type: "image_url", image_url: { url } })),
+    ];
 
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -344,10 +364,11 @@ ${CITATION_INSTRUCTIONS}`;
         model: "google/gemini-3.7-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Emne: ${conv.subject || "(ingen)"}\n\nSamtale:\n${transcript}` },
+          { role: "user", content: visitorImages.length > 0 ? userContent : (userContent[0] as any).text },
         ],
       }),
     });
+
 
     if (aiRes.status === 429) {
       return new Response(JSON.stringify({ error: "For mange forespørgsler lige nu — prøv igen om lidt." }), {
