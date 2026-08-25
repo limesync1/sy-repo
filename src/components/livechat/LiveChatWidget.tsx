@@ -247,6 +247,8 @@ const LiveChatWidget = () => {
   const [reportText, setReportText] = useState("");
 
   const userScrolledUpRef = useRef(false);
+  const [showJumpToBottom, setShowJumpToBottom] = useState(false);
+  const [unseenCount, setUnseenCount] = useState(0);
 
   const hidden = useMemo(
     () =>
@@ -600,6 +602,8 @@ const LiveChatWidget = () => {
     if (!mErr) {
       if (override === undefined) { setDraft(""); clearPendingImage(); }
       chatSounds.outgoing("send");
+      scrollToBottom();
+      textareaRef.current?.focus();
       void requestAiReply(conversation.session_token);
     } else {
       toast.error(mErr.message || "Beskeden kunne ikke sendes. Prøv igen.");
