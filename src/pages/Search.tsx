@@ -267,7 +267,9 @@ const SearchPage = () => {
   const queryMatchedCategories = useMemo(() => {
     const term = debouncedQuery.trim();
     if (term.length < 2) return [] as string[];
-    return searchIndustries(term, { limit: 4, preferTopKeys: true }).map((h) => h.industry.key);
+    const keys = searchIndustries(term, { limit: 6, preferTopKeys: true }).map((h) => h.industry.key);
+    // Behold kun brancher der faktisk findes som chip i filterbaren.
+    return keys.filter((k) => CATEGORIES.some((c) => c.key === k)).slice(0, 4);
   }, [debouncedQuery]);
 
   /** Chips i filterbaren: valgt branche først, derefter dem der matcher
