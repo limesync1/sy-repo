@@ -85,11 +85,12 @@ Deno.serve(async (req) => {
 
     const { data: msgs } = await admin
       .from("chat_messages")
-      .select("id, sender_type, sender_name, content, is_system, metadata, created_at")
+      .select("id, sender_type, sender_name, content, image_url, is_system, metadata, created_at")
       .eq("conversation_id", conv.id)
       .order("created_at", { ascending: true })
       .limit(60);
     const history = msgs || [];
+
 
     const alreadyEscalated = history.some((m: any) => m.is_system && m.metadata?.kind === "escalation");
     const humanTookOver = history.some(
