@@ -967,7 +967,7 @@ const LiveChatWidget = () => {
                       <span className="mb-1 block text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">Navn</span>
                       <input
                         type="text" value={name} onChange={(e) => setName(e.target.value)} maxLength={80}
-                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none transition-all focus:border-foreground focus:ring-2 focus:ring-foreground/10"
+                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-base text-foreground outline-none transition-all focus:border-foreground sm:text-sm focus:ring-2 focus:ring-foreground/10"
                         placeholder="Dit navn"
                       />
                     </label>
@@ -975,7 +975,7 @@ const LiveChatWidget = () => {
                       <span className="mb-1 block text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">Email</span>
                       <input
                         type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={160}
-                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none transition-all focus:border-foreground focus:ring-2 focus:ring-foreground/10"
+                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-base text-foreground outline-none transition-all focus:border-foreground sm:text-sm focus:ring-2 focus:ring-foreground/10"
                         placeholder="dig@eksempel.dk"
                       />
                     </label>
@@ -985,7 +985,7 @@ const LiveChatWidget = () => {
                     <textarea
                       value={firstMessage} onChange={(e) => setFirstMessage(e.target.value)} maxLength={2000} rows={4}
                       onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); startConversation(); } }}
-                      className="w-full resize-none rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none transition-all focus:border-foreground focus:ring-2 focus:ring-foreground/10"
+                      className="w-full resize-none rounded-xl border border-border bg-background px-3 py-2.5 text-base text-foreground outline-none transition-all focus:border-foreground sm:text-sm focus:ring-2 focus:ring-foreground/10"
                       placeholder="Fx: Jeg skal bruge vinduespudsning i Aarhus…"
                     />
                   </label>
@@ -1290,7 +1290,7 @@ const LiveChatWidget = () => {
                           ref={textareaRef} value={draft} onChange={(e) => setDraft(e.target.value)}
                           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
                           maxLength={2000} rows={1} placeholder="Skriv en besked…"
-                          className="flex-1 resize-none rounded-2xl border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-foreground focus:ring-2 focus:ring-foreground/10"
+                          className="flex-1 resize-none rounded-2xl border border-border bg-background px-4 py-2.5 text-base text-foreground outline-none transition-colors focus:border-foreground sm:text-sm focus:ring-2 focus:ring-foreground/10"
                         />
                         <button
                           onClick={() => sendMessage()} disabled={sending || (!draft.trim() && !pendingImage)} aria-label="Send"
