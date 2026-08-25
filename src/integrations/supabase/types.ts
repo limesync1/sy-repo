@@ -4904,6 +4904,7 @@ export type Database = {
         Args: { _customer_id: string }
         Returns: string
       }
+      chat_conversation_exists: { Args: { _folder: string }; Returns: boolean }
       claim_route_planner_idempotency: {
         Args: { _business_id: string; _key: string }
         Returns: boolean
