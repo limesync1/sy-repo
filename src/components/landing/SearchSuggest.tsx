@@ -166,7 +166,7 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
     const params = new URLSearchParams();
     if (term) params.set("q", term);
     if (term) pushHistory(term);
-    navigate(`/search${params.toString() ? `?${params}` : ""}`);
+    navigate(`/virksomheder${params.toString() ? `?${params}` : ""}`);
     setOpen(false);
   };
 
@@ -179,14 +179,14 @@ const SearchSuggest = ({ variant = "hero", defaultQuery = "", showNearLabel = tr
       navigate(`/b/${s.slug}`);
     } else if (s.type === "category") {
       pushHistory(s.label);
-      navigate(`/search?category=${encodeURIComponent(s.key)}`);
+      navigate(`/virksomheder?category=${encodeURIComponent(s.key)}`);
     } else if (s.type === "history") {
       setQ(s.query);
       pushHistory(s.query);
-      navigate(`/search?q=${encodeURIComponent(s.query)}`);
+      navigate(`/virksomheder?q=${encodeURIComponent(s.query)}`);
     } else {
       pushHistory(s.label);
-      navigate(`/search?q=${encodeURIComponent(s.label)}`);
+      navigate(`/virksomheder?q=${encodeURIComponent(s.label)}`);
     }
     setOpen(false);
   };

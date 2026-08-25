@@ -29,8 +29,10 @@ const ResultsMap = lazy(() => import("@/components/search/ResultsMap"));
 import SiteNav from "@/components/SiteNav";
 import PageHero from "@/components/landing/PageHero";
 import Footer from "@/components/landing/Footer";
-import { topCategories } from "@/lib/service-taxonomy";
+import { topCategories, searchIndustries } from "@/lib/service-taxonomy";
 import SearchSuggest from "@/components/landing/SearchSuggest";
+import LocationChip from "@/components/LocationChip";
+
 import { CardGridSkeleton } from "@/components/admin/shared/Skeletons";
 
 /** Brancher hentes fra det kanoniske taksonomi-katalog så de matcher
@@ -260,8 +262,30 @@ const SearchPage = () => {
 
   const userPoint = useMemo(() => lookupDkZip(location.zip), [location.zip]);
 
+  /** Brancheforslag ud fra fritekst — bruges både til at rykke relevante
+   *  chips frem i filterbaren og til "Mente du…" i tom-tilstanden. */
+  const queryMatchedCategories = useMemo(() => {
+    const term = debouncedQuery.trim();
+    if (term.length < 2) return [] as string[];
+    const keys = searchIndustries(term, { limit: 6, preferTopKeys: true }).map((h) => h.industry.key);
+    // Behold kun brancher der faktisk findes som chip i filterbaren.
+    return keys.filter((k) => CATEGORIES.some((c) => c.key === k)).slice(0, 4);
+  }, [debouncedQuery]);
+
+  /** Chips i filterbaren: valgt branche først, derefter dem der matcher
+   *  søgeordet, så det mest relevante altid er inden for rækkevidde. */
+  const orderedCategories = useMemo(() => {
+    const priority = new Set([selectedCategory, ...queryMatchedCategories].filter(Boolean));
+    if (priority.size === 0) return CATEGORIES;
+    return [
+      ...CATEGORIES.filter((c) => priority.has(c.key)),
+      ...CATEGORIES.filter((c) => !priority.has(c.key)),
+    ];
+  }, [selectedCategory, queryMatchedCategories]);
+
   const handleCategoryClick = (cat: string) =>
     setSelectedCategory(selectedCategory === cat ? "" : cat);
+
 
   const clearFilters = () => {
     setDebouncedQuery("");
@@ -300,25 +324,23 @@ const SearchPage = () => {
       {/* Header — matches landing */}
       <SiteNav active="search" />
 
-      {/* Dark hero — minimal: kun titel og beskrivelse */}
+      {/* Dark hero — søgefeltet ligger nu inde i heroen, så siden starter med
+          én tydelig handling i stedet for et felt der svæver over kanten. */}
       <PageHero
         tone="cyan"
+        size="compact"
         eyebrow="Find services"
         title="Find verificerede serviceydere."
         subtitle="Søg på service, virksomhed eller by — sammenlign priser og anmeldelser, og book direkte."
-      />
-
-
-      {/* Søgefelt — samme oplevelse som forsiden, så brugeren kan skrive sig
-          frem til en kategori, by eller specifik virksomhed uden at skifte side. */}
-      <div className="mx-auto -mt-6 max-w-7xl px-4 sm:-mt-8 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl">
-          <SearchSuggest variant="page" defaultQuery={debouncedQuery} showNearLabel={false} />
+      >
+        <SearchSuggest variant="page" defaultQuery={debouncedQuery} showNearLabel={false} />
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-background/80">
+          <LocationChip />
         </div>
-      </div>
+      </PageHero>
 
       {/* Sticky filter bar */}
-      <div className="sticky top-14 sm:top-[65px] z-20 mt-5 border-b border-border bg-background/95 backdrop-blur-md">
+      <div className="sticky top-14 sm:top-[65px] z-20 border-b border-border bg-background/95 backdrop-blur-md">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2 overflow-x-auto py-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             <button
@@ -331,7 +353,7 @@ const SearchPage = () => {
             >
               Alle brancher
             </button>
-            {CATEGORIES.map((cat) => {
+            {orderedCategories.map((cat) => {
               // Sammenlign mod kanonisk `key` (det der gemmes på businesses)
               // så chip'en matcher uanset hvordan branchen vises.
               const active = selectedCategory === cat.key;
@@ -352,8 +374,51 @@ const SearchPage = () => {
               );
             })}
           </div>
+
+          {/* Aktive filtre — hvert filter kan fjernes enkeltvis, så man ikke
+              behøver rydde alt for at justere én ting. */}
+          {hasFilters && (
+            <div className="flex flex-wrap items-center gap-2 border-t border-border/60 py-2.5 text-xs">
+              <span className="font-semibold uppercase tracking-[0.14em] text-muted-foreground">Filtre</span>
+              {debouncedQuery && (
+                <button
+                  type="button"
+                  onClick={() => setDebouncedQuery("")}
+                  className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-2.5 py-1 font-medium text-foreground transition-colors hover:bg-secondary"
+                >
+                  “{debouncedQuery}” <X className="h-3 w-3 opacity-60" />
+                </button>
+              )}
+              {selectedCategory && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategory("")}
+                  className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-2.5 py-1 font-medium text-foreground transition-colors hover:bg-secondary"
+                >
+                  {selectedCategory} <X className="h-3 w-3 opacity-60" />
+                </button>
+              )}
+              {sort !== "relevance" && (
+                <button
+                  type="button"
+                  onClick={() => setSort("relevance")}
+                  className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/60 px-2.5 py-1 font-medium text-foreground transition-colors hover:bg-secondary"
+                >
+                  Sortering <X className="h-3 w-3 opacity-60" />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="ml-auto font-semibold text-accent hover:underline"
+              >
+                Ryd alle
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-5 md:py-7">
         {/* Results header */}
@@ -467,27 +532,30 @@ const SearchPage = () => {
                 : "Få op til 3 tilbud i stedet — vi finder udbydere i din region."}
             </p>
 
-            {/* Foreslå populære kategorier som chips — hurtig fallback. */}
-            {!debouncedQuery && (
-              <div className="mt-6">
-                <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                  Populære brancher
-                </div>
-                <div className="flex flex-wrap justify-center gap-1.5">
-                  {CATEGORIES.slice(0, 8).map((cat) => (
-                    <button
-                      key={cat.key}
-                      type="button"
-                      onClick={() => setSelectedCategory(cat.key)}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-[13px] font-medium text-foreground transition-all hover:-translate-y-0.5 hover:border-foreground/30"
-                    >
-                      <IndustryIcon category={cat.key} className="h-4 w-4" alt={cat.label} />
-                      {cat.label}
-                    </button>
-                  ))}
-                </div>
+            {/* Klogere fallback: rammer søgeordet en branche, foreslår vi den
+                direkte ("Mente du…"). Ellers viser vi populære brancher. */}
+            <div className="mt-6">
+              <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                {queryMatchedCategories.length > 0 ? "Mente du" : "Populære brancher"}
               </div>
-            )}
+              <div className="flex flex-wrap justify-center gap-1.5">
+                {(queryMatchedCategories.length > 0
+                  ? CATEGORIES.filter((c) => queryMatchedCategories.includes(c.key))
+                  : CATEGORIES.slice(0, 8)
+                ).map((cat) => (
+                  <button
+                    key={cat.key}
+                    type="button"
+                    onClick={() => { setDebouncedQuery(""); setSelectedCategory(cat.key); }}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-[13px] font-medium text-foreground transition-all hover:-translate-y-0.5 hover:border-foreground/30"
+                  >
+                    <IndustryIcon category={cat.key} className="h-4 w-4" alt={cat.label} />
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
 
             <div className="mt-7 flex flex-wrap items-center justify-center gap-2">
               {hasFilters && (
