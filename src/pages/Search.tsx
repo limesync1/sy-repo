@@ -329,6 +329,7 @@ const SearchPage = () => {
       <PageHero
         tone="cyan"
         size="compact"
+        allowOverflow
         eyebrow="Find services"
         title="Find verificerede serviceydere."
         subtitle="Søg på service, virksomhed eller by — sammenlign priser og anmeldelser, og book direkte."

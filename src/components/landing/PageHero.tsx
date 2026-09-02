@@ -33,6 +33,14 @@ interface PageHeroProps {
   size?: "default" | "compact";
   /** Farvetone for glows, eyebrow-prik og bundkant. */
   tone?: HeroTone;
+  /**
+   * Lad children (fx en søge-dropdown) rage ud over heroens bundkant uden at
+   * blive klippet. Baggrundslagene klippes stadig i en egen wrapper (samme
+   * trick som landing-heroens), mens sektionen selv mister overflow-hidden
+   * og isolate — ellers kan dropdownen hverken ses over kanten eller lægge
+   * sig over efterfølgende sticky-bars.
+   */
+  allowOverflow?: boolean;
 }
 
 /**
@@ -50,6 +58,7 @@ const PageHero = ({
   backgroundImage,
   size = "default",
   tone = "ocean",
+  allowOverflow = false,
 }: PageHeroProps) => {
   const t = TONES[tone];
   const padding =
@@ -61,9 +70,16 @@ const PageHero = ({
 
   return (
     <section
-      className="relative isolate overflow-hidden text-background"
+      className={`relative text-background ${allowOverflow ? "" : "isolate overflow-hidden"}`}
       style={{ backgroundColor: "hsl(var(--hero-bg))" }}
     >
+      {/* Baggrundslagene samles i en overflow-hidden wrapper, så glows og
+          gradients stadig klippes ved heroens kanter — også når sektionen
+          selv tillader overflow for dropdowns (allowOverflow). */}
+      <div
+        aria-hidden
+        className={`pointer-events-none absolute inset-0 overflow-hidden ${allowOverflow ? "z-0" : "-z-10"}`}
+      >
       {backgroundImage && (
         <img
           src={backgroundImage}
@@ -95,15 +111,16 @@ const PageHero = ({
         />
         <div className="absolute inset-0 bg-noise opacity-[0.04] mix-blend-overlay sm:opacity-[0.05]" />
       </div>
+      </div>
       {/* Farvet bundkant — binder heroen sammen med sidens farvetone. */}
       <div
         aria-hidden
-        className="absolute inset-x-0 bottom-0 h-px sm:h-1"
+        className="absolute inset-x-0 bottom-0 z-10 h-px sm:h-1"
         style={{ backgroundImage: `linear-gradient(90deg, ${t.edge}, transparent 85%)` }}
       />
 
 
-      <div className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 ${padding}`}>
+      <div className={`relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 ${padding}`}>
         <div className="max-w-3xl">
           {eyebrow && (
             <span className="inline-flex items-center gap-2 rounded-full border border-background/15 bg-background/[0.06] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-background/75 sm:text-[11px] sm:tracking-[0.22em]">
