@@ -1511,7 +1511,10 @@ const CompletedRouteSummary = ({ routeId }: { routeId: string }) => {
                       </div>
                       <div className="text-right shrink-0">
                         <p className="font-semibold tabular-nums">
-                          {formatPrice(Math.round(Number(s.earnings || 0)).toLocaleString("da-DK"))}
+                          {/* formatPrice håndterer selv dansk formatering — et
+                              forudgående toLocaleString ville give dobbelt-
+                              konvertering ("12.500" → 12.5 → "12,50 kr."). */}
+                          {formatPrice(Math.round(Number(s.earnings || 0)))}
                         </p>
                       </div>
                     </li>
