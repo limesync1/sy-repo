@@ -33,6 +33,14 @@ interface PageHeroProps {
   size?: "default" | "compact";
   /** Farvetone for glows, eyebrow-prik og bundkant. */
   tone?: HeroTone;
+  /**
+   * Lad children (fx en søge-dropdown) rage ud over heroens bundkant uden at
+   * blive klippet. Baggrundslagene klippes stadig i en egen wrapper (samme
+   * trick som landing-heroens), mens sektionen selv mister overflow-hidden
+   * og isolate — ellers kan dropdownen hverken ses over kanten eller lægge
+   * sig over efterfølgende sticky-bars.
+   */
+  allowOverflow?: boolean;
 }
 
 /**
@@ -50,6 +58,7 @@ const PageHero = ({
   backgroundImage,
   size = "default",
   tone = "ocean",
+  allowOverflow = false,
 }: PageHeroProps) => {
   const t = TONES[tone];
   const padding =
