@@ -78,7 +78,7 @@ const PageHero = ({
           selv tillader overflow for dropdowns (allowOverflow). */}
       <div
         aria-hidden
-        className={`absolute inset-0 overflow-hidden ${allowOverflow ? "" : "-z-10"}`}
+        className={`pointer-events-none absolute inset-0 overflow-hidden ${allowOverflow ? "z-0" : "-z-10"}`}
       >
       {backgroundImage && (
         <img
@@ -115,12 +115,12 @@ const PageHero = ({
       {/* Farvet bundkant — binder heroen sammen med sidens farvetone. */}
       <div
         aria-hidden
-        className="absolute inset-x-0 bottom-0 h-px sm:h-1"
+        className="absolute inset-x-0 bottom-0 z-10 h-px sm:h-1"
         style={{ backgroundImage: `linear-gradient(90deg, ${t.edge}, transparent 85%)` }}
       />
 
 
-      <div className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 ${padding}`}>
+      <div className={`relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 ${padding}`}>
         <div className="max-w-3xl">
           {eyebrow && (
             <span className="inline-flex items-center gap-2 rounded-full border border-background/15 bg-background/[0.06] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-background/75 sm:text-[11px] sm:tracking-[0.22em]">
