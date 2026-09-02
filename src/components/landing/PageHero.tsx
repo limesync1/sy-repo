@@ -70,9 +70,16 @@ const PageHero = ({
 
   return (
     <section
-      className="relative isolate overflow-hidden text-background"
+      className={`relative text-background ${allowOverflow ? "" : "isolate overflow-hidden"}`}
       style={{ backgroundColor: "hsl(var(--hero-bg))" }}
     >
+      {/* Baggrundslagene samles i en overflow-hidden wrapper, så glows og
+          gradients stadig klippes ved heroens kanter — også når sektionen
+          selv tillader overflow for dropdowns (allowOverflow). */}
+      <div
+        aria-hidden
+        className={`absolute inset-0 overflow-hidden ${allowOverflow ? "" : "-z-10"}`}
+      >
       {backgroundImage && (
         <img
           src={backgroundImage}
@@ -103,6 +110,7 @@ const PageHero = ({
           style={{ backgroundColor: t.glowB }}
         />
         <div className="absolute inset-0 bg-noise opacity-[0.04] mix-blend-overlay sm:opacity-[0.05]" />
+      </div>
       </div>
       {/* Farvet bundkant — binder heroen sammen med sidens farvetone. */}
       <div
