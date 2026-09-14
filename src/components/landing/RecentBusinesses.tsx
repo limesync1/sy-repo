@@ -154,7 +154,7 @@ const RecentBusinesses = () => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-10 flex flex-col gap-6 md:mb-12 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
-            <h2 className="text-[2rem] font-semibold leading-[1.04] tracking-[-0.025em] md:text-[2.75rem] lg:text-[3.25rem]">
+            <h2 className="text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] sm:text-[2.35rem] lg:text-[2.75rem]">
               Nye virksomheder i Danmark
             </h2>
             <p className="mt-4 text-[15px] leading-7 text-ocean-foreground/80 md:text-base">

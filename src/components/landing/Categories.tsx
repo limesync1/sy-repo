@@ -73,7 +73,7 @@ const Categories = () => {
   const visible = expanded ? sorted : sorted.slice(0, INITIAL);
 
   return (
-    <section className="bg-background pb-16 pt-4 md:pb-24 md:pt-10">
+    <section className="bg-surface pb-16 pt-14 md:pb-24 md:pt-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-12 flex flex-col gap-6 md:mb-14 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
@@ -81,7 +81,7 @@ const Categories = () => {
               <span className="h-px w-6 bg-foreground/30" />
               Servicebrancher
             </span>
-            <h2 className="mt-5 text-[2rem] font-semibold leading-[1.04] tracking-[-0.025em] text-foreground md:text-[2.75rem] lg:text-[3.25rem]">
+            <h2 className="mt-5 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
               Find den rette branche
             </h2>
             <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground md:text-base">
@@ -101,7 +101,7 @@ const Categories = () => {
         {/* Desktop / tablet */}
         <div className="hidden grid-cols-2 gap-4 sm:grid sm:grid-cols-3 lg:grid-cols-5">
           {visible.map((cat) => (
-            <CategoryCard key={cat.key} cat={cat} className="min-h-[190px]" />
+            <CategoryCard key={cat.key} cat={cat} className="min-h-[168px]" />
           ))}
         </div>
 

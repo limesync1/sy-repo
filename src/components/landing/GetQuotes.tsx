@@ -94,7 +94,7 @@ const GetQuotes = () => {
               <span className="h-px w-6 bg-foreground/30" />
               Anbefalede virksomheder
             </span>
-            <h2 className="mt-5 text-[2rem] font-semibold leading-[1.04] tracking-[-0.025em] text-foreground md:text-[2.75rem] lg:text-[3.25rem]">
+            <h2 className="mt-5 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
               Håndplukkede serviceydere —{" "}
               <span className="bg-[linear-gradient(110deg,hsl(var(--accent))_0%,hsl(var(--hero-cyan-bright))_60%,hsl(var(--accent))_100%)] bg-[length:200%_100%] bg-clip-text text-transparent animate-gradient-pan">
                 klar til at hjælpe dig.
