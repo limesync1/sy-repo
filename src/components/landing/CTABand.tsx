@@ -41,7 +41,7 @@ const CTABand = ({ eyebrow, title, body, primary, secondary, className }: Props)
               {eyebrow}
             </span>
           )}
-          <h2 className="mt-4 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] sm:text-[2.35rem]">
+          <h2 className="mt-4 text-balance text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] sm:text-[2.35rem]">
             {title}
           </h2>
 
