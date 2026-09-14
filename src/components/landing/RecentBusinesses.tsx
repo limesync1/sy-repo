@@ -34,7 +34,7 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
       <Link
         to={`/v/${biz.slug}`}
         aria-label={`${biz.name}${biz.city ? `, ${biz.city}` : ""} — se virksomhed`}
-        className="flex flex-col gap-3"
+        className="flex flex-1 flex-col"
       >
         <div className="relative">
           <BusinessCover
@@ -87,7 +87,7 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
           </div>
 
 
-          <div className="flex items-center justify-between gap-3 pt-1">
+          <div className="mt-auto flex items-center justify-between gap-3 pt-2">
             {primaryCat ? (
               <span className="inline-flex items-center rounded-full bg-accent-soft px-2.5 py-1 text-[11px] font-semibold text-accent">
                 {primaryCat}
