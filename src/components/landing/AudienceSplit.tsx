@@ -37,6 +37,7 @@ const TRACKS = [
 
 const AudienceSplit = () => (
   <SectionShell
+    tone="muted"
     eyebrow="To måder at bruge Serviceydere"
     title="Hvad skal du bruge os til?"
     description="Serviceydere er både en markedsplads, hvor kunder finder lokale virksomheder — og det system, de virksomheder driver hverdagen i."
