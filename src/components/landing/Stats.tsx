@@ -28,11 +28,12 @@ const Stats = () => {
   const fmt = (n: number) => new Intl.NumberFormat("da-DK").format(n);
 
   const stats = [
-    { value: data ? fmt(data.businesses) : "—", label: "Verificerede virksomheder" },
-    { value: data && data.reviews > 0 ? fmt(data.reviews) : "Nye", label: "Anmeldelser" },
-    { value: data?.avg ?? "—", label: "Gennemsnitlig rating" },
-    { value: data ? fmt(data.cities) : "—", label: data?.cities === 1 ? "By dækket" : "Byer dækket" },
+    { value: data ? fmt(data.businesses) : "—", label: "Virksomheder med profil" },
+    { value: data && data.reviews > 0 ? fmt(data.reviews) : "0", label: "Anmeldelser fra kunder" },
+    { value: data?.avg ?? "—", label: "Gennemsnitlig vurdering" },
+    { value: data ? fmt(data.cities) : "—", label: data?.cities === 1 ? "By med udbydere" : "Byer med udbydere" },
   ];
+
 
   return (
     /* Tallene lægger sig som et løftet kort hen over kanten mellem heroen og
@@ -56,6 +57,11 @@ const Stats = () => {
               </div>
             ))}
           </div>
+          <p className="mt-6 border-t border-border/60 pt-4 text-[12px] leading-5 text-muted-foreground">
+            Tallene opdateres løbende. Alle virksomheder med Verificeret-stempel er tjekket på CVR,
+            og kun kunder med en bekræftet booking kan skrive en anmeldelse.
+          </p>
+
         </div>
       </div>
     </section>
