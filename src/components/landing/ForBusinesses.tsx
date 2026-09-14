@@ -288,9 +288,8 @@ const ForBusinesses = () => {
             <span>Regnskabsintegration til e-conomic eller Dinero: +{kr(p.price_accounting_integration_dkk)} kr/md.</span>
           </div>
         </div>
-
-        </div>
       </div>
+
     </section>
 
   );
