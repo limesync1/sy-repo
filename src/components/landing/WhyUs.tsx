@@ -1,4 +1,4 @@
-import { BadgeCheck, Star, CircleDollarSign, ShieldCheck, ArrowRight } from "lucide-react";
+import { BadgeCheck, Star, CircleDollarSign, ListFilter, ArrowRight } from "lucide-react";
 import SmartLink from "@/components/SmartLink";
 
 /**
@@ -25,7 +25,7 @@ const benefits = [
       "Kun kunder med en bekræftet booking kan anmelde — så stjernerne afspejler virkelige erfaringer.",
   },
   {
-    icon: ShieldCheck,
+    icon: ListFilter,
     title: "Sammenlign på sekunder",
     description:
       "Se pris, område, specialer og rating side om side, så du hurtigt finder det rigtige match.",
@@ -36,68 +36,50 @@ const WhyUs = () => {
   return (
     <section className="relative bg-background py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
-          <div className="lg:sticky lg:top-28 lg:self-start">
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl">
             <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
               <span className="h-px w-6 bg-foreground/30" />
               Hvorfor Serviceydere
             </span>
             <h2 className="mt-4 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
-              Trygt valg,
-              <br className="hidden sm:block" /> hver gang
+              Trygt valg, hver gang
             </h2>
             <p className="mt-4 max-w-md text-[15px] leading-7 text-muted-foreground">
-              Verificerede udbydere, ægte anmeldelser og priser i øjenhøjde — så du tør sige ja
-              til den rigtige.
+               Få et bedre grundlag for dit valg med tydelige profiler, relevante oplysninger og anmeldelser fra gennemførte bookinger.
             </p>
-            <div className="mt-7 flex flex-wrap gap-2.5">
+          </div>
+          <div className="flex flex-wrap gap-2.5">
               <SmartLink
                 to="/virksomheder"
-                className="group inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-all hover:-translate-y-0.5"
+                 className="group inline-flex items-center gap-2 rounded-lg bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-all hover:-translate-y-0.5"
               >
                 Find virksomheder
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </SmartLink>
               <SmartLink
                 to="/tilbud"
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5"
+                 className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5"
               >
                 Indhent 3 gratis tilbud
               </SmartLink>
-            </div>
-
-            {/* Lille hjælpekort fylder den ellers tomme venstre kolonne ud. */}
-            <div className="mt-8 max-w-md rounded-2xl border border-border/70 bg-card p-5">
-              <p className="text-[14px] font-semibold text-foreground">Er du i tvivl om noget?</p>
-              <p className="mt-1.5 text-[13.5px] leading-6 text-muted-foreground">
-                Se svar på de mest stillede spørgsmål om booking, priser og anmeldelser — eller skriv
-                til os i chatten nederst i hjørnet.
-              </p>
-              <SmartLink
-                to="/hjaelp#faq"
-                className="mt-3 inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-foreground underline-offset-4 hover:underline"
-              >
-                Læs spørgsmål og svar
-                <ArrowRight className="h-3.5 w-3.5" />
-              </SmartLink>
-            </div>
           </div>
+        </div>
 
-
-          <ul className="divide-y divide-border/70 border-y border-border/70">
+          <ul className="mt-10 grid border-y border-border md:grid-cols-2 lg:grid-cols-4 lg:divide-x lg:divide-border">
             {benefits.map((b, i) => (
               <li
                 key={b.title}
-                className="group flex gap-5 py-7 transition-colors first:pt-0 last:pb-0 sm:gap-7"
+                className="group flex gap-4 border-b border-border px-0 py-6 last:border-b-0 md:px-6 md:first:pl-0 md:[&:nth-child(3)]:border-b-0 lg:border-b-0 lg:first:pl-0 lg:last:pr-0"
               >
-                <span className="mt-1 hidden w-10 shrink-0 text-[13px] font-semibold tabular-nums text-muted-foreground/60 sm:block">
+                <span className="mt-1 hidden shrink-0 text-[11px] font-semibold tabular-nums text-muted-foreground sm:block">
                   {String(i + 1).padStart(2, "0")}
                 </span>
-                <span className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-secondary text-foreground transition-colors group-hover:bg-accent-soft group-hover:text-accent">
+                <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground transition-colors group-hover:bg-accent-soft group-hover:text-accent">
                   <b.icon className="h-5 w-5" />
                 </span>
                 <div className="min-w-0">
-                  <h3 className="text-[17px] font-semibold tracking-tight text-foreground sm:text-lg">
+                  <h3 className="text-[16px] font-semibold text-foreground">
                     {b.title}
                   </h3>
                   <p className="mt-1.5 text-[14px] leading-6 text-muted-foreground sm:text-[15px]">
@@ -107,7 +89,11 @@ const WhyUs = () => {
               </li>
             ))}
           </ul>
-        </div>
+          <div className="mt-6 flex justify-end">
+            <SmartLink to="/hjaelp#faq" className="inline-flex items-center gap-2 text-sm font-semibold text-foreground underline-offset-4 hover:underline">
+              Se spørgsmål og svar <ArrowRight className="h-4 w-4" />
+            </SmartLink>
+          </div>
       </div>
     </section>
   );

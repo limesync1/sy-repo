@@ -1,4 +1,4 @@
-import { ArrowRight, Search, Building2 } from "lucide-react";
+import { ArrowRight, Search, Building2, Check } from "lucide-react";
 import SmartLink from "@/components/SmartLink";
 import SectionShell from "./SectionShell";
 
@@ -13,70 +13,80 @@ import SectionShell from "./SectionShell";
 const TRACKS = [
   {
     icon: Search,
-    kicker: "Er du privat eller virksomhed med en opgave?",
-    title: "Find og book en serviceyder",
-    body: "Søg på branche og by, sammenlign priser og anmeldelser, og book direkte hos virksomheden. Du kan også beskrive opgaven én gang og få op til tre tilbud.",
-    note: "Gratis at bruge · ingen binding",
+    kicker: "Jeg skal have en opgave løst",
+    title: "Find hjælp til din opgave",
+    body: "Søg efter en lokal virksomhed, sammenlign profiler og book direkte — eller beskriv opgaven og modtag op til tre tilbud.",
+    points: ["Søg efter branche og by", "Sammenlign profiler og anmeldelser"],
+    note: "Gratis og uforpligtende for kunder",
     primary: { label: "Find services", to: "/virksomheder" },
     secondary: { label: "Indhent 3 tilbud", to: "/tilbud" },
-    tone: "bg-feature-cool text-feature-cool-foreground",
-    chip: "bg-feature-cool-foreground text-feature-cool",
+    tone: "bg-card text-foreground border-border",
+    chip: "bg-foreground text-background",
   },
   {
     icon: Building2,
-    kicker: "Driver du en servicevirksomhed?",
-    title: "Få kunder og styr på driften",
-    body: "Du får en profil på markedspladsen og et system til kunder, booking, ruteplanlægning og fakturering — samlet ét sted.",
+    kicker: "Jeg driver en servicevirksomhed",
+    title: "Bliv synlig og saml driften",
+    body: "Opret en virksomhedsprofil og brug systemet til kunder, booking, ruteplanlægning og fakturering.",
+    points: ["Profil på markedspladsen", "Kunder og drift samlet ét sted"],
     note: "14 dages gratis prøve · intet betalingskort",
     primary: { label: "Se systemet", to: "/software" },
     secondary: { label: "Opret virksomhed", to: "/opret-virksomhed" },
-    tone: "bg-sand text-sand-foreground",
-    chip: "bg-sand-foreground text-sand",
+    tone: "bg-card text-foreground border-border",
+    chip: "bg-accent text-accent-foreground",
   },
 ] as const;
 
 const AudienceSplit = () => (
   <SectionShell
     tone="muted"
-    eyebrow="To måder at bruge Serviceydere"
+    eyebrow="Vælg din vej"
     title="Hvad skal du bruge os til?"
-    description="Serviceydere er både en markedsplads, hvor kunder finder lokale virksomheder — og det system, de virksomheder driver hverdagen i."
+    description="Find en virksomhed til din opgave, eller få værktøjerne til at drive din egen servicevirksomhed."
     compact
   >
-    <div className="grid gap-4 lg:grid-cols-2 lg:gap-5">
+    <div className="grid overflow-hidden rounded-lg border border-border bg-card lg:grid-cols-2 lg:divide-x lg:divide-border">
       {TRACKS.map((t) => (
         <div
           key={t.title}
-          className={`flex flex-col rounded-[28px] p-6 transition-shadow duration-300 hover:shadow-[0_28px_56px_-40px_rgba(0,0,0,0.5)] sm:p-8 ${t.tone}`}
+          className={`group flex min-h-[350px] flex-col border-b p-6 transition-colors last:border-b-0 hover:bg-secondary/45 sm:p-8 lg:border-b-0 ${t.tone}`}
         >
           <span
-            className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl ${t.chip}`}
+            className={`inline-flex h-11 w-11 items-center justify-center rounded-lg ${t.chip}`}
             aria-hidden="true"
           >
             <t.icon className="h-5 w-5" />
           </span>
 
-          <p className="mt-6 text-[13px] font-medium opacity-70">{t.kicker}</p>
-          <h3 className="mt-1.5 text-xl font-semibold tracking-tight sm:text-[1.6rem]">{t.title}</h3>
-          <p className="mt-3 max-w-md text-[14.5px] leading-7 opacity-85">{t.body}</p>
+          <p className="mt-6 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t.kicker}</p>
+          <h3 className="mt-2 text-xl font-semibold sm:text-2xl">{t.title}</h3>
+          <p className="mt-3 max-w-lg text-[14.5px] leading-7 text-muted-foreground">{t.body}</p>
+          <ul className="mt-5 space-y-2">
+            {t.points.map((point) => (
+              <li key={point} className="flex items-center gap-2 text-sm text-foreground">
+                <Check className="h-4 w-4 shrink-0 text-accent" />
+                {point}
+              </li>
+            ))}
+          </ul>
 
           <div className="mt-auto pt-7">
             <div className="flex flex-wrap items-center gap-2.5">
               <SmartLink
                 to={t.primary.to}
-                className={`group inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold transition-transform hover:-translate-y-0.5 ${t.chip}`}
+                className={`inline-flex h-11 items-center gap-2 rounded-lg px-5 text-sm font-semibold transition-transform hover:-translate-y-0.5 ${t.chip}`}
               >
                 {t.primary.label}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </SmartLink>
               <SmartLink
                 to={t.secondary.to}
-                className="inline-flex h-10 items-center rounded-full border border-current/25 px-5 text-sm font-semibold transition-colors hover:bg-background/40"
+                className="inline-flex h-11 items-center rounded-lg border border-border px-5 text-sm font-semibold transition-colors hover:bg-secondary"
               >
                 {t.secondary.label}
               </SmartLink>
             </div>
-            <p className="mt-3.5 text-[12.5px] opacity-70">{t.note}</p>
+            <p className="mt-3.5 text-[12.5px] text-muted-foreground">{t.note}</p>
           </div>
         </div>
       ))}

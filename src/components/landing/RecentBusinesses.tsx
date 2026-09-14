@@ -26,7 +26,7 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
   const primaryCat = cats[0];
 
   return (
-    <article className="group relative flex w-[270px] shrink-0 flex-col overflow-hidden rounded-[28px] bg-card ring-1 ring-border/70 transition-[box-shadow,ring-color] duration-300 hover:ring-accent/50 hover:shadow-[0_26px_50px_-28px_hsl(var(--foreground)/0.45)] sm:w-[292px]">
+    <article className="group relative flex h-[390px] w-[270px] shrink-0 flex-col overflow-hidden rounded-lg border border-border bg-card transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-lg sm:w-[292px]">
       {/* Favorit-knappen ligger uden for linket — så vi undgår ulovlig
           nested <button> i <a> (skærmlæser-fjendtligt og ugyldig HTML).
           FavoriteButton positionerer sig selv absolut top-right. */}
@@ -44,11 +44,11 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
             ratio="16/10"
             sizes="(max-width: 640px) 80vw, 320px"
             widths={[320, 480, 640, 960]}
-            className="rounded-t-[28px]"
+            className="rounded-t-lg"
           />
           {biz.is_verified && (
             <div className="absolute left-3.5 top-3.5">
-              <div className="inline-flex items-center gap-1 rounded-full bg-card/95 px-2.5 py-1 text-[11px] font-semibold text-foreground shadow-[0_2px_8px_rgba(0,0,0,0.08)] backdrop-blur">
+               <div className="inline-flex items-center gap-1 rounded-md bg-card/95 px-2.5 py-1 text-[11px] font-semibold text-foreground shadow-sm backdrop-blur">
                 <ShieldCheck className="h-3 w-3 text-accent" />
                 Verificeret
               </div>
@@ -57,13 +57,13 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
         </div>
 
 
-        <div className="flex flex-1 flex-col space-y-3 p-5">
+        <div className="flex min-h-0 flex-1 flex-col p-5">
           {/* Logo står på linje med navnet — det gamle overlap gjorde smalle
               logoer til en tynd stribe henover coveret. */}
           <div className="flex min-w-0 items-start gap-3">
             <BusinessLogo url={biz.logo_url} name={biz.name} size={44} className="shadow-sm" />
             <div className="min-w-0 flex-1">
-              <h3 className="line-clamp-2 text-base font-semibold leading-snug tracking-tight text-foreground">
+               <h3 className="line-clamp-2 min-h-[44px] text-base font-semibold leading-snug text-foreground">
                 {biz.name}
               </h3>
               <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13.5px] text-muted-foreground">
@@ -76,7 +76,7 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
                 {biz._reviewCount && biz._reviewCount > 0 ? (
                   <span className="inline-flex items-center gap-1 text-foreground">
                     <Star className="h-3.5 w-3.5 fill-foreground text-foreground" />
-                    <span className="font-medium">{biz._avgRating!.toFixed(1)}</span>
+                    <span className="font-medium">{(biz._avgRating ?? 0).toFixed(1)}</span>
                     <span className="text-muted-foreground">({biz._reviewCount})</span>
                   </span>
                 ) : (
@@ -87,14 +87,14 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
           </div>
 
 
-          <div className="mt-auto flex items-center justify-between gap-3 pt-2">
+          <div className="mt-auto flex items-end justify-between gap-3 pt-4">
             {primaryCat ? (
-              <span className="inline-flex items-center rounded-full bg-accent-soft px-2.5 py-1 text-[11px] font-semibold text-accent">
+              <span className="line-clamp-1 inline-flex max-w-[120px] items-center rounded-md bg-accent-soft px-2.5 py-1 text-[11px] font-semibold text-accent">
                 {primaryCat}
               </span>
             ) : <span />}
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-3.5 py-1.5 text-[13px] font-semibold text-background transition-transform group-hover:translate-x-0.5">
-              Se virksomhed
+            <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-foreground">
+              Se profil
               <ArrowRight className="h-3.5 w-3.5" />
             </span>
           </div>
@@ -146,7 +146,7 @@ const RecentBusinesses = () => {
   return (
     <section className="relative isolate overflow-hidden bg-background py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-10 flex flex-col gap-6 md:mb-12 md:flex-row md:items-end md:justify-between">
+        <div className="mb-9 flex flex-col gap-6 md:mb-10 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
               <span className="h-px w-6 bg-foreground/30" />
@@ -156,13 +156,13 @@ const RecentBusinesses = () => {
               Nye virksomheder i Danmark
             </h2>
             <p className="mt-4 text-[15px] leading-7 text-muted-foreground md:text-base">
-              De senest tilføjede udbydere på platformen. Klik på en virksomhed for at se ydelser,
-              priser og anmeldelser — og book direkte.
+               Se de senest oprettede virksomhedsprofiler. Åbn en profil for at se ydelser,
+               priser, område og eventuelle anmeldelser.
             </p>
           </div>
           <Link
             to="/virksomheder"
-            className="group inline-flex items-center gap-2 self-start rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-all hover:-translate-y-0.5 md:self-auto"
+            className="group inline-flex items-center gap-2 self-start rounded-lg bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-all hover:-translate-y-0.5 md:self-auto"
           >
             Se alle virksomheder
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
