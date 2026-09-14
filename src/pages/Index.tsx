@@ -9,7 +9,6 @@ import SiteNav from "@/components/SiteNav";
 // stadig så initial JS-bundle bliver markant mindre.
 import Stats from "@/components/landing/Stats";
 import Categories from "@/components/landing/Categories";
-import RecentBusinesses from "@/components/landing/RecentBusinesses";
 const HowItWorks        = lazy(() => import("@/components/landing/HowItWorks"));
 const GetQuotes         = lazy(() => import("@/components/landing/GetQuotes"));
 const PopularCities     = lazy(() => import("@/components/landing/PopularCities"));
@@ -117,7 +116,6 @@ const Index = () => {
           <Reveal><Categories /></Reveal>
           <Reveal><HowItWorks /></Reveal>
           <Reveal><GetQuotes /></Reveal>
-          <Reveal><RecentBusinesses /></Reveal>
           <Reveal><Testimonials /></Reveal>
           <Reveal><WhyUs /></Reveal>
           <Reveal><PopularCities /></Reveal>

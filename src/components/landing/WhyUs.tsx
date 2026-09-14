@@ -34,7 +34,7 @@ const benefits = [
 
 const WhyUs = () => {
   return (
-    <section className="relative bg-background py-16 md:py-24">
+    <section className="relative bg-surface py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">

@@ -26,7 +26,7 @@ const REGIONS = [
 
 const PopularCities = () => (
   <SectionShell
-    tone="muted"
+    tone="default"
     eyebrow="Hele Danmark"
     title="Se hvem der kører ud til dig"
     description="Vælg din by og få virksomhederne i dit område — med priser, anmeldelser og ledige tider."

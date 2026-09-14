@@ -249,16 +249,10 @@
      glider blødt på plads. GPU-accelereret via translate3d for at undgå
      jank på mobile enheder. */
   .reveal {
-    opacity: 0;
-    transition: opacity 550ms cubic-bezier(0.22, 1, 0.36, 1);
-    will-change: opacity;
     /* Lader browseren springe layout/paint over for off-screen sektioner —
        reducerer arbejde markant på forsider med mange sektioner. */
     content-visibility: auto;
     contain-intrinsic-size: 1px 600px;
-  }
-  .reveal.is-visible {
-    opacity: 1;
   }
 
   /* Blød glow-ring rundt om søgefeltet når det er fokuseret. */
