@@ -39,20 +39,18 @@ const HowItWorks = () => {
           </p>
         </div>
 
-        <div className="relative mt-10 md:mt-14">
-          <div aria-hidden className="absolute left-6 top-6 hidden h-px w-[calc(100%-3rem)] bg-ocean-foreground/20 md:block" />
-          <ol className="relative grid gap-8 md:grid-cols-3 md:gap-10">
+        <ol className="mt-10 grid gap-3 md:mt-14 md:grid-cols-3">
             {steps.map((step, i) => (
-              <li key={step.title} className="relative">
-                <div className="flex items-center gap-4">
-                  <span
-                    className="relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground ring-8 ring-ocean"
-                  >
+              <li key={step.title} className="rounded-lg bg-ocean-foreground/[0.06] p-6 sm:p-7">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-xs font-semibold uppercase tracking-[0.16em] text-ocean-foreground/60">
+                    Trin {i + 1}
+                  </span>
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
                     <step.icon className="h-5 w-5" aria-hidden="true" />
                   </span>
-                  <span className="text-xs font-semibold uppercase tracking-[0.16em] text-ocean-foreground/60">Trin {i + 1}</span>
                 </div>
-                <div className="mt-5 md:pr-8">
+                <div className="mt-8">
                   <h3 className="text-lg font-semibold sm:text-xl">{step.title}</h3>
                   <p className="mt-2 max-w-sm text-[14px] leading-6 text-ocean-foreground/70">
                     {step.description}
@@ -60,8 +58,7 @@ const HowItWorks = () => {
                 </div>
               </li>
             ))}
-          </ol>
-        </div>
+        </ol>
 
         <div className="mt-12 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <SmartLink
