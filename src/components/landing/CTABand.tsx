@@ -36,14 +36,15 @@ const CTABand = ({ eyebrow, title, body, primary, secondary, className }: Props)
       <div className="relative flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-2xl">
           {eyebrow && (
-            <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-ocean-foreground/70">
-              <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-accent" />
+            <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-ocean-foreground/70">
+              <span aria-hidden className="h-px w-6 bg-ocean-foreground/40" />
               {eyebrow}
             </span>
           )}
-          <h2 className="mt-3 text-[1.6rem] font-semibold leading-[1.12] tracking-[-0.025em] sm:text-[2.1rem]">
+          <h2 className="mt-4 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] sm:text-[2.35rem]">
             {title}
           </h2>
+
           {body && <p className="mt-3 text-[15px] leading-7 text-ocean-foreground/75">{body}</p>}
         </div>
         <div className="flex flex-col gap-3 sm:flex-row lg:shrink-0">
