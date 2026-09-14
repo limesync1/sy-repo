@@ -148,31 +148,31 @@ const RecentBusinesses = () => {
 
 
   return (
-    <section className="relative isolate overflow-hidden bg-ocean py-16 text-ocean-foreground md:py-24">
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute -left-20 top-0 h-80 w-80 rounded-full bg-accent/25 blur-[130px]" />
-        <div className="absolute -right-16 bottom-0 h-96 w-96 rounded-full bg-feature-lilac/20 blur-[140px]" />
-      </div>
-
+    <section className="relative isolate overflow-hidden bg-background py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-10 flex flex-col gap-6 md:mb-12 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
-            <h2 className="text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] sm:text-[2.35rem] lg:text-[2.75rem]">
+            <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+              <span className="h-px w-6 bg-foreground/30" />
+              Nye på platformen
+            </span>
+            <h2 className="mt-4 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
               Nye virksomheder i Danmark
             </h2>
-            <p className="mt-4 text-[15px] leading-7 text-ocean-foreground/80 md:text-base">
+            <p className="mt-4 text-[15px] leading-7 text-muted-foreground md:text-base">
               De senest tilføjede udbydere på platformen. Klik på en virksomhed for at se ydelser,
               priser og anmeldelser — og book direkte.
             </p>
           </div>
           <Link
             to="/virksomheder"
-            className="group inline-flex items-center gap-2 self-start rounded-full bg-ocean-foreground px-5 py-2.5 text-sm font-semibold text-ocean transition-all hover:-translate-y-0.5 md:self-auto"
+            className="group inline-flex items-center gap-2 self-start rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-all hover:-translate-y-0.5 md:self-auto"
           >
             Se alle virksomheder
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
         </div>
+
 
 
         <HorizontalScroller>
