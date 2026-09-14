@@ -28,11 +28,12 @@ const Stats = () => {
   const fmt = (n: number) => new Intl.NumberFormat("da-DK").format(n);
 
   const stats = [
-    { value: data ? fmt(data.businesses) : "—", label: "Verificerede virksomheder" },
-    { value: data && data.reviews > 0 ? fmt(data.reviews) : "Nye", label: "Anmeldelser" },
-    { value: data?.avg ?? "—", label: "Gennemsnitlig rating" },
-    { value: data ? fmt(data.cities) : "—", label: data?.cities === 1 ? "By dækket" : "Byer dækket" },
+    { value: data ? fmt(data.businesses) : "—", label: "Virksomheder med profil" },
+    { value: data && data.reviews > 0 ? fmt(data.reviews) : "0", label: "Anmeldelser fra kunder" },
+    { value: data?.avg ?? "—", label: "Gennemsnitlig vurdering" },
+    { value: data ? fmt(data.cities) : "—", label: data?.cities === 1 ? "By med udbydere" : "Byer med udbydere" },
   ];
+
 
   return (
     /* Tallene lægger sig som et løftet kort hen over kanten mellem heroen og
