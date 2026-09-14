@@ -113,15 +113,16 @@ const Index = () => {
       <Suspense fallback={null}>
         <main id="main">
           <Reveal><Stats /></Reveal>
+          <Reveal><AudienceSplit /></Reveal>
           <Reveal><Categories /></Reveal>
           <Reveal><HowItWorks /></Reveal>
           <Reveal><GetQuotes /></Reveal>
           <Reveal><RecentBusinesses /></Reveal>
-          <Reveal><PopularCities /></Reveal>
-          <Reveal><AudienceSplit /></Reveal>
           <Reveal><Testimonials /></Reveal>
           <Reveal><WhyUs /></Reveal>
+          <Reveal><PopularCities /></Reveal>
           <Reveal><ForBusinesses /></Reveal>
+
           <Reveal>
             <CTABand
               eyebrow="Kom i gang"
