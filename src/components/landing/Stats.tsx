@@ -45,12 +45,12 @@ const Stats = () => {
             {stats.map((s, i) => (
               <div
                 key={s.label}
-                className={`text-center md:text-left ${i > 0 ? "md:border-l md:border-border/60 md:pl-10" : ""}`}
+                className={`text-left ${i > 0 ? "md:border-l md:border-border/60 md:pl-10" : ""}`}
               >
                 <div className="text-[1.75rem] font-semibold leading-none tracking-[-0.02em] text-foreground tabular-nums md:text-[2.25rem]">
                   {s.value}
                 </div>
-                <div className="mt-2.5 text-[10.5px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                <div className="mt-2 text-[11px] font-medium leading-snug text-muted-foreground md:text-[10.5px] md:uppercase md:tracking-[0.2em]">
                   {s.label}
                 </div>
               </div>

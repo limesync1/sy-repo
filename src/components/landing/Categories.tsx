@@ -122,7 +122,7 @@ const Categories = () => {
         <div className="sm:hidden">
           <HorizontalScroller>
             {sorted.map((cat) => (
-              <CategoryCard key={cat.key} cat={cat} className="w-[170px] shrink-0 snap-start" />
+              <CategoryCard key={cat.key} cat={cat} className="w-[195px] shrink-0 snap-start" />
             ))}
           </HorizontalScroller>
         </div>

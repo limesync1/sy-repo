@@ -42,7 +42,7 @@ const HeroSection = () => {
         <div className="absolute inset-0 bg-noise opacity-[0.05] mix-blend-overlay" />
       </div>
 
-      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-4 pb-14 pt-10 sm:px-6 sm:pb-20 sm:pt-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:px-8 lg:pb-28 lg:pt-20">
+      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-4 pb-14 pt-10 sm:px-6 sm:pb-20 sm:pt-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:px-8 lg:pb-20 lg:pt-16">
         <div className="max-w-2xl">
           <span className="animate-fade-in inline-flex items-center gap-2.5 text-[10.5px] font-medium uppercase tracking-[0.24em] text-background/60 sm:text-[11px]">
             <span className="h-px w-6 bg-[hsl(var(--hero-cyan))]" />
@@ -73,11 +73,12 @@ const HeroSection = () => {
             </div>
           </div>
 
-          <div className="animate-fade-in [animation-delay:300ms] mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <div className="animate-fade-in [animation-delay:300ms] mt-6 grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap sm:gap-3">
             <SmartLink to="/tilbud" className="sm:w-auto">
+
               <Button
                 size="lg"
-                className="group h-12 w-full gap-2 rounded-full bg-background px-7 text-sm font-semibold text-foreground shadow-lg transition-all duration-200 hover:bg-background/90 active:scale-[0.98] sm:w-auto"
+                className="group h-12 w-full gap-2 rounded-full bg-background px-5 text-sm sm:px-7 font-semibold text-foreground shadow-lg transition-all duration-200 hover:bg-background/90 active:scale-[0.98] sm:w-auto"
               >
                 Indhent 3 tilbud
                 <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
@@ -87,7 +88,7 @@ const HeroSection = () => {
               <Button
                 size="lg"
                 variant="outline"
-                className="group h-12 w-full gap-2 rounded-full border-background/30 bg-transparent px-7 text-sm font-semibold text-background transition-all duration-200 hover:bg-background/10 hover:text-background active:scale-[0.98] sm:w-auto"
+                className="group h-12 w-full gap-2 rounded-full border-background/30 bg-transparent px-5 text-sm sm:px-7 font-semibold text-background transition-all duration-200 hover:bg-background/10 hover:text-background active:scale-[0.98] sm:w-auto"
               >
                 Find services
                 <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
