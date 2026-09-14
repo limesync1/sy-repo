@@ -68,11 +68,13 @@ const ForBusinesses = () => {
               For virksomheder
             </span>
             <h2 className="mt-5 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
-              Drevet til at vækste din serviceforretning.
+              Alt du skal bruge for at drive din servicevirksomhed
             </h2>
             <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground md:text-base">
-              Find nye kunder, planlæg dagens ruter og send fakturaer — fra ét samlet panel. {p.trial_days} dages gratis prøve uden betalingskort, og ingen binding.
+              Få nye kunder, planlæg dagens ruter og send fakturaer fra ét panel. Start med {p.trial_days} dages
+              gratis prøve — uden betalingskort og uden binding.
             </p>
+
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5 self-start md:self-auto">
