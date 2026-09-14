@@ -42,7 +42,7 @@ const HeroSection = () => {
         <div className="absolute inset-0 bg-noise opacity-[0.05] mix-blend-overlay" />
       </div>
 
-      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-4 pb-14 pt-10 sm:px-6 sm:pb-20 sm:pt-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:px-8 lg:pb-28 lg:pt-20">
+      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-4 pb-14 pt-10 sm:px-6 sm:pb-20 sm:pt-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:px-8 lg:pb-20 lg:pt-16">
         <div className="max-w-2xl">
           <span className="animate-fade-in inline-flex items-center gap-2.5 text-[10.5px] font-medium uppercase tracking-[0.24em] text-background/60 sm:text-[11px]">
             <span className="h-px w-6 bg-[hsl(var(--hero-cyan))]" />
