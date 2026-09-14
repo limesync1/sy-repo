@@ -65,28 +65,31 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
             size={48}
             className="absolute -top-7 left-4 border-2 border-card shadow-md"
           />
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <h3 className="truncate text-base font-semibold text-foreground">{biz.name}</h3>
+          {/* Navnet får sin egen linje, så det aldrig bliver klippet af
+              rating-chippen ved siden af. */}
+          <div className="min-w-0">
+            <h3 className="line-clamp-2 text-base font-semibold leading-snug tracking-tight text-foreground">
+              {biz.name}
+            </h3>
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
               {biz.city && (
-                <div className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                  <MapPin className="h-3.5 w-3.5" />
+                <span className="inline-flex min-w-0 items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5 shrink-0" />
                   <span className="truncate">{biz.city}</span>
-                </div>
+                </span>
+              )}
+              {biz._reviewCount && biz._reviewCount > 0 ? (
+                <span className="inline-flex items-center gap-1 text-foreground">
+                  <Star className="h-3.5 w-3.5 fill-foreground text-foreground" />
+                  <span className="font-medium">{biz._avgRating!.toFixed(1)}</span>
+                  <span className="text-muted-foreground">({biz._reviewCount})</span>
+                </span>
+              ) : (
+                <span className="text-[13px] text-muted-foreground/80">Ny profil</span>
               )}
             </div>
-            {biz._reviewCount && biz._reviewCount > 0 ? (
-              <div className="flex shrink-0 items-center gap-1 text-sm text-foreground">
-                <Star className="h-3.5 w-3.5 fill-foreground text-foreground" />
-                <span className="font-medium">{biz._avgRating!.toFixed(1)}</span>
-              </div>
-            ) : (
-              <span className="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                Ingen anmeldelser endnu
-              </span>
-            )}
-
           </div>
+
 
           <div className="flex items-center justify-between gap-3 pt-1">
             {primaryCat ? (
