@@ -95,15 +95,13 @@ const GetQuotes = () => {
               Anbefalede virksomheder
             </span>
             <h2 className="mt-5 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
-              Håndplukkede serviceydere —{" "}
-              <span className="bg-[linear-gradient(110deg,hsl(var(--accent))_0%,hsl(var(--hero-cyan-bright))_60%,hsl(var(--accent))_100%)] bg-[length:200%_100%] bg-clip-text text-transparent animate-gradient-pan">
-                klar til at hjælpe dig.
-              </span>
+              Tre virksomheder vi selv ville ringe til
             </h2>
             <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground md:text-base">
-              Vi fremhæver verificerede virksomheder med stærke anmeldelser og
-              tydelig profil, så du hurtigt finder en udbyder du kan stole på.
+              Vi fremhæver virksomheder med aktivt CVR, en udfyldt profil og gode anmeldelser fra
+              rigtige opgaver. Klik dig ind og se ydelser, priser og ledige tider.
             </p>
+
 
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <SmartLink to="/virksomheder">
