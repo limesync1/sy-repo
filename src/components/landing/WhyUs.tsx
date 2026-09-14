@@ -30,7 +30,7 @@ const benefits = [
 
 const WhyUs = () => {
   return (
-    <section className="relative bg-background py-24 md:py-40">
+    <section className="relative bg-background py-16 md:py-24">
       <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-12 flex flex-col gap-6 md:mb-14 md:flex-row md:items-end md:justify-between">

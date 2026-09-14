@@ -65,7 +65,7 @@ const Categories = () => {
   const visible = expanded ? sorted : sorted.slice(0, INITIAL);
 
   return (
-    <section className="bg-background py-20 md:py-32">
+    <section className="bg-background py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-12 flex flex-col gap-6 md:mb-14 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">

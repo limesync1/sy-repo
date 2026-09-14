@@ -25,7 +25,7 @@ const steps = [
 
 const HowItWorks = () => {
   return (
-    <section className="relative isolate overflow-hidden bg-surface py-20 md:py-32">
+    <section className="relative isolate overflow-hidden bg-surface py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-14 max-w-2xl md:mb-16">
           <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
