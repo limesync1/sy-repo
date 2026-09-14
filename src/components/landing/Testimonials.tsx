@@ -61,7 +61,7 @@ const Testimonials = () => {
   if (!shuffled.length) return null;
 
   return (
-    <section className="bg-secondary py-16 md:py-24">
+    <section className="bg-surface py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-12 flex flex-col gap-6 md:mb-14 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
@@ -69,7 +69,7 @@ const Testimonials = () => {
               <span className="h-px w-6 bg-foreground/30" />
               Anmeldelser
             </span>
-            <h2 className="mt-5 text-[2rem] font-semibold leading-[1.04] tracking-[-0.025em] text-foreground md:text-[2.75rem] lg:text-[3.25rem]">
+            <h2 className="mt-5 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
               Det siger kunderne om udbyderne
             </h2>
             <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground md:text-base">

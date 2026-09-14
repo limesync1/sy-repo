@@ -37,35 +37,43 @@ const CategoryCard = ({
     key={cat.key}
     to={`/search?category=${encodeURIComponent(cat.key)}`}
     style={{ ["--ind" as string]: `${cat.hue}` }}
-    className={`group relative flex flex-col justify-between overflow-hidden rounded-[28px] border border-border/70 bg-card p-6 text-foreground shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-[0_18px_40px_-30px_hsl(var(--foreground)/0.35)] ${className ?? ""}`}
+    className={`group relative flex flex-col justify-between overflow-hidden rounded-[22px] border border-border/60 bg-card p-5 text-foreground transition-all duration-300 hover:-translate-y-1 hover:border-[hsl(var(--ind)_60%_45%/0.45)] hover:shadow-[0_22px_44px_-32px_hsl(var(--ind)_60%_35%/0.6)] ${className ?? ""}`}
   >
-    {/* Diskret kulør pr. branche — kun som tynd topstribe, ikke som flade. */}
+    {/* Branchekuløren ligger som en blød vask der først tændes på hover. */}
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-x-0 top-0 h-[3px] opacity-70 transition-opacity duration-300 group-hover:opacity-100"
-      style={{ backgroundColor: "hsl(var(--ind) 65% 45%)" }}
+      className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+      style={{
+        backgroundImage:
+          "radial-gradient(120% 100% at 100% 0%, hsl(var(--ind) 70% 50% / 0.16) 0%, transparent 70%)",
+      }}
     />
-    <IndustryIcon category={cat.key} className="h-10 w-10" alt={cat.label} />
-    <div className="relative mt-4">
-      <div className="text-[15px] font-semibold leading-tight">{cat.label}</div>
+    <div className="relative flex items-start justify-between">
+      <span
+        className="flex h-12 w-12 items-center justify-center rounded-2xl ring-1 ring-inset ring-[hsl(var(--ind)_60%_45%/0.2)]"
+        style={{ backgroundColor: "hsl(var(--ind) 70% 50% / 0.1)" }}
+      >
+        <IndustryIcon category={cat.key} className="h-7 w-7" alt={cat.label} />
+      </span>
+      <ArrowRight className="h-4 w-4 -translate-x-1 text-muted-foreground opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
+    </div>
+    <div className="relative mt-6">
+      <div className="text-[15px] font-semibold leading-tight tracking-tight">{cat.label}</div>
       {cat.hint && (
         <div className="mt-1.5 line-clamp-1 text-[11px] font-medium text-muted-foreground">{cat.hint}</div>
       )}
-      <div className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground transition-colors group-hover:text-foreground">
-        Se virksomheder
-        <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-      </div>
     </div>
   </Link>
 
 );
+
 
 const Categories = () => {
   const [expanded, setExpanded] = useState(false);
   const visible = expanded ? sorted : sorted.slice(0, INITIAL);
 
   return (
-    <section className="bg-background pb-16 pt-4 md:pb-24 md:pt-10">
+    <section className="bg-surface pb-16 pt-14 md:pb-24 md:pt-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-12 flex flex-col gap-6 md:mb-14 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
@@ -73,7 +81,7 @@ const Categories = () => {
               <span className="h-px w-6 bg-foreground/30" />
               Servicebrancher
             </span>
-            <h2 className="mt-5 text-[2rem] font-semibold leading-[1.04] tracking-[-0.025em] text-foreground md:text-[2.75rem] lg:text-[3.25rem]">
+            <h2 className="mt-5 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
               Find den rette branche
             </h2>
             <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground md:text-base">
@@ -93,7 +101,7 @@ const Categories = () => {
         {/* Desktop / tablet */}
         <div className="hidden grid-cols-2 gap-4 sm:grid sm:grid-cols-3 lg:grid-cols-5">
           {visible.map((cat) => (
-            <CategoryCard key={cat.key} cat={cat} className="min-h-[190px]" />
+            <CategoryCard key={cat.key} cat={cat} className="min-h-[168px]" />
           ))}
         </div>
 
