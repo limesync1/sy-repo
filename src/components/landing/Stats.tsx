@@ -57,6 +57,11 @@ const Stats = () => {
               </div>
             ))}
           </div>
+          <p className="mt-6 border-t border-border/60 pt-4 text-[12px] leading-5 text-muted-foreground">
+            Tallene opdateres løbende. Alle virksomheder med Verificeret-stempel er tjekket på CVR,
+            og kun kunder med en bekræftet booking kan skrive en anmeldelse.
+          </p>
+
         </div>
       </div>
     </section>
