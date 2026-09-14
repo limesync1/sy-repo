@@ -73,8 +73,9 @@ const HeroSection = () => {
             </div>
           </div>
 
-          <div className="animate-fade-in [animation-delay:300ms] mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <div className="animate-fade-in [animation-delay:300ms] mt-6 grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap sm:gap-3">
             <SmartLink to="/tilbud" className="sm:w-auto">
+
               <Button
                 size="lg"
                 className="group h-12 w-full gap-2 rounded-full bg-background px-7 text-sm font-semibold text-foreground shadow-lg transition-all duration-200 hover:bg-background/90 active:scale-[0.98] sm:w-auto"
