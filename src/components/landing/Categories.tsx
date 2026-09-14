@@ -99,33 +99,38 @@ const Categories = () => {
         </div>
 
         {/* Desktop / tablet */}
-        <div className="hidden grid-cols-2 gap-4 sm:grid sm:grid-cols-3 lg:grid-cols-5">
+        <div id="all-service-categories" className="hidden grid-cols-2 gap-4 sm:grid sm:grid-cols-3 lg:grid-cols-5">
           {visible.map((cat) => (
             <CategoryCard key={cat.key} cat={cat} className="min-h-[150px]" />
           ))}
         </div>
 
-        {!expanded && sorted.length > INITIAL && (
+        {sorted.length > INITIAL && (
           <div className="mt-8 hidden justify-center sm:flex">
             <Button
               variant="outline"
               type="button"
-              onClick={() => setExpanded(true)}
+              aria-expanded={expanded}
+              aria-controls="all-service-categories"
+              onClick={() => setExpanded((current) => !current)}
               className="group h-11 rounded-lg px-5"
             >
-              Vis alle {sorted.length} brancher
-              <ChevronDown className="h-4 w-4 transition-transform group-hover:translate-y-0.5" />
+              {expanded ? "Vis færre brancher" : `Vis alle ${sorted.length} brancher`}
+              <ChevronDown className={`h-4 w-4 transition-transform ${expanded ? "rotate-180" : "group-hover:translate-y-0.5"}`} />
             </Button>
           </div>
         )}
 
         {/* Mobil — vandret scroll med alle brancher */}
         <div className="sm:hidden">
-          <HorizontalScroller>
+          <HorizontalScroller ariaLabel="Servicebrancher — stryg vandret for at se flere">
             {sorted.map((cat) => (
               <CategoryCard key={cat.key} cat={cat} className="min-h-[150px] w-[180px] shrink-0 snap-start" />
             ))}
           </HorizontalScroller>
+          <p className="mt-3 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+            Stryg for at se alle {sorted.length} brancher <ArrowRight className="h-3.5 w-3.5" />
+          </p>
         </div>
       </div>
     </section>

@@ -6,6 +6,7 @@ import HorizontalScroller from "./HorizontalScroller";
 import FavoriteButton from "@/components/business/FavoriteButton";
 import BusinessCover from "@/components/shared/media/BusinessCover";
 import BusinessLogo from "@/components/shared/media/BusinessLogo";
+import { cn } from "@/lib/utils";
 
 type Biz = {
   id: string;
@@ -21,12 +22,12 @@ type Biz = {
   _reviewCount?: number;
 };
 
-const BusinessCard = ({ biz }: { biz: Biz }) => {
+const BusinessCard = ({ biz, className }: { biz: Biz; className?: string }) => {
   const cats = biz.categories?.length ? biz.categories : biz.category ? [biz.category] : [];
   const primaryCat = cats[0];
 
   return (
-    <article className="group relative flex h-[390px] w-[270px] shrink-0 flex-col overflow-hidden rounded-lg border border-border bg-card transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-lg sm:w-[292px]">
+    <article className={cn("group relative flex h-[390px] w-[270px] shrink-0 flex-col overflow-hidden rounded-lg border border-border bg-card transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-lg sm:w-[292px]", className)}>
       {/* Favorit-knappen ligger uden for linket — så vi undgår ulovlig
           nested <button> i <a> (skærmlæser-fjendtligt og ugyldig HTML).
           FavoriteButton positionerer sig selv absolut top-right. */}
@@ -171,11 +172,19 @@ const RecentBusinesses = () => {
 
 
 
-        <HorizontalScroller>
-          {businesses.map((biz) => (
-            <BusinessCard key={biz.id} biz={biz} />
-          ))}
-        </HorizontalScroller>
+        {businesses.length <= 3 ? (
+          <div className="grid gap-4 md:grid-cols-3">
+            {businesses.map((biz) => (
+              <BusinessCard key={biz.id} biz={biz} className="w-full sm:w-full" />
+            ))}
+          </div>
+        ) : (
+          <HorizontalScroller ariaLabel="Nye virksomheder — stryg vandret for at se flere">
+            {businesses.map((biz) => (
+              <BusinessCard key={biz.id} biz={biz} />
+            ))}
+          </HorizontalScroller>
+        )}
       </div>
     </section>
   );
