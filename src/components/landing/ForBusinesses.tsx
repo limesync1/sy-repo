@@ -213,121 +213,82 @@ const ForBusinesses = () => {
           ))}
         </div>
 
-        {/* Gennemsigtig prismodel — tallene kommer fra samme kilde som prissiden. */}
-        <div className="mt-16 overflow-hidden rounded-[28px] border border-border/70 bg-card">
-          <div className="border-b border-border/70 bg-secondary/60 px-8 py-8 sm:px-10">
-            <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-              <span className="h-px w-6 bg-foreground/30" />
-              Prismodel
-            </span>
-            <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-              <div>
-                <h3 className="text-[1.6rem] font-semibold leading-tight tracking-[-0.02em] text-foreground sm:text-[2rem]">
-                  Én fast pris. Ingen skjulte gebyrer.
-                </h3>
-                <p className="mt-2 max-w-xl text-[14.5px] leading-6 text-muted-foreground">
-                  {p.trial_days} dages gratis prøve — du skal ikke oplyse betalingskort for at komme i gang.
-                  Vil du fortsætte, tilføjer du kort i panelet. Opstartsgebyret betales først på første faktura efter prøven.
-                  Alle priser er ekskl. moms.
-                </p>
-              </div>
+        {/* Prismodel i kort form — de fulde detaljer står på prissiden, så
+            forsiden ikke bliver til en prisliste. Tallene kommer fra samme
+            kilde som /software/priser. */}
+        <div className="mt-14 overflow-hidden rounded-[28px] border border-border/70 bg-card">
+          <div className="grid gap-8 p-7 sm:p-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+            <div>
+              <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                <span className="h-px w-6 bg-foreground/30" />
+                Prismodel
+              </span>
+              <h3 className="mt-4 text-[1.5rem] font-semibold leading-tight tracking-[-0.02em] text-foreground sm:text-[1.9rem]">
+                Én fast månedspris — ingen skjulte gebyrer
+              </h3>
+              <p className="mt-3 max-w-md text-[14.5px] leading-7 text-muted-foreground">
+                Du betaler først efter de {p.trial_days} gratis dage, og du vælger selv om du vil fortsætte.
+                Alle priser er uden moms.
+              </p>
               <SmartLink
                 to="/software/priser"
-                className="group inline-flex shrink-0 items-center gap-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
+                className="group mt-6 inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-transform hover:-translate-y-0.5"
               >
                 Beregn jeres pris
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </SmartLink>
             </div>
-          </div>
 
-          <div className="grid gap-4 p-6 sm:p-8 md:grid-cols-2">
-            {/* Basis */}
-            <div className="flex flex-col rounded-2xl border-2 border-foreground/90 bg-background p-6">
-              <div className="flex items-baseline justify-between">
-                <h4 className="text-base font-semibold text-foreground">Basis — alt det vigtige</h4>
-                <span className="rounded-full bg-foreground px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-background">
-                  Inkluderet
-                </span>
-              </div>
-              <div className="mt-3 flex items-baseline gap-1">
-                <span className="text-4xl font-semibold tabular-nums text-foreground">{kr(p.base_price_dkk)}</span>
-                <span className="text-sm text-muted-foreground">kr/md</span>
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Engangs opstartsgebyr: {kr(p.startup_fee_dkk)} kr (på første faktura efter prøven)
-              </p>
-              <ul className="mt-5 space-y-2 text-[13.5px] text-foreground">
-                {[
-                  "Virksomhedsprofil med søgesynlighed",
-                  "Ruteplanlægning + medarbejder-app",
-                  "Kundekartotek og bookingkalender",
-                  "Leads og livechat — gratis at slå til/fra",
-                  "1 medarbejderlogin inkluderet",
-                ].map((t) => (
-                  <li key={t} className="flex items-start gap-2">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-foreground" />
-                    {t}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Tilvalg */}
-            <div className="flex flex-col rounded-2xl border border-border bg-background p-6">
-              <div className="flex items-baseline justify-between">
-                <h4 className="text-base font-semibold text-foreground">Tilvalg — kun det I bruger</h4>
-                <span className="rounded-full border border-border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Frivilligt
-                </span>
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">Slå til og fra når som helst i panelet.</p>
-
-              <div className="mt-5 space-y-4">
-                <div className="flex items-start justify-between gap-4 border-b border-border/60 pb-4">
-                  <div>
-                    <div className="text-sm font-medium text-foreground">Regnskabsintegration</div>
-                    <div className="mt-0.5 text-xs text-muted-foreground">Automatiske fakturaer til e-conomic eller Dinero.</div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {[
+                {
+                  value: `${kr(p.base_price_dkk)} kr`,
+                  unit: "pr. måned",
+                  label: "Basis med profil, kunder, booking, ruteplanlægning og 1 medarbejderlogin",
+                  strong: true,
+                },
+                {
+                  value: `+${kr(p.price_per_employee_login_dkk)} kr`,
+                  unit: "pr. måned",
+                  label: "Pr. ekstra medarbejder ud over den første",
+                },
+                {
+                  value: `${kr(p.startup_fee_dkk)} kr`,
+                  unit: "engangsbeløb",
+                  label: "Opstart — betales først på den første faktura efter prøveperioden",
+                },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className={`rounded-2xl p-5 ${
+                    item.strong ? "bg-foreground text-background" : "border border-border bg-background"
+                  }`}
+                >
+                  <div className="text-2xl font-semibold tabular-nums tracking-tight">{item.value}</div>
+                  <div className={`mt-0.5 text-[12px] ${item.strong ? "text-background/70" : "text-muted-foreground"}`}>
+                    {item.unit}
                   </div>
-                  <div className="shrink-0 text-right">
-                    <div className="text-base font-semibold tabular-nums text-foreground">+{kr(p.price_accounting_integration_dkk)} kr</div>
-                    <div className="text-[11px] text-muted-foreground">/md</div>
-                  </div>
+                  <p
+                    className={`mt-3 text-[13px] leading-5 ${
+                      item.strong ? "text-background/85" : "text-muted-foreground"
+                    }`}
+                  >
+                    {item.label}
+                  </p>
                 </div>
-
-                <div className="flex items-start justify-between gap-4 border-b border-border/60 pb-4">
-                  <div>
-                    <div className="text-sm font-medium text-foreground">Ekstra medarbejderlogin</div>
-                    <div className="mt-0.5 text-xs text-muted-foreground">Pris pr. ekstra medarbejder ud over den ene inkluderede.</div>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <div className="text-base font-semibold tabular-nums text-foreground">+{kr(p.price_per_employee_login_dkk)} kr</div>
-                    <div className="text-[11px] text-muted-foreground">/md pr. stk</div>
-                  </div>
-                </div>
-
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <div className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-                      <Upload className="h-3.5 w-3.5 text-muted-foreground" />
-                      Vi flytter jeres nuværende kunder ind
-                    </div>
-                    <div className="mt-0.5 text-xs text-muted-foreground">
-                      Send jeres kundeliste — vores support lægger kunder, adresser og faste aftaler ind for jer.
-                    </div>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <div className="text-base font-semibold tabular-nums text-foreground">{kr(p.price_data_import_dkk)} kr</div>
-                    <div className="text-[11px] text-muted-foreground">engangs</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 rounded-xl bg-muted/60 p-3 text-[12.5px] leading-5 text-muted-foreground">
-                Nedjusteringer (færre logins eller deaktivering af regnskab) låses 3 dage før fakturering og træder i kraft fra næste periode — så I betaler altid for det I faktisk har brugt.
-              </div>
+              ))}
             </div>
           </div>
+
+          <div className="flex flex-col gap-2 border-t border-border/70 bg-secondary/50 px-7 py-5 text-[13px] leading-6 text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-10">
+            <span className="inline-flex items-center gap-2">
+              <Upload className="h-4 w-4 shrink-0" />
+              Skal vi flytte jeres nuværende kunder ind? Send listen — vi lægger den ind for {kr(p.price_data_import_dkk)} kr.
+            </span>
+            <span>Regnskabsintegration til e-conomic eller Dinero: +{kr(p.price_accounting_integration_dkk)} kr/md.</span>
+          </div>
+        </div>
+
         </div>
       </div>
     </section>
