@@ -57,36 +57,32 @@ const BusinessCard = ({ biz }: { biz: Biz }) => {
         </div>
 
 
-        <div className="relative space-y-3 p-5 pt-8">
-          {/* Logo overlay — løftes op over coveret så virksomheden står tydeligt frem */}
-          <BusinessLogo
-            url={biz.logo_url}
-            name={biz.name}
-            size={48}
-            className="absolute -top-7 left-4 border-2 border-card shadow-md"
-          />
-          {/* Navnet får sin egen linje, så det aldrig bliver klippet af
-              rating-chippen ved siden af. */}
-          <div className="min-w-0">
-            <h3 className="line-clamp-2 text-base font-semibold leading-snug tracking-tight text-foreground">
-              {biz.name}
-            </h3>
-            <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
-              {biz.city && (
-                <span className="inline-flex min-w-0 items-center gap-1">
-                  <MapPin className="h-3.5 w-3.5 shrink-0" />
-                  <span className="truncate">{biz.city}</span>
-                </span>
-              )}
-              {biz._reviewCount && biz._reviewCount > 0 ? (
-                <span className="inline-flex items-center gap-1 text-foreground">
-                  <Star className="h-3.5 w-3.5 fill-foreground text-foreground" />
-                  <span className="font-medium">{biz._avgRating!.toFixed(1)}</span>
-                  <span className="text-muted-foreground">({biz._reviewCount})</span>
-                </span>
-              ) : (
-                <span className="text-[13px] text-muted-foreground/80">Ny profil</span>
-              )}
+        <div className="flex flex-1 flex-col space-y-3 p-5">
+          {/* Logo står på linje med navnet — det gamle overlap gjorde smalle
+              logoer til en tynd stribe henover coveret. */}
+          <div className="flex min-w-0 items-start gap-3">
+            <BusinessLogo url={biz.logo_url} name={biz.name} size={44} className="shadow-sm" />
+            <div className="min-w-0 flex-1">
+              <h3 className="line-clamp-2 text-base font-semibold leading-snug tracking-tight text-foreground">
+                {biz.name}
+              </h3>
+              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13.5px] text-muted-foreground">
+                {biz.city && (
+                  <span className="inline-flex min-w-0 items-center gap-1">
+                    <MapPin className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{biz.city}</span>
+                  </span>
+                )}
+                {biz._reviewCount && biz._reviewCount > 0 ? (
+                  <span className="inline-flex items-center gap-1 text-foreground">
+                    <Star className="h-3.5 w-3.5 fill-foreground text-foreground" />
+                    <span className="font-medium">{biz._avgRating!.toFixed(1)}</span>
+                    <span className="text-muted-foreground">({biz._reviewCount})</span>
+                  </span>
+                ) : (
+                  <span className="text-[13px] text-muted-foreground/80">Ny profil</span>
+                )}
+              </div>
             </div>
           </div>
 
