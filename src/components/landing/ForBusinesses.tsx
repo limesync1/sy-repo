@@ -283,7 +283,7 @@ const ForBusinesses = () => {
           <div className="flex flex-col gap-2 border-t border-border/70 bg-secondary/50 px-7 py-5 text-[13px] leading-6 text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-10">
             <span className="inline-flex items-center gap-2">
               <Upload className="h-4 w-4 shrink-0" />
-              Skal vi flytte jeres nuværende kunder ind? Send listen — vi lægger den ind for {kr(p.price_data_import_dkk)} kr.
+              Skal vi flytte jeres nuværende kunder og aftaler ind? Send listen — vi lægger dem ind gratis.
             </span>
             <span>Regnskabsintegration til e-conomic eller Dinero: +{kr(p.price_accounting_integration_dkk)} kr/md.</span>
           </div>

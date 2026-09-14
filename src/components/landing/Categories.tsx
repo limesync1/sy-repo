@@ -6,19 +6,9 @@ import { ALL_INDUSTRIES, TOP_CATEGORY_KEYS } from "@/lib/service-taxonomy";
 import { IndustryIcon } from "@/components/IndustryIcon";
 import { Button } from "@/components/ui/button";
 
-/**
- * Hver branche får sin egen, faste kulør. Farven udledes deterministisk af
- * branchens plads i kataloget (gylden vinkel giver maksimal spredning), så to
- * naboer aldrig ligner hinanden — og farven er den samme hver gang siden
- * loades. Kuløren sættes som `--ind` (hue) og bruges i HSL-udtryk, så både
- * lys og mørk tilstand får korrekt kontrast.
- */
-const hueFor = (index: number) => Math.round((index * 137.508 + 168) % 360);
-
-const categories = ALL_INDUSTRIES.map((ind, i) => ({
+const categories = ALL_INDUSTRIES.map((ind) => ({
   key: ind.key,
   label: ind.label,
-  hue: hueFor(i),
   top: TOP_CATEGORY_KEYS.includes(ind.key),
   hint: ind.subcategories.slice(0, 2).map((s) => s.label).join(" · "),
 }));
@@ -37,27 +27,15 @@ const CategoryCard = ({
   <Link
     key={cat.key}
     to={`/search?category=${encodeURIComponent(cat.key)}`}
-    style={{ ["--ind" as string]: `${cat.hue}` }}
     className={`group relative flex flex-col justify-between overflow-hidden rounded-lg border border-border bg-card p-5 text-foreground transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-foreground/35 hover:shadow-md ${className ?? ""}`}
   >
-    {/* Branchekuløren ligger som en blød vask der først tændes på hover. */}
-    <div
-      aria-hidden
-      className="pointer-events-none absolute inset-x-0 top-0 h-1 opacity-70 transition-opacity duration-200 group-hover:opacity-100"
-      style={{
-        backgroundColor: "hsl(var(--ind) 60% 45%)",
-      }}
-    />
     <div className="relative flex items-start justify-between">
-      <span
-        className="flex h-11 w-11 items-center justify-center rounded-lg ring-1 ring-inset ring-[hsl(var(--ind)_60%_45%/0.2)]"
-        style={{ backgroundColor: "hsl(var(--ind) 70% 50% / 0.1)" }}
-      >
-        <IndustryIcon category={cat.key} className="h-7 w-7" alt={cat.label} />
+      <span className="flex h-16 w-16 items-center justify-center">
+        <IndustryIcon category={cat.key} className="h-14 w-14" alt={cat.label} />
       </span>
       <ArrowRight className="h-4 w-4 -translate-x-1 text-muted-foreground opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
     </div>
-    <div className="relative mt-5 min-w-0">
+    <div className="relative mt-4 min-w-0">
       <div className="break-words text-[15px] font-semibold leading-snug">{cat.label}</div>
       {cat.hint && (
         <div className="mt-1.5 line-clamp-1 text-[11px] font-medium text-muted-foreground">{cat.hint}</div>
@@ -73,7 +51,7 @@ const Categories = () => {
   const visible = expanded ? sorted : sorted.slice(0, INITIAL);
 
   return (
-    <section className="bg-background pb-16 pt-14 md:pb-24 md:pt-20">
+    <section className="bg-background py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-9 flex flex-col gap-6 md:mb-10 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
@@ -101,7 +79,7 @@ const Categories = () => {
         {/* Desktop / tablet */}
         <div id="all-service-categories" className="hidden grid-cols-2 gap-4 sm:grid sm:grid-cols-3 lg:grid-cols-5">
           {visible.map((cat) => (
-            <CategoryCard key={cat.key} cat={cat} className="min-h-[150px]" />
+            <CategoryCard key={cat.key} cat={cat} className="min-h-[172px]" />
           ))}
         </div>
 
@@ -125,7 +103,7 @@ const Categories = () => {
         <div className="sm:hidden">
           <HorizontalScroller ariaLabel="Servicebrancher — stryg vandret for at se flere">
             {sorted.map((cat) => (
-              <CategoryCard key={cat.key} cat={cat} className="min-h-[150px] w-[180px] shrink-0 snap-start" />
+              <CategoryCard key={cat.key} cat={cat} className="min-h-[172px] w-[190px] shrink-0 snap-start" />
             ))}
           </HorizontalScroller>
           <p className="mt-3 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">

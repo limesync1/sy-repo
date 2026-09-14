@@ -45,11 +45,11 @@ const AudienceSplit = () => (
     description="Find en virksomhed til din opgave, eller få værktøjerne til at drive din egen servicevirksomhed."
     compact
   >
-    <div className="grid overflow-hidden rounded-lg border border-border bg-card lg:grid-cols-2 lg:divide-x lg:divide-border">
+    <div className="grid gap-4 lg:grid-cols-2">
       {TRACKS.map((t) => (
         <div
           key={t.title}
-          className={`group flex min-h-[350px] flex-col border-b p-6 transition-colors last:border-b-0 hover:bg-secondary/45 sm:p-8 lg:border-b-0 ${t.tone}`}
+          className={`group flex min-h-[350px] flex-col rounded-lg border p-6 transition-colors hover:bg-secondary/45 sm:p-8 ${t.tone}`}
         >
           <span
             className={`inline-flex h-11 w-11 items-center justify-center rounded-lg ${t.chip}`}
