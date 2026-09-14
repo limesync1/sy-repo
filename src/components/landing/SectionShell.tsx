@@ -64,13 +64,14 @@ const SectionShell = ({
               {eyebrow && (
                 <span
                   className={cn(
-                    "inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em]",
+                    "inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em]",
                     dark ? "text-ocean-foreground/70" : "text-muted-foreground",
+                    align === "center" && "justify-center",
                   )}
                 >
                   <span
                     aria-hidden
-                    className={cn("h-1.5 w-1.5 rounded-full", dark ? "bg-accent" : "bg-accent")}
+                    className={cn("h-px w-6", dark ? "bg-ocean-foreground/40" : "bg-foreground/30")}
                   />
                   {eyebrow}
                 </span>
@@ -78,13 +79,14 @@ const SectionShell = ({
               {title && (
                 <h2
                   className={cn(
-                    "mt-3 text-[1.6rem] font-semibold leading-[1.12] tracking-[-0.025em] sm:text-[2.1rem] lg:text-[2.4rem]",
+                    "mt-4 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] sm:text-[2.35rem] lg:text-[2.75rem]",
                     dark ? "text-ocean-foreground" : "text-foreground",
                   )}
                 >
                   {title}
                 </h2>
               )}
+
               {description && (
                 <p
                   className={cn(
