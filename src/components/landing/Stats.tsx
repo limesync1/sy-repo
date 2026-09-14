@@ -38,7 +38,7 @@ const Stats = () => {
     /* Tallene lægger sig som et løftet kort hen over kanten mellem heroen og
        resten af siden — det binder de to flader sammen og fjerner det tomme
        "gammel hjemmeside"-mellemrum. */
-    <section className="relative z-20 -mt-10 pb-10 sm:-mt-14 md:pb-16">
+    <section className="relative z-10 bg-background pb-10 pt-10 md:pb-14 md:pt-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="relative overflow-hidden rounded-[24px] border border-border/60 bg-card px-5 py-6 shadow-[0_24px_60px_-40px_hsl(var(--foreground)/0.45)] md:px-10 md:py-8">
           <div className="relative grid grid-cols-2 gap-y-6 md:grid-cols-4 md:gap-2">
