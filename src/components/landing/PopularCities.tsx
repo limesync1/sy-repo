@@ -47,15 +47,15 @@ const PopularCities = () => (
           <h3 className="text-[13px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
             {region.name}
           </h3>
-          <ul className="mt-4 space-y-1">
+          <ul className="mt-4 flex flex-wrap gap-2">
             {region.cities.map((city) => (
               <li key={city}>
                 <SmartLink
                   to={`/virksomheder?q=${encodeURIComponent(city)}`}
-                  className="group flex items-center justify-between gap-3 rounded-xl px-3 py-2 text-[15px] font-medium text-foreground transition-colors hover:bg-card"
+                  className="group inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card px-3.5 py-2 text-[14px] font-medium text-foreground transition-all hover:-translate-y-0.5 hover:border-foreground/25"
                 >
                   {city}
-                  <ArrowUpRight className="h-4 w-4 text-muted-foreground opacity-0 transition-all group-hover:opacity-100" />
+                  <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
                 </SmartLink>
               </li>
             ))}

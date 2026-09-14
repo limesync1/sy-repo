@@ -115,8 +115,8 @@ const ForBusinesses = () => {
               <div className="absolute inset-0 bg-noise opacity-[0.05] mix-blend-overlay" />
             </div>
 
-            <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
-              <div className="max-w-md">
+            <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-stretch lg:gap-12">
+              <div className="max-w-xl">
                 <span className="inline-flex items-center gap-2 rounded-full border border-background/25 bg-background/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-background/85 backdrop-blur">
                   <span
                     className="h-1.5 w-1.5 rounded-full"
@@ -154,7 +154,7 @@ const ForBusinesses = () => {
               </div>
 
               {/* Mini "stats"-panel — illustration af dashboardet (eksempeltal). */}
-              <div className="w-full max-w-xs shrink-0 rounded-2xl border border-background/15 bg-background/[0.04] p-5 backdrop-blur">
+              <div className="flex w-full flex-col rounded-2xl border border-background/15 bg-background/[0.04] p-5 backdrop-blur">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-background/75">
                     Eksempel · denne uge
@@ -175,7 +175,7 @@ const ForBusinesses = () => {
                     <div className="text-[11px] text-background/75">Kørsel</div>
                   </div>
                 </div>
-                <p className="mt-4 text-[10px] leading-4 text-background/55">
+                <p className="mt-auto pt-4 text-[10px] leading-4 text-background/55">
                   Skærmbillede til illustration — dine tal afhænger af opgavevolumen.
                 </p>
               </div>
