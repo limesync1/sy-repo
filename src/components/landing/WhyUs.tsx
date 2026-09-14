@@ -65,7 +65,24 @@ const WhyUs = () => {
                 Indhent 3 gratis tilbud
               </SmartLink>
             </div>
+
+            {/* Lille hjælpekort fylder den ellers tomme venstre kolonne ud. */}
+            <div className="mt-8 max-w-md rounded-2xl border border-border/70 bg-card p-5">
+              <p className="text-[14px] font-semibold text-foreground">Er du i tvivl om noget?</p>
+              <p className="mt-1.5 text-[13.5px] leading-6 text-muted-foreground">
+                Se svar på de mest stillede spørgsmål om booking, priser og anmeldelser — eller skriv
+                til os i chatten nederst i hjørnet.
+              </p>
+              <SmartLink
+                to="/hjaelp#faq"
+                className="mt-3 inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-foreground underline-offset-4 hover:underline"
+              >
+                Læs spørgsmål og svar
+                <ArrowRight className="h-3.5 w-3.5" />
+              </SmartLink>
+            </div>
           </div>
+
 
           <ul className="divide-y divide-border/70 border-y border-border/70">
             {benefits.map((b, i) => (
