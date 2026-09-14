@@ -79,7 +79,7 @@ const GetQuotes = () => {
   const picks = useMemo<Biz[]>(() => (businesses ?? []).slice(0, 3), [businesses]);
 
   return (
-    <section className="relative isolate overflow-hidden bg-background py-20 md:py-32">
+    <section className="relative isolate overflow-hidden bg-background py-16 md:py-24">
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         <div
           className="absolute -right-32 top-1/3 h-[28rem] w-[28rem] rounded-full blur-[120px] opacity-[0.08]"

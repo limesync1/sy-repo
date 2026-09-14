@@ -35,21 +35,22 @@ const Stats = () => {
   ];
 
   return (
-    <section className="bg-background pb-8 pt-12 md:pb-12 md:pt-20">
+    /* Tallene lægger sig som et løftet kort hen over kanten mellem heroen og
+       resten af siden — det binder de to flader sammen og fjerner det tomme
+       "gammel hjemmeside"-mellemrum. */
+    <section className="relative z-10 bg-background pb-10 pt-10 md:pb-14 md:pt-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden rounded-[28px] border border-border/70 bg-card px-6 py-8 shadow-[0_1px_2px_rgba(0,0,0,0.04)] md:px-12 md:py-11">
-          {/* Diskret accent-glow bag tallene */}
-          <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-accent/[0.06] blur-3xl" />
-          <div className="relative grid grid-cols-2 gap-y-8 md:grid-cols-4 md:gap-2">
+        <div className="relative overflow-hidden rounded-[24px] border border-border/60 bg-card px-5 py-6 shadow-[0_24px_60px_-40px_hsl(var(--foreground)/0.45)] md:px-10 md:py-8">
+          <div className="relative grid grid-cols-2 gap-y-6 md:grid-cols-4 md:gap-2">
             {stats.map((s, i) => (
               <div
                 key={s.label}
                 className={`text-center md:text-left ${i > 0 ? "md:border-l md:border-border/60 md:pl-10" : ""}`}
               >
-                <div className="text-[2.25rem] font-semibold leading-none tracking-[-0.02em] text-foreground tabular-nums md:text-[2.75rem]">
+                <div className="text-[1.75rem] font-semibold leading-none tracking-[-0.02em] text-foreground tabular-nums md:text-[2.25rem]">
                   {s.value}
                 </div>
-                <div className="mt-3 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+                <div className="mt-2.5 text-[10.5px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
                   {s.label}
                 </div>
               </div>

@@ -1,119 +1,147 @@
-import { ArrowRight, ChevronDown } from "lucide-react";
+import { ArrowRight, BadgeCheck, Star, Zap } from "lucide-react";
 import SmartLink from "@/components/SmartLink";
 import { Button } from "@/components/ui/button";
 import SearchSuggest from "./SearchSuggest";
 import LocationChip from "@/components/LocationChip";
 import heroImage from "@/assets/hero-window-cleaning.webp";
 
+/**
+ * Forsidens hero — redaktionelt split-layout.
+ *
+ * Venstre side bærer budskab + søgning på en rolig, mørk havflade. Højre side
+ * viser motivet i et afrundet "vindue" med to flydende beviskort, så heroen
+ * får dybde uden at teksten ligger oven på et grumset foto.
+ */
 const HeroSection = () => {
   return (
     <header
       className="relative z-30 isolate text-background"
       style={{ backgroundColor: "hsl(var(--hero-bg))" }}
     >
-      {/* Baggrundslag samlet i én overflow-hidden wrapper, så søge-dropdownen
-          kan trække ud over hero-kanten uden at blive klippet. */}
+      {/* Baggrundslag i egen overflow-wrapper, så søge-dropdownen kan trække
+          ud over hero-kanten uden at blive klippet. */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        {/* Baggrundsbillede — vises nu i fuld styrke. Kontrasten til teksten
-            styres udelukkende af den ene scrim-gradient nedenfor, i stedet for
-            af flere overlappende lag der gjorde billedet grumset. */}
-        <img
-          src={heroImage}
-          alt=""
-          aria-hidden="true"
-          width={1280}
-          height={960}
-          fetchPriority="high"
-          decoding="async"
-          className="absolute inset-0 h-full w-full object-cover object-[70%_center]"
-          loading="eager"
-        />
-        {/* Én scrim: tæt bag teksten i venstre side, næsten klar i højre side
-            så motivet faktisk kan ses. På mobil bruger vi en lodret scrim,
-            fordi teksten dér fylder hele bredden. */}
         <div
-          className="absolute inset-0 sm:hidden"
+          className="absolute inset-0"
           style={{
             backgroundImage:
-              "linear-gradient(180deg, hsl(var(--hero-bg) / 0.92) 0%, hsl(var(--hero-bg) / 0.86) 60%, hsl(var(--hero-bg) / 0.72) 100%)",
+              "radial-gradient(120% 90% at 12% 0%, hsl(var(--hero-mid) / 0.45) 0%, transparent 55%), radial-gradient(90% 80% at 100% 100%, hsl(var(--hero-cyan) / 0.18) 0%, transparent 60%)",
           }}
         />
+        {/* Fint rudenet — refererer diskret til vinduespudsning/håndværk. */}
         <div
-          className="absolute inset-0 hidden sm:block"
+          className="absolute inset-0 opacity-[0.07]"
           style={{
             backgroundImage:
-              "linear-gradient(96deg, hsl(var(--hero-bg) / 0.96) 0%, hsl(var(--hero-bg) / 0.92) 38%, hsl(var(--hero-bg) / 0.6) 62%, hsl(var(--hero-bg) / 0.25) 100%)",
+              "linear-gradient(to right, hsl(var(--hero-cyan) / 0.6) 1px, transparent 1px), linear-gradient(to bottom, hsl(var(--hero-cyan) / 0.6) 1px, transparent 1px)",
+            backgroundSize: "72px 72px",
+            maskImage: "radial-gradient(80% 70% at 50% 30%, #000 0%, transparent 85%)",
+            WebkitMaskImage: "radial-gradient(80% 70% at 50% 30%, #000 0%, transparent 85%)",
           }}
         />
-        {/* Én enkelt ambient glow i højre side — nok til dybde, ikke nok til
-            at sløre motivet. */}
-        <div
-          className="absolute -top-40 right-[-10%] h-[34rem] w-[34rem] rounded-full blur-[130px] opacity-20"
-          style={{ backgroundColor: "hsl(var(--hero-mid))" }}
-        />
-        {/* Film-grain — analog tekstur */}
         <div className="absolute inset-0 bg-noise opacity-[0.05] mix-blend-overlay" />
       </div>
 
-
-      {/* Indhold — asymmetrisk 60/40 grid */}
-      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-4 pb-8 pt-6 sm:px-6 sm:gap-12 sm:pb-14 sm:pt-10 lg:grid-cols-[60%_40%] lg:gap-20 lg:px-8 lg:pb-32 lg:pt-24">
+      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-4 pb-14 pt-10 sm:px-6 sm:pb-20 sm:pt-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:px-8 lg:pb-28 lg:pt-20">
         <div className="max-w-2xl">
-          <h1 className="animate-fade-in text-[1.75rem] font-semibold leading-[1.1] tracking-[-0.03em] text-background sm:text-[2.5rem] sm:leading-[1.06] lg:text-[3.5rem]">
+          <span className="animate-fade-in inline-flex items-center gap-2.5 text-[10.5px] font-medium uppercase tracking-[0.24em] text-background/60 sm:text-[11px]">
+            <span className="h-px w-6 bg-[hsl(var(--hero-cyan))]" />
+            Danmarks serviceplatform
+          </span>
 
+          <h1 className="animate-fade-in mt-4 text-[2rem] font-semibold leading-[1.05] tracking-[-0.035em] text-background sm:text-[3rem] lg:text-[4rem]">
             Find den rette{" "}
             <span className="bg-[linear-gradient(110deg,hsl(var(--hero-cyan))_0%,hsl(var(--hero-cyan-bright))_50%,hsl(var(--hero-cyan))_100%)] bg-[length:200%_100%] bg-clip-text text-transparent animate-gradient-pan">
               serviceyder
-            </span>{" "}
-            til opgaven.
+            </span>
+            <br className="hidden sm:block" /> til opgaven.
           </h1>
-          <p className="animate-fade-in [animation-delay:120ms] mt-3 max-w-xl text-[14.5px] leading-6 text-background/80 sm:mt-5 sm:text-[17px] sm:leading-[1.6]">
+
+          <p className="animate-fade-in [animation-delay:120ms] mt-4 max-w-lg text-[15px] leading-[1.65] text-background/75 sm:mt-6 sm:text-[17px]">
             Sammenlign lokale udbydere, se priser og book direkte — alt samlet ét sted.
           </p>
 
-
-
-          <div className="animate-fade-in [animation-delay:220ms] relative z-20 mt-5 w-full max-w-2xl sm:mt-7">
-            <SearchSuggest variant="hero" showNearLabel={false} placeholder="Søg efter service, virksomhed eller by…" />
-            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-background/80">
+          {/* Søgefelt i et løftet panel, så det læses som sidens primære handling. */}
+          <div className="animate-fade-in [animation-delay:200ms] relative z-20 mt-6 w-full max-w-xl rounded-[22px] border border-background/12 bg-background/[0.07] p-2.5 backdrop-blur-sm sm:mt-8 sm:p-3">
+            <SearchSuggest
+              variant="hero"
+              showNearLabel={false}
+              placeholder="Søg efter service, virksomhed eller by…"
+            />
+            <div className="mt-2.5 flex flex-wrap items-center gap-2 px-1 text-xs text-background/70">
               <LocationChip />
             </div>
           </div>
 
-          <div className="animate-fade-in [animation-delay:320ms] mt-5 flex flex-col gap-3 sm:mt-7 sm:flex-row sm:flex-wrap">
-
-            <SmartLink to="/virksomheder" className="sm:w-auto">
-              <Button size="lg" className="group h-11 w-full gap-2 rounded-full bg-background px-6 text-sm font-semibold text-foreground shadow-md transition-all duration-200 hover:bg-background/90 active:scale-[0.98] sm:w-auto">
-                Find services
-                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-              </Button>
-            </SmartLink>
+          <div className="animate-fade-in [animation-delay:300ms] mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <SmartLink to="/tilbud" className="sm:w-auto">
               <Button
                 size="lg"
-                variant="outline"
-                className="group h-11 w-full gap-2 rounded-full border-background/40 bg-background/5 px-6 text-sm font-semibold text-background backdrop-blur transition-all duration-200 hover:bg-background/15 hover:text-background active:scale-[0.98] sm:w-auto"
+                className="group h-12 w-full gap-2 rounded-full bg-background px-7 text-sm font-semibold text-foreground shadow-lg transition-all duration-200 hover:bg-background/90 active:scale-[0.98] sm:w-auto"
               >
                 Indhent 3 tilbud
                 <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
               </Button>
             </SmartLink>
-          </div>
-
-
-
-
-
-          {/* Diskret indikator: viser at der er mere indhold under heroen på mobil. */}
-          <div aria-hidden className="pointer-events-none mt-6 flex justify-center sm:hidden">
-            <ChevronDown className="h-5 w-5 animate-bounce text-background/45" />
+            <SmartLink to="/virksomheder" className="sm:w-auto">
+              <Button
+                size="lg"
+                variant="outline"
+                className="group h-12 w-full gap-2 rounded-full border-background/30 bg-transparent px-7 text-sm font-semibold text-background transition-all duration-200 hover:bg-background/10 hover:text-background active:scale-[0.98] sm:w-auto"
+              >
+                Find services
+                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+              </Button>
+            </SmartLink>
           </div>
         </div>
 
-        {/* Højre 40% — bevidst tom, så de ambient glows får luft og giver premium-feel. */}
-        <div aria-hidden className="hidden lg:block" />
-      </div>
+        {/* Højre side — motiv i afrundet vindue med flydende beviskort. */}
+        <div aria-hidden className="relative hidden lg:block">
+          <div className="relative overflow-hidden rounded-[32px] border border-background/15 shadow-[0_40px_90px_-40px_rgba(0,0,0,0.75)]">
+            <img
+              src={heroImage}
+              alt=""
+              width={1280}
+              height={960}
+              fetchPriority="high"
+              decoding="async"
+              loading="eager"
+              className="h-[30rem] w-full object-cover object-[65%_center]"
+            />
+            <div
+              className="absolute inset-0"
+              style={{
+                backgroundImage:
+                  "linear-gradient(180deg, hsl(var(--hero-bg) / 0.15) 0%, hsl(var(--hero-bg) / 0.55) 100%)",
+              }}
+            />
+          </div>
 
+          <div className="absolute -left-8 top-10 flex items-center gap-3 rounded-2xl border border-border/60 bg-card px-4 py-3 text-foreground shadow-xl">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-success/10 text-success">
+              <BadgeCheck className="h-5 w-5" />
+            </span>
+            <div>
+              <div className="text-[13px] font-semibold leading-tight">CVR-verificeret</div>
+              <div className="text-[11px] text-muted-foreground">Alle virksomheder tjekkes</div>
+            </div>
+          </div>
+
+          <div className="absolute -bottom-6 -right-4 flex items-center gap-3 rounded-2xl border border-border/60 bg-card px-4 py-3 text-foreground shadow-xl">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent/10 text-accent">
+              <Zap className="h-5 w-5" />
+            </span>
+            <div>
+              <div className="flex items-center gap-1 text-[13px] font-semibold leading-tight">
+                Svar samme dag
+                <Star className="h-3.5 w-3.5 fill-warning text-warning" />
+              </div>
+              <div className="text-[11px] text-muted-foreground">Op til 3 tilbud, gratis</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </header>
   );
 };

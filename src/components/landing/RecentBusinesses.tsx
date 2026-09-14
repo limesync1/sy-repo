@@ -145,7 +145,7 @@ const RecentBusinesses = () => {
 
 
   return (
-    <section className="relative isolate overflow-hidden bg-ocean py-20 text-ocean-foreground md:py-32">
+    <section className="relative isolate overflow-hidden bg-ocean py-16 text-ocean-foreground md:py-24">
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute -left-20 top-0 h-80 w-80 rounded-full bg-accent/25 blur-[130px]" />
         <div className="absolute -right-16 bottom-0 h-96 w-96 rounded-full bg-feature-lilac/20 blur-[140px]" />
