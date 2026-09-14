@@ -1,83 +1,95 @@
 import { BadgeCheck, Star, CircleDollarSign, ShieldCheck, ArrowRight } from "lucide-react";
 import SmartLink from "@/components/SmartLink";
 
+/**
+ * "Hvorfor Serviceydere" som redaktionel liste i stedet for fire ens kort:
+ * fast overskriftskolonne til venstre, argumenter som store rækker til højre.
+ */
 const benefits = [
   {
     icon: CircleDollarSign,
     title: "Gratis for private",
-    description: "Det koster ikke noget at søge, sammenligne og kontakte udbydere — ingen abonnement, ingen gebyrer.",
-    tone: "bg-feature-warm text-feature-warm-foreground",
+    description:
+      "Det koster ikke noget at søge, sammenligne og kontakte udbydere — ingen abonnement, ingen gebyrer.",
   },
   {
     icon: BadgeCheck,
     title: "Tjekkede virksomheder",
-    description: "Alle virksomheder med Verificeret-stempel har et aktivt CVR og bekræftede kontaktoplysninger.",
-    tone: "bg-feature-cool text-feature-cool-foreground",
+    description:
+      "Alle virksomheder med Verificeret-stempel har et aktivt CVR og bekræftede kontaktoplysninger.",
   },
   {
     icon: Star,
     title: "Anmeldelser fra rigtige opgaver",
-    description: "Kun kunder med en bekræftet booking kan anmelde — så stjernerne afspejler virkelige erfaringer.",
-    tone: "bg-feature-lilac text-feature-lilac-foreground",
+    description:
+      "Kun kunder med en bekræftet booking kan anmelde — så stjernerne afspejler virkelige erfaringer.",
   },
   {
     icon: ShieldCheck,
     title: "Sammenlign på sekunder",
-    description: "Se pris, område, specialer og rating side om side, så du hurtigt finder det rigtige match.",
-    tone: "bg-accent-soft text-accent",
+    description:
+      "Se pris, område, specialer og rating side om side, så du hurtigt finder det rigtige match.",
   },
 ];
 
 const WhyUs = () => {
   return (
     <section className="relative bg-background py-16 md:py-24">
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-12 flex flex-col gap-6 md:mb-14 md:flex-row md:items-end md:justify-between">
-          <div className="max-w-2xl">
+        <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
+          <div className="lg:sticky lg:top-28 lg:self-start">
             <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
               <span className="h-px w-6 bg-foreground/30" />
               Hvorfor Serviceydere
             </span>
-            <h2 className="mt-5 text-[2rem] font-semibold leading-[1.04] tracking-[-0.025em] text-foreground md:text-[2.75rem] lg:text-[3.25rem]">
-              Trygt valg, hver gang
+            <h2 className="mt-4 text-[1.85rem] font-semibold leading-[1.06] tracking-[-0.03em] text-foreground sm:text-[2.35rem] lg:text-[2.75rem]">
+              Trygt valg,
+              <br className="hidden sm:block" /> hver gang
             </h2>
-            <p className="mt-4 max-w-lg text-[15px] leading-7 text-muted-foreground md:text-base">
-              Verificerede udbydere, ægte anmeldelser og priser i øjenhøjde — så du tør sige ja til den rigtige.
+            <p className="mt-4 max-w-md text-[15px] leading-7 text-muted-foreground">
+              Verificerede udbydere, ægte anmeldelser og priser i øjenhøjde — så du tør sige ja
+              til den rigtige.
             </p>
-          </div>
-          <SmartLink
-            to="/virksomheder"
-            className="group inline-flex items-center gap-2 self-start rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-all hover:-translate-y-0.5 md:self-auto"
-          >
-            Find virksomheder
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-          </SmartLink>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {benefits.map((b) => (
-            <div
-              key={b.title}
-              className="group relative flex flex-col rounded-[24px] border border-border/70 bg-card p-7 shadow-premium shadow-premium-hover hover:border-border"
-            >
-              <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${b.tone}`}>
-                <b.icon className="h-5 w-5" />
-              </div>
-              <h3 className="mt-6 text-[15px] font-semibold leading-tight tracking-tight text-foreground">{b.title}</h3>
-              <p className="mt-2 text-[14px] leading-6 text-muted-foreground">{b.description}</p>
+            <div className="mt-7 flex flex-wrap gap-2.5">
+              <SmartLink
+                to="/virksomheder"
+                className="group inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-all hover:-translate-y-0.5"
+              >
+                Find virksomheder
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </SmartLink>
+              <SmartLink
+                to="/tilbud"
+                className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5"
+              >
+                Indhent 3 gratis tilbud
+              </SmartLink>
             </div>
-          ))}
-        </div>
+          </div>
 
-        <div className="mt-10 flex justify-center">
-          <SmartLink
-            to="/tilbud"
-            className="group inline-flex items-center gap-2 rounded-full border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:-translate-y-0.5"
-          >
-            Indhent 3 gratis tilbud
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-          </SmartLink>
+          <ul className="divide-y divide-border/70 border-y border-border/70">
+            {benefits.map((b, i) => (
+              <li
+                key={b.title}
+                className="group flex gap-5 py-7 transition-colors first:pt-0 last:pb-0 sm:gap-7"
+              >
+                <span className="mt-1 hidden w-10 shrink-0 text-[13px] font-semibold tabular-nums text-muted-foreground/60 sm:block">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-secondary text-foreground transition-colors group-hover:bg-accent-soft group-hover:text-accent">
+                  <b.icon className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  <h3 className="text-[17px] font-semibold tracking-tight text-foreground sm:text-lg">
+                    {b.title}
+                  </h3>
+                  <p className="mt-1.5 text-[14px] leading-6 text-muted-foreground sm:text-[15px]">
+                    {b.description}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </section>
