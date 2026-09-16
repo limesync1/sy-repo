@@ -9,6 +9,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import { LocationProvider } from "@/contexts/LocationContext";
 import ScrollToTop from "@/components/ScrollToTop";
 import CookieConsent from "@/components/CookieConsent";
+import BetaNotice from "@/components/BetaNotice";
 import ChunkErrorBoundary from "@/components/ChunkErrorBoundary";
 import StickyMobileCTA from "@/components/conversion/StickyMobileCTA";
 import { startVersionCheck, isStaleDeploy } from "@/lib/version-check";
@@ -284,6 +285,8 @@ const App = () => (
             <IdlePrefetcher />
             <DeployVersionWatcher />
             <StickyMobileCTA />
+            {/* Testfase-besked øverst på alle offentlige sider. */}
+            <BetaNotice />
             <ChunkErrorBoundary>
             <Suspense fallback={<PageFallback />}>
             <Routes>
