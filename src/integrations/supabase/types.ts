@@ -1158,6 +1158,33 @@ export type Database = {
         }
         Relationships: []
       }
+      beta_signups: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          notified_at: string | null
+          role_interest: string
+          source: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          notified_at?: string | null
+          role_interest?: string
+          source?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          notified_at?: string | null
+          role_interest?: string
+          source?: string | null
+        }
+        Relationships: []
+      }
       business_agreement_counters: {
         Row: {
           business_id: string
@@ -2911,6 +2938,9 @@ export type Database = {
       platform_settings: {
         Row: {
           base_price_dkk: number
+          beta_notice_body: string | null
+          beta_notice_enabled: boolean
+          beta_notice_title: string | null
           discount_quarterly_pct: number
           discount_yearly_pct: number
           featured_business_ids: string[]
@@ -2926,6 +2956,9 @@ export type Database = {
         }
         Insert: {
           base_price_dkk?: number
+          beta_notice_body?: string | null
+          beta_notice_enabled?: boolean
+          beta_notice_title?: string | null
           discount_quarterly_pct?: number
           discount_yearly_pct?: number
           featured_business_ids?: string[]
@@ -2941,6 +2974,9 @@ export type Database = {
         }
         Update: {
           base_price_dkk?: number
+          beta_notice_body?: string | null
+          beta_notice_enabled?: boolean
+          beta_notice_title?: string | null
           discount_quarterly_pct?: number
           discount_yearly_pct?: number
           featured_business_ids?: string[]
@@ -5167,6 +5203,10 @@ export type Database = {
         Args: { _route_id: string; _user_id: string }
         Returns: boolean
       }
+      join_beta_waitlist: {
+        Args: { p_email: string; p_role?: string }
+        Returns: undefined
+      }
       kick_accounting_sync: {
         Args: { _business_id: string }
         Returns: undefined
@@ -5417,6 +5457,14 @@ export type Database = {
           error: string
           job_id: string
           status: string
+        }[]
+      }
+      public_beta_notice: {
+        Args: never
+        Returns: {
+          body: string
+          enabled: boolean
+          title: string
         }[]
       }
       read_email_batch: {
