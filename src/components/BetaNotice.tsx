@@ -3,13 +3,24 @@ import { useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Mail, CheckCircle2, Hammer } from "lucide-react";
+import { Loader2, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 
 /**
- * BetaNotice — stor besked øverst på alle offentlige sider mens platformen
- * er i testfase. Besøgende kan skrive sig op med e-mail, og en platform-admin
- * kan slå beskeden fra og sende åbnings-mailen fra panelet (fanen "Venteliste").
+ * BetaNotice — smal besked øverst på alle offentlige sider mens platformen
+ * er i testfase. Selve tilmeldingen ligger i en dialog, så stribens højde
+ * og indhold aldrig konkurrerer med sidens eget indhold (fx login-formularen).
  *
  * Teksten hentes fra platform-indstillingerne via den offentlige RPC
  * `public_beta_notice`, så indholdet kan rettes uden en ny udgivelse.
@@ -32,6 +43,7 @@ type Audience = "kunde" | "virksomhed";
 
 const BetaNotice = () => {
   const { pathname } = useLocation();
+  const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [audience, setAudience] = useState<Audience>("kunde");
   const [error, setError] = useState<string | null>(null);
@@ -59,10 +71,9 @@ const BetaNotice = () => {
 
   if (hidden || !data?.enabled) return null;
 
-  const title = data.title || "Vi er i testfase — vi åbner snart";
+  const title = data.title || "Vi er i testfase.";
   const body =
-    data.body ||
-    "Serviceydere bliver bygget færdig lige nu. Du er velkommen til at kigge rundt, men vi tager hverken imod kunder eller virksomheder endnu. Skriv din e-mail, så siger vi til den dag vi åbner.";
+    data.body || "Vi åbner snart for kunder og virksomheder — skriv dig op, så siger vi til.";
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,97 +107,100 @@ const BetaNotice = () => {
       aria-label="Besked om testfase"
       className="w-full border-b border-border bg-secondary text-foreground"
     >
-      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:gap-6 lg:px-8">
-        {/* Besked — kort og på én linje når der er plads */}
-        <div className="flex min-w-0 items-start gap-2.5 lg:items-center">
-          <span className="mt-0.5 inline-flex h-6 shrink-0 items-center gap-1.5 rounded-full bg-foreground px-2.5 text-[10.5px] font-semibold uppercase tracking-[0.16em] text-background lg:mt-0">
-            <Hammer className="h-3 w-3" />
-            Testfase
+      <div className="flex w-full flex-wrap items-center justify-center gap-x-3 gap-y-1.5 px-4 py-2.5 text-center sm:px-6 lg:px-8">
+        <p className="text-[13.5px] leading-6">
+          <span className="font-semibold">{title}</span>{" "}
+          <span className="text-muted-foreground">{body}</span>
+        </p>
+
+        {done ? (
+          <span className="inline-flex items-center gap-1.5 text-[13px] font-medium">
+            <CheckCircle2 className="h-4 w-4 text-accent" />
+            Du står på listen
           </span>
-          <p className="min-w-0 text-[13.5px] leading-6">
-            <span className="font-semibold">{title}</span>{" "}
-            <span className="text-muted-foreground">{body}</span>
-          </p>
-        </div>
-
-        {/* Tilmelding — kompakt, altid til højre på store skærme */}
-        <div className="shrink-0">
-          {done ? (
-            <p className="inline-flex items-center gap-2 text-[13px] font-medium">
-              <CheckCircle2 className="h-4 w-4 text-accent" />
-              Du står på listen — vi sender én mail, den dag vi åbner.
-            </p>
-          ) : (
-            <form onSubmit={submit} noValidate className="flex w-full flex-wrap items-center gap-2 lg:w-auto">
-              <div
-                className="flex shrink-0 overflow-hidden rounded-full border border-border bg-background p-0.5"
-                role="group"
-                aria-label="Hvem skriver du dig op som?"
-              >
-                {(
-                  [
-                    { key: "kunde" as const, label: "Kunde" },
-                    { key: "virksomhed" as const, label: "Virksomhed" },
-                  ]
-                ).map((opt) => (
-                  <button
-                    key={opt.key}
-                    type="button"
-                    aria-pressed={audience === opt.key}
-                    onClick={() => setAudience(opt.key)}
-                    className={cn(
-                      "rounded-full px-3 py-1 text-[12px] font-medium transition-colors",
-                      audience === opt.key
-                        ? "bg-foreground text-background"
-                        : "text-muted-foreground hover:text-foreground",
-                    )}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-
-              <label htmlFor="beta-email" className="sr-only">
-                Din e-mail
-              </label>
-              <div className="relative min-w-[170px] flex-1 lg:w-56 lg:flex-none">
-                <Mail className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  id="beta-email"
-                  type="email"
-                  inputMode="email"
-                  autoComplete="email"
-                  maxLength={254}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="din@mail.dk"
-                  aria-invalid={!!error}
-                  aria-describedby={error ? "beta-email-error" : undefined}
-                  className="h-9 w-full rounded-full border border-border bg-background pl-8 pr-3 text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-                />
-              </div>
-
+        ) : (
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
               <button
-                type="submit"
-                disabled={saving}
-                className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-full bg-foreground px-4 text-[13px] font-semibold text-background transition-opacity hover:opacity-90 disabled:opacity-70"
+                type="button"
+                className="rounded-full bg-foreground px-3.5 py-1 text-[12.5px] font-semibold text-background transition-opacity hover:opacity-90"
               >
-                {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                Skriv mig op
+                Få besked når vi åbner
               </button>
+            </DialogTrigger>
 
-              {error && (
-                <p id="beta-email-error" className="w-full text-[12px] text-destructive">
-                  {error}
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Få besked når vi åbner</DialogTitle>
+                <DialogDescription>
+                  Vi sender én enkelt mail — den dag Serviceydere åbner. Ikke andet, ingen reklamer.
+                </DialogDescription>
+              </DialogHeader>
+
+              <form onSubmit={submit} noValidate className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Hvem skriver du dig op som?</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(
+                      [
+                        { key: "kunde" as const, label: "Jeg er kunde" },
+                        { key: "virksomhed" as const, label: "Jeg har en virksomhed" },
+                      ]
+                    ).map((opt) => (
+                      <button
+                        key={opt.key}
+                        type="button"
+                        aria-pressed={audience === opt.key}
+                        onClick={() => setAudience(opt.key)}
+                        className={cn(
+                          "rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
+                          audience === opt.key
+                            ? "border-foreground bg-foreground text-background"
+                            : "border-border bg-background text-muted-foreground hover:text-foreground",
+                        )}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="beta-email">Din e-mail</Label>
+                  <Input
+                    id="beta-email"
+                    type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    maxLength={254}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="din@mail.dk"
+                    aria-invalid={!!error}
+                    aria-describedby={error ? "beta-email-error" : undefined}
+                  />
+                  {error && (
+                    <p id="beta-email-error" className="text-[12.5px] text-destructive">
+                      {error}
+                    </p>
+                  )}
+                </div>
+
+                <Button type="submit" disabled={saving} className="w-full">
+                  {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Skriv mig op
+                </Button>
+
+                <p className="text-[12px] leading-5 text-muted-foreground">
+                  Vi bruger kun din e-mail til at fortælle, at vi er åbnet. Du kan altid bede os slette den.
                 </p>
-              )}
-            </form>
-          )}
-        </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     </aside>
   );
 };
-
 
 export default BetaNotice;
