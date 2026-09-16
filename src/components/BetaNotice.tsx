@@ -117,7 +117,7 @@ const BetaNotice = () => {
               Du står på listen — vi sender én mail, den dag vi åbner.
             </p>
           ) : (
-            <form onSubmit={submit} noValidate className="flex flex-wrap items-center gap-2">
+            <form onSubmit={submit} noValidate className="flex w-full flex-wrap items-center gap-2 lg:w-auto">
               <div
                 className="flex shrink-0 overflow-hidden rounded-full border border-border bg-background p-0.5"
                 role="group"
@@ -149,7 +149,7 @@ const BetaNotice = () => {
               <label htmlFor="beta-email" className="sr-only">
                 Din e-mail
               </label>
-              <div className="relative min-w-0 flex-1 sm:w-56 sm:flex-none">
+              <div className="relative min-w-[170px] flex-1 lg:w-56 lg:flex-none">
                 <Mail className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                 <input
                   id="beta-email"
