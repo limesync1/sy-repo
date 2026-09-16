@@ -1,6 +1,8 @@
 project_id = "gkectsellkpltrxvusot"
 
 [functions]
+  [functions.beta-launch-announce]
+    verify_jwt = true
   [functions.auth-email-hook]
     verify_jwt = false
   [functions.process-email-queue]
