@@ -6,9 +6,11 @@ interface HorizontalScrollerProps {
   className?: string;
   /** Tilgængelig label til scroll-regionen — læses op af skærmlæsere. */
   ariaLabel?: string;
+  /** Slå kant-fade fra når næste kort bevidst skal stå tydeligt frem på mobil. */
+  fadeEdges?: boolean;
 }
 
-const HorizontalScroller = ({ children, className = "", ariaLabel = "Vandret liste — brug piletaster eller swipe" }: HorizontalScrollerProps) => {
+const HorizontalScroller = ({ children, className = "", ariaLabel = "Vandret liste — brug piletaster eller swipe", fadeEdges = true }: HorizontalScrollerProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(false);
@@ -67,10 +69,10 @@ const HorizontalScroller = ({ children, className = "", ariaLabel = "Vandret lis
         aria-label={ariaLabel}
         tabIndex={0}
         /* Bløde kanter i stedet for kort der bliver klippet skarpt over. */
-        style={{
+        style={fadeEdges ? {
           maskImage: `linear-gradient(90deg, transparent 0, #000 ${canLeft ? "56px" : "0px"}, #000 calc(100% - ${canRight ? "56px" : "0px"}), transparent 100%)`,
           WebkitMaskImage: `linear-gradient(90deg, transparent 0, #000 ${canLeft ? "56px" : "0px"}, #000 calc(100% - ${canRight ? "56px" : "0px"}), transparent 100%)`,
-        }}
+        } : undefined}
         className="scrollbar-none flex gap-4 overflow-x-auto scroll-smooth pb-2 outline-none focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-[28px] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
       >
 

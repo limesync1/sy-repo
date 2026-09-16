@@ -128,6 +128,19 @@
     scrollbar-gutter: stable;
   }
 
+  /* En permanent desktop-scrollbar må ikke stjæle 15 px på telefoner.
+     Ellers stopper fuldbredde-sektionerne før skærmens højre kant. */
+  @media (max-width: 767px) {
+    html {
+      scrollbar-gutter: auto;
+      overflow-x: clip;
+    }
+
+    body {
+      overflow-x: clip;
+    }
+  }
+
   /* Fallback-font med justerede metrics, så teksten IKKE hopper i størrelse
      når Inter er hentet (font-display: swap). Uden dette ser man tydeligt at
      teksten først er lille og derefter bliver større på forsiden. */

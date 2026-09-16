@@ -51,9 +51,9 @@ const Categories = () => {
   const visible = expanded ? sorted : sorted.slice(0, INITIAL);
 
   return (
-    <section className="bg-background py-16 md:py-24">
+    <section className="bg-background py-14 sm:py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-9 flex flex-col gap-6 md:mb-10 md:flex-row md:items-end md:justify-between">
+        <div className="mb-8 flex flex-col gap-5 md:mb-10 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
               <span className="h-px w-6 bg-foreground/30" />
@@ -101,12 +101,12 @@ const Categories = () => {
 
         {/* Mobil — vandret scroll med alle brancher */}
         <div className="sm:hidden">
-          <HorizontalScroller ariaLabel="Servicebrancher — stryg vandret for at se flere">
+          <HorizontalScroller ariaLabel="Servicebrancher — stryg vandret for at se flere" fadeEdges={false}>
             {sorted.map((cat) => (
-              <CategoryCard key={cat.key} cat={cat} className="min-h-[172px] w-[190px] shrink-0 snap-start" />
+              <CategoryCard key={cat.key} cat={cat} className="min-h-[184px] w-[calc(100vw-4rem)] max-w-[300px] shrink-0 snap-start" />
             ))}
           </HorizontalScroller>
-          <p className="mt-3 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+          <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
             Stryg for at se alle {sorted.length} brancher <ArrowRight className="h-3.5 w-3.5" />
           </p>
         </div>

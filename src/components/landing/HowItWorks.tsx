@@ -24,7 +24,7 @@ const steps = [
 
 const HowItWorks = () => {
   return (
-    <section className="bg-ocean py-16 text-ocean-foreground md:py-24">
+    <section className="bg-ocean py-14 text-ocean-foreground sm:py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl">
           <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.22em] text-ocean-foreground/65">
@@ -39,20 +39,21 @@ const HowItWorks = () => {
           </p>
         </div>
 
-        <ol className="mt-10 grid gap-3 md:mt-14 md:grid-cols-3">
+        <ol className="mt-8 grid gap-3 sm:mt-10 md:mt-14 md:grid-cols-3">
             {steps.map((step, i) => (
-              <li key={step.title} className="rounded-lg bg-ocean-foreground/[0.06] p-6 sm:p-7">
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-xs font-semibold uppercase tracking-[0.16em] text-ocean-foreground/60">
-                    Trin {i + 1}
+              <li key={step.title} className="rounded-lg border border-ocean-foreground/10 bg-ocean-foreground/[0.06] p-5 sm:p-7">
+                <div className="flex items-center gap-3 md:justify-between md:gap-4">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-ocean-foreground/25 text-xs font-semibold tabular-nums text-ocean-foreground">
+                    {i + 1}
                   </span>
+                  <h3 className="min-w-0 flex-1 text-[17px] font-semibold md:hidden">{step.title}</h3>
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
                     <step.icon className="h-5 w-5" aria-hidden="true" />
                   </span>
                 </div>
-                <div className="mt-8">
-                  <h3 className="text-lg font-semibold sm:text-xl">{step.title}</h3>
-                  <p className="mt-2 max-w-sm text-[14px] leading-6 text-ocean-foreground/70">
+                <div className="mt-4 md:mt-8">
+                  <h3 className="hidden text-lg font-semibold sm:text-xl md:block">{step.title}</h3>
+                  <p className="max-w-sm text-[14px] leading-6 text-ocean-foreground/70 md:mt-2">
                     {step.description}
                   </p>
                 </div>
@@ -60,7 +61,7 @@ const HowItWorks = () => {
             ))}
         </ol>
 
-        <div className="mt-12 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <div className="mt-8 flex flex-col gap-3 sm:mt-12 sm:flex-row sm:flex-wrap sm:items-center">
           <SmartLink
             to="/tilbud"
             className="group inline-flex items-center justify-center gap-2 rounded-lg bg-ocean-foreground px-6 py-3 text-sm font-semibold text-ocean transition-all hover:-translate-y-0.5"
