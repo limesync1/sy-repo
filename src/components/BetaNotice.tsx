@@ -94,114 +94,99 @@ const BetaNotice = () => {
     <aside
       role="region"
       aria-label="Besked om testfase"
-      className="relative w-full bg-[hsl(var(--hero-bg))] text-background"
+      className="w-full border-b border-border bg-secondary text-foreground"
     >
-      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -right-24 -top-28 h-72 w-72 rounded-full bg-accent/20 blur-3xl" />
-      </div>
+      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:gap-6 lg:px-8">
+        {/* Besked — kort og på én linje når der er plads */}
+        <div className="flex min-w-0 items-start gap-2.5 lg:items-center">
+          <span className="mt-0.5 inline-flex h-6 shrink-0 items-center gap-1.5 rounded-full bg-foreground px-2.5 text-[10.5px] font-semibold uppercase tracking-[0.16em] text-background lg:mt-0">
+            <Hammer className="h-3 w-3" />
+            Testfase
+          </span>
+          <p className="min-w-0 text-[13.5px] leading-6">
+            <span className="font-semibold">{title}</span>{" "}
+            <span className="text-muted-foreground">{body}</span>
+          </p>
+        </div>
 
-      <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
-        <div className="grid gap-7 lg:grid-cols-[1.35fr_1fr] lg:items-center lg:gap-12">
-          <div className="min-w-0">
-            <span className="inline-flex items-center gap-2 rounded-full border border-background/25 bg-background/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]">
-              <Hammer className="h-3.5 w-3.5" />
-              Testfase
-            </span>
-
-            <h2 className="mt-4 text-[1.6rem] font-semibold leading-[1.1] tracking-[-0.03em] sm:text-[2.1rem] lg:text-[2.4rem]">
-              {title}
-            </h2>
-
-            <p className="mt-3 max-w-2xl text-[14.5px] leading-7 text-background/80 sm:text-[15.5px]">
-              {body}
+        {/* Tilmelding — kompakt, altid til højre på store skærme */}
+        <div className="shrink-0">
+          {done ? (
+            <p className="inline-flex items-center gap-2 text-[13px] font-medium">
+              <CheckCircle2 className="h-4 w-4 text-accent" />
+              Du står på listen — vi sender én mail, den dag vi åbner.
             </p>
-          </div>
-
-          <div className="rounded-2xl border border-background/20 bg-background/[0.07] p-5 backdrop-blur sm:p-6">
-            {done ? (
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
-                <div>
-                  <p className="text-sm font-semibold">Du står på listen</p>
-                  <p className="mt-1 text-[13.5px] leading-6 text-background/75">
-                    Vi sender én mail — den dag vi åbner. Ikke andet.
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <form onSubmit={submit} noValidate>
-                <p className="text-sm font-semibold">Få besked når vi åbner</p>
-
-                <div className="mt-3 flex gap-2" role="group" aria-label="Hvem skriver du dig op som?">
-                  {(
-                    [
-                      { key: "kunde" as const, label: "Jeg er kunde" },
-                      { key: "virksomhed" as const, label: "Jeg har en virksomhed" },
-                    ]
-                  ).map((opt) => (
-                    <button
-                      key={opt.key}
-                      type="button"
-                      aria-pressed={audience === opt.key}
-                      onClick={() => setAudience(opt.key)}
-                      className={cn(
-                        "rounded-full border px-3 py-1.5 text-[12.5px] font-medium transition-colors",
-                        audience === opt.key
-                          ? "border-background bg-background text-foreground"
-                          : "border-background/30 bg-transparent text-background/80 hover:bg-background/10",
-                      )}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-
-                <label htmlFor="beta-email" className="sr-only">
-                  Din e-mail
-                </label>
-                <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-                  <div className="relative flex-1">
-                    <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/40" />
-                    <input
-                      id="beta-email"
-                      type="email"
-                      inputMode="email"
-                      autoComplete="email"
-                      maxLength={254}
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="din@mail.dk"
-                      aria-invalid={!!error}
-                      aria-describedby={error ? "beta-email-error" : undefined}
-                      className="h-11 w-full rounded-full border border-background/25 bg-background pl-9 pr-4 text-sm text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-accent"
-                    />
-                  </div>
+          ) : (
+            <form onSubmit={submit} noValidate className="flex w-full flex-wrap items-center gap-2 lg:w-auto">
+              <div
+                className="flex shrink-0 overflow-hidden rounded-full border border-border bg-background p-0.5"
+                role="group"
+                aria-label="Hvem skriver du dig op som?"
+              >
+                {(
+                  [
+                    { key: "kunde" as const, label: "Kunde" },
+                    { key: "virksomhed" as const, label: "Virksomhed" },
+                  ]
+                ).map((opt) => (
                   <button
-                    type="submit"
-                    disabled={saving}
-                    className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-accent px-5 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent/90 disabled:opacity-70"
+                    key={opt.key}
+                    type="button"
+                    aria-pressed={audience === opt.key}
+                    onClick={() => setAudience(opt.key)}
+                    className={cn(
+                      "rounded-full px-3 py-1 text-[12px] font-medium transition-colors",
+                      audience === opt.key
+                        ? "bg-foreground text-background"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
                   >
-                    {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-                    Skriv mig op
+                    {opt.label}
                   </button>
-                </div>
+                ))}
+              </div>
 
-                {error && (
-                  <p id="beta-email-error" className="mt-2 text-[12.5px] text-red-200">
-                    {error}
-                  </p>
-                )}
+              <label htmlFor="beta-email" className="sr-only">
+                Din e-mail
+              </label>
+              <div className="relative min-w-[170px] flex-1 lg:w-56 lg:flex-none">
+                <Mail className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  id="beta-email"
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  maxLength={254}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="din@mail.dk"
+                  aria-invalid={!!error}
+                  aria-describedby={error ? "beta-email-error" : undefined}
+                  className="h-9 w-full rounded-full border border-border bg-background pl-8 pr-3 text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                />
+              </div>
 
-                <p className="mt-3 text-[12px] leading-5 text-background/60">
-                  Vi bruger kun din e-mail til at fortælle, at vi er åbnet. Du kan altid bede os slette den.
+              <button
+                type="submit"
+                disabled={saving}
+                className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-full bg-foreground px-4 text-[13px] font-semibold text-background transition-opacity hover:opacity-90 disabled:opacity-70"
+              >
+                {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                Skriv mig op
+              </button>
+
+              {error && (
+                <p id="beta-email-error" className="w-full text-[12px] text-destructive">
+                  {error}
                 </p>
-              </form>
-            )}
-          </div>
+              )}
+            </form>
+          )}
         </div>
       </div>
     </aside>
   );
 };
+
 
 export default BetaNotice;
