@@ -1418,6 +1418,8 @@ function NewRouteDialog({
   const createRoute = useCreateRoute();
   const addStop = useAddStop();
   const deleteRoute = useDeleteRoute();
+  const deleteStop = useDeleteStop();
+
   const qcDialog = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
 
@@ -1551,8 +1553,10 @@ function NewRouteDialog({
       } else {
         toast.success(
           `Ny rute oprettet med ${addedStops.length} ${addedStops.length === 1 ? "aftale" : "aftaler"}`,
+          moved.length > 0 ? { description: moved.join(", ") } : undefined,
         );
       }
+
       reset();
       onCreated(created);
     } catch (err: any) {
