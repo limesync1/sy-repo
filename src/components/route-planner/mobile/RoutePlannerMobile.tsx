@@ -307,23 +307,36 @@ export default function RoutePlannerMobile() {
           toast.info("Kunden skal godkende tilbuddet før aftalen kan planlægges");
           return;
         }
+        const dropPayload = {
+          route_id: targetRouteId,
+          order_id: job.id,
+          sequence: insertIndex,
+          customer_name: job.customer_name,
+          customer_phone: job.customer_phone,
+          address: jobAddress(job),
+          latitude: job.latitude,
+          longitude: job.longitude,
+          service_summary: serviceSummaryForJob(job),
+          duration_minutes: Number(job.estimated_duration_minutes) || 30,
+          time_window_start: job.preferred_time_start || null,
+          time_window_end: job.preferred_time_end || null,
+        };
         try {
-          await addStop.mutateAsync({
-            route_id: targetRouteId,
-            order_id: job.id,
-            sequence: insertIndex,
-            customer_name: job.customer_name,
-            customer_phone: job.customer_phone,
-            address: jobAddress(job),
-            latitude: job.latitude,
-            longitude: job.longitude,
-            service_summary: serviceSummaryForJob(job),
-            duration_minutes: Number(job.estimated_duration_minutes) || 30,
-            time_window_start: job.preferred_time_start || null,
-            time_window_end: job.preferred_time_end || null,
-          });
+          let movedFrom: string | null = null;
+          try {
+            await addStop.mutateAsync(dropPayload);
+          } catch (err: any) {
+            if (!isAlreadyPlannedError(err)) throw err;
+            const existing = await findStopOnOtherRoute(job.id, date, targetRouteId);
+            if (!existing) throw err;
+            await deleteStop.mutateAsync(existing.id);
+            await addStop.mutateAsync(dropPayload);
+            movedFrom = existing.routeName;
+          }
           void linkAgreementToRoute(job.id, targetRouteId);
-          toast.success("Aftale tilføjet til rute");
+          toast.success(
+            movedFrom ? `Aftale flyttet fra ${movedFrom}` : "Aftale tilføjet til rute",
+          );
         } catch (err: any) {
           const msg = String(err?.message || "");
           if (msg.includes("uniq_route_stops_route_order") || msg.includes("duplicate key")) {
@@ -332,6 +345,7 @@ export default function RoutePlannerMobile() {
             toast.error("Kunne ikke tilføje aftale", { description: err?.message });
           }
         }
+
         return;
       }
 
