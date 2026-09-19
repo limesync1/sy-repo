@@ -320,6 +320,9 @@ Deno.serve(async (req) => {
       startFromHome: !!route.start_from_home,
       planStart: planStartMin,
       respectPinned,
+      liveStart: startLocation
+        ? { lat: Number(startLocation.lat.toFixed(4)), lng: Number(startLocation.lng.toFixed(4)), t: startNowMin }
+        : null,
     };
     const fpStr = JSON.stringify(fingerprintPayload);
     // Stabil 32-bit hash (FNV-1a) — tilstrækkeligt til at detektere ændringer
