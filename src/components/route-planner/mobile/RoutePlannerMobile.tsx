@@ -1490,6 +1490,7 @@ function NewRouteDialog({
     } catch (err: any) {
       toast.error("Kunne ikke oprette rute", { description: err?.message });
     } finally {
+      void qcDialog.invalidateQueries({ queryKey: ["unassigned-jobs", businessId] });
       setSubmitting(false);
     }
   };
