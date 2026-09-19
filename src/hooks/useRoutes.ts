@@ -2629,6 +2629,8 @@ export const useMyRouteData = (routeId: string | undefined) => {
         .eq("id", routeId!)
         .maybeSingle();
       if (!route) return null;
+      // Vælg den medarbejder-record der hører til rutens virksomhed.
+      const emp = emps.find((e: any) => e.business_id === (route as any).business_id) ?? emps[0];
       const { data: myAssign } = await supabase
         .from("route_stop_assignees")
         .select("stop_id")
