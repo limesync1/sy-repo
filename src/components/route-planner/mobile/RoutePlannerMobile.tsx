@@ -1388,7 +1388,14 @@ function NewRouteDialog({
   const createRoute = useCreateRoute();
   const addStop = useAddStop();
   const deleteRoute = useDeleteRoute();
+  const qcDialog = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
+
+  // Hent friske "aftaler uden rute" hver gang dialogen åbnes, så listen ikke
+  // viser aftaler der i mellemtiden er lagt på en anden rute.
+  useEffect(() => {
+    if (open) void qcDialog.invalidateQueries({ queryKey: ["unassigned-jobs", businessId] });
+  }, [open, businessId, qcDialog]);
 
   // Nulstil felter når dialogen åbner
   const reset = () => {
