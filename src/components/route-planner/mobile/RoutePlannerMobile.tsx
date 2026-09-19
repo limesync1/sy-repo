@@ -1463,35 +1463,50 @@ function NewRouteDialog({
       // brugeren med en tom rute og en "succes"-besked.
       const addedStops: RouteStop[] = [];
       const failed: { name: string; reason: string }[] = [];
+      const moved: string[] = [];
       for (let i = 0; i < selected.length; i++) {
         const job = eligible.find((j) => j.id === selected[i]);
         if (!job) continue;
+        const payload = {
+          route_id: created.id,
+          order_id: job.id,
+          sequence: i,
+          customer_name: job.customer_name,
+          customer_phone: job.customer_phone,
+          address: jobAddress(job),
+          latitude: job.latitude,
+          longitude: job.longitude,
+          service_summary: serviceSummaryForJob(job),
+          duration_minutes: Number(job.estimated_duration_minutes) || 30,
+          time_window_start: job.preferred_time_start || null,
+          time_window_end: job.preferred_time_end || null,
+        };
         try {
-          const stop = await addStop.mutateAsync({
-            route_id: created.id,
-            order_id: job.id,
-            sequence: i,
-            customer_name: job.customer_name,
-            customer_phone: job.customer_phone,
-            address: jobAddress(job),
-            latitude: job.latitude,
-            longitude: job.longitude,
-            service_summary: serviceSummaryForJob(job),
-            duration_minutes: Number(job.estimated_duration_minutes) || 30,
-            time_window_start: job.preferred_time_start || null,
-            time_window_end: job.preferred_time_end || null,
-          });
+          let stop: RouteStop;
+          try {
+            stop = await addStop.mutateAsync(payload);
+          } catch (err: any) {
+            // Ligger aftalen allerede på en anden rute samme dag, så FLYT den
+            // hertil i stedet for at afvise brugeren.
+            if (!isAlreadyPlannedError(err)) throw err;
+            const existing = await findStopOnOtherRoute(job.id, date, created.id);
+            if (!existing) throw err;
+            await deleteStop.mutateAsync(existing.id);
+            stop = await addStop.mutateAsync(payload);
+            moved.push(`${job.customer_name || "Aftale"} (flyttet fra ${existing.routeName})`);
+          }
           addedStops.push(stop);
           void linkAgreementToRoute(job.id, created.id);
         } catch (err: any) {
           const raw = String(err?.message || "");
-          const reason = /duplicate_route_stop|duplicate key|unique/i.test(raw)
-            ? "ligger allerede på en anden rute samme dag"
+          const reason = isAlreadyPlannedError(err)
+            ? "er allerede udført eller låst på en anden rute i dag"
             : raw || "ukendt fejl";
           failed.push({ name: job.customer_name || "Aftale", reason });
           console.warn("Kunne ikke tilføje aftale", err);
         }
       }
+
 
       if (addedStops.length === 0) {
         // Ingen stop kom på — ryd den tomme rute op igen.
