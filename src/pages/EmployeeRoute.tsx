@@ -1050,6 +1050,60 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     );
   };
 
+  /** Hent én position — bruges når vi ikke sporer GPS (tjekliste-tilstand). */
+  const getPositionOnce = (): Promise<[number, number] | null> =>
+    new Promise((resolve) => {
+      if (!navigator.geolocation) return resolve(null);
+      navigator.geolocation.getCurrentPosition(
+        (p) => resolve([p.coords.latitude, p.coords.longitude]),
+        () => resolve(null),
+        { enableHighAccuracy: false, maximumAge: 60_000, timeout: 8000 },
+      );
+    });
+
+  /**
+   * Læg de resterende stop i den rækkefølge der er hurtigst FRA hvor
+   * bilen står lige nu. Uden dette planlægges dagen altid fra
+   * startadressen, og man kan ende med at køre langt væk og tilbage igen.
+   */
+  const reoptimizeFromHere = async (opts: { silent?: boolean; excludeId?: string } = {}) => {
+    if (autoOptimizeRef.current) return;
+    const remaining = sortedStops.filter(
+      (x) => x.status !== "completed" && x.id !== opts.excludeId && x.latitude != null && x.longitude != null,
+    );
+    if (remaining.length < 2) return;
+    autoOptimizeRef.current = true;
+    try {
+      const pos = userPos ?? (await getPositionOnce());
+      if (!pos) {
+        if (!opts.silent) {
+          toast.error("Vi kunne ikke finde din position", {
+            description: "Slå lokation til for at få rækkefølgen tilpasset hvor du er.",
+          });
+        }
+        return;
+      }
+      const res = await optimizeLive.mutateAsync({ routeId, lat: pos[0], lng: pos[1] });
+      if (res.order_changed) {
+        const savedKm = Math.round(res.saved_km ?? 0);
+        const savedMin = Math.round(res.saved_minutes ?? 0);
+        toast.success("Rækkefølgen er tilpasset hvor du er nu", {
+          description: savedKm > 0 || savedMin > 0
+            ? `Du sparer ca. ${savedKm} km og ${savedMin} min på resten af dagen.`
+            : "Nærmeste stop kommer først.",
+        });
+      } else if (!opts.silent) {
+        toast.success("Rækkefølgen er allerede den bedste herfra");
+      }
+    } catch {
+      if (!opts.silent) {
+        toast.error("Kunne ikke tilpasse rækkefølgen", { description: "Prøv igen om lidt." });
+      }
+    } finally {
+      autoOptimizeRef.current = false;
+    }
+  };
+
   const handleComplete = async (s: RouteStop) => {
     if (routeDateLocked) {
       toast.error("Ruten kan først udføres på selve dagen");
