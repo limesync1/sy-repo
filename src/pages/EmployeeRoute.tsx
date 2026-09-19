@@ -370,6 +370,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     heading: number | null; speed: number | null; t: number;
   } | null>(null);
   const [routeStarted, setRouteStarted] = useState(false);
+  // Tjekliste eller kørselsguide. Valget spørges første gang man starter en
+  // rute og huskes derefter pr. enhed — men kan altid skiftes undervejs.
+  const [runMode, setRunMode] = useState<RouteRunMode>(() => readRunMode() ?? "guide");
+  const [modeDialogOpen, setModeDialogOpen] = useState(false);
+  const [pendingStopId, setPendingStopId] = useState<string | null>(null);
   const [followMode, setFollowMode] = useState(true);
   // Stop-detaljer sheet kan veksle mellem kompakt (~45 % af skærm) og fuld
   // (~85 %).  Default er kompakt, så medarbejderen altid ser kortet.  Klik
