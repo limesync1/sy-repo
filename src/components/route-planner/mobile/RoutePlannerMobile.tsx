@@ -103,10 +103,40 @@ import {
   linkAgreementToRoute,
   serviceSummaryForJob,
 } from "./mobile-helpers";
+import { supabase } from "@/integrations/supabase/client";
+
 import { MobileAssignSheet } from "./MobileAssignSheet";
 import { MobileRouteDetailSheet } from "./MobileRouteDetailSheet";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
+
+/** Er fejlen "aftalen ligger allerede på en rute samme dag"? */
+const isAlreadyPlannedError = (err: any) =>
+  /duplicate_route_stop|duplicate key|unique|allerede/i.test(String(err?.message || ""));
+
+/**
+ * Finder et eksisterende (ikke-udført) stop for en ordre på samme dato på en
+ * ANDEN rute. Bruges til at flytte aftalen i stedet for bare at afvise den.
+ */
+const findStopOnOtherRoute = async (
+  orderId: string,
+  date: string,
+  excludeRouteId: string,
+): Promise<{ id: string; routeName: string } | null> => {
+  const { data, error } = await supabase
+    .from("route_stops")
+    .select("id, completed_at, route_id, routes!inner(id, name, route_date, deleted_at)")
+    .eq("order_id", orderId)
+    .neq("route_id", excludeRouteId)
+    .eq("routes.route_date", date)
+    .is("routes.deleted_at", null);
+  if (error) return null;
+  const hit = (data as any[] | null)?.find((s) => !s.completed_at);
+  if (!hit) return null;
+  return { id: hit.id, routeName: hit.routes?.name || "en anden rute" };
+};
+
+
 
 const formatDur = (min: number) => {
   if (!min) return "0 min";
