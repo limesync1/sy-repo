@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import type { Map as LeafletMap } from "leaflet";
 
 /**
@@ -39,40 +39,12 @@ export const useSmoothZoom = (
   enabled: boolean,
   speedMps: number,
 ) => {
-  const targetRef = useRef<number>(MAX_ZOOM);
-  const rafRef = useRef<number | null>(null);
-
-  // Opdater target uden at restarte rAF-loopet.
   useEffect(() => {
-    targetRef.current = targetForSpeed(speedMps);
-  }, [speedMps]);
-
-  useEffect(() => {
-    if (!enabled || !map) {
-      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-      return;
-    }
-    // Eksponentiel easing: 0.04 pr. frame ≈ ~0.5 sek til 90% af target,
-    // hvilket er hurtigt nok til at føles responsivt og langsomt nok til
-    // at fjerne hak.
-    const RATE = 0.04;
-    const tick = () => {
-      const cur = map.getZoom();
-      const tgt = targetRef.current;
-      const diff = tgt - cur;
-      // Stop kun rAF i selve setZoom-kaldet hvis vi rent faktisk ændrer noget.
-      if (Math.abs(diff) > 0.01) {
-        const nextZoom = cur + diff * RATE;
-        // setZoom uden animation — vi animerer selv.
-        map.setZoom(nextZoom, { animate: false } as any);
-      }
-      rafRef.current = requestAnimationFrame(tick);
-    };
-    rafRef.current = requestAnimationFrame(tick);
-    return () => {
-      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-    };
-  }, [enabled, map]);
+    if (!enabled || !map || document.visibilityState === "hidden") return;
+    const target = targetForSpeed(speedMps);
+    if (Math.abs(target - map.getZoom()) < 0.35) return;
+    // Én Leaflet-animation pr. reel hastighedsændring. Det tidligere permanente
+    // 60-fps loop genberegnede kortet hele tiden og gjorde telefonen varm.
+    map.setZoom(target, { animate: true });
+  }, [enabled, map, speedMps]);
 };

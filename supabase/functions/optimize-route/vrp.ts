@@ -143,13 +143,15 @@ function scheduleRoute(
     r.travel_km_to_next = null;
   }
 
-  // Sidste leg: hjem — tæller med i totalKm (og derved i cost hvis vi ikke
-  // tilføjer den her). Vi inkluderer også returkørslen i cost så der er
-  // pres på at slutte tæt på medarbejderens base.
+  // Sidste leg hjem skal tælle med i både tid og cost. Tidligere talte kun
+  // kilometerne, så optimeren kunne vælge en langsom afslutning på små veje,
+  // selv når en hurtigere hjemtur fandtes.
+  let returnTravelMin = 0;
   if (route.length > 0) {
+    returnTravelMin = Math.round(travel.sec(prevIdx, empEndIdx) / 60);
     const homeKm = travel.km(prevIdx, empEndIdx);
     totalKm += homeKm;
-    cost += homeKm * KM_COST_WEIGHT;
+    cost += returnTravelMin + homeKm * KM_COST_WEIGHT;
   }
 
   // Tilføj samme-adresse-strafgebyret til den samlede cost. Penalty er
@@ -178,7 +180,7 @@ function scheduleRoute(
     last.travel_km_to_next = Number(tKm.toFixed(2));
   }
 
-  const durMin = route.length > 0 ? cursor - emp.work_start_min : 0;
+  const durMin = route.length > 0 ? cursor - emp.work_start_min + returnTravelMin : 0;
   return { feasible: true, cost, km: totalKm, durMin, softViolations };
 }
 
@@ -214,7 +216,9 @@ function tryInsertCheapest(
       ];
       const ev = scheduleRoute(emp, trial, stops, travel, meta.startIdx, meta.endIdx, stopIdx);
       if (!ev.feasible) continue;
-      const delta = ev.cost - baseline.cost + (ev.km - baseline.km) * 0.5;
+      // scheduleRoute.cost indeholder allerede både reel køretid og km-vægt.
+      // En ekstra km-straf her gjorde den indledende løsning afstandstung.
+      const delta = ev.cost - baseline.cost;
       if (!best || delta < best.cost) best = { emp, pos, cost: delta };
     }
   }
