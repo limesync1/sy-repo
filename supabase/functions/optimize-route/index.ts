@@ -79,12 +79,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    const [{ data: isAdmin }, { data: isOwner }] = await Promise.all([
+    const [{ data: isAdmin }, { data: isOwner }, { data: isRouteEmployee }] = await Promise.all([
       supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }),
       supabase.rpc("is_route_owner", { _route_id: routeId, _user_id: user.id }),
+      supabase.rpc("is_route_assigned_employee", { _route_id: routeId, _user_id: user.id }),
     ]);
 
-    if (!isAdmin && !isOwner) {
+    if (!isAdmin && !isOwner && !isRouteEmployee) {
       return new Response(JSON.stringify({ ok: false, error: "Du har ikke adgang til at optimere denne rute" }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
