@@ -1181,6 +1181,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         { enableHighAccuracy: true, maximumAge: 0, timeout: 8000 },
       );
     }
+    // Ved start: læg dagens rækkefølge efter hvor medarbejderen faktisk er.
+    setTimeout(() => void reoptimizeFromHere({ silent: true }), 1500);
   };
 
   const handleStartRoute = () => {
