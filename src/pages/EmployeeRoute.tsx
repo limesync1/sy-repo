@@ -1703,9 +1703,23 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       Dagens rute · {todayLabel}
                     </p>
                   </div>
-                  <Badge variant="secondary" className="text-[10px] h-5 px-1.5 tabular-nums font-semibold shrink-0">
-                    {sortedStops.length} stop
-                  </Badge>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {remainingStops.length > 1 && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="h-6 px-2 text-[10px] font-semibold"
+                        disabled={optimizeLive.isPending}
+                        onClick={() => void reoptimizeFromHere()}
+                      >
+                        {optimizeLive.isPending ? "Optimerer…" : "Optimér herfra"}
+                      </Button>
+                    )}
+                    <Badge variant="secondary" className="text-[10px] h-5 px-1.5 tabular-nums font-semibold shrink-0">
+                      {sortedStops.length} stop
+                    </Badge>
+                  </div>
                 </div>
 
                 {/* Tre nøgletal — admin-stil grid uden flashy farver */}
