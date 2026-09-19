@@ -1743,39 +1743,65 @@ function BulkAssignSheet({
 }) {
   const addStop = useAddStop();
   const createRoute = useCreateRoute();
+  const deleteStop = useDeleteStop();
+
   const [busy, setBusy] = useState(false);
 
   const assignTo = async (routeId: string) => {
     if (busy) return;
     setBusy(true);
-    let ok = 0, fail = 0;
+    let ok = 0, fail = 0, movedCount = 0;
+    let lastError = "";
     for (const job of jobs) {
+      const payload = {
+        route_id: routeId,
+        order_id: job.id,
+        sequence: 9999, // bunden
+        customer_name: job.customer_name,
+        customer_phone: job.customer_phone,
+        address: jobAddress(job),
+        latitude: job.latitude,
+        longitude: job.longitude,
+        service_summary: serviceSummaryForJob(job),
+        duration_minutes: Number(job.estimated_duration_minutes) || 30,
+        time_window_start: job.preferred_time_start || null,
+        time_window_end: job.preferred_time_end || null,
+      };
       try {
-        await addStop.mutateAsync({
-          route_id: routeId,
-          order_id: job.id,
-          sequence: 9999, // bunden
-          customer_name: job.customer_name,
-          customer_phone: job.customer_phone,
-          address: jobAddress(job),
-          latitude: job.latitude,
-          longitude: job.longitude,
-          service_summary: serviceSummaryForJob(job),
-          duration_minutes: Number(job.estimated_duration_minutes) || 30,
-          time_window_start: job.preferred_time_start || null,
-          time_window_end: job.preferred_time_end || null,
-        });
+        try {
+          await addStop.mutateAsync(payload);
+        } catch (err: any) {
+          if (!isAlreadyPlannedError(err)) throw err;
+          const existing = await findStopOnOtherRoute(job.id, date, routeId);
+          if (!existing) throw err;
+          await deleteStop.mutateAsync(existing.id);
+          await addStop.mutateAsync(payload);
+          movedCount++;
+        }
         void linkAgreementToRoute(job.id, routeId);
         ok++;
-      } catch {
+      } catch (err: any) {
+        lastError = String(err?.message || "");
         fail++;
       }
     }
     setBusy(false);
-    if (ok > 0) toast.success(`${ok} aftaler tilføjet`);
-    if (fail > 0) toast.error(`${fail} aftaler kunne ikke tilføjes`);
+    if (ok > 0) {
+      toast.success(
+        `${ok} ${ok === 1 ? "aftale" : "aftaler"} tilføjet`,
+        movedCount > 0
+          ? { description: `${movedCount} blev flyttet fra en anden rute samme dag.` }
+          : undefined,
+      );
+    }
+    if (fail > 0) {
+      toast.error(`${fail} aftaler kunne ikke tilføjes`, {
+        description: lastError || undefined,
+      });
+    }
     onOpenChange(false);
   };
+
 
   const createAndAssign = async () => {
     if (busy) return;
