@@ -681,15 +681,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     if (!isAtNextStop || !nextStop) return;
     (async () => {
       try {
-        const { data: u } = await supabase.auth.getUser();
-        if (!u.user) return;
-        const { data: emp } = await supabase
-          .from("employees")
-          .select("id")
-          .eq("user_id", u.user.id)
-          .maybeSingle();
-        if (!emp) return;
-        await startStopTime.mutateAsync({ stop_id: nextStop.id, employee_id: emp.id });
+        if (!meEmp?.id) return;
+        await startStopTime.mutateAsync({ stop_id: nextStop.id, employee_id: meEmp.id });
       } catch { /* non-fatal */ }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1051,16 +1044,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     try {
       // Stop tidsregistrering for den loggede medarbejder på denne opgave
       try {
-        const { data: u } = await supabase.auth.getUser();
-        if (u.user) {
-          const { data: emp } = await supabase
-            .from("employees")
-            .select("id")
-            .eq("user_id", u.user.id)
-            .maybeSingle();
-          if (emp) {
-            await endStopTime.mutateAsync({ stop_id: s.id, employee_id: emp.id });
-          }
+        if (meEmp?.id) {
+          await endStopTime.mutateAsync({ stop_id: s.id, employee_id: meEmp.id });
         }
       } catch { /* non-fatal */ }
       await updateStatus.mutateAsync({ id: s.id, status: "completed", notes: noteDraft[s.id] });

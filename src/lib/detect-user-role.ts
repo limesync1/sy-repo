@@ -23,7 +23,7 @@ export const ROLE_HOME: Record<DetectedRole, string> = {
 export const detectUserRole = async (userId: string): Promise<DetectedRole> => {
   const [adminRes, empRes, bizRes] = await Promise.all([
     supabase.from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle(),
-    supabase.from("employees").select("id").eq("user_id", userId).maybeSingle(),
+    supabase.from("employees").select("id").eq("user_id", userId).limit(1).maybeSingle(),
     supabase.from("businesses").select("id").eq("owner_id", userId).limit(1).maybeSingle(),
   ]);
   if (adminRes.data) return "admin";
