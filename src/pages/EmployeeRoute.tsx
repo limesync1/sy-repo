@@ -1139,6 +1139,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         const next = remaining[0];
         setTimeout(() => speak(`Næste stop: ${next.customer_name || "ukendt kunde"}`), 900);
       }
+      // Planlæg resten af dagen forfra — ud fra hvor vi holder nu.
+      void reoptimizeFromHere({ silent: true, excludeId: s.id });
     } catch {
       toast.error("Vi kunne ikke gemme markeringen", {
         description: "Tjek din forbindelse og prøv igen — stoppet står stadig som ikke udført.",
