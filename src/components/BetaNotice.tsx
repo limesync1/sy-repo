@@ -246,7 +246,7 @@ const BetaNotice = () => {
       </Dialog>
 
       {/* Popup ved første besøg i sessionen */}
-      {!done && (
+      {(!done || justSignedUp) && (
         <Dialog
           open={popupOpen}
           onOpenChange={(v) => {
