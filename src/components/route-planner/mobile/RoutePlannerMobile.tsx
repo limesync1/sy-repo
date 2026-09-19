@@ -1488,15 +1488,15 @@ function NewRouteDialog({
             ? old.routes
             : [...old.routes, created];
           return {
+            ...old,
             routes,
             stops: [...old.stops, ...addedStops.filter((stop) => !knownIds.has(stop.id))],
           };
         },
       );
-      await qcDialog.refetchQueries({
-        queryKey: ["route-calendar", businessId],
-        type: "active",
-      });
+      // En frisk netværkslæsning kører allerede via useAddStop. Den må ikke
+      // blokere dialogen: ved langsom eller afbrudt mobilforbindelse har vi
+      // stadig det autoritative stop, som RPC'en netop returnerede.
 
       if (failed.length > 0) {
         toast.warning(
