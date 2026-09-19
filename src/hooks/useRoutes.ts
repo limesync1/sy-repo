@@ -422,22 +422,21 @@ export const useMyWorkday = (date: string) => {
 
 export const useStartWorkday = () => {
   const qc = useQueryClient();
+  // Brug den valgte arbejdsplads' medarbejder-record. Arbejder brugeren for
+  // flere virksomheder (fx både som ejer og som medarbejder), findes der
+  // flere rækker i `employees` — derfor må vi ikke slå op på user_id alene.
+  const employeeId = useMyEmployeeId();
   return useMutation({
     mutationFn: async (date: string) => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("Ikke logget ind");
-      const { data: emp } = await supabase
-        .from("employees")
-        .select("id")
-        .eq("user_id", user.user.id)
-        .maybeSingle();
-      if (!emp) throw new Error("Du er ikke registreret som medarbejder");
+      if (!employeeId) throw new Error("Du er ikke registreret som medarbejder");
 
       const { data, error } = await supabase
         .from("employee_workdays")
         .upsert(
           {
-            employee_id: emp.id,
+            employee_id: employeeId,
             workday_date: date,
             started_at: new Date().toISOString(),
             ended_at: null,
