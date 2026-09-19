@@ -148,3 +148,14 @@ Deno.test("ingen medarbejdere tilknyttet stops giver tom plan", async () => {
   assertEquals(plan.unassigned_stops, ["orphan"]);
   assertEquals(plan.total_km, 0);
 });
+
+Deno.test("samlet køretid medregner hjemturen", async () => {
+  const employees = [emp("E", 55.0, 12.0)];
+  const stops = [stop("langt-væk", 55.0, 12.1, { duration_minutes: 30 })];
+
+  const { plan } = await solveVRP(employees, stops);
+
+  // Ca. 6,4 km hver vej ved fallbackens 50 km/t er ca. 15 min kørsel i alt.
+  // Med service skal totalen derfor tydeligt overstige 30 minutter.
+  assert(plan.total_minutes >= 44, `forventede service + ud- og hjemtur, fik ${plan.total_minutes} min`);
+});

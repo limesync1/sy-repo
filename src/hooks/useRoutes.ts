@@ -2773,14 +2773,12 @@ export const useDirections = (
         },
       });
       if (error) {
-        // Log men kast ikke — en fejlet directions-kald må aldrig blanke
-        // hele siden. Komponenter falder tilbage til straight-line.
         console.warn("route-directions failed:", error);
-        return null;
+        throw error;
       }
       return data as {
         ok: boolean;
-        provider: "mapbox" | "fallback";
+        provider: "mapbox" | "osrm" | "fallback";
         geometry: { type: "LineString"; coordinates: [number, number][] };
         distance_m: number | null;
         duration_s: number | null;
