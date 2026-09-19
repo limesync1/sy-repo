@@ -866,7 +866,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     const etaMs = Date.now() + directions.duration_s * 1000;
     const plannedMs = new Date(nextStop.planned_arrival).getTime();
     if (!Number.isFinite(plannedMs)) return null;
-    return Math.round((etaMs - plannedMs) / 60000);
+    const diff = Math.round((etaMs - plannedMs) / 60000);
+    // Fornuftstjek: er afvigelsen større end 3 timer, er den planlagte tid
+    // ikke retvisende (fx en rute startet længe efter planen eller en gammel
+    // dato). Så viser vi hellere ingenting end "+258 min" på en tur på 23 km.
+    if (Math.abs(diff) > 180) return null;
+    return diff;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [directions?.duration_s, nextStop?.planned_arrival, nextStop?.id]);
 
