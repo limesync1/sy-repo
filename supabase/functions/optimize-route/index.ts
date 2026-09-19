@@ -352,50 +352,67 @@ Deno.serve(async (req) => {
     // oprindelige indbyrdes rækkefølge.
     let globalSeq = 0;
     const writes: PromiseLike<any>[] = [];
-    const lockedSorted = [...lockedStops].sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0));
+    // Låste (udførte/sprungne) stops ligger først, men i den rækkefølge de
+    // FAKTISK blev kørt — ikke i deres gamle sequence. Ellers kan et stop der
+    // lige er markeret udført/fortrudt ende midt i dagens plan.
+    const lockedTime = (s: any): number => {
+      const raw = s.completed_at ?? s.planned_arrival ?? null;
+      const t = raw ? new Date(raw).getTime() : NaN;
+      return Number.isFinite(t) ? t : (s.sequence ?? 0);
+    };
+    const lockedSorted = [...lockedStops].sort((a, b) => lockedTime(a) - lockedTime(b));
     for (const s of lockedSorted) {
       writes.push(
         supabase.from("route_stops").update({ sequence: globalSeq++ }).eq("id", s.id),
       );
     }
 
-    for (const [, scheduled] of plan.per_employee.entries()) {
-      for (const sched of scheduled) {
-        const stop = validStops.find((s) => s.id === sched.stop_id)!;
-        const arrivalIso = timeToDateIso(route.route_date, sched.arrival_min);
-        const departureIso = timeToDateIso(route.route_date, sched.departure_min);
-        writes.push(
-          supabase.from("route_stops").update({
-            sequence: globalSeq++,
-            planned_arrival: arrivalIso,
-            planned_departure: departureIso,
-            distance_to_next_km: sched.travel_km_to_next,
-            travel_time_to_next_min: sched.travel_min_to_next,
-          }).eq("id", sched.stop_id),
-        );
+    // Saml alle planlagte stops på tværs af medarbejdere og sortér dem efter
+    // ankomsttid, så `sequence` ALTID følger den tid der står på stoppet.
+    // Tidligere fulgte sequence map-rækkefølgen, hvilket kunne give en
+    // rækkefølge i medarbejderpanelet der ikke matchede planen.
+    const scheduledAll = Array.from(plan.per_employee.entries())
+      .flatMap(([empId, list]) => list.map((sched) => ({ empId, sched })))
+      .sort((a, b) => a.sched.arrival_min - b.sched.arrival_min);
 
-        // Sync assignees: kun når vi eksplicit tillader ændring af bemanding
-        if (!preserveAssignees && stop.pinned_assignees.length === 0) {
-          // Slet eksisterende og tilføj nye
-          writes.push(
-            supabase.from("route_stop_assignees").delete().eq("stop_id", sched.stop_id).then(() => {
-              const inserts = sched.assignees.map((eid, i) => ({
-                stop_id: sched.stop_id,
-                employee_id: eid,
-                is_lead: i === 0,
-              }));
-              if (inserts.length > 0) {
-                return supabase.from("route_stop_assignees").insert(inserts);
-              }
-            }),
-          );
-        }
+    for (const { sched } of scheduledAll) {
+      const stop = validStops.find((s) => s.id === sched.stop_id)!;
+      const arrivalIso = timeToDateIso(route.route_date, sched.arrival_min);
+      const departureIso = timeToDateIso(route.route_date, sched.departure_min);
+      writes.push(
+        supabase.from("route_stops").update({
+          sequence: globalSeq++,
+          planned_arrival: arrivalIso,
+          planned_departure: departureIso,
+          distance_to_next_km: sched.travel_km_to_next,
+          travel_time_to_next_min: sched.travel_min_to_next,
+        }).eq("id", sched.stop_id),
+      );
+
+      // Sync assignees: kun når vi eksplicit tillader ændring af bemanding
+      if (!preserveAssignees && stop.pinned_assignees.length === 0) {
+        // Slet eksisterende og tilføj nye
+        writes.push(
+          supabase.from("route_stop_assignees").delete().eq("stop_id", sched.stop_id).then(() => {
+            const inserts = sched.assignees.map((eid, i) => ({
+              stop_id: sched.stop_id,
+              employee_id: eid,
+              is_lead: i === 0,
+            }));
+            if (inserts.length > 0) {
+              return supabase.from("route_stop_assignees").insert(inserts);
+            }
+          }),
+        );
       }
     }
 
-    // Stops uden GPS -> placeres til sidst med dummy tider
-    const noGpsStops = openStopsRaw.filter((s) => s.latitude == null || s.longitude == null);
-    for (const s of noGpsStops) {
+    // Stops uden GPS + stops VRP'en ikke kunne placere -> til sidst.
+    // Utildelte stops blev tidligere IKKE skrevet, så de beholdt en gammel
+    // sequence og landede tilfældigt midt i ruten.
+    const scheduledIds = new Set(scheduledAll.map((x) => x.sched.stop_id));
+    const leftoverStops = openStopsRaw.filter((s) => !scheduledIds.has(s.id));
+    for (const s of leftoverStops) {
       writes.push(
         supabase.from("route_stops").update({
           sequence: globalSeq++,
