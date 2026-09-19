@@ -1838,7 +1838,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                         Holder muted-foreground i normale tilfælde. */}
                     {delayMinutes != null && Math.abs(delayMinutes) > 5 ? (
                       <p className={`text-[10px] leading-tight font-semibold tabular-nums ${delayMinutes > 0 ? "text-amber-600" : "text-emerald-600"}`}>
-                        {delayMinutes > 0 ? `+${delayMinutes} min` : `${delayMinutes} min`}
+                        {delayMinutes > 0
+                          ? `${delayMinutes} min bagud`
+                          : `${Math.abs(delayMinutes)} min i god tid`}
                       </p>
                     ) : (
                       <p className="text-[10px] text-muted-foreground leading-tight">
