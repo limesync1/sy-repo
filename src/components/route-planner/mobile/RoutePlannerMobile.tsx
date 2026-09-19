@@ -82,6 +82,7 @@ import {
   useDeleteStop,
   useOptimizeRoute,
   useUnassignedJobs,
+  useDeleteRoute,
   type Route,
   type RouteStop,
 } from "@/hooks/useRoutes";
