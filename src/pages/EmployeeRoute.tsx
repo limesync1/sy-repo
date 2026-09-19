@@ -215,7 +215,7 @@ const FollowUser = ({
       // GPS er allerede droslet. Ét kort-pan pr. accepteret fix er rigeligt
       // og undgår at holde CPU/GPU på 60 billeder i sekundet.
       map.panTo(userPos, { animate: true, duration: 0.35, noMoveStart: true } as any);
-    };
+    }
   }, [active, map, userPos?.[0], userPos?.[1]]);
   return null;
 };

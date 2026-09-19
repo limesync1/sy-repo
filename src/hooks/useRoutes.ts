@@ -2780,7 +2780,7 @@ export const useDirections = (
       }
       return data as {
         ok: boolean;
-        provider: "mapbox" | "fallback";
+        provider: "mapbox" | "osrm" | "fallback";
         geometry: { type: "LineString"; coordinates: [number, number][] };
         distance_m: number | null;
         duration_s: number | null;

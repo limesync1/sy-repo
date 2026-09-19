@@ -232,6 +232,60 @@ async function mapboxDirections(
   };
 }
 
+/** Nøglefri reservevejvisning. Giver rigtig vejgeometri og manøvrer i stedet
+ * for en lige streg, hvis Mapbox-nøglen mangler eller afvises. */
+async function osrmDirections(coords: LatLng[]) {
+  try {
+    const coordStr = coords.map((c) => `${c.lng},${c.lat}`).join(";");
+    const url = `https://router.project-osrm.org/route/v1/driving/${coordStr}?overview=full&geometries=geojson&steps=true&alternatives=true`;
+    const response = await fetch(url, { signal: AbortSignal.timeout(12000) });
+    if (!response.ok) return null;
+    const json = await response.json();
+    if (json?.code !== "Ok" || !Array.isArray(json.routes) || json.routes.length === 0) return null;
+    const route = json.routes.reduce(
+      (best: Record<string, unknown>, candidate: Record<string, unknown>) =>
+        Number(candidate.duration) < Number(best.duration) ? candidate : best,
+      json.routes[0],
+    );
+    const steps = (Array.isArray(route.legs) ? route.legs : []).flatMap((leg: Record<string, unknown>) =>
+      (Array.isArray(leg.steps) ? leg.steps : []).map((step: Record<string, unknown>) => {
+        const maneuver = (step.maneuver ?? {}) as Record<string, unknown>;
+        return {
+          distance_m: Number(step.distance ?? 0),
+          duration_s: Number(step.duration ?? 0),
+          name: typeof step.name === "string" ? step.name : "",
+          maneuver: {
+            type: typeof maneuver.type === "string" ? maneuver.type : "turn",
+            modifier: typeof maneuver.modifier === "string" ? maneuver.modifier : undefined,
+            instruction: typeof maneuver.instruction === "string" ? maneuver.instruction : undefined,
+            bearing_after: typeof maneuver.bearing_after === "number" ? maneuver.bearing_after : undefined,
+            bearing_before: typeof maneuver.bearing_before === "number" ? maneuver.bearing_before : undefined,
+            location: Array.isArray(maneuver.location) ? maneuver.location : undefined,
+          },
+          geometry: step.geometry,
+        };
+      })
+    );
+    return {
+      geometry: route.geometry,
+      distance_m: Number(route.distance ?? 0),
+      duration_s: Number(route.duration ?? 0),
+      duration_raw_s: Number(route.duration ?? 0),
+      duration_typical_s: null,
+      traffic_multiplier: 1,
+      base_multiplier: 1,
+      override_applied: null,
+      depart_at: new Date().toISOString(),
+      depart_is_future: false,
+      steps,
+      provider: "osrm" as const,
+      alternatives_count: json.routes.length,
+    };
+  } catch {
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -293,6 +347,13 @@ Deno.serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+    }
+
+    const osrm = await osrmDirections(trimmed);
+    if (osrm) {
+      return new Response(JSON.stringify({ ok: true, ...osrm }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Fallback: straight line
