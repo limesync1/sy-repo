@@ -1431,13 +1431,13 @@ function NewRouteDialog({
       });
       // Tilføj valgte aftaler som stops. Fejl må IKKE sluges — ellers ender
       // brugeren med en tom rute og en "succes"-besked.
-      let added = 0;
+      const addedStops: RouteStop[] = [];
       const failed: { name: string; reason: string }[] = [];
       for (let i = 0; i < selected.length; i++) {
         const job = eligible.find((j) => j.id === selected[i]);
         if (!job) continue;
         try {
-          await addStop.mutateAsync({
+          const stop = await addStop.mutateAsync({
             route_id: created.id,
             order_id: job.id,
             sequence: i,
@@ -1451,7 +1451,7 @@ function NewRouteDialog({
             time_window_start: job.preferred_time_start || null,
             time_window_end: job.preferred_time_end || null,
           });
-          added++;
+          addedStops.push(stop);
           void linkAgreementToRoute(job.id, created.id);
         } catch (err: any) {
           const raw = String(err?.message || "");
@@ -1463,7 +1463,7 @@ function NewRouteDialog({
         }
       }
 
-      if (added === 0) {
+      if (addedStops.length === 0) {
         // Ingen stop kom på — ryd den tomme rute op igen.
         try { await deleteRoute.mutateAsync(created.id); } catch { /* best effort */ }
         toast.error("Ruten blev ikke oprettet", {
@@ -1475,14 +1475,37 @@ function NewRouteDialog({
         return;
       }
 
+      // `useAddStop` starter en baggrundsopdatering af kalenderen. Vent på
+      // den aktive kalender inden detaljevisningen åbnes, og læg samtidig de
+      // netop gemte stop i cachen. Dermed kan en ny rute aldrig blinke som
+      // tom på langsomme mobilforbindelser.
+      qcDialog.setQueriesData<{ routes: Route[]; stops: RouteStop[] }>(
+        { queryKey: ["route-calendar", businessId] },
+        (old) => {
+          if (!old) return old;
+          const knownIds = new Set(old.stops.map((stop) => stop.id));
+          const routes = old.routes.some((route) => route.id === created.id)
+            ? old.routes
+            : [...old.routes, created];
+          return {
+            ...old,
+            routes,
+            stops: [...old.stops, ...addedStops.filter((stop) => !knownIds.has(stop.id))],
+          };
+        },
+      );
+      // En frisk netværkslæsning kører allerede via useAddStop. Den må ikke
+      // blokere dialogen: ved langsom eller afbrudt mobilforbindelse har vi
+      // stadig det autoritative stop, som RPC'en netop returnerede.
+
       if (failed.length > 0) {
         toast.warning(
-          `Rute oprettet med ${added} af ${added + failed.length} aftaler`,
+          `Rute oprettet med ${addedStops.length} af ${addedStops.length + failed.length} aftaler`,
           { description: `${failed.map((f) => f.name).join(", ")} kunne ikke tilføjes — ${failed[0].reason}.` },
         );
       } else {
         toast.success(
-          `Ny rute oprettet med ${added} ${added === 1 ? "aftale" : "aftaler"}`,
+          `Ny rute oprettet med ${addedStops.length} ${addedStops.length === 1 ? "aftale" : "aftaler"}`,
         );
       }
       reset();
