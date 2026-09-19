@@ -1422,7 +1422,10 @@ function NewRouteDialog({
         name: name.trim() || null,
         color: pickAvailableColor(usedColors),
       });
-      // Tilføj valgte aftaler som stops
+      // Tilføj valgte aftaler som stops. Fejl må IKKE sluges — ellers ender
+      // brugeren med en tom rute og en "succes"-besked.
+      let added = 0;
+      const failed: { name: string; reason: string }[] = [];
       for (let i = 0; i < selected.length; i++) {
         const job = eligible.find((j) => j.id === selected[i]);
         if (!job) continue;
@@ -1441,14 +1444,40 @@ function NewRouteDialog({
             time_window_start: job.preferred_time_start || null,
             time_window_end: job.preferred_time_end || null,
           });
+          added++;
           void linkAgreementToRoute(job.id, created.id);
-        } catch (err) {
+        } catch (err: any) {
+          const raw = String(err?.message || "");
+          const reason = /duplicate_route_stop|duplicate key|unique/i.test(raw)
+            ? "ligger allerede på en anden rute samme dag"
+            : raw || "ukendt fejl";
+          failed.push({ name: job.customer_name || "Aftale", reason });
           console.warn("Kunne ikke tilføje aftale", err);
         }
       }
-      toast.success(
-        `Ny rute oprettet med ${selected.length} ${selected.length === 1 ? "aftale" : "aftaler"}`,
-      );
+
+      if (added === 0) {
+        // Ingen stop kom på — ryd den tomme rute op igen.
+        try { await deleteRoute.mutateAsync(created.id); } catch { /* best effort */ }
+        toast.error("Ruten blev ikke oprettet", {
+          description:
+            failed[0]?.reason
+              ? `${failed[0].name} ${failed[0].reason}.`
+              : "Ingen af aftalerne kunne lægges på ruten.",
+        });
+        return;
+      }
+
+      if (failed.length > 0) {
+        toast.warning(
+          `Rute oprettet med ${added} af ${added + failed.length} aftaler`,
+          { description: `${failed.map((f) => f.name).join(", ")} kunne ikke tilføjes — ${failed[0].reason}.` },
+        );
+      } else {
+        toast.success(
+          `Ny rute oprettet med ${added} ${added === 1 ? "aftale" : "aftaler"}`,
+        );
+      }
       reset();
       onCreated(created);
     } catch (err: any) {
