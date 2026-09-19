@@ -464,20 +464,16 @@ export const useStartWorkday = () => {
 
 export const useEndWorkday = () => {
   const qc = useQueryClient();
+  const employeeId = useMyEmployeeId();
   return useMutation({
     mutationFn: async (date: string) => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("Ikke logget ind");
-      const { data: emp } = await supabase
-        .from("employees")
-        .select("id")
-        .eq("user_id", user.user.id)
-        .maybeSingle();
-      if (!emp) throw new Error("Ikke medarbejder");
+      if (!employeeId) throw new Error("Ikke medarbejder");
       const { data, error } = await supabase
         .from("employee_workdays")
         .update({ ended_at: new Date().toISOString() })
-        .eq("employee_id", emp.id)
+        .eq("employee_id", employeeId)
         .eq("workday_date", date)
         .select("*")
         .maybeSingle();
