@@ -422,22 +422,21 @@ export const useMyWorkday = (date: string) => {
 
 export const useStartWorkday = () => {
   const qc = useQueryClient();
+  // Brug den valgte arbejdsplads' medarbejder-record. Arbejder brugeren for
+  // flere virksomheder (fx både som ejer og som medarbejder), findes der
+  // flere rækker i `employees` — derfor må vi ikke slå op på user_id alene.
+  const employeeId = useMyEmployeeId();
   return useMutation({
     mutationFn: async (date: string) => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("Ikke logget ind");
-      const { data: emp } = await supabase
-        .from("employees")
-        .select("id")
-        .eq("user_id", user.user.id)
-        .maybeSingle();
-      if (!emp) throw new Error("Du er ikke registreret som medarbejder");
+      if (!employeeId) throw new Error("Du er ikke registreret som medarbejder");
 
       const { data, error } = await supabase
         .from("employee_workdays")
         .upsert(
           {
-            employee_id: emp.id,
+            employee_id: employeeId,
             workday_date: date,
             started_at: new Date().toISOString(),
             ended_at: null,
@@ -465,20 +464,16 @@ export const useStartWorkday = () => {
 
 export const useEndWorkday = () => {
   const qc = useQueryClient();
+  const employeeId = useMyEmployeeId();
   return useMutation({
     mutationFn: async (date: string) => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("Ikke logget ind");
-      const { data: emp } = await supabase
-        .from("employees")
-        .select("id")
-        .eq("user_id", user.user.id)
-        .maybeSingle();
-      if (!emp) throw new Error("Ikke medarbejder");
+      if (!employeeId) throw new Error("Ikke medarbejder");
       const { data, error } = await supabase
         .from("employee_workdays")
         .update({ ended_at: new Date().toISOString() })
-        .eq("employee_id", emp.id)
+        .eq("employee_id", employeeId)
         .eq("workday_date", date)
         .select("*")
         .maybeSingle();
@@ -2619,12 +2614,14 @@ export const useMyRouteData = (routeId: string | undefined) => {
     queryFn: async () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) return null;
-      const { data: emp } = await supabase
+      // Brugeren kan have flere medarbejder-records (én pr. virksomhed) —
+      // tag den første i stedet for at fejle på "flere rækker".
+      const { data: emps } = await supabase
         .from("employees")
-        .select("id, name")
+        .select("id, name, business_id")
         .eq("user_id", user.user.id)
-        .maybeSingle();
-      if (!emp) return null;
+        .order("created_at", { ascending: true });
+      if (!emps?.length) return null;
 
       const { data: route } = await supabase
         .from("routes")
@@ -2632,6 +2629,8 @@ export const useMyRouteData = (routeId: string | undefined) => {
         .eq("id", routeId!)
         .maybeSingle();
       if (!route) return null;
+      // Vælg den medarbejder-record der hører til rutens virksomhed.
+      const emp = emps.find((e: any) => e.business_id === (route as any).business_id) ?? emps[0];
       const { data: myAssign } = await supabase
         .from("route_stop_assignees")
         .select("stop_id")
