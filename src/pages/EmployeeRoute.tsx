@@ -11,6 +11,7 @@ import { Card } from "@/components/ui/card";
 import {
   ArrowLeft, Navigation, Phone, CheckCircle2, MapPin, List, Clock, Loader2,
   ChevronUp, ChevronDown, Play, Volume2, VolumeX, Crosshair, Flag, TrafficCone,
+  Plus, Minus,
   Info,
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
@@ -195,68 +196,45 @@ const FitTo = ({ points, enabled }: { points: [number, number][]; enabled: boole
   return null;
 };
 
-/** Google-Maps-like live follow: smoothly glides camera to the user (no bounds jumping). */
+/** Følger brugeren uden et permanent animationsloop. */
 const FollowUser = ({
   active, userPos,
 }: { active: boolean; userPos: [number, number] | null }) => {
   const map = useMap();
   const initRef = useRef(false);
-  // Vi driver kameraet selv via requestAnimationFrame i stedet for at lade
-  // Leaflet's panTo-animation styre — det giver én sammenhængende, blød
-  // bevægelse i stedet for en kæde af korte animationer der konstant
-  // afbryder hinanden (= hak/jitter ved hver GPS-tick).
-  const targetRef = useRef<[number, number] | null>(null);
-  const rafRef = useRef<number | null>(null);
-  // Hold target opdateret uden at restarte rAF-loopet.
-  useEffect(() => {
-    if (active && userPos) targetRef.current = userPos;
-  }, [active, userPos?.[0], userPos?.[1]]);
-
   useEffect(() => {
     if (!active) {
       initRef.current = false;
-      targetRef.current = null;
-      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
       return;
     }
-    if (!userPos) return;
-    // Tæt zoom (Google-Maps-agtig navigation) første gang vi får et fix.
-    const targetZoom = 18.5;
+    if (!userPos || document.visibilityState === "hidden") return;
     if (!initRef.current) {
-      map.setView(userPos, targetZoom, { animate: true, duration: 0.45 });
+      map.setView(userPos, 17, { animate: true, duration: 0.35 });
       initRef.current = true;
-      targetRef.current = userPos;
-    }
-    // Kør et stille rAF-loop der hver frame trækker kameraets center
-    // mod target med en eksponentiel "easing" (kritisk-dæmpet fjeder).
-    // Det elimineret hak fra både GPS-jitter og fra kæder af korte
-    // panTo-animationer.
-    const FOLLOW_RATE = 0.18; // 0..1 pr. frame — højere = strammere follow
-    const tick = () => {
-      const tgt = targetRef.current;
-      if (tgt) {
-        const c = map.getCenter();
-        const dLat = tgt[0] - c.lat;
-        const dLng = tgt[1] - c.lng;
-        // Stop helt når vi er praktisk talt på target (≈ 0.3 m ved DK-bredde).
-        if (Math.abs(dLat) > 3e-6 || Math.abs(dLng) > 3e-6) {
-          const nextLat = c.lat + dLat * FOLLOW_RATE;
-          const nextLng = c.lng + dLng * FOLLOW_RATE;
-          // Skip Leaflets egen pan-animation (vi animerer selv).
-          map.panTo([nextLat, nextLng], { animate: false, noMoveStart: true } as any);
-        }
-      }
-      rafRef.current = requestAnimationFrame(tick);
+    } else {
+      // GPS er allerede droslet. Ét kort-pan pr. accepteret fix er rigeligt
+      // og undgår at holde CPU/GPU på 60 billeder i sekundet.
+      map.panTo(userPos, { animate: true, duration: 0.35, noMoveStart: true } as any);
     };
-    if (rafRef.current == null) rafRef.current = requestAnimationFrame(tick);
-    return () => {
-      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, map]);
+  }, [active, map, userPos?.[0], userPos?.[1]]);
   return null;
+};
+
+const DriveMapControls = ({ following, onFollow }: { following: boolean; onFollow: () => void }) => {
+  const map = useMap();
+  return (
+    <div className="absolute right-3 top-[132px] z-[1000] flex flex-col overflow-hidden rounded-xl border border-border/80 bg-card/95 shadow-lg backdrop-blur-md">
+      <Button type="button" variant="ghost" size="icon" className="h-11 w-11 rounded-none border-b border-border" onClick={() => map.zoomIn(1)} aria-label="Zoom ind">
+        <Plus className="h-5 w-5" />
+      </Button>
+      <Button type="button" variant="ghost" size="icon" className="h-11 w-11 rounded-none border-b border-border" onClick={() => map.zoomOut(1)} aria-label="Zoom ud">
+        <Minus className="h-5 w-5" />
+      </Button>
+      <Button type="button" variant={following ? "default" : "ghost"} size="icon" className="h-11 w-11 rounded-none" onClick={onFollow} aria-label="Centrer på min position">
+        <Crosshair className="h-5 w-5" />
+      </Button>
+    </div>
+  );
 };
 
 /** Pans (with light zoom) to a stop when the user taps it in the list. */
@@ -473,8 +451,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     const shouldWatch = routeStarted || geoPermission === "granted";
     if (!shouldWatch) return;
     if (!navigator.geolocation) return;
-    const MIN_INTERVAL_MS = 2000;
-    const SIGNIFICANT_MOVE_M = 25;
+    const MIN_INTERVAL_MS = 4000;
+    const SIGNIFICANT_MOVE_M = 40;
     const watchId = navigator.geolocation.watchPosition(
       (pos) => {
         if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
@@ -501,7 +479,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         });
       },
       () => {},
-      { enableHighAccuracy: true, maximumAge: 1500, timeout: 10000 },
+      { enableHighAccuracy: routeStarted, maximumAge: 4000, timeout: 12000 },
     );
     return () => navigator.geolocation.clearWatch(watchId);
   }, [routeStarted, geoPermission, runMode]);
@@ -577,7 +555,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [legOrigin?.lat, legOrigin?.lng, nextStop?.latitude, nextStop?.longitude]);
 
-  const { data: directions } = useDirections(legWaypoints, {
+  const { data: directions, isError: directionsError, refetch: retryDirections } = useDirections(legWaypoints, {
     businessId: route?.business_id,
   });
 
@@ -1269,15 +1247,19 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             zoom={13}
             style={{ height: "100%", width: "100%" }}
             scrollWheelZoom
+            doubleClickZoom
+            touchZoom
+            boxZoom
+            dragging
             zoomControl={false}
             attributionControl={false}
             zoomSnap={0.25}
             zoomDelta={0.5}
             wheelDebounceTime={20}
             wheelPxPerZoomLevel={120}
-            zoomAnimation
-            fadeAnimation
-            markerZoomAnimation
+            zoomAnimation={false}
+            fadeAnimation={false}
+            markerZoomAnimation={false}
             inertia
             inertiaDeceleration={2400}
             preferCanvas
@@ -1292,12 +1274,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             <TileLayer
               url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
               attribution='&copy; OpenStreetMap &copy; CARTO'
-              updateWhenIdle={false}
+              updateWhenIdle
               updateWhenZooming={false}
-              keepBuffer={4}
-              className="map-tile-fade"
+              keepBuffer={2}
               zIndex={1}
-              detectRetina
               maxZoom={20}
               maxNativeZoom={19}
             />
@@ -1311,6 +1291,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               enabled={routeStarted && followMode}
               speedMps={userSpeedMps}
             />
+            {routeStarted && (
+              <DriveMapControls
+                following={followMode}
+                onFollow={() => setFollowMode(true)}
+              />
+            )}
 
             {startCoord && <Marker position={startCoord} icon={startIcon} />}
 
@@ -1359,6 +1345,14 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   pathOptions={{ color: themeColor, weight: 7, opacity: 1, lineCap: "round", lineJoin: "round" }}
                 />
               </>
+            )}
+
+            {/* Hvis vejberegningen mangler, vises retningen stadig tydeligt. */}
+            {routeStarted && legLine.length < 2 && displayPos && nextStop?.latitude != null && nextStop?.longitude != null && (
+              <Polyline
+                positions={[displayPos, [Number(nextStop.latitude), Number(nextStop.longitude)]]}
+                pathOptions={{ color: themeColor, weight: 6, opacity: 0.75, dashArray: "8 10", lineCap: "round" }}
+              />
             )}
 
             {/* Ankomst-indikator: lille stiplet linje fra puck til pin
@@ -1414,6 +1408,14 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               return <FlyToStop target={t} />;
             })()}
           </MapContainer>
+        )}
+
+        {routeStarted && directionsError && (
+          <div className="absolute left-3 right-[68px] top-[72px] z-[1001] rounded-xl border border-border bg-card/95 p-3 shadow-lg backdrop-blur-md">
+            <p className="text-sm font-semibold text-foreground">Vejvisningen kunne ikke hentes</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">Du kan stadig se retningen til næste stop.</p>
+            <Button type="button" variant="outline" size="sm" className="mt-2 h-9" onClick={() => retryDirections()}>Prøv igen</Button>
+          </div>
         )}
 
         {/* ─── Floating right-side controls — runde pills, native-følelse ───
