@@ -103,10 +103,40 @@ import {
   linkAgreementToRoute,
   serviceSummaryForJob,
 } from "./mobile-helpers";
+import { supabase } from "@/integrations/supabase/client";
+
 import { MobileAssignSheet } from "./MobileAssignSheet";
 import { MobileRouteDetailSheet } from "./MobileRouteDetailSheet";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
+
+/** Er fejlen "aftalen ligger allerede på en rute samme dag"? */
+const isAlreadyPlannedError = (err: any) =>
+  /duplicate_route_stop|duplicate key|unique|allerede/i.test(String(err?.message || ""));
+
+/**
+ * Finder et eksisterende (ikke-udført) stop for en ordre på samme dato på en
+ * ANDEN rute. Bruges til at flytte aftalen i stedet for bare at afvise den.
+ */
+const findStopOnOtherRoute = async (
+  orderId: string,
+  date: string,
+  excludeRouteId: string,
+): Promise<{ id: string; routeName: string } | null> => {
+  const { data, error } = await supabase
+    .from("route_stops")
+    .select("id, completed_at, route_id, routes!inner(id, name, route_date, deleted_at)")
+    .eq("order_id", orderId)
+    .neq("route_id", excludeRouteId)
+    .eq("routes.route_date", date)
+    .is("routes.deleted_at", null);
+  if (error) return null;
+  const hit = (data as any[] | null)?.find((s) => !s.completed_at);
+  if (!hit) return null;
+  return { id: hit.id, routeName: hit.routes?.name || "en anden rute" };
+};
+
+
 
 const formatDur = (min: number) => {
   if (!min) return "0 min";
@@ -277,23 +307,36 @@ export default function RoutePlannerMobile() {
           toast.info("Kunden skal godkende tilbuddet før aftalen kan planlægges");
           return;
         }
+        const dropPayload = {
+          route_id: targetRouteId,
+          order_id: job.id,
+          sequence: insertIndex,
+          customer_name: job.customer_name,
+          customer_phone: job.customer_phone,
+          address: jobAddress(job),
+          latitude: job.latitude,
+          longitude: job.longitude,
+          service_summary: serviceSummaryForJob(job),
+          duration_minutes: Number(job.estimated_duration_minutes) || 30,
+          time_window_start: job.preferred_time_start || null,
+          time_window_end: job.preferred_time_end || null,
+        };
         try {
-          await addStop.mutateAsync({
-            route_id: targetRouteId,
-            order_id: job.id,
-            sequence: insertIndex,
-            customer_name: job.customer_name,
-            customer_phone: job.customer_phone,
-            address: jobAddress(job),
-            latitude: job.latitude,
-            longitude: job.longitude,
-            service_summary: serviceSummaryForJob(job),
-            duration_minutes: Number(job.estimated_duration_minutes) || 30,
-            time_window_start: job.preferred_time_start || null,
-            time_window_end: job.preferred_time_end || null,
-          });
+          let movedFrom: string | null = null;
+          try {
+            await addStop.mutateAsync(dropPayload);
+          } catch (err: any) {
+            if (!isAlreadyPlannedError(err)) throw err;
+            const existing = await findStopOnOtherRoute(job.id, date, targetRouteId);
+            if (!existing) throw err;
+            await deleteStop.mutateAsync(existing.id);
+            await addStop.mutateAsync(dropPayload);
+            movedFrom = existing.routeName;
+          }
           void linkAgreementToRoute(job.id, targetRouteId);
-          toast.success("Aftale tilføjet til rute");
+          toast.success(
+            movedFrom ? `Aftale flyttet fra ${movedFrom}` : "Aftale tilføjet til rute",
+          );
         } catch (err: any) {
           const msg = String(err?.message || "");
           if (msg.includes("uniq_route_stops_route_order") || msg.includes("duplicate key")) {
@@ -302,6 +345,7 @@ export default function RoutePlannerMobile() {
             toast.error("Kunne ikke tilføje aftale", { description: err?.message });
           }
         }
+
         return;
       }
 
@@ -1388,6 +1432,8 @@ function NewRouteDialog({
   const createRoute = useCreateRoute();
   const addStop = useAddStop();
   const deleteRoute = useDeleteRoute();
+  const deleteStop = useDeleteStop();
+
   const qcDialog = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
 
@@ -1433,35 +1479,50 @@ function NewRouteDialog({
       // brugeren med en tom rute og en "succes"-besked.
       const addedStops: RouteStop[] = [];
       const failed: { name: string; reason: string }[] = [];
+      const moved: string[] = [];
       for (let i = 0; i < selected.length; i++) {
         const job = eligible.find((j) => j.id === selected[i]);
         if (!job) continue;
+        const payload = {
+          route_id: created.id,
+          order_id: job.id,
+          sequence: i,
+          customer_name: job.customer_name,
+          customer_phone: job.customer_phone,
+          address: jobAddress(job),
+          latitude: job.latitude,
+          longitude: job.longitude,
+          service_summary: serviceSummaryForJob(job),
+          duration_minutes: Number(job.estimated_duration_minutes) || 30,
+          time_window_start: job.preferred_time_start || null,
+          time_window_end: job.preferred_time_end || null,
+        };
         try {
-          const stop = await addStop.mutateAsync({
-            route_id: created.id,
-            order_id: job.id,
-            sequence: i,
-            customer_name: job.customer_name,
-            customer_phone: job.customer_phone,
-            address: jobAddress(job),
-            latitude: job.latitude,
-            longitude: job.longitude,
-            service_summary: serviceSummaryForJob(job),
-            duration_minutes: Number(job.estimated_duration_minutes) || 30,
-            time_window_start: job.preferred_time_start || null,
-            time_window_end: job.preferred_time_end || null,
-          });
+          let stop: RouteStop;
+          try {
+            stop = await addStop.mutateAsync(payload);
+          } catch (err: any) {
+            // Ligger aftalen allerede på en anden rute samme dag, så FLYT den
+            // hertil i stedet for at afvise brugeren.
+            if (!isAlreadyPlannedError(err)) throw err;
+            const existing = await findStopOnOtherRoute(job.id, date, created.id);
+            if (!existing) throw err;
+            await deleteStop.mutateAsync(existing.id);
+            stop = await addStop.mutateAsync(payload);
+            moved.push(`${job.customer_name || "Aftale"} (flyttet fra ${existing.routeName})`);
+          }
           addedStops.push(stop);
           void linkAgreementToRoute(job.id, created.id);
         } catch (err: any) {
           const raw = String(err?.message || "");
-          const reason = /duplicate_route_stop|duplicate key|unique/i.test(raw)
-            ? "ligger allerede på en anden rute samme dag"
+          const reason = isAlreadyPlannedError(err)
+            ? "er allerede udført eller låst på en anden rute i dag"
             : raw || "ukendt fejl";
           failed.push({ name: job.customer_name || "Aftale", reason });
           console.warn("Kunne ikke tilføje aftale", err);
         }
       }
+
 
       if (addedStops.length === 0) {
         // Ingen stop kom på — ryd den tomme rute op igen.
@@ -1506,8 +1567,10 @@ function NewRouteDialog({
       } else {
         toast.success(
           `Ny rute oprettet med ${addedStops.length} ${addedStops.length === 1 ? "aftale" : "aftaler"}`,
+          moved.length > 0 ? { description: moved.join(", ") } : undefined,
         );
       }
+
       reset();
       onCreated(created);
     } catch (err: any) {
@@ -1694,39 +1757,65 @@ function BulkAssignSheet({
 }) {
   const addStop = useAddStop();
   const createRoute = useCreateRoute();
+  const deleteStop = useDeleteStop();
+
   const [busy, setBusy] = useState(false);
 
   const assignTo = async (routeId: string) => {
     if (busy) return;
     setBusy(true);
-    let ok = 0, fail = 0;
+    let ok = 0, fail = 0, movedCount = 0;
+    let lastError = "";
     for (const job of jobs) {
+      const payload = {
+        route_id: routeId,
+        order_id: job.id,
+        sequence: 9999, // bunden
+        customer_name: job.customer_name,
+        customer_phone: job.customer_phone,
+        address: jobAddress(job),
+        latitude: job.latitude,
+        longitude: job.longitude,
+        service_summary: serviceSummaryForJob(job),
+        duration_minutes: Number(job.estimated_duration_minutes) || 30,
+        time_window_start: job.preferred_time_start || null,
+        time_window_end: job.preferred_time_end || null,
+      };
       try {
-        await addStop.mutateAsync({
-          route_id: routeId,
-          order_id: job.id,
-          sequence: 9999, // bunden
-          customer_name: job.customer_name,
-          customer_phone: job.customer_phone,
-          address: jobAddress(job),
-          latitude: job.latitude,
-          longitude: job.longitude,
-          service_summary: serviceSummaryForJob(job),
-          duration_minutes: Number(job.estimated_duration_minutes) || 30,
-          time_window_start: job.preferred_time_start || null,
-          time_window_end: job.preferred_time_end || null,
-        });
+        try {
+          await addStop.mutateAsync(payload);
+        } catch (err: any) {
+          if (!isAlreadyPlannedError(err)) throw err;
+          const existing = await findStopOnOtherRoute(job.id, date, routeId);
+          if (!existing) throw err;
+          await deleteStop.mutateAsync(existing.id);
+          await addStop.mutateAsync(payload);
+          movedCount++;
+        }
         void linkAgreementToRoute(job.id, routeId);
         ok++;
-      } catch {
+      } catch (err: any) {
+        lastError = String(err?.message || "");
         fail++;
       }
     }
     setBusy(false);
-    if (ok > 0) toast.success(`${ok} aftaler tilføjet`);
-    if (fail > 0) toast.error(`${fail} aftaler kunne ikke tilføjes`);
+    if (ok > 0) {
+      toast.success(
+        `${ok} ${ok === 1 ? "aftale" : "aftaler"} tilføjet`,
+        movedCount > 0
+          ? { description: `${movedCount} blev flyttet fra en anden rute samme dag.` }
+          : undefined,
+      );
+    }
+    if (fail > 0) {
+      toast.error(`${fail} aftaler kunne ikke tilføjes`, {
+        description: lastError || undefined,
+      });
+    }
     onOpenChange(false);
   };
+
 
   const createAndAssign = async () => {
     if (busy) return;
