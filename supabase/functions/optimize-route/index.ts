@@ -195,6 +195,27 @@ Deno.serve(async (req) => {
       } as EmployeeCtx);
     }
 
+    // === Live-start: optimér resten af dagen ud fra hvor kørslen er NU ===
+    // Uden dette planlægger vi altid fra rutens startadresse, og så kan
+    // rækkefølgen sende medarbejderen langt væk og tilbage igen.
+    if (startLocation) {
+      const { data: myEmps } = await supabase
+        .from("employees")
+        .select("id")
+        .eq("user_id", user.id);
+      const myIds = new Set((myEmps || []).map((e: any) => e.id));
+      for (const e of employees) {
+        const isMe = usingVirtualEmployee || myIds.has(e.id) || employees.length === 1;
+        if (!isMe) continue;
+        e.start_lat = startLocation.lat;
+        e.start_lng = startLocation.lng;
+        if (startNowMin != null) {
+          e.work_start_min = Math.min(Math.max(startNowMin, 0), e.work_end_min);
+        }
+      }
+    }
+
+
     // Normaliser adresse til en cluster-nøgle: lowercased, trimmet, fjern
     // dobbelt-mellemrum og komma — så "H.C. Andersens Gade 10" og
     // "H. C. Andersens Gade 10," ender i samme klynge.
