@@ -2773,10 +2773,8 @@ export const useDirections = (
         },
       });
       if (error) {
-        // Log men kast ikke — en fejlet directions-kald må aldrig blanke
-        // hele siden. Komponenter falder tilbage til straight-line.
         console.warn("route-directions failed:", error);
-        return null;
+        throw error;
       }
       return data as {
         ok: boolean;

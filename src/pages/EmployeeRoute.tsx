@@ -1458,29 +1458,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               )}
             </button>
           )}
-          {routeStarted && (
-            <button
-              type="button"
-              onClick={() => setFollowMode((v) => !v)}
-              className={`relative h-12 w-12 rounded-full backdrop-blur-md border shadow-[0_6px_20px_-6px_rgba(0,0,0,0.25)] hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.3)] transition-all duration-150 active:scale-[0.93] active:shadow-md flex items-center justify-center ${
-                followMode
-                  ? "border-transparent text-background"
-                  : "bg-card/95 border-border/80 text-foreground hover:bg-secondary"
-              }`}
-              style={followMode ? { background: themeColor } : undefined}
-              aria-label={followMode ? "Slå live-følg fra" : "Slå live-følg til"}
-              aria-pressed={followMode}
-              title={followMode ? "Følger din position" : "Recentrer"}
-            >
-              <Crosshair className="h-[19px] w-[19px]" strokeWidth={2.25} />
-              {followMode && (
-                <span
-                  aria-hidden
-                  className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-background animate-pulse"
-                />
-              )}
-            </button>
-          )}
         </div>
 
         {/* ─── Fullscreen drive mode: floating top overlays (back pill + maneuver banner + traffic alert) ─── */}
