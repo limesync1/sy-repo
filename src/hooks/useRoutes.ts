@@ -2614,12 +2614,14 @@ export const useMyRouteData = (routeId: string | undefined) => {
     queryFn: async () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) return null;
-      const { data: emp } = await supabase
+      // Brugeren kan have flere medarbejder-records (én pr. virksomhed) —
+      // tag den første i stedet for at fejle på "flere rækker".
+      const { data: emps } = await supabase
         .from("employees")
-        .select("id, name")
+        .select("id, name, business_id")
         .eq("user_id", user.user.id)
-        .maybeSingle();
-      if (!emp) return null;
+        .order("created_at", { ascending: true });
+      if (!emps?.length) return null;
 
       const { data: route } = await supabase
         .from("routes")
