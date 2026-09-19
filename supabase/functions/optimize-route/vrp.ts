@@ -23,9 +23,12 @@ import type {
 const SLOT_MIN = 15;
 const SOFT_PENALTY_PER_MIN = 2;
 const WAIT_PENALTY_PER_MIN = 0.3;
-/** Vægt på km i den samlede cost-funktion. Højere = ruten "straffes" mere
- *  for at køre langt → giver bedre geografisk klynge-effekt. */
-const KM_COST_WEIGHT = 1.5;
+/** Vægt på km i den samlede cost-funktion. Cost måles i minutter, så en vægt
+ *  på 0.6 betyder at 1 km "koster" 0,6 minut oveni den faktiske køretid.
+ *  Det holder ruten geografisk samlet, men lader KØRETID være det der vejer
+ *  tungest — det er det "Optimér rute" lover brugeren. (Var 1.5, hvilket
+ *  gjorde optimeringen til en ren afstands-optimering.) */
+const KM_COST_WEIGHT = 0.6;
 /** Straf for at splitte stops på samme adresse op. To stops med samme
  *  GPS-koordinat (samme kunde / samme bygning) bør ALTID køres lige efter
  *  hinanden — også hvis en anden adresse rent kørselsmæssigt ligger på
@@ -406,7 +409,9 @@ export async function solveVRP(
   const stopCoords: LatLng[] = stops.map((s) => ({ lat: s.latitude, lng: s.longitude }));
   const coords: LatLng[] = [...empStarts, ...empEnds, ...stopCoords];
 
-  const matrix = coords.length <= 25 ? await buildMatrix(coords) : null;
+  // buildMatrix henter nu også rigtige køretider for ruter med mere end 25
+  // punkter (i fliser). Kun hvis alle opslag fejler falder vi til fugleflugt.
+  const matrix = await buildMatrix(coords);
   const provider: "mapbox" | "osrm" | "haversine" = matrix?.provider ?? "haversine";
 
   // === Vejr-justering ===

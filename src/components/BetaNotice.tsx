@@ -3,25 +3,16 @@ import { useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, CheckCircle2, Sparkles } from "lucide-react";
+import { Loader2, CheckCircle2, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 
 /**
  * BetaNotice — besked om testfase på alle offentlige sider.
  *  1. Smal stribe øverst med en "Få besked når vi åbner"-knap.
- *  2. Popup der åbner automatisk ved første besøg (én gang pr. session),
- *     så beskeden ikke kan overses.
+ *  2. Ét kort, roligt kort der åbner ved første besøg i sessionen.
  * Tilmeldingen gemmes via RPC'en `join_beta_waitlist`.
  */
 
@@ -40,77 +31,6 @@ const emailSchema = z
 
 type Audience = "kunde" | "virksomhed";
 
-interface SignupFormProps {
-  email: string;
-  setEmail: (v: string) => void;
-  audience: Audience;
-  setAudience: (v: Audience) => void;
-  error: string | null;
-  saving: boolean;
-  onSubmit: (e: React.FormEvent) => void;
-}
-
-const SignupForm = ({ email, setEmail, audience, setAudience, error, saving, onSubmit }: SignupFormProps) => (
-  <form onSubmit={onSubmit} noValidate className="space-y-4">
-    <div className="space-y-2">
-      <Label>Hvem skriver du dig op som?</Label>
-      <div className="grid grid-cols-2 gap-2">
-        {(
-          [
-            { key: "kunde" as const, label: "Jeg er kunde" },
-            { key: "virksomhed" as const, label: "Jeg har en virksomhed" },
-          ]
-        ).map((opt) => (
-          <button
-            key={opt.key}
-            type="button"
-            aria-pressed={audience === opt.key}
-            onClick={() => setAudience(opt.key)}
-            className={cn(
-              "rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
-              audience === opt.key
-                ? "border-foreground bg-foreground text-background"
-                : "border-border bg-background text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
-    </div>
-
-    <div className="space-y-2">
-      <Label htmlFor="beta-email">Din e-mail</Label>
-      <Input
-        id="beta-email"
-        type="email"
-        inputMode="email"
-        autoComplete="email"
-        maxLength={254}
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="din@mail.dk"
-        aria-invalid={!!error}
-        aria-describedby={error ? "beta-email-error" : undefined}
-      />
-      {error && (
-        <p id="beta-email-error" className="text-[12.5px] text-destructive">
-          {error}
-        </p>
-      )}
-    </div>
-
-    <Button type="submit" disabled={saving} className="w-full">
-      {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-      Skriv mig op
-    </Button>
-
-    <p className="text-[12px] leading-5 text-muted-foreground">
-      Vi bruger kun din e-mail til at fortælle, at vi er åbnet. Du kan altid bede os slette den.
-    </p>
-  </form>
-);
-
 const BetaNotice = () => {
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
@@ -119,6 +39,7 @@ const BetaNotice = () => {
   const [audience, setAudience] = useState<Audience>("kunde");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [justSignedUp, setJustSignedUp] = useState(false);
   const [done, setDone] = useState(() => {
     if (typeof window === "undefined") return false;
     return window.localStorage.getItem(SIGNUP_KEY) === "1";
@@ -140,8 +61,6 @@ const BetaNotice = () => {
   const hidden =
     HIDDEN_EXACT.includes(pathname) || HIDDEN_PREFIXES.some((p) => pathname.startsWith(p));
 
-  // Åbn popup'en automatisk én gang pr. session, når beskeden er slået til
-  // og brugeren ikke allerede står på listen eller har lukket den.
   useEffect(() => {
     if (hidden || !data?.enabled || done) return;
     try {
@@ -149,7 +68,7 @@ const BetaNotice = () => {
     } catch {
       /* private mode */
     }
-    const t = window.setTimeout(() => setPopupOpen(true), 1200);
+    const t = window.setTimeout(() => setPopupOpen(true), 900);
     return () => window.clearTimeout(t);
   }, [hidden, data?.enabled, done]);
 
@@ -192,27 +111,105 @@ const BetaNotice = () => {
     } catch {
       /* private mode — ikke kritisk */
     }
+    setJustSignedUp(true);
     setDone(true);
-    setOpen(false);
-    setPopupOpen(false);
   };
 
-  const formProps: SignupFormProps = {
-    email,
-    setEmail,
-    audience,
-    setAudience,
-    error,
-    saving,
-    onSubmit: submit,
-  };
+  /** Selve tilmeldingen — e-mail først, rollevalg som to små valg under. */
+  const signupForm = (
+    <form onSubmit={submit} noValidate className="mt-5 space-y-3">
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Input
+          id="beta-email"
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          maxLength={254}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="din@mail.dk"
+          aria-label="Din e-mail"
+          aria-invalid={!!error}
+          aria-describedby={error ? "beta-email-error" : undefined}
+          className="h-11 flex-1 bg-background"
+        />
+        <Button type="submit" disabled={saving} className="h-11 shrink-0 px-5">
+          {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Skriv mig op
+        </Button>
+      </div>
+
+      {error && (
+        <p id="beta-email-error" className="text-[12.5px] text-destructive">
+          {error}
+        </p>
+      )}
+
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px] text-muted-foreground">
+        <span>Jeg er</span>
+        {(
+          [
+            { key: "kunde" as const, label: "kunde" },
+            { key: "virksomhed" as const, label: "virksomhed" },
+          ]
+        ).map((opt) => (
+          <button
+            key={opt.key}
+            type="button"
+            aria-pressed={audience === opt.key}
+            onClick={() => setAudience(opt.key)}
+            className={cn(
+              "rounded-full px-2.5 py-0.5 font-medium transition-colors",
+              audience === opt.key
+                ? "bg-foreground text-background"
+                : "text-muted-foreground underline underline-offset-4 hover:text-foreground",
+            )}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
+      <p className="text-[12px] leading-5 text-muted-foreground">
+        Én mail, den dag vi åbner. Ikke andet.
+      </p>
+    </form>
+  );
+
+  const confirmation = (
+    <div className="mt-6 flex items-start gap-3 rounded-xl border border-border bg-surface p-4">
+      <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
+      <div>
+        <p className="text-sm font-semibold text-foreground">Du står på listen</p>
+        <p className="mt-0.5 text-[13px] leading-6 text-muted-foreground">
+          Vi skriver til {email || "dig"}, så snart vi åbner. Kig gerne rundt imens.
+        </p>
+      </div>
+    </div>
+  );
+
+  /** Fælles indhold i både stribe-dialogen og velkomst-popup'en. */
+  const card = (
+    <>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+        Testfase
+      </p>
+      <DialogTitle className="mt-2 text-[22px] font-bold leading-tight tracking-tight text-foreground">
+        {title}
+      </DialogTitle>
+      <DialogDescription className="mt-2 text-[14px] leading-6 text-muted-foreground">
+        {body}
+      </DialogDescription>
+      {justSignedUp ? confirmation : signupForm}
+    </>
+  );
 
   return (
     <>
       <aside
         role="region"
         aria-label="Besked om testfase"
-        className="w-full border-b border-border bg-secondary text-foreground"
+        className="w-full border-b border-border bg-surface text-foreground"
       >
         <div className="flex w-full flex-wrap items-center justify-center gap-x-3 gap-y-1.5 px-4 py-2.5 text-center sm:px-6 lg:px-8">
           <p className="text-[13.5px] leading-6">
@@ -226,32 +223,30 @@ const BetaNotice = () => {
               Du står på listen
             </span>
           ) : (
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <button
-                  type="button"
-                  className="rounded-full bg-foreground px-3.5 py-1 text-[12.5px] font-semibold text-background transition-opacity hover:opacity-90"
-                >
-                  Få besked når vi åbner
-                </button>
-              </DialogTrigger>
-
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Få besked når vi åbner</DialogTitle>
-                  <DialogDescription>
-                    Vi sender én enkelt mail — den dag Serviceydere åbner. Ikke andet, ingen reklamer.
-                  </DialogDescription>
-                </DialogHeader>
-                <SignupForm {...formProps} />
-              </DialogContent>
-            </Dialog>
+            <button
+              type="button"
+              onClick={() => {
+                setJustSignedUp(false);
+                setOpen(true);
+              }}
+              className="group inline-flex items-center gap-1 rounded-full bg-foreground px-3.5 py-1 text-[12.5px] font-semibold text-background transition-opacity hover:opacity-90"
+            >
+              Få besked når vi åbner
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+            </button>
           )}
         </div>
       </aside>
 
+      {/* Dialog fra stribens knap */}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-[calc(100vw-2rem)] rounded-2xl border-border bg-card p-6 sm:max-w-[420px] sm:p-7">
+          {card}
+        </DialogContent>
+      </Dialog>
+
       {/* Popup ved første besøg i sessionen */}
-      {!done && (
+      {(!done || justSignedUp) && (
         <Dialog
           open={popupOpen}
           onOpenChange={(v) => {
@@ -259,26 +254,14 @@ const BetaNotice = () => {
             else setPopupOpen(true);
           }}
         >
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader className="items-center text-center">
-              <span className="mb-1 inline-flex h-11 w-11 items-center justify-center rounded-full bg-accent/10 text-accent">
-                <Sparkles className="h-5 w-5" aria-hidden="true" />
-              </span>
-              <DialogTitle className="text-xl">{title}</DialogTitle>
-              <DialogDescription className="text-[14px] leading-6">
-                {body} Du er velkommen til at kigge rundt imens — siden virker, men der kan være
-                småfejl undervejs.
-              </DialogDescription>
-            </DialogHeader>
-
-            <SignupForm {...formProps} />
-
+          <DialogContent className="max-w-[calc(100vw-2rem)] rounded-2xl border-border bg-card p-6 sm:max-w-[420px] sm:p-7">
+            {card}
             <button
               type="button"
               onClick={dismissPopup}
-              className="mx-auto block text-[13px] font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
+              className="mt-4 block text-[13px] font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
             >
-              Fortsæt til siden uden tilmelding
+              Nej tak — kig bare rundt
             </button>
           </DialogContent>
         </Dialog>

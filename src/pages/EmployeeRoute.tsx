@@ -35,6 +35,9 @@ import { pickDuration } from "@/components/route/EtaBreakdown";
 import { StopDetailsContent } from "@/components/employee/StopDetailsContent";
 import { useMyEmployee } from "@/hooks/useMyEmployee";
 import { canCompleteEarly, type EarlyCompletionMode } from "@/lib/early-completion";
+import RouteChecklistView from "@/components/employee-route/RouteChecklistView";
+import RouteModeDialog from "@/components/employee-route/RouteModeDialog";
+import { readRunMode, writeRunMode, buzz, type RouteRunMode } from "@/components/employee-route/RouteRunMode";
 
 /* ── Map icons ──────────────────────────────────────────────── */
 const startIcon = L.divIcon({
@@ -367,6 +370,11 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     heading: number | null; speed: number | null; t: number;
   } | null>(null);
   const [routeStarted, setRouteStarted] = useState(false);
+  // Tjekliste eller kørselsguide. Valget spørges første gang man starter en
+  // rute og huskes derefter pr. enhed — men kan altid skiftes undervejs.
+  const [runMode, setRunMode] = useState<RouteRunMode>(() => readRunMode() ?? "guide");
+  const [modeDialogOpen, setModeDialogOpen] = useState(false);
+  const [pendingStopId, setPendingStopId] = useState<string | null>(null);
   const [followMode, setFollowMode] = useState(true);
   // Stop-detaljer sheet kan veksle mellem kompakt (~45 % af skærm) og fuld
   // (~85 %).  Default er kompakt, så medarbejderen altid ser kortet.  Klik
@@ -450,32 +458,53 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     return () => { cancelled = true; };
   }, []);
 
-  /* Geolocation watcher — aktiv når rute kører ELLER når brugeren allerede
-   * har givet lov (så positionen er klar uden ny prompt). */
+  /* Geolocation watcher — aktiv når kørselsguiden er i brug.
+   *
+   * Strøm og varme: vi drosler hvor ofte et fix bliver til en re-render.
+   * Browseren leverer gerne 1-2 fixes i sekundet; det er langt mere end
+   * kortet og ETA'en har brug for. Vi lukker derfor kun et fix igennem
+   * hvert 2. sekund — eller med det samme hvis brugeren reelt har flyttet
+   * sig mere end 25 m. Når fanen er skjult (telefonen i lommen) skipper vi
+   * helt, så hverken kort eller animationer arbejder i baggrunden. */
+  const lastFixRef = useRef<{ t: number; lat: number; lng: number } | null>(null);
   useEffect(() => {
+    // Tjeklisten har intet kort og skal ikke spore positionen overhovedet.
+    if (runMode === "list") return;
     const shouldWatch = routeStarted || geoPermission === "granted";
     if (!shouldWatch) return;
     if (!navigator.geolocation) return;
+    const MIN_INTERVAL_MS = 2000;
+    const SIGNIFICANT_MOVE_M = 25;
     const watchId = navigator.geolocation.watchPosition(
       (pos) => {
+        if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+        const now = pos.timestamp ?? Date.now();
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        const prev = lastFixRef.current;
+        if (prev) {
+          const moved = haversineMeters(prev.lat, prev.lng, lat, lng);
+          if (now - prev.t < MIN_INTERVAL_MS && moved < SIGNIFICANT_MOVE_M) return;
+        }
+        lastFixRef.current = { t: now, lat, lng };
         // Send rå fix gennem GPS-filteret nedenfor.  Vi bevarer adgangen
         // til accuracy + speed så filtret kan adaptive sin smoothing.
         setRawFix({
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
+          lat,
+          lng,
           accuracy: typeof pos.coords.accuracy === "number" ? pos.coords.accuracy : 20,
           heading: typeof pos.coords.heading === "number" && !Number.isNaN(pos.coords.heading)
             ? pos.coords.heading : null,
           speed: typeof pos.coords.speed === "number" && !Number.isNaN(pos.coords.speed)
             ? pos.coords.speed : null,
-          t: pos.timestamp ?? Date.now(),
+          t: now,
         });
       },
       () => {},
       { enableHighAccuracy: true, maximumAge: 1500, timeout: 10000 },
     );
     return () => navigator.geolocation.clearWatch(watchId);
-  }, [routeStarted, geoPermission]);
+  }, [routeStarted, geoPermission, runMode]);
 
   // Kør rå GPS-fixes gennem jitter-filteret.  Output er en udjævnet
   // position + heading + estimeret hastighed (sidstnævnte bruges også
@@ -837,7 +866,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     const etaMs = Date.now() + directions.duration_s * 1000;
     const plannedMs = new Date(nextStop.planned_arrival).getTime();
     if (!Number.isFinite(plannedMs)) return null;
-    return Math.round((etaMs - plannedMs) / 60000);
+    const diff = Math.round((etaMs - plannedMs) / 60000);
+    // Fornuftstjek: er afvigelsen større end 3 timer, er den planlagte tid
+    // ikke retvisende (fx en rute startet længe efter planen eller en gammel
+    // dato). Så viser vi hellere ingenting end "+258 min" på en tur på 23 km.
+    if (Math.abs(diff) > 180) return null;
+    return diff;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [directions?.duration_s, nextStop?.planned_arrival, nextStop?.id]);
 
@@ -1041,6 +1075,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       toast.error("Ruten kan først udføres på selve dagen");
       return;
     }
+    setPendingStopId(s.id);
     try {
       // Stop tidsregistrering for den loggede medarbejder på denne opgave
       try {
@@ -1049,35 +1084,56 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         }
       } catch { /* non-fatal */ }
       await updateStatus.mutateAsync({ id: s.id, status: "completed", notes: noteDraft[s.id] });
-      if (audioEnabled) playSuccessChime();
-      toast.success(`${s.customer_name || "Stop"} markeret som udført`);
+      const doneNow = completedCount + 1;
+      const total = sortedStops.length;
+      const finished = doneNow >= total;
+      // Lille kvittering i hånden: ét bump pr. stop, tre ved sidste stop.
+      buzz(finished ? [30, 60, 30, 60, 60] : 22);
+      if (audioEnabled) {
+        if (finished) playCompleteFanfare();
+        else playSuccessChime();
+      }
+      toast.success(
+        finished
+          ? `Sidste stop klaret — hele ruten er kørt! 🎉`
+          : `${s.customer_name || "Stop"} udført — ${doneNow} af ${total} klaret`,
+        { description: finished ? undefined : `${total - doneNow} stop tilbage på ruten.` },
+      );
       setSelectedId(null);
       const remaining = sortedStops.filter((x) => x.status !== "completed" && x.id !== s.id);
-      if (remaining.length > 0 && audioEnabled) {
+      if (remaining.length > 0 && audioEnabled && runMode === "guide") {
         const next = remaining[0];
         setTimeout(() => speak(`Næste stop: ${next.customer_name || "ukendt kunde"}`), 900);
       }
-    } catch {}
+    } catch {
+      toast.error("Vi kunne ikke gemme markeringen", {
+        description: "Tjek din forbindelse og prøv igen — stoppet står stadig som ikke udført.",
+      });
+    } finally {
+      setPendingStopId(null);
+    }
   };
 
   const handleUndo = async (s: RouteStop) => {
     try {
       await updateStatus.mutateAsync({ id: s.id, status: "pending" });
       toast.success("Markering fortrudt");
-    } catch {}
+    } catch {
+      toast.error("Kunne ikke fortryde markeringen", {
+        description: "Prøv igen om et øjeblik.",
+      });
+    }
   };
 
-  const handleStartRoute = () => {
-    if (routeDateLocked) {
-      toast.error("Ruten kan først startes på selve dagen");
-      return;
-    }
+  /** Selve starten — kaldes når tilstanden (tjekliste/guide) er valgt. */
+  const beginRoute = (mode: RouteRunMode) => {
+    setRunMode(mode);
     unlockAudio();
     setRouteStarted(true);
     setFollowMode(true);
     setCollapsed(true);
     toast.success("Rute startet — god tur!");
-    if (navigator.geolocation) {
+    if (mode === "guide" && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           setUserPos([pos.coords.latitude, pos.coords.longitude]);
@@ -1091,8 +1147,53 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     }
   };
 
+  const handleStartRoute = () => {
+    if (routeDateLocked) {
+      toast.error("Ruten kan først startes på selve dagen");
+      return;
+    }
+    const remembered = readRunMode();
+    if (remembered) {
+      beginRoute(remembered);
+      return;
+    }
+    setModeDialogOpen(true);
+  };
+
+  /* ── Tjekliste-tilstand: den simple visning uden kort og GPS ── */
+  if (routeStarted && runMode === "list") {
+    return (
+      <RouteChecklistView
+        routeName={route.name || "Rute"}
+        themeColor={themeColor}
+        stops={sortedStops}
+        pendingId={pendingStopId}
+        locked={routeDateLocked}
+        onComplete={handleComplete}
+        onUndo={handleUndo}
+        onNavigate={handleNavigate}
+        onSwitchToGuide={() => {
+          setRunMode("guide");
+          writeRunMode("guide", !!readRunMode());
+          toast.success("Skiftet til kørselsguide");
+        }}
+        onFinish={onBack}
+      />
+    );
+  }
+
   return (
     <div className="fixed inset-0 flex flex-col bg-background overflow-hidden">
+      {/* Valg af kørselstilstand — spørges første gang man starter en rute */}
+      <RouteModeDialog
+        open={modeDialogOpen}
+        onOpenChange={setModeDialogOpen}
+        onChoose={(mode, remember) => {
+          writeRunMode(mode, remember);
+          setModeDialogOpen(false);
+          beginRoute(mode);
+        }}
+      />
       {/* ─── Compact header — admin-stil (h-14, neutral palette).  Kun
           synlig før rute starter eller ved færdig.  Lyd-knappen findes
           som floating control under kørsel — ingen dubletter her. ─── */}
@@ -1737,7 +1838,9 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                         Holder muted-foreground i normale tilfælde. */}
                     {delayMinutes != null && Math.abs(delayMinutes) > 5 ? (
                       <p className={`text-[10px] leading-tight font-semibold tabular-nums ${delayMinutes > 0 ? "text-amber-600" : "text-emerald-600"}`}>
-                        {delayMinutes > 0 ? `+${delayMinutes} min` : `${delayMinutes} min`}
+                        {delayMinutes > 0
+                          ? `${delayMinutes} min bagud`
+                          : `${Math.abs(delayMinutes)} min i god tid`}
                       </p>
                     ) : (
                       <p className="text-[10px] text-muted-foreground leading-tight">
