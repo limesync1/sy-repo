@@ -1387,6 +1387,7 @@ function NewRouteDialog({
   const [jobSearch, setJobSearch] = useState("");
   const createRoute = useCreateRoute();
   const addStop = useAddStop();
+  const deleteRoute = useDeleteRoute();
   const [submitting, setSubmitting] = useState(false);
 
   // Nulstil felter når dialogen åbner
