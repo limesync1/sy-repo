@@ -41,6 +41,16 @@ Deno.serve(async (req) => {
     const accessToken = headerToken || bodyToken;
     const preserveAssignees = body?.preserve_assignees !== false;
     const respectPinned = body?.respect_pinned === true || preserveAssignees;
+    // Live-optimering: medarbejderen sender sin aktuelle position, og vi
+    // planlægger resten af dagen ud fra hvor vognen står lige nu.
+    const rawStart = body?.start_location;
+    const startLocation = rawStart &&
+        Number.isFinite(Number(rawStart.lat)) && Number.isFinite(Number(rawStart.lng))
+      ? { lat: Number(rawStart.lat), lng: Number(rawStart.lng) }
+      : null;
+    const startNowMin = Number.isFinite(Number(body?.start_time_min))
+      ? Math.max(0, Math.min(24 * 60, Number(body.start_time_min)))
+      : null;
 
     if (!routeId) {
       return new Response(JSON.stringify({ ok: false, error: "route_id required" }), {
