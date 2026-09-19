@@ -1600,6 +1600,52 @@ export const useOptimizeRoute = () => {
   });
 };
 
+/* ─── Live-optimering fra medarbejderens aktuelle position.
+   Bruges under kørsel: resten af stoppene lægges i den rækkefølge der er
+   hurtigst FRA hvor bilen står nu — så man ikke sendes langt væk og tilbage. ─── */
+export const useOptimizeRouteFromPosition = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationKey: ["optimize-route-live"],
+    mutationFn: async ({
+      routeId, lat, lng,
+    }: { routeId: string; lat: number; lng: number }) => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) throw new Error("Du skal være logget ind");
+      const expiresAt = sessionData.session.expires_at ?? 0;
+      if (expiresAt && expiresAt * 1000 - Date.now() < 60_000) {
+        await supabase.auth.refreshSession();
+      }
+      const now = new Date();
+      const { data, error } = await supabase.functions.invoke("optimize-route", {
+        body: {
+          route_id: routeId,
+          preserve_assignees: true,
+          start_location: { lat, lng },
+          start_time_min: now.getHours() * 60 + now.getMinutes(),
+        },
+      });
+      if (error) throw new Error(error.message || "Kunne ikke optimere ruten");
+      if (!data?.ok) throw new Error(data?.error || "Kunne ikke optimere ruten");
+      return data as {
+        ok: true;
+        saved_km?: number;
+        saved_minutes?: number;
+        order_changed?: boolean;
+        total_km?: number;
+        total_minutes?: number;
+      };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["route-stops-bulk"] });
+      qc.invalidateQueries({ queryKey: ["routes"] });
+      qc.invalidateQueries({ queryKey: ["my-day-stops"] });
+      qc.invalidateQueries({ queryKey: ["my-day-routes"] });
+      qc.invalidateQueries({ queryKey: ["my-route-data"] });
+    },
+  });
+};
+
 /* ─── Anvend ét AI-forslag på en rute. ─── */
 export const useApplyRouteSuggestion = () => {
   const qc = useQueryClient();

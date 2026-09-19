@@ -41,6 +41,16 @@ Deno.serve(async (req) => {
     const accessToken = headerToken || bodyToken;
     const preserveAssignees = body?.preserve_assignees !== false;
     const respectPinned = body?.respect_pinned === true || preserveAssignees;
+    // Live-optimering: medarbejderen sender sin aktuelle position, og vi
+    // planlægger resten af dagen ud fra hvor vognen står lige nu.
+    const rawStart = body?.start_location;
+    const startLocation = rawStart &&
+        Number.isFinite(Number(rawStart.lat)) && Number.isFinite(Number(rawStart.lng))
+      ? { lat: Number(rawStart.lat), lng: Number(rawStart.lng) }
+      : null;
+    const startNowMin = Number.isFinite(Number(body?.start_time_min))
+      ? Math.max(0, Math.min(24 * 60, Number(body.start_time_min)))
+      : null;
 
     if (!routeId) {
       return new Response(JSON.stringify({ ok: false, error: "route_id required" }), {
@@ -69,12 +79,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    const [{ data: isAdmin }, { data: isOwner }] = await Promise.all([
+    const [{ data: isAdmin }, { data: isOwner }, { data: isRouteEmployee }] = await Promise.all([
       supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }),
       supabase.rpc("is_route_owner", { _route_id: routeId, _user_id: user.id }),
+      supabase.rpc("is_route_assigned_employee", { _route_id: routeId, _user_id: user.id }),
     ]);
 
-    if (!isAdmin && !isOwner) {
+    if (!isAdmin && !isOwner && !isRouteEmployee) {
       return new Response(JSON.stringify({ ok: false, error: "Du har ikke adgang til at optimere denne rute" }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -184,6 +195,27 @@ Deno.serve(async (req) => {
       } as EmployeeCtx);
     }
 
+    // === Live-start: optimér resten af dagen ud fra hvor kørslen er NU ===
+    // Uden dette planlægger vi altid fra rutens startadresse, og så kan
+    // rækkefølgen sende medarbejderen langt væk og tilbage igen.
+    if (startLocation) {
+      const { data: myEmps } = await supabase
+        .from("employees")
+        .select("id")
+        .eq("user_id", user.id);
+      const myIds = new Set((myEmps || []).map((e: any) => e.id));
+      for (const e of employees) {
+        const isMe = usingVirtualEmployee || myIds.has(e.id) || employees.length === 1;
+        if (!isMe) continue;
+        e.start_lat = startLocation.lat;
+        e.start_lng = startLocation.lng;
+        if (startNowMin != null) {
+          e.work_start_min = Math.min(Math.max(startNowMin, 0), e.work_end_min);
+        }
+      }
+    }
+
+
     // Normaliser adresse til en cluster-nøgle: lowercased, trimmet, fjern
     // dobbelt-mellemrum og komma — så "H.C. Andersens Gade 10" og
     // "H. C. Andersens Gade 10," ender i samme klynge.
@@ -288,6 +320,9 @@ Deno.serve(async (req) => {
       startFromHome: !!route.start_from_home,
       planStart: planStartMin,
       respectPinned,
+      liveStart: startLocation
+        ? { lat: Number(startLocation.lat.toFixed(4)), lng: Number(startLocation.lng.toFixed(4)), t: startNowMin }
+        : null,
     };
     const fpStr = JSON.stringify(fingerprintPayload);
     // Stabil 32-bit hash (FNV-1a) — tilstrækkeligt til at detektere ændringer

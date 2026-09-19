@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyRouteData, useDirections, useUpdateStopStatus, type RouteStop, type Route } from "@/hooks/useRoutes";
-import { useStartStopTime, useEndStopTime } from "@/hooks/useRoutes";
+import { useStartStopTime, useEndStopTime, useOptimizeRouteFromPosition } from "@/hooks/useRoutes";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -314,6 +314,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const updateStatus = useUpdateStopStatus();
   const startStopTime = useStartStopTime();
   const endStopTime = useEndStopTime();
+  const optimizeLive = useOptimizeRouteFromPosition();
+  const autoOptimizeRef = useRef(false);
   const navigate = useNavigate();
   // Tidlig udførelse — afgør om "Markér udført" må trykkes på fremtidige
   // rutedatoer. Samme resolver som EmployeeApp bruger på dagslisten.
@@ -1048,6 +1050,60 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     );
   };
 
+  /** Hent én position — bruges når vi ikke sporer GPS (tjekliste-tilstand). */
+  const getPositionOnce = (): Promise<[number, number] | null> =>
+    new Promise((resolve) => {
+      if (!navigator.geolocation) return resolve(null);
+      navigator.geolocation.getCurrentPosition(
+        (p) => resolve([p.coords.latitude, p.coords.longitude]),
+        () => resolve(null),
+        { enableHighAccuracy: false, maximumAge: 60_000, timeout: 8000 },
+      );
+    });
+
+  /**
+   * Læg de resterende stop i den rækkefølge der er hurtigst FRA hvor
+   * bilen står lige nu. Uden dette planlægges dagen altid fra
+   * startadressen, og man kan ende med at køre langt væk og tilbage igen.
+   */
+  const reoptimizeFromHere = async (opts: { silent?: boolean; excludeId?: string } = {}) => {
+    if (autoOptimizeRef.current) return;
+    const remaining = sortedStops.filter(
+      (x) => x.status !== "completed" && x.id !== opts.excludeId && x.latitude != null && x.longitude != null,
+    );
+    if (remaining.length < 2) return;
+    autoOptimizeRef.current = true;
+    try {
+      const pos = userPos ?? (await getPositionOnce());
+      if (!pos) {
+        if (!opts.silent) {
+          toast.error("Vi kunne ikke finde din position", {
+            description: "Slå lokation til for at få rækkefølgen tilpasset hvor du er.",
+          });
+        }
+        return;
+      }
+      const res = await optimizeLive.mutateAsync({ routeId, lat: pos[0], lng: pos[1] });
+      if (res.order_changed) {
+        const savedKm = Math.round(res.saved_km ?? 0);
+        const savedMin = Math.round(res.saved_minutes ?? 0);
+        toast.success("Rækkefølgen er tilpasset hvor du er nu", {
+          description: savedKm > 0 || savedMin > 0
+            ? `Du sparer ca. ${savedKm} km og ${savedMin} min på resten af dagen.`
+            : "Nærmeste stop kommer først.",
+        });
+      } else if (!opts.silent) {
+        toast.success("Rækkefølgen er allerede den bedste herfra");
+      }
+    } catch {
+      if (!opts.silent) {
+        toast.error("Kunne ikke tilpasse rækkefølgen", { description: "Prøv igen om lidt." });
+      }
+    } finally {
+      autoOptimizeRef.current = false;
+    }
+  };
+
   const handleComplete = async (s: RouteStop) => {
     if (routeDateLocked) {
       toast.error("Ruten kan først udføres på selve dagen");
@@ -1083,6 +1139,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         const next = remaining[0];
         setTimeout(() => speak(`Næste stop: ${next.customer_name || "ukendt kunde"}`), 900);
       }
+      // Planlæg resten af dagen forfra — ud fra hvor vi holder nu.
+      void reoptimizeFromHere({ silent: true, excludeId: s.id });
     } catch {
       toast.error("Vi kunne ikke gemme markeringen", {
         description: "Tjek din forbindelse og prøv igen — stoppet står stadig som ikke udført.",
@@ -1123,6 +1181,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
         { enableHighAccuracy: true, maximumAge: 0, timeout: 8000 },
       );
     }
+    // Ved start: læg dagens rækkefølge efter hvor medarbejderen faktisk er.
+    setTimeout(() => void reoptimizeFromHere({ silent: true }), 1500);
   };
 
   const handleStartRoute = () => {
@@ -1643,9 +1703,23 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                       Dagens rute · {todayLabel}
                     </p>
                   </div>
-                  <Badge variant="secondary" className="text-[10px] h-5 px-1.5 tabular-nums font-semibold shrink-0">
-                    {sortedStops.length} stop
-                  </Badge>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {remainingStops.length > 1 && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="h-6 px-2 text-[10px] font-semibold"
+                        disabled={optimizeLive.isPending}
+                        onClick={() => void reoptimizeFromHere()}
+                      >
+                        {optimizeLive.isPending ? "Optimerer…" : "Optimér herfra"}
+                      </Button>
+                    )}
+                    <Badge variant="secondary" className="text-[10px] h-5 px-1.5 tabular-nums font-semibold shrink-0">
+                      {sortedStops.length} stop
+                    </Badge>
+                  </div>
                 </div>
 
                 {/* Tre nøgletal — admin-stil grid uden flashy farver */}
