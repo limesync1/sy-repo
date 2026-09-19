@@ -3,7 +3,12 @@
 // between an ordered list of waypoints. Falls back to a straight line when
 // Mapbox is unavailable.
 
-import { createClient, corsHeaders } from "npm:@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
 type LatLng = { lat: number; lng: number };
 
