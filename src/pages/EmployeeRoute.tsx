@@ -458,32 +458,53 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     return () => { cancelled = true; };
   }, []);
 
-  /* Geolocation watcher — aktiv når rute kører ELLER når brugeren allerede
-   * har givet lov (så positionen er klar uden ny prompt). */
+  /* Geolocation watcher — aktiv når kørselsguiden er i brug.
+   *
+   * Strøm og varme: vi drosler hvor ofte et fix bliver til en re-render.
+   * Browseren leverer gerne 1-2 fixes i sekundet; det er langt mere end
+   * kortet og ETA'en har brug for. Vi lukker derfor kun et fix igennem
+   * hvert 2. sekund — eller med det samme hvis brugeren reelt har flyttet
+   * sig mere end 25 m. Når fanen er skjult (telefonen i lommen) skipper vi
+   * helt, så hverken kort eller animationer arbejder i baggrunden. */
+  const lastFixRef = useRef<{ t: number; lat: number; lng: number } | null>(null);
   useEffect(() => {
+    // Tjeklisten har intet kort og skal ikke spore positionen overhovedet.
+    if (runMode === "list") return;
     const shouldWatch = routeStarted || geoPermission === "granted";
     if (!shouldWatch) return;
     if (!navigator.geolocation) return;
+    const MIN_INTERVAL_MS = 2000;
+    const SIGNIFICANT_MOVE_M = 25;
     const watchId = navigator.geolocation.watchPosition(
       (pos) => {
+        if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+        const now = pos.timestamp ?? Date.now();
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        const prev = lastFixRef.current;
+        if (prev) {
+          const moved = haversineMeters(prev.lat, prev.lng, lat, lng);
+          if (now - prev.t < MIN_INTERVAL_MS && moved < SIGNIFICANT_MOVE_M) return;
+        }
+        lastFixRef.current = { t: now, lat, lng };
         // Send rå fix gennem GPS-filteret nedenfor.  Vi bevarer adgangen
         // til accuracy + speed så filtret kan adaptive sin smoothing.
         setRawFix({
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
+          lat,
+          lng,
           accuracy: typeof pos.coords.accuracy === "number" ? pos.coords.accuracy : 20,
           heading: typeof pos.coords.heading === "number" && !Number.isNaN(pos.coords.heading)
             ? pos.coords.heading : null,
           speed: typeof pos.coords.speed === "number" && !Number.isNaN(pos.coords.speed)
             ? pos.coords.speed : null,
-          t: pos.timestamp ?? Date.now(),
+          t: now,
         });
       },
       () => {},
       { enableHighAccuracy: true, maximumAge: 1500, timeout: 10000 },
     );
     return () => navigator.geolocation.clearWatch(watchId);
-  }, [routeStarted, geoPermission]);
+  }, [routeStarted, geoPermission, runMode]);
 
   // Kør rå GPS-fixes gennem jitter-filteret.  Output er en udjævnet
   // position + heading + estimeret hastighed (sidstnævnte bruges også
