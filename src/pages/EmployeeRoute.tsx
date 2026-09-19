@@ -1179,6 +1179,16 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
   return (
     <div className="fixed inset-0 flex flex-col bg-background overflow-hidden">
+      {/* Valg af kørselstilstand — spørges første gang man starter en rute */}
+      <RouteModeDialog
+        open={modeDialogOpen}
+        onOpenChange={setModeDialogOpen}
+        onChoose={(mode, remember) => {
+          writeRunMode(mode, remember);
+          setModeDialogOpen(false);
+          beginRoute(mode);
+        }}
+      />
       {/* ─── Compact header — admin-stil (h-14, neutral palette).  Kun
           synlig før rute starter eller ved færdig.  Lyd-knappen findes
           som floating control under kørsel — ingen dubletter her. ─── */}
