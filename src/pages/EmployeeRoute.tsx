@@ -314,6 +314,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const updateStatus = useUpdateStopStatus();
   const startStopTime = useStartStopTime();
   const endStopTime = useEndStopTime();
+  const optimizeLive = useOptimizeRouteFromPosition();
+  const autoOptimizeRef = useRef(false);
   const navigate = useNavigate();
   // Tidlig udførelse — afgør om "Markér udført" må trykkes på fremtidige
   // rutedatoer. Samme resolver som EmployeeApp bruger på dagslisten.
