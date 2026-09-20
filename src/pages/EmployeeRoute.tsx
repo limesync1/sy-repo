@@ -535,6 +535,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   useEffect(() => {
     // Tjeklisten har intet kort og skal ikke spore positionen overhovedet.
     if (runMode === "list") return;
+    // Skærmen slukket / app i baggrunden → ingen GPS overhovedet.
+    // Watcheren nedlægges helt (ikke bare ignoreres), så radioen får ro
+    // og telefonen hverken bliver varm eller tapper batteri.
+    if (!pageVisible) return;
     const shouldWatch = routeStarted || geoPermission === "granted";
     if (!shouldWatch) return;
     if (!navigator.geolocation) return;
