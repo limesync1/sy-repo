@@ -1524,8 +1524,8 @@ function NewRouteDialog({
       }
 
 
-      if (addedStops.length === 0) {
-        // Ingen stop kom på — ryd den tomme rute op igen.
+      if (addedStops.length === 0 && selected.length > 0) {
+        // Ingen af de valgte aftaler kom på — ryd den tomme rute op igen.
         try { await deleteRoute.mutateAsync(created.id); } catch { /* best effort */ }
         toast.error("Ruten blev ikke oprettet", {
           description:
@@ -1533,6 +1533,23 @@ function NewRouteDialog({
               ? `${failed[0].name} ${failed[0].reason}.`
               : "Ingen af aftalerne kunne lægges på ruten.",
         });
+        return;
+      }
+
+      if (selected.length === 0) {
+        // Tom rute er bevidst valgt — brugeren tilføjer adresse-stop bagefter.
+        qcDialog.setQueriesData<{ routes: Route[]; stops: RouteStop[] }>(
+          { queryKey: ["route-calendar", businessId] },
+          (old) =>
+            old && !old.routes.some((r) => r.id === created.id)
+              ? { ...old, routes: [...old.routes, created] }
+              : old,
+        );
+        toast.success("Tom rute oprettet", {
+          description: "Tilføj stop med adresse i rutens detaljer.",
+        });
+        reset();
+        onCreated(created);
         return;
       }
 
