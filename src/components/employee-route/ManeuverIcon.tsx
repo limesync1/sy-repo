@@ -3,7 +3,7 @@ import {
   CornerUpRight, CornerUpLeft, RotateCw, Flag, Merge, Milestone,
 } from "lucide-react";
 
-/** Maps a Mapbox maneuver (type + modifier) to a clear directional icon. */
+/** Maps a route maneuver (type + modifier) to a clear directional icon. */
 export const ManeuverIcon = ({
   type,
   modifier,

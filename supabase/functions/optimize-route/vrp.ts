@@ -421,7 +421,7 @@ export async function solveVRP(
   // === Vejr-justering ===
   // Hent prognose for rute-dagen og brug den som hastigheds-multiplier
   // på rejsetid. Dette giver mere realistisk planlægning ved regn/sne/glat
-  // føre. Mapbox's driving-traffic-profil dækker allerede normal trafik,
+  // føre. Den nøglefri rutetjeneste dækker ikke live trafik,
   // så vi rører kun durations — distancer er uændrede.
   let weather: { multiplier: number; summary: string | null } = { multiplier: 1.0, summary: null };
   if (opts.routeDate && coords.length > 0) {

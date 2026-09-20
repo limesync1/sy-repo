@@ -9,7 +9,7 @@
 //      returnere samme rækkefølge og ~0 km/min besparelse.
 //
 // For at testen er hurtig og deterministisk stubber vi global fetch,
-// så Mapbox/OSRM-matrix returnerer null og solveVRP falder tilbage til
+// så OSRM-matrix returnerer null og solveVRP falder tilbage til
 // haversine-estimater.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
