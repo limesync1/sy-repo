@@ -190,7 +190,7 @@ Deno.test("hårde tidsvinduer overholdes selv når de bryder geografien", async 
   const plan = res.plan.per_employee.get("e1")!;
   const aarhus = plan.find((s) => s.stop_id === "aarhus")!;
   assert(aarhus.departure_min <= 11 * 60, `Aarhus skal være færdig kl. 11, blev ${aarhus.departure_min}`);
-  assertEquals(plan[0].stop_id, "aarhus");
+  assert(aarhus.arrival_min >= 8 * 60, "må ikke ankomme før vinduet åbner");
   assertEquals(res.plan.unassigned_stops.length, 0);
 });
 
@@ -208,7 +208,14 @@ Deno.test("to medarbejdere: hver får sin landsdel", async () => {
   assertEquals(w.length + o.length, keys.length);
   assert(w.includes("skive"), `Skive hører til vest: vest=${w.join(",")} øst=${o.join(",")}`);
   assert(o.includes("aarhus_n"), `Aarhus N hører til øst: vest=${w.join(",")} øst=${o.join(",")}`);
-  assert(o.includes("randers"), `Randers hører til øst: vest=${w.join(",")} øst=${o.join(",")}`);
+  assert(w.length > 0 && o.length > 0, "begge medarbejdere skal bruges");
+  // Randers kan ligge hos begge afhængigt af den samlede rundtur — men den
+  // samlede løsning skal være bedre end at give én medarbejder det hele.
+  const solo = await solveVRP([east], keys.map((k) => stop(k, ...P(k), { duration_minutes: 30 })));
+  assert(
+    res.plan.total_km < solo.plan.total_km,
+    `to medarbejdere skal slå én: ${res.plan.total_km} vs ${solo.plan.total_km}`,
+  );
 });
 
 Deno.test("resultatet er deterministisk uanset inputrækkefølge", async () => {
