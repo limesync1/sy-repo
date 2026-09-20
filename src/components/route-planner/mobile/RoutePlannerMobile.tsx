@@ -1691,21 +1691,22 @@ function NewRouteDialog({
           </div>
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-2">
+        <DialogFooter className="flex-col gap-2 sm:flex-row sm:gap-2">
           <Button
             variant="outline"
+            className="h-11 w-full sm:w-auto"
             onClick={() => onOpenChange(false)}
             disabled={submitting}
           >
             Annullér
           </Button>
           <Button
+            className="h-11 w-full sm:w-auto"
             onClick={handleSubmit}
-            disabled={submitting || selected.length === 0}
+            disabled={submitting}
           >
             {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-            Opret rute
-            {selected.length > 0 && ` med ${selected.length}`}
+            {selected.length > 0 ? `Opret rute med ${selected.length}` : "Opret tom rute"}
           </Button>
         </DialogFooter>
       </DialogContent>
