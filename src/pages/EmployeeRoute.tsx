@@ -457,6 +457,41 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   >(null);
   const trafficSpokenRef = useRef<string | null>(null);
 
+  /* ── Skærm slukket / app i baggrunden ──────────────────────────────
+   * Vi pauser alt der bruger strøm (GPS-watch, positions-interpolation,
+   * kort-kamera) og stopper tale.  Når skærmen kommer tilbage nulstiller
+   * vi de "sidst sagte"-markører og holder munden lukket i et par
+   * sekunder, indtil der er kommet et friskt GPS-fix — ellers ville
+   * guiden læse instruktioner op fra før pausen ("drej til venstre" fra
+   * en position man for længst har forladt). */
+  const { visible: pageVisible, resumeToken } = usePageVisible();
+  const speechGateRef = useRef(0);
+  const voice = (text: string) => {
+    if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+    if (Date.now() < speechGateRef.current) return;
+    speak(text);
+  };
+  useEffect(() => {
+    if (pageVisible) return;
+    stopSpeaking();
+  }, [pageVisible]);
+  useEffect(() => {
+    if (resumeToken === 0) return;
+    stopSpeaking();
+    // Gamle oplæsninger må ikke gentages, og nye må først komme når vi har
+    // en frisk position (typisk 2-5 sek. efter at skærmen tændes igen).
+    speechGateRef.current = Date.now() + 5000;
+    lastSpokenStepRef.current = null;
+    trafficSpokenRef.current = null;
+    rerouteSpokenStopRef.current = null;
+    setTrafficAlert(null);
+    baselineRef.current = null;
+    // Tving frisk beregning af næste ben ud fra den position vi nu står på.
+    stableOriginRef.current = null;
+    lastFixRef.current = null;
+  }, [resumeToken]);
+
+
   // Off-route detection — vi tæller hvor mange GPS-fixes i træk vi har set
   // brugeren langt fra ruten, så vi kun kalder en reroute når der er reel
   // afvigelse (ikke et enkelt jitter-fix).
