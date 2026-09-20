@@ -726,6 +726,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   useEffect(() => {
     // Skift af stop nulstiller dvælet og den stabile flag.
     arrivalEnteredAtRef.current = null;
+    wasInArrivalRef.current = false;
     arrivalStableForStopRef.current = null;
     setStableArrival(false);
   }, [nextStop?.id]);
