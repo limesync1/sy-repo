@@ -771,11 +771,32 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     rerouteSpokenStopRef.current = null;
   }, [nextStop?.id]);
 
+  /* Er vi reelt i bevægelse?  Bruges til at fastfryse pilen når bilen
+   * holder stille — ellers snurrer den rundt på ren GPS-støj. */
+  const isMoving = userSpeedMps > 1.2; // ~4 km/t
+  const lastHeadingRef = useRef<number | null>(null);
   const derivedHeading = useMemo(() => {
-    if (userHeading != null) return userHeading;
-    if (!userPos || !nextStop || nextStop.latitude == null || nextStop.longitude == null) return null;
-    return bearingDegrees(userPos[0], userPos[1], Number(nextStop.latitude), Number(nextStop.longitude));
-  }, [userHeading, userPos, nextStop?.id, nextStop?.latitude, nextStop?.longitude]);
+    // 1) Filtreret GPS-heading er altid bedst når den findes.
+    if (userHeading != null) {
+      lastHeadingRef.current = userHeading;
+      return userHeading;
+    }
+    // 2) Ellers: peg mod næste stop — men KUN når vi er i bevægelse og
+    //    langt nok væk til at pejlingen er stabil. Tæt på stoppet svinger
+    //    pejlingen vildt ved få meters GPS-støj.
+    if (
+      isMoving &&
+      userPos && nextStop && nextStop.latitude != null && nextStop.longitude != null &&
+      (distanceToNextM == null || distanceToNextM > 80)
+    ) {
+      const b = bearingDegrees(userPos[0], userPos[1], Number(nextStop.latitude), Number(nextStop.longitude));
+      lastHeadingRef.current = b;
+      return b;
+    }
+    // 3) Holder vi stille: behold den sidst kendte retning.
+    return lastHeadingRef.current;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userHeading, isMoving, userPos?.[0], userPos?.[1], nextStop?.id, nextStop?.latitude, nextStop?.longitude, distanceToNextM]);
 
   // Smooth user position + heading — interpolerer mellem GPS-fixes for at
   // undgå at puck'en hopper hver 1-3 sek. Glider ~900 ms med ease-out.
