@@ -30,7 +30,6 @@ import { useCurrentManeuver } from "@/components/employee-route/useCurrentManeuv
 import { useSmoothPosition } from "@/components/employee-route/useSmoothPosition";
 import { useGpsFilter, type FilteredFix } from "@/components/employee-route/useGpsFilter";
 import { smoothPolyline } from "@/components/employee-route/smoothPolyline";
-import { useSmoothZoom } from "@/components/employee-route/useSmoothZoom";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { pickDuration } from "@/components/route/EtaBreakdown";
 import { StopDetailsContent } from "@/components/employee/StopDetailsContent";
@@ -110,8 +109,8 @@ const stopIcon = (n: number, state: "next" | "done" | "future", color: string, h
 const NAV_PUCK_ICON = L.divIcon({
   className: "",
   html: `
-    <div class="nav-puck-rot" style="position:relative;width:64px;height:64px;transform:rotate(0deg);transform-origin:center;will-change:transform;transition:transform 280ms cubic-bezier(0.22, 1, 0.36, 1);">
-      <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-bottom:34px solid hsl(217 91% 60% / 0.45);"></div>
+    <div class="nav-puck-rot" style="position:relative;width:64px;height:64px;transform:rotate(0deg);transform-origin:center;will-change:transform;transition:transform 420ms cubic-bezier(0.22, 1, 0.36, 1);">
+      <div class="nav-puck-cone" style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-bottom:34px solid hsl(217 91% 60% / 0.45);opacity:0;transition:opacity 240ms linear;"></div>
       <div style="position:absolute;top:18px;left:18px;width:28px;height:28px;border-radius:50%;background:hsl(217 91% 60%);border:4px solid white;box-shadow:0 4px 14px hsl(217 91% 60% / 0.45), 0 2px 6px rgba(0,0,0,.25);"></div>
     </div>`,
   iconSize: [64, 64],
@@ -127,9 +126,12 @@ const NAV_PUCK_ICON = L.divIcon({
 const NavPuckMarker = ({
   position,
   heading,
+  moving,
 }: {
   position: [number, number];
   heading: number;
+  /** Når false: vis kun prikken (ingen retningskegle, ingen rotation). */
+  moving: boolean;
 }) => {
   const map = useMap();
   const markerRef = useRef<LeafletMarker | null>(null);
@@ -156,18 +158,29 @@ const NavPuckMarker = ({
   }, [lat, lng]);
 
   // Update heading by mutating CSS transform on the inner rotation element.
-  // This avoids any react-leaflet reconciliation and gives a buttery-smooth
-  // rotation under route changes / reroutes.
+  // Vi roterer KUN mens bilen bevæger sig — står man stille, bliver den
+  // sidste retning stående og keglen fades ud, så pilen ikke snurrer rundt
+  // på GPS-støj (samme adfærd som Google Maps).
+  const shownHeadingRef = useRef<number | null>(null);
   useEffect(() => {
     const m = markerRef.current;
     if (!m) return;
     const el = m.getElement();
     if (!el) return;
     const rot = el.querySelector<HTMLElement>(".nav-puck-rot");
-    if (rot) {
-      rot.style.transform = `rotate(${heading}deg)`;
+    const cone = el.querySelector<HTMLElement>(".nav-puck-cone");
+    if (cone) cone.style.opacity = moving ? "1" : "0";
+    if (!rot) return;
+    if (!moving) return; // frys retningen
+    const prev = shownHeadingRef.current;
+    // Undgå mikro-opdateringer: skriv kun transform ved reelle skift (>2°).
+    if (prev != null) {
+      const delta = Math.abs(((heading - prev + 540) % 360) - 180);
+      if (delta < 2) return;
     }
-  }, [heading]);
+    shownHeadingRef.current = heading;
+    rot.style.transform = `rotate(${heading}deg)`;
+  }, [heading, moving]);
 
   return null;
 };
@@ -196,27 +209,75 @@ const FitTo = ({ points, enabled }: { points: [number, number][]; enabled: boole
   return null;
 };
 
-/** Følger brugeren uden et permanent animationsloop. */
-const FollowUser = ({
-  active, userPos,
-}: { active: boolean; userPos: [number, number] | null }) => {
+/**
+ * Ét samlet kamera: center OG zoom styres af den samme komponent.
+ *
+ * Tidligere kørte pan (FollowUser) og zoom (useSmoothZoom) hver sin
+ * Leaflet-animation. To overlappende animationer på samme kort giver
+ * præcis den "rystende skærm" man oplevede. Her sætter vi i stedet
+ * center+zoom i ét kald UDEN Leaflet-animation — positionen er allerede
+ * blødt interpoleret af useSmoothPosition, så bevægelsen bliver jævn,
+ * og der er ingen konkurrerende animationer at slås med.
+ *
+ * Desuden:
+ *  - Vi opdaterer højst ~15 gange i sekundet og kun ved reel ændring
+ *    (>1,5 m eller >0,08 zoomtrin) — det sparer batteri og varme.
+ *  - Zoom følger farten (langsomt = tættere på), men glides med EMA så
+ *    kortet ikke pumper ind og ud.
+ *  - Står bilen stille, sker der ingenting overhovedet ("pause").
+ */
+const MIN_NAV_ZOOM = 16;
+const MAX_NAV_ZOOM = 18.5;
+const zoomForSpeed = (mps: number): number => {
+  const SLOW = 2, FAST = 18;
+  if (mps <= SLOW) return MAX_NAV_ZOOM;
+  if (mps >= FAST) return MIN_NAV_ZOOM;
+  return MAX_NAV_ZOOM + (MIN_NAV_ZOOM - MAX_NAV_ZOOM) * ((mps - SLOW) / (FAST - SLOW));
+};
+
+const NavCamera = ({
+  active, userPos, speedMps,
+}: { active: boolean; userPos: [number, number] | null; speedMps: number }) => {
   const map = useMap();
   const initRef = useRef(false);
+  const lastRef = useRef<{ t: number; lat: number; lng: number; zoom: number } | null>(null);
+  const zoomRef = useRef<number>(MAX_NAV_ZOOM);
+
   useEffect(() => {
     if (!active) {
       initRef.current = false;
+      lastRef.current = null;
       return;
     }
     if (!userPos || document.visibilityState === "hidden") return;
+
     if (!initRef.current) {
-      map.setView(userPos, 17, { animate: true, duration: 0.35 });
+      zoomRef.current = zoomForSpeed(speedMps);
+      map.setView(userPos, zoomRef.current, { animate: false });
       initRef.current = true;
-    } else {
-      // GPS er allerede droslet. Ét kort-pan pr. accepteret fix er rigeligt
-      // og undgår at holde CPU/GPU på 60 billeder i sekundet.
-      map.panTo(userPos, { animate: true, duration: 0.35, noMoveStart: true } as any);
+      lastRef.current = { t: performance.now(), lat: userPos[0], lng: userPos[1], zoom: zoomRef.current };
+      return;
     }
-  }, [active, map, userPos?.[0], userPos?.[1]]);
+
+    const now = performance.now();
+    const last = lastRef.current;
+    if (last && now - last.t < 66) return; // maks ~15 fps
+
+    // Glid zoom mod målet i stedet for at springe.
+    const targetZoom = zoomForSpeed(speedMps);
+    zoomRef.current = zoomRef.current + (targetZoom - zoomRef.current) * 0.12;
+    const zoom = Math.round(zoomRef.current * 20) / 20; // 0,05-trin
+
+    const movedM = last
+      ? haversineMeters(last.lat, last.lng, userPos[0], userPos[1])
+      : Infinity;
+    const zoomChanged = !last || Math.abs(zoom - last.zoom) >= 0.08;
+    if (movedM < 1.5 && !zoomChanged) return; // står stille → rør ikke kortet
+
+    map.setView(userPos, zoom, { animate: false });
+    lastRef.current = { t: now, lat: userPos[0], lng: userPos[1], zoom };
+  }, [active, map, userPos?.[0], userPos?.[1], speedMps]);
+
   return null;
 };
 
@@ -253,18 +314,6 @@ const FlyToStop = ({ target }: { target: [number, number] | null }) => {
   return null;
 };
 
-/**
- * Hastigheds-adaptiv, glidende zoom under aktiv navigation.  Skal være
- * inde i <MapContainer> så vi har adgang til map-instansen via useMap().
- */
-const SmoothZoomController = ({
-  enabled,
-  speedMps,
-}: { enabled: boolean; speedMps: number }) => {
-  const map = useMap();
-  useSmoothZoom(map, enabled, speedMps);
-  return null;
-};
 
 const formatKm = (m: number | null) => (m == null ? "—" : m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(1)} km`);
 const formatMin = (s: number | null) => (s == null ? "—" : s < 60 ? "<1 min" : `${Math.round(s / 60)} min`);
@@ -771,11 +820,32 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     rerouteSpokenStopRef.current = null;
   }, [nextStop?.id]);
 
+  /* Er vi reelt i bevægelse?  Bruges til at fastfryse pilen når bilen
+   * holder stille — ellers snurrer den rundt på ren GPS-støj. */
+  const isMoving = userSpeedMps > 1.2; // ~4 km/t
+  const lastHeadingRef = useRef<number | null>(null);
   const derivedHeading = useMemo(() => {
-    if (userHeading != null) return userHeading;
-    if (!userPos || !nextStop || nextStop.latitude == null || nextStop.longitude == null) return null;
-    return bearingDegrees(userPos[0], userPos[1], Number(nextStop.latitude), Number(nextStop.longitude));
-  }, [userHeading, userPos, nextStop?.id, nextStop?.latitude, nextStop?.longitude]);
+    // 1) Filtreret GPS-heading er altid bedst når den findes.
+    if (userHeading != null) {
+      lastHeadingRef.current = userHeading;
+      return userHeading;
+    }
+    // 2) Ellers: peg mod næste stop — men KUN når vi er i bevægelse og
+    //    langt nok væk til at pejlingen er stabil. Tæt på stoppet svinger
+    //    pejlingen vildt ved få meters GPS-støj.
+    if (
+      isMoving &&
+      userPos && nextStop && nextStop.latitude != null && nextStop.longitude != null &&
+      (distanceToNextM == null || distanceToNextM > 80)
+    ) {
+      const b = bearingDegrees(userPos[0], userPos[1], Number(nextStop.latitude), Number(nextStop.longitude));
+      lastHeadingRef.current = b;
+      return b;
+    }
+    // 3) Holder vi stille: behold den sidst kendte retning.
+    return lastHeadingRef.current;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userHeading, isMoving, userPos?.[0], userPos?.[1], nextStop?.id, nextStop?.latitude, nextStop?.longitude, distanceToNextM]);
 
   // Smooth user position + heading — interpolerer mellem GPS-fixes for at
   // undgå at puck'en hopper hver 1-3 sek. Glider ~900 ms med ease-out.
@@ -1344,11 +1414,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
             {/* Fit overview when not started */}
             <FitTo points={allPoints} enabled={!routeStarted} />
-            {/* Live follow when driving */}
-            <FollowUser active={routeStarted && followMode} userPos={displayPos} />
-            {/* Hastigheds-adaptiv, glidende zoom — kun mens follow er aktiv. */}
-            <SmoothZoomController
-              enabled={routeStarted && followMode}
+            {/* Ét samlet kamera: følger positionen og justerer zoom efter farten. */}
+            <NavCamera
+              active={routeStarted && followMode}
+              userPos={displayPos}
               speedMps={userSpeedMps}
             />
             {routeStarted && (
@@ -1450,7 +1519,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 NavPuckMarker er stabil: kun CSS-transform ændres ved heading-skift,
                 ingen re-mount af DOM = ingen flicker under reroutes. */}
             {displayPos && routeStarted && displayHeading != null && (
-              <NavPuckMarker position={displayPos} heading={displayHeading} />
+              <NavPuckMarker position={displayPos} heading={displayHeading} moving={isMoving} />
             )}
             {displayPos && (!routeStarted || displayHeading == null) && (
               <Marker position={displayPos} icon={userDotIcon} />
@@ -1884,7 +1953,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 ) : distanceToNextM != null ? (
                   <div className="text-right shrink-0">
                     <p className="text-sm font-semibold text-foreground tabular-nums leading-tight">
-                      {formatKm(distanceToNextM)}
+                      {/* Vis vejafstand når ruten er beregnet — ellers fugleflugt.
+                          Tidligere blandede vi de to tal, så headeren viste fx
+                          "12 km" mens kortet sagde "23,6 km". */}
+                      {formatKm(directions?.distance_m ?? distanceToNextM)}
                     </p>
                     {/* Forsinkelses-chip — viser kun når planlagt ankomst er kendt
                         og vi enten er forsinket > 5 min eller godt i tid > 5 min.
