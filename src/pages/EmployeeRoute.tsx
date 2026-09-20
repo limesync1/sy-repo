@@ -1953,7 +1953,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 ) : distanceToNextM != null ? (
                   <div className="text-right shrink-0">
                     <p className="text-sm font-semibold text-foreground tabular-nums leading-tight">
-                      {formatKm(distanceToNextM)}
+                      {/* Vis vejafstand når ruten er beregnet — ellers fugleflugt.
+                          Tidligere blandede vi de to tal, så headeren viste fx
+                          "12 km" mens kortet sagde "23,6 km". */}
+                      {formatKm(directions?.distance_m ?? distanceToNextM)}
                     </p>
                     {/* Forsinkelses-chip — viser kun når planlagt ankomst er kendt
                         og vi enten er forsinket > 5 min eller godt i tid > 5 min.
