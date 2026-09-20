@@ -1,6 +1,6 @@
 // TrafficOverridesSection — administrer område-specifikke trafik-buffere
 // pr. postnummer-præfiks. Ejeren kan sætte en multiplikator (fx 1.35 for
-// Storkøbenhavn i myldretiden) der lægges oven på Mapbox' rå rejsetid.
+// Storkøbenhavn i myldretiden) der lægges oven på rutetjenestens grundtid.
 //
 // Bruges i SettingsTab → Avanceret-sektionen.
 import { useEffect, useMemo, useState } from "react";
@@ -126,10 +126,10 @@ export const TrafficOverridesSection = ({ businessId }: { businessId: string }) 
       <div className="flex items-start gap-3 rounded-lg border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
         <Info className="h-4 w-4 shrink-0 mt-0.5 text-accent" />
         <p className="leading-relaxed">
-          Område-overrides justerer ETA pr. postnummer. Bruges når Mapbox
-          undervurderer trafikken et bestemt sted (fx Storkøbenhavn). En
+          Område-overrides justerer ETA pr. postnummer. Bruges når den beregnede
+          køretid er for lav et bestemt sted (fx Storkøbenhavn). En
           multiplikator på <span className="font-semibold tabular-nums">1.35</span> betyder at
-          rå Mapbox-tid ganges med 1.35. Den længste prefix-match vinder.
+          grundtiden ganges med 1.35. Den længste prefix-match vinder.
         </p>
       </div>
 

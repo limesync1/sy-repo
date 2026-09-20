@@ -1,7 +1,7 @@
 /**
  * EtaBreakdown — viser om ETA er live (nu) eller planlagt (fremtidig
- * afgangstid), og lader brugeren skifte mellem rå Mapbox-tid og vores
- * korrigerede tid (med danske trafik-buffer).
+ * afgangstid), og lader brugeren skifte mellem grundtid og vores
+ * korrigerede tid (med dansk køretidsbuffer).
  *
  * Bruges på:
  * - medarbejder-rutekortet (EmployeeRoute) — viser status for den aktuelle leg
@@ -53,7 +53,7 @@ export function LiveStatusBadge({ info, compact = false }: { info: EtaInfo; comp
   const Icon = isFuture ? CalendarIcon : Clock;
   const text = isFuture
     ? `Planlagt · ${info.depart_at ? formatDateTime(info.depart_at) : ""}`
-    : "Live trafik · nu";
+      : "Aktuel beregning · nu";
   return (
     <Badge
       variant="outline"
@@ -71,7 +71,7 @@ export function LiveStatusBadge({ info, compact = false }: { info: EtaInfo; comp
   );
 }
 
-/** Toggle mellem rå Mapbox-tid og vores justerede tid + popover med detaljer. */
+/** Toggle mellem rutetjenestens grundtid og vores justerede tid + detaljer. */
 export function EtaDetailsButton({
   info,
   showRaw,
@@ -109,7 +109,7 @@ export function EtaDetailsButton({
           </p>
           <div className="space-y-1.5 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Rå Mapbox-tid</span>
+              <span className="text-muted-foreground">Grundtid</span>
               <span className="tabular-nums font-medium">{raw != null ? formatMin(raw) : "—"}</span>
             </div>
             <div className="flex justify-between">
@@ -150,13 +150,13 @@ export function EtaDetailsButton({
 
         <div className="flex items-center justify-between border-t pt-2">
           <label htmlFor="raw-toggle" className="text-xs cursor-pointer">
-            Vis rå Mapbox-tid
+            Vis grundtid
           </label>
           <Switch id="raw-toggle" checked={showRaw} onCheckedChange={onToggleRaw} />
         </div>
         <p className="text-[10px] text-muted-foreground leading-tight">
-          Korrigeret tid bruger en dansk trafik-buffer kalibreret mod Google
-          Maps. Rå tid er Mapbox' real-time vurdering uden buffer.
+          Korrigeret tid bruger en dansk køretidsbuffer. Grundtiden kommer fra
+          den nøglefri rutevejledning uden buffer.
         </p>
       </PopoverContent>
     </Popover>

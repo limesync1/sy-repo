@@ -41,12 +41,6 @@ export const SUB_PROCESSORS: SubProcessor[] = [
     optional: true,
   },
   {
-    name: "Mapbox",
-    purpose: "Kort, adressesøgning og visning af ruter i ruteplanlæggeren.",
-    data: "Adresser og koordinater på de stop, der vises på kortet.",
-    location: "EU/USA (standardkontraktbestemmelser)",
-  },
-  {
     name: "OpenStreetMap / Nominatim og OSRM",
     purpose: "Opslag af adresser til koordinater og beregning af køreruter.",
     data: "Adresser og koordinater. Ingen kundenavne sendes med.",

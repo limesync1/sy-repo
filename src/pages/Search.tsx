@@ -24,7 +24,7 @@ import {
   Phone,
   ArrowRight,
 } from "lucide-react";
-// Mapbox er tung (~120KB gzipped) — load kun når brugeren faktisk skifter til kort-view.
+// Kortbiblioteket indlæses kun, når brugeren faktisk skifter til kortvisning.
 const ResultsMap = lazy(() => import("@/components/search/ResultsMap"));
 import SiteNav from "@/components/SiteNav";
 import PageHero from "@/components/landing/PageHero";

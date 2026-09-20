@@ -60,7 +60,7 @@ const Cookies = () => (
                 </tbody>
               </table>
             </div>
-            <p className="text-xs">Tredjepartscookies kan blive sat af integrerede leverandører — fx Stripe (betaling), Mapbox (kort), Supabase (auth/data) og e-mail-tracking-pixels. Disse leverandører er selvstændigt dataansvarlige for deres egne cookies.</p>
+            <p className="text-xs">Tredjepartscookies kan blive sat af integrerede leverandører — fx Stripe (betaling), vores platformleverandør (login/data) og e-mail-tracking-pixels. Disse leverandører er selvstændigt dataansvarlige for deres egne cookies.</p>
           </>
         ),
       },

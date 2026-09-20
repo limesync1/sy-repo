@@ -39,7 +39,7 @@ export default function PaymentTab({ s, set, errors }: Props) {
       <div className="rounded-lg border border-dashed border-border bg-secondary/40 px-3 py-2.5 text-[12px] text-muted-foreground">
         <p className="mb-1 font-semibold text-foreground">Andre integrationer</p>
         <p>
-          AI, mails, Google Maps, Mapbox og CVR-opslag administreres via <strong>Connectors</strong> i sidemenuen —
+          AI, mails, betaling og CVR-opslag administreres via <strong>Connectors</strong> i sidemenuen —
           nøglerne ligger sikkert på serveren og behøver ikke indtastes her.
         </p>
       </div>
