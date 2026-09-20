@@ -90,6 +90,10 @@ export function MobileRouteDetailSheet({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [confirmDeleteRoute, setConfirmDeleteRoute] = useState(false);
   const [reorderingId, setReorderingId] = useState<string | null>(null);
+  const [addStopOpen, setAddStopOpen] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
+  const [optimizeResult, setOptimizeResult] = useState<string | null>(null);
+
 
   const optimize = useOptimizeRoute();
   const updateStatus = useUpdateStopStatus();
@@ -114,12 +118,36 @@ export function MobileRouteDetailSheet({
     if (fresh && fresh !== activeStop) setActiveStop(fresh);
   }, [stops]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Stop med koordinater tegnes på kortet i den aktuelle (optimerede) rækkefølge.
+  const mapStops = useMemo(
+    () =>
+      stops
+        .filter((s) => s.latitude != null && s.longitude != null)
+        .map((s, i) => ({
+          id: s.id,
+          lat: Number(s.latitude),
+          lng: Number(s.longitude),
+          label: s.customer_name || "Stop",
+          sublabel: s.full_address || s.address || undefined,
+          index: i + 1,
+          distanceToNextKm: (s as any).distance_to_next_km ?? null,
+          travelTimeToNextMin: (s as any).travel_time_to_next_min ?? null,
+        })),
+    [stops],
+  );
+
   const handleOptimize = async () => {
     try {
       const res = await optimize.mutateAsync(route.id);
-      toast.success("Rute optimeret", {
-        description: res?.total_km != null ? `${Math.round(res.total_km)} km i alt` : undefined,
-      });
+      const parts: string[] = [];
+      if (res?.total_km != null) parts.push(`${Math.round(res.total_km)} km`);
+      const mins = (res as any)?.total_duration_min ?? (res as any)?.total_minutes;
+      if (mins != null) parts.push(`${Math.round(mins)} min`);
+      const summary = parts.length > 0 ? parts.join(" · ") : null;
+      setOptimizeResult(summary);
+      // Vis resultatet med det samme på kortet, så rækkefølgen kan ses.
+      if (mapStops.length > 1) setMapOpen(true);
+      toast.success("Rute optimeret", { description: summary ?? undefined });
     } catch (err: any) {
       toast.error("Kunne ikke optimere", { description: err?.message });
     }
