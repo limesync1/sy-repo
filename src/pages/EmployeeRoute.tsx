@@ -28,7 +28,7 @@ import { usePageVisible } from "@/components/employee-route/usePageVisible";
 import { ManeuverIcon, maneuverLabel } from "@/components/employee-route/ManeuverIcon";
 import { RouteViewSkeleton } from "@/components/admin/shared/Skeletons";
 import { useCurrentManeuver } from "@/components/employee-route/useCurrentManeuver";
-import { useSmoothPosition } from "@/components/employee-route/useSmoothPosition";
+import { useMotionTrack, type MotionTrack } from "@/components/employee-route/motionTrack";
 import { useGpsFilter, type FilteredFix } from "@/components/employee-route/useGpsFilter";
 import { smoothPolyline } from "@/components/employee-route/smoothPolyline";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
@@ -125,21 +125,24 @@ const NAV_PUCK_ICON = L.divIcon({
  * så der ikke sker re-mount per GPS-tick.
  */
 const NavPuckMarker = ({
-  position,
-  heading,
+  track,
+  fallback,
   moving,
 }: {
-  position: [number, number];
-  heading: number;
+  track: MotionTrack;
+  fallback: [number, number];
   /** Når false: vis kun prikken (ingen retningskegle, ingen rotation). */
   moving: boolean;
 }) => {
   const map = useMap();
   const markerRef = useRef<LeafletMarker | null>(null);
+  const movingRef = useRef(moving);
+  movingRef.current = moving;
 
   // Mount marker once.
   useEffect(() => {
-    const m = L.marker(position, { icon: NAV_PUCK_ICON, interactive: false, keyboard: false, zIndexOffset: 1000 });
+    const start = track.value?.pos ?? fallback;
+    const m = L.marker(start, { icon: NAV_PUCK_ICON, interactive: false, keyboard: false, zIndexOffset: 1000 });
     m.addTo(map);
     markerRef.current = m;
     return () => {
@@ -149,39 +152,32 @@ const NavPuckMarker = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map]);
 
-  // Update position smoothly (no re-mount).
-  const lat = position[0];
-  const lng = position[1];
+  // Kegle-synlighed styres af React-state (ændrer sig sjældent).
   useEffect(() => {
-    const m = markerRef.current;
-    if (!m) return;
-    m.setLatLng([lat, lng]);
-  }, [lat, lng]);
-
-  // Update heading by mutating CSS transform on the inner rotation element.
-  // Vi roterer KUN mens bilen bevæger sig — står man stille, bliver den
-  // sidste retning stående og keglen fades ud, så pilen ikke snurrer rundt
-  // på GPS-støj (samme adfærd som Google Maps).
-  const shownHeadingRef = useRef<number | null>(null);
-  useEffect(() => {
-    const m = markerRef.current;
-    if (!m) return;
-    const el = m.getElement();
-    if (!el) return;
-    const rot = el.querySelector<HTMLElement>(".nav-puck-rot");
-    const cone = el.querySelector<HTMLElement>(".nav-puck-cone");
+    const el = markerRef.current?.getElement();
+    const cone = el?.querySelector<HTMLElement>(".nav-puck-cone");
     if (cone) cone.style.opacity = moving ? "1" : "0";
-    if (!rot) return;
-    if (!moving) return; // frys retningen
-    const prev = shownHeadingRef.current;
-    // Undgå mikro-opdateringer: skriv kun transform ved reelle skift (>2°).
-    if (prev != null) {
-      const delta = Math.abs(((heading - prev + 540) % 360) - 180);
-      if (delta < 2) return;
-    }
-    shownHeadingRef.current = heading;
-    rot.style.transform = `rotate(${heading}deg)`;
-  }, [heading, moving]);
+  }, [moving]);
+
+  // Position + rotation opdateres imperativt fra bevægelses-tracket, så
+  // React aldrig re-renderer pr. frame.
+  useEffect(() => {
+    const shownHeading = { v: null as number | null };
+    return track.subscribe(({ pos, heading }) => {
+      const m = markerRef.current;
+      if (!m) return;
+      m.setLatLng(pos);
+      if (heading == null || !movingRef.current) return;
+      const prev = shownHeading.v;
+      if (prev != null) {
+        const delta = Math.abs(((heading - prev + 540) % 360) - 180);
+        if (delta < 2) return;
+      }
+      shownHeading.v = heading;
+      const rot = m.getElement()?.querySelector<HTMLElement>(".nav-puck-rot");
+      if (rot) rot.style.transform = `rotate(${heading}deg)`;
+    });
+  }, [track]);
 
   return null;
 };
@@ -237,47 +233,42 @@ const zoomForSpeed = (mps: number): number => {
 };
 
 const NavCamera = ({
-  active, userPos, speedMps,
-}: { active: boolean; userPos: [number, number] | null; speedMps: number }) => {
+  active, track, speedMps,
+}: { active: boolean; track: MotionTrack; speedMps: number }) => {
   const map = useMap();
-  const initRef = useRef(false);
-  const lastRef = useRef<{ t: number; lat: number; lng: number; zoom: number } | null>(null);
-  const zoomRef = useRef<number>(MAX_NAV_ZOOM);
+  const speedRef = useRef(speedMps);
+  speedRef.current = speedMps;
 
   useEffect(() => {
-    if (!active) {
-      initRef.current = false;
-      lastRef.current = null;
-      return;
-    }
-    if (!userPos || document.visibilityState === "hidden") return;
+    if (!active) return;
+    let init = false;
+    let last: { t: number; lat: number; lng: number; zoom: number } | null = null;
+    let zoom = MAX_NAV_ZOOM;
 
-    if (!initRef.current) {
-      zoomRef.current = zoomForSpeed(speedMps);
-      map.setView(userPos, zoomRef.current, { animate: false });
-      initRef.current = true;
-      lastRef.current = { t: performance.now(), lat: userPos[0], lng: userPos[1], zoom: zoomRef.current };
-      return;
-    }
+    return track.subscribe(({ pos }) => {
+      if (document.visibilityState === "hidden") return;
+      if (!init) {
+        zoom = zoomForSpeed(speedRef.current);
+        map.setView(pos, zoom, { animate: false });
+        init = true;
+        last = { t: performance.now(), lat: pos[0], lng: pos[1], zoom };
+        return;
+      }
+      const now = performance.now();
+      if (last && now - last.t < 100) return; // maks ~10 fps kamerabevægelse
 
-    const now = performance.now();
-    const last = lastRef.current;
-    if (last && now - last.t < 66) return; // maks ~15 fps
+      const targetZoom = zoomForSpeed(speedRef.current);
+      zoom = zoom + (targetZoom - zoom) * 0.12;
+      const snapped = Math.round(zoom * 20) / 20;
 
-    // Glid zoom mod målet i stedet for at springe.
-    const targetZoom = zoomForSpeed(speedMps);
-    zoomRef.current = zoomRef.current + (targetZoom - zoomRef.current) * 0.12;
-    const zoom = Math.round(zoomRef.current * 20) / 20; // 0,05-trin
+      const movedM = last ? haversineMeters(last.lat, last.lng, pos[0], pos[1]) : Infinity;
+      const zoomChanged = !last || Math.abs(snapped - last.zoom) >= 0.08;
+      if (movedM < 1.5 && !zoomChanged) return; // står stille → rør ikke kortet
 
-    const movedM = last
-      ? haversineMeters(last.lat, last.lng, userPos[0], userPos[1])
-      : Infinity;
-    const zoomChanged = !last || Math.abs(zoom - last.zoom) >= 0.08;
-    if (movedM < 1.5 && !zoomChanged) return; // står stille → rør ikke kortet
-
-    map.setView(userPos, zoom, { animate: false });
-    lastRef.current = { t: now, lat: userPos[0], lng: userPos[1], zoom };
-  }, [active, map, userPos?.[0], userPos?.[1], speedMps]);
+      map.setView(pos, snapped, { animate: false });
+      last = { t: now, lat: pos[0], lng: pos[1], zoom: snapped };
+    });
+  }, [active, map, track]);
 
   return null;
 };
@@ -887,17 +878,17 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userHeading, isMoving, userPos?.[0], userPos?.[1], nextStop?.id, nextStop?.latitude, nextStop?.longitude, distanceToNextM]);
 
-  // Smooth user position + heading — interpolerer mellem GPS-fixes for at
-  // undgå at puck'en hopper hver 1-3 sek. Glider ~900 ms med ease-out.
-  const { smoothPos, smoothHeading } = useSmoothPosition(
+  // Blød bevægelse mellem GPS-fixes. Interpolationen sker UDEN for React
+  // (MotionTrack) og skrives direkte på Leaflet-markøren og kameraet — så
+  // siden kun re-renderer når der kommer et nyt fix. Det var tidligere
+  // ~60 re-renders i sekundet, hvilket gjorde telefonen varm.
+  const motionTrack = useMotionTrack(
     userPos,
     derivedHeading,
     routeStarted && pageVisible,
   );
-  // Brug smooth-versionerne i map-rendering og camera-follow så alt
-  // bevæger sig synkront og uden hak.
-  const displayPos = routeStarted ? (smoothPos ?? userPos) : userPos;
-  const displayHeading = routeStarted ? (smoothHeading ?? derivedHeading) : derivedHeading;
+  const displayPos = userPos;
+  const displayHeading = derivedHeading;
 
   const allPoints: [number, number][] = useMemo(() => {
     const pts: [number, number][] = [];
@@ -1457,7 +1448,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             {/* Ét samlet kamera: følger positionen og justerer zoom efter farten. */}
             <NavCamera
               active={routeStarted && followMode && pageVisible}
-              userPos={displayPos}
+              track={motionTrack}
               speedMps={userSpeedMps}
             />
             {routeStarted && (
@@ -1559,7 +1550,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 NavPuckMarker er stabil: kun CSS-transform ændres ved heading-skift,
                 ingen re-mount af DOM = ingen flicker under reroutes. */}
             {displayPos && routeStarted && displayHeading != null && (
-              <NavPuckMarker position={displayPos} heading={displayHeading} moving={isMoving} />
+              <NavPuckMarker track={motionTrack} fallback={displayPos} moving={isMoving} />
             )}
             {displayPos && (!routeStarted || displayHeading == null) && (
               <Marker position={displayPos} icon={userDotIcon} />

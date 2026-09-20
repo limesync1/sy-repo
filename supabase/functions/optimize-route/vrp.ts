@@ -10,7 +10,7 @@
 // Stops med required_staff > 1 håndteres ved at vælge de N billigste medarbejdere
 // og synkronisere ankomst.
 
-import { buildMatrix, travelKm, travelSec, haversineKm, haversineSec, getWeatherAdjustment, applyDurationMultiplier } from "./geo.ts";
+import { buildMatrix, roadKm, haversineSec, getWeatherAdjustment, applyDurationMultiplier } from "./geo.ts";
 import type {
   EmployeeCtx,
   LatLng,
@@ -54,24 +54,51 @@ type IRoute = ScheduledStop[];
 // til haversine, men gør det per-koordinat så vi ikke "smider" matrix væk.
 
 function makeTravelers(matrix: Matrix | null, coords: LatLng[]) {
+  const n = coords.length;
+  // Memoiser fallback-beregninger: local search kalder de samme par mange
+  // tusinde gange, og trigonometri pr. opslag var en reel flaskehals på
+  // ruter med 20+ stop.
+  const secCache = new Float64Array(n * n).fill(-1);
+  const kmCache = new Float64Array(n * n).fill(-1);
   const sec = (i: number, j: number) => {
     if (i === j) return 0;
     if (matrix && i < matrix.durations.length && j < matrix.durations.length) {
-      return matrix.durations[i][j];
+      const v = matrix.durations[i][j];
+      if (typeof v === "number" && Number.isFinite(v)) return v;
     }
-    return haversineSec(coords[i], coords[j]);
+    const k = i * n + j;
+    if (secCache[k] >= 0) return secCache[k];
+    const v = haversineSec(coords[i], coords[j]);
+    secCache[k] = v;
+    return v;
   };
   const km = (i: number, j: number) => {
     if (i === j) return 0;
     if (matrix && i < matrix.distances.length && j < matrix.distances.length) {
-      return matrix.distances[i][j] / 1000;
+      const v = matrix.distances[i][j];
+      if (typeof v === "number" && Number.isFinite(v)) return v / 1000;
     }
-    return haversineKm(coords[i], coords[j]);
+    const k = i * n + j;
+    if (kmCache[k] >= 0) return kmCache[k];
+    const v = roadKm(coords[i], coords[j]);
+    kmCache[k] = v;
+    return v;
   };
   return { sec, km };
 }
 
 // ============== Schedule a route (compute arrivals/departures from scratch) ==============
+/** id → Stop-opslag, cachet pr. stops-array (local search kalder det massivt). */
+const stopMapCache = new WeakMap<Stop[], Map<string, Stop>>();
+const stopMapOf = (stops: Stop[]): Map<string, Stop> => {
+  let m = stopMapCache.get(stops);
+  if (!m) {
+    m = new Map(stops.map((s) => [s.id, s]));
+    stopMapCache.set(stops, m);
+  }
+  return m;
+};
+
 function scheduleRoute(
   emp: EmployeeCtx,
   route: IRoute,
@@ -81,39 +108,40 @@ function scheduleRoute(
   empEndIdx: number,
   stopIdx: (id: string) => number,
 ): { feasible: boolean; cost: number; km: number; durMin: number; softViolations: number } {
+  const byId = stopMapOf(stops);
+  // VIGTIGT: tid regnes i hele minutter UDEN 15-minutters-afrunding.
+  // Afrundingen blev tidligere brugt hele vejen igennem, hvilket gjorde at
+  // to vidt forskellige rækkefølger fik nøjagtig samme cost (alt blev
+  // rundet op i samme slot) — og så kunne optimeringen ikke se hvilken der
+  // var bedst. Den viste ankomsttid rundes stadig op til nærmeste kvarter,
+  // men kun til visning.
   let cursor = emp.work_start_min;
   let prevIdx = empStartIdx;
   let totalKm = 0;
   let cost = 0;
   let softViolations = 0;
-  // Track sidste position vi besøgte hver adresse-klynge. Hvis vi
-  // forlader en klynge og vender tilbage senere → tilføj kraftig straf,
-  // så ruter med 3 stops på samme adresse altid bliver kørt samlet.
   const lastIdxByLocation = new Map<string, number>();
   let fragmentationCount = 0;
 
   for (let i = 0; i < route.length; i++) {
     const r = route[i];
-    const stop = stops.find((s) => s.id === r.stop_id);
+    const stop = byId.get(r.stop_id);
     if (!stop) return { feasible: false, cost: Infinity, km: 0, durMin: 0, softViolations: 0 };
     const locKey = locationKey(stop);
     const lastLocIdx = lastIdxByLocation.get(locKey);
     if (lastLocIdx !== undefined && lastLocIdx !== i - 1) {
-      // Vi har forladt denne adresse og kommer nu tilbage til den —
-      // tæl én "genåbning" pr. mellemliggende stop, så split af 3+
-      // stops på samme adresse straffes proportionalt.
+      // Vi har forladt denne adresse og kommer nu tilbage til den.
       fragmentationCount += 1;
     }
     lastIdxByLocation.set(locKey, i);
     const myIdx = stopIdx(stop.id);
-    const tSec = travel.sec(prevIdx, myIdx);
-    const travelMin = Math.round(tSec / 60);
+    const travelMin = travel.sec(prevIdx, myIdx) / 60;
     const tKm = travel.km(prevIdx, myIdx);
     totalKm += tKm;
 
-    let arrival = ceilSnap(cursor + travelMin);
+    let arrival = cursor + travelMin;
     const hardStart = stop.hard_start_min ?? emp.work_start_min;
-    if (arrival < ceilSnap(hardStart)) arrival = ceilSnap(hardStart);
+    if (arrival < hardStart) arrival = hardStart;
     const finish = arrival + stop.duration_minutes;
     const hardEnd = stop.hard_end_min ?? (emp.work_end_min + 60);
     if (finish > hardEnd) return { feasible: false, cost: Infinity, km: 0, durMin: 0, softViolations: 0 };
@@ -132,55 +160,46 @@ function scheduleRoute(
       softViolations++;
     }
 
-    r.arrival_min = arrival;
-    r.departure_min = finish;
+    // Visning: ankomst rundes op til nærmeste kvarter, afgang = ankomst + varighed.
+    const shownArrival = ceilSnap(arrival);
+    r.arrival_min = shownArrival;
+    r.departure_min = shownArrival + stop.duration_minutes;
     r.sequence = i;
     cursor = finish;
     prevIdx = myIdx;
 
-    // Travel-til-næste sættes ved næste iteration; sidste leg sættes nedenfor
     r.travel_min_to_next = null;
     r.travel_km_to_next = null;
   }
 
-  // Sidste leg hjem skal tælle med i både tid og cost. Tidligere talte kun
-  // kilometerne, så optimeren kunne vælge en langsom afslutning på små veje,
-  // selv når en hurtigere hjemtur fandtes.
+  // Sidste leg hjem tæller med i både tid og cost.
   let returnTravelMin = 0;
   if (route.length > 0) {
-    returnTravelMin = Math.round(travel.sec(prevIdx, empEndIdx) / 60);
+    returnTravelMin = travel.sec(prevIdx, empEndIdx) / 60;
     const homeKm = travel.km(prevIdx, empEndIdx);
     totalKm += homeKm;
     cost += returnTravelMin + homeKm * KM_COST_WEIGHT;
   }
 
-  // Tilføj samme-adresse-strafgebyret til den samlede cost. Penalty er
-  // højt nok til at dominere selv flere km kørsel — så det er aldrig
-  // værd at splitte en klynge ad for at spare lidt vej.
   if (fragmentationCount > 0) {
     cost += fragmentationCount * SAME_LOCATION_PENALTY;
   }
 
   // Sæt travel-til-næste på hver stop (i → i+1)
   for (let i = 0; i < route.length - 1; i++) {
-    const a = stops.find((s) => s.id === route[i].stop_id)!;
-    const b = stops.find((s) => s.id === route[i + 1].stop_id)!;
-    const tSec = travel.sec(stopIdx(a.id), stopIdx(b.id));
-    const tKm = travel.km(stopIdx(a.id), stopIdx(b.id));
-    route[i].travel_min_to_next = Math.round(tSec / 60);
-    route[i].travel_km_to_next = Number(tKm.toFixed(2));
+    const ai = stopIdx(route[i].stop_id);
+    const bi = stopIdx(route[i + 1].stop_id);
+    route[i].travel_min_to_next = Math.round(travel.sec(ai, bi) / 60);
+    route[i].travel_km_to_next = Number(travel.km(ai, bi).toFixed(2));
   }
-  // Sidste stop: travel-hjem som "to_next" (vises ikke i UI men holder data konsistent)
   if (route.length > 0) {
     const last = route[route.length - 1];
-    const lastStop = stops.find((s) => s.id === last.stop_id)!;
-    const tSec = travel.sec(stopIdx(lastStop.id), empEndIdx);
-    const tKm = travel.km(stopIdx(lastStop.id), empEndIdx);
-    last.travel_min_to_next = Math.round(tSec / 60);
-    last.travel_km_to_next = Number(tKm.toFixed(2));
+    const li = stopIdx(last.stop_id);
+    last.travel_min_to_next = Math.round(travel.sec(li, empEndIdx) / 60);
+    last.travel_km_to_next = Number(travel.km(li, empEndIdx).toFixed(2));
   }
 
-  const durMin = route.length > 0 ? cursor - emp.work_start_min + returnTravelMin : 0;
+  const durMin = route.length > 0 ? Math.round(cursor - emp.work_start_min + returnTravelMin) : 0;
   return { feasible: true, cost, km: totalKm, durMin, softViolations };
 }
 
@@ -370,6 +389,44 @@ function relocateInRoute(
   return false;
 }
 
+// ============== Or-opt: flyt sammenhængende segmenter (1-3 stop) ==============
+// Relocate flytter kun ét stop ad gangen. Or-opt flytter hele små kæder —
+// fx to nabostop der tilsammen ligger forkert i ruten — og kan også vende
+// segmentet. Det er netop dét mønster der giver "kør langt væk og tilbage".
+function orOpt(
+  emp: EmployeeCtx,
+  route: IRoute,
+  stops: Stop[],
+  travel: ReturnType<typeof makeTravelers>,
+  meta: { startIdx: number; endIdx: number },
+  stopIdx: (id: string) => number,
+): boolean {
+  if (route.length < 3) return false;
+  const baseline = scheduleRoute(emp, route, stops, travel, meta.startIdx, meta.endIdx, stopIdx);
+  if (!baseline.feasible) return false;
+
+  for (let len = Math.min(3, route.length - 1); len >= 1; len--) {
+    for (let i = 0; i + len <= route.length; i++) {
+      const seg = route.slice(i, i + len);
+      const rest: IRoute = [...route.slice(0, i), ...route.slice(i + len)];
+      for (let j = 0; j <= rest.length; j++) {
+        if (j === i) continue;
+        for (const reversed of [false, true]) {
+          if (reversed && len === 1) continue;
+          const piece = reversed ? [...seg].reverse() : seg;
+          const trial: IRoute = [...rest.slice(0, j), ...piece, ...rest.slice(j)];
+          const ev = scheduleRoute(emp, trial, stops, travel, meta.startIdx, meta.endIdx, stopIdx);
+          if (ev.feasible && ev.cost + 0.25 < baseline.cost) {
+            for (let k = 0; k < trial.length; k++) route[k] = trial[k];
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
+
 // ============== Main ==============
 export async function solveVRP(
   employeesIn: EmployeeCtx[],
@@ -435,10 +492,8 @@ export async function solveVRP(
 
   const empMeta = new Map<string, { startIdx: number; endIdx: number }>();
   employees.forEach((e, i) => empMeta.set(e.id, { startIdx: i, endIdx: employees.length + i }));
-  const stopIdxOf = (id: string) => {
-    const i = stops.findIndex((s) => s.id === id);
-    return 2 * employees.length + i;
-  };
+  const stopPos = new Map(stops.map((s, i) => [s.id, 2 * employees.length + i]));
+  const stopIdxOf = (id: string) => stopPos.get(id) ?? -1;
 
   // Pinned stops respekteres (manuelt tildelt) — andre er frie til omfordeling
   const pinned = new Set<string>();
@@ -493,121 +548,171 @@ export async function solveVRP(
     stop_order: stopsIn.map((s) => s.id),
   };
 
-  // Først: placér pinned stops hos deres medarbejder (hvis required_staff matcher)
-  const pinnedStops = stops.filter((s) => s.pinned_assignees.length > 0);
-  for (const stop of pinnedStops) {
-    pinned.add(stop.id);
-    // Placér hos hver pinned-medarbejder (på dårlig pos — bliver re-optimeret)
-    for (const empId of stop.pinned_assignees) {
-      const route = routes.get(empId);
-      if (!route) continue;
-      route.push({
-        stop_id: stop.id,
-        sequence: 0,
-        arrival_min: 0,
-        departure_min: 0,
-        assignees: stop.pinned_assignees,
-        travel_min_to_next: null,
-        travel_km_to_next: null,
-      });
-    }
+  for (const stop of stops) {
+    if (stop.pinned_assignees.length > 0) pinned.add(stop.id);
   }
 
-  // Derefter: greedy insertion af resten, sorteret efter smalleste hard-window først
   const free = stops.filter((s) => s.pinned_assignees.length === 0);
-  free.sort((a, b) => {
-    const wa = (a.hard_end_min ?? 24 * 60) - (a.hard_start_min ?? 0);
-    const wb = (b.hard_end_min ?? 24 * 60) - (b.hard_start_min ?? 0);
-    if (wa !== wb) return wa - wb;
+
+  // Rækkefølgen stop indsættes i afgør hvor god startløsningen bliver.
+  // Vi prøver flere forskellige rækkefølger (seeds) og beholder den
+  // billigste efter lokal forbedring. Det er dét der fjerner "kør langt
+  // væk først"-ruterne som én enkelt grådig rækkefølge ofte producerer.
+  const windowWidth = (s: Stop) => (s.hard_end_min ?? 24 * 60) - (s.hard_start_min ?? 0);
+  const tieBreak = (a: Stop, b: Stop) => {
     const ca = clusterCounts.get(locationKey(a)) ?? 1;
     const cb = clusterCounts.get(locationKey(b)) ?? 1;
     if (ca !== cb) return cb - ca;
     const ka = locationKey(a);
     const kb = locationKey(b);
     if (ka !== kb) return ka.localeCompare(kb);
+    return a.id.localeCompare(b.id);
+  };
+
+  // Seed 1: smalleste tidsvindue først (som hidtil).
+  const seedWindow = [...free].sort((a, b) => {
+    const d = windowWidth(a) - windowWidth(b);
+    if (d !== 0) return d;
+    const t = tieBreak(a, b);
+    if (t !== 0) return t;
     return b.duration_minutes - a.duration_minutes;
   });
-
-  const unassigned: string[] = [];
-
-  for (const stop of free) {
-    if (stop.required_staff > 1) {
-      // Find N billigste medarbejdere uafhængigt og synk arrival
-      type Best = { emp: EmployeeCtx; pos: number; cost: number };
-      const bests: Best[] = [];
-      for (const emp of employees) {
-        const choice = tryInsertCheapest(stop, [emp], routes, stops, travel, empMeta, stopIdxOf);
-        if (choice) bests.push(choice);
+  // Seed 2: længst væk fra depotet først (klassisk "farthest first" — giver
+  // ofte en meget bedre ramme som de nære stop kan sys ind i).
+  const depot: LatLng = employees.length > 0
+    ? { lat: employees[0].start_lat, lng: employees[0].start_lng }
+    : { lat: 0, lng: 0 };
+  const distFromDepot = new Map(free.map((s) => [s.id, roadKm(depot, { lat: s.latitude, lng: s.longitude })]));
+  const seedFar = [...free].sort((a, b) => {
+    const d = (distFromDepot.get(b.id) ?? 0) - (distFromDepot.get(a.id) ?? 0);
+    if (Math.abs(d) > 0.01) return d;
+    return tieBreak(a, b);
+  });
+  // Seed 3: nærmeste-nabo-kæde fra depotet.
+  const seedNn: Stop[] = [];
+  {
+    const pool = [...free].sort(tieBreak);
+    let cur = depot;
+    while (pool.length > 0) {
+      let bi = 0;
+      let bd = Infinity;
+      for (let i = 0; i < pool.length; i++) {
+        const d = roadKm(cur, { lat: pool[i].latitude, lng: pool[i].longitude });
+        if (d < bd - 0.001) { bd = d; bi = i; }
       }
-      if (bests.length < stop.required_staff) {
-        unassigned.push(stop.id);
-        continue;
-      }
-      bests.sort((a, b) => a.cost - b.cost);
-      const chosen = bests.slice(0, stop.required_staff);
-      for (const c of chosen) {
-        const route = routes.get(c.emp.id)!;
-        route.splice(c.pos, 0, {
+      const [next] = pool.splice(bi, 1);
+      seedNn.push(next);
+      cur = { lat: next.latitude, lng: next.longitude };
+    }
+  }
+
+  const buildRoutes = (order: Stop[]): { routes: Map<string, IRoute>; unassigned: string[]; cost: number } => {
+    const r = new Map<string, IRoute>();
+    employees.forEach((e) => r.set(e.id, []));
+    // Pinned stops placeres først hos deres medarbejder — de omplaceres af
+    // lokal søgning bagefter, men bliver hos den rigtige person.
+    for (const stop of stops) {
+      if (stop.pinned_assignees.length === 0) continue;
+      for (const empId of stop.pinned_assignees) {
+        r.get(empId)?.push({
           stop_id: stop.id,
           sequence: 0,
           arrival_min: 0,
           departure_min: 0,
-          assignees: chosen.map((x) => x.emp.id),
+          assignees: stop.pinned_assignees,
           travel_min_to_next: null,
           travel_km_to_next: null,
         });
       }
-    } else {
-      const choice = tryInsertCheapest(stop, employees, routes, stops, travel, empMeta, stopIdxOf);
-      if (!choice) {
-        unassigned.push(stop.id);
-        continue;
-      }
-      const route = routes.get(choice.emp.id)!;
-      route.splice(choice.pos, 0, {
-        stop_id: stop.id,
-        sequence: 0,
-        arrival_min: 0,
-        departure_min: 0,
-        assignees: [choice.emp.id],
-        travel_min_to_next: null,
-        travel_km_to_next: null,
-      });
     }
-  }
 
-  // Iterativ forbedring: kør 2-opt + relocate + inter-swap indtil ingen
-  // af dem længere kan finde forbedring. Sikrer at swap mellem medarbejdere
-  // og lokal omrokering arbejder sammen i stedet for sekventielt.
-  let outer = 8; // max ydre iterationer (typisk 2-3 nok)
-  let anyImproved = true;
-  while (outer-- > 0 && anyImproved) {
-    anyImproved = false;
+    const unassignedIds: string[] = [];
+    for (const stop of order) {
+      if (stop.required_staff > 1) {
+        type Best = { emp: EmployeeCtx; pos: number; cost: number };
+        const bests: Best[] = [];
+        for (const emp of employees) {
+          const choice = tryInsertCheapest(stop, [emp], r, stops, travel, empMeta, stopIdxOf);
+          if (choice) bests.push(choice);
+        }
+        if (bests.length < stop.required_staff) {
+          unassignedIds.push(stop.id);
+          continue;
+        }
+        bests.sort((a, b) => (a.cost - b.cost) || a.emp.id.localeCompare(b.emp.id));
+        const chosen = bests.slice(0, stop.required_staff);
+        for (const c of chosen) {
+          r.get(c.emp.id)!.splice(c.pos, 0, {
+            stop_id: stop.id,
+            sequence: 0,
+            arrival_min: 0,
+            departure_min: 0,
+            assignees: chosen.map((x) => x.emp.id),
+            travel_min_to_next: null,
+            travel_km_to_next: null,
+          });
+        }
+      } else {
+        const choice = tryInsertCheapest(stop, employees, r, stops, travel, empMeta, stopIdxOf);
+        if (!choice) {
+          unassignedIds.push(stop.id);
+          continue;
+        }
+        r.get(choice.emp.id)!.splice(choice.pos, 0, {
+          stop_id: stop.id,
+          sequence: 0,
+          arrival_min: 0,
+          departure_min: 0,
+          assignees: [choice.emp.id],
+          travel_min_to_next: null,
+          travel_km_to_next: null,
+        });
+      }
+    }
 
-    // 2-opt pr. medarbejder
+    // Lokal forbedring: 2-opt + or-opt + relocate pr. medarbejder, og
+    // omfordeling mellem medarbejdere — indtil intet forbedres.
+    let outer = 8;
+    let anyImproved = true;
+    while (outer-- > 0 && anyImproved) {
+      anyImproved = false;
+      for (const emp of employees) {
+        const route = r.get(emp.id)!;
+        const meta = empMeta.get(emp.id)!;
+        let safety = 40;
+        while (safety-- > 0 && twoOpt(emp, route, stops, travel, meta, stopIdxOf)) anyImproved = true;
+        safety = 40;
+        while (safety-- > 0 && orOpt(emp, route, stops, travel, meta, stopIdxOf)) anyImproved = true;
+        safety = 40;
+        while (safety-- > 0 && relocateInRoute(emp, route, stops, travel, meta, stopIdxOf)) anyImproved = true;
+      }
+      if (employees.length > 1) {
+        let safety = 50;
+        while (safety-- > 0 && interEmployeeSwap(r, employees, stops, travel, empMeta, stopIdxOf, pinned)) {
+          anyImproved = true;
+        }
+      }
+    }
+
+    let cost = 0;
     for (const emp of employees) {
-      const route = routes.get(emp.id)!;
-      let safety = 30;
-      while (safety-- > 0 && twoOpt(emp, route, stops, travel, empMeta.get(emp.id)!, stopIdxOf)) {
-        anyImproved = true;
-      }
+      const meta = empMeta.get(emp.id)!;
+      const ev = scheduleRoute(emp, r.get(emp.id)!, stops, travel, meta.startIdx, meta.endIdx, stopIdxOf);
+      cost += ev.feasible ? ev.cost : 1e9;
     }
+    // Ikke-placerede stop er dyrere end enhver omvej.
+    cost += unassignedIds.length * 1e6;
+    return { routes: r, unassigned: unassignedIds, cost };
+  };
 
-    // Relocate pr. medarbejder (fanger frem-og-tilbage-mønstre)
-    for (const emp of employees) {
-      const route = routes.get(emp.id)!;
-      let safety = 30;
-      while (safety-- > 0 && relocateInRoute(emp, route, stops, travel, empMeta.get(emp.id)!, stopIdxOf)) {
-        anyImproved = true;
-      }
-    }
-
-    // Inter-employee swap
-    let safety = 50;
-    while (safety-- > 0 && interEmployeeSwap(routes, employees, stops, travel, empMeta, stopIdxOf, pinned)) {
-      anyImproved = true;
-    }
+  const seeds = [seedWindow, seedFar, seedNn];
+  let bestSolution = buildRoutes(seeds[0]);
+  for (let i = 1; i < seeds.length; i++) {
+    const cand = buildRoutes(seeds[i]);
+    if (cand.cost + 0.01 < bestSolution.cost) bestSolution = cand;
   }
+  for (const emp of employees) routes.set(emp.id, bestSolution.routes.get(emp.id)!);
+  const unassigned = bestSolution.unassigned;
 
   // Final scheduling + totals (sum over alle medarbejdere)
   let totalKm = 0;

@@ -12,9 +12,31 @@ export function haversineKm(a: LatLng, b: LatLng): number {
   return 2 * R * Math.asin(Math.sqrt(x));
 }
 
-/** Sekunder mellem to punkter — bruger haversine + 50 km/t som groft estimat. */
+/**
+ * Faktisk vejafstand er altid længere end fugleflugt. Uden rutetjeneste
+ * bruger vi en omvejsfaktor, så fallback-estimater ligner virkeligheden
+ * (dansk vejnet: ca. 1,25-1,35 gange fugleflugt).
+ */
+export const ROAD_DETOUR_FACTOR = 1.3;
+
+/** Estimeret vejafstand i km (fugleflugt × omvejsfaktor). */
+export function roadKm(a: LatLng, b: LatLng): number {
+  return haversineKm(a, b) * ROAD_DETOUR_FACTOR;
+}
+
+/**
+ * Sekunder mellem to punkter uden rutetjeneste.
+ *
+ * Gennemsnitsfarten afhænger stærkt af turens længde: korte ture er bykørsel
+ * med lyskryds (~28 km/t), mellemture landevej (~55 km/t) og lange ture
+ * motorvej (~80 km/t). Én fast fart på 50 km/t gjorde korte bystop alt for
+ * billige og lange ture alt for dyre — og det er netop dét der gav
+ * ulogiske rækkefølger når rutetjenesten ikke svarede.
+ */
 export function haversineSec(a: LatLng, b: LatLng): number {
-  return (haversineKm(a, b) / 50) * 3600;
+  const km = roadKm(a, b);
+  const speedKmh = km < 2 ? 28 : km < 10 ? 45 : km < 30 ? 65 : 80;
+  return (km / speedKmh) * 3600;
 }
 
 export async function osrmMatrix(coords: LatLng[]): Promise<Matrix | null> {
