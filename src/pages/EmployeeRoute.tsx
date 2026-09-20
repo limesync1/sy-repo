@@ -699,16 +699,26 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     const dynamic = Math.round(acc * 1.4 + 4);
     return Math.max(TIGHT_MIN_M, Math.min(LOOSE_MAX_M, dynamic));
   }, [userAccuracyM]);
-  const inArrivalRadius = distanceToNextM != null && distanceToNextM <= arrivalThresholdM;
+  // Hysterese: vi træder IND i ankomstzonen ved radius, men træder først
+  // UD igen ved 1,8 × radius.  Uden det skifter kortet mellem "fremme" og
+  // "kør videre" hver gang GPS sitrer et par meter — præcis den "frem og
+  // tilbage"-opførsel der gør guiden forvirrende at stå med i hånden.
+  const wasInArrivalRef = useRef(false);
+  const inArrivalRadius = useMemo(() => {
+    if (distanceToNextM == null) return false;
+    const exit = arrivalThresholdM * 1.8;
+    const next = wasInArrivalRef.current
+      ? distanceToNextM <= exit
+      : distanceToNextM <= arrivalThresholdM;
+    wasInArrivalRef.current = next;
+    return next;
+  }, [distanceToNextM, arrivalThresholdM]);
 
-  // Stabiliseret ankomst — kræv at vi har været inden for radius i mindst
-  // ~12 sekunder før vi flipper "fremme" til true.  Det forhindrer at en
-  // enkelt jitter-måling der lander på naboens matrikel udløser ankomst,
-  // men forsinker ikke detektion mærkbart i praksis (medarbejderen står
-  // typisk stille i flere sekunder ved døren).  Når vi forlader radius
-  // nulstilles timeren straks så efterfølgende jitter ikke "husker" os
-  // som fremme længere.
-  const ARRIVAL_DWELL_MS = 12_000;
+  // Stabiliseret ankomst — kræv at vi har været inden for radius i et par
+  // sekunder før vi flipper "fremme" til true.  Det forhindrer at en enkelt
+  // jitter-måling udløser ankomst, men føles stadig øjeblikkeligt når man
+  // holder ind foran adressen.
+  const ARRIVAL_DWELL_MS = 5_000;
   const arrivalEnteredAtRef = useRef<number | null>(null);
   const arrivalStableForStopRef = useRef<string | null>(null);
   const [stableArrival, setStableArrival] = useState(false);
