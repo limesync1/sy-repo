@@ -1,7 +1,7 @@
 // Edge function: route-directions
-// Returns Mapbox driving-traffic directions geometry (GeoJSON LineString)
+// Returns key-free OSRM driving directions geometry (GeoJSON LineString)
 // between an ordered list of waypoints. Falls back to a straight line when
-// Mapbox is unavailable.
+// the public routing service is unavailable.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -232,8 +232,7 @@ async function mapboxDirections(
   };
 }
 
-/** Nøglefri reservevejvisning. Giver rigtig vejgeometri og manøvrer i stedet
- * for en lige streg, hvis Mapbox-nøglen mangler eller afvises. */
+/** Nøglefri vejvisning med rigtig vejgeometri og manøvrer. */
 async function osrmDirections(coords: LatLng[]) {
   try {
     const coordStr = coords.map((c) => `${c.lng},${c.lat}`).join(";");
@@ -336,16 +335,6 @@ Deno.serve(async (req) => {
         }
       } catch (err) {
         console.error("Failed to load traffic overrides:", err);
-      }
-    }
-
-    const token = Deno.env.get("MAPBOX_ACCESS_TOKEN");
-    if (token) {
-      const dir = await mapboxDirections(trimmed, token, departAt, overrides);
-      if (dir) {
-        return new Response(JSON.stringify({ ok: true, ...dir }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
       }
     }
 

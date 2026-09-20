@@ -466,9 +466,7 @@ Deno.serve(async (req) => {
     const weatherNote = weather.summary
       ? ` Vejr-justering anvendt (+${Math.round((weather.multiplier - 1) * 100)}%): ${weather.summary}.`
       : "";
-    const trafficNote = provider === "mapbox"
-      ? " Rejsetider beregnet med live trafikforhold."
-      : provider === "osrm"
+    const trafficNote = provider === "osrm"
         ? " Rejsetider beregnet uden live trafik (OSRM-fallback)."
         : "";
     const enrichedSummary = (ai?.summary ?? `VRP plan via ${provider} for ${employees.length} medarbejdere, ${validStops.length} stops`) + trafficNote + weatherNote;

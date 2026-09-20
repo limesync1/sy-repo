@@ -1,4 +1,4 @@
-// Geografi: haversine + Mapbox/OSRM matrix + cost-helpers.
+// Geografi: haversine + nøglefri OSRM-matrix + cost-helpers.
 import type { LatLng, Matrix } from "./types.ts";
 
 export function haversineKm(a: LatLng, b: LatLng): number {
@@ -152,10 +152,7 @@ export async function osrmMatrix(coords: LatLng[]): Promise<Matrix | null> {
 
 export async function buildMatrix(coords: LatLng[]): Promise<Matrix | null> {
   if (coords.length < 2) return null;
-  if (coords.length <= DRIVING_MAX) {
-    return (await mapboxMatrix(coords)) || (await osrmMatrix(coords));
-  }
-  return (await mapboxMatrixTiled(coords)) || (await osrmMatrix(coords));
+  return await osrmMatrix(coords);
 }
 
 /** Returnér rejsetid i sekunder mellem to indeks i koord-listen, fra matrix eller estimat. */
