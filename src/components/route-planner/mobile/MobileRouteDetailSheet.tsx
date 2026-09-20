@@ -254,36 +254,80 @@ export function MobileRouteDetailSheet({
             </div>
           </SheetHeader>
 
-          <div className="flex items-center gap-2 border-b border-border px-4 py-2.5">
-            {stops.length > 1 ? (
+          <div className="space-y-2 border-b border-border px-4 py-2.5">
+            <div className="flex items-center gap-2">
+              <Button className="h-11 flex-1 gap-2" onClick={() => setAddStopOpen(true)}>
+                <Plus className="h-4 w-4" />
+                Tilføj stop
+              </Button>
               <Button
                 variant="outline"
-                className="flex-1 gap-2"
+                size="icon"
+                className="h-11 w-11 shrink-0"
+                onClick={() => setSettingsOpen(true)}
+                aria-label="Rute-indstillinger"
+              >
+                <Settings2 className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                className="h-11 flex-1 gap-2"
                 onClick={handleOptimize}
-                disabled={optimize.isPending}
+                disabled={optimize.isPending || stops.length < 2}
               >
                 {optimize.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <Sparkles className="h-4 w-4" />
                 )}
-                Optimér rækkefølge
+                Optimér
               </Button>
-            ) : (
-              <span className="flex-1 text-xs text-muted-foreground">
-                Tilføj flere stop for at optimere rækkefølgen.
-              </span>
+              <Button
+                variant={mapOpen ? "secondary" : "outline"}
+                className="h-11 flex-1 gap-2"
+                onClick={() => setMapOpen((v) => !v)}
+                disabled={mapStops.length === 0}
+              >
+                <MapIcon className="h-4 w-4" />
+                {mapOpen ? "Skjul kort" : "Vis kort"}
+              </Button>
+            </div>
+            {optimizeResult && (
+              <p className="text-[11px] text-muted-foreground">
+                Optimeret rækkefølge · {optimizeResult}
+              </p>
             )}
-            <Button
-              variant="outline"
-              size="icon"
-              className="shrink-0"
-              onClick={() => setSettingsOpen(true)}
-              aria-label="Rute-indstillinger"
-            >
-              <Settings2 className="h-4 w-4" />
-            </Button>
+            {mapStops.length === 0 && stops.length > 0 && (
+              <p className="text-[11px] text-muted-foreground">
+                Ingen af stoppene har koordinater endnu, så kortet er tomt.
+              </p>
+            )}
           </div>
+
+          {mapOpen && mapStops.length > 0 && (
+            <div className="border-b border-border bg-secondary/30 p-3">
+              <Suspense
+                fallback={
+                  <div className="flex h-56 items-center justify-center rounded-lg bg-secondary">
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                  </div>
+                }
+              >
+                <RouteMap
+                  routes={[{ color: route.color || "#0ea5e9", stops: mapStops }]}
+                  height="14rem"
+                  selectedStopId={activeStop?.id ?? null}
+                  onStopClick={(id) => {
+                    const s = stops.find((st) => st.id === id);
+                    if (s) setActiveStop(s);
+                  }}
+                />
+              </Suspense>
+            </div>
+          )}
+
 
           <div className="min-h-0 flex-1 overflow-y-auto p-4">
             {stops.length === 0 ? (
