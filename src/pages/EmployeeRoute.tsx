@@ -210,27 +210,75 @@ const FitTo = ({ points, enabled }: { points: [number, number][]; enabled: boole
   return null;
 };
 
-/** Følger brugeren uden et permanent animationsloop. */
-const FollowUser = ({
-  active, userPos,
-}: { active: boolean; userPos: [number, number] | null }) => {
+/**
+ * Ét samlet kamera: center OG zoom styres af den samme komponent.
+ *
+ * Tidligere kørte pan (FollowUser) og zoom (useSmoothZoom) hver sin
+ * Leaflet-animation. To overlappende animationer på samme kort giver
+ * præcis den "rystende skærm" man oplevede. Her sætter vi i stedet
+ * center+zoom i ét kald UDEN Leaflet-animation — positionen er allerede
+ * blødt interpoleret af useSmoothPosition, så bevægelsen bliver jævn,
+ * og der er ingen konkurrerende animationer at slås med.
+ *
+ * Desuden:
+ *  - Vi opdaterer højst ~15 gange i sekundet og kun ved reel ændring
+ *    (>1,5 m eller >0,08 zoomtrin) — det sparer batteri og varme.
+ *  - Zoom følger farten (langsomt = tættere på), men glides med EMA så
+ *    kortet ikke pumper ind og ud.
+ *  - Står bilen stille, sker der ingenting overhovedet ("pause").
+ */
+const MIN_NAV_ZOOM = 16;
+const MAX_NAV_ZOOM = 18.5;
+const zoomForSpeed = (mps: number): number => {
+  const SLOW = 2, FAST = 18;
+  if (mps <= SLOW) return MAX_NAV_ZOOM;
+  if (mps >= FAST) return MIN_NAV_ZOOM;
+  return MAX_NAV_ZOOM + (MIN_NAV_ZOOM - MAX_NAV_ZOOM) * ((mps - SLOW) / (FAST - SLOW));
+};
+
+const NavCamera = ({
+  active, userPos, speedMps,
+}: { active: boolean; userPos: [number, number] | null; speedMps: number }) => {
   const map = useMap();
   const initRef = useRef(false);
+  const lastRef = useRef<{ t: number; lat: number; lng: number; zoom: number } | null>(null);
+  const zoomRef = useRef<number>(MAX_NAV_ZOOM);
+
   useEffect(() => {
     if (!active) {
       initRef.current = false;
+      lastRef.current = null;
       return;
     }
     if (!userPos || document.visibilityState === "hidden") return;
+
     if (!initRef.current) {
-      map.setView(userPos, 17, { animate: true, duration: 0.35 });
+      zoomRef.current = zoomForSpeed(speedMps);
+      map.setView(userPos, zoomRef.current, { animate: false });
       initRef.current = true;
-    } else {
-      // GPS er allerede droslet. Ét kort-pan pr. accepteret fix er rigeligt
-      // og undgår at holde CPU/GPU på 60 billeder i sekundet.
-      map.panTo(userPos, { animate: true, duration: 0.35, noMoveStart: true } as any);
+      lastRef.current = { t: performance.now(), lat: userPos[0], lng: userPos[1], zoom: zoomRef.current };
+      return;
     }
-  }, [active, map, userPos?.[0], userPos?.[1]]);
+
+    const now = performance.now();
+    const last = lastRef.current;
+    if (last && now - last.t < 66) return; // maks ~15 fps
+
+    // Glid zoom mod målet i stedet for at springe.
+    const targetZoom = zoomForSpeed(speedMps);
+    zoomRef.current = zoomRef.current + (targetZoom - zoomRef.current) * 0.12;
+    const zoom = Math.round(zoomRef.current * 20) / 20; // 0,05-trin
+
+    const movedM = last
+      ? haversineMeters(last.lat, last.lng, userPos[0], userPos[1])
+      : Infinity;
+    const zoomChanged = !last || Math.abs(zoom - last.zoom) >= 0.08;
+    if (movedM < 1.5 && !zoomChanged) return; // står stille → rør ikke kortet
+
+    map.setView(userPos, zoom, { animate: false });
+    lastRef.current = { t: now, lat: userPos[0], lng: userPos[1], zoom };
+  }, [active, map, userPos?.[0], userPos?.[1], speedMps]);
+
   return null;
 };
 
