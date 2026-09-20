@@ -336,9 +336,14 @@ export function MobileRouteDetailSheet({
                   <MapPin className="h-6 w-6 text-muted-foreground" />
                 </div>
                 <p className="text-sm font-medium text-foreground">Ingen stop på ruten</p>
-                <p className="mt-1 max-w-[16rem] text-xs text-muted-foreground">
-                  Tildel aftaler til denne rute fra fanen "Uden rute".
+                <p className="mt-1 max-w-[17rem] text-xs text-muted-foreground">
+                  Tryk "Tilføj stop" for at skrive en adresse, eller tildel en aftale fra fanen
+                  "Uden rute".
                 </p>
+                <Button className="mt-4 h-11 gap-2" onClick={() => setAddStopOpen(true)}>
+                  <Plus className="h-4 w-4" />
+                  Tilføj stop
+                </Button>
               </div>
             ) : (
               <ol className="space-y-2">
