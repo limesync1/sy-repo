@@ -22,8 +22,9 @@ import { toast } from "sonner";
 import { stripPrices } from "@/lib/employee-display";
 import { bearingDegrees, haversineMeters, pointToPolylineMeters } from "@/lib/geo-distance";
 import {
-  unlockAudio, playArrivalChime, playSuccessChime, playCompleteFanfare, speak,
+  unlockAudio, playArrivalChime, playSuccessChime, playCompleteFanfare, speak, stopSpeaking,
 } from "@/lib/employee-audio";
+import { usePageVisible } from "@/components/employee-route/usePageVisible";
 import { ManeuverIcon, maneuverLabel } from "@/components/employee-route/ManeuverIcon";
 import { RouteViewSkeleton } from "@/components/admin/shared/Skeletons";
 import { useCurrentManeuver } from "@/components/employee-route/useCurrentManeuver";
