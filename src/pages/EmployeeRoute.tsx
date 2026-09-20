@@ -699,16 +699,26 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     const dynamic = Math.round(acc * 1.4 + 4);
     return Math.max(TIGHT_MIN_M, Math.min(LOOSE_MAX_M, dynamic));
   }, [userAccuracyM]);
-  const inArrivalRadius = distanceToNextM != null && distanceToNextM <= arrivalThresholdM;
+  // Hysterese: vi træder IND i ankomstzonen ved radius, men træder først
+  // UD igen ved 1,8 × radius.  Uden det skifter kortet mellem "fremme" og
+  // "kør videre" hver gang GPS sitrer et par meter — præcis den "frem og
+  // tilbage"-opførsel der gør guiden forvirrende at stå med i hånden.
+  const wasInArrivalRef = useRef(false);
+  const inArrivalRadius = useMemo(() => {
+    if (distanceToNextM == null) return false;
+    const exit = arrivalThresholdM * 1.8;
+    const next = wasInArrivalRef.current
+      ? distanceToNextM <= exit
+      : distanceToNextM <= arrivalThresholdM;
+    wasInArrivalRef.current = next;
+    return next;
+  }, [distanceToNextM, arrivalThresholdM]);
 
-  // Stabiliseret ankomst — kræv at vi har været inden for radius i mindst
-  // ~12 sekunder før vi flipper "fremme" til true.  Det forhindrer at en
-  // enkelt jitter-måling der lander på naboens matrikel udløser ankomst,
-  // men forsinker ikke detektion mærkbart i praksis (medarbejderen står
-  // typisk stille i flere sekunder ved døren).  Når vi forlader radius
-  // nulstilles timeren straks så efterfølgende jitter ikke "husker" os
-  // som fremme længere.
-  const ARRIVAL_DWELL_MS = 12_000;
+  // Stabiliseret ankomst — kræv at vi har været inden for radius i et par
+  // sekunder før vi flipper "fremme" til true.  Det forhindrer at en enkelt
+  // jitter-måling udløser ankomst, men føles stadig øjeblikkeligt når man
+  // holder ind foran adressen.
+  const ARRIVAL_DWELL_MS = 5_000;
   const arrivalEnteredAtRef = useRef<number | null>(null);
   const arrivalStableForStopRef = useRef<string | null>(null);
   const [stableArrival, setStableArrival] = useState(false);
@@ -716,6 +726,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   useEffect(() => {
     // Skift af stop nulstiller dvælet og den stabile flag.
     arrivalEnteredAtRef.current = null;
+    wasInArrivalRef.current = false;
     arrivalStableForStopRef.current = null;
     setStableArrival(false);
   }, [nextStop?.id]);
@@ -1112,16 +1123,21 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   // Når man cykler langt mellem to drej skal banneret IKKE blokere skærmen.
   // Vi viser det når næste manøvre er <800 m væk, OG den ikke er en "depart"
   // (kør ud) som kun giver mening de første sekunder af turen.
-  // Når brugeren er fremme ved næste stop er turn-by-turn irrelevant —
-  // vis kun "Du er fremme"-tilstanden, ikke et drej-banner der peger
-  // tilbage mod en vej-snappet rute.  Matcher Google Maps' adfærd.
+  // Når brugeren er tæt på næste stop er turn-by-turn irrelevant — vis kun
+  // stop-kortet, ikke et "Du er fremme"-banner oveni der modsiger kortets
+  // afstand.  Matcher Google Maps' adfærd.
+  const nearNextStop = distanceToNextM != null && distanceToNextM <= 150;
   const showManeuverBanner = !!maneuver
     && !isAtNextStop
+    && !nearNextStop
     && maneuver.distanceToManeuverM <= 800
-    && (maneuver.currentStep.maneuver.type || "").toLowerCase() !== "depart";
+    && !["depart", "arrive"].includes((maneuver.currentStep.maneuver.type || "").toLowerCase());
   useEffect(() => {
     if (!audioEnabled || !maneuver || !routeStarted) return;
-    const stepKey = `${maneuver.stepIndex}-${maneuver.currentStep.maneuver.type}-${maneuver.currentStep.name}`;
+    const type = (maneuver.currentStep.maneuver.type || "").toLowerCase();
+    // "Du er fremme" siges af ankomstlyden — ikke som et drej-oplæg.
+    if (type === "arrive" || type === "depart") return;
+    const stepKey = `${maneuver.stepIndex}-${type}-${maneuver.currentStep.name}`;
     if (lastSpokenStepRef.current === stepKey) return;
     if (maneuver.distanceToManeuverM > 250) return;
     lastSpokenStepRef.current = stepKey;
@@ -1984,19 +2000,25 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 ) : distanceToNextM != null ? (
                   <div className="text-right shrink-0">
                     <p className="text-sm font-semibold text-foreground tabular-nums leading-tight">
-                      {/* Vis vejafstand når ruten er beregnet — ellers fugleflugt.
-                          Tidligere blandede vi de to tal, så headeren viste fx
-                          "12 km" mens kortet sagde "23,6 km". */}
-                      {formatKm(directions?.distance_m ?? distanceToNextM)}
+                      {/* Tæt på stoppet er vejafstanden misvisende (den peger
+                          rundt om bygningen) — der viser vi den direkte
+                          afstand, ellers vejafstanden fra ruten. */}
+                      {formatKm(nearNextStop ? distanceToNextM : (directions?.distance_m ?? distanceToNextM))}
                     </p>
-                    {/* Forsinkelses-chip — viser kun når planlagt ankomst er kendt
-                        og vi enten er forsinket > 5 min eller godt i tid > 5 min.
-                        Holder muted-foreground i normale tilfælde. */}
-                    {delayMinutes != null && Math.abs(delayMinutes) > 5 ? (
-                      <p className={`text-[10px] leading-tight font-semibold tabular-nums ${delayMinutes > 0 ? "text-amber-600" : "text-emerald-600"}`}>
-                        {delayMinutes > 0
-                          ? `${delayMinutes} min bagud`
-                          : `${Math.abs(delayMinutes)} min i god tid`}
+                    {/* Én linje under afstanden: enten "næsten fremme", en
+                        tydelig forsinkelse, eller hvornår du er fremme.
+                        Aldrig "96 min i god tid" — det siger intet brugbart. */}
+                    {nearNextStop ? (
+                      <p className="text-[10px] leading-tight font-semibold text-emerald-600">
+                        næsten fremme
+                      </p>
+                    ) : delayMinutes != null && delayMinutes > 15 ? (
+                      <p className="text-[10px] leading-tight font-semibold tabular-nums text-amber-600">
+                        {delayMinutes} min bagud
+                      </p>
+                    ) : etaLabel ? (
+                      <p className="text-[10px] text-muted-foreground leading-tight tabular-nums">
+                        fremme {etaLabel}
                       </p>
                     ) : (
                       <p className="text-[10px] text-muted-foreground leading-tight">
