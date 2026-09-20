@@ -2000,19 +2000,25 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 ) : distanceToNextM != null ? (
                   <div className="text-right shrink-0">
                     <p className="text-sm font-semibold text-foreground tabular-nums leading-tight">
-                      {/* Vis vejafstand når ruten er beregnet — ellers fugleflugt.
-                          Tidligere blandede vi de to tal, så headeren viste fx
-                          "12 km" mens kortet sagde "23,6 km". */}
-                      {formatKm(directions?.distance_m ?? distanceToNextM)}
+                      {/* Tæt på stoppet er vejafstanden misvisende (den peger
+                          rundt om bygningen) — der viser vi den direkte
+                          afstand, ellers vejafstanden fra ruten. */}
+                      {formatKm(nearNextStop ? distanceToNextM : (directions?.distance_m ?? distanceToNextM))}
                     </p>
-                    {/* Forsinkelses-chip — viser kun når planlagt ankomst er kendt
-                        og vi enten er forsinket > 5 min eller godt i tid > 5 min.
-                        Holder muted-foreground i normale tilfælde. */}
-                    {delayMinutes != null && Math.abs(delayMinutes) > 5 ? (
-                      <p className={`text-[10px] leading-tight font-semibold tabular-nums ${delayMinutes > 0 ? "text-amber-600" : "text-emerald-600"}`}>
-                        {delayMinutes > 0
-                          ? `${delayMinutes} min bagud`
-                          : `${Math.abs(delayMinutes)} min i god tid`}
+                    {/* Én linje under afstanden: enten "næsten fremme", en
+                        tydelig forsinkelse, eller hvornår du er fremme.
+                        Aldrig "96 min i god tid" — det siger intet brugbart. */}
+                    {nearNextStop ? (
+                      <p className="text-[10px] leading-tight font-semibold text-emerald-600">
+                        næsten fremme
+                      </p>
+                    ) : delayMinutes != null && delayMinutes > 15 ? (
+                      <p className="text-[10px] leading-tight font-semibold tabular-nums text-amber-600">
+                        {delayMinutes} min bagud
+                      </p>
+                    ) : etaLabel ? (
+                      <p className="text-[10px] text-muted-foreground leading-tight tabular-nums">
+                        fremme {etaLabel}
                       </p>
                     ) : (
                       <p className="text-[10px] text-muted-foreground leading-tight">
