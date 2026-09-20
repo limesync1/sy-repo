@@ -1134,7 +1134,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     && !["depart", "arrive"].includes((maneuver.currentStep.maneuver.type || "").toLowerCase());
   useEffect(() => {
     if (!audioEnabled || !maneuver || !routeStarted) return;
-    const stepKey = `${maneuver.stepIndex}-${maneuver.currentStep.maneuver.type}-${maneuver.currentStep.name}`;
+    const type = (maneuver.currentStep.maneuver.type || "").toLowerCase();
+    // "Du er fremme" siges af ankomstlyden — ikke som et drej-oplæg.
+    if (type === "arrive" || type === "depart") return;
+    const stepKey = `${maneuver.stepIndex}-${type}-${maneuver.currentStep.name}`;
     if (lastSpokenStepRef.current === stepKey) return;
     if (maneuver.distanceToManeuverM > 250) return;
     lastSpokenStepRef.current = stepKey;
