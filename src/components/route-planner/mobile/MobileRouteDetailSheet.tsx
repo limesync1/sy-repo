@@ -2,7 +2,7 @@
 // optimér-knap, manuel om-sortering, rute-indstillinger (omdøb, farve,
 // slet) og tap på et stop åbner stop-detaljer med handlinger
 // (ring, kort, medarbejder, markér udført, fjern).
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import {
@@ -12,8 +12,10 @@ import {
   CheckCircle2,
   Loader2,
   MapPin,
+  Map as MapIcon,
   Navigation,
   Phone,
+  Plus,
   RotateCcw,
   Settings2,
   Sparkles,
@@ -54,7 +56,11 @@ import {
   type RouteStop,
 } from "@/hooks/useRoutes";
 import { ROUTE_COLORS } from "@/components/route-planner/RouteEditSheet";
+import { AddAddressStopSheet } from "./AddAddressStopSheet";
 import { toast } from "sonner";
+
+// Kortet er tungt (Leaflet) — hent det først når brugeren folder det ud.
+const RouteMap = lazy(() => import("@/components/route-planner/RouteMap"));
 
 const mapsUrl = (stop: RouteStop) => {
   if (stop.latitude != null && stop.longitude != null) {
@@ -84,6 +90,10 @@ export function MobileRouteDetailSheet({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [confirmDeleteRoute, setConfirmDeleteRoute] = useState(false);
   const [reorderingId, setReorderingId] = useState<string | null>(null);
+  const [addStopOpen, setAddStopOpen] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
+  const [optimizeResult, setOptimizeResult] = useState<string | null>(null);
+
 
   const optimize = useOptimizeRoute();
   const updateStatus = useUpdateStopStatus();
@@ -108,12 +118,36 @@ export function MobileRouteDetailSheet({
     if (fresh && fresh !== activeStop) setActiveStop(fresh);
   }, [stops]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Stop med koordinater tegnes på kortet i den aktuelle (optimerede) rækkefølge.
+  const mapStops = useMemo(
+    () =>
+      stops
+        .filter((s) => s.latitude != null && s.longitude != null)
+        .map((s, i) => ({
+          id: s.id,
+          lat: Number(s.latitude),
+          lng: Number(s.longitude),
+          label: s.customer_name || "Stop",
+          sublabel: s.full_address || s.address || undefined,
+          index: i + 1,
+          distanceToNextKm: (s as any).distance_to_next_km ?? null,
+          travelTimeToNextMin: (s as any).travel_time_to_next_min ?? null,
+        })),
+    [stops],
+  );
+
   const handleOptimize = async () => {
     try {
       const res = await optimize.mutateAsync(route.id);
-      toast.success("Rute optimeret", {
-        description: res?.total_km != null ? `${Math.round(res.total_km)} km i alt` : undefined,
-      });
+      const parts: string[] = [];
+      if (res?.total_km != null) parts.push(`${Math.round(res.total_km)} km`);
+      const mins = (res as any)?.total_duration_min ?? (res as any)?.total_minutes;
+      if (mins != null) parts.push(`${Math.round(mins)} min`);
+      const summary = parts.length > 0 ? parts.join(" · ") : null;
+      setOptimizeResult(summary);
+      // Vis resultatet med det samme på kortet, så rækkefølgen kan ses.
+      if (mapStops.length > 1) setMapOpen(true);
+      toast.success("Rute optimeret", { description: summary ?? undefined });
     } catch (err: any) {
       toast.error("Kunne ikke optimere", { description: err?.message });
     }
@@ -220,36 +254,80 @@ export function MobileRouteDetailSheet({
             </div>
           </SheetHeader>
 
-          <div className="flex items-center gap-2 border-b border-border px-4 py-2.5">
-            {stops.length > 1 ? (
+          <div className="space-y-2 border-b border-border px-4 py-2.5">
+            <div className="flex items-center gap-2">
+              <Button className="h-11 flex-1 gap-2" onClick={() => setAddStopOpen(true)}>
+                <Plus className="h-4 w-4" />
+                Tilføj stop
+              </Button>
               <Button
                 variant="outline"
-                className="flex-1 gap-2"
+                size="icon"
+                className="h-11 w-11 shrink-0"
+                onClick={() => setSettingsOpen(true)}
+                aria-label="Rute-indstillinger"
+              >
+                <Settings2 className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                className="h-11 flex-1 gap-2"
                 onClick={handleOptimize}
-                disabled={optimize.isPending}
+                disabled={optimize.isPending || stops.length < 2}
               >
                 {optimize.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <Sparkles className="h-4 w-4" />
                 )}
-                Optimér rækkefølge
+                Optimér
               </Button>
-            ) : (
-              <span className="flex-1 text-xs text-muted-foreground">
-                Tilføj flere stop for at optimere rækkefølgen.
-              </span>
+              <Button
+                variant={mapOpen ? "secondary" : "outline"}
+                className="h-11 flex-1 gap-2"
+                onClick={() => setMapOpen((v) => !v)}
+                disabled={mapStops.length === 0}
+              >
+                <MapIcon className="h-4 w-4" />
+                {mapOpen ? "Skjul kort" : "Vis kort"}
+              </Button>
+            </div>
+            {optimizeResult && (
+              <p className="text-[11px] text-muted-foreground">
+                Optimeret rækkefølge · {optimizeResult}
+              </p>
             )}
-            <Button
-              variant="outline"
-              size="icon"
-              className="shrink-0"
-              onClick={() => setSettingsOpen(true)}
-              aria-label="Rute-indstillinger"
-            >
-              <Settings2 className="h-4 w-4" />
-            </Button>
+            {mapStops.length === 0 && stops.length > 0 && (
+              <p className="text-[11px] text-muted-foreground">
+                Ingen af stoppene har koordinater endnu, så kortet er tomt.
+              </p>
+            )}
           </div>
+
+          {mapOpen && mapStops.length > 0 && (
+            <div className="border-b border-border bg-secondary/30 p-3">
+              <Suspense
+                fallback={
+                  <div className="flex h-56 items-center justify-center rounded-lg bg-secondary">
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                  </div>
+                }
+              >
+                <RouteMap
+                  routes={[{ color: route.color || "#0ea5e9", stops: mapStops }]}
+                  height="14rem"
+                  selectedStopId={activeStop?.id ?? null}
+                  onStopClick={(id) => {
+                    const s = stops.find((st) => st.id === id);
+                    if (s) setActiveStop(s);
+                  }}
+                />
+              </Suspense>
+            </div>
+          )}
+
 
           <div className="min-h-0 flex-1 overflow-y-auto p-4">
             {stops.length === 0 ? (
@@ -258,9 +336,14 @@ export function MobileRouteDetailSheet({
                   <MapPin className="h-6 w-6 text-muted-foreground" />
                 </div>
                 <p className="text-sm font-medium text-foreground">Ingen stop på ruten</p>
-                <p className="mt-1 max-w-[16rem] text-xs text-muted-foreground">
-                  Tildel aftaler til denne rute fra fanen "Uden rute".
+                <p className="mt-1 max-w-[17rem] text-xs text-muted-foreground">
+                  Tryk "Tilføj stop" for at skrive en adresse, eller tildel en aftale fra fanen
+                  "Uden rute".
                 </p>
+                <Button className="mt-4 h-11 gap-2" onClick={() => setAddStopOpen(true)}>
+                  <Plus className="h-4 w-4" />
+                  Tilføj stop
+                </Button>
               </div>
             ) : (
               <ol className="space-y-2">
@@ -518,6 +601,16 @@ export function MobileRouteDetailSheet({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Tilføj stop ud fra fri adresse */}
+      <AddAddressStopSheet
+        open={addStopOpen}
+        onOpenChange={setAddStopOpen}
+        routeId={route.id}
+        nextSequence={stops.length}
+        employees={employees}
+        onAdded={() => setMapOpen(true)}
+      />
     </>
   );
 }

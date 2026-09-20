@@ -1466,7 +1466,7 @@ function NewRouteDialog({
   }, [eligible, jobSearch]);
 
   const handleSubmit = async () => {
-    if (submitting || selected.length === 0) return;
+    if (submitting) return;
     setSubmitting(true);
     try {
       const created = await createRoute.mutateAsync({
@@ -1524,8 +1524,8 @@ function NewRouteDialog({
       }
 
 
-      if (addedStops.length === 0) {
-        // Ingen stop kom på — ryd den tomme rute op igen.
+      if (addedStops.length === 0 && selected.length > 0) {
+        // Ingen af de valgte aftaler kom på — ryd den tomme rute op igen.
         try { await deleteRoute.mutateAsync(created.id); } catch { /* best effort */ }
         toast.error("Ruten blev ikke oprettet", {
           description:
@@ -1533,6 +1533,23 @@ function NewRouteDialog({
               ? `${failed[0].name} ${failed[0].reason}.`
               : "Ingen af aftalerne kunne lægges på ruten.",
         });
+        return;
+      }
+
+      if (selected.length === 0) {
+        // Tom rute er bevidst valgt — brugeren tilføjer adresse-stop bagefter.
+        qcDialog.setQueriesData<{ routes: Route[]; stops: RouteStop[] }>(
+          { queryKey: ["route-calendar", businessId] },
+          (old) =>
+            old && !old.routes.some((r) => r.id === created.id)
+              ? { ...old, routes: [...old.routes, created] }
+              : old,
+        );
+        toast.success("Tom rute oprettet", {
+          description: "Tilføj stop med adresse i rutens detaljer.",
+        });
+        reset();
+        onCreated(created);
         return;
       }
 
@@ -1589,12 +1606,12 @@ function NewRouteDialog({
         onOpenChange(o);
       }}
     >
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-h-[92dvh] max-w-md overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Ny rute</DialogTitle>
           <DialogDescription>
-            {format(parseISO(date), "EEEE d. MMM yyyy", { locale: da })} — vælg
-            mindst én aftale.
+            {format(parseISO(date), "EEEE d. MMM yyyy", { locale: da })} — vælg aftaler, eller
+            opret en tom rute og tilføj stop med adresse bagefter.
           </DialogDescription>
         </DialogHeader>
 
@@ -1674,21 +1691,22 @@ function NewRouteDialog({
           </div>
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-2">
+        <DialogFooter className="flex-col gap-2 sm:flex-row sm:gap-2">
           <Button
             variant="outline"
+            className="h-11 w-full sm:w-auto"
             onClick={() => onOpenChange(false)}
             disabled={submitting}
           >
             Annullér
           </Button>
           <Button
+            className="h-11 w-full sm:w-auto"
             onClick={handleSubmit}
-            disabled={submitting || selected.length === 0}
+            disabled={submitting}
           >
             {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-            Opret rute
-            {selected.length > 0 && ` med ${selected.length}`}
+            {selected.length > 0 ? `Opret rute med ${selected.length}` : "Opret tom rute"}
           </Button>
         </DialogFooter>
       </DialogContent>
