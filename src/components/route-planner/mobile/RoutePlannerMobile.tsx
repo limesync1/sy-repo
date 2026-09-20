@@ -1466,7 +1466,7 @@ function NewRouteDialog({
   }, [eligible, jobSearch]);
 
   const handleSubmit = async () => {
-    if (submitting || selected.length === 0) return;
+    if (submitting) return;
     setSubmitting(true);
     try {
       const created = await createRoute.mutateAsync({
