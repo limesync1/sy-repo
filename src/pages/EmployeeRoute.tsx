@@ -30,7 +30,6 @@ import { useCurrentManeuver } from "@/components/employee-route/useCurrentManeuv
 import { useSmoothPosition } from "@/components/employee-route/useSmoothPosition";
 import { useGpsFilter, type FilteredFix } from "@/components/employee-route/useGpsFilter";
 import { smoothPolyline } from "@/components/employee-route/smoothPolyline";
-import { useSmoothZoom } from "@/components/employee-route/useSmoothZoom";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { pickDuration } from "@/components/route/EtaBreakdown";
 import { StopDetailsContent } from "@/components/employee/StopDetailsContent";
@@ -1520,7 +1519,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 NavPuckMarker er stabil: kun CSS-transform ændres ved heading-skift,
                 ingen re-mount af DOM = ingen flicker under reroutes. */}
             {displayPos && routeStarted && displayHeading != null && (
-              <NavPuckMarker position={displayPos} heading={displayHeading} />
+              <NavPuckMarker position={displayPos} heading={displayHeading} moving={isMoving} />
             )}
             {displayPos && (!routeStarted || displayHeading == null) && (
               <Marker position={displayPos} icon={userDotIcon} />
