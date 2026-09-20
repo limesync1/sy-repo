@@ -1427,11 +1427,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
             {/* Fit overview when not started */}
             <FitTo points={allPoints} enabled={!routeStarted} />
-            {/* Live follow when driving */}
-            <FollowUser active={routeStarted && followMode} userPos={displayPos} />
-            {/* Hastigheds-adaptiv, glidende zoom — kun mens follow er aktiv. */}
-            <SmoothZoomController
-              enabled={routeStarted && followMode}
+            {/* Ét samlet kamera: følger positionen og justerer zoom efter farten. */}
+            <NavCamera
+              active={routeStarted && followMode}
+              userPos={displayPos}
               speedMps={userSpeedMps}
             />
             {routeStarted && (
