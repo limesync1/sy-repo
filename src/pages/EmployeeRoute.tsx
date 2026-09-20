@@ -127,9 +127,12 @@ const NAV_PUCK_ICON = L.divIcon({
 const NavPuckMarker = ({
   position,
   heading,
+  moving,
 }: {
   position: [number, number];
   heading: number;
+  /** Når false: vis kun prikken (ingen retningskegle, ingen rotation). */
+  moving: boolean;
 }) => {
   const map = useMap();
   const markerRef = useRef<LeafletMarker | null>(null);
@@ -156,18 +159,29 @@ const NavPuckMarker = ({
   }, [lat, lng]);
 
   // Update heading by mutating CSS transform on the inner rotation element.
-  // This avoids any react-leaflet reconciliation and gives a buttery-smooth
-  // rotation under route changes / reroutes.
+  // Vi roterer KUN mens bilen bevæger sig — står man stille, bliver den
+  // sidste retning stående og keglen fades ud, så pilen ikke snurrer rundt
+  // på GPS-støj (samme adfærd som Google Maps).
+  const shownHeadingRef = useRef<number | null>(null);
   useEffect(() => {
     const m = markerRef.current;
     if (!m) return;
     const el = m.getElement();
     if (!el) return;
     const rot = el.querySelector<HTMLElement>(".nav-puck-rot");
-    if (rot) {
-      rot.style.transform = `rotate(${heading}deg)`;
+    const cone = el.querySelector<HTMLElement>(".nav-puck-cone");
+    if (cone) cone.style.opacity = moving ? "1" : "0";
+    if (!rot) return;
+    if (!moving) return; // frys retningen
+    const prev = shownHeadingRef.current;
+    // Undgå mikro-opdateringer: skriv kun transform ved reelle skift (>2°).
+    if (prev != null) {
+      const delta = Math.abs(((heading - prev + 540) % 360) - 180);
+      if (delta < 2) return;
     }
-  }, [heading]);
+    shownHeadingRef.current = heading;
+    rot.style.transform = `rotate(${heading}deg)`;
+  }, [heading, moving]);
 
   return null;
 };
