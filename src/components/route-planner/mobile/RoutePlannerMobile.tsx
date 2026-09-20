@@ -1606,12 +1606,12 @@ function NewRouteDialog({
         onOpenChange(o);
       }}
     >
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-h-[92dvh] max-w-md overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Ny rute</DialogTitle>
           <DialogDescription>
-            {format(parseISO(date), "EEEE d. MMM yyyy", { locale: da })} — vælg
-            mindst én aftale.
+            {format(parseISO(date), "EEEE d. MMM yyyy", { locale: da })} — vælg aftaler, eller
+            opret en tom rute og tilføj stop med adresse bagefter.
           </DialogDescription>
         </DialogHeader>
 
