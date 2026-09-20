@@ -2,7 +2,7 @@
 // optimér-knap, manuel om-sortering, rute-indstillinger (omdøb, farve,
 // slet) og tap på et stop åbner stop-detaljer med handlinger
 // (ring, kort, medarbejder, markér udført, fjern).
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import {
@@ -12,8 +12,10 @@ import {
   CheckCircle2,
   Loader2,
   MapPin,
+  Map as MapIcon,
   Navigation,
   Phone,
+  Plus,
   RotateCcw,
   Settings2,
   Sparkles,
@@ -54,7 +56,11 @@ import {
   type RouteStop,
 } from "@/hooks/useRoutes";
 import { ROUTE_COLORS } from "@/components/route-planner/RouteEditSheet";
+import { AddAddressStopSheet } from "./AddAddressStopSheet";
 import { toast } from "sonner";
+
+// Kortet er tungt (Leaflet) — hent det først når brugeren folder det ud.
+const RouteMap = lazy(() => import("@/components/route-planner/RouteMap"));
 
 const mapsUrl = (stop: RouteStop) => {
   if (stop.latitude != null && stop.longitude != null) {
