@@ -110,8 +110,8 @@ const stopIcon = (n: number, state: "next" | "done" | "future", color: string, h
 const NAV_PUCK_ICON = L.divIcon({
   className: "",
   html: `
-    <div class="nav-puck-rot" style="position:relative;width:64px;height:64px;transform:rotate(0deg);transform-origin:center;will-change:transform;transition:transform 280ms cubic-bezier(0.22, 1, 0.36, 1);">
-      <div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-bottom:34px solid hsl(217 91% 60% / 0.45);"></div>
+    <div class="nav-puck-rot" style="position:relative;width:64px;height:64px;transform:rotate(0deg);transform-origin:center;will-change:transform;transition:transform 420ms cubic-bezier(0.22, 1, 0.36, 1);">
+      <div class="nav-puck-cone" style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-bottom:34px solid hsl(217 91% 60% / 0.45);opacity:0;transition:opacity 240ms linear;"></div>
       <div style="position:absolute;top:18px;left:18px;width:28px;height:28px;border-radius:50%;background:hsl(217 91% 60%);border:4px solid white;box-shadow:0 4px 14px hsl(217 91% 60% / 0.45), 0 2px 6px rgba(0,0,0,.25);"></div>
     </div>`,
   iconSize: [64, 64],
