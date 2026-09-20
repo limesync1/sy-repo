@@ -1123,13 +1123,15 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   // Når man cykler langt mellem to drej skal banneret IKKE blokere skærmen.
   // Vi viser det når næste manøvre er <800 m væk, OG den ikke er en "depart"
   // (kør ud) som kun giver mening de første sekunder af turen.
-  // Når brugeren er fremme ved næste stop er turn-by-turn irrelevant —
-  // vis kun "Du er fremme"-tilstanden, ikke et drej-banner der peger
-  // tilbage mod en vej-snappet rute.  Matcher Google Maps' adfærd.
+  // Når brugeren er tæt på næste stop er turn-by-turn irrelevant — vis kun
+  // stop-kortet, ikke et "Du er fremme"-banner oveni der modsiger kortets
+  // afstand.  Matcher Google Maps' adfærd.
+  const nearNextStop = distanceToNextM != null && distanceToNextM <= 150;
   const showManeuverBanner = !!maneuver
     && !isAtNextStop
+    && !nearNextStop
     && maneuver.distanceToManeuverM <= 800
-    && (maneuver.currentStep.maneuver.type || "").toLowerCase() !== "depart";
+    && !["depart", "arrive"].includes((maneuver.currentStep.maneuver.type || "").toLowerCase());
   useEffect(() => {
     if (!audioEnabled || !maneuver || !routeStarted) return;
     const stepKey = `${maneuver.stepIndex}-${maneuver.currentStep.maneuver.type}-${maneuver.currentStep.name}`;
