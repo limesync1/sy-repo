@@ -81,3 +81,9 @@ export const speak = (text: string) => {
     window.speechSynthesis.speak(u);
   } catch { /* ignore */ }
 };
+/** Stop al igangværende/kø-lagt tale med det samme. Bruges når skærmen
+ *  slukkes eller guiden genoptages, så gamle instruktioner ikke afspilles. */
+export const stopSpeaking = () => {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  try { window.speechSynthesis.cancel(); } catch { /* ignore */ }
+};
