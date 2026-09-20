@@ -771,7 +771,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     arrivedAnnouncedRef.current.add(nextStop.id);
     playArrivalChime();
     const name = nextStop.customer_name || "stoppet";
-    setTimeout(() => speak(`Du er ankommet til ${name}`), 600);
+    setTimeout(() => voice(`Du er ankommet til ${name}`), 600);
   }, [isAtNextStop, nextStop?.id, audioEnabled]);
 
   /* Auto check-in når medarbejder ankommer til stop (geofence) */
@@ -845,7 +845,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       toast.message("Genberegner rute…", { duration: 2500 });
       if (audioEnabled && rerouteSpokenStopRef.current !== nextStop.id) {
         rerouteSpokenStopRef.current = nextStop.id;
-        speak("Genberegner ruten");
+        voice("Genberegner ruten");
       }
       // Auto-skjul "rerouting" indikator efter 3 sek selv hvis der ikke er
       // landet et nyt directions-svar (typisk ankommer det inden for 1-2 sek).
@@ -892,7 +892,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   const { smoothPos, smoothHeading } = useSmoothPosition(
     userPos,
     derivedHeading,
-    routeStarted,
+    routeStarted && pageVisible,
   );
   // Brug smooth-versionerne i map-rendering og camera-follow så alt
   // bevæger sig synkront og uden hak.
@@ -919,7 +919,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     if (!allDone || finishedAnnouncedRef.current || !audioEnabled) return;
     finishedAnnouncedRef.current = true;
     playCompleteFanfare();
-    setTimeout(() => speak("Godt arbejde. Alle stop er klaret."), 800);
+    setTimeout(() => voice("Godt arbejde. Alle stop er klaret."), 800);
   }, [allDone, audioEnabled]);
 
   /* Auto-retur kun når medarbejderen netop har afsluttet ruten i denne session.
@@ -1095,7 +1095,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     const sevText =
       trafficAlert.severity === "let" ? "lidt trafik" :
       trafficAlert.severity === "moderat" ? "moderat trafik" : "tæt trafik";
-    speak(`Bemærk: ${sevText} forude. Forsinkelse på cirka ${trafficAlert.addedMin} minutter.`);
+    voice(`Bemærk: ${sevText} forude. Forsinkelse på cirka ${trafficAlert.addedMin} minutter.`);
   }, [trafficAlert?.severity, trafficAlert?.addedMin, audioEnabled, routeStarted, nextStop?.id]);
 
   /* Turn-by-turn */
@@ -1136,7 +1136,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     lastSpokenStepRef.current = stepKey;
     const street = maneuver.currentStep.name ? ` ad ${maneuver.currentStep.name}` : "";
     const action = maneuverLabel(maneuver.currentStep.maneuver.type, maneuver.currentStep.maneuver.modifier);
-    speak(`Om ${Math.round(maneuver.distanceToManeuverM)} meter, ${action.toLowerCase()}${street}`);
+    voice(`Om ${Math.round(maneuver.distanceToManeuverM)} meter, ${action.toLowerCase()}${street}`);
   }, [maneuver?.stepIndex, maneuver?.distanceToManeuverM, audioEnabled, routeStarted]);
 
   if (isLoading) {
@@ -1247,7 +1247,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       const remaining = sortedStops.filter((x) => x.status !== "completed" && x.id !== s.id);
       if (remaining.length > 0 && audioEnabled && runMode === "guide") {
         const next = remaining[0];
-        setTimeout(() => speak(`Næste stop: ${next.customer_name || "ukendt kunde"}`), 900);
+        setTimeout(() => voice(`Næste stop: ${next.customer_name || "ukendt kunde"}`), 900);
       }
       // Planlæg resten af dagen forfra — ud fra hvor vi holder nu.
       void reoptimizeFromHere({ silent: true, excludeId: s.id });
@@ -1456,7 +1456,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             <FitTo points={allPoints} enabled={!routeStarted} />
             {/* Ét samlet kamera: følger positionen og justerer zoom efter farten. */}
             <NavCamera
-              active={routeStarted && followMode}
+              active={routeStarted && followMode && pageVisible}
               userPos={displayPos}
               speedMps={userSpeedMps}
             />
