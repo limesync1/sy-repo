@@ -121,9 +121,8 @@ const useRouteGeometries = (routes: MapRoute[]) => {
         });
         if (alreadyCached) continue;
 
-        // Mapbox tillader maks 25 waypoints. Hvis ruten har flere stop,
-        // splitter vi i chunks og syr geometrien sammen så linjen ikke
-        // pludselig stopper midt i ruten.
+        // Del lange ruter i mindre forespørgsler og sy geometrien sammen,
+        // så den offentlige, nøglefri rutetjeneste ikke overbelastes.
         const CHUNK = 25;
         const chunks: typeof stops[] = [];
         if (stops.length <= CHUNK) {

@@ -5,7 +5,7 @@ export type LatLng = { lat: number; lng: number };
 export type Matrix = {
   durations: number[][]; // sekunder
   distances: number[][]; // meter
-  provider: "mapbox" | "osrm";
+  provider: "osrm";
 };
 
 export type Stop = {

@@ -1,7 +1,7 @@
 /**
  * Centripetal Catmull-Rom spline interpolation for lat/lng polylines.
  *
- * Mapbox returnerer rute-geometrier som en serie af brudte linjer — i drej
+ * Rutetjenesten returnerer rute-geometrier som en serie af brudte linjer — i drej
  * giver det skarpe "knæk" hvor flere segmenter mødes i et punkt.  Ved at
  * interpolere ekstra punkter via en centripetal Catmull-Rom spline får vi
  * blødt buede svinger uden at afvige mærkbart fra den oprindelige rute.

@@ -377,7 +377,7 @@ export async function solveVRP(
   opts: { routeDate?: string | null } = {},
 ): Promise<{
   plan: RoutePlan;
-  provider: "mapbox" | "osrm" | "haversine";
+  provider: "osrm" | "haversine";
   weather: { multiplier: number; summary: string | null };
   current: { total_km: number; total_minutes: number; feasible: boolean; stop_order: string[] };
 }> {
@@ -416,12 +416,12 @@ export async function solveVRP(
   // buildMatrix henter nu også rigtige køretider for ruter med mere end 25
   // punkter (i fliser). Kun hvis alle opslag fejler falder vi til fugleflugt.
   const matrix = await buildMatrix(coords);
-  const provider: "mapbox" | "osrm" | "haversine" = matrix?.provider ?? "haversine";
+  const provider: "osrm" | "haversine" = matrix?.provider ?? "haversine";
 
   // === Vejr-justering ===
   // Hent prognose for rute-dagen og brug den som hastigheds-multiplier
   // på rejsetid. Dette giver mere realistisk planlægning ved regn/sne/glat
-  // føre. Mapbox's driving-traffic-profil dækker allerede normal trafik,
+  // føre. Den nøglefri rutetjeneste dækker ikke live trafik,
   // så vi rører kun durations — distancer er uændrede.
   let weather: { multiplier: number; summary: string | null } = { multiplier: 1.0, summary: null };
   if (opts.routeDate && coords.length > 0) {

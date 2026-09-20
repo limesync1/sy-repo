@@ -1492,7 +1492,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
             )}
 
             {/* Route line — aktivt leg.  Skjules når man er fremme:
-                Mapbox-geometrien snapper til vejnetværket og kan slutte
+                vejgeometrien snapper til vejnetværket og kan slutte
                 lidt fra selve adresse-pin'en (især når pin'en ligger på
                 en bygning væk fra vejen).  Når man er inden for ankomst-
                 zonen er en linje "tilbage til vejen" kun forvirrende. */}
@@ -1526,7 +1526,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
             {/* Ankomst-indikator: lille stiplet linje fra puck til pin
                 så det er entydigt hvilken adresse man er ankommet til,
-                også når Mapbox' rute-geometri ville pege en anden vej. */}
+                også når rutens vejgeometri ville pege en anden vej. */}
             {isAtNextStop && displayPos && nextStop?.latitude != null && nextStop?.longitude != null && (
               <Polyline
                 positions={[displayPos, [Number(nextStop.latitude), Number(nextStop.longitude)]]}
