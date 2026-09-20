@@ -573,7 +573,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
       { enableHighAccuracy: routeStarted, maximumAge: 4000, timeout: 12000 },
     );
     return () => navigator.geolocation.clearWatch(watchId);
-  }, [routeStarted, geoPermission, runMode]);
+  }, [routeStarted, geoPermission, runMode, pageVisible]);
 
   // Kør rå GPS-fixes gennem jitter-filteret.  Output er en udjævnet
   // position + heading + estimeret hastighed (sidstnævnte bruges også
