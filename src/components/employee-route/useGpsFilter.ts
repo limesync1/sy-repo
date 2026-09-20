@@ -203,13 +203,29 @@ export const useGpsFilter = (raw: Fix | null): FilteredFix | null => {
     const filteredLng = prev.pos[1] + (raw.lng - prev.pos[1]) * alpha;
     const filteredPos: [number, number] = [filteredLat, filteredLng];
 
-    // Heading: GPS-leveret er bedst når hastighed > 1.5 m/s; ellers behold
-    // tidligere eller udled fra Δ.
+    // Heading: kun opdater når vi reelt er i bevægelse.  Under ~5 km/t er
+    // både GPS-heading og Δ-afledt retning ren støj — det er præcis dét der
+    // får pilen til at snurre rundt mens bilen holder stille.  Vi fastfryser
+    // derfor retningen og udjævner den cirkulært når den skifter.
+    const MOVING_MPS = 1.4; // ~5 km/t
     let heading = prev.heading;
-    if (raw.heading != null && speed > 1.5) {
-      heading = raw.heading;
-    } else if (moveM > 4 && speed > 0.6) {
-      heading = bearingDegrees(prev.pos[0], prev.pos[1], filteredLat, filteredLng);
+    let candidate: number | null = null;
+    if (raw.heading != null && speed > MOVING_MPS) {
+      candidate = raw.heading;
+    } else if (moveM > 10 && speed > MOVING_MPS) {
+      candidate = bearingDegrees(prev.pos[0], prev.pos[1], filteredLat, filteredLng);
+    }
+    if (candidate != null) {
+      if (heading == null) {
+        heading = candidate;
+      } else {
+        // Korteste vinkelvej + EMA — ingen 350°-spins, ingen ryk.
+        const delta = ((candidate - heading + 540) % 360) - 180;
+        // Hurtigere respons ved høj fart, roligere ved lav fart.
+        const w = Math.max(0.2, Math.min(0.6, speed / 15 + 0.2));
+        // Ignorer mikro-udsving (< 3°) helt.
+        heading = Math.abs(delta) < 3 ? heading : (((heading + delta * w) % 360) + 360) % 360;
+      }
     }
 
     stateRef.current = {
