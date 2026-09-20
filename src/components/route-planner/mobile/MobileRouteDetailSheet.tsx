@@ -601,6 +601,16 @@ export function MobileRouteDetailSheet({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Tilføj stop ud fra fri adresse */}
+      <AddAddressStopSheet
+        open={addStopOpen}
+        onOpenChange={setAddStopOpen}
+        routeId={route.id}
+        nextSequence={stops.length}
+        employees={employees}
+        onAdded={() => setMapOpen(true)}
+      />
     </>
   );
 }
