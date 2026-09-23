@@ -1338,13 +1338,7 @@ const RoutePillInner = ({
   const isFutureProjected = projectedKind === "future";
   const travelMin = Number(route.total_duration_minutes || 0) || route.stops.reduce((sum, s) => sum + Number(s.travel_time_to_next_min || 0), 0);
   const revenue = route.stops.reduce((sum, s) => sum + Number((s as any).order_amount || 0), 0);
-  // Kapacitets-bjælke pr. rute: arbejdstid (stop + transport) vs. ~8t pr.
-  // tildelt medarbejder. Hurtig visuel indikator for overload uden ekstra
-  // server-rundtur — bruger felter vi allerede har.
-  // Belastning beregnes ud fra faktisk gemt arbejdstid + kørselstid.
-  // Vi bruger IKKE et fast 30-min fallback pr. stop — det fik ruter med
-  // få stop til at se "overbooket" ud uden grund (fx 4 stop = 120 min uden
-  // reel arbejdstid). Stop uden gemt varighed tæller som 0 minutter.
+  // Kapacitetsbjælken beregnes alene ud fra antal stop pr. medarbejder.
   const empCount = Math.max(route.attachedEmployees.length || route.attachedEmployeeCount || 0, 1);
   const routeCapacity = stopCapacity(stopCount, empCount);
   const loadPct = routeCapacity.load_pct;

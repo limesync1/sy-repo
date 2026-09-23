@@ -16,6 +16,7 @@ import CvrLookupField, { type CvrResult } from "@/components/shared/CvrLookupFie
 import { Building2, User, Loader2, Save, ShoppingBag, Camera, X, Upload } from "lucide-react";
 import { toast } from "sonner";
 import CreateManualOrderDialog from "@/components/route-planner/CreateManualOrderDialog";
+import { useServices } from "@/hooks/useDatabase";
 import CustomerContactsSection from "./CustomerContactsSection";
 import CustomerDocumentsSection from "./CustomerDocumentsSection";
 import NotificationOverridesPanel from "./NotificationOverridesPanel";
@@ -88,6 +89,8 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
   const [savedCustomer, setSavedCustomer] = useState<EditableCustomer | null>(null);
   const [orderDialogOpen, setOrderDialogOpen] = useState(false);
   const [accountingEnabled, setAccountingEnabled] = useState<boolean>(false);
+  const { data: services = [] } = useServices(businessId);
+  const hasActiveServices = services.some((service) => service.is_active !== false);
 
   // Tjek om virksomheden har et regnskabsprogram aktiveret — ellers skjuler vi
   // hele "Regnskab & fakturering"-sektionen, så panelet er rent og enkelt.
@@ -276,7 +279,13 @@ const CustomerEditDialog = ({ open, onOpenChange, businessId, businessName, init
         notes: savedRow.notes,
       };
 
-      if (alsoCreateOrder) {
+      if (alsoCreateOrder && !hasActiveServices) {
+        toast.error("Kunden er gemt, men bestillingen kan ikke oprettes", {
+          description: "Opret eller aktivér først en service.",
+        });
+        reset();
+        onOpenChange(false);
+      } else if (alsoCreateOrder) {
         setSavedCustomer(saved);
         setOrderDialogOpen(true);
       } else {

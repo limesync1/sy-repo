@@ -771,6 +771,7 @@ const AftaleTab = ({
 }) => {
   const { data: orders, isLoading } = useOrders(businessId);
   const { data: services } = useServices(businessId);
+  const hasActiveServices = (services || []).some((service) => service.is_active !== false);
   const { data: subscriptions } = useBusinessSubscriptions(businessId);
   const qc = useQueryClient();
   // Default-filter: "active" — viser åbne aftaler (ikke udført/annulleret) så
@@ -1663,7 +1664,16 @@ const AftaleTab = ({
           return parts.join(" · ");
         })()}
         action={
-          <PrimaryButton onClick={() => setCreateOrderOpen(true)} icon={<ShoppingCart />}>
+          <PrimaryButton
+            onClick={() => {
+              if (!hasActiveServices) {
+                toast.error("Opret en aktiv service først", { description: "Bestillinger skal knyttes til en aktiv service." });
+                return;
+              }
+              setCreateOrderOpen(true);
+            }}
+            icon={<ShoppingCart />}
+          >
             Opret bestilling
           </PrimaryButton>
         }

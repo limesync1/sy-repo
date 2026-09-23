@@ -6,7 +6,7 @@ import { formatPrice } from "@/lib/price-format";
 import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
 import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useMyBusiness } from "@/hooks/useDatabase";
+import { useMyBusiness, useServices } from "@/hooks/useDatabase";
 import { useEmployees } from "@/hooks/useEmployees";
 import {
   useUnassignedJobs,
@@ -109,7 +109,6 @@ import {
 import { useProjectedCalendar } from "@/hooks/route-planner/useProjectedCalendar";
 import { usePlannerStore } from "@/hooks/route-planner/usePlannerStore";
 import { intervalToCadence } from "@/lib/interval";
-import { formatDurationMin } from "@/lib/duration-format";
 import { useAgreementPauses } from "@/hooks/useAgreementPauses";
 import { useBusinessHolidays } from "@/hooks/useBusinessHolidays";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -328,6 +327,18 @@ const Planner = () => {
   const [distributing, setDistributing] = useState(false);
   const businessId = business?.id;
   const routePlanningEnabled = !!(business?.settings as any)?.route_planning_enabled;
+  const { data: businessServices = [] } = useServices(businessId);
+  const hasActiveServices = businessServices.some((service: any) => service.is_active !== false);
+  const requestCreateOrder = useCallback(() => {
+    if (!hasActiveServices) {
+      toast.error("Opret en aktiv service først", {
+        description: "Bestillinger skal knyttes til en aktiv service.",
+        action: { label: "Gå til services", onClick: () => { window.location.href = "/virksomhed/services"; } },
+      });
+      return;
+    }
+    openCreateOrderDialog();
+  }, [hasActiveServices]);
 
   // Realtime: når ruter, stops, aftaler eller forekomster ændres et andet sted
   // (anden bruger, baggrundsjob, mobilapp), invalider queries så kalenderen
@@ -3253,7 +3264,7 @@ const Planner = () => {
                 </Tooltip>
                 <DropdownMenuContent align="end" className="w-60">
                   <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">Handlinger</DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => openCreateOrderDialog()} className="text-xs gap-2">
+                  <DropdownMenuItem onClick={requestCreateOrder} className="text-xs gap-2">
                     <ShoppingBag className="h-3.5 w-3.5" /> Opret bestilling manuelt
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setPrintOpen(true)} className="text-xs gap-2">
@@ -3295,7 +3306,7 @@ const Planner = () => {
                       variant="outline"
                       size="sm"
                       className="h-8 gap-1.5 rounded-md font-semibold ml-1"
-                      onClick={() => openCreateOrderDialog()}
+                      onClick={requestCreateOrder}
                       aria-label="Opret bestilling"
                     >
                       <ShoppingBag className="h-3.5 w-3.5" />Opret bestilling
@@ -3886,7 +3897,7 @@ const Planner = () => {
                               icon={<Inbox className="h-5 w-5" />}
                               title="Kom godt i gang"
                               description="Du har ingen aftaler eller ruter endnu. Opret en bestilling, så kan du planlægge den på kalenderen."
-                              action={{ label: "Opret bestilling", icon: <Plus className="h-4 w-4" />, onClick: () => openCreateOrderDialog() }}
+                              action={{ label: "Opret bestilling", icon: <Plus className="h-4 w-4" />, onClick: requestCreateOrder }}
                               compact
                             />
                           );
@@ -3896,7 +3907,7 @@ const Planner = () => {
                             icon={<Inbox className="h-5 w-5" />}
                             title="Alle aftaler er planlagt 🎉"
                             description="Nye aftaler lander her, så snart de oprettes."
-                            action={{ label: "Opret bestilling", icon: <Plus className="h-4 w-4" />, onClick: () => openCreateOrderDialog() }}
+                            action={{ label: "Opret bestilling", icon: <Plus className="h-4 w-4" />, onClick: requestCreateOrder }}
                             compact
                           />
                         );
@@ -4410,7 +4421,7 @@ const Planner = () => {
                       </Button>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button variant="outline" size="icon" className="h-8 w-8" aria-label="Ny bestilling" onClick={() => openCreateOrderDialog()}>
+                          <Button variant="outline" size="icon" className="h-8 w-8 rounded-[4px]" aria-label="Ny bestilling" onClick={requestCreateOrder}>
                             <ShoppingBag className="h-3.5 w-3.5" />
                           </Button>
                         </TooltipTrigger>
@@ -4602,7 +4613,7 @@ const Planner = () => {
                       <Plus className="h-4 w-4" />
                       Opret rute
                     </Button>
-                    <Button variant="outline" className="h-8 gap-1.5 rounded-[4px] text-xs" onClick={() => openCreateOrderDialog()}>
+                    <Button variant="outline" className="h-8 gap-1.5 rounded-[4px] text-xs" onClick={requestCreateOrder}>
                       <ShoppingBag className="h-4 w-4" />
                       Bestilling
                     </Button>
