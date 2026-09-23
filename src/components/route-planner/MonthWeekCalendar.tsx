@@ -208,8 +208,8 @@ const DayOverviewSheet = ({
 
   return (
     <Sheet open onOpenChange={(o) => { if (!o) onClose(); }}>
-      <SheetContent side="right" className="w-full sm:max-w-lg p-0 flex flex-col">
-        <SheetHeader className="px-5 pt-5 pb-3 border-b border-border/70 space-y-1">
+      <SheetContent side="right" className="planner-overlay w-full sm:max-w-lg p-0 flex flex-col">
+        <SheetHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b border-border/70 space-y-1">
           <div className="flex items-center gap-2">
             <span className={cn(
               "inline-flex h-9 w-9 items-center justify-center rounded-lg text-base font-bold tabular-nums",
@@ -236,12 +236,12 @@ const DayOverviewSheet = ({
         </SheetHeader>
 
         {/* Opsummering */}
-        <div className="px-5 py-4 grid grid-cols-2 gap-2 border-b border-border/70">
-          <div className="rounded-lg border border-border/70 bg-card p-3">
+        <div className="planner-overlay-body px-4 sm:px-5 py-3 grid grid-cols-2 gap-2 border-b border-border/70">
+          <div className="rounded-[5px] border border-border/70 bg-card p-3">
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Ruter</div>
             <div className="text-xl font-bold tabular-nums">{routes.length}</div>
           </div>
-          <div className="rounded-lg border border-border/70 bg-card p-3">
+          <div className="rounded-[5px] border border-border/70 bg-card p-3">
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Stop</div>
             <div className="text-xl font-bold tabular-nums">
               {completedStops > 0 && (
@@ -253,7 +253,7 @@ const DayOverviewSheet = ({
               <div className="text-[10px] text-muted-foreground">{pendingStops} mangler</div>
             )}
           </div>
-          <div className="rounded-lg border border-border/70 bg-card p-3">
+          <div className="rounded-[5px] border border-border/70 bg-card p-3">
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Omsætning</div>
             <div className="text-xl font-bold tabular-nums">{fmtRouteKr(totalRevenue)}</div>
           </div>
@@ -315,7 +315,7 @@ const DayOverviewSheet = ({
         )}
 
         {/* Liste over dagens ruter — i planlagt rækkefølge */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-2">
+        <div className="planner-overlay-body flex-1 overflow-y-auto px-4 sm:px-5 py-3 space-y-2">
           {routes.length === 0 ? (
             <div className="text-center text-sm text-muted-foreground py-12">
               Ingen ruter på denne dag endnu.
@@ -333,7 +333,7 @@ const DayOverviewSheet = ({
                   type="button"
                   onClick={() => onSelectRoute(r)}
                   className={cn(
-                    "group w-full text-left rounded-lg border border-border/70 bg-card p-3 hover:border-foreground/30 hover:shadow-sm transition-all relative overflow-hidden",
+                    "planner-card group w-full text-left rounded-[5px] border border-border/70 bg-card p-3 hover:border-accent/40 hover:shadow-sm transition-all relative overflow-hidden",
                     isVirtual && "border-dashed bg-muted/40",
                   )}
                 >

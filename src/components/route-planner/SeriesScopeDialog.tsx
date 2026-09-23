@@ -93,15 +93,15 @@ export function SeriesScopeDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={(o) => { if (!loading) onOpenChange(o); }}>
-      <AlertDialogContent className="max-w-md">
-        <AlertDialogHeader>
+      <AlertDialogContent className="planner-overlay max-w-md p-0 gap-0 overflow-hidden">
+        <AlertDialogHeader className="planner-overlay-header border-b px-4 py-3 pr-12 text-left sm:px-5">
           <AlertDialogTitle>{title}</AlertDialogTitle>
           {description && (
             <AlertDialogDescription>{description}</AlertDialogDescription>
           )}
         </AlertDialogHeader>
 
-        <div className="space-y-2 py-2">
+        <div className="planner-overlay-body space-y-2 px-4 py-3 sm:px-5">
           {warnings && warnings.length > 0 && (
             <div className="rounded-md border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 p-3 mb-1">
               <div className="flex items-start gap-2">
@@ -152,7 +152,7 @@ export function SeriesScopeDialog({
           })}
         </div>
 
-        <AlertDialogFooter>
+        <AlertDialogFooter className="planner-overlay-footer border-t px-4 py-3 sm:px-5">
           <AlertDialogCancel disabled={loading}>Annullér</AlertDialogCancel>
           <AlertDialogAction
             disabled={loading}
