@@ -5,7 +5,7 @@
 - [x] Fjern den farvede venstrekant og ensret “Rediger rute”.
 - [x] Ensret fælles panelkort, knapper, fokus, overlays og navigation.
 - [x] Ensret medarbejderpanelets statistik, tjekliste og mobil/tablet-breakpoints.
-- [ ] Slutkontrol i indlogget preview ved 393, 768 og 1280 px — blokeret af en ugyldig injiceret cookie i browsermiljøet.
+- [x] Slutkontrol i indlogget preview ved 393, 768 og 1280 px uden vandret overlap.
 # Ruteplanlægger-modernisering
 - [x] Kræv aktiv service før bestilling og skjul inaktive offentligt
 - [x] Gennemfør en tydelig, professionel omlægning af hele planlæggerens arbejdsflade
