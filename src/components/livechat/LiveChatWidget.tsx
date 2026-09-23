@@ -523,21 +523,7 @@ const LiveChatWidget = () => {
       void requestAiReply(token);
 
       supabase.functions
-        .invoke("send-transactional-email", {
-          body: {
-            templateName: "new-chat-message",
-            recipientEmail: "kontakt@serviceydere.dk",
-            idempotencyKey: `chat-start-${conv.id}`,
-            templateData: {
-              conversationToken: token,
-              visitorName: parsed.data.name,
-              visitorEmail: parsed.data.email,
-              subject: parsed.data.subject || "",
-              message: parsed.data.message,
-              isLoggedIn: !!user,
-            },
-          },
-        })
+        .invoke("chat-start-email", { body: { token } })
         .catch(() => {});
     } catch (e: any) {
       setError(e?.message || "Kunne ikke starte chatten. Prøv igen.");

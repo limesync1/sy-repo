@@ -51,19 +51,10 @@ const ReactivateDialog = ({ open, businessId, businessName }: Props) => {
     setSending(true);
     try {
       if (!ownerEmail) throw new Error("Ingen e-mail tilknyttet din konto");
-      const { data: codeValue, error } = await supabase.rpc("request_business_deletion_code", {
-        p_business_id: businessId,
+      const { data, error } = await supabase.functions.invoke("business-security-email", {
+        body: { action: "deletion-code", businessId },
       });
-      if (error || !codeValue) throw new Error(error?.message || "Kunne ikke generere kode");
-      const { error: mailErr } = await supabase.functions.invoke("send-transactional-email", {
-        body: {
-          templateName: "business-deletion-code",
-          recipientEmail: ownerEmail,
-          idempotencyKey: `biz-del-${businessId}-${codeValue}`,
-          templateData: { businessName, code: codeValue, expiresInMinutes: 15 },
-        },
-      });
-      if (mailErr) throw mailErr;
+      if (error || !data?.sent) throw error || new Error("Mailen kunne ikke sendes");
       setMode("delete-code");
       setCooldown(60);
       toast.success(`Kode sendt til ${ownerEmail}`);

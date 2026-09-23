@@ -2408,27 +2408,11 @@ export const useDispatchRoute = () => {
       });
       const first = stopList[0];
 
-      const { error: sendErr } = await supabase.functions.invoke("send-transactional-email", {
-        body: {
-          templateName: "route-assigned",
-          recipientEmail: emp.email,
-          idempotencyKey: `route-dispatch-${routeId}-${employeeId}-${Date.now()}`,
-          templateData: {
-            employeeName: emp.name,
-            businessName: biz?.name,
-            routeDate: dateLabel,
-            stopCount: stopList.length,
-            totalKm: route.total_distance_km,
-            totalDurationMinutes: route.total_duration_minutes,
-            plannedStartTime: route.planned_start_time?.slice(0, 5) || "08:00",
-            firstStopName: first.customer_name,
-            firstStopAddress: first.address,
-            appUrl: `${window.location.origin}/medarbejder`,
-          },
-        },
+      const { data: sendResult, error: sendErr } = await supabase.functions.invoke("route-assignment-email", {
+        body: { routeId, employeeId },
       });
-      if (sendErr) throw sendErr;
-      return { ok: true, recipient: emp.email };
+      if (sendErr || !sendResult?.sent) throw sendErr || new Error("Mailen kunne ikke sendes");
+      return { ok: true, recipient: sendResult.recipient || emp.email };
     },
     onSuccess: (res) => {
       toast.success(`Rute sendt til ${res.recipient}`);
