@@ -84,8 +84,8 @@ export const BulkAddToRouteDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!loading) onOpenChange(o); }}>
-      <DialogContent className="w-[calc(100vw-1rem)] max-w-2xl max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-md p-0 overflow-hidden gap-0">
-        <DialogHeader className="px-4 sm:px-5 py-4 pr-12 border-b shrink-0 space-y-0 text-left">
+      <DialogContent className="planner-overlay w-[calc(100vw-1rem)] max-w-2xl max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-md p-0 overflow-hidden gap-0">
+        <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b shrink-0 space-y-0 text-left">
           <SheetHeaderBlock
             icon={<RouteIcon className="h-4 w-4" />}
             title={<DialogTitle className="text-base">Tilføj {jobs.length} {jobs.length === 1 ? "aftale" : "aftaler"} til rute</DialogTitle>}
@@ -97,7 +97,7 @@ export const BulkAddToRouteDialog = ({
           />
         </DialogHeader>
 
-        <div className="grid grid-cols-1 sm:grid-cols-[1fr_1.2fr] gap-0 bg-secondary/20">
+        <div className="planner-overlay-body grid grid-cols-1 sm:grid-cols-[1fr_1.2fr] gap-0 bg-secondary/20">
           {/* Venstre: valgte aftaler */}
           <div className="border-b sm:border-b-0 sm:border-r p-3 sm:p-4 space-y-2">
             <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -210,7 +210,7 @@ export const BulkAddToRouteDialog = ({
           </div>
         </div>
 
-        <DialogFooter className="border-t bg-card p-4 flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+        <DialogFooter className="planner-overlay-footer border-t bg-card p-4 flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
           <div className="text-[11px] text-muted-foreground">
             {progress
               ? <span className="tabular-nums">Behandler {progress.done}/{progress.total}…</span>

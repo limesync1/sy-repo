@@ -23,6 +23,7 @@ import {
 } from "@/hooks/useRoutes";
 import { pickAvailableColor } from "@/components/route-planner/RouteEditSheet";
 import { toast } from "sonner";
+import { SheetHeaderBlock } from "../SheetSection";
 
 import {
   jobAddress,
@@ -137,15 +138,13 @@ export function MobileAssignSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="flex max-h-[88vh] flex-col gap-0 rounded-t-2xl p-0">
-        <SheetHeader className="border-b border-border px-4 py-3 text-left">
-          <SheetTitle className="text-base">Tildel til rute</SheetTitle>
-          <div className="mt-1 min-w-0">
-            <p className="truncate text-sm font-medium text-foreground">
-              {job.customer_name || "Ukendt kunde"}
-            </p>
-            <p className="truncate text-xs text-muted-foreground">{jobAddress(job)}</p>
-          </div>
+      <SheetContent side="bottom" className="planner-overlay flex max-h-[88vh] flex-col gap-0 rounded-t-md p-0">
+        <SheetHeader className="planner-overlay-header border-b border-border px-4 py-3 pr-14 text-left">
+          <SheetHeaderBlock
+            icon={<RouteIcon className="h-4 w-4" />}
+            title={<SheetTitle className="text-base">Vælg rute</SheetTitle>}
+            description={`${job.customer_name || "Ukendt kunde"} · ${jobAddress(job)}`}
+          />
         </SheetHeader>
 
         {/* Datovælger */}
@@ -188,7 +187,7 @@ export function MobileAssignSheet({
         </div>
 
         {/* Rute-liste */}
-        <div className="min-h-0 flex-1 overflow-y-auto p-4">
+        <div className="planner-overlay-body min-h-0 flex-1 overflow-y-auto p-4">
           <Button onClick={createAndAssign} disabled={busy} className="mb-3 w-full gap-2" size="lg">
             {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
             Opret ny rute og tildel

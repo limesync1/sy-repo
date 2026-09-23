@@ -86,8 +86,8 @@ export default function RouteHistoryDialog({ open, onOpenChange, routeId, routeN
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-1rem)] max-w-xl max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-md p-0 overflow-hidden gap-0">
-        <DialogHeader className="px-4 sm:px-5 py-4 pr-12 border-b shrink-0 space-y-0 text-left">
+      <DialogContent className="planner-overlay w-[calc(100vw-1rem)] max-w-xl max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-md p-0 overflow-hidden gap-0">
+        <DialogHeader className="planner-overlay-header px-4 sm:px-5 py-3 pr-12 border-b shrink-0 space-y-0 text-left">
           <SheetHeaderBlock
             icon={<History className="h-4 w-4" />}
             title={
@@ -102,7 +102,7 @@ export default function RouteHistoryDialog({ open, onOpenChange, routeId, routeN
             }
           />
         </DialogHeader>
-        <div className="max-h-[65vh] overflow-auto px-4 sm:px-5 py-4 bg-secondary/25">
+        <div className="planner-overlay-body max-h-[65vh] overflow-auto px-4 sm:px-5 py-4 bg-secondary/25">
           {isLoading ? (
             <div className="flex items-center justify-center py-10 text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin mr-2" /> Henter…

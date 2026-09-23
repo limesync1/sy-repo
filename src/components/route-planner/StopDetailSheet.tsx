@@ -224,14 +224,14 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
         <SheetContent
           side={isCompact ? "bottom" : "right"}
           className={cn(
-            "w-full p-0 flex flex-col",
-            isCompact ? "h-[88vh] max-h-[88vh] rounded-t-xl" : "sm:max-w-2xl",
+            "planner-overlay w-full p-0 flex flex-col",
+            isCompact ? "h-[88vh] max-h-[88vh] rounded-t-md" : "sm:max-w-2xl",
           )}
           /* Tillad luk via klik udenfor + Esc (Radix default). */
         >
           {/* Header — samme look som "Se detaljer" på kunder-siden:
               kompakt titel, lille beskrivelse og en række diskrete status-pills. */}
-          <SheetHeader className="border-b border-border p-4 pr-14 shrink-0 space-y-0 text-left">
+          <SheetHeader className="planner-overlay-header border-b border-border p-4 pr-14 shrink-0 space-y-0 text-left">
             <SheetTitle className="text-left">
               <div className="flex items-start gap-3">
                 <div className="min-w-0 flex-1">
@@ -274,7 +274,7 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
             </SheetTitle>
           </SheetHeader>
 
-          <div className="flex-1 overflow-y-auto p-5 space-y-5">
+          <div className="planner-overlay-body flex-1 overflow-y-auto p-5 space-y-5">
               {/* Completion banner — when the stop is already done, show
                   who completed it and when, so the owner has a quick recap. */}
               {stop.status === "completed" && (

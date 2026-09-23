@@ -31,6 +31,7 @@ import {
   CheckSquare,
   X,
   RefreshCw,
+  Route as RouteIcon,
 } from "lucide-react";
 import {
   DndContext,
@@ -107,6 +108,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 
 import { MobileRouteDetailSheet } from "./MobileRouteDetailSheet";
+import { MobileAssignSheet } from "./MobileAssignSheet";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
@@ -167,6 +169,7 @@ export default function RoutePlannerMobile() {
   const [selectMode, setSelectMode] = useState(false);
   const [selectedJobs, setSelectedJobs] = useState<Set<string>>(new Set());
   const [bulkAssignOpen, setBulkAssignOpen] = useState(false);
+  const [assignJob, setAssignJob] = useState<any | null>(null);
   // Aktiv drag — bruges til DragOverlay og til at vise drop-zoner.
   const [drag, setDrag] = useState<
     | { kind: "job"; job: any }
@@ -563,6 +566,7 @@ export default function RoutePlannerMobile() {
               selectedJobs={selectedJobs}
               onToggleJob={toggleJobSelected}
               onBulkAssign={() => setBulkAssignOpen(true)}
+              onAssignJob={setAssignJob}
               isTablet={isTablet}
             />
           </div>
@@ -609,6 +613,16 @@ export default function RoutePlannerMobile() {
         <CreateOrderDialogHost
           businessId={businessId}
           businessName={business?.name || ""}
+        />
+      )}
+
+      {assignJob && businessId && (
+        <MobileAssignSheet
+          open={!!assignJob}
+          onOpenChange={(next) => !next && setAssignJob(null)}
+          job={assignJob}
+          businessId={businessId}
+          initialDate={effectiveJobDate(assignJob) || date}
         />
       )}
 
@@ -1059,6 +1073,7 @@ function UnassignedDock({
   selectedJobs,
   onToggleJob,
   onBulkAssign,
+  onAssignJob,
   isTablet,
 }: {
   loading: boolean;
@@ -1073,6 +1088,7 @@ function UnassignedDock({
   selectedJobs: Set<string>;
   onToggleJob: (id: string) => void;
   onBulkAssign: () => void;
+  onAssignJob: (job: any) => void;
   isTablet: boolean;
 }) {
   const { setNodeRef, isOver } = useDroppable({
@@ -1181,6 +1197,7 @@ function UnassignedDock({
                   selectMode={selectMode}
                   selected={selectedJobs.has(job.id)}
                   onToggle={() => onToggleJob(job.id)}
+                  onAssign={() => onAssignJob(job)}
                   fullWidth
                 />
               ))}
@@ -1209,12 +1226,14 @@ function DraggableJobCard({
   selectMode,
   selected,
   onToggle,
+  onAssign,
   fullWidth,
 }: {
   job: any;
   selectMode: boolean;
   selected: boolean;
   onToggle: () => void;
+  onAssign: () => void;
   fullWidth: boolean;
 }) {
   const pending = isJobPending(job);
@@ -1332,6 +1351,22 @@ function DraggableJobCard({
             <MapPin className="h-2.5 w-2.5 shrink-0" />
             <span className="truncate">{fullAddress}</span>
           </p>
+        )}
+
+        {!selectMode && !pending && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-7 w-full justify-start gap-1.5 px-1 text-[11px] text-muted-foreground hover:text-foreground"
+            onClick={(event) => {
+              event.stopPropagation();
+              onAssign();
+            }}
+          >
+            <RouteIcon className="h-3 w-3" />
+            Vælg rute
+          </Button>
         )}
 
       </div>
