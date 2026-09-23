@@ -310,8 +310,8 @@ export default function RoutePlannerMobile() {
           longitude: job.longitude,
           service_summary: serviceSummaryForJob(job),
           duration_minutes: Number(job.estimated_duration_minutes) || 30,
-          time_window_start: job.preferred_time_start || null,
-          time_window_end: job.preferred_time_end || null,
+          time_window_start: null,
+          time_window_end: null,
         };
         try {
           let movedFrom: string | null = null;
@@ -1473,8 +1473,8 @@ function NewRouteDialog({
           longitude: job.longitude,
           service_summary: serviceSummaryForJob(job),
           duration_minutes: Number(job.estimated_duration_minutes) || 30,
-          time_window_start: job.preferred_time_start || null,
-          time_window_end: job.preferred_time_end || null,
+          time_window_start: null,
+          time_window_end: null,
         };
         try {
           let stop: RouteStop;
@@ -1760,8 +1760,8 @@ function BulkAssignSheet({
         longitude: job.longitude,
         service_summary: serviceSummaryForJob(job),
         duration_minutes: Number(job.estimated_duration_minutes) || 30,
-        time_window_start: job.preferred_time_start || null,
-        time_window_end: job.preferred_time_end || null,
+        time_window_start: null,
+        time_window_end: null,
       };
       try {
         try {

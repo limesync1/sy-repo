@@ -278,7 +278,6 @@ const ApproveOrder = () => {
                     <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
                     <span className="text-foreground">
                       {format(parseISO(order.preferred_date), "EEEE d. MMMM yyyy", { locale: da })}
-                      {order.preferred_time_start && ` kl. ${order.preferred_time_start.slice(0, 5)}`}
                     </span>
                   </div>
                 )}

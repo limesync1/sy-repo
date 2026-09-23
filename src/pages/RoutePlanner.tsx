@@ -1072,8 +1072,8 @@ const Planner = () => {
           longitude: a.longitude ?? null,
           notes: a.notes ?? null,
           duration_minutes: a.estimated_duration_minutes ?? 30,
-          time_window_start: a.preferred_time_start ?? null,
-          time_window_end: a.preferred_time_end ?? null,
+          time_window_start: null,
+          time_window_end: null,
           assignee_ids: (a.employee_ids as string[] | null) ?? [],
           assigned_employee_id: ((a.employee_ids as string[] | null) ?? [])[0] ?? null,
           order_amount: Number(a.total_amount ?? 0),
@@ -1889,8 +1889,8 @@ const Planner = () => {
             longitude: job.longitude,
             service_summary: serviceSummaryForJob(job),
             duration_minutes: duration,
-            time_window_start: job.preferred_time_start || null,
-            time_window_end: job.preferred_time_end || null,
+            time_window_start: null,
+            time_window_end: null,
           });
           if (newStop?.id) createdStopIds.push(newStop.id);
           const prev = perRouteCount.get(top.route_id);
@@ -2135,8 +2135,8 @@ const Planner = () => {
             longitude: j.longitude,
             service_summary: serviceSummaryForJob(j),
             duration_minutes: Number(j.estimated_duration_minutes) || 30,
-            time_window_start: j.preferred_time_start || null,
-            time_window_end: j.preferred_time_end || null,
+            time_window_start: null,
+            time_window_end: null,
           });
           ok++;
         } catch (e: any) {
@@ -2838,8 +2838,8 @@ const Planner = () => {
             longitude: job.longitude,
             service_summary: serviceSummaryForJob(job),
             duration_minutes: Number(job.estimated_duration_minutes) || 30,
-            time_window_start: job.preferred_time_start || null,
-            time_window_end: job.preferred_time_end || null,
+            time_window_start: null,
+            time_window_end: null,
           });
         } catch (err: any) {
           console.error("[CreateRoute] kunne ikke tilføje stop", err);
@@ -2917,8 +2917,8 @@ const Planner = () => {
             longitude: job.longitude,
             service_summary: serviceSummaryForJob(job),
             duration_minutes: Number(job.estimated_duration_minutes) || 30,
-            time_window_start: job.preferred_time_start || null,
-            time_window_end: job.preferred_time_end || null,
+            time_window_start: null,
+            time_window_end: null,
           });
           totalAssigned++;
         }
@@ -4923,8 +4923,8 @@ const Planner = () => {
                   latitude: selectedJob.latitude,
                   longitude: selectedJob.longitude,
                   duration_minutes: Number(selectedJob.estimated_duration_minutes) || 30,
-                  time_window_start: selectedJob.preferred_time_start,
-                  time_window_end: selectedJob.preferred_time_end,
+                  time_window_start: null,
+                  time_window_end: null,
                   notes: selectedJob.notes,
                   service_summary: null,
                   planned_arrival: null,
@@ -4976,8 +4976,8 @@ const Planner = () => {
                   longitude: suggestJob.longitude,
                   service_summary: serviceSummaryForJob(suggestJob),
                   duration_minutes: Number(suggestJob.estimated_duration_minutes) || 30,
-                  time_window_start: suggestJob.preferred_time_start || null,
-                  time_window_end: suggestJob.preferred_time_end || null,
+                  time_window_start: null,
+                  time_window_end: null,
                 });
                 toast.success("Aftalen tildelt valgt rute");
               } catch (e: any) {
