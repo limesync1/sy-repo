@@ -50,15 +50,16 @@ export function TemplatesView() {
     if (!selected || !sendEmail.trim()) return;
     setSending(true);
     try {
-      const { error } = await supabase.functions.invoke("send-transactional-email", {
+      const { data, error } = await supabase.functions.invoke("admin-preview-template", {
         body: {
+          action: "send",
           templateName: selected,
           recipientEmail: sendEmail.trim(),
           idempotencyKey: `admin-test-${selected}-${Date.now()}`,
           templateData: preview?.previewData ?? {},
         },
       });
-      if (error) throw error;
+      if (error || !data?.sent) throw error || new Error("Modtageren kan ikke kontaktes");
       toast.success(`Test sendt til ${sendEmail.trim()}`);
       setSendOpen(false);
       setSendEmail("");

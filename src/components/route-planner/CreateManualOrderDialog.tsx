@@ -279,40 +279,10 @@ const CreateManualOrderDialog = ({ open, onOpenChange, businessId, businessName,
 
       // Manuel oprettelse er altid forhåndsgodkendt — send bekræftelses-mail.
       {
-        const { error: mailErr } = await supabase.functions.invoke("send-transactional-email", {
-          body: {
-            templateName: "manual-order-confirmed",
-            recipientEmail: customerEmailLower,
-            idempotencyKey: `manual-order-confirmed-${parentOrderId}`,
-            templateData: {
-              customerName: customerName.trim(),
-              businessName: biz?.name || businessName,
-              businessPhone: biz?.phone,
-              businessEmail: biz?.email,
-              businessMessage: businessMessage.trim() || undefined,
-              address: address.trim()
-                ? `${address.trim()}${zipCode.trim() || city.trim() ? `, ${[zipCode.trim(), city.trim()].filter(Boolean).join(" ")}` : ""}`
-                : undefined,
-              preferredDate: items[0]?.startDate || undefined,
-              totalAmount,
-              items: items.map((it) => ({
-                name: it.service.name,
-                quantity: 1,
-                price: roundPrice(calcItemTotal(it)),
-                intervalLabel: it.interval && it.interval !== "engangskøb" ? INTERVAL_LABELS[it.interval] || it.interval : undefined,
-                description: it.service.pricing_type === "timepris" ? `${it.hours} timer` : undefined,
-                preferredDate: it.startDate || undefined,
-                stepDetails: it.service.pricing_type === "prisberegner"
-                  ? (it.service.calculator_steps || []).map((s) => ({
-                      label: s.label, value: it.stepValues[s.id] || 0, unit: s.unit,
-                      subtotal: roundPrice((it.stepValues[s.id] || 0) * Number(s.price_per_unit)),
-                    }))
-                  : undefined,
-              })),
-            },
-          },
+        const { data: mailResult, error: mailErr } = await supabase.functions.invoke("order-email-notification", {
+          body: { orderId: parentOrderId, kind: "manual-confirmed" },
         });
-        if (mailErr) {
+        if (mailErr || !mailResult?.sent) {
           console.error("Mail send failed:", mailErr);
           toast.success("Bestilling oprettet og bekræftet (bekræftelses-mail kunne ikke sendes).");
         } else {

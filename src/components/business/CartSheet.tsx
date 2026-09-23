@@ -257,43 +257,7 @@ const CartSheet = () => {
           : undefined;
 
         supabase.functions
-          .invoke("send-transactional-email", {
-            body: {
-              templateName: "order-confirmation",
-              recipientEmail: effectiveEmail,
-              idempotencyKey: `order-confirm-${orderResult.id}`,
-              templateData: {
-                customerName: name,
-                customerEmail: effectiveEmail,
-                customerPhone: phone,
-                businessName: group.businessName || businessInfo?.name,
-                businessPhone: businessInfo?.phone,
-                businessEmail: businessInfo?.email,
-                businessAddress,
-                orderId: orderResult.id,
-                totalAmount: bizTotal,
-                hasRecurring,
-                items: group.items.map((item) => ({
-                  name: item.serviceName,
-                  quantity: item.quantity,
-                  price: item.total * item.quantity,
-                  interval: item.interval,
-                  intervalLabel:
-                    item.interval && item.interval !== "engangskøb"
-                      ? INTERVAL_LABELS[item.interval] || item.interval
-                      : undefined,
-                  description: item.details,
-                  stepDetails: item.stepDetails?.map((sd: any) => ({
-                    label: sd.label,
-                    value: sd.value,
-                    unit: sd.unit,
-                    subtotal: sd.subtotal,
-                    price_per_unit: sd.price_per_unit,
-                  })),
-                })),
-              },
-            },
-          })
+          .invoke("order-email-notification", { body: { orderId: orderResult.id, kind: "confirmation" } })
           .catch((err) => console.warn("Email send failed (non-blocking):", err));
       }
     } catch (e: any) {
