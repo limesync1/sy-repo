@@ -49,7 +49,7 @@ export const EmployeeColumn = ({
   return (
     <Card
       ref={setNodeRef}
-      className={`group/col relative flex min-h-[360px] flex-col rounded-md border-border/70 bg-card p-2.5 shadow-none transition-colors duration-150 ${
+      className={`group/col relative flex min-h-[440px] flex-col rounded-[5px] border-border/70 bg-card p-3 shadow-none transition-colors duration-150 ${
         isOver
           ? "border-accent/70 bg-accent/[0.04] ring-1 ring-accent/30"
           : "hover:border-foreground/25"
@@ -62,9 +62,9 @@ export const EmployeeColumn = ({
         style={{ background: color }}
       />
       {/* Header */}
-      <header className="mb-2 flex items-start gap-2 pl-1">
+      <header className="mb-2.5 flex items-start gap-2.5 pl-1">
         <div
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md ring-1 ring-border"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px] ring-1 ring-border"
           style={{ background: color }}
         >
           <span className="text-[10px] font-bold text-background leading-none">
@@ -73,7 +73,7 @@ export const EmployeeColumn = ({
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <p className="font-bold text-sm truncate tracking-tight">{label}</p>
+            <p className="font-semibold text-sm truncate">{label}</p>
             {isDispatched && (
               <Badge className="h-[18px] px-1.5 text-[9px] gap-0.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border-0 rounded-full shadow-sm">
                 <Send className="h-2.5 w-2.5" />Sendt
@@ -96,7 +96,7 @@ export const EmployeeColumn = ({
 
       {/* Action row */}
       {stops.length >= 1 && (onOptimize || onDispatch) && (
-         <div className="mb-2 flex gap-1 border-y border-border/60 py-1.5">
+         <div className="mb-2.5 flex gap-1.5 border-y border-border/60 py-2">
           {onOptimize && stops.length >= 2 && (
             <Button size="sm" variant="outline" className="flex-1 h-8 text-xs gap-1 rounded-md border-border/70 hover:bg-secondary hover:text-foreground" onClick={onOptimize} disabled={optimizing} title="AI-optimér rækkefølge">
               {optimizing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
@@ -120,11 +120,11 @@ export const EmployeeColumn = ({
       )}
 
       {/* Stops list */}
-       <div className="min-h-[250px] flex-1 space-y-1.5 overflow-y-auto">
+       <div className="min-h-[320px] flex-1 space-y-1.5 overflow-y-auto">
         <SortableContext items={sortedIds} strategy={verticalListSortingStrategy}>
           {stops.length === 0 && (
             <div
-               className={`min-h-[220px] px-3 text-[11px] text-center border border-dashed rounded-md transition-all flex items-center justify-center ${
+               className={`min-h-[300px] px-3 text-[11px] text-center border border-dashed rounded-[5px] transition-colors flex items-center justify-center ${
                 isOver
                   ? "border-accent/60 bg-accent/[0.06] text-accent font-medium"
                   : "border-border/50 text-muted-foreground/70 hover:border-border hover:bg-secondary/20"
@@ -180,7 +180,7 @@ const SortableStopCard = ({
         CARD_BASE,
         "p-2.5 pl-3 cursor-pointer",
         isSelected
-          ? "border-accent/60 ring-2 ring-accent/25 shadow-[0_4px_12px_-4px_hsl(var(--accent)/0.35)] -translate-y-px"
+          ? "border-accent/60 ring-1 ring-accent/25 bg-accent/[0.025]"
           : isDone
           ? "border-emerald-200/70 bg-emerald-50/40 dark:border-emerald-500/25 dark:bg-emerald-500/10 opacity-80"
           : cn(CARD_BORDER, CARD_HOVER),
@@ -198,7 +198,7 @@ const SortableStopCard = ({
           {...listeners}
           {...attributes}
           onClick={(e) => e.stopPropagation()}
-          className={`flex h-6 w-6 items-center justify-center rounded-md text-background text-[11px] font-bold shrink-0 cursor-grab active:cursor-grabbing ring-2 ring-background shadow-[0_2px_4px_-1px_hsl(var(--foreground)/0.2)] transition-transform hover:scale-105 active:scale-95 ${
+          className={`flex h-6 w-6 items-center justify-center rounded-[4px] text-background text-[11px] font-bold shrink-0 cursor-grab active:cursor-grabbing ring-1 ring-background ${
             isDone ? "opacity-50" : ""
           }`}
           style={{ background: color }}

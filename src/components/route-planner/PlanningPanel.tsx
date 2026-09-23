@@ -243,7 +243,7 @@ export const PlanningPanel = ({
            {stats.loadPerDay.length > 0 && (
             <section>
                <SectionLabel icon={<BarChart3 className="h-3.5 w-3.5" />}>
-                Belastning pr. dag
+                Stop pr. dag
               </SectionLabel>
               <ul className="mt-2 space-y-1.5">
                  {stats.loadPerDay.map((d) => {
@@ -259,15 +259,15 @@ export const PlanningPanel = ({
                            {d.stopCount} af {d.capacity} stop
                         </span>
                       </div>
-                      <div className="h-2 w-full overflow-hidden rounded-full bg-secondary/60 ring-1 ring-inset ring-border/30">
+                      <div className="h-1.5 w-full overflow-hidden rounded-sm bg-secondary/60 ring-1 ring-inset ring-border/30">
                         <div
                           className={cn(
-                            "h-full rounded-full transition-all",
+                            "h-full transition-all",
                             over
-                              ? "bg-gradient-to-r from-destructive/80 to-destructive shadow-[0_0_8px_hsl(var(--destructive)/0.55)]"
+                              ? "bg-destructive"
                               : pct > 75
-                              ? "bg-gradient-to-r from-feature-warm/80 to-feature-warm"
-                              : "bg-gradient-to-r from-foreground/70 to-foreground",
+                              ? "bg-feature-warm-foreground"
+                              : "bg-foreground/70",
                           )}
                           style={{ width: `${pct}%` }}
                         />

@@ -358,8 +358,8 @@ const DayRowInner = ({
        {capacity && capacity.stops_capacity > 0 && !isPast && (
         <div
           className="absolute bottom-0 left-0 right-0 h-[3px] bg-border/40 overflow-hidden"
-           title={`Belastning: ${capacity.stops_booked} af ${capacity.stops_capacity} stop`}
-          aria-label={`Dagens belastning: ${Math.round(capacity.load_pct)} procent`}
+           title={`${capacity.stops_booked} af ${capacity.stops_capacity} stop planlagt`}
+          aria-label={`${capacity.stops_booked} af ${capacity.stops_capacity} stop planlagt`}
         >
           <div
             className={cn(
@@ -436,8 +436,8 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
       data-route-drop-date={!isVirtual && !isPast ? route.route_date : undefined}
       onClick={(e) => { e.stopPropagation(); if (!isDragging) onSelect(); }}
       className={cn(
-        "relative flex items-center gap-2 rounded-lg border border-border/60 bg-card px-2.5 py-2 cursor-pointer transition-all overflow-hidden",
-        "border-l-[3px] shadow-[0_1px_2px_hsl(var(--foreground)/0.04)] active:scale-[0.99]",
+        "relative flex min-h-[64px] items-center gap-2 rounded-[5px] border border-border/70 bg-card px-2.5 py-2 cursor-pointer transition-colors overflow-hidden",
+        "border-l-[3px] hover:border-foreground/25",
         isDragging && "opacity-40",
         isVirtual && "border-dashed",
         isPast && "opacity-60 saturate-50 cursor-not-allowed",
@@ -527,7 +527,7 @@ const AgendaRoutePillInner = ({ route, onSelect, onOptimize, onDelete, onShowHis
           <span className="truncate">{route.name || `Rute (${format(parseISO(route.route_date), "d. MMM", { locale: da })})`}</span>
         </div>
         <div className="mt-0.5 flex items-center gap-2 text-[10px] text-muted-foreground tabular-nums">
-          <span className="inline-flex items-center gap-0.5"><MapPin className="h-2.5 w-2.5" />{stopCount} stop</span>
+            <span className="inline-flex items-center gap-0.5 font-semibold text-foreground/80"><MapPin className="h-2.5 w-2.5" />{stopCount} stop</span>
           {completedCount > 0 && !showAsCompleted && (
             <span className="text-emerald-600 dark:text-emerald-400">{completedCount}/{stopCount}</span>
           )}

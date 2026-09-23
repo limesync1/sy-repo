@@ -4,7 +4,7 @@
 import { useMemo } from "react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
-import { Clock, MapPin, CalendarDays } from "lucide-react";
+import { MapPin, CalendarDays } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import EmptyState from "./EmptyState";
 import { cn } from "@/lib/utils";
@@ -78,18 +78,18 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
         <div className="flex-1 overflow-auto px-5 py-4 bg-secondary/[0.16]">
           {sorted.length === 0 ? (
             <EmptyState
-              icon={<Clock className="h-5 w-5" />}
+              icon={<CalendarDays className="h-5 w-5" />}
               title="Ingen stop denne dag"
               description="Træk en aftale ind på dagen for at planlægge."
               compact
             />
           ) : (
-            <ol className="relative ml-3 border-l-2 border-border/70 space-y-3 py-1">
+            <ol className="relative ml-2 border-l border-border space-y-2 py-1">
               {sorted.map((s, idx) => {
                 return (
                   <li key={s.id} className="pl-4 relative">
                     <span
-                      className="absolute -left-[8px] top-2 h-3.5 w-3.5 rounded-full border-2 border-background shadow-[0_2px_4px_-1px_hsl(var(--foreground)/0.2)]"
+                      className="absolute -left-[5px] top-3 h-2.5 w-2.5 rounded-full border-2 border-background"
                       style={{ backgroundColor: s.routeColor ?? "hsl(var(--primary))" }}
                     />
                     <div
@@ -112,11 +112,6 @@ export default function DayDetailPanel({ open, onOpenChange, date, stops }: Prop
                           )}
                           <p className="text-sm font-bold truncate tracking-tight">{s.customerName}</p>
                         </div>
-                        {s.startTime && (
-                          <span className="text-[11px] font-semibold tabular-nums text-foreground/80 bg-secondary px-1.5 py-0.5 rounded-md border border-border/70 shrink-0">
-                            {s.startTime}
-                          </span>
-                        )}
                       </div>
                       {s.serviceSummary && (
                         <p className="mt-0.5 text-[11px] text-muted-foreground truncate pl-[26px]">

@@ -18,7 +18,7 @@ import { IndustryIcon } from "@/components/IndustryIcon";
  *  Matcher kortets højde og indre struktur så listen ikke "hopper" når
  *  rigtige kort kommer ind. */
 export const UnassignedJobCardSkeleton = ({ compact = false }: { compact?: boolean }) => (
-  <div className="relative rounded-xl border border-border/60 bg-card overflow-hidden flex shadow-[0_1px_3px_-1px_hsl(var(--foreground)/0.06)]">
+  <div className="relative rounded-[5px] border border-border/60 bg-card overflow-hidden flex">
     <div className="w-[3px] bg-secondary shrink-0" />
     <div className={`flex-1 ${compact ? "p-2 pl-7" : "p-2.5 pl-8"} space-y-1.5`}>
       <div className="flex items-start justify-between gap-3">
@@ -289,10 +289,7 @@ export const UnassignedJobCard = ({
         className={`w-[3px] shrink-0 ${selected ? "bg-accent" : urgency.rail}`}
       />
 
-      {/* MULTI-SELECT — stor, altid-synlig dedikeret zone i venstre side.
-          22×22px hit-area, opacity-100 når valg-mode er aktiv, ellers
-          synlig på hover med tydelig border. Stopper drag-listeners så
-          klikket aldrig misforstås som træk. */}
+      {/* Multi-select er altid synlig. Handlinger må ikke afhænge af panelbredde eller hover. */}
       {!isPending && onToggleSelect && (
         <button
           type="button"
@@ -302,12 +299,12 @@ export const UnassignedJobCard = ({
           aria-label={selected ? "Fravælg aftale" : "Vælg aftale"}
           aria-pressed={selected}
           title={selected ? "Fravælg aftale" : "Vælg flere aftaler"}
-          className={`absolute top-2 left-2 z-10 h-4 w-4 rounded border-2 flex items-center justify-center transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:outline-none ${
+          className={`absolute top-2 left-2 z-10 h-4 w-4 rounded-[3px] border flex items-center justify-center transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:outline-none ${
             selected
               ? "bg-accent border-accent text-accent-foreground opacity-100"
               : anySelected
                 ? "bg-card border-accent/70 hover:bg-accent/10 hover:border-accent opacity-100"
-                : "bg-card border-border hover:border-accent hover:bg-accent/5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
+                : "bg-card border-border hover:border-accent hover:bg-accent/5 opacity-100"
           }`}
         >
           {selected && <Check className="h-3 w-3" strokeWidth={3.5} />}

@@ -37,10 +37,10 @@ export const SheetHeaderBlock = ({
   const iconColor = hasAccent && accent ? readableTextOn(accent) : "hsl(var(--primary-foreground))";
   const hasBadge = badge != null || icon != null;
   return (
-    <div className="flex items-start gap-3">
+    <div className="flex items-start gap-2.5">
       {hasBadge && (
         <span
-          className="flex h-9 w-9 items-center justify-center rounded-md text-sm font-bold shrink-0"
+          className="flex h-8 w-8 items-center justify-center rounded-[5px] text-sm font-bold shrink-0"
           style={{ background: bg, color: iconColor }}
           aria-hidden={!badge}
         >
@@ -48,11 +48,11 @@ export const SheetHeaderBlock = ({
         </span>
       )}
       <div className="flex-1 min-w-0">
-        <div className="text-lg font-bold leading-tight text-left truncate text-foreground">
+        <div className="text-base font-semibold leading-tight text-left truncate text-foreground">
           {title}
         </div>
         {description && (
-          <div className="text-xs text-muted-foreground mt-0.5 text-left">
+          <div className="text-[11px] leading-snug text-muted-foreground mt-0.5 text-left">
             {description}
           </div>
         )}
@@ -94,7 +94,7 @@ export const Section = ({
     <div className="flex items-center gap-1.5">
       <span
         className={cn(
-          "inline-flex items-center justify-center h-5 w-5 rounded-md shrink-0",
+          "inline-flex items-center justify-center h-4 w-4 rounded-[4px] shrink-0",
           tone === "primary"  && "bg-primary/10 text-primary",
           tone === "accent"   && "bg-accent/15 text-accent",
           tone === "amber"    && "bg-amber-500/15 text-amber-700 dark:text-amber-400",
@@ -105,13 +105,13 @@ export const Section = ({
       >
         <span className="[&>svg]:h-3 [&>svg]:w-3 inline-flex">{icon}</span>
       </span>
-      <h4 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+      <h4 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
         {title}
       </h4>
       {required && null}
       {hint && <span className="ml-auto text-[10px] text-muted-foreground">{hint}</span>}
     </div>
-    <div className="rounded-md border border-border/70 bg-card p-2.5">
+    <div className="rounded-[5px] border border-border/70 bg-card p-2.5">
       {children}
     </div>
   </div>
@@ -138,7 +138,7 @@ export const CollapsibleSection = ({
 }) => {
   const [open, setOpen] = React.useState(defaultOpen);
   return (
-    <div className={cn("bg-card rounded-md border border-border", className)}>
+    <div className={cn("bg-card rounded-[5px] border border-border", className)}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -208,5 +208,5 @@ export const SheetFooterBar = ({
   children: React.ReactNode;
   className?: string;
 }) => (
-  <div className={cn("border-t px-4 py-3 shrink-0 bg-card", className)}>{children}</div>
+  <div className={cn("border-t px-4 py-2.5 shrink-0 bg-card", className)}>{children}</div>
 );

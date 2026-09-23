@@ -267,7 +267,7 @@ const DayOverviewSheet = ({
         {capacity && capacity.stops_capacity > 0 && (
           <div className="px-5 py-3 border-b border-border/70 space-y-1">
             <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-              <span>Dagens belastning</span>
+              <span>Stopkapacitet</span>
               <span className="tabular-nums font-semibold text-foreground">
                 {capacity.stops_booked} af {capacity.stops_capacity} stop
               </span>
@@ -1159,8 +1159,8 @@ const DayCellInner = ({
       {capacity && capacity.stops_capacity > 0 && inMonth && !isPast && (
         <div
           className="absolute bottom-0 left-0 right-0 h-[3px] bg-border/40 overflow-hidden group/cap"
-          title={`Belastning: ${capacity.stops_booked} af ${capacity.stops_capacity} stop`}
-          aria-label={`Dagens belastning: ${Math.round(capacity.load_pct)} procent`}
+          title={`${capacity.stops_booked} af ${capacity.stops_capacity} stop planlagt`}
+          aria-label={`${capacity.stops_booked} af ${capacity.stops_capacity} stop planlagt`}
         >
           <div
             className={cn(
@@ -1338,13 +1338,7 @@ const RoutePillInner = ({
   const isFutureProjected = projectedKind === "future";
   const travelMin = Number(route.total_duration_minutes || 0) || route.stops.reduce((sum, s) => sum + Number(s.travel_time_to_next_min || 0), 0);
   const revenue = route.stops.reduce((sum, s) => sum + Number((s as any).order_amount || 0), 0);
-  // Kapacitets-bjælke pr. rute: arbejdstid (stop + transport) vs. ~8t pr.
-  // tildelt medarbejder. Hurtig visuel indikator for overload uden ekstra
-  // server-rundtur — bruger felter vi allerede har.
-  // Belastning beregnes ud fra faktisk gemt arbejdstid + kørselstid.
-  // Vi bruger IKKE et fast 30-min fallback pr. stop — det fik ruter med
-  // få stop til at se "overbooket" ud uden grund (fx 4 stop = 120 min uden
-  // reel arbejdstid). Stop uden gemt varighed tæller som 0 minutter.
+  // Kapacitetsbjælken beregnes alene ud fra antal stop pr. medarbejder.
   const empCount = Math.max(route.attachedEmployees.length || route.attachedEmployeeCount || 0, 1);
   const routeCapacity = stopCapacity(stopCount, empCount);
   const loadPct = routeCapacity.load_pct;
