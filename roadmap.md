@@ -76,8 +76,8 @@
 - [x] Verificér lys/mørk ved 393, 768 og 1280 px
 
 ## Oprydning af panel, forside, kundeservice og færdige ruter
-- [ ] Fjern ekstra kvitteringshandling og ensret medarbejdernavigation
-- [ ] Ryd de valgte forsidesektioner og opdelere
-- [ ] Brug supportportrættet i kundeservicevisninger
-- [ ] Genåbn færdige ruter automatisk ved nye stop
-- [ ] Verificér centrale flows på mobil og computer
+- [x] Fjern ekstra kvitteringshandling og ensret medarbejdernavigation
+- [x] Ryd de valgte forsidesektioner og opdelere
+- [x] Brug supportportrættet i kundeservicevisninger
+- [x] Genåbn færdige ruter automatisk ved nye stop
+- [x] Verificér centrale flows på mobil og computer

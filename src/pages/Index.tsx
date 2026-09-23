@@ -9,7 +9,6 @@ import SiteNav from "@/components/SiteNav";
 // stadig så initial JS-bundle bliver markant mindre.
 import Categories from "@/components/landing/Categories";
 const HowItWorks        = lazy(() => import("@/components/landing/HowItWorks"));
-const AudienceSplit     = lazy(() => import("@/components/landing/AudienceSplit"));
 const Testimonials      = lazy(() => import("@/components/landing/Testimonials"));
 const WhyUs             = lazy(() => import("@/components/landing/WhyUs"));
 const ForBusinesses     = lazy(() => import("@/components/landing/ForBusinesses"));
@@ -108,7 +107,6 @@ const Index = () => {
           via dens egen min-height/transition. */}
       <Suspense fallback={null}>
         <main id="main">
-          <Reveal><AudienceSplit /></Reveal>
           <Reveal><Categories /></Reveal>
           <Reveal><HowItWorks /></Reveal>
           <Reveal><Testimonials /></Reveal>
