@@ -9,7 +9,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { StopDetailsContent } from "./StopDetailsContent";
 import type { RouteStop } from "@/hooks/useRoutes";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsBelowBreakpoint } from "@/hooks/use-mobile";
 
 type Props = {
   open: boolean;
@@ -71,16 +71,16 @@ const useStopWithRoute = (stopId: string | null) => {
 
 export const StopDetailsSheetById = ({ open, onOpenChange, stopId }: Props) => {
   const { data, isLoading } = useStopWithRoute(stopId);
-  const isMobile = useIsMobile();
+  const isCompact = useIsBelowBreakpoint(1024);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       {/* Bottom-sheet på mobil (native, tommel-venlig) — højre-side
           på desktop som matcher virksomhedspanelets StopDetailSheet. */}
       <SheetContent
-        side={isMobile ? "bottom" : "right"}
+        side={isCompact ? "bottom" : "right"}
         className={
-          isMobile
+          isCompact
             ? "planner-overlay h-[92dvh] w-full !inset-x-0 !bottom-0 !rounded-t-[6px] !rounded-b-none !border-x-0 !border-b-0 p-0 flex flex-col"
             : "planner-overlay w-full p-0 flex flex-col sm:max-w-lg"
         }

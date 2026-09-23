@@ -22,7 +22,7 @@ export const PageHeaderSkeleton = ({ withAction = true }: { withAction?: boolean
     </div>
     {withAction && (
       <div className="w-full sm:w-auto sm:shrink-0">
-        <Skeleton className="h-9 w-full rounded-lg sm:w-44" />
+        <Skeleton className="h-9 w-full rounded-md sm:w-44" />
       </div>
     )}
   </div>
@@ -33,9 +33,9 @@ export const PageHeaderSkeleton = ({ withAction = true }: { withAction?: boolean
 export const StatCardSkeleton = ({ className }: { className?: string }) => (
   // Matcher StatCard: ikon-badge h-8 (mobil) → h-10 (sm+), value h-6 → h-7,
   // padding p-3 → p-4. Ikonet sidder til venstre, ikke højre.
-  <Card className={cn("rounded-xl border-border shadow-sm", className)}>
-    <div className="flex items-start gap-2.5 p-3 sm:gap-3 sm:p-4">
-      <Skeleton className="h-8 w-8 shrink-0 rounded-lg sm:h-10 sm:w-10" />
+  <Card className={cn("service-panel-card rounded-md border-border shadow-sm", className)}>
+    <div className="flex items-start gap-2.5 p-3">
+      <Skeleton className="h-8 w-8 shrink-0 rounded-md" />
       <div className="min-w-0 flex-1 space-y-1.5 sm:space-y-2">
         <Skeleton className="h-3 w-16" />
         <Skeleton className="h-6 w-20 sm:h-7 sm:w-24" />
@@ -77,10 +77,10 @@ export const ListCardSkeleton = ({
   rows = 5,
   withHeader = true,
 }: { rows?: number; withHeader?: boolean }) => (
-  <Card className="rounded-xl border-border/80 shadow-sm">
+  <Card className="service-panel-card rounded-md border-border shadow-sm">
     {withHeader && (
       <div className="flex items-center gap-3 border-b border-border bg-card px-4 py-3 sm:px-5">
-        <Skeleton className="h-9 w-9 rounded-lg" />
+        <Skeleton className="h-9 w-9 rounded-md" />
         <div className="flex-1 space-y-2">
           <Skeleton className="h-4 w-32" />
           <Skeleton className="h-3 w-44" />
@@ -100,7 +100,7 @@ export const TableSkeleton = ({
   rows = 6,
   cols = 5,
 }: { rows?: number; cols?: number }) => (
-  <Card className="overflow-hidden rounded-xl border-border/80 shadow-sm">
+  <Card className="service-panel-card overflow-hidden rounded-md border-border shadow-sm">
     {/* Head */}
     <div className="flex items-center gap-3 border-b border-border bg-secondary/30 px-4 py-2.5 sm:px-5">
       {Array.from({ length: cols }).map((_, i) => (
@@ -125,7 +125,7 @@ export const TableSkeleton = ({
 
 /* ─────────── Form / detail skeleton ─────────── */
 export const FormSkeleton = ({ fields = 5 }: { fields?: number }) => (
-  <Card className="rounded-xl border-border/80 p-5 shadow-sm sm:p-6 space-y-4">
+  <Card className="service-panel-card space-y-4 rounded-md border-border p-4 shadow-sm sm:p-5">
     {Array.from({ length: fields }).map((_, i) => (
       <div key={i} className="space-y-2">
         <Skeleton className="h-3 w-24" />
@@ -141,7 +141,7 @@ export const FormSkeleton = ({ fields = 5 }: { fields?: number }) => (
 
 /* ─────────── Chart skeleton ─────────── */
 export const ChartSkeleton = ({ height = 240 }: { height?: number }) => (
-  <Card className="rounded-xl border-border/80 p-5 shadow-sm sm:p-6">
+  <Card className="service-panel-card rounded-md border-border p-4 shadow-sm sm:p-5">
     <div className="mb-4 flex items-end justify-between">
       <div className="space-y-2">
         <Skeleton className="h-3 w-24" />
@@ -185,8 +185,8 @@ export const ShellSkeleton = () => (
       <div className="flex h-14 items-center border-b border-border px-4">
         <Skeleton className="h-7 w-32" />
       </div>
-      <div className="m-3 flex items-center gap-2 rounded-xl border border-border bg-card p-3">
-        <Skeleton className="h-10 w-10 rounded-lg" />
+      <div className="m-3 flex items-center gap-2 rounded-md border border-border bg-card p-3">
+        <Skeleton className="h-10 w-10 rounded-md" />
         <div className="flex-1 space-y-2">
           <Skeleton className="h-3 w-24" />
           <Skeleton className="h-3 w-16" />
@@ -194,7 +194,7 @@ export const ShellSkeleton = () => (
       </div>
       <div className="space-y-1 px-3">
         {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-10 w-full rounded-lg" />
+          <Skeleton key={i} className="h-10 w-full rounded-md" />
         ))}
       </div>
     </aside>

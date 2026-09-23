@@ -63,10 +63,10 @@ const startIcon = L.divIcon({
 
 /** Farve pr. fleksibilitets-niveau — bruges på kortets pins og i listen. */
 const FLEX_TONE: Record<FlexLevel, string> = {
-  late: "hsl(0 72% 51%)",
-  fixed: "hsl(38 92% 50%)",
-  tight: "hsl(199 89% 48%)",
-  flexible: "hsl(142 70% 45%)",
+  late: "hsl(var(--destructive))",
+  fixed: "hsl(var(--warning))",
+  tight: "hsl(var(--info))",
+  flexible: "hsl(var(--success))",
 };
 
 const stopIcon = (
@@ -82,16 +82,16 @@ const stopIcon = (
   // separat brand-farve.
   const bg =
     state === "done"
-      ? "hsl(142 70% 45%)"
+      ? "hsl(var(--success))"
       : state === "next"
-        ? "hsl(0 0% 13%)" // foreground (admin-stil)
-        : "hsl(220 9% 46%)"; // muted-foreground for kommende stop
+        ? "hsl(var(--foreground))"
+        : "hsl(var(--muted-foreground))";
   const opacity = state === "future" ? 0.9 : 1;
   const ring = state === "next"
-    ? `0 0 0 4px hsl(0 0% 13% / 0.15), 0 0 0 9px hsl(0 0% 13% / 0.06)`
+    ? `0 0 0 4px hsl(var(--foreground) / 0.15), 0 0 0 9px hsl(var(--foreground) / 0.06)`
     : "none";
   // Highlighted: neutral foreground-ring i stedet for accent.
-  const hlRing = highlighted ? `, 0 0 0 4px hsl(0 0% 13%), 0 0 0 8px hsl(0 0% 13% / 0.18)` : "";
+  const hlRing = highlighted ? `, 0 0 0 4px hsl(var(--foreground)), 0 0 0 8px hsl(var(--foreground) / 0.18)` : "";
   const size = highlighted ? 44 : state === "next" ? 42 : 34;
   const fontSize = state === "next" ? 15 : 12;
   const inner =
@@ -1588,7 +1588,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               </p>
               <p className="text-xs font-medium text-foreground">{routeNotifications[0].message}</p>
             </div>
-            <Button size="sm" variant="outline" className="h-7 shrink-0 text-xs" onClick={() => routeNotifications.forEach((item) => markNotificationRead.mutate(item.id))}>Set</Button>
+            <Button size="sm" variant="outline" className="h-8 shrink-0 text-xs" onClick={() => routeNotifications.forEach((item) => markNotificationRead.mutate(item.id))}>Markér som læst</Button>
           </div>
         </div>
       )}

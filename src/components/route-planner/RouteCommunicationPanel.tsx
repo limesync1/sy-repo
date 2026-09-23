@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
-import { BellRing, Loader2, Send, UserRound, UsersRound } from "lucide-react";
+import { BellRing, Loader2, Send, UsersRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,7 +9,30 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Route, RouteStop } from "@/hooks/useRoutes";
 import { toast } from "sonner";
 
-type Employee = { id: string; name: string; email?: string | null; is_active?: boolean | null };
+type Employee = {
+  id: string;
+  name: string;
+  email?: string | null;
+  is_active?: boolean | null;
+  avatar_url?: string | null;
+  color?: string | null;
+};
+
+const initialsFor = (name: string) => name
+  .split(/\s+/)
+  .filter(Boolean)
+  .slice(0, 2)
+  .map((part) => part.charAt(0).toUpperCase())
+  .join("") || "M";
+
+const EmployeeAvatar = ({ employee, className }: { employee: Employee; className?: string }) => (
+  <Avatar className={className}>
+    <AvatarImage src={employee.avatar_url || undefined} alt={employee.name} className="object-cover" />
+    <AvatarFallback className="bg-secondary text-[10px] font-semibold text-foreground ring-1 ring-inset ring-border">
+      {initialsFor(employee.name)}
+    </AvatarFallback>
+  </Avatar>
+);
 
 export function RouteCommunicationPanel({
   route,
@@ -57,9 +81,9 @@ export function RouteCommunicationPanel({
   const selectedEmployee = choices.find((employee) => employee.id === employeeId);
 
   return (
-    <section className="overflow-hidden rounded-md border border-border bg-card shadow-sm">
-      <div className="flex items-center gap-3 border-b border-border bg-secondary/45 px-3.5 py-3">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-foreground text-background">
+    <section className="overflow-hidden rounded-md border border-border bg-card">
+      <div className="flex items-center gap-2.5 border-b border-border bg-secondary/35 px-3 py-2.5">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-secondary text-foreground">
           <BellRing className="h-4 w-4" />
         </span>
         <div className="min-w-0 flex-1">
@@ -67,7 +91,7 @@ export function RouteCommunicationPanel({
           <p className="text-[11px] leading-snug text-muted-foreground">Beskeden markeres på {stop ? "aftalen" : "ruten"}, indtil den er set.</p>
         </div>
       </div>
-      <div className="space-y-3 p-3.5">
+      <div className="space-y-3 p-3">
         {choices.length === 0 ? (
           <div className="flex items-center gap-2.5 rounded-md border border-dashed border-border bg-secondary/30 px-3 py-3 text-xs text-muted-foreground">
             <UsersRound className="h-4 w-4 shrink-0" />
@@ -78,11 +102,9 @@ export function RouteCommunicationPanel({
             <div className="space-y-1.5">
               <Label className="text-[11px] font-semibold text-foreground">Medarbejder</Label>
               <Select value={employeeId} onValueChange={setEmployeeId}>
-                <SelectTrigger className="h-10 w-full bg-background">
+                <SelectTrigger className="h-11 w-full bg-background sm:h-10">
                   <span className="flex min-w-0 items-center gap-2">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent/12 text-accent">
-                      <UserRound className="h-3.5 w-3.5" />
-                    </span>
+                    {selectedEmployee && <EmployeeAvatar employee={selectedEmployee} className="h-7 w-7 shrink-0" />}
                     <SelectValue placeholder="Vælg medarbejder" />
                   </span>
                 </SelectTrigger>
@@ -90,8 +112,8 @@ export function RouteCommunicationPanel({
                   {choices.map((employee) => (
                     <SelectItem key={employee.id} value={employee.id}>
                       <span className="flex items-center gap-2">
-                        <UserRound className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span>{employee.name}</span>
+                        <EmployeeAvatar employee={employee} className="h-7 w-7 shrink-0" />
+                        <span className="min-w-0 truncate">{employee.name}</span>
                       </span>
                     </SelectItem>
                   ))}
@@ -112,7 +134,7 @@ export function RouteCommunicationPanel({
               />
             </div>
             <div className="flex justify-end">
-              <Button size="sm" className="h-9 min-w-32 gap-2" onClick={sendNotice} disabled={!message.trim() || sending}>
+              <Button size="sm" className="h-11 w-full gap-2 sm:h-9 sm:w-auto sm:min-w-32" onClick={sendNotice} disabled={!message.trim() || sending}>
                 {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                 Send besked
               </Button>

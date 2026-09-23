@@ -291,10 +291,11 @@
     background: hsl(var(--planner-surface));
     color: hsl(var(--foreground));
     letter-spacing: 0;
+    font-family: Inter, InterFallback, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
 
   .service-panel-sidebar {
-    background: hsl(210 18% 97.5%);
+    background: hsl(var(--secondary));
     box-shadow: 8px 0 24px -24px hsl(var(--foreground) / 0.38);
   }
 
@@ -409,6 +410,26 @@
     border-color: hsl(var(--border));
     background: hsl(var(--planner-surface-raised));
     box-shadow: 0 1px 2px hsl(var(--foreground) / 0.055);
+  }
+
+  .employee-panel-workspace .rounded-2xl,
+  .employee-panel-workspace .rounded-xl,
+  .employee-panel-workspace .rounded-lg {
+    border-radius: 0.375rem;
+  }
+
+  .employee-panel-workspace [data-slot="card"] {
+    border-color: hsl(var(--border));
+    background: hsl(var(--planner-surface-raised));
+    box-shadow: 0 1px 2px hsl(var(--foreground) / 0.055);
+  }
+
+  .employee-panel-workspace button:focus-visible,
+  .employee-panel-workspace a:focus-visible,
+  .employee-panel-workspace [role="button"]:focus-visible,
+  .employee-panel-workspace [role="tab"]:focus-visible {
+    outline: 2px solid hsl(var(--accent));
+    outline-offset: 2px;
   }
 
   .service-panel-content input,
@@ -569,31 +590,19 @@
 
   .route-planner-workspace,
   .route-planner-open,
-  .employee-route-run {
-    font-family: Manrope, Inter, InterFallback, ui-sans-serif, system-ui, sans-serif;
-  }
-
-  .route-planner-workspace h1,
-  .route-planner-workspace h2,
-  .route-planner-workspace h3,
-  .route-planner-open [role="dialog"] h1,
-  .route-planner-open [role="dialog"] h2,
+  .employee-route-run,
   .employee-route-run h1,
   .employee-route-run h2 {
-    font-family: Sora, Manrope, Inter, InterFallback, ui-sans-serif, system-ui, sans-serif;
+    font-family: Inter, InterFallback, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
 
-  .route-planner-open .route-edit-workspace {
-    border-left: 3px solid hsl(var(--accent));
-  }
-
-  .route-planner-open .route-edit-workspace .planner-overlay-header {
+  .route-planner-open .planner-overlay-header {
     box-shadow: inset 0 -1px 0 hsl(var(--border) / 0.7);
   }
 
-  .route-planner-open .route-edit-workspace input,
-  .route-planner-open .route-edit-workspace textarea,
-  .route-planner-open .route-edit-workspace [role="combobox"] {
+  .route-planner-open .planner-overlay input,
+  .route-planner-open .planner-overlay textarea,
+  .route-planner-open .planner-overlay [role="combobox"] {
     background: hsl(var(--background));
   }
 
@@ -602,7 +611,7 @@
   }
 
   .employee-route-run .leaflet-control-container {
-    font-family: Manrope, Inter, InterFallback, ui-sans-serif, system-ui, sans-serif;
+    font-family: Inter, InterFallback, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
 
   @media (max-width: 639px) {

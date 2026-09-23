@@ -53,12 +53,12 @@ export const EmployeeWorkspacePicker = ({ employees, onSelected, currentBusiness
         </div>
       </header>
 
-      <main className="mx-auto grid w-full max-w-5xl flex-1 items-start gap-4 px-3 py-3 sm:px-6 sm:py-8 lg:grid-cols-[minmax(260px,0.72fr)_minmax(420px,1.28fr)] lg:gap-8 lg:py-14">
-        <section className="overflow-hidden rounded-[6px] bg-foreground px-5 py-6 text-background shadow-[0_18px_45px_-30px_hsl(var(--foreground)/0.7)] sm:px-7 sm:py-8 lg:sticky lg:top-20">
+      <main className="mx-auto grid w-full max-w-5xl flex-1 content-start items-start gap-3 px-3 py-3 sm:gap-5 sm:px-6 sm:py-6 lg:grid-cols-[minmax(260px,0.72fr)_minmax(420px,1.28fr)] lg:gap-8 lg:py-14">
+        <section className="overflow-hidden rounded-[6px] bg-foreground px-5 py-5 text-background shadow-[0_18px_45px_-30px_hsl(var(--foreground)/0.7)] sm:px-7 sm:py-7 lg:sticky lg:top-20">
           <div className="flex h-9 w-9 items-center justify-center rounded-[5px] bg-accent text-accent-foreground">
             <BriefcaseBusiness className="h-4 w-4" />
           </div>
-          <p className="mt-7 text-[11px] font-semibold uppercase text-background/60">Medarbejderpanel</p>
+          <p className="mt-5 text-[11px] font-semibold uppercase text-background/60 sm:mt-6">Medarbejderpanel</p>
           <h1 className="mt-1 text-2xl font-semibold leading-tight text-background sm:text-3xl">Vælg arbejdsplads</h1>
           <p className="mt-3 max-w-sm text-sm leading-6 text-background/70">
             Du har adgang til {employees.length} virksomheder. Vælg hvor du arbejder i dag.
