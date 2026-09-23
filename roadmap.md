@@ -60,3 +60,10 @@
 - [x] Fjern alle synlige planlagte møde-/udførelsestidspunkter på opgaver, aftaler og services.
 - [x] Bevar og verificér præcis faktisk daglig tidsregistrering i timer, minutter og sekunder.
 - [x] Kontrollér panelerne på mobil og computer.
+
+## Samlet redesign af medarbejderpanelet
+- [x] Erstat desktop-topfaner med samme lyse sidepanel som virksomhedspanelet.
+- [x] Bevar kompakt top og bundnavigation på mobil og tablet.
+- [x] Integrér arbejdspladsvælgeren i det fælles panelsystem.
+- [x] Ensret sidernes indholdsbredde, navigation og interaktionstilstande.
+- [ ] Verificér arbejdspladsvalg og centrale sider ved 393, 768 og 1280 px i lys og mørk visning.
