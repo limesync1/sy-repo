@@ -12,7 +12,6 @@ import {
   MapPin,
   Phone,
   Route as RouteIcon,
-  Timer,
   Flag,
   ListChecks,
   StickyNote,
