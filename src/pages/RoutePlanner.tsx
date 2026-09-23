@@ -4620,7 +4620,7 @@ const Planner = () => {
                   </div>
 
                 </div>
-                <div className="planner-mobile-board grid min-h-0 flex-1 grid-rows-[minmax(10.5rem,26dvh)_minmax(18rem,1fr)] overflow-hidden rounded-md border border-border bg-background shadow-sm">
+                <div className="planner-mobile-board grid min-h-0 flex-1 grid-rows-[minmax(17rem,38dvh)_minmax(18rem,1fr)] overflow-hidden rounded-md border border-border bg-background shadow-sm">
                   <section className="min-h-0 overflow-hidden border-b border-border" aria-label="Aftaler uden rute">
                     {unassignedCard}
                   </section>
