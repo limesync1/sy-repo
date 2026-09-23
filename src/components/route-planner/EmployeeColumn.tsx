@@ -49,7 +49,7 @@ export const EmployeeColumn = ({
   return (
     <Card
       ref={setNodeRef}
-      className={`group/col relative flex min-h-[480px] flex-col rounded-md border-border bg-card p-3.5 shadow-sm transition-[background-color,border-color,box-shadow] duration-150 ${
+      className={`group/col relative flex min-h-[380px] flex-col rounded-[5px] border-border bg-card p-3 shadow-sm transition-[background-color,border-color,box-shadow] duration-150 ${
         isOver
           ? "border-accent bg-accent/[0.06] ring-2 ring-accent/20 shadow-lg"
           : "hover:border-accent/35 hover:shadow-md"
@@ -96,7 +96,7 @@ export const EmployeeColumn = ({
 
       {/* Action row */}
       {stops.length >= 1 && (onOptimize || onDispatch) && (
-         <div className="mb-2.5 flex gap-1.5 border-y border-border/60 py-2">
+          <div className="mb-2 flex gap-1.5 border-y border-border/60 py-1.5">
           {onOptimize && stops.length >= 2 && (
             <Button size="sm" variant="outline" className="flex-1 h-8 text-xs gap-1 rounded-md border-border/70 hover:bg-secondary hover:text-foreground" onClick={onOptimize} disabled={optimizing} title="AI-optimér rækkefølge">
               {optimizing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
@@ -120,11 +120,11 @@ export const EmployeeColumn = ({
       )}
 
       {/* Stops list */}
-       <div className="min-h-[320px] flex-1 space-y-1.5 overflow-y-auto">
+       <div className="min-h-[220px] flex-1 space-y-1.5 overflow-y-auto">
         <SortableContext items={sortedIds} strategy={verticalListSortingStrategy}>
           {stops.length === 0 && (
             <div
-               className={`min-h-[300px] px-3 text-[11px] text-center border border-dashed rounded-[5px] transition-colors flex items-center justify-center ${
+               className={`min-h-[210px] px-3 text-[11px] text-center border border-dashed rounded-[5px] transition-colors flex items-center justify-center ${
                 isOver
                   ? "border-accent/60 bg-accent/[0.06] text-accent font-medium"
                   : "border-border/50 text-muted-foreground/70 hover:border-border hover:bg-secondary/20"
@@ -190,7 +190,7 @@ const SortableStopCard = ({
       {/* Left color rail */}
       <span
         aria-hidden
-        className="absolute left-0 top-0 bottom-0 w-1 opacity-90"
+        className="absolute left-0 top-0 bottom-0 w-[3px] opacity-90"
         style={{ background: isDone ? "hsl(var(--muted-foreground) / 0.4)" : color }}
       />
       <div className="flex items-start gap-2">

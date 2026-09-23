@@ -4,7 +4,7 @@
 // dropdowns, tooltips). Derfor sætter vi `class="dark"` på <html> mens
 // Planner er monteret, og fjerner den igen ved unmount, så andre sider
 // forbliver i lys tilstand.
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -19,6 +19,17 @@ export function usePlannerTheme() {
  *  app-rammen følger temaet. Rydder altid op ved unmount. */
 export function usePlannerThemeEffect() {
   const [theme] = usePlannerTheme();
+  const previousDark = useRef<boolean | null>(null);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    previousDark.current = root.classList.contains("dark");
+    return () => {
+      root.classList.toggle("dark", previousDark.current === true);
+      root.classList.remove("theme-transitioning");
+    };
+  }, []);
+
   useEffect(() => {
     const root = document.documentElement;
     // Aktiver krydsfade på alle elementer kortvarigt, så skiftet ml.
@@ -34,7 +45,6 @@ export function usePlannerThemeEffect() {
     }
     return () => {
       window.clearTimeout(t);
-      root.classList.remove("dark");
       root.classList.remove("theme-transitioning");
     };
   }, [theme]);
@@ -48,7 +58,7 @@ export default function ThemeToggle() {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setTheme(next)} aria-label={`Skift til ${next === "dark" ? "mørk" : "lys"} tilstand`}>
+        <Button variant="outline" size="icon" className="h-7 w-7 rounded-[4px] bg-background shadow-sm" onClick={() => setTheme(next)} aria-label={`Skift til ${next === "dark" ? "mørk" : "lys"} tilstand`}>
           <Icon className="h-3.5 w-3.5" />
         </Button>
       </TooltipTrigger>

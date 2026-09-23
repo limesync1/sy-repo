@@ -17,13 +17,13 @@ export const CARD_ERROR = "border-destructive/55 bg-destructive/[0.035]";
 export const CARD_SUCCESS = "border-success/45 bg-success/[0.035]";
 export const CARD_BUSY = "pointer-events-none animate-pulse opacity-65";
 /** Bredde på venstre-accent-stribe — ens på tværs af alle kort. */
-export const CARD_RAIL_WIDTH = "w-1";
+export const CARD_RAIL_WIDTH = "w-[3px]";
 
 /** Basis-container for et aftalekort — bygget oven på de fælles PILL-tokens
  *  så aftalekort og rute-piller deler præcis samme radius, kant, skygge og
  *  transition. */
 export const CARD_BASE =
-  `planner-card group relative rounded-md border bg-card overflow-hidden ` +
+  `planner-card group relative rounded-[5px] border bg-card overflow-hidden ` +
   "transition-[background-color,border-color,box-shadow,opacity,transform] duration-150 ease-out";
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -100,5 +100,5 @@ export const ICON_BTN_DESTRUCTIVE =
 export const SEGMENT_BTN =
   "inline-flex items-center justify-center gap-1.5 transition-colors duration-150 " +
   "text-muted-foreground hover:text-foreground hover:bg-secondary/70 " +
-  "focus-visible:outline-none focus-visible:bg-secondary focus-visible:text-foreground " +
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/70 focus-visible:bg-secondary focus-visible:text-foreground " +
   "active:bg-secondary";

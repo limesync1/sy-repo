@@ -273,7 +273,7 @@ export const UnassignedJobCard = ({
         isDragging
           ? "border-dashed border-accent bg-accent/[0.06] shadow-lg ring-2 ring-accent/20"
           : isPending
-          ? "border-amber-300/60"
+          ? "border-amber-300/60 dark:border-amber-500/35"
           : selected
             ? CARD_SELECTED
             : cn(CARD_BORDER, CARD_HOVER),
@@ -299,7 +299,7 @@ export const UnassignedJobCard = ({
           aria-label={selected ? "Fravælg aftale" : "Vælg aftale"}
           aria-pressed={selected}
           title={selected ? "Fravælg aftale" : "Vælg flere aftaler"}
-          className={`absolute top-2 left-2 z-10 h-4 w-4 rounded-[3px] border flex items-center justify-center transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:outline-none ${
+          className={`absolute top-1.5 left-1.5 z-10 h-6 w-6 rounded-[4px] border flex items-center justify-center transition-colors cursor-pointer touch-manipulation focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:outline-none ${
             selected
               ? "bg-accent border-accent text-accent-foreground opacity-100"
               : anySelected
@@ -327,7 +327,7 @@ export const UnassignedJobCard = ({
           },
           "aria-label": `Åbn detaljer for ${job.customer_name}`,
         })}
-        className={`${compact ? "px-2 py-1.5 pl-8" : "px-2.5 py-2 pl-8"} space-y-1.5 ${isPending ? "" : "cursor-pointer focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent focus-visible:outline-none"}`}
+        className={`${compact ? "px-2 py-1.5 pl-9" : "px-2.5 py-2 pl-9"} space-y-1.5 ${isPending ? "" : "cursor-pointer focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent focus-visible:outline-none"}`}
       >
         {/* TOP-LINJE: navn + dato-pille. Navn er stærkeste typografi.
             Dato-pillen ankrer urgency i højre side uden tungt bånd. */}

@@ -12,3 +12,4 @@
 - [x] Gør aftalekort i "Aftaler uden rute" mere kompakte på computer og mobil
 - [x] Hold rutekortets handlinger fri af rutenavn og metadata
 - [x] Forbedr mørk visning på hele ruteplanlæggeren og dens vinduer
+- [ ] Kvalitetssikr hele redesignets layout, vinduer, tilstande og responsive visninger

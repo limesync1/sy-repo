@@ -31,7 +31,7 @@ export default function DensityToggle() {
     <div
       role="radiogroup"
       aria-label="Tæthed"
-      className="inline-flex h-7 items-center gap-0.5 rounded-md border border-border bg-background p-0.5"
+      className="inline-flex h-7 items-center gap-0.5 rounded-[4px] border border-border bg-background p-0.5 shadow-sm"
     >
       {ORDER.map((opt) => {
         const Icon = ICONS[opt];
@@ -45,7 +45,7 @@ export default function DensityToggle() {
                 aria-checked={active}
                 onClick={() => setD(opt)}
                 className={cn(
-                  "inline-flex h-6 w-7 items-center justify-center rounded-[5px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+                  "inline-flex h-6 w-7 items-center justify-center rounded-[3px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
                   active
                     ? "bg-foreground text-background"
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground",
