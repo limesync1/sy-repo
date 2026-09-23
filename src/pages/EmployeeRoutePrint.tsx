@@ -11,7 +11,6 @@ import {
   Rows2,
   MapPin,
   Phone,
-  Clock,
   Route as RouteIcon,
   Timer,
   Flag,
@@ -170,12 +169,6 @@ const EmployeeRoutePrint = () => {
               <ol className="print-stops mt-1">
                 {sorted.map((s, i) => {
                   const cleanedSummary = s.service_summary ? stripPrices(s.service_summary) : "";
-                  const arrival = s.planned_arrival
-                    ? new Date(s.planned_arrival).toLocaleTimeString("da-DK", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
-                    : null;
                   return (
                     <li
                       key={s.id}
@@ -201,12 +194,6 @@ const EmployeeRoutePrint = () => {
                             <h3 className="font-semibold text-[16px] leading-tight text-foreground print:text-black">
                               {s.customer_name || "Stop"}
                             </h3>
-                            {arrival && (
-                              <span className="inline-flex items-center gap-1 text-xs font-medium text-foreground print:text-black tabular-nums rounded-md bg-muted px-2 py-1 print:bg-transparent print:border print:border-black/30 print:px-1.5 print:py-0.5">
-                                <Clock className="h-3 w-3" />
-                                kl. {arrival}
-                              </span>
-                            )}
                           </div>
 
                           {/* Address & phone with icons */}

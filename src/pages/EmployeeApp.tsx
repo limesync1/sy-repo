@@ -783,7 +783,6 @@ const EmployeeApp = () => {
                     <div className="divide-y divide-border">
                       {myStops.slice(0, 4).map((s, i) => {
                         const isNext = s.id === firstPendingId;
-                        const arrivalLabel = null;
                         const pay = paymentMeta(s.order_status, (s as any).order_payment_status, (s as any).order_invoice_status);
                         return (
                           <button

@@ -404,6 +404,31 @@
     box-shadow: 0 8px 26px -20px hsl(var(--foreground) / 0.42) !important;
   }
 
+  .service-panel-content [data-slot="card"],
+  .service-panel-content .service-panel-card {
+    border-color: hsl(var(--border));
+    background: hsl(var(--planner-surface-raised));
+    box-shadow: 0 1px 2px hsl(var(--foreground) / 0.055);
+  }
+
+  .service-panel-content input,
+  .service-panel-content textarea,
+  .service-panel-content [role="combobox"],
+  .service-panel-open [role="dialog"] input,
+  .service-panel-open [role="dialog"] textarea,
+  .service-panel-open [role="dialog"] [role="combobox"] {
+    border-color: hsl(var(--border));
+    background: hsl(var(--planner-surface-raised));
+  }
+
+  .service-panel-content button:focus-visible,
+  .service-panel-content a:focus-visible,
+  .service-panel-content [role="button"]:focus-visible,
+  .service-panel-content [role="tab"]:focus-visible {
+    outline: 2px solid hsl(var(--accent));
+    outline-offset: 2px;
+  }
+
   .service-panel-open [role="dialog"] button,
   .service-panel-open [role="dialog"] input,
   .service-panel-open [role="dialog"] textarea,

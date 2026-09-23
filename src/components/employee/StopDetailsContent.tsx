@@ -6,7 +6,7 @@
 // visuelt sprog når man åbner detaljer for en aftale.
 import { useMemo, useState } from "react";
 import {
-  CheckCircle2, Clock, ClipboardList, Loader2, MapPin, MessageSquare,
+  CheckCircle2, ClipboardList, Loader2, MapPin, MessageSquare,
   Phone, Route as RouteIcon, Wallet, Calendar as CalendarIcon, Users,
   Package, Send,
 } from "lucide-react";
@@ -208,8 +208,6 @@ export const StopDetailsContent = ({
           ? "border-feature-warm/40 text-feature-warm-foreground bg-feature-warm/10"
           : "border-border text-muted-foreground bg-secondary/50";
 
-  const arrivalLabel = null;
-  const completedLabel = null;
   const accent = route?.color || "hsl(var(--primary))";
 
   // Send/gensend faktura — kun synlig når aftalen er markeret udført OG der
