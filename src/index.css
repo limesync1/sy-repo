@@ -596,13 +596,13 @@
     font-family: Inter, InterFallback, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
 
-  .route-planner-open .route-edit-workspace .planner-overlay-header {
+  .route-planner-open .planner-overlay-header {
     box-shadow: inset 0 -1px 0 hsl(var(--border) / 0.7);
   }
 
-  .route-planner-open .route-edit-workspace input,
-  .route-planner-open .route-edit-workspace textarea,
-  .route-planner-open .route-edit-workspace [role="combobox"] {
+  .route-planner-open .planner-overlay input,
+  .route-planner-open .planner-overlay textarea,
+  .route-planner-open .planner-overlay [role="combobox"] {
     background: hsl(var(--background));
   }
 
