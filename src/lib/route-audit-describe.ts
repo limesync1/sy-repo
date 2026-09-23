@@ -81,7 +81,9 @@ const FIELD_LABEL: Record<string, string> = {
 
 const SKIP_FIELDS = new Set([
   "id", "business_id", "created_at", "updated_at", "route_id", "agreement_id",
-  "created_by", "updated_by", "public_id",
+  "created_by", "updated_by", "public_id", "start_time", "end_time",
+  "planned_arrival", "time_window_start", "time_window_end", "duration_minutes",
+  "estimated_duration_minutes",
 ]);
 
 const fmt = (v: unknown): string => {

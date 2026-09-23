@@ -121,17 +121,17 @@ export const RouteOccurrenceTimeline = ({ routeId }: Props) => {
           const projected = row.occurrences.filter(
             (o) => o.status !== "completed" && o.id !== next?.id,
           ).slice(0, 2);
-          const items: Array<{ key: string; n: number; kind: "done" | "next" | "future"; date: string; planned: string | null; locked?: boolean; occ?: Occurrence }> = [];
+          const items: Array<{ key: string; n: number; kind: "done" | "next" | "future"; date: string; locked?: boolean; occ?: Occurrence }> = [];
           // Vis sidste 2 udførte for kontekst
           const completedList = row.occurrences.filter((o) => o.status === "completed").slice(-2);
-          for (const c of completedList) items.push({ key: c.id, n: c.sequence_index + 1, kind: "done", date: c.occurrence_date, planned: c.planned_arrival, occ: c });
+          for (const c of completedList) items.push({ key: c.id, n: c.sequence_index + 1, kind: "done", date: c.occurrence_date, occ: c });
           if (next) {
             const locked = next.planned_arrival
               ? isFuture(parseISO(next.planned_arrival))
               : isFuture(parseISO(next.occurrence_date));
-            items.push({ key: next.id, n: next.sequence_index + 1, kind: "next", date: next.occurrence_date, planned: next.planned_arrival, locked, occ: next });
+            items.push({ key: next.id, n: next.sequence_index + 1, kind: "next", date: next.occurrence_date, locked, occ: next });
           }
-          for (const p of projected) items.push({ key: p.id, n: p.sequence_index + 1, kind: "future", date: p.occurrence_date, planned: p.planned_arrival, occ: p });
+          for (const p of projected) items.push({ key: p.id, n: p.sequence_index + 1, kind: "future", date: p.occurrence_date, occ: p });
 
           return (
             <div key={row.agreement_id} className="space-y-1.5">
@@ -175,7 +175,7 @@ export const RouteOccurrenceTimeline = ({ routeId }: Props) => {
                           </div>
                         )}
                         <div className="text-[10px] text-muted-foreground leading-tight capitalize">
-                          {format(parseISO(it.planned ?? it.date), it.planned ? "d. MMM HH:mm" : "d. MMM", { locale: da })}
+                          {format(parseISO(it.date), "d. MMM", { locale: da })}
                         </div>
                         {it.occ && (() => {
                           const badge = occurrenceStatusBadge(it.occ);

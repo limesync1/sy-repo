@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, ArrowRight, CalendarDays, Route as RouteIcon, Check, MapPin, Clock } from "lucide-react";
+import { Loader2, ArrowRight, CalendarDays, Route as RouteIcon, Check, MapPin } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { da } from "date-fns/locale";
 import { toast } from "sonner";
@@ -358,9 +358,6 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
             {stops.map((s) => {
               const isSelected = selected.has(s.id);
               const icon = getSubcategoryIcon(s.service_summary);
-              const arrivalTime = s.planned_arrival
-                ? new Date(s.planned_arrival).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })
-                : null;
               return (
                 <label
                   key={s.id}
@@ -383,11 +380,6 @@ export const MoveStopsDialog = ({ open, onOpenChange, route, stops, defaultMode,
                   <div className="flex-1 min-w-0">
                     <div className="flex min-w-0 items-center gap-2">
                       <p className="truncate text-sm font-semibold text-foreground">{s.customer_name}</p>
-                      {arrivalTime && (
-                        <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-secondary px-1.5 py-0 text-[10px] font-medium text-foreground/80 tabular-nums">
-                          <Clock className="h-2.5 w-2.5" /> {arrivalTime}
-                        </span>
-                      )}
                     </div>
                     <p className={`text-xs truncate ${s.service_summary ? "text-muted-foreground" : "text-muted-foreground/70 italic"}`}>
                       {s.service_summary || "Ingen ydelser angivet"}

@@ -285,11 +285,11 @@ export const StopDetailSheet = ({ stop, open, onOpenChange, routeColor, sequence
                       <p className="font-semibold text-emerald-900 dark:text-emerald-100">
                         Aftalen er udført
                       </p>
-                      {stop.completed_at && (
-                        <p className="text-[12px] text-emerald-800/80 dark:text-emerald-200/80 mt-0.5">
-                          Færdiggjort {format(parseISO(stop.completed_at), "d. MMM yyyy 'kl.' HH:mm", { locale: da })}
-                        </p>
-                      )}
+                       {stop.completed_at && (
+                         <p className="text-[12px] text-emerald-800/80 dark:text-emerald-200/80 mt-0.5">
+                           Færdiggjort {format(parseISO(stop.completed_at), "d. MMM yyyy", { locale: da })}
+                         </p>
+                       )}
                       {(() => {
                         const ids = stop.assignee_ids ?? (stop.assigned_employee_id ? [stop.assigned_employee_id] : []);
                         if (!ids.length) return null;
