@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyRouteData, useDirections, useUpdateStopStatus, type RouteStop, type Route } from "@/hooks/useRoutes";
@@ -316,7 +316,7 @@ const DriveMapControls = ({ following, onFollow }: { following: boolean; onFollo
 };
 
 /** Pans (with light zoom) to a stop when the user taps it in the list. */
-const FlyToStop = ({ target }: { target: [number, number] | null }) => {
+const FlyToStop = forwardRef<never, { target: [number, number] | null }>(({ target }, _ref) => {
   const map = useMap();
   useEffect(() => {
     if (!target) return;
@@ -329,7 +329,8 @@ const FlyToStop = ({ target }: { target: [number, number] | null }) => {
     });
   }, [target, map]);
   return null;
-};
+});
+FlyToStop.displayName = "FlyToStop";
 
 
 const formatKm = (m: number | null) => (m == null ? "—" : m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(1)} km`);
@@ -2020,114 +2021,80 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           </>
         )}
 
-        {/* ─── Pre-start CTA: big start button at the bottom ─── */}
+        {/* ─── Før start: kompakt kørselsdock med ét klart næste trin ─── */}
         {!routeStarted && !allDone && nextStop && (
-          <div className="absolute bottom-[46px] inset-x-0 z-[1000] p-2.5 sm:p-4">
-            <Card className="mx-auto max-w-xl overflow-hidden rounded-lg border-border shadow-xl">
-              {/* Dagens overblik — øverste sektion */}
-              <div className="border-l-4 border-l-primary bg-card px-3.5 py-3 sm:px-4">
-                {/* Header-rad: titel + antal stop */}
-                <div className="mb-2.5 flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                    <p className="text-[11px] text-muted-foreground font-medium truncate">
-                      Dagens rute · {todayLabel}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    {remainingStops.length > 1 && (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        className="h-6 px-2 text-[10px] font-semibold"
-                        disabled={optimizeLive.isPending}
-                        onClick={() => void reoptimizeFromHere()}
-                      >
-                        {optimizeLive.isPending ? "Optimerer…" : "Optimér herfra"}
-                      </Button>
-                    )}
-                    <Badge variant="secondary" className="text-[10px] h-5 px-1.5 tabular-nums font-semibold shrink-0">
-                      {sortedStops.length} stop
-                    </Badge>
-                  </div>
+          <div className="absolute bottom-[46px] inset-x-0 z-[1000] p-2 sm:p-4">
+            <section className="mx-auto max-w-xl overflow-hidden rounded-md border border-border/80 bg-foreground text-background shadow-xl">
+              <div className="flex items-center justify-between gap-3 border-b border-background/15 px-3.5 py-2.5">
+                <div className="min-w-0">
+                  <p className="truncate text-[10px] font-semibold uppercase text-background/65">{todayLabel}</p>
+                  <p className="truncate text-sm font-semibold">{route.name || "Dagens rute"}</p>
                 </div>
-
-                {/* Ruten i tre tal — samme information før og under kørslen. */}
-                <div className="mb-3 grid grid-cols-3 divide-x divide-border overflow-hidden rounded-md border border-border bg-secondary/35">
-                  <div className="px-2 py-2 text-center">
-                    <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Stop</p>
-                    <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">
-                      {remainingStops.length}
-                      {completedCount > 0 && (
-                        <span className="text-muted-foreground font-medium">/{sortedStops.length}</span>
-                      )}
-                    </p>
-                  </div>
-                  <div className="px-2 py-2 text-center">
-                    <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Distance</p>
-                    <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">
-                      {route?.total_distance_km != null && route.total_distance_km > 0
-                        ? `${route.total_distance_km.toFixed(1)} km`
-                        : "—"}
-                    </p>
-                  </div>
-                  <div className="px-2 py-2 text-center">
-                    <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Køretid</p>
-                    <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">
-                      {formatHoursMin(route?.total_duration_minutes)}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Først til — fremhævet på neutral baggrund */}
-                <div className="flex items-start gap-2.5">
-                  <span
-                    className="flex h-10 w-10 items-center justify-center rounded-lg text-background text-sm font-bold shrink-0"
-                    style={{ background: themeColor }}
+                {remainingStops.length > 1 && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    className="h-8 shrink-0 gap-1.5 rounded-md px-2.5 text-xs"
+                    disabled={optimizeLive.isPending}
+                    onClick={() => void reoptimizeFromHere()}
                   >
-                    {nextStopIdx + 1}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold leading-none">
-                      Først til
+                    {optimizeLive.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
+                    {optimizeLive.isPending ? "Optimerer" : "Optimér"}
+                  </Button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-stretch">
+                <div className="min-w-0 px-3.5 py-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent text-sm font-bold text-accent-foreground">
+                      {nextStopIdx + 1}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-semibold uppercase text-background/60">Første stop</p>
+                      <p className="truncate text-[15px] font-semibold leading-tight">{nextStop.customer_name || "Stop"}</p>
+                    </div>
+                  </div>
+                  {(nextStop.full_address || nextStop.address) && (
+                    <p className="mt-2 flex items-center gap-1.5 truncate text-xs text-background/70">
+                      <MapPin className="h-3.5 w-3.5 shrink-0" />
+                      {nextStop.full_address || nextStop.address}
                     </p>
-                    <p className="font-semibold text-sm text-foreground truncate leading-tight mt-0.5">
-                      {nextStop.customer_name || "Stop"}
+                  )}
+                </div>
+                <div className="grid min-w-[104px] grid-rows-2 border-l border-background/15 text-right">
+                  <div className="border-b border-background/15 px-3 py-2">
+                    <p className="text-[9px] font-semibold uppercase text-background/55">Distance</p>
+                    <p className="text-sm font-semibold tabular-nums">
+                      {route.total_distance_km != null && route.total_distance_km > 0 ? `${route.total_distance_km.toFixed(1)} km` : "—"}
                     </p>
-                    {(nextStop.full_address || nextStop.address) && (
-                      <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1 mt-0.5">
-                        <MapPin className="h-3 w-3 shrink-0" />
-                        {nextStop.full_address || nextStop.address}
-                      </p>
-                    )}
+                  </div>
+                  <div className="px-3 py-2">
+                    <p className="text-[9px] font-semibold uppercase text-background/55">Køretid</p>
+                    <p className="text-sm font-semibold tabular-nums">{formatHoursMin(route.total_duration_minutes)}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Info-grid: km, tid, ETA — for første leg.  Vi viser kun de tre
-                  tal der betyder noget, og bruger altid den korrigerede ETA
-                  (med DK trafik-buffer) — ingen toggle, ingen badges. */}
-              <div className="border-t border-border p-3">
+              <div className="border-t border-background/15 p-2.5">
                 <Button
                   onClick={handleStartRoute}
                   size="lg"
                   disabled={routeDateLocked}
-                  className="h-11 w-full gap-2 rounded-md bg-foreground text-sm font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90"
+                  className="h-12 w-full gap-2 rounded-md bg-accent text-sm font-semibold text-accent-foreground shadow-none hover:bg-accent/90"
                 >
-                  <Play className="h-5 w-5 fill-current" /> {routeDateLocked ? "Låst til rutedagen" : "Start dagens rute"}
+                  <Navigation className="h-5 w-5" /> {routeDateLocked ? "Låst til rutedagen" : `Start rute · ${remainingStops.length} stop`}
                 </Button>
               </div>
-            </Card>
+            </section>
           </div>
         )}
 
         {/* ─── Active driving card ─── */}
         {routeStarted && !allDone && nextStop && (
           <div className="absolute bottom-[46px] inset-x-0 z-[1000] p-2.5 pointer-events-none sm:p-4">
-            <Card
-              className="mx-auto max-w-xl overflow-hidden pointer-events-auto rounded-lg border-border shadow-xl bg-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/90"
-            >
+            <Card className="mx-auto max-w-xl overflow-hidden pointer-events-auto rounded-md border-border/80 shadow-xl bg-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/90">
               {/* Segmenteret progress — tynd, diskret */}
               <div className="flex gap-1 px-3 pt-2 pb-1.5">
                 {sortedStops.map((s, i) => (
@@ -2145,9 +2112,10 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   />
                 ))}
               </div>
-              <button
+              <Button
                 type="button"
-                className="group w-full flex items-center gap-3 px-3.5 py-3 hover:bg-secondary/50 active:bg-secondary/70 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                variant="ghost"
+                className="group h-auto w-full justify-start rounded-none px-3.5 py-3 hover:bg-secondary/50 active:bg-secondary/70"
                 onClick={() => setCollapsed((c) => !c)}
                 aria-expanded={!collapsed}
                 aria-label={collapsed ? "Vis stop-detaljer" : "Skjul stop-detaljer"}
@@ -2213,7 +2181,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 <span className="ml-1 text-muted-foreground/70 group-hover:text-foreground transition-colors">
                   {collapsed ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </span>
-              </button>
+              </Button>
 
               {/* Altid synlig: kompakt CTA-rad — så medarbejderen kan markere
                   udført / navigere uden at åbne detaljer (og uden at miste
@@ -2459,7 +2427,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
   );
 };
 
-const MapInteractionWatcher = ({ onInteract }: { onInteract: () => void }) => {
+const MapInteractionWatcher = forwardRef<never, { onInteract: () => void }>(({ onInteract }, _ref) => {
   const map = useMap();
   useEffect(() => {
     // Vi vil KUN bryde follow-mode ved ægte brugerinput — ikke når vores
@@ -2484,7 +2452,8 @@ const MapInteractionWatcher = ({ onInteract }: { onInteract: () => void }) => {
     };
   }, [map, onInteract]);
   return null;
-};
+});
+MapInteractionWatcher.displayName = "MapInteractionWatcher";
 
 /* ─── Collapsible bottom stop-list with live status & map sync ─── */
 const StopListPanel = ({
