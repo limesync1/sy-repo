@@ -74,7 +74,7 @@ export const StopDetailsContent = ({
       if (planned.getTime() > now.getTime()) {
         return {
           canComplete: false,
-          futureLabel: format(planned, "d. MMM 'kl.' HH:mm", { locale: da }),
+          futureLabel: format(planned, "d. MMM", { locale: da }),
         };
       }
       return { canComplete: true, futureLabel: null as string | null };
