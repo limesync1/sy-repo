@@ -54,7 +54,21 @@ const startIcon = L.divIcon({
   iconAnchor: [19, 44],
 });
 
-const stopIcon = (n: number, state: "next" | "done" | "future", color: string, highlighted = false) => {
+/** Farve pr. fleksibilitets-niveau — bruges på kortets pins og i listen. */
+const FLEX_TONE: Record<FlexLevel, string> = {
+  late: "hsl(0 72% 51%)",
+  fixed: "hsl(38 92% 50%)",
+  tight: "hsl(199 89% 48%)",
+  flexible: "hsl(142 70% 45%)",
+};
+
+const stopIcon = (
+  n: number,
+  state: "next" | "done" | "future",
+  color: string,
+  highlighted = false,
+  flexLevel: FlexLevel | null = null,
+) => {
   // Admin-panel-stil: neutral foreground for "next", muted-grå for "future",
   // grøn for "done".  Vi bruger samme palette som AdminShell/StatCard så
   // medarbejder-appen visuelt er en del af samme design-system — ikke en
@@ -89,6 +103,11 @@ const stopIcon = (n: number, state: "next" | "done" | "future", color: string, h
           box-shadow:0 4px 12px rgba(0,0,0,.28)${hlRing};
           ${ring !== "none" ? `outline-offset:0;box-shadow:0 4px 12px rgba(0,0,0,.28), ${ring}${hlRing};` : ""}
         ">${inner}</div>
+        ${
+          flexLevel && state !== "done"
+            ? `<div style="position:absolute;top:-2px;right:-2px;width:13px;height:13px;border-radius:50%;background:${FLEX_TONE[flexLevel]};border:2.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,.3);"></div>`
+            : ""
+        }
         <div style="position:absolute;left:50%;top:${size - 4}px;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid ${bg};filter:drop-shadow(0 1px 1px rgba(0,0,0,.15));"></div>
       </div>`,
     iconSize: [size, Math.round(size * 1.18)],
