@@ -488,13 +488,6 @@ function CustomizeSheet({
               </div>
             )}
           </div>
-
-          {eventKey === "service_upcoming" && (
-            <p className="rounded-md border border-dashed border-border bg-muted/30 px-3 py-2 text-[11px] text-muted-foreground">
-              <Clock className="inline h-3 w-3 mr-1 -mt-0.5" />
-              Tidspunktet for hvornår påmindelsen sendes vælges direkte i panelet under "Hvornår".
-            </p>
-          )}
         </div>
 
         {/* Footer */}
@@ -585,7 +578,7 @@ function LeadTimePicker({
     <div className="mt-3 rounded-lg border border-dashed border-border bg-muted/20 p-3">
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-          <Clock className="h-3 w-3" /> Hvornår
+          <Bell className="h-3 w-3" /> Hvornår
         </div>
         <span className="text-[11px] text-foreground/70">
           {value == null ? "Bruger standard" : `${formatLead(value)} før`}

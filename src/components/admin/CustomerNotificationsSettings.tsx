@@ -72,112 +72,6 @@ function renderPreview(tpl: string): string {
   });
 }
 
-/* ─────────────────────── SCHEDULE HELPERS ─────────────────────── */
-// Påmindelser sendes på et bestemt klokkeslæt N dage før selve aftalen.
-// Beregnes ud fra den planlagte ankomst-dato på rutekalenderen.
-
-type ScheduleDays = 0 | 1 | 2 | 7;
-const DAY_OPTIONS: { value: ScheduleDays; label: string; short: string }[] = [
-  { value: 0, label: "Samme dag",     short: "i dag" },
-  { value: 1, label: "Dagen før",     short: "1 dag før" },
-  { value: 2, label: "2 dage før",    short: "2 dage før" },
-  { value: 7, label: "1 uge før",     short: "1 uge før" },
-];
-const DEFAULT_SCHEDULE: { days: ScheduleDays; time: string } = { days: 1, time: "09:00" };
-const TIME_PRESETS = ["08:00", "09:00", "12:00", "16:00", "18:00"];
-
-const formatSchedule = (days: ScheduleDays, time: string): string => {
-  const d = DAY_OPTIONS.find((o) => o.value === days)?.label ?? `${days} dage før`;
-  return `${d} kl. ${time}`;
-};
-
-// Kompatibilitet: hvis en gammel række kun har lead_time_minutes (gammelt
-// design), så approximér til { days, time } så brugeren får et rimeligt
-// udgangspunkt at justere fra.
-const minutesToSchedule = (mins: number | null | undefined): { days: ScheduleDays; time: string } => {
-  if (mins == null) return { ...DEFAULT_SCHEDULE };
-  if (mins >= 7 * 24 * 60) return { days: 7, time: "09:00" };
-  if (mins >= 2 * 24 * 60) return { days: 2, time: "09:00" };
-  if (mins >= 24 * 60)     return { days: 1, time: "09:00" };
-  return { days: 0, time: "08:00" };
-};
-
-function SchedulePicker({
-  days, time, onChange, label,
-}: {
-  days: ScheduleDays; time: string;
-  onChange: (next: { days: ScheduleDays; time: string }) => void;
-  label: string;
-}) {
-  return (
-    <div className="rounded-lg border border-border bg-muted/20 p-3">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
-          <p className="text-[12px] font-semibold text-foreground">{label}</p>
-        </div>
-      </div>
-      <p className="mt-1 text-[11px] text-muted-foreground">
-        Sendes <span className="font-medium text-foreground">{formatSchedule(days, time)}</span>. Gælder både e-mail og SMS.
-      </p>
-
-      <div className="mt-2.5">
-        <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Hvornår</p>
-        <div className="flex flex-wrap gap-1.5">
-          {DAY_OPTIONS.map((o) => {
-            const active = days === o.value;
-            return (
-              <button
-                key={o.value}
-                type="button"
-                onClick={() => onChange({ days: o.value, time })}
-                className={cn(
-                  "rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
-                  active
-                    ? "border-foreground bg-foreground text-background"
-                    : "border-border bg-background text-foreground hover:border-foreground/50",
-                )}
-              >
-                {o.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="mt-3">
-        <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Klokkeslæt</p>
-        <div className="flex flex-wrap items-center gap-1.5">
-          {TIME_PRESETS.map((t) => {
-            const active = time === t;
-            return (
-              <button
-                key={t}
-                type="button"
-                onClick={() => onChange({ days, time: t })}
-                className={cn(
-                  "rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors tabular-nums",
-                  active
-                    ? "border-foreground bg-foreground text-background"
-                    : "border-border bg-background text-foreground hover:border-foreground/50",
-                )}
-              >
-                kl. {t}
-              </button>
-            );
-          })}
-          <TimePickerPopover
-            value={time}
-            onChange={(v) => onChange({ days, time: v || "09:00" })}
-            label="Vælg klokkeslæt"
-            className="h-8 px-2.5 text-[12px]"
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /* ─────────────────────── PREVIEWS ─────────────────────── */
 
 function EmailPreview({ subject, body, businessName }: { subject: string; body: string; businessName: string }) {
@@ -358,16 +252,16 @@ export function CustomerNotificationsSettings({
     },
   });
 
-  type EmailDraft = { subject: string; body: string; enabled: boolean; days: ScheduleDays; time: string };
-  type SmsDraft   = { body: string; enabled: boolean; days: ScheduleDays; time: string };
+  type EmailDraft = { subject: string; body: string; enabled: boolean };
+  type SmsDraft   = { body: string; enabled: boolean };
   const [drafts, setDrafts] = useState<Record<EventKey, EmailDraft>>(() => {
     const o = {} as any;
-    EVENTS.forEach((e) => { o[e.key] = { subject: e.defaults.subject, body: e.defaults.body, enabled: true, ...DEFAULT_SCHEDULE }; });
+    EVENTS.forEach((e) => { o[e.key] = { subject: e.defaults.subject, body: e.defaults.body, enabled: true }; });
     return o;
   });
   const [smsDrafts, setSmsDrafts] = useState<Record<EventKey, SmsDraft>>(() => {
     const o = {} as any;
-    EVENTS.forEach((e) => { o[e.key] = { body: SMS_DEFAULTS[e.key], enabled: true, ...DEFAULT_SCHEDULE }; });
+    EVENTS.forEach((e) => { o[e.key] = { body: SMS_DEFAULTS[e.key], enabled: true }; });
     return o;
   });
   const [savedSnapshot, setSavedSnapshot] = useState<{ email: typeof drafts; sms: typeof smsDrafts } | null>(null);
@@ -383,20 +277,14 @@ export function CustomerNotificationsSettings({
     for (const e of EVENTS) {
       const eRow = rows.find((r: any) => r.event_type === e.key && (r.channel ?? "email") === "email");
       if (eRow) {
-        const fallback = minutesToSchedule(eRow.lead_time_minutes);
         nextEmail[e.key] = {
           subject: eRow.subject, body: eRow.body, enabled: eRow.enabled,
-          days: (eRow.days_before ?? fallback.days) as ScheduleDays,
-          time: (eRow.send_at_time ? String(eRow.send_at_time).slice(0, 5) : fallback.time),
         };
       }
       const sRow = rows.find((r: any) => r.event_type === e.key && r.channel === "sms");
       if (sRow) {
-        const fallback = minutesToSchedule(sRow.lead_time_minutes);
         nextSms[e.key] = {
           body: sRow.body, enabled: sRow.enabled,
-          days: (sRow.days_before ?? fallback.days) as ScheduleDays,
-          time: (sRow.send_at_time ? String(sRow.send_at_time).slice(0, 5) : fallback.time),
         };
       }
     }
@@ -409,37 +297,31 @@ export function CustomerNotificationsSettings({
   const isEmailDirty = (k: EventKey) => {
     const a = drafts[k]; const b = savedSnapshot?.email[k];
     if (!b) return true;
-    return a.subject !== b.subject || a.body !== b.body || a.enabled !== b.enabled || a.days !== b.days || a.time !== b.time;
+    return a.subject !== b.subject || a.body !== b.body || a.enabled !== b.enabled;
   };
   const isSmsDirty = (k: EventKey) => {
     const a = smsDrafts[k]; const b = savedSnapshot?.sms[k];
     if (!b) return true;
-    return a.body !== b.body || a.enabled !== b.enabled || a.days !== b.days || a.time !== b.time;
+    return a.body !== b.body || a.enabled !== b.enabled;
   };
 
   const saveEmailNow = async (key: EventKey, d: EmailDraft) => {
-    const leadMinutes = key === "service_upcoming" ? (d.days * 24 * 60) : null;
     const { error } = await supabase
       .from("customer_notification_templates")
       .upsert({ business_id: businessId, event_type: key, channel: "email",
         subject: d.subject, body: d.body, enabled: d.enabled,
-        lead_time_minutes: leadMinutes,
-        days_before: key === "service_upcoming" ? d.days : null,
-        send_at_time: key === "service_upcoming" ? d.time : null,
+        lead_time_minutes: null, days_before: null, send_at_time: null,
       } as any, { onConflict: "business_id,event_type,channel" });
     if (error) { toast.error(error.message); return; }
     setSavedSnapshot((s) => ({ email: { ...(s?.email ?? drafts), [key]: d }, sms: s?.sms ?? smsDrafts }));
   };
 
   const saveSmsNow = async (key: EventKey, d: SmsDraft) => {
-    const leadMinutes = key === "service_upcoming" ? (d.days * 24 * 60) : null;
     const { error } = await supabase
       .from("customer_notification_templates")
       .upsert({ business_id: businessId, event_type: key, channel: "sms",
         subject: null, body: d.body, enabled: d.enabled,
-        lead_time_minutes: leadMinutes,
-        days_before: key === "service_upcoming" ? d.days : null,
-        send_at_time: key === "service_upcoming" ? d.time : null,
+        lead_time_minutes: null, days_before: null, send_at_time: null,
       } as any, { onConflict: "business_id,event_type,channel" });
     if (error) { toast.error(error.message); return; }
     setSavedSnapshot((s) => ({ email: s?.email ?? drafts, sms: { ...(s?.sms ?? smsDrafts), [key]: d } }));

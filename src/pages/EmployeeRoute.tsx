@@ -1288,11 +1288,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     try {
       await reorderStops.mutateAsync(updates);
       buzz(14);
-      const broken = ev.brokenStopId ? sortedStops.find((s) => s.id === ev.brokenStopId) : null;
-      if (!ev.feasible && broken) {
-        toast.warning(`${broken.customer_name || "Et stop"} når ikke sit tidsvindue`, {
-          description: "Rækkefølgen er ændret — overvej at flytte den tilbage.",
-        });
+      toast.success("Rækkefølgen er ændret"););
       } else {
         const d = Math.round(ev.deltaMin);
         toast.success("Rækkefølgen er ændret", {
