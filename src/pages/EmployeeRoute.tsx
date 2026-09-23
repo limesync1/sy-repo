@@ -998,6 +998,60 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     () => sortedStops.filter((s) => s.status !== "completed"),
     [sortedStops],
   );
+
+  /* ── Fleksibilitet pr. stop: hvor meget kan det flyttes uden at
+   * sprænge et tidsvindue? Og kan resten af dagen køres hurtigere i en
+   * anden rækkefølge? Begge dele regnes lokalt (ingen netværk) så det er
+   * øjeblikkeligt og virker også uden dækning. ── */
+  const [clockTick, setClockTick] = useState(0);
+  useEffect(() => {
+    if (!pageVisible) return;
+    const t = setInterval(() => setClockTick((v) => v + 1), 60_000);
+    return () => clearInterval(t);
+  }, [pageVisible]);
+
+  // Kvantisér positionen til ~100 m, så tallene ikke hopper ved GPS-støj.
+  const flexOrigin: [number, number] | null = useMemo(() => {
+    const p = userPos ?? startCoord;
+    if (!p) return null;
+    return [Math.round(p[0] * 1000) / 1000, Math.round(p[1] * 1000) / 1000];
+  }, [userPos?.[0], userPos?.[1], startCoord?.[0], startCoord?.[1]]);
+
+  const flexList: StopFlex[] = useMemo(
+    () => computeFlex(remainingStops, flexOrigin, minutesNow()),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [remainingStops, flexOrigin?.[0], flexOrigin?.[1], clockTick],
+  );
+  const flexById = useMemo(
+    () => new Map(flexList.map((f) => [f.id, f])),
+    [flexList],
+  );
+  const speedOpp = useMemo(
+    () => findSpeedOpportunity(remainingStops, flexOrigin, minutesNow()),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [remainingStops, flexOrigin?.[0], flexOrigin?.[1], clockTick],
+  );
+  const [optimizeHintDismissed, setOptimizeHintDismissed] = useState<string | null>(null);
+  const oppSignature = speedOpp.suggestedIds.join("|");
+  const showOptimizeHint =
+    speedOpp.worth && !optimizeLive.isPending && optimizeHintDismissed !== oppSignature;
+
+  const reorderStops = useReorderStops();
+  const reoptRef = useRef<((o?: { silent?: boolean; excludeId?: string }) => Promise<void>) | null>(null);
+  const lastAutoOptRef = useRef(0);
+
+  /* Automatisk omlægning under kørsel — kun når der er meget at hente,
+   * man ikke er lige ved at køre ind til næste stop, og højst hvert 5. min. */
+  useEffect(() => {
+    if (!routeStarted || runMode !== "guide" || !pageVisible) return;
+    if (!speedOpp.worth || (speedOpp.savedMin < 15 && speedOpp.fixesViolations === 0)) return;
+    if (optimizeLive.isPending || !reoptRef.current) return;
+    if (distanceToNextM != null && distanceToNextM < 500) return;
+    if (Date.now() - lastAutoOptRef.current < 5 * 60_000) return;
+    lastAutoOptRef.current = Date.now();
+    void reoptRef.current({ silent: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [speedOpp.worth, speedOpp.savedMin, speedOpp.fixesViolations, routeStarted, runMode, pageVisible]);
   const remainingServiceMinutes = useMemo(
     () => remainingStops.reduce((sum, s) => sum + (s.duration_minutes || 0), 0),
     [remainingStops],
