@@ -1676,7 +1676,13 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                 <Marker
                   key={s.id}
                   position={[Number(s.latitude), Number(s.longitude)]}
-                  icon={stopIcon(i + 1, state, themeColor, s.id === highlightedId)}
+                  icon={stopIcon(
+                    i + 1,
+                    state,
+                    themeColor,
+                    s.id === highlightedId,
+                    flexById.get(s.id)?.level ?? null,
+                  )}
                   eventHandlers={{ click: () => { setHighlightedId(s.id); setSelectedId(s.id); } }}
                 />
               );
