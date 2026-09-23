@@ -45,6 +45,9 @@ type Props = {
   onNavigate: (stop: RouteStop) => void;
   onSwitchToGuide: () => void;
   onFinish: () => void;
+  /** Flyt et stop op/ned i rækkefølgen mens man kører. */
+  onMoveStop?: (stopId: string, dir: -1 | 1) => void;
+  reordering?: boolean;
 };
 
 export const RouteChecklistView = ({
