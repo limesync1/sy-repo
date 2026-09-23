@@ -54,3 +54,9 @@
 - [x] Forbedr kvitteringsvisningen med kun dato, uden afkrydsning og underskrift.
 - [x] Tilføj valgfri visning af noter og aftalte ekstra redigeringshandlinger.
 - [x] Verificér centrale panelvisninger i lys og mørk tilstand på mobil og computer.
+
+## Fjern planlagte tider og varigheder fra panelerne
+- [ ] Fjern alle synlige forventede/faste varigheder på opgaver, aftaler og services i virksomhed, admin og medarbejderpanel.
+- [ ] Fjern alle synlige planlagte møde-/udførelsestidspunkter på opgaver, aftaler og services.
+- [ ] Bevar og verificér præcis faktisk daglig tidsregistrering i timer, minutter og sekunder.
+- [ ] Kontrollér panelerne på mobil og computer.
