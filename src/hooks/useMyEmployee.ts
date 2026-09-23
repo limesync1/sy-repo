@@ -78,7 +78,7 @@ export type EmployeeStats = {
   stopsTotal: number;
   stopsCompleted: number;
   workdaysCount: number;
-  workMinutes: number;
+  workSeconds: number;
   totalDistanceKm: number;
   revenue: number;        // omsætning fra completede stop (ordrer)
   commission: number;     // medarbejderens andel (commission_pct)
@@ -125,7 +125,7 @@ export const useMyEmployeeStats = (
       if (!employeeId) {
         return {
           routesCount: 0, stopsTotal: 0, stopsCompleted: 0,
-          workdaysCount: 0, workMinutes: 0, totalDistanceKm: 0,
+           workdaysCount: 0, workSeconds: 0, totalDistanceKm: 0,
           revenue: 0, commission: 0, perDay: [],
         };
       }
@@ -179,7 +179,7 @@ export const useMyEmployeeStats = (
       if (routeIds.length === 0) {
         return {
           routesCount: 0, stopsTotal: 0, stopsCompleted: 0,
-          workdaysCount: 0, workMinutes: 0, totalDistanceKm: 0,
+           workdaysCount: 0, workSeconds: 0, totalDistanceKm: 0,
           revenue: 0, commission: 0, perDay: [],
         };
       }
@@ -281,8 +281,15 @@ export const useMyEmployeeStats = (
         .gte("workday_date", from)
         .lte("workday_date", to);
 
-      const workMinutes = (workdays || []).reduce(
-        (sum: number, w: any) => sum + Number(w.duration_minutes || 0),
+      const workSeconds = (workdays || []).reduce(
+        (sum: number, w: any) => {
+          const start = w.started_at ? new Date(w.started_at).getTime() : NaN;
+          const end = w.ended_at ? new Date(w.ended_at).getTime() : NaN;
+          if (Number.isFinite(start) && Number.isFinite(end)) {
+            return sum + Math.max(0, Math.floor((end - start) / 1000));
+          }
+          return sum + Math.max(0, Math.round(Number(w.duration_minutes || 0) * 60));
+        },
         0,
       );
 
@@ -360,7 +367,7 @@ export const useMyEmployeeStats = (
         stopsTotal: myStops.length,
         stopsCompleted,
         workdaysCount: (workdays || []).length,
-        workMinutes,
+        workSeconds,
         totalDistanceKm,
         revenue,
         commission,

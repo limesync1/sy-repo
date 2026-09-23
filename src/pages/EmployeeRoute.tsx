@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import {
   ArrowLeft, Navigation, Phone, CheckCircle2, MapPin, List, Clock, Loader2,
-  ChevronUp, ChevronDown, Play, Volume2, VolumeX, Crosshair, Flag, TrafficCone,
+  ChevronUp, ChevronDown, Play, Volume2, VolumeX, Crosshair, TrafficCone,
   Plus, Minus,
   Info,
 } from "lucide-react";
@@ -42,8 +42,7 @@ import RouteChecklistView from "@/components/employee-route/RouteChecklistView";
 import RouteModeDialog from "@/components/employee-route/RouteModeDialog";
 import { readRunMode, writeRunMode, buzz, type RouteRunMode } from "@/components/employee-route/RouteRunMode";
 import {
-  computeFlex, evaluateMove, findSpeedOpportunity, minutesNow,
-  type FlexLevel, type StopFlex,
+  evaluateMove, findSpeedOpportunity, minutesNow,
 } from "@/components/employee-route/routeSlack";
 import { ArrowUp, ArrowDown, Zap } from "lucide-react";
 
@@ -61,20 +60,11 @@ const startIcon = L.divIcon({
   iconAnchor: [19, 44],
 });
 
-/** Farve pr. fleksibilitets-niveau — bruges på kortets pins og i listen. */
-const FLEX_TONE: Record<FlexLevel, string> = {
-  late: "hsl(var(--destructive))",
-  fixed: "hsl(var(--warning))",
-  tight: "hsl(var(--info))",
-  flexible: "hsl(var(--success))",
-};
-
 const stopIcon = (
   n: number,
   state: "next" | "done" | "future",
   color: string,
   highlighted = false,
-  flexLevel: FlexLevel | null = null,
 ) => {
   // Admin-panel-stil: neutral foreground for "next", muted-grå for "future",
   // grøn for "done".  Vi bruger samme palette som AdminShell/StatCard så
@@ -110,11 +100,6 @@ const stopIcon = (
           box-shadow:0 4px 12px rgba(0,0,0,.28)${hlRing};
           ${ring !== "none" ? `outline-offset:0;box-shadow:0 4px 12px rgba(0,0,0,.28), ${ring}${hlRing};` : ""}
         ">${inner}</div>
-        ${
-          flexLevel && state !== "done"
-            ? `<div style="position:absolute;top:-2px;right:-2px;width:13px;height:13px;border-radius:50%;background:${FLEX_TONE[flexLevel]};border:2.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,.3);"></div>`
-            : ""
-        }
         <div style="position:absolute;left:50%;top:${size - 4}px;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid ${bg};filter:drop-shadow(0 1px 1px rgba(0,0,0,.15));"></div>
       </div>`,
     iconSize: [size, Math.round(size * 1.18)],
@@ -1012,39 +997,13 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     return eta.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
   }, [directions?.duration_s]);
 
-  /**
-   * Forsinkelse vs. planlagt ankomst — sammenligner aktuel ETA med
-   * nextStop.planned_arrival. Vi opdaterer hvert minut (via etaLabel der
-   * allerede genberegnes når directions ændrer sig). Returnerer antal
-   * minutter (positiv = forsinket, negativ = i god tid). null hvis vi
-   * ikke har data nok.
-   */
-  const delayMinutes: number | null = useMemo(() => {
-    if (!directions?.duration_s || !nextStop?.planned_arrival) return null;
-    const etaMs = Date.now() + directions.duration_s * 1000;
-    const plannedMs = new Date(nextStop.planned_arrival).getTime();
-    if (!Number.isFinite(plannedMs)) return null;
-    const diff = Math.round((etaMs - plannedMs) / 60000);
-    // Fornuftstjek: er afvigelsen større end 3 timer, er den planlagte tid
-    // ikke retvisende (fx en rute startet længe efter planen eller en gammel
-    // dato). Så viser vi hellere ingenting end "+258 min" på en tur på 23 km.
-    if (Math.abs(diff) > 180) return null;
-    return diff;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [directions?.duration_s, nextStop?.planned_arrival, nextStop?.id]);
-
-  /* ── Rute-totals: samlet distance/varighed for resterende stop.
-   * Vises i pre-start oversigt og i header-pillen så medarbejderen
-   * altid kan se hvad der venter på dagen. */
+  /* Resterende stop bruges til ruteoptimering og navigation. */
   const remainingStops = useMemo(
     () => sortedStops.filter((s) => s.status !== "completed"),
     [sortedStops],
   );
 
-  /* ── Fleksibilitet pr. stop: hvor meget kan det flyttes uden at
-   * sprænge et tidsvindue? Og kan resten af dagen køres hurtigere i en
-   * anden rækkefølge? Begge dele regnes lokalt (ingen netværk) så det er
-   * øjeblikkeligt og virker også uden dækning. ── */
+  /* Find en kortere rækkefølge lokalt, så det også virker uden dækning. */
   const [clockTick, setClockTick] = useState(0);
   useEffect(() => {
     if (!pageVisible) return;
@@ -1059,15 +1018,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     return [Math.round(p[0] * 1000) / 1000, Math.round(p[1] * 1000) / 1000];
   }, [userPos?.[0], userPos?.[1], startCoord?.[0], startCoord?.[1]]);
 
-  const flexList: StopFlex[] = useMemo(
-    () => computeFlex(remainingStops, flexOrigin, minutesNow()),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [remainingStops, flexOrigin?.[0], flexOrigin?.[1], clockTick],
-  );
-  const flexById = useMemo(
-    () => new Map(flexList.map((f) => [f.id, f])),
-    [flexList],
-  );
   const speedOpp = useMemo(
     () => findSpeedOpportunity(remainingStops, flexOrigin, minutesNow()),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1094,22 +1044,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
     void reoptRef.current({ silent: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [speedOpp.worth, speedOpp.savedMin, speedOpp.fixesViolations, routeStarted, runMode, pageVisible]);
-  const remainingServiceMinutes = useMemo(
-    () => remainingStops.reduce((sum, s) => sum + (s.duration_minutes || 0), 0),
-    [remainingStops],
-  );
-  /** Estimeret sluttid på dagen — service-tid + planlagt køretid (hvis kendt). */
-  const estimatedEndAt: string | null = useMemo(() => {
-    if (remainingStops.length === 0) return null;
-    const driveMin = route?.total_duration_minutes ?? 0;
-    // Kun vis hvis vi rent faktisk har en planlagt drive-tid > 0 (ellers er
-    // ruten ikke optimeret endnu og estimatet bliver misvisende).
-    if (driveMin <= 0) return null;
-    const totalMin = driveMin + remainingServiceMinutes;
-    if (totalMin <= 0) return null;
-    const end = new Date(Date.now() + totalMin * 60 * 1000);
-    return formatClock(end);
-  }, [remainingStops.length, remainingServiceMinutes, route?.total_duration_minutes]);
   const todayLabel = useMemo(() => formatDayDate(new Date()), []);
 
   /* Trafik-overvågning — robust mod GPS-jitter, omkørsel og korte ture.
@@ -1748,7 +1682,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     state,
                     themeColor,
                     s.id === highlightedId,
-                    flexById.get(s.id)?.level ?? null,
                   )}
                   eventHandlers={{ click: () => { setHighlightedId(s.id); setSelectedId(s.id); } }}
                 />
@@ -1798,9 +1731,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-foreground">Resten af ruten kan køres hurtigere</p>
                 <p className="mt-0.5 text-xs text-muted-foreground tabular-nums">
-                  {speedOpp.fixesViolations > 0
-                    ? "En anden rækkefølge redder en aftale med fast tid."
-                    : `Spar ca. ${Math.round(speedOpp.savedMin)} min og ${speedOpp.savedKm.toFixed(1)} km.`}
+                  {`En kortere rækkefølge kan spare ca. ${speedOpp.savedKm.toFixed(1)} km.`}
                 </p>
                 <div className="mt-2 flex gap-2">
                   <Button
@@ -1843,7 +1774,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   <p className="truncate text-[13px] font-semibold leading-tight text-background">{route.name || "Dagens rute"}</p>
                   <p className="mt-0.5 flex items-center gap-2 text-[10px] font-medium text-background/65">
                     <span>{completedCount}/{sortedStops.length} stop</span>
-                    {estimatedEndAt && <span className="flex items-center gap-1"><Flag className="h-3 w-3" />Færdig ca. {estimatedEndAt}</span>}
                   </p>
                 </div>
                 <Button
@@ -2045,16 +1975,12 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     </p>
                   )}
                 </div>
-                <div className="grid min-w-[104px] grid-rows-2 border-l border-background/15 text-right">
-                  <div className="border-b border-background/15 px-3 py-2">
+                <div className="min-w-[104px] border-l border-background/15 text-right">
+                  <div className="flex h-full flex-col justify-center px-3 py-2">
                     <p className="text-[9px] font-semibold uppercase text-background/55">Distance</p>
                     <p className="text-sm font-semibold tabular-nums">
                       {route.total_distance_km != null && route.total_distance_km > 0 ? `${route.total_distance_km.toFixed(1)} km` : "—"}
                     </p>
-                  </div>
-                  <div className="px-3 py-2">
-                    <p className="text-[9px] font-semibold uppercase text-background/55">Køretid</p>
-                    <p className="text-sm font-semibold tabular-nums">{formatHoursMin(route.total_duration_minutes)}</p>
                   </div>
                 </div>
               </div>
@@ -2292,7 +2218,7 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                   </p>
                 </div>
                 {/* Mini-stats */}
-                <div className="grid grid-cols-3 divide-x divide-border rounded-md border border-border bg-background overflow-hidden">
+                <div className="grid grid-cols-2 divide-x divide-border rounded-md border border-border bg-background overflow-hidden">
                   <div className="px-2 py-2.5">
                     <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Stop</p>
                     <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">{sortedStops.length}</p>
@@ -2301,12 +2227,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
                     <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Distance</p>
                     <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">
                       {route.total_distance_km != null ? `${route.total_distance_km.toFixed(1)} km` : "—"}
-                    </p>
-                  </div>
-                  <div className="px-2 py-2.5">
-                    <p className="text-[9px] uppercase text-muted-foreground font-semibold tracking-wide">Køretid</p>
-                    <p className="text-sm font-semibold tabular-nums text-foreground mt-0.5">
-                      {formatHoursMin(route.total_duration_minutes)}
                     </p>
                   </div>
                 </div>
@@ -2400,7 +2320,6 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
           if (s.latitude != null && s.longitude != null) setFollowMode(false);
         }}
         onOpenDetails={(s) => setSelectedId(s.id)}
-        flexById={flexById}
         canReorder={!allDone}
         reordering={reorderStops.isPending}
         onMoveStop={handleMoveStop}
@@ -2440,7 +2359,7 @@ MapInteractionWatcher.displayName = "MapInteractionWatcher";
 /* ─── Collapsible bottom stop-list with live status & map sync ─── */
 const StopListPanel = ({
   open, onToggle, stops, nextStopId, highlightedId, themeColor, onSelectStop, onOpenDetails,
-  flexById, canReorder, reordering, onMoveStop,
+  canReorder, reordering, onMoveStop,
 }: {
   open: boolean;
   onToggle: () => void;
@@ -2450,7 +2369,6 @@ const StopListPanel = ({
   themeColor: string;
   onSelectStop: (s: RouteStop) => void;
   onOpenDetails: (s: RouteStop) => void;
-  flexById: Map<string, StopFlex>;
   canReorder: boolean;
   reordering: boolean;
   onMoveStop: (stopId: string, dir: -1 | 1) => void;
@@ -2478,13 +2396,6 @@ const StopListPanel = ({
       text: "hsl(var(--muted-foreground))",
       dot: "hsl(var(--muted-foreground))",
     };
-  };
-
-  const formatPlannedTime = (iso: string | null | undefined): string | null => {
-    if (!iso) return null;
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return null;
-    return d.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
   };
 
   return (
@@ -2548,8 +2459,6 @@ const StopListPanel = ({
             const isDone = s.status === "completed";
             const isNext = s.id === nextStopId;
             const meta = statusMeta(s);
-            const plannedTime = null;
-            const flex = flexById.get(s.id) ?? null;
             const posInRemaining = remainingIds.indexOf(s.id);
             return (
               <div
@@ -2616,25 +2525,6 @@ const StopListPanel = ({
                       <MapPin className="h-3 w-3 shrink-0" />{s.full_address || s.address}
                     </p>
                   )}
-                  <div className="mt-0.5 flex items-center gap-2 flex-wrap">
-                    {!isDone && flex && (
-                      <span
-                        className="text-[10px] font-semibold tabular-nums flex items-center gap-1"
-                        style={{ color: FLEX_TONE[flex.level] }}
-                        title={
-                          flex.level === "flexible"
-                            ? "Kan flyttes frit i rækkefølgen"
-                            : "Begrænset af et aftalt tidsvindue"
-                        }
-                      >
-                        <span
-                          className="h-1.5 w-1.5 rounded-full"
-                          style={{ background: FLEX_TONE[flex.level] }}
-                        />
-                        {flex.label}
-                      </span>
-                    )}
-                  </div>
                 </div>
                 <div className="flex flex-col items-center justify-center gap-1 shrink-0">
                   {canReorder && !isDone && (

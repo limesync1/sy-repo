@@ -78,13 +78,12 @@ const computeRange = (
   }
 };
 
-const formatHours = (minutes: number) => {
-  if (!minutes) return "0t";
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  if (h === 0) return `${m}m`;
-  if (m === 0) return `${h}t`;
-  return `${h}t ${m}m`;
+const formatWorkTime = (seconds: number) => {
+  const safe = Math.max(0, Math.floor(seconds || 0));
+  const h = Math.floor(safe / 3600);
+  const m = Math.floor((safe % 3600) / 60);
+  const s = safe % 60;
+  return `${String(h).padStart(2, "0")} : ${String(m).padStart(2, "0")} : ${String(s).padStart(2, "0")}`;
 };
 
 const PAYMENT_LABEL: Record<string, string> = {
@@ -303,7 +302,7 @@ const EmployeeStats = () => {
                 { label: "Ruter", value: s.routesCount, icon: RouteIcon },
                 { label: "Opgaver", value: `${s.stopsCompleted}/${s.stopsTotal}`, icon: CheckCircle2 },
                 { label: "Arbejdsdage", value: s.workdaysCount, icon: CalendarIcon },
-                { label: "Arbejdstid", value: formatHours(s.workMinutes), icon: Clock },
+                 { label: "Arbejdstid", value: formatWorkTime(s.workSeconds), icon: Clock },
                 { label: "Distance", value: `${s.totalDistanceKm.toFixed(0)} km`, icon: MapPin },
               ].map(({ label, value, icon: Icon }, index) => (
                 <div
