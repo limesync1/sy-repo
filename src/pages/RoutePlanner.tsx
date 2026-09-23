@@ -3517,33 +3517,33 @@ const Planner = () => {
                 <Card
                    data-tour="routes-unassigned"
                    className={cn(
-                     "flex flex-col h-full overflow-hidden transition-colors duration-150 rounded-[5px] border-border/70 bg-card shadow-none",
+                      "planner-inbox flex flex-col h-full overflow-hidden transition-colors duration-150 border-0 bg-card shadow-none",
                       selectedJobIds.size > 0 && "ring-1 ring-accent/40",
                    )}
                  >
-                    <div className="relative px-3 pt-3 pb-2.5 border-b border-border/70 bg-secondary/20 space-y-2.5">
-                    <div aria-hidden className="absolute left-0 top-0 bottom-0 w-[3px] bg-foreground/80" />
-                    <div className="flex items-start gap-2.5 pr-10 xl:pr-0">
-                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-[4px] bg-foreground text-background shrink-0">
-                        <Inbox className="h-4 w-4 text-foreground" />
+                    <div className="planner-inbox-header relative px-4 pt-4 pb-3 border-b border-border/70 bg-secondary/35 space-y-3">
+                    <div aria-hidden className="absolute left-0 top-0 bottom-0 w-1 bg-accent" />
+                    <div className="flex items-start gap-3 pr-10 xl:pr-0">
+                      <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-accent text-accent-foreground shrink-0 shadow-sm">
+                        <Inbox className="h-[18px] w-[18px]" />
                       </span>
                       <div className="flex-1 min-w-0">
-                        <h2 className="flex items-center gap-1 font-bold text-sm leading-tight text-foreground tracking-tight">
+                        <h2 className="flex items-center gap-1 font-bold text-[15px] leading-tight text-foreground tracking-tight">
                           <span className="truncate">Aftaler uden rute</span>
                           <HelpTip feature="unassigned-panel" />
                         </h2>
                         {filteredUnassigned.length > 0 ? (
-                          <p className="text-[11px] text-muted-foreground leading-snug mt-0.5 truncate">
+                          <p className="text-xs text-muted-foreground leading-snug mt-1 truncate">
                             <span className="tabular-nums font-semibold text-foreground/80">{formatPrice(Math.round(unassignedTotal))}</span> samlet
                           </p>
                         ) : (
-                          <p className="text-[11px] text-muted-foreground leading-snug mt-0.5 truncate">
-                            Træk aftaler ind i kalenderen
+                          <p className="text-xs text-muted-foreground leading-snug mt-1 truncate">
+                            Alt er planlagt
                           </p>
                         )}
                       </div>
                       {filteredUnassigned.length > 0 && (
-                        <span className="inline-flex items-center justify-center min-w-7 h-7 px-2 rounded-[4px] bg-foreground text-background text-[11px] font-bold tabular-nums shrink-0">
+                        <span className="inline-flex items-center justify-center min-w-8 h-8 px-2 rounded-md bg-foreground text-background text-xs font-bold tabular-nums shrink-0">
                           {filteredUnassigned.length}
                         </span>
                       )}
@@ -3556,7 +3556,7 @@ const Planner = () => {
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         onKeyDown={(e) => { if (e.key === "Escape") { setSearch(""); (e.target as HTMLInputElement).blur(); } }}
-                        className="h-8 pl-7 pr-12 text-xs bg-background border-border/70 rounded-md shadow-[inset_0_1px_2px_hsl(var(--foreground)/0.04)]"
+                        className="h-9 pl-8 pr-12 text-xs bg-background border-border rounded-md shadow-none"
                       />
                       {search ? (
                         <button
@@ -4209,13 +4209,13 @@ const Planner = () => {
           );
 
           return (
-            <div className="flex-1 overflow-hidden bg-secondary/25 p-1.5 sm:p-2" style={{ height: "calc(100vh - 56px)" }}>
+             <div className="planner-canvas flex-1 overflow-hidden bg-secondary/45 p-2 lg:p-3" style={{ height: "calc(100vh - 56px)" }}>
               {/* Desktop (xl+, ≥1280px): resizable side-by-side med aftalepool venstre + kalender højre.
                   Under 1280px presses 7-kolonners grid + 225px aftalepool sammen til ulæseligt — så vi
                   bruger agenda-visningen i stedet (≤1279px). Topbaren har ikke plads til alle handlinger
                   før 2xl, så vi viser en kompakt toolbar oven på split-layoutet ved xl. */}
-              <div className="hidden h-full lg:flex lg:flex-col lg:gap-1.5">
-                <div className="shrink-0 rounded-[5px] border border-border/70 bg-card p-1.5 shadow-none 2xl:hidden">
+              <div className="hidden h-full lg:flex lg:flex-col lg:gap-2.5">
+                <div className="planner-toolbar shrink-0 rounded-md border border-border/70 bg-card px-2.5 py-2 shadow-sm 2xl:hidden">
                   <div className="flex flex-wrap items-center gap-1.5">
                     <Button
                       variant="outline"
@@ -4436,8 +4436,8 @@ const Planner = () => {
                   </div>
                 </div>
                 <div className="flex-1 min-h-0">
-                    <div className="grid h-full min-h-0 grid-cols-[22rem_minmax(0,1fr)] overflow-hidden rounded-[5px] border border-border/70 bg-background">
-                      <aside className="min-w-0 overflow-hidden border-r border-border/70 bg-card">
+                    <div className="planner-board grid h-full min-h-0 grid-cols-[23.5rem_minmax(0,1fr)] overflow-hidden rounded-md border border-border bg-background shadow-sm">
+                      <aside className="min-w-0 overflow-hidden border-r border-border bg-card">
                         {unassignedCard}
                       </aside>
                       <main className="min-w-0 overflow-hidden bg-background">
@@ -4450,8 +4450,8 @@ const Planner = () => {
               {/* Mobil/tablet/narrow desktop (<xl, <1280px): dedikeret toolbar + agenda-kalender fuld
                   bredde. Vi har bumpet breakpointet fra lg→xl så 1024–1279px viewports ikke længere
                   presses ind i et 7-kolonners grid hvor hver dagcelle bliver < 120px. */}
-              <div className="flex h-full flex-col gap-1.5 lg:hidden">
-                <div className="shrink-0 space-y-1.5 rounded-[5px] border border-border/70 bg-card p-1.5 shadow-none">
+              <div className="flex h-full flex-col gap-2 lg:hidden">
+                <div className="planner-mobile-toolbar shrink-0 space-y-2 rounded-md border border-border bg-card p-2 shadow-sm">
                   <div className="flex items-center gap-1.5">
                     <Button
                       variant="outline"
@@ -4620,8 +4620,8 @@ const Planner = () => {
                   </div>
 
                 </div>
-                <div className="grid min-h-0 flex-1 grid-rows-[minmax(12rem,34dvh)_minmax(15rem,1fr)] overflow-hidden rounded-[5px] border border-border/70 bg-background">
-                  <section className="min-h-0 overflow-hidden border-b-2 border-foreground/10" aria-label="Aftaler uden rute">
+                <div className="planner-mobile-board grid min-h-0 flex-1 grid-rows-[minmax(17rem,38dvh)_minmax(18rem,1fr)] overflow-hidden rounded-md border border-border bg-background shadow-sm">
+                  <section className="min-h-0 overflow-hidden border-b border-border" aria-label="Aftaler uden rute">
                     {unassignedCard}
                   </section>
                   <section className="min-h-0 overflow-hidden" aria-label="Rutekalender">

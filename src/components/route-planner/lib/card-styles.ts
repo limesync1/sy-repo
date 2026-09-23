@@ -4,21 +4,21 @@
 
 /* Aftalekort-aliasser (bagudkompatibilitet). Pege på de fælles PILL-tokens
  * herunder — så ALT kører på samme design-token-pakke. */
-export const CARD_BORDER = "border-border/55";
+export const CARD_BORDER = "border-border/80";
 export const CARD_HOVER =
-  "hover:border-foreground/30 hover:bg-secondary/30";
+  "hover:border-accent/55 hover:bg-accent/[0.025] hover:shadow-sm";
 export const CARD_SELECTED =
   "border-accent ring-1 ring-accent/30 bg-accent/[0.025]";
 export const CARD_DRAGGING = "ring-1 ring-accent opacity-95";
 /** Bredde på venstre-accent-stribe — ens på tværs af alle kort. */
-export const CARD_RAIL_WIDTH = "w-[3px]";
+export const CARD_RAIL_WIDTH = "w-1";
 
 /** Basis-container for et aftalekort — bygget oven på de fælles PILL-tokens
  *  så aftalekort og rute-piller deler præcis samme radius, kant, skygge og
  *  transition. */
 export const CARD_BASE =
-  `group relative rounded-[5px] border bg-card overflow-hidden ` +
-  "transition-[background-color,border-color] duration-150 ease-out";
+  `group relative rounded-md border bg-card overflow-hidden shadow-sm ` +
+  "transition-[background-color,border-color,box-shadow] duration-150 ease-out";
 
 /* ─────────────────────────────────────────────────────────────────────────
    FÆLLES PILL/CARD DESIGN-TOKENS
@@ -37,10 +37,10 @@ export const PILL_RADIUS_SM = "rounded-[4px]";
 export const PILL_BORDER = "border border-border/55";
 /** Standard skygge — multi-layer, blød elevation. */
 export const PILL_SHADOW =
-  "shadow-none";
+  "shadow-sm";
 /** Hover-skygge — dybere elevation. */
 export const PILL_SHADOW_HOVER =
-  "hover:shadow-none";
+  "hover:shadow-md";
 /** Standard transition for pille/kort-stilarter. */
 export const PILL_TRANSITION =
   "transition-[background-color,border-color,opacity] duration-150 ease-out";

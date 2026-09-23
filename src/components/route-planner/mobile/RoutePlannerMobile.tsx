@@ -1052,7 +1052,6 @@ function UnassignedDock({
   setSearch,
   jobs,
   total,
-  onAssign,
   dragActive,
   isStopDrag,
   selectMode,
@@ -1067,7 +1066,6 @@ function UnassignedDock({
   setSearch: (v: string) => void;
   jobs: any[];
   total: number;
-  onAssign: (job: any) => void;
   dragActive: boolean;
   isStopDrag: boolean;
   selectMode: boolean;
