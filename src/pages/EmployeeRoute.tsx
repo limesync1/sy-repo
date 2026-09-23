@@ -1998,8 +1998,8 @@ const RouteView = ({ routeId, onBack }: { routeId: string; onBack: () => void })
 
         {/* ─── Active driving card ─── */}
         {routeStarted && !allDone && nextStop && (
-          <div className="absolute bottom-[52px] inset-x-0 z-[1000] p-2 pointer-events-none sm:bottom-[60px] sm:p-4">
-            <Card className="route-drive-dock mx-auto max-w-2xl overflow-hidden pointer-events-auto rounded-md border-border/80 shadow-xl bg-card/97 backdrop-blur-md supports-[backdrop-filter]:bg-card/92">
+          <div className="pointer-events-none absolute bottom-[52px] inset-x-0 z-[1000] p-2 sm:bottom-[60px] sm:p-4 lg:left-auto lg:right-3 lg:w-[30rem] lg:p-0">
+            <Card className="route-drive-dock pointer-events-auto mx-auto max-w-2xl overflow-hidden rounded-md border-border/80 bg-card/97 shadow-xl backdrop-blur-md supports-[backdrop-filter]:bg-card/92">
               {/* Segmenteret progress — tynd, diskret */}
               <div className="flex gap-1 bg-secondary/60 px-3 py-1.5">
                 {sortedStops.map((s, i) => (

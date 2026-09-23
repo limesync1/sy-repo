@@ -10,7 +10,6 @@ import {
   MapPin,
   Navigation2,
   Phone,
-  PartyPopper,
   Undo2,
   Loader2,
   BellRing,
@@ -18,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { RouteStop } from "@/hooks/useRoutes";
+import { stripPrices } from "@/lib/employee-display";
 
 /**
  * Tjekliste-tilstand: den simple måde at køre en rute på.
@@ -74,10 +74,10 @@ export const RouteChecklistView = ({
   const addressOf = (s: RouteStop) => s.full_address || s.address || null;
 
   return (
-    <div className="employee-route-run flex min-h-dvh flex-col bg-surface">
+    <div className="employee-route-run flex min-h-dvh flex-col bg-secondary/35">
       {/* Header */}
       <header className="sticky top-0 z-20 shrink-0 border-b border-border bg-card text-foreground shadow-sm">
-        <div className="mx-auto flex h-14 w-full max-w-2xl items-center gap-2 px-2 sm:h-16 sm:px-5">
+        <div className="mx-auto flex h-14 w-full max-w-4xl items-center gap-2 px-2 sm:px-5">
           <Button asChild variant="ghost" size="icon" className="h-10 w-10 shrink-0 rounded-md">
             <Link to="/medarbejder" aria-label="Tilbage til dagens ruter">
               <ArrowLeft className="h-5 w-5" />
@@ -101,7 +101,7 @@ export const RouteChecklistView = ({
         </div>
         <div className="h-1 w-full bg-secondary" aria-hidden>
           <div
-            className="h-full transition-all duration-500 ease-out"
+            className="h-full transition-all duration-500 ease-out bg-accent"
             style={{ width: `${progress}%`, background: themeColor }}
           />
         </div>
@@ -109,7 +109,7 @@ export const RouteChecklistView = ({
 
       {notification && (
         <div className="border-b border-destructive/25 bg-destructive/5 px-3 py-2.5">
-          <div className="mx-auto flex max-w-2xl items-start gap-2.5">
+          <div className="mx-auto flex max-w-4xl items-start gap-2.5">
             <BellRing className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
             <div className="min-w-0 flex-1">
               <p className="truncate text-[10px] font-semibold uppercase text-destructive">{notification.title}</p>
@@ -122,11 +122,11 @@ export const RouteChecklistView = ({
         </div>
       )}
 
-      <main className="mx-auto w-full max-w-2xl flex-1 px-2.5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2.5 sm:px-5 sm:pt-5">
+      <main className="mx-auto w-full max-w-4xl flex-1 px-2.5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2.5 sm:px-5 sm:pt-5">
         {allDone ? (
           <section className="rounded-md border border-border bg-card p-6 text-center">
-            <span className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-full bg-success/10 text-success">
-              <PartyPopper className="h-7 w-7" />
+            <span className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-md bg-success/10 text-success">
+              <CheckCircle2 className="h-6 w-6" />
             </span>
             <h2 className="mt-3 text-xl font-bold text-foreground">Ruten er kørt færdig</h2>
             <p className="mt-1.5 text-sm text-muted-foreground">
@@ -141,7 +141,7 @@ export const RouteChecklistView = ({
             {/* Næste stop — det eneste der fylder */}
             {next && (
               <section
-                className="overflow-hidden rounded-md border border-border bg-card shadow-sm"
+                className="overflow-hidden rounded-[5px] border border-border bg-card shadow-sm"
                 aria-label="Næste stop"
               >
                 <div className="flex items-center gap-2 border-b border-border bg-secondary/45 px-3 py-2 text-foreground">
@@ -164,9 +164,9 @@ export const RouteChecklistView = ({
                     {addressOf(next)}
                   </p>
                 )}
-                {next.service_summary && (
+                {next.service_summary && stripPrices(next.service_summary) && (
                   <p className="mt-2 rounded-[4px] bg-secondary/60 px-3 py-2 text-[13px] leading-5 text-foreground">
-                    {next.service_summary}
+                    {stripPrices(next.service_summary)}
                   </p>
                 )}
 
@@ -230,7 +230,7 @@ export const RouteChecklistView = ({
                 <ul className="mt-2 space-y-2">
                   {remaining.slice(1).map((s, i) => (
                     <li key={s.id}>
-                        <div className="flex min-h-14 items-center gap-2.5 rounded-md border border-border bg-card px-2.5 py-2 shadow-sm">
+                         <div className="flex min-h-14 items-center gap-2.5 rounded-[5px] border border-border bg-card px-2.5 py-2 shadow-sm transition-colors hover:border-accent/25 hover:bg-secondary/25">
                          <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-[4px] bg-secondary text-[12px] font-semibold text-muted-foreground">
                           {completed.length + i + 2}
                         </span>
